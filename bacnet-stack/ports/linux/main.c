@@ -57,7 +57,7 @@ void Process_APDU(
   BACNET_ADDRESS *src,  // source address
   uint8_t *apdu, // APDU data
   uint16_t pdu_len, // length of the PDU 
-  uint8_t invoke_id); // for confirmed messages
+  uint8_t invoke_id) // for confirmed messages
 {
 
 }
@@ -68,6 +68,7 @@ void Process_PDU(
   uint16_t pdu_len) // length PDU 
 {
   uint8_t invoke_id = 0;
+  int apdu_offset = 0;
   
   apdu_offset = npdu_decode(
     &src,  // source address - get the SADR/SNET if in there
@@ -86,7 +87,6 @@ void Process_PDU(
 void Send_IAm(void)
 {
   int pdu_len = 0;
-  uint8_t invoke_id = 0;
   BACNET_ADDRESS dest;
   BACNET_ADDRESS src;
 
@@ -101,8 +101,7 @@ void Send_IAm(void)
     &dest,
     &src,
     false,  // true for confirmed messages
-    MESSAGE_PRIORITY_NORMAL,
-    invoke_id);
+    MESSAGE_PRIORITY_NORMAL);
 
   // encode the APDU portion of the packet
   pdu_len += iam_encode_apdu(

@@ -1,23 +1,58 @@
+/*####COPYRIGHTBEGIN####
+ -------------------------------------------
+ Copyright (C) 2005 Steve Karg
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to:
+ The Free Software Foundation, Inc.
+ 59 Temple Place - Suite 330
+ Boston, MA  02111-1307, USA.
+
+ As a special exception, if other files instantiate templates or
+ use macros or inline functions from this file, or you compile
+ this file and link it with other works to produce a work based
+ on this file, this file does not by itself cause the resulting
+ work to be covered by the GNU General Public License. However
+ the source code for this file must still be made available in
+ accordance with section (3) of the GNU General Public License.
+
+ This exception does not invalidate any other reasons why a work
+ based on this file might be covered by the GNU General Public
+ License.
+ -------------------------------------------
+####COPYRIGHTEND####*/
+
 #include <stdio.h>              /* Standard I/O */
 #include <stdlib.h>             /* Standard Library */
 #include <errno.h>              /* Error number and related */
-#include <sys/time.h>           /* System time values */
-#include <sys/types.h>          /* System data types */
-#include <sys/stat.h>           /* File statistics */
-#include <unistd.h>             /* Command-line options */
-#include <fcntl.h>              /* FD-based file-control */
-#include <string.h>             /* string hanfling functions */
-#include <signal.h>             /* signal handling functions */
-#include <time.h>               /* time functions */
-#include <stdarg.h>
 #include <stdint.h>             // for standard integer types uint8_t etc.
 #include <stdbool.h>            // for the standard bool type.
+//#include <sys/time.h>           /* System time values */
+//#include <sys/types.h>          /* System data types */
+//#include <sys/stat.h>           /* File statistics */
+//#include <unistd.h>             /* Command-line options */
+//#include <fcntl.h>              /* FD-based file-control */
+//#include <string.h>             /* string hanfling functions */
+//#include <signal.h>             /* signal handling functions */
+//#include <time.h>               /* time functions */
+//#include <stdarg.h>
 
 #define ENUMS
 #include <sys/socket.h>
-#include <net/route.h>
-#include <net/if.h>
-#include <features.h>           /* for the glibc version number */
+//#include <net/route.h>
+//#include <net/if.h>
+//#include <features.h>           /* for the glibc version number */
+
 #if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
 #include <netpacket/packet.h>
 #include <net/ethernet.h>       /* the L2 protocols */
@@ -26,13 +61,15 @@
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>     /* The L2 protocols */
 #endif
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/un.h>
-#include <sys/ioctl.h>
-#include <netdb.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+//#include <sys/un.h>
+//#include <sys/ioctl.h>
+//#include <netdb.h>
 
 #include "bacdef.h"
+#include "ethernet.h"
+#include "bacdcode.h"
 
  // commonly used comparison address for ethernet
 uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
@@ -50,18 +87,13 @@ bool ethernet_valid(void)
   return (eth802_sockfd >= 0);
 }
 
-static int ethernet_socket(void)
-{
-  return eth802_sockfd;
-}
-
 bool ethernet_cleanup(void)
 {
-    if (ethernet_valid())
-        close(eth802_sockfd);
-    eth802_sockfd = -1;
+  if (ethernet_valid())
+      close(eth802_sockfd);
+  eth802_sockfd = -1;
 
-    return true;    
+  return true;    
 }
 
 /* opens an 802.2 socket to receive and send packets */
@@ -132,9 +164,6 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
 bool ethernet_init(char *interface_name)
 {
     get_local_hwaddr(interface_name, Ethernet_MAC_Address);
-    debug_printf(2, "ethernet: Local MAC=%s\n",
-            hwaddrtoa(Ethernet_MAC_Address));
-
     eth802_sockfd =
         ethernet_bind(&eth_addr, interface_name);
 
@@ -153,7 +182,6 @@ int ethernet_send(
     int bytes = 0;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
-    int packet_len = 0;
     int i = 0;
 
     // don't waste time if the socket is not valid
@@ -207,7 +235,7 @@ int ethernet_send(
     }
     /* packet length */
     mtu_len += encode_unsigned16(&mtu[12], 
-      3 /*DSAP,SSAP,LLC*/ + pdu_len)
+      3 /*DSAP,SSAP,LLC*/ + pdu_len);
     // Logical PDU portion
     mtu[mtu_len++] = 0x82; /* DSAP for BACnet */
     mtu[mtu_len++] = 0x82; /* SSAP for BACnet */
@@ -221,8 +249,9 @@ int ethernet_send(
         (struct sockaddr *) &eth_addr, sizeof(struct sockaddr));
     /* did it get sent? */
     if (bytes < 0) {            
-        fprintf("ethernet: Error sending packet: %s\n", strerror(errno));
-        return status;
+      fprintf(stderr,"ethernet: Error sending packet: %s\n", 
+        strerror(errno));
+      return status;
     }
     
     // got this far - must be good!
@@ -244,11 +273,11 @@ int ethernet_send_pdu(
   for (i = 0; i < 6; i++)
   {
     src.mac[i] = Ethernet_MAC_Address[i];
-    src->mac_len++;
+    src.mac_len++;
   }
   /* function to send a packet out the 802.2 socket */
   /* returns 1 on success, 0 on failure */
-  return ethernet_send_pdu(dest,  // destination address
+  return ethernet_send(dest,  // destination address
     &src,  // source address
     pdu, // any data to be sent - may be null
     pdu_len); // number of bytes of data
@@ -264,7 +293,6 @@ uint16_t ethernet_receive(
     int received_bytes;
     uint8_t buf[MAX_MPDU] = {0}; // data
     uint16_t pdu_len = 0; // return value
-    unsigned i = 0; // counter
 
     /* Make sure the socket is open */
     if (eth802_sockfd <= 0)
@@ -300,7 +328,7 @@ uint16_t ethernet_receive(
         return 0;
     }
 
-    (void)decode_unsigned16(&buf[12],&pdu_len)
+    (void)decode_unsigned16(&buf[12],&pdu_len);
     pdu_len -= 3 /* DSAP, SSAP, LLC Control */ ;
     // copy the buffer into the PDU
     if (pdu_len < max_pdu)
@@ -311,6 +339,8 @@ uint16_t ethernet_receive(
 
 void ethernet_get_my_address(BACNET_ADDRESS *my_address)
 {
+  int i = 0;
+  
   my_address->mac_len = 0;
   my_address->net = 0; // local only, no routing
   for (i = 0; i < 6; i++)
