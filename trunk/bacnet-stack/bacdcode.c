@@ -35,14 +35,11 @@
 #include <string.h>
 #include <assert.h>
 
+#include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bits.h"
 #include "bigend.h"
-
-#ifndef MAX_APDU
-#define MAX_APDU 480
-#endif
 
 // NOTE: byte order plays a role in decoding multibyte values
 // http://www.unixpapa.com/incnote/byteorder.html
@@ -121,36 +118,91 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
     return octet;
 }
 
-int encode_bacnet_unsigned16(uint8_t * apdu, uint16_t value)
+int encode_unsigned16(uint8_t * apdu, uint16_t value)
 {
-    int len = 0;                // return value
+    union {
+        uint8_t byte[2];
+        uint16_t value;
+    } short_data = {{0}};
 
-    if (value < 0x100) {
-        apdu[0] = value;
-        apdu[1] = 0;
-        len = 2;
+    short_data.value = value;
+    if (big_endian()) {
+        apdu[0] = short_data.byte[0];
+        apdu[1] = short_data.byte[1];
     } else {
-        apdu[0] = value / 0x100;
-        apdu[1] = value - (apdu[0] * 0x100);
-        len = 2;
+        apdu[0] = short_data.byte[1];
+        apdu[1] = short_data.byte[0];
     }
 
-    return len;
+    return 2;
 }
 
 int decode_unsigned16(uint8_t * apdu, uint16_t *value)
 {
-    int len = 0;                // return value
+    union {
+        uint8_t byte[2];
+        uint16_t value;
+    } short_data = {{0}};
 
-    if (value)
-    {
-        *value = (apdu[len] * 0x100) + apdu[len + 1];
-        len = 2;
+    if (big_endian()) {
+        short_data.byte[0] = apdu[0];
+        short_data.byte[1] = apdu[1];
+    } else {
+        short_data.byte[1] = apdu[0];
+        short_data.byte[0] = apdu[1];
     }
+    if (value)
+        *value = short_data.value;
 
-    return len;
+    return 2;
 }
 
+int encode_unsigned32(uint8_t * apdu, uint32_t value)
+{
+    union {
+        uint8_t byte[4];
+        uint32_t value;
+    } long_data = {{0}};
+
+    long_data.value = value;
+    if (big_endian()) {
+        apdu[0] = long_data.byte[0];
+        apdu[1] = long_data.byte[1];
+        apdu[2] = long_data.byte[2];
+        apdu[3] = long_data.byte[3];
+    } else {
+        apdu[0] = long_data.byte[3];
+        apdu[1] = long_data.byte[2];
+        apdu[2] = long_data.byte[1];
+        apdu[3] = long_data.byte[0];
+    }
+
+    return 4;
+}
+
+int decode_unsigned32(uint8_t * apdu, uint32_t *value)
+{
+    union {
+        uint8_t byte[4];
+        uint32_t value;
+    } long_data = {{0}};
+
+    if (big_endian()) {
+        long_data.byte[0] = apdu[0];
+        long_data.byte[1] = apdu[1];
+        long_data.byte[2] = apdu[2];
+        long_data.byte[3] = apdu[3];
+    } else {
+        long_data.byte[3] = apdu[0];
+        long_data.byte[2] = apdu[1];
+        long_data.byte[1] = apdu[2];
+        long_data.byte[0] = apdu[3];
+    }
+    if (value)
+        *value = long_data.value;
+
+    return 4;
+}
 
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
@@ -158,16 +210,6 @@ int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
     uint32_t len_value_type)
 {
     int len = 1;                // return value
-    union {
-        uint8_t byte[2];
-        uint16_t value;
-    } short_data = { {
-    0}};
-    union {
-        uint8_t byte[4];
-        uint32_t value;
-    } long_data = { {
-    0}};
 
     apdu[0] = 0;
     if (context_specific)
@@ -190,36 +232,13 @@ int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
     else {
         apdu[0] |= 5;
         if (len_value_type <= 253) {
-            apdu[len] = len_value_type;
-            len++;
+            apdu[len++] = len_value_type;
         } else if (len_value_type <= 65535) {
-            apdu[len] = 254;
-            len++;
-            short_data.value = len_value_type;
-            if (big_endian()) {
-                apdu[len + 0] = short_data.byte[0];
-                apdu[len + 1] = short_data.byte[1];
-            } else {
-                apdu[len + 0] = short_data.byte[1];
-                apdu[len + 1] = short_data.byte[0];
-            }
-            len += 2;
+            apdu[len++] = 254;
+            len += encode_unsigned16(&apdu[len], len_value_type);
         } else {
-            apdu[len] = 255;
-            len++;
-            long_data.value = len_value_type;
-            if (big_endian()) {
-                apdu[len + 0] = long_data.byte[0];
-                apdu[len + 1] = long_data.byte[1];
-                apdu[len + 2] = long_data.byte[2];
-                apdu[len + 3] = long_data.byte[3];
-            } else {
-                apdu[len + 0] = long_data.byte[3];
-                apdu[len + 1] = long_data.byte[2];
-                apdu[len + 2] = long_data.byte[1];
-                apdu[len + 3] = long_data.byte[0];
-            }
-            len += 4;
+            apdu[len++] = 255;
+            len += encode_unsigned32(&apdu[len], len_value_type);
         }
     }
 
@@ -329,16 +348,8 @@ int decode_tag_number_and_value(uint8_t * apdu,
     uint8_t * tag_number, uint32_t * value)
 {
     int len = 1;
-    union {
-        uint8_t byte[2];
-        uint16_t value;
-    } short_data = { {
-    0}};
-    union {
-        uint8_t byte[4];
-        uint32_t value;
-    } long_data = { {
-    0}};
+    uint16_t value16;
+    uint32_t value32;
 
     len = decode_tag_number(&apdu[0], tag_number);
     // decode the value
@@ -346,36 +357,16 @@ int decode_tag_number_and_value(uint8_t * apdu,
         // tagged as uint32_t
         if (apdu[len] == 255) {
             len++;
-            if (big_endian()) {
-                long_data.byte[0] = apdu[len + 0];
-                long_data.byte[1] = apdu[len + 1];
-                long_data.byte[2] = apdu[len + 2];
-                long_data.byte[3] = apdu[len + 3];
-            } else {
-                long_data.byte[3] = apdu[len + 0];
-                long_data.byte[2] = apdu[len + 1];
-                long_data.byte[1] = apdu[len + 2];
-                long_data.byte[0] = apdu[len + 3];
-            }
+            len += decode_unsigned32(&apdu[len], &value32);
             if (value)
-                *value = long_data.value;
-            len += 4;
-
+              *value = value32;
         }
         // tagged as uint16_t
         else if (apdu[len] == 254) {
             len++;
-            if (big_endian()) {
-                short_data.byte[0] = apdu[len + 0];
-                short_data.byte[1] = apdu[len + 1];
-            } else {
-                short_data.byte[1] = apdu[len + 0];
-                short_data.byte[0] = apdu[len + 1];
-            }
+            len += decode_unsigned16(&apdu[len], &value16);
             if (value)
-                *value = short_data.value;
-            len += 2;
-
+              *value = value16;
         }
         // no tag - must be uint8_t 
         else {
@@ -502,55 +493,29 @@ int encode_tagged_real(uint8_t * apdu, float value)
 
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // returns the number of apdu bytes consumed
-int decode_object_id(uint8_t * apdu, int *object_type, uint32_t *instance)
+int decode_object_id(uint8_t *apdu, int *object_type, uint32_t *instance)
 {
-    union {
-        uint8_t byte[4];
-        uint32_t value;
-    } my_data;
+    uint32_t value = 0;
+    int len = 0;
 
-    if (big_endian()) {
-        my_data.byte[0] = apdu[0];
-        my_data.byte[1] = apdu[1];
-        my_data.byte[2] = apdu[2];
-        my_data.byte[3] = apdu[3];
-    } else {
-        my_data.byte[0] = apdu[3];
-        my_data.byte[1] = apdu[2];
-        my_data.byte[2] = apdu[1];
-        my_data.byte[3] = apdu[0];
-    }
+    len = decode_unsigned32(apdu,&value);
+    *object_type = ((value >> 22) & 0x3FF);
+    *instance = (value & 0x3FFFFF);
 
-    *object_type = ((my_data.value >> 22) & 0x3FF);
-    *instance = (my_data.value & 0x3FFFFF);
-
-    return 4;
+    return len;
 }
 
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // returns the number of apdu bytes consumed
 int encode_bacnet_object_id(uint8_t * apdu, int object_type, uint32_t instance)
 {
-    union {
-        uint8_t byte[4];
-        uint32_t value;
-    } my_data;
+    uint32_t value = 0;
+    int len = 0;
 
-    my_data.value = ((object_type & 0x3FF) << 22) | (instance & 0x3FFFFF);
+    value = ((object_type & 0x3FF) << 22) | (instance & 0x3FFFFF);
+    len = encode_unsigned32(apdu,value);
 
-    if (big_endian()) {
-        apdu[0] = my_data.byte[0];
-        apdu[1] = my_data.byte[1];
-        apdu[2] = my_data.byte[2];
-        apdu[3] = my_data.byte[3];
-    } else {
-        apdu[0] = my_data.byte[3];
-        apdu[1] = my_data.byte[2];
-        apdu[2] = my_data.byte[1];
-        apdu[3] = my_data.byte[0];
-    }
-
-    return 4;
+    return len;
 }
 
 // from clause 20.2.14 Encoding of an Object Identifier Value
@@ -664,6 +629,7 @@ int decode_character_string(uint8_t * apdu, uint32_t len_value,
 // from clause 20.2.4 Encoding of an Unsigned Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
+// FIXME: What about endian?
 int encode_bacnet_unsigned(uint8_t * apdu, unsigned int value)
 {
     int len = 0;                // return value
@@ -724,6 +690,7 @@ int encode_tagged_unsigned(uint8_t * apdu, unsigned int value)
 // from clause 20.2.4 Encoding of an Unsigned Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
+// FIXME: What about endian?
 int decode_unsigned(uint8_t * apdu, uint32_t len_value, unsigned *value)
 {
     int len = 0;                // return value
