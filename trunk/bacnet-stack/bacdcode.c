@@ -36,7 +36,7 @@
 
 #include "bacdcode.h"
 #include "bits.h"
-#include "bigendian.h"
+#include "bigend.h"
 
 #ifndef MAX_APDU
 #define MAX_APDU 480
