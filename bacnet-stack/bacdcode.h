@@ -48,16 +48,21 @@ int encode_opening_tag(uint8_t * apdu, uint8_t tag_number);
 int encode_closing_tag(uint8_t * apdu, uint8_t tag_number);
 int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
     uint32_t * value);
+// returns true if the tag is context specific
 bool decode_is_context_specific(uint8_t * apdu);
+// returns true if the tag is an opening tag
 bool decode_is_opening_tag(uint8_t * apdu);
+// returns true if the tag is an closing tag
 bool decode_is_closing_tag(uint8_t * apdu);
+// returns true if the tag is context specific and matches
+bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number);
 
 // from clause 20.2.6 Encoding of a Real Number Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int decode_real(uint8_t * apdu, float *real_value);
 int encode_bacnet_real(float value, uint8_t * apdu);
-int encode_real(uint8_t * apdu, float value);
+int encode_tagged_real(uint8_t * apdu, float value);
 
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
@@ -66,7 +71,7 @@ int decode_object_id(uint8_t * apdu, int *object_type, int *instance);
 int encode_bacnet_object_id(uint8_t * apdu, int object_type, int instance);
 int encode_context_object_id(uint8_t * apdu, int tag_number,
     int object_type, int instance);
-int encode_object_id(uint8_t * apdu, int object_type, int instance);
+int encode_tagged_object_id(uint8_t * apdu, int object_type, int instance);
 
 // from clause 20.2.9 Encoding of a Character String Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
@@ -75,7 +80,7 @@ int encode_bacnet_string(uint8_t * apdu,
     const char *char_string, int string_len);
 int encode_bacnet_character_string(uint8_t * apdu,
     const char *char_string);
-int encode_character_string(uint8_t * apdu, const char *char_string);
+int encode_tagged_character_string(uint8_t * apdu, const char *char_string);
 int decode_character_string(uint8_t * apdu, char *char_string);
 
 // from clause 20.2.4 Encoding of an Unsigned Integer Value
@@ -83,14 +88,14 @@ int decode_character_string(uint8_t * apdu, char *char_string);
 // returns the number of apdu bytes consumed
 int encode_bacnet_unsigned(uint8_t * apdu, unsigned int value);
 int encode_context_unsigned(uint8_t * apdu, int tag_number, int value);
-int encode_unsigned(uint8_t * apdu, unsigned int value);
+int encode_tagged_unsigned(uint8_t * apdu, unsigned int value);
 int decode_unsigned(uint8_t * apdu, int *value);
 
 // from clause 20.2.5 Encoding of a Signed Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_bacnet_signed(uint8_t * apdu, int value);
-int encode_signed(uint8_t * apdu, int value);
+int encode_tagged_signed(uint8_t * apdu, int value);
 int encode_context_signed(uint8_t * apdu, int tag_number, int value);
 int decode_signed(uint8_t * apdu, int *value);
 
@@ -99,7 +104,7 @@ int decode_signed(uint8_t * apdu, int *value);
 // returns the number of apdu bytes consumed
 int decode_enumerated(uint8_t * apdu, int *value);
 int encode_bacnet_enumerated(uint8_t * apdu, int value);
-int encode_enumerated(uint8_t * apdu, int value);
+int encode_tagged_enumerated(uint8_t * apdu, int value);
 int encode_context_enumerated(uint8_t * apdu, int tag_number, int value);
 
 // from clause 20.2.13 Encoding of a Time Value
@@ -107,7 +112,7 @@ int encode_context_enumerated(uint8_t * apdu, int tag_number, int value);
 // returns the number of apdu bytes consumed
 int encode_bacnet_time(uint8_t * apdu, int hour, int min, int sec,
     int hundredths);
-int encode_time(uint8_t * apdu, int hour, int min, int sec,
+int encode_tagged_time(uint8_t * apdu, int hour, int min, int sec,
     int hundredths);
 int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
     int *hundredths);
@@ -123,7 +128,7 @@ int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
 // returns the number of apdu bytes consumed
 int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
     int wday);
-int encode_date(uint8_t * apdu, int year, int month, int day, int wday);
+int encode_tagged_date(uint8_t * apdu, int year, int month, int day, int wday);
 int decode_date(uint8_t * apdu, int *year, int *month, int *day,
     int *wday);
 

@@ -200,6 +200,25 @@ bool decode_is_closing_tag(uint8_t * apdu)
     return ((apdu[0] & 0x07) == 7);
 }
 
+int decode_tag_number(uint8_t * apdu,
+    uint8_t * tag_number)
+{
+    int len = 1; // return value
+
+    // decode the tag number first
+    if (decode_is_extended_tag_number(&apdu[0])) {
+        // extended tag
+        if (tag_number)
+            *tag_number = apdu[1];
+        len++;
+    } else {
+        if (tag_number)
+            *tag_number = (apdu[0] >> 4);
+    }
+
+    return len;
+}
+
 // from clause 20.2.1.3.2 Constructed Data
 // returns the number of apdu bytes consumed
 // from clause 20.2.1.3.2 Constructed Data
@@ -219,16 +238,8 @@ int decode_tag_number_and_value(uint8_t * apdu,
     } long_data = { {
     0}};
 
-    // decode the tag number first
-    if (decode_is_extended_tag_number(&apdu[0])) {
-        // extended tag
-        if (tag_number)
-            *tag_number = apdu[1];
-        len++;
-    } else {
-        if (tag_number)
-            *tag_number = (apdu[0] >> 4);
-    }
+    len = decode_tag_number(&apdu[0],tag_number);
+    // decode the value
     if (decode_is_extended_value(&apdu[0])) {
         // tagged as uint32_t
         if (apdu[len] == 255) {
@@ -280,6 +291,19 @@ int decode_tag_number_and_value(uint8_t * apdu,
         *value = apdu[0] & 0x07;
 
     return len;
+}
+
+// from clause 20.2.1.3.2 Constructed Data
+// returns true if the tag is context specific and matches
+bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number)
+{
+    uint8_t my_tag_number = 0;
+    bool context_specific = false;
+
+    context_specific = decode_is_context_specific(apdu);
+    decode_tag_number(apdu,&my_tag_number);
+
+    return (context_specific && (my_tag_number == tag_number));
 }
 
 // from clause 20.2.6 Encoding of a Real Number Value
@@ -337,7 +361,7 @@ int encode_bacnet_real(float value, uint8_t * apdu)
 // from clause 20.2.6 Encoding of a Real Number Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_real(uint8_t * apdu, float value)
+int encode_tagged_real(uint8_t * apdu, float value)
 {
     int len = 0;
 
@@ -419,7 +443,7 @@ int encode_context_object_id(uint8_t * apdu, int tag_number,
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_object_id(uint8_t * apdu, int object_type, int instance)
+int encode_tagged_object_id(uint8_t * apdu, int object_type, int instance)
 {
     int len = 0;
 
@@ -464,7 +488,7 @@ int encode_bacnet_character_string(uint8_t * apdu, const char *char_string)
 // from clause 20.2.9 Encoding of a Character String Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_character_string(uint8_t * apdu, const char *char_string)
+int encode_tagged_character_string(uint8_t * apdu, const char *char_string)
 {
     int len = 0;
     int string_len = 0;
@@ -556,7 +580,7 @@ int encode_context_unsigned(uint8_t * apdu, int tag_number, int value)
 // from clause 20.2.4 Encoding of an Unsigned Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_unsigned(uint8_t * apdu, unsigned int value)
+int encode_tagged_unsigned(uint8_t * apdu, unsigned int value)
 {
     int len = 0;
 
@@ -622,7 +646,7 @@ int encode_bacnet_enumerated(uint8_t * apdu, int value)
 // from clause 20.2.11 Encoding of an Enumerated Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_enumerated(uint8_t * apdu, int value)
+int encode_tagged_enumerated(uint8_t * apdu, int value)
 {
     int len = 0;                // return value
 
@@ -667,7 +691,7 @@ int encode_bacnet_signed(uint8_t * apdu, int value)
 // from clause 20.2.5 Encoding of a Signed Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_signed(uint8_t * apdu, int value)
+int encode_tagged_signed(uint8_t * apdu, int value)
 {
     int len = 0;                // return value
 
@@ -710,7 +734,7 @@ int encode_bacnet_time(uint8_t * apdu, int hour, int min, int sec,
 // from clause 20.2.13 Encoding of a Time Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_time(uint8_t * apdu, int hour, int min, int sec, int hundredths)
+int encode_tagged_time(uint8_t * apdu, int hour, int min, int sec, int hundredths)
 {
     int len = 0;
 
@@ -759,7 +783,7 @@ int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
 // from clause 20.2.12 Encoding of a Date Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_date(uint8_t * apdu, int year, int month, int day, int wday)
+int encode_tagged_date(uint8_t * apdu, int year, int month, int day, int wday)
 {
     int len = 0;
 
@@ -788,7 +812,6 @@ int decode_date(uint8_t * apdu, int *year, int *month, int *day, int *wday)
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
-#include "bacenum.h"
 #include "ctest.h"
 
 static int get_apdu_len(bool extended_tag, uint32_t value)
@@ -849,9 +872,6 @@ void testBACDCodeTags(Test * pTest)
             test_len =
                 get_apdu_len(decode_is_extended_tag_number(&apdu[0]),
                 value);
-            if (len != test_len)
-                printf("len=%d test_len=%d value=%lu tag#%d\n",
-                    len, test_len, value, (int) tag_number);
             ct_test(pTest, len == test_len);
             // stop at the the last value
             if (value & BIT31)
@@ -884,7 +904,7 @@ void testBACDCodeReal(Test * pTest)
             sizeof(real_array)) == 0);
 
     // a real will take up 4 octects plus a one octet tag 
-    apdu_len = encode_real(&apdu[0], value);
+    apdu_len = encode_tagged_real(&apdu[0], value);
     ct_test(pTest, apdu_len == 5);
     // len tells us how many octets were used for encoding the value
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
@@ -910,15 +930,15 @@ void testBACDCodeEnumerated(Test * pTest)
     uint8_t tag_number = 0;
 
     for (i = 0; i < 8; i++) {
-        encode_enumerated(&array[0], value);
+        encode_tagged_enumerated(&array[0], value);
         decode_enumerated(&array[0], &decoded_value);
         ct_test(pTest, decoded_value == value);
-        encode_enumerated(&encoded_array[0], decoded_value);
+        encode_tagged_enumerated(&encoded_array[0], decoded_value);
         ct_test(pTest, memcmp(&array[0], &encoded_array[0],
                 sizeof(array)) == 0);
         // an enumerated will take up to 4 octects 
         // plus a one octet for the tag 
-        apdu_len = encode_enumerated(&apdu[0], value);
+        apdu_len = encode_tagged_enumerated(&apdu[0], value);
         len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
         ct_test(pTest, len == 1);
         ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_ENUMERATED);
@@ -947,15 +967,15 @@ void testBACDCodeUnsigned(Test * pTest)
     uint8_t tag_number = 0;
 
     for (i = 0; i < 8; i++) {
-        encode_unsigned(&array[0], value);
+        encode_tagged_unsigned(&array[0], value);
         decode_unsigned(&array[0], &decoded_value);
         ct_test(pTest, decoded_value == value);
-        encode_unsigned(&encoded_array[0], decoded_value);
+        encode_tagged_unsigned(&encoded_array[0], decoded_value);
         ct_test(pTest, memcmp(&array[0], &encoded_array[0],
                 sizeof(array)) == 0);
         // an unsigned will take up to 4 octects 
         // plus a one octet for the tag 
-        apdu_len = encode_unsigned(&apdu[0], value);
+        apdu_len = encode_tagged_unsigned(&apdu[0], value);
         // apdu_len varies...
         //ct_test(pTest, apdu_len == 5);
         len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
@@ -979,15 +999,15 @@ void testBACDCodeSigned(Test * pTest)
     uint8_t tag_number = 0;
 
     for (i = 0; i < 8; i++) {
-        encode_signed(&array[0], value);
+        encode_tagged_signed(&array[0], value);
         decode_signed(&array[0], &decoded_value);
         ct_test(pTest, decoded_value == value);
-        encode_signed(&encoded_array[0], decoded_value);
+        encode_tagged_signed(&encoded_array[0], decoded_value);
         ct_test(pTest, memcmp(&array[0], &encoded_array[0],
                 sizeof(array)) == 0);
         // a signed int will take up to 4 octects 
         // plus a one octet for the tag 
-        apdu_len = encode_signed(&apdu[0], value);
+        apdu_len = encode_tagged_signed(&apdu[0], value);
         len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
         ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
         ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
@@ -995,15 +1015,15 @@ void testBACDCodeSigned(Test * pTest)
     }
 
     value = -1;
-    encode_signed(&array[0], value);
+    encode_tagged_signed(&array[0], value);
     decode_signed(&array[0], &decoded_value);
     ct_test(pTest, decoded_value == value);
-    encode_signed(&encoded_array[0], decoded_value);
+    encode_tagged_signed(&encoded_array[0], decoded_value);
     ct_test(pTest, memcmp(&array[0], &encoded_array[0],
             sizeof(array)) == 0);
     // a signed int will take up to 4 octects 
     // plus a one octet for the tag 
-    apdu_len = encode_signed(&apdu[0], value);
+    apdu_len = encode_tagged_signed(&apdu[0], value);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
     ct_test(pTest, len == 1);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
@@ -1024,7 +1044,7 @@ void testBACDCodeString(Test * pTest)
     size_t len;
     char *test_string0 = "";
 
-    apdu_len = encode_character_string(&array[0], &test_string0[0]);
+    apdu_len = encode_tagged_character_string(&array[0], &test_string0[0]);
     decode_character_string(&array[0], &decoded_string[0]);
     ct_test(pTest, apdu_len == 2);
     ct_test(pTest, strcmp(&test_string0[0], &decoded_string[0]) == 0);
@@ -1032,7 +1052,7 @@ void testBACDCodeString(Test * pTest)
         test_string[i] = 'S';
         test_string[i + 1] = '\0';
         apdu_len =
-            encode_character_string(&encoded_array[0], &test_string[0]);
+            encode_tagged_character_string(&encoded_array[0], &test_string[0]);
         test_apdu_len =
             decode_character_string(&encoded_array[0], &decoded_string[0]);
         len = strlen(test_string);
