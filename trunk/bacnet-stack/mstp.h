@@ -39,8 +39,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacdef.h"
+
+// defines specific to MS/TP
+#define MAX_HEADER (2+1+1+1+2+1+2+1)
+#define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
 // The number of elements in the array InputBuffer[].
+// Note: minimum APDU is 50 bytes, so buffer may vary
 #define INPUT_BUFFER_SIZE (501)
 
 //  The value 255 is used to denote broadcast when used as a
