@@ -165,21 +165,6 @@ int encode_closing_tag(uint8_t * apdu, uint8_t tag_number)
 
 // from clause 20.2.1.3.2 Constructed Data
 // returns the number of apdu bytes consumed
-int decode_tag_number(uint8_t * apdu, uint8_t * tag_number)
-{
-    int len = 1;
-
-    if ((apdu[0] & 0xF0) == 0xF0) {
-        *tag_number = apdu[1];
-        len++;
-    } else
-        *tag_number = (apdu[0] >> 4);
-
-    return len;
-}
-
-// from clause 20.2.1.3.2 Constructed Data
-// returns the number of apdu bytes consumed
 bool decode_is_context_specific(uint8_t * apdu)
 {
     return (apdu[0] & BIT3);
@@ -201,7 +186,22 @@ bool decode_is_closing_tag(uint8_t * apdu)
 
 // from clause 20.2.1.3.2 Constructed Data
 // returns the number of apdu bytes consumed
-int decode_tag_value(uint8_t * apdu, uint32_t * value)
+static int decode_tag_number(uint8_t * apdu, uint8_t * tag_number)
+{
+    int len = 1;
+
+    if ((apdu[0] & 0xF0) == 0xF0) {
+        *tag_number = apdu[1];
+        len++;
+    } else
+        *tag_number = (apdu[0] >> 4);
+
+    return len;
+}
+
+// from clause 20.2.1.3.2 Constructed Data
+// returns the number of apdu bytes consumed
+static int decode_tag_value(uint8_t * apdu, uint32_t * value)
 {
     int len = 1;
     union {
@@ -255,6 +255,14 @@ int decode_tag_value(uint8_t * apdu, uint32_t * value)
     }
 
     return len;
+}
+
+// do both tag number and value so that len is returned correctly 
+static int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
+    uint32_t * value)
+{
+    (void)decode_tag_number(apdu, tag_number);
+    return decode_tag_value(apdu, value);
 }
 
 // from clause 20.2.6 Encoding of a Real Number Value
