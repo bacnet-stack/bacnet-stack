@@ -152,25 +152,89 @@ int rp_decode_apdu(
 }
 
 int rp_ack_encode_apdu(
-  uint8_t *apdu, 
-  int32_t low_limit,
-  int32_t high_limit)
+  uint8_t *apdu,
+  uint8_t invoke_id,
+  BACNET_READ_PROPERTY_DATA *data)
 {
-  int len = 0;
-  
-  // FIXME:  how about some code?
-  
-  return len;
+  int len = 0; // length of each encoding
+  int apdu_len = 0; // total length of the apdu, return value
+
+  if (apdu)
+  {
+    apdu[0] = PDU_TYPE_COMPLEX_ACK;     /* complex ACK service */
+    apdu[1] = invoke_id;        /* original invoke id from request */
+    apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY;  // service choice
+    apdu_len = 3;
+    // service ack follows
+    apdu_len += encode_context_object_id(&apdu[apdu_len], 0,
+      data->object_type, data->object_instance);
+    apdu_len += encode_context_enumerated(&apdu[apdu_len], 1,
+      data->object_property);
+    // context 2 array index is optional
+    if (data->array_index != BACNET_ARRAY_ALL)
+    {
+      apdu_len += encode_context_unsigned(&apdu[apdu_len], 2,
+        data->array_index);
+    }
+    // propertyValue
+    apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
+    for (len = 0; len < data->application_data_len; len++)
+    {
+      apdu[apdu_len++] = data->application_data[len];
+    }
+  }
+
+  return apdu_len;
 }
 
 int rp_ack_decode_apdu(
-  uint8_t *apdu, 
-  int32_t low_limit,
-  int32_t high_limit)
+  uint8_t *apdu,
+  int apdu_len, // total length of the apdu
+  BACNET_READ_PROPERTY_DATA *data)
 {
-  int len = 0;
-  
-  // FIXME:  how about some code?
+  uint8_t tag_number = 0;
+  uint32_t len_value_type = 0;
+  int tag_len = 0; // length of tag decode
+  int len = 0; // total length of decodes
+
+  // FIXME: check apdu_len against the len during decode  
+  // Tag 0: Object ID
+  if (!decode_is_context_tag(&apdu[0], 0))
+    return -1;
+  len = 1;
+  len += decode_object_id(&apdu[len],
+    &data->object_type, &data->object_instance);
+  // Tag 1: Property ID
+  len += decode_tag_number_and_value(&apdu[len],
+    &tag_number, &len_value_type);
+  if (tag_number != 1)
+    return -1;
+  len += decode_enumerated(&apdu[len],
+    len_value_type,
+    &data->object_property);
+  // Tag 2: Optional Array Index
+  tag_len = decode_tag_number_and_value(&apdu[len],
+        &tag_number, &len_value_type);
+  if (tag_number == 2)
+  {
+    len += tag_len;
+    len += decode_unsigned(&apdu[len],
+      len_value_type, &data->array_index);
+  }
+  else
+    data->array_index = BACNET_ARRAY_ALL;
+    
+  // Tag 3: opening context tag */
+  if (decode_is_opening_tag_number(&apdu[len], 3))
+  {
+    // tag number of 3 is not extended so only one octet
+    len++;
+    // don't decode the application tag number or its data here
+    data->application_data = &apdu[len];
+    data->application_data_len = apdu_len - len;
+  }
+  else
+    return -1;
   
   return len;
 }
