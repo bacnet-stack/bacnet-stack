@@ -200,7 +200,7 @@ int decode_tag_value(uint8_t * apdu, uint32_t * value)
     } long_data;
 
     // the value is large
-    if ((apdu[0] & 5) == 5) {
+    if ((apdu[0] & 0x07) == 5) {
         // offset if there is an extended tag number 
         if ((apdu[0] & 0xF0) == 0xF0)
             len++;
@@ -236,8 +236,9 @@ int decode_tag_value(uint8_t * apdu, uint32_t * value)
             len++;
         }
 
-    } else
-        *value = (int) (apdu[0] & 5);
+    } else {
+        *value = apdu[0] & 0x07;
+    }
 
     return len;
 }
@@ -329,8 +330,8 @@ int decode_object_id(uint8_t * apdu, int *object_type, int *instance)
         my_data.byte[3] = apdu[0];
     }
 
-    *object_type = (int) ((my_data.value >> 22) & 0x3FF);
-    *instance = (int) (my_data.value & 0x3FFFFF);
+    *object_type = ((my_data.value >> 22) & 0x3FF);
+    *instance = (my_data.value & 0x3FFFFF);
 
     return 4;
 }
@@ -435,7 +436,7 @@ int encode_character_string(uint8_t * apdu, const char *char_string)
     len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_CHARACTER_STRING,
         false, string_len);
     assert((len + string_len) < MAX_APDU);
-    len += encode_bacnet_character_string(&apdu[1], char_string);
+    len += encode_bacnet_character_string(&apdu[len], char_string);
 
     return len;
 }
@@ -448,6 +449,7 @@ int decode_character_string(uint8_t * apdu, char *char_string)
     int len = 0, i = 0;
     uint32_t len_value = 0;
 
+    len = decode_tag_value(&apdu[0], &len_value);
     len = decode_tag_value(&apdu[0], &len_value);
     if (len_value) {
         // decode ANSI X3.4
@@ -852,9 +854,9 @@ void testBACDCodeString(Test * pTest)
 
     apdu_len = encode_character_string(&array[0], &test_string0[0]);
     decode_character_string(&array[0], &decoded_string[0]);
-    ct_test(pTest, apdu_len == 3);
+    ct_test(pTest, apdu_len == 2);
     ct_test(pTest, strcmp(&test_string0[0], &decoded_string[0]) == 0);
-    for (i = 0; i < (MAX_APDU - 5); i++) {
+    for (i = 0; i < (MAX_APDU - 6); i++) {
         test_string[i] = 'S';
         test_string[i + 1] = '\0';
         apdu_len =
@@ -863,9 +865,12 @@ void testBACDCodeString(Test * pTest)
             decode_character_string(&encoded_array[0], &decoded_string[0]);
         len = strlen(test_string);
         if (apdu_len != test_apdu_len) {
-            printf("test string=%d\n", i);
+            printf("test string=#%d\n", i);
         }
         ct_test(pTest, apdu_len == test_apdu_len);
+        if (strcmp(&test_string[0], &decoded_string[0]) != 0) {
+            printf("test string=#%d\n", i);
+        }
         ct_test(pTest, strcmp(&test_string[0], &decoded_string[0]) == 0);
     }
 
