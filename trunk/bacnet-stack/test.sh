@@ -38,3 +38,9 @@ make -f npdu.mak clean
 make -f npdu.mak
 ./npdu >> test.log
 make -f npdu.mak clean
+
+make -f reject.mak clean
+make -f reject.mak
+./reject >> test.log
+make -f reject.mak clean
+
