@@ -35,6 +35,7 @@
 #define BACDEF_H
 
 #include <stdint.h>
+#include "bacenum.h"
 #include "config.h"
 
 // largest BACnet Instance Number
@@ -50,7 +51,7 @@
 // device object properties
 typedef struct BACnet_Object_Data
 {
-  uint32_t Object_Identifier
+  uint32_t Object_Identifier;
   char Object_Name[MAX_OBJECT_NAME];
   BACNET_OBJECT_TYPE Object_Type;
 } BACNET_OBJECT_DATA;
