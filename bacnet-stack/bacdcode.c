@@ -258,7 +258,7 @@ static bool decode_is_extended_value(uint8_t * apdu)
 // returns the number of apdu bytes consumed
 bool decode_is_context_specific(uint8_t * apdu)
 {
-    return (apdu[0] & BIT3);
+    return ((apdu[0] & BIT3) == BIT3);
 }
 
 // from clause 20.2.1.3.2 Constructed Data
