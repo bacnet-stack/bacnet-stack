@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2004 Steve Karg
+ Copyright (C) 2005 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -52,7 +52,7 @@ int reject_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
   uint8_t *invoke_id,
-  uint8_t *reject_reason)
+  uint8_t *reject_reason);
 
 #ifdef TEST
 void testReject(Test * pTest);

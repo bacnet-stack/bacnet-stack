@@ -208,5 +208,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_WHOIS */
+#endif                          /* TEST_REJECT */
 #endif                          /* TEST */

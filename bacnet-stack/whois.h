@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2004 Steve Karg
+ Copyright (C) 2005 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -37,7 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// encode I-Am service  - use -1 for limit if you want unlimited
+// encode service  - use -1 for limit if you want unlimited
 int whois_encode_apdu(
   uint8_t *apdu, 
   int32_t low_limit,

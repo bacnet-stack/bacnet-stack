@@ -675,12 +675,13 @@ typedef enum
    SERVICE_CONFIRMED_VT_DATA = 23,
    // Security Services
    SERVICE_CONFIRMED_AUTHENTICATE = 24,
-   SERVICE_CONFIRMED_REQUEST_KEY = 25
+   SERVICE_CONFIRMED_REQUEST_KEY = 25,
    // Services added after 1995
    // readRange (26) see Object Access Services
    // lifeSafetyOperation (27) see Alarm and Event Services
    // subscribeCOVProperty (28) see Alarm and Event Services
    // getEventInformation (29) see Alarm and Event Services
+   MAX_BACNET_CONFIRMED_SERVICE = 30
 } BACNET_CONFIRMED_SERVICE;
 
 typedef enum {
@@ -693,12 +694,13 @@ typedef enum {
    SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION = 6,
    SERVICE_UNCONFIRMED_WHO_HAS = 7,
    SERVICE_UNCONFIRMED_WHO_IS = 8,
-   SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION = 9
+   SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION = 9,
    // Other services to be added as they are defined.
    // All choice values in this production are reserved
    // for definition by ASHRAE.
    // Proprietary extensions are made by using the
    // UnconfirmedPrivateTransfer service. See Clause 23.
+   MAX_BACNET_UNCONFIRMED_SERVICE = 10
 } BACNET_UNCONFIRMED_SERVICE;
 
 typedef enum {
@@ -781,6 +783,9 @@ typedef enum {
    // Enumerated values 0-63 are reserved for definition by ASHRAE.
    // Enumerated values 64-65535 may be used by others subject to
    // the procedures and constraints described in Clause 23.
+   MAX_BACNET_ABORT_REASON = 5,
+   FIRST_PROPRIETARY_ABORT_REASON = 64,
+   LAST_PROPRIETARY_ABORT_REASON = 65535
 } BACNET_ABORT_REASON;
 
 typedef enum {
@@ -797,6 +802,9 @@ typedef enum {
    // Enumerated values 0-63 are reserved for definition by ASHRAE.
    // Enumerated values 64-65535 may be used by others subject to
    // the procedures and constraints described in Clause 23.
+   MAX_BACNET_REJECT_REASON = 10,
+   FIRST_PROPRIETARY_REJECT_REASON = 64,
+   LAST_PROPRIETARY_REJECT_REASON = 65535
 } BACNET_BACNET_REJECT_REASON;
 
 typedef enum {
@@ -810,6 +818,9 @@ typedef enum {
    // Enumerated values 0-63 are reserved for definition by ASHRAE.
    // Enumerated values 64-65535 may be used by others subject to
    // the procedures and constraints described in Clause 23.
+   MAX_BACNET_ERROR_CLASS = 7,
+   FIRST_PROPRIETARY_ERROR_CLASS = 64,
+   LAST_PROPRIETARY_ERROR_CLASS = 65535
 } BACNET_ERROR_CLASS;
 
 typedef enum {
@@ -868,6 +879,9 @@ typedef enum {
    // Enumerated values 256-65535 may be used by others subject to
    // the procedures and constraints described in Clause 23.
    // The last enumeration used in this version is 46.
+   MAX_BACNET_ERROR_CODE = 47,
+   FIRST_PROPRIETARY_ERROR_CODE = 256,
+   LAST_PROPRIETARY_ERROR_CODE = 65535
 } BACNET_ERROR_CODE;
 
 #endif // end of BACENUM_H

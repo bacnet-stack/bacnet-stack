@@ -40,6 +40,9 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
+uint32_t Device_Object_Identifier(void);
+void Device_Set_Object_Identifier(uint32_t object_id);
+
 BACNET_DEVICE_STATUS Device_System_Status(void);
 void Device_Set_System_Status(BACNET_DEVICE_STATUS status);
 
@@ -61,11 +64,11 @@ void Device_Set_Application_Software_Version(const char *name);
 const char *Device_Description(void);
 void Device_Set_Description(const char *name);
 
+// some stack-centric constant values - no set methods
 uint8_t Device_Protocol_Version(void);
-uint8_t Device_Set_Protocol_Revision(void);
-
+uint8_t Device_Protocol_Revision(void);
 uint16_t Device_Max_APDU_Length_Accepted(void);
-BACNET_SEGMENTATION Device_Set_Segmentation_Supported(void);
+BACNET_SEGMENTATION Device_Segmentation_Supported(void);
 
 uint16_t Device_APDU_Timeout(void);
 void Device_Set_APDU_Timeout(uint16_t timeout);
@@ -75,6 +78,11 @@ void Device_Set_Number_Of_APDU_Retries(uint8_t retries);
 
 uint8_t Device_Database_Revision(void);
 void Device_Set_Database_Revision(uint8_t revision);
+
+int Device_Encode_Property_APDU(
+  uint8_t *apdu,
+  BACNET_PROPERTY_ID property,
+  int array_index);
 
 #endif
 
