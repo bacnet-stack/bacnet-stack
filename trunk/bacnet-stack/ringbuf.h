@@ -39,7 +39,8 @@
 #ifndef RINGBUF_H
 #define RINGBUF_H
 
-#include "stdint.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 struct ring_buffer_t
 {

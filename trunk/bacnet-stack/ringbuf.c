@@ -36,12 +36,13 @@
 /* Functional Description: Generic ring buffer library for deeply 
    embedded system. See the unit tests for usage examples. */
 
-#include "stdint.h"
+#include <stddef.h>
+#include <stdint.h>
 #include "ringbuf.h"
 
 /****************************************************************************
 * DESCRIPTION: Returns the empty/full status of the ring buffer
-* RETURN:      TRUE if the ring buffer is empty, FALSE if it is not.
+* RETURN:      true if the ring buffer is empty, false if it is not.
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
@@ -85,7 +86,7 @@ char *Ringbuf_Pop_Front(RING_BUFFER *b)
 
 /****************************************************************************
 * DESCRIPTION: Adds an element of data to the ring buffer
-* RETURN:      TRUE on succesful add, FALSE if not added
+* RETURN:      true on succesful add, false if not added
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
@@ -93,7 +94,7 @@ bool Ringbuf_Put(
   RING_BUFFER *b, // ring buffer structure
   char *data_element) // one element to add to the ring
 {
-  bool status = FALSE; // return value
+  bool status = false; // return value
   unsigned offset = 0; // offset into array of data
   char *ring_data = NULL; // used to help point ring data
   unsigned i; // loop counter
@@ -112,7 +113,7 @@ bool Ringbuf_Put(
         ring_data[i] = data_element[i];
       }
       b->count++;
-      status = TRUE;
+      status = true;
     }
   }
 
@@ -169,7 +170,7 @@ void testRingBuf(Test* pTest)
     data[data_index] = data_index;
   }
   status = Ringbuf_Put(&test_buffer, data);
-  ct_test(pTest,status == TRUE);
+  ct_test(pTest,status == true);
   ct_test(pTest,!Ringbuf_Empty(&test_buffer));
 
   test_data = Ringbuf_Get_Front(&test_buffer);
@@ -194,7 +195,7 @@ void testRingBuf(Test* pTest)
       data[data_index] = index;
     }
     status = Ringbuf_Put(&test_buffer, data);
-    ct_test(pTest,status == TRUE);
+    ct_test(pTest,status == true);
     ct_test(pTest,!Ringbuf_Empty(&test_buffer));
   }
   // verify actions on full buffer
@@ -205,7 +206,7 @@ void testRingBuf(Test* pTest)
       data[data_index] = index;
     }
     status = Ringbuf_Put(&test_buffer, data);
-    ct_test(pTest,status == FALSE);
+    ct_test(pTest,status == false);
     ct_test(pTest,!Ringbuf_Empty(&test_buffer));
   }
 
@@ -237,7 +238,7 @@ void testRingBuf(Test* pTest)
         data[data_index] = dummy;
       }
       status = Ringbuf_Put(&test_buffer, data);
-      ct_test(pTest,status == TRUE);
+      ct_test(pTest,status == true);
     }
 
     for (count = 1; count < 4; count++)
