@@ -471,7 +471,7 @@ int encode_tagged_real(uint8_t * apdu, float value)
 
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // returns the number of apdu bytes consumed
-int decode_object_id(uint8_t * apdu, int *object_type, int *instance)
+int decode_object_id(uint8_t * apdu, int *object_type, uint32_t *instance)
 {
     union {
         uint8_t byte[4];
@@ -498,7 +498,7 @@ int decode_object_id(uint8_t * apdu, int *object_type, int *instance)
 
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // returns the number of apdu bytes consumed
-int encode_bacnet_object_id(uint8_t * apdu, int object_type, int instance)
+int encode_bacnet_object_id(uint8_t * apdu, int object_type, uint32_t instance)
 {
     union {
         uint8_t byte[4];
@@ -526,7 +526,7 @@ int encode_bacnet_object_id(uint8_t * apdu, int object_type, int instance)
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_context_object_id(uint8_t * apdu, int tag_number,
-    int object_type, int instance)
+    int object_type, uint32_t instance)
 {
     int len = 0;
 
@@ -540,7 +540,7 @@ int encode_context_object_id(uint8_t * apdu, int tag_number,
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_tagged_object_id(uint8_t * apdu, int object_type, int instance)
+int encode_tagged_object_id(uint8_t * apdu, int object_type, uint32_t instance)
 {
     int len = 0;
 
@@ -1231,7 +1231,7 @@ void testBACDCodeObject(Test * pTest)
     BACNET_OBJECT_TYPE type = OBJECT_BINARY_INPUT;
     BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_OUTPUT;
     int instance = 123;
-    int decoded_instance = 0;
+    uint32_t decoded_instance = 0;
 
     encode_bacnet_object_id(&encoded_array[0], type, instance);
     decode_object_id(&encoded_array[0],
