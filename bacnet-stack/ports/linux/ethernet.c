@@ -318,6 +318,9 @@ uint16_t ethernet_receive(
         return 0;
     }
 
+    if (received_bytes == 0)
+      return 0;
+    
     /* the signature of an 802.2 BACnet packet */
     if ((buf[14] != 0x82) && (buf[15] != 0x82)) {
         //fprintf(stderr,"ethernet: Non-BACnet packet\n");
