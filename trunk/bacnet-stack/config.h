@@ -1,4 +1,4 @@
-#ifdef CONFIG_H
+#ifndef CONFIG_H
 #define CONFIG_H
 
 // Max number of bytes in an APDU.
