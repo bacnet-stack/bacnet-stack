@@ -74,4 +74,9 @@ int npdu_decode(
   BACNET_ADDRESS *src,
   BACNET_NPDU_DATA *npdu_data);
 
+void npdu_handler(
+  BACNET_ADDRESS *src,  // source address
+  uint8_t *pdu, // PDU data
+  uint16_t pdu_len); // length PDU 
+
 #endif
