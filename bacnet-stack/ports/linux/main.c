@@ -11,9 +11,13 @@
 #include "bacdef.h"
 #include "npdu.h"
 #include "apdu.h"
+#include "device.h"
+#include "rp.h"
 #include "iam.h"
 #include "whois.h"
 #include "reject.h"
+#include "abort.h"
+#include "bacerror.h"
 #include "ethernet.h"
 
 // buffers used for transmit and receive
@@ -79,10 +83,10 @@ void Send_IAm(void)
   // encode the APDU portion of the packet
   pdu_len += iam_encode_apdu(
     &Tx_Buf[pdu_len], 
-    Device_Id,
+    Device_Object_Instance_Number(),
     MAX_APDU,
     SEGMENTATION_NONE,
-    Vendor_Id);
+    Device_Vendor_Identifier());
 
   (void)ethernet_send_pdu(
     &dest,  // destination address
@@ -110,7 +114,8 @@ void WhoIsHandler(
     I_Am_Request = true;
   else if (len != -1)
   { 
-    if ((Device_Id >= low_limit) && (Device_Id <= high_limit))
+    if ((Device_Object_Instance_Number() >= low_limit) && 
+        (Device_Object_Instance_Number() <= high_limit))
       I_Am_Request = true;
   }
 
@@ -123,7 +128,6 @@ void ReadPropertyHandler(
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-  BACNET_CONFIRMED_SERVICE_DATA service_data;
   BACNET_READ_PROPERTY_DATA rp_data;
   int len = 0;
   int pdu_len = 0;
@@ -148,7 +152,7 @@ void ReadPropertyHandler(
       service_data->invoke_id,
       ABORT_REASON_OTHER);
     (void)ethernet_send_pdu(
-      &src,  // destination address
+      src,  // destination address
       &Tx_Buf[0],
       pdu_len); // number of bytes of data
     fprintf(stderr,"Sent Abort!\n");
@@ -160,7 +164,7 @@ void ReadPropertyHandler(
       service_data->invoke_id,
       ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
     (void)ethernet_send_pdu(
-      &src,  // destination address
+      src,  // destination address
       &Tx_Buf[0],
       pdu_len); // number of bytes of data
   }
@@ -189,7 +193,7 @@ void ReadPropertyHandler(
             service_data->invoke_id,
             &rp_data);
           (void)ethernet_send_pdu(
-            &src,  // destination address
+            src,  // destination address
             &Tx_Buf[0],
             pdu_len); // number of bytes of data
           fprintf(stderr,"Sent Read Property Ack!\n");
@@ -203,7 +207,7 @@ void ReadPropertyHandler(
             ERROR_CLASS_PROPERTY,
             ERROR_CODE_UNKNOWN_PROPERTY);
           (void)ethernet_send_pdu(
-            &src,  // destination address
+            src,  // destination address
             &Tx_Buf[0],
             pdu_len); // number of bytes of data
           fprintf(stderr,"Sent Unknown Property Error!\n");
@@ -217,7 +221,7 @@ void ReadPropertyHandler(
           ERROR_CLASS_OBJECT,
           ERROR_CODE_UNKNOWN_OBJECT);
         (void)ethernet_send_pdu(
-          &src,  // destination address
+          src,  // destination address
           &Tx_Buf[0],
           pdu_len); // number of bytes of data
         fprintf(stderr,"Sent Unknown Object Error!\n");
@@ -231,7 +235,7 @@ void ReadPropertyHandler(
 static void Init_Device_Parameters(void)
 {
   // configure my initial values
-  Device_Set_Object_Identifier(111);
+  Device_Set_Object_Instance_Number(111);
   Device_Set_Vendor_Name("Lithonia Lighting");
   Device_Set_Vendor_Identifier(42);
   Device_Set_Model_Name("Simple BACnet Server");

@@ -12,6 +12,9 @@ SRCS = ports/linux/main.c \
        bigend.c \
        whois.c \
        iam.c \
+       rp.c \
+       device.c \
+       abort.c \
        reject.c \
        bacerror.c \
        apdu.c \
