@@ -37,11 +37,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// from clause 20.1.2.4 max-segments-accepted
-// and clause 20.1.2.5 max-APDU-length-accepted
-// returns the encoded octet
-uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu);
-
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
@@ -55,12 +50,12 @@ int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
     uint32_t * value);
 // returns true if the tag is context specific
 bool decode_is_context_specific(uint8_t * apdu);
+// returns true if the tag is an opening tag and matches
+bool decode_is_opening_tag_number(uint8_t * apdu, uint8_t tag_number);
+// returns true if the tag is a closing tag and matches
+bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number);
 // returns true if the tag is context specific and matches
 bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number);
-// returns the true if the tag is an opening tag and the tag number matches
-bool decode_is_opening_tag_number(uint8_t * apdu, uint8_t tag_number);
-// returns the true if the tag is a closing tag and the tag number matches
-bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number);
 
 // from clause 20.2.6 Encoding of a Real Number Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
@@ -85,8 +80,10 @@ int encode_bacnet_string(uint8_t * apdu,
     const char *char_string, int string_len);
 int encode_bacnet_character_string(uint8_t * apdu,
     const char *char_string);
-int encode_tagged_character_string(uint8_t * apdu, const char *char_string);
-int decode_character_string(uint8_t * apdu, char *char_string);
+int encode_tagged_character_string(uint8_t * apdu,
+    const char *char_string);
+int decode_character_string(uint8_t * apdu, uint32_t len_value,
+    char *char_string, size_t string_len);
 
 // from clause 20.2.4 Encoding of an Unsigned Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
@@ -94,7 +91,7 @@ int decode_character_string(uint8_t * apdu, char *char_string);
 int encode_bacnet_unsigned(uint8_t * apdu, unsigned int value);
 int encode_context_unsigned(uint8_t * apdu, int tag_number, int value);
 int encode_tagged_unsigned(uint8_t * apdu, unsigned int value);
-int decode_unsigned(uint8_t * apdu, int *value);
+int decode_unsigned(uint8_t * apdu, uint32_t len_value, unsigned *value);
 
 // from clause 20.2.5 Encoding of a Signed Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
@@ -102,12 +99,12 @@ int decode_unsigned(uint8_t * apdu, int *value);
 int encode_bacnet_signed(uint8_t * apdu, int value);
 int encode_tagged_signed(uint8_t * apdu, int value);
 int encode_context_signed(uint8_t * apdu, int tag_number, int value);
-int decode_signed(uint8_t * apdu, int *value);
+int decode_signed(uint8_t * apdu, uint32_t len_value, int *value);
 
 // from clause 20.2.11 Encoding of an Enumerated Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int decode_enumerated(uint8_t * apdu, int *value);
+int decode_enumerated(uint8_t * apdu, uint32_t len_value, int *value);
 int encode_bacnet_enumerated(uint8_t * apdu, int value);
 int encode_tagged_enumerated(uint8_t * apdu, int value);
 int encode_context_enumerated(uint8_t * apdu, int tag_number, int value);
@@ -133,7 +130,8 @@ int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
 // returns the number of apdu bytes consumed
 int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
     int wday);
-int encode_tagged_date(uint8_t * apdu, int year, int month, int day, int wday);
+int encode_tagged_date(uint8_t * apdu, int year, int month, int day,
+    int wday);
 int decode_date(uint8_t * apdu, int *year, int *month, int *day,
     int *wday);
 
