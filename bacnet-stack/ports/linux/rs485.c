@@ -45,16 +45,10 @@
 
 // Transmits a Frame on the wire
 void RS485_Send_Frame(
-  struct mstp_port_struct_t *mstp_port, // port to send from
-  uint8_t frame_type, // type of frame to send - see defines
-  uint8_t destination, // destination address
-  uint8_t source,  // source address
-  uint8_t *data, // any data to be sent - may be null
-  unsigned data_len) // number of bytes of data (up to 501)
+  struct mstp_port_struct_t *mstp_port, // port specific data
+  uint8_t *buffer, // frame to send (up to 501 bytes of data)
+  uint16_t nbytes) // number of bytes of data (up to 501)
 {
-  uint8_t buffer[INPUT_BUFFER_SIZE] = {0};
-  uint8_t *pbuf = NULL; // used for pointer arithmatic
-  unsigned len = 0; // number of bytes to send
 
   // in order to avoid line contention
   while (mstp_port->Turn_Around_Waiting)
@@ -64,21 +58,11 @@ void RS485_Send_Frame(
 
   // Disable the receiver, and enable the transmit line driver.
 
-  len = MSTP_Create_Frame(
-    buffer, // where frame is loaded
-    sizeof(buffer), // amount of space available
-    frame_type, // type of frame to send - see defines
-    destination, // destination address
-    source,  // source address
-    data, // any data to be sent - may be null
-    data_len); // number of bytes of data (up to 501)
-
-  pbuf = &buffer[0];
-  while (len)
+  while (nbytes)
   {
-    putc(*pbuf,stderr);
-    pbuf++;
-    len--;
+    putc(*buffer,stderr);
+    buffer++;
+    nbytes--;
   }
 
   // Wait until the final stop bit of the most significant CRC octet 

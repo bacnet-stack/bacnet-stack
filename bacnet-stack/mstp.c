@@ -128,6 +128,14 @@ const unsigned Tusage_delay = 15;
 // larger values for this timeout, not to exceed 100 milliseconds.)
 const unsigned Tusage_timeout = 20;
 
+void MSTP_Create_And_Send_Frame(
+  struct mstp_port_struct_t *mstp_port, // port to send from
+  uint8_t frame_type, // type of frame to send - see defines
+  uint8_t destination, // destination address
+  uint8_t source,  // source address
+  uint8_t *data, // any data to be sent - may be null
+  unsigned data_len); // number of bytes of data (up to 501)
+
 // Millisecond Timer - called every millisecond
 void MSTP_Millisecond_Timer(struct mstp_port_struct_t *mstp_port)
 {
@@ -572,7 +580,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         else if ((mstp_port->DestinationAddress == mstp_port->This_Station) &&
                  (mstp_port->FrameType == FRAME_TYPE_POLL_FOR_MASTER))
         {
-          RS485_Send_Frame(
+          MSTP_Create_And_Send_Frame(
             mstp_port,
             FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
             mstp_port->SourceAddress,
@@ -627,7 +635,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
       // or a proprietary type that does not expect a reply,
 //      {
 //        // transmit the data frame
-//        RS485_Send_Frame(?????????????);
+//        MSTP_Create_And_Send_Frame(?????????????);
 //        FrameCount++;
 //        mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
 //      }
@@ -637,7 +645,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
       // a proprietary type that expects a reply,
 //      {
 //        // transmit the data frame
-//        RS485_Send_Frame();
+//        MSTP_Create_And_Send_Frame();
 //        FrameCount++;
 //        mstp_port->master_state = MSTP_MASTER_STATE_WAIT_FOR_REPLY;
 //      }
@@ -748,7 +756,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
       {
         mstp_port->TokenCount++;
         // transmit a Token frame to NS
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_TOKEN,
           mstp_port->Next_Station,
@@ -764,7 +772,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         ((uint8_t)((mstp_port->Poll_Station + 1) % (mstp_port->Nmax_master + 1)) != mstp_port->Next_Station))
       {
         mstp_port->Poll_Station = (mstp_port->Poll_Station + 1) % (mstp_port->Nmax_master + 1);
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_POLL_FOR_MASTER,
           mstp_port->Poll_Station,
@@ -781,7 +789,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
       {
         mstp_port->Poll_Station = mstp_port->This_Station;
         // transmit a Token frame to NS
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_TOKEN,
           mstp_port->Next_Station,
@@ -799,7 +807,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         (mstp_port->SoleMaster == true))
       {
         mstp_port->Poll_Station = (mstp_port->Next_Station +1) % (mstp_port->Nmax_master + 1);
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_POLL_FOR_MASTER,
           mstp_port->Poll_Station,
@@ -830,7 +838,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
       {
         mstp_port->RetryCount++;
         // Transmit a Token frame to NS
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_TOKEN,
           mstp_port->Next_Station,
@@ -847,7 +855,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         // Assume that NS has failed. 
         mstp_port->Poll_Station = (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
         // Transmit a Poll For Master frame to PS.
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_POLL_FOR_MASTER,
           mstp_port->Poll_Station,
@@ -883,7 +891,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         // on the network and is empowered to create a token. 
         mstp_port->Poll_Station = (mstp_port->This_Station + 1) % (mstp_port->Nmax_master + 1);
         // Transmit a Poll For Master frame to PS.
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_POLL_FOR_MASTER,
           mstp_port->Poll_Station,
@@ -911,7 +919,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         mstp_port->Next_Station = mstp_port->SourceAddress;
         mstp_port->EventCount = 0;
         // Transmit a Token frame to NS
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_TOKEN,
           mstp_port->Next_Station,
@@ -956,7 +964,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         // poll for a master at address PS. 
         mstp_port->EventCount = 0;
         // transmit a Token frame to NS
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_TOKEN,
           mstp_port->Next_Station,
@@ -976,7 +984,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         mstp_port->Poll_Station =
           (mstp_port->Poll_Station + 1) % (mstp_port->Nmax_master + 1);
         // Transmit a Poll For Master frame to PS.
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_POLL_FOR_MASTER,
           mstp_port->Poll_Station,
@@ -1012,7 +1020,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         // within Treply_delay after the reception of the 
         // final octet of the requesting frame 
         // (the mechanism used to determine this is a local matter),
-        // then call RS485_Send_Frame to transmit the reply frame 
+        // then call MSTP_Create_And_Send_Frame to transmit the reply frame 
         // and enter the IDLE state to wait for the next frame.
 
         // Test Request
@@ -1028,7 +1036,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         // then no response shall be returned.
         if (mstp_port->FrameType == FRAME_TYPE_TEST_REQUEST)
         {
-          RS485_Send_Frame(
+          MSTP_Create_And_Send_Frame(
             mstp_port,
             FRAME_TYPE_TEST_RESPONSE,
             mstp_port->SourceAddress,
@@ -1047,12 +1055,12 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
       // used to determine this is a local matter),
       // then an immediate reply is not possible.
       // Any reply shall wait until this node receives the token.
-      // Call RS485_Send_Frame to transmit a Reply Postponed frame,
+      // Call MSTP_Create_And_Send_Frame to transmit a Reply Postponed frame,
       // and enter the IDLE state.
 
       else
       {
-        RS485_Send_Frame(
+        MSTP_Create_And_Send_Frame(
           mstp_port,
           FRAME_TYPE_REPLY_POSTPONED,
           mstp_port->SourceAddress,
@@ -1170,6 +1178,28 @@ unsigned MSTP_Create_Frame(
   return index; // returns the frame length
 }
 
+void MSTP_Create_And_Send_Frame(
+  struct mstp_port_struct_t *mstp_port, // port to send from
+  uint8_t frame_type, // type of frame to send - see defines
+  uint8_t destination, // destination address
+  uint8_t source,  // source address
+  uint8_t *data, // any data to be sent - may be null
+  unsigned data_len) // number of bytes of data (up to 501)
+{
+  uint8_t buffer[INPUT_BUFFER_SIZE] = {0};
+  uint16_t len = 0; // number of bytes to send
+
+  len = (uint16_t)MSTP_Create_Frame(
+    buffer, // where frame is loaded
+    sizeof(buffer), // amount of space available
+    frame_type, // type of frame to send - see defines
+    destination, // destination address
+    source,  // source address
+    data, // any data to be sent - may be null
+    data_len); // number of bytes of data (up to 501)
+
+  RS485_Send_Frame(mstp_port, buffer, len);
+}
 
 #ifdef TEST
 #include <assert.h>
@@ -1179,18 +1209,12 @@ unsigned MSTP_Create_Frame(
 // test stub functions
 void RS485_Send_Frame(
   struct mstp_port_struct_t *mstp_port, // port specific data
-  uint8_t frame_type, // type of frame to send - see defines
-  uint8_t destination, // destination address
-  uint8_t source,  // source address
-  uint8_t *data, // any data to be sent - may be null
-  unsigned data_len) // number of bytes of data (up to 501)
+  uint8_t *buffer, // frame to send (up to 501 bytes of data)
+  uint16_t nbytes) // number of bytes of data (up to 501)
 {
   (void)mstp_port;
-  (void)frame_type;
-  (void)destination;
-  (void)source;
-  (void)data;
-  (void)data_len;
+  (void)buffer;
+  (void)nbytes;
 }
 
 #define RING_BUFFER_DATA_SIZE 1

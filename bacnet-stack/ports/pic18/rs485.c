@@ -44,20 +44,15 @@
 
 // Transmits a Frame on the wire
 void RS485_Send_Frame(
-  struct mstp_port_struct_t *mstp_port, // port to send from
-  uint8_t frame_type, // type of frame to send - see defines
-  uint8_t destination, // destination address
-  uint8_t source,  // source address
-  uint8_t *data, // any data to be sent - may be null
-  unsigned data_len) // number of bytes of data (up to 501)
+  struct mstp_port_struct_t *mstp_port, // port specific data
+  uint8_t *buffer, // frame to send (up to 501 bytes of data)
+  uint16_t nbytes) // number of bytes of data (up to 501)
 {
   uint8_t HeaderCRC; // used for running CRC calculation
 
-  (void)frame_type; // FIXME: temp until we implement this code
-  (void)destination; // FIXME: temp until we implement this code
-  (void)source; // FIXME: temp until we implement this code
-  (void)data; // FIXME: temp until we implement this code
-  (void)data_len; // FIXME: temp until we implement this code
+  (void)buffer; // FIXME: temp until we implement this code
+  (void)nbytes; // FIXME: temp until we implement this code
+
   // in order to avoid line contention
   while (mstp_port->SilenceTimer < Tturnaround)
   {
