@@ -361,5 +361,50 @@ int Device_Encode_Property_APDU(
   return apdu_len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
+void testDevice(Test * pTest)
+{
+  Device_Set_Object_Instance_Number(111);
+  ct_test(pTest, Device_Object_Instance_Number() == 111);
+
+  Device_Set_System_Status(STATUS_NON_OPERATIONAL);
+  ct_test(pTest, Device_System_Status() == STATUS_NON_OPERATIONAL);
+
+  Device_Set_Vendor_Name("MyName");
+  ct_test(pTest, strcmp(Device_Vendor_Name(),"MyName") == 0);
+
+  Device_Set_Vendor_Identifier(42);
+  ct_test(pTest, Device_Vendor_Identifier() == 42);
+
+  Device_Set_Model_Name("MyModel");
+  ct_test(pTest, strcmp(Device_Model_Name(),"MyModel") == 0);
+
+  return;
+}
+
+#ifdef TEST_DEVICE
+int main(void)
+{
+    Test *pTest;
+    bool rc;
+
+    pTest = ct_create("BACnet Device", NULL);
+    /* individual tests */
+    rc = ct_addTestFunction(pTest, testDevice);
+    assert(rc);
+
+    ct_setStream(pTest, stdout);
+    ct_run(pTest);
+    (void) ct_report(pTest);
+    ct_destroy(pTest);
+
+    return 0;
+}
+#endif                          /* TEST_DEVICE */
+#endif                          /* TEST */
 
 

@@ -36,6 +36,7 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 #include "device.h"
+#include "rp.h"
 
 // encode service  - use -1 for limit if you want unlimited
 int rp_encode_apdu(

@@ -116,6 +116,13 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
         fprintf(stderr,
             "ethernet: Error opening socket: %s\n",
             strerror(errno));
+        fprintf(stderr,
+            "You might need to add the following to modules.conf\n"
+            "(or in modutils/alias on Debian with update-modules):\n"
+            "alias net-pf-17 af_packet\n"
+            "Also, add af_packet to /etc/modules.\n"
+            "Then follow it by:\n"
+            "# modprobe af_packet\n");
         exit(-1);
     }
     /* Bind the socket to an address */
@@ -136,6 +143,7 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
             "You might need to add the following to modules.conf\n"
             "(or in modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
+            "Also, add af_packet to /etc/modules.\n"
             "Then follow it by:\n"
             "# modprobe af_packet\n");
         /* Close the socket */
