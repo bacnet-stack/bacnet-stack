@@ -75,6 +75,7 @@ int reject_decode_service_request(
   return len;
 }
 
+// decode the whole APDU - mainly used for unit testing
 int reject_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
@@ -86,15 +87,18 @@ int reject_decode_apdu(
   if (!apdu)
     return -1;
   // optional checking - most likely was already done prior to this call
-  if (apdu[0] != PDU_TYPE_REJECT)
-    return -1;
-  if (apdu_len > 1)
+  if (apdu_len)
   {
-    len = reject_decode_service_request(
-      &apdu[1],
-      apdu_len - 1,
-      invoke_id,
-      reject_reason);
+    if (apdu[0] != PDU_TYPE_REJECT)
+      return -1;
+    if (apdu_len > 1)
+    {
+      len = reject_decode_service_request(
+        &apdu[1],
+        apdu_len - 1,
+        invoke_id,
+        reject_reason);
+    }
   }
   
   return len;
@@ -140,6 +144,23 @@ void testReject(Test * pTest)
     &test_reject_reason);
   ct_test(pTest, len == -1);
 
+  // test NULL APDU
+  len = reject_decode_apdu(
+    NULL,
+    apdu_len,
+    &test_invoke_id,
+    &test_reject_reason);
+  ct_test(pTest, len == -1);
+
+  // force a zero length
+  len = reject_decode_apdu(
+    &apdu[0],
+    0,
+    &test_invoke_id,
+    &test_reject_reason);
+  ct_test(pTest, len == 0);
+  
+  
   // check them all...  
   for (
     invoke_id = 0;
