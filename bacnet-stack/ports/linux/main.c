@@ -13,6 +13,7 @@
 #include "apdu.h"
 #include "iam.h"
 #include "whois.h"
+#include "reject.h"
 #include "ethernet.h"
 
 // buffers used for transmit and receive
@@ -25,6 +26,38 @@ uint32_t Device_Id = 111;
 
 // flag to send an I-Am
 bool I_Am_Request = true;
+
+void UnrecognizedServiceHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *dest,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data)
+{
+  BACNET_ADDRESS src;
+  int pdu_len = 0;
+  
+  ethernet_get_my_address(&src);
+
+  // encode the NPDU portion of the packet
+  pdu_len = npdu_encode_apdu(
+    &Tx_Buf[0],
+    dest,
+    &src,
+    false,  // true for confirmed messages
+    MESSAGE_PRIORITY_NORMAL);
+  
+  // encode the APDU portion of the packet
+  pdu_len += reject_encode_apdu(
+    &Tx_Buf[pdu_len], 
+    service_data->invoke_id,
+    REJECT_REASON_UNRECOGNIZED_SERVICE);
+
+  (void)ethernet_send_pdu(
+    dest,  // destination address
+    &Tx_Buf[0],
+    pdu_len); // number of bytes of data
+  fprintf(stderr,"Sent Reject!\n");
+}
 
 // FIXME: if we handle multiple ports, then a port neutral version
 // of this would be nice. Then it could be moved into iam.c
@@ -94,6 +127,102 @@ int main(int argc, char *argv[])
 
   // custom handlers
   apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,WhoIsHandler);
+
+  // set the handler for all the services we don't implement
+  // It is required to send the proper reject message...
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_COV_NOTIFICATION,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_EVENT_NOTIFICATION,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_GET_EVENT_INFORMATION,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_SUBSCRIBE_COV,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_ADD_LIST_ELEMENT,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_CREATE_OBJECT,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_DELETE_OBJECT,
+    UnrecognizedServiceHandler);
+  // FIXME: we must implement read property - it's required!
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_READ_PROPERTY,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_READ_RANGE,
+    UnrecognizedServiceHandler);
+  // FIXME: we probably want to implement write property to be useful
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_WRITE_PROPERTY,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_PRIVATE_TRANSFER,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_TEXT_MESSAGE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_VT_OPEN,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_VT_CLOSE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_VT_DATA,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_AUTHENTICATE,
+    UnrecognizedServiceHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_REQUEST_KEY,
+    UnrecognizedServiceHandler);
+
   // init the physical layer
   if (!ethernet_init("eth0"))
     return 1;
