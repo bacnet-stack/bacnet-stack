@@ -53,36 +53,8 @@ uint32_t Device_Id = 111;
 // flag to send an I-Am
 bool I_Am_Request = true;
 
-void Process_PDU(
-  BACNET_ADDRESS *src,  // source address
-  uint8_t *pdu, // PDU data
-  uint16_t pdu_len) // length PDU 
-{
-  int apdu_offset = 0;
-  BACNET_ADDRESS dest = {0};
-  BACNET_NPDU_DATA npdu_data = {0};
-  
-  apdu_offset = npdu_decode(
-    &pdu[0], // data to decode
-    &dest, // destination address - get the DNET/DLEN/DADR if in there
-    src,  // source address - get the SNET/SLEN/SADR if in there
-    &npdu_data); // amount of data to decode
-  if (npdu_data.network_layer_message)
-  {
-    fprintf(stderr,"main: network layer message received!");
-  }
-  else
-  {
-    apdu_handler(
-      src, 
-      npdu_data.data_expecting_reply,
-      &pdu[apdu_offset],
-      pdu_len - apdu_offset);
-  }
-
-  return;
-}
-
+// FIXME: if we handle multiple ports, then a port neutral version
+// of this would be nice. Then it could be moved into iam.c
 void Send_IAm(void)
 {
   int pdu_len = 0;
@@ -130,15 +102,15 @@ int main(int argc, char *argv[])
   {
     // input
     pdu_len = ethernet_receive(
-      &src,  // source address
+      &src,
       &Rx_Buf[0],
       MAX_MPDU);
 
     // process
     if (pdu_len)
     {
-      Process_PDU(
-        &src,  // source address
+      npdu_handler(
+        &src,
         &Rx_Buf[0],
         pdu_len);
     }
@@ -148,6 +120,7 @@ int main(int argc, char *argv[])
       Send_IAm();
     }
     // output
+
     // blink LEDs, Turn on or off outputs, etc
     
   }
