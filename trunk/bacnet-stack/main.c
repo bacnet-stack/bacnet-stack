@@ -41,7 +41,7 @@
 #include "rs485.h"
 #include "ringbuf.h"
 
-void main(void)
+int main(void)
 {
   struct mstp_port_struct_t mstp_port; // port data
   uint8_t my_mac = 0x05; // local MAC address
@@ -60,4 +60,6 @@ void main(void)
     MSTP_Master_Node_FSM(&mstp_port);
     
   }
+  
+  return 0;
 }
