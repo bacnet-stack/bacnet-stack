@@ -56,6 +56,7 @@ typedef struct BACnet_Object_Data
   BACNET_OBJECT_TYPE Object_Type;
 } BACNET_OBJECT_DATA;
 
+#define BACNET_BROADCAST_NETWORK 0xFFFF
 #define MAX_MAC_LEN 8
 struct BACnet_Device_Address {
     // mac_len = 0 if global address
