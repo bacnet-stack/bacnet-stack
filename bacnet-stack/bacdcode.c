@@ -121,6 +121,37 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
     return octet;
 }
 
+int encode_bacnet_unsigned16(uint8_t * apdu, uint16_t value)
+{
+    int len = 0;                // return value
+
+    if (value < 0x100) {
+        apdu[0] = value;
+        apdu[1] = 0;
+        len = 2;
+    } else {
+        apdu[0] = value / 0x100;
+        apdu[1] = value - (apdu[0] * 0x100);
+        len = 2;
+    }
+
+    return len;
+}
+
+int decode_unsigned16(uint8_t * apdu, uint16_t *value)
+{
+    int len = 0;                // return value
+
+    if (value)
+    {
+        *value = (apdu[len] * 0x100) + apdu[len + 1];
+        len = 2;
+    }
+
+    return len;
+}
+
+
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
