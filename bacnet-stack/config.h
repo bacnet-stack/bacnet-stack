@@ -1,6 +1,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// declare a single physical layer
+//#include "ethernet.h"
+//#include "arcnet.h"
+//#include "mstp.h"
+
 // Max number of bytes in an APDU.
 // Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets
 // This is used in constructing messages and to tell others our limits

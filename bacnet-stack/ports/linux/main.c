@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "config.h"
 #include "bacdef.h"
 #include "npdu.h"
 #include "apdu.h"
@@ -92,6 +93,7 @@ int main(int argc, char *argv[])
 
   // custom handlers
   apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,WhoIsHandler);
+  // init the physical layer
   if (!ethernet_init("eth0"))
     return 1;
   

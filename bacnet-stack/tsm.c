@@ -34,6 +34,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h> // memmove()
 #include <assert.h>
 #include "bits.h"
 #include "apdu.h"
@@ -52,14 +53,15 @@
 
 // FIXME: not coded for segmentation
 
-static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS] = {0};
+// declare space for the TSM transactions, and set it up in the init.
+static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS] = {{0}};
 
 // returns MAX_TSM_TRANSACTIONS if not found
 uint8_t tsm_find_invokeID_index(uint8_t invokeID)
 {
   unsigned i = 0; // counter
   uint8_t index = MAX_TSM_TRANSACTIONS; // return value
-    
+
   for (i = 0; i < MAX_TSM_TRANSACTIONS; i++)
   {
     if ((TSM_List[i].state != TSM_STATE_IDLE) &&
@@ -134,10 +136,9 @@ uint8_t tsm_next_free_invokeID(void)
 
 // returns 0 if there are no free transactions
 uint8_t tsm_request_confirmed_unsegmented_transaction(
-  BACNET_ADDRESS *src,
   BACNET_ADDRESS *dest,
   uint8_t *pdu,
-  uint16_t pdu_len);
+  uint16_t pdu_len)
 {
   uint8_t invokeID = 0;
   unsigned i = 0, j = 0;
@@ -161,6 +162,7 @@ uint8_t tsm_request_confirmed_unsegmented_transaction(
         {
           TSM_List[i].pdu[j] = pdu[j];
         }
+        memmove(&TSM_List[i].dest,dest,sizeof(TSM_List[i].dest));
       }
       break;
     }
@@ -176,9 +178,22 @@ uint8_t tsm_request_confirmed_unsegmented_transaction(
 
 void testTSM(Test * pTest)
 {
+  //unsigned i;
+  uint8_t invokeID = 0;
+  BACNET_ADDRESS dest = {0};
+  uint8_t pdu[MAX_PDU] = {0};
+  uint16_t pdu_len = 0;
 
+  memset(pdu,0xa5,sizeof(pdu));
+  pdu_len = sizeof(pdu);
+  
+  invokeID = tsm_request_confirmed_unsegmented_transaction(
+    &dest,
+    &pdu[0],
+    pdu_len);
+  ct_test(pTest, invokeID != 0);
 
-
+  return;
 }
 
 #ifdef TEST_TSM
