@@ -35,8 +35,7 @@ void Send_IAm(void)
   BACNET_ADDRESS src;
 
   // I-Am is a global broadcast
-  dest.mac_len = 0;
-
+  ethernet_set_broadcast_address(&dest);
   ethernet_get_my_address(&src);
 
   // encode the NPDU portion of the packet
@@ -59,6 +58,7 @@ void Send_IAm(void)
     &dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
+  fprintf(stderr,"Sent I-Am Request!\n");
 }
 
 void WhoIsHandler(
@@ -70,7 +70,7 @@ void WhoIsHandler(
   int32_t low_limit = 0;
   int32_t high_limit = 0;
 
-  fprintf(stderr,"Received Who-Is Request!\r");
+  fprintf(stderr,"Received Who-Is Request!\n");
   len = whois_decode_service_request(
     service_request,
     service_len,
