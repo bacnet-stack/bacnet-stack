@@ -37,22 +37,16 @@
 #include <errno.h>              /* Error number and related */
 #include <stdint.h>             // for standard integer types uint8_t etc.
 #include <stdbool.h>            // for the standard bool type.
-//#include <sys/time.h>           /* System time values */
-//#include <sys/types.h>          /* System data types */
-//#include <sys/stat.h>           /* File statistics */
-//#include <unistd.h>             /* Command-line options */
-//#include <fcntl.h>              /* FD-based file-control */
-//#include <string.h>             /* string hanfling functions */
-//#include <signal.h>             /* signal handling functions */
-//#include <time.h>               /* time functions */
-//#include <stdarg.h>
+#include <sys/types.h>          /* System data types */
+#include <unistd.h>             /* Command-line options */
+#include <string.h>             /* string hanfling functions */
 
 #define ENUMS
 #include <sys/socket.h>
-//#include <net/route.h>
-//#include <net/if.h>
-//#include <features.h>           /* for the glibc version number */
+#include <net/route.h>
+#include <net/if.h>
 
+#include <features.h>           /* for the glibc version number */
 #if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
 #include <netpacket/packet.h>
 #include <net/ethernet.h>       /* the L2 protocols */
@@ -61,11 +55,8 @@
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>     /* The L2 protocols */
 #endif
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
-//#include <sys/un.h>
-//#include <sys/ioctl.h>
-//#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/ioctl.h>
 
 #include "bacdef.h"
 #include "ethernet.h"

@@ -35,6 +35,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "bacdef.h"
 #include "npdu.h"
 #include "iam.h"
@@ -55,10 +56,11 @@ bool I_Am_Request = true;
 // services are supported and what services are rejected
 void Process_APDU(
   BACNET_ADDRESS *src,  // source address
+  bool data_expecting_reply,
   uint8_t *apdu, // APDU data
-  uint16_t pdu_len, // length of the PDU 
-  uint8_t invoke_id) // for confirmed messages
+  uint16_t pdu_len) // for confirmed messages
 {
+  uint8_t invoke_id = 0;
 
 }
 
@@ -67,19 +69,27 @@ void Process_PDU(
   uint8_t *pdu, // PDU data
   uint16_t pdu_len) // length PDU 
 {
-  uint8_t invoke_id = 0;
   int apdu_offset = 0;
+  BACNET_ADDRESS dest = {0};
+  BACNET_NPDU_DATA npdu_data = {0};
   
   apdu_offset = npdu_decode(
-    &src,  // source address - get the SADR/SNET if in there
-    &pdu[0],
-    pdu_len
-    &invoke_id);
-  Process_APDU(
-    &src, 
-    &pdu[apdu_offset],
-    pdu_len - apdu_offset,
-    invoke_id);
+    &pdu[0], // data to decode
+    &dest, // destination address - get the DNET/DLEN/DADR if in there
+    src,  // source address - get the SNET/SLEN/SADR if in there
+    &npdu_data); // amount of data to decode
+  if (npdu_data.network_layer_message)
+  {
+    fprintf(stderr,"main: network layer message received!");
+  }
+  else
+  {
+    Process_APDU(
+      src, 
+      npdu_data.data_expecting_reply,
+      &pdu[apdu_offset],
+      pdu_len - apdu_offset);
+  }
 
   return;
 }
@@ -117,7 +127,7 @@ void Send_IAm(void)
     pdu_len); // number of bytes of data
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
   BACNET_ADDRESS src = {0};  // address where message came from
   uint16_t pdu_len = 0;
