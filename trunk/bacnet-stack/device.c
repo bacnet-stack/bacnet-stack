@@ -36,16 +36,17 @@
 #include <stdint.h>
 #include <assert.h>
 #include "bacdef.h"
+#include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h" // the custom stuff
 
-// vendor id assigned by ASHRAE
-static uint32_t Object_Identifier = 0;
+static uint32_t Object_Instance_Number = 0;
 // FIXME: it is likely that this name is configurable,
 // so consider a fixed sized string
 static const char *Object_Name = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static const char *Vendor_Name = "ASHRAE";
+// vendor id assigned by ASHRAE
 static uint16_t Vendor_Identifier = 0;
 static const char *Model_Name = "GNU";
 static const char *Firmware_Revision = "1.0";
@@ -86,15 +87,15 @@ static uint8_t Database_Revision = 0;
 //Profile_Name
 
 // methods to manipulate the data
-uint32_t Device_Object_Identifier(void)
+uint32_t Device_Object_Instance_Number(void)
 {
-  return Object_Identifier;
+  return Object_Instance_Number;
 }
 
-void Device_Set_Object_Identifier(uint32_t object_id)
+void Device_Set_Object_Instance_Number(uint32_t object_id)
 {
   // FIXME: bounds check?
-  Object_Identifier = object_id;
+  Object_Instance_Number = object_id;
 }
 
 BACNET_DEVICE_STATUS Device_System_Status(void)
@@ -238,7 +239,7 @@ int Device_Encode_Property_APDU(
   {
     case PROP_OBJECT_IDENTIFIER:
       apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
-        Object_Identifier);
+        Object_Instance_Number);
       break;
     case PROP_OBJECT_NAME:
       apdu_len = encode_tagged_character_string(&apdu[0], Object_Name);
@@ -262,7 +263,7 @@ int Device_Encode_Property_APDU(
       apdu_len = encode_tagged_character_string(&apdu[0], Model_Name);
       break;
     case PROP_FIRMWARE_REVISION:
-      apdu_len = encode_tagged_character_string(&apdu[0], Program_Version);
+      apdu_len = encode_tagged_character_string(&apdu[0], Firmware_Revision);
       break;
     case PROP_APPLICATION_SOFTWARE_VERSION:
       apdu_len = encode_tagged_character_string(&apdu[0],
@@ -290,9 +291,9 @@ int Device_Encode_Property_APDU(
         //    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday));
         break;
     case PROP_PROTOCOL_VERSION:
-        apdu_len = encode_tagged_unsigned(&apdu[0], Protocol_Version);
+        apdu_len = encode_tagged_unsigned(&apdu[0], Device_Protocol_Version());
         break;
-    // Legacy Support - necessary?
+    // BACnet Legacy Support - necessary?
     //case PROP_PROTOCOL_CONFORMANCE_CLASS:
     //    apdu_len = encode_tagged_unsigned(&apdu[0], 1);
     //    break;
@@ -329,13 +330,13 @@ int Device_Encode_Property_APDU(
       else if (array_index == BACNET_ARRAY_ALL)
       {
         apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
-            Object_Instance);
+            Object_Instance_Number);
       }
       else
       {
         // the first object in the list is at index=1
         apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
-            Object_Instance);
+            Object_Instance_Number);
         // FIXME: handle the error case of an index beyond the bounds
       }
       break;

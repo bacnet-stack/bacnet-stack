@@ -40,8 +40,8 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
-uint32_t Device_Object_Identifier(void);
-void Device_Set_Object_Identifier(uint32_t object_id);
+uint32_t Device_Object_Instance_Number(void);
+void Device_Set_Object_Instance_Number(uint32_t object_id);
 
 BACNET_DEVICE_STATUS Device_System_Status(void);
 void Device_Set_System_Status(BACNET_DEVICE_STATUS status);
