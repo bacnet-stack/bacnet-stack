@@ -4,9 +4,17 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -g
+CFLAGS  = -Wall -I. -g
 
-OBJS    = main.o mstp.o crc.o ringbuf.o ports/linux/rs485.o
+SRCS = ports/linux/main.c \
+       ports/linux/ethernet.c \
+       bacdcode.c \
+       bigend.c \
+       whois.c \
+       iam.c \
+       npdu.c
+
+OBJS = ${SRCS:.c=.o}
 
 TARGET = bacnet
 
