@@ -67,7 +67,8 @@ int whois_encode_apdu(
   return apdu_len;
 }
 
-int whois_decode_apdu(
+// decode the service request only
+int whois_decode_service_request(
   uint8_t *apdu,
   unsigned apdu_len,
   int32_t *pLow_limit,
@@ -78,17 +79,9 @@ int whois_decode_apdu(
   uint32_t len_value = 0;
   unsigned int decoded_value = 0;
 
-  if (!apdu)
-    return -1;
-  // optional checking - most likely was already done prior to this call
-  if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
-    return -1;
-  if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS)
-    return -1;
   // optional limits - must be used as a pair
-  if (apdu_len > 2)
+  if (apdu_len)
   {
-    len = 2;
     len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
       return -1;
@@ -107,6 +100,34 @@ int whois_decode_apdu(
       if (pHigh_limit)
         *pHigh_limit = decoded_value;
     }
+  }
+  
+  return len;
+}
+
+int whois_decode_apdu(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  int32_t *pLow_limit,
+  int32_t *pHigh_limit)
+{
+  int len = 0;
+
+  if (!apdu)
+    return -1;
+  // optional checking - most likely was already done prior to this call
+  if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    return -1;
+  if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS)
+    return -1;
+  // optional limits - must be used as a pair
+  if (apdu_len > 2)
+  {
+    len = whois_decode_service_request(
+      &apdu[2],
+      apdu_len - 2,
+      pLow_limit,
+      pHigh_limit);
   }
   
   return len;

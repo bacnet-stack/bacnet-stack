@@ -43,6 +43,12 @@ int whois_encode_apdu(
   int32_t low_limit,
   int32_t high_limit);
 
+int whois_decode_service_request(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  int32_t *pLow_limit,
+  int32_t *pHigh_limit);
+  
 int whois_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
@@ -54,3 +60,4 @@ void testWhoIs(Test * pTest);
 #endif
 
 #endif
+
