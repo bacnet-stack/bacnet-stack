@@ -45,6 +45,16 @@
 // Array index 0=size of array, n=array element n,  MAX=all array elements
 #define BACNET_ARRAY_ALL (~0)
 
+// embedded systems need fixed name sizes
+#define MAX_OBJECT_NAME 10
+// device object properties
+typedef struct BACnet_Object_Data
+{
+  uint32_t Object_Identifier
+  char Object_Name[MAX_OBJECT_NAME];
+  BACNET_OBJECT_TYPE Object_Type;
+} BACNET_OBJECT_DATA;
+
 #define MAX_MAC_LEN 8
 struct BACnet_Device_Address {
     // mac_len = 0 if global address
