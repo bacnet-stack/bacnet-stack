@@ -350,13 +350,40 @@ void ethernet_get_my_address(BACNET_ADDRESS *my_address)
   int i = 0;
   
   my_address->mac_len = 0;
-  my_address->net = 0; // local only, no routing
   for (i = 0; i < 6; i++)
   {
     my_address->mac[i] = Ethernet_MAC_Address[i];
     my_address->mac_len++;
   }
+  my_address->net = 0; // local only, no routing
+  my_address->len = 0;
+  for (i = 0; i < MAX_MAC_LEN; i++)
+  {
+    my_address->adr[i] = 0;
+  }
 
   return;
 }
 
+void ethernet_set_broadcast_address(
+  BACNET_ADDRESS *dest)  // destination address
+{
+  int i = 0; // counter
+  
+  if (dest)
+  {
+    for (i = 0; i < 6; i++)
+    {
+      dest->mac[i] = 0xFF;
+    }
+    dest->mac_len = 6;
+    dest->net = BACNET_BROADCAST_NETWORK;
+    dest->len = 0; // denotes broadcast address 
+    for (i = 0; i < MAX_MAC_LEN; i++)
+    {
+      dest->adr[i] = 0;
+    }
+  }
+
+  return;
+}

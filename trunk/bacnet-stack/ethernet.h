@@ -46,6 +46,8 @@
 bool ethernet_valid(void);
 void ethernet_cleanup(void);
 bool ethernet_init(char *interface_name);
+void ethernet_set_broadcast_address(
+  BACNET_ADDRESS *dest);  // destination address
 
 /* function to send a packet out the 802.2 socket */
 /* returns 0 on success, non-zero on failure */
