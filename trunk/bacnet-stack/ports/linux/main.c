@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include "bacdef.h"
 #include "npdu.h"
+#include "apdu.h"
 #include "iam.h"
 #include "ethernet.h"
 
@@ -51,18 +52,6 @@ uint32_t Device_Id = 111;
 
 // flag to send an I-Am
 bool I_Am_Request = true;
-
-// APDU is processed here since you may want to change what 
-// services are supported and what services are rejected
-void Process_APDU(
-  BACNET_ADDRESS *src,  // source address
-  bool data_expecting_reply,
-  uint8_t *apdu, // APDU data
-  uint16_t pdu_len) // for confirmed messages
-{
-  uint8_t invoke_id = 0;
-
-}
 
 void Process_PDU(
   BACNET_ADDRESS *src,  // source address
@@ -84,7 +73,7 @@ void Process_PDU(
   }
   else
   {
-    Process_APDU(
+    apdu_handler(
       src, 
       npdu_data.data_expecting_reply,
       &pdu[apdu_offset],
