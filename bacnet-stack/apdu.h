@@ -40,6 +40,68 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
+typedef struct _confirmed_service_data 
+{
+  bool segmented_message;
+  bool more_follows;
+  bool segmented_response_accepted;
+  int max_segs;
+  int max_resp;
+  uint8_t invoke_id;
+  uint8_t sequence_number;
+  uint8_t proposed_window_number;
+} BACNET_CONFIRMED_SERVICE_DATA;
+
+typedef struct _confirmed_service_ack_data 
+{
+  bool segmented_message;
+  bool more_follows;
+  uint8_t invoke_id;
+  uint8_t sequence_number;
+  uint8_t proposed_window_number;
+} BACNET_CONFIRMED_SERVICE_ACK_DATA;
+
+// generic unconfirmed function handler
+typedef void (*unconfirmed_function)(
+  uint8_t *service_request,
+  uint16_t len,
+  BACNET_ADDRESS *src); 
+
+// generic confirmed function handler
+typedef void (*confirmed_function)(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data); 
+
+// generic confirmed function handler
+typedef void (*confirmed_simple_ack_function)(
+  BACNET_ADDRESS *src,
+  uint8_t invoke_id);
+
+// generic confirmed ack function handler
+typedef void (*confirmed_ack_function)(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data); 
+
+void apdu_set_confirmed_ack_handler(
+  BACNET_CONFIRMED_SERVICE service_choice,
+  confirmed_ack_function pFunction);
+
+void apdu_set_confirmed_simple_ack_handler(
+  BACNET_CONFIRMED_SERVICE service_choice,
+  confirmed_simple_ack_function pFunction);
+
+void apdu_set_confirmed_handler(
+  BACNET_CONFIRMED_SERVICE service_choice,
+  confirmed_function pFunction);
+
+void apdu_set_unconfirmed_handler(
+  BACNET_UNCONFIRMED_SERVICE service_choice,
+  unconfirmed_function pFunction);
+
 void apdu_handler(
   BACNET_ADDRESS *src,  // source address
   bool data_expecting_reply,
