@@ -80,13 +80,13 @@ bool ct_addTestFunction(Test* pTest, TestFunc tfun)
                         realloc(pTest->pTestFuns,
                                 newSize * sizeof(TestFunc));
                 if (!new_pTestFuns)
-                        return FALSE;
+                        return false;
                 pTest->pTestFuns = new_pTestFuns;
                 pTest->maxTests += CHUNK;
         }
         assert(pTest->nTests < pTest->maxTests);
         pTest->pTestFuns[pTest->nTests++] = tfun;
-        return TRUE;
+        return true;
 }
 
 void ct_setStream(Test* pTest, FILE* pStream)
