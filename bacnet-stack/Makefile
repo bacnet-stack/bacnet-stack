@@ -13,6 +13,7 @@ SRCS = ports/linux/main.c \
        whois.c \
        iam.c \
        reject.c \
+       bacerror.c \
        apdu.c \
        npdu.c
 
