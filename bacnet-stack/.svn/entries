@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="512"
+   name=""
+   committed-date="2004-09-21T18:56:56.876624Z"
+   url="svn://potter/mstp/current"
+   kind="dir"
+   uuid="f7de03cf-50d5-0310-9ee6-baecd260521e"
+   revision="512"/>
+<entry
+   name="test"
+   kind="dir"/>
+<entry
+   committed-rev="504"
+   name="ringbuf.h"
+   text-time="2004-09-16T12:55:47.000000Z"
+   committed-date="2004-09-16T12:58:13.686683Z"
+   checksum="6a2c59836ce3dd3ad6a9b12bb5dec5f8"
+   kind="file"/>
+<entry
+   committed-rev="506"
+   name="mstp.ide"
+   text-time="2004-09-16T13:12:37.000000Z"
+   committed-date="2004-09-16T13:13:12.501031Z"
+   checksum="500f584e7ef36868ad5f13dc29579de1"
+   kind="file"
+   prop-time="2004-09-16T13:12:37.000000Z"/>
+<entry
+   committed-rev="505"
+   name="test.sh"
+   text-time="2004-09-16T13:06:51.000000Z"
+   committed-date="2004-09-16T13:08:45.619586Z"
+   checksum="14511d7e0a2fbf5b1fcd6b0e132bf5e1"
+   kind="file"
+   prop-time="2004-09-16T13:07:26.000000Z"/>
+<entry
+   committed-rev="500"
+   name="crc.c"
+   text-time="2004-09-16T12:25:10.000000Z"
+   committed-date="2004-09-15T18:55:50.360066Z"
+   checksum="f051b500d5619e2dc841473463cc723a"
+   kind="file"
+   prop-time="2004-09-16T12:25:10.000000Z"/>
+<entry
+   committed-rev="505"
+   name="mstp.mak"
+   text-time="2004-09-16T13:01:31.000000Z"
+   committed-date="2004-09-16T13:08:45.619586Z"
+   checksum="36c0cac576ec7243bd2cadbb4d24187b"
+   kind="file"/>
+<entry
+   committed-rev="494"
+   name="stdint.h"
+   text-time="2004-09-15T13:53:13.000000Z"
+   committed-date="2004-09-14T19:22:18.445142Z"
+   checksum="f9581e03267903b1fe558b45f2e7b2fe"
+   kind="file"
+   prop-time="2004-09-15T13:53:13.000000Z"/>
+<entry
+   committed-rev="494"
+   name="stdbool.h"
+   text-time="2004-09-15T13:53:13.000000Z"
+   committed-date="2004-09-14T19:22:18.445142Z"
+   checksum="692dbefeca755102be5bef998cba11c6"
+   kind="file"
+   prop-time="2004-09-15T13:53:13.000000Z"/>
+<entry
+   committed-rev="494"
+   name="crc.h"
+   text-time="2004-09-15T13:53:13.000000Z"
+   committed-date="2004-09-14T19:22:18.445142Z"
+   checksum="613fc4f106eb15511cd78dd6bd019ff8"
+   kind="file"
+   prop-time="2004-09-15T13:53:13.000000Z"/>
+<entry
+   committed-rev="505"
+   name="ringbuf.mak"
+   text-time="2004-09-16T13:00:05.000000Z"
+   committed-date="2004-09-16T13:08:45.619586Z"
+   checksum="0347088621cfd45d358d5f4c27603a78"
+   kind="file"/>
+<entry
+   committed-rev="502"
+   name="mstp.c"
+   text-time="2004-09-16T12:36:27.000000Z"
+   committed-date="2004-09-16T12:37:51.418188Z"
+   checksum="26e168bc74c2cf6759d15b57d1b27313"
+   kind="file"
+   prop-time="2004-09-16T12:25:10.000000Z"/>
+<entry
+   committed-rev="508"
+   name="main.c"
+   text-time="2004-09-17T14:32:16.000000Z"
+   committed-date="2004-09-17T08:46:07.996351Z"
+   checksum="996a714c7450e522b943d2de762b12b0"
+   kind="file"
+   prop-time="2004-09-17T14:32:16.000000Z"/>
+<entry
+   committed-rev="500"
+   name="crc.ide"
+   text-time="2004-09-16T12:25:10.000000Z"
+   committed-date="2004-09-15T18:55:50.360066Z"
+   checksum="a634ef6eb3f0e56a1083c41deda4ea69"
+   kind="file"
+   prop-time="2004-09-16T12:25:10.000000Z"/>
+<entry
+   name="ports"
+   kind="dir"/>
+<entry
+   committed-rev="509"
+   name="mstp.h"
+   text-time="2004-09-17T14:57:32.000000Z"
+   committed-date="2004-09-17T15:14:53.274461Z"
+   checksum="3ede6253d48ba42fb0754bd8618e75e6"
+   kind="file"
+   prop-time="2004-09-16T13:12:37.000000Z"/>
+<entry
+   committed-rev="494"
+   name="rs485.h"
+   text-time="2004-09-15T13:53:13.000000Z"
+   committed-date="2004-09-14T19:22:18.445142Z"
+   checksum="7b9f476c2b0c7f6edec88a45baed16bd"
+   kind="file"
+   prop-time="2004-09-15T13:53:13.000000Z"/>
+<entry
+   committed-rev="500"
+   name="bytes.h"
+   text-time="2004-09-16T12:25:10.000000Z"
+   committed-date="2004-09-15T18:55:50.360066Z"
+   checksum="bafe1cb50a3d676f6e4d1c9c74911fb4"
+   kind="file"
+   prop-time="2004-09-16T12:25:10.000000Z"/>
+<entry
+   committed-rev="508"
+   name="Makefile"
+   text-time="2004-09-17T14:32:16.000000Z"
+   committed-date="2004-09-17T08:46:07.996351Z"
+   checksum="0f99fe5f7f7b2d837e77e545ef44594e"
+   kind="file"
+   prop-time="2004-09-17T14:32:16.000000Z"/>
+<entry
+   committed-rev="504"
+   name="ringbuf.c"
+   text-time="2004-09-16T12:55:43.000000Z"
+   committed-date="2004-09-16T12:58:13.686683Z"
+   checksum="996a8dcef95477542791ef64ab959d06"
+   kind="file"/>
+<entry
+   committed-rev="505"
+   name="crc.mak"
+   text-time="2004-09-16T12:59:14.000000Z"
+   committed-date="2004-09-16T13:08:45.619586Z"
+   checksum="89d218d56919ad6afa52e566b332e711"
+   kind="file"/>
+</wc-entries>
