@@ -465,10 +465,6 @@ void apdu_handler(
                 service_request_len,
                 src,
                 &service_data); 
-            else
-            {
-              //FIXME:  reject: service not supported
-            }
             break;
           case SERVICE_CONFIRMED_COV_NOTIFICATION:
             if (Confirmed_COV_Notification_Handler)
