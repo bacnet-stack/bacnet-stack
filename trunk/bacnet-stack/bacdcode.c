@@ -170,10 +170,10 @@ int decode_tag_number(uint8_t * apdu, uint8_t * tag_number)
     int len = 1;
 
     if ((apdu[0] & 0xF0) == 0xF0) {
-        *tag_number = (int) apdu[1];
+        *tag_number = apdu[1];
         len++;
     } else
-        *tag_number = (int) apdu[0];
+        *tag_number = (apdu[0] >> 4);
 
     return len;
 }
@@ -183,6 +183,20 @@ int decode_tag_number(uint8_t * apdu, uint8_t * tag_number)
 bool decode_is_context_specific(uint8_t * apdu)
 {
     return (apdu[0] & BIT3);
+}
+
+// from clause 20.2.1.3.2 Constructed Data
+// returns the number of apdu bytes consumed
+bool decode_is_opening_tag(uint8_t * apdu)
+{
+    return ((apdu[0] & 0x07) == 6);
+}
+
+// from clause 20.2.1.3.2 Constructed Data
+// returns the number of apdu bytes consumed
+bool decode_is_closing_tag(uint8_t * apdu)
+{
+    return ((apdu[0] & 0x07) == 7);
 }
 
 // from clause 20.2.1.3.2 Constructed Data
@@ -751,12 +765,59 @@ int decode_date(uint8_t * apdu, int *year, int *month, int *day, int *wday)
 
 #include "ctest.h"
 
+void testBACDCodeTags(Test * pTest)
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t tag_number = 0;
+    uint8_t test_tag_number = 0;
+    int len = 0;
+
+    for (tag_number = 0;; tag_number++) {
+        len = encode_opening_tag(&apdu[0], tag_number);
+        if (tag_number < 15) {
+            ct_test(pTest, len == 1);
+            len = decode_tag_number(&apdu[0], &test_tag_number);
+            ct_test(pTest, len == 1);
+        } else {
+            ct_test(pTest, len == 2);
+            len = decode_tag_number(&apdu[0], &test_tag_number);
+            ct_test(pTest, len == 2);
+        }
+        ct_test(pTest, tag_number == test_tag_number);
+        ct_test(pTest, decode_is_opening_tag(&apdu[0]) == true);
+        ct_test(pTest, decode_is_closing_tag(&apdu[0]) == false);
+
+        len = encode_closing_tag(&apdu[0], tag_number);
+        if (tag_number < 15) {
+            ct_test(pTest, len == 1);
+            len = decode_tag_number(&apdu[0], &test_tag_number);
+            ct_test(pTest, len == 1);
+        } else {
+            ct_test(pTest, len == 2);
+            len = decode_tag_number(&apdu[0], &test_tag_number);
+            ct_test(pTest, len == 2);
+        }
+        ct_test(pTest, tag_number == test_tag_number);
+        ct_test(pTest, decode_is_opening_tag(&apdu[0]) == false);
+        ct_test(pTest, decode_is_closing_tag(&apdu[0]) == true);
+        // stop after the last one
+        if (tag_number == 255)
+            break;
+    }
+
+    return;
+}
+
 void testBACDCodeReal(Test * pTest)
 {
     uint8_t real_array[4] = { 0 };
     uint8_t encoded_array[4] = { 0 };
     float value = 42.123;
     float decoded_value = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len, apdu_len;
+    uint8_t tag_number = 0;
+    uint32_t long_value;
 
     encode_bacnet_real(value, &real_array[0]);
     decode_real(&real_array[0], &decoded_value);
@@ -764,6 +825,20 @@ void testBACDCodeReal(Test * pTest)
     encode_bacnet_real(value, &encoded_array[0]);
     ct_test(pTest, memcmp(&real_array, &encoded_array,
             sizeof(real_array)) == 0);
+
+    // a real will take up 4 octects plus a one octet tag 
+    apdu_len = encode_real(&apdu[0], value);
+    ct_test(pTest, apdu_len == 5);
+    len = decode_tag_number(&apdu[0], &tag_number);
+    ct_test(pTest, len == 1);
+    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_REAL);
+    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+    // len tells us how many octets were used for encoding the value
+    len = decode_tag_value(&apdu[0], &long_value);
+    ct_test(pTest, len == 1);
+    ct_test(pTest, long_value == 4);
+    decode_real(&apdu[len], &decoded_value);
+    ct_test(pTest, decoded_value == value);
 
     return;
 }
@@ -774,7 +849,9 @@ void testBACDCodeEnumerated(Test * pTest)
     uint8_t encoded_array[5] = { 0 };
     unsigned int value = 1;
     unsigned int decoded_value = 0;
-    int i;
+    int i, len, apdu_len;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t tag_number = 0;
 
     for (i = 0; i < 8; i++) {
         encode_enumerated(&array[0], value);
@@ -783,6 +860,22 @@ void testBACDCodeEnumerated(Test * pTest)
         encode_enumerated(&encoded_array[0], decoded_value);
         ct_test(pTest, memcmp(&array[0], &encoded_array[0],
                 sizeof(array)) == 0);
+        // an enumerated will take up to 4 octects 
+        // plus a one octet for the tag 
+        apdu_len = encode_enumerated(&apdu[0], value);
+        // apdu_len varies...
+        //ct_test(pTest, apdu_len == 5);
+        len = decode_tag_number(&apdu[0], &tag_number);
+        ct_test(pTest, len == 1);
+        ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_ENUMERATED);
+        ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+        // context specific encoding
+        apdu_len = encode_context_enumerated(&apdu[0], 3, value);
+        ct_test(pTest, decode_is_context_specific(&apdu[0]) == true);
+        len = decode_tag_number(&apdu[0], &tag_number);
+        ct_test(pTest, len == 1);
+        ct_test(pTest, tag_number == 3);
+        // test the interesting values
         value = value << 1;
     }
 
@@ -795,7 +888,9 @@ void testBACDCodeUnsigned(Test * pTest)
     uint8_t encoded_array[5] = { 0 };
     unsigned int value = 1;
     unsigned int decoded_value = 0;
-    int i;
+    int i, len, apdu_len;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t tag_number = 0;
 
     for (i = 0; i < 8; i++) {
         encode_unsigned(&array[0], value);
@@ -804,6 +899,15 @@ void testBACDCodeUnsigned(Test * pTest)
         encode_unsigned(&encoded_array[0], decoded_value);
         ct_test(pTest, memcmp(&array[0], &encoded_array[0],
                 sizeof(array)) == 0);
+        // an unsigned will take up to 4 octects 
+        // plus a one octet for the tag 
+        apdu_len = encode_unsigned(&apdu[0], value);
+        // apdu_len varies...
+        //ct_test(pTest, apdu_len == 5);
+        len = decode_tag_number(&apdu[0], &tag_number);
+        ct_test(pTest, len == 1);
+        ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_UNSIGNED_INT);
+        ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
         value = value << 1;
     }
 
@@ -816,7 +920,9 @@ void testBACDCodeSigned(Test * pTest)
     uint8_t encoded_array[5] = { 0 };
     int value = 1;
     int decoded_value = 0;
-    int i;
+    int i, len, apdu_len;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t tag_number = 0;
 
     for (i = 0; i < 8; i++) {
         encode_signed(&array[0], value);
@@ -825,6 +931,15 @@ void testBACDCodeSigned(Test * pTest)
         encode_signed(&encoded_array[0], decoded_value);
         ct_test(pTest, memcmp(&array[0], &encoded_array[0],
                 sizeof(array)) == 0);
+        // a signed int will take up to 4 octects 
+        // plus a one octet for the tag 
+        apdu_len = encode_signed(&apdu[0], value);
+        // apdu_len varies...
+        //ct_test(pTest, apdu_len == 5);
+        len = decode_tag_number(&apdu[0], &tag_number);
+        ct_test(pTest, len == 1);
+        ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
+        ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
         value = value << 1;
     }
 
@@ -835,6 +950,15 @@ void testBACDCodeSigned(Test * pTest)
     encode_signed(&encoded_array[0], decoded_value);
     ct_test(pTest, memcmp(&array[0], &encoded_array[0],
             sizeof(array)) == 0);
+    // a signed int will take up to 4 octects 
+    // plus a one octet for the tag 
+    apdu_len = encode_signed(&apdu[0], value);
+    // apdu_len varies...
+    //ct_test(pTest, apdu_len == 5);
+    len = decode_tag_number(&apdu[0], &tag_number);
+    ct_test(pTest, len == 1);
+    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
+    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
 
     return;
 }
@@ -921,6 +1045,8 @@ int main(void)
 
     pTest = ct_create("BACDCode", NULL);
     /* individual tests */
+    rc = ct_addTestFunction(pTest, testBACDCodeTags);
+    assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeReal);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeUnsigned);
