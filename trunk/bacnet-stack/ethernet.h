@@ -34,7 +34,9 @@
 #ifndef ETHERNET_H
 #define ETHERNET_H
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #include "bacdef.h"
 
 // specific defines for Ethernet

@@ -40,13 +40,13 @@
 #include "config.h" // the custom stuff
 
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-static char *Vendor_Name = "ASHRAE";
+static const char *Vendor_Name = "ASHRAE";
 static uint16_t Vendor_Identifier = 0;
-static char *Model_Name = "GNU";
-static char *Firmware_Revision = "1.0";
-static char *Application_Software_Version = "1.0";
+static const char *Model_Name = "GNU";
+static const char *Firmware_Revision = "1.0";
+static const char *Application_Software_Version = "1.0";
 //static char *Location = "USA";
-static char *Description = "server";
+static const char *Description = "server";
 //static uint8_t Protocol_Version = 1; - constant, not settable
 //static uint8_t Protocol_Revision = 4; - constant, not settable
 //Protocol_Services_Supported
@@ -138,7 +138,7 @@ const char *Device_Application_Software_Version(void)
   return Application_Software_Version;
 }
 
-void Device_Application_Software_Version(const char *name)
+void Device_Set_Application_Software_Version(const char *name)
 {
   Application_Software_Version = name;
 }
@@ -148,7 +148,7 @@ const char *Device_Description(void)
   return Description;
 }
 
-void Device_Description(const char *name)
+void Device_Set_Description(const char *name)
 {
   Description = name;
 }
@@ -199,5 +199,15 @@ uint8_t Device_Number_Of_APDU_Retries(void)
 void Device_Set_Number_Of_APDU_Retries(uint8_t retries)
 {
   Number_Of_APDU_Retries = retries;
+}
+
+uint8_t Device_Database_Revision(void)
+{
+  return Database_Revision;
+}
+
+void Device_Set_Database_Revision(uint8_t revision)
+{
+  Database_Revision = revision;
 }
 

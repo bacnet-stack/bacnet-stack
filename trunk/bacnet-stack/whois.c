@@ -94,7 +94,8 @@ int whois_decode_service_request(
     len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
       return -1;
-    len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+    len += decode_unsigned(&apdu[len],
+      len_value, &decoded_value);
     if ((decoded_value >= 0) && (decoded_value <= BACNET_MAX_INSTANCE))
     {
       if (pHigh_limit)

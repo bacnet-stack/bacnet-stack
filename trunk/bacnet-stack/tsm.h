@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "bacdef.h"
 
 typedef enum
 {
@@ -75,21 +76,20 @@ typedef struct BACnet_TSM_Data
   uint8_t InvokeID;
   // state that the TSM is in
   BACNET_TSM_STATE state;
-  // the address it was sent from
-  BACNET_ADDRESS src;
   // the address we sent it to
   BACNET_ADDRESS dest;
   // copy of the PDU, should we need to send it again
-  uint8_t pdu[MAX_MPDU];
+  uint8_t pdu[MAX_PDU];
 } BACNET_TSM_DATA;
 
 bool tsm_transaction_available(void);
 uint8_t tsm_transaction_idle_count(void);
 uint8_t tsm_request_confirmed_unsegmented_transaction(
-  BACNET_ADDRESS *src,
   BACNET_ADDRESS *dest,
   uint8_t *pdu,
   uint16_t pdu_len);
+void tsm_init_list(BACNET_TSM_DATA *list);
+
 
 
 #endif
