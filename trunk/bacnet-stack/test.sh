@@ -44,3 +44,8 @@ make -f reject.mak
 ./reject >> test.log
 make -f reject.mak clean
 
+make -f bacerror.mak clean
+make -f bacerror.mak
+./bacerror >> test.log
+make -f bacerror.mak clean
+

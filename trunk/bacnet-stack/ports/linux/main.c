@@ -2,7 +2,7 @@
 // Written by Steve Karg - 2005 - skarg@users.sourceforge.net
 // Bug fixes, feature requests, and suggestions are welcome
 
-// This is one way to use the BACnet stack under Linux
+// This is one way to use the embedded BACnet stack under Linux
 
 #include <stddef.h>
 #include <stdint.h>
@@ -19,10 +19,6 @@
 // buffers used for transmit and receive
 static uint8_t Tx_Buf[MAX_MPDU] = {0};
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
-
-// vendor id assigned by ASHRAE
-uint16_t Vendor_Id = 42;
-uint32_t Device_Id = 111;
 
 // flag to send an I-Am
 bool I_Am_Request = true;
@@ -120,11 +116,22 @@ void WhoIsHandler(
   return;  
 }
 
-int main(int argc, char *argv[])
+static void Init_Device_Parameters(void)
 {
-  BACNET_ADDRESS src = {0};  // address where message came from
-  uint16_t pdu_len = 0;
+  // configure my initial values
+  Device_Set_Object_Identifier(111);
+  Device_Set_Vendor_Name("Lithonia Lighting");
+  Device_Set_Vendor_Identifier(42);
+  Device_Set_Model_Name("Simple BACnet Server");
+  Device_Set_Firmware_Revision("1.00");
+  Device_Set_Application_Software_Version("none");
+  Device_Set_Description("Example of a simple BACnet server");
 
+  return;
+}
+  
+static void Init_Service_Handlers(void)
+{
   // custom handlers
   apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,WhoIsHandler);
 
@@ -222,7 +229,15 @@ int main(int argc, char *argv[])
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_REQUEST_KEY,
     UnrecognizedServiceHandler);
+}
 
+int main(int argc, char *argv[])
+{
+  BACNET_ADDRESS src = {0};  // address where message came from
+  uint16_t pdu_len = 0;
+
+  Init_Device_Parameters();
+  Init_Service_Handlers();
   // init the physical layer
   if (!ethernet_init("eth0"))
     return 1;

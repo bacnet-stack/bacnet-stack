@@ -39,6 +39,11 @@
 #include "bacenum.h"
 #include "config.h" // the custom stuff
 
+// vendor id assigned by ASHRAE
+static uint32_t Object_Identifier = 0;
+// FIXME: it is likely that this name is configurable,
+// so consider a fixed sized string
+static const char *Object_Name = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static const char *Vendor_Name = "ASHRAE";
 static uint16_t Vendor_Identifier = 0;
@@ -81,7 +86,17 @@ static uint8_t Database_Revision = 0;
 //Profile_Name
 
 // methods to manipulate the data
-// FIXME: add APDU encode methods for each?
+uint32_t Device_Object_Identifier(void)
+{
+  return Object_Identifier;
+}
+
+void Device_Set_Object_Identifier(uint32_t object_id)
+{
+  // FIXME: bounds check?
+  Object_Identifier = object_id;
+}
+
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
   return System_Status;
@@ -186,6 +201,7 @@ uint16_t Device_APDU_Timeout(void)
   return APDU_Timeout;
 }
 
+// in milliseconds
 void Device_Set_APDU_Timeout(uint16_t timeout)
 {
   APDU_Timeout = timeout;
@@ -210,4 +226,139 @@ void Device_Set_Database_Revision(uint8_t revision)
 {
   Database_Revision = revision;
 }
+
+int Device_Encode_Property_APDU(
+  uint8_t *apdu,
+  BACNET_PROPERTY_ID property,
+  int array_index)
+{
+  int apdu_len = 0; // return value
+
+  switch (property)
+  {
+    case PROP_OBJECT_IDENTIFIER:
+      apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
+        Object_Identifier);
+      break;
+    case PROP_OBJECT_NAME:
+      apdu_len = encode_tagged_character_string(&apdu[0], Object_Name);
+      break;
+    case PROP_OBJECT_TYPE:
+      apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_DEVICE);
+      break;
+    case PROP_DESCRIPTION:
+      apdu_len = encode_tagged_character_string(&apdu[0], Description);
+      break;
+    case PROP_SYSTEM_STATUS:
+      apdu_len = encode_tagged_enumerated(&apdu[0], System_Status);
+      break;
+    case PROP_VENDOR_NAME:
+      apdu_len = encode_tagged_character_string(&apdu[0], Vendor_Name);
+      break;
+    case PROP_VENDOR_IDENTIFIER:
+      apdu_len = encode_tagged_unsigned(&apdu[0], Vendor_Identifier);
+      break;
+    case PROP_MODEL_NAME:
+      apdu_len = encode_tagged_character_string(&apdu[0], Model_Name);
+      break;
+    case PROP_FIRMWARE_REVISION:
+      apdu_len = encode_tagged_character_string(&apdu[0], Program_Version);
+      break;
+    case PROP_APPLICATION_SOFTWARE_VERSION:
+      apdu_len = encode_tagged_character_string(&apdu[0],
+        Application_Software_Version);
+      break;
+    // if you support time
+    case PROP_LOCAL_TIME:
+        //t = time(NULL);
+        //my_tm = localtime(&t);
+        //apdu_len =
+        //    encode_tagged_time(&apdu[0], my_tm->tm_hour, my_tm->tm_min,
+        //    my_tm->tm_sec, 0);
+        break;
+    // if you support date
+    case PROP_LOCAL_DATE:
+        //t = time(NULL);
+        //my_tm = localtime(&t);
+        // year = years since 1900
+        // month 1=Jan
+        // day = day of month
+        // wday 1=Monday...7=Sunday
+        //apdu_len = encode_tagged_date(&apdu[0],
+        //    my_tm->tm_year,
+        //    my_tm->tm_mon + 1,
+        //    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday));
+        break;
+    case PROP_PROTOCOL_VERSION:
+        apdu_len = encode_tagged_unsigned(&apdu[0], Protocol_Version);
+        break;
+    // Legacy Support - necessary?
+    //case PROP_PROTOCOL_CONFORMANCE_CLASS:
+    //    apdu_len = encode_tagged_unsigned(&apdu[0], 1);
+    //    break;
+    case PROP_PROTOCOL_SERVICES_SUPPORTED:
+        // FIXME: needs an encoding function for bitstring
+        apdu[0] = 0x85;         /* what is following? (this is a bitstring) */
+        apdu[1] = 0x06;         /* length extension to 6 bytes */
+        apdu[2] = 0x05;         /* 5 unused bits in the final byte */
+        apdu[3] = 0x00;         /* none of the first 8 bits are set */
+        apdu[4] = 0x09;         /* bits 3,0 are set */
+        apdu[5] = 0x00;         /* none of the 3rd set of bits are set */
+        apdu[6] = 0x20;         /* bit 5 is set */
+        apdu[7] = 0x20;         /* bit 5 is set */
+        apdu_len = 8;           /* bytes in this apdu */
+        break;
+    case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
+        // FIXME: needs an encoding function for bitstring
+        apdu[0] = 0x84;         /* what is following? (this is a bitstring) */
+        apdu[1] = 0x06;         /* 6 unused bits in the final byte */
+        apdu[2] = 0xFF;         /* All of the first 8 bits are set */
+        apdu[3] = 0xFF;         /* All of the second 8 bits are set */
+        apdu[4] = 0xC0;         /* All of the valid bits are set */
+        apdu_len = 5;           /* bytes in this apdu */
+        break;
+    case PROP_OBJECT_LIST:
+      // FIXME: hook into real object list, not just device
+      // Array element zero is the number of objects in the list
+      if (array_index == 0)
+        apdu_len = encode_tagged_unsigned(&apdu[0], 1);
+      // if no index was specified, then try to encode the entire list
+      // into one packet.  Note that more than likely you will have
+      // to return an error if the number of encoded objects exceeds
+      // your maximum APDU size.
+      else if (array_index == BACNET_ARRAY_ALL)
+      {
+        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
+            Object_Instance);
+      }
+      else
+      {
+        // the first object in the list is at index=1
+        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
+            Object_Instance);
+        // FIXME: handle the error case of an index beyond the bounds
+      }
+      break;
+    case PROP_MAX_APDU_LENGTH_ACCEPTED:
+      apdu_len = encode_tagged_unsigned(&apdu[0],
+        Device_Max_APDU_Length_Accepted());
+      break;
+    case PROP_SEGMENTATION_SUPPORTED:
+      apdu_len = encode_tagged_enumerated(&apdu[0],
+        Device_Segmentation_Supported());
+      break;
+    case PROP_APDU_TIMEOUT:
+      apdu_len = encode_tagged_unsigned(&apdu[0], APDU_Timeout);
+      break;
+    case PROP_NUMBER_OF_APDU_RETRIES:
+      apdu_len = encode_tagged_unsigned(&apdu[0], Number_Of_APDU_Retries);
+      break;
+    default:
+        break;
+  }
+
+  return apdu_len;
+}
+
+
 
