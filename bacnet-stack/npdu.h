@@ -68,4 +68,10 @@ int npdu_encode_apdu(
   bool data_expecting_reply,  // true for confirmed messages
   BACNET_MESSAGE_PRIORITY priority);
 
+int npdu_decode(
+  uint8_t *npdu,
+  BACNET_ADDRESS *dest,
+  BACNET_ADDRESS *src,
+  BACNET_NPDU_DATA *npdu_data);
+
 #endif
