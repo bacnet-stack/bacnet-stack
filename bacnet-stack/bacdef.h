@@ -34,6 +34,27 @@
 #ifndef BACDEF_H
 #define BACDEF_H
 
+#include <stdint.h>
+
+// largest BACnet Instance Number
+// Also used as a device instance number wildcard address
 #define BACNET_MAX_INSTANCE (0x3FFFFF)
+// large BACnet Object Type
+#define BACNET_MAX_OBJECT (0x3FF)
+// Array index 0=size of array, n=array element n,  MAX=all array elements
+#define BACNET_ARRAY_ALL (~0)
+
+#define MAX_MAC_LEN 8
+struct BACnet_Device_Address {
+    // mac_len = 0 if global address
+    int mac_len;
+    uint8_t mac[MAX_MAC_LEN];
+    // the following are used if the device is behind a router
+    // net = 0 indicates local
+    uint16_t net; /* BACnet network number */
+    int adr_len; /* length of MAC address */
+    uint8_t adr[MAX_MAC_LEN]; /* hwaddr (MAC) address */
+};
+typedef struct BACnet_Device_Address BACNET_ADDRESS;
 
 #endif
