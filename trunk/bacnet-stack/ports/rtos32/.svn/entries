@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="503"
+   name=""
+   committed-date="2004-09-16T12:45:02.597419Z"
+   url="svn://potter/mstp/current/ports/rtos32"
+   kind="dir"
+   uuid="f7de03cf-50d5-0310-9ee6-baecd260521e"
+   revision="512"/>
+</wc-entries>
