@@ -878,7 +878,7 @@ int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
     apdu[2] = day;
     apdu[3] = wday;
 
-    return 3;
+    return 4;
 }
 
 // from clause 20.2.12 Encoding of a Date Value
