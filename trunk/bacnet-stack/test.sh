@@ -19,4 +19,8 @@ make -f mstp.mak
 ./mstp >> test.log
 make -f mstp.mak clean
 
+make -f bacdcode.mak clean
+make -f bacdcode.mak
+./mstp >> test.log
+make -f bacdcode.mak clean
 
