@@ -9,6 +9,7 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_NPDU -g
 SRCS = bacdcode.c \
        bigend.c \
        npdu.c \
+       apdu.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
