@@ -128,13 +128,86 @@ const unsigned Tusage_delay = 15;
 // larger values for this timeout, not to exceed 100 milliseconds.)
 const unsigned Tusage_timeout = 20;
 
+unsigned MSTP_Create_Frame(
+  uint8_t *buffer, // where frame is loaded
+  unsigned buffer_len, // amount of space available
+  uint8_t frame_type, // type of frame to send - see defines
+  uint8_t destination, // destination address
+  uint8_t source,  // source address
+  uint8_t *data, // any data to be sent - may be null
+  unsigned data_len) // number of bytes of data (up to 501)
+{
+  uint8_t crc8 = 0xFF; // used to calculate the crc value
+  uint16_t crc16 = 0xFFFF; // used to calculate the crc value
+  unsigned index = 0; // used to load the data portion of the frame
+
+  // not enough to do a header
+  if (buffer_len < 8)
+    return 0;
+
+  buffer[0] = 0x55;
+  buffer[1] = 0xFF;
+  buffer[2] = frame_type;
+  crc8 = CRC_Calc_Header(buffer[2],crc8);
+  buffer[3] = destination;
+  crc8 = CRC_Calc_Header(buffer[3],crc8);
+  buffer[4] = source;
+  crc8 = CRC_Calc_Header(buffer[4],crc8);
+  buffer[5] = data_len / 256;
+  crc8 = CRC_Calc_Header(buffer[5],crc8);
+  buffer[6] = data_len % 256;
+  crc8 = CRC_Calc_Header(buffer[6],crc8);
+  buffer[7] = ~crc8;
+
+  index = 8;
+  while (data_len && data && (index < buffer_len))
+  {
+    buffer[index] = *data;
+    crc16 = CRC_Calc_Data(buffer[index],crc16);
+    data++;
+    index++;
+    data_len--;
+  }
+  // append the data CRC if necessary
+  if (index > 8)
+  {
+    if ((index + 2) <= buffer_len)
+    {
+      crc16 = ~crc16;
+      buffer[index] = LO_BYTE(crc16);
+      index++;
+      buffer[index] = HI_BYTE(crc16);
+      index++;
+    }
+    else
+      return 0;
+  }
+
+  return index; // returns the frame length
+}
+
 void MSTP_Create_And_Send_Frame(
   struct mstp_port_struct_t *mstp_port, // port to send from
   uint8_t frame_type, // type of frame to send - see defines
   uint8_t destination, // destination address
   uint8_t source,  // source address
   uint8_t *data, // any data to be sent - may be null
-  unsigned data_len); // number of bytes of data (up to 501)
+  unsigned data_len) // number of bytes of data (up to 501)
+{
+  uint8_t buffer[INPUT_BUFFER_SIZE] = {0};
+  uint16_t len = 0; // number of bytes to send
+
+  len = (uint16_t)MSTP_Create_Frame(
+    buffer, // where frame is loaded
+    sizeof(buffer), // amount of space available
+    frame_type, // type of frame to send - see defines
+    destination, // destination address
+    source,  // source address
+    data, // any data to be sent - may be null
+    data_len); // number of bytes of data (up to 501)
+
+  RS485_Send_Frame(mstp_port, buffer, len);
+}
 
 // Millisecond Timer - called every millisecond
 void MSTP_Millisecond_Timer(struct mstp_port_struct_t *mstp_port)
@@ -1118,87 +1191,6 @@ void MSTP_Init(
     mstp_port->Nmax_info_frames = DEFAULT_MAX_INFO_FRAMES;
     mstp_port->Nmax_master = DEFAULT_MAX_MASTER;
   }
-}
-
-unsigned MSTP_Create_Frame(
-  uint8_t *buffer, // where frame is loaded
-  unsigned buffer_len, // amount of space available
-  uint8_t frame_type, // type of frame to send - see defines
-  uint8_t destination, // destination address
-  uint8_t source,  // source address
-  uint8_t *data, // any data to be sent - may be null
-  unsigned data_len) // number of bytes of data (up to 501)
-{
-  uint8_t crc8 = 0xFF; // used to calculate the crc value
-  uint16_t crc16 = 0xFFFF; // used to calculate the crc value
-  unsigned index = 0; // used to load the data portion of the frame
-
-  // not enough to do a header
-  if (buffer_len < 8)
-    return 0;
-
-  buffer[0] = 0x55;
-  buffer[1] = 0xFF;
-  buffer[2] = frame_type;
-  crc8 = CRC_Calc_Header(buffer[2],crc8);
-  buffer[3] = destination;
-  crc8 = CRC_Calc_Header(buffer[3],crc8);
-  buffer[4] = source;
-  crc8 = CRC_Calc_Header(buffer[4],crc8);
-  buffer[5] = data_len / 256;
-  crc8 = CRC_Calc_Header(buffer[5],crc8);
-  buffer[6] = data_len % 256;
-  crc8 = CRC_Calc_Header(buffer[6],crc8);
-  buffer[7] = ~crc8;
-
-  index = 8;
-  while (data_len && data && (index < buffer_len))
-  {
-    buffer[index] = *data;
-    crc16 = CRC_Calc_Data(buffer[index],crc16);
-    data++;
-    index++;
-    data_len--;
-  }
-  // append the data CRC if necessary
-  if (index > 8)
-  {
-    if ((index + 2) <= buffer_len)
-    {
-      crc16 = ~crc16;
-      buffer[index] = LO_BYTE(crc16);
-      index++;
-      buffer[index] = HI_BYTE(crc16);
-      index++;
-    }
-    else
-      return 0;
-  }
-
-  return index; // returns the frame length
-}
-
-void MSTP_Create_And_Send_Frame(
-  struct mstp_port_struct_t *mstp_port, // port to send from
-  uint8_t frame_type, // type of frame to send - see defines
-  uint8_t destination, // destination address
-  uint8_t source,  // source address
-  uint8_t *data, // any data to be sent - may be null
-  unsigned data_len) // number of bytes of data (up to 501)
-{
-  uint8_t buffer[INPUT_BUFFER_SIZE] = {0};
-  uint16_t len = 0; // number of bytes to send
-
-  len = (uint16_t)MSTP_Create_Frame(
-    buffer, // where frame is loaded
-    sizeof(buffer), // amount of space available
-    frame_type, // type of frame to send - see defines
-    destination, // destination address
-    source,  // source address
-    data, // any data to be sent - may be null
-    data_len); // number of bytes of data (up to 501)
-
-  RS485_Send_Frame(mstp_port, buffer, len);
 }
 
 #ifdef TEST
