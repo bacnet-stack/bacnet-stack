@@ -203,16 +203,7 @@ int ethernet_send(
     {
       for (i = 0; i < 6; i++)
       {
-        mtu[i] = dest->mac[i];
-        mtu_len++;
-      }
-    }
-    // Global Broadcast
-    else if (dest->mac_len == 0)
-    {
-      for (i = 0; i < 6; i++)
-      {
-        mtu[i] = Ethernet_Broadcast[i];
+        mtu[mtu_len] = dest->mac[i];
         mtu_len++;
       }
     }
@@ -227,7 +218,7 @@ int ethernet_send(
     {
       for (i = 0; i < 6; i++)
       {
-        mtu[i] = src->mac[i];
+        mtu[mtu_len] = src->mac[i];
         mtu_len++;
       }
     }
@@ -377,7 +368,7 @@ void ethernet_set_broadcast_address(
   {
     for (i = 0; i < 6; i++)
     {
-      dest->mac[i] = 0xFF;
+      dest->mac[i] = Ethernet_Broadcast[i];
     }
     dest->mac_len = 6;
     dest->net = BACNET_BROADCAST_NETWORK;
