@@ -1,37 +1,8 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2004 Steve Karg
+// This example file is not copyrighted so that you can use it as you wish.
+// Written by Steve Karg - 2005 - skarg@users.sourceforge.net
+// Bug fixes, feature requests, and suggestions are welcome
 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+// This is one way to use the BACnet stack under Linux
 
 #include <stddef.h>
 #include <stdint.h>
@@ -40,6 +11,7 @@
 #include "npdu.h"
 #include "apdu.h"
 #include "iam.h"
+#include "whois.h"
 #include "ethernet.h"
 
 // buffers used for transmit and receive
@@ -88,11 +60,38 @@ void Send_IAm(void)
     pdu_len); // number of bytes of data
 }
 
+void WhoIsHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  int len = 0;
+  int32_t low_limit = 0;
+  int32_t high_limit = 0;
+
+  len = whois_decode_service_request(
+    service_request,
+    service_len,
+    &low_limit,
+    &high_limit);
+  if (len == 0)
+    I_Am_Request = true;
+  else if (len != -1)
+  { 
+    if ((Device_Id >= low_limit) && (Device_Id <= high_limit))
+      I_Am_Request = true;
+  }
+
+  return;  
+}
+
 int main(int argc, char *argv[])
 {
   BACNET_ADDRESS src = {0};  // address where message came from
   uint16_t pdu_len = 0;
 
+  // custom handlers
+  apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,WhoIsHandler);
   if (!ethernet_init("eth0"))
     return 1;
   
