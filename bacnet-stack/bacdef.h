@@ -56,17 +56,6 @@ typedef struct BACnet_Object_Data
   BACNET_OBJECT_TYPE Object_Type;
 } BACNET_OBJECT_DATA;
 
-typedef struct BACnet_Read_Property_Data
-{
-  BACNET_OBJECT_TYPE object_type;
-  uint32_t object_instance;
-  BACNET_PROPERTY_ID object_property;
-  int32_t array_index;
-  uint8_t *application_data;
-  int application_data_len;
-} BACNET_READ_PROPERTY_DATA;
-
-
 #define BACNET_BROADCAST_NETWORK 0xFFFF
 #define MAX_MAC_LEN 8
 struct BACnet_Device_Address {

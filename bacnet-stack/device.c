@@ -231,7 +231,7 @@ void Device_Set_Database_Revision(uint8_t revision)
 int Device_Encode_Property_APDU(
   uint8_t *apdu,
   BACNET_PROPERTY_ID property,
-  int array_index)
+  int32_t array_index)
 {
   int apdu_len = 0; // return value
 

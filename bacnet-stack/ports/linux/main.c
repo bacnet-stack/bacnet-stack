@@ -19,6 +19,7 @@
 // buffers used for transmit and receive
 static uint8_t Tx_Buf[MAX_MPDU] = {0};
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Temp_Buf[MAX_MPDU] = {0};
 
 // flag to send an I-Am
 bool I_Am_Request = true;
@@ -116,6 +117,117 @@ void WhoIsHandler(
   return;  
 }
 
+void ReadPropertyHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data)
+{
+  BACNET_CONFIRMED_SERVICE_DATA service_data;
+  BACNET_READ_PROPERTY_DATA rp_data;
+  int len = 0;
+  int pdu_len = 0;
+  BACNET_OBJECT_TYPE object_type;
+  uint32_t object_instance;
+  BACNET_PROPERTY_ID object_property;
+  int32_t array_index;
+
+  fprintf(stderr,"Received Read-Property Request!\n");
+  len = rp_decode_service_request(
+    service_request,
+    service_len,
+    &object_type,
+    &object_instance,
+    &object_property,
+    &array_index);
+  // bad encoding - send an abort
+  if (len == -1)
+  {
+    pdu_len = abort_encode_apdu(
+      &Tx_Buf[0],
+      service_data->invoke_id,
+      ABORT_REASON_OTHER);
+    (void)ethernet_send_pdu(
+      &src,  // destination address
+      &Tx_Buf[0],
+      pdu_len); // number of bytes of data
+    fprintf(stderr,"Sent Abort!\n");
+  }
+  else if (service_data->segmented_message)
+  {
+    pdu_len = abort_encode_apdu(
+      &Tx_Buf[0],
+      service_data->invoke_id,
+      ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
+    (void)ethernet_send_pdu(
+      &src,  // destination address
+      &Tx_Buf[0],
+      pdu_len); // number of bytes of data
+  }
+  else
+  {
+    switch (object_type)
+    {
+      case OBJECT_DEVICE:
+        // FIXME: probably need a length limitation sent with encode
+        // FIXME: might need to return error codes
+        len = Device_Encode_Property_APDU(
+          &Temp_Buf[0],
+          object_property,
+          array_index);
+        if (len > 0)
+        {
+          rp_data.object_type = object_type;
+          rp_data.object_instance = object_instance;
+          rp_data.object_property = object_property;
+          rp_data.array_index = array_index;
+          rp_data.application_data = &Temp_Buf[0];
+          rp_data.application_data_len = len;
+          // FIXME: probably need a length limitation sent with encode
+          pdu_len = rp_ack_encode_apdu(
+            &Tx_Buf[0],
+            service_data->invoke_id,
+            &rp_data);
+          (void)ethernet_send_pdu(
+            &src,  // destination address
+            &Tx_Buf[0],
+            pdu_len); // number of bytes of data
+          fprintf(stderr,"Sent Read Property Ack!\n");
+        }
+        else
+        {
+          pdu_len = bacerror_encode_apdu(
+            &Tx_Buf[0],
+            service_data->invoke_id,
+            SERVICE_CONFIRMED_READ_PROPERTY,
+            ERROR_CLASS_PROPERTY,
+            ERROR_CODE_UNKNOWN_PROPERTY);
+          (void)ethernet_send_pdu(
+            &src,  // destination address
+            &Tx_Buf[0],
+            pdu_len); // number of bytes of data
+          fprintf(stderr,"Sent Unknown Property Error!\n");
+        }
+        break;
+      default:
+        pdu_len = bacerror_encode_apdu(
+          &Tx_Buf[0],
+          service_data->invoke_id,
+          SERVICE_CONFIRMED_READ_PROPERTY,
+          ERROR_CLASS_OBJECT,
+          ERROR_CODE_UNKNOWN_OBJECT);
+        (void)ethernet_send_pdu(
+          &src,  // destination address
+          &Tx_Buf[0],
+          pdu_len); // number of bytes of data
+        fprintf(stderr,"Sent Unknown Object Error!\n");
+        break;
+    }
+  }
+
+  return;
+}
+
 static void Init_Device_Parameters(void)
 {
   // configure my initial values
@@ -185,7 +297,7 @@ static void Init_Service_Handlers(void)
   // FIXME: we must implement read property - it's required!
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
-    UnrecognizedServiceHandler);
+    ReadPropertyHandler);
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL,
     UnrecognizedServiceHandler);

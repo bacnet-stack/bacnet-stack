@@ -62,19 +62,39 @@ typedef struct _confirmed_service_ack_data
 } BACNET_CONFIRMED_SERVICE_ACK_DATA;
 
 // generic unconfirmed function handler
+// Suitable to handle the following services:
+// I_Am, Who_Is, Unconfirmed_COV_Notification, I_Have,
+// Unconfirmed_Event_Notification, Unconfirmed_Private_Transfer,
+// Unconfirmed_Text_Message, Time_Synchronization, Who_Has,
+// UTC_Time_Synchronization
 typedef void (*unconfirmed_function)(
   uint8_t *service_request,
   uint16_t len,
   BACNET_ADDRESS *src); 
 
 // generic confirmed function handler
+// Suitable to handle the following services:
+// Acknowledge_Alarm, Confirmed_COV_Notification,
+// Confirmed_Event_Notification, Get_Alarm_Summary,
+// Get_Enrollment_Summary_Handler, Get_Event_Information,
+// Subscribe_COV_Handler, Subscribe_COV_Property,
+// Life_Safety_Operation, Atomic_Read_File,
+// Confirmed_Atomic_Write_File, Add_List_Element,
+// Remove_List_Element, Create_Object_Handler,
+// Delete_Object_Handler, Read_Property,
+// Read_Property_Conditional, Read_Property_Multiple, Read_Range,
+// Write_Property, Write_Property_Multiple,
+// Device_Communication_Control, Confirmed_Private_Transfer,
+// Confirmed_Text_Message, Reinitialize_Device,
+// VT_Open, VT_Close, VT_Data_Handler,
+// Authenticate, Request_Key
 typedef void (*confirmed_function)(
   uint8_t *service_request,
   uint16_t service_len,
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data); 
 
-// generic confirmed function handler
+// generic confirmed simple ack function handler
 typedef void (*confirmed_simple_ack_function)(
   BACNET_ADDRESS *src,
   uint8_t invoke_id);

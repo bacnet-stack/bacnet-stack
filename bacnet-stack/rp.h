@@ -37,6 +37,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef struct BACnet_Read_Property_Data
+{
+  BACNET_OBJECT_TYPE object_type;
+  uint32_t object_instance;
+  BACNET_PROPERTY_ID object_property;
+  int32_t array_index;
+  uint8_t *application_data;
+  int application_data_len;
+} BACNET_READ_PROPERTY_DATA;
+
 // encode service  - use -1 for limit if you want unlimited
 int rp_encode_apdu(
   uint8_t *apdu, 
