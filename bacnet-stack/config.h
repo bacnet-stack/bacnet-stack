@@ -8,4 +8,11 @@
 // Lon=206, MS/TP=480, ARCNET=480, Ethernet=1476
 #define MAX_APDU 50
 
+// for confirmed messages, this is the number of transactions
+// that we hold in a queue waiting for timeout.
+// Configure to zero if you don't want any confirmed messages
+// Configure from 1..255 for number of outstanding confirmed
+// requests available.
+#define MAX_TSM_TRANSACTIONS 16
+
 #endif
