@@ -49,14 +49,42 @@ struct BACnet_Device_Address {
     // mac_len = 0 if global address
     int mac_len;
     uint8_t mac[MAX_MAC_LEN];
+    // DNET,DLEN,DADR or SNET,SLEN,SADR
     // the following are used if the device is behind a router
     // net = 0 indicates local
     uint16_t net; /* BACnet network number */
     // LEN = 0 denotes broadcast MAC ADR and ADR field is absent
     // LEN > 0 specifies length of ADR field
-    int adr_len; /* length of MAC address */
+    int len; /* length of MAC address */
     uint8_t adr[MAX_MAC_LEN]; /* hwaddr (MAC) address */
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;
 
+// Max number of bytes in an APDU.
+// Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets
+// This is used in constructing messages and to tell others our limits
+// 50 is the minimum; adjust to your memory and physical layer constraints
+// Lon=206, MS/TP=480, ARCNET=480, Ethernet=1476
+#define MAX_APDU 50
+#define MAX_NPDU (1+1+2+1+MAX_MAC_LEN+2+1+MAX_MAC_LEN+1+1+2)
+#define MAX_PDU (MAX_APDU + MAX_NPDU)
+
+// FIXME: maybe we can encapsulate the Physical layer details in the
+// physical layer modules and not have to allocate the entire packet
+
+// packet includes physical layer octets such as destination, len, etc.
+// this is highly dependent on the physical layer used
+// ARCNET=1+1+2+2+1+1+1+1=10
+// MS/TP=2+1+1+1+2+1+2+1=11
+// Ethernet=6+6+2+1+1+1=17
+#ifdef BACNET_ARCNET
+  #define MAX_HEADER 10
+#endif
+#ifdef BACNET_MSTP
+  #define MAX_HEADER 11
+#endif
+#ifdef BACNET_ETHERNET
+  #define MAX_HEADER 17
+#endif
+#define MAX_MPDU (MAX_HEADER+MAX_PDU)
 #endif
