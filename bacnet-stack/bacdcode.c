@@ -776,39 +776,60 @@ int decode_date(uint8_t * apdu, int *year, int *month, int *day, int *wday)
 void testBACDCodeTags(Test * pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
-    uint8_t tag_number = 0;
-    uint8_t test_tag_number = 0;
-    int len = 0;
+    uint8_t tag_number = 0, test_tag_number = 0;
+    int len = 0, test_len = 0;
+    uint32_t value = 0,test_value = 0;
+    bool extended_tag = false;
+    
 
     for (tag_number = 0;; tag_number++) {
         len = encode_opening_tag(&apdu[0], tag_number);
-        if (tag_number < 15) {
-            ct_test(pTest, len == 1);
-            len = decode_tag_number(&apdu[0], &test_tag_number);
-            ct_test(pTest, len == 1);
-        } else {
-            ct_test(pTest, len == 2);
-            len = decode_tag_number(&apdu[0], &test_tag_number);
-            ct_test(pTest, len == 2);
-        }
+        if (tag_number < 15)
+            extended_tag = false;
+        else
+            extended_tag = true;
+
+        if (extended_tag)
+            test_len = 2;
+        else
+            test_len = 1;
+            
+        ct_test(pTest, len == test_len);
+        len = decode_tag_number(&apdu[0], &test_tag_number);
+        ct_test(pTest, len == test_len);
         ct_test(pTest, tag_number == test_tag_number);
         ct_test(pTest, decode_is_opening_tag(&apdu[0]) == true);
         ct_test(pTest, decode_is_closing_tag(&apdu[0]) == false);
-
         len = encode_closing_tag(&apdu[0], tag_number);
-        if (tag_number < 15) {
-            ct_test(pTest, len == 1);
-            len = decode_tag_number(&apdu[0], &test_tag_number);
-            ct_test(pTest, len == 1);
-        } else {
-            ct_test(pTest, len == 2);
-            len = decode_tag_number(&apdu[0], &test_tag_number);
-            ct_test(pTest, len == 2);
-        }
+        ct_test(pTest, len == test_len);
+        len = decode_tag_number(&apdu[0], &test_tag_number);
+        ct_test(pTest, len == test_len);
         ct_test(pTest, tag_number == test_tag_number);
         ct_test(pTest, decode_is_opening_tag(&apdu[0]) == false);
         ct_test(pTest, decode_is_closing_tag(&apdu[0]) == true);
-        // stop after the last one
+        // test the value-len-type portion 
+        for (value = 1; ;value = value << 1)
+        {
+            len = encode_tag(&apdu[0], tag_number, false, value);
+            len = decode_tag_number_and_value(&apdu[0], &test_tag_number, 
+                &test_value);
+            ct_test(pTest, tag_number == test_tag_number);
+            ct_test(pTest, value == test_value);
+            test_len = 1;
+            if (extended_tag)
+                test_len++;
+            if ((value > 4) && (value <= 253))
+                test_len++;
+            else if (value <= 65535)
+                test_len++;
+            else if (value > 4)
+                test_len++;
+            ct_test(pTest, len == test_len);
+            // stop at the the last value
+            if (value == 0xFFFFFFFF)
+                break;
+        }
+        // stop after the last tag number
         if (tag_number == 255)
             break;
     }
