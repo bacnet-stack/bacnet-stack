@@ -46,7 +46,7 @@ int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
 // returns the number of apdu bytes consumed
 int encode_opening_tag(uint8_t * apdu, uint8_t tag_number);
 int encode_closing_tag(uint8_t * apdu, uint8_t tag_number);
-static int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
+int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
     uint32_t * value);
 bool decode_is_context_specific(uint8_t * apdu);
 bool decode_is_opening_tag(uint8_t * apdu);
