@@ -135,4 +135,13 @@ int encode_tagged_date(uint8_t * apdu, int year, int month, int day,
 int decode_date(uint8_t * apdu, int *year, int *month, int *day,
     int *wday);
 
+// two octet unsigned16
+int encode_bacnet_unsigned16(uint8_t * apdu, uint16_t value);
+int decode_unsigned16(uint8_t * apdu, uint16_t *value);
+
+// from clause 20.1.2.4 max-segments-accepted
+// and clause 20.1.2.5 max-APDU-length-accepted
+// returns the encoded octet
+uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu);
+
 #endif

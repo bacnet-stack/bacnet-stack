@@ -36,6 +36,7 @@
 #include <assert.h>
 #include "bacdef.h"
 #include "bacenum.h"
+#include "bits.h"
 
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
@@ -108,14 +109,186 @@ uint8_t npdu_encode_max_seg_max_apdu(int max_segs, int max_apdu)
     return octet;
 }
 
-int npdu_encode(
-  uint8_t *buf,
+int npdu_encode_raw(
+  uint8_t *npdu,
   BACNET_ADDRESS *dest,
   BACNET_ADDRESS *src,
-  bool data_expecting_reply,
+  bool data_expecting_reply,  // true for confirmed messages
+  bool network_layer_message, // false if APDU
+  BACNET_NETWORK_MESSAGE_TYPE network_message_type, // optional
+  uint16_t vendor_id, // optional, if net message type is > 0x80
+  BACNET_MESSAGE_PRIORITY priority,
   uint8_t invoke_id)
 {
-  int len = 0;
+  int len = 0; // return value - number of octets loaded in this function
+  int i = 0; // counter 
 
+  if (npdu)
+  {
+    // Protocol Version
+    npdu[0] = 1;
+    // control octet
+    npdu[1] = 0;
+    // Bit 7: 1 indicates that the NSDU conveys a network layer message.
+    //          Message Type field is present.
+    //        0 indicates that the NSDU contains a BACnet APDU.
+    //          Message Type field is absent.
+    if (network_layer_message)
+      npdu[1] |= BIT7;
+    //Bit 6: Reserved. Shall be zero.
+    //Bit 5: Destination specifier where:
+    // 0 = DNET, DLEN, DADR, and Hop Count absent
+    // 1 = DNET, DLEN, and Hop Count present
+    // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
+    // DLEN > 0 specifies length of DADR field
+    if (dest->net)
+      npdu[1] |= BIT5;
+    // Bit 4: Reserved. Shall be zero.
+    // Bit 3: Source specifier where:
+    // 0 =  SNET, SLEN, and SADR absent
+    // 1 =  SNET, SLEN, and SADR present
+    // SLEN = 0 Invalid
+    // SLEN > 0 specifies length of SADR field
+    if (src->net)
+      npdu[1] |= BIT3;
+    // Bit 2: The value of this bit corresponds to the data_expecting_reply
+    // parameter in the N-UNITDATA primitives.
+    // 1 indicates that a BACnet-Confirmed-Request-PDU,
+    // a segment of a BACnet-ComplexACK-PDU,
+    // or a network layer message expecting a reply is present.
+    // 0 indicates that other than a BACnet-Confirmed-Request-PDU,
+    // a segment of a BACnet-ComplexACK-PDU,
+    // or a network layer message expecting a reply is present.
+    if (data_expecting_reply)
+      npdu[1] |= BIT2;
+    // Bits 1,0: Network priority where:
+    // B'11' = Life Safety message
+    // B'10' = Critical Equipment message
+    // B'01' = Urgent message
+    // B'00' = Normal message
+    npdu[1] |= (priority & 0x03);
+    len = 2;
+    if (dest->net)
+    {
+      len += encode_bacnet_unsigned16(&npdu[len], dest->net);
+      // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
+      // DLEN > 0 specifies length of DADR field
+      if (dest->adr_len)
+      {
+        npdu[len] = dest->adr_len;
+        len++;
+        for (i = 0; i < dest->adr_len; i++)
+        {
+          npdu[len] = dest->adr[i];
+          len++;
+        }
+      }
+    }
+    if (src->net)
+    {
+      len += encode_bacnet_unsigned16(&npdu[len], src->net);
+      // SLEN = 0 denotes broadcast MAC SADR and SADR field is absent
+      // SLEN > 0 specifies length of SADR field
+      if (src->adr_len)
+      {
+        npdu[len] = src->adr_len;
+        len++;
+        for (i = 0; i < src->adr_len; i++)
+        {
+          npdu[len] = src->adr[i];
+          len++;
+        }
+      }
+    }
+    // The Hop Count field shall be present only if the message is
+    // destined for a remote network, i.e., if DNET is present.
+    // This is a one-octet field that is initialized to a value of 0xff.
+    if (dest->net)
+    {
+      npdu[len] = 0xFF;
+      len++;
+    }
+    if (network_layer_message)
+    {
+      npdu[len] = network_message_type;
+      len++;
+      // Message Type field contains a value in the range 0x80 - 0xFF,
+      // then a Vendor ID field shall be present
+      if (network_message_type >= 0x80)
+        len += encode_bacnet_unsigned16(&npdu[len], vendor_id);
+    }
+  }
+  
   return len;
 }
+
+// encode the NPDU portion of the packet for an APDU
+int npdu_encode_apdu(
+  uint8_t *npdu,
+  BACNET_ADDRESS *dest,
+  BACNET_ADDRESS *src,
+  bool data_expecting_reply,  // true for confirmed messages
+  BACNET_MESSAGE_PRIORITY priority,
+  uint8_t invoke_id)
+{
+  return npdu_encode_raw(npdu,dest,src,data_expecting_reply,
+    false,0,0,priority,invoke_id);
+}
+
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
+void testNPDU(Test * pTest)
+{
+  uint8_t pdu[480] = {0};
+  BACNET_ADDRESS dest = {0};
+  BACNET_ADDRESS src = {0};
+  int len = 0;
+  bool data_expecting_reply = false;  // true for confirmed messages
+  BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
+  uint8_t invoke_id = 1;
+
+  dest.mac_len = 0;
+  for (i = 0; i < MAX_MAC_LEN; i++)
+  {
+    dest.mac[i] = 0;
+  }
+  dest.net = 0;
+  dest.adr_len = 0;
+  for (i = 0; i < MAX_MAC_LEN; i++)
+  {
+    dest.adr[i] = 0;
+  }
+  len = ndpu_encode_apdu(
+    &pdu[0],
+    &dest,
+    &src,
+    data_expecting_reply,
+    priority,
+    invoke_id)
+  ct_test(pTest, len != 0);
+
+}
+
+#ifdef TEST_NPDU
+int main(void)
+{
+    Test *pTest;
+    bool rc;
+
+    pTest = ct_create("BACnet NPDU", NULL);
+    /* individual tests */
+    rc = ct_addTestFunction(pTest, testNPDU);
+    assert(rc);
+
+    ct_setStream(pTest, stdout);
+    ct_run(pTest);
+    (void) ct_report(pTest);
+    ct_destroy(pTest);
+
+    return 0;
+}
+#endif                          /* TEST_NPDU */
+#endif                          /* TEST */
