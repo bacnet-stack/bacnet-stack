@@ -45,22 +45,12 @@ int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
 // from clause 20.2.1.3.2 Constructed Data
 // returns the number of apdu bytes consumed
 int encode_opening_tag(uint8_t * apdu, uint8_t tag_number);
-
-// from clause 20.2.1.3.2 Constructed Data
-// returns the number of apdu bytes consumed
 int encode_closing_tag(uint8_t * apdu, uint8_t tag_number);
-
-// from clause 20.2.1.3.2 Constructed Data
-// returns the number of apdu bytes consumed
-int decode_tag_number(uint8_t * apdu, uint8_t * tag_number);
-
-// from clause 20.2.1.3.2 Constructed Data
-// returns the number of apdu bytes consumed
+static int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
+    uint32_t * value);
 bool decode_is_context_specific(uint8_t * apdu);
-
-// from clause 20.2.1.3.2 Constructed Data
-// returns the number of apdu bytes consumed
-int decode_tag_value(uint8_t * apdu, uint32_t * value);
+bool decode_is_opening_tag(uint8_t * apdu);
+bool decode_is_closing_tag(uint8_t * apdu);
 
 // from clause 20.2.6 Encoding of a Real Number Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
