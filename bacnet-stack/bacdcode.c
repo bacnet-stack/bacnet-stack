@@ -47,6 +47,81 @@
 // NOTE: byte order plays a role in decoding multibyte values
 // http://www.unixpapa.com/incnote/byteorder.html
 
+/* max-segments-accepted
+   B'000'      Unspecified number of segments accepted.
+   B'001'      2 segments accepted.
+   B'010'      4 segments accepted.
+   B'011'      8 segments accepted.
+   B'100'      16 segments accepted.
+   B'101'      32 segments accepted.
+   B'110'      64 segments accepted.
+   B'111'      Greater than 64 segments accepted.
+*/
+
+/* max-APDU-length-accepted
+   B'0000'  Up to MinimumMessageSize (50 octets)
+   B'0001'  Up to 128 octets
+   B'0010'  Up to 206 octets (fits in a LonTalk frame)
+   B'0011'  Up to 480 octets (fits in an ARCNET frame)
+   B'0100'  Up to 1024 octets
+   B'0101'  Up to 1476 octets (fits in an ISO 8802-3 frame)
+   B'0110'  reserved by ASHRAE
+   B'0111'  reserved by ASHRAE
+   B'1000'  reserved by ASHRAE
+   B'1001'  reserved by ASHRAE
+   B'1010'  reserved by ASHRAE
+   B'1011'  reserved by ASHRAE
+   B'1100'  reserved by ASHRAE
+   B'1101'  reserved by ASHRAE
+   B'1110'  reserved by ASHRAE
+   B'1111'  reserved by ASHRAE
+*/
+// from clause 20.1.2.4 max-segments-accepted
+// and clause 20.1.2.5 max-APDU-length-accepted
+// returns the encoded octet
+uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
+{
+    uint8_t octet = 0;
+
+    if (max_segs < 2)
+        octet = 0;
+    else if (max_segs < 4)
+        octet = 0x10;
+    else if (max_segs < 8)
+        octet = 0x20;
+    else if (max_segs < 16)
+        octet = 0x30;
+    else if (max_segs < 32)
+        octet = 0x40;
+    else if (max_segs < 64)
+        octet = 0x50;
+    else if (max_segs == 64)
+        octet = 0x60;
+    else
+        octet = 0x70;
+
+    // max_apdu must be 50 octets minimum
+    assert(max_apdu >= 50);
+    if (max_apdu == 50)
+       octet |= 0x00;
+    else if (max_apdu <= 128)
+       octet |= 0x01;
+    //fits in a LonTalk frame
+    else if (max_apdu <= 206)
+       octet |= 0x02;
+    //fits in an ARCNET or MS/TP frame
+    else if (max_apdu <= 480)
+       octet |= 0x03;
+    else if (max_apdu <= 1024)
+       octet |= 0x04;
+    // fits in an ISO 8802-3 frame
+    else if (max_apdu <= 1476)
+       octet |= 0x05;
+
+    return octet;
+}
+
+
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
@@ -188,14 +263,14 @@ bool decode_is_context_specific(uint8_t * apdu)
 
 // from clause 20.2.1.3.2 Constructed Data
 // returns the number of apdu bytes consumed
-bool decode_is_opening_tag(uint8_t * apdu)
+static bool decode_is_opening_tag(uint8_t * apdu)
 {
     return ((apdu[0] & 0x07) == 6);
 }
 
 // from clause 20.2.1.3.2 Constructed Data
 // returns the number of apdu bytes consumed
-bool decode_is_closing_tag(uint8_t * apdu)
+static bool decode_is_closing_tag(uint8_t * apdu)
 {
     return ((apdu[0] & 0x07) == 7);
 }
@@ -304,6 +379,32 @@ bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number)
     decode_tag_number(apdu,&my_tag_number);
 
     return (context_specific && (my_tag_number == tag_number));
+}
+
+// from clause 20.2.1.3.2 Constructed Data
+// returns the true if the tag is an opening tag and the tag number matches
+bool decode_is_opening_tag_number(uint8_t * apdu, uint8_t tag_number)
+{
+    uint8_t my_tag_number = 0;
+    bool opening_tag = false;
+
+    opening_tag = decode_is_opening_tag(apdu);
+    decode_tag_number(apdu,&my_tag_number);
+
+    return (opening_tag && (my_tag_number == tag_number));
+}
+
+// from clause 20.2.1.3.2 Constructed Data
+// returns the true if the tag is a closing tag and the tag number matches
+bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number)
+{
+    uint8_t my_tag_number = 0;
+    bool closing_tag = false;
+
+    closing_tag = decode_is_closing_tag(apdu);
+    decode_tag_number(apdu,&my_tag_number);
+
+    return (closing_tag && (my_tag_number == tag_number));
 }
 
 // from clause 20.2.6 Encoding of a Real Number Value
@@ -572,7 +673,7 @@ int encode_context_unsigned(uint8_t * apdu, int tag_number, int value)
     int len = 0;
 
     len = encode_bacnet_unsigned(&apdu[1], value);
-    len = encode_tag(&apdu[0], tag_number, true, len);
+    len += encode_tag(&apdu[0], tag_number, true, len);
 
     return len;
 }
