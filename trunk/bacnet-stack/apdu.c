@@ -33,17 +33,16 @@
 ####COPYRIGHTEND####*/
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <assert.h>
+#include "bits.h"
 #include "apdu.h"
 #include "bacdef.h"
+#include "bacdcode.h"
 #include "bacenum.h"
 
-// generic unconfirmed function handler
-typedef void (*unconfirmed_function)(
-  uint8_t *service_request,
-  uint16_t len,
-  BACNET_ADDRESS *src); 
-
+// Unconfirmed Function Handlers
+// If they are not set, they are not handled
 static unconfirmed_function Unconfirmed_I_Am_Handler = NULL;
 static unconfirmed_function Unconfirmed_Who_Is_Handler = NULL;
 static unconfirmed_function Unconfirmed_COV_Notification_Handler = NULL;
@@ -96,13 +95,8 @@ void apdu_set_unconfirmed_handler(
   }
 }
 
-// generic unconfirmed function handler
-typedef void (*confirmed_function)(
-  uint8_t *service_request,
-  uint16_t len,
-  BACNET_ADDRESS *src
-  uint8_t invoke_id); 
-
+// Confirmed Function Handlers
+// If they are not set, they are handled by a reject message
 static confirmed_function Confirmed_Acknowledge_Alarm_Handler = NULL;
 static confirmed_function Confirmed_COV_Notification_Handler = NULL;
 static confirmed_function Confirmed_Event_Notification_Handler = NULL;
@@ -143,10 +137,10 @@ void apdu_set_confirmed_handler(
     case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
       Confirmed_Acknowledge_Alarm_Handler = pFunction;
       break;
-    case SERVICE_CONFIRMED_COV_NOTATION:
+    case SERVICE_CONFIRMED_COV_NOTIFICATION:
       Confirmed_COV_Notification_Handler = pFunction;
       break;
-    case SERVICE_CONFIRMED_EVENT_NOTATION:
+    case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
       Confirmed_Event_Notification_Handler = pFunction;
       break;
     case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
@@ -164,8 +158,8 @@ void apdu_set_confirmed_handler(
     case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
       Confirmed_Subscribe_COV_Property_Handler = pFunction;
       break;
-    case SERVICE_CONFIRMED_LSAFETY_OPERATION:
-      if (Confirmed_Life_Safety_Operation_Handler = pFunction;
+    case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
+      Confirmed_Life_Safety_Operation_Handler = pFunction;
       break;
     // File Access Services
     case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
@@ -240,18 +234,206 @@ void apdu_set_confirmed_handler(
   }
 }
 
+// Confirmed Simple ACK Function Handlers
+// The services that require a complex ACK are not listed here
+static confirmed_simple_ack_function 
+  Confirmed_Acknowledge_Alarm_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_COV_Notification_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Event_Notification_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Subscribe_COV_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Subscribe_COV_Property_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Life_Safety_Operation_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Add_List_Element_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Remove_List_Element_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Delete_Object_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Write_Property_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Write_Property_Multiple_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Device_Communication_Control_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Reinitialize_Device_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Text_Message_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_VT_Close_SimpleACK_Handler = NULL;
+static confirmed_simple_ack_function 
+  Confirmed_Request_Key_SimpleACK_Handler = NULL;
+  
+void apdu_set_confirmed_simple_ack_handler(
+  BACNET_CONFIRMED_SERVICE service_choice,
+  confirmed_simple_ack_function pFunction)
+{
+  switch (service_choice) 
+  {
+    case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
+      Confirmed_Acknowledge_Alarm_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_COV_NOTIFICATION:
+      Confirmed_COV_Notification_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
+      Confirmed_Event_Notification_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_SUBSCRIBE_COV:
+      Confirmed_Subscribe_COV_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
+      Confirmed_Subscribe_COV_Property_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
+      Confirmed_Life_Safety_Operation_SimpleACK_Handler = pFunction;
+      break;
+    // Object Access Services
+    case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
+      Confirmed_Add_List_Element_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
+      Confirmed_Remove_List_Element_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_DELETE_OBJECT:
+      Confirmed_Delete_Object_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_WRITE_PROPERTY:
+      Confirmed_Write_Property_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
+      Confirmed_Write_Property_Multiple_SimpleACK_Handler = pFunction;
+      break;
+    // Remote Device Management Services
+    case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+      Confirmed_Device_Communication_Control_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_TEXT_MESSAGE:
+      Confirmed_Text_Message_SimpleACK_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+      Confirmed_Reinitialize_Device_SimpleACK_Handler = pFunction;
+      break;
+    // Virtual Terminal Services
+    case SERVICE_CONFIRMED_VT_CLOSE:
+      Confirmed_VT_Close_SimpleACK_Handler = pFunction;
+      break;
+    // Security Services
+    case SERVICE_CONFIRMED_REQUEST_KEY:
+      Confirmed_Request_Key_SimpleACK_Handler = pFunction;
+      break;
+    default:
+      break;
+  }
+}
+
+// Confirmed Function Handlers
+// The services that require a simple ACK are not listed here
+static confirmed_ack_function 
+  Confirmed_Get_Alarm_Summary_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Get_Enrollment_Summary_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Get_Event_Information_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Atomic_Read_File_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Atomic_Write_File_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Create_Object_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Read_Property_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Read_Property_Conditional_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Read_Property_Multiple_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Read_Range_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Private_Transfer_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_VT_Open_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_VT_Data_Ack_Handler = NULL;
+static confirmed_ack_function 
+  Confirmed_Authenticate_Ack_Handler = NULL;
+
+void apdu_set_confirmed_ack_handler(
+  BACNET_CONFIRMED_SERVICE service_choice,
+  confirmed_ack_function pFunction)
+{
+  switch (service_choice) 
+  {
+    case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
+      Confirmed_Get_Alarm_Summary_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
+      Confirmed_Get_Enrollment_Summary_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
+      Confirmed_Get_Event_Information_Ack_Handler = pFunction;
+      break;
+    // File Access Services
+    case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
+      Confirmed_Atomic_Read_File_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
+      Confirmed_Atomic_Write_File_Ack_Handler = pFunction;
+      break;
+    // Object Access Services
+    case SERVICE_CONFIRMED_CREATE_OBJECT:
+      Confirmed_Create_Object_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_READ_PROPERTY:
+      Confirmed_Read_Property_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
+      Confirmed_Read_Property_Conditional_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
+      Confirmed_Read_Property_Multiple_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_READ_RANGE:
+      Confirmed_Read_Range_Ack_Handler = pFunction;
+      break;
+    // Remote Device Management Services
+    case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
+      Confirmed_Private_Transfer_Ack_Handler = pFunction;
+      break;
+    // Virtual Terminal Services
+    case SERVICE_CONFIRMED_VT_OPEN:
+      Confirmed_VT_Open_Ack_Handler = pFunction;
+      break;
+    case SERVICE_CONFIRMED_VT_DATA:
+      Confirmed_VT_Data_Ack_Handler = pFunction;
+      break;
+    // Security Services
+    case SERVICE_CONFIRMED_AUTHENTICATE:
+      Confirmed_Authenticate_Ack_Handler = pFunction;
+      break;
+    default:
+      break;
+  }
+}
+
 void apdu_handler(
   BACNET_ADDRESS *src,  // source address
   bool data_expecting_reply,
   uint8_t *apdu, // APDU data
-  uint16_t pdu_len) // for confirmed messages
+  uint16_t apdu_len)
 {
+  BACNET_CONFIRMED_SERVICE_DATA service_data = {0};
+  BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = {0};
   uint8_t invoke_id = 0;
+  uint8_t service_choice = 0;
   uint8_t *service_request = NULL;
   uint16_t service_request_len = 0;
-  bool segmented_message = false;
-  bool more_follows = false;
-  bool segmented_response_accepted = false;
+  uint16_t len = 0; // counts where we are in PDU
 
   if (apdu)
   {
@@ -259,13 +441,21 @@ void apdu_handler(
     switch (apdu[0] & 0xF0)
     {
       case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-        segmented_message = (apdu[0] & BIT3) ? true : false;
-        more_follows = (apdu[0] & BIT2) ? true : false;
-        segmented_response_accepted = (apdu[0] & BIT1) ? true : false;
-        //FIXME: get the correct info
-        service_choice = apdu[1];
-        service_request = &apdu[2];
-        service_request_len = apdu_len - 2;
+        service_data.segmented_message = (apdu[0] & BIT3) ? true : false;
+        service_data.more_follows = (apdu[0] & BIT2) ? true : false;
+        service_data.segmented_response_accepted = (apdu[0] & BIT1) ? true : false;
+        service_data.max_segs = decode_max_segs(apdu[1]);
+        service_data.max_resp = decode_max_apdu(apdu[1]);
+        service_data.invoke_id = apdu[2];
+        len = 3;
+        if (service_data.segmented_message)
+        {
+          service_data.sequence_number = apdu[len++];
+          service_data.proposed_window_number = apdu[len++];
+        }
+        service_choice = apdu[len++];
+        service_request = &apdu[len++];
+        service_request_len = apdu_len - len;
         switch (service_choice) 
         {
           case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
@@ -273,8 +463,8 @@ void apdu_handler(
               Confirmed_Acknowledge_Alarm_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             else
             {
               //FIXME:  reject: service not supported
@@ -285,60 +475,64 @@ void apdu_handler(
               Confirmed_COV_Notification_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
             if (Confirmed_Event_Notification_Handler)
               Confirmed_Event_Notification_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
             if (Confirmed_Get_Alarm_Summary_Handler)
               Confirmed_Get_Alarm_Summary_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
             if (Confirmed_Get_Enrollment_Summary_Handler)
               Confirmed_Get_Enrollment_Summary_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
             if (Confirmed_Get_Event_Information_Handler)
               Confirmed_Get_Event_Information_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_SUBSCRIBE_COV:
             if (Confirmed_Subscribe_COV_Handler)
               Confirmed_Subscribe_COV_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
             if (Confirmed_Subscribe_COV_Property_Handler)
               Confirmed_Subscribe_COV_Property_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
             if (Confirmed_Life_Safety_Operation_Handler)
               Confirmed_Life_Safety_Operation_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           // File Access Services
           case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
@@ -346,16 +540,16 @@ void apdu_handler(
               Confirmed_Atomic_Read_File_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
             if (Confirmed_Atomic_Write_File_Handler)
               Confirmed_Atomic_Write_File_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           // Object Access Services
           case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
@@ -363,80 +557,80 @@ void apdu_handler(
               Confirmed_Add_List_Element_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
             if (Confirmed_Remove_List_Element_Handler)
               Confirmed_Remove_List_Element_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_CREATE_OBJECT:
             if (Confirmed_Create_Object_Handler)
               Confirmed_Create_Object_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_DELETE_OBJECT:
             if (Confirmed_Delete_Object_Handler)
               Confirmed_Delete_Object_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_READ_PROPERTY:
             if (Confirmed_Read_Property_Handler)
               Confirmed_Read_Property_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
             if (Confirmed_Read_Property_Conditional_Handler)
               Confirmed_Read_Property_Conditional_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
             if (Confirmed_Read_Property_Multiple_Handler)
               Confirmed_Read_Property_Multiple_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_READ_RANGE:
             if (Confirmed_Read_Range_Handler)
               Confirmed_Read_Range_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_WRITE_PROPERTY:
             if (Confirmed_Write_Property_Handler)
               Confirmed_Write_Property_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
             if (Confirmed_Write_Property_Multiple_Handler)
               Confirmed_Write_Property_Multiple_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           // Remote Device Management Services
           case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
@@ -444,32 +638,32 @@ void apdu_handler(
               Confirmed_Device_Communication_Control_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
             if (Confirmed_Private_Transfer_Handler)
               Confirmed_Private_Transfer_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_TEXT_MESSAGE:
             if (Confirmed_Text_Message_Handler)
               Confirmed_Text_Message_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
             if (Confirmed_Reinitialize_Device_Handler)
               Confirmed_Reinitialize_Device_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           // Virtual Terminal Services
           case SERVICE_CONFIRMED_VT_OPEN:
@@ -477,24 +671,24 @@ void apdu_handler(
               Confirmed_VT_Open_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_VT_CLOSE:
             if (Confirmed_VT_Close_Handler)
               Confirmed_VT_Close_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_VT_DATA:
             if (Confirmed_VT_Data_Handler)
               Confirmed_VT_Data_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           // Security Services
           case SERVICE_CONFIRMED_AUTHENTICATE:
@@ -502,16 +696,16 @@ void apdu_handler(
               Confirmed_Authenticate_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           case SERVICE_CONFIRMED_REQUEST_KEY:
             if (Confirmed_Request_Key_Handler)
               Confirmed_Request_Key_Handler(
                 service_request,
                 service_request_len,
-                src
-                invoke_id); 
+                src,
+                &service_data); 
             break;
           default:
             break;
@@ -598,11 +792,262 @@ void apdu_handler(
         }
         break;
       case PDU_TYPE_SIMPLE_ACK:
+        invoke_id = apdu[1];
+        service_choice = apdu[2];
+        switch (service_choice) 
+        {
+          case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
+            if (Confirmed_Acknowledge_Alarm_SimpleACK_Handler)
+              Confirmed_Acknowledge_Alarm_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            else
+            {
+              //FIXME: release the invoke id
+            }
+            break;
+          case SERVICE_CONFIRMED_COV_NOTIFICATION:
+            if (Confirmed_COV_Notification_SimpleACK_Handler)
+              Confirmed_COV_Notification_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
+            if (Confirmed_Event_Notification_SimpleACK_Handler)
+              Confirmed_Event_Notification_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_SUBSCRIBE_COV:
+            if (Confirmed_Subscribe_COV_SimpleACK_Handler)
+              Confirmed_Subscribe_COV_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
+            if (Confirmed_Subscribe_COV_Property_SimpleACK_Handler)
+              Confirmed_Subscribe_COV_Property_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
+            if (Confirmed_Life_Safety_Operation_SimpleACK_Handler)
+              Confirmed_Life_Safety_Operation_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          // Object Access Services
+          case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
+            if (Confirmed_Add_List_Element_SimpleACK_Handler)
+              Confirmed_Add_List_Element_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
+            if (Confirmed_Remove_List_Element_SimpleACK_Handler)
+              Confirmed_Remove_List_Element_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_DELETE_OBJECT:
+            if (Confirmed_Delete_Object_SimpleACK_Handler)
+              Confirmed_Delete_Object_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_WRITE_PROPERTY:
+            if (Confirmed_Write_Property_SimpleACK_Handler)
+              Confirmed_Write_Property_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
+            if (Confirmed_Write_Property_Multiple_SimpleACK_Handler)
+              Confirmed_Write_Property_Multiple_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          // Remote Device Management Services
+          case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+            if (Confirmed_Device_Communication_Control_SimpleACK_Handler)
+              Confirmed_Device_Communication_Control_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+            if (Confirmed_Reinitialize_Device_SimpleACK_Handler)
+              Confirmed_Reinitialize_Device_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          case SERVICE_CONFIRMED_TEXT_MESSAGE:
+            if (Confirmed_Text_Message_SimpleACK_Handler)
+              Confirmed_Text_Message_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          // Virtual Terminal Services
+          case SERVICE_CONFIRMED_VT_CLOSE:
+            if (Confirmed_VT_Close_SimpleACK_Handler)
+              Confirmed_VT_Close_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          // Security Services
+          case SERVICE_CONFIRMED_REQUEST_KEY:
+            if (Confirmed_Request_Key_SimpleACK_Handler)
+              Confirmed_Request_Key_SimpleACK_Handler(
+                src,
+                invoke_id); 
+            break;
+          default:
+            break;
+        }
+        break;
       case PDU_TYPE_COMPLEX_ACK:
+        service_ack_data.segmented_message = (apdu[0] & BIT3) ? true : false;
+        service_ack_data.more_follows = (apdu[0] & BIT2) ? true : false;
+        service_ack_data.invoke_id = apdu[1];
+        len = 2;
+        if (service_ack_data.segmented_message)
+        {
+          service_ack_data.sequence_number = apdu[len++];
+          service_ack_data.proposed_window_number = apdu[len++];
+        }
+        service_choice = apdu[len++];
+        service_request = &apdu[len++];
+        service_request_len = apdu_len - len;
+        invoke_id = apdu[1];
+        service_choice = apdu[2];
+        switch (service_choice) 
+        {
+          case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
+            if (Confirmed_Get_Alarm_Summary_Ack_Handler)
+              Confirmed_Get_Alarm_Summary_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
+            if (Confirmed_Get_Enrollment_Summary_Ack_Handler)
+              Confirmed_Get_Enrollment_Summary_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
+            if (Confirmed_Get_Event_Information_Ack_Handler)
+              Confirmed_Get_Event_Information_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          // File Access Services
+          case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
+            if (Confirmed_Atomic_Read_File_Ack_Handler)
+              Confirmed_Atomic_Read_File_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
+            if (Confirmed_Atomic_Write_File_Ack_Handler)
+              Confirmed_Atomic_Write_File_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          // Object Access Services
+          case SERVICE_CONFIRMED_CREATE_OBJECT:
+            if (Confirmed_Create_Object_Ack_Handler)
+              Confirmed_Create_Object_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_READ_PROPERTY:
+            if (Confirmed_Read_Property_Ack_Handler)
+              Confirmed_Read_Property_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
+            if (Confirmed_Read_Property_Conditional_Ack_Handler)
+              Confirmed_Read_Property_Conditional_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
+            if (Confirmed_Read_Property_Multiple_Ack_Handler)
+              Confirmed_Read_Property_Multiple_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_READ_RANGE:
+            if (Confirmed_Read_Range_Ack_Handler)
+              Confirmed_Read_Range_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
+            if (Confirmed_Private_Transfer_Ack_Handler)
+              Confirmed_Private_Transfer_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          // Virtual Terminal Services
+          case SERVICE_CONFIRMED_VT_OPEN:
+            if (Confirmed_VT_Open_Ack_Handler)
+              Confirmed_VT_Open_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          case SERVICE_CONFIRMED_VT_DATA:
+            if (Confirmed_VT_Data_Ack_Handler)
+              Confirmed_VT_Data_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          // Security Services
+          case SERVICE_CONFIRMED_AUTHENTICATE:
+            if (Confirmed_Authenticate_Ack_Handler)
+              Confirmed_Authenticate_Ack_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_ack_data); 
+            break;
+          default:
+            break;
+        }
+        break;
       case PDU_TYPE_SEGMENT_ACK:
       case PDU_TYPE_ERROR:
       case PDU_TYPE_REJECT:
       case PDU_TYPE_ABORT:
+        invoke_id = apdu[1];
+        // release the invoke id
+        break;
       default:
         break;
     }
