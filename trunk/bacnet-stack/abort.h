@@ -55,6 +55,7 @@ int abort_decode_apdu(
   uint8_t *abort_reason);
 
 #ifdef TEST
+#include "ctest.h"
 void testAbort(Test * pTest);
 #endif
 
