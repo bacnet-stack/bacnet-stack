@@ -12,6 +12,7 @@ SRCS = ports/linux/main.c \
        bigend.c \
        whois.c \
        iam.c \
+       apdu.c \
        npdu.c
 
 OBJS = ${SRCS:.c=.o}
