@@ -37,6 +37,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// from clause 20.1.2.4 max-segments-accepted
+// and clause 20.1.2.5 max-APDU-length-accepted
+// returns the encoded octet
+uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu);
+
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
@@ -50,12 +55,12 @@ int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
     uint32_t * value);
 // returns true if the tag is context specific
 bool decode_is_context_specific(uint8_t * apdu);
-// returns true if the tag is an opening tag
-bool decode_is_opening_tag(uint8_t * apdu);
-// returns true if the tag is an closing tag
-bool decode_is_closing_tag(uint8_t * apdu);
 // returns true if the tag is context specific and matches
 bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number);
+// returns the true if the tag is an opening tag and the tag number matches
+bool decode_is_opening_tag_number(uint8_t * apdu, uint8_t tag_number);
+// returns the true if the tag is a closing tag and the tag number matches
+bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number);
 
 // from clause 20.2.6 Encoding of a Real Number Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
