@@ -67,11 +67,11 @@ int encode_tagged_real(uint8_t * apdu, float value);
 // from clause 20.2.14 Encoding of an Object Identifier Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int decode_object_id(uint8_t * apdu, int *object_type, int *instance);
-int encode_bacnet_object_id(uint8_t * apdu, int object_type, int instance);
+int decode_object_id(uint8_t * apdu, int *object_type, uint32_t *instance);
+int encode_bacnet_object_id(uint8_t * apdu, int object_type, uint32_t instance);
 int encode_context_object_id(uint8_t * apdu, int tag_number,
-    int object_type, int instance);
-int encode_tagged_object_id(uint8_t * apdu, int object_type, int instance);
+    int object_type, uint32_t instance);
+int encode_tagged_object_id(uint8_t * apdu, int object_type, uint32_t instance);
 
 // from clause 20.2.9 Encoding of a Character String Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
