@@ -126,9 +126,9 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
         exit(-1);
     }
     /* Bind the socket to an address */
-    eth_addr->sa_family = AF_INET;
+    eth_addr->sa_family = PF_INET;
     /* Clear the memory before copying */
-    memset(eth_addr->sa_data, '\0', sizeof(struct sockaddr_in));
+    memset(eth_addr->sa_data, '\0', sizeof(eth_addr->sa_data));
     /* Strcpy the interface name into the address */
     strncpy(eth_addr->sa_data, interface_name, IFNAMSIZ);
     fprintf(stderr,"ethernet: binding \"%s\"\n",eth_addr->sa_data);
