@@ -39,77 +39,7 @@
 #include "bacenum.h"
 #include "bits.h"
 #include "npdu.h"
-
-/* max-segments-accepted
-   B'000'      Unspecified number of segments accepted.
-   B'001'      2 segments accepted.
-   B'010'      4 segments accepted.
-   B'011'      8 segments accepted.
-   B'100'      16 segments accepted.
-   B'101'      32 segments accepted.
-   B'110'      64 segments accepted.
-   B'111'      Greater than 64 segments accepted.
-*/
-
-/* max-APDU-length-accepted
-   B'0000'  Up to MinimumMessageSize (50 octets)
-   B'0001'  Up to 128 octets
-   B'0010'  Up to 206 octets (fits in a LonTalk frame)
-   B'0011'  Up to 480 octets (fits in an ARCNET frame)
-   B'0100'  Up to 1024 octets
-   B'0101'  Up to 1476 octets (fits in an ISO 8802-3 frame)
-   B'0110'  reserved by ASHRAE
-   B'0111'  reserved by ASHRAE
-   B'1000'  reserved by ASHRAE
-   B'1001'  reserved by ASHRAE
-   B'1010'  reserved by ASHRAE
-   B'1011'  reserved by ASHRAE
-   B'1100'  reserved by ASHRAE
-   B'1101'  reserved by ASHRAE
-   B'1110'  reserved by ASHRAE
-   B'1111'  reserved by ASHRAE
-*/
-uint8_t npdu_encode_max_seg_max_apdu(int max_segs, int max_apdu)
-{
-    uint8_t octet = 0;
-
-    if (max_segs < 2)
-        octet = 0;
-    else if (max_segs < 4)
-        octet = 0x10;
-    else if (max_segs < 8)
-        octet = 0x20;
-    else if (max_segs < 16)
-        octet = 0x30;
-    else if (max_segs < 32)
-        octet = 0x40;
-    else if (max_segs < 64)
-        octet = 0x50;
-    else if (max_segs == 64)
-        octet = 0x60;
-    else
-        octet = 0x70;
-
-    // max_apdu must be 50 octets minimum
-    assert(max_apdu >= 50);
-    if (max_apdu == 50)
-        octet |= 0x00;
-    else if (max_apdu <= 128)
-        octet |= 0x01;
-    //fits in a LonTalk frame
-    else if (max_apdu <= 206)
-        octet |= 0x02;
-    //fits in an ARCNET or MS/TP frame
-    else if (max_apdu <= 480)
-        octet |= 0x03;
-    else if (max_apdu <= 1024)
-        octet |= 0x04;
-    // fits in an ISO 8802-3 frame
-    else if (max_apdu <= 1476)
-        octet |= 0x05;
-
-    return octet;
-}
+#include "apdu.h"
 
 int npdu_encode_raw(
   uint8_t *npdu,
@@ -338,6 +268,37 @@ int npdu_decode(
 
   return len;
 }
+
+void npdu_handler(
+  BACNET_ADDRESS *src,  // source address
+  uint8_t *pdu, // PDU data
+  uint16_t pdu_len) // length PDU 
+{
+  int apdu_offset = 0;
+  BACNET_ADDRESS dest = {0};
+  BACNET_NPDU_DATA npdu_data = {0};
+  
+  apdu_offset = npdu_decode(
+    &pdu[0], // data to decode
+    &dest, // destination address - get the DNET/DLEN/DADR if in there
+    src,  // source address - get the SNET/SLEN/SADR if in there
+    &npdu_data); // amount of data to decode
+  if (npdu_data.network_layer_message)
+  {
+    //FIXME: network layer message received!  Handle it!
+  }
+  else
+  {
+    apdu_handler(
+      src, 
+      npdu_data.data_expecting_reply,
+      &pdu[apdu_offset],
+      pdu_len - apdu_offset);
+  }
+
+  return;
+}
+
 
 #ifdef TEST
 #include <assert.h>

@@ -118,6 +118,77 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
     return octet;
 }
 
+// from clause 20.1.2.4 max-segments-accepted
+// and clause 20.1.2.5 max-APDU-length-accepted
+// returns the encoded octet
+int decode_max_segs(uint8_t octet)
+{
+    int max_segs = 0;
+
+    switch (octet & 0xF0)
+    {
+      case 0:
+        max_segs = 0;
+        break;
+      case 0x10:
+        max_segs = 2;
+        break;
+      case 0x20:
+        max_segs = 4;
+        break;
+      case 0x30:
+        max_segs = 8;
+        break;
+      case 0x40:
+        max_segs = 16;
+        break;
+      case 0x50:
+        max_segs = 32;
+        break;
+      case 0x60:
+        max_segs = 64;
+        break;
+      case 0x70:
+        max_segs = 65;
+        break;
+      default:
+        break;
+    }
+
+    return max_segs;
+}
+
+int decode_max_apdu(uint8_t octet)
+{
+    int max_apdu = 0;
+    
+    switch (octet & 0x0F)
+    {
+      case 0:
+        max_apdu = 50;
+        break;
+      case 1:
+        max_apdu = 128;
+        break;
+      case 2:
+        max_apdu = 206;
+        break;
+      case 3:
+        max_apdu = 480;
+        break;
+      case 4:
+        max_apdu = 1024;
+        break;
+      case 5:
+        max_apdu = 1476;
+        break;
+      default:
+        break;
+    }
+
+    return max_apdu;
+}
+
 int encode_unsigned16(uint8_t * apdu, uint16_t value)
 {
     union {
@@ -1255,6 +1326,26 @@ void testBACDCodeObject(Test * pTest)
     return;
 }
 
+void testBACDCodeMaxSegsApdu(Test * pTest)
+{
+  int max_segs[8] = {0,2,4,8,16,32,64,65};
+  int max_apdu[6] = {50,128,206,480,1024,1476};
+  int i = 0;
+  int j = 0;
+  uint8_t octet = 0;
+
+  // test 
+  for (i = 0; i < 8; i++)
+  {
+    for (j = 0; j < 6; j++)
+    {
+      octet = encode_max_segs_max_apdu(max_segs[i], max_apdu[j]);
+      ct_test(pTest, max_segs[i] == decode_max_segs(octet));
+      ct_test(pTest, max_apdu[j] == decode_max_apdu(octet));
+    }
+  }
+}
+
 #ifdef TEST_DECODE
 int main(void)
 {
@@ -1277,6 +1368,9 @@ int main(void)
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeObject);
     assert(rc);
+    rc = ct_addTestFunction(pTest, testBACDCodeMaxSegsApdu);
+    assert(rc);
+    // configure output    
     ct_setStream(pTest, stdout);
     ct_run(pTest);
     (void) ct_report(pTest);

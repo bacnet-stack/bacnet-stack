@@ -147,5 +147,7 @@ int decode_unsigned32(uint8_t * apdu, uint32_t *value);
 // and clause 20.1.2.5 max-APDU-length-accepted
 // returns the encoded octet
 uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu);
+int decode_max_segs(uint8_t octet);
+int decode_max_apdu(uint8_t octet);
 
 #endif
