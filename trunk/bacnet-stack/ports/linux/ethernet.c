@@ -45,7 +45,6 @@
 #include <sys/socket.h>
 #include <net/route.h>
 #include <net/if.h>
-
 #include <features.h>           /* for the glibc version number */
 #if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
 #include <netpacket/packet.h>
@@ -56,13 +55,16 @@
 #include <linux/if_ether.h>     /* The L2 protocols */
 #endif
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/un.h>
 #include <sys/ioctl.h>
+#include <netdb.h>
 
 #include "bacdef.h"
 #include "ethernet.h"
 #include "bacdcode.h"
 
- // commonly used comparison address for ethernet
+// commonly used comparison address for ethernet
 uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
     { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 // commonly used empty address for ethernet quick compare
@@ -78,13 +80,13 @@ bool ethernet_valid(void)
   return (eth802_sockfd >= 0);
 }
 
-bool ethernet_cleanup(void)
+void ethernet_cleanup(void)
 {
   if (ethernet_valid())
       close(eth802_sockfd);
   eth802_sockfd = -1;
 
-  return true;    
+  return;    
 }
 
 /* opens an 802.2 socket to receive and send packets */
@@ -93,6 +95,7 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
     int sock_fd = -1; // return value
     int uid = 0;
 
+    fprintf(stderr,"ethernet: opening \"%s\"\n",interface_name);
     /* check to see if we are being run as root */
     uid = getuid();
     if (uid != 0) {             
@@ -101,21 +104,27 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
             "Try running with root priveleges.\n");
         return sock_fd;
     }
+    // note: on some systems you may have to add or enable in
+    // modules.conf (or in modutils/alias on Debian with update-modules)
+    // alias net-pf-17 af_packet
+    // Then follow it by: # modprobe af_packet
+    
     /* Attempt to open the socket for 802.2 ethernet frames */
-    if ((sock_fd = socket(AF_INET, SOCK_PACKET, htons(ETH_P_802_2))) < 0)
+    if ((sock_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_802_2))) < 0)
     {
         /* Error occured */
         fprintf(stderr,
-            "ethernet: Error opening socket : %s\n",
+            "ethernet: Error opening socket: %s\n",
             strerror(errno));
         exit(-1);
     }
     /* Bind the socket to an address */
-    eth_addr->sa_family = AF_UNIX;
+    eth_addr->sa_family = AF_INET;
     /* Clear the memory before copying */
     memset(eth_addr->sa_data, '\0', sizeof(struct sockaddr_in));
     /* Strcpy the interface name into the address */
     strncpy(eth_addr->sa_data, interface_name, IFNAMSIZ);
+    fprintf(stderr,"ethernet: binding \"%s\"\n",eth_addr->sa_data);
     /* Attempt to bind the socket to the interface */
     if (bind(sock_fd, eth_addr, sizeof(struct sockaddr)) != 0)
     {
@@ -123,10 +132,18 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
         fprintf(stderr,
             "ethernet: Unable to bind 802.2 socket : %s\n",
             strerror(errno));
+        fprintf(stderr,
+            "You might need to add the following to modules.conf\n"
+            "(or in modutils/alias on Debian with update-modules):\n"
+            "alias net-pf-17 af_packet\n"
+            "Then follow it by:\n"
+            "# modprobe af_packet\n");
         /* Close the socket */
         close(sock_fd);
         exit(-1);
     }
+
+    atexit(ethernet_cleanup);
 
     return sock_fd;
 }

@@ -70,6 +70,7 @@ void WhoIsHandler(
   int32_t low_limit = 0;
   int32_t high_limit = 0;
 
+  fprintf(stderr,"Received Who-Is Request!\r");
   len = whois_decode_service_request(
     service_request,
     service_len,
