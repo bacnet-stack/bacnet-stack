@@ -36,13 +36,14 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacenum.h"
 
 int bacerror_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
   BACNET_CONFIRMED_SERVICE service,
   BACNET_ERROR_CLASS error_class,
-  BACNET_ERROR_CODE error_code)
+  BACNET_ERROR_CODE error_code);
 
 int bacerror_decode_service_request(
   uint8_t *apdu,
@@ -61,6 +62,7 @@ int bacerror_decode_apdu(
   BACNET_ERROR_CODE *error_code);
 
 #ifdef TEST
+#include "ctest.h"
 void testBACError(Test * pTest);
 #endif
 
