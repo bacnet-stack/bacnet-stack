@@ -450,7 +450,6 @@ int decode_character_string(uint8_t * apdu, char *char_string)
     uint32_t len_value = 0;
 
     len = decode_tag_value(&apdu[0], &len_value);
-    len = decode_tag_value(&apdu[0], &len_value);
     if (len_value) {
         // decode ANSI X3.4
         if (apdu[len] == 0) {
