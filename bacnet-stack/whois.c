@@ -53,12 +53,14 @@ int whois_encode_apdu(
     if ((low_limit >= 0) && (low_limit <= BACNET_MAX_INSTANCE) &&
         (high_limit >= 0) && (high_limit <= BACNET_MAX_INSTANCE))
     {
-      len = encode_tagged_unsigned(
-        &apdu[apdu_len], 
+      len = encode_context_unsigned(
+        &apdu[apdu_len],
+        0,
         low_limit);
       apdu_len += len;
-      len = encode_tagged_unsigned(
-        &apdu[apdu_len], 
+      len = encode_context_unsigned(
+        &apdu[apdu_len],
+        1,
         high_limit);
       apdu_len += len;
     }
@@ -83,7 +85,7 @@ int whois_decode_service_request(
   if (apdu_len)
   {
     len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+    if (tag_number != 0)
       return -1;
     len += decode_unsigned(&apdu[len], len_value, &decoded_value);
     if ((decoded_value >= 0) && (decoded_value <= BACNET_MAX_INSTANCE))
@@ -92,7 +94,7 @@ int whois_decode_service_request(
         *pLow_limit = decoded_value;
     }
     len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+    if (tag_number != 1)
       return -1;
     len += decode_unsigned(&apdu[len],
       len_value, &decoded_value);

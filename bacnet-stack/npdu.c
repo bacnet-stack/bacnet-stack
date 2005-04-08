@@ -98,32 +98,28 @@ int npdu_encode_raw(
     if (dest && dest->net)
     {
       len += encode_unsigned16(&npdu[len], dest->net);
+      npdu[len++] = dest->len;
       // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
       // DLEN > 0 specifies length of DADR field
       if (dest->len)
       {
-        npdu[len] = dest->len;
-        len++;
         for (i = 0; i < dest->len; i++)
         {
-          npdu[len] = dest->adr[i];
-          len++;
+          npdu[len++] = dest->adr[i];
         }
       }
     }
     if (src && src->net)
     {
       len += encode_unsigned16(&npdu[len], src->net);
+      npdu[len++] = src->len;
       // SLEN = 0 denotes broadcast MAC SADR and SADR field is absent
       // SLEN > 0 specifies length of SADR field
       if (src->len)
       {
-        npdu[len] = src->len;
-        len++;
         for (i = 0; i < src->len; i++)
         {
-          npdu[len] = src->adr[i];
-          len++;
+          npdu[len++] = src->adr[i];
         }
       }
     }

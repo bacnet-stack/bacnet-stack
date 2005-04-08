@@ -118,7 +118,7 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
             strerror(errno));
         fprintf(stderr,
             "You might need to add the following to modules.conf\n"
-            "(or in modutils/alias on Debian with update-modules):\n"
+            "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
             "Also, add af_packet to /etc/modules.\n"
             "Then follow it by:\n"
@@ -141,7 +141,7 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
             strerror(errno));
         fprintf(stderr,
             "You might need to add the following to modules.conf\n"
-            "(or in modutils/alias on Debian with update-modules):\n"
+            "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
             "Also, add af_packet to /etc/modules.\n"
             "Then follow it by:\n"
