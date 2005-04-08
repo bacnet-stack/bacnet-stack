@@ -117,6 +117,8 @@ int rp_decode_service_request(
       else
         *array_index = BACNET_ARRAY_ALL;
     }
+    else
+      *array_index = BACNET_ARRAY_ALL;
   }
 
   return len;
@@ -190,6 +192,7 @@ int rp_ack_encode_apdu(
     {
       apdu[apdu_len++] = data->application_data[len];
     }
+    apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
   }
 
   return apdu_len;
