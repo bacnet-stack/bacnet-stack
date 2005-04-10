@@ -36,7 +36,7 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 #include "device.h"
-#include "rp.h"
+#include "wp.h"
 
 // encode service
 int wp_encode_apdu(
@@ -61,7 +61,7 @@ int wp_encode_apdu(
     /* optional array index; ALL is -1 which is assumed when missing */
     if (data->array_index != BACNET_ARRAY_ALL)
       apdu_len += encode_context_unsigned(&apdu[apdu_len], 2,
-        array_index);
+        data->array_index);
     // propertyValue
     apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
     for (len = 0; len < data->property_value_len; len++)
@@ -71,7 +71,7 @@ int wp_encode_apdu(
     apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
     // optional priority - 0 if not set, 1..16 if set
     if (data->priority)
-      apdu_len += = encode_context_unsigned(&apdu[apdu_len], 4,
+      apdu_len += encode_context_unsigned(&apdu[apdu_len], 4,
         data->priority);
   }
   
@@ -196,22 +196,14 @@ void testWriteProperty(Test * pTest)
   int apdu_len = 0;
   uint8_t invoke_id = 128;
   uint8_t test_invoke_id = 0;
-  BACNET_OBJECT_TYPE object_type = OBJECT_CALENDAR;
-  BACNET_OBJECT_TYPE test_object_type = 0;
-  uint32_t object_instance = 1; 
-  uint32_t test_object_instance = 0; 
-  BACNET_PROPERTY_ID object_property = PROP_ARCHIVE;
-  BACNET_PROPERTY_ID test_object_property = 0;
-  int32_t array_index = 2;
-  int32_t test_array_index = 0;
-    
+  BACNET_WRITE_PROPERTY_DATA data = {0};
+  BACNET_WRITE_PROPERTY_DATA test_data = {0};
+
+  // FIXME: set values for data    
   len = wp_encode_apdu(
     &apdu[0],
     invoke_id,
-    object_type,
-    object_instance,
-    object_property,
-    array_index);
+    &data);
   ct_test(pTest, len != 0);
   apdu_len = len;
 
@@ -219,15 +211,12 @@ void testWriteProperty(Test * pTest)
     &apdu[0],
     apdu_len,
     &test_invoke_id,
-    &test_object_type,
-    &test_object_instance,
-    &test_object_property,
-    &test_array_index);
+    &test_data);
   ct_test(pTest, len != -1);
-  ct_test(pTest, test_object_type == object_type);
-  ct_test(pTest, test_object_instance == object_instance);
-  ct_test(pTest, test_object_property == object_property);
-  ct_test(pTest, test_array_index == array_index);
+  ct_test(pTest, test_data.object_type == data.object_type);
+  ct_test(pTest, test_data.object_instance == data.object_instance);
+  ct_test(pTest, test_data.object_property == data.object_property);
+  ct_test(pTest, test_data.array_index == data.array_index);
 
   return;
 }
@@ -241,8 +230,6 @@ int main(void)
     pTest = ct_create("BACnet WriteProperty", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testWriteProperty);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, testWritePropertyAck);
     assert(rc);
 
     ct_setStream(pTest, stdout);

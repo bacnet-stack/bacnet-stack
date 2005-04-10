@@ -38,7 +38,7 @@
 #include "device.h"
 #include "rp.h"
 
-// encode service  - use -1 for limit if you want unlimited
+// encode service
 int rp_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
@@ -63,8 +63,8 @@ int rp_encode_apdu(
     len = encode_context_enumerated(&apdu[apdu_len], 1,
       object_property);
     apdu_len += len;
-    /* optional array index; ALL is -1 which is assumed when missing */
-    if (array_index >= 0)
+    /* optional array index */
+    if (array_index != BACNET_ARRAY_ALL)
     {  
       len = encode_context_unsigned(&apdu[apdu_len], 2,
         array_index);
@@ -112,8 +112,10 @@ int rp_decode_service_request(
       len += decode_tag_number_and_value(&apdu[len],&tag_number,
         &len_value_type);
       if (tag_number == 2)
+      {
         len += decode_unsigned(&apdu[len], len_value_type,
           array_index);
+      }
       else
         *array_index = BACNET_ARRAY_ALL;
     }
@@ -241,7 +243,7 @@ int rp_ack_decode_service_request(
   // Tag 3: opening context tag */
   if (decode_is_opening_tag_number(&apdu[len], 3))
   {
-    // tag number of 3 is not extended so only one octet
+    // a tag number of 3 is not extended so only one octet
     len++;
     // don't decode the application tag number or its data here
     data->application_data = &apdu[len];
