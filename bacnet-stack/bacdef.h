@@ -48,7 +48,7 @@
 
 // embedded systems need fixed name sizes
 #define MAX_OBJECT_NAME 10
-// device object properties
+// common object properties
 typedef struct BACnet_Object_Data
 {
   uint32_t Object_Identifier;

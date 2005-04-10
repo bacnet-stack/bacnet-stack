@@ -47,7 +47,7 @@ typedef struct BACnet_Read_Property_Data
   int application_data_len;
 } BACNET_READ_PROPERTY_DATA;
 
-// encode service  - use -1 for limit if you want unlimited
+// encode service
 int rp_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
