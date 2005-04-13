@@ -86,6 +86,7 @@ int iam_decode_apdu(
   uint8_t tag_number = 0;
   uint32_t len_value = 0;
   unsigned int decoded_value = 0;
+  int decoded_integer = 0;
 
   // valid data?
   if (!apdu)
@@ -121,12 +122,12 @@ int iam_decode_apdu(
   apdu_len += len;
   if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
     return -1;
-  len = decode_enumerated(&apdu[apdu_len],len_value, &decoded_value);
+  len = decode_enumerated(&apdu[apdu_len],len_value, &decoded_integer);
   apdu_len += len;
-  if (decoded_value >= MAX_BACNET_SEGMENTATION)
+  if (decoded_integer >= MAX_BACNET_SEGMENTATION)
     return -1;
   if (pSegmentation)
-    *pSegmentation = decoded_value;
+    *pSegmentation = decoded_integer;
   // Vendor ID - unsigned16
   len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
   apdu_len += len;

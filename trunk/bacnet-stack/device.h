@@ -36,7 +36,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <assert.h>
 #include "bacdef.h"
 #include "bacenum.h"
 

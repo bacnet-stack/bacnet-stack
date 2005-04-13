@@ -90,7 +90,7 @@ int wp_decode_service_request(
   uint32_t len_value_type = 0;
   int type = 0; // for decoding
   int property = 0; // for decoding
-  uint32_t unsigned_value = 0;
+  unsigned unsigned_value = 0;
 
   // check for value pointers
   if (apdu_len && data)
@@ -115,7 +115,8 @@ int wp_decode_service_request(
     {
       len += tag_len;
       len += decode_unsigned(&apdu[len], len_value_type,
-        &data->array_index);
+        &unsigned_value);
+      data->array_index = unsigned_value;
     }
     else
       data->array_index = BACNET_ARRAY_ALL;

@@ -89,6 +89,7 @@ int rp_decode_service_request(
   uint32_t len_value_type = 0;
   int type = 0; // for decoding
   int property = 0; // for decoding
+  unsigned array_value = 0; // for decoding
 
   // check for value pointers
   if (apdu_len && object_type && object_instance &&
@@ -114,7 +115,8 @@ int rp_decode_service_request(
       if (tag_number == 2)
       {
         len += decode_unsigned(&apdu[len], len_value_type,
-          array_index);
+          &array_value);
+        *array_index = array_value;
       }
       else
         *array_index = BACNET_ARRAY_ALL;
@@ -210,6 +212,7 @@ int rp_ack_decode_service_request(
   int tag_len = 0; // length of tag decode
   int len = 0; // total length of decodes
   int object = 0, property = 0; // for decoding
+  unsigned array_value = 0; // for decoding
 
   // FIXME: check apdu_len against the len during decode  
   // Tag 0: Object ID
@@ -235,7 +238,8 @@ int rp_ack_decode_service_request(
   {
     len += tag_len;
     len += decode_unsigned(&apdu[len],
-      len_value_type, &data->array_index);
+      len_value_type, &array_value);
+    data->array_index = array_value;
   }
   else
     data->array_index = BACNET_ARRAY_ALL;
