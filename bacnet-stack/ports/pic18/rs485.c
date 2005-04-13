@@ -54,10 +54,10 @@ void RS485_Send_Frame(
   (void)nbytes; // FIXME: temp until we implement this code
 
   // in order to avoid line contention
-  while (mstp_port->SilenceTimer < Tturnaround)
-  {
+  //while (mstp_port->SilenceTimer < Tturnaround)
+  //{
     // wait, yield, or whatever
-  }
+  //}
 
 	// Disable the receiver, and enable the transmit line driver.
 
