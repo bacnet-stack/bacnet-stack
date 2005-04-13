@@ -33,7 +33,6 @@
 ####COPYRIGHTEND####*/
 
 #include <string.h>
-#include <assert.h>
 
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -98,8 +97,7 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
         octet = 0x70;
 
     // max_apdu must be 50 octets minimum
-    assert(max_apdu >= 50);
-    if (max_apdu == 50)
+    if (max_apdu <= 50)
        octet |= 0x00;
     else if (max_apdu <= 128)
        octet |= 0x01;
@@ -676,8 +674,10 @@ int encode_tagged_character_string(uint8_t * apdu, const char *char_string)
     string_len = encode_bacnet_character_string(&apdu[1], char_string);
     len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_CHARACTER_STRING,
         false, string_len);
-    assert((len + string_len) < MAX_APDU);
-    len += encode_bacnet_character_string(&apdu[len], char_string);
+    if ((len + string_len) < MAX_APDU)
+      len += encode_bacnet_character_string(&apdu[len], char_string);
+    else
+      len = 0;
 
     return len;
 }

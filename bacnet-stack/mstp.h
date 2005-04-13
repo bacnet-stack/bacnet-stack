@@ -45,10 +45,6 @@
 #define MAX_HEADER (2+1+1+1+2+1+2+1)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
-// The number of elements in the array InputBuffer[].
-// Note: minimum APDU is 50 bytes, so buffer may vary
-#define INPUT_BUFFER_SIZE (501)
-
 //  The value 255 is used to denote broadcast when used as a
 // destination address but is not allowed as a value for a station.
 #define MSTP_BROADCAST_ADDRESS 255
@@ -80,7 +76,7 @@ typedef enum
   MSTP_RECEIVE_STATE_HEADER,
   MSTP_RECEIVE_STATE_HEADER_CRC,
   MSTP_RECEIVE_STATE_DATA,
-  MSTP_RECEIVE_STATE_DATA_CRC,
+  MSTP_RECEIVE_STATE_DATA_CRC
 } MSTP_RECEIVE_STATE;
 
 // master node FSM states
@@ -94,7 +90,7 @@ typedef enum
   MSTP_MASTER_STATE_PASS_TOKEN,
   MSTP_MASTER_STATE_NO_TOKEN,
   MSTP_MASTER_STATE_POLL_FOR_MASTER,
-  MSTP_MASTER_STATE_ANSWER_DATA_REQUEST,
+  MSTP_MASTER_STATE_ANSWER_DATA_REQUEST
 } MSTP_MASTER_STATE;
 
 // data for a given MS/TP port
@@ -143,8 +139,7 @@ struct mstp_port_struct_t
   // An array of octets, used to store octets as they are received.
   // InputBuffer is indexed from 0 to InputBufferSize-1.
   // The maximum size of a frame is 501 octets.
-  // A smaller value for InputBufferSize may be used by some implementations.
-  uint8_t InputBuffer[INPUT_BUFFER_SIZE];
+  uint8_t InputBuffer[MAX_MPDU];
 
   // "Next Station," the MAC address of the node to which This Station passes
   // the token. If the Next_Station is unknown, Next_Station shall be equal to

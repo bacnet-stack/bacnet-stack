@@ -34,7 +34,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <assert.h>
 #include "bits.h"
 #include "apdu.h"
 #include "bacdef.h"

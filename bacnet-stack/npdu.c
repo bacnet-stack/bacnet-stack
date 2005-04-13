@@ -33,7 +33,6 @@
 ####COPYRIGHTEND####*/
 #include <stdbool.h>
 #include <stdint.h>
-#include <assert.h>
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
