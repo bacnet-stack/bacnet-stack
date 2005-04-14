@@ -95,7 +95,7 @@ void apdu_set_confirmed_simple_ack_handler(
     case SERVICE_CONFIRMED_VT_CLOSE:
     // Security Services
     case SERVICE_CONFIRMED_REQUEST_KEY:
-      Confirmed_ACK_Function[service_choice] = pFunction;
+      Confirmed_ACK_Function[service_choice] = (void *)pFunction;
       break;
     default:
       break;
@@ -127,7 +127,7 @@ void apdu_set_confirmed_ack_handler(
     case SERVICE_CONFIRMED_VT_DATA:
     // Security Services
     case SERVICE_CONFIRMED_AUTHENTICATE:
-      Confirmed_ACK_Function[service_choice] = pFunction;
+      Confirmed_ACK_Function[service_choice] = (void *)pFunction;
       break;
     default:
       break;
