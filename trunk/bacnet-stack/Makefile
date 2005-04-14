@@ -3,7 +3,9 @@ CC      = gcc
 BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
+#CFLAGS  = -Wall -I. -O2 -g
+# Note: you can strip out symbols using the strip command
+# to get an idea of how big the compile really is.
 CFLAGS  = -Wall -I. -g
 
 SRCS = ports/linux/main.c \

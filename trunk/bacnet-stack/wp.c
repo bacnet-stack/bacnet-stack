@@ -138,6 +138,9 @@ int wp_decode_service_request(
     else
       return -1;
     // Tag 4: optional Priority
+    // FIXME: if the property value is not easily sized here,
+    // then just have the application decode the property value
+    // and the priority
     if (len < apdu_len)
     {
       len += decode_tag_number_and_value(&apdu[len],&tag_number,
