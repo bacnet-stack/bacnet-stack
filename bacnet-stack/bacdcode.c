@@ -273,6 +273,56 @@ int decode_unsigned32(uint8_t * apdu, uint32_t *value)
     return 4;
 }
 
+void bitstring_init(BACNET_BIT_STRING *bit_string)
+{
+  int i;
+  
+  bit_string->bits_used = 0;
+  for (i = 0; i < MAX_BITSTRING_BYTES; i++)
+  {
+    bit_string->value[i] = 0;
+  }
+}
+
+void bitstring_set_bit(BACNET_BIT_STRING *bit_string, uint8_t bit, bool value)
+{
+  uint8_t byte_number = bit/8;
+  uint8_t bit_mask = 1;
+
+  if (byte_number < MAX_BITSTRING_BYTES)
+  {
+    // set max bits used
+    if (bit_string->bits_used < (bit + 1))
+      bit_string->bits_used = bit + 1;
+    bit_mask = bit_mask << (bit - (byte_number * 8));
+    if (value)
+      bit_string->value[byte_number] |= bit_mask;
+    else
+      bit_string->value[byte_number] &= (~(bit_mask));
+  }
+}
+
+bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit)
+{
+  bool value = false;
+  uint8_t byte_number = bit/8;
+  uint8_t bit_mask = 1;
+  
+  if (bit < (MAX_BITSTRING_BYTES * 8))
+  {
+    bit_mask = bit_mask << (bit - (byte_number * 8));
+    if (bit_string->value[byte_number] & bit_mask)
+      value = true;
+  }
+
+  return value;
+}
+
+uint8_t bitstring_bits_used(BACNET_BIT_STRING *bit_string)
+{
+  return bit_string->bits_used;
+}
+
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
@@ -492,6 +542,60 @@ bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number)
     decode_tag_number(apdu, &my_tag_number);
 
     return (closing_tag && (my_tag_number == tag_number));
+}
+
+// from clause 20.2.10 Encoding of a Bit String Value
+// returns the number of apdu bytes consumed
+int decode_bitstring(uint8_t * apdu, uint32_t len_value,
+  BACNET_BIT_STRING *bit_string)
+{
+    int len = 0;
+    uint8_t unused_bits = 0;
+    uint32_t i = 0;
+
+    bitstring_init(bit_string);
+    unused_bits = apdu[len++] & 0x07;
+    if (len_value && (len_value < MAX_BITSTRING_BYTES))
+    {
+        for (i = 0; i < len_value; i++)
+        {
+          bit_string->value[i] = apdu[len++];
+        }
+        bit_string->bits_used = (len_value * 8) + (8 - unused_bits) + 1;
+    }
+    
+    return len;
+}
+
+// from clause 20.2.10 Encoding of a Bit String Value
+// returns the number of apdu bytes consumed
+int encode_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string)
+{
+    int len = 0;
+    uint8_t used_bits = 0;
+    uint8_t used_bytes = 0;
+    uint8_t i = 0; 
+
+    used_bytes = bit_string->bits_used / 8;
+    used_bits = bit_string->bits_used - (used_bytes * 8);
+    apdu[len++] = 8 - used_bits;
+    for (i = 0; i < used_bytes; i++)
+    {
+      apdu[len++] = bit_string->value[i];
+    }
+
+    return len;
+}
+
+int encode_tagged_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string)
+{
+    int len = 0;
+
+    // assumes that the tag only consumes 1 octet
+    len = encode_bitstring(&apdu[1], bit_string);
+    len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_BIT_STRING, false, len);
+
+    return len;
 }
 
 // from clause 20.2.6 Encoding of a Real Number Value
@@ -1360,6 +1464,63 @@ void testBACDCodeMaxSegsApdu(Test * pTest)
   }
 }
 
+void testBACDCodeBitString(Test * pTest)
+{
+  uint8_t bit = 0;
+  BACNET_BIT_STRING bit_string;
+  BACNET_BIT_STRING decoded_bit_string;
+  uint8_t apdu[MAX_APDU] = { 0 };
+  uint32_t len_value = 0;
+  uint8_t tag_number = 0;
+  int len = 0;
+  
+  bitstring_init(&bit_string);
+  // verify initialization 
+  ct_test(pTest, bitstring_bits_used(&bit_string) == 0);
+  for (bit = 0; bit < (MAX_BITSTRING_BYTES*8); bit++)
+  {
+    ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
+  }
+  // test encode/decode
+  for (bit = 0; bit < (MAX_BITSTRING_BYTES*8); bit++)
+  {
+    bitstring_set_bit(&bit_string, bit, true);
+    ct_test(pTest, bitstring_bits_used(&bit_string) == (bit + 1));
+    if (bitstring_bits_used(&bit_string) != (bit + 1))
+      printf("bits used=%u bit number=%u\n", 
+        (unsigned)bitstring_bits_used(&bit_string),
+        (unsigned)bit);
+    ct_test(pTest, bitstring_bit(&bit_string, bit) == true);
+    // encode
+    len = encode_tagged_bitstring(&apdu[0], &bit_string);
+    // decode
+    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
+    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_BIT_STRING);
+    len += decode_bitstring(&apdu[len], len_value,&decoded_bit_string);
+    ct_test(pTest, bitstring_bits_used(&decoded_bit_string) == (bit + 1));
+    if (bitstring_bits_used(&decoded_bit_string) != (bit + 1))
+      printf("bits used=%u bit number=%u\n", 
+        (unsigned)bitstring_bits_used(&decoded_bit_string),
+        (unsigned)bit);
+    ct_test(pTest, bitstring_bit(&decoded_bit_string, bit) == true);
+  }
+  // test encode/decode
+  for (bit = 0; bit < (MAX_BITSTRING_BYTES*8); bit++)
+  {
+    bitstring_set_bit(&bit_string, bit, false);
+    ct_test(pTest, bitstring_bits_used(&bit_string) == (bit + 1));
+    ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
+    // encode
+    len = encode_tagged_bitstring(&apdu[0], &bit_string);
+    // decode
+    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
+    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_BIT_STRING);
+    len += decode_bitstring(&apdu[len], len_value,&decoded_bit_string);
+    ct_test(pTest, bitstring_bits_used(&decoded_bit_string) == (bit + 1));
+    ct_test(pTest, bitstring_bit(&decoded_bit_string, bit) == false);
+  }
+}
+
 #ifdef TEST_DECODE
 int main(void)
 {
@@ -1383,6 +1544,8 @@ int main(void)
     rc = ct_addTestFunction(pTest, testBACDCodeObject);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeMaxSegsApdu);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testBACDCodeBitString);
     assert(rc);
     // configure output    
     ct_setStream(pTest, stdout);
