@@ -43,12 +43,7 @@
 // Confirmed Function Handlers
 // If they are not set, they are handled by a reject message
 static confirmed_function 
-Confirmed_Function[MAX_BACNET_CONFIRMED_SERVICE] = 
-{
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-};
+Confirmed_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
 void apdu_set_confirmed_handler(
   BACNET_CONFIRMED_SERVICE service_choice,
@@ -60,13 +55,8 @@ void apdu_set_confirmed_handler(
 
 // Unconfirmed Function Handlers
 // If they are not set, they are not handled
-// Note: we may not need any initializers here since
-// C is supposed to init global data to zero.
 static unconfirmed_function 
-Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE] = 
-{
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL 
-};
+Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE];
 
 void apdu_set_unconfirmed_handler(
   BACNET_UNCONFIRMED_SERVICE service_choice,
@@ -76,31 +66,9 @@ void apdu_set_unconfirmed_handler(
     Unconfirmed_Function[service_choice] = pFunction;
 }
 
-// Confirmed simple ACK Function Handlers
-// The services that require a complex ACK are not listed here
-// FIXME: The array doesn't need to be this big, but is
-// simpler to handle if it is.
-// We might be able to combine simple ack and complex ack
-// functions and only use a single array.
-static confirmed_simple_ack_function 
-Confirmed_SimpleACK_Function[MAX_BACNET_CONFIRMED_SERVICE] = 
-{
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-};
+// Confirmed ACK Function Handlers
+static void *Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
-#if 1
-// If we don't care which functions actually get set...
-void apdu_set_confirmed_simple_ack_handler(
-  BACNET_CONFIRMED_SERVICE service_choice,
-  confirmed_simple_ack_function pFunction)
-{
-  if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
-    Confirmed_SimpleACK_Function[service_choice] = pFunction;
-}
-#else
-// If we care which functions actually get set...
 void apdu_set_confirmed_simple_ack_handler(
   BACNET_CONFIRMED_SERVICE service_choice,
   confirmed_simple_ack_function pFunction)
@@ -127,39 +95,13 @@ void apdu_set_confirmed_simple_ack_handler(
     case SERVICE_CONFIRMED_VT_CLOSE:
     // Security Services
     case SERVICE_CONFIRMED_REQUEST_KEY:
-      Confirmed_SimpleACK_Function[service_choice] = pFunction;
+      Confirmed_ACK_Function[service_choice] = pFunction;
       break;
     default:
       break;
   }
 }
-#endif
 
-// Confirmed Complex Ack Function Handlers
-// The services that require a simple ACK are not listed here
-// FIXME: The array doesn't need to be this big, but is
-// simpler to handle if it is.
-// We might be able to combine simple ack and complex ack
-// functions and only use a single array.
-static confirmed_ack_function 
-Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE] = 
-{
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-};
-
-#if 1
-// If we don't care which functions actually get set...
-void apdu_set_confirmed_ack_handler(
-  BACNET_CONFIRMED_SERVICE service_choice,
-  confirmed_ack_function pFunction)
-{
-  if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
-    Confirmed_ACK_Function[service_choice] = pFunction;
-}
-#else
-// If we care which functions actually get set...
 void apdu_set_confirmed_ack_handler(
   BACNET_CONFIRMED_SERVICE service_choice,
   confirmed_ack_function pFunction)
@@ -191,7 +133,6 @@ void apdu_set_confirmed_ack_handler(
       break;
   }
 }
-#endif
 
 void apdu_handler(
   BACNET_ADDRESS *src,  // source address
@@ -280,10 +221,13 @@ void apdu_handler(
           case SERVICE_CONFIRMED_VT_CLOSE:
           // Security Services
           case SERVICE_CONFIRMED_REQUEST_KEY:
-            if (Confirmed_SimpleACK_Function[service_choice])
-              Confirmed_SimpleACK_Function[service_choice](
+            if (Confirmed_ACK_Function[service_choice])
+            {
+              ((confirmed_simple_ack_function)
+              Confirmed_ACK_Function[service_choice])(
                 src,
                 invoke_id); 
+            }
             else
             {
               //FIXME: release the invoke id
@@ -329,11 +273,14 @@ void apdu_handler(
           // Security Services
           case SERVICE_CONFIRMED_AUTHENTICATE:
             if (Confirmed_ACK_Function[service_choice])
-              Confirmed_ACK_Function[service_choice](
+            {
+              ((confirmed_ack_function)
+              Confirmed_ACK_Function[service_choice])(
                 service_request,
                 service_request_len,
                 src,
                 &service_ack_data); 
+            }
             else
             {
               //FIXME: release the invoke id
@@ -348,7 +295,7 @@ void apdu_handler(
       case PDU_TYPE_REJECT:
       case PDU_TYPE_ABORT:
         invoke_id = apdu[1];
-        // release the invoke id
+        // FIXME: release the invoke id
         break;
       default:
         break;
