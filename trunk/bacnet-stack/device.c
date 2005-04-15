@@ -231,6 +231,7 @@ int Device_Encode_Property_APDU(
 {
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
+  int i = 0;
   
   switch (property)
   {
@@ -296,11 +297,15 @@ int Device_Encode_Property_APDU(
         break;
     case PROP_PROTOCOL_SERVICES_SUPPORTED:
         bitstring_init(&bit_string);
-        // when APDU does automatic reject when service is NULL, then add this
-        //for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++)
-        //{
-        //  bitstring_set_bit(&bit_string, i, apdu_service_supported(i));
-        //}
+        for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++)
+        {
+          // FIXME: when APDU does automatic reject when service is NULL, 
+          // then add this:
+          // bitstring_set_bit(&bit_string, i, apdu_service_supported(i));
+          // initialize all the services to not-supported
+          bitstring_set_bit(&bit_string, i, false);
+        }
+        // initialize those we support
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_WHO_IS, true);
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_I_AM, true);
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_READ_PROPERTY, true);
@@ -308,6 +313,11 @@ int Device_Encode_Property_APDU(
         break;
     case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
         bitstring_init(&bit_string);
+        for (i = 0; i < MAX_BACNET_OBJECT_TYPES; i++)
+        {
+          // initialize all the object types to not-supported
+          bitstring_set_bit(&bit_string, i, false);
+        }
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
