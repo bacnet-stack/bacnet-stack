@@ -38,6 +38,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+// bit strings
+#define MAX_BITSTRING_BYTES 15
+typedef struct BACnet_Bit_String
+{
+  uint8_t bits_used;
+  uint8_t value[MAX_BITSTRING_BYTES];
+} BACNET_BIT_STRING;
+
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
@@ -57,6 +65,18 @@ bool decode_is_opening_tag_number(uint8_t * apdu, uint8_t tag_number);
 bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number);
 // returns true if the tag is context specific and matches
 bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number);
+
+// from clause 20.2.10 Encoding of a Bit String Value
+void bitstring_init(BACNET_BIT_STRING *bit_string);
+void bitstring_set_bit(BACNET_BIT_STRING *bit_string, uint8_t bit, bool value);
+bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit);
+uint8_t bitstring_bits_used(BACNET_BIT_STRING *bit_string);
+// returns the number of apdu bytes consumed
+int decode_bitstring(uint8_t * apdu, uint32_t len_value,
+  BACNET_BIT_STRING *bit_string);
+// returns the number of apdu bytes consumed
+int encode_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string);
+int encode_tagged_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string);
 
 // from clause 20.2.6 Encoding of a Real Number Value
 // and 20.2.1 General Rules for Encoding BACnet Tags

@@ -188,9 +188,6 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(void)
   return SEGMENTATION_NONE;
 }
 
-//FIXME: This need some bit string encodings...
-//Protocol_Services_Supported
-//Protocol_Object_Types_Supported
 //FIXME: Probably return one at a time, or be supported by
 // an object module, or encode the APDU here.
 //Object_List
@@ -233,7 +230,8 @@ int Device_Encode_Property_APDU(
   int32_t array_index)
 {
   int apdu_len = 0; // return value
-
+  BACNET_BIT_STRING bit_string;
+  
   switch (property)
   {
     case PROP_OBJECT_IDENTIFIER:
@@ -292,30 +290,26 @@ int Device_Encode_Property_APDU(
     case PROP_PROTOCOL_VERSION:
         apdu_len = encode_tagged_unsigned(&apdu[0], Device_Protocol_Version());
         break;
-    // BACnet Legacy Support - necessary?
-    //case PROP_PROTOCOL_CONFORMANCE_CLASS:
-    //    apdu_len = encode_tagged_unsigned(&apdu[0], 1);
-    //    break;
+    // BACnet Legacy Support
+    case PROP_PROTOCOL_CONFORMANCE_CLASS:
+        apdu_len = encode_tagged_unsigned(&apdu[0], 1);
+        break;
     case PROP_PROTOCOL_SERVICES_SUPPORTED:
-        // FIXME: needs an encoding function for bitstring
-        apdu[0] = 0x85;         /* what is following? (this is a bitstring) */
-        apdu[1] = 0x06;         /* length extension to 6 bytes */
-        apdu[2] = 0x05;         /* 5 unused bits in the final byte */
-        apdu[3] = 0x00;         /* none of the first 8 bits are set */
-        apdu[4] = 0x09;         /* bits 3,0 are set */
-        apdu[5] = 0x00;         /* none of the 3rd set of bits are set */
-        apdu[6] = 0x20;         /* bit 5 is set */
-        apdu[7] = 0x20;         /* bit 5 is set */
-        apdu_len = 8;           /* bytes in this apdu */
+        bitstring_init(&bit_string);
+        // when APDU does automatic reject when service is NULL, then add this
+        //for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++)
+        //{
+        //  bitstring_set_bit(&bit_string, i, apdu_service_supported(i));
+        //}
+        bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_WHO_IS, true);
+        bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_I_AM, true);
+        bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_READ_PROPERTY, true);
+        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
-        // FIXME: needs an encoding function for bitstring
-        apdu[0] = 0x84;         /* what is following? (this is a bitstring) */
-        apdu[1] = 0x06;         /* 6 unused bits in the final byte */
-        apdu[2] = 0xFF;         /* All of the first 8 bits are set */
-        apdu[3] = 0xFF;         /* All of the second 8 bits are set */
-        apdu[4] = 0xC0;         /* All of the valid bits are set */
-        apdu_len = 5;           /* bytes in this apdu */
+        bitstring_init(&bit_string);
+        bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
+        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
       // FIXME: hook into real object list, not just device

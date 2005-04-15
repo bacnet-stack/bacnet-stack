@@ -544,6 +544,30 @@ bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number)
     return (closing_tag && (my_tag_number == tag_number));
 }
 
+static uint8_t byte_reverse_bits(uint8_t in_byte)
+{
+  uint8_t out_byte = 0;
+
+  if (in_byte & BIT0)
+    out_byte |= BIT7;
+  if (in_byte & BIT1)
+    out_byte |= BIT6;
+  if (in_byte & BIT2)
+    out_byte |= BIT5;
+  if (in_byte & BIT3)
+    out_byte |= BIT4;
+  if (in_byte & BIT4)
+    out_byte |= BIT3;
+  if (in_byte & BIT5)
+    out_byte |= BIT2;
+  if (in_byte & BIT6)
+    out_byte |= BIT1;
+  if (in_byte & BIT7)
+    out_byte |= BIT0;
+
+  return out_byte;
+}
+
 // from clause 20.2.10 Encoding of a Bit String Value
 // returns the number of apdu bytes consumed
 int decode_bitstring(uint8_t * apdu, uint32_t len_value,
@@ -565,7 +589,7 @@ int decode_bitstring(uint8_t * apdu, uint32_t len_value,
         len = 1;
         for (i = 0; i < bytes_used; i++)
         {
-              bit_string->value[i] = apdu[len++];
+              bit_string->value[i] = byte_reverse_bits(apdu[len++]);
         }
         unused_bits = apdu[0] & 0x07;
         bit_string->bits_used = bytes_used * 8;
@@ -615,7 +639,7 @@ int encode_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string)
       apdu[len++] = 8 - remaining_used_bits;
       for (i = 0; i < used_bytes; i++)
       {
-        apdu[len++] = bit_string->value[i];
+        apdu[len++] = byte_reverse_bits(bit_string->value[i]);
       }
     }
 
