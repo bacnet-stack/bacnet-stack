@@ -552,16 +552,22 @@ int decode_bitstring(uint8_t * apdu, uint32_t len_value,
     int len = 0;
     uint8_t unused_bits = 0;
     uint32_t i = 0;
+    uint32_t bytes_used = 0;
+    
 
     bitstring_init(bit_string);
-    unused_bits = apdu[len++] & 0x07;
-    if (len_value && (len_value < MAX_BITSTRING_BYTES))
+    if (len_value && ((len_value - 1) < MAX_BITSTRING_BYTES))
     {
-        for (i = 0; i < len_value; i++)
+        // the first octet contains the unused bits
+        bytes_used = len_value--;
+        len = 1; 
+        for (i = 0; i < bytes_used; i++)
         {
-          bit_string->value[i] = apdu[len++];
+              bit_string->value[i] = apdu[len++];
         }
-        bit_string->bits_used = (len_value * 8) + (8 - unused_bits) + 1;
+        unused_bits = apdu[0] & 0x07;
+        bit_string->bits_used = bytes_used * 8;
+        bit_string->bits_used -= unused_bits;
     }
     
     return len;
@@ -576,9 +582,15 @@ int encode_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string)
     uint8_t used_bytes = 0;
     uint8_t i = 0; 
 
-    used_bytes = bit_string->bits_used / 8;
+    // possible to encode an empty bit string
+    if (bit_string->bits_used)
+      used_bytes = (bit_string->bits_used / 8) + 1;
     used_bits = bit_string->bits_used - (used_bytes * 8);
-    apdu[len++] = 8 - used_bits;
+    // if the bit string is empty, then the first octet shall be zero
+    if (bit_string->bits_used)
+      apdu[len++] = 8 - used_bits;
+    else
+      apdu[len++] = 0;
     for (i = 0; i < used_bytes; i++)
     {
       apdu[len++] = bit_string->value[i];
@@ -1481,15 +1493,11 @@ void testBACDCodeBitString(Test * pTest)
   {
     ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
   }
-  // test encode/decode
+  // test encode/decode -- true
   for (bit = 0; bit < (MAX_BITSTRING_BYTES*8); bit++)
   {
     bitstring_set_bit(&bit_string, bit, true);
     ct_test(pTest, bitstring_bits_used(&bit_string) == (bit + 1));
-    if (bitstring_bits_used(&bit_string) != (bit + 1))
-      printf("bits used=%u bit number=%u\n", 
-        (unsigned)bitstring_bits_used(&bit_string),
-        (unsigned)bit);
     ct_test(pTest, bitstring_bit(&bit_string, bit) == true);
     // encode
     len = encode_tagged_bitstring(&apdu[0], &bit_string);
@@ -1498,13 +1506,10 @@ void testBACDCodeBitString(Test * pTest)
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_BIT_STRING);
     len += decode_bitstring(&apdu[len], len_value,&decoded_bit_string);
     ct_test(pTest, bitstring_bits_used(&decoded_bit_string) == (bit + 1));
-    if (bitstring_bits_used(&decoded_bit_string) != (bit + 1))
-      printf("bits used=%u bit number=%u\n", 
-        (unsigned)bitstring_bits_used(&decoded_bit_string),
-        (unsigned)bit);
     ct_test(pTest, bitstring_bit(&decoded_bit_string, bit) == true);
   }
-  // test encode/decode
+  // test encode/decode -- false
+  bitstring_init(&bit_string);
   for (bit = 0; bit < (MAX_BITSTRING_BYTES*8); bit++)
   {
     bitstring_set_bit(&bit_string, bit, false);
