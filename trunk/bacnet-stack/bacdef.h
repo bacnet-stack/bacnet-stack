@@ -56,14 +56,6 @@ typedef struct BACnet_Object_Data
   BACNET_OBJECT_TYPE Object_Type;
 } BACNET_OBJECT_DATA;
 
-// bit strings
-#define MAX_BITSTRING_BYTES 15
-typedef struct BACnet_Bit_String
-{
-  uint8_t bits_used;
-  uint8_t value[MAX_BITSTRING_BYTES];
-} BACNET_BIT_STRING;
-
 #define BACNET_BROADCAST_NETWORK 0xFFFF
 #define MAX_MAC_LEN 8
 struct BACnet_Device_Address {
