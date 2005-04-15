@@ -567,10 +567,11 @@ typedef enum
   OBJECT_MULTI_STATE_VALUE = 19,
   OBJECT_TRENDLOG = 20,
   OBJECT_LIFE_SAFETY_POINT = 21,
-  OBJECT_LIFE_SAFETY_ZONE = 22
+  OBJECT_LIFE_SAFETY_ZONE = 22,
   // Enumerated values 0-127 are reserved for definition by ASHRAE. 
   // Enumerated values 128-1023 may be used by others subject to 
   // the procedures and constraints described in Clause 23.
+  MAX_BACNET_OBJECT_TYPES = 23 // used for bit string loop
 } BACNET_OBJECT_TYPE;
 
 typedef enum
