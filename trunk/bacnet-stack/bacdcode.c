@@ -553,14 +553,16 @@ int decode_bitstring(uint8_t * apdu, uint32_t len_value,
     uint8_t unused_bits = 0;
     uint32_t i = 0;
     uint32_t bytes_used = 0;
-    
+
 
     bitstring_init(bit_string);
-    if (len_value && ((len_value - 1) < MAX_BITSTRING_BYTES))
+    if (len_value)
     {
-        // the first octet contains the unused bits
-        bytes_used = len_value--;
-        len = 1; 
+      // the first octet contains the unused bits
+      bytes_used = len_value - 1;
+      if (bytes_used <= MAX_BITSTRING_BYTES)
+      {
+        len = 1;
         for (i = 0; i < bytes_used; i++)
         {
               bit_string->value[i] = apdu[len++];
@@ -568,9 +570,29 @@ int decode_bitstring(uint8_t * apdu, uint32_t len_value,
         unused_bits = apdu[0] & 0x07;
         bit_string->bits_used = bytes_used * 8;
         bit_string->bits_used -= unused_bits;
+      }
     }
-    
+
     return len;
+}
+
+// returns the number of bytes that a bit string is using
+static int bitstring_bytes_used(BACNET_BIT_STRING *bit_string)
+{
+  int len = 0; // return value
+  uint8_t used_bytes = 0;
+  uint8_t last_bit = 0;
+
+  if (bit_string->bits_used)
+  {
+    last_bit = bit_string->bits_used - 1;
+    used_bytes = last_bit / 8;
+    // add one for the first byte
+    used_bytes++;
+    len = used_bytes;
+  }
+
+  return len;
 }
 
 // from clause 20.2.10 Encoding of a Bit String Value
@@ -578,22 +600,23 @@ int decode_bitstring(uint8_t * apdu, uint32_t len_value,
 int encode_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string)
 {
     int len = 0;
-    uint8_t used_bits = 0;
+    uint8_t remaining_used_bits = 0;
     uint8_t used_bytes = 0;
-    uint8_t i = 0; 
+    uint8_t i = 0;
 
-    // possible to encode an empty bit string
-    if (bit_string->bits_used)
-      used_bytes = (bit_string->bits_used / 8) + 1;
-    used_bits = bit_string->bits_used - (used_bytes * 8);
     // if the bit string is empty, then the first octet shall be zero
-    if (bit_string->bits_used)
-      apdu[len++] = 8 - used_bits;
-    else
+    if (bit_string->bits_used == 0)
       apdu[len++] = 0;
-    for (i = 0; i < used_bytes; i++)
+    else
     {
-      apdu[len++] = bit_string->value[i];
+      used_bytes = bitstring_bytes_used(bit_string);
+      remaining_used_bits = bit_string->bits_used - ((used_bytes - 1) * 8);
+      // number of unused bits in the subsequent final octet
+      apdu[len++] = 8 - remaining_used_bits;
+      for (i = 0; i < used_bytes; i++)
+      {
+        apdu[len++] = bit_string->value[i];
+      }
     }
 
     return len;
@@ -602,10 +625,13 @@ int encode_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string)
 int encode_tagged_bitstring(uint8_t * apdu, BACNET_BIT_STRING *bit_string)
 {
     int len = 0;
+    int bit_string_encoded_length = 1;// 1 for the bits remaining octet
 
-    // assumes that the tag only consumes 1 octet
-    len = encode_bitstring(&apdu[1], bit_string);
-    len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_BIT_STRING, false, len);
+    // bit string may use more than 1 octet for the tag, so find out how many
+    bit_string_encoded_length += bitstring_bytes_used(bit_string);
+    len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_BIT_STRING, false,
+      bit_string_encoded_length);
+    len += encode_bitstring(&apdu[len], bit_string);
 
     return len;
 }
