@@ -262,98 +262,12 @@ static void Init_Service_Handlers(void)
 
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
+  apdu_set_unrecognized_service_handler_handler(
     UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_COV_NOTIFICATION,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_EVENT_NOTIFICATION,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_GET_EVENT_INFORMATION,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_SUBSCRIBE_COV,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_ADD_LIST_ELEMENT,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_CREATE_OBJECT,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_DELETE_OBJECT,
-    UnrecognizedServiceHandler);
-  // FIXME: we must implement read property - it's required!
+  // we must implement read property - it's required!
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
     ReadPropertyHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_READ_RANGE,
-    UnrecognizedServiceHandler);
-  // FIXME: we probably want to implement write property to be useful
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_WRITE_PROPERTY,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_PRIVATE_TRANSFER,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_TEXT_MESSAGE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_VT_OPEN,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_VT_CLOSE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_VT_DATA,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_AUTHENTICATE,
-    UnrecognizedServiceHandler);
-  apdu_set_confirmed_handler(
-    SERVICE_CONFIRMED_REQUEST_KEY,
-    UnrecognizedServiceHandler);
 }
 
 int main(int argc, char *argv[])

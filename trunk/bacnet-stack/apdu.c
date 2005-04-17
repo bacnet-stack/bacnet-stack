@@ -53,6 +53,15 @@ void apdu_set_confirmed_handler(
     Confirmed_Function[service_choice] = pFunction;
 }
 
+// Allow the APDU handler to automatically reject
+static confirmed_function Unrecognized_Service_Handler;
+
+void apdu_set_unrecognized_service_handler_handler(
+  confirmed_function pFunction)
+{
+    Unrecognized_Service_Handler = pFunction;
+}
+
 // Unconfirmed Function Handlers
 // If they are not set, they are not handled
 static unconfirmed_function 
@@ -179,7 +188,12 @@ void apdu_handler(
               &service_data);
           else
           {
-            //FIXME: send a reject message
+            if (Unrecognized_Service_Handler)
+              Unrecognized_Service_Handler(
+                service_request,
+                service_request_len,
+                src,
+                &service_data);
           }
         }
         break;
