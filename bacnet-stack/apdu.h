@@ -113,6 +113,10 @@ void apdu_set_confirmed_simple_ack_handler(
   BACNET_CONFIRMED_SERVICE service_choice,
   confirmed_simple_ack_function pFunction);
 
+// configure reject for confirmed services that are not supported
+void apdu_set_unrecognized_service_handler_handler(
+  confirmed_function pFunction);
+
 void apdu_set_confirmed_handler(
   BACNET_CONFIRMED_SERVICE service_choice,
   confirmed_function pFunction);
