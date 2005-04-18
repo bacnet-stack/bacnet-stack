@@ -32,14 +32,57 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdio.h>              /* Standard I/O */
-#include <stdlib.h>             /* Standard Library */
-#include <errno.h>              /* Error number and related */
 #include <stdint.h>             // for standard integer types uint8_t etc.
 #include <stdbool.h>            // for the standard bool type.
-#include <sys/types.h>          /* System data types */
-#include <unistd.h>             /* Command-line options */
-#include <string.h>             /* string hanfling functions */
+
+/* common unix sockets headers needed */
+#include	<sys/types.h>	/* basic system data types */
+#include	<sys/time.h>	/* timeval{} for select() */
+#include	<time.h>		/* timespec{} for pselect() */
+#include	<netinet/in.h>	/* sockaddr_in{} and other Internet defns */
+#include	<arpa/inet.h>	/* inet(3) functions */
+#include	<errno.h>
+#include	<fcntl.h>		/* for nonblocking */
+#include	<netdb.h>
+#include	<signal.h>
+#include	<stdio.h>
+#include	<stdlib.h>
+#include	<string.h>
+#include	<sys/stat.h>	/* for S_xxx file mode constants */
+#include	<sys/uio.h>		/* for iovec{} and readv/writev */
+#include	<unistd.h>
+#include	<sys/wait.h>
+#include	<sys/un.h>		/* for Unix domain sockets */
+
+#ifdef	HAVE_SYS_SELECT_H
+# include	<sys/select.h>	/* for convenience */
+#endif
+
+#ifdef	HAVE_POLL_H
+# include	<poll.h>		/* for convenience */
+#endif
+
+#ifdef	HAVE_STRINGS_H
+# include	<strings.h>		/* for convenience */
+#endif
+
+/* Three headers are normally needed for socket/file ioctl's:
+ * <sys/ioctl.h>, <sys/filio.h>, and <sys/sockio.h>.
+ */
+#ifdef	HAVE_SYS_IOCTL_H
+# include	<sys/ioctl.h>
+#endif
+#ifdef	HAVE_SYS_FILIO_H
+# include	<sys/filio.h>
+#endif
+#ifdef	HAVE_SYS_SOCKIO_H
+# include	<sys/sockio.h>
+#endif
+
+#ifdef	HAVE_PTHREAD_H
+# include	<pthread.h>
+#endif
+
 
 #define ENUMS
 #include <sys/socket.h>
@@ -88,6 +131,24 @@ void ethernet_cleanup(void)
 
   return;    
 }
+
+/*----------------------------------------------------------------------
+ Portable function to set a socket into nonblocking mode.
+ Calling this on a socket causes all future read() and write() calls on
+ that socket to do only as much as they can immediately, and return 
+ without waiting.
+ If no data can be read or written, they return -1 and set errno
+ to EAGAIN (or EWOULDBLOCK).
+ Thanks to Bjorn Reese for this code.
+----------------------------------------------------------------------*/
+int setNonblocking(int fd)
+{
+  int flags;
+
+  if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
+    flags = 0;
+  return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+} 
 
 /* opens an 802.2 socket to receive and send packets */
 static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
@@ -295,25 +356,51 @@ int ethernet_send_pdu(
 uint16_t ethernet_receive(
   BACNET_ADDRESS *src,  // source address
   uint8_t *pdu, // PDU data
-  uint16_t max_pdu) // amount of space available in the PDU 
+  uint16_t max_pdu, // amount of space available in the PDU 
+  unsigned timeout) // number of milliseconds to wait for a packet
 {
     int received_bytes;
     uint8_t buf[MAX_MPDU] = {0}; // data
     uint16_t pdu_len = 0; // return value
+    fd_set read_fds;
+    int max;
+    struct timeval select_timeout;
 
     /* Make sure the socket is open */
     if (eth802_sockfd <= 0)
         return 0;
 
-    // FIXME: what about accept()?
+    /* we could just use a non-blocking socket, but that consumes all
+       the CPU time.  We can use a timeout; it is only supported as
+       a select. */
+    if (timeout >= 1000)
+    {
+        select_timeout.tv_sec = timeout / 1000;
+        select_timeout.tv_usec = 
+          1000 * (timeout - select_timeout.tv_sec * 1000);
+    }
+    else
+    {
+        select_timeout.tv_sec = 0;
+        select_timeout.tv_usec = 1000 * timeout;
+    }
+    FD_ZERO(&read_fds);
+    FD_SET(eth802_sockfd, &read_fds);
+    max = eth802_sockfd;
 
-    /* Attempt a read */
-    received_bytes = read(eth802_sockfd, &buf[0], MAX_MPDU);
+    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
+        received_bytes = read(eth802_sockfd, &buf[0], MAX_MPDU);
+    else
+        return 0;
 
     /* See if there is a problem */
     if (received_bytes < 0) {
-        fprintf(stderr,"ethernet: Read error in receiving packet: %s\n",
-            strerror(errno));
+        // EAGAIN Non-blocking I/O has been selected 
+        // using O_NONBLOCK and no data
+        // was immediately available for reading.
+        if (errno != EAGAIN)
+            fprintf(stderr,"ethernet: Read error in receiving packet: %s\n",
+                strerror(errno));
         return 0;
     }
 
