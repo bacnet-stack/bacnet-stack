@@ -257,8 +257,10 @@ static void Init_Device_Parameters(void)
   
 static void Init_Service_Handlers(void)
 {
-  // custom handlers
-  apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,WhoIsHandler);
+  // we need to handle who-is to support dynamic device binding
+  apdu_set_unconfirmed_handler(
+    SERVICE_UNCONFIRMED_WHO_IS,
+    WhoIsHandler);
 
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
@@ -274,6 +276,7 @@ int main(int argc, char *argv[])
 {
   BACNET_ADDRESS src = {0};  // address where message came from
   uint16_t pdu_len = 0;
+  unsigned timeout = 100; // milliseconds
 
   Init_Device_Parameters();
   Init_Service_Handlers();
@@ -281,15 +284,17 @@ int main(int argc, char *argv[])
   if (!ethernet_init("eth0"))
     return 1;
   
-  Send_IAm();
   // loop forever
   for (;;)
   {
     // input
+
+    // returns 0 bytes on timeout
     pdu_len = ethernet_receive(
       &src,
       &Rx_Buf[0],
-      MAX_MPDU);
+      MAX_MPDU,
+      timeout);
 
     // process
     if (pdu_len)
@@ -307,7 +312,6 @@ int main(int argc, char *argv[])
     // output
 
     // blink LEDs, Turn on or off outputs, etc
-    
   }
   
   return 0;

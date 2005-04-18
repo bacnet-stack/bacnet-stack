@@ -69,7 +69,8 @@ int ethernet_send_pdu(
 uint16_t ethernet_receive(
   BACNET_ADDRESS *src,  // source address
   uint8_t *pdu, // PDU data
-  uint16_t max_pdu); // amount of space available in the PDU 
+  uint16_t max_pdu,  // amount of space available in the PDU 
+  unsigned timeout); // milliseconds to wait for a packet
 
 void ethernet_get_my_address(BACNET_ADDRESS *my_address);
 
