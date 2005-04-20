@@ -93,76 +93,66 @@ typedef enum
   MSTP_MASTER_STATE_ANSWER_DATA_REQUEST
 } MSTP_MASTER_STATE;
 
-// data for a given MS/TP port
 struct mstp_port_struct_t
 {
   MSTP_RECEIVE_STATE receive_state;
   // When a master node is powered up or reset,
   // it shall unconditionally enter the INITIALIZE state.
   MSTP_MASTER_STATE master_state;
-
-  bool ReceiveError; // TRUE when error detected during Rx octet
-
-  bool DataAvailable; // There is data in the buffer
-
-  uint8_t DataRegister; // stores the latest data
-
+  // A Boolean flag set to TRUE by the Receive State Machine 
+  // if an error is detected during the reception of a frame. 
+  // Set to FALSE by the main state machine.
+  unsigned ReceiveError:1; 
+  // There is data in the buffer
+  unsigned DataAvailable:1; 
+  unsigned FramingError:1; // TRUE if we got a framing error
+  unsigned ReceivedInvalidFrame:1;
+  // A Boolean flag set to TRUE by the Receive State Machine 
+  // if a valid frame is received. 
+  // Set to FALSE by the main state machine.
+  unsigned ReceivedValidFrame:1;
+  // A Boolean flag set to TRUE by the master machine if this node is the
+  // only known master node.
+  unsigned SoleMaster:1;
+  // After receiving a frame this value will be TRUE until Tturnaround
+  // has expired
+  unsigned Turn_Around_Waiting:1;
+  // stores the latest received data
+  uint8_t DataRegister; 
   // Used to accumulate the CRC on the data field of a frame.
   uint16_t DataCRC;
-
   // Used to store the data length of a received frame.
   unsigned DataLength;
-
   // Used to store the destination address of a received frame.
   uint8_t DestinationAddress;
-
   // Used to count the number of received octets or errors.
   // This is used in the detection of link activity.
   unsigned EventCount;
-
   // Used to store the frame type of a received frame.
   uint8_t FrameType;
-
   // The number of frames sent by this node during a single token hold.
   // When this counter reaches the value Nmax_info_frames, the node must
   // pass the token.
   unsigned FrameCount;
-
   // Used to accumulate the CRC on the header of a frame.
   uint8_t HeaderCRC;
-
   // Used as an index by the Receive State Machine, up to a maximum value of
   // InputBufferSize.
   unsigned Index;
-
-
   // An array of octets, used to store octets as they are received.
   // InputBuffer is indexed from 0 to InputBufferSize-1.
   // The maximum size of a frame is 501 octets.
   uint8_t InputBuffer[MAX_MPDU];
-
   // "Next Station," the MAC address of the node to which This Station passes
   // the token. If the Next_Station is unknown, Next_Station shall be equal to
   // This_Station.
   uint8_t Next_Station;
-
   // "Poll Station," the MAC address of the node to which This Station last
   // sent a Poll For Master. This is used during token maintenance.
   uint8_t Poll_Station;
-
-  // A Boolean flag set to TRUE by the Receive State Machine if an error is
-  // detected during the reception of a frame. Set to FALSE by the main
-  // state machine.
-  bool ReceivedInvalidFrame;
-
-  // A Boolean flag set to TRUE by the Receive State Machine if a valid frame
-  // is received. Set to FALSE by the main state machine.
-  bool ReceivedValidFrame;
-
   // A counter of transmission retries used for Token and Poll For Master
   // transmission.
   unsigned RetryCount;
-
   // A timer with nominal 5 millisecond resolution used to measure and
   // generate silence on the medium between octets. It is incremented by a
   // timer process and is cleared by the Receive State Machine when activity
@@ -176,10 +166,6 @@ struct mstp_port_struct_t
   // incremented by a timer process and is cleared by the Master Node State
   // Machine when a Data Expecting Reply Answer activity is completed.
   unsigned ReplyPostponedTimer;
-
-  // A Boolean flag set to TRUE by the master machine if this node is the
-  // only known master node.
-  bool SoleMaster;
 
   // Used to store the Source Address of a received frame.
   uint8_t SourceAddress;
@@ -211,10 +197,6 @@ struct mstp_port_struct_t
   // less than or equal to 127. If Max_Master is not writable in a node,
   // its value shall be 127.
   unsigned Nmax_master;
-
-  // After receiving a frame this value will be TRUE until Tturnaround
-  // has expired
-  bool Turn_Around_Waiting;
 };
 
 #define DEFAULT_MAX_INFO_FRAMES 1
@@ -226,10 +208,10 @@ struct mstp_port_struct_t
 #define Tturnaround  40;
 
 void MSTP_Init(
-  struct mstp_port_struct_t *mstp_port,
+  volatile struct mstp_port_struct_t *mstp_port,
   uint8_t this_station_mac);
-void MSTP_Millisecond_Timer(struct mstp_port_struct_t *mstp_port);
-void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port);
-void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port);
+void MSTP_Millisecond_Timer(volatile struct mstp_port_struct_t *mstp_port);
+void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port);
+void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port);
 
 #endif
