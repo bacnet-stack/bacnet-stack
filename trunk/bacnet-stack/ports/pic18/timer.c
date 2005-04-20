@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2005 Steve Karg
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -21,65 +21,25 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
+*
 *********************************************************************/
-
-#include <stddef.h>
 #include <stdint.h>
-#include "mstp.h"
-#include "bytes.h"
-#include "crc.h"
-#include "rs485.h"
-#include "ringbuf.h"
-#include "init.h"
-#include "timer.h"
-#include "hardware.h"
 
-volatile struct mstp_port_struct_t MSTP_Port; // port data
-static uint8_t MSTP_MAC_Address = 0x05; // local MAC address
+volatile uint8_t Milliseconds; // used for timing stuff - counts up to 0xFF.
 
 /****************************************************************************
-* DESCRIPTION: Handles our calling our module level milisecond counters
+* DESCRIPTION: Timer is set to go off every 1ms.  We increment the counter, 
+*              and the main task will decrement the counter.
 * PARAMETERS:  none
 * RETURN:      none
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static void Check_Timer_Milliseconds(void)
+void Timer_Millisecond_Interrupt(void)
 {
-  // We might have missed some so keep doing it until we have got them all
-  while (Milliseconds)
-  {
-    MSTP_Millisecond_Timer(&MSTP_Port);
-    Milliseconds--;
-  }
-}
+  // Global Milisecond timer
+  if (Milliseconds < 0xFF)
+    Milliseconds++;
 
-
-int main(void)
-{
-  init_hardware();
-  RS485_Initialize();
-  MSTP_Init(&MSTP_Port,MSTP_MAC_Address);
-
-  // loop forever
-  for (;;)
-  {
-    WATCHDOG_TIMER();
-
-    // input
-    Check_Timer_Milliseconds();
-    // note: also called by RS-485 Receive ISR
-    RS485_Check_UART_Data(&MSTP_Port);
-    MSTP_Receive_Frame_FSM(&MSTP_Port);
-
-    // process
-
-
-    // output
-    RS485_Process_Tx_Message();
-    MSTP_Master_Node_FSM(&MSTP_Port);
-    
-  }
-  
-  return 0;
+  return;
 }

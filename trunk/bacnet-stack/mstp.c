@@ -187,7 +187,7 @@ unsigned MSTP_Create_Frame(
 }
 
 void MSTP_Create_And_Send_Frame(
-  struct mstp_port_struct_t *mstp_port, // port to send from
+  volatile struct mstp_port_struct_t *mstp_port, // port to send from
   uint8_t frame_type, // type of frame to send - see defines
   uint8_t destination, // destination address
   uint8_t source,  // source address
@@ -210,7 +210,7 @@ void MSTP_Create_And_Send_Frame(
 }
 
 // Millisecond Timer - called every millisecond
-void MSTP_Millisecond_Timer(struct mstp_port_struct_t *mstp_port)
+void MSTP_Millisecond_Timer(volatile struct mstp_port_struct_t *mstp_port)
 {
   if (mstp_port->SilenceTimer < 255)
     mstp_port->SilenceTimer++;
@@ -220,7 +220,7 @@ void MSTP_Millisecond_Timer(struct mstp_port_struct_t *mstp_port)
   return;
 }
 
-void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
+void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 {
   switch (mstp_port->receive_state)
   {
@@ -568,7 +568,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
   return;
 }
 
-void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
+void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
 {
 
   switch (mstp_port->master_state)
@@ -1151,7 +1151,7 @@ void MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
 }
 
 void MSTP_Init(
-  struct mstp_port_struct_t *mstp_port,
+  volatile struct mstp_port_struct_t *mstp_port,
   uint8_t this_station_mac)
 {
   int i; //loop counter
@@ -1200,7 +1200,7 @@ void MSTP_Init(
 
 // test stub functions
 void RS485_Send_Frame(
-  struct mstp_port_struct_t *mstp_port, // port specific data
+  volatile struct mstp_port_struct_t *mstp_port, // port specific data
   uint8_t *buffer, // frame to send (up to 501 bytes of data)
   uint16_t nbytes) // number of bytes of data (up to 501)
 {
@@ -1246,7 +1246,7 @@ static void Load_Input_Buffer(uint8_t *buffer,size_t len)
 }
 
 void RS485_Check_UART_Data(
-  struct mstp_port_struct_t *mstp_port) // port specific data
+  volatile struct mstp_port_struct_t *mstp_port) // port specific data
 {
   char *data;
   if (!Ringbuf_Empty(&Test_Buffer) && mstp_port &&
@@ -1263,7 +1263,7 @@ void RS485_Check_UART_Data(
 
 void testReceiveNodeFSM(Test* pTest)
 {
-  struct mstp_port_struct_t mstp_port; // port data
+  volatile struct mstp_port_struct_t mstp_port; // port data
   unsigned EventCount = 0; // local counter
   uint8_t my_mac = 0x05; // local MAC address
   uint8_t HeaderCRC = 0; // for local CRC calculation
@@ -1652,7 +1652,7 @@ void testReceiveNodeFSM(Test* pTest)
 
 void testMasterNodeFSM(Test* pTest)
 {
-  struct mstp_port_struct_t mstp_port; // port data
+  volatile struct mstp_port_struct_t mstp_port; // port data
   uint8_t my_mac = 0x05; // local MAC address
 
   MSTP_Init(&mstp_port,my_mac);
