@@ -476,3 +476,35 @@ void ethernet_set_broadcast_address(
 
   return;
 }
+
+void ethernet_debug_address(
+  const char *info,
+  BACNET_ADDRESS *dest)
+{
+  int i = 0; // counter
+
+  if (info)
+    fprintf(stderr,"%s",info);
+  if (dest)
+  {
+    fprintf(stderr,"Address:\n");
+    fprintf(stderr,"  MAC Length=%d\n",dest->mac_len);
+    fprintf(stderr,"  MAC Address=");
+    for (i = 0; i < MAX_MAC_LEN; i++)
+    {
+      fprintf(stderr,"%02X ",(unsigned)dest->mac[i]);
+    }
+    fprintf(stderr,"\n");
+    fprintf(stderr,"  Net=%hu\n",dest->net);
+    fprintf(stderr,"  Len=%d\n",dest->len);
+    fprintf(stderr,"  Adr=");
+    for (i = 0; i < MAX_MAC_LEN; i++)
+    {
+      fprintf(stderr,"%02X ",(unsigned)dest->adr[i]);
+    }
+    fprintf(stderr,"\n");
+  }
+
+  return;
+}
+
