@@ -211,17 +211,29 @@ int npdu_decode(
     // 1 = DNET, DLEN, and Hop Count present
     // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
     // DLEN > 0 specifies length of DADR field
-    if (dest && (npdu[1] & BIT5))
+    if (dest)
     {
-      len += decode_unsigned16(&npdu[len], &dest->net);
-      // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
-      // DLEN > 0 specifies length of DADR field
-      dest->len = npdu[len++];
-      if (dest->len)
+      if (npdu[1] & BIT5)
       {
-        for (i = 0; i < dest->len; i++)
+        len += decode_unsigned16(&npdu[len], &dest->net);
+        // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
+        // DLEN > 0 specifies length of DADR field
+        dest->len = npdu[len++];
+        if (dest->len)
         {
-          dest->adr[i] = npdu[len++];
+          for (i = 0; i < dest->len; i++)
+          {
+            dest->adr[i] = npdu[len++];
+          }
+        }
+      }
+      else
+      {
+        dest->net = 0;
+        dest->len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++)
+        {
+          dest->adr[i] = 0;
         }
       }
     }
@@ -230,17 +242,29 @@ int npdu_decode(
     // 1 =  SNET, SLEN, and SADR present
     // SLEN = 0 Invalid
     // SLEN > 0 specifies length of SADR field
-    if (src && (npdu[1] & BIT3))
+    if (src)
     {
-      len += decode_unsigned16(&npdu[len], &src->net);
-      // SLEN = 0 denotes broadcast MAC SADR and SADR field is absent
-      // SLEN > 0 specifies length of SADR field
-      src->len = npdu[len++];
-      if (src->len)
+      if (npdu[1] & BIT3)
       {
-        for (i = 0; i < src->len; i++)
+        len += decode_unsigned16(&npdu[len], &src->net);
+        // SLEN = 0 denotes broadcast MAC SADR and SADR field is absent
+        // SLEN > 0 specifies length of SADR field
+        src->len = npdu[len++];
+        if (src->len)
         {
-          src->adr[i] = npdu[len++];
+          for (i = 0; i < src->len; i++)
+          {
+            src->adr[i] = npdu[len++];
+          }
+        }
+      }
+      else
+      {
+        src->net = 0;
+        src->len = 0;
+        for (i = 0; i < MAX_MAC_LEN; i++)
+        {
+          src->adr[i] = 0;
         }
       }
     }
@@ -249,6 +273,8 @@ int npdu_decode(
     // This is a one-octet field that is initialized to a value of 0xff.
     if (dest && dest->net)
       npdu_data->hop_count = npdu[len++];
+    else
+      npdu_data->hop_count = 0;
     // Indicates that the NSDU conveys a network layer message.
     // Message Type field is present.
     if (npdu_data->network_layer_message)
@@ -259,6 +285,8 @@ int npdu_decode(
       if (npdu_data->network_message_type >= 0x80)
         len += decode_unsigned16(&npdu[len], &npdu_data->vendor_id);
     }
+    else
+      npdu_data->network_message_type = 0;
   }
 
   return len;
