@@ -54,3 +54,13 @@ make -f bacerror.mak
 ./bacerror >> test.log
 make -f bacerror.mak clean
 
+make -f device.mak clean
+make -f device.mak
+./device >> test.log
+make -f device.mak clean
+
+make -f ai.mak clean
+make -f ai.mak
+./analog_input >> test.log
+make -f ai.mak clean
+
