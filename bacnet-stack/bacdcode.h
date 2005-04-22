@@ -66,6 +66,12 @@ bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number);
 // returns true if the tag is context specific and matches
 bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number);
 
+// from clause 20.2.3 Encoding of a Boolean Value
+int encode_tagged_boolean(uint8_t * apdu, bool boolean_value);
+bool decode_boolean(uint32_t len_value);
+int encode_context_boolean(uint8_t * apdu, bool boolean_value);
+bool decode_context_boolean(uint8_t * apdu);
+
 // from clause 20.2.10 Encoding of a Bit String Value
 void bitstring_init(BACNET_BIT_STRING *bit_string);
 void bitstring_set_bit(BACNET_BIT_STRING *bit_string, uint8_t bit, bool value);
