@@ -72,7 +72,7 @@ int iam_encode_apdu(
   return apdu_len;
 }
 
-int iam_decode_apdu(
+int iam_decode_service_request(
   uint8_t *apdu, 
   uint32_t *pDevice_id,
   unsigned *pMax_apdu,
@@ -88,16 +88,7 @@ int iam_decode_apdu(
   unsigned int decoded_value = 0;
   int decoded_integer = 0;
 
-  // valid data?
-  if (!apdu)
-    return -1;
-  // optional checking - most likely was already done prior to this call
-  if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
-    return -1;
-  if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
-    return -1;
   // OBJECT ID - object id
-  apdu_len = 2;
   len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
   apdu_len += len;
   if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
@@ -139,6 +130,33 @@ int iam_decode_apdu(
     return -1;
   if (pVendor_id)
     *pVendor_id = decoded_value;
+  
+  return apdu_len;
+}
+
+int iam_decode_apdu(
+  uint8_t *apdu, 
+  uint32_t *pDevice_id,
+  unsigned *pMax_apdu,
+  int *pSegmentation,
+  uint16_t *pVendor_id)
+{
+  int apdu_len = 0; // total length of the apdu, return value
+
+  // valid data?
+  if (!apdu)
+    return -1;
+  // optional checking - most likely was already done prior to this call
+  if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    return -1;
+  if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
+    return -1;
+  apdu_len = iam_decode_service_request(
+    &apdu[2], 
+    pDevice_id,
+    pMax_apdu,
+    pSegmentation,
+    pVendor_id);
   
   return apdu_len;
 }

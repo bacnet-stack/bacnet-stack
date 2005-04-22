@@ -44,6 +44,13 @@ int iam_encode_apdu(
   int segmentation,
   uint16_t vendor_id);
 
+int iam_decode_service_request(
+  uint8_t *apdu, 
+  uint32_t *pDevice_id,
+  unsigned *pMax_apdu,
+  int *pSegmentation,
+  uint16_t *pVendor_id);
+  
 int iam_decode_apdu(
   uint8_t *apdu, 
   uint32_t *pDevice_id,

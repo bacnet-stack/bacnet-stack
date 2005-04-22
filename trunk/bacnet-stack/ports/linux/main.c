@@ -120,6 +120,29 @@ void WhoIsHandler(
   return;  
 }
 
+void IAmHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  int len = 0;
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+  int segmentation = 0;
+  uint16_t vendor_id = 0;
+
+  len = iam_decode_service_request(
+    service_request,
+    &device_id,
+    &max_apdu,
+    &segmentation,
+    &vendor_id);
+  if (len != -1)
+    fprintf(stderr,"Received I-Am Request from %u!\n",device_id);
+
+  return;  
+}
+
 void ReadPropertyHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -261,6 +284,9 @@ static void Init_Service_Handlers(void)
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_WHO_IS,
     WhoIsHandler);
+  apdu_set_unconfirmed_handler(
+    SERVICE_UNCONFIRMED_I_AM,
+    IAmHandler);
 
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
