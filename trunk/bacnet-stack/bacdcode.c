@@ -544,6 +544,54 @@ bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number)
     return (closing_tag && (my_tag_number == tag_number));
 }
 
+// from clause 20.2.3 Encoding of a Boolean Value
+// and 20.2.1 General Rules for Encoding BACnet Tags
+// returns the number of apdu bytes consumed
+int encode_tagged_boolean(uint8_t * apdu, bool boolean_value)
+{
+    int len = 0;
+    uint32_t len_value = 0;
+
+    if (boolean_value)
+        len_value = 1;
+    
+    len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_BOOLEAN, false, 
+        len_value);
+
+    return len;
+}
+
+// context tagged is encoded differently
+int encode_context_boolean(uint8_t * apdu, bool boolean_value)
+{
+  apdu[0] = boolean_value ? 1 : 0;
+
+  return 1;
+}
+
+bool decode_context_boolean(uint8_t * apdu)
+{
+  bool boolean_value = false;
+  
+  if (apdu[0])
+    boolean_value = true;
+  
+  return boolean_value;
+}
+
+// from clause 20.2.3 Encoding of a Boolean Value
+// and 20.2.1 General Rules for Encoding BACnet Tags
+// returns the number of apdu bytes consumed
+bool decode_boolean(uint32_t len_value)
+{
+  bool boolean_value = false;
+  
+  if (len_value)
+    boolean_value = true;
+  
+  return boolean_value;
+}
+
 static uint8_t byte_reverse_bits(uint8_t in_byte)
 {
   uint8_t out_byte = 0;

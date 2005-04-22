@@ -16,6 +16,7 @@ SRCS = ports/linux/main.c \
        iam.c \
        rp.c \
        device.c \
+       ai.c \
        abort.c \
        reject.c \
        bacerror.c \

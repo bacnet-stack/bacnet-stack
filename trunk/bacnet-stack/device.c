@@ -1,36 +1,27 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+*
+* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to deal in the Software without restriction, including
+* without limitation the rights to use, copy, modify, merge, publish,
+* distribute, sublicense, and/or sell copies of the Software, and to
+* permit persons to whom the Software is furnished to do so, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
+*********************************************************************/
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -230,6 +221,7 @@ int Device_Encode_Property_APDU(
   int32_t array_index)
 {
   int apdu_len = 0; // return value
+  int len = 0; // apdu len intermediate value
   BACNET_BIT_STRING bit_string;
   int i = 0;
   
@@ -299,8 +291,6 @@ int Device_Encode_Property_APDU(
         bitstring_init(&bit_string);
         for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++)
         {
-          // FIXME: when APDU does automatic reject when service is NULL, 
-          // then add this:
           // bitstring_set_bit(&bit_string, i, apdu_service_supported(i));
           // initialize all the services to not-supported
           bitstring_set_bit(&bit_string, i, false);
@@ -319,28 +309,52 @@ int Device_Encode_Property_APDU(
           bitstring_set_bit(&bit_string, i, false);
         }
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
+        bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
       // FIXME: hook into real object list, not just device
       // Array element zero is the number of objects in the list
       if (array_index == 0)
-        apdu_len = encode_tagged_unsigned(&apdu[0], 1);
+        apdu_len = encode_tagged_unsigned(&apdu[0], 1 + MAX_ANALOG_INPUTS);
       // if no index was specified, then try to encode the entire list
       // into one packet.  Note that more than likely you will have
       // to return an error if the number of encoded objects exceeds
       // your maximum APDU size.
       else if (array_index == BACNET_ARRAY_ALL)
       {
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
+        len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
             Object_Instance_Number);
+        apdu_len = len;
+        for (i = 0; i < MAX_ANALOG_INPUTS; i++)
+        {
+          // assume next one is the same size as this one
+          // can we all fit into the APDU?
+          if ((apdu_len + len) >= MAX_APDU)
+          {
+            apdu_len = 0;
+            break;
+          }
+          len = encode_tagged_object_id(&apdu[apdu_len], 
+            OBJECT_ANALOG_INPUT, i);
+          apdu_len += len;
+        }
       }
       else
       {
         // the first object in the list is at index=1
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
-            Object_Instance_Number);
-        // FIXME: handle the error case of an index beyond the bounds
+        if (array_index == 1)
+          apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
+              Object_Instance_Number);
+        else if (array_index < (2 + MAX_ANALOG_INPUTS))
+        {
+          apdu_len = encode_tagged_object_id(&apdu[0], 
+            OBJECT_ANALOG_INPUT, array_index - 2);
+        }
+        else
+        {
+          // FIXME: handle case where index is beyond our bounds
+        }
       }
       break;
     case PROP_MAX_APDU_LENGTH_ACCEPTED:
