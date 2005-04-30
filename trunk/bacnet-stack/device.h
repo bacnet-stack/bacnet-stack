@@ -38,9 +38,15 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "bacenum.h"
+#include "wp.h"
 
 uint32_t Device_Object_Instance_Number(void);
 void Device_Set_Object_Instance_Number(uint32_t object_id);
+bool Device_Valid_Object_Instance_Number(uint32_t object_id);
+unsigned Device_Object_List_Count(void);
+bool Device_Object_List_Identifier(unsigned array_index,
+  int *object_type, 
+  uint32_t *instance);
 
 BACNET_DEVICE_STATUS Device_System_Status(void);
 void Device_Set_System_Status(BACNET_DEVICE_STATUS status);
@@ -82,6 +88,11 @@ int Device_Encode_Property_APDU(
   uint8_t *apdu,
   BACNET_PROPERTY_ID property,
   int32_t array_index);
+
+bool Device_Write_Property(
+  BACNET_WRITE_PROPERTY_DATA *wp_data,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code);
 
 #endif
 

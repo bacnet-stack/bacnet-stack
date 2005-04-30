@@ -785,8 +785,8 @@ int decode_object_id(
     int len = 0;
 
     len = decode_unsigned32(apdu,&value);
-    *object_type = ((value >> 22) & 0x3FF);
-    *instance = (value & 0x3FFFFF);
+    *object_type = ((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT);
+    *instance = (value & BACNET_MAX_INSTANCE);
 
     return len;
 }
@@ -803,7 +803,8 @@ int encode_bacnet_object_id(
     int len = 0;
 
     type = object_type;
-    value = ((type & 0x3FF) << 22) | (instance & 0x3FFFFF);
+    value = ((type & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | 
+        (instance & BACNET_MAX_INSTANCE);
     len = encode_unsigned32(apdu,value);
 
     return len;
@@ -1237,6 +1238,17 @@ int decode_date(uint8_t * apdu, int *year, int *month, int *day, int *wday)
     *wday = apdu[3];
 
     return 4;
+}
+
+// returns the number of apdu bytes consumed
+int encode_simple_ack(uint8_t * apdu, uint8_t invoke_id, 
+  uint8_t service_choice)
+{
+    apdu[0] = PDU_TYPE_SIMPLE_ACK;
+    apdu[1] = invoke_id;
+    apdu[2] = service_choice;
+
+    return 3;
 }
 
 /* end of decoding_encoding.c */

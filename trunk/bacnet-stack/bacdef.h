@@ -41,9 +41,11 @@
 // largest BACnet Instance Number
 // Also used as a device instance number wildcard address
 #define BACNET_MAX_INSTANCE (0x3FFFFF)
+#define BACNET_INSTANCE_BITS 22
 // large BACnet Object Type
 #define BACNET_MAX_OBJECT (0x3FF)
 // Array index 0=size of array, n=array element n,  MAX=all array elements
+#define BACNET_ARRAY_LENGTH_INDEX 0
 #define BACNET_ARRAY_ALL (~0)
 
 // embedded systems need fixed name sizes

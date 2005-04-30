@@ -15,6 +15,7 @@ SRCS = ports/linux/main.c \
        whois.c \
        iam.c \
        rp.c \
+       wp.c \
        device.c \
        ai.c \
        abort.c \

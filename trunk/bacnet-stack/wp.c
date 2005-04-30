@@ -124,16 +124,10 @@ int wp_decode_service_request(
     if (decode_is_opening_tag_number(&apdu[len], 3))
     {
       // a tag number of 3 is not extended so only one octet
-       len++;
-      // don't decode the application data here
+      len++;
+      // don't decode the property value here
       data->property_value = &apdu[len];
-      // get the length of the property data
-      len += decode_tag_number_and_value(&apdu[len],
-        &tag_number, &len_value_type);
-      data->property_value_len = len_value_type;
-      // FIXME: is this the length, value or type?
-      // FIXME: If not len, don't increment
-      len += len_value_type;
+      data->property_value_len = apdu_len - len;
     }
     else
       return -1;
@@ -141,17 +135,6 @@ int wp_decode_service_request(
     // FIXME: if the property value is not easily sized here,
     // then just have the application decode the property value
     // and the priority
-    if (len < apdu_len)
-    {
-      len += decode_tag_number_and_value(&apdu[len],&tag_number,
-        &len_value_type);
-      if (tag_number == 4)
-      {
-        len += decode_unsigned(&apdu[len], len_value_type,
-          &unsigned_value);
-        data->priority = (uint8_t)unsigned_value;
-      }
-    }
   }
 
   return len;
@@ -203,7 +186,7 @@ void testWriteProperty(Test * pTest)
   BACNET_WRITE_PROPERTY_DATA data = {0};
   BACNET_WRITE_PROPERTY_DATA test_data = {0};
 
-  // FIXME: set values for data    
+  // FIXME: test values for data    
   len = wp_encode_apdu(
     &apdu[0],
     invoke_id,
