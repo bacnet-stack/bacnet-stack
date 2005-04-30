@@ -1,19 +1,40 @@
-// This example file is not copyrighted so that you can use it as you wish.
-// Written by Steve Karg - 2005 - skarg@users.sourceforge.net
-// Bug fixes, feature requests, and suggestions are welcome
-
-// This is one way to use the embedded BACnet stack under Linux
+/**************************************************************************
+*
+* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to deal in the Software without restriction, including
+* without limitation the rights to use, copy, modify, merge, publish,
+* distribute, sublicense, and/or sell copies of the Software, and to
+* permit persons to whom the Software is furnished to do so, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
+*********************************************************************/
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "config.h"
 #include "bacdef.h"
+#include "bacdcode.h"
 #include "npdu.h"
 #include "apdu.h"
 #include "device.h"
 #include "ai.h"
 #include "rp.h"
+#include "wp.h"
 #include "iam.h"
 #include "whois.h"
 #include "reject.h"
@@ -259,7 +280,7 @@ void ReadPropertyHandler(
         }
         break;
       case OBJECT_ANALOG_INPUT:
-        if (object_instance < MAX_ANALOG_INPUTS)
+        if (Analog_Input_Valid_Instance(object_instance))
         {
           len = Analog_Input_Encode_Property_APDU(
             &Temp_Buf[0],
@@ -330,6 +351,121 @@ void ReadPropertyHandler(
   return;
 }
 
+void WritePropertyHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data)
+{
+  BACNET_WRITE_PROPERTY_DATA wp_data;
+  int len = 0;
+  int pdu_len = 0;
+  BACNET_ADDRESS my_address;
+  bool send = false;
+  BACNET_ERROR_CLASS error_class;
+  BACNET_ERROR_CODE error_code;
+
+  // decode the service request only
+  len = wp_decode_service_request(
+    service_request,
+    service_len,
+    &wp_data);
+  fprintf(stderr,"Received Write-Property Request!\n");
+  if (len > 0)
+    fprintf(stderr,"type=%u instance=%u property=%u index=%d\n",
+      wp_data.object_type,
+      wp_data.object_instance,
+      wp_data.object_property,
+      wp_data.array_index);
+  else
+    fprintf(stderr,"Unable to decode Write-Property Request!\n");
+  // prepare a reply
+  ethernet_get_my_address(&my_address);
+  // encode the NPDU portion of the packet
+  pdu_len = npdu_encode_apdu(
+    &Tx_Buf[0],
+    src,
+    &my_address,
+    false,  // true for confirmed messages
+    MESSAGE_PRIORITY_NORMAL);
+  // bad decoding - send an abort
+  if (len == -1)
+  {
+    pdu_len += abort_encode_apdu(
+      &Tx_Buf[pdu_len],
+      service_data->invoke_id,
+      ABORT_REASON_OTHER);
+    fprintf(stderr,"Sent Abort!\n");
+    send = true;
+  }
+  else if (service_data->segmented_message)
+  {
+    pdu_len += abort_encode_apdu(
+      &Tx_Buf[pdu_len],
+      service_data->invoke_id,
+      ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
+    fprintf(stderr,"Sent Abort!\n");
+    send = true;
+  }
+  else
+  {
+    switch (wp_data.object_type)
+    {
+      case OBJECT_DEVICE:
+        if (Device_Write_Property(&wp_data,&error_class,&error_code))
+        {
+          pdu_len = encode_simple_ack(
+            &Tx_Buf[pdu_len],
+            service_data->invoke_id,
+            SERVICE_CONFIRMED_WRITE_PROPERTY);
+          fprintf(stderr,"Sent Write Property Simple Ack!\n");
+          send = true;
+        }
+        else
+        {
+          pdu_len += bacerror_encode_apdu(
+            &Tx_Buf[pdu_len],
+            service_data->invoke_id,
+            SERVICE_CONFIRMED_WRITE_PROPERTY,
+            error_class,
+            error_code);
+          fprintf(stderr,"Sent Write Property Error!\n");
+          send = true;
+        }
+        break;
+      case OBJECT_ANALOG_INPUT:
+        pdu_len += bacerror_encode_apdu(
+          &Tx_Buf[pdu_len],
+          service_data->invoke_id,
+          SERVICE_CONFIRMED_WRITE_PROPERTY,
+          ERROR_CLASS_PROPERTY,
+          ERROR_CODE_WRITE_ACCESS_DENIED);
+        fprintf(stderr,"Sent Write Access Error!\n");
+        send = true;
+        break;
+      default:
+        pdu_len += bacerror_encode_apdu(
+          &Tx_Buf[pdu_len],
+          service_data->invoke_id,
+          SERVICE_CONFIRMED_WRITE_PROPERTY,
+          ERROR_CLASS_OBJECT,
+          ERROR_CODE_UNKNOWN_OBJECT);
+        fprintf(stderr,"Sent Unknown Object Error!\n");
+        send = true;
+        break;
+    }
+  }
+  if (send)
+  {
+    (void)ethernet_send_pdu(
+      src,  // destination address
+      &Tx_Buf[0],
+      pdu_len); // number of bytes of data
+  }
+
+  return;
+}
+
 static void Init_Device_Parameters(void)
 {
   // configure my initial values
@@ -362,6 +498,9 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
     ReadPropertyHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_WRITE_PROPERTY,
+    WritePropertyHandler);
 }
 
 int main(int argc, char *argv[])

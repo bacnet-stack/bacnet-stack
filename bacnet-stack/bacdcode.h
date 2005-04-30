@@ -176,4 +176,8 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu);
 int decode_max_segs(uint8_t octet);
 int decode_max_apdu(uint8_t octet);
 
+// returns the number of apdu bytes consumed
+int encode_simple_ack(uint8_t * apdu, uint8_t invoke_id, 
+  uint8_t service_choice);
+
 #endif

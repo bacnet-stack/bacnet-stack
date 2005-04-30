@@ -33,6 +33,29 @@
 #include "bacenum.h"
 #include "config.h" // the custom stuff
 
+#define MAX_ANALOG_INPUTS 32
+
+bool Analog_Input_Valid_Instance(uint32_t object_instance)
+{
+  if (object_instance < MAX_ANALOG_INPUTS)
+    return true;
+
+  return false;
+}
+
+unsigned Analog_Input_Count(void)
+{
+  return MAX_ANALOG_INPUTS;
+}
+
+// we simply have 0-n object instances.  Yours might be
+// more complex, and then you need to return the instance
+// that correlates to the correct index
+uint32_t Analog_Input_Index_To_Instance(unsigned index)
+{
+  return index;
+}
+
 int Analog_Input_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,

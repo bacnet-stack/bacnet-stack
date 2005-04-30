@@ -20,6 +20,4 @@
 // requests available.
 #define MAX_TSM_TRANSACTIONS 16
 
-#define MAX_ANALOG_INPUTS 32
-
 #endif

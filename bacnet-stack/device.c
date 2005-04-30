@@ -29,6 +29,8 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h" // the custom stuff
+#include "ai.h" // object list dependency
+#include "wp.h" // write property handling
 
 static uint32_t Object_Instance_Number = 0;
 // FIXME: it is likely that this name is configurable,
@@ -86,6 +88,13 @@ void Device_Set_Object_Instance_Number(uint32_t object_id)
 {
   // FIXME: bounds check?
   Object_Instance_Number = object_id;
+}
+
+bool Device_Valid_Object_Instance_Number(uint32_t object_id)
+{
+  // BACnet allows for a wildcard instance number
+  return ((Object_Instance_Number == object_id) || 
+    (object_id == BACNET_MAX_INSTANCE));
 }
 
 BACNET_DEVICE_STATUS Device_System_Status(void)
@@ -215,6 +224,52 @@ void Device_Set_Database_Revision(uint8_t revision)
   Database_Revision = revision;
 }
 
+// Since many network clients depend on the object list
+// for discovery, it must be consistent!
+unsigned Device_Object_List_Count(void)
+{
+  unsigned count = 1;
+
+  count += Analog_Input_Count();
+
+  return count;
+}
+
+bool Device_Object_List_Identifier(unsigned array_index,
+  int *object_type, 
+  uint32_t *instance)
+{
+  bool status = false;
+  unsigned object_index = 0;
+  
+  if (array_index == 1)
+  {
+    *object_type = OBJECT_DEVICE; 
+    *instance = Object_Instance_Number;
+    status = true;
+  }
+
+  if (!status)
+  {
+    // array index starts at 1, and 1 for the device object
+    object_index = array_index - 2;
+    if (object_index < Analog_Input_Count())
+    {
+      *object_type = OBJECT_ANALOG_INPUT; 
+      *instance = Analog_Input_Index_To_Instance(object_index);
+      status = true;
+    }
+  }
+
+  // etc.
+  if (!status)
+  {
+    object_index -= Analog_Input_Count();
+  }
+  
+  return status;  
+}
+
 int Device_Encode_Property_APDU(
   uint8_t *apdu,
   BACNET_PROPERTY_ID property,
@@ -224,6 +279,9 @@ int Device_Encode_Property_APDU(
   int len = 0; // apdu len intermediate value
   BACNET_BIT_STRING bit_string;
   int i = 0;
+  int object_type = 0;
+  uint32_t instance = 0;
+  unsigned count = 0;
   
   switch (property)
   {
@@ -313,47 +371,49 @@ int Device_Encode_Property_APDU(
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
-      // FIXME: hook into real object list, not just device
+      count = Device_Object_List_Count();
       // Array element zero is the number of objects in the list
-      if (array_index == 0)
-        apdu_len = encode_tagged_unsigned(&apdu[0], 1 + MAX_ANALOG_INPUTS);
+      if (array_index == BACNET_ARRAY_LENGTH_INDEX)
+        apdu_len = encode_tagged_unsigned(&apdu[0], count);
       // if no index was specified, then try to encode the entire list
       // into one packet.  Note that more than likely you will have
       // to return an error if the number of encoded objects exceeds
       // your maximum APDU size.
       else if (array_index == BACNET_ARRAY_ALL)
       {
-        len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
-            Object_Instance_Number);
-        apdu_len = len;
-        for (i = 0; i < MAX_ANALOG_INPUTS; i++)
+        for (i = 1; i <= count; i++)
         {
-          // assume next one is the same size as this one
-          // can we all fit into the APDU?
-          if ((apdu_len + len) >= MAX_APDU)
+          if (Device_Object_List_Identifier(i,&object_type,&instance))
           {
+            len = encode_tagged_object_id(&apdu[0], object_type,
+              instance);
+            apdu_len += len;
+            // assume next one is the same size as this one
+            // can we all fit into the APDU?
+            if ((apdu_len + len) >= MAX_APDU)
+            {
+              // ERROR_CLASS_SERVICES
+              // ERROR_CODE_NO_SPACE_FOR_OBJECT
+              apdu_len = 0;
+              break;
+            }
+          }
+          else
+          {
+            // error: internal error?
             apdu_len = 0;
             break;
           }
-          len = encode_tagged_object_id(&apdu[apdu_len], 
-            OBJECT_ANALOG_INPUT, i);
-          apdu_len += len;
         }
       }
       else
       {
-        // the first object in the list is at index=1
-        if (array_index == 1)
-          apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
-              Object_Instance_Number);
-        else if (array_index < (2 + MAX_ANALOG_INPUTS))
-        {
-          apdu_len = encode_tagged_object_id(&apdu[0], 
-            OBJECT_ANALOG_INPUT, array_index - 2);
-        }
+        if (Device_Object_List_Identifier(array_index,&object_type,&instance))
+          apdu_len = encode_tagged_object_id(&apdu[0], object_type, instance);
         else
         {
-          // FIXME: handle case where index is beyond our bounds
+          //ERROR_CLASS_PROPERTY
+          //ERROR_CODE_INVALID_ARRAY_INDEX
         }
       }
       break;
@@ -376,6 +436,73 @@ int Device_Encode_Property_APDU(
   }
 
   return apdu_len;
+}
+
+// we can send an I-Am when our device ID changes
+extern bool I_Am_Request;
+
+// returns true if successful
+bool Device_Write_Property(
+  BACNET_WRITE_PROPERTY_DATA *wp_data,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code)
+{
+  bool status = false; // return value
+  uint8_t *apdu = NULL;
+  int len = 0;
+  int tag_len = 0;
+  uint8_t tag_number = 0;
+  uint32_t len_value_type = 0;
+  int object_type = 0;
+  uint32_t instance = 0;
+  
+  if (!Device_Valid_Object_Instance_Number(wp_data->object_instance))
+  {
+    *error_class = ERROR_CLASS_OBJECT;
+    *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    return false;
+  }
+
+  // decode the some of the request
+  apdu = wp_data->property_value;
+  tag_len = decode_tag_number_and_value(&apdu[0],
+    &tag_number, &len_value_type);
+  switch (wp_data->object_property)
+  {
+    case PROP_OBJECT_IDENTIFIER:
+      if (tag_len && (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID))
+      { 
+        // FIXME: are we exceeding the property_value_len?
+        len = decode_object_id(&apdu[tag_len],
+          &object_type, 
+          &instance);
+        if (len && 
+          (object_type == OBJECT_DEVICE) && 
+          (instance <= BACNET_MAX_INSTANCE))
+        {
+          Device_Set_Object_Instance_Number(instance);
+          I_Am_Request = true;
+          status = true;
+        }
+        else
+        {
+          *error_class = ERROR_CLASS_PROPERTY;
+          *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+      }
+      else
+      {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+      }
+      break;
+    default:
+      *error_class = ERROR_CLASS_PROPERTY;
+      *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+      break;
+  }
+
+  return status;
 }
 
 #ifdef TEST

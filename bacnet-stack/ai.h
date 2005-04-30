@@ -29,6 +29,10 @@
 #include <stdint.h>
 #include "bacdef.h"
 
+bool Analog_Input_Valid_Instance(uint32_t object_instance);
+unsigned Analog_Input_Count(void);
+uint32_t Analog_Input_Index_To_Instance(unsigned index);
+
 int Analog_Input_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,
