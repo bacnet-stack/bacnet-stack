@@ -27,7 +27,9 @@ SRCS = init.c main.c ethernet.c \
        ..\..\whois.c \
        ..\..\iam.c \
        ..\..\rp.c \
+       ..\..\wp.c \
        ..\..\device.c \
+       ..\..\ai.c \
        ..\..\abort.c \
        ..\..\reject.c \
        ..\..\bacerror.c \
@@ -48,7 +50,7 @@ LOCATE = $(RTOS32_DIR)\bin\rtloc
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
 CC_INCLDIR = $(BORLAND_DIR)\include
-INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include
+INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;../../;
 DEFINES = -DDOC
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)

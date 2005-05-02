@@ -25,6 +25,16 @@
 
 #include <stdint.h>             // for standard integer types uint8_t etc.
 #include <stdbool.h>            // for the standard bool type.
+#include <stdio.h>            // for the standard bool type.
+#include <stdlib.h>            // for the standard bool type.
+#include <rttarget.h>
+#include <rtk32.h>
+#include <clock.h>
+#include <socket.h>
+#include <windows.h>
+#include "ethernet.h"
+#include "bacdcode.h"
+
 // commonly used comparison address for ethernet
 uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
     { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
@@ -41,9 +51,12 @@ static BYTE NetMask[]        = {255, 255, 255,   0};
 static BYTE DefaultGateway[] = {0, 0,  0,  0};
 // DNS - set to zero if not available or required
 static BYTE DNSServer[]      = {0, 0,  0,  0};
-// the actual socket for Ethernet
+// the Interface for Ethernet
 // SOCKET_ERROR means no open interface
 static int Ethernet_Interface = SOCKET_ERROR;
+static SOCKET Ethernet_Socket = -1;
+// used for binding 802.2
+static struct sockaddr Ethernet_Address = { 0 };
 
 bool ethernet_valid(void)
 {
@@ -73,19 +86,22 @@ static int get_local_hwaddr(int iface, unsigned char *mac)
     mac[4] = ii.my_ethernet_address[4];
     mac[5] = ii.my_ethernet_address[5];
 
-    return rv;
+    return 0;
 }
 
-static void ethernet_error(const char * Msg)
+static void ethernet_error(const char *text)
 {
-   printf("%s, error code: %s\n", Msg, xn_geterror_string(WSAGetLastError()));
+   fprintf(stderr,"%s, error code: %s\n", 
+      text, xn_geterror_string(WSAGetLastError()));
    exit(1);
 }
 
 bool ethernet_init(char *interface_name)
 {
     struct _iface_info ii; // contains the hwaddr of the Ethernet interface
-
+    int value = 1;  
+    int Result = 0;
+    
     // FIXME: what about other drivers other than DAVICOM?
     (void)interface_name;
     RTKernelInit(0); // get the kernel going
@@ -96,12 +112,16 @@ bool ethernet_init(char *interface_name)
     RTKDelay(1);
     RTCMOSSetSystemTime();             // get the right time-of-day
 
-    Ethernet_Interface = xn_rtip_init();           // Initialize the RTIP stack
-    if (Ethernet_Interface == SOCKET_ERROR)
-        ethernet_error("xn_rtip_init failed");
+    Result = xn_rtip_init();           // Initialize the RTIP stack
+    if (Result == SOCKET_ERROR)
+        ethernet_error("ethernet: xn_rtip_init failed");
     atexit(ethernet_cleanup);                          // make sure the driver is shut down properly
     RTCallDebugger(RT_DBG_CALLRESET, (DWORD)exit, 0);  // even if we get restarted by the debugger
 
+    // tell RTIP what Ethernet driver we want 
+    Result = xn_bind_davicom(MINOR_0);
+    if (Result != 0)
+      ethernet_error("ethernet: driver initialization failed");
     // PCI device ignores the IRQ and IO parameters
     Ethernet_Interface = xn_interface_open_config(
       DAVICOM_DEVICE, MINOR_0, 0, 0, 0);
@@ -110,6 +130,9 @@ bool ethernet_init(char *interface_name)
       fprintf(stderr,"ethernet: Davicom driver failed to initialize\r\n");
       return false;
     }
+    if (xn_interface_opt(Ethernet_Interface,IO_802_2,
+      (const char *)&value,sizeof(value)))
+      fprintf(stderr,"ethernet: xn_interface_opt 802.2 failed \n"); 
     xn_interface_info(Ethernet_Interface, &ii);
     printf("ethernet: MAC address: %02x-%02x-%02x-%02x-%02x-%02x\n",
        ii.my_ethernet_address[0], ii.my_ethernet_address[1],
@@ -129,7 +152,18 @@ bool ethernet_init(char *interface_name)
     xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1,
       Ethernet_Interface, RT_INF);
     xn_set_server_list((DWORD*)DNSServer, 1);
-    
+
+    // setup the socket
+    Ethernet_Socket = socket(AF_INET, SOCK_RAW, 0);
+    if (Ethernet_Socket < 0)
+      fprintf(stderr,"ethernet: failed to bind to socket!\r\n");
+    Ethernet_Address.sa_family = AF_INET;
+    memset(Ethernet_Address.sa_data,0,sizeof(Ethernet_Address.sa_data));
+    if (bind(Ethernet_Socket, 
+        &Ethernet_Address, sizeof(Ethernet_Address)) == SOCKET_ERROR)
+      fprintf(stderr,"ethernet: failed to bind to socket!\r\n");
+    setsockopt(Ethernet_Socket,SOL_SOCKET,SO_802_2,(char *)&value,sizeof(value));    
+
     return ethernet_valid(); 
 }
 
@@ -148,7 +182,7 @@ int ethernet_send(
     int i = 0;
 
     // don't waste time if the socket is not valid
-    if (Ethernet_Interface < 0)
+    if (Ethernet_Socket < 0)
     {
         fprintf(stderr, "ethernet: 802.2 socket is invalid!\n");
         return status;
@@ -199,8 +233,8 @@ int ethernet_send(
     
     /* Send the packet */
     bytes =
-        sendto(Ethernet_Interface, &mtu, mtu_len, 0,
-        (struct sockaddr *) &eth_addr, sizeof(struct sockaddr));
+        sendto(Ethernet_Socket, (const char *)&mtu, mtu_len, 0,
+            &Ethernet_Address, sizeof(Ethernet_Address));
     /* did it get sent? */
     if (bytes < 0) {            
       fprintf(stderr,"ethernet: Error sending packet: %s\n", 
@@ -253,7 +287,7 @@ uint16_t ethernet_receive(
     struct timeval select_timeout;
 
     /* Make sure the socket is open */
-    if (Ethernet_Interface <= 0)
+    if (Ethernet_Socket <= 0)
         return 0;
 
     /* we could just use a non-blocking socket, but that consumes all
@@ -271,11 +305,11 @@ uint16_t ethernet_receive(
         select_timeout.tv_usec = 1000 * timeout;
     }
     FD_ZERO(&read_fds);
-    FD_SET(Ethernet_Interface, &read_fds);
-    max = Ethernet_Interface;
+    FD_SET(Ethernet_Socket, &read_fds);
+    max = Ethernet_Socket;
 
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
-        received_bytes = read(Ethernet_Interface, &buf[0], MAX_MPDU);
+        received_bytes = recv(Ethernet_Socket, (char *)&buf[0], MAX_MPDU, 0);
     else
         return 0;
 
