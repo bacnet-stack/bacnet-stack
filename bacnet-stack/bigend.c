@@ -1,5 +1,6 @@
 // Big-Endian systems save the most significant byte first. 
 // Sun and Motorola processors, IBM-370s and PDP-10s are big-endian.
+// "Network Byte Order" is also know as "Big-Endian Byte Order"
 // for example, a 4 byte integer 67305985 is 0x04030201 in hexidecimal.
 // x[0] = 0x04
 // x[1] = 0x03

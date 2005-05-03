@@ -25,6 +25,30 @@
 
 // This is one way to use the embedded BACnet stack under RTOS-32 
 // compiled with Borland C++ 5.02
+#define WIN32_LEAN_AND_MEAN
+#define STRICT
+
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <process.h>
+
+#ifndef HOST
+
+   #include <rttarget.h>
+   #include <rtk32.h>
+   #include <clock.h>
+   #include <socket.h>
+
+   #include "netcfg.h"
+
+   int interface = SOCKET_ERROR;  // SOCKET_ERROR means no open interface
+
+#else
+
+   #include <winsock.h>
+
+#endif
 
 #include <stddef.h>
 #include <stdint.h>
@@ -43,7 +67,7 @@
 #include "reject.h"
 #include "abort.h"
 #include "bacerror.h"
-#include "ethernet.h"
+#include "bip.h"
 
 // buffers used for transmit and receive
 static uint8_t Tx_Buf[MAX_MPDU] = {0};
@@ -64,7 +88,7 @@ void UnrecognizedServiceHandler(
   
   (void)service_request;
   (void)service_len;
-  ethernet_get_my_address(&src);
+  bip_get_my_address(&src);
 
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
@@ -80,7 +104,7 @@ void UnrecognizedServiceHandler(
     service_data->invoke_id,
     REJECT_REASON_UNRECOGNIZED_SERVICE);
 
-  (void)ethernet_send_pdu(
+  (void)bip_send_pdu(
     dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
@@ -95,7 +119,7 @@ void Send_IAm(void)
   BACNET_ADDRESS dest;
 
   // I-Am is a global broadcast
-  ethernet_set_broadcast_address(&dest);
+  bip_set_broadcast_address(&dest);
 
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
@@ -113,7 +137,7 @@ void Send_IAm(void)
     SEGMENTATION_NONE,
     Device_Vendor_Identifier());
 
-  (void)ethernet_send_pdu(
+  (void)bip_send_pdu(
     &dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
@@ -129,6 +153,7 @@ void WhoIsHandler(
   int32_t low_limit = 0;
   int32_t high_limit = 0;
 
+  (void)src;
   fprintf(stderr,"Received Who-Is Request!\n");
   len = whois_decode_service_request(
     service_request,
@@ -139,10 +164,12 @@ void WhoIsHandler(
     I_Am_Request = true;
   else if (len != -1)
   { 
-    if ((Device_Object_Instance_Number() >= low_limit) && 
-        (Device_Object_Instance_Number() <= high_limit))
+    if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) && 
+        (Device_Object_Instance_Number() <= (uint32_t)high_limit))
       I_Am_Request = true;
   }
+  else 
+    fprintf(stderr,"Who-Is Not for Me!\n");
 
   return;  
 }
@@ -158,6 +185,8 @@ void IAmHandler(
   int segmentation = 0;
   uint16_t vendor_id = 0;
 
+  (void)src;
+  (void)service_len;
   len = iam_decode_service_request(
     service_request,
     &device_id,
@@ -203,7 +232,7 @@ void ReadPropertyHandler(
   else
     fprintf(stderr,"Unable to decode Read-Property Request!\n");
   // prepare a reply
-  ethernet_get_my_address(&my_address);
+  bip_get_my_address(&my_address);
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
     &Tx_Buf[0],
@@ -347,7 +376,7 @@ void ReadPropertyHandler(
   }
   if (send)
   {
-    (void)ethernet_send_pdu(
+    (void)bip_send_pdu(
       src,  // destination address
       &Tx_Buf[0],
       pdu_len); // number of bytes of data
@@ -385,7 +414,7 @@ void WritePropertyHandler(
   else
     fprintf(stderr,"Unable to decode Write-Property Request!\n");
   // prepare a reply
-  ethernet_get_my_address(&my_address);
+  bip_get_my_address(&my_address);
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
     &Tx_Buf[0],
@@ -462,7 +491,7 @@ void WritePropertyHandler(
   }
   if (send)
   {
-    (void)ethernet_send_pdu(
+    (void)bip_send_pdu(
       src,  // destination address
       &Tx_Buf[0],
       pdu_len); // number of bytes of data
@@ -494,7 +523,6 @@ static void Init_Service_Handlers(void)
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_I_AM,
     IAmHandler);
-
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
   apdu_set_unrecognized_service_handler_handler(
@@ -503,6 +531,152 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
     ReadPropertyHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_WRITE_PROPERTY,
+    WritePropertyHandler);
+}
+
+/*-----------------------------------*/
+static void Error(const char * Msg)
+{
+   int Code = WSAGetLastError();
+#ifdef HOST
+   printf("%s, error code: %i\n", Msg, Code);
+#else
+   printf("%s, error code: %s\n", Msg, xn_geterror_string(Code));
+#endif
+   exit(1);
+}
+
+#ifndef HOST
+/*-----------------------------------*/
+void InterfaceCleanup(void)
+{
+   if (interface != SOCKET_ERROR)
+   {
+      xn_interface_close(interface);
+      interface = SOCKET_ERROR;
+   #if DEVICE_ID == PRISM_PCMCIA_DEVICE
+      RTPCShutDown();
+   #endif
+   }
+}
+#endif
+
+static void NetInitialize(void)
+// initialize the TCP/IP stack
+{
+   int Result;
+
+#ifndef HOST
+
+   RTKernelInit(0);                   // get the kernel going
+
+   if (!RTKDebugVersion())            // switch of all diagnostics and error messages of RTIP-32
+      xn_callbacks()->cb_wr_screen_string_fnc = NULL;
+
+   CLKSetTimerIntVal(10*1000);        // 10 millisecond tick
+   RTKDelay(1);
+   RTCMOSSetSystemTime();             // get the right time-of-day
+
+#ifdef RTUSB_VER
+   RTURegisterCallback(USBAX172);     // ax172 and ax772 drivers
+   RTURegisterCallback(USBAX772);
+   RTURegisterCallback(USBKeyboard);  // support USB keyboards
+   FindUSBControllers();              // install USB host controllers
+   Sleep(2000);                       // give the USB stack time to enumerate devices
+#endif
+
+#ifdef DHCP
+   XN_REGISTER_DHCP_CLI()             // and optionally the DHCP client
+#endif
+
+   Result = xn_rtip_init();           // Initialize the RTIP stack
+   if (Result != 0)
+      Error("xn_rtip_init failed");
+
+   atexit(InterfaceCleanup);                          // make sure the driver is shut down properly
+   RTCallDebugger(RT_DBG_CALLRESET, (DWORD)exit, 0);  // even if we get restarted by the debugger
+
+   Result = BIND_DRIVER(MINOR_0);     // tell RTIP what Ethernet driver we want (see netcfg.h)
+   if (Result != 0)
+      Error("driver initialization failed");
+
+#if DEVICE_ID == PRISM_PCMCIA_DEVICE
+   // if this is a PCMCIA device, start the PCMCIA driver
+   if (RTPCInit(-1, 0, 2, NULL) == 0)
+      Error("No PCMCIA controller found");
+#endif
+
+   // Open the interface
+   interface = xn_interface_open_config(DEVICE_ID, MINOR_0, ED_IO_ADD, ED_IRQ, ED_MEM_ADD);
+   if (interface == SOCKET_ERROR)
+      Error("xn_interface_open_config failed");
+   else
+   {
+      struct _iface_info ii;
+      xn_interface_info(interface, &ii);
+      printf("Interface opened, MAC address: %02x-%02x-%02x-%02x-%02x-%02x\n",
+         ii.my_ethernet_address[0], ii.my_ethernet_address[1], ii.my_ethernet_address[2],
+         ii.my_ethernet_address[3], ii.my_ethernet_address[4], ii.my_ethernet_address[5]);
+   }
+
+#if DEVICE_ID == PRISM_PCMCIA_DEVICE || DEVICE_ID == PRISM_DEVICE
+   xn_wlan_setup(interface,          // iface_no: value returned by xn_interface_open_config()
+                 "network name",     // SSID    : network name set in the access point
+                 "station name",     // Name    : name of this node
+                 0,                  // Channel : 0 for access points, 1..14 for ad-hoc
+                 0,                  // KeyIndex: 0 .. 3
+                 "12345",            // WEP Key : key to use (5 or 13 bytes)
+                 0);                 // Flags   : see manual and Wlanapi.h for details
+   Sleep(1000); // wireless devices need a little time before they can be used
+#endif // WLAN device
+
+#if defined(AUTO_IP)  // use xn_autoip() to get an IP address
+   Result = xn_autoip(interface, MinIP, MaxIP, NetMask, TargetIP);
+   if (Result == SOCKET_ERROR)
+      Error("xn_autoip failed");
+   else
+   {
+      printf("Auto-assigned IP address %i.%i.%i.%i\n", TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
+      // define default gateway and DNS server
+      xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1, interface, RT_INF);
+      xn_set_server_list((DWORD*)DNSServer, 1);
+   }
+#elif defined(DHCP)   // use DHCP
+   {
+      DHCP_param   param[] = {{SUBNET_MASK, 1}, {DNS_OP, 1}, {ROUTER_OPTION, 1}};
+      DHCP_session DS;
+      DHCP_conf    DC;
+
+      xn_init_dhcp_conf(&DC);                 // load default DHCP options
+      DC.plist = param;                       // add MASK, DNS, and gateway options
+      DC.plist_entries = sizeof(param) / sizeof(param[0]);
+      printf("Contacting DHCP server, please wait...\n");
+      Result = xn_dhcp(interface, &DS, &DC);  // contact DHCP server
+      if (Result == SOCKET_ERROR)
+         Error("xn_dhcp failed");
+      memcpy(TargetIP, DS.client_ip, 4);
+      printf("My IP address is: %i.%i.%i.%i\n", TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
+   }
+#else
+   // Set the IP address and interface
+   printf("Using static IP address %i.%i.%i.%i\n", TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
+   Result = xn_set_ip(interface, TargetIP, NetMask);
+   // define default gateway and DNS server
+   xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1, interface, RT_INF);
+   xn_set_server_list((DWORD*)DNSServer, 1);
+#endif
+
+#else  // HOST defined, run on Windows
+
+   WSADATA wd;
+   Result = WSAStartup(0x0101, &wd);
+
+#endif
+
+   if (Result != 0)
+      Error("TCP/IP stack initialization failed");
 }
 
 int main(int argc, char *argv[])
@@ -511,10 +685,14 @@ int main(int argc, char *argv[])
   uint16_t pdu_len = 0;
   unsigned timeout = 100; // milliseconds
 
+  (void)argc;
+  (void)argv;
   Init_Device_Parameters();
   Init_Service_Handlers();
   // init the physical layer
-  if (!ethernet_init("eth0"))
+  NetInitialize();
+  bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
+  if (!bip_init())
     return 1;
   
   // loop forever
@@ -523,7 +701,7 @@ int main(int argc, char *argv[])
     // input
 
     // returns 0 bytes on timeout
-    pdu_len = ethernet_receive(
+    pdu_len = bip_receive(
       &src,
       &Rx_Buf[0],
       MAX_MPDU,
@@ -546,6 +724,4 @@ int main(int argc, char *argv[])
 
     // blink LEDs, Turn on or off outputs, etc
   }
-  
-  return 0;
 }
