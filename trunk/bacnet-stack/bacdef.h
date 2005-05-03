@@ -63,6 +63,8 @@ typedef struct BACnet_Object_Data
 struct BACnet_Device_Address {
     // mac_len = 0 if global address
     int mac_len;
+    // note: MAC for IP addresses uses 4 bytes for addr, 2 bytes for port
+    // use de/encode_unsigned32/16 for re/storing the IP address
     uint8_t mac[MAX_MAC_LEN];
     // DNET,DLEN,DADR or SNET,SLEN,SADR
     // the following are used if the device is behind a router
