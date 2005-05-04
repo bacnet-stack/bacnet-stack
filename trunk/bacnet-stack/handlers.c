@@ -82,6 +82,8 @@ void UnrecognizedServiceHandler(
   BACNET_ADDRESS src;
   int pdu_len = 0;
   
+  (void)service_request;
+  (void)service_len;
   bacdl_get_my_address(&src);
 
   // encode the NPDU portion of the packet
@@ -147,6 +149,7 @@ void WhoIsHandler(
   int32_t low_limit = 0;
   int32_t high_limit = 0;
 
+  (void)src;
   fprintf(stderr,"Received Who-Is Request!\n");
   len = whois_decode_service_request(
     service_request,
@@ -157,8 +160,8 @@ void WhoIsHandler(
     I_Am_Request = true;
   else if (len != -1)
   { 
-    if ((Device_Object_Instance_Number() >= low_limit) && 
-        (Device_Object_Instance_Number() <= high_limit))
+    if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) && 
+        (Device_Object_Instance_Number() <= (uint32_t)high_limit))
       I_Am_Request = true;
   }
 
@@ -176,6 +179,8 @@ void IAmHandler(
   int segmentation = 0;
   uint16_t vendor_id = 0;
 
+  (void)src;
+  (void)service_len;
   len = iam_decode_service_request(
     service_request,
     &device_id,

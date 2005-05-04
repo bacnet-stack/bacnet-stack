@@ -22,8 +22,8 @@
 
 // Use only one data link layer
 //#define BACDL_ARCNET
-#define BACDL_ETHERNET
+//#define BACDL_ETHERNET
 //#define BACDL_MSTP
-//#define BACDL_BIP
+#define BACDL_BIP
 
 #endif

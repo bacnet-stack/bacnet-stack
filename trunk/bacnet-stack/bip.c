@@ -311,7 +311,7 @@ void bip_get_my_address(BACNET_ADDRESS *my_address)
   return;
 }
 
-void bip_set_broadcast_address(
+void bip_get_broadcast_address(
   BACNET_ADDRESS *dest)  // destination address
 {
   int i = 0; // counter
