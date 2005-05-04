@@ -8,13 +8,13 @@
 !ifndef RTOS32_DIR
 RTOS32_DIR_Not_Defined:
    @echo .
-   @echo You must define environment variable RTOS32_DIR to for this build.
+   @echo You must define environment variable RTOS32_DIR to compile.
 !endif
 
 !ifndef BORLAND_DIR
 BORLAND_DIR_Not_Defined:
    @echo .
-   @echo You must define environment variable BORLAND_DIR to compile
+   @echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
 PRODUCT = bacnet
