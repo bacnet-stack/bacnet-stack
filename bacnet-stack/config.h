@@ -20,10 +20,4 @@
 // requests available.
 #define MAX_TSM_TRANSACTIONS 16
 
-// Use only one data link layer
-//#define BACDL_ARCNET
-//#define BACDL_ETHERNET
-//#define BACDL_MSTP
-#define BACDL_BIP
-
 #endif
