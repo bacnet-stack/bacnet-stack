@@ -21,9 +21,8 @@ PRODUCT = bacnet
 PRODUCT_RTB = $(PRODUCT).rtb
 PRODUCT_EXE = $(PRODUCT).exe
 
-SRCS = init.c main.c \
+SRCS = init.c main.c bip.c \
        ..\..\handlers.c  \
-       ..\..\bip.c  \
        ..\..\bacdcode.c \
        ..\..\bigend.c \
        ..\..\whois.c \
