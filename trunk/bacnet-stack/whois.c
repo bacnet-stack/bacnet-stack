@@ -88,7 +88,7 @@ int whois_decode_service_request(
     if (tag_number != 0)
       return -1;
     len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-    if ((decoded_value >= 0) && (decoded_value <= BACNET_MAX_INSTANCE))
+    if (decoded_value <= BACNET_MAX_INSTANCE)
     {
       if (pLow_limit)
         *pLow_limit = decoded_value;
@@ -98,7 +98,7 @@ int whois_decode_service_request(
       return -1;
     len += decode_unsigned(&apdu[len],
       len_value, &decoded_value);
-    if ((decoded_value >= 0) && (decoded_value <= BACNET_MAX_INSTANCE))
+    if (decoded_value <= BACNET_MAX_INSTANCE)
     {
       if (pHigh_limit)
         *pHigh_limit = decoded_value;

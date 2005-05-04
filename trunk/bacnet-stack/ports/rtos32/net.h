@@ -25,7 +25,27 @@
 #ifndef NET_H
 #define NET_H
 
-#include <socket.h>
+#define WIN32_LEAN_AND_MEAN
+#define STRICT
+
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <process.h>
+
+#ifndef HOST
+
+   #include <rttarget.h>
+   #include <rtk32.h>
+   #include <clock.h>
+   #include <socket.h>
+
+#else
+
+   #include <winsock.h>
+
+#endif
+
 #define close closesocket
 
 #endif

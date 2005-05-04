@@ -70,6 +70,7 @@ uint16_t ethernet_receive(
   uint16_t max_pdu,  // amount of space available in the PDU 
   unsigned timeout); // milliseconds to wait for a packet
 
+void ethernet_set_my_address(BACNET_ADDRESS *my_address);
 void ethernet_get_my_address(BACNET_ADDRESS *my_address);
 void ethernet_get_broadcast_address(
   BACNET_ADDRESS *dest);  // destination address

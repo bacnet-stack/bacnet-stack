@@ -903,7 +903,8 @@ int encode_tagged_character_string(uint8_t * apdu, const char *char_string)
 int decode_character_string(uint8_t * apdu, uint32_t len_value,
     char *char_string, size_t string_len)
 {
-    int len = 0, i = 0;
+    int len = 0; // return value
+    uint32_t i = 0; // counter
 
     // FIXME: issue warning?
     if (len_value > string_len)
