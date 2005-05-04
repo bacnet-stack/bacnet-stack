@@ -22,7 +22,6 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -40,6 +39,8 @@
 #include "reject.h"
 #include "abort.h"
 #include "bacerror.h"
+
+// Example handlers of services
 
 // Defined in config.h
 #ifdef BACDL_ETHERNET
@@ -187,8 +188,11 @@ void IAmHandler(
     &max_apdu,
     &segmentation,
     &vendor_id);
+  fprintf(stderr,"Received I-Am Request");
   if (len != -1)
-    fprintf(stderr,"Received I-Am Request from %u!\n",device_id);
+    fprintf(stderr," from %u!\n",device_id);
+  else
+    fprintf(stderr,"!\n");
 
   return;  
 }
