@@ -22,6 +22,7 @@ PRODUCT_RTB = $(PRODUCT).rtb
 PRODUCT_EXE = $(PRODUCT).exe
 
 SRCS = init.c main.c \
+       ..\..\handlers.c  \
        ..\..\bip.c  \
        ..\..\bacdcode.c \
        ..\..\bigend.c \
@@ -117,6 +118,7 @@ $(PRODUCT_EXE) : $(OBJS)
 clean :
 	@echo Deleting obj files, $(PRODUCT_EXE), $(PRODUCT_RTB) and map files.
 	del *.obj
+	del ..\..\*.obj
 	del $(PRODUCT_EXE)
 	del $(PRODUCT_RTB)
 	del *.map

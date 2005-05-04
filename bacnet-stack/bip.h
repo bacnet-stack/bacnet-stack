@@ -46,7 +46,7 @@
 bool bip_valid(void);
 void bip_cleanup(void);
 bool bip_init(void);
-void bip_set_broadcast_address(
+void bip_get_broadcast_address(
   BACNET_ADDRESS *dest);  // destination address
 void bip_get_my_address(BACNET_ADDRESS *my_address);
 
