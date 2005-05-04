@@ -21,7 +21,7 @@ PRODUCT = bacnet
 PRODUCT_RTB = $(PRODUCT).rtb
 PRODUCT_EXE = $(PRODUCT).exe
 
-SRCS = init.c main.c bip.c \
+SRCS = init.c main.c ethernet.c bip.c \
        ..\..\handlers.c  \
        ..\..\bacdcode.c \
        ..\..\bigend.c \
@@ -52,7 +52,8 @@ LOCATE = $(RTOS32_DIR)\bin\rtloc
 CC_DIR     = $(BORLAND_DIR)\BIN
 CC_INCLDIR = $(BORLAND_DIR)\include
 INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;../../;
-DEFINES = -DDOC;BACDL_BIP=1
+#DEFINES = -DDOC;BACDL_BIP=1
+DEFINES = -DDOC;BACDL_ETHERNET=1
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
@@ -104,7 +105,7 @@ $(PRODUCT_RTB): bcc32.cfg hardware.cfg software.cfg $(PRODUCT_EXE)
 # need a temp response file (@&&) because command line is too long
 $(PRODUCT_EXE) : $(OBJS)
 	@echo Running Linker for $(PRODUCT_EXE)
-	$(LINK) -L$(LINKER_LIB) -m -c -s -v @&&| # temp response file, starts with |
+	$(LINK)	-L$(LINKER_LIB) -m -c -s -v @&&| # temp response file, starts with |
 	  $(BORLAND_DIR)\lib\c0x32.obj $**  # $** lists each dependency
 	$<
 	$*.map
@@ -135,12 +136,13 @@ install : $(PRODUCT)
 # cc generic rule
 #
 .c.obj:
-	@echo Compiling $@ from $<
-	$(CC) $(CFLAGS) -c -o$@ $<
+	$(CC) -o$@ $<
 
 # Compiler configuration file
 bcc32.cfg :
    Copy &&|
+$(CFLAGS) 
+-c 
 -y     #include line numbers in OBJ's
 -v     #include debug info
 -w+    #turn on all warnings

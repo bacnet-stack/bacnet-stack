@@ -25,31 +25,6 @@
 
 // This is one way to use the embedded BACnet stack under RTOS-32 
 // compiled with Borland C++ 5.02
-#define WIN32_LEAN_AND_MEAN
-#define STRICT
-
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <process.h>
-
-#ifndef HOST
-
-   #include <rttarget.h>
-   #include <rtk32.h>
-   #include <clock.h>
-   #include <socket.h>
-
-   #include "netcfg.h"
-
-   int interface = SOCKET_ERROR;  // SOCKET_ERROR means no open interface
-
-#else
-
-   #include <winsock.h>
-
-#endif
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -59,7 +34,20 @@
 #include "apdu.h"
 #include "device.h"
 #include "handlers.h"
-#include "bip.h"
+#ifdef BACDL_ETHERNET
+  #include "ethernet.h"
+  #define bacdl_receive ethernet_receive
+#endif
+#ifdef BACDL_BIP
+  #include "bip.h"
+  #define bacdl_receive bip_receive
+#endif
+#include "net.h"
+#ifndef HOST
+   #include "netcfg.h"
+#endif
+
+static int interface = SOCKET_ERROR;  // SOCKET_ERROR means no open interface
 
 // buffers used for transmit and receive
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
@@ -179,10 +167,21 @@ static void NetInitialize(void)
    else
    {
       struct _iface_info ii;
+      #ifdef BACDL_ETHERNET
+      BACNET_ADDRESS my_address;
+      unsigned i;
+      #endif
       xn_interface_info(interface, &ii);
       printf("Interface opened, MAC address: %02x-%02x-%02x-%02x-%02x-%02x\n",
          ii.my_ethernet_address[0], ii.my_ethernet_address[1], ii.my_ethernet_address[2],
          ii.my_ethernet_address[3], ii.my_ethernet_address[4], ii.my_ethernet_address[5]);
+      #ifdef BACDL_ETHERNET
+      for (i = 0; i < 6; i++)
+      {
+         my_address.mac[i] = ii.my_ethernet_address[i];
+      }
+      ethernet_set_my_address(&my_address);
+      #endif
    }
 
 #if DEVICE_ID == PRISM_PCMCIA_DEVICE || DEVICE_ID == PRISM_DEVICE
@@ -255,9 +254,16 @@ int main(int argc, char *argv[])
   Init_Service_Handlers();
   // init the physical layer
   NetInitialize();
+  #ifdef BACDL_BIP
   bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
   if (!bip_init())
     return 1;
+  #endif
+  #ifdef BACDL_ETHERNET
+  if (!ethernet_init(NULL))
+    return 1;
+  #endif
+
   
   // loop forever
   for (;;)
@@ -265,7 +271,7 @@ int main(int argc, char *argv[])
     // input
 
     // returns 0 bytes on timeout
-    pdu_len = bip_receive(
+    pdu_len = bacdl_receive(
       &src,
       &Rx_Buf[0],
       MAX_MPDU,

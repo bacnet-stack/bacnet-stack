@@ -67,6 +67,7 @@ int Analog_Input_Encode_Property_APDU(
   char text_string[32] = {""};
   float value = 3.14159;
   
+  (void)array_index;
   switch (property)
   {
     case PROP_OBJECT_IDENTIFIER:

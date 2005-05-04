@@ -147,7 +147,7 @@ int wp_decode_apdu(
   BACNET_WRITE_PROPERTY_DATA *data)
 {
   int len = 0;
-  int offset = 0;
+  unsigned offset = 0;
 
   if (!apdu)
     return -1;

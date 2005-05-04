@@ -361,6 +361,18 @@ uint16_t ethernet_receive(
     return pdu_len;
 }
 
+void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+{
+  int i = 0;
+  
+  for (i = 0; i < 6; i++)
+  {
+    Ethernet_MAC_Address[i] = my_address->mac[i];
+  }
+
+  return;
+}
+
 void ethernet_get_my_address(BACNET_ADDRESS *my_address)
 {
   int i = 0;

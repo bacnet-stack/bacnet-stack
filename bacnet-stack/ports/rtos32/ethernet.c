@@ -43,116 +43,29 @@ uint8_t Ethernet_Empty_MAC[MAX_MAC_LEN] = { 0, 0, 0, 0, 0, 0 };
 // my local device data - MAC address
 uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0, 0, 0, 0, 0, 0 };
 
-// static IP address assignment (default)
-static BYTE TargetIP[]       = {192, 168,   0,  50};
-// net mask - set to be subnet restrictive
-static BYTE NetMask[]        = {255, 255, 255,   0};
-// gateway - set to zero if not available or required
-static BYTE DefaultGateway[] = {0, 0,  0,  0};
-// DNS - set to zero if not available or required
-static BYTE DNSServer[]      = {0, 0,  0,  0};
-// the Interface for Ethernet
-// SOCKET_ERROR means no open interface
-static int Ethernet_Interface = SOCKET_ERROR;
 static SOCKET Ethernet_Socket = -1;
 // used for binding 802.2
 static struct sockaddr Ethernet_Address = { 0 };
 
 bool ethernet_valid(void)
 {
-  return (Ethernet_Interface != SOCKET_ERROR);
+  return (Ethernet_Socket != -1);
 }
 
 void ethernet_cleanup(void)
 {
   if (ethernet_valid())
-      xn_interface_close(Ethernet_Interface);
-  Ethernet_Interface = SOCKET_ERROR;
+      closesocket(Ethernet_Socket);
+  Ethernet_Socket = -1;
 
   return;    
 }
 
-/* function to find the local ethernet MAC address */
-static int get_local_hwaddr(int iface, unsigned char *mac)
-{
-    struct _iface_info ii; // contains the hwaddr of the Ethernet interface
-
-    /* determine the local MAC address */
-    xn_interface_info(iface, &ii);
-    mac[0] = ii.my_ethernet_address[0];
-    mac[1] = ii.my_ethernet_address[1];
-    mac[2] = ii.my_ethernet_address[2];
-    mac[3] = ii.my_ethernet_address[3];
-    mac[4] = ii.my_ethernet_address[4];
-    mac[5] = ii.my_ethernet_address[5];
-
-    return 0;
-}
-
-static void ethernet_error(const char *text)
-{
-   fprintf(stderr,"%s, error code: %s\n", 
-      text, xn_geterror_string(WSAGetLastError()));
-   exit(1);
-}
-
 bool ethernet_init(char *interface_name)
 {
-    struct _iface_info ii; // contains the hwaddr of the Ethernet interface
     int value = 1;  
-    int Result = 0;
     
-    // FIXME: what about other drivers other than DAVICOM?
     (void)interface_name;
-    RTKernelInit(0); // get the kernel going
-    if (!RTKDebugVersion())            // switch of all diagnostics and error messages of RTIP-32
-      xn_callbacks()->cb_wr_screen_string_fnc = NULL;
-    
-    CLKSetTimerIntVal(10*1000);        // 10 millisecond tick
-    RTKDelay(1);
-    RTCMOSSetSystemTime();             // get the right time-of-day
-
-    Result = xn_rtip_init();           // Initialize the RTIP stack
-    if (Result == SOCKET_ERROR)
-        ethernet_error("ethernet: xn_rtip_init failed");
-    atexit(ethernet_cleanup);                          // make sure the driver is shut down properly
-    RTCallDebugger(RT_DBG_CALLRESET, (DWORD)exit, 0);  // even if we get restarted by the debugger
-
-    // tell RTIP what Ethernet driver we want 
-    Result = xn_bind_davicom(MINOR_0);
-    if (Result != 0)
-      ethernet_error("ethernet: driver initialization failed");
-    // PCI device ignores the IRQ and IO parameters
-    Ethernet_Interface = xn_interface_open_config(
-      DAVICOM_DEVICE, MINOR_0, 0, 0, 0);
-    if (Ethernet_Interface == SOCKET_ERROR)
-    {
-      fprintf(stderr,"ethernet: Davicom driver failed to initialize\r\n");
-      return false;
-    }
-    if (xn_interface_opt(Ethernet_Interface,IO_802_2,
-      (const char *)&value,sizeof(value)))
-      fprintf(stderr,"ethernet: xn_interface_opt 802.2 failed \n"); 
-    xn_interface_info(Ethernet_Interface, &ii);
-    printf("ethernet: MAC address: %02x-%02x-%02x-%02x-%02x-%02x\n",
-       ii.my_ethernet_address[0], ii.my_ethernet_address[1],
-       ii.my_ethernet_address[2], ii.my_ethernet_address[3],
-       ii.my_ethernet_address[4], ii.my_ethernet_address[5]);
-    // Set the IP address and interface
-    printf("ethernet: static IP address %i.%i.%i.%i\n",
-      TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
-    if (xn_set_ip(Ethernet_Interface, TargetIP, NetMask) == SOCKET_ERROR)
-    {
-      // FIXME: is this because of a duplicate address?  Tell user...
-      fprintf(stderr,"ethernet: failed to set IP address!\r\n");
-      return false;
-    }
-    // add a route in the routing table
-    // ip_ffaddr is apparently some global...
-    xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1,
-      Ethernet_Interface, RT_INF);
-    xn_set_server_list((DWORD*)DNSServer, 1);
-
     // setup the socket
     Ethernet_Socket = socket(AF_INET, SOCK_RAW, 0);
     if (Ethernet_Socket < 0)
@@ -168,14 +81,13 @@ bool ethernet_init(char *interface_name)
 }
 
 /* function to send a packet out the 802.2 socket */
-/* returns 0 on success, non-zero on failure */
+/* returns bytes sent on success, negative number on failure */
 int ethernet_send(
   BACNET_ADDRESS *dest,  // destination address
   BACNET_ADDRESS *src,  // source address
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
-    int status = -1;
     int bytes = 0;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
@@ -185,7 +97,7 @@ int ethernet_send(
     if (Ethernet_Socket < 0)
     {
         fprintf(stderr, "ethernet: 802.2 socket is invalid!\n");
-        return status;
+        return -1;
     }
     /* load destination ethernet MAC address */
     if (dest->mac_len == 6)
@@ -199,7 +111,7 @@ int ethernet_send(
     else
     {
         fprintf(stderr, "ethernet: invalid destination MAC address!\n");
-        return status;
+        return -2;
     }
 
     /* load source ethernet MAC address */
@@ -214,12 +126,12 @@ int ethernet_send(
     else
     {
         fprintf(stderr, "ethernet: invalid source MAC address!\n");
-        return status;
+        return -3;
     }
     if ((14 + 3 + pdu_len) > MAX_MPDU)
     {
         fprintf(stderr, "ethernet: PDU is too big to send!\n");
-        return status;
+        return -4;
     }
     /* packet length */
     mtu_len += encode_unsigned16(&mtu[12], 
@@ -236,20 +148,15 @@ int ethernet_send(
         sendto(Ethernet_Socket, (const char *)&mtu, mtu_len, 0,
             &Ethernet_Address, sizeof(Ethernet_Address));
     /* did it get sent? */
-    if (bytes < 0) {            
+    if (bytes < 0)
       fprintf(stderr,"ethernet: Error sending packet: %s\n", 
         strerror(errno));
-      return status;
-    }
     
-    // got this far - must be good!
-    status = 0;
-
-    return status;
+    return bytes;
 }
 
 /* function to send a packet out the 802.2 socket */
-/* returns zero on success, non-zero on failure */
+/* returns bytes sent on success, negative number on failure */
 int ethernet_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
   uint8_t *pdu, // any data to be sent - may be null
@@ -374,7 +281,19 @@ void ethernet_get_my_address(BACNET_ADDRESS *my_address)
   return;
 }
 
-void ethernet_set_broadcast_address(
+void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+{
+  int i = 0;
+  
+  for (i = 0; i < 6; i++)
+  {
+    Ethernet_MAC_Address[i] = my_address->mac[i];
+  }
+
+  return;
+}
+
+void ethernet_get_broadcast_address(
   BACNET_ADDRESS *dest)  // destination address
 {
   int i = 0; // counter
@@ -427,4 +346,3 @@ void ethernet_debug_address(
 
   return;
 }
-

@@ -84,7 +84,7 @@ int rp_decode_service_request(
   BACNET_PROPERTY_ID *object_property,
   int32_t *array_index)
 {
-  int len = 0;
+  unsigned len = 0;
   uint8_t tag_number = 0;
   uint32_t len_value_type = 0;
   int type = 0; // for decoding
@@ -125,7 +125,7 @@ int rp_decode_service_request(
       *array_index = BACNET_ARRAY_ALL;
   }
 
-  return len;
+  return (int)len;
 }
 
 int rp_decode_apdu(
@@ -138,7 +138,7 @@ int rp_decode_apdu(
   int32_t *array_index)
 {
   int len = 0;
-  int offset = 0;
+  unsigned offset = 0;
 
   if (!apdu)
     return -1;

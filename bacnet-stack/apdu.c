@@ -157,6 +157,7 @@ void apdu_handler(
   uint16_t service_request_len = 0;
   uint16_t len = 0; // counts where we are in PDU
 
+  (void)data_expecting_reply;
   if (apdu)
   {
     // PDU Type

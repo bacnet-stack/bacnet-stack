@@ -278,7 +278,7 @@ int Device_Encode_Property_APDU(
   int apdu_len = 0; // return value
   int len = 0; // apdu len intermediate value
   BACNET_BIT_STRING bit_string;
-  int i = 0;
+  unsigned i = 0;
   int object_type = 0;
   uint32_t instance = 0;
   unsigned count = 0;
