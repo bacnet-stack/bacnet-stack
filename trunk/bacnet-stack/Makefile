@@ -10,6 +10,7 @@ CFLAGS  = -Wall -I. -g
 
 SRCS = ports/linux/main.c \
        ports/linux/ethernet.c \
+       handlers.c \
        bacdcode.c \
        bigend.c \
        whois.c \

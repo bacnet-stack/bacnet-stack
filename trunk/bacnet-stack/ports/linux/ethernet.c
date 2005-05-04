@@ -454,7 +454,7 @@ void ethernet_get_my_address(BACNET_ADDRESS *my_address)
   return;
 }
 
-void ethernet_set_broadcast_address(
+void ethernet_get_broadcast_address(
   BACNET_ADDRESS *dest)  // destination address
 {
   int i = 0; // counter
