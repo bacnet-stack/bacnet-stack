@@ -35,74 +35,7 @@
 #include <stdint.h>             // for standard integer types uint8_t etc.
 #include <stdbool.h>            // for the standard bool type.
 
-/* common unix sockets headers needed */
-#include	<sys/types.h>	/* basic system data types */
-#include	<sys/time.h>	/* timeval{} for select() */
-#include	<time.h>		/* timespec{} for pselect() */
-#include	<netinet/in.h>	/* sockaddr_in{} and other Internet defns */
-#include	<arpa/inet.h>	/* inet(3) functions */
-#include	<errno.h>
-#include	<fcntl.h>		/* for nonblocking */
-#include	<netdb.h>
-#include	<signal.h>
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	<sys/stat.h>	/* for S_xxx file mode constants */
-#include	<sys/uio.h>		/* for iovec{} and readv/writev */
-#include	<unistd.h>
-#include	<sys/wait.h>
-#include	<sys/un.h>		/* for Unix domain sockets */
-
-#ifdef	HAVE_SYS_SELECT_H
-# include	<sys/select.h>	/* for convenience */
-#endif
-
-#ifdef	HAVE_POLL_H
-# include	<poll.h>		/* for convenience */
-#endif
-
-#ifdef	HAVE_STRINGS_H
-# include	<strings.h>		/* for convenience */
-#endif
-
-/* Three headers are normally needed for socket/file ioctl's:
- * <sys/ioctl.h>, <sys/filio.h>, and <sys/sockio.h>.
- */
-#ifdef	HAVE_SYS_IOCTL_H
-# include	<sys/ioctl.h>
-#endif
-#ifdef	HAVE_SYS_FILIO_H
-# include	<sys/filio.h>
-#endif
-#ifdef	HAVE_SYS_SOCKIO_H
-# include	<sys/sockio.h>
-#endif
-
-#ifdef	HAVE_PTHREAD_H
-# include	<pthread.h>
-#endif
-
-
-#define ENUMS
-#include <sys/socket.h>
-#include <net/route.h>
-#include <net/if.h>
-#include <features.h>           /* for the glibc version number */
-#if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
-#include <netpacket/packet.h>
-#include <net/ethernet.h>       /* the L2 protocols */
-#else
-#include <asm/types.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>     /* The L2 protocols */
-#endif
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/un.h>
-#include <sys/ioctl.h>
-#include <netdb.h>
-
+#include "net.h"
 #include "bacdef.h"
 #include "ethernet.h"
 #include "bacdcode.h"
@@ -248,14 +181,13 @@ bool ethernet_init(char *interface_name)
 }
 
 /* function to send a packet out the 802.2 socket */
-/* returns 0 on success, non-zero on failure */
+/* returns bytes sent success, negative on failure */
 int ethernet_send(
   BACNET_ADDRESS *dest,  // destination address
   BACNET_ADDRESS *src,  // source address
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
-    int status = -1;
     int bytes = 0;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
@@ -265,7 +197,7 @@ int ethernet_send(
     if (eth802_sockfd < 0)
     {
         fprintf(stderr, "ethernet: 802.2 socket is invalid!\n");
-        return status;
+        return -1;
     }
     /* load destination ethernet MAC address */
     if (dest->mac_len == 6)
@@ -279,7 +211,7 @@ int ethernet_send(
     else
     {
         fprintf(stderr, "ethernet: invalid destination MAC address!\n");
-        return status;
+        return -2;
     }
 
     /* load source ethernet MAC address */
@@ -294,12 +226,12 @@ int ethernet_send(
     else
     {
         fprintf(stderr, "ethernet: invalid source MAC address!\n");
-        return status;
+        return -3;
     }
     if ((14 + 3 + pdu_len) > MAX_MPDU)
     {
         fprintf(stderr, "ethernet: PDU is too big to send!\n");
-        return status;
+        return -4;
     }
     /* packet length */
     mtu_len += encode_unsigned16(&mtu[12], 
@@ -316,20 +248,15 @@ int ethernet_send(
         sendto(eth802_sockfd, &mtu, mtu_len, 0,
         (struct sockaddr *) &eth_addr, sizeof(struct sockaddr));
     /* did it get sent? */
-    if (bytes < 0) {            
+    if (bytes < 0)
       fprintf(stderr,"ethernet: Error sending packet: %s\n", 
         strerror(errno));
-      return status;
-    }
     
-    // got this far - must be good!
-    status = 0;
-
-    return status;
+    return bytes;
 }
 
 /* function to send a packet out the 802.2 socket */
-/* returns zero on success, non-zero on failure */
+/* returns number of bytes sent on success, negative on failure */
 int ethernet_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
   uint8_t *pdu, // any data to be sent - may be null

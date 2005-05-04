@@ -34,17 +34,17 @@
 
 #include <stdint.h>             // for standard integer types uint8_t etc.
 #include <stdbool.h>            // for the standard bool type.
-#include <socket.h>
 #include "bacdcode.h"
-#include "bip.h"
+#include "bip.h"  
+#include "net.h"
 
 static int BIP_Receive_Socket = -1;
 /* port to use - stored in network byte order */
 static uint16_t BIP_Port = 0;
 /* IP Address - stored in network byte order */
-static struct in_addr BIP_Address = {{{-1}}};
+static struct in_addr BIP_Address;
 /* Broadcast Address */
-static struct in_addr BIP_Broadcast_Address = {{{-1}}};
+static struct in_addr BIP_Broadcast_Address;
 
 bool bip_valid(void)
 {
@@ -54,7 +54,7 @@ bool bip_valid(void)
 void bip_cleanup(void)
 {
   if (bip_valid())
-      closesocket(BIP_Receive_Socket);
+      close(BIP_Receive_Socket);
   BIP_Receive_Socket = -1;
 
   return;    
@@ -76,7 +76,11 @@ static void set_network_address(struct in_addr *net_address,
     net_address->s_addr = htonl(long_data.value);
 }
 
-void bip_set_address(uint8_t octet1, uint8_t octet2, uint8_t octet3, uint8_t octet4)
+void bip_set_address(
+    uint8_t octet1, 
+    uint8_t octet2, 
+    uint8_t octet3, 
+    uint8_t octet4)
 {
     set_network_address(&BIP_Address, octet1, octet2, octet3, octet4);
 }
@@ -89,8 +93,8 @@ void bip_set_port(uint16_t port)
 bool bip_init(void)
 {
     int rv = 0; // return from socket lib calls
-    struct sockaddr_in sin = {-1};
-    
+    struct sockaddr_in sin;
+
     /* network global broadcast address */
     set_network_address(&BIP_Broadcast_Address,255,255,255,255);
     /* configure standard BACnet/IP port */
@@ -110,7 +114,7 @@ bool bip_init(void)
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));
     if (rv < 0)
     {
-        closesocket(BIP_Receive_Socket);
+        close(BIP_Receive_Socket);
         BIP_Receive_Socket = -1;
         return false;
     }
@@ -119,18 +123,16 @@ bool bip_init(void)
 }
 
 /* function to send a packet out the 802.2 socket */
-/* returns 0 on success, non-zero on failure */
+/* returns number of bytes sent on success, negative on failure */
 static int bip_send(
   struct sockaddr_in *bip_dest,
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
     int status = -1; /* initially fail status */
-    int bytes = 0;
     int bip_send_socket = -1;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
-    int i = 0;
     int rv = 0; /* return value from socket calls */
     
     // assumes that the driver has already been initialized
@@ -138,15 +140,15 @@ static int bip_send(
     // FIXME: can we use the same socket as receive bip?
     bip_send_socket = socket(AF_INET, SOCK_DGRAM, 0);
     if (bip_send_socket < 0)
-        return status;
+        return bip_send_socket;
 
     /* UDP is connection based */
-    rv = connect(bip_send_socket, 
+    status = connect(bip_send_socket, 
         (const struct sockaddr*)bip_dest, 
         sizeof(struct sockaddr));
-    if (bip_send_socket < 0)
+    if (status < 0)
     {
-        closesocket(bip_send_socket);
+        close(bip_send_socket);
         return status;
     }
 
@@ -161,13 +163,11 @@ static int bip_send(
     mtu_len += pdu_len;
     
     /* Send the packet */
-    rv = sendto(bip_send_socket, (char *)mtu, mtu_len, 0, 
+    status = sendto(bip_send_socket, (char *)mtu, mtu_len, 0, 
         (struct sockaddr *)bip_dest, 
         sizeof(struct sockaddr));
-    if (rv >= 0)
-      status = 0;
 
-    closesocket(bip_send_socket);
+    close(bip_send_socket);
     
     return status;
 }
@@ -179,10 +179,7 @@ int bip_send_pdu(
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
-    int i = 0; // counter
     struct sockaddr_in bip_dest;
-    uint32_t network_address = 0;
-    uint16_t network_port = 0;
 
     /* load destination IP address */
     bip_dest.sin_family = AF_INET;

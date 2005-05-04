@@ -68,6 +68,6 @@ uint16_t bip_receive(
 void bip_set_address(uint8_t octet1, uint8_t octet2, 
   uint8_t octet3, uint8_t octet4);
 void bip_set_port(uint16_t port);
-
+void bip_set_interface_name(char *ifname);
 
 #endif

@@ -25,6 +25,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include "config.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -65,7 +67,6 @@
 #define bacdl_receive bip_receive
 #endif
 
-
 // flag to send an I-Am
 bool I_Am_Request = true;
 
@@ -81,6 +82,7 @@ void UnrecognizedServiceHandler(
 {
   BACNET_ADDRESS src;
   int pdu_len = 0;
+  int bytes_sent = 0;
   
   (void)service_request;
   (void)service_len;
@@ -100,11 +102,14 @@ void UnrecognizedServiceHandler(
     service_data->invoke_id,
     REJECT_REASON_UNRECOGNIZED_SERVICE);
 
-  (void)bacdl_send_pdu(
+  bytes_sent = bacdl_send_pdu(
     dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
-  fprintf(stderr,"Sent Reject!\n");
+  if (bytes_sent > 0)
+    fprintf(stderr,"Sent Reject!\n");
+  else
+    fprintf(stderr,"Failed to Send Reject (%s)!\n", strerror(errno));
 }
 
 // FIXME: if we handle multiple ports, then a port neutral version
@@ -113,6 +118,7 @@ void Send_IAm(void)
 {
   int pdu_len = 0;
   BACNET_ADDRESS dest;
+  int bytes_sent = 0;
 
   // I-Am is a global broadcast
   bacdl_get_broadcast_address(&dest);
@@ -133,11 +139,14 @@ void Send_IAm(void)
     SEGMENTATION_NONE,
     Device_Vendor_Identifier());
 
-  (void)bacdl_send_pdu(
+  bytes_sent = bacdl_send_pdu(
     &dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
-  fprintf(stderr,"Sent I-Am Request!\n");
+  if (bytes_sent > 0)
+    fprintf(stderr,"Sent I-Am Request!\n");
+  else
+    fprintf(stderr,"Failed to Send I-Am Request (%s)!\n", strerror(errno));
 }
 
 void WhoIsHandler(
@@ -211,6 +220,7 @@ void ReadPropertyHandler(
   int32_t array_index;
   BACNET_ADDRESS my_address;
   bool send = false;
+  int bytes_sent = 0;
 
   len = rp_decode_service_request(
     service_request,
@@ -244,7 +254,7 @@ void ReadPropertyHandler(
       &Tx_Buf[pdu_len],
       service_data->invoke_id,
       ABORT_REASON_OTHER);
-    fprintf(stderr,"Sent Abort!\n");
+    fprintf(stderr,"Sending Abort!\n");
     send = true;
   }
   else if (service_data->segmented_message)
@@ -253,7 +263,7 @@ void ReadPropertyHandler(
       &Tx_Buf[pdu_len],
       service_data->invoke_id,
       ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-    fprintf(stderr,"Sent Abort!\n");
+    fprintf(stderr,"Sending Abort!\n");
     send = true;
   }
   else
@@ -283,7 +293,7 @@ void ReadPropertyHandler(
               &Tx_Buf[pdu_len],
               service_data->invoke_id,
               &rp_data);
-            fprintf(stderr,"Sent Read Property Ack!\n");
+            fprintf(stderr,"Sending Read Property Ack!\n");
             send = true;
           }
           else
@@ -294,7 +304,7 @@ void ReadPropertyHandler(
               SERVICE_CONFIRMED_READ_PROPERTY,
               ERROR_CLASS_PROPERTY,
               ERROR_CODE_UNKNOWN_PROPERTY);
-            fprintf(stderr,"Sent Unknown Property Error!\n");
+            fprintf(stderr,"Sending Unknown Property Error!\n");
             send = true;
           }
         }
@@ -306,7 +316,7 @@ void ReadPropertyHandler(
             SERVICE_CONFIRMED_READ_PROPERTY,
             ERROR_CLASS_OBJECT,
             ERROR_CODE_UNKNOWN_OBJECT);
-          fprintf(stderr,"Sent Unknown Object Error!\n");
+          fprintf(stderr,"Sending Unknown Object Error!\n");
           send = true;
         }
         break;
@@ -332,7 +342,7 @@ void ReadPropertyHandler(
               &Tx_Buf[pdu_len],
               service_data->invoke_id,
               &rp_data);
-            fprintf(stderr,"Sent Read Property Ack!\n");
+            fprintf(stderr,"Sending Read Property Ack!\n");
             send = true;
           }
           else
@@ -343,7 +353,7 @@ void ReadPropertyHandler(
               SERVICE_CONFIRMED_READ_PROPERTY,
               ERROR_CLASS_PROPERTY,
               ERROR_CODE_UNKNOWN_PROPERTY);
-            fprintf(stderr,"Sent Unknown Property Error!\n");
+            fprintf(stderr,"Sending Unknown Property Error!\n");
             send = true;
           }
         }
@@ -355,7 +365,7 @@ void ReadPropertyHandler(
             SERVICE_CONFIRMED_READ_PROPERTY,
             ERROR_CLASS_OBJECT,
             ERROR_CODE_UNKNOWN_OBJECT);
-          fprintf(stderr,"Sent Unknown Object Error!\n");
+          fprintf(stderr,"Sending Unknown Object Error!\n");
           send = true;
         }
         break;
@@ -366,17 +376,19 @@ void ReadPropertyHandler(
           SERVICE_CONFIRMED_READ_PROPERTY,
           ERROR_CLASS_OBJECT,
           ERROR_CODE_UNKNOWN_OBJECT);
-        fprintf(stderr,"Sent Unknown Object Error!\n");
+        fprintf(stderr,"Sending Unknown Object Error!\n");
         send = true;
         break;
     }
   }
   if (send)
   {
-    (void)bacdl_send_pdu(
+    bytes_sent = bacdl_send_pdu(
       src,  // destination address
       &Tx_Buf[0],
       pdu_len); // number of bytes of data
+    if (bytes_sent <= 0)
+      fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
   }
 
   return;
@@ -395,6 +407,7 @@ void WritePropertyHandler(
   bool send = false;
   BACNET_ERROR_CLASS error_class;
   BACNET_ERROR_CODE error_code;
+  int bytes_sent = 0;
 
   // decode the service request only
   len = wp_decode_service_request(
@@ -426,7 +439,7 @@ void WritePropertyHandler(
       &Tx_Buf[pdu_len],
       service_data->invoke_id,
       ABORT_REASON_OTHER);
-    fprintf(stderr,"Sent Abort!\n");
+    fprintf(stderr,"Sending Abort!\n");
     send = true;
   }
   else if (service_data->segmented_message)
@@ -435,7 +448,7 @@ void WritePropertyHandler(
       &Tx_Buf[pdu_len],
       service_data->invoke_id,
       ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-    fprintf(stderr,"Sent Abort!\n");
+    fprintf(stderr,"Sending Abort!\n");
     send = true;
   }
   else
@@ -449,7 +462,7 @@ void WritePropertyHandler(
             &Tx_Buf[pdu_len],
             service_data->invoke_id,
             SERVICE_CONFIRMED_WRITE_PROPERTY);
-          fprintf(stderr,"Sent Write Property Simple Ack!\n");
+          fprintf(stderr,"Sending Write Property Simple Ack!\n");
           send = true;
         }
         else
@@ -460,7 +473,7 @@ void WritePropertyHandler(
             SERVICE_CONFIRMED_WRITE_PROPERTY,
             error_class,
             error_code);
-          fprintf(stderr,"Sent Write Property Error!\n");
+          fprintf(stderr,"Sending Write Property Error!\n");
           send = true;
         }
         break;
@@ -471,7 +484,7 @@ void WritePropertyHandler(
           SERVICE_CONFIRMED_WRITE_PROPERTY,
           ERROR_CLASS_PROPERTY,
           ERROR_CODE_WRITE_ACCESS_DENIED);
-        fprintf(stderr,"Sent Write Access Error!\n");
+        fprintf(stderr,"Sending Write Access Error!\n");
         send = true;
         break;
       default:
@@ -481,17 +494,19 @@ void WritePropertyHandler(
           SERVICE_CONFIRMED_WRITE_PROPERTY,
           ERROR_CLASS_OBJECT,
           ERROR_CODE_UNKNOWN_OBJECT);
-        fprintf(stderr,"Sent Unknown Object Error!\n");
+        fprintf(stderr,"Sending Unknown Object Error!\n");
         send = true;
         break;
     }
   }
   if (send)
   {
-    (void)bacdl_send_pdu(
+    bytes_sent = bacdl_send_pdu(
       src,  // destination address
       &Tx_Buf[0],
       pdu_len); // number of bytes of data
+    if (bytes_sent <= 0)
+      fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
   }
 
   return;
