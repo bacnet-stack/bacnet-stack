@@ -129,11 +129,11 @@ static int bip_send(
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
-    int status = -1; /* initially fail status */
     int bip_send_socket = -1;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
-    int rv = 0; /* return value from socket calls */
+    int bytes_sent = 0;
+    int status = 0;
     
     // assumes that the driver has already been initialized
     // FIXME: can we use the same socket over and over?
@@ -163,17 +163,17 @@ static int bip_send(
     mtu_len += pdu_len;
     
     /* Send the packet */
-    status = sendto(bip_send_socket, (char *)mtu, mtu_len, 0, 
+    bytes_sent = sendto(bip_send_socket, (char *)mtu, mtu_len, 0, 
         (struct sockaddr *)bip_dest, 
         sizeof(struct sockaddr));
 
     close(bip_send_socket);
     
-    return status;
+    return bytes_sent;
 }
 
 /* function to send a packet out the BACnet/IP socket (Annex J) */
-/* returns zero on success, non-zero on failure */
+/* returns number of bytes sent on success, negative on failure */
 int bip_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
   uint8_t *pdu, // any data to be sent - may be null
