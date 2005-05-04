@@ -34,7 +34,7 @@
 
 #include <stdint.h>             // for standard integer types uint8_t etc.
 #include <stdbool.h>            // for the standard bool type.
-#include <socket.h>
+#include "net.h" // local port of the stack network includes
 #include "bacdcode.h"
 #include "bip.h"
 
@@ -54,7 +54,7 @@ bool bip_valid(void)
 void bip_cleanup(void)
 {
   if (bip_valid())
-      closesocket(BIP_Receive_Socket);
+      close(BIP_Receive_Socket);
   BIP_Receive_Socket = -1;
 
   return;    
@@ -110,7 +110,7 @@ bool bip_init(void)
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));
     if (rv < 0)
     {
-        closesocket(BIP_Receive_Socket);
+        close(BIP_Receive_Socket);
         BIP_Receive_Socket = -1;
         return false;
     }
@@ -146,7 +146,7 @@ static int bip_send(
         sizeof(struct sockaddr));
     if (bip_send_socket < 0)
     {
-        closesocket(bip_send_socket);
+        close(bip_send_socket);
         return status;
     }
 
@@ -167,7 +167,7 @@ static int bip_send(
     if (rv >= 0)
       status = 0;
 
-    closesocket(bip_send_socket);
+    close(bip_send_socket);
     
     return status;
 }
