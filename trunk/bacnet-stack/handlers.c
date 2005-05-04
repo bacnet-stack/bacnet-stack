@@ -42,7 +42,6 @@
 
 // Example handlers of services
 
-// Defined in config.h
 #ifdef BACDL_ETHERNET
 #include "ethernet.h"
 #define bacdl_get_broadcast_address ethernet_get_broadcast_address
