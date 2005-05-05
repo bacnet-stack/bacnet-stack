@@ -38,7 +38,7 @@
 #include "bacdcode.h"
 #include "bip.h"
 
-static int BIP_Receive_Socket = -1;
+static int BIP_Socket = -1;
 /* port to use - stored in network byte order */
 static uint16_t BIP_Port = 0;
 /* IP Address - stored in network byte order */
@@ -48,14 +48,14 @@ static struct in_addr BIP_Broadcast_Address = {{{-1}}};
 
 bool bip_valid(void)
 {
-  return (BIP_Receive_Socket != -1);
+  return (BIP_Socket != -1);
 }
 
 void bip_cleanup(void)
 {
   if (bip_valid())
-      close(BIP_Receive_Socket);
-  BIP_Receive_Socket = -1;
+      close(BIP_Socket);
+  BIP_Socket = -1;
 
   return;    
 }
@@ -105,8 +105,8 @@ bool bip_init(void)
     bip_set_port(0xBAC0);
 
     // assumes that the driver has already been initialized
-    BIP_Receive_Socket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (BIP_Receive_Socket < 0)
+    BIP_Socket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (BIP_Socket < 0)
         return false;
 
     // bind the socket to the local port number and IP address
@@ -114,12 +114,12 @@ bool bip_init(void)
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = BIP_Port;
     memset(&(sin.sin_zero), '\0', 8);
-    rv = bind(BIP_Receive_Socket, 
+    rv = bind(BIP_Socket, 
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));
     if (rv < 0)
     {
-        close(BIP_Receive_Socket);
-        BIP_Receive_Socket = -1;
+        close(BIP_Socket);
+        BIP_Socket = -1;
         return false;
     }
 
@@ -134,17 +134,13 @@ static int bip_send(
   unsigned pdu_len) // number of bytes of data
 {
     int bytes = 0;
-    int bip_send_socket = -1;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int i = 0;
     
     // assumes that the driver has already been initialized
-    // FIXME: can we use the same socket over and over?
-    // FIXME: can we use the same socket as receive bip?
-    bip_send_socket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (bip_send_socket < 0)
-        return bip_send_socket;
+    if (BIP_Socket < 0)
+        return BIP_Socket;
 
     mtu[0] = 0x81; /* BVLL for BACnet/IP */
     if (bip_dest->sin_addr.s_addr == BIP_Broadcast_Address.s_addr)
@@ -157,12 +153,10 @@ static int bip_send(
     mtu_len += pdu_len;
     
     /* Send the packet */
-    bytes = sendto(bip_send_socket, (char *)mtu, mtu_len, 0, 
+    bytes = sendto(BIP_Socket, (char *)mtu, mtu_len, 0, 
         (struct sockaddr *)bip_dest, 
         sizeof(struct sockaddr));
-
-    close(bip_send_socket);
-    
+  
     return bytes;
 }
 
@@ -221,7 +215,7 @@ uint16_t bip_receive(
     int sin_len = sizeof(sin);
 
     /* Make sure the socket is open */
-    if (BIP_Receive_Socket < 0)
+    if (BIP_Socket < 0)
         return 0;
 
     /* we could just use a non-blocking socket, but that consumes all
@@ -239,11 +233,11 @@ uint16_t bip_receive(
         select_timeout.tv_usec = 1000 * timeout;
     }
     FD_ZERO(&read_fds);
-    FD_SET(BIP_Receive_Socket, &read_fds);
-    max = BIP_Receive_Socket;
+    FD_SET(BIP_Socket, &read_fds);
+    max = BIP_Socket;
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
-        received_bytes = recvfrom(BIP_Receive_Socket, 
+        received_bytes = recvfrom(BIP_Socket, 
             (char *)&buf[0], MAX_MPDU, 0,
             (struct sockaddr *)&sin, &sin_len);
     else
