@@ -46,6 +46,7 @@
 // buffers used for receiving
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
+#ifdef BACDL_BIP
 static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
 {
     int fd;
@@ -106,12 +107,11 @@ static void Init_Network(char *ifname)
     /* setup local address */
     get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
     decode_network_address(&local_address, &octet1, &octet2, &octet3, &octet4);
-    #ifdef BACDL_BIP
     bip_set_address(octet1, octet2, octet3, octet4);
-    #endif
     fprintf(stderr,"IP Address: %d.%d.%d.%d\n",
       (int)octet1, (int)octet2, (int)octet3, (int)octet4);   
 }
+#endif
 
 static void Init_Device_Parameters(void)
 {
