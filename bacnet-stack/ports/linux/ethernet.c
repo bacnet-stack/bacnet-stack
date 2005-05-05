@@ -357,6 +357,10 @@ uint16_t ethernet_receive(
     // copy the buffer into the PDU
     if (pdu_len < max_pdu)
       memmove(&pdu[0],&buf[17],pdu_len);
+    // ignore packets that are too large
+    else
+      pdu_len = 0;
+      
 
     return pdu_len;
 }

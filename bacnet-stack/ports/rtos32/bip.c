@@ -284,6 +284,8 @@ uint16_t bip_receive(
         pdu_len -= 4; /* BVLC header */
         if (pdu_len < max_pdu)
             memmove(&pdu[0],&buf[4],pdu_len);
+        // ignore packets that are too large
+        // clients should check my max-apdu first
         else
             pdu_len = 0;
     }
