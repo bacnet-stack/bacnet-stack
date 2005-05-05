@@ -76,9 +76,17 @@ static void set_network_address(struct in_addr *net_address,
     net_address->s_addr = htonl(long_data.value);
 }
 
-void bip_set_address(uint8_t octet1, uint8_t octet2, uint8_t octet3, uint8_t octet4)
+void bip_set_address(uint8_t octet1, uint8_t octet2, 
+    uint8_t octet3, uint8_t octet4)
 {
     set_network_address(&BIP_Address, octet1, octet2, octet3, octet4);
+}
+
+void bip_set_broadcast_address(uint8_t octet1, uint8_t octet2, 
+    uint8_t octet3, uint8_t octet4)
+{
+    set_network_address(&BIP_Broadcast_Address, 
+        octet1, octet2, octet3, octet4);
 }
 
 void bip_set_port(uint16_t port)
