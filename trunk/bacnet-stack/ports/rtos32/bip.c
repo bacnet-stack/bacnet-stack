@@ -126,37 +126,25 @@ bool bip_init(void)
     return true; 
 }
 
-/* function to send a packet out the 802.2 socket */
-/* returns 0 on success, non-zero on failure */
+/* function to send a packet out the BACnet/IP socket (Annex J) */
+/* returns number of bytes sent on success, negative number on failure */
 static int bip_send(
   struct sockaddr_in *bip_dest,
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
-    int status = -1; /* initially fail status */
     int bytes = 0;
     int bip_send_socket = -1;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int i = 0;
-    int rv = 0; /* return value from socket calls */
     
     // assumes that the driver has already been initialized
     // FIXME: can we use the same socket over and over?
     // FIXME: can we use the same socket as receive bip?
     bip_send_socket = socket(AF_INET, SOCK_DGRAM, 0);
     if (bip_send_socket < 0)
-        return status;
-
-    /* UDP is connection based */
-    rv = connect(bip_send_socket, 
-        (const struct sockaddr*)bip_dest, 
-        sizeof(struct sockaddr));
-    if (bip_send_socket < 0)
-    {
-        close(bip_send_socket);
-        return status;
-    }
+        return bip_send_socket;
 
     mtu[0] = 0x81; /* BVLL for BACnet/IP */
     if (bip_dest->sin_addr.s_addr == BIP_Broadcast_Address.s_addr)
@@ -169,19 +157,17 @@ static int bip_send(
     mtu_len += pdu_len;
     
     /* Send the packet */
-    rv = sendto(bip_send_socket, (char *)mtu, mtu_len, 0, 
+    bytes = sendto(bip_send_socket, (char *)mtu, mtu_len, 0, 
         (struct sockaddr *)bip_dest, 
         sizeof(struct sockaddr));
-    if (rv >= 0)
-      status = 0;
 
     close(bip_send_socket);
     
-    return status;
+    return bytes;
 }
 
 /* function to send a packet out the BACnet/IP socket (Annex J) */
-/* returns zero on success, non-zero on failure */
+/* returns number of bytes sent on success, negative number on failure */
 int bip_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
   uint8_t *pdu, // any data to be sent - may be null
