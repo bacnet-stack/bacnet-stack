@@ -99,6 +99,7 @@ static void decode_network_address(struct in_addr *net_address,
 static void Init_Network(char *ifname)
 {
     struct in_addr local_address;
+    struct in_addr broadcast_address;
     uint8_t octet1; 
     uint8_t octet2; 
     uint8_t octet3; 
@@ -109,6 +110,12 @@ static void Init_Network(char *ifname)
     decode_network_address(&local_address, &octet1, &octet2, &octet3, &octet4);
     bip_set_address(octet1, octet2, octet3, octet4);
     fprintf(stderr,"IP Address: %d.%d.%d.%d\n",
+      (int)octet1, (int)octet2, (int)octet3, (int)octet4);   
+    /* setup local broadcast address */
+    get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
+    decode_network_address(&broadcast_address, &octet1, &octet2, &octet3, &octet4);
+    bip_set_broadcast_address(octet1, octet2, octet3, octet4);
+    fprintf(stderr,"Broadcast Address: %d.%d.%d.%d\n",
       (int)octet1, (int)octet2, (int)octet3, (int)octet4);   
 }
 #endif
