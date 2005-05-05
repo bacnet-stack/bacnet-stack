@@ -73,7 +73,7 @@ static void set_network_address(struct in_addr *net_address,
     long_data.byte[2] = octet3;
     long_data.byte[3] = octet4;
     
-    net_address->s_addr = htonl(long_data.value);
+    net_address->s_addr = long_data.value;
 }
 
 void bip_set_address(
@@ -83,6 +83,15 @@ void bip_set_address(
     uint8_t octet4)
 {
     set_network_address(&BIP_Address, octet1, octet2, octet3, octet4);
+}
+
+void bip_set_broadcast_address(
+    uint8_t octet1, 
+    uint8_t octet2, 
+    uint8_t octet3, 
+    uint8_t octet4)
+{
+    set_network_address(&BIP_Broadcast_Address, octet1, octet2, octet3, octet4);
 }
 
 void bip_set_port(uint16_t port)
@@ -95,13 +104,11 @@ bool bip_init(void)
     int rv = 0; // return from socket lib calls
     struct sockaddr_in sin;
 
-    /* network global broadcast address */
-    set_network_address(&BIP_Broadcast_Address,255,255,255,255);
-    /* configure standard BACnet/IP port */
+    /* configure standard BACnet/IP receive port */
     bip_set_port(0xBAC0);
 
     // assumes that the driver has already been initialized
-    BIP_Receive_Socket = socket(AF_INET, SOCK_DGRAM, 0);
+    BIP_Receive_Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (BIP_Receive_Socket < 0)
         return false;
 
@@ -134,18 +141,16 @@ static int bip_send(
     int mtu_len = 0;
     int bytes_sent = 0;
     int status = 0;
+    int sockopt = 0;
     
     // assumes that the driver has already been initialized
-    // FIXME: can we use the same socket over and over?
-    // FIXME: can we use the same socket as receive bip?
     bip_send_socket = socket(AF_INET, SOCK_DGRAM, 0);
     if (bip_send_socket < 0)
         return bip_send_socket;
-
-    /* UDP is connection based */
-    status = connect(bip_send_socket, 
-        (const struct sockaddr*)bip_dest, 
-        sizeof(struct sockaddr));
+    // allow us to do a broadcast if necessary
+    sockopt = 1;
+    status = setsockopt(bip_send_socket, SOL_SOCKET, SO_BROADCAST, 
+        &sockopt, sizeof(sockopt));
     if (status < 0)
     {
         close(bip_send_socket);
