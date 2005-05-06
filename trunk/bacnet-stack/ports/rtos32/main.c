@@ -37,20 +37,35 @@
 #ifdef BACDL_ETHERNET
   #include "ethernet.h"
   #define bacdl_receive ethernet_receive
+  #include "net.h"
+  #ifndef HOST
+    #include "netcfg.h"
+  #endif
 #endif
 #ifdef BACDL_BIP
   #include "bip.h"
   #define bacdl_receive bip_receive
+  #include "net.h"
+  #ifndef HOST
+    #include "netcfg.h"
+  #endif
 #endif
-#include "net.h"
-#ifndef HOST
-   #include "netcfg.h"
+#ifdef BACDL_MSTP
+  #include "mstp.h"
+  #include "rs485.h"
+  #define bacdl_receive bip_receive
 #endif
 
+#if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
 static int interface = SOCKET_ERROR;  // SOCKET_ERROR means no open interface
+#endif
 
 // buffers used for transmit and receive
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
+#ifdef BACDL_MSTP
+volatile struct mstp_port_struct_t MSTP_Port; // port data
+static uint8_t MSTP_MAC_Address = 0x05; // local MAC address
+#endif
 
 static void Init_Device_Parameters(void)
 {
@@ -88,6 +103,7 @@ static void Init_Service_Handlers(void)
     WritePropertyHandler);
 }
 
+#if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
 /*-----------------------------------*/
 static void Error(const char * Msg)
 {
@@ -241,6 +257,7 @@ static void NetInitialize(void)
    if (Result != 0)
       Error("TCP/IP stack initialization failed");
 }
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -253,15 +270,20 @@ int main(int argc, char *argv[])
   Init_Device_Parameters();
   Init_Service_Handlers();
   // init the physical layer
-  NetInitialize();
   #ifdef BACDL_BIP
+  NetInitialize();
   bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
   if (!bip_init())
     return 1;
   #endif
   #ifdef BACDL_ETHERNET
+  NetInitialize();
   if (!ethernet_init(NULL))
     return 1;
+  #endif
+  #ifdef BACDL_MSTP
+  RS485_Initialize();
+  MSTP_Init(&MSTP_Port,MSTP_MAC_Address);
   #endif
 
   
@@ -269,15 +291,24 @@ int main(int argc, char *argv[])
   for (;;)
   {
     // input
+    #ifdef BACDL_MSTP
+    MSTP_Millisecond_Timer(&MSTP_Port);
+    // note: also called by RS-485 Receive ISR
+    RS485_Check_UART_Data(&MSTP_Port);
+    MSTP_Receive_Frame_FSM(&MSTP_Port);
+    #endif
 
+    #if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
     // returns 0 bytes on timeout
     pdu_len = bacdl_receive(
       &src,
       &Rx_Buf[0],
       MAX_MPDU,
       timeout);
+    #endif
 
     // process
+
     if (pdu_len)
     {
       npdu_handler(
@@ -291,6 +322,9 @@ int main(int argc, char *argv[])
       Send_IAm();
     }
     // output
+    #ifdef BACDL_MSTP
+    MSTP_Master_Node_FSM(&MSTP_Port);
+    #endif
 
     // blink LEDs, Turn on or off outputs, etc
   }
