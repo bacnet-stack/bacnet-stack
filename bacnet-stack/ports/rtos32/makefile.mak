@@ -21,7 +21,14 @@ PRODUCT = bacnet
 PRODUCT_RTB = $(PRODUCT).rtb
 PRODUCT_EXE = $(PRODUCT).exe
 
-SRCS = init.c main.c ethernet.c bip.c \
+# Choose the Data Link Layer to Enable
+#DEFINES = -DDOC;BACDL_BIP=1
+#DEFINES = -DDOC;BACDL_ETHERNET=1
+DEFINES = -DDOC;BACDL_MSTP=1
+
+SRCS = init.c main.c ethernet.c bip.c rs485.c \
+       ..\..\mstp.c  \
+       ..\..\crc.c  \
        ..\..\handlers.c  \
        ..\..\bacdcode.c \
        ..\..\bigend.c \
@@ -52,8 +59,6 @@ LOCATE = $(RTOS32_DIR)\bin\rtloc
 CC_DIR     = $(BORLAND_DIR)\BIN
 CC_INCLDIR = $(BORLAND_DIR)\include
 INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;../../;
-#DEFINES = -DDOC;BACDL_BIP=1
-DEFINES = -DDOC;BACDL_ETHERNET=1
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
