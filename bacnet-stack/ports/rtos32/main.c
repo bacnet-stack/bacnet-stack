@@ -70,7 +70,7 @@ static uint8_t MSTP_MAC_Address = 0x05; // local MAC address
 static void Init_Device_Parameters(void)
 {
   // configure my initial values
-  Device_Set_Object_Instance_Number(112);
+  Device_Set_Object_Instance_Number(126);
   Device_Set_Vendor_Name("Lithonia Lighting");
   Device_Set_Vendor_Identifier(42);
   Device_Set_Model_Name("Simple BACnet Server");
@@ -273,6 +273,7 @@ int main(int argc, char *argv[])
   #ifdef BACDL_BIP
   NetInitialize();
   bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
+  bip_set_address(NetMask[0], NetMask[1], NetMask[2], NetMask[3]);
   if (!bip_init())
     return 1;
   #endif
