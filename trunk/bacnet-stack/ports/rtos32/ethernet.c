@@ -68,6 +68,7 @@ bool ethernet_init(char *interface_name)
     (void)interface_name;
     // setup the socket
     Ethernet_Socket = socket(AF_INET, SOCK_RAW, 0);
+    //Ethernet_Socket = socket(AF_INET, SOCK_STREAM, 0);
     if (Ethernet_Socket < 0)
       fprintf(stderr,"ethernet: failed to bind to socket!\r\n");
     Ethernet_Address.sa_family = AF_INET;
@@ -145,8 +146,7 @@ int ethernet_send(
     
     /* Send the packet */
     bytes =
-        sendto(Ethernet_Socket, (const char *)&mtu, mtu_len, 0,
-            &Ethernet_Address, sizeof(Ethernet_Address));
+        send(Ethernet_Socket, (const char *)&mtu, mtu_len, 0);
     /* did it get sent? */
     if (bytes < 0)
       fprintf(stderr,"ethernet: Error sending packet: %s\n", 

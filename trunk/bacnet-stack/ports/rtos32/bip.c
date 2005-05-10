@@ -42,9 +42,11 @@ static int BIP_Socket = -1;
 /* port to use - stored in network byte order */
 static uint16_t BIP_Port = 0;
 /* IP Address - stored in network byte order */
-static struct in_addr BIP_Address = {{{-1}}};
+static struct in_addr BIP_Address;
 /* Broadcast Address */
-static struct in_addr BIP_Broadcast_Address = {{{-1}}};
+static struct in_addr BIP_Broadcast_Address;
+/* Subnet Mask */
+static struct in_addr BIP_Subnet_Mask;
 
 bool bip_valid(void)
 {
@@ -85,7 +87,14 @@ void bip_set_address(uint8_t octet1, uint8_t octet2,
 void bip_set_broadcast_address(uint8_t octet1, uint8_t octet2, 
     uint8_t octet3, uint8_t octet4)
 {
-    set_network_address(&BIP_Broadcast_Address, 
+    set_network_address(&BIP_Broadcast_Address,
+        octet1, octet2, octet3, octet4);
+}
+
+void bip_set_subnet_mask(uint8_t octet1, uint8_t octet2,
+    uint8_t octet3, uint8_t octet4)
+{
+    set_network_address(&BIP_Subnet_Mask,
         octet1, octet2, octet3, octet4);
 }
 
@@ -98,14 +107,16 @@ bool bip_init(void)
 {
     int rv = 0; // return from socket lib calls
     struct sockaddr_in sin = {-1};
-    
-    /* network global broadcast address */
-    set_network_address(&BIP_Broadcast_Address,255,255,255,255);
+    int value = 1;
+
+    /* local broadcast address */
+    BIP_Broadcast_Address.s_addr = BIP_Address.s_addr;
+    BIP_Broadcast_Address.s_addr |= ~(BIP_Subnet_Mask.s_addr);
     /* configure standard BACnet/IP port */
     bip_set_port(0xBAC0);
 
     // assumes that the driver has already been initialized
-    BIP_Socket = socket(AF_INET, SOCK_DGRAM, 0);
+    BIP_Socket = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);
     if (BIP_Socket < 0)
         return false;
 

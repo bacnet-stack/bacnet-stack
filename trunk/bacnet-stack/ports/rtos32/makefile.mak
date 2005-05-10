@@ -22,11 +22,12 @@ PRODUCT_RTB = $(PRODUCT).rtb
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-#DEFINES = -DDOC;BACDL_BIP=1
+DEFINES = -DDOC;BACDL_BIP=1
 #DEFINES = -DDOC;BACDL_ETHERNET=1
-DEFINES = -DDOC;BACDL_MSTP=1
+#DEFINES = -DDOC;BACDL_MSTP=1
 
-SRCS = init.c main.c ethernet.c bip.c rs485.c \
+SRCS = init.c main.c ethernet.c bip.c \
+			 rs485.c \
        ..\..\mstp.c  \
        ..\..\crc.c  \
        ..\..\handlers.c  \
