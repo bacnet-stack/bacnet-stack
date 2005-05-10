@@ -35,6 +35,9 @@
 
 #define MAX_ANALOG_INPUTS 32
 
+// we simply have 0-n object instances.  Yours might be
+// more complex, and then you need validate that the
+// given instance exists
 bool Analog_Input_Valid_Instance(uint32_t object_instance)
 {
   if (object_instance < MAX_ANALOG_INPUTS)
@@ -43,6 +46,8 @@ bool Analog_Input_Valid_Instance(uint32_t object_instance)
   return false;
 }
 
+// we simply have 0-n object instances.  Yours might be
+// more complex, and then count how many you have
 unsigned Analog_Input_Count(void)
 {
   return MAX_ANALOG_INPUTS;
@@ -65,7 +70,7 @@ int Analog_Input_Encode_Property_APDU(
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
   char text_string[32] = {""};
-  float value = 3.14159;
+  float value = 3.141592;
   
   (void)array_index;
   switch (property)
