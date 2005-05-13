@@ -12,6 +12,8 @@
 // 50 is the minimum; adjust to your memory and physical layer constraints
 // Lon=206, MS/TP=480, ARCNET=480, Ethernet=1476
 #define MAX_APDU 50
+//#define MAX_APDU 480
+//#define MAX_APDU 1476
 
 // for confirmed messages, this is the number of transactions
 // that we hold in a queue waiting for timeout.
