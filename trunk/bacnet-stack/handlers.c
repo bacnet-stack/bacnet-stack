@@ -34,6 +34,7 @@
 #include "apdu.h"
 #include "device.h"
 #include "ai.h"
+#include "ao.h"
 #include "rp.h"
 #include "wp.h"
 #include "iam.h"
@@ -369,6 +370,55 @@ void ReadPropertyHandler(
           send = true;
         }
         break;
+      case OBJECT_ANALOG_OUTPUT:
+        if (Analog_Output_Valid_Instance(object_instance))
+        {
+          len = Analog_Output_Encode_Property_APDU(
+            &Temp_Buf[0],
+            object_instance,
+            object_property,
+            array_index);
+          if (len > 0)
+          {
+            // encode the APDU portion of the packet
+            rp_data.object_type = object_type;
+            rp_data.object_instance = object_instance;
+            rp_data.object_property = object_property;
+            rp_data.array_index = array_index;
+            rp_data.application_data = &Temp_Buf[0];
+            rp_data.application_data_len = len;
+            // FIXME: probably need a length limitation sent with encode
+            pdu_len += rp_ack_encode_apdu(
+              &Tx_Buf[pdu_len],
+              service_data->invoke_id,
+              &rp_data);
+            fprintf(stderr,"Sending Read Property Ack!\n");
+            send = true;
+          }
+          else
+          {
+            pdu_len += bacerror_encode_apdu(
+              &Tx_Buf[pdu_len],
+              service_data->invoke_id,
+              SERVICE_CONFIRMED_READ_PROPERTY,
+              ERROR_CLASS_PROPERTY,
+              ERROR_CODE_UNKNOWN_PROPERTY);
+            fprintf(stderr,"Sending Unknown Property Error!\n");
+            send = true;
+          }
+        }
+        else
+        {
+          pdu_len += bacerror_encode_apdu(
+            &Tx_Buf[pdu_len],
+            service_data->invoke_id,
+            SERVICE_CONFIRMED_READ_PROPERTY,
+            ERROR_CLASS_OBJECT,
+            ERROR_CODE_UNKNOWN_OBJECT);
+          fprintf(stderr,"Sending Unknown Object Error!\n");
+          send = true;
+        }
+        break;
       default:
         pdu_len += bacerror_encode_apdu(
           &Tx_Buf[pdu_len],
@@ -478,6 +528,16 @@ void WritePropertyHandler(
         }
         break;
       case OBJECT_ANALOG_INPUT:
+        pdu_len += bacerror_encode_apdu(
+          &Tx_Buf[pdu_len],
+          service_data->invoke_id,
+          SERVICE_CONFIRMED_WRITE_PROPERTY,
+          ERROR_CLASS_PROPERTY,
+          ERROR_CODE_WRITE_ACCESS_DENIED);
+        fprintf(stderr,"Sending Write Access Error!\n");
+        send = true;
+        break;
+      case OBJECT_ANALOG_OUTPUT:
         pdu_len += bacerror_encode_apdu(
           &Tx_Buf[pdu_len],
           service_data->invoke_id,

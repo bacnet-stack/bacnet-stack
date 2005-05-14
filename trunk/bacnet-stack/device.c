@@ -30,6 +30,7 @@
 #include "bacenum.h"
 #include "config.h" // the custom stuff
 #include "ai.h" // object list dependency
+#include "ao.h" // object list dependency
 #include "wp.h" // write property handling
 
 static uint32_t Object_Instance_Number = 0;
@@ -231,6 +232,7 @@ unsigned Device_Object_List_Count(void)
   unsigned count = 1;
 
   count += Analog_Input_Count();
+  count += Analog_Output_Count();
 
   return count;
 }
@@ -260,11 +262,15 @@ bool Device_Object_List_Identifier(unsigned array_index,
       status = true;
     }
   }
-
-  // etc.
   if (!status)
   {
     object_index -= Analog_Input_Count();
+    if (object_index < Analog_Output_Count())
+    {
+      *object_type = OBJECT_ANALOG_OUTPUT;
+      *instance = Analog_Output_Index_To_Instance(object_index);
+      status = true;
+    }
   }
   
   return status;  
@@ -385,7 +391,7 @@ int Device_Encode_Property_APDU(
         {
           if (Device_Object_List_Identifier(i,&object_type,&instance))
           {
-            len = encode_tagged_object_id(&apdu[0], object_type,
+            len = encode_tagged_object_id(&apdu[apdu_len], object_type,
               instance);
             apdu_len += len;
             // assume next one is the same size as this one
