@@ -66,6 +66,9 @@ bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number);
 // returns true if the tag is context specific and matches
 bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number);
 
+// from clause 20.2.2 Encoding of a Null Value
+int encode_tagged_null(uint8_t * apdu);
+
 // from clause 20.2.3 Encoding of a Boolean Value
 int encode_tagged_boolean(uint8_t * apdu, bool boolean_value);
 bool decode_boolean(uint32_t len_value);

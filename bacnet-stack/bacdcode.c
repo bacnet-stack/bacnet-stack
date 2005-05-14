@@ -592,6 +592,14 @@ bool decode_boolean(uint32_t len_value)
   return boolean_value;
 }
 
+// from clause 20.2.2 Encoding of a Null Value
+// and 20.2.1 General Rules for Encoding BACnet Tags
+// returns the number of apdu bytes consumed
+int encode_tagged_null(uint8_t * apdu)
+{
+    return encode_tag(&apdu[0], BACNET_APPLICATION_TAG_NULL, false, 0);
+}
+
 static uint8_t byte_reverse_bits(uint8_t in_byte)
 {
   uint8_t out_byte = 0;

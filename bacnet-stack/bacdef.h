@@ -47,6 +47,8 @@
 // Array index 0=size of array, n=array element n,  MAX=all array elements
 #define BACNET_ARRAY_LENGTH_INDEX 0
 #define BACNET_ARRAY_ALL (~0)
+// Priority Array for commandable objects
+#define BACNET_MAX_PRIORITIES 16
 
 // embedded systems need fixed name sizes
 #define MAX_OBJECT_NAME 10
