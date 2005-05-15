@@ -36,6 +36,30 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacdcode.h"
+
+typedef struct BACnet_Write_Property_Value
+{
+  uint8_t tag;
+  union tag_value
+  {
+    // NULL - not needed as it is encoded in the tag alone
+    bool Boolean;
+    unsigned int Unsigned_Int;
+    int Signed_Int;
+    float Real;
+    // Note: if you choose to enable the writing of certain types
+    // you can uncomment the ones you need.  Good Luck!
+    //double Double;
+    //uint8_t Octet_String[20];
+    //char Character_String[20];
+    //BACNET_BIT_STRING Bit_String
+    unsigned int Enumerated;
+    BACNET_DATE Date;
+    BACNET_TIME Time;
+    uint32_t Object_Identifier;
+  }
+} BACNET_WRITE_PROPERTY_VALUE;
 
 typedef struct BACnet_Write_Property_Data
 {
