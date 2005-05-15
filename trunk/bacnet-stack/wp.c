@@ -44,7 +44,6 @@ int wp_encode_apdu(
   uint8_t invoke_id,
   BACNET_WRITE_PROPERTY_DATA *data)
 {
-  int len = 0; // length of each encoding
   int apdu_len = 0; // total length of the apdu, return value
 
   if (apdu)
@@ -64,10 +63,38 @@ int wp_encode_apdu(
         data->array_index);
     // propertyValue
     apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
-    for (len = 0; len < data->property_value_len; len++)
-    {
-      apdu[apdu_len++] = data->property_value[len];
-    }
+    if (data->value.tag == BACNET_APPLICATION_TAG_NULL)
+      apdu[apdu_len++] = data->value.tag;
+    else if (data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN)
+      apdu_len += encode_tagged_boolean(&apdu[apdu_len],
+        data->value.type.Boolean);
+    else if (data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+      apdu_len += encode_tagged_unsigned(&apdu[apdu_len],
+        data->value.type.Unsigned_Int);
+    else if (data->value.tag == BACNET_APPLICATION_TAG_SIGNED_INT)
+      apdu_len += encode_tagged_signed(&apdu[apdu_len],
+        data->value.type.Signed_Int);
+    else if (data->value.tag == BACNET_APPLICATION_TAG_REAL)
+      apdu_len += encode_tagged_real(&apdu[apdu_len],
+        data->value.type.Real);
+    else if (data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED)
+      apdu_len += encode_tagged_enumerated(&apdu[apdu_len],
+        data->value.type.Enumerated);
+    else if (data->value.tag == BACNET_APPLICATION_TAG_DATE)
+      apdu_len += encode_tagged_date(&apdu[apdu_len],
+        data->value.type.Date.year,
+        data->value.type.Date.month,
+        data->value.type.Date.day,
+        data->value.type.Date.wday);
+    else if (data->value.tag == BACNET_APPLICATION_TAG_TIME)
+      apdu_len += encode_tagged_time(&apdu[apdu_len],
+        data->value.type.Time.hour,
+        data->value.type.Time.min,
+        data->value.type.Time.sec,
+        data->value.type.Time.hundredths);
+    else if (data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID)
+      apdu_len += encode_tagged_object_id(&apdu[apdu_len],
+        data->value.type.Object_ID.type,data->value.type.Object_ID.instance);
     apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
     // optional priority - 0 if not set, 1..16 if set
     if (data->priority)
@@ -91,6 +118,10 @@ int wp_decode_service_request(
   int type = 0; // for decoding
   int property = 0; // for decoding
   unsigned unsigned_value = 0;
+  int hour, min, sec, hundredths;
+  int year, month, day, wday;
+  int object_type = 0;
+  uint32_t instance = 0;
 
   // check for value pointers
   if (apdu_len && data)
@@ -121,20 +152,99 @@ int wp_decode_service_request(
     else
       data->array_index = BACNET_ARRAY_ALL;
     // Tag 3: opening context tag */
-    if (decode_is_opening_tag_number(&apdu[len], 3))
+    if (!decode_is_opening_tag_number(&apdu[len], 3))
+      return -1;
+    // a tag number of 3 is not extended so only one octet
+    len++;
+    tag_len = decode_tag_number_and_value(&apdu[len],
+      &tag_number, &len_value_type);
+    if (tag_len)
     {
-      // a tag number of 3 is not extended so only one octet
-      len++;
-      // don't decode the property value here
-      data->property_value = &apdu[len];
-      data->property_value_len = apdu_len - len;
+      len += tag_len;
+      if (tag_number == BACNET_APPLICATION_TAG_NULL)
+      {
+        data->value.tag = tag_number;
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_BOOLEAN)
+      {
+        data->value.tag = tag_number;
+        data->value.type.Boolean = decode_boolean(len_value_type);
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+      {
+        data->value.tag = tag_number;
+        len += decode_unsigned(&apdu[len],
+          len_value_type,
+          &data->value.type.Unsigned_Int);
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_SIGNED_INT)
+      {
+        data->value.tag = tag_number;
+        len += decode_unsigned(&apdu[len],
+          len_value_type,
+          &data->value.type.Signed_Int);
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_REAL)
+      {
+        data->value.tag = tag_number;
+        len += decode_real(&apdu[len],&(data->value.type.Real));
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_ENUMERATED)
+      {
+        data->value.tag = tag_number;
+        len += decode_enumerated(&apdu[len],
+          len_value_type,
+          &data->value.type.Enumerated);
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_DATE)
+      {
+        data->value.tag = tag_number;
+        len += decode_date(&apdu[len], &year, &month, &day, &wday);
+        data->value.type.Date.year = year;
+        data->value.type.Date.month = month;
+        data->value.type.Date.day = day;
+        data->value.type.Date.wday = wday;
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_TIME)
+      {
+        data->value.tag = tag_number;
+        len += decode_bacnet_time(&apdu[len], &hour, &min, &sec, &hundredths);
+        data->value.type.Time.hour = hour;
+        data->value.type.Time.min = min;
+        data->value.type.Time.sec = sec;
+        data->value.type.Time.hundredths = hundredths;
+      }
+      else if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID)
+      {
+        data->value.tag = tag_number;
+        len += decode_object_id(&apdu[tag_len],
+          &object_type, 
+          &instance);
+        data->value.type.Object_ID.type = object_type;
+        data->value.type.Object_ID.instance = instance;
+      }
+      else
+        return -1;
     }
     else
       return -1;
+    if (!decode_is_closing_tag_number(&apdu[len], 3))
+      return -1;
+    // a tag number of 3 is not extended so only one octet
+    len++;
     // Tag 4: optional Priority
-    // FIXME: if the property value is not easily sized here,
-    // then just have the application decode the property value
-    // and the priority
+    data->priority = BACNET_MAX_PRIORITIES;
+    if (len < apdu_len)
+    {
+      tag_len = decode_tag_number_and_value(&apdu[len],
+        &tag_number, &len_value_type);
+      if (tag_number == 4)
+      {
+        len += tag_len;
+        len = decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+        data->priority = unsigned_value;
+      }
+    }
   }
 
   return len;

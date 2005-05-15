@@ -258,13 +258,6 @@ bool Analog_Output_Write_Property(
   BACNET_ERROR_CODE *error_code)
 {
   bool status = false; // return value
-  uint8_t *apdu = NULL;
-  int len = 0;
-  int tag_len = 0;
-  int apdu_len = 0;
-  uint8_t tag_number = 0;
-  uint32_t len_value_type = 0;
-  float real_value = 0.0;
   unsigned int object_index = 0;
   unsigned int priority = 0;
   uint8_t level = AO_LEVEL_NULL;
@@ -281,61 +274,27 @@ bool Analog_Output_Write_Property(
   switch (wp_data->object_property)
   {
     case PROP_PRESENT_VALUE:
-      apdu = wp_data->property_value;
-      tag_len = decode_tag_number_and_value(&apdu[0],
-        &tag_number, &len_value_type);
-      if (tag_len)
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL)
       {
-        if (tag_number == BACNET_APPLICATION_TAG_REAL)
-        { 
-          len = decode_real(&apdu[tag_len],&real_value);
-          if (len && (real_value >= 0.0) && (real_value <= 100.0))
-            level = real_value;
-          else
-          {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            return false;
-          }
-          object_index = Analog_Output_Instance_To_Index(
-            wp_data->object_instance);
-	  apdu_len = tag_len + len;
-          if (decode_is_closing_tag_number(&apdu[apdu_len], 3))
-	  {
-            // decode the optional priority
-	    apdu_len++;
-	    if (apdu_len <= wp_data->property_value_len)
-		priority = BACNET_MAX_PRIORITIES;
-	    else
-	    {
-		tag_len = decode_tag_number_and_value(&apdu[0],
-		  &tag_number, &len_value_type);
-		if (tag_number == 4)
-		{
-		  apdu_len += tag_len;
-                  len = decode_unsigned(&apdu[len], len_value_type,
-                    &priority);
-		}
-	    }
-	    priority--;
-	    if (priority < BACNET_MAX_PRIORITIES)
-	    {
-              Analog_Output_Level[object_index][priority] = level;
-              status = true;
-	    }
-	    else
-	    {
-              *error_class = ERROR_CLASS_PROPERTY;
-              *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-              return false;
-	    }
-	  }
-	  else
-	  {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
-            return false;
-	  }
+        fprintf(stderr, "Real=%f\n",wp_data->value.type.Real);
+        if ((wp_data->value.type.Real >= 0.0) &&
+            (wp_data->value.type.Real <= 100.0))
+          level = wp_data->value.type.Real;
+        else
+        {
+          *error_class = ERROR_CLASS_PROPERTY;
+          *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+          return false;
+        }
+        object_index = Analog_Output_Instance_To_Index(
+          wp_data->object_instance);
+        priority = wp_data->priority;
+        fprintf(stderr, "Priority=%u\n",wp_data->priority);
+        if (priority && (priority <= BACNET_MAX_PRIORITIES))
+        {
+          priority--;
+          Analog_Output_Level[object_index][priority] = level;
+          status = true;
         }
         else
         {

@@ -41,7 +41,7 @@
 typedef struct BACnet_Write_Property_Value
 {
   uint8_t tag;
-  union tag_value
+  union
   {
     // NULL - not needed as it is encoded in the tag alone
     bool Boolean;
@@ -57,8 +57,13 @@ typedef struct BACnet_Write_Property_Value
     unsigned int Enumerated;
     BACNET_DATE Date;
     BACNET_TIME Time;
+    struct
+    {
+      uint16_t type;
+      uint32_t instance;
+    } Object_ID;
     uint32_t Object_Identifier;
-  }
+  } type;
 } BACNET_WRITE_PROPERTY_VALUE;
 
 typedef struct BACnet_Write_Property_Data
@@ -67,8 +72,7 @@ typedef struct BACnet_Write_Property_Data
   uint32_t object_instance;
   BACNET_PROPERTY_ID object_property;
   int32_t array_index; // use BACNET_ARRAY_ALL when not setting
-  uint8_t *property_value;
-  int property_value_len;
+  BACNET_WRITE_PROPERTY_VALUE value;
   uint8_t priority; // use 0 if not setting the priority
 } BACNET_WRITE_PROPERTY_DATA;
 
