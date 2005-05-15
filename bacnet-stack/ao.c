@@ -204,7 +204,7 @@ int Analog_Output_Encode_Property_APDU(
             len = encode_tagged_null(&apdu[apdu_len]);
           else
           {
-            value = Analog_Output_Level[object_index][array_index];
+            value = Analog_Output_Level[object_index][i];
             len = encode_tagged_real(&apdu[apdu_len], value);
           }
           // add it if we have room
@@ -270,7 +270,7 @@ bool Analog_Output_Write_Property(
   uint8_t level = AO_LEVEL_NULL;
   
   Analog_Output_Init();
-  if (Analog_Output_Valid_Instance(wp_data->object_instance))
+  if (!Analog_Output_Valid_Instance(wp_data->object_instance))
   {
     *error_class = ERROR_CLASS_OBJECT;
     *error_code = ERROR_CODE_UNKNOWN_OBJECT;
