@@ -454,9 +454,8 @@ void WritePropertyHandler(
   int len = 0;
   int pdu_len = 0;
   BACNET_ADDRESS my_address;
-  bool send = false;
-  BACNET_ERROR_CLASS error_class;
-  BACNET_ERROR_CODE error_code;
+  BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
+  BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
   int bytes_sent = 0;
 
   // decode the service request only
@@ -490,7 +489,6 @@ void WritePropertyHandler(
       service_data->invoke_id,
       ABORT_REASON_OTHER);
     fprintf(stderr,"Sending Abort!\n");
-    send = true;
   }
   else if (service_data->segmented_message)
   {
@@ -499,7 +497,6 @@ void WritePropertyHandler(
       service_data->invoke_id,
       ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
     fprintf(stderr,"Sending Abort!\n");
-    send = true;
   }
   else
   {
@@ -508,12 +505,11 @@ void WritePropertyHandler(
       case OBJECT_DEVICE:
         if (Device_Write_Property(&wp_data,&error_class,&error_code))
         {
-          pdu_len = encode_simple_ack(
+          pdu_len += encode_simple_ack(
             &Tx_Buf[pdu_len],
             service_data->invoke_id,
             SERVICE_CONFIRMED_WRITE_PROPERTY);
           fprintf(stderr,"Sending Write Property Simple Ack!\n");
-          send = true;
         }
         else
         {
@@ -524,50 +520,56 @@ void WritePropertyHandler(
             error_class,
             error_code);
           fprintf(stderr,"Sending Write Property Error!\n");
-          send = true;
         }
         break;
       case OBJECT_ANALOG_INPUT:
+        error_class = ERROR_CLASS_PROPERTY;
+        error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         pdu_len += bacerror_encode_apdu(
           &Tx_Buf[pdu_len],
           service_data->invoke_id,
           SERVICE_CONFIRMED_WRITE_PROPERTY,
-          ERROR_CLASS_PROPERTY,
-          ERROR_CODE_WRITE_ACCESS_DENIED);
+          error_class,
+          error_code);
         fprintf(stderr,"Sending Write Access Error!\n");
-        send = true;
         break;
       case OBJECT_ANALOG_OUTPUT:
-        pdu_len += bacerror_encode_apdu(
-          &Tx_Buf[pdu_len],
-          service_data->invoke_id,
-          SERVICE_CONFIRMED_WRITE_PROPERTY,
-          ERROR_CLASS_PROPERTY,
-          ERROR_CODE_WRITE_ACCESS_DENIED);
-        fprintf(stderr,"Sending Write Access Error!\n");
-        send = true;
+        if (Analog_Output_Write_Property(&wp_data,&error_class,&error_code))
+        {
+          pdu_len += encode_simple_ack(
+            &Tx_Buf[pdu_len],
+            service_data->invoke_id,
+            SERVICE_CONFIRMED_WRITE_PROPERTY);
+          fprintf(stderr,"Sending Write Property Simple Ack!\n");
+        }
+        else
+        {
+          pdu_len += bacerror_encode_apdu(
+            &Tx_Buf[pdu_len],
+            service_data->invoke_id,
+            SERVICE_CONFIRMED_WRITE_PROPERTY,
+            error_class,
+            error_code);
+          fprintf(stderr,"Sending Write Access Error!\n");
+	}
         break;
       default:
         pdu_len += bacerror_encode_apdu(
           &Tx_Buf[pdu_len],
           service_data->invoke_id,
           SERVICE_CONFIRMED_WRITE_PROPERTY,
-          ERROR_CLASS_OBJECT,
-          ERROR_CODE_UNKNOWN_OBJECT);
+          error_class,
+          error_code);
         fprintf(stderr,"Sending Unknown Object Error!\n");
-        send = true;
         break;
     }
   }
-  if (send)
-  {
-    bytes_sent = bacdl_send_pdu(
-      src,  // destination address
-      &Tx_Buf[0],
-      pdu_len); // number of bytes of data
-    if (bytes_sent <= 0)
-      fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
-  }
+  bytes_sent = bacdl_send_pdu(
+    src,  // destination address
+    &Tx_Buf[0],
+    pdu_len); // number of bytes of data
+  if (bytes_sent <= 0)
+    fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
 
   return;
 }
