@@ -28,6 +28,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacdef.h"
+#include "bacerror.h"
+#include "wp.h"
 
 bool Analog_Output_Valid_Instance(uint32_t object_instance);
 unsigned Analog_Output_Count(void);
@@ -38,6 +40,11 @@ int Analog_Output_Encode_Property_APDU(
   uint32_t object_instance,
   BACNET_PROPERTY_ID property,
   int32_t array_index);
+
+bool Analog_Output_Write_Property(
+  BACNET_WRITE_PROPERTY_DATA *wp_data,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code);
 
 #ifdef TEST
 #include "ctest.h"
