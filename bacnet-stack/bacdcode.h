@@ -139,7 +139,7 @@ int decode_character_string(uint8_t * apdu, uint32_t len_value,
 int encode_bacnet_unsigned(uint8_t * apdu, unsigned int value);
 int encode_context_unsigned(uint8_t * apdu, int tag_number, int value);
 int encode_tagged_unsigned(uint8_t * apdu, unsigned int value);
-int decode_unsigned(uint8_t * apdu, uint32_t len_value, unsigned *value);
+int decode_unsigned(uint8_t * apdu, uint32_t len_value, unsigned int *value);
 
 // from clause 20.2.5 Encoding of a Signed Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags

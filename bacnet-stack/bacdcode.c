@@ -1000,7 +1000,7 @@ int encode_tagged_unsigned(uint8_t * apdu, unsigned int value)
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 // FIXME: What about endian?
-int decode_unsigned(uint8_t * apdu, uint32_t len_value, unsigned *value)
+int decode_unsigned(uint8_t * apdu, uint32_t len_value, unsigned int *value)
 {
     int len = 0;                // return value
 
