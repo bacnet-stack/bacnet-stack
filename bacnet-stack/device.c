@@ -454,13 +454,6 @@ bool Device_Write_Property(
   BACNET_ERROR_CODE *error_code)
 {
   bool status = false; // return value
-  uint8_t *apdu = NULL;
-  int len = 0;
-  int tag_len = 0;
-  uint8_t tag_number = 0;
-  uint32_t len_value_type = 0;
-  int object_type = 0;
-  uint32_t instance = 0;
   
   if (!Device_Valid_Object_Instance_Number(wp_data->object_instance))
   {
@@ -470,23 +463,16 @@ bool Device_Write_Property(
   }
 
   // decode the some of the request
-  apdu = wp_data->property_value;
-  tag_len = decode_tag_number_and_value(&apdu[0],
-    &tag_number, &len_value_type);
   switch (wp_data->object_property)
   {
     case PROP_OBJECT_IDENTIFIER:
-      if (tag_len && (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID))
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID)
       { 
-        // FIXME: are we exceeding the property_value_len?
-        len = decode_object_id(&apdu[tag_len],
-          &object_type, 
-          &instance);
-        if (len && 
-          (object_type == OBJECT_DEVICE) && 
-          (instance <= BACNET_MAX_INSTANCE))
+        if ((wp_data->value.type.Object_ID.type == OBJECT_DEVICE) &&
+          (wp_data->value.type.Object_ID.instance <= BACNET_MAX_INSTANCE))
         {
-          Device_Set_Object_Instance_Number(instance);
+          Device_Set_Object_Instance_Number(
+            wp_data->value.type.Object_ID.instance);
           I_Am_Request = true;
           status = true;
         }
