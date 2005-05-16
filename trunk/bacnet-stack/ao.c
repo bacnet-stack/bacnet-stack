@@ -47,6 +47,9 @@
 // we don't have that kind of memory, so we will use a single byte
 // and load a Real for returning the value when asked.
 static uint8_t Analog_Output_Level[MAX_ANALOG_OUTPUTS][BACNET_MAX_PRIORITIES];
+// Writable out-of-service allows others to play with our Present Value
+// without changing the physical output
+static bool Analog_Output_Out_Of_Service[MAX_ANALOG_OUTPUTS];
 
 // we need to have our arrays initialized before answering any calls
 static bool Analog_Ouput_Initialized = false;
@@ -276,7 +279,6 @@ bool Analog_Output_Write_Property(
     case PROP_PRESENT_VALUE:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL)
       {
-        fprintf(stderr, "Real=%f\n",wp_data->value.type.Real);
         if ((wp_data->value.type.Real >= 0.0) &&
             (wp_data->value.type.Real <= 100.0))
           level = wp_data->value.type.Real;
@@ -289,7 +291,25 @@ bool Analog_Output_Write_Property(
         object_index = Analog_Output_Instance_To_Index(
           wp_data->object_instance);
         priority = wp_data->priority;
-        fprintf(stderr, "Priority=%u\n",wp_data->priority);
+        if (priority && (priority <= BACNET_MAX_PRIORITIES))
+        {
+          priority--;
+          Analog_Output_Level[object_index][priority] = level;
+          status = true;
+        }
+        else
+        {
+          *error_class = ERROR_CLASS_PROPERTY;
+          *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+          return false;
+        }
+      }
+      else if (wp_data->value.tag == BACNET_APPLICATION_TAG_NULL)
+      {
+        level = AO_LEVEL_NULL;
+        object_index = Analog_Output_Instance_To_Index(
+          wp_data->object_instance);
+        priority = wp_data->priority;
         if (priority && (priority <= BACNET_MAX_PRIORITIES))
         {
           priority--;
