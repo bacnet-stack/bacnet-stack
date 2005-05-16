@@ -481,7 +481,7 @@ void WritePropertyHandler(
     &my_address,
     false,  // true for confirmed messages
     MESSAGE_PRIORITY_NORMAL);
-  // bad decoding - send an abort
+  // bad decoding or something we didn't understand - send an abort
   if (len == -1)
   {
     pdu_len += abort_encode_apdu(
