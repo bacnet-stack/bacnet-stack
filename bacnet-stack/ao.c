@@ -345,7 +345,7 @@ bool Analog_Output_Write_Property(
 #include <string.h>
 #include "ctest.h"
 
-void testAnalogInput(Test * pTest)
+void testAnalogOutput(Test * pTest)
 {
   uint8_t apdu[MAX_APDU] = { 0 };
   int len = 0;
@@ -378,9 +378,9 @@ int main(void)
     Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Analog Input", NULL);
+    pTest = ct_create("BACnet Analog Output", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testAnalogInput);
+    rc = ct_addTestFunction(pTest, testAnalogOutput);
     assert(rc);
 
     ct_setStream(pTest, stdout);

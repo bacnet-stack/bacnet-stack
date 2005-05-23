@@ -286,21 +286,20 @@ int wp_decode_apdu(
 #include <string.h>
 #include "ctest.h"
 
-void testWriteProperty(Test * pTest)
+void testWritePropertyTag(Test * pTest,
+  BACNET_WRITE_PROPERTY_DATA *data)
 {
+  BACNET_WRITE_PROPERTY_DATA test_data = {0};
   uint8_t apdu[480] = {0};
   int len = 0;
   int apdu_len = 0;
   uint8_t invoke_id = 128;
   uint8_t test_invoke_id = 0;
-  BACNET_WRITE_PROPERTY_DATA data = {0};
-  BACNET_WRITE_PROPERTY_DATA test_data = {0};
-
-  // FIXME: test values for data    
+  
   len = wp_encode_apdu(
     &apdu[0],
     invoke_id,
-    &data);
+    data);
   ct_test(pTest, len != 0);
   apdu_len = len;
 
@@ -310,15 +309,148 @@ void testWriteProperty(Test * pTest)
     &test_invoke_id,
     &test_data);
   ct_test(pTest, len != -1);
-  ct_test(pTest, test_data.object_type == data.object_type);
-  ct_test(pTest, test_data.object_instance == data.object_instance);
-  ct_test(pTest, test_data.object_property == data.object_property);
-  ct_test(pTest, test_data.array_index == data.array_index);
+  ct_test(pTest, test_data.object_type == data->object_type);
+  ct_test(pTest, test_data.object_instance == data->object_instance);
+  ct_test(pTest, test_data.object_property == data->object_property);
+  ct_test(pTest, test_data.array_index == data->array_index);
+  ct_test(pTest, test_data.value.tag == data->value.tag);
+  switch (test_data.value.tag)
+  {
+    case BACNET_APPLICATION_TAG_NULL:
+      break;
+    case BACNET_APPLICATION_TAG_BOOLEAN:
+      ct_test(pTest, test_data.value.type.Boolean ==
+        data->value.type.Boolean);
+      break;
+    case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+      ct_test(pTest, test_data.value.type.Unsigned_Int ==
+        data->value.type.Unsigned_Int);
+      break;
+    case BACNET_APPLICATION_TAG_SIGNED_INT:
+      ct_test(pTest, test_data.value.type.Signed_Int ==
+        data->value.type.Signed_Int);
+      break;
+    case BACNET_APPLICATION_TAG_REAL:
+      ct_test(pTest, test_data.value.type.Real ==
+        data->value.type.Real);
+      break;
+    case BACNET_APPLICATION_TAG_ENUMERATED:
+      ct_test(pTest, test_data.value.type.Enumerated ==
+        data->value.type.Enumerated);
+      break;
+    case BACNET_APPLICATION_TAG_DATE:
+      ct_test(pTest, test_data.value.type.Date.year ==
+        data->value.type.Date.year);
+      ct_test(pTest, test_data.value.type.Date.month ==
+        data->value.type.Date.month);
+      ct_test(pTest, test_data.value.type.Date.day ==
+        data->value.type.Date.day);
+      ct_test(pTest, test_data.value.type.Date.wday ==
+        data->value.type.Date.wday);
+      break;
+    case BACNET_APPLICATION_TAG_TIME:
+      ct_test(pTest, test_data.value.type.Time.hour ==
+        data->value.type.Time.hour);
+      ct_test(pTest, test_data.value.type.Time.min ==
+        data->value.type.Time.min);
+      ct_test(pTest, test_data.value.type.Time.sec ==
+        data->value.type.Time.sec);
+      ct_test(pTest, test_data.value.type.Time.hundredths ==
+        data->value.type.Time.hundredths);
+      break;
+    case BACNET_APPLICATION_TAG_OBJECT_ID:
+      ct_test(pTest, test_data.value.type.Object_ID.type ==
+        data->value.type.Object_ID.type);
+      ct_test(pTest, test_data.value.type.Object_ID.instance ==
+        data->value.type.Object_ID.instance);
+      break;
+    default:
+      break;
+  }
+}
+
+void testWriteProperty(Test * pTest)
+{
+  BACNET_WRITE_PROPERTY_DATA data = {0};
+
+  data.value.tag = BACNET_APPLICATION_TAG_NULL;
+  testWritePropertyTag(pTest, &data);
+
+  data.value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
+  data.value.type.Boolean = true;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Boolean = false;
+  testWritePropertyTag(pTest, &data);
+
+  data.value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+  data.value.type.Unsigned_Int = 0;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Unsigned_Int = 0xFFFF;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Unsigned_Int = 0xFFFFFFFF;
+  testWritePropertyTag(pTest, &data);
+
+  data.value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
+  data.value.type.Signed_Int = 0;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Signed_Int = -1;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Signed_Int = 32768;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Signed_Int = -32768;
+  testWritePropertyTag(pTest, &data);
+  
+  data.value.tag = BACNET_APPLICATION_TAG_REAL;
+  data.value.type.Real = 0.0;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Real = -1.0;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Real = 1.0;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Real = 3.14159;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Real = -3.14159;
+  testWritePropertyTag(pTest, &data);
+    
+  data.value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+  data.value.type.Enumerated = 0;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Enumerated = 0xFFFF;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Enumerated = 0xFFFFFFFF;
+  testWritePropertyTag(pTest, &data);
+  
+  data.value.tag = BACNET_APPLICATION_TAG_DATE;
+  data.value.type.Date.year = 5;
+  data.value.type.Date.month = 5;
+  data.value.type.Date.day = 22;
+  data.value.type.Date.wday = 1;
+  testWritePropertyTag(pTest, &data);
+
+  data.value.tag = BACNET_APPLICATION_TAG_TIME;
+  data.value.type.Time.hour = 23;
+  data.value.type.Time.min = 59;
+  data.value.type.Time.sec = 59;
+  data.value.type.Time.hundredths = 12;
+  testWritePropertyTag(pTest, &data);
+
+  data.value.tag = BACNET_APPLICATION_TAG_OBJECT_ID;
+  data.value.type.Object_ID.type = OBJECT_ANALOG_INPUT;
+  data.value.type.Object_ID.instance = 0;
+  testWritePropertyTag(pTest, &data);
+  data.value.type.Object_ID.type = OBJECT_LIFE_SAFETY_ZONE;
+  data.value.type.Object_ID.instance = BACNET_MAX_INSTANCE;
+  testWritePropertyTag(pTest, &data);
 
   return;
 }
 
 #ifdef TEST_WRITE_PROPERTY
+uint16_t Device_Max_APDU_Length_Accepted(void)
+{
+  return MAX_APDU;
+}
+
 int main(void)
 {
     Test *pTest;
