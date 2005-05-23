@@ -4,11 +4,10 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_WRITE_PROPERTY -g
+CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_WRITE_PROPERTY -DBACDL_BIP=1 -g
 
 SRCS = bacdcode.c \
        bigend.c \
-       device.c \
        wp.c \
        test/ctest.c
 
