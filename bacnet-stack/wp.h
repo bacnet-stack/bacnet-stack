@@ -62,7 +62,6 @@ typedef struct BACnet_Write_Property_Value
       uint16_t type;
       uint32_t instance;
     } Object_ID;
-    uint32_t Object_Identifier;
   } type;
 } BACNET_WRITE_PROPERTY_VALUE;
 

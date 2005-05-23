@@ -217,7 +217,7 @@ int wp_decode_service_request(
       else if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID)
       {
         data->value.tag = tag_number;
-        len += decode_object_id(&apdu[tag_len],
+        len += decode_object_id(&apdu[len],
           &object_type, 
           &instance);
         data->value.type.Object_ID.type = object_type;
