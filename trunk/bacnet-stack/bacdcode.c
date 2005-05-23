@@ -1560,7 +1560,7 @@ void testBACDCodeObject(Test * pTest)
     ct_test(pTest, memcmp(&object_array[0], &encoded_array[0],
             sizeof(object_array)) == 0);
     for (type = 0; type < 1024; type++) {
-        for (instance = 0; instance <= 0x3FFFFF; instance += 1024) {
+        for (instance = 0; instance <= BACNET_MAX_INSTANCE; instance += 1024) {
             encode_bacnet_object_id(&encoded_array[0], type, instance);
             decode_object_id(&encoded_array[0],
                 (int *) &decoded_type, &decoded_instance);
