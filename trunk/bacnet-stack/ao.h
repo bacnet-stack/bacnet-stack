@@ -39,7 +39,9 @@ int Analog_Output_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,
   BACNET_PROPERTY_ID property,
-  int32_t array_index);
+  int32_t array_index,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code);
 
 bool Analog_Output_Write_Property(
   BACNET_WRITE_PROPERTY_DATA *wp_data,

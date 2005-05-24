@@ -145,13 +145,15 @@ int Analog_Output_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,
   BACNET_PROPERTY_ID property,
-  int32_t array_index)
+  int32_t array_index,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code)
 {
   int len = 0;
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
   char text_string[32] = {""};
-  float value = 1.41421356;
+  float real_value = 1.41421356;
   unsigned object_index = 0;
   unsigned i = 0; 
   
@@ -164,7 +166,7 @@ int Analog_Output_Encode_Property_APDU(
       break;
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
-      // note: the object name must be unique in this device
+      // note: the object name must be unique within this device
       sprintf(text_string,"ANALOG OUTPUT %d",object_instance);
       apdu_len = encode_tagged_character_string(&apdu[0], text_string);
       break;
@@ -172,8 +174,8 @@ int Analog_Output_Encode_Property_APDU(
       apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_ANALOG_OUTPUT);
       break;
     case PROP_PRESENT_VALUE:
-      value = Analog_Output_Present_Value(object_instance);
-      apdu_len = encode_tagged_real(&apdu[0], value);
+      real_value = Analog_Output_Present_Value(object_instance);
+      apdu_len = encode_tagged_real(&apdu[0], real_value);
       break;
     case PROP_STATUS_FLAGS:
         bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
@@ -202,21 +204,21 @@ int Analog_Output_Encode_Property_APDU(
         object_index = Analog_Output_Instance_To_Index(object_instance);
         for (i = 0; i < BACNET_MAX_PRIORITIES; i++)
         {
-          // FIXME: check it we have room before adding it to APDU
+          // FIXME: check if we have room before adding it to APDU
           if (Analog_Output_Level[object_index][i] == AO_LEVEL_NULL)
             len = encode_tagged_null(&apdu[apdu_len]);
           else
           {
-            value = Analog_Output_Level[object_index][i];
-            len = encode_tagged_real(&apdu[apdu_len], value);
+            real_value = Analog_Output_Level[object_index][i];
+            len = encode_tagged_real(&apdu[apdu_len], real_value);
           }
           // add it if we have room
           if ((apdu_len + len) < MAX_APDU)
             apdu_len += len;
           else
           {
-            // ERROR_CLASS_SERVICES
-            // ERROR_CODE_NO_SPACE_FOR_OBJECT
+            *error_class = ERROR_CLASS_SERVICES;
+            *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
             apdu_len = 0;
             break;
           }
@@ -231,24 +233,26 @@ int Analog_Output_Encode_Property_APDU(
             len = encode_tagged_null(&apdu[apdu_len]);
           else
           {
-            value = Analog_Output_Level[object_index][array_index];
-            len = encode_tagged_real(&apdu[apdu_len], value);
+            real_value = Analog_Output_Level[object_index][array_index];
+            len = encode_tagged_real(&apdu[apdu_len], real_value);
           }
         }
         else
         {
-          //ERROR_CLASS_PROPERTY
-          //ERROR_CODE_INVALID_ARRAY_INDEX
+          *error_class = ERROR_CLASS_PROPERTY;
+          *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
       }
     
       break;
     case PROP_RELINQUISH_DEFAULT:
-      value = AO_RELINQUISH_DEFAULT;
-      apdu_len = encode_tagged_real(&apdu[0], value);
+      real_value = AO_RELINQUISH_DEFAULT;
+      apdu_len = encode_tagged_real(&apdu[0], real_value);
       break;
     default:
-        break;
+      *error_class = ERROR_CLASS_PROPERTY;
+      *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+      break;
   }
 
   return apdu_len;
@@ -279,29 +283,25 @@ bool Analog_Output_Write_Property(
     case PROP_PRESENT_VALUE:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL)
       {
-        if ((wp_data->value.type.Real >= 0.0) &&
-            (wp_data->value.type.Real <= 100.0))
-          level = wp_data->value.type.Real;
-        else
-        {
-          *error_class = ERROR_CLASS_PROPERTY;
-          *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-          return false;
-        }
-        object_index = Analog_Output_Instance_To_Index(
-          wp_data->object_instance);
         priority = wp_data->priority;
-        if (priority && (priority <= BACNET_MAX_PRIORITIES))
+        if (priority && (priority <= BACNET_MAX_PRIORITIES) &&
+           (wp_data->value.type.Real >= 0.0) &&
+           (wp_data->value.type.Real <= 100.0))
         {
+          level = wp_data->value.type.Real;
+          object_index = Analog_Output_Instance_To_Index(
+            wp_data->object_instance);
           priority--;
           Analog_Output_Level[object_index][priority] = level;
+          // if Out of Service is TRUE, then don't set the
+          // physical output.  This comment may apply to the
+          // main loop (i.e. check out of service before changing output)
           status = true;
         }
         else
         {
           *error_class = ERROR_CLASS_PROPERTY;
           *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-          return false;
         }
       }
       else if (wp_data->value.tag == BACNET_APPLICATION_TAG_NULL)
@@ -320,14 +320,27 @@ bool Analog_Output_Write_Property(
         {
           *error_class = ERROR_CLASS_PROPERTY;
           *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-          return false;
         }
       }
       else
       {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        return false;
+      }
+      break;
+    case PROP_OUT_OF_SERVICE:
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN)
+      {
+        object_index = Analog_Output_Instance_To_Index(
+          wp_data->object_instance);
+        Analog_Output_Out_Of_Service[object_index] =
+          wp_data->value.type.Boolean;
+        status = true;
+      }
+      else
+      {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
       break;
     default:

@@ -189,11 +189,6 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(void)
   return SEGMENTATION_NONE;
 }
 
-//FIXME: Probably return one at a time, or be supported by
-// an object module, or encode the APDU here.
-//Object_List
-
-
 uint16_t Device_APDU_Timeout(void)
 {
   return APDU_Timeout;
@@ -276,10 +271,13 @@ bool Device_Object_List_Identifier(unsigned array_index,
   return status;  
 }
 
+// return the length of the apdu encoded
 int Device_Encode_Property_APDU(
   uint8_t *apdu,
   BACNET_PROPERTY_ID property,
-  int32_t array_index)
+  int32_t array_index,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code)
 {
   int apdu_len = 0; // return value
   int len = 0; // apdu len intermediate value
@@ -324,26 +322,26 @@ int Device_Encode_Property_APDU(
         Application_Software_Version);
       break;
     // if you support time
-    case PROP_LOCAL_TIME:
-        //t = time(NULL);
-        //my_tm = localtime(&t);
-        //apdu_len =
-        //    encode_tagged_time(&apdu[0], my_tm->tm_hour, my_tm->tm_min,
-        //    my_tm->tm_sec, 0);
-        break;
+    //case PROP_LOCAL_TIME:
+      //t = time(NULL);
+      //my_tm = localtime(&t);
+      //apdu_len =
+      //    encode_tagged_time(&apdu[0], my_tm->tm_hour, my_tm->tm_min,
+      //    my_tm->tm_sec, 0);
+      //break;
     // if you support date
-    case PROP_LOCAL_DATE:
-        //t = time(NULL);
-        //my_tm = localtime(&t);
-        // year = years since 1900
-        // month 1=Jan
-        // day = day of month
-        // wday 1=Monday...7=Sunday
-        //apdu_len = encode_tagged_date(&apdu[0],
-        //    my_tm->tm_year,
-        //    my_tm->tm_mon + 1,
-        //    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday));
-        break;
+    //case PROP_LOCAL_DATE:
+      //t = time(NULL);
+      //my_tm = localtime(&t);
+      // year = years since 1900
+      // month 1=Jan
+      // day = day of month
+      // wday 1=Monday...7=Sunday
+      //apdu_len = encode_tagged_date(&apdu[0],
+      //    my_tm->tm_year,
+      //    my_tm->tm_mon + 1,
+      //    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday));
+      //break;
     case PROP_PROTOCOL_VERSION:
         apdu_len = encode_tagged_unsigned(&apdu[0], Device_Protocol_Version());
         break;
@@ -398,8 +396,8 @@ int Device_Encode_Property_APDU(
             // can we all fit into the APDU?
             if ((apdu_len + len) >= MAX_APDU)
             {
-              // ERROR_CLASS_SERVICES
-              // ERROR_CODE_NO_SPACE_FOR_OBJECT
+              *error_class = ERROR_CLASS_SERVICES;
+              *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
               apdu_len = 0;
               break;
             }
@@ -407,6 +405,8 @@ int Device_Encode_Property_APDU(
           else
           {
             // error: internal error?
+            *error_class = ERROR_CLASS_SERVICES;
+            *error_code = ERROR_CODE_OTHER;
             apdu_len = 0;
             break;
           }
@@ -418,8 +418,8 @@ int Device_Encode_Property_APDU(
           apdu_len = encode_tagged_object_id(&apdu[0], object_type, instance);
         else
         {
-          //ERROR_CLASS_PROPERTY
-          //ERROR_CODE_INVALID_ARRAY_INDEX
+          *error_class = ERROR_CLASS_PROPERTY;
+          *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         }
       }
       break;
@@ -438,7 +438,9 @@ int Device_Encode_Property_APDU(
       apdu_len = encode_tagged_unsigned(&apdu[0], Number_Of_APDU_Retries);
       break;
     default:
-        break;
+      *error_class = ERROR_CLASS_PROPERTY;
+      *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+      break;
   }
 
   return apdu_len;

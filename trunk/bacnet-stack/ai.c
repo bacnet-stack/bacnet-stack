@@ -65,7 +65,9 @@ int Analog_Input_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,
   BACNET_PROPERTY_ID property,
-  int32_t array_index)
+  int32_t array_index,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code)
 {
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
@@ -107,7 +109,9 @@ int Analog_Input_Encode_Property_APDU(
       apdu_len = encode_tagged_enumerated(&apdu[0],UNITS_PERCENT);
       break;
     default:
-        break;
+      *error_class = ERROR_CLASS_PROPERTY;
+      *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+      break;
   }
 
   return apdu_len;
