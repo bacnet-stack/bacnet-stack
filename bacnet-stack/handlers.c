@@ -221,7 +221,10 @@ void ReadPropertyHandler(
   int32_t array_index;
   BACNET_ADDRESS my_address;
   bool send = false;
+  bool error = false;
   int bytes_sent = 0;
+  BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
+  BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
   len = rp_decode_service_request(
     service_request,
@@ -273,13 +276,14 @@ void ReadPropertyHandler(
     {
       case OBJECT_DEVICE:
         // FIXME: probably need a length limitation sent with encode
-        // FIXME: might need to return error codes
         if (object_instance == Device_Object_Instance_Number())
         {
           len = Device_Encode_Property_APDU(
             &Temp_Buf[0],
             object_property,
-            array_index);
+            array_index,
+            &error_class,
+            &error_code);
           if (len > 0)
           {
             // encode the APDU portion of the packet
@@ -298,28 +302,10 @@ void ReadPropertyHandler(
             send = true;
           }
           else
-          {
-            pdu_len += bacerror_encode_apdu(
-              &Tx_Buf[pdu_len],
-              service_data->invoke_id,
-              SERVICE_CONFIRMED_READ_PROPERTY,
-              ERROR_CLASS_PROPERTY,
-              ERROR_CODE_UNKNOWN_PROPERTY);
-            fprintf(stderr,"Sending Unknown Property Error!\n");
-            send = true;
-          }
+            error = true;
         }
         else
-        {
-          pdu_len += bacerror_encode_apdu(
-            &Tx_Buf[pdu_len],
-            service_data->invoke_id,
-            SERVICE_CONFIRMED_READ_PROPERTY,
-            ERROR_CLASS_OBJECT,
-            ERROR_CODE_UNKNOWN_OBJECT);
-          fprintf(stderr,"Sending Unknown Object Error!\n");
-          send = true;
-        }
+          error = true;
         break;
       case OBJECT_ANALOG_INPUT:
         if (Analog_Input_Valid_Instance(object_instance))
@@ -328,7 +314,9 @@ void ReadPropertyHandler(
             &Temp_Buf[0],
             object_instance,
             object_property,
-            array_index);
+            array_index,
+            &error_class,
+            &error_code);
           if (len > 0)
           {
             // encode the APDU portion of the packet
@@ -347,28 +335,10 @@ void ReadPropertyHandler(
             send = true;
           }
           else
-          {
-            pdu_len += bacerror_encode_apdu(
-              &Tx_Buf[pdu_len],
-              service_data->invoke_id,
-              SERVICE_CONFIRMED_READ_PROPERTY,
-              ERROR_CLASS_PROPERTY,
-              ERROR_CODE_UNKNOWN_PROPERTY);
-            fprintf(stderr,"Sending Unknown Property Error!\n");
-            send = true;
-          }
+            error = true;
         }
         else
-        {
-          pdu_len += bacerror_encode_apdu(
-            &Tx_Buf[pdu_len],
-            service_data->invoke_id,
-            SERVICE_CONFIRMED_READ_PROPERTY,
-            ERROR_CLASS_OBJECT,
-            ERROR_CODE_UNKNOWN_OBJECT);
-          fprintf(stderr,"Sending Unknown Object Error!\n");
-          send = true;
-        }
+          error = true;
         break;
       case OBJECT_ANALOG_OUTPUT:
         if (Analog_Output_Valid_Instance(object_instance))
@@ -377,7 +347,9 @@ void ReadPropertyHandler(
             &Temp_Buf[0],
             object_instance,
             object_property,
-            array_index);
+            array_index,
+            &error_class,
+            &error_code);
           if (len > 0)
           {
             // encode the APDU portion of the packet
@@ -396,40 +368,26 @@ void ReadPropertyHandler(
             send = true;
           }
           else
-          {
-            pdu_len += bacerror_encode_apdu(
-              &Tx_Buf[pdu_len],
-              service_data->invoke_id,
-              SERVICE_CONFIRMED_READ_PROPERTY,
-              ERROR_CLASS_PROPERTY,
-              ERROR_CODE_UNKNOWN_PROPERTY);
-            fprintf(stderr,"Sending Unknown Property Error!\n");
-            send = true;
-          }
+            error = true;
         }
         else
-        {
-          pdu_len += bacerror_encode_apdu(
-            &Tx_Buf[pdu_len],
-            service_data->invoke_id,
-            SERVICE_CONFIRMED_READ_PROPERTY,
-            ERROR_CLASS_OBJECT,
-            ERROR_CODE_UNKNOWN_OBJECT);
-          fprintf(stderr,"Sending Unknown Object Error!\n");
-          send = true;
-        }
+          error = true;
         break;
       default:
-        pdu_len += bacerror_encode_apdu(
-          &Tx_Buf[pdu_len],
-          service_data->invoke_id,
-          SERVICE_CONFIRMED_READ_PROPERTY,
-          ERROR_CLASS_OBJECT,
-          ERROR_CODE_UNKNOWN_OBJECT);
-        fprintf(stderr,"Sending Unknown Object Error!\n");
-        send = true;
+        error = true;
         break;
     }
+  }
+  if (error)
+  {
+    pdu_len += bacerror_encode_apdu(
+      &Tx_Buf[pdu_len],
+      service_data->invoke_id,
+      SERVICE_CONFIRMED_READ_PROPERTY,
+      error_class,
+      error_code);
+    fprintf(stderr,"Sending Read Property Error!\n");
+    send = true;
   }
   if (send)
   {
