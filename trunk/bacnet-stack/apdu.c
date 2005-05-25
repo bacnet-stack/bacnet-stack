@@ -39,6 +39,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
+#include "tsm.h"
 
 // Confirmed Function Handlers
 // If they are not set, they are handled by a reject message
@@ -244,9 +245,7 @@ void apdu_handler(
                 invoke_id); 
             }
             else
-            {
-              //FIXME: release the invoke id
-            }
+              tsm_free_invoke_id(invoke_id);
             break;
           default:
             break;
@@ -297,9 +296,7 @@ void apdu_handler(
                 &service_ack_data); 
             }
             else
-            {
-              //FIXME: release the invoke id
-            }
+              tsm_free_invoke_id(invoke_id);
             break;
           default:
             break;
@@ -310,7 +307,7 @@ void apdu_handler(
       case PDU_TYPE_REJECT:
       case PDU_TYPE_ABORT:
         invoke_id = apdu[1];
-        // FIXME: release the invoke id
+        tsm_free_invoke_id(invoke_id);
         break;
       default:
         break;

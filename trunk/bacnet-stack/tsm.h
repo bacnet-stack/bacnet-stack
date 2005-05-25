@@ -71,7 +71,8 @@ typedef struct BACnet_TSM_Data
   //  used to perform timeout on PDU segments
   //uint8_t SegmentTimer;
   // used to perform timeout on Confirmed Requests
-  uint8_t RequestTimer;
+  // in milliseconds
+  uint16_t RequestTimer; 
   // unique id
   uint8_t InvokeID;
   // state that the TSM is in
@@ -80,17 +81,22 @@ typedef struct BACnet_TSM_Data
   BACNET_ADDRESS dest;
   // copy of the PDU, should we need to send it again
   uint8_t pdu[MAX_PDU];
+  unsigned pdu_len;
 } BACNET_TSM_DATA;
 
 bool tsm_transaction_available(void);
 uint8_t tsm_transaction_idle_count(void);
-uint8_t tsm_request_confirmed_unsegmented_transaction(
+void tsm_timer_milliseconds(uint16_t milliseconds);
+// free the invoke ID when the reply comes back
+void tsm_free_invoke_id(uint8_t invokeID);
+// use these in tandem
+uint8_t tsm_next_free_invokeID(void);
+// returns the same invoke ID that was given
+void tsm_set_confirmed_unsegmented_transaction(
+  uint8_t invokeID,
   BACNET_ADDRESS *dest,
   uint8_t *pdu,
   uint16_t pdu_len);
-void tsm_init_list(BACNET_TSM_DATA *list);
-
-
 
 #endif
 

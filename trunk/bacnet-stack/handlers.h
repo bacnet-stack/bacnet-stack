@@ -33,6 +33,13 @@
 
 // flag to send an I-Am
 extern bool I_Am_Request;
+// flag to send a global Who-Is
+extern bool Who_Is_Request;
+
+int handler_send_pdu(
+  BACNET_ADDRESS *dest,  // destination address
+  uint8_t *pdu, // any data to be sent - may be null
+  unsigned pdu_len); // number of bytes of data
 
 void UnrecognizedServiceHandler(
   uint8_t *service_request,
@@ -41,6 +48,7 @@ void UnrecognizedServiceHandler(
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 void Send_IAm(void);
+void Send_WhoIs(void);
 
 void WhoIsHandler(
   uint8_t *service_request,
@@ -52,6 +60,12 @@ void IAmHandler(
   uint16_t service_len,
   BACNET_ADDRESS *src);
 
+void ReadPropertyAckHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+  
 void ReadPropertyHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -63,5 +77,13 @@ void WritePropertyHandler(
   uint16_t service_len,
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
+
+// returns false if device is not bound
+bool Send_Read_Property_Request(
+  uint32_t device_id, // destination device
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance,
+  BACNET_PROPERTY_ID object_property,
+  int32_t array_index);
 
 #endif
