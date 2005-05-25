@@ -44,15 +44,13 @@
 // occurs in BACnet.  A device id is bound to a MAC address.
 // The normal method is using Who-Is, and using the data from I-Am
 
-typedef struct Address_Cache_Entry
+static struct Address_Cache_Entry
 {
   bool valid;
   uint32_t device_id;
   unsigned max_apdu;
   BACNET_ADDRESS address;
-} ADDRESS_CACHE_ENTRY;
-
-static ADDRESS_CACHE_ENTRY Address_Cache[MAX_ADDRESS_CACHE];
+} Address_Cache[MAX_ADDRESS_CACHE];
 
 void address_copy(
   BACNET_ADDRESS *dest,
@@ -268,9 +266,11 @@ void testAddress(Test * pTest)
 {
   unsigned i, count;
   BACNET_ADDRESS src;
-  BACNET_ADDRESS test_address;
   uint32_t device_id = 0;
   unsigned max_apdu = 480;
+  BACNET_ADDRESS test_address;
+  uint32_t test_device_id = 0;
+  unsigned test_max_apdu = 0;
 
   for (i = 0; i < MAX_ADDRESS_CACHE; i++)
   {
@@ -287,10 +287,15 @@ void testAddress(Test * pTest)
   for (i = 0; i < MAX_ADDRESS_CACHE; i++)
   {
     device_id = i * 255;
-    ct_test(pTest, address_get_by_device(device_id, &test_address));
+    ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
+      &test_address));
     set_address(i,&src);
+    ct_test(pTest, test_max_apdu == max_apdu);
     ct_test(pTest, address_match(&test_address,&src));
-    ct_test(pTest, address_get_by_index(i, &test_address));
+    ct_test(pTest, address_get_by_index(i, &test_device_id,
+      &test_max_apdu,&test_address));
+    ct_test(pTest, test_device_id == device_id);
+    ct_test(pTest, test_max_apdu == max_apdu);
     ct_test(pTest, address_match(&test_address,&src));
     ct_test(pTest, address_count() == MAX_ADDRESS_CACHE);
   }
@@ -299,7 +304,8 @@ void testAddress(Test * pTest)
   {
     device_id = i * 255;
     address_remove_device(device_id);
-    ct_test(pTest, !address_get_by_device(device_id, &test_address));
+    ct_test(pTest, !address_get_by_device(device_id, &test_max_apdu,
+      &test_address));
     count = address_count();
     ct_test(pTest, count == (MAX_ADDRESS_CACHE-i-1));
   }
