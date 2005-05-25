@@ -44,6 +44,8 @@
 #include "tsm.h"
 #include "config.h"
 #include "device.h"
+#include "handlers.h"
+#include "address.h"
 
 // Transaction State Machine
 // Really only needed for segmented messages
@@ -135,40 +137,79 @@ uint8_t tsm_next_free_invokeID(void)
 }
 
 // returns 0 if there are no free transactions
-uint8_t tsm_request_confirmed_unsegmented_transaction(
+void tsm_set_confirmed_unsegmented_transaction(
+  uint8_t invokeID,
   BACNET_ADDRESS *dest,
   uint8_t *pdu,
   uint16_t pdu_len)
 {
-  uint8_t invokeID = 0;
   unsigned i = 0, j = 0;
+  uint8_t index;
+  
 
-  // see if there is a free transaction
-  for (i = 0; i < MAX_TSM_TRANSACTIONS; i++)
+  if (invokeID)
   {
-    if (TSM_List[i].state == TSM_STATE_IDLE)
+    index = tsm_find_invokeID_index(invokeID);
+    if (index < MAX_TSM_TRANSACTIONS)
     {
-      // see if the current invoke id is free
-      invokeID = tsm_next_free_invokeID();
-      if (invokeID)
+      // assign the transaction
+      TSM_List[index].state = TSM_STATE_AWAIT_CONFIRMATION;
+      TSM_List[index].RetryCount = Device_Number_Of_APDU_Retries();
+      // start the timer
+      TSM_List[index].RequestTimer = Device_APDU_Timeout();
+      // copy the data
+      for (j = 0; j < pdu_len; j++)
       {
-        // assign the transaction
-        TSM_List[i].state = TSM_STATE_AWAIT_CONFIRMATION;
-        TSM_List[i].RetryCount = Device_Number_Of_APDU_Retries();
-        // start the timer
-        TSM_List[i].RequestTimer = Device_APDU_Timeout();
-        // copy the data
-        for (j = 0; j < pdu_len; j++)
-        {
-          TSM_List[i].pdu[j] = pdu[j];
-        }
-        memmove(&TSM_List[i].dest,dest,sizeof(TSM_List[i].dest));
+        TSM_List[index].pdu[j] = pdu[j];
       }
-      break;
+      TSM_List[index].pdu_len = pdu_len;
+      address_copy(&TSM_List[i].dest,dest);
     }
   }
 
-  return invokeID;  
+  return;  
+}
+
+// called once a millisecond
+void tsm_timer_milliseconds(uint16_t milliseconds)
+{
+  unsigned i = 0; // counter
+  int bytes_sent = 0;
+  
+  for (i = 0; i < MAX_TSM_TRANSACTIONS; i++)
+  {
+    if (TSM_List[i].state == TSM_STATE_AWAIT_CONFIRMATION)
+    {
+      if (TSM_List[i].RequestTimer > milliseconds)
+        TSM_List[i].RequestTimer -= milliseconds;
+      else
+        TSM_List[i].RequestTimer = 0;
+    }
+    // timeout.  retry?
+    if (TSM_List[i].RequestTimer == 0)
+    {
+      TSM_List[i].RetryCount--;
+      TSM_List[i].RequestTimer = Device_APDU_Timeout();
+      if (TSM_List[i].RetryCount)
+      {
+        bytes_sent = handler_send_pdu(
+          &TSM_List[i].dest,  // destination address
+          &TSM_List[i].pdu[0],
+          TSM_List[i].pdu_len); // number of bytes of data
+      }
+      else
+        TSM_List[i].state = TSM_STATE_IDLE;
+    }
+  }
+}
+
+void tsm_free_invoke_id(uint8_t invokeID)
+{
+  uint8_t index;
+  
+  index = tsm_find_invokeID_index(invokeID);
+  if (index < MAX_TSM_TRANSACTIONS)
+    TSM_List[index].state = TSM_STATE_IDLE;
 }
 
 #ifdef TEST

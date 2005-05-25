@@ -42,6 +42,8 @@
 #include "reject.h"
 #include "abort.h"
 #include "bacerror.h"
+#include "address.h"
+#include "tsm.h"
 
 // Example handlers of services
 
@@ -70,6 +72,8 @@
 
 // flag to send an I-Am
 bool I_Am_Request = true;
+// flag to send a global Who-Is
+bool Who_Is_Request = true;
 
 // buffers used for transmit and receive
 static uint8_t Tx_Buf[MAX_MPDU] = {0};
@@ -150,6 +154,110 @@ void Send_IAm(void)
     fprintf(stderr,"Failed to Send I-Am Request (%s)!\n", strerror(errno));
 }
 
+void Send_WhoIs(void)
+{
+  int pdu_len = 0;
+  BACNET_ADDRESS dest;
+  int bytes_sent = 0;
+
+  // Who-Is is a global broadcast
+  bacdl_get_broadcast_address(&dest);
+
+  // encode the NPDU portion of the packet
+  pdu_len = npdu_encode_apdu(
+    &Tx_Buf[0],
+    &dest,
+    NULL,
+    false,  // true for confirmed messages
+    MESSAGE_PRIORITY_NORMAL);
+
+  // encode the APDU portion of the packet
+  pdu_len += whois_encode_apdu(
+    &Tx_Buf[pdu_len], 
+    -1, // send to all
+    -1);// send to all
+
+  bytes_sent = bacdl_send_pdu(
+    &dest,  // destination address
+    &Tx_Buf[0],
+    pdu_len); // number of bytes of data
+  if (bytes_sent > 0)
+    fprintf(stderr,"Sent Who-Is Request!\n");
+  else
+    fprintf(stderr,"Failed to Send Who-Is Request (%s)!\n", strerror(errno));
+}
+
+// returns false if device is not bound
+bool Send_Read_Property_Request(
+  uint32_t device_id, // destination device
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance,
+  BACNET_PROPERTY_ID object_property,
+  int32_t array_index)
+{
+  BACNET_ADDRESS dest;
+  BACNET_ADDRESS my_address;
+  unsigned max_apdu = 0;
+  uint8_t invoke_id = 0;
+  bool status = false;
+  int pdu_len = 0;
+  int bytes_sent = 0;
+
+  status = address_get_by_device(device_id, &max_apdu, &dest);
+  if (status)
+  {
+    bacdl_get_my_address(&my_address);
+    pdu_len = npdu_encode_apdu(
+      &Tx_Buf[0],
+      &dest,
+      &my_address,
+      true,  // true for confirmed messages
+      MESSAGE_PRIORITY_NORMAL);
+
+    invoke_id = tsm_next_free_invokeID();
+    pdu_len += rp_encode_apdu(
+      &Tx_Buf[pdu_len],
+      invoke_id,
+      object_type,
+      object_instance,
+      object_property,
+      array_index);
+    if (pdu_len < max_apdu)
+    {
+      tsm_set_confirmed_unsegmented_transaction(
+        invoke_id,
+        &dest,
+        &Tx_Buf[0],
+        pdu_len);
+      bytes_sent = bacdl_send_pdu(
+        &dest,  // destination address
+        &Tx_Buf[0],
+        pdu_len); // number of bytes of data
+      if (bytes_sent > 0)
+        fprintf(stderr,"Sent ReadProperty Request!\n");
+      else
+        fprintf(stderr,"Failed to Send ReadProperty Request (%s)!\n",
+          strerror(errno));
+    }
+    else
+      fprintf(stderr,"Failed to Send ReadProperty Request "
+        "(exceeds destination maximum APDU)!\n");
+  }
+
+  return status;
+}
+
+int handler_send_pdu(
+  BACNET_ADDRESS *dest,  // destination address
+  uint8_t *pdu, // any data to be sent - may be null
+  unsigned pdu_len) // number of bytes of data
+{
+  return bacdl_send_pdu(
+    dest,
+    pdu,
+    pdu_len);
+}
+
 void WhoIsHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -204,6 +312,29 @@ void IAmHandler(
     fprintf(stderr,"!\n");
 
   return;  
+}
+
+void ReadPropertyAckHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+{
+  int len = 0;
+  BACNET_READ_PROPERTY_DATA data;
+
+  tsm_free_invoke_id(service_data->invoke_id);
+  len = rp_ack_decode_service_request(
+    service_request,
+    service_len,
+    &data);
+  fprintf(stderr,"Received Read-Property Ack!\n");
+  if (len > 0)
+    fprintf(stderr,"type=%u instance=%u property=%u index=%d\n",
+      data.object_type,
+      data.object_instance,
+      data.object_property,
+      data.array_index);
 }
 
 void ReadPropertyHandler(

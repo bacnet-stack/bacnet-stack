@@ -22,4 +22,11 @@
 // requests available.
 #define MAX_TSM_TRANSACTIONS 16
 
+// The address cache is used for binding to BACnet devices
+// The number of entries corresponds to the number of
+// devices that might respond to an I-Am on the network.
+// If your device is a simple server and does not need to bind,
+// then you don't need to use this.
+#define MAX_ADDRESS_CACHE 255
+
 #endif

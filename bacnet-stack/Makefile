@@ -19,6 +19,8 @@ SRCS = ports/linux/main.c \
        iam.c \
        rp.c \
        wp.c \
+       tsm.c \
+       address.c \
        device.c \
        ai.c \
        ao.c \

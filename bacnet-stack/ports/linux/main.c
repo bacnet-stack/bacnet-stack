@@ -28,12 +28,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <time.h>
 #include "config.h"
+#include "address.h"
 #include "bacdef.h"
 #include "handlers.h"
 #include "bacdcode.h"
 #include "npdu.h"
 #include "apdu.h"
+#include "iam.h"
+#include "tsm.h"
 #include "device.h"
 #ifdef BACDL_ETHERNET
   #include "ethernet.h"
@@ -133,6 +137,46 @@ static void Init_Device_Parameters(void)
 
   return;
 }
+
+static void LocalIAmHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  int len = 0;
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+  int segmentation = 0;
+  uint16_t vendor_id = 0;
+
+  (void)src;
+  (void)service_len;
+  len = iam_decode_service_request(
+    service_request,
+    &device_id,
+    &max_apdu,
+    &segmentation,
+    &vendor_id);
+  fprintf(stderr,"Received I-Am Request");
+  if (len != -1)
+  {
+    fprintf(stderr," from %u!\n",device_id);
+    address_add(device_id,
+      max_apdu,
+      src);
+    (void)Send_Read_Property_Request(
+      device_id, // destination device
+      OBJECT_DEVICE,
+      device_id,
+      PROP_OBJECT_NAME,
+      BACNET_ARRAY_ALL);
+  }
+  else
+    fprintf(stderr,"!\n");
+
+  return;  
+}
+
   
 static void Init_Service_Handlers(void)
 {
@@ -142,7 +186,7 @@ static void Init_Service_Handlers(void)
     WhoIsHandler);
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_I_AM,
-    IAmHandler);
+    LocalIAmHandler);
 
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
@@ -155,6 +199,34 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_WRITE_PROPERTY,
     WritePropertyHandler);
+  // handle the data coming back from confirmed requests
+  apdu_set_confirmed_ack_handler(
+    SERVICE_CONFIRMED_READ_PROPERTY,
+    ReadPropertyAckHandler);
+}
+
+static void print_address_cache(void)
+{
+  unsigned i,j;
+  BACNET_ADDRESS address;
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+  
+  fprintf(stderr,"Device\tMAC\tMaxAPDU\tNet\n");
+  for (i = 0; i < MAX_ADDRESS_CACHE; i++)
+  {
+    if (address_get_by_index(i,&device_id, &max_apdu, &address))
+    {
+      fprintf(stderr,"%u\t",device_id);
+      for (j = 0; j < address.mac_len; j++)
+      {
+        fprintf(stderr,"%02X",address.mac[j]);
+      }
+      fprintf(stderr,"\t");
+      fprintf(stderr,"%hu\t",max_apdu);
+      fprintf(stderr,"%hu\n",address.net);
+    }
+  }
 }
 
 static void sig_handler(int signo)
@@ -166,6 +238,8 @@ static void sig_handler(int signo)
   bip_cleanup();
   #endif
 
+  print_address_cache();
+ 
   exit(0);
 }
 
@@ -174,7 +248,10 @@ int main(int argc, char *argv[])
   BACNET_ADDRESS src = {0};  // address where message came from
   uint16_t pdu_len = 0;
   unsigned timeout = 100; // milliseconds
-
+  time_t start_time;
+  time_t new_time = 0;
+  
+  start_time = time(NULL);             /* get current time */
   // Linux specials
   signal(SIGINT, sig_handler);
   signal(SIGHUP, sig_handler);
@@ -193,12 +270,11 @@ int main(int argc, char *argv[])
     return 1;
   #endif
 
-  
   // loop forever
   for (;;)
   {
     // input
-
+    new_time = time(NULL);
     // returns 0 bytes on timeout
     #ifdef BACDL_ETHERNET
     pdu_len = ethernet_receive(
@@ -223,10 +299,19 @@ int main(int argc, char *argv[])
         &Rx_Buf[0],
         pdu_len);
     }
+    if (new_time > start_time)
+    {
+      tsm_timer_milliseconds(new_time - start_time * 1000);
+      start_time = new_time;
+    }
     if (I_Am_Request)
     {
       I_Am_Request = false;
       Send_IAm();
+    } else if (Who_Is_Request)
+    {
+      Who_Is_Request = false;
+      Send_WhoIs();
     }
     // output
 

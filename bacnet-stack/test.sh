@@ -64,3 +64,15 @@ make -f ai.mak
 ./analog_input >> test.log
 make -f ai.mak clean
 
+make -f wp.mak clean
+make -f wp.mak
+./writeproperty >> test.log
+make -f wp.mak clean
+
+make -f address.mak clean
+make -f address.mak
+./address >> test.log
+make -f address.mak clean
+
+
+
