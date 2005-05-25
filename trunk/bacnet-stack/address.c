@@ -204,12 +204,7 @@ unsigned address_count(void)
   return count;
 }
 
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-static bool address_match(
+bool address_match(
   BACNET_ADDRESS *dest,
   BACNET_ADDRESS *src)
 {
@@ -242,6 +237,11 @@ static bool address_match(
   
   return match;
 }
+
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
 
 static void set_address(
   unsigned index,
