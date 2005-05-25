@@ -66,4 +66,8 @@ bool address_get_by_index(
 
 unsigned address_count(void);
 
+bool address_match(
+  BACNET_ADDRESS *dest,
+  BACNET_ADDRESS *src);
+
 #endif
