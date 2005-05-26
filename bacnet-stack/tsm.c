@@ -143,7 +143,7 @@ void tsm_set_confirmed_unsegmented_transaction(
   uint8_t *pdu,
   uint16_t pdu_len)
 {
-  unsigned i = 0, j = 0;
+  uint16_t j = 0;
   uint8_t index;
   
 
@@ -163,7 +163,7 @@ void tsm_set_confirmed_unsegmented_transaction(
         TSM_List[index].pdu[j] = pdu[j];
       }
       TSM_List[index].pdu_len = pdu_len;
-      address_copy(&TSM_List[i].dest,dest);
+      address_copy(&TSM_List[index].dest,dest);
     }
   }
 
