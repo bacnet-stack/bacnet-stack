@@ -222,7 +222,7 @@ bool Send_Read_Property_Request(
       object_instance,
       object_property,
       array_index);
-    if (pdu_len < max_apdu)
+    if ((unsigned)pdu_len < max_apdu)
     {
       tsm_set_confirmed_unsegmented_transaction(
         invoke_id,
@@ -323,6 +323,7 @@ void ReadPropertyAckHandler(
   int len = 0;
   BACNET_READ_PROPERTY_DATA data;
 
+  (void)src;
   tsm_free_invoke_id(service_data->invoke_id);
   len = rp_ack_decode_service_request(
     service_request,

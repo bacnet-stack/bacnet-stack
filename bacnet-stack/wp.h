@@ -45,7 +45,7 @@ typedef struct BACnet_Write_Property_Value
   {
     // NULL - not needed as it is encoded in the tag alone
     bool Boolean;
-    unsigned int Unsigned_Int;
+    unsigned Unsigned_Int;
     int Signed_Int;
     float Real;
     // Note: if you choose to enable the writing of certain types
@@ -54,7 +54,7 @@ typedef struct BACnet_Write_Property_Value
     //uint8_t Octet_String[20];
     //char Character_String[20];
     //BACNET_BIT_STRING Bit_String
-    unsigned int Enumerated;
+    int Enumerated;
     BACNET_DATE Date;
     BACNET_TIME Time;
     struct

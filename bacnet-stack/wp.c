@@ -178,9 +178,9 @@ int wp_decode_service_request(
           &data->value.type.Unsigned_Int);
       }
       else if (tag_number == BACNET_APPLICATION_TAG_SIGNED_INT)
-      {
+      { 
         data->value.tag = tag_number;
-        len += decode_unsigned(&apdu[len],
+        len += decode_signed(&apdu[len],
           len_value_type,
           &data->value.type.Signed_Int);
       }
@@ -234,7 +234,7 @@ int wp_decode_service_request(
     len++;
     // Tag 4: optional Priority
     data->priority = BACNET_MAX_PRIORITIES;
-    if (len < apdu_len)
+    if ((unsigned)len < apdu_len)
     {
       tag_len = decode_tag_number_and_value(&apdu[len],
         &tag_number, &len_value_type);

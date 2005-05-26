@@ -76,7 +76,7 @@ bool ethernet_init(char *interface_name)
     if (bind(Ethernet_Socket, 
         &Ethernet_Address, sizeof(Ethernet_Address)) == SOCKET_ERROR)
       fprintf(stderr,"ethernet: failed to bind to socket!\r\n");
-    setsockopt(Ethernet_Socket,SOL_SOCKET,SO_802_2,(char *)&value,sizeof(value));    
+    //setsockopt(Ethernet_Socket,SOL_SOCKET,SO_802_2,(char *)&value,sizeof(value));    
 
     return ethernet_valid(); 
 }
