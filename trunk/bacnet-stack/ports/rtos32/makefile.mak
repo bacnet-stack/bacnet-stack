@@ -39,6 +39,9 @@ SRCS = init.c main.c ethernet.c bip.c \
        ..\..\wp.c \
        ..\..\device.c \
        ..\..\ai.c \
+       ..\..\ao.c \
+       ..\..\tsm.c \
+       ..\..\address.c \
        ..\..\abort.c \
        ..\..\reject.c \
        ..\..\bacerror.c \
@@ -58,8 +61,7 @@ LOCATE = $(RTOS32_DIR)\bin\rtloc
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-CC_INCLDIR = $(BORLAND_DIR)\include
-INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;../../;
+INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;..\..\;.
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
@@ -80,7 +82,7 @@ $(RTOS32_LIB_DIR)\DRVRT32.LIB \
 $(RTOS32_LIB_DIR)\RTEMUMT.LIB \
 $(RTOS32_LIB_DIR)\RTT32.LIB \
 $(RTOS32_LIB_DIR)\RTTHEAP.LIB \
-$(C_LIB_DIR)\DPMI32.lib \
+#$(C_LIB_DIR)\DPMI32.lib \
 $(C_LIB_DIR)\IMPORT32.lib \
 $(C_LIB_DIR)\CW32MT.lib
 
