@@ -37,7 +37,6 @@
 #include "ao.h"
 #include "rp.h"
 #include "wp.h"
-#include "iam.h"
 #include "whois.h"
 #include "reject.h"
 #include "abort.h"
@@ -95,43 +94,10 @@ void UnrecognizedServiceHandler(
     fprintf(stderr,"Failed to Send Reject (%s)!\n", strerror(errno));
 }
 
-// FIXME: if we handle multiple ports, then a port neutral version
-// of this would be nice. Then it could be moved into iam.c
 void Send_IAm(void)
 {
-  int pdu_len = 0;
-  BACNET_ADDRESS dest;
-  int bytes_sent = 0;
-
-  // I-Am is a global broadcast
-  datalink_get_broadcast_address(&dest);
-
-  // encode the NPDU portion of the packet
-  pdu_len = npdu_encode_apdu(
-    &Tx_Buf[0],
-    &dest,
-    NULL,
-    false,  // true for confirmed messages
-    MESSAGE_PRIORITY_NORMAL);
-
-  // encode the APDU portion of the packet
-  pdu_len += iam_encode_apdu(
-    &Tx_Buf[pdu_len], 
-    Device_Object_Instance_Number(),
-    MAX_APDU,
-    SEGMENTATION_NONE,
-    Device_Vendor_Identifier());
-
-  bytes_sent = datalink_send_pdu(
-    &dest,  // destination address
-    &Tx_Buf[0],
-    pdu_len); // number of bytes of data
-  if (bytes_sent > 0)
-    fprintf(stderr,"Sent I-Am Request!\n");
-  else
-    fprintf(stderr,"Failed to Send I-Am Request (%s)!\n", strerror(errno));
+  iam_send(&Tx_Buf[0]);
 }
-
 void Send_WhoIs(void)
 {
   int pdu_len = 0;
@@ -249,34 +215,6 @@ void WhoIsHandler(
         (Device_Object_Instance_Number() <= (uint32_t)high_limit))
       I_Am_Request = true;
   }
-
-  return;  
-}
-
-void IAmHandler(
-  uint8_t *service_request,
-  uint16_t service_len,
-  BACNET_ADDRESS *src)
-{
-  int len = 0;
-  uint32_t device_id = 0;
-  unsigned max_apdu = 0;
-  int segmentation = 0;
-  uint16_t vendor_id = 0;
-
-  (void)src;
-  (void)service_len;
-  len = iam_decode_service_request(
-    service_request,
-    &device_id,
-    &max_apdu,
-    &segmentation,
-    &vendor_id);
-  fprintf(stderr,"Received I-Am Request");
-  if (len != -1)
-    fprintf(stderr," from %u!\n",device_id);
-  else
-    fprintf(stderr,"!\n");
 
   return;  
 }

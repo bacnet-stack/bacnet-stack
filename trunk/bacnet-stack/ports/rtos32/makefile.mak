@@ -40,6 +40,7 @@ SRCS = init.c main.c ethernet.c bip.c \
        ..\..\device.c \
        ..\..\ai.c \
        ..\..\ao.c \
+       ..\..\datalink.c \
        ..\..\tsm.c \
        ..\..\address.c \
        ..\..\abort.c \

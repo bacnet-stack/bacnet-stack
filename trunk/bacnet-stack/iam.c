@@ -33,7 +33,12 @@
 ####COPYRIGHTEND####*/
 #include <stdint.h>
 #include "bacenum.h"
+#include "bacdef.h"
+#include "npdu.h"
+#include "datalink.h"
+#include "device.h"
 #include "bacdcode.h"
+#include "address.h"
 
 // encode I-Am service
 int iam_encode_apdu(
@@ -159,6 +164,65 @@ int iam_decode_apdu(
     pVendor_id);
   
   return apdu_len;
+}
+
+int iam_send(uint8_t *buffer)
+{
+  int pdu_len = 0;
+  BACNET_ADDRESS dest;
+  int bytes_sent = 0;
+
+  // I-Am is a global broadcast
+  datalink_get_broadcast_address(&dest);
+
+  // encode the NPDU portion of the packet
+  pdu_len = npdu_encode_apdu(
+    &buffer[0],
+    &dest,
+    NULL,
+    false,  // true for confirmed messages
+    MESSAGE_PRIORITY_NORMAL);
+
+  // encode the APDU portion of the packet
+  pdu_len += iam_encode_apdu(
+    &buffer[pdu_len], 
+    Device_Object_Instance_Number(),
+    MAX_APDU,
+    SEGMENTATION_NONE,
+    Device_Vendor_Identifier());
+
+  bytes_sent = datalink_send_pdu(
+    &dest,  // destination address
+    &buffer[0],
+    pdu_len); // number of bytes of data
+  
+  return bytes_sent;
+}
+
+void iam_handler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  int len = 0;
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+  int segmentation = 0;
+  uint16_t vendor_id = 0;
+
+  (void)service_len;
+  len = iam_decode_service_request(
+    service_request,
+    &device_id,
+    &max_apdu,
+    &segmentation,
+    &vendor_id);
+  // only add address if requested to bind
+  address_add_binding(device_id,
+    max_apdu,
+    src);
+
+  return;  
 }
 
 #ifdef TEST
