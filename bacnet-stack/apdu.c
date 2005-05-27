@@ -40,6 +40,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "tsm.h"
+#include "iam.h"
 
 // Confirmed Function Handlers
 // If they are not set, they are handled by a reject message
@@ -66,7 +67,11 @@ void apdu_set_unrecognized_service_handler_handler(
 // Unconfirmed Function Handlers
 // If they are not set, they are not handled
 static unconfirmed_function 
-Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE];
+Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE] = 
+{
+    iam_handler,
+    NULL
+};
 
 void apdu_set_unconfirmed_handler(
   BACNET_UNCONFIRMED_SERVICE service_choice,

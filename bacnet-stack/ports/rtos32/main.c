@@ -87,9 +87,6 @@ static void Init_Service_Handlers(void)
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_WHO_IS,
     WhoIsHandler);
-  apdu_set_unconfirmed_handler(
-    SERVICE_UNCONFIRMED_I_AM,
-    IAmHandler);
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
   apdu_set_unrecognized_service_handler_handler(

@@ -47,6 +47,7 @@
 static struct Address_Cache_Entry
 {
   bool valid;
+  bool bind_request;
   uint32_t device_id;
   unsigned max_apdu;
   BACNET_ADDRESS address;
@@ -83,7 +84,8 @@ void address_remove_device(
 
   for (i = 0; i < MAX_ADDRESS_CACHE; i++)
   {
-    if (Address_Cache[i].valid &&
+    if ((Address_Cache[i].valid || 
+      Address_Cache[i].bind_request) &&
       (Address_Cache[i].device_id == device_id))
     {
       Address_Cache[i].valid = false;
@@ -101,6 +103,7 @@ void address_init(void)
   for (i = 0; i < MAX_ADDRESS_CACHE; i++)
   {
     Address_Cache[i].valid = false;
+    Address_Cache[i].bind_request = false;
   }
 
   return;
@@ -157,6 +160,92 @@ void address_add(
       if (!Address_Cache[i].valid)
       {
         Address_Cache[i].valid = true;
+        Address_Cache[i].device_id = device_id;
+        Address_Cache[i].max_apdu = max_apdu;
+        address_copy(&Address_Cache[i].address,src);
+        break;
+      }
+    }
+  }
+
+  return;
+}
+
+// returns true if device is already bound
+// also returns the address and max apdu if already bound
+bool address_bind_request(
+  uint32_t device_id,
+  unsigned *max_apdu,
+  BACNET_ADDRESS *src)
+{
+  unsigned i;
+  bool found = false; // return value
+
+  // existing device - update address
+  for (i = 0; i < MAX_ADDRESS_CACHE; i++)
+  {
+    if (Address_Cache[i].valid &&
+      (Address_Cache[i].device_id == device_id))
+    {
+      found = true;
+      address_copy(src, &Address_Cache[i].address);
+      *max_apdu = Address_Cache[i].max_apdu;
+      break;
+    }
+    // already have a bind request active for this puppy
+    else if (Address_Cache[i].bind_request &&
+      (Address_Cache[i].device_id == device_id))
+    {
+      return found;
+    }
+  }
+  
+  if (!found)
+  {
+    for (i = 0; i < MAX_ADDRESS_CACHE; i++)
+    {
+      if (!(Address_Cache[i].bind_request || Address_Cache[i].valid))
+      {
+        Address_Cache[i].bind_request = true;
+        Address_Cache[i].device_id = device_id;
+        // now would be a good time to do a Who-Is request
+        break;
+      }
+    }
+  }
+  
+  return found;
+}
+
+void address_add_binding(
+  uint32_t device_id,
+  unsigned max_apdu,
+  BACNET_ADDRESS *src)
+{
+  unsigned i;
+  bool found = false; // return value
+
+  // existing device - update address
+  for (i = 0; i < MAX_ADDRESS_CACHE; i++)
+  {
+    if (Address_Cache[i].valid &&
+      (Address_Cache[i].device_id == device_id))
+    {
+      address_copy(&Address_Cache[i].address,src);
+      Address_Cache[i].max_apdu = max_apdu;
+      found = true;
+      break;
+    }
+  }
+  // add new device - but only if bind requested
+  if (!found)
+  {
+    for (i = 0; i < MAX_ADDRESS_CACHE; i++)
+    {
+      if (!Address_Cache[i].valid && Address_Cache[i].bind_request)
+      {
+        Address_Cache[i].valid = true;
+        Address_Cache[i].bind_request = false;
         Address_Cache[i].device_id = device_id;
         Address_Cache[i].max_apdu = max_apdu;
         address_copy(&Address_Cache[i].address,src);

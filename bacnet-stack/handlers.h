@@ -42,15 +42,10 @@ void UnrecognizedServiceHandler(
   BACNET_ADDRESS *dest,
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
-void Send_IAm(void);
 void Send_WhoIs(void);
+void Send_IAm(void);
 
 void WhoIsHandler(
-  uint8_t *service_request,
-  uint16_t service_len,
-  BACNET_ADDRESS *src);
-
-void IAmHandler(
   uint8_t *service_request,
   uint16_t service_len,
   BACNET_ADDRESS *src);

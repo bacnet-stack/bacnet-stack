@@ -57,6 +57,13 @@ int iam_decode_apdu(
   unsigned *pMax_apdu,
   int *pSegmentation,
   uint16_t *pVendor_id);
+  
+void iam_handler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src);
+
+int iam_send(uint8_t *buffer);
 
 #ifdef TEST
 void testIAm(Test * pTest);
