@@ -20,6 +20,7 @@ SRCS = ports/linux/main.c \
        rp.c \
        wp.c \
        tsm.c \
+       datalink.c \
        address.c \
        device.c \
        ai.c \

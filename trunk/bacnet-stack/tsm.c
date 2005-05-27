@@ -44,6 +44,7 @@
 #include "tsm.h"
 #include "config.h"
 #include "device.h"
+#include "datalink.h"
 #include "handlers.h"
 #include "address.h"
 
@@ -192,7 +193,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
       TSM_List[i].RequestTimer = Device_APDU_Timeout();
       if (TSM_List[i].RetryCount)
       {
-        bytes_sent = handler_send_pdu(
+        bytes_sent = datalink_send_pdu(
           &TSM_List[i].dest,  // destination address
           &TSM_List[i].pdu[0],
           TSM_List[i].pdu_len); // number of bytes of data
