@@ -36,11 +36,6 @@ extern bool I_Am_Request;
 // flag to send a global Who-Is
 extern bool Who_Is_Request;
 
-int handler_send_pdu(
-  BACNET_ADDRESS *dest,  // destination address
-  uint8_t *pdu, // any data to be sent - may be null
-  unsigned pdu_len); // number of bytes of data
-
 void UnrecognizedServiceHandler(
   uint8_t *service_request,
   uint16_t service_len,

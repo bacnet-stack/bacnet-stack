@@ -44,31 +44,9 @@
 #include "bacerror.h"
 #include "address.h"
 #include "tsm.h"
+#include "datalink.h"
 
 // Example handlers of services
-
-#ifdef BACDL_ETHERNET
-#include "ethernet.h"
-#define bacdl_get_broadcast_address ethernet_get_broadcast_address
-#define bacdl_get_my_address ethernet_get_my_address
-#define bacdl_send_pdu ethernet_send_pdu
-#endif
-
-#ifdef BACDL_MSTP
-#include "mstp.h"
-#define bacdl_get_broadcast_address mstp_get_broadcast_address
-#define bacdl_get_my_address mstp_get_my_address
-#define bacdl_send_pdu mstp_send_pdu
-#define bacdl_receive mstp_receive
-#endif
-
-#ifdef BACDL_BIP
-#include "bip.h"
-#define bacdl_get_broadcast_address bip_get_broadcast_address
-#define bacdl_get_my_address bip_get_my_address
-#define bacdl_send_pdu bip_send_pdu
-#define bacdl_receive bip_receive
-#endif
 
 // flag to send an I-Am
 bool I_Am_Request = true;
@@ -91,7 +69,7 @@ void UnrecognizedServiceHandler(
   
   (void)service_request;
   (void)service_len;
-  bacdl_get_my_address(&src);
+  datalink_get_my_address(&src);
 
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
@@ -107,7 +85,7 @@ void UnrecognizedServiceHandler(
     service_data->invoke_id,
     REJECT_REASON_UNRECOGNIZED_SERVICE);
 
-  bytes_sent = bacdl_send_pdu(
+  bytes_sent = datalink_send_pdu(
     dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
@@ -126,7 +104,7 @@ void Send_IAm(void)
   int bytes_sent = 0;
 
   // I-Am is a global broadcast
-  bacdl_get_broadcast_address(&dest);
+  datalink_get_broadcast_address(&dest);
 
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
@@ -144,7 +122,7 @@ void Send_IAm(void)
     SEGMENTATION_NONE,
     Device_Vendor_Identifier());
 
-  bytes_sent = bacdl_send_pdu(
+  bytes_sent = datalink_send_pdu(
     &dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
@@ -161,7 +139,7 @@ void Send_WhoIs(void)
   int bytes_sent = 0;
 
   // Who-Is is a global broadcast
-  bacdl_get_broadcast_address(&dest);
+  datalink_get_broadcast_address(&dest);
 
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
@@ -177,7 +155,7 @@ void Send_WhoIs(void)
     -1, // send to all
     -1);// send to all
 
-  bytes_sent = bacdl_send_pdu(
+  bytes_sent = datalink_send_pdu(
     &dest,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
@@ -206,7 +184,7 @@ bool Send_Read_Property_Request(
   status = address_get_by_device(device_id, &max_apdu, &dest);
   if (status)
   {
-    bacdl_get_my_address(&my_address);
+    datalink_get_my_address(&my_address);
     pdu_len = npdu_encode_apdu(
       &Tx_Buf[0],
       &dest,
@@ -229,7 +207,7 @@ bool Send_Read_Property_Request(
         &dest,
         &Tx_Buf[0],
         pdu_len);
-      bytes_sent = bacdl_send_pdu(
+      bytes_sent = datalink_send_pdu(
         &dest,  // destination address
         &Tx_Buf[0],
         pdu_len); // number of bytes of data
@@ -245,17 +223,6 @@ bool Send_Read_Property_Request(
   }
 
   return status;
-}
-
-int handler_send_pdu(
-  BACNET_ADDRESS *dest,  // destination address
-  uint8_t *pdu, // any data to be sent - may be null
-  unsigned pdu_len) // number of bytes of data
-{
-  return bacdl_send_pdu(
-    dest,
-    pdu,
-    pdu_len);
 }
 
 void WhoIsHandler(
@@ -375,7 +342,7 @@ void ReadPropertyHandler(
   else
     fprintf(stderr,"Unable to decode Read-Property Request!\n");
   // prepare a reply
-  bacdl_get_my_address(&my_address);
+  datalink_get_my_address(&my_address);
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
     &Tx_Buf[0],
@@ -523,7 +490,7 @@ void ReadPropertyHandler(
   }
   if (send)
   {
-    bytes_sent = bacdl_send_pdu(
+    bytes_sent = datalink_send_pdu(
       src,  // destination address
       &Tx_Buf[0],
       pdu_len); // number of bytes of data
@@ -563,7 +530,7 @@ void WritePropertyHandler(
   else
     fprintf(stderr,"Unable to decode Write-Property Request!\n");
   // prepare a reply
-  bacdl_get_my_address(&my_address);
+  datalink_get_my_address(&my_address);
   // encode the NPDU portion of the packet
   pdu_len = npdu_encode_apdu(
     &Tx_Buf[0],
@@ -654,7 +621,7 @@ void WritePropertyHandler(
         break;
     }
   }
-  bytes_sent = bacdl_send_pdu(
+  bytes_sent = datalink_send_pdu(
     src,  // destination address
     &Tx_Buf[0],
     pdu_len); // number of bytes of data
