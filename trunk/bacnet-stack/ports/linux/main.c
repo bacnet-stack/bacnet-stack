@@ -22,7 +22,6 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -46,6 +45,8 @@
   #include "bip.h"
 #endif
 #include "net.h"
+
+// This is an example application using the BACnet Stack on Linux
 
 // buffers used for receiving
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
@@ -164,12 +165,6 @@ static void LocalIAmHandler(
     address_add(device_id,
       max_apdu,
       src);
-    (void)Send_Read_Property_Request(
-      device_id, // destination device
-      OBJECT_DEVICE,
-      device_id,
-      PROP_OBJECT_NAME,
-      BACNET_ARRAY_ALL);
   }
   else
     fprintf(stderr,"!\n");
@@ -177,6 +172,55 @@ static void LocalIAmHandler(
   return;  
 }
 
+static void Read_Properties(void)
+{
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+  BACNET_ADDRESS src;
+  bool next_device = false;
+  static unsigned index = 0;
+  static unsigned property = 0;
+  // list of required (and some optional) properties in the
+  // Device Object
+  const int object_props[] =
+  {
+    75,77,79,112,121,120,70,44,12,98,95,97,96,
+    62,107,57,56,119,24,10,11,73,116,64,63,30,
+    514,515,
+    // note: 76 is missing cause we get it special below
+    -1
+  };
+
+  if (address_count())
+  {
+    if (address_get_by_index(index, &device_id, &max_apdu, &src))
+    {
+      if (object_props[property] < 0)
+        next_device = true;
+      else
+      {
+        (void)Send_Read_Property_Request(
+          device_id, // destination device
+          OBJECT_DEVICE,
+          device_id,
+          object_props[property],
+          BACNET_ARRAY_ALL);
+        property++;
+      }
+    }
+    else
+      next_device = true;
+    if (next_device)
+    {
+      index++;
+      if (index >= MAX_ADDRESS_CACHE)
+        index = 0;
+      property = 0;
+    }
+  }
+
+  return;
+}
   
 static void Init_Service_Handlers(void)
 {
@@ -248,6 +292,7 @@ int main(int argc, char *argv[])
   BACNET_ADDRESS src = {0};  // address where message came from
   uint16_t pdu_len = 0;
   unsigned timeout = 100; // milliseconds
+  unsigned count = 0; // milliseconds
   time_t start_time;
   time_t new_time = 0;
   
@@ -314,6 +359,19 @@ int main(int argc, char *argv[])
       Send_WhoIs();
     }
     // output
+    // some round robin task switching
+    count++;
+    switch (count)
+    {
+      case 1:
+        Read_Properties();
+        break;
+      case 2:
+        break;
+      default:
+        count = 0;
+        break;
+    }
 
     // blink LEDs, Turn on or off outputs, etc
   }
