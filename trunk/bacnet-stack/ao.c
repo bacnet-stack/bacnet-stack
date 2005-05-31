@@ -288,7 +288,7 @@ bool Analog_Output_Write_Property(
            (wp_data->value.type.Real >= 0.0) &&
            (wp_data->value.type.Real <= 100.0))
         {
-          level = wp_data->value.type.Real;
+          level = (uint8_t)wp_data->value.type.Real;
           object_index = Analog_Output_Instance_To_Index(
             wp_data->object_instance);
           priority--;
