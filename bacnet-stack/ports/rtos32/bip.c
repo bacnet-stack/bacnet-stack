@@ -159,7 +159,7 @@ static int bip_send(
     else
         mtu[1] = 0x0A; /* Original-Unicast-NPDU */
     mtu_len = 2;
-    mtu_len += encode_unsigned16(&mtu[mtu_len], pdu_len);
+    mtu_len += encode_unsigned16(&mtu[mtu_len], pdu_len + 4 /*inclusive*/);
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
     

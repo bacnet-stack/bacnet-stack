@@ -91,6 +91,11 @@ void bip_set_address(uint8_t octet1, uint8_t octet2,
     set_network_address(&BIP_Address, octet1, octet2, octet3, octet4);
 }
 
+void bip_set_addr(struct in_addr *net_address)
+{
+    BIP_Address.s_addr = htonl(net_address->s_addr);
+}
+
 void bip_set_broadcast_address(uint8_t octet1, uint8_t octet2, 
     uint8_t octet3, uint8_t octet4)
 {
@@ -117,8 +122,6 @@ bool bip_init(void)
     int value = 1;
 
     /* local broadcast address */
-    //BIP_Broadcast_Address.s_addr = BIP_Address.s_addr;
-    //BIP_Broadcast_Address.s_addr |= ~(BIP_Subnet_Mask.s_addr);
     BIP_Broadcast_Address.s_addr = INADDR_BROADCAST;
     /* configure standard BACnet/IP port */
     bip_set_port(0xBAC0);
@@ -127,6 +130,26 @@ bool bip_init(void)
     BIP_Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (BIP_Socket < 0)
         return false;
+
+    // Allow us to use the same socket for sending and receiving
+    // This makes sure that the src port is correct when sending
+    rv = setsockopt(BIP_Socket, SOL_SOCKET, SO_REUSEADDR, 
+        (char *)&value, sizeof(value));
+    if (rv < 0)
+    {
+        close(BIP_Socket);
+        BIP_Socket = -1;
+        return false;
+    }
+    // allow us to send a broadcast
+    rv = setsockopt(BIP_Socket, SOL_SOCKET, SO_BROADCAST,
+        (char *)&value, sizeof(value));
+    if (rv < 0)
+    {
+        close(BIP_Socket);
+        BIP_Socket = -1;
+        return false;
+    }
 
     // bind the socket to the local port number and IP address
     sin.sin_family = AF_INET;
@@ -167,7 +190,7 @@ static int bip_send(
     else
         mtu[1] = 0x0A; /* Original-Unicast-NPDU */
     mtu_len = 2;
-    mtu_len += encode_unsigned16(&mtu[mtu_len], pdu_len);
+    mtu_len += encode_unsigned16(&mtu[mtu_len], pdu_len + 4 /*inclusive*/);
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
     
