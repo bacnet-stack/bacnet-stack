@@ -40,19 +40,16 @@
 // buffer used for receive
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
-static BYTE TargetIP[] = {192, 168,   0, 191};
-static BYTE NetMask[]  = {255, 255, 255,   0};
-
 static void Init_Device_Parameters(void)
 {
   // configure my initial values
-  Device_Set_Object_Instance_Number(126);
+  Device_Set_Object_Instance_Number(124);
   Device_Set_Vendor_Name("Lithonia Lighting");
   Device_Set_Vendor_Identifier(42);
-  Device_Set_Model_Name("Simple BACnet Server");
+  Device_Set_Model_Name("Simple BACnet Client");
   Device_Set_Firmware_Revision("1.00");
-  Device_Set_Application_Software_Version("none");
-  Device_Set_Description("Example of a simple BACnet server");
+  Device_Set_Application_Software_Version("win32");
+  Device_Set_Description("Example of a simple BACnet client/server");
 
   return;
 }
@@ -76,12 +73,31 @@ static void Init_Service_Handlers(void)
     WritePropertyHandler);
 }
 
+/* To fill a need, we invent the gethostaddr() function. */
+long gethostaddr(void) 
+{
+  struct hostent *host_ent;
+  char host_name[255];
+   
+  if (gethostname(host_name, sizeof(host_name)) == 0) 
+    return -1;
+   
+  if ((host_ent = gethostbyname(host_name)) == NULL)
+    return -1;
+   
+  return *(long *)host_ent->h_addr;
+}
+
+extern void bip_set_addr(struct in_addr *net_address);
+
 static void NetInitialize(void)
 // initialize the TCP/IP stack
 {
   int Result;
   int Code;
   WSADATA wd;
+  struct in_addr address;
+
 
   Result = WSAStartup(MAKEWORD(2,2), &wd);
 
@@ -92,6 +108,8 @@ static void NetInitialize(void)
       Code);
     exit(1);
   }
+  address.s_addr = gethostaddr();
+  bip_set_addr(&address);
 }
 
 int main(int argc, char *argv[])
@@ -106,8 +124,6 @@ int main(int argc, char *argv[])
   Init_Service_Handlers();
   // init the data link layer
   NetInitialize();
-  bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
-  bip_set_address(NetMask[0], NetMask[1], NetMask[2], NetMask[3]);
   if (!bip_init())
     return 1;
   

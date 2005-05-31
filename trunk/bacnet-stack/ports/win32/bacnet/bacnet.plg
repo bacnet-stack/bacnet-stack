@@ -1,0 +1,53 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: bacnet - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSPE11.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "BACDL_BIP" /Fo"Debug/" /Fd"Debug/" /FD /GZ  /c 
+"C:\code\bacnet-stack\ports\win32\main.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSPE11.tmp" 
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSPE12.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
+".\Debug\bip.obj"
+".\Debug\main.obj"
+".\Debug\abort.obj"
+".\Debug\address.obj"
+".\Debug\ai.obj"
+".\Debug\ao.obj"
+".\Debug\apdu.obj"
+".\Debug\bacdcode.obj"
+".\Debug\bacerror.obj"
+".\Debug\bigend.obj"
+".\Debug\crc.obj"
+".\Debug\datalink.obj"
+".\Debug\device.obj"
+".\Debug\handlers.obj"
+".\Debug\iam.obj"
+".\Debug\npdu.obj"
+".\Debug\reject.obj"
+".\Debug\ringbuf.obj"
+".\Debug\rp.obj"
+".\Debug\tsm.obj"
+".\Debug\whois.obj"
+".\Debug\wp.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSPE12.tmp"
+<h3>Output Window</h3>
+Compiling...
+main.c
+Linking...
+
+
+
+<h3>Results</h3>
+bacnet.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
