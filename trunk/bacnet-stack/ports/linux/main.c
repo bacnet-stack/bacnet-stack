@@ -364,7 +364,8 @@ int main(int argc, char *argv[])
     switch (count)
     {
       case 1:
-        Read_Properties();
+        // used for testing, but kind of noisy on the network
+        //Read_Properties();
         break;
       case 2:
         break;
