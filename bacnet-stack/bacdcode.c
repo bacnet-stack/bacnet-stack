@@ -854,6 +854,64 @@ int encode_tagged_object_id(
     return len;
 }
 
+// from clause 20.2.8 Encoding of an Octet String Value
+// returns the number of apdu bytes consumed
+int encode_octet_string(uint8_t * apdu, const uint8_t *octet_string,
+  unsigned len)
+{
+    unsigned i;
+
+    // limit - 6 octets is the most our tag and type could be
+    if (len > (MAX_APDU - 6))
+        len = MAX_APDU - 6;
+    for (i = 0; i < len; i++) {
+        apdu[i] = char_string[i];
+    }
+
+    return len;
+}
+    
+// from clause 20.2.8 Encoding of an Octet String Value
+// and 20.2.1 General Rules for Encoding BACnet Tags
+// returns the number of apdu bytes consumed
+int encode_tagged_octet_string(uint8_t * apdu, const uint8_t *octet_string,
+  unsigned len)
+{
+    int apdu_len;
+    
+    apdu_len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_OCTET_STRING,
+        false, len);
+    if ((apdu_len + len) < MAX_APDU)
+      apdu_len += encode_octet_string(&apdu[len], octet_string, len);
+    else
+      apdu_len = 0;
+
+    return apdu_len;
+}
+
+// from clause 20.2.8 Encoding of an Octet String Value
+// and 20.2.1 General Rules for Encoding BACnet Tags
+// returns the number of apdu bytes consumed
+int decode_octet_string(uint8_t * apdu, uint32_t len_value,
+    uint8_t *buffer, size_t buffer_len)
+{
+    int len = 0; // return value
+    uint32_t i = 0; // counter
+
+    // FIXME: issue warning?
+    if (len_value > buffer_len)
+        len_value = buffer_len;
+
+    if (len_value) {
+        for (i = 0; i < len_value; i++) {
+            buffer[i] = apdu[i];
+        }
+        len += len_value;
+    }
+
+    return len;
+}
+
 // from clause 20.2.9 Encoding of a Character String Value
 // returns the number of apdu bytes consumed
 int encode_bacnet_string(uint8_t * apdu, const char *char_string, int len)
