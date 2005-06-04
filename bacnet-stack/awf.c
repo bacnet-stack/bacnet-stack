@@ -55,29 +55,31 @@ int awf_encode_apdu(
     apdu[2] = invoke_id; 
     apdu[3] = SERVICE_CONFIRMED_ATOMIC_WRITE_FILE;     // service choice
     apdu_len = 4;
-    apdu_len += encode_context_object_id(&apdu[apdu_len], 0,
+    apdu_len += encode_tagged_object_id(&apdu[apdu_len],
       data->object_type, data->object_instance);
-    apdu_len += encode_context_enumerated(&apdu[apdu_len], 1,
-      data->access);
-    apdu_len += encode_opening_tag(&apdu[apdu_len], 2);
     switch (data->access)
     {
+      case FILE_STREAM_ACCESS:
+        apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
+        apdu_len += encode_tagged_signed(&apdu[apdu_len],
+          data->type.stream.fileStartPosition);
+        apdu_len += encode_tagged_octet_string(&apdu[apdu_len],
+          data->fileData, data->fileDataLength);
+        apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
+        break;
       case FILE_RECORD_ACCESS:
+        apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
         apdu_len += encode_tagged_signed(&apdu[apdu_len],
           data->type.record.fileStartRecord);
         apdu_len += encode_tagged_unsigned(&apdu[apdu_len],
           data->type.record.returnedRecordCount);
-        break;
-      case FILE_STREAM_ACCESS:
-        apdu_len += encode_tagged_signed(&apdu[apdu_len],
-          data->type.stream.fileStartPosition);
+        apdu_len += encode_tagged_octet_string(&apdu[apdu_len],
+          data->fileData, data->fileDataLength);
+        apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
         break;
       default:
         break;
     }
-    apdu_len += encode_tagged_octet_string(&apdu[apdu_len],
-      data->fileData, data->fileDataLength);
-    apdu_len += encode_closing_tag(&apdu[apdu_len], 2);
   }
   
   return apdu_len;
@@ -94,30 +96,50 @@ int awf_decode_service_request(
   uint8_t tag_number = 0;
   uint32_t len_value_type = 0;
   int type = 0; // for decoding
-  int access = 0; // for decoding
 
   // check for value pointers
   if (apdu_len && data)
   {
-    // Tag 0: Object ID         
-    if (!decode_is_context_tag(&apdu[len++], 0))
+    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
+    if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
       return -1;
     len += decode_object_id(&apdu[len], &type, &data->object_instance);
     data->object_type = type;
-    // Tag 1: Access
-    len += decode_tag_number_and_value(&apdu[len],
-        &tag_number, &len_value_type);
-    if (tag_number != 1)
-      return -1;
-    len += decode_enumerated(&apdu[len], len_value_type, &access);
-    data->access = access;
-    // Tag 2: Opening Context Tag
-    if (!decode_is_opening_tag_number(&apdu[len], 2))
-      return -1;
-    // a tag number of 2 is not extended so only one octet
-    len++;
-    if (access == FILE_RECORD_ACCESS)
+    if (decode_is_opening_tag_number(&apdu[len], 0))
     {
+      data->access = FILE_STREAM_ACCESS;
+      // a tag number of 2 is not extended so only one octet
+      len++;
+      // fileStartPosition
+      tag_len = decode_tag_number_and_value(&apdu[len],
+        &tag_number, &len_value_type);
+      len += tag_len;
+      if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+        return -1;
+      len += decode_signed(&apdu[len],
+        len_value_type,
+        &data->type.stream.fileStartPosition);
+      // fileData
+      tag_len = decode_tag_number_and_value(&apdu[len],
+        &tag_number, &len_value_type);
+      len += tag_len;
+      if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
+        return -1;
+      len += decode_octet_string(&apdu[len],
+        len_value_type,
+        data->fileData,
+        data->fileDataLength);
+      data->fileDataLength = len_value_type;
+      if (!decode_is_closing_tag_number(&apdu[len], 0))
+        return -1;
+      // a tag number is not extended so only one octet
+      len++;
+    }
+    else if (decode_is_opening_tag_number(&apdu[len], 1))
+    {
+      data->access = FILE_RECORD_ACCESS;
+      // a tag number is not extended so only one octet
+      len++;
       // fileStartRecord
       tag_len = decode_tag_number_and_value(&apdu[len],
         &tag_number, &len_value_type);
@@ -147,36 +169,13 @@ int awf_decode_service_request(
         data->fileData,
         data->fileDataLength);
       data->fileDataLength = len_value_type;
-    }
-    else if (access == FILE_STREAM_ACCESS)
-    {
-      // fileStartPosition
-      tag_len = decode_tag_number_and_value(&apdu[len],
-        &tag_number, &len_value_type);
-      len += tag_len;
-      if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+      if (!decode_is_closing_tag_number(&apdu[len], 1))
         return -1;
-      len += decode_signed(&apdu[len],
-        len_value_type,
-        &data->type.stream.fileStartPosition);
-      // fileData
-      tag_len = decode_tag_number_and_value(&apdu[len],
-        &tag_number, &len_value_type);
-      len += tag_len;
-      if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
-        return -1;
-      len += decode_octet_string(&apdu[len],
-        len_value_type,
-        data->fileData,
-        data->fileDataLength);
-      data->fileDataLength = len_value_type;
+      // a tag number is not extended so only one octet
+      len++;
     }
     else
       return -1;
-    if (!decode_is_closing_tag_number(&apdu[len], 2))
-      return -1;
-    // a tag number of 2 is not extended so only one octet
-    len++;
   }
 
   return len;
