@@ -48,36 +48,37 @@ typedef struct BACnet_Atomic_Write_File_Data
     struct
     {
       int fileStartPosition;
-      uint8_t *fileData;
-      unsigned fileDataLength;
     } stream;
     struct
     {
       int fileStartRecord;
-      uint8_t *fileData;
-      unsigned fileDataLength;
       unsigned returnedRecordCount;
     } record;
-  }
-} BACNET_WRITE_PROPERTY_DATA;
+  } type;
+  // note: set the file data to an empty buffer
+  // and set the DataLength to the size of the empty buffer
+  // before decoding the data.
+  uint8_t *fileData;
+  unsigned fileDataLength;
+} BACNET_ATOMIC_WRITE_FILE_DATA;
 
 // encode service
 int awf_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
-  BACNET_WRITE_PROPERTY_DATA *data);
+  BACNET_ATOMIC_WRITE_FILE_DATA *data);
 
 // decode the service request only
 int awf_decode_service_request(
   uint8_t *apdu,
   unsigned apdu_len,
-  BACNET_WRITE_PROPERTY_DATA *data);
+  BACNET_ATOMIC_WRITE_FILE_DATA *data);
   
 int awf_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
   uint8_t *invoke_id,
-  BACNET_WRITE_PROPERTY_DATA *data);
+  BACNET_ATOMIC_WRITE_FILE_DATA *data);
 
 #ifdef TEST
 #include "ctest.h"

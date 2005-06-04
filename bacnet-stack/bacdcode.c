@@ -865,7 +865,7 @@ int encode_octet_string(uint8_t * apdu, const uint8_t *octet_string,
     if (len > (MAX_APDU - 6))
         len = MAX_APDU - 6;
     for (i = 0; i < len; i++) {
-        apdu[i] = char_string[i];
+        apdu[i] = octet_string[i];
     }
 
     return len;
@@ -882,7 +882,7 @@ int encode_tagged_octet_string(uint8_t * apdu, const uint8_t *octet_string,
     apdu_len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_OCTET_STRING,
         false, len);
     if ((apdu_len + len) < MAX_APDU)
-      apdu_len += encode_octet_string(&apdu[len], octet_string, len);
+      apdu_len += encode_octet_string(&apdu[apdu_len], octet_string, len);
     else
       apdu_len = 0;
 
@@ -1554,7 +1554,50 @@ void testBACDCodeSigned(Test * pTest)
     return;
 }
 
-void testBACDCodeString(Test * pTest)
+void testBACDCodeOctetString(Test * pTest)
+{
+    uint8_t array[MAX_APDU] = { 0 };
+    uint8_t encoded_array[MAX_APDU] = { 0 };
+    char test_string[MAX_APDU] = { "" };
+    char decoded_string[MAX_APDU] = { "" };
+    int i;                      // for loop counter
+    int apdu_len;
+    int len;
+    char *test_string0 = "";
+    uint8_t tag_number = 0;
+    uint32_t len_value = 0;
+
+    apdu_len = encode_tagged_octet_string(&array[0], &test_string0[0], 0);
+    len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
+    len += decode_octet_string(&array[len], len_value,
+      &decoded_string[0], sizeof(decoded_string));
+    ct_test(pTest, apdu_len == len);
+    ct_test(pTest, memcmp(&test_string0[0], &decoded_string[0],
+      len_value) == 0);
+    for (i = 0; i < (MAX_APDU - 6); i++) {
+        test_string[i] = '0' + (i % 10);
+        apdu_len =
+            encode_tagged_octet_string(&encoded_array[0],
+            &test_string[0], i);
+        len = decode_tag_number_and_value(&encoded_array[0],
+          &tag_number, &len_value);
+        len += decode_octet_string(&encoded_array[len], len_value,
+                &decoded_string[0], sizeof(decoded_string));
+        if (apdu_len != len) {
+            printf("test octet string=#%d\n", i);
+        }
+        ct_test(pTest, apdu_len == len);
+        if (memcmp(&test_string[0], &decoded_string[0], len_value) != 0) {
+            printf("test octet string=#%d\n", i);
+        }
+        ct_test(pTest, memcmp(&test_string[0], &decoded_string[0],
+          len_value) == 0);
+    }
+
+    return;
+}
+
+void testBACDCodeCharacterString(Test * pTest)
 {
     uint8_t array[MAX_APDU] = { 0 };
     uint8_t encoded_array[MAX_APDU] = { 0 };
@@ -1721,7 +1764,9 @@ int main(void)
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeEnumerated);
     assert(rc);
-    rc = ct_addTestFunction(pTest, testBACDCodeString);
+    rc = ct_addTestFunction(pTest, testBACDCodeOctetString);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testBACDCodeCharacterString);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeObject);
     assert(rc);
