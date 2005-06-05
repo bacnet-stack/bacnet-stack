@@ -212,6 +212,104 @@ int awf_decode_apdu(
   return len;
 }
 
+int awf_ack_encode_apdu(
+  uint8_t *apdu, 
+  uint8_t invoke_id,
+  BACNET_ATOMIC_WRITE_FILE_DATA *data)
+{
+  int apdu_len = 0; // total length of the apdu, return value
+
+  if (apdu)
+  {
+    apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+    apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
+    apdu[2] = invoke_id; 
+    apdu[3] = SERVICE_CONFIRMED_ATOMIC_WRITE_FILE;     // service choice
+    apdu_len = 4;
+    switch (data->access)
+    {
+      case FILE_STREAM_ACCESS:
+        apdu_len += encode_context_signed(&apdu[apdu_len], 0,
+          data->type.stream.fileStartPosition);
+        break;
+      case FILE_RECORD_ACCESS:
+        apdu_len += encode_context_signed(&apdu[apdu_len], 1,
+          data->type.record.fileStartRecord);
+        break;
+      default:
+        break;
+    }
+  }
+  
+  return apdu_len;
+}
+
+// decode the service request only
+int awf_ack_decode_service_request(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  BACNET_ATOMIC_WRITE_FILE_DATA *data)
+{
+  int len = 0;
+  uint8_t tag_number = 0;
+  uint32_t len_value_type = 0;
+
+  // check for value pointers
+  if (apdu_len && data)
+  {
+    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
+    if (tag_number == 0)
+    {
+      data->access = FILE_STREAM_ACCESS;
+      len += decode_signed(&apdu[len],
+        len_value_type,
+        &data->type.stream.fileStartPosition);
+    }
+    else if (tag_number == 1)
+    {
+      data->access = FILE_RECORD_ACCESS;
+      len += decode_signed(&apdu[len],
+        len_value_type,
+        &data->type.record.fileStartRecord);
+    }
+    else
+      return -1;
+  }
+
+  return len;
+}
+
+int awf_ack_decode_apdu(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  uint8_t *invoke_id,
+  BACNET_ATOMIC_WRITE_FILE_DATA *data)
+{
+  int len = 0;
+  unsigned offset = 0;
+
+  if (!apdu)
+    return -1;
+  // optional checking - most likely was already done prior to this call
+  if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    return -1;
+  //  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
+  *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
+  if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE)
+    return -1;
+  offset = 4;
+
+  if (apdu_len > offset)
+  {
+    len = awf_decode_service_request(
+      &apdu[offset],
+      apdu_len - offset,
+      data);
+  }
+  
+  return len;
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
@@ -291,6 +389,57 @@ void testAtomicWriteFile(Test * pTest)
   return;
 }
 
+void testAtomicWriteFileAckAccess(Test * pTest,
+  BACNET_ATOMIC_WRITE_FILE_DATA *data)
+{
+  BACNET_ATOMIC_WRITE_FILE_DATA test_data = {0};
+  uint8_t apdu[480] = {0};
+  int len = 0;
+  int apdu_len = 0;
+  uint8_t invoke_id = 128;
+  uint8_t test_invoke_id = 0;
+
+  len = awf_encode_apdu(
+    &apdu[0],
+    invoke_id,
+    data);
+  ct_test(pTest, len != 0);
+  apdu_len = len;
+
+  len = awf_decode_apdu(
+    &apdu[0],
+    apdu_len,
+    &test_invoke_id,
+    &test_data);
+  ct_test(pTest, len != -1);
+  ct_test(pTest, test_data.access == data->access);
+  if (test_data.access == FILE_STREAM_ACCESS)
+  {
+    ct_test(pTest, test_data.type.stream.fileStartPosition ==
+      data->type.stream.fileStartPosition);
+  }
+  else if (test_data.access == FILE_RECORD_ACCESS)
+  {
+    ct_test(pTest, test_data.type.record.fileStartRecord ==
+      data->type.record.fileStartRecord);
+  }
+}
+
+void testAtomicWriteFileAck(Test * pTest)
+{
+  BACNET_ATOMIC_WRITE_FILE_DATA data = {0};
+  
+  data.access = FILE_STREAM_ACCESS;
+  data.type.stream.fileStartPosition = 42;
+  testAtomicWriteFileAckAccess(pTest, &data);
+
+  data.access = FILE_RECORD_ACCESS;
+  data.type.record.fileStartRecord = 54;
+  testAtomicWriteFileAckAccess(pTest, &data);
+  
+  return;
+}
+
 #ifdef TEST_ATOMIC_WRITE_FILE
 uint16_t Device_Max_APDU_Length_Accepted(void)
 {
@@ -305,6 +454,8 @@ int main(void)
     pTest = ct_create("BACnet AtomicWriteFile", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testAtomicWriteFile);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testAtomicWriteFileAck);
     assert(rc);
 
     ct_setStream(pTest, stdout);
