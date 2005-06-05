@@ -53,14 +53,15 @@ typedef struct BACnet_Atomic_Read_File_Data
     struct
     {
       int fileStartRecord;
-      unsigned requestedRecordCount;
+      // requested or returned record count
+      unsigned RecordCount; 
     } record;
   } type;
-  // note: set the file data to an empty buffer
-  // and set the DataLength to the size of the empty buffer
-  // before decoding the data.
+  // These are used for the ACK portion
+  // Set them to an unused buffer for the decode to fill
   uint8_t *fileData;
   unsigned fileDataLength;
+  bool endOfFile;
 } BACNET_ATOMIC_READ_FILE_DATA;
 
 // encode service
