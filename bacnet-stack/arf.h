@@ -64,6 +64,8 @@ typedef struct BACnet_Atomic_Read_File_Data
   bool endOfFile;
 } BACNET_ATOMIC_READ_FILE_DATA;
 
+// Atomic Read File
+
 // encode service
 int arf_encode_apdu(
   uint8_t *apdu, 
@@ -77,6 +79,26 @@ int arf_decode_service_request(
   BACNET_ATOMIC_READ_FILE_DATA *data);
   
 int arf_decode_apdu(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  uint8_t *invoke_id,
+  BACNET_ATOMIC_READ_FILE_DATA *data);
+
+// Atomic Read File Ack
+
+// encode service
+int arf_ack_encode_apdu(
+  uint8_t *apdu, 
+  uint8_t invoke_id,
+  BACNET_ATOMIC_READ_FILE_DATA *data);
+
+// decode the service request only
+int arf_ack_decode_service_request(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  BACNET_ATOMIC_READ_FILE_DATA *data);
+
+int arf_ack_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
   uint8_t *invoke_id,
