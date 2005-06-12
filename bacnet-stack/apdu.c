@@ -42,6 +42,25 @@
 #include "tsm.h"
 #include "iam.h"
 
+#ifdef TEST
+void tsm_free_invoke_id(uint8_t invokeID)
+{
+  // dummy stub for testing
+  (void)invokeID;
+}
+
+void iam_handler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  // dummy stub for testing
+  (void)service_request;
+  (void)service_len;
+  (void)src;
+}
+#endif
+
 // Confirmed Function Handlers
 // If they are not set, they are handled by a reject message
 static confirmed_function 
@@ -149,6 +168,35 @@ void apdu_set_confirmed_ack_handler(
   }
 }
 
+uint16_t apdu_decode_confirmed_service_request(
+  uint8_t *apdu, // APDU data
+  uint16_t apdu_len,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data,
+  uint8_t *service_choice,
+  uint8_t **service_request,
+  uint16_t *service_request_len)
+{
+  uint16_t len = 0; // counts where we are in PDU
+    
+  service_data->segmented_message = (apdu[0] & BIT3) ? true : false;
+  service_data->more_follows = (apdu[0] & BIT2) ? true : false;
+  service_data->segmented_response_accepted = (apdu[0] & BIT1) ? true : false;
+  service_data->max_segs = decode_max_segs(apdu[1]);
+  service_data->max_resp = decode_max_apdu(apdu[1]);
+  service_data->invoke_id = apdu[2];
+  len = 3;
+  if (service_data->segmented_message)
+  {
+    service_data->sequence_number = apdu[len++];
+    service_data->proposed_window_number = apdu[len++];
+  }
+  *service_choice = apdu[len++];
+  *service_request = &apdu[len++];
+  *service_request_len = apdu_len - len;
+
+  return len;
+}
+
 void apdu_handler(
   BACNET_ADDRESS *src,  // source address
   bool data_expecting_reply,
@@ -170,21 +218,13 @@ void apdu_handler(
     switch (apdu[0] & 0xF0)
     {
       case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-        service_data.segmented_message = (apdu[0] & BIT3) ? true : false;
-        service_data.more_follows = (apdu[0] & BIT2) ? true : false;
-        service_data.segmented_response_accepted = (apdu[0] & BIT1) ? true : false;
-        service_data.max_segs = decode_max_segs(apdu[1]);
-        service_data.max_resp = decode_max_apdu(apdu[1]);
-        service_data.invoke_id = apdu[2];
-        len = 3;
-        if (service_data.segmented_message)
-        {
-          service_data.sequence_number = apdu[len++];
-          service_data.proposed_window_number = apdu[len++];
-        }
-        service_choice = apdu[len++];
-        service_request = &apdu[len++];
-        service_request_len = apdu_len - len;
+        len = apdu_decode_confirmed_service_request(
+          &apdu[0], // APDU data
+          apdu_len,
+          &service_data,
+          &service_choice,
+          &service_request,
+          &service_request_len);
         if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
         {
           if (Confirmed_Function[service_choice])

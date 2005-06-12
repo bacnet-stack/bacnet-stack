@@ -37,6 +37,8 @@
 #include "ao.h"
 #include "rp.h"
 #include "wp.h"
+#include "arf.h"
+#include "bacfile.h"
 #include "whois.h"
 #include "iam.h"
 #include "reject.h"
@@ -411,6 +413,39 @@ void ReadPropertyHandler(
         else
           error = true;
         break;
+      case OBJECT_FILE:
+        if (bacfile_valid_instance(object_instance))
+        {
+          len = bacfile_encode_property_apdu(
+            &Temp_Buf[0],
+            object_instance,
+            object_property,
+            array_index,
+            &error_class,
+            &error_code);
+          if (len > 0)
+          {
+            // encode the APDU portion of the packet
+            rp_data.object_type = object_type;
+            rp_data.object_instance = object_instance;
+            rp_data.object_property = object_property;
+            rp_data.array_index = array_index;
+            rp_data.application_data = &Temp_Buf[0];
+            rp_data.application_data_len = len;
+            // FIXME: probably need a length limitation sent with encode
+            pdu_len += rp_ack_encode_apdu(
+              &Tx_Buf[pdu_len],
+              service_data->invoke_id,
+              &rp_data);
+            fprintf(stderr,"Sending Read Property Ack!\n");
+            send = true;
+          }
+          else
+            error = true;
+        }
+        else
+          error = true;
+        break;
       default:
         error = true;
         break;
@@ -569,4 +604,176 @@ void WritePropertyHandler(
 
   return;
 }
+
+void AtomicReadFileHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data)
+{
+  BACNET_ATOMIC_READ_FILE_DATA data;
+  int len = 0;
+  int pdu_len = 0;
+  BACNET_ADDRESS my_address;
+  bool send = false;
+  bool error = false;
+  int bytes_sent = 0;
+  BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
+  BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+  char buffer[MAX_APDU - 16] = ""; // for reply data, less apdu overhead
+
+  fprintf(stderr,"Received Atomic-Read-File Request!\n");
+  len = arf_decode_service_request(
+    service_request,
+    service_len,
+    &data);
+  if (len < 0)
+    fprintf(stderr,"Unable to decode Atomic-Read-File Request!\n");
+  // prepare a reply
+  datalink_get_my_address(&my_address);
+  // encode the NPDU portion of the packet
+  pdu_len = npdu_encode_apdu(
+    &Tx_Buf[0],
+    src,
+    &my_address,
+    false,  // true for confirmed messages
+    MESSAGE_PRIORITY_NORMAL);
+  // bad decoding - send an abort
+  if (len < 0)
+  {
+    pdu_len += abort_encode_apdu(
+      &Tx_Buf[pdu_len],
+      service_data->invoke_id,
+      ABORT_REASON_OTHER);
+    fprintf(stderr,"Sending Abort!\n");
+    send = true;
+  }
+  else if (service_data->segmented_message)
+  {
+    pdu_len += abort_encode_apdu(
+      &Tx_Buf[pdu_len],
+      service_data->invoke_id,
+      ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
+    fprintf(stderr,"Sending Abort!\n");
+    send = true;
+  }
+  else
+  {
+    if (data.access == FILE_STREAM_ACCESS)
+    {
+      data.fileData = &buffer[0];
+      data.fileDataLength = sizeof(buffer);
+      if (data.type.stream.requestedOctetCount < data.fileDataLength)
+      {
+        if (bacfile_read_data(&data))
+        {
+          pdu_len += arf_ack_encode_apdu(
+            &Tx_Buf[pdu_len],
+            service_data->invoke_id,
+            &data);
+          send = true;
+        }
+        else
+        {
+          send = true;
+          error = true;
+        }
+      }
+      else
+      {
+        pdu_len += abort_encode_apdu(
+          &Tx_Buf[pdu_len],
+          service_data->invoke_id,
+          ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
+        fprintf(stderr,"Sending Abort!\n");
+        send = true;
+      }
+    }
+    else
+    {
+      error_class = ERROR_CLASS_SERVICES;
+      error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
+      send = true;
+      error = true;
+    }
+  }
+  if (error)
+  {
+    pdu_len += bacerror_encode_apdu(
+      &Tx_Buf[pdu_len],
+      service_data->invoke_id,
+      SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+      error_class,
+      error_code);
+    fprintf(stderr,"Sending Error!\n");
+    send = true;
+  }
+  if (send)
+  {
+    bytes_sent = datalink_send_pdu(
+      src,  // destination address
+      &Tx_Buf[0],
+      pdu_len); // number of bytes of data
+    if (bytes_sent <= 0)
+      fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
+  }
+
+  return;
+}
+
+// We performed an AtomicReadFile Request,
+// and here is the data from the server
+// Note: it does not have to be the same file=instance
+// that someone can read from us.  It is common to
+// use the description as the file name.
+void AtomicReadFileAckHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+{
+  int len = 0;
+  BACNET_ATOMIC_READ_FILE_DATA data;
+  FILE *pFile = NULL;
+  char *pFilename = NULL;
+  uint32_t instance = 0;
+
+  (void)src;
+  // get the file instance from the tsm data before freeing it
+  instance = bacfile_instance_from_tsm(service_data->invoke_id);
+  tsm_free_invoke_id(service_data->invoke_id);
+  len = arf_ack_decode_service_request(
+    service_request,
+    service_len,
+    &data);
+  fprintf(stderr,"Received Read-File Ack!\n");
+  if ((len > 0) && (instance <= BACNET_MAX_INSTANCE))
+  {
+    // write the data received to the file specified
+    if (data.access == FILE_STREAM_ACCESS)
+    {
+      pFilename = bacfile_name(instance);
+      if (pFilename)
+      {
+        pFile = fopen(pFilename, "rb");
+        if (pFile)
+        {
+          (void)fseek(pFile,
+            data.type.stream.fileStartPosition,
+            SEEK_SET);
+          if (fwrite(data.fileData,data.fileDataLength,1,pFile) != 1)
+            fprintf(stderr,"Failed to write to %s (%u)!\n",
+              pFilename, instance);
+          fclose(pFile);
+        }
+      }      
+    }
+    else if (data.access == FILE_RECORD_ACCESS)
+    {
+      // FIXME: add handling for Record Access
+    }
+  }
+}
+
+
 

@@ -137,7 +137,6 @@ uint8_t tsm_next_free_invokeID(void)
   return invokeID;
 }
 
-// returns 0 if there are no free transactions
 void tsm_set_confirmed_unsegmented_transaction(
   uint8_t invokeID,
   BACNET_ADDRESS *dest,
@@ -146,7 +145,6 @@ void tsm_set_confirmed_unsegmented_transaction(
 {
   uint16_t j = 0;
   uint8_t index;
-  
 
   if (invokeID)
   {
@@ -169,6 +167,40 @@ void tsm_set_confirmed_unsegmented_transaction(
   }
 
   return;  
+}
+
+// used to retrieve the transaction payload
+// if we wanted to find out what we sent (i.e. when we get an ack)
+bool tsm_get_transaction_pdu(
+  uint8_t invokeID,
+  BACNET_ADDRESS *dest,
+  uint8_t *pdu,
+  uint16_t *pdu_len)
+{
+  uint16_t j = 0;
+  uint8_t index;
+  bool found = false;
+
+  if (invokeID)
+  {
+    index = tsm_find_invokeID_index(invokeID);
+    // how much checking is needed?  state?  dest match? just invokeID?
+    if (index < MAX_TSM_TRANSACTIONS)
+    {
+      // FIXME: we may want to free the transaction so it doesn't timeout
+      // retrieve the transaction
+      // FIXME: bounds check the pdu_len?
+      *pdu_len = TSM_List[index].pdu_len;
+      for (j = 0; j < *pdu_len; j++)
+      {
+        pdu[j] = TSM_List[index].pdu[j];
+      }
+      address_copy(dest,&TSM_List[index].dest);
+      found = true;
+    }
+  }
+
+  return found;  
 }
 
 // called once a millisecond

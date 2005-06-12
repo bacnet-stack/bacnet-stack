@@ -33,7 +33,7 @@
 #include "bacenum.h"
 #include "config.h" // the custom stuff
 
-#define MAX_ANALOG_INPUTS 32
+#define MAX_ANALOG_INPUTS 7
 
 // we simply have 0-n object instances.  Yours might be
 // more complex, and then you need validate that the

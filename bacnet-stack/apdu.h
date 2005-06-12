@@ -125,6 +125,14 @@ void apdu_set_unconfirmed_handler(
   BACNET_UNCONFIRMED_SERVICE service_choice,
   unconfirmed_function pFunction);
 
+uint16_t apdu_decode_confirmed_service_request(
+  uint8_t *apdu, // APDU data
+  uint16_t apdu_len,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data,
+  uint8_t *service_choice,
+  uint8_t **service_request,
+  uint16_t *service_request_len);
+
 void apdu_handler(
   BACNET_ADDRESS *src,  // source address
   bool data_expecting_reply,

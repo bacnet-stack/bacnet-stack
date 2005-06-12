@@ -31,6 +31,7 @@
 #include "config.h" // the custom stuff
 #include "ai.h" // object list dependency
 #include "ao.h" // object list dependency
+#include "bacfile.h" // object list dependency
 #include "wp.h" // write property handling
 
 static uint32_t Object_Instance_Number = 0;
@@ -228,6 +229,7 @@ unsigned Device_Object_List_Count(void)
 
   count += Analog_Input_Count();
   count += Analog_Output_Count();
+  count += bacfile_count();
 
   return count;
 }
@@ -267,7 +269,18 @@ bool Device_Object_List_Identifier(unsigned array_index,
       status = true;
     }
   }
-  
+
+  if (!status)
+  {
+    object_index -= Analog_Output_Count();
+    if (object_index < bacfile_count())
+    {
+      *object_type = OBJECT_FILE;
+      *instance = bacfile_index_to_instance(object_index);
+      status = true;
+    }
+  }
+    
   return status;  
 }
 

@@ -97,6 +97,12 @@ void tsm_set_confirmed_unsegmented_transaction(
   BACNET_ADDRESS *dest,
   uint8_t *pdu,
   uint16_t pdu_len);
+// returns true if transaction is found
+bool tsm_get_transaction_pdu(
+  uint8_t invokeID,
+  BACNET_ADDRESS *dest,
+  uint8_t *pdu,
+  uint16_t *pdu_len);
 
 #endif
 
