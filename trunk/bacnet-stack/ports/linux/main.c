@@ -38,6 +38,7 @@
 #include "iam.h"
 #include "tsm.h"
 #include "device.h"
+#include "bacfile.h"
 #ifdef BACDL_ETHERNET
   #include "ethernet.h"
 #endif
@@ -236,6 +237,7 @@ static void Init_Service_Handlers(void)
   // It is required to send the proper reject message...
   apdu_set_unrecognized_service_handler_handler(
     UnrecognizedServiceHandler);
+  // Set the handlers for any confirmed services that we support
   // we must implement read property - it's required!
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
@@ -243,10 +245,16 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_WRITE_PROPERTY,
     WritePropertyHandler);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+    AtomicReadFileHandler);
   // handle the data coming back from confirmed requests
   apdu_set_confirmed_ack_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
     ReadPropertyAckHandler);
+  apdu_set_confirmed_ack_handler(
+    SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+    AtomicReadFileAckHandler);
 }
 
 static void print_address_cache(void)

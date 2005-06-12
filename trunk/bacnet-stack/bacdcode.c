@@ -1270,7 +1270,7 @@ int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
 int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
     int wday)
 {
-    apdu[0] = year;
+    apdu[0] = year - 1900;
     apdu[1] = month;
     apdu[2] = day;
     apdu[3] = wday;
@@ -1299,7 +1299,7 @@ int encode_tagged_date(uint8_t * apdu, int year, int month, int day,
 // returns the number of apdu bytes consumed
 int decode_date(uint8_t * apdu, int *year, int *month, int *day, int *wday)
 {
-    *year = apdu[0];
+    *year = apdu[0] + 1900;
     *month = apdu[1];
     *day = apdu[2];
     *wday = apdu[3];

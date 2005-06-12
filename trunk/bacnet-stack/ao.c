@@ -34,7 +34,7 @@
 #include "config.h" // the custom stuff
 #include "wp.h"
 
-#define MAX_ANALOG_OUTPUTS 20
+#define MAX_ANALOG_OUTPUTS 4
 
 // we choose to have a NULL level in our system represented by
 // a particular value.  When the priorities are not in use, they

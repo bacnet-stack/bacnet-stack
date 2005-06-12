@@ -66,6 +66,7 @@ void iam_handler(
 int iam_send(uint8_t *buffer);
 
 #ifdef TEST
+#include "ctest.h"
 void testIAm(Test * pTest);
 #endif
 

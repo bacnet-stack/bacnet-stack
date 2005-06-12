@@ -25,6 +25,9 @@ SRCS = ports/linux/main.c \
        device.c \
        ai.c \
        ao.c \
+       bacfile.c \
+       arf.c \
+       awf.c \
        abort.c \
        reject.c \
        bacerror.c \

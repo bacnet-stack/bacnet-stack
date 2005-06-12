@@ -175,7 +175,11 @@ int npdu_decode(
   BACNET_NPDU_DATA *npdu_data)
 {
   int len = 0; // return value - number of octets loaded in this function
-  int i = 0; // counter 
+  int i = 0; // counter
+  uint16_t src_net = 0;
+  uint16_t dest_net = 0;
+  uint8_t address_len = 0;
+  uint8_t mac_octet = 0;
 
   if (npdu && npdu_data)
   {
@@ -211,30 +215,35 @@ int npdu_decode(
     // 1 = DNET, DLEN, and Hop Count present
     // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
     // DLEN > 0 specifies length of DADR field
-    if (dest)
+    if (npdu[1] & BIT5)
     {
-      if (npdu[1] & BIT5)
+      len += decode_unsigned16(&npdu[len], &dest_net);
+      // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
+      // DLEN > 0 specifies length of DADR field
+      address_len = npdu[len++];
+      if (dest)
       {
-        len += decode_unsigned16(&npdu[len], &dest->net);
-        // DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
-        // DLEN > 0 specifies length of DADR field
-        dest->len = npdu[len++];
-        if (dest->len)
+        dest->net = dest_net;
+        dest->len = address_len;
+      }
+      if (address_len)
+      {
+        for (i = 0; i < address_len; i++)
         {
-          for (i = 0; i < dest->len; i++)
-          {
-            dest->adr[i] = npdu[len++];
-          }
+          mac_octet = npdu[len++];
+          if (dest)
+            dest->adr[i] = mac_octet;
         }
       }
-      else
+    }
+    // zero out the destination address
+    else if (dest)
+    {
+      dest->net = 0;
+      dest->len = 0;
+      for (i = 0; i < MAX_MAC_LEN; i++)
       {
-        dest->net = 0;
-        dest->len = 0;
-        for (i = 0; i < MAX_MAC_LEN; i++)
-        {
-          dest->adr[i] = 0;
-        }
+        dest->adr[i] = 0;
       }
     }
     // Bit 3: Source specifier where:
@@ -242,36 +251,40 @@ int npdu_decode(
     // 1 =  SNET, SLEN, and SADR present
     // SLEN = 0 Invalid
     // SLEN > 0 specifies length of SADR field
-    if (src)
+    if (npdu[1] & BIT3)
     {
-      if (npdu[1] & BIT3)
+      len += decode_unsigned16(&npdu[len], &src_net);
+      // SLEN = 0 denotes broadcast MAC SADR and SADR field is absent
+      // SLEN > 0 specifies length of SADR field
+      address_len = npdu[len++];
+      if (src)
       {
-        len += decode_unsigned16(&npdu[len], &src->net);
-        // SLEN = 0 denotes broadcast MAC SADR and SADR field is absent
-        // SLEN > 0 specifies length of SADR field
-        src->len = npdu[len++];
-        if (src->len)
+        src->net = src_net;
+        src->len = address_len;
+      }
+      if (address_len)
+      {
+        for (i = 0; i < address_len; i++)
         {
-          for (i = 0; i < src->len; i++)
-          {
-            src->adr[i] = npdu[len++];
-          }
+          mac_octet = npdu[len++];
+          if (src)
+            src->adr[i] = mac_octet;
         }
       }
-      else
+    }
+    else if (src)
+    {
+      src->net = 0;
+      src->len = 0;
+      for (i = 0; i < MAX_MAC_LEN; i++)
       {
-        src->net = 0;
-        src->len = 0;
-        for (i = 0; i < MAX_MAC_LEN; i++)
-        {
-          src->adr[i] = 0;
-        }
+        src->adr[i] = 0;
       }
     }
     // The Hop Count field shall be present only if the message is
     // destined for a remote network, i.e., if DNET is present.
     // This is a one-octet field that is initialized to a value of 0xff.
-    if (dest && dest->net)
+    if (dest_net)
       npdu_data->hop_count = npdu[len++];
     else
       npdu_data->hop_count = 0;

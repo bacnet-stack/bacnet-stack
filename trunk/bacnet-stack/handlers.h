@@ -76,4 +76,15 @@ bool Send_Read_Property_Request(
   BACNET_PROPERTY_ID object_property,
   int32_t array_index);
 
+void AtomicReadFileHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data);
+void AtomicReadFileAckHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+
 #endif
