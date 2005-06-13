@@ -661,7 +661,7 @@ void AtomicReadFileHandler(
   {
     if (data.access == FILE_STREAM_ACCESS)
     {
-      data.fileData = &buffer[0];
+      data.fileData = (uint8_t *)&buffer[0];
       data.fileDataLength = sizeof(buffer);
       if (data.type.stream.requestedOctetCount < data.fileDataLength)
       {
