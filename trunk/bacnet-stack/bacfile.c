@@ -304,6 +304,7 @@ bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA *data)
   pFilename = bacfile_name(data->object_instance);
   if (pFilename)
   {
+    found = true;
     pFile = fopen(pFilename,"rb");
     if (pFile)
     {
@@ -315,10 +316,16 @@ bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA *data)
       fclose(pFile);
     }
     else
+    {
       data->fileDataLength = 0;
+      data->endOfFile = true;
+    }
   }
   else
+  {
     data->fileDataLength = 0;
+    data->endOfFile = true;
+  }
 
   return found;
 }

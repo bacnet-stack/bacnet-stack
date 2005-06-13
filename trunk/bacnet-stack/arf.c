@@ -207,11 +207,10 @@ int arf_ack_encode_apdu(
 
   if (apdu)
   {
-    apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-    apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
-    apdu[2] = invoke_id; 
-    apdu[3] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;     // service choice
-    apdu_len = 4;
+    apdu[0] = PDU_TYPE_COMPLEX_ACK;
+    apdu[1] = invoke_id;
+    apdu[2] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;     // service choice
+    apdu_len = 3;
     // endOfFile
     apdu_len += encode_tagged_boolean(&apdu[apdu_len], data->endOfFile);
     switch (data->access)
@@ -348,13 +347,12 @@ int arf_ack_decode_apdu(
   if (!apdu)
     return -1;
   // optional checking - most likely was already done prior to this call
-  if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+  if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
     return -1;
-  //  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
-  *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-  if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_READ_FILE)
+  *invoke_id = apdu[1]; /* invoke id - filled in by net layer */
+  if (apdu[2] != SERVICE_CONFIRMED_ATOMIC_READ_FILE)
     return -1;
-  offset = 4;
+  offset = 3;
 
   if (apdu_len > offset)
   {

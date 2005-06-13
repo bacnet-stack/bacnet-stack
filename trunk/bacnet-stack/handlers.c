@@ -685,7 +685,9 @@ void AtomicReadFileHandler(
           &Tx_Buf[pdu_len],
           service_data->invoke_id,
           ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-        fprintf(stderr,"Sending Abort!\n");
+        fprintf(stderr,"Sending Abort! %u octets requested. Only able to send %u octets.\n",
+          data.type.stream.requestedOctetCount,
+          data.fileDataLength);
         send = true;
       }
     }
