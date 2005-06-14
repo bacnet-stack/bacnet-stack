@@ -615,7 +615,6 @@ void AtomicReadFileHandler(
   int len = 0;
   int pdu_len = 0;
   BACNET_ADDRESS my_address;
-  bool send = false;
   bool error = false;
   int bytes_sent = 0;
   BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
@@ -646,7 +645,6 @@ void AtomicReadFileHandler(
       service_data->invoke_id,
       ABORT_REASON_OTHER);
     fprintf(stderr,"Sending Abort!\n");
-    send = true;
   }
   else if (service_data->segmented_message)
   {
@@ -655,7 +653,6 @@ void AtomicReadFileHandler(
       service_data->invoke_id,
       ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
     fprintf(stderr,"Sending Abort!\n");
-    send = true;
   }
   else
   {
@@ -663,6 +660,9 @@ void AtomicReadFileHandler(
     {
       data.fileData = (uint8_t *)&buffer[0];
       data.fileDataLength = sizeof(buffer);
+      // FIXME: this may not be a valid way to check this, as the
+      // file length may be smaller than the request
+      // or smaller than the size of the buffer.
       if (data.type.stream.requestedOctetCount < data.fileDataLength)
       {
         if (bacfile_read_data(&data))
@@ -671,13 +671,9 @@ void AtomicReadFileHandler(
             &Tx_Buf[pdu_len],
             service_data->invoke_id,
             &data);
-          send = true;
         }
         else
-        {
-          send = true;
           error = true;
-        }
       }
       else
       {
@@ -685,17 +681,17 @@ void AtomicReadFileHandler(
           &Tx_Buf[pdu_len],
           service_data->invoke_id,
           ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-        fprintf(stderr,"Sending Abort! %u octets requested. Only able to send %u octets.\n",
+        fprintf(stderr,
+          "Sending Abort! %u octets requested."
+          " Only able to send %u octets.\n",
           data.type.stream.requestedOctetCount,
           data.fileDataLength);
-        send = true;
       }
     }
     else
     {
       error_class = ERROR_CLASS_SERVICES;
       error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
-      send = true;
       error = true;
     }
   }
@@ -708,17 +704,13 @@ void AtomicReadFileHandler(
       error_class,
       error_code);
     fprintf(stderr,"Sending Error!\n");
-    send = true;
   }
-  if (send)
-  {
-    bytes_sent = datalink_send_pdu(
-      src,  // destination address
-      &Tx_Buf[0],
-      pdu_len); // number of bytes of data
-    if (bytes_sent <= 0)
-      fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
-  }
+  bytes_sent = datalink_send_pdu(
+    src,  // destination address
+    &Tx_Buf[0],
+    pdu_len); // number of bytes of data
+  if (bytes_sent <= 0)
+    fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
 
   return;
 }
@@ -726,8 +718,7 @@ void AtomicReadFileHandler(
 // We performed an AtomicReadFile Request,
 // and here is the data from the server
 // Note: it does not have to be the same file=instance
-// that someone can read from us.  It is common to
-// use the description as the file name.
+// that someone can read from us.
 void AtomicReadFileAckHandler(
   uint8_t *service_request,
   uint16_t service_len,
