@@ -131,13 +131,18 @@ void testAnalogInput(Test * pTest)
   BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_OUTPUT;
   uint32_t decoded_instance = 0;
   uint32_t instance = 123;
+  BACNET_ERROR_CLASS error_class;
+  BACNET_ERROR_CODE error_code;
 
-  
+
+  // FIXME: we should do a lot more testing here...
   len = Analog_Input_Encode_Property_APDU(
     &apdu[0],
     instance,
     PROP_OBJECT_IDENTIFIER,
-    BACNET_ARRAY_ALL);
+    BACNET_ARRAY_ALL,
+    &error_class,
+    &error_code);
   ct_test(pTest, len != 0);
   len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
   ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);

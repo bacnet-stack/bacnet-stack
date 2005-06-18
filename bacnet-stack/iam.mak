@@ -8,6 +8,8 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_IAM -g
 
 SRCS = bacdcode.c \
        bigend.c \
+       npdu.c \
+       apdu.c \
        iam.c \
        test/ctest.c
 

@@ -538,6 +538,39 @@ void testDevice(Test * pTest)
 }
 
 #ifdef TEST_DEVICE
+// stubs to dependencies to keep unit test simple
+unsigned Analog_Input_Count(void)
+{
+  return 0;
+}
+
+uint32_t Analog_Input_Index_To_Instance(unsigned index)
+{
+  return index;
+}
+
+unsigned Analog_Output_Count(void)
+{
+  return 0;
+}
+
+uint32_t Analog_Output_Index_To_Instance(unsigned index)
+{
+  return index;
+}
+
+uint32_t bacfile_count(void)
+{
+  return 0;
+}
+
+uint32_t bacfile_index_to_instance(unsigned find_index)
+{
+  return find_index;
+}
+
+bool I_Am_Request = false;
+
 int main(void)
 {
     Test *pTest;

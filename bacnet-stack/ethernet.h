@@ -48,7 +48,7 @@ void ethernet_cleanup(void);
 bool ethernet_init(char *interface_name);
 
 /* function to send a packet out the 802.2 socket */
-/* returns 0 on success, non-zero on failure */
+/* returns number of bytes sent on success, negative on failure */
 int ethernet_send(
   BACNET_ADDRESS *dest,  // destination address
   BACNET_ADDRESS *src,  // source address
@@ -56,7 +56,7 @@ int ethernet_send(
   unsigned pdu_len); // number of bytes of data
 
 /* function to send a packet out the 802.2 socket */
-/* returns zero on success, non-zero on failure */
+/* returns number of bytes sent on success, negative on failure */
 int ethernet_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
   uint8_t *pdu, // any data to be sent - may be null

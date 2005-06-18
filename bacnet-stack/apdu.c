@@ -42,25 +42,6 @@
 #include "tsm.h"
 #include "iam.h"
 
-#ifdef TEST
-void tsm_free_invoke_id(uint8_t invokeID)
-{
-  // dummy stub for testing
-  (void)invokeID;
-}
-
-void iam_handler(
-  uint8_t *service_request,
-  uint16_t service_len,
-  BACNET_ADDRESS *src)
-{
-  // dummy stub for testing
-  (void)service_request;
-  (void)service_len;
-  (void)src;
-}
-#endif
-
 // Confirmed Function Handlers
 // If they are not set, they are handled by a reject message
 static confirmed_function 
@@ -360,3 +341,4 @@ void apdu_handler(
   }
   return;
 }
+
