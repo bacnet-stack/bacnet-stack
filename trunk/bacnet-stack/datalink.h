@@ -51,7 +51,7 @@
 #include "bip.h"
 #endif
 
-
+/* returns number of bytes sent on success, negative on failure */
 int datalink_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
   uint8_t *pdu, // any data to be sent - may be null

@@ -484,6 +484,22 @@ void testNPDU1(Test * pTest)
 }
 
 #ifdef TEST_NPDU
+// dummy stub for testing
+void tsm_free_invoke_id(uint8_t invokeID)
+{
+  (void)invokeID;
+}
+
+void iam_handler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  (void)service_request;
+  (void)service_len;
+  (void)src;
+}
+
 int main(void)
 {
     Test *pTest;

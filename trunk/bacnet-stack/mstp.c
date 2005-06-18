@@ -1114,7 +1114,7 @@ void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             FRAME_TYPE_TEST_RESPONSE,
             mstp_port->SourceAddress,
             mstp_port->This_Station,
-            mstp_port->InputBuffer,
+            (uint8_t *)&mstp_port->InputBuffer[0],
             mstp_port->Index);
         }
         mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
@@ -1210,7 +1210,7 @@ void RS485_Send_Frame(
 }
 
 #define RING_BUFFER_DATA_SIZE 1
-#define RING_BUFFER_SIZE INPUT_BUFFER_SIZE
+#define RING_BUFFER_SIZE MAX_MPDU
 static RING_BUFFER Test_Buffer;
 static uint8_t Test_Buffer_Data[RING_BUFFER_DATA_SIZE * RING_BUFFER_SIZE];
 static void Load_Input_Buffer(uint8_t *buffer,size_t len)
@@ -1270,8 +1270,8 @@ void testReceiveNodeFSM(Test* pTest)
   uint8_t FrameType = 0; // type of packet that was sent
   unsigned len; // used for the size of the message packet
   size_t i; // used to loop through the message bytes
-  uint8_t buffer[INPUT_BUFFER_SIZE] = {0};
-  uint8_t data[INPUT_BUFFER_SIZE - 8 /*header*/ - 2 /*CRC*/] = {0};
+  uint8_t buffer[MAX_MPDU] = {0};
+  uint8_t data[MAX_MPDU - 8 /*header*/ - 2 /*CRC*/] = {0};
 
   MSTP_Init(&mstp_port,my_mac);
 

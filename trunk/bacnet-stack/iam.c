@@ -266,6 +266,52 @@ void testIAm(Test * pTest)
 }
 
 #ifdef TEST_IAM
+// Dummy stubs to eliminate depencies
+void datalink_get_broadcast_address(
+  BACNET_ADDRESS *dest) // destination address
+{
+  (void)dest;
+}
+
+int datalink_send_pdu(
+  BACNET_ADDRESS *dest,  // destination address
+  uint8_t *pdu, // any data to be sent - may be null
+  unsigned pdu_len) // number of bytes of data
+{
+  (void)dest;
+  (void)pdu;
+
+  return pdu_len;
+}
+
+uint16_t Device_Vendor_Identifier(void)
+{
+  return 0;
+}
+
+uint32_t Device_Object_Instance_Number(void)
+{
+  return 0;
+}
+
+void address_add_binding(
+  uint32_t device_id,
+  unsigned max_apdu,
+  BACNET_ADDRESS *src)
+{
+  (void)device_id;
+  (void)max_apdu;
+  (void)src;
+}
+
+// dummy for apdu dependency
+void tsm_free_invoke_id(uint8_t invokeID)
+{
+  // dummy stub for testing
+  (void)invokeID;
+}
+
+
 int main(void)
 {
     Test *pTest;
