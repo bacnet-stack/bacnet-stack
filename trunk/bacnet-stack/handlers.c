@@ -149,6 +149,7 @@ bool Send_Read_Property_Request(
   bool status = false;
   int pdu_len = 0;
   int bytes_sent = 0;
+  BACNET_READ_PROPERTY_DATA data;
 
   status = address_get_by_device(device_id, &max_apdu, &dest);
   if (status)
@@ -162,13 +163,15 @@ bool Send_Read_Property_Request(
       MESSAGE_PRIORITY_NORMAL);
 
     invoke_id = tsm_next_free_invokeID();
+    // load the data for the encoding
+    data.object_type = object_type;
+    data.object_instance = object_instance;
+    data.object_property = object_property;
+    data.array_index = array_index;
     pdu_len += rp_encode_apdu(
       &Tx_Buf[pdu_len],
       invoke_id,
-      object_type,
-      object_instance,
-      object_property,
-      array_index);
+      &data);
     if ((unsigned)pdu_len < max_apdu)
     {
       tsm_set_confirmed_unsegmented_transaction(
@@ -252,13 +255,10 @@ void ReadPropertyHandler(
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-  BACNET_READ_PROPERTY_DATA rp_data;
+  BACNET_READ_PROPERTY_DATA data;
   int len = 0;
   int pdu_len = 0;
-  BACNET_OBJECT_TYPE object_type;
   uint32_t object_instance;
-  BACNET_PROPERTY_ID object_property;
-  int32_t array_index;
   BACNET_ADDRESS my_address;
   bool send = false;
   bool error = false;
@@ -269,17 +269,14 @@ void ReadPropertyHandler(
   len = rp_decode_service_request(
     service_request,
     service_len,
-    &object_type,
-    &object_instance,
-    &object_property,
-    &array_index);
+    &data);
   fprintf(stderr,"Received Read-Property Request!\n");
   if (len > 0)
     fprintf(stderr,"type=%u instance=%u property=%u index=%d\n",
-      object_type,
-      object_instance,
-      object_property,
-      array_index);
+      data.object_type,
+      data.object_instance,
+      data.object_property,
+      data.array_index);
   else
     fprintf(stderr,"Unable to decode Read-Property Request!\n");
   // prepare a reply
@@ -312,32 +309,28 @@ void ReadPropertyHandler(
   }
   else
   {
-    switch (object_type)
+    switch (data.object_type)
     {
       case OBJECT_DEVICE:
         // FIXME: probably need a length limitation sent with encode
-        if (object_instance == Device_Object_Instance_Number())
+        if (data.object_instance == Device_Object_Instance_Number())
         {
           len = Device_Encode_Property_APDU(
             &Temp_Buf[0],
-            object_property,
-            array_index,
+            data.object_property,
+            data.array_index,
             &error_class,
             &error_code);
           if (len > 0)
           {
             // encode the APDU portion of the packet
-            rp_data.object_type = object_type;
-            rp_data.object_instance = object_instance;
-            rp_data.object_property = object_property;
-            rp_data.array_index = array_index;
-            rp_data.application_data = &Temp_Buf[0];
-            rp_data.application_data_len = len;
+            data.application_data = &Temp_Buf[0];
+            data.application_data_len = len;
             // FIXME: probably need a length limitation sent with encode
             pdu_len += rp_ack_encode_apdu(
               &Tx_Buf[pdu_len],
               service_data->invoke_id,
-              &rp_data);
+              &data);
             fprintf(stderr,"Sending Read Property Ack!\n");
             send = true;
           }
@@ -348,29 +341,25 @@ void ReadPropertyHandler(
           error = true;
         break;
       case OBJECT_ANALOG_INPUT:
-        if (Analog_Input_Valid_Instance(object_instance))
+        if (Analog_Input_Valid_Instance(data.object_instance))
         {
           len = Analog_Input_Encode_Property_APDU(
             &Temp_Buf[0],
-            object_instance,
-            object_property,
-            array_index,
+            data.object_instance,
+            data.object_property,
+            data.array_index,
             &error_class,
             &error_code);
           if (len > 0)
           {
             // encode the APDU portion of the packet
-            rp_data.object_type = object_type;
-            rp_data.object_instance = object_instance;
-            rp_data.object_property = object_property;
-            rp_data.array_index = array_index;
-            rp_data.application_data = &Temp_Buf[0];
-            rp_data.application_data_len = len;
+            data.application_data = &Temp_Buf[0];
+            data.application_data_len = len;
             // FIXME: probably need a length limitation sent with encode
             pdu_len += rp_ack_encode_apdu(
               &Tx_Buf[pdu_len],
               service_data->invoke_id,
-              &rp_data);
+              &data);
             fprintf(stderr,"Sending Read Property Ack!\n");
             send = true;
           }
@@ -381,29 +370,25 @@ void ReadPropertyHandler(
           error = true;
         break;
       case OBJECT_ANALOG_OUTPUT:
-        if (Analog_Output_Valid_Instance(object_instance))
+        if (Analog_Output_Valid_Instance(data.object_instance))
         {
           len = Analog_Output_Encode_Property_APDU(
             &Temp_Buf[0],
-            object_instance,
-            object_property,
-            array_index,
+            data.object_instance,
+            data.object_property,
+            data.array_index,
             &error_class,
             &error_code);
           if (len > 0)
           {
             // encode the APDU portion of the packet
-            rp_data.object_type = object_type;
-            rp_data.object_instance = object_instance;
-            rp_data.object_property = object_property;
-            rp_data.array_index = array_index;
-            rp_data.application_data = &Temp_Buf[0];
-            rp_data.application_data_len = len;
+            data.application_data = &Temp_Buf[0];
+            data.application_data_len = len;
             // FIXME: probably need a length limitation sent with encode
             pdu_len += rp_ack_encode_apdu(
               &Tx_Buf[pdu_len],
               service_data->invoke_id,
-              &rp_data);
+              &data);
             fprintf(stderr,"Sending Read Property Ack!\n");
             send = true;
           }
@@ -418,25 +403,21 @@ void ReadPropertyHandler(
         {
           len = bacfile_encode_property_apdu(
             &Temp_Buf[0],
-            object_instance,
-            object_property,
-            array_index,
+            data.object_instance,
+            data.object_property,
+            data.array_index,
             &error_class,
             &error_code);
           if (len > 0)
           {
             // encode the APDU portion of the packet
-            rp_data.object_type = object_type;
-            rp_data.object_instance = object_instance;
-            rp_data.object_property = object_property;
-            rp_data.array_index = array_index;
-            rp_data.application_data = &Temp_Buf[0];
-            rp_data.application_data_len = len;
+            data.application_data = &Temp_Buf[0];
+            data.application_data_len = len;
             // FIXME: probably need a length limitation sent with encode
             pdu_len += rp_ack_encode_apdu(
               &Tx_Buf[pdu_len],
               service_data->invoke_id,
-              &rp_data);
+              &data);
             fprintf(stderr,"Sending Read Property Ack!\n");
             send = true;
           }
@@ -615,6 +596,7 @@ void AtomicReadFileHandler(
   int len = 0;
   int pdu_len = 0;
   BACNET_ADDRESS my_address;
+  bool send = false;
   bool error = false;
   int bytes_sent = 0;
   BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
@@ -645,6 +627,7 @@ void AtomicReadFileHandler(
       service_data->invoke_id,
       ABORT_REASON_OTHER);
     fprintf(stderr,"Sending Abort!\n");
+    send = true;
   }
   else if (service_data->segmented_message)
   {
@@ -653,6 +636,7 @@ void AtomicReadFileHandler(
       service_data->invoke_id,
       ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
     fprintf(stderr,"Sending Abort!\n");
+    send = true;
   }
   else
   {
@@ -660,9 +644,6 @@ void AtomicReadFileHandler(
     {
       data.fileData = (uint8_t *)&buffer[0];
       data.fileDataLength = sizeof(buffer);
-      // FIXME: this may not be a valid way to check this, as the
-      // file length may be smaller than the request
-      // or smaller than the size of the buffer.
       if (data.type.stream.requestedOctetCount < data.fileDataLength)
       {
         if (bacfile_read_data(&data))
@@ -671,9 +652,13 @@ void AtomicReadFileHandler(
             &Tx_Buf[pdu_len],
             service_data->invoke_id,
             &data);
+          send = true;
         }
         else
+        {
+          send = true;
           error = true;
+        }
       }
       else
       {
@@ -681,17 +666,15 @@ void AtomicReadFileHandler(
           &Tx_Buf[pdu_len],
           service_data->invoke_id,
           ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-        fprintf(stderr,
-          "Sending Abort! %u octets requested."
-          " Only able to send %u octets.\n",
-          data.type.stream.requestedOctetCount,
-          data.fileDataLength);
+        fprintf(stderr,"Sending Abort!\n");
+        send = true;
       }
     }
     else
     {
       error_class = ERROR_CLASS_SERVICES;
       error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
+      send = true;
       error = true;
     }
   }
@@ -704,13 +687,17 @@ void AtomicReadFileHandler(
       error_class,
       error_code);
     fprintf(stderr,"Sending Error!\n");
+    send = true;
   }
-  bytes_sent = datalink_send_pdu(
-    src,  // destination address
-    &Tx_Buf[0],
-    pdu_len); // number of bytes of data
-  if (bytes_sent <= 0)
-    fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
+  if (send)
+  {
+    bytes_sent = datalink_send_pdu(
+      src,  // destination address
+      &Tx_Buf[0],
+      pdu_len); // number of bytes of data
+    if (bytes_sent <= 0)
+      fprintf(stderr,"Failed to send PDU (%s)!\n", strerror(errno));
+  }
 
   return;
 }
@@ -718,7 +705,8 @@ void AtomicReadFileHandler(
 // We performed an AtomicReadFile Request,
 // and here is the data from the server
 // Note: it does not have to be the same file=instance
-// that someone can read from us.
+// that someone can read from us.  It is common to
+// use the description as the file name.
 void AtomicReadFileAckHandler(
   uint8_t *service_request,
   uint16_t service_len,

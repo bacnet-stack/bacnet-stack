@@ -19,6 +19,16 @@ make -f mstp.mak
 ./mstp >> test.log
 make -f mstp.mak clean
 
+make -f iam.mak clean
+make -f iam.mak
+./iam >> test.log
+make -f iam.mak clean
+
+make -f whois.mak clean
+make -f whois.mak
+./whois >> test.log
+make -f whois.mak clean
+
 make -f bacdcode.mak clean
 make -f bacdcode.mak
 ./bacdcode >> test.log

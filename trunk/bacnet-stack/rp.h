@@ -51,28 +51,19 @@ typedef struct BACnet_Read_Property_Data
 int rp_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
-  BACNET_OBJECT_TYPE object_type,
-  uint32_t object_instance,
-  BACNET_PROPERTY_ID object_property,
-  int32_t array_index);
+  BACNET_READ_PROPERTY_DATA *data);
 
 // decode the service request only
 int rp_decode_service_request(
   uint8_t *apdu,
   unsigned apdu_len,
-  BACNET_OBJECT_TYPE *object_type,
-  uint32_t *object_instance,
-  BACNET_PROPERTY_ID *object_property,
-  int32_t *array_index);
+  BACNET_READ_PROPERTY_DATA *data);
   
 int rp_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
   uint8_t *invoke_id,
-  BACNET_OBJECT_TYPE *object_type,
-  uint32_t *object_instance,
-  BACNET_PROPERTY_ID *object_property,
-  int32_t *array_index);
+  BACNET_READ_PROPERTY_DATA *data);
 
 int rp_ack_encode_apdu(
   uint8_t *apdu,
