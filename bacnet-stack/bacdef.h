@@ -61,7 +61,8 @@ typedef struct BACnet_Object_Data
 } BACNET_OBJECT_DATA;
 
 #define BACNET_BROADCAST_NETWORK 0xFFFF
-#define MAX_MAC_LEN 8
+// IPv6 (16 octets) coupled with port number (2 octets)
+#define MAX_MAC_LEN 18
 struct BACnet_Device_Address {
     // mac_len = 0 if global address
     int mac_len;
