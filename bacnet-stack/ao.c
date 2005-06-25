@@ -285,6 +285,7 @@ bool Analog_Output_Write_Property(
       {
         priority = wp_data->priority;
         if (priority && (priority <= BACNET_MAX_PRIORITIES) &&
+           (priority != 6 /* reserved */) &&
            (wp_data->value.type.Real >= 0.0) &&
            (wp_data->value.type.Real <= 100.0))
         {
@@ -297,6 +298,11 @@ bool Analog_Output_Write_Property(
           // physical output.  This comment may apply to the
           // main loop (i.e. check out of service before changing output)
           status = true;
+        }
+        else if (priority == 6)
+        {
+          *error_class = ERROR_CLASS_PROPERTY;
+          *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         }
         else
         {
