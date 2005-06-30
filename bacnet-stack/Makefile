@@ -6,12 +6,14 @@ BASEDIR = .
 #CFLAGS  = -Wall -I. -O2 -g
 # Note: you can strip out symbols using the strip command
 # to get an idea of how big the compile really is.
-#CFLAGS  = -Wall -I. -g -DBACDL_ETHERNET=1
+#CFLAGS  = -Wall -I. -Iports/linux -g -DBACDL_MSTP=1
+#CFLAGS  = -Wall -I. -Iports/linux -g -DBACDL_ETHERNET=1
 CFLAGS  = -Wall -I. -Iports/linux -g -DBACDL_BIP=1
 
 SRCS = ports/linux/main.c \
        ports/linux/ethernet.c \
        ports/linux/bip.c \
+       dlmstp.c \
        handlers.c \
        bacdcode.c \
        bigend.c \

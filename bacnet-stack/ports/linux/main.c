@@ -39,12 +39,7 @@
 #include "tsm.h"
 #include "device.h"
 #include "bacfile.h"
-#ifdef BACDL_ETHERNET
-  #include "ethernet.h"
-#endif
-#ifdef BACDL_BIP
-  #include "bip.h"
-#endif
+#include "datalink.h"
 #include "net.h"
 
 // This is an example application using the BACnet Stack on Linux
@@ -329,20 +324,11 @@ int main(int argc, char *argv[])
     // input
     new_time = time(NULL);
     // returns 0 bytes on timeout
-    #ifdef BACDL_ETHERNET
-    pdu_len = ethernet_receive(
+    pdu_len = datalink_receive(
       &src,
       &Rx_Buf[0],
       MAX_MPDU,
       timeout);
-    #endif
-    #ifdef BACDL_BIP
-    pdu_len = bip_receive(
-      &src,
-      &Rx_Buf[0],
-      MAX_MPDU,
-      timeout);
-    #endif
 
     // process
     if (pdu_len)
