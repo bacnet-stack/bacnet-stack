@@ -40,10 +40,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacdef.h"
-
-// defines specific to MS/TP
-#define MAX_HEADER (2+1+1+1+2+1+2+1)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#include "dlmstp.h"
 
 //  The value 255 is used to denote broadcast when used as a
 // destination address but is not allowed as a value for a station.

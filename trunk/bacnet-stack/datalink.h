@@ -44,7 +44,7 @@
 #endif
 
 #ifdef BACDL_MSTP
-#include "mstp.h"
+#include "dlmstp.h"
 #endif
 
 #ifdef BACDL_BIP
@@ -56,6 +56,13 @@ int datalink_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len); // number of bytes of data
+
+// returns the number of octets in the PDU, or zero on failure
+uint16_t datalink_receive(
+  BACNET_ADDRESS *src,  // source address
+  uint8_t *pdu, // PDU data
+  uint16_t max_pdu, // amount of space available in the PDU 
+  unsigned timeout); // number of milliseconds to wait for a packet
 
 void datalink_get_broadcast_address(
   BACNET_ADDRESS *dest); // destination address

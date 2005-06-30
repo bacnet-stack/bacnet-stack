@@ -46,14 +46,14 @@ int datalink_send_pdu(
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
-#ifdef BACDL_ETHERNET
-  return ethernet_send_pdu(
+#ifdef BACDL_MSTP
+  return dlmstp_send_pdu(
     dest,
     pdu,
     pdu_len);
 #endif
-#ifdef BACDL_MSTP
-  return mstp_send_pdu(
+#ifdef BACDL_ETHERNET
+  return ethernet_send_pdu(
     dest,
     pdu,
     pdu_len);
@@ -66,14 +66,44 @@ int datalink_send_pdu(
 #endif
 }
 
+// returns the number of octets in the PDU, or zero on failure
+uint16_t datalink_receive(
+  BACNET_ADDRESS *src,  // source address
+  uint8_t *pdu, // PDU data
+  uint16_t max_pdu, // amount of space available in the PDU 
+  unsigned timeout) // number of milliseconds to wait for a packet
+{
+  #ifdef BACDL_MSTP
+  return dlmstp_receive(
+    src,
+    pdu,
+    max_pdu,
+    timeout);
+  #endif
+  #ifdef BACDL_ETHERNET
+  return ethernet_receive(
+    src,
+    pdu,
+    max_pdu,
+    timeout);
+  #endif
+  #ifdef BACDL_BIP
+  return bip_receive(
+    src,
+    pdu,
+    max_pdu,
+    timeout);
+  #endif
+}
+
 void datalink_get_broadcast_address(
   BACNET_ADDRESS *dest) // destination address
 {
+#ifdef BACDL_MSTP
+  dlmstp_get_broadcast_address(dest);
+#endif
 #ifdef BACDL_ETHERNET
   ethernet_get_broadcast_address(dest);
-#endif
-#ifdef BACDL_MSTP
-  mstp_get_broadcast_address(dest);
 #endif
 #ifdef BACDL_BIP
   bip_get_broadcast_address(dest);
@@ -83,11 +113,11 @@ void datalink_get_broadcast_address(
 void datalink_get_my_address(
   BACNET_ADDRESS *my_address)
 {
+#ifdef BACDL_MSTP
+  dlmstp_get_my_address(my_address);
+#endif
 #ifdef BACDL_ETHERNET
   ethernet_get_my_address(my_address);
-#endif
-#ifdef BACDL_MSTP
-  mstp_get_my_address(my_address);
 #endif
 #ifdef BACDL_BIP
   bip_get_my_address(my_address);
