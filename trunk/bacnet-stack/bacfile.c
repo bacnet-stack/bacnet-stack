@@ -313,6 +313,10 @@ bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA *data)
         SEEK_SET);
       data->fileDataLength = fread(data->fileData, 1,
         data->type.stream.requestedOctetCount, pFile);
+      if (data->fileDataLength < data->type.stream.requestedOctetCount)
+        data->endOfFile = true;
+      else
+        data->endOfFile = false;
       fclose(pFile);
     }
     else
