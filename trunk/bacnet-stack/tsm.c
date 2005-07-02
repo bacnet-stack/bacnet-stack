@@ -217,21 +217,21 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
         TSM_List[i].RequestTimer -= milliseconds;
       else
         TSM_List[i].RequestTimer = 0;
-    }
-    // timeout.  retry?
-    if (TSM_List[i].RequestTimer == 0)
-    {
-      TSM_List[i].RetryCount--;
-      TSM_List[i].RequestTimer = Device_APDU_Timeout();
-      if (TSM_List[i].RetryCount)
+      // timeout.  retry?
+      if (TSM_List[i].RequestTimer == 0)
       {
-        bytes_sent = datalink_send_pdu(
-          &TSM_List[i].dest,  // destination address
-          &TSM_List[i].pdu[0],
-          TSM_List[i].pdu_len); // number of bytes of data
+        TSM_List[i].RetryCount--;
+        TSM_List[i].RequestTimer = Device_APDU_Timeout();
+        if (TSM_List[i].RetryCount)
+        {
+          bytes_sent = datalink_send_pdu(
+            &TSM_List[i].dest,  // destination address
+            &TSM_List[i].pdu[0],
+            TSM_List[i].pdu_len); // number of bytes of data
+        }
+        else
+          TSM_List[i].state = TSM_STATE_IDLE;
       }
-      else
-        TSM_List[i].state = TSM_STATE_IDLE;
     }
   }
 }
