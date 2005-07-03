@@ -269,24 +269,29 @@ uint16_t bip_receive(
     /* Original-Broadcast-NPDU or Original-Unicast-NPDU */
     if ((buf[1] == 0x0B) || (buf[1] == 0x0A))
     {
-        // copy the source address
-        src->mac_len = 6;
-        (void)encode_unsigned32(&src->mac[0], 
-            sin.sin_addr.s_addr);
-        (void)encode_unsigned16(&src->mac[4], 
-            sin.sin_port);
-        // FIXME: check destination address
-        // see if it is broadcast or for us
-        /* decode the length of the PDU - length is inclusive of BVLC */
-        (void)decode_unsigned16(&buf[2],&pdu_len);
-        /* copy the buffer into the PDU */
-        pdu_len -= 4; /* BVLC header */
-        if (pdu_len < max_pdu)
-            memmove(&pdu[0],&buf[4],pdu_len);
-        // ignore packets that are too large
-        // clients should check my max-apdu first
-        else
+        if (sin.sin_addr.s_addr == BIP_Address.s_addr)
             pdu_len = 0;
+        else
+        {
+            // copy the source address
+            src->mac_len = 6;
+            (void)encode_unsigned32(&src->mac[0],
+                sin.sin_addr.s_addr);
+            (void)encode_unsigned16(&src->mac[4],
+                sin.sin_port);
+            // FIXME: check destination address
+            // see if it is broadcast or for us
+            /* decode the length of the PDU - length is inclusive of BVLC */
+            (void)decode_unsigned16(&buf[2],&pdu_len);
+            /* copy the buffer into the PDU */
+            pdu_len -= 4; /* BVLC header */
+            if (pdu_len < max_pdu)
+                memmove(&pdu[0],&buf[4],pdu_len);
+            // ignore packets that are too large
+            // clients should check my max-apdu first
+            else
+                pdu_len = 0;
+        }
     }
 
     return pdu_len;
