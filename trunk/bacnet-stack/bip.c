@@ -96,6 +96,12 @@ void bip_set_addr(struct in_addr *net_address)
     BIP_Address.s_addr = htonl(net_address->s_addr);
 }
 
+// Win32 shortcut
+unsigned long bip_get_addr(void)
+{
+    return BIP_Address.s_addr;
+}
+
 void bip_set_broadcast_address(
     uint8_t octet1,
     uint8_t octet2,
