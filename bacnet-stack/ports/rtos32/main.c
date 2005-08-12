@@ -269,8 +269,22 @@ int main(int argc, char *argv[])
   // init the physical layer
   #ifdef BACDL_BIP
   NetInitialize();
+ 
   bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
+
+  // FIXME:
+  #if 0
   bip_set_address(NetMask[0], NetMask[1], NetMask[2], NetMask[3]);
+extern unsigned long bip_get_addr(void);
+    unsigned long broadcast_address = 0;
+    unsigned long subnet_mask = 0;
+
+    /* local broadcast address */
+    broadcast_address = bip_get_addr();
+    broadcast_address |= ~(BIP_Subnet_Mask.s_addr);
+    /* configure standard BACnet/IP port */
+    bip_set_port(0xBAC0);
+  #endif
   if (!bip_init())
     return 1;
   #endif

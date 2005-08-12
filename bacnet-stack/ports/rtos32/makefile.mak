@@ -38,6 +38,8 @@ SRCS = init.c main.c ethernet.c bip-init.c \
        ..\..\iam.c \
        ..\..\rp.c \
        ..\..\wp.c \
+       ..\..\arf.c \
+       ..\..\awf.c \
        ..\..\device.c \
        ..\..\ai.c \
        ..\..\ao.c \
