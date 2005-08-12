@@ -29,6 +29,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "iam.h"
+#include "address.h"
 #include "config.h"
 #include "bacdef.h"
 #include "npdu.h"
@@ -39,6 +41,89 @@
 
 // buffer used for receive
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
+
+static void Read_Properties(void)
+{
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+  BACNET_ADDRESS src;
+  bool next_device = false;
+  static unsigned index = 0;
+  static unsigned property = 0;
+  // list of required (and some optional) properties in the
+  // Device Object
+  const int object_props[] =
+  {
+    75,77,79,112,121,120,70,44,12,98,95,97,96,
+    62,107,57,56,119,24,10,11,73,116,64,63,30,
+    514,515,
+    // note: 76 is missing cause we get it special below
+    -1
+  };
+
+  if (address_count())
+  {
+    if (address_get_by_index(index, &device_id, &max_apdu, &src))
+    {
+      if (object_props[property] < 0)
+        next_device = true;
+      else
+      {
+        (void)Send_Read_Property_Request(
+          device_id, // destination device
+          OBJECT_DEVICE,
+          device_id,
+          object_props[property],
+          BACNET_ARRAY_ALL);
+        property++;
+      }
+    }
+    else
+      next_device = true;
+    if (next_device)
+    {
+      index++;
+      if (index >= MAX_ADDRESS_CACHE)
+        index = 0;
+      property = 0;
+    }
+  }
+
+  return;
+}
+
+static void LocalIAmHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  int len = 0;
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+  int segmentation = 0;
+  uint16_t vendor_id = 0;
+
+  (void)src;
+  (void)service_len;
+  len = iam_decode_service_request(
+    service_request,
+    &device_id,
+    &max_apdu,
+    &segmentation,
+    &vendor_id);
+  fprintf(stderr,"Received I-Am Request");
+  if (len != -1)
+  {
+    fprintf(stderr," from %u!\n",device_id);
+    address_add(device_id,
+      max_apdu,
+      src);
+  }
+  else
+    fprintf(stderr,"!\n");
+
+  return;  
+}
 
 static void Init_Device_Parameters(void)
 {
@@ -53,13 +138,17 @@ static void Init_Device_Parameters(void)
 
   return;
 }
-  
+
 static void Init_Service_Handlers(void)
 {
   // we need to handle who-is to support dynamic device binding
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_WHO_IS,
     WhoIsHandler);
+  apdu_set_unconfirmed_handler(
+    SERVICE_UNCONFIRMED_I_AM,
+    LocalIAmHandler);
+
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
   apdu_set_unrecognized_service_handler_handler(
@@ -71,24 +160,31 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_WRITE_PROPERTY,
     WritePropertyHandler);
+  // handle the data coming back from confirmed requests
+  apdu_set_confirmed_ack_handler(
+    SERVICE_CONFIRMED_READ_PROPERTY,
+    ReadPropertyAckHandler);
 }
 
 /* To fill a need, we invent the gethostaddr() function. */
-long gethostaddr(void) 
+long gethostaddr(void)
 {
   struct hostent *host_ent;
   char host_name[255];
-   
-  if (gethostname(host_name, sizeof(host_name)) == 0) 
+
+  if (gethostname(host_name, sizeof(host_name)) == 0)
     return -1;
    
   if ((host_ent = gethostbyname(host_name)) == NULL)
     return -1;
-   
+
   return *(long *)host_ent->h_addr;
 }
 
 extern void bip_set_addr(struct in_addr *net_address);
+
+extern void bip_set_ipv4_broadcast_s_addr(
+  unsigned long address);
 
 static void NetInitialize(void)
 // initialize the TCP/IP stack
@@ -104,12 +200,16 @@ static void NetInitialize(void)
   if (Result != 0)
   {
     Code = WSAGetLastError();
-    printf("TCP/IP stack initialization failed, error code: %i\n", 
+    printf("TCP/IP stack initialization failed, error code: %i\n",
       Code);
     exit(1);
   }
   address.s_addr = gethostaddr();
   bip_set_addr(&address);
+  /* local broadcast address */
+  bip_set_ipv4_broadcast_s_addr(INADDR_BROADCAST);
+  /* configure standard BACnet/IP port */
+  bip_set_port(0xBAC0);
 }
 
 int main(int argc, char *argv[])
@@ -132,6 +232,7 @@ int main(int argc, char *argv[])
   for (;;)
   {
     // input
+    //Read_Properties();
 
     // returns 0 bytes on timeout
     pdu_len = bip_receive(
@@ -153,6 +254,10 @@ int main(int argc, char *argv[])
     {
       I_Am_Request = false;
       Send_IAm();
+    } else if (Who_Is_Request)
+    {
+      Who_Is_Request = false;
+      Send_WhoIs();
     }
     // output
 

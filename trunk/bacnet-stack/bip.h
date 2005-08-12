@@ -43,9 +43,13 @@
 #define MAX_HEADER (1 + 1 + 2)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
-bool bip_valid(void);
-void bip_cleanup(void);
+// note: define init and cleanup in your ports section
 bool bip_init(void);
+
+// normal functions...
+void bip_cleanup(void);
+void bip_set_socket(int sock_fd);
+bool bip_valid(void);
 void bip_get_broadcast_address(
   BACNET_ADDRESS *dest);  // destination address
 void bip_get_my_address(BACNET_ADDRESS *my_address);
@@ -71,6 +75,7 @@ void bip_set_broadcast_address(uint8_t octet1, uint8_t octet2,
   uint8_t octet3, uint8_t octet4);
   
 void bip_set_port(uint16_t port);
+uint16_t bip_get_port(void);
 void bip_set_interface_name(char *ifname);
 
 #endif

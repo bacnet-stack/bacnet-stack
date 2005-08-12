@@ -258,7 +258,6 @@ void ReadPropertyHandler(
   BACNET_READ_PROPERTY_DATA data;
   int len = 0;
   int pdu_len = 0;
-  uint32_t object_instance;
   BACNET_ADDRESS my_address;
   bool send = false;
   bool error = false;
@@ -399,7 +398,7 @@ void ReadPropertyHandler(
           error = true;
         break;
       case OBJECT_FILE:
-        if (bacfile_valid_instance(object_instance))
+        if (bacfile_valid_instance(data.object_instance))
         {
           len = bacfile_encode_property_apdu(
             &Temp_Buf[0],
