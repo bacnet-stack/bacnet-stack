@@ -36,7 +36,7 @@
 #include <stdbool.h>            // for the standard bool type.
 #include "bacdcode.h"
 #include "bip.h"  
-#include "net.h"
+#include "net.h" // custom per port
 
 static int BIP_Socket = -1;
 /* port to use - stored in network byte order */
@@ -45,6 +45,11 @@ static uint16_t BIP_Port = 0;
 static struct in_addr BIP_Address;
 /* Broadcast Address */
 static struct in_addr BIP_Broadcast_Address;
+
+void bip_set_socket(int sock_fd)
+{
+  BIP_Socket = sock_fd;
+}
 
 bool bip_valid(void)
 {
@@ -57,7 +62,7 @@ void bip_cleanup(void)
       close(BIP_Socket);
   BIP_Socket = -1;
 
-  return;    
+  return;
 }
 
 static void set_network_address(struct in_addr *net_address,
@@ -72,26 +77,39 @@ static void set_network_address(struct in_addr *net_address,
     long_data.byte[1] = octet2;
     long_data.byte[2] = octet3;
     long_data.byte[3] = octet4;
-    
+
     net_address->s_addr = long_data.value;
 }
 
 void bip_set_address(
-    uint8_t octet1, 
-    uint8_t octet2, 
-    uint8_t octet3, 
+    uint8_t octet1,
+    uint8_t octet2,
+    uint8_t octet3,
     uint8_t octet4)
 {
     set_network_address(&BIP_Address, octet1, octet2, octet3, octet4);
 }
 
+// Win32 shortcut
+void bip_set_addr(struct in_addr *net_address)
+{
+    BIP_Address.s_addr = htonl(net_address->s_addr);
+}
+
 void bip_set_broadcast_address(
-    uint8_t octet1, 
-    uint8_t octet2, 
-    uint8_t octet3, 
+    uint8_t octet1,
+    uint8_t octet2,
+    uint8_t octet3,
     uint8_t octet4)
 {
     set_network_address(&BIP_Broadcast_Address, octet1, octet2, octet3, octet4);
+}
+
+// Win32 shortcut
+void bip_set_ipv4_broadcast_s_addr(
+  unsigned long address)
+{
+    BIP_Broadcast_Address.s_addr = address;
 }
 
 void bip_set_port(uint16_t port)
@@ -99,53 +117,9 @@ void bip_set_port(uint16_t port)
     BIP_Port = htons(port);
 }
 
-bool bip_init(void)
+uint16_t bip_get_port(void)
 {
-    int status = 0; // return from socket lib calls
-    struct sockaddr_in sin;
-    int sockopt = 0;
-
-    /* configure standard BACnet/IP receive port */
-    bip_set_port(0xBAC0);
-
-    // assumes that the driver has already been initialized
-    BIP_Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (BIP_Socket < 0)
-        return false;
-    // Allow us to use the same socket for sending and receiving
-    // This makes sure that the src port is correct when sending
-    sockopt = 1;
-    status = setsockopt(BIP_Socket, SOL_SOCKET, SO_REUSEADDR, 
-        &sockopt, sizeof(sockopt));
-    if (status < 0)
-    {
-        close(BIP_Socket);
-        return status;
-    }
-    // allow us to send a broadcast
-    status = setsockopt(BIP_Socket, SOL_SOCKET, SO_BROADCAST, 
-        &sockopt, sizeof(sockopt));
-    if (status < 0)
-    {
-        close(BIP_Socket);
-        return status;
-    }
-
-    // bind the socket to the local port number and IP address
-    sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = BIP_Port;
-    memset(&(sin.sin_zero), '\0', 8);
-    status = bind(BIP_Socket, 
-        (const struct sockaddr*)&sin, sizeof(struct sockaddr));
-    if (status < 0)
-    {
-        close(BIP_Socket);
-        BIP_Socket = -1;
-        return false;
-    }
-
-    return true; 
+    return BIP_Port;
 }
 
 /* function to send a packet out the 802.2 socket */

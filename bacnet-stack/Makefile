@@ -12,7 +12,8 @@ CFLAGS  = -Wall -I. -Iports/linux -g -DBACDL_BIP=1
 
 SRCS = ports/linux/main.c \
        ports/linux/ethernet.c \
-       ports/linux/bip.c \
+       ports/linux/bip-init.c \
+       bip.c \
        dlmstp.c \
        handlers.c \
        bacdcode.c \

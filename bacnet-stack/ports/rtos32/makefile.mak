@@ -26,8 +26,9 @@ DEFINES = -DDOC;BACDL_BIP=1
 #DEFINES = -DDOC;BACDL_ETHERNET=1
 #DEFINES = -DDOC;BACDL_MSTP=1
 
-SRCS = init.c main.c ethernet.c bip.c \
+SRCS = init.c main.c ethernet.c bip-init.c \
 			 rs485.c \
+       ..\..\bip.c  \
        ..\..\mstp.c  \
        ..\..\crc.c  \
        ..\..\handlers.c  \

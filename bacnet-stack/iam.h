@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacdef.h"
 
 int iam_encode_apdu(
   uint8_t *apdu, 

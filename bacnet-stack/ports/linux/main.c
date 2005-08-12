@@ -314,6 +314,7 @@ int main(int argc, char *argv[])
   #endif
   #ifdef BACDL_BIP
   Init_Network("eth0");
+  bip_set_port(0xBAC0);
   if (!bip_init())
     return 1;
   #endif
