@@ -41,6 +41,10 @@
 #include "apdu.h"
 #include "arf.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 char *bacfile_name(uint32_t instance);
 bool bacfile_valid_instance(uint32_t object_instance);
 uint32_t bacfile_count(void);
@@ -65,5 +69,9 @@ int bacfile_encode_property_apdu(
   int32_t array_index,
   BACNET_ERROR_CLASS *error_class,
   BACNET_ERROR_CODE *error_code);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

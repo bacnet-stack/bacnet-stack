@@ -64,8 +64,11 @@ typedef struct BACnet_Atomic_Read_File_Data
   bool endOfFile;
 } BACNET_ATOMIC_READ_FILE_DATA;
 
-// Atomic Read File
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
+// Atomic Read File
 // encode service
 int arf_encode_apdu(
   uint8_t *apdu, 
@@ -110,6 +113,10 @@ int arf_ack_decode_apdu(
 void test_AtomicReadFile(Test * pTest);
 void test_AtomicReadFileAck(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

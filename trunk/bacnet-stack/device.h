@@ -40,6 +40,10 @@
 #include "bacenum.h"
 #include "wp.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 uint32_t Device_Object_Instance_Number(void);
 void Device_Set_Object_Instance_Number(uint32_t object_id);
 bool Device_Valid_Object_Instance_Number(uint32_t object_id);
@@ -95,6 +99,10 @@ bool Device_Write_Property(
   BACNET_WRITE_PROPERTY_DATA *wp_data,
   BACNET_ERROR_CLASS *error_class,
   BACNET_ERROR_CODE *error_code);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

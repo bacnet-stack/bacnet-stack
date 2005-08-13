@@ -37,6 +37,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 int reject_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
@@ -57,6 +61,10 @@ int reject_decode_apdu(
 #ifdef TEST
 void testReject(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

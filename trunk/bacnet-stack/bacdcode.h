@@ -64,6 +64,10 @@ typedef struct BACnet_Time
   uint8_t hundredths;
 } BACNET_TIME;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
@@ -211,5 +215,9 @@ int decode_max_apdu(uint8_t octet);
 // returns the number of apdu bytes consumed
 int encode_simple_ack(uint8_t * apdu, uint8_t invoke_id, 
   uint8_t service_choice);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

@@ -37,6 +37,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 int abort_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
@@ -58,6 +62,10 @@ int abort_decode_apdu(
 #include "ctest.h"
 void testAbort(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

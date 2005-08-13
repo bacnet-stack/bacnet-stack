@@ -43,6 +43,10 @@
 #define MAX_HEADER (6+6+2+1+1+1)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 bool ethernet_valid(void);
 void ethernet_cleanup(void);
 bool ethernet_init(char *interface_name);
@@ -74,5 +78,9 @@ void ethernet_set_my_address(BACNET_ADDRESS *my_address);
 void ethernet_get_my_address(BACNET_ADDRESS *my_address);
 void ethernet_get_broadcast_address(
   BACNET_ADDRESS *dest);  // destination address
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

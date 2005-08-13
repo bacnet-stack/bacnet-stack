@@ -38,10 +38,15 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "net.h"
 
 // specific defines for Ethernet
 #define MAX_HEADER (1 + 1 + 2)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 // note: define init and cleanup in your ports section
 bool bip_init(void);
@@ -74,8 +79,25 @@ void bip_set_address(uint8_t octet1, uint8_t octet2,
 void bip_set_broadcast_address(uint8_t octet1, uint8_t octet2, 
   uint8_t octet3, uint8_t octet4);
   
+// use host byte order for setting
 void bip_set_port(uint16_t port);
+// returns host byte order
 uint16_t bip_get_port(void);
+
+// use network byte order for setting
+void bip_set_addr(uint32_t net_address);
+// returns host byte order
+uint32_t bip_get_addr(void);
+
+// use network byte order for setting
+void bip_set_broadcast_addr(uint32_t net_address);
+// returns host byte order
+uint32_t bip_get_broadcast_addr(void);
+
 void bip_set_interface_name(char *ifname);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

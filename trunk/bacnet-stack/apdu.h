@@ -39,6 +39,10 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 typedef struct _confirmed_service_data 
 {
   bool segmented_message;
@@ -138,5 +142,9 @@ void apdu_handler(
   bool data_expecting_reply,
   uint8_t *apdu, // APDU data
   uint16_t pdu_len); // for confirmed messages
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

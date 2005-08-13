@@ -51,6 +51,10 @@
 #include "bip.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* returns number of bytes sent on success, negative on failure */
 int datalink_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
@@ -69,5 +73,9 @@ void datalink_get_broadcast_address(
 
 void datalink_get_my_address(
   BACNET_ADDRESS *my_address);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

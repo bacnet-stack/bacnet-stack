@@ -62,8 +62,11 @@ typedef struct BACnet_Atomic_Write_File_Data
   unsigned fileDataLength;
 } BACNET_ATOMIC_WRITE_FILE_DATA;
 
-// Atomic Write File
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
+// Atomic Write File
 // encode service
 int awf_encode_apdu(
   uint8_t *apdu, 
@@ -107,6 +110,10 @@ int awf_ack_decode_apdu(
 void test_AtomicWriteFile(Test * pTest);
 void test_AtomicWriteFileAck(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

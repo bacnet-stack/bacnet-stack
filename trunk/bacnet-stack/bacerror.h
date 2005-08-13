@@ -38,6 +38,10 @@
 #include <stdbool.h>
 #include "bacenum.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 int bacerror_encode_apdu(
   uint8_t *apdu, 
   uint8_t invoke_id,
@@ -65,6 +69,10 @@ int bacerror_decode_apdu(
 #include "ctest.h"
 void testBACError(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 
