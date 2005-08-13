@@ -31,6 +31,10 @@
 #include "bacerror.h"
 #include "wp.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 bool Analog_Output_Valid_Instance(uint32_t object_instance);
 unsigned Analog_Output_Count(void);
 uint32_t Analog_Output_Index_To_Instance(unsigned index);
@@ -52,5 +56,9 @@ bool Analog_Output_Write_Property(
 #include "ctest.h"
 void testAnalogOutput(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

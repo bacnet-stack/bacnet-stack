@@ -53,6 +53,10 @@ typedef struct bacnet_npdu_data_t
   uint8_t hop_count;
 } BACNET_NPDU_DATA;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 uint8_t npdu_encode_max_seg_max_apdu(int max_segs, int max_apdu);
 int npdu_encode_raw(
   uint8_t *npdu,
@@ -77,5 +81,9 @@ void npdu_handler(
   BACNET_ADDRESS *src,  // source address
   uint8_t *pdu, // PDU data
   uint16_t pdu_len); // length PDU 
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

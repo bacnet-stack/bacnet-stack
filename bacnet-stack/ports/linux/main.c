@@ -81,43 +81,19 @@ static int get_local_address_ioctl(
     return rv;
 }
 
-static void decode_network_address(struct in_addr *net_address,
-    uint8_t *octet1, uint8_t *octet2, uint8_t *octet3, uint8_t *octet4)
-{
-    union {
-        uint8_t byte[4];
-        uint32_t value;
-    } long_data = {{0}};
-
-    long_data.value = net_address->s_addr;
-
-    *octet1 = long_data.byte[0];
-    *octet2 = long_data.byte[1];
-    *octet3 = long_data.byte[2];
-    *octet4 = long_data.byte[3];
-}
-
 static void Init_Network(char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
-    uint8_t octet1; 
-    uint8_t octet2; 
-    uint8_t octet3; 
-    uint8_t octet4;
 
     /* setup local address */
     get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
-    decode_network_address(&local_address, &octet1, &octet2, &octet3, &octet4);
-    bip_set_address(octet1, octet2, octet3, octet4);
-    fprintf(stderr,"IP Address: %d.%d.%d.%d\n",
-      (int)octet1, (int)octet2, (int)octet3, (int)octet4);   
+    bip_set_addr(local_address.s_addr);
+    fprintf(stderr,"IP Address: %s\n",inet_ntoa(local_address));
     /* setup local broadcast address */
     get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
-    decode_network_address(&broadcast_address, &octet1, &octet2, &octet3, &octet4);
-    bip_set_broadcast_address(octet1, octet2, octet3, octet4);
-    fprintf(stderr,"Broadcast Address: %d.%d.%d.%d\n",
-      (int)octet1, (int)octet2, (int)octet3, (int)octet4);   
+    bip_set_broadcast_addr(broadcast_address.s_addr);
+    fprintf(stderr,"Broadcast Address: %s\n",inet_ntoa(broadcast_address));   
 }
 #endif
 
@@ -360,7 +336,7 @@ int main(int argc, char *argv[])
     {
       case 1:
         // used for testing, but kind of noisy on the network
-        //Read_Properties();
+        Read_Properties();
         break;
       case 2:
         break;

@@ -36,6 +36,10 @@ extern bool I_Am_Request;
 // flag to send a global Who-Is
 extern bool Who_Is_Request;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 void UnrecognizedServiceHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -86,5 +90,9 @@ void AtomicReadFileAckHandler(
   uint16_t service_len,
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

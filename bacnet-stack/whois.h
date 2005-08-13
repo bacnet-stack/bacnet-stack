@@ -37,6 +37,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 // encode service  - use -1 for limit if you want unlimited
 int whois_encode_apdu(
   uint8_t *apdu, 
@@ -58,6 +62,10 @@ int whois_decode_apdu(
 #ifdef TEST
 void testWhoIs(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

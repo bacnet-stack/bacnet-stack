@@ -205,9 +205,9 @@ static void NetInitialize(void)
     exit(1);
   }
   address.s_addr = gethostaddr();
-  bip_set_addr(&address);
+  bip_set_addr(address.s_addr);
   /* local broadcast address */
-  bip_set_ipv4_broadcast_s_addr(INADDR_BROADCAST);
+  bip_set_broadcast_addr(INADDR_BROADCAST);
   /* configure standard BACnet/IP port */
   bip_set_port(0xBAC0);
 }

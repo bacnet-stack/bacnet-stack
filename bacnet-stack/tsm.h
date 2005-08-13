@@ -84,6 +84,10 @@ typedef struct BACnet_TSM_Data
   unsigned pdu_len;
 } BACNET_TSM_DATA;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 bool tsm_transaction_available(void);
 uint8_t tsm_transaction_idle_count(void);
 void tsm_timer_milliseconds(uint16_t milliseconds);
@@ -103,6 +107,10 @@ bool tsm_get_transaction_pdu(
   BACNET_ADDRESS *dest,
   uint8_t *pdu,
   uint16_t *pdu_len);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

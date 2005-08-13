@@ -29,6 +29,10 @@
 #include <stdint.h>
 #include "bacdef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 bool Analog_Input_Valid_Instance(uint32_t object_instance);
 unsigned Analog_Input_Count(void);
 uint32_t Analog_Input_Index_To_Instance(unsigned index);
@@ -45,5 +49,9 @@ int Analog_Input_Encode_Property_APDU(
 #include "ctest.h"
 void testAnalogInput(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

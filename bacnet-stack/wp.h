@@ -75,6 +75,10 @@ typedef struct BACnet_Write_Property_Data
   uint8_t priority; // use 0 if not setting the priority
 } BACNET_WRITE_PROPERTY_DATA;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 // encode service
 int wp_encode_apdu(
   uint8_t *apdu, 
@@ -99,6 +103,10 @@ int wp_decode_apdu(
 void test_ReadProperty(Test * pTest);
 void test_ReadPropertyAck(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

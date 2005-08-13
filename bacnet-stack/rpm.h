@@ -53,6 +53,10 @@ typedef struct BACnet_Read_Property_Multiple_Data
   unsigned property_list_len;
 } BACNET_READ_PROPERTY_MULTIPLE_DATA;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 // encode service
 int rpm_encode_apdu(
   uint8_t *apdu, 
@@ -94,6 +98,10 @@ int rpm_ack_decode_apdu(
 void test_ReadProperty(Test * pTest);
 void test_ReadPropertyAck(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
 

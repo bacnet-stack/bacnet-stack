@@ -50,7 +50,7 @@ bool bip_init(void)
     // bind the socket to the local port number and IP address
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = BIP_Port;
+    sin.sin_port = htons(bip_get_port());
     memset(&(sin.sin_zero), '\0', 8);
     rv = bind(BIP_Socket, 
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));

@@ -44,6 +44,10 @@
 #define MAX_HEADER (2+1+1+1+2+1+2+1)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* returns number of bytes sent on success, negative on failure */
 int dlmstp_send_pdu(
   BACNET_ADDRESS *dest,  // destination address
@@ -61,5 +65,9 @@ void dlmstp_set_my_address(BACNET_ADDRESS *my_address);
 void dlmstp_get_my_address(BACNET_ADDRESS *my_address);
 void dlmstp_get_broadcast_address(
   BACNET_ADDRESS *dest);  // destination address
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

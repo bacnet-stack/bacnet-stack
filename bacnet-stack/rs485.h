@@ -39,6 +39,10 @@
 #include <stdint.h>
 #include "mstp.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 void RS485_Initialize(void);
 
 void RS485_Send_Frame(
@@ -50,5 +54,9 @@ void RS485_Check_UART_Data(
   volatile struct mstp_port_struct_t *mstp_port); // port specific data
 
 void RS485_Process_Tx_Message(void);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

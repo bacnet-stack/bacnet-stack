@@ -39,6 +39,10 @@
 #include <stdbool.h>
 #include "bacdef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 void address_init(void);
 
 void address_copy(
@@ -79,5 +83,9 @@ void address_add_binding(
   uint32_t device_id,
   unsigned max_apdu,
   BACNET_ADDRESS *src);  
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

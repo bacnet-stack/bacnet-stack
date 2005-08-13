@@ -26,6 +26,9 @@
 #ifndef NET_H
 #define NET_H
 
+#define WIN32_LEAN_AND_MEAN
+#define STRICT
+
 #include <winsock2.h>
 
 #define close closesocket

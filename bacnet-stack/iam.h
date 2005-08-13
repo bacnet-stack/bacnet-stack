@@ -38,6 +38,10 @@
 #include <stdbool.h>
 #include "bacdef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 int iam_encode_apdu(
   uint8_t *apdu, 
   uint32_t device_id,
@@ -70,5 +74,9 @@ int iam_send(uint8_t *buffer);
 #include "ctest.h"
 void testIAm(Test * pTest);
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

@@ -204,11 +204,19 @@ struct mstp_port_struct_t
 // At 9600 baud, 40 bit times would be about 4.166 milliseconds
 #define Tturnaround  40;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 void MSTP_Init(
   volatile struct mstp_port_struct_t *mstp_port,
   uint8_t this_station_mac);
 void MSTP_Millisecond_Timer(volatile struct mstp_port_struct_t *mstp_port);
 void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port);
 void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
