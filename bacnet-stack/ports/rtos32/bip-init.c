@@ -41,10 +41,12 @@ bool bip_init(void)
     int rv = 0; // return from socket lib calls
     struct sockaddr_in sin = {-1};
     int value = 1;
+    int sock_fd = -1;
 
     // assumes that the driver has already been initialized
-    BIP_Socket = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);
-    if (BIP_Socket < 0)
+    sock_fd = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);
+    bip_set_socket(sock_fd);
+    if (sock_fd < 0)
         return false;
 
     // bind the socket to the local port number and IP address
@@ -52,12 +54,12 @@ bool bip_init(void)
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(bip_get_port());
     memset(&(sin.sin_zero), '\0', 8);
-    rv = bind(BIP_Socket, 
+    rv = bind(sock_fd, 
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));
     if (rv < 0)
     {
-        close(BIP_Socket);
-        BIP_Socket = -1;
+        close(sock_fd);
+        bip_set_socket(-1);
         return false;
     }
 
