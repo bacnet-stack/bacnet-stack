@@ -47,56 +47,6 @@
 // buffers used for receiving
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
-#ifdef BACDL_BIP
-static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
-{
-    int fd;
-    int rv;                     // return value
-
-    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name));
-    fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    if (fd < 0)
-        rv = fd;
-    else
-        rv = ioctl(fd, request, ifr);
-
-    return rv;
-}
-
-static int get_local_address_ioctl(
-    char *ifname, 
-    struct in_addr *addr,
-    int request)
-{
-    struct ifreq ifr = { {{0}} };
-    struct sockaddr_in *tcpip_address;
-    int rv;                     // return value
-
-    rv = get_local_ifr_ioctl(ifname,&ifr,request);
-    if (rv >= 0) {
-        tcpip_address = (struct sockaddr_in *) &ifr.ifr_addr;
-        memcpy(addr, &tcpip_address->sin_addr, sizeof(struct in_addr));
-    }
-
-    return rv;
-}
-
-static void Init_Network(char *ifname)
-{
-    struct in_addr local_address;
-    struct in_addr broadcast_address;
-
-    /* setup local address */
-    get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
-    bip_set_addr(local_address.s_addr);
-    fprintf(stderr,"IP Address: %s\n",inet_ntoa(local_address));
-    /* setup local broadcast address */
-    get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
-    bip_set_broadcast_addr(broadcast_address.s_addr);
-    fprintf(stderr,"Broadcast Address: %s\n",inet_ntoa(broadcast_address));   
-}
-#endif
-
 static void Init_Device_Parameters(void)
 {
   // configure my initial values
@@ -208,8 +158,8 @@ static void Init_Service_Handlers(void)
   // It is required to send the proper reject message...
   apdu_set_unrecognized_service_handler_handler(
     UnrecognizedServiceHandler);
-  // Set the handlers for any confirmed services that we support
-  // we must implement read property - it's required!
+  // Set the handlers for any confirmed services that we support.
+  // We must implement read property - it's required!
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
     ReadPropertyHandler);
@@ -289,7 +239,7 @@ int main(int argc, char *argv[])
     return 1;
   #endif
   #ifdef BACDL_BIP
-  Init_Network("eth0");
+  bip_set_interface("eth0");
   bip_set_port(0xBAC0);
   if (!bip_init())
     return 1;
@@ -336,7 +286,7 @@ int main(int argc, char *argv[])
     {
       case 1:
         // used for testing, but kind of noisy on the network
-        Read_Properties();
+        // Read_Properties();
         break;
       case 2:
         break;
