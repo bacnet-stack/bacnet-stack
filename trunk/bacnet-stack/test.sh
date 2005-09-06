@@ -74,6 +74,11 @@ make -f ai.mak
 ./analog_input >> test.log
 make -f ai.mak clean
 
+make -f ao.mak clean
+make -f ao.mak
+./analog_output >> test.log
+make -f ao.mak clean
+
 make -f wp.mak clean
 make -f wp.mak
 ./writeproperty >> test.log
