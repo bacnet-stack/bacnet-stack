@@ -43,6 +43,10 @@
 #include "ethernet.h"
 #endif
 
+#ifdef BACDL_ARCNET
+#include "arcnet.h"
+#endif
+
 #ifdef BACDL_MSTP
 #include "dlmstp.h"
 #endif

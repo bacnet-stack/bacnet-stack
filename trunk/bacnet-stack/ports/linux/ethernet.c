@@ -316,7 +316,7 @@ uint16_t ethernet_receive(
     max = eth802_sockfd;
 
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
-        received_bytes = read(eth802_sockfd, &buf[0], MAX_MPDU);
+        received_bytes = read(eth802_sockfd, &buf[0], sizeof(buf));
     else
         return 0;
 

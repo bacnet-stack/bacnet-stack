@@ -46,6 +46,12 @@ int datalink_send_pdu(
   uint8_t *pdu, // any data to be sent - may be null
   unsigned pdu_len) // number of bytes of data
 {
+#ifdef BACDL_ARCNET
+  return arcnet_send_pdu(
+    dest,
+    pdu,
+    pdu_len);
+#endif
 #ifdef BACDL_MSTP
   return dlmstp_send_pdu(
     dest,
@@ -73,6 +79,13 @@ uint16_t datalink_receive(
   uint16_t max_pdu, // amount of space available in the PDU 
   unsigned timeout) // number of milliseconds to wait for a packet
 {
+  #ifdef BACDL_ARCNET
+  return arcnet_receive(
+    src,
+    pdu,
+    max_pdu,
+    timeout);
+  #endif
   #ifdef BACDL_MSTP
   return dlmstp_receive(
     src,
@@ -99,6 +112,9 @@ uint16_t datalink_receive(
 void datalink_get_broadcast_address(
   BACNET_ADDRESS *dest) // destination address
 {
+#ifdef BACDL_ARCNET
+  arcnet_get_broadcast_address(dest);
+#endif
 #ifdef BACDL_MSTP
   dlmstp_get_broadcast_address(dest);
 #endif
@@ -113,6 +129,9 @@ void datalink_get_broadcast_address(
 void datalink_get_my_address(
   BACNET_ADDRESS *my_address)
 {
+#ifdef BACDL_ARCNET
+  arcnet_get_my_address(my_address);
+#endif
 #ifdef BACDL_MSTP
   dlmstp_get_my_address(my_address);
 #endif
