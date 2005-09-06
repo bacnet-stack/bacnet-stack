@@ -94,7 +94,7 @@ void bip_set_broadcast_addr(uint32_t net_address);
 // returns host byte order
 uint32_t bip_get_broadcast_addr(void);
 
-void bip_set_interface_name(char *ifname);
+void bip_set_interface(char *ifname);
 
 #ifdef __cplusplus
 }

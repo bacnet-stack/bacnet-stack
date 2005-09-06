@@ -38,6 +38,54 @@
 #include "bip.h"
 #include "net.h"
 
+static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
+{
+    int fd;
+    int rv;                     // return value
+
+    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name));
+    fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    if (fd < 0)
+        rv = fd;
+    else
+        rv = ioctl(fd, request, ifr);
+
+    return rv;
+}
+
+static int get_local_address_ioctl(
+    char *ifname, 
+    struct in_addr *addr,
+    int request)
+{
+    struct ifreq ifr = { {{0}} };
+    struct sockaddr_in *tcpip_address;
+    int rv;                     // return value
+
+    rv = get_local_ifr_ioctl(ifname,&ifr,request);
+    if (rv >= 0) {
+        tcpip_address = (struct sockaddr_in *) &ifr.ifr_addr;
+        memcpy(addr, &tcpip_address->sin_addr, sizeof(struct in_addr));
+    }
+
+    return rv;
+}
+
+void bip_set_interface(char *ifname)
+{
+    struct in_addr local_address;
+    struct in_addr broadcast_address;
+
+    /* setup local address */
+    get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
+    bip_set_addr(local_address.s_addr);
+    fprintf(stderr,"IP Address: %s\n",inet_ntoa(local_address));
+    /* setup local broadcast address */
+    get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
+    bip_set_broadcast_addr(broadcast_address.s_addr);
+    fprintf(stderr,"Broadcast Address: %s\n",inet_ntoa(broadcast_address));   
+}
+
 bool bip_init(void)
 {
     int status = 0; // return from socket lib calls

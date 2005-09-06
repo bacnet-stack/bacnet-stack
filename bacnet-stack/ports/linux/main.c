@@ -204,13 +204,7 @@ static void print_address_cache(void)
 
 static void sig_handler(int signo)
 {
-  #ifdef BACDL_ETHERNET
-  ethernet_cleanup();
-  #endif
-  #ifdef BACDL_BIP
-  bip_cleanup();
-  #endif
-
+  datalink_cleanup();
   print_address_cache();
  
   exit(0);
@@ -242,6 +236,10 @@ int main(int argc, char *argv[])
   bip_set_interface("eth0");
   bip_set_port(0xBAC0);
   if (!bip_init())
+    return 1;
+  #endif
+  #ifdef BACDL_ARCNET
+  if (!arcnet_init("arc0"))
     return 1;
   #endif
 

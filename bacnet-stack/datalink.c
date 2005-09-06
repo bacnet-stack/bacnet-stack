@@ -109,6 +109,22 @@ uint16_t datalink_receive(
   #endif
 }
 
+void datalink_cleanup(void)
+{
+#ifdef BACDL_ETHERNET
+  ethernet_cleanup();
+#endif
+#ifdef BACDL_BIP
+  bip_cleanup();
+#endif
+#ifdef BACDL_ARCNET
+  arcnet_cleanup();
+#endif
+#ifdef BACDL_MSTP
+  dlmstp_cleanup();
+#endif
+}
+
 void datalink_get_broadcast_address(
   BACNET_ADDRESS *dest) // destination address
 {

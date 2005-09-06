@@ -72,6 +72,8 @@ uint16_t datalink_receive(
   uint16_t max_pdu, // amount of space available in the PDU 
   unsigned timeout); // number of milliseconds to wait for a packet
 
+void datalink_cleanup(void);
+
 void datalink_get_broadcast_address(
   BACNET_ADDRESS *dest); // destination address
 
