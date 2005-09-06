@@ -125,7 +125,7 @@ static float Analog_Output_Present_Value(uint32_t object_instance)
   unsigned i = 0; 
 
   Analog_Output_Init();
-  index = Analog_Output_Index_To_Instance(object_instance);
+  index = Analog_Output_Instance_To_Index(object_instance);
   if (index < MAX_ANALOG_OUTPUTS)
   {
     for (i = 0; i < BACNET_MAX_PRIORITIES; i++)
@@ -373,13 +373,17 @@ void testAnalogOutput(Test * pTest)
   BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_OUTPUT;
   uint32_t decoded_instance = 0;
   uint32_t instance = 123;
+  BACNET_ERROR_CLASS error_class;
+  BACNET_ERROR_CODE error_code;
 
   
   len = Analog_Output_Encode_Property_APDU(
     &apdu[0],
     instance,
     PROP_OBJECT_IDENTIFIER,
-    BACNET_ARRAY_ALL);
+    BACNET_ARRAY_ALL,
+    &error_class,
+    &error_code);
   ct_test(pTest, len != 0);
   len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
   ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
@@ -391,7 +395,7 @@ void testAnalogOutput(Test * pTest)
   return;
 }
 
-#ifdef TEST_ANALOG_INPUT
+#ifdef TEST_ANALOG_OUTPUT
 int main(void)
 {
     Test *pTest;
