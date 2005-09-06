@@ -79,6 +79,7 @@
 #include <sys/socket.h>
 #include <net/route.h>
 #include <net/if.h>
+#include <net/if_arp.h>
 #include <features.h>           /* for the glibc version number */
 #if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
 #include <netpacket/packet.h>
@@ -86,7 +87,8 @@
 #else
 #include <asm/types.h>
 #include <linux/if_packet.h>
-#include <linux/if_ether.h>     /* The L2 protocols */
+#include <linux/if_arcnet.h>
+#include <linux/if_ether.h>
 #endif
 #include <netinet/in.h>
 #include <arpa/inet.h>
