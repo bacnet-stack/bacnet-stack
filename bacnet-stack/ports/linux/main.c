@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
     {
       case 1:
         // used for testing, but kind of noisy on the network
-        // Read_Properties();
+        Read_Properties();
         break;
       case 2:
         break;
