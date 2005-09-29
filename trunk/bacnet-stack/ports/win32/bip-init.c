@@ -43,12 +43,74 @@
 #include "bip.h"
 #include "net.h"
 
+/* To fill a need, we invent the gethostaddr() function. */
+static long gethostaddr(void)
+{
+  struct hostent *host_ent;
+  char host_name[255];
+
+  if (gethostname(host_name, sizeof(host_name)) != 0)
+    return -1;
+  printf("host name: %s\n",host_name);
+  if ((host_ent = gethostbyname(host_name)) == NULL)
+    return -1;
+
+  return *(long *)host_ent->h_addr;
+}
+
+static void set_broadcast_address(uint32_t net_address)
+{
+  long broadcast_address = 0;
+  long mask = 0;
+
+  #if 0
+  bip_set_broadcast_addr(INADDR_BROADCAST);
+  #else
+  if (IN_CLASSA(ntohl(net_address)))
+    broadcast_address = (ntohl(net_address) & ~IN_CLASSA_HOST) | IN_CLASSA_HOST;
+  else if (IN_CLASSB(ntohl(net_address)))
+    broadcast_address = (ntohl(net_address) & ~IN_CLASSB_HOST) | IN_CLASSB_HOST;
+  else if (IN_CLASSC(ntohl(net_address)))
+    broadcast_address = (ntohl(net_address) & ~IN_CLASSC_HOST) | IN_CLASSC_HOST;
+  else if (IN_CLASSD(ntohl(net_address)))
+    broadcast_address = (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
+  else
+    broadcast_address = INADDR_BROADCAST;
+  bip_set_broadcast_addr(htonl(broadcast_address));
+  #endif
+}
+
 bool bip_init(void)
 {
     int rv = 0; // return from socket lib calls
     struct sockaddr_in sin = {-1};
     int value = 1;
     int sock_fd = -1;
+    int Result;
+    int Code;
+    WSADATA wd;
+    struct in_addr address;
+
+    Result = WSAStartup(MAKEWORD(2,2), &wd);
+
+    if (Result != 0)
+    {
+      Code = WSAGetLastError();
+      printf("TCP/IP stack initialization failed, error code: %i\n",
+        Code);
+      exit(1);
+    }
+    address.s_addr = gethostaddr();
+    if (address.s_addr == (unsigned)-1)
+    {
+      Code = WSAGetLastError();
+      printf("Get host address failed, error code: %i\n",
+        Code);
+      exit(1);
+    }
+    printf("host address: %s\n",inet_ntoa(address));
+    bip_set_addr(address.s_addr);
+    set_broadcast_address(address.s_addr);
 
     // assumes that the driver has already been initialized
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

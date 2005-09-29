@@ -37,7 +37,7 @@
 #include "apdu.h"
 #include "device.h"
 #include "handlers.h"
-#include "bip.h"
+#include "datalink.h"
 
 // buffer used for receive
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
@@ -166,50 +166,21 @@ static void Init_Service_Handlers(void)
     ReadPropertyAckHandler);
 }
 
-/* To fill a need, we invent the gethostaddr() function. */
-long gethostaddr(void)
+static void print_address(
+  char *name,
+  BACNET_ADDRESS *dest) // destination address
 {
-  struct hostent *host_ent;
-  char host_name[255];
-
-  if (gethostname(host_name, sizeof(host_name)) == 0)
-    return -1;
-   
-  if ((host_ent = gethostbyname(host_name)) == NULL)
-    return -1;
-
-  return *(long *)host_ent->h_addr;
-}
-
-extern void bip_set_addr(struct in_addr *net_address);
-
-extern void bip_set_ipv4_broadcast_s_addr(
-  unsigned long address);
-
-static void NetInitialize(void)
-// initialize the TCP/IP stack
-{
-  int Result;
-  int Code;
-  WSADATA wd;
-  struct in_addr address;
-
-
-  Result = WSAStartup(MAKEWORD(2,2), &wd);
-
-  if (Result != 0)
+  int i = 0; // counter
+  
+  if (dest)
   {
-    Code = WSAGetLastError();
-    printf("TCP/IP stack initialization failed, error code: %i\n",
-      Code);
-    exit(1);
+    printf("%s: ",name);
+    for (i = 0; i < dest->mac_len; i++)
+    {
+      printf("%02X",dest->mac[i]);
+    }
+    printf("\n");
   }
-  address.s_addr = gethostaddr();
-  bip_set_addr(address.s_addr);
-  /* local broadcast address */
-  bip_set_broadcast_addr(INADDR_BROADCAST);
-  /* configure standard BACnet/IP port */
-  bip_set_port(0xBAC0);
 }
 
 int main(int argc, char *argv[])
@@ -217,15 +188,22 @@ int main(int argc, char *argv[])
   BACNET_ADDRESS src = {0};  // address where message came from
   uint16_t pdu_len = 0;
   unsigned timeout = 100; // milliseconds
+  BACNET_ADDRESS my_address, broadcast_address;
 
   (void)argc;
   (void)argv;
   Init_Device_Parameters();
   Init_Service_Handlers();
   // init the data link layer
-  NetInitialize();
+  /* configure standard BACnet/IP port */
+  bip_set_port(0xBAC0);
   if (!bip_init())
     return 1;
+
+  datalink_get_broadcast_address(&broadcast_address);  
+  print_address("Broadcast",&broadcast_address);
+  datalink_get_my_address(&my_address);
+  print_address("Address",&my_address);
   
   printf("BACnet stack running...\n"); 
   // loop forever
@@ -259,6 +237,9 @@ int main(int argc, char *argv[])
       Who_Is_Request = false;
       Send_WhoIs();
     }
+    else
+      Read_Properties();
+
     // output
 
     // blink LEDs, Turn on or off outputs, etc
