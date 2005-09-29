@@ -31,8 +31,10 @@
 #include "config.h" // the custom stuff
 #include "ai.h" // object list dependency
 #include "ao.h" // object list dependency
-#include "bacfile.h" // object list dependency
 #include "wp.h" // write property handling
+#if BACFILE
+#include "bacfile.h" // object list dependency
+#endif
 
 static uint32_t Object_Instance_Number = 0;
 // FIXME: it is likely that this name is configurable,
@@ -229,7 +231,9 @@ unsigned Device_Object_List_Count(void)
 
   count += Analog_Input_Count();
   count += Analog_Output_Count();
+  #if BACFILE
   count += bacfile_count();
+  #endif
 
   return count;
 }
@@ -270,6 +274,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
     }
   }
 
+  #if BACFILE
   if (!status)
   {
     object_index -= Analog_Output_Count();
@@ -280,6 +285,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
       status = true;
     }
   }
+  #endif
     
   return status;  
 }

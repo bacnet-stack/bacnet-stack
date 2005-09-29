@@ -83,7 +83,7 @@ int Analog_Input_Encode_Property_APDU(
       break;
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
-      sprintf(text_string,"ANALOG INPUT %d",object_instance);
+      sprintf(text_string,"ANALOG INPUT %u",object_instance);
       apdu_len = encode_tagged_character_string(&apdu[0], text_string);
       break;
     case PROP_OBJECT_TYPE:
