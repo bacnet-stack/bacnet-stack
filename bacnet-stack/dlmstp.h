@@ -48,6 +48,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+void dlmstp_init(void);
+void dlmstp_cleanup(void);
+
 /* returns number of bytes sent on success, negative on failure */
 int dlmstp_send_pdu(
   BACNET_ADDRESS *dest,  // destination address

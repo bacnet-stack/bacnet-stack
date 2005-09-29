@@ -29,38 +29,43 @@
 #include <stdint.h>
 #include "hardware.h"
 
-// define this to enable ICD - debugger
-//#define USE_ICD
-// ------------------------- Configuration Bits ----------------------------
-#pragma romdata CONFIG
-#ifdef USE_ICD
-_CONFIG_DECL (
-  _CONFIG1H_DEFAULT & _OSCS_OFF_1H & _OSC_HS_1H,
-  _CONFIG2L_DEFAULT & _BOR_ON_2L & _BORV_27_2L & _PWRT_ON_2L,
-  _CONFIG2H_DEFAULT & _WDT_OFF_2H & _WDTPS_128_2H,
-  _CONFIG3H_DEFAULT & _CCP2MUX_OFF_3H,
-  _CONFIG4L_DEFAULT & _STVR_ON_4L & _LVP_OFF_4L & _DEBUG_ON_4L,
-  _CONFIG5L_DEFAULT & _CP0_OFF_5L & _CP1_OFF_5L & _CP2_OFF_5L & _CP3_OFF_5L ,
-  _CONFIG5H_DEFAULT & _CPB_OFF_5H & _CPD_OFF_5H,
-  _CONFIG6L_DEFAULT & _WRT0_OFF_6L & _WRT1_OFF_6L & _WRT2_OFF_6L & _WRT3_OFF_6L ,
-  _CONFIG6H_DEFAULT & _WPC_OFF_6H & _WPB_OFF_6H & _WPD_OFF_6H,
-  _CONFIG7L_DEFAULT & _EBTR0_OFF_7L & _EBTR1_OFF_7L & _EBTR2_OFF_7L & _EBTR3_OFF_7L,
-  _CONFIG7H_DEFAULT & _EBTRB_OFF_7H);
-#else
-_CONFIG_DECL (
-  _CONFIG1H_DEFAULT & _OSCS_OFF_1H & _OSC_HS_1H,
-  _CONFIG2L_DEFAULT & _BOR_ON_2L & _BORV_27_2L & _PWRT_ON_2L,
-  _CONFIG2H_DEFAULT & _WDT_ON_2H & _WDTPS_128_2H,
-  _CONFIG3H_DEFAULT & _CCP2MUX_OFF_3H,
-  _CONFIG4L_DEFAULT & _STVR_ON_4L & _LVP_OFF_4L & _DEBUG_OFF_4L,
-  _CONFIG5L_DEFAULT & _CP0_OFF_5L & _CP1_OFF_5L & _CP2_OFF_5L & _CP3_OFF_5L ,
-  _CONFIG5H_DEFAULT & _CPB_OFF_5H & _CPD_OFF_5H,
-  _CONFIG6L_DEFAULT & _WRT0_OFF_6L & _WRT1_OFF_6L & _WRT2_OFF_6L & _WRT3_OFF_6L ,
-  _CONFIG6H_DEFAULT & _WPC_OFF_6H & _WPB_OFF_6H & _WPD_OFF_6H,
-  _CONFIG7L_DEFAULT & _EBTR0_OFF_7L & _EBTR1_OFF_7L & _EBTR2_OFF_7L & _EBTR3_OFF_7L,
-  _CONFIG7H_DEFAULT & _EBTRB_OFF_7H);
+// define this to enable ICD
+//#define USE_ICD 
 
-#endif // USE_ICD
+// Configuration Bits 
+#pragma config OSC = HS
+#pragma config PWRT = ON
+#pragma config BOR = ON, BORV = 42
+#pragma config CCP2MUX = ON
+#pragma config STVR = ON
+#pragma config LVP = OFF
+#pragma config CP0 = OFF
+#pragma config CP1 = OFF
+#pragma config CP2 = OFF
+#pragma config CP3 = OFF
+#pragma config CPB = OFF
+#pragma config CPD = OFF
+#pragma config WRT0 = OFF
+#pragma config WRT1 = OFF
+#pragma config WRT2 = OFF
+#pragma config WRT3 = OFF
+#pragma config WRTB = OFF
+#pragma config WRTC = OFF
+#pragma config WRTD = OFF
+#pragma config EBTR0 = OFF
+#pragma config EBTR1 = OFF
+#pragma config EBTR2 = OFF
+#pragma config EBTR3 = OFF
+#pragma config EBTRB = OFF
+
+#ifdef USE_ICD
+  #pragma config WDT = OFF, WDTPS = 128
+  #pragma config DEBUG = ON
+#else
+  #pragma config WDT = ON, WDTPS = 128
+  #pragma config DEBUG = OFF
+#endif /* USE_ICD */
+
 #pragma romdata
 
 /****************************************************************************

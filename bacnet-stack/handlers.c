@@ -38,7 +38,6 @@
 #include "rp.h"
 #include "wp.h"
 #include "arf.h"
-#include "bacfile.h"
 #include "whois.h"
 #include "iam.h"
 #include "reject.h"
@@ -47,7 +46,9 @@
 #include "address.h"
 #include "tsm.h"
 #include "datalink.h"
-
+#if BACFILE
+#include "bacfile.h"
+#endif
 // Example handlers of services
 
 // flag to send an I-Am
@@ -397,6 +398,7 @@ void ReadPropertyHandler(
         else
           error = true;
         break;
+      #if BACFILE
       case OBJECT_FILE:
         if (bacfile_valid_instance(data.object_instance))
         {
@@ -426,6 +428,7 @@ void ReadPropertyHandler(
         else
           error = true;
         break;
+      #endif
       default:
         error = true;
         break;
@@ -585,6 +588,7 @@ void WritePropertyHandler(
   return;
 }
 
+#if BACFILE
 void AtomicReadFileHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -700,7 +704,9 @@ void AtomicReadFileHandler(
 
   return;
 }
+#endif
 
+#if BACFILE
 // We performed an AtomicReadFile Request,
 // and here is the data from the server
 // Note: it does not have to be the same file=instance
@@ -754,6 +760,6 @@ void AtomicReadFileAckHandler(
     }
   }
 }
-
+#endif
 
 

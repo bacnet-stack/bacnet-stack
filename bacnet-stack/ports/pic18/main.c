@@ -55,7 +55,7 @@ static void Check_Timer_Milliseconds(void)
 }
 
 
-int main(void)
+void main(void)
 {
   init_hardware();
   RS485_Initialize();
@@ -81,5 +81,5 @@ int main(void)
     
   }
   
-  return 0;
+  return;
 }

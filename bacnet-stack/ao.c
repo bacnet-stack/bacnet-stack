@@ -167,7 +167,7 @@ int Analog_Output_Encode_Property_APDU(
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
       // note: the object name must be unique within this device
-      sprintf(text_string,"ANALOG OUTPUT %d",object_instance);
+      sprintf(text_string,"ANALOG OUTPUT %u",object_instance);
       apdu_len = encode_tagged_character_string(&apdu[0], text_string);
       break;
     case PROP_OBJECT_TYPE:
