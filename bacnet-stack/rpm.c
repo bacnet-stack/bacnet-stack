@@ -158,7 +158,8 @@ int rpm_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
   uint8_t *invoke_id,
-  BACNET_READ_PROPERTY_DATA *data)
+  BACNET_READ_PROPERTY_MULTIPLE_DATA **data_list,
+  unsigned *data_list_len) 
 {
   int len = 0;
   unsigned offset = 0;
@@ -170,7 +171,7 @@ int rpm_decode_apdu(
     return -1;
   //  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
   *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-  if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY)
+  if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE;
     return -1;
   offset = 4;
 
@@ -188,7 +189,8 @@ int rpm_decode_apdu(
 int rpm_ack_encode_apdu(
   uint8_t *apdu,
   uint8_t invoke_id,
-  BACNET_READ_PROPERTY_DATA *data)
+  BACNET_READ_PROPERTY_MULTIPLE_DATA **data_list,
+  unsigned list_len)
 {
   int len = 0; // length of each encoding
   int apdu_len = 0; // total length of the apdu, return value
@@ -197,7 +199,7 @@ int rpm_ack_encode_apdu(
   {
     apdu[0] = PDU_TYPE_COMPLEX_ACK;     /* complex ACK service */
     apdu[1] = invoke_id;        /* original invoke id from request */
-    apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY;  // service choice
+    apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE;     // service choice
     apdu_len = 3;
     // service ack follows
     apdu_len += encode_context_object_id(&apdu[apdu_len], 0,
@@ -313,7 +315,7 @@ int rpm_ack_decode_apdu(
 #include <string.h>
 #include "ctest.h"
 
-void testReadPropertyAck(Test * pTest)
+void testReadMultiplePropertyAck(Test * pTest)
 {
   uint8_t apdu[480] = {0};
   uint8_t apdu2[480] = {0};
@@ -321,8 +323,8 @@ void testReadPropertyAck(Test * pTest)
   int apdu_len = 0;
   uint8_t invoke_id = 1;
   uint8_t test_invoke_id = 0;
-  BACNET_READ_PROPERTY_DATA data;
-  BACNET_READ_PROPERTY_DATA test_data;
+  BACNET_READ_PROPERTY_MULTIPLE_DATA data;
+  BACNET_READ_PROPERTY_MULTIPLE_DATA test_data;
   BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
   uint32_t object_instance = 0;
   int object = 0;
@@ -367,24 +369,48 @@ void testReadPropertyAck(Test * pTest)
   ct_test(pTest, object_instance == data.object_instance);
 }
 
-void testReadProperty(Test * pTest)
+void testReadMultipleProperty(Test * pTest)
 {
   uint8_t apdu[480] = {0};
   int len = 0;
   int apdu_len = 0;
   uint8_t invoke_id = 128;
   uint8_t test_invoke_id = 0;
-  BACNET_READ_PROPERTY_DATA data;
-  BACNET_READ_PROPERTY_DATA test_data;
-      
-  data.object_type = OBJECT_DEVICE;
-  data.object_instance = 1;
-  data.object_property = PROP_OBJECT_IDENTIFIER;
-  data.array_index = BACNET_ARRAY_ALL;
+  BACNET_PROPERTY_REFERENCE device_property[3];
+  BACNET_PROPERTY_REFERENCE test_device_property[3];
+  BACNET_PROPERTY_REFERENCE ai_property[3];
+  BACNET_PROPERTY_REFERENCE test_ai_property[3];
+  BACNET_READ_PROPERTY_MULTIPLE_DATA data[2];
+  BACNET_READ_PROPERTY_MULTIPLE_DATA test_data[2];
+
+  /* read some properties from the device */
+  device_property[0].object_property = PROP_OBJECT_IDENTIFIER;
+  device_property[0].array_index = BACNET_ARRAY_ALL;
+  device_property[1].object_property = PROP_OBJECT_NAME;
+  device_property[1].array_index = BACNET_ARRAY_ALL;
+  device_property[2].object_property = PROP_OBJECT_TYPE;
+  device_property[2].array_index = BACNET_ARRAY_ALL;
+  data[0].object_type = OBJECT_DEVICE;
+  data[0].object_instance = 1;
+  data[0].property_list = &device_property;
+  data[0].property_list_len = 3;
+  /* read some properties from the analog input */
+  ai_property[0].object_property = PROP_OBJECT_IDENTIFIER;
+  ai_property[0].array_index = BACNET_ARRAY_ALL;
+  ai_property[1].object_property = PROP_OBJECT_NAME;
+  ai_property[1].array_index = BACNET_ARRAY_ALL;
+  ai_property[2].object_property = PROP_OBJECT_TYPE;
+  ai_property[2].array_index = BACNET_ARRAY_ALL;
+  data[0].object_type = OBJECT_ANALOG_INPUT;
+  data[0].object_instance = 0;
+  data[0].property_list = &ai_property;
+  data[0].property_list_len = 3;
+
   len = rpm_encode_apdu(
     &apdu[0],
     invoke_id,
-    &data);
+    &data,
+    2);
   ct_test(pTest, len != 0);
   apdu_len = len;
 
@@ -402,17 +428,17 @@ void testReadProperty(Test * pTest)
   return;
 }
 
-#ifdef TEST_READ_PROPERTY
+#ifdef TEST_READ_PROPERTY_MULTIPLE
 int main(void)
 {
     Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet ReadProperty", NULL);
+    pTest = ct_create("BACnet ReadPropertyMultiple", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testReadProperty);
+    rc = ct_addTestFunction(pTest, testReadPropertyMultiple);
     assert(rc);
-    rc = ct_addTestFunction(pTest, testReadPropertyAck);
+    rc = ct_addTestFunction(pTest, testReadPropertyMultipleAck);
     assert(rc);
 
     ct_setStream(pTest, stdout);
@@ -422,5 +448,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_READ_PROPERTY */
+#endif                          /* TEST_READ_PROPERTY_MULTIPLE */
 #endif                          /* TEST */
