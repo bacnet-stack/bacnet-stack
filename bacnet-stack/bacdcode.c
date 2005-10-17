@@ -1567,10 +1567,10 @@ void testBACDCodeOctetString(Test * pTest)
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
 
-    apdu_len = encode_tagged_octet_string(&array[0], &test_string0[0], 0);
+    apdu_len = encode_tagged_octet_string(&array[0], (uint8_t *)&test_string0[0], 0);
     len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
     len += decode_octet_string(&array[len], len_value,
-      &decoded_string[0], sizeof(decoded_string));
+      (uint8_t *)&decoded_string[0], sizeof(decoded_string));
     ct_test(pTest, apdu_len == len);
     ct_test(pTest, memcmp(&test_string0[0], &decoded_string[0],
       len_value) == 0);
@@ -1578,11 +1578,11 @@ void testBACDCodeOctetString(Test * pTest)
         test_string[i] = '0' + (i % 10);
         apdu_len =
             encode_tagged_octet_string(&encoded_array[0],
-            &test_string[0], i);
+            (uint8_t *)&test_string[0], i);
         len = decode_tag_number_and_value(&encoded_array[0],
           &tag_number, &len_value);
         len += decode_octet_string(&encoded_array[len], len_value,
-                &decoded_string[0], sizeof(decoded_string));
+                (uint8_t *)&decoded_string[0], sizeof(decoded_string));
         if (apdu_len != len) {
             printf("test octet string=#%d\n", i);
         }
