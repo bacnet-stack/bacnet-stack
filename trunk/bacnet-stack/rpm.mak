@@ -4,11 +4,10 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_RPM -g
+CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_READ_PROPERTY_MULTIPLE -g
 
 SRCS = bacdcode.c \
        bigend.c \
-       device.c \
        rpm.c \
        test/ctest.c
 
