@@ -37,61 +37,62 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct BACnet_Property_Reference
-{
-  BACNET_PROPERTY_ID object_property;
-  int32_t array_index;
-  uint8_t *application_data;
-  int application_data_len;
-} BACNET_PROPERTY_REFERENCE;
-
-typedef struct BACnet_Read_Property_Multiple_Data
-{
-  BACNET_OBJECT_TYPE object_type;
-  uint32_t object_instance;
-  BACNET_PROPERTY_REFERENCE *property_list;
-  unsigned property_list_len;
-} BACNET_READ_PROPERTY_MULTIPLE_DATA;
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-// encode service
-int rpm_encode_apdu(
+/* encode functions */
+/* Start with the Init function, and then add an object,
+ then add its properties, and then end the object.
+ Continue to add objects and properties as needed
+ until the APDU is full.*/
+int rpm_encode_apdu_init(
   uint8_t *apdu, 
-  uint8_t invoke_id,
-  BACNET_READ_PROPERTY_MULTIPLE_DATA **data);
-
-// decode the service request only
-int rpm_decode_service_request(
+  uint8_t invoke_id);
+int rpm_encode_apdu_object_begin(
   uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_READ_PROPERTY_MULTIPLE_DATA **data);
-  
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance);
+int rpm_encode_apdu_object_property(
+  uint8_t *apdu,
+  BACNET_PROPERTY_ID object_property,
+  int32_t array_index);
+int rpm_encode_apdu_object_end(
+  uint8_t *apdu);
 int rpm_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
   uint8_t *invoke_id,
-  BACNET_READ_PROPERTY_MULTIPLE_DATA **data);
+  uint8_t **service_request,
+  unsigned *service_request_len);
 
-int rpm_ack_encode_apdu(
+int rpm_ack_encode_apdu_object_begin(
   uint8_t *apdu,
-  uint8_t invoke_id,
-  BACNET_READ_PROPERTY_MULTIPLE_DATA **data);
-
-int rpm_ack_decode_service_request(
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance);
+int rpm_ack_encode_apdu_object_property_value(
   uint8_t *apdu,
-  int apdu_len, // total length of the apdu
-  BACNET_READ_PROPERTY_MULTIPLE_DATA **data);
-
+  BACNET_PROPERTY_ID object_property,
+  int32_t array_index,
+  uint8_t *application_data,
+  unsigned application_data_len);
+int rpm_ack_encode_apdu_object_property_error(
+  uint8_t *apdu,
+  BACNET_PROPERTY_ID object_property,
+  int32_t array_index,
+  BACNET_ERROR_CLASS error_class,
+  BACNET_ERROR_CODE error_code);
+int rpm_ack_encode_apdu_object_end(
+  uint8_t *apdu);
 int rpm_ack_decode_apdu(
   uint8_t *apdu,
-  int apdu_len, // total length of the apdu
+  int apdu_len, /* total length of the apdu */
   uint8_t *invoke_id,
-  BACNET_READ_PROPERTY_MULTIPLE_DATA **data);
+  uint8_t **service_request,
+  unsigned *service_request_len);
 
-  
+  /* FIXME: add the decoding for the ACK */
+
 #ifdef TEST
 #include "ctest.h"
 
