@@ -310,10 +310,11 @@ int rpm_ack_encode_apdu_object_property_error(
     if (array_index != BACNET_ARRAY_ALL)
       apdu_len += encode_context_unsigned(&apdu[apdu_len], 3,
         array_index);
-    apdu_len += encode_context_enumerated(&apdu[apdu_len], 5,
-      error_class);
-    apdu_len += encode_context_enumerated(&apdu[apdu_len], 5,
-      error_code);
+    /* errorCode */
+    apdu_len += encode_opening_tag(&apdu[apdu_len], 4);
+    apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_class);
+    apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_code);
+    apdu_len += encode_closing_tag(&apdu[apdu_len], 4);
   }
 
   return apdu_len;
