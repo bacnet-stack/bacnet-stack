@@ -324,6 +324,8 @@ void testReadPropertyAck(Test * pTest)
   ct_test(pTest, test_data.array_index == data.array_index);
   ct_test(pTest, test_data.application_data_len == data.application_data_len);
 
+  /* since object property == object_id, decode the application data using
+     the appropriate decode function */
   len = decode_object_id(
     test_data.application_data, 
     &object, 
