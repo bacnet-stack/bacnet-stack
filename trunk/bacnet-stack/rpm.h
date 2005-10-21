@@ -65,6 +65,22 @@ int rpm_decode_apdu(
   uint8_t *invoke_id,
   uint8_t **service_request,
   unsigned *service_request_len);
+/* decode the object portion of the service request only */
+int rpm_decode_object_id(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  BACNET_OBJECT_TYPE *object_type,
+  uint32_t *object_instance);
+/* is this the end of this object property list? */
+int rpm_decode_object_end(
+  uint8_t *apdu,
+  unsigned apdu_len);
+/* decode the object property portion of the service request only */
+int rpm_decode_object_property(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  BACNET_PROPERTY_ID *object_property,
+  int32_t *array_index);
 
 int rpm_ack_encode_apdu_object_begin(
   uint8_t *apdu,
@@ -91,7 +107,28 @@ int rpm_ack_decode_apdu(
   uint8_t **service_request,
   unsigned *service_request_len);
 
-  /* FIXME: add the decoding for the ACK */
+/* FIXME: seems to me that we could use these decodes to make
+   calls repeatedly to a single function that returns
+   the ReadProperty data structure and amount of APDU used. */
+   
+/* decode the object portion of the service request only */
+int rpm_ack_decode_object_id(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  BACNET_OBJECT_TYPE *object_type,
+  uint32_t *object_instance);
+/* is this the end of the list of this objects properties values? */
+int rpm_ack_decode_object_end(
+  uint8_t *apdu,
+  unsigned apdu_len);
+/* decode the object property value portion of the service request only */
+int rpm_ack_decode_object_property_value(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  BACNET_PROPERTY_ID *object_property,
+  int32_t *array_index,
+  uint8_t **application_data,
+  unsigned *application_data_len);
 
 #ifdef TEST
 #include "ctest.h"
