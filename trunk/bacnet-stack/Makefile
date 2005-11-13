@@ -23,7 +23,6 @@ SRCS = ports/linux/main.c \
        whois.c \
        iam.c \
        rp.c \
-       rpm.c \
        wp.c \
        tsm.c \
        datalink.c \
