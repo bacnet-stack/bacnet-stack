@@ -102,14 +102,21 @@ static void Read_Properties(void)
   bool next_device = false;
   static unsigned index = 0;
   static unsigned property = 0;
-  // list of required (and some optional) properties in the
-  // Device Object
+  /* list of required (and some optional and proprietary)
+  properties in the Device Object.  Note that this demo
+  tests for error messages so that the device doesn't have
+  to have all the properties listed here. */
   const int object_props[] =
   {
     75,77,79,112,121,120,70,44,12,98,95,97,96,
     62,107,57,56,119,24,10,11,73,116,64,63,30,
     514,515,
-    // note: 76 is missing cause we get it special below
+    /* note: 76 is missing cause we get it special:
+    76 is the object list, and reading index 0
+    gives us the number of objects in the list,
+    and then we can read index 1, 2.. n one by one,
+    rather than trying to read the entire object
+    list in one message. */
     -1
   };
 
@@ -121,13 +128,19 @@ static void Read_Properties(void)
         next_device = true;
       else
       {
-        (void)Send_Read_Property_Request(
+        if (Send_Read_Property_Request(
           device_id, // destination device
           OBJECT_DEVICE,
           device_id,
           object_props[property],
-          BACNET_ARRAY_ALL);
-        property++;
+          BACNET_ARRAY_ALL))
+        {
+          /* note: if we wanted to do this synchronously, we would get the
+            invoke ID from the sending of the request, and wait until we
+            got the reply with matching invoke ID or the TSM of the
+            invoke ID expired.  This demo is doing things asynchronously. */
+          property++;
+        }
       }
     }
     else
