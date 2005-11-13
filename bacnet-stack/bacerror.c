@@ -116,7 +116,8 @@ int bacerror_decode_service_request(
       *service = apdu[1];
     // decode the application class and code
     len = bacerror_decode_error_class_and_code(
-      apdu[2],
+      &apdu[2],
+      apdu_len - 2,
       error_class,
       error_code);
   }
