@@ -65,6 +65,12 @@ int bacerror_decode_apdu(
   BACNET_ERROR_CLASS *error_class,
   BACNET_ERROR_CODE *error_code);
 
+int bacerror_decode_error_class_and_code(
+  uint8_t *apdu,
+  unsigned apdu_len,
+  BACNET_ERROR_CLASS *error_class,
+  BACNET_ERROR_CODE *error_code);
+  
 #ifdef TEST
 #include "ctest.h"
 void testBACError(Test * pTest);

@@ -295,6 +295,6 @@ int main(int argc, char *argv[])
 
     // blink LEDs, Turn on or off outputs, etc
   }
-  
+
   return 0;
 }
