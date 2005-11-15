@@ -89,5 +89,7 @@ make -f address.mak
 ./address >> test.log
 make -f address.mak clean
 
-
-
+make -f indtext.mak clean
+make -f indtext.mak
+./indtext >> test.log
+make -f indtext.mak clean
