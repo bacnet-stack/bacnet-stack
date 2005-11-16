@@ -77,6 +77,12 @@ int wp_encode_apdu(
     else if (data->value.tag == BACNET_APPLICATION_TAG_REAL)
       apdu_len += encode_tagged_real(&apdu[apdu_len],
         data->value.type.Real);
+    /*
+    else if (data->value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)
+      apdu_len += encode_tagged_character_string(
+        &apdu[apdu_len],
+        &data->value.type.Character_String[0]);
+    */
     else if (data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED)
       apdu_len += encode_tagged_enumerated(&apdu[apdu_len],
         data->value.type.Enumerated);
@@ -189,6 +195,14 @@ int wp_decode_service_request(
         data->value.tag = tag_number;
         len += decode_real(&apdu[len],&(data->value.type.Real));
       }
+      /*
+      else if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING)
+      {
+        data->value.tag = tag_number;
+        len += decode_character_string(&apdu[len],
+          &(data->value.type.Character_String));
+      }
+      */
       else if (tag_number == BACNET_APPLICATION_TAG_ENUMERATED)
       {
         data->value.tag = tag_number;
