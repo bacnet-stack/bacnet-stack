@@ -200,7 +200,8 @@ int wp_decode_service_request(
       {
         data->value.tag = tag_number;
         len += decode_character_string(&apdu[len],
-          &(data->value.type.Character_String));
+          &data->value.type.Character_String[0], 
+          sizeof(data->value.type.Character_String));
       }
       */
       else if (tag_number == BACNET_APPLICATION_TAG_ENUMERATED)
