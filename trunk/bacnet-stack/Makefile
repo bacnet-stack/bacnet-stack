@@ -36,6 +36,8 @@ SRCS = ports/linux/main.c \
        abort.c \
        reject.c \
        bacerror.c \
+       indtext.c \
+       bactext.c \
        apdu.c \
        npdu.c
 

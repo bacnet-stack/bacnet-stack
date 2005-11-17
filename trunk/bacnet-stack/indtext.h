@@ -34,6 +34,8 @@
 #ifndef INDTEXT_H
 #define INDTEXT_H
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 /* index and text pairs */
@@ -83,6 +85,17 @@ const char *indtext_by_index_default(
   INDTEXT_DATA *data_list,
   unsigned index,
   const char *default_name);
+/* for a given index, return the matching string,
+   or default_name if not found.
+   if the index is before the split,
+   the before_split_default_name is used */
+const char *indtext_by_index_split_default(
+  INDTEXT_DATA *data_list,
+  int index,
+  int split_index,
+  const char *before_split_default_name,
+  const char *default_name);
+
 /* returns the number of elements in the list */
 unsigned indtext_count(
   INDTEXT_DATA *data_list);

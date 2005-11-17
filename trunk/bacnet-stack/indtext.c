@@ -145,6 +145,20 @@ const char *indtext_by_index_default(
   return pString?pString:default_string;
 }
 
+const char *indtext_by_index_split_default(
+  INDTEXT_DATA *data_list,
+  int index,
+  int split_index,
+  const char *before_split_default_name,
+  const char *default_name)
+{
+ if (index < split_index)
+   return indtext_by_index_default(data_list, index, before_split_default_name);
+ else
+   return indtext_by_index_default(data_list, index, default_name);
+};
+
+
 const char *indtext_by_index(
   INDTEXT_DATA *data_list,
   unsigned index)
