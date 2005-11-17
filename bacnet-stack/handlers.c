@@ -30,6 +30,7 @@
 #include "config.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bactext.h"
 #include "npdu.h"
 #include "apdu.h"
 #include "device.h"
@@ -226,6 +227,25 @@ void WhoIsHandler(
   return;  
 }
 
+/* for debugging... */
+static void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA *data)
+{
+  if (data)
+  {
+    if (data->array_index == BACNET_ARRAY_ALL)
+      fprintf(stderr,"%s #%u %s\n",
+        bactext_object_type_name(data->object_type),
+        data->object_instance,
+        bactext_property_name(data->object_property));
+    else
+      fprintf(stderr,"%s #%u %s[%d]\n",
+        bactext_object_type_name(data->object_type),
+        data->object_instance,
+        bactext_property_name(data->object_property),
+        data->array_index);
+  }
+}
+
 void ReadPropertyAckHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -243,11 +263,7 @@ void ReadPropertyAckHandler(
     &data);
   fprintf(stderr,"Received Read-Property Ack!\n");
   if (len > 0)
-    fprintf(stderr,"type=%u instance=%u property=%u index=%d\n",
-      data.object_type,
-      data.object_instance,
-      data.object_property,
-      data.array_index);
+    PrintReadPropertyData(&data);
 }
 
 void ReadPropertyHandler(
@@ -272,11 +288,7 @@ void ReadPropertyHandler(
     &data);
   fprintf(stderr,"Received Read-Property Request!\n");
   if (len > 0)
-    fprintf(stderr,"type=%u instance=%u property=%u index=%d\n",
-      data.object_type,
-      data.object_instance,
-      data.object_property,
-      data.array_index);
+    PrintReadPropertyData(&data);
   else
     fprintf(stderr,"Unable to decode Read-Property Request!\n");
   // prepare a reply

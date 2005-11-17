@@ -35,12 +35,10 @@
 #include "indtext.h"
 #include "bacenum.h"
 
-static const char *bacapp_unknown_str = "unknown";
-static const char *bacapp_unknown_service_str = "unknown service";
-static const char *ASHRAE_Reserved_Fmt = "(%d) Reserved for Use by ASHRAE";
-static const char *Vendor_Proprietary_Fmt = "(%d) Vendor Proprietary Value";
+static const char *ASHRAE_Reserved_String = "Reserved for Use by ASHRAE";
+static const char *Vendor_Proprietary_String = "Vendor Proprietary Value";
 
-const INDTEXT_DATA bacnet_confirmed_service_names[] = {
+INDTEXT_DATA bacnet_confirmed_service_names[] = {
   { SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, "Acknowledge-Alarm" },
   { SERVICE_CONFIRMED_COV_NOTIFICATION, "COV-Notification" },
   { SERVICE_CONFIRMED_EVENT_NOTIFICATION, "Event-Notification" },
@@ -74,7 +72,14 @@ const INDTEXT_DATA bacnet_confirmed_service_names[] = {
   { 0, NULL }
 };
 
-const INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
+const char *bactext_confirmed_service_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_confirmed_service_names,
+    index,ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
   { SERVICE_UNCONFIRMED_I_AM, "I-Am" },
   { SERVICE_UNCONFIRMED_I_HAVE, "I-Have" },
   { SERVICE_UNCONFIRMED_COV_NOTIFICATION, "COV-Notification" },
@@ -88,7 +93,14 @@ const INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
   { 0, NULL }
 };
 
-const INDTEXT_DATA bacnet_application_tag_names[] = {
+const char *bactext_unconfirmed_service_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_unconfirmed_service_names,
+    index,ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_application_tag_names[] = {
   { BACNET_APPLICATION_TAG_NULL, "Null" },
   { BACNET_APPLICATION_TAG_BOOLEAN, "Boolean" },
   { BACNET_APPLICATION_TAG_UNSIGNED_INT, "Unsigned Int" },
@@ -108,7 +120,14 @@ const INDTEXT_DATA bacnet_application_tag_names[] = {
   { 0, NULL }
 };
 
-const INDTEXT_DATA bacnet_object_names[] = {
+const char *bactext_application_tag_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_application_tag_names,
+    index,ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_object_type_names[] = {
   { OBJECT_ANALOG_INPUT, "Analog Input" },
   { OBJECT_ANALOG_OUTPUT, "Analog Output" },
   { OBJECT_ANALOG_VALUE, "Analog Value" },
@@ -135,9 +154,22 @@ const INDTEXT_DATA bacnet_object_names[] = {
   { OBJECT_ACCUMULATOR, "Accumulator" },
   { OBJECT_PULSE_CONVERTER, "Pulse-Converter" },
   { 0, NULL }
+/* Enumerated values 0-127 are reserved for definition by ASHRAE.
+   Enumerated values 128-1023 may be used by others subject to
+   the procedures and constraints described in Clause 23. */
 };
 
-const INDTEXT_DATA bacnet_property_names[] = {
+const char *bactext_object_type_name(int index)
+{
+  return indtext_by_index_split_default(
+    bacnet_object_type_names,
+    index,
+    128,
+    ASHRAE_Reserved_String,
+    Vendor_Proprietary_String);
+}
+
+INDTEXT_DATA bacnet_property_names[] = {
 /* FIXME: use the enumerations from bacenum.h */
   { 0, "acked-transitions"},
   { 1, "ack-required"},
@@ -309,9 +341,22 @@ const INDTEXT_DATA bacnet_property_names[] = {
   { 167, "max-segments-accepted"},
   { 168, "profile-name"},
   { 0, NULL }
+  /* Enumerated values 0-511 are reserved for definition by ASHRAE.
+     Enumerated values 512-4194303 may be used by others subject to the
+     procedures and constraints described in Clause 23. */
 };
 
-const INDTEXT_DATA bacnet_engineering_unit_names[] = {
+const char *bactext_property_name(int index)
+{
+  return indtext_by_index_split_default(
+    bacnet_property_names,
+    index,
+    512,
+    ASHRAE_Reserved_String,
+    Vendor_Proprietary_String);
+}
+
+INDTEXT_DATA bacnet_engineering_unit_names[] = {
 /* FIXME: add the first 144 names...*/
 /* FIXME: use the enumerations from bacenum.h */
 {145,"milliohms"},
@@ -365,6 +410,16 @@ const INDTEXT_DATA bacnet_engineering_unit_names[] = {
    the procedures and constraints described in Clause 23. */
  };
 
+const char *bactext_engineering_unit_name(int index)
+{
+  return indtext_by_index_split_default(
+    bacnet_engineering_unit_names,
+    index,
+    256,
+    ASHRAE_Reserved_String,
+    Vendor_Proprietary_String);
+}
+
 #if 0
 /* FIXME: add the value */
 /* FIXME: use the enumerations from bacenum.h */
@@ -396,23 +451,6 @@ INDTEXT_DATA bacnet_abort_reason_name[] = {
 };
 #endif
 
-#if 0
-/* generic handling for proprietary range or reserved for ASHRAE */
-+val_to_split_str(guint32 val, guint32 split_val, const value_string *vs,
-+ const char *fmt, const char *split_fmt)
-+{
-+ if (val < split_val)
-+   return val_to_str(val, vs, fmt);
-+ else
-+   return val_to_str(val, vs, split_fmt);
-+};
-
-+ val_to_split_str(index,\
-+   BACNET_REJECT_REASON_PROPRIETARY,\
-+   BACnetRejectReason,\
-+   ASHRAE_Reserved_Text,\
-+   Vendor_Proprietary_Text)
-#endif
 
 
 
