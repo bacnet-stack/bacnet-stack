@@ -546,7 +546,8 @@ typedef enum
   RELIABILITY_NO_OUTPUT = 6,
   RELIABILITY_UNRELIABLE_OTHER = 7,
   RELIABILITY_PROCESS_ERROR = 8,
-  RELIABILITY_MULTI_STATE_FAULT = 9
+  RELIABILITY_MULTI_STATE_FAULT = 9,
+  RELIABILITY_CONFIGURATION_ERROR = 10
   // Enumerated values 0-63 are reserved for definition by ASHRAE. 
   // Enumerated values 64-65535 may be used by others subject to 
   // the procedures and constraints described in Clause 23.
@@ -560,18 +561,21 @@ typedef enum
   EVENT_COMMAND_FAILURE = 3,
   EVENT_FLOATING_LIMIT = 4,
   EVENT_OUT_OF_RANGE = 5,
-  // complex-event-type	(6), -- see comment below
-  EVENT_BUFFER_READY =7,
-  CHANGE_OF_LIFE_SAFETY = 8
+  /*  complex-event-type	(6), -- see comment below */
+  /*  event-buffer-ready   (7), -- context tag 7 is deprecated */
+  EVENT_CHANGE_OF_LIFE_SAFETY = 8,
+  EVENT_EXTENDED =  9,
+  EVENT_BUFFER_READY = 10,
+  EVENT_UNSIGNED_RANGE = 11,
   // Enumerated values 0-63 are reserved for definition by ASHRAE. 
   // Enumerated values 64-65535 may be used by others subject to 
   // the procedures and constraints described in Clause 23. 
   // It is expected that these enumerated values will correspond to 
   // the use of the complex-event-type CHOICE [6] of the 
   // BACnetNotificationParameters production.
-  // The last enumeration used in this version is 8.
+  // The last enumeration used in this version is 11.
 } BACNET_EVENT_TYPE;
-
+                                                                                
 typedef enum
 {
   FILE_RECORD_ACCESS = 0,
@@ -609,7 +613,10 @@ typedef enum
   LIFE_SAFETY_OPERATION_SILENCE_VISUAL = 3,
   LIFE_SAFETY_OPERATION_RESET = 4,
   LIFE_SAFETY_OPERATION_RESET_ALARM = 5,
-  LIFE_SAFETY_OPERATION_RESET_FAULT = 6
+  LIFE_SAFETY_OPERATION_RESET_FAULT = 6,
+  LIFE_SAFETY_OPERATION_UNSILENCE = 7,
+  LIFE_SAFETY_OPERATION_UNSILENCE_AUDIBLE = 8,
+  LIFE_SAFETY_OPERATION_UNSILENCE_VISUAL = 9
   // Enumerated values 0-63 are reserved for definition by ASHRAE. 
   // Enumerated values 64-65535 may be used by others subject to 
   // procedures and constraints described in Clause 23.
@@ -1015,7 +1022,10 @@ typedef enum {
    ERROR_CODE_AUTHENTICATION_FAILED = 1,
    ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED = 41,
    ERROR_CODE_CONFIGURATION_IN_PROGRESS = 2,
+   ERROR_CODE_DATATYPE_NOT_SUPPORTED = 47,
    ERROR_CODE_DEVICE_BUSY = 3,
+   ERROR_CODE_DUPLICATE_NAME = 48,
+   ERROR_CODE_DUPLICATE_OBJECT_ID = 49,
    ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED = 4,
    ERROR_CODE_FILE_ACCESS_DENIED = 5,
    ERROR_CODE_INCOMPATIBLE_SECURITY_LEVELS = 6,
@@ -1042,6 +1052,7 @@ typedef enum {
    ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED = 45,
    ERROR_CODE_PASSWORD_FAILURE = 26,
    ERROR_CODE_PROPERTY_IS_NOT_A_LIST = 22,
+   ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY = 50,
    ERROR_CODE_READ_ACCESS_DENIED = 27,
    ERROR_CODE_SECURITY_NOT_SUPPORTED = 28,
    ERROR_CODE_SERVICE_REQUEST_DENIED = 29,
@@ -1056,17 +1067,21 @@ typedef enum {
    ERROR_CODE_VT_SESSION_ALREADY_CLOSED = 38,
    ERROR_CODE_VT_SESSION_TERMINATION_FAILURE = 39,
    ERROR_CODE_WRITE_ACCESS_DENIED = 40,
-   // see character_set_not_supported = 41,
-   // see invalid_array_index = 42,
+   /* see character-set-not-supported  (41), */
+   /* see invalid-array-index          (42), */
    ERROR_CODE_COV_SUBSCRIPTION_FAILED = 43,
    ERROR_CODE_NOT_COV_PROPERTY = 44,
-   // see optional_functionality_not_supported, = 45,
-   // see invalid_configuration_data = 46,
+   /* see optional-functionality-not-supported (45), */
+   /* see invalid-configuration-data (46), */
+   /* see datatype-not-supported   (47), */
+   /* see duplicate-name           (48), */
+   /* see duplicate-object-id      (49), */
+   /* see property-is-not-an-array (50), */
    // Enumerated values 0-255 are reserved for definition by ASHRAE.
    // Enumerated values 256-65535 may be used by others subject to
    // the procedures and constraints described in Clause 23.
-   // The last enumeration used in this version is 46.
-   MAX_BACNET_ERROR_CODE = 47,
+   // The last enumeration used in this version is 50.
+   MAX_BACNET_ERROR_CODE = 51,
    FIRST_PROPRIETARY_ERROR_CODE = 256,
    LAST_PROPRIETARY_ERROR_CODE = 65535
 } BACNET_ERROR_CODE;
