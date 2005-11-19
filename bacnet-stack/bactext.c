@@ -605,3 +605,90 @@ const char *bactext_abort_reason_name(int index)
     ASHRAE_Reserved_String,
     Vendor_Proprietary_String);
 }
+
+INDTEXT_DATA bacnet_error_class_names[] = {
+  { ERROR_CLASS_DEVICE, "device"},
+  { ERROR_CLASS_OBJECT, "object"},
+  { ERROR_CLASS_PROPERTY, "property"},
+  { ERROR_CLASS_RESOURCES, "resources"},
+  { ERROR_CLASS_SECURITY, "security"},
+  { ERROR_CLASS_SERVICES, "services"},
+  { ERROR_CLASS_VT, "vt"},
+  {0,NULL}
+};
+
+const char *bactext_error_class_name(int index)
+{
+  return indtext_by_index_split_default(
+    bacnet_error_class_names,
+    index,
+    FIRST_PROPRIETARY_ERROR_CLASS,
+    ASHRAE_Reserved_String,
+    Vendor_Proprietary_String);
+}
+
+INDTEXT_DATA bacnet_error_code_names[] = {
+   { ERROR_CODE_OTHER, "other"},
+   { ERROR_CODE_AUTHENTICATION_FAILED, "authentication-failed"},
+   { ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED, "character-set-not-supported"},
+   { ERROR_CODE_CONFIGURATION_IN_PROGRESS, "configuration-in-progress"},
+   { ERROR_CODE_DATATYPE_NOT_SUPPORTED, "datatype-not-supported"},
+   { ERROR_CODE_DEVICE_BUSY, "device-busy"},
+   { ERROR_CODE_DUPLICATE_NAME, "duplicate-name"},
+   { ERROR_CODE_DUPLICATE_OBJECT_ID, "duplicate-object-id"},
+   { ERROR_CODE_DYNAMIC_CREATION_NOT_SUPPORTED, "dynamic-creation-not-supported"},
+   { ERROR_CODE_FILE_ACCESS_DENIED, "file-access-denied"},
+   { ERROR_CODE_INCOMPATIBLE_SECURITY_LEVELS, "incompatible-security-levels"},
+   { ERROR_CODE_INCONSISTENT_PARAMETERS, "inconsistent-parameters"},
+   { ERROR_CODE_INCONSISTENT_SELECTION_CRITERION, "inconsistent-selection-criterion"},
+   { ERROR_CODE_INVALID_ARRAY_INDEX, "invalid-array-index"},
+   { ERROR_CODE_INVALID_CONFIGURATION_DATA, "invalid-configuration-data"},
+   { ERROR_CODE_INVALID_DATA_TYPE, "invalid-data-type"},
+   { ERROR_CODE_INVALID_FILE_ACCESS_METHOD, "invalid-file-access-method"},
+   { ERROR_CODE_ERROR_CODE_INVALID_FILE_START_POSITION, "error-code-invalid-file-start-position"},
+   { ERROR_CODE_INVALID_OPERATOR_NAME, "invalid-operator-name"},
+   { ERROR_CODE_INVALID_PARAMETER_DATA_TYPE, "invalid-parameter-data-type"},
+   { ERROR_CODE_INVALID_TIME_STAMP, "invalid-time-stamp"},
+   { ERROR_CODE_KEY_GENERATION_ERROR, "key-generation-error"},
+   { ERROR_CODE_MISSING_REQUIRED_PARAMETER, "missing-required-parameter"},
+   { ERROR_CODE_NO_OBJECTS_OF_SPECIFIED_TYPE, "no-objects-of-specified-type"},
+   { ERROR_CODE_NO_SPACE_FOR_OBJECT, "no-space-for-object"},
+   { ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT, "no-space-to-add-list-element"},
+   { ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, "no-space-to-write-property"},
+   { ERROR_CODE_NO_VT_SESSIONS_AVAILABLE, "no-vt-sessions-available"},
+   { ERROR_CODE_OBJECT_DELETION_NOT_PERMITTED, "object-deletion-not-permitted"},
+   { ERROR_CODE_OBJECT_IDENTIFIER_ALREADY_EXISTS, "object-identifier-already-exists"},
+   { ERROR_CODE_OPERATIONAL_PROBLEM, "operational-problem"},
+   { ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED, "optional-functionality-not-supported"},
+   { ERROR_CODE_PASSWORD_FAILURE, "password-failure"},
+   { ERROR_CODE_PROPERTY_IS_NOT_A_LIST, "property-is-not-a-list"},
+   { ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, "property-is-not-an-array"},
+   { ERROR_CODE_READ_ACCESS_DENIED, "read-access-denied"},
+   { ERROR_CODE_SECURITY_NOT_SUPPORTED, "security-not-supported"},
+   { ERROR_CODE_SERVICE_REQUEST_DENIED, "service-request-denied"},
+   { ERROR_CODE_TIMEOUT, "timeout"},
+   { ERROR_CODE_UNKNOWN_OBJECT, "unknown-object"},
+   { ERROR_CODE_UNKNOWN_PROPERTY, "unknown-property"},
+   { ERROR_CODE_RESERVED1, "reserved1"},
+   { ERROR_CODE_UNKNOWN_VT_CLASS, "unknown-vt-class"},
+   { ERROR_CODE_UNKNOWN_VT_SESSION, "unknown-vt-session"},
+   { ERROR_CODE_UNSUPPORTED_OBJECT_TYPE, "unsupported-object-type"},
+   { ERROR_CODE_VALUE_OUT_OF_RANGE, "value-out-of-range"},
+   { ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "vt-session-already-closed"},
+   { ERROR_CODE_VT_SESSION_TERMINATION_FAILURE, "vt-session-termination-failure"},
+   { ERROR_CODE_WRITE_ACCESS_DENIED, "write-access-denied"},
+   { ERROR_CODE_COV_SUBSCRIPTION_FAILED, "cov-subscription-failed"},
+   { ERROR_CODE_NOT_COV_PROPERTY, "not-cov-property"},
+  {0,NULL}
+};
+
+const char *bactext_error_code_name(int index)
+{
+  return indtext_by_index_split_default(
+    bacnet_error_code_names,
+    index,
+    FIRST_PROPRIETARY_ERROR_CLASS,
+    ASHRAE_Reserved_String,
+    Vendor_Proprietary_String);
+}
+

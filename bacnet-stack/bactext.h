@@ -47,6 +47,11 @@ const char *bactext_unconfirmed_service_name(int index);
 const char *bactext_application_tag_name(int index);
 const char *bactext_object_type_name(int index);
 const char *bactext_property_name(int index);
+const char *bactext_engineering_unit_name(int index);
+const char *bactext_reject_reason_name(int index);
+const char *bactext_abort_reason_name(int index);
+const char *bactext_error_class_name(int index);
+const char *bactext_error_code_name(int index);
 
 #ifdef __cplusplus
 }
