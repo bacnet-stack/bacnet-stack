@@ -172,7 +172,7 @@ uint16_t apdu_decode_confirmed_service_request(
     service_data->proposed_window_number = apdu[len++];
   }
   *service_choice = apdu[len++];
-  *service_request = &apdu[len++];
+  *service_request = &apdu[len];
   *service_request_len = apdu_len - len;
 
   return len;
@@ -280,7 +280,7 @@ void apdu_handler(
       case PDU_TYPE_COMPLEX_ACK:
         service_ack_data.segmented_message = (apdu[0] & BIT3) ? true : false;
         service_ack_data.more_follows = (apdu[0] & BIT2) ? true : false;
-        service_ack_data.invoke_id = apdu[1];
+        invoke_id = service_ack_data.invoke_id = apdu[1];
         len = 2;
         if (service_ack_data.segmented_message)
         {
@@ -288,10 +288,8 @@ void apdu_handler(
           service_ack_data.proposed_window_number = apdu[len++];
         }
         service_choice = apdu[len++];
-        service_request = &apdu[len++];
+        service_request = &apdu[len];
         service_request_len = apdu_len - len;
-        invoke_id = apdu[1];
-        service_choice = apdu[2];
         switch (service_choice) 
         {
           case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
