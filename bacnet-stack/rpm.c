@@ -475,8 +475,8 @@ int rpm_ack_decode_object_property_value(
   if (apdu && apdu_len && object_property && array_index)
   {
     // don't decode the application tag number or its data here
-    application_data = &apdu[len];
-    application_data_len = apdu_len - len - 1 /*closing tag*/;
+    *application_data = &apdu[len];
+    *application_data_len = apdu_len - len - 1 /*closing tag*/;
     /* FIXME: check for closing tag?*/
   }
 
