@@ -217,7 +217,7 @@ uint16_t bip_receive(
     int max;
     struct timeval select_timeout;
     struct sockaddr_in sin = {-1};
-    int sin_len = sizeof(sin);
+    socklen_t sin_len = sizeof(sin);
 
     /* Make sure the socket is open */
     if (BIP_Socket < 0)
