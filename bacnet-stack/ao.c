@@ -153,7 +153,7 @@ int Analog_Output_Encode_Property_APDU(
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
   char text_string[32] = {""};
-  float real_value = 1.41421356;
+  float real_value = 1.414;
   unsigned object_index = 0;
   unsigned i = 0; 
   

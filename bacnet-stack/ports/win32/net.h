@@ -33,4 +33,6 @@
 
 #define close closesocket
 
+typedef int socklen_t;
+
 #endif

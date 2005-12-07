@@ -351,10 +351,10 @@ int encode_tag(uint8_t * apdu, uint8_t tag_number, bool context_specific,
     else {
         apdu[0] |= 5;
         if (len_value_type <= 253) {
-            apdu[len++] = len_value_type;
+            apdu[len++] = (uint8_t)len_value_type;
         } else if (len_value_type <= 65535) {
             apdu[len++] = 254;
-            len += encode_unsigned16(&apdu[len], len_value_type);
+            len += encode_unsigned16(&apdu[len], (uint16_t)len_value_type);
         } else {
             apdu[len++] = 255;
             len += encode_unsigned32(&apdu[len], len_value_type);
@@ -648,7 +648,7 @@ int decode_bitstring(uint8_t * apdu, uint32_t len_value,
               bit_string->value[i] = byte_reverse_bits(apdu[len++]);
         }
         unused_bits = apdu[0] & 0x07;
-        bit_string->bits_used = bytes_used * 8;
+        bit_string->bits_used = (uint8_t)(bytes_used * 8);
         bit_string->bits_used -= unused_bits;
       }
     }
@@ -831,7 +831,7 @@ int encode_context_object_id(
 
     // assumes that the tag only consumes 1 octet
     len = encode_bacnet_object_id(&apdu[1], object_type, instance);
-    len += encode_tag(&apdu[0], tag_number, true, len);
+    len += encode_tag(&apdu[0], (uint8_t)tag_number, true, len);
 
     return len;
 }
@@ -1035,7 +1035,7 @@ int encode_context_unsigned(uint8_t * apdu, int tag_number, int value)
     int len = 0;
 
     len = encode_bacnet_unsigned(&apdu[1], value);
-    len += encode_tag(&apdu[0], tag_number, true, len);
+    len += encode_tag(&apdu[0], (uint8_t)tag_number, true, len);
 
     return len;
 }
@@ -1137,7 +1137,7 @@ int encode_context_enumerated(uint8_t * apdu, int tag_number, int value)
 
     // assumes that the tag only consumes 1 octet
     len = encode_bacnet_enumerated(&apdu[1], value);
-    len += encode_tag(&apdu[0], tag_number, true, len);
+    len += encode_tag(&apdu[0], (uint8_t)tag_number, true, len);
 
     return len;
 }
@@ -1209,7 +1209,7 @@ int encode_context_signed(uint8_t * apdu, int tag_number, int value)
 
     // assumes that the tag only consumes 1 octet
     len = encode_bacnet_signed(&apdu[1], value);
-    len += encode_tag(&apdu[0], tag_number, true, len);
+    len += encode_tag(&apdu[0], (uint8_t)tag_number, true, len);
 
     return len;
 }

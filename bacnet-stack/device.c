@@ -374,7 +374,7 @@ int Device_Encode_Property_APDU(
         {
           // bitstring_set_bit(&bit_string, i, apdu_service_supported(i));
           // initialize all the services to not-supported
-          bitstring_set_bit(&bit_string, i, false);
+          bitstring_set_bit(&bit_string, (uint8_t)i, false);
         }
         // initialize those we support
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_WHO_IS, true);
@@ -387,7 +387,7 @@ int Device_Encode_Property_APDU(
         for (i = 0; i < MAX_BACNET_OBJECT_TYPES; i++)
         {
           // initialize all the object types to not-supported
-          bitstring_set_bit(&bit_string, i, false);
+          bitstring_set_bit(&bit_string, (uint8_t)i, false);
         }
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
