@@ -127,6 +127,7 @@ uint8_t tsm_next_free_invokeID(void)
       found = true;
       invokeID = current_invokeID;
     }
+    /* update for the next call or check */
     current_invokeID++;
     // skip zero - we treat that internally as invalid or no free
     if (current_invokeID == 0)

@@ -97,6 +97,7 @@ static void LocalIAmHandler(
 static void Read_Properties(void)
 {
   uint32_t device_id = 0;
+  bool status = false;
   unsigned max_apdu = 0;
   BACNET_ADDRESS src;
   bool next_device = false;
@@ -108,15 +109,41 @@ static void Read_Properties(void)
   to have all the properties listed here. */
   const int object_props[] =
   {
-    75,77,79,112,121,120,70,44,12,98,95,97,96,
-    62,107,57,56,119,24,10,11,73,116,64,63,30,
-    514,515,
-    /* note: 76 is missing cause we get it special:
-    76 is the object list, and reading index 0
-    gives us the number of objects in the list,
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION,
+    PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_CONFORMANCE_CLASS,
+    PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+    PROP_MAX_APDU_LENGTH_ACCEPTED,
+    PROP_SEGMENTATION_SUPPORTED,
+    PROP_LOCAL_TIME,
+    PROP_LOCAL_DATE,
+    PROP_UTC_OFFSET,
+    PROP_DAYLIGHT_SAVINGS_STATUS,
+    PROP_APDU_SEGMENT_TIMEOUT,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+    PROP_DEVICE_ADDRESS_BINDING,
+    /* note: PROP_OBJECT_LIST is missing because
+    the result can be very large.  Read index 0
+    which gives us the number of objects in the list,
     and then we can read index 1, 2.. n one by one,
     rather than trying to read the entire object
     list in one message. */
+    /* some proprietary properties */
+    514,515,
+    /* end of list */
     -1
   };
 
@@ -128,25 +155,25 @@ static void Read_Properties(void)
         next_device = true;
       else
       {
-        if (Send_Read_Property_Request(
+        /* note: if we wanted to do this synchronously, we would get the
+          invoke ID from the sending of the request, and wait until we
+          got the reply with matching invoke ID or the TSM of the
+          invoke ID expired.  This demo is doing things asynchronously. */
+        status = Send_Read_Property_Request(
           device_id, // destination device
           OBJECT_DEVICE,
           device_id,
           object_props[property],
-          BACNET_ARRAY_ALL))
-        {
-          /* note: if we wanted to do this synchronously, we would get the
-            invoke ID from the sending of the request, and wait until we
-            got the reply with matching invoke ID or the TSM of the
-            invoke ID expired.  This demo is doing things asynchronously. */
+          BACNET_ARRAY_ALL);
+        if (status)
           property++;
-        }
       }
     }
     else
       next_device = true;
     if (next_device)
     {
+      next_device = false;
       index++;
       if (index >= MAX_ADDRESS_CACHE)
         index = 0;
