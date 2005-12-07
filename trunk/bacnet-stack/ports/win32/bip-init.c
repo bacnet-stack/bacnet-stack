@@ -80,6 +80,11 @@ static void set_broadcast_address(uint32_t net_address)
   #endif
 }
 
+static void cleanup(void)
+{
+  WSACleanup();
+}
+
 bool bip_init(void)
 {
     int rv = 0; // return from socket lib calls
@@ -92,7 +97,6 @@ bool bip_init(void)
     struct in_addr address;
 
     Result = WSAStartup(MAKEWORD(2,2), &wd);
-
     if (Result != 0)
     {
       Code = WSAGetLastError();
@@ -100,6 +104,8 @@ bool bip_init(void)
         Code);
       exit(1);
     }
+    atexit(cleanup);
+
     address.s_addr = gethostaddr();
     if (address.s_addr == (unsigned)-1)
     {
@@ -116,7 +122,7 @@ bool bip_init(void)
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     bip_set_socket(sock_fd);
     if (sock_fd < 0)
-        return false;
+      return false;
 
     // Allow us to use the same socket for sending and receiving
     // This makes sure that the src port is correct when sending
@@ -124,25 +130,44 @@ bool bip_init(void)
         (char *)&value, sizeof(value));
     if (rv < 0)
     {
-        close(sock_fd);
-        bip_set_socket(-1);
-        return false;
+      close(sock_fd);
+      bip_set_socket(-1);
+      return false;
     }
     // allow us to send a broadcast
     rv = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST,
-        (char *)&value, sizeof(value));
+      (char *)&value, sizeof(value));
     if (rv < 0)
     {
-        close(sock_fd);
-        bip_set_socket(-1);
-        return false;
+      close(sock_fd);
+      bip_set_socket(-1);
+      return false;
     }
 
     // bind the socket to the local port number and IP address
     sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    /* by setting sin.sin_addr.s_addr to INADDR_ANY,
+       I am telling the IP stack to automatically fill
+       in the IP address of the machine the process
+       is running on.
+
+       Some server computers have multiple IP addresses.
+       A socket bound to one of these will not accept
+       connections to another address. Frequently you prefer
+       to allow any one of the computer's IP addresses
+       to be used for connections.  Use INADDR_ANY (0L) to
+       allow clients to connect using any one of the host's
+       IP addresses.
+
+       Note: sometimes INADDR_ANY does not let me get
+       any unicast messages.  Not sure why...
+       */
+    /* sin.sin_addr.s_addr = htonl(INADDR_ANY); */
+    /* or we could use the specific adapter address
+       note: already in network byte order */
+    sin.sin_addr.s_addr = address.s_addr;
     sin.sin_port = htons(bip_get_port());
-    memset(&(sin.sin_zero), '\0', 8);
+    memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     rv = bind(sock_fd,
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));
     if (rv < 0)
