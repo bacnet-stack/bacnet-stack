@@ -156,7 +156,7 @@ static int bip_send(
     else
         mtu[1] = 0x0A; /* Original-Unicast-NPDU */
     mtu_len = 2;
-    mtu_len += encode_unsigned16(&mtu[mtu_len], pdu_len + 4 /*inclusive*/);
+    mtu_len += encode_unsigned16(&mtu[mtu_len], (uint16_t)(pdu_len + 4/*inclusive*/) );
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
     
@@ -238,7 +238,7 @@ uint16_t bip_receive(
         select_timeout.tv_usec = 1000 * timeout;
     }
     FD_ZERO(&read_fds);
-    FD_SET(BIP_Socket, &read_fds);
+    FD_SET((unsigned int)BIP_Socket, &read_fds);
     max = BIP_Socket;
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
