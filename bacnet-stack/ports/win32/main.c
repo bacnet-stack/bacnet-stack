@@ -46,19 +46,50 @@ static uint8_t Rx_Buf[MAX_MPDU] = {0};
 static void Read_Properties(void)
 {
   uint32_t device_id = 0;
+  bool status = false; 
   unsigned max_apdu = 0;
   BACNET_ADDRESS src;
   bool next_device = false;
   static unsigned index = 0;
   static unsigned property = 0;
-  // list of required (and some optional) properties in the
-  // Device Object
+  /* list of required (and some optional) properties in the
+     Device Object
+     note: you could just loop through
+     all the properties in all the objects. */
   const int object_props[] =
   {
-    75,77,79,112,121,120,70,44,12,98,95,97,96,
-    62,107,57,56,119,24,10,11,73,116,64,63,30,
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION,
+    PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_CONFORMANCE_CLASS,
+    PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+    PROP_MAX_APDU_LENGTH_ACCEPTED,
+    PROP_SEGMENTATION_SUPPORTED,
+    PROP_LOCAL_TIME,
+    PROP_LOCAL_DATE,
+    PROP_UTC_OFFSET,
+    PROP_DAYLIGHT_SAVINGS_STATUS,
+    PROP_APDU_SEGMENT_TIMEOUT,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+    PROP_DEVICE_ADDRESS_BINDING,
+    /* note: PROP_OBJECT_LIST is missing cause
+       we need to get it with an index method since
+       the list could be very large */
+    /* some proprietary properties */
     514,515,
-    // note: 76 is missing cause we get it special below
+    /* end of list */
     -1
   };
 
@@ -70,19 +101,21 @@ static void Read_Properties(void)
         next_device = true;
       else
       {
-        (void)Send_Read_Property_Request(
+        status = Send_Read_Property_Request(
           device_id, // destination device
           OBJECT_DEVICE,
           device_id,
           object_props[property],
           BACNET_ARRAY_ALL);
-        property++;
+        if (status)
+          property++;
       }
     }
     else
       next_device = true;
     if (next_device)
     {
+      next_device = false;
       index++;
       if (index >= MAX_ADDRESS_CACHE)
         index = 0;
@@ -186,7 +219,7 @@ static void print_address(
 
 static void print_address_cache(void)
 {
-  unsigned i,j;
+  int i,j;
   BACNET_ADDRESS address;
   uint32_t device_id = 0;
   unsigned max_apdu = 0;
@@ -235,7 +268,6 @@ int main(int argc, char *argv[])
   for (;;)
   {
     // input
-    //Read_Properties();
 
     // returns 0 bytes on timeout
     pdu_len = bip_receive(

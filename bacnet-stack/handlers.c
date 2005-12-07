@@ -136,7 +136,7 @@ void Send_WhoIs(void)
     fprintf(stderr,"Failed to Send Who-Is Request (%s)!\n", strerror(errno));
 }
 
-// returns false if device is not bound
+// returns false if device is not bound or no tsm available
 bool Send_Read_Property_Request(
   uint32_t device_id, // destination device
   BACNET_OBJECT_TYPE object_type,
@@ -153,7 +153,11 @@ bool Send_Read_Property_Request(
   int bytes_sent = 0;
   BACNET_READ_PROPERTY_DATA data;
 
+  /* is the device bound? */
   status = address_get_by_device(device_id, &max_apdu, &dest);
+  /* is there a tsm available? */
+  if (status)
+     status = tsm_transaction_available();
   if (status)
   {
     datalink_get_my_address(&my_address);
@@ -174,6 +178,11 @@ bool Send_Read_Property_Request(
       &Tx_Buf[pdu_len],
       invoke_id,
       &data);
+    /* will it fit in the sender?
+       note: if there is a bottleneck router in between
+       us and the destination, we won't know unless
+       we have a way to check for that and update the
+       max_apdu in the address binding table. */
     if ((unsigned)pdu_len < max_apdu)
     {
       tsm_set_confirmed_unsegmented_transaction(
