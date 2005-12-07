@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <conio.h> /* for kbhit and getch */
 #include "iam.h"
 #include "address.h"
 #include "config.h"
@@ -171,7 +172,7 @@ static void print_address(
   BACNET_ADDRESS *dest) // destination address
 {
   int i = 0; // counter
-  
+
   if (dest)
   {
     printf("%s: ",name);
@@ -180,6 +181,30 @@ static void print_address(
       printf("%02X",dest->mac[i]);
     }
     printf("\n");
+  }
+}
+
+static void print_address_cache(void)
+{
+  unsigned i,j;
+  BACNET_ADDRESS address;
+  uint32_t device_id = 0;
+  unsigned max_apdu = 0;
+
+  fprintf(stderr,"Device\tMAC\tMaxAPDU\tNet\n");
+  for (i = 0; i < MAX_ADDRESS_CACHE; i++)
+  {
+    if (address_get_by_index(i,&device_id, &max_apdu, &address))
+    {
+      fprintf(stderr,"%u\t",device_id);
+      for (j = 0; j < address.mac_len; j++)
+      {
+        fprintf(stderr,"%02X",address.mac[j]);
+      }
+      fprintf(stderr,"\t");
+      fprintf(stderr,"%hu\t",max_apdu);
+      fprintf(stderr,"%hu\n",address.net);
+    }
   }
 }
 
@@ -200,12 +225,12 @@ int main(int argc, char *argv[])
   if (!bip_init())
     return 1;
 
-  datalink_get_broadcast_address(&broadcast_address);  
+  datalink_get_broadcast_address(&broadcast_address);
   print_address("Broadcast",&broadcast_address);
   datalink_get_my_address(&my_address);
   print_address("Address",&my_address);
-  
-  printf("BACnet stack running...\n"); 
+
+  printf("BACnet stack running...\n");
   // loop forever
   for (;;)
   {
@@ -243,5 +268,13 @@ int main(int argc, char *argv[])
     // output
 
     // blink LEDs, Turn on or off outputs, etc
+
+    /* wait for ESC from keyboard before quitting */
+    if (kbhit() && (getch() == 0x1B))
+      break;
   }
+
+  print_address_cache();
+
+  return 0;
 }
