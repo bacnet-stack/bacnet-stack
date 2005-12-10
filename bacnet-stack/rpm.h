@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacenum.h"
 #include "bacdef.h"
 
 #ifdef __cplusplus
@@ -146,9 +147,8 @@ int rpm_ack_decode_apdu(
 
 #ifdef TEST
 #include "ctest.h"
-
-void test_ReadProperty(Test * pTest);
-void test_ReadPropertyAck(Test * pTest);
+void testReadPropertyMultiple(Test * pTest);
+void testReadPropertyMultipleAck(Test * pTest);
 #endif
 
 #ifdef __cplusplus
