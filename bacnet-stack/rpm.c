@@ -421,6 +421,7 @@ int rpm_ack_decode_object_property(
     }
     else
       *array_index = BACNET_ARRAY_ALL;
+  }
 
   return (int)len;
 }
@@ -467,12 +468,11 @@ int rpm_ack_decode_object_property_value(
   unsigned len = 0;
 
   /* check for valid pointers */
-  if (apdu && apdu_len && object_property && array_index)
+  if (apdu && apdu_len && application_data && application_data_len)
   {
     // don't decode the application tag number or its data here
     *application_data = &apdu[len];
     *application_data_len = apdu_len - len - 1 /*closing tag*/;
-    /* FIXME: check for closing tag?*/
   }
 
   return (int)len;
@@ -715,10 +715,10 @@ void testReadPropertyMultipleAck(Test * pTest)
   apdu_len += rpm_ack_encode_apdu_object_property_value(&apdu[apdu_len],
     application_data[2],application_data_len[2]);
   /* reply property */
-  apdu_len = rpm_ack_encode_apdu_object_property(&apdu[apdu_len],
+  apdu_len += rpm_ack_encode_apdu_object_property(&apdu[apdu_len],
     PROP_DEADBAND, BACNET_ARRAY_ALL);
   /* reply error */
-  apdu_len = rpm_ack_encode_apdu_object_property_error(&apdu[apdu_len],
+  apdu_len += rpm_ack_encode_apdu_object_property_error(&apdu[apdu_len],
     ERROR_CLASS_PROPERTY, ERROR_CODE_UNKNOWN_PROPERTY);
   /* object end */
   apdu_len += rpm_ack_encode_apdu_object_end(&apdu[apdu_len]);
@@ -927,5 +927,6 @@ int main(void)
     return 0;
 }
 #endif                          /* TEST_READ_PROPERTY_MULTIPLE */
+
 #endif                          /* TEST */
 
