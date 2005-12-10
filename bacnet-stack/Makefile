@@ -19,6 +19,7 @@ SRCS = ports/linux/main.c \
        dlmstp.c \
        handlers.c \
        bacdcode.c \
+       bacapp.c \
        bigend.c \
        whois.c \
        iam.c \

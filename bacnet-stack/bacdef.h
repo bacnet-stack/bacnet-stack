@@ -34,6 +34,7 @@
 #ifndef BACDEF_H
 #define BACDEF_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include "bacenum.h"
 #include "config.h"
