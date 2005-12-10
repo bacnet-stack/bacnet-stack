@@ -489,11 +489,11 @@ bool Device_Write_Property(
     case PROP_OBJECT_IDENTIFIER:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID)
       { 
-        if ((wp_data->value.type.Object_ID.type == OBJECT_DEVICE) &&
-          (wp_data->value.type.Object_ID.instance <= BACNET_MAX_INSTANCE))
+        if ((wp_data->value.type.Object_Id.type == OBJECT_DEVICE) &&
+          (wp_data->value.type.Object_Id.instance <= BACNET_MAX_INSTANCE))
         {
           Device_Set_Object_Instance_Number(
-            wp_data->value.type.Object_ID.instance);
+            wp_data->value.type.Object_Id.instance);
           I_Am_Request = true;
           status = true;
         }
