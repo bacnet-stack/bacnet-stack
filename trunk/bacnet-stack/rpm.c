@@ -270,7 +270,6 @@ int rpm_ack_encode_apdu_object_property(
   int32_t array_index)
 {
   int apdu_len = 0; /* total length of the apdu, return value */
-  unsigned len = 0;
   
   if (apdu)
   {
@@ -465,11 +464,6 @@ int rpm_ack_decode_object_property_value(
   unsigned *application_data_len)
 {
   unsigned len = 0;
-  unsigned tag_len = 0;
-  uint8_t tag_number = 0;
-  uint32_t len_value_type = 0;
-  int property = 0; /* for decoding */
-  unsigned array_value = 0; /* for decoding */
 
   /* check for valid pointers */
   if (apdu && apdu_len && object_property && array_index)
@@ -669,8 +663,8 @@ void testReadPropertyMultipleAck(Test * pTest)
   uint32_t object_instance = 0;
   BACNET_PROPERTY_ID object_property = PROP_OBJECT_IDENTIFIER;
   int32_t array_index = 0;
-  uint8_t application_data[4][480] = {0};
-  int application_data_len[4] = 0;
+  uint8_t application_data[4][480] = {{0}};
+  int application_data_len[4] = {0};
 
   /* build the RPM - try to make it easy for the Application Layer development */
   /* IDEA: similar construction, but pass apdu, apdu_len pointer, size of apdu to
@@ -685,9 +679,10 @@ void testReadPropertyMultipleAck(Test * pTest)
     OBJECT_DEVICE, 123);
   /* then copy values into it as APDU length will allow */
   apdu_len += rpm_ack_encode_apdu_object_property(&apdu[apdu_len],
-    PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL)
-  application_data_len[0] = encode_bacnet_object_id(&application_data[0][0],
-    OBJECT_DEVICE, 123);
+    PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL);
+  application_data_len[0] = 
+    encode_bacnet_object_id(
+      &application_data[0][0],OBJECT_DEVICE, 123);
   apdu_len += rpm_ack_encode_apdu_object_property_value(&apdu[apdu_len],
     application_data[0],application_data_len[0]);
   
