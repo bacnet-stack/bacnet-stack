@@ -37,32 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-
-// bit strings
-#define MAX_BITSTRING_BYTES 15
-typedef struct BACnet_Bit_String
-{
-  uint8_t bits_used;
-  uint8_t value[MAX_BITSTRING_BYTES];
-} BACNET_BIT_STRING;
-
-// date
-typedef struct BACnet_Date
-{
-  uint8_t year;
-  uint8_t month;
-  uint8_t day;
-  uint8_t wday;
-} BACNET_DATE;
-
-// time
-typedef struct BACnet_Time
-{
-  uint8_t hour;
-  uint8_t min;
-  uint8_t sec;
-  uint8_t hundredths;
-} BACNET_TIME;
+#include "bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {

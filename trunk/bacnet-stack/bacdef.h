@@ -80,6 +80,51 @@ struct BACnet_Device_Address {
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;
 
+/* bit strings
+   They could be as large as 256/8=32 octets */
+#define MAX_BITSTRING_BYTES 15
+typedef struct BACnet_Bit_String
+{
+  uint8_t bits_used;
+  uint8_t value[MAX_BITSTRING_BYTES];
+} BACNET_BIT_STRING;
+
+typedef struct BACnet_Character_String
+{
+  size_t length;
+  char value[MAX_APDU];
+} BACNET_CHARACTER_STRING;
+
+typedef struct BACnet_Octet_String
+{
+  size_t length;
+  char value[MAX_APDU];
+} BACNET_OCTET_STRING;
+
+/* date */
+typedef struct BACnet_Date
+{
+  uint8_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t wday;
+} BACNET_DATE;
+
+/* time */
+typedef struct BACnet_Time
+{
+  uint8_t hour;
+  uint8_t min;
+  uint8_t sec;
+  uint8_t hundredths;
+} BACNET_TIME;
+
+typedef struct BACnet_Object_Id
+{
+  uint16_t type;
+  uint32_t instance;
+} BACNET_OBJECT_ID;
+
 #define MAX_NPDU (1+1+2+1+MAX_MAC_LEN+2+1+MAX_MAC_LEN+1+1+2)
 #define MAX_PDU (MAX_APDU + MAX_NPDU)
 

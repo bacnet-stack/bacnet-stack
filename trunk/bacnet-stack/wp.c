@@ -63,44 +63,7 @@ int wp_encode_apdu(
         data->array_index);
     // propertyValue
     apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
-    if (data->value.tag == BACNET_APPLICATION_TAG_NULL)
-      apdu[apdu_len++] = data->value.tag;
-    else if (data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN)
-      apdu_len += encode_tagged_boolean(&apdu[apdu_len],
-        data->value.type.Boolean);
-    else if (data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
-      apdu_len += encode_tagged_unsigned(&apdu[apdu_len],
-        data->value.type.Unsigned_Int);
-    else if (data->value.tag == BACNET_APPLICATION_TAG_SIGNED_INT)
-      apdu_len += encode_tagged_signed(&apdu[apdu_len],
-        data->value.type.Signed_Int);
-    else if (data->value.tag == BACNET_APPLICATION_TAG_REAL)
-      apdu_len += encode_tagged_real(&apdu[apdu_len],
-        data->value.type.Real);
-    /*
-    else if (data->value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)
-      apdu_len += encode_tagged_character_string(
-        &apdu[apdu_len],
-        &data->value.type.Character_String[0]);
-    */
-    else if (data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED)
-      apdu_len += encode_tagged_enumerated(&apdu[apdu_len],
-        data->value.type.Enumerated);
-    else if (data->value.tag == BACNET_APPLICATION_TAG_DATE)
-      apdu_len += encode_tagged_date(&apdu[apdu_len],
-        data->value.type.Date.year,
-        data->value.type.Date.month,
-        data->value.type.Date.day,
-        data->value.type.Date.wday);
-    else if (data->value.tag == BACNET_APPLICATION_TAG_TIME)
-      apdu_len += encode_tagged_time(&apdu[apdu_len],
-        data->value.type.Time.hour,
-        data->value.type.Time.min,
-        data->value.type.Time.sec,
-        data->value.type.Time.hundredths);
-    else if (data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID)
-      apdu_len += encode_tagged_object_id(&apdu[apdu_len],
-        data->value.type.Object_ID.type,data->value.type.Object_ID.instance);
+    apdu_len += bacapp_encode_application_data(&apdu[apdu_len], &data->value);
     apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
     // optional priority - 0 if not set, 1..16 if set
     if (data->priority)
@@ -124,10 +87,6 @@ int wp_decode_service_request(
   int type = 0; // for decoding
   int property = 0; // for decoding
   unsigned unsigned_value = 0;
-  int hour, min, sec, hundredths;
-  int year, month, day, wday;
-  int object_type = 0;
-  uint32_t instance = 0;
 
   // check for value pointers
   if (apdu_len && data)
@@ -162,87 +121,10 @@ int wp_decode_service_request(
       return -1;
     // a tag number of 3 is not extended so only one octet
     len++;
-    tag_len = decode_tag_number_and_value(&apdu[len],
-      &tag_number, &len_value_type);
-    if (tag_len)
-    {
-      len += tag_len;
-      if (tag_number == BACNET_APPLICATION_TAG_NULL)
-      {
-        data->value.tag = tag_number;
-      }
-      else if (tag_number == BACNET_APPLICATION_TAG_BOOLEAN)
-      {
-        data->value.tag = tag_number;
-        data->value.type.Boolean = decode_boolean(len_value_type);
-      }
-      else if (tag_number == BACNET_APPLICATION_TAG_UNSIGNED_INT)
-      {
-        data->value.tag = tag_number;
-        len += decode_unsigned(&apdu[len],
-          len_value_type,
-          &data->value.type.Unsigned_Int);
-      }
-      else if (tag_number == BACNET_APPLICATION_TAG_SIGNED_INT)
-      { 
-        data->value.tag = tag_number;
-        len += decode_signed(&apdu[len],
-          len_value_type,
-          &data->value.type.Signed_Int);
-      }
-      else if (tag_number == BACNET_APPLICATION_TAG_REAL)
-      {
-        data->value.tag = tag_number;
-        len += decode_real(&apdu[len],&(data->value.type.Real));
-      }
-      /*
-      else if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING)
-      {
-        data->value.tag = tag_number;
-        len += decode_character_string(&apdu[len],
-          &data->value.type.Character_String[0], 
-          sizeof(data->value.type.Character_String));
-      }
-      */
-      else if (tag_number == BACNET_APPLICATION_TAG_ENUMERATED)
-      {
-        data->value.tag = tag_number;
-        len += decode_enumerated(&apdu[len],
-          len_value_type,
-          &data->value.type.Enumerated);
-      }
-      else if (tag_number == BACNET_APPLICATION_TAG_DATE)
-      {
-        data->value.tag = tag_number;
-        len += decode_date(&apdu[len], &year, &month, &day, &wday);
-        data->value.type.Date.year = year;
-        data->value.type.Date.month = month;
-        data->value.type.Date.day = day;
-        data->value.type.Date.wday = wday;
-      }
-      else if (tag_number == BACNET_APPLICATION_TAG_TIME)
-      {
-        data->value.tag = tag_number;
-        len += decode_bacnet_time(&apdu[len], &hour, &min, &sec, &hundredths);
-        data->value.type.Time.hour = hour;
-        data->value.type.Time.min = min;
-        data->value.type.Time.sec = sec;
-        data->value.type.Time.hundredths = hundredths;
-      }
-      else if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID)
-      {
-        data->value.tag = tag_number;
-        len += decode_object_id(&apdu[len],
-          &object_type, 
-          &instance);
-        data->value.type.Object_ID.type = object_type;
-        data->value.type.Object_ID.instance = instance;
-      }
-      else
-        return -1;
-    }
-    else
-      return -1;
+    len += bacapp_decode_application_data(
+      &apdu[len],
+      apdu_len - len,
+      &data->value);
     if (!decode_is_closing_tag_number(&apdu[len], 3))
       return -1;
     // a tag number of 3 is not extended so only one octet
@@ -374,10 +256,10 @@ void testWritePropertyTag(Test * pTest,
         data->value.type.Time.hundredths);
       break;
     case BACNET_APPLICATION_TAG_OBJECT_ID:
-      ct_test(pTest, test_data.value.type.Object_ID.type ==
-        data->value.type.Object_ID.type);
-      ct_test(pTest, test_data.value.type.Object_ID.instance ==
-        data->value.type.Object_ID.instance);
+      ct_test(pTest, test_data.value.type.Object_Id.type ==
+        data->value.type.Object_Id.type);
+      ct_test(pTest, test_data.value.type.Object_Id.instance ==
+        data->value.type.Object_Id.instance);
       break;
     default:
       break;
@@ -450,11 +332,11 @@ void testWriteProperty(Test * pTest)
   testWritePropertyTag(pTest, &data);
 
   data.value.tag = BACNET_APPLICATION_TAG_OBJECT_ID;
-  data.value.type.Object_ID.type = OBJECT_ANALOG_INPUT;
-  data.value.type.Object_ID.instance = 0;
+  data.value.type.Object_Id.type = OBJECT_ANALOG_INPUT;
+  data.value.type.Object_Id.instance = 0;
   testWritePropertyTag(pTest, &data);
-  data.value.type.Object_ID.type = OBJECT_LIFE_SAFETY_ZONE;
-  data.value.type.Object_ID.instance = BACNET_MAX_INSTANCE;
+  data.value.type.Object_Id.type = OBJECT_LIFE_SAFETY_ZONE;
+  data.value.type.Object_Id.instance = BACNET_MAX_INSTANCE;
   testWritePropertyTag(pTest, &data);
 
   return;

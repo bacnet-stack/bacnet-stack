@@ -37,33 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacdcode.h"
-
-typedef struct BACnet_Write_Property_Value
-{
-  uint8_t tag;
-  union
-  {
-    // NULL - not needed as it is encoded in the tag alone
-    bool Boolean;
-    unsigned Unsigned_Int;
-    int Signed_Int;
-    float Real;
-    // Note: if you choose to enable the writing of certain types
-    // you can uncomment the ones you need.  Good Luck!
-    //double Double;
-    //uint8_t Octet_String[20];
-    //char Character_String[20];
-    //BACNET_BIT_STRING Bit_String
-    int Enumerated;
-    BACNET_DATE Date;
-    BACNET_TIME Time;
-    struct
-    {
-      uint16_t type;
-      uint32_t instance;
-    } Object_ID;
-  } type;
-} BACNET_WRITE_PROPERTY_VALUE;
+#include "bacapp.h"
 
 typedef struct BACnet_Write_Property_Data
 {
@@ -71,7 +45,7 @@ typedef struct BACnet_Write_Property_Data
   uint32_t object_instance;
   BACNET_PROPERTY_ID object_property;
   int32_t array_index; // use BACNET_ARRAY_ALL when not setting
-  BACNET_WRITE_PROPERTY_VALUE value;
+  BACNET_APPLICATION_DATA_VALUE value;
   uint8_t priority; // use 0 if not setting the priority
 } BACNET_WRITE_PROPERTY_DATA;
 
