@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include "bacenum.h"
 #include "bacdef.h"
+#include "bacapp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -101,8 +102,7 @@ int rpm_ack_encode_apdu_object_begin(
 
 int rpm_ack_encode_apdu_object_property_value(
   uint8_t *apdu,
-  uint8_t *application_data,
-  unsigned application_data_len);
+  BACNET_APPLICATION_DATA_VALUE *application_data);
 
 int rpm_ack_encode_apdu_object_property_error(
   uint8_t *apdu,
@@ -126,9 +126,6 @@ int rpm_ack_decode_object_property(
   unsigned apdu_len,
   BACNET_PROPERTY_ID *object_property,
   int32_t *array_index);
-int rpm_ack_decode_is_object_property_value(
-  uint8_t *apdu,
-  unsigned apdu_len);
 int rpm_ack_decode_is_object_property_error(
   uint8_t *apdu,
   unsigned apdu_len);
