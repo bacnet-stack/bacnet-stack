@@ -72,14 +72,13 @@ int bacapp_encode_application_data(
   uint8_t *apdu,
   BACNET_APPLICATION_DATA_VALUE *value);
 
+bool bacapp_compare(
+  BACNET_APPLICATION_DATA_VALUE *value,
+  BACNET_APPLICATION_DATA_VALUE *test_value);
+
 #ifdef TEST
 #include "ctest.h"
 void testBACnetApplicationData(Test * pTest);
-void testBACnetApplicationDataValue(Test * pTest,
-  BACNET_APPLICATION_DATA_VALUE *value);
-void testCompareApplicationData(Test * pTest,
-  BACNET_APPLICATION_DATA_VALUE *value,
-  BACNET_APPLICATION_DATA_VALUE *test_value);
 #endif
 
 #ifdef __cplusplus
