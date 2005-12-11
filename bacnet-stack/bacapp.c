@@ -186,75 +186,83 @@ int bacapp_decode_application_data(
   return len;
 }
 
+/* generic - can be used by other unit tests */
+bool bacapp_compare(
+  BACNET_APPLICATION_DATA_VALUE *value,
+  BACNET_APPLICATION_DATA_VALUE *test_value)
+{
+  bool status = true; /*return value*/
+
+  /* does the tag match? */
+  if (test_value->tag != value->tag)
+    status = false;
+  if (status)
+  {
+    /* does the value match? */
+    switch (test_value->tag)
+    {
+      case BACNET_APPLICATION_TAG_NULL:
+        break;
+      case BACNET_APPLICATION_TAG_BOOLEAN:
+        if (test_value->type.Boolean != value->type.Boolean)
+          status = false;
+        break;
+      case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+        if (test_value->type.Unsigned_Int != value->type.Unsigned_Int)
+          status = false;
+        break;
+      case BACNET_APPLICATION_TAG_SIGNED_INT:
+        if (test_value->type.Signed_Int != value->type.Signed_Int)
+          status = false;
+        break;
+      case BACNET_APPLICATION_TAG_REAL:
+        if (test_value->type.Real != value->type.Real)
+          status = false;
+        break;
+      case BACNET_APPLICATION_TAG_ENUMERATED:
+        if (test_value->type.Enumerated != value->type.Enumerated)
+          status = false;
+        break;
+      case BACNET_APPLICATION_TAG_DATE:
+        if (test_value->type.Date.year != value->type.Date.year)
+          status = false;
+        if (test_value->type.Date.month != value->type.Date.month)
+          status = false;
+        if (test_value->type.Date.day != value->type.Date.day)
+          status = false;
+        if(test_value->type.Date.wday != value->type.Date.wday)
+          status = false;
+        break;
+      case BACNET_APPLICATION_TAG_TIME:
+        if (test_value->type.Time.hour != value->type.Time.hour)
+          status = false;
+        if (test_value->type.Time.min != value->type.Time.min)
+          status = false;
+        if (test_value->type.Time.sec != value->type.Time.sec)
+          status = false;
+        if (test_value->type.Time.hundredths != value->type.Time.hundredths)
+          status = false;
+        break;
+      case BACNET_APPLICATION_TAG_OBJECT_ID:
+        if (test_value->type.Object_Id.type != value->type.Object_Id.type)
+          status = false;
+        if (test_value->type.Object_Id.instance != value->type.Object_Id.instance)
+          status = false;
+        break;
+      default:
+        status = false;
+        break;
+    }
+  }
+  return status;
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-/* generic - can be used by other unit tests */
-void testCompareApplicationData(Test * pTest,
-  BACNET_APPLICATION_DATA_VALUE *value,
-  BACNET_APPLICATION_DATA_VALUE *test_value)
-{
-  /* does the tag match? */
-  ct_test(pTest, test_value->tag == value->tag);
-  /* does the value match? */
-  switch (test_value->tag)
-  {
-    case BACNET_APPLICATION_TAG_NULL:
-      break;
-    case BACNET_APPLICATION_TAG_BOOLEAN:
-      ct_test(pTest,
-        test_value->type.Boolean == value->type.Boolean);
-      break;
-    case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-      ct_test(pTest,
-        test_value->type.Unsigned_Int == value->type.Unsigned_Int);
-      break;
-    case BACNET_APPLICATION_TAG_SIGNED_INT:
-      ct_test(pTest,
-        test_value->type.Signed_Int == value->type.Signed_Int);
-      break;
-    case BACNET_APPLICATION_TAG_REAL:
-      ct_test(pTest,
-        test_value->type.Real == value->type.Real);
-      break;
-    case BACNET_APPLICATION_TAG_ENUMERATED:
-      ct_test(pTest,
-        test_value->type.Enumerated == value->type.Enumerated);
-      break;
-    case BACNET_APPLICATION_TAG_DATE:
-      ct_test(pTest,
-        test_value->type.Date.year == value->type.Date.year);
-      ct_test(pTest,
-        test_value->type.Date.month == value->type.Date.month);
-      ct_test(pTest,
-        test_value->type.Date.day == value->type.Date.day);
-      ct_test(pTest,
-        test_value->type.Date.wday == value->type.Date.wday);
-      break;
-    case BACNET_APPLICATION_TAG_TIME:
-      ct_test(pTest,
-        test_value->type.Time.hour == value->type.Time.hour);
-      ct_test(pTest,
-        test_value->type.Time.min == value->type.Time.min);
-      ct_test(pTest,
-        test_value->type.Time.sec == value->type.Time.sec);
-      ct_test(pTest,
-        test_value->type.Time.hundredths == value->type.Time.hundredths);
-      break;
-    case BACNET_APPLICATION_TAG_OBJECT_ID:
-      ct_test(pTest,
-        test_value->type.Object_Id.type == value->type.Object_Id.type);
-      ct_test(pTest, test_value->type.Object_Id.instance ==
-        value->type.Object_Id.instance);
-      break;
-    default:
-      break;
-  }
-}
-
-void testBACnetApplicationDataValue(Test * pTest,
+static bool testBACnetApplicationDataValue(Test * pTest,
   BACNET_APPLICATION_DATA_VALUE *value)
 {
   uint8_t apdu[480] = {0};
@@ -267,9 +275,8 @@ void testBACnetApplicationDataValue(Test * pTest,
     &apdu[0],
     apdu_len,
     &test_value);
-  testCompareApplicationData(pTest, value, &test_value);
 
-  return;
+  return bacapp_compare(value, &test_value);
 }
 
 void testBACnetApplicationData(Test * pTest)
@@ -277,73 +284,73 @@ void testBACnetApplicationData(Test * pTest)
   BACNET_APPLICATION_DATA_VALUE value = {0};
 
   value.tag = BACNET_APPLICATION_TAG_NULL;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
 
   value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
   value.type.Boolean = true;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Boolean = false;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
 
   value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
   value.type.Unsigned_Int = 0;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Unsigned_Int = 0xFFFF;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Unsigned_Int = 0xFFFFFFFF;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
 
   value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
   value.type.Signed_Int = 0;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Signed_Int = -1;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Signed_Int = 32768;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Signed_Int = -32768;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   
   value.tag = BACNET_APPLICATION_TAG_REAL;
   value.type.Real = 0.0;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Real = -1.0;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Real = 1.0;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Real = 3.14159;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Real = -3.14159;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
     
   value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
   value.type.Enumerated = 0;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Enumerated = 0xFFFF;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Enumerated = 0xFFFFFFFF;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   
   value.tag = BACNET_APPLICATION_TAG_DATE;
   value.type.Date.year = 5;
   value.type.Date.month = 5;
   value.type.Date.day = 22;
   value.type.Date.wday = 1;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
 
   value.tag = BACNET_APPLICATION_TAG_TIME;
   value.type.Time.hour = 23;
   value.type.Time.min = 59;
   value.type.Time.sec = 59;
   value.type.Time.hundredths = 12;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
 
   value.tag = BACNET_APPLICATION_TAG_OBJECT_ID;
   value.type.Object_Id.type = OBJECT_ANALOG_INPUT;
   value.type.Object_Id.instance = 0;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Object_Id.type = OBJECT_LIFE_SAFETY_ZONE;
   value.type.Object_Id.instance = BACNET_MAX_INSTANCE;
-  testBACnetApplicationDataValue(pTest, &value);
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
 
   return;
 }
