@@ -74,7 +74,9 @@ int wp_encode_apdu(
   return apdu_len;
 }
 
-// decode the service request only
+/* decode the service request only */
+/* FIXME: there could be various error messages returned
+   using unique values less than zero */
 int wp_decode_service_request(
   uint8_t *apdu,
   unsigned apdu_len,
@@ -125,6 +127,8 @@ int wp_decode_service_request(
       &apdu[len],
       apdu_len - len,
       &data->value);
+    /* FIXME: check the return value; abort if no valid data? */
+    /* FIXME: there might be more than one data element in here! */
     if (!decode_is_closing_tag_number(&apdu[len], 3))
       return -1;
     // a tag number of 3 is not extended so only one octet
