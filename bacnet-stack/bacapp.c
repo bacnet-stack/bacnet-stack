@@ -59,7 +59,7 @@ int bacapp_encode_application_data(
     else if (value->tag == BACNET_APPLICATION_TAG_REAL)
       apdu_len += encode_tagged_real(&apdu[apdu_len],
         value->type.Real);
-/* FIXME:
+/* FIXME: encode the strings using the string datatype
     else if (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)
       apdu_len += encode_tagged_character_string(
         &apdu[apdu_len],
@@ -137,7 +137,7 @@ int bacapp_decode_application_data(
         value->tag = tag_number;
         len += decode_real(&apdu[len],&(value->type.Real));
       }
-/* FIXME:
+/* FIXME: decode the strings using the string datatype
       else if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING)
       {
         value->tag = tag_number;
@@ -191,6 +191,69 @@ int bacapp_decode_application_data(
 #include <string.h>
 #include "ctest.h"
 
+/* generic - can be used by other unit tests */
+void testCompareApplicationData(Test * pTest,
+  BACNET_APPLICATION_DATA_VALUE *value,
+  BACNET_APPLICATION_DATA_VALUE *test_value)
+{
+  /* does the tag match? */
+  ct_test(pTest, test_value->tag == value->tag);
+  /* does the value match? */
+  switch (test_value->tag)
+  {
+    case BACNET_APPLICATION_TAG_NULL:
+      break;
+    case BACNET_APPLICATION_TAG_BOOLEAN:
+      ct_test(pTest,
+        test_value->type.Boolean == value->type.Boolean);
+      break;
+    case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+      ct_test(pTest,
+        test_value->type.Unsigned_Int == value->type.Unsigned_Int);
+      break;
+    case BACNET_APPLICATION_TAG_SIGNED_INT:
+      ct_test(pTest,
+        test_value->type.Signed_Int == value->type.Signed_Int);
+      break;
+    case BACNET_APPLICATION_TAG_REAL:
+      ct_test(pTest,
+        test_value->type.Real == value->type.Real);
+      break;
+    case BACNET_APPLICATION_TAG_ENUMERATED:
+      ct_test(pTest,
+        test_value->type.Enumerated == value->type.Enumerated);
+      break;
+    case BACNET_APPLICATION_TAG_DATE:
+      ct_test(pTest,
+        test_value->type.Date.year == value->type.Date.year);
+      ct_test(pTest,
+        test_value->type.Date.month == value->type.Date.month);
+      ct_test(pTest,
+        test_value->type.Date.day == value->type.Date.day);
+      ct_test(pTest,
+        test_value->type.Date.wday == value->type.Date.wday);
+      break;
+    case BACNET_APPLICATION_TAG_TIME:
+      ct_test(pTest,
+        test_value->type.Time.hour == value->type.Time.hour);
+      ct_test(pTest,
+        test_value->type.Time.min == value->type.Time.min);
+      ct_test(pTest,
+        test_value->type.Time.sec == value->type.Time.sec);
+      ct_test(pTest,
+        test_value->type.Time.hundredths == value->type.Time.hundredths);
+      break;
+    case BACNET_APPLICATION_TAG_OBJECT_ID:
+      ct_test(pTest,
+        test_value->type.Object_Id.type == value->type.Object_Id.type);
+      ct_test(pTest, test_value->type.Object_Id.instance ==
+        value->type.Object_Id.instance);
+      break;
+    default:
+      break;
+  }
+}
+
 void testBACnetApplicationDataValue(Test * pTest,
   BACNET_APPLICATION_DATA_VALUE *value)
 {
@@ -204,66 +267,10 @@ void testBACnetApplicationDataValue(Test * pTest,
     &apdu[0],
     apdu_len,
     &test_value);
-  /* does the tag match? */
-  ct_test(pTest, test_value.tag == value->tag);
-  /* does the value match? */
-  switch (test_value.tag)
-  {
-    case BACNET_APPLICATION_TAG_NULL:
-      break;
-    case BACNET_APPLICATION_TAG_BOOLEAN:
-      ct_test(pTest, test_value.type.Boolean ==
-        value->type.Boolean);
-      break;
-    case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-      ct_test(pTest, test_value.type.Unsigned_Int ==
-        value->type.Unsigned_Int);
-      break;
-    case BACNET_APPLICATION_TAG_SIGNED_INT:
-      ct_test(pTest, test_value.type.Signed_Int ==
-        value->type.Signed_Int);
-      break;
-    case BACNET_APPLICATION_TAG_REAL:
-      ct_test(pTest, test_value.type.Real ==
-        value->type.Real);
-      break;
-    case BACNET_APPLICATION_TAG_ENUMERATED:
-      ct_test(pTest, test_value.type.Enumerated ==
-        value->type.Enumerated);
-      break;
-    case BACNET_APPLICATION_TAG_DATE:
-      ct_test(pTest, test_value.type.Date.year ==
-        value->type.Date.year);
-      ct_test(pTest, test_value.type.Date.month ==
-        value->type.Date.month);
-      ct_test(pTest, test_value.type.Date.day ==
-        value->type.Date.day);
-      ct_test(pTest, test_value.type.Date.wday ==
-        value->type.Date.wday);
-      break;
-    case BACNET_APPLICATION_TAG_TIME:
-      ct_test(pTest, test_value.type.Time.hour ==
-        value->type.Time.hour);
-      ct_test(pTest, test_value.type.Time.min ==
-        value->type.Time.min);
-      ct_test(pTest, test_value.type.Time.sec ==
-        value->type.Time.sec);
-      ct_test(pTest, test_value.type.Time.hundredths ==
-        value->type.Time.hundredths);
-      break;
-    case BACNET_APPLICATION_TAG_OBJECT_ID:
-      ct_test(pTest, test_value.type.Object_Id.type ==
-        value->type.Object_Id.type);
-      ct_test(pTest, test_value.type.Object_Id.instance ==
-        value->type.Object_Id.instance);
-      break;
-    default:
-      break;
-  }
+  testCompareApplicationData(pTest, value, &test_value);
 
   return;
 }
-
 
 void testBACnetApplicationData(Test * pTest)
 {
