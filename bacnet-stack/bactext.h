@@ -53,6 +53,8 @@ const char *bactext_abort_reason_name(int index);
 const char *bactext_error_class_name(int index);
 const char *bactext_error_code_name(int index);
 
+unsigned bactext_property_id(const char* name);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

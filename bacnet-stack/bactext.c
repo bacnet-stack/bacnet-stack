@@ -356,6 +356,14 @@ const char *bactext_property_name(int index)
     Vendor_Proprietary_String);
 }
 
+unsigned bactext_property_id(const char* name)
+{
+ return indtext_by_istring_default(
+    bacnet_property_names, 
+    name, 
+    0);
+}
+
 INDTEXT_DATA bacnet_engineering_unit_names[] = {
   { UNITS_SQUARE_METERS , "square-meters"},
   { UNITS_SQUARE_FEET , "square-feet"},
