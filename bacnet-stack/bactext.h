@@ -55,6 +55,8 @@ const char *bactext_error_code_name(int index);
 
 unsigned bactext_property_id(const char* name);
 
+unsigned bactext_property_tag(BACNET_OBJECT_TYPE type, unsigned prop);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

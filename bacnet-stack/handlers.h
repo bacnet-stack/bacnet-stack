@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include "bacdef.h"
 #include "apdu.h"
+#include "bacapp.h"
 
 // flag to send an I-Am
 extern bool I_Am_Request;
@@ -66,6 +67,12 @@ void ReadPropertyHandler(
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
+void WritePropertyAckHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+  
 void WritePropertyHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -79,6 +86,16 @@ bool Send_Read_Property_Request(
   uint32_t object_instance,
   BACNET_PROPERTY_ID object_property,
   int32_t array_index);
+  
+// returns false if device is not bound
+bool Send_Write_Property_Request(
+  uint32_t device_id, // destination device
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance,
+  BACNET_PROPERTY_ID object_property,
+  BACNET_APPLICATION_DATA_VALUE object_value,
+  uint8_t priority,
+  int32_t array_index);  
 
 void AtomicReadFileHandler(
   uint8_t *service_request,

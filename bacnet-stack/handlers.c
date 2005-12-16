@@ -50,6 +50,8 @@
 #if BACFILE
 #include "bacfile.h"
 #endif
+#include "indtext.h"
+#include "bactext.h"
 // Example handlers of services
 
 // flag to send an I-Am
@@ -207,6 +209,83 @@ bool Send_Read_Property_Request(
 
   return status;
 }
+
+
+
+bool Send_Write_Property_Request(
+  uint32_t device_id, // destination device
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance,
+  BACNET_PROPERTY_ID object_property,
+  BACNET_APPLICATION_DATA_VALUE object_value,
+  uint8_t priority,
+  int32_t array_index)
+{
+  BACNET_ADDRESS dest;
+  BACNET_ADDRESS my_address;
+  unsigned max_apdu = 0;
+  uint8_t invoke_id = 0;
+  bool status = false;
+  int pdu_len = 0;
+  int bytes_sent = 0;
+  BACNET_WRITE_PROPERTY_DATA data;
+
+  /* is the device bound? */
+  status = address_get_by_device(device_id, &max_apdu, &dest);
+  /* is there a tsm available? */
+  if (status)
+     status = tsm_transaction_available();
+  if (status)
+  {
+    datalink_get_my_address(&my_address);
+    pdu_len = npdu_encode_apdu(
+      &Tx_Buf[0],
+      &dest,
+      &my_address,
+      true,  // true for confirmed messages
+      MESSAGE_PRIORITY_NORMAL);
+
+    invoke_id = tsm_next_free_invokeID();
+    // load the data for the encoding
+    data.object_type = object_type;
+    data.object_instance = object_instance;
+    data.object_property = object_property;
+    data.array_index = array_index;
+    data.value = object_value;
+    data.priority = priority;
+    pdu_len += wp_encode_apdu(
+      &Tx_Buf[pdu_len],
+      invoke_id,
+      &data);
+    /* will it fit in the sender?
+       note: if there is a bottleneck router in between
+       us and the destination, we won't know unless
+       we have a way to check for that and update the
+       max_apdu in the address binding table. */
+    if ((unsigned)pdu_len < max_apdu)
+    {
+      tsm_set_confirmed_unsegmented_transaction(
+        invoke_id,
+        &dest,
+        &Tx_Buf[0],
+        pdu_len);
+      bytes_sent = datalink_send_pdu(
+        &dest,  // destination address
+        &Tx_Buf[0],
+        pdu_len); // number of bytes of data
+      if (bytes_sent > 0);//        fprintf(stderr,"Sent ReadProperty Request!\n");
+      else
+        fprintf(stderr,"Failed to Send WriteProperty Request (%s)!\n",
+          strerror(errno));
+    }
+    else
+      fprintf(stderr,"Failed to Send WriteProperty Request "
+        "(exceeds destination maximum APDU)!\n");
+  }
+
+  return status;
+}
+
 
 void WhoIsHandler(
   uint8_t *service_request,
@@ -477,6 +556,25 @@ void ReadPropertyHandler(
   }
 
   return;
+}
+
+
+void WritePropertyAckHandler(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+{
+  int len = 0;
+  BACNET_WRITE_PROPERTY_DATA data;
+
+  (void)src;
+  tsm_free_invoke_id(service_data->invoke_id);
+  len = wp_ack_decode_service_request(
+    service_request,
+    service_len,
+    &data);
+  fprintf(stderr,"Received Write-Property Ack!\n");
 }
 
 void WritePropertyHandler(
