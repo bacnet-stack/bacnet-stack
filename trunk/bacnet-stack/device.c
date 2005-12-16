@@ -509,6 +509,59 @@ bool Device_Write_Property(
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
       break;
+      
+    case PROP_NUMBER_OF_APDU_RETRIES:
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+      {
+       Device_Set_Number_Of_APDU_Retries(wp_data->value.type.Unsigned_Int);
+       status = true;
+      }
+      else
+      {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+      }
+      break;      
+      
+    case PROP_APDU_TIMEOUT:
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+      {
+       Device_Set_APDU_Timeout(wp_data->value.type.Unsigned_Int);
+       status = true;
+      }
+      else
+      {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+      }
+      break;
+            
+    case PROP_VENDOR_IDENTIFIER:
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+      {
+       Device_Set_Vendor_Identifier(wp_data->value.type.Unsigned_Int);
+       status = true;
+      }
+      else
+      {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+      }
+      break;
+    
+    case PROP_SYSTEM_STATUS:
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED)
+      {
+       Device_Set_System_Status(wp_data->value.type.Enumerated);
+       status = true;
+      }
+      else
+      {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+      }
+      break;
+      
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

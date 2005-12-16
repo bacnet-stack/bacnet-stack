@@ -145,6 +145,29 @@ const char *indtext_by_index_default(
   return pString?pString:default_string;
 }
 
+unsigned indtext_tag_by_index_default(
+  PROP_TAG_DATA *data_list,
+  unsigned index,
+  unsigned default_ret)
+{
+  unsigned pUnsigned = 0;
+
+  if (data_list)
+  {
+    while (data_list->prop_id)
+    {
+      if (data_list->prop_id == index)
+      {
+        pUnsigned = data_list->tag_id;
+        break;
+      }
+      data_list++;
+    }
+  }
+
+  return pUnsigned?pUnsigned:default_ret;
+}
+
 const char *indtext_by_index_split_default(
   INDTEXT_DATA *data_list,
   int index,

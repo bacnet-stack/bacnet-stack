@@ -182,6 +182,68 @@ int wp_decode_apdu(
   return len;
 }
 
+
+int wp_ack_decode_service_request(
+  uint8_t *apdu,
+  int apdu_len, // total length of the apdu
+  BACNET_WRITE_PROPERTY_DATA *data)
+{
+  uint8_t tag_number = 0;
+  uint32_t len_value_type = 0;
+  int tag_len = 0; // length of tag decode
+  int len = 0; // total length of decodes
+  int object = 0, property = 0; // for decoding
+  unsigned array_value = 0; // for decoding
+
+  // FIXME: check apdu_len against the len during decode  
+  // Tag 0: Object ID
+  if (!decode_is_context_tag(&apdu[0], 0))
+    return -1;
+  len = 1;
+  len += decode_object_id(&apdu[len],
+    &object, &data->object_instance);
+  data->object_type = object;
+  // Tag 1: Property ID
+  len += decode_tag_number_and_value(&apdu[len],
+    &tag_number, &len_value_type);
+  if (tag_number != 1)
+    return -1;
+  len += decode_enumerated(&apdu[len],
+    len_value_type,
+    &property);
+  data->object_property = property;
+  // Tag 2: Optional Array Index
+  tag_len = decode_tag_number_and_value(&apdu[len],
+        &tag_number, &len_value_type);
+  if (tag_number == 2)
+  {
+    len += tag_len;
+    len += decode_unsigned(&apdu[len],
+      len_value_type, &array_value);
+    data->array_index = array_value;
+  }
+  else
+    data->array_index = BACNET_ARRAY_ALL;
+    
+  // Tag 3: opening context tag */
+  /*
+  if (decode_is_opening_tag_number(&apdu[len], 3))
+  {
+    // a tag number of 3 is not extended so only one octet
+    len++;
+    // don't decode the application tag number or its data here
+    data->application_data = &apdu[len];
+    data->application_data_len = apdu_len - len - 1; //closing tag
+  }
+  else
+    return -1;
+  */
+  
+  return len;
+}
+
+
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
