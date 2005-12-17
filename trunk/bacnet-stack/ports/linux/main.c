@@ -242,10 +242,21 @@ static void print_address_cache(void)
   }
 }
 
+static void print_tsm_stats(void)
+{
+  int idle = 0;
+  int total = 0;
+
+  idle = tsm_transaction_idle_count();
+  total = MAX_TSM_TRANSACTIONS;
+  fprintf(stderr,"TSM: %d idle of %d transactions\n",idle,total);
+}
+
 static void sig_handler(int signo)
 {
   datalink_cleanup();
   print_address_cache();
+  print_tsm_stats();
  
   exit(0);
 }
