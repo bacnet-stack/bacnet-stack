@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2005 Steve Karg
+ Copyright (C) 2005 John Goulah
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -31,28 +31,30 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#ifndef BACTEXT_H
-#define BACTEXT_H
+#ifndef BACPROP_H
+#define BACPROP_H
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "indtext.h"
+#include "bacenum.h"
+
+typedef struct
+{
+  unsigned prop_id; /* index number that matches the text */
+  unsigned tag_id; /* text pair - use NULL to end the list */
+} PROP_TAG_DATA;
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-const char *bactext_confirmed_service_name(int index);
-const char *bactext_unconfirmed_service_name(int index);
-const char *bactext_application_tag_name(int index);
-const char *bactext_object_type_name(int index);
-const char *bactext_property_name(int index);
-const char *bactext_engineering_unit_name(int index);
-const char *bactext_reject_reason_name(int index);
-const char *bactext_abort_reason_name(int index);
-const char *bactext_error_class_name(int index);
-const char *bactext_error_code_name(int index);
-unsigned bactext_property_id(const char* name);
+unsigned bacprop_tag_by_index_default(
+  PROP_TAG_DATA *data_list,
+  unsigned index,
+  unsigned default_ret);
+
+unsigned bacprop_property_tag(BACNET_OBJECT_TYPE type, unsigned prop);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

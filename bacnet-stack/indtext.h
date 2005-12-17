@@ -45,20 +45,9 @@ typedef struct
   const char *pString; /* text pair - use NULL to end the list */
 } INDTEXT_DATA;
 
-typedef struct
-{
-  unsigned prop_id; /* index number that matches the text */
-  unsigned tag_id; /* text pair - use NULL to end the list */
-} PROP_TAG_DATA;
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-unsigned indtext_tag_by_index_default(
-  PROP_TAG_DATA *data_list,
-  unsigned index,
-  unsigned default_ret);
 
 /*  Searches for a matching string and returns the index to the string
     in the parameter found_index.
