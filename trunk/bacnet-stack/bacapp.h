@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacdef.h"
+#include "bacstr.h"
 
 typedef struct BACnet_Application_Data_Value
 {
