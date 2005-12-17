@@ -35,10 +35,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacstr.h"
-//#include "bacdef.h"
-//#include "bacenum.h"
 #include "bits.h"
-//#include "bigend.h"
 
 void bitstring_init(BACNET_BIT_STRING *bit_string)
 {
@@ -103,7 +100,7 @@ bool characterstring_init(
   if (char_string)
   {
     char_string->length = 0;
-    if (length < sizeof(char_string->value))
+    if (length <= sizeof(char_string->value))
     {
       if (value)
       {
@@ -117,8 +114,7 @@ bool characterstring_init(
       {
         for (i = 0; i < sizeof(char_string->value); i++)
         {
-          char_string->value[char_string->length] = 0;
-          char_string->length++;
+          char_string->value[i] = 0;
         }
       }
       status = true;
@@ -139,7 +135,7 @@ bool characterstring_append(
 
   if (char_string)
   {
-    if ((length + char_string->length) < sizeof(char_string->value))
+    if ((length + char_string->length) <= sizeof(char_string->value))
     {
       for (i = 0; i < length; i++)
       {
@@ -164,7 +160,7 @@ bool characterstring_truncate(
 
   if (char_string)
   {
-    if (length < sizeof(char_string->value))
+    if (length <= sizeof(char_string->value))
     {
       char_string->length = length;
       status = true;
@@ -177,8 +173,8 @@ bool characterstring_truncate(
 /* returns the length.  Returns the value in parameter. */
 size_t characterstring_value(BACNET_CHARACTER_STRING *char_string, char *value)
 {
-  size_t length = 0;
   size_t i; /* counter */
+  size_t length = 0; /* return value */
   
   if (char_string)
   {
@@ -186,7 +182,7 @@ size_t characterstring_value(BACNET_CHARACTER_STRING *char_string, char *value)
     length = char_string->length;
     if (value)
     {
-      for (i = 0; i < length; i++)
+      for (i = 0; i < sizeof(char_string->value); i++)
       {
         value[i] = char_string->value[i];
       }
