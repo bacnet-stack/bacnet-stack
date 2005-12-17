@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "bacstr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,10 +74,6 @@ int encode_context_boolean(uint8_t * apdu, bool boolean_value);
 bool decode_context_boolean(uint8_t * apdu);
 
 // from clause 20.2.10 Encoding of a Bit String Value
-void bitstring_init(BACNET_BIT_STRING *bit_string);
-void bitstring_set_bit(BACNET_BIT_STRING *bit_string, uint8_t bit, bool value);
-bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit);
-uint8_t bitstring_bits_used(BACNET_BIT_STRING *bit_string);
 // returns the number of apdu bytes consumed
 int decode_bitstring(uint8_t * apdu, uint32_t len_value,
   BACNET_BIT_STRING *bit_string);

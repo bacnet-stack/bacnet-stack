@@ -34,10 +34,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacdef.h"
-#include "bacenum.h"
+#include "bacstr.h"
+//#include "bacdef.h"
+//#include "bacenum.h"
 #include "bits.h"
-#include "bigend.h"
+//#include "bigend.h"
 
 void bitstring_init(BACNET_BIT_STRING *bit_string)
 {
@@ -199,7 +200,6 @@ size_t characterstring_value(BACNET_CHARACTER_STRING *char_string, char *value)
 size_t characterstring_length(BACNET_CHARACTER_STRING *char_string)
 {
   size_t length = 0;
-  size_t i; /* counter */
 
   if (char_string)
   {
@@ -219,7 +219,6 @@ void testBitString(Test * pTest)
 {
   uint8_t bit = 0;
   BACNET_BIT_STRING bit_string;
-  BACNET_BIT_STRING decoded_bit_string;
 
   bitstring_init(&bit_string);
   // verify initialization 
@@ -249,7 +248,6 @@ void testBitString(Test * pTest)
 void testCharacterString(Test * pTest)
 {
   BACNET_CHARACTER_STRING bacnet_string;
-  BACNET_CHARACTER_STRING test_bacnet_string;
   char value[MAX_APDU] = "Joshua,Mary,Anna,Christopher";
   char test_value[MAX_APDU] = "Patricia";
   char test_append_value[MAX_APDU] = " and the Kids";
