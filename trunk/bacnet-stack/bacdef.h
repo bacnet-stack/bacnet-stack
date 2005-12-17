@@ -81,32 +81,6 @@ struct BACnet_Device_Address {
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;
 
-/* FIXME: move the string types into their own modules with unit testings */
-/* bit strings
-   They could be as large as 256/8=32 octets */
-#define MAX_BITSTRING_BYTES 15
-typedef struct BACnet_Bit_String
-{
-  uint8_t bits_used;
-  uint8_t value[MAX_BITSTRING_BYTES];
-} BACNET_BIT_STRING;
-
-/* FIXME: create some init/add/remove helper functions in a library */
-typedef struct BACnet_Character_String
-{
-  size_t length;
-  char value[MAX_APDU];
-} BACNET_CHARACTER_STRING;
-
-/* FIXME: convert the bacdcode library to use this for APDU buffer
-   to prevent buffer overflows */
-/* FIXME: create some init/add/remove helper functions in a library */
-typedef struct BACnet_Octet_String
-{
-  size_t length;
-  uint8_t value[MAX_APDU];
-} BACNET_OCTET_STRING;
-
 /* date */
 typedef struct BACnet_Date
 {

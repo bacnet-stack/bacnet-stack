@@ -39,6 +39,7 @@
 #include "bacenum.h"
 #include "bits.h"
 #include "bigend.h"
+#include "bacstr.h"
 
 // NOTE: byte order plays a role in decoding multibyte values
 // http://www.unixpapa.com/incnote/byteorder.html
@@ -271,56 +272,6 @@ int decode_unsigned32(uint8_t * apdu, uint32_t *value)
         *value = long_data.value;
 
     return 4;
-}
-
-void bitstring_init(BACNET_BIT_STRING *bit_string)
-{
-  int i;
-  
-  bit_string->bits_used = 0;
-  for (i = 0; i < MAX_BITSTRING_BYTES; i++)
-  {
-    bit_string->value[i] = 0;
-  }
-}
-
-void bitstring_set_bit(BACNET_BIT_STRING *bit_string, uint8_t bit, bool value)
-{
-  uint8_t byte_number = bit/8;
-  uint8_t bit_mask = 1;
-
-  if (byte_number < MAX_BITSTRING_BYTES)
-  {
-    // set max bits used
-    if (bit_string->bits_used < (bit + 1))
-      bit_string->bits_used = bit + 1;
-    bit_mask = bit_mask << (bit - (byte_number * 8));
-    if (value)
-      bit_string->value[byte_number] |= bit_mask;
-    else
-      bit_string->value[byte_number] &= (~(bit_mask));
-  }
-}
-
-bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit)
-{
-  bool value = false;
-  uint8_t byte_number = bit/8;
-  uint8_t bit_mask = 1;
-  
-  if (bit < (MAX_BITSTRING_BYTES * 8))
-  {
-    bit_mask = bit_mask << (bit - (byte_number * 8));
-    if (bit_string->value[byte_number] & bit_mask)
-      value = true;
-  }
-
-  return value;
-}
-
-uint8_t bitstring_bits_used(BACNET_BIT_STRING *bit_string)
-{
-  return bit_string->bits_used;
 }
 
 // from clause 20.2.1 General Rules for Encoding BACnet Tags
