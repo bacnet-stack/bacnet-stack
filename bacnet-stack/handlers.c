@@ -344,7 +344,6 @@ void ReadPropertyAckHandler(
   BACNET_READ_PROPERTY_DATA data;
 
   (void)src;
-  tsm_free_invoke_id(service_data->invoke_id);
   len = rp_ack_decode_service_request(
     service_request,
     service_len,
@@ -558,7 +557,6 @@ void ReadPropertyHandler(
   return;
 }
 
-
 void WritePropertyAckHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -569,7 +567,6 @@ void WritePropertyAckHandler(
   BACNET_WRITE_PROPERTY_DATA data;
 
   (void)src;
-  tsm_free_invoke_id(service_data->invoke_id);
   len = wp_ack_decode_service_request(
     service_request,
     service_len,
@@ -846,7 +843,6 @@ void AtomicReadFileAckHandler(
   (void)src;
   // get the file instance from the tsm data before freeing it
   instance = bacfile_instance_from_tsm(service_data->invoke_id);
-  tsm_free_invoke_id(service_data->invoke_id);
   len = arf_ack_decode_service_request(
     service_request,
     service_len,

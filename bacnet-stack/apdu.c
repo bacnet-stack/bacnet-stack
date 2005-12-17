@@ -270,8 +270,7 @@ void apdu_handler(
                 src,
                 invoke_id); 
             }
-            else
-              tsm_free_invoke_id(invoke_id);
+            tsm_free_invoke_id(invoke_id);
             break;
           default:
             break;
@@ -319,8 +318,7 @@ void apdu_handler(
                 src,
                 &service_ack_data); 
             }
-            else
-              tsm_free_invoke_id(invoke_id);
+            tsm_free_invoke_id(invoke_id);
             break;
           default:
             break;
@@ -331,6 +329,7 @@ void apdu_handler(
       case PDU_TYPE_REJECT:
       case PDU_TYPE_ABORT:
         invoke_id = apdu[1];
+        /* FIXME: what about a way to let a client know? */
         tsm_free_invoke_id(invoke_id);
         break;
       default:
