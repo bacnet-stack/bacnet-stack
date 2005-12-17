@@ -92,6 +92,27 @@ bool characterstring_truncate(
 size_t characterstring_value(BACNET_CHARACTER_STRING *char_string, char *value);
 size_t characterstring_length(BACNET_CHARACTER_STRING *char_string);
 
+/* returns false if the string exceeds capacity
+   initialize by using length=0 */
+bool octetstring_init(
+  BACNET_OCTET_STRING *octet_string,
+  uint8_t *value,
+  size_t length);
+/* returns false if the string exceeds capacity */
+bool octetstring_append(
+    BACNET_OCTET_STRING *octet_string,
+  uint8_t *value,
+  size_t length);
+/* This function sets a new length without changing the value.
+   If length exceeds capacity, no modification happens and
+   function returns false.  */
+bool octetstring_truncate(
+    BACNET_OCTET_STRING *octet_string,
+  size_t length);
+/* returns the length.  Returns the value in parameter. */
+size_t octetstring_value(BACNET_OCTET_STRING *octet_string, uint8_t *value);
+size_t octetstring_length(BACNET_OCTET_STRING *octet_string);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
