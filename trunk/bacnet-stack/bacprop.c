@@ -54,25 +54,19 @@ PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
   {PROP_SEGMENTATION_SUPPORTED, BACNET_APPLICATION_TAG_ENUMERATED},
   {PROP_APDU_TIMEOUT, BACNET_APPLICATION_TAG_UNSIGNED_INT},
   {PROP_NUMBER_OF_APDU_RETRIES, BACNET_APPLICATION_TAG_UNSIGNED_INT},
-  { 0, 0 }
+  { -1, -1 }
 };
 
-/* FIXME: BACNET_APPLICATION_TAG_NULL = 0,
-   FIXME: PROP_ACKED_TRANSITIONS = 0,
-   perhaps since none of the properties uses the NULL tag,
-   we could use that as the list terminator, rather than the
-   property==0.  Either that, or start using signed int and
-   pass a -1 as the list terminator. */
-unsigned bacprop_tag_by_index_default(
+signed bacprop_tag_by_index_default(
   PROP_TAG_DATA *data_list,
-  unsigned index,
-  unsigned default_ret)
+  signed index,
+  signed default_ret)
 {
-  unsigned pUnsigned = 0;
+  signed pUnsigned = 0;
 
   if (data_list)
   {
-    while (data_list->prop_id)
+    while (data_list->prop_id != -1)
     {
       if (data_list->prop_id == index)
       {
@@ -86,9 +80,8 @@ unsigned bacprop_tag_by_index_default(
   return pUnsigned?pUnsigned:default_ret;
 }
 
-/* FIXME: how do we know when we don't have a match? Maybe use signed return,
-   or return a boolean and pass the return value as an argument. */
-unsigned bacprop_property_tag(BACNET_OBJECT_TYPE type, unsigned prop)
+
+signed bacprop_property_tag(BACNET_OBJECT_TYPE type, signed prop)
 {
   switch (type)
   {
@@ -96,11 +89,11 @@ unsigned bacprop_property_tag(BACNET_OBJECT_TYPE type, unsigned prop)
       return bacprop_tag_by_index_default(
         bacnet_object_device_property_tag_map,
         prop,
-        0);
+        -1);
     default:
       fprintf(stderr, "Unsupported object type"); 
       break;
   }
 
-  return 0;
+  return -1;
 }
