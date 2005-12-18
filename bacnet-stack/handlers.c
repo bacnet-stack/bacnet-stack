@@ -273,7 +273,8 @@ bool Send_Write_Property_Request(
         &dest,  // destination address
         &Tx_Buf[0],
         pdu_len); // number of bytes of data
-      if (bytes_sent > 0);//        fprintf(stderr,"Sent ReadProperty Request!\n");
+      if (bytes_sent > 0)
+        fprintf(stderr,"Sent ReadProperty Request!\n");
       else
         fprintf(stderr,"Failed to Send WriteProperty Request (%s)!\n",
           strerror(errno));
@@ -558,19 +559,11 @@ void ReadPropertyHandler(
 }
 
 void WritePropertyAckHandler(
-  uint8_t *service_request,
-  uint16_t service_len,
   BACNET_ADDRESS *src,
-  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+  uint8_t invoke_id)
 {
-  int len = 0;
-  BACNET_WRITE_PROPERTY_DATA data;
-
   (void)src;
-  len = wp_ack_decode_service_request(
-    service_request,
-    service_len,
-    &data);
+  tsm_free_invoke_id(invoke_id);
   fprintf(stderr,"Received Write-Property Ack!\n");
 }
 

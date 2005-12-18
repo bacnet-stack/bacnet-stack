@@ -562,6 +562,25 @@ bool Device_Write_Property(
       }
       break;
       
+    case PROP_OBJECT_NAME:
+      if (wp_data->value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)
+      {
+       BACNET_CHARACTER_STRING Character_String = wp_data->value.type.Character_String;
+       
+       char decoded_string[MAX_APDU] = { "" };
+       int decoded = 0;
+       //decoded = decode_character_string(&data->application_data[tag_len], len_value_type,  &decoded_string[0], sizeof(decoded_string));
+             
+       //Device_Set_Vendor_Name(const char *name);
+       status = true;
+      }
+      else
+      {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+      }
+      break;
+      
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

@@ -71,10 +71,6 @@ int wp_decode_apdu(
   uint8_t *invoke_id,
   BACNET_WRITE_PROPERTY_DATA *data);
 
-int wp_ack_decode_service_request(
-  uint8_t *apdu,
-  int apdu_len, // total length of the apdu
-  BACNET_WRITE_PROPERTY_DATA *data);
   
 #ifdef TEST
 #include "ctest.h"
