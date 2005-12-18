@@ -40,20 +40,20 @@
 
 typedef struct
 {
-  unsigned prop_id; /* index number that matches the text */
-  unsigned tag_id; /* text pair - use NULL to end the list */
+  signed prop_id; /* index number that matches the text */
+  signed tag_id; /* text pair - use NULL to end the list */
 } PROP_TAG_DATA;
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-unsigned bacprop_tag_by_index_default(
+signed bacprop_tag_by_index_default(
   PROP_TAG_DATA *data_list,
-  unsigned index,
-  unsigned default_ret);
+  signed index,
+  signed default_ret);
 
-unsigned bacprop_property_tag(BACNET_OBJECT_TYPE type, unsigned prop);
+signed bacprop_property_tag(BACNET_OBJECT_TYPE type, signed prop);
 
 #ifdef __cplusplus
 }
