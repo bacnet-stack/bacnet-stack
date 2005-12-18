@@ -68,10 +68,8 @@ void ReadPropertyHandler(
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 void WritePropertyAckHandler(
-  uint8_t *service_request,
-  uint16_t service_len,
   BACNET_ADDRESS *src,
-  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+  uint8_t invoke_id);
   
 void WritePropertyHandler(
   uint8_t *service_request,
