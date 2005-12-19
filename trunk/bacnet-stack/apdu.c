@@ -149,6 +149,33 @@ void apdu_set_confirmed_ack_handler(
   }
 }
 
+static error_function
+Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
+
+void apdu_set_error_handler(
+  BACNET_CONFIRMED_SERVICE service_choice,
+  error_function pFunction)
+{
+  if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
+    Error_Function[service_choice] = pFunction;
+}
+
+static abort_function Abort_Function;
+
+void apdu_set_abort_handler(
+  abort_function pFunction)
+{
+  Abort_Function = pFunction;
+}
+
+static reject_function Reject_Function;
+
+void apdu_set_reject_handler(
+  reject_function pFunction)
+{
+  Reject_Function = pFunction;
+}
+
 uint16_t apdu_decode_confirmed_service_request(
   uint8_t *apdu, // APDU data
   uint16_t apdu_len,
@@ -191,6 +218,11 @@ void apdu_handler(
   uint8_t *service_request = NULL;
   uint16_t service_request_len = 0;
   uint16_t len = 0; // counts where we are in PDU
+  uint8_t tag_number = 0;
+  uint32_t len_value = 0;
+  int error_code = 0;
+  int error_class = 0;
+  uint8_t reason = 0;
 
   (void)data_expecting_reply;
   if (apdu)
@@ -325,11 +357,49 @@ void apdu_handler(
         }
         break;
       case PDU_TYPE_SEGMENT_ACK:
+        /* FIXME: what about a denial of service attack here?
+           we could check src to see if that matched the tsm */
+        tsm_free_invoke_id(invoke_id);
+        break;
       case PDU_TYPE_ERROR:
+        invoke_id = apdu[1];
+        service_choice = apdu[2];
+        len = 3;
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        /* FIXME: we could validate that the tag is enumerated... */
+        len += decode_enumerated(&apdu[len],len_value, &error_class);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        /* FIXME: we could validate that the tag is enumerated... */
+        len += decode_enumerated(&apdu[len],len_value, &error_code);
+        if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
+        {
+          if (Error_Function[service_choice])
+            Error_Function[service_choice](
+              src,
+              invoke_id,
+              error_class,
+              error_code);
+        }
+        tsm_free_invoke_id(invoke_id);
+        break;
       case PDU_TYPE_REJECT:
+        invoke_id = apdu[1];
+        reason = apdu[2];
+        if (Reject_Function)
+            Reject_Function(
+              src,
+              invoke_id,
+              reason);
+        tsm_free_invoke_id(invoke_id);
+        break;
       case PDU_TYPE_ABORT:
         invoke_id = apdu[1];
-        /* FIXME: what about a way to let a client know? */
+        reason = apdu[2];
+        if (Abort_Function)
+            Abort_Function(
+              src,
+              invoke_id,
+              reason);
         tsm_free_invoke_id(invoke_id);
         break;
       default:
