@@ -159,20 +159,6 @@ static void LocalIAmHandler(
   return;  
 }
 
-static void Init_Device_Parameters(void)
-{
-  // configure my initial values
-  Device_Set_Object_Instance_Number(124);
-  Device_Set_Vendor_Name("Lithonia Lighting");
-  Device_Set_Vendor_Identifier(42);
-  Device_Set_Model_Name("Simple BACnet Client");
-  Device_Set_Firmware_Revision("1.00");
-  Device_Set_Application_Software_Version("win32");
-  Device_Set_Description("Example of a simple BACnet client/server");
-
-  return;
-}
-
 static void Init_Service_Handlers(void)
 {
   // we need to handle who-is to support dynamic device binding
@@ -250,8 +236,8 @@ int main(int argc, char *argv[])
 
   (void)argc;
   (void)argv;
-  Init_Device_Parameters();
-  Init_Service_Handlers();
+  Device_Set_Object_Instance_Number(124);
+Init_Service_Handlers();
   // init the data link layer
   /* configure standard BACnet/IP port */
   bip_set_port(0xBAC0);
