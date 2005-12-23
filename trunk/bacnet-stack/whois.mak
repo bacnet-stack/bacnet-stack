@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_WHOIS -g
 
 SRCS = bacdcode.c \
+       bacstr.c \
        bigend.c \
        whois.c \
        test/ctest.c

@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_NPDU -g
 
 SRCS = bacdcode.c \
+       bacstr.c \
        bigend.c \
        npdu.c \
        apdu.c \

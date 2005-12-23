@@ -713,7 +713,6 @@ void AtomicReadFileHandler(
   int bytes_sent = 0;
   BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
   BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-  char buffer[MAX_APDU - 16] = ""; // for reply data, less apdu overhead
 
   fprintf(stderr,"Received Atomic-Read-File Request!\n");
   len = arf_decode_service_request(
@@ -754,9 +753,8 @@ void AtomicReadFileHandler(
   {
     if (data.access == FILE_STREAM_ACCESS)
     {
-      data.fileData = (uint8_t *)&buffer[0];
-      data.fileDataLength = sizeof(buffer);
-      if (data.type.stream.requestedOctetCount < data.fileDataLength)
+      if (data.type.stream.requestedOctetCount <
+          octetstring_capacity(&data.fileData))
       {
         if (bacfile_read_data(&data))
         {
@@ -855,12 +853,13 @@ void AtomicReadFileAckHandler(
           (void)fseek(pFile,
             data.type.stream.fileStartPosition,
             SEEK_SET);
-          if (fwrite(data.fileData,data.fileDataLength,1,pFile) != 1)
+          if (fwrite(octetstring_value(&data.fileData),
+              octetstring_length(&data.fileData),1,pFile) != 1)
             fprintf(stderr,"Failed to write to %s (%u)!\n",
               pFilename, instance);
           fclose(pFile);
         }
-      }      
+      }
     }
     else if (data.access == FILE_RECORD_ACCESS)
     {

@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_WRITE_PROPERTY -DBACDL_BIP=1 -g
 
 SRCS = bacdcode.c \
+       bacstr.c \
        bigend.c \
        bacapp.c \
        wp.c \

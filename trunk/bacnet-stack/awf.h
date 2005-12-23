@@ -55,11 +55,7 @@ typedef struct BACnet_Atomic_Write_File_Data
       unsigned returnedRecordCount;
     } record;
   } type;
-  // note: set the file data to an empty buffer
-  // and set the DataLength to the size of the empty buffer
-  // before decoding the data.
-  uint8_t *fileData;
-  unsigned fileDataLength;
+  BACNET_OCTET_STRING fileData;
 } BACNET_ATOMIC_WRITE_FILE_DATA;
 
 #ifdef __cplusplus

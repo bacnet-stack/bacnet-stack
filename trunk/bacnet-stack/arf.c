@@ -220,7 +220,7 @@ int arf_ack_encode_apdu(
         apdu_len += encode_tagged_signed(&apdu[apdu_len],
           data->type.stream.fileStartPosition);
         apdu_len += encode_tagged_octet_string(&apdu[apdu_len],
-          data->fileData, data->fileDataLength);
+          &data->fileData);
         apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
         break;
       case FILE_RECORD_ACCESS:
@@ -230,7 +230,7 @@ int arf_ack_encode_apdu(
         apdu_len += encode_tagged_unsigned(&apdu[apdu_len],
           data->type.record.RecordCount);
         apdu_len += encode_tagged_octet_string(&apdu[apdu_len],
-          data->fileData, data->fileDataLength);
+          &data->fileData);
         apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
         break;
       default:
@@ -281,9 +281,7 @@ int arf_ack_decode_service_request(
         return -1;
       len += decode_octet_string(&apdu[len],
         len_value_type,
-        data->fileData,
-        data->fileDataLength);
-      data->fileDataLength = len_value_type;
+        &data->fileData);
       if (!decode_is_closing_tag_number(&apdu[len], 0))
         return -1;
       // a tag number is not extended so only one octet
@@ -320,9 +318,7 @@ int arf_ack_decode_service_request(
         return -1;
       len += decode_octet_string(&apdu[len],
         len_value_type,
-        data->fileData,
-        data->fileDataLength);
-      data->fileDataLength = len_value_type;
+        &data->fileData);
       if (!decode_is_closing_tag_number(&apdu[len], 1))
         return -1;
       // a tag number is not extended so only one octet
@@ -380,7 +376,6 @@ void testAtomicReadFileAckAccess(Test * pTest,
   int apdu_len = 0;
   uint8_t invoke_id = 128;
   uint8_t test_invoke_id = 0;
-  uint8_t test_octet_string[128] = "bingo!";
 
   len = arf_ack_encode_apdu(
     &apdu[0],
@@ -389,8 +384,6 @@ void testAtomicReadFileAckAccess(Test * pTest,
   ct_test(pTest, len != 0);
   apdu_len = len;
 
-  test_data.fileData = test_octet_string;
-  test_data.fileDataLength = sizeof(test_octet_string);
   len = arf_ack_decode_apdu(
     &apdu[0],
     apdu_len,
@@ -411,33 +404,35 @@ void testAtomicReadFileAckAccess(Test * pTest,
     ct_test(pTest, test_data.type.record.RecordCount ==
       data->type.record.RecordCount);
   }
-  ct_test(pTest, test_data.fileDataLength ==
-    data->fileDataLength);
+  ct_test(pTest, octetstring_length(&test_data.fileData) ==
+      octetstring_length(&data->fileData));
   ct_test(pTest, memcmp(
-    &test_data.fileData[0],
-    &data->fileData[0],
-    test_data.fileDataLength) == 0);
+      octetstring_value(&test_data.fileData),
+      octetstring_value(&data->fileData),
+      octetstring_length(&test_data.fileData)) == 0);
 }
 
 void testAtomicReadFileAck(Test * pTest)
 {
   BACNET_ATOMIC_READ_FILE_DATA data = {0};
-  uint8_t *test_octet_string = "Joshua-Mary-Anna-Christopher";
+  uint8_t test_octet_string[32] = "Joshua-Mary-Anna-Christopher";
   
   
   data.endOfFile = true;
   data.access = FILE_STREAM_ACCESS;
   data.type.stream.fileStartPosition = 0;
-  data.fileData = test_octet_string;
-  data.fileDataLength = strlen(test_octet_string);
+  octetstring_init(&data.fileData,
+      test_octet_string,
+      sizeof(test_octet_string));
   testAtomicReadFileAckAccess(pTest, &data);
 
   data.endOfFile = false;
   data.access = FILE_RECORD_ACCESS;
   data.type.record.fileStartRecord = 1;
   data.type.record.RecordCount = 2;
-  data.fileData = test_octet_string;
-  data.fileDataLength = strlen(test_octet_string);
+  octetstring_init(&data.fileData,
+                    test_octet_string,
+                    sizeof(test_octet_string));
   testAtomicReadFileAckAccess(pTest, &data);
   
   return;

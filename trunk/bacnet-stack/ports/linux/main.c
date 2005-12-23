@@ -47,20 +47,6 @@
 // buffers used for receiving
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
-static void Init_Device_Parameters(void)
-{
-  // configure my initial values
-  Device_Set_Object_Instance_Number(111);
-  Device_Set_Vendor_Name("Lithonia Lighting");
-  Device_Set_Vendor_Identifier(42);
-  Device_Set_Model_Name("Simple BACnet Server");
-  Device_Set_Firmware_Revision("1.00");
-  Device_Set_Application_Software_Version("none");
-  Device_Set_Description("Example of a simple BACnet server");
-
-  return;
-}
-
 static void LocalIAmHandler(
   uint8_t *service_request,
   uint16_t service_len,
@@ -275,8 +261,8 @@ int main(int argc, char *argv[])
   signal(SIGINT, sig_handler);
   signal(SIGHUP, sig_handler);
   signal(SIGTERM, sig_handler);
-  // setup this BACnet Server
-  Init_Device_Parameters();
+  // setup this BACnet Server device
+  Device_Set_Object_Instance_Number(111);
   Init_Service_Handlers();
   #ifdef BACDL_ETHERNET
   // init the physical layer

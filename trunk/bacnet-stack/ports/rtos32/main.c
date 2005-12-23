@@ -67,20 +67,6 @@ volatile struct mstp_port_struct_t MSTP_Port; // port data
 static uint8_t MSTP_MAC_Address = 0x05; // local MAC address
 #endif
 
-static void Init_Device_Parameters(void)
-{
-  // configure my initial values
-  Device_Set_Object_Instance_Number(126);
-  Device_Set_Vendor_Name("Lithonia Lighting");
-  Device_Set_Vendor_Identifier(42);
-  Device_Set_Model_Name("Simple BACnet Server");
-  Device_Set_Firmware_Revision("1.00");
-  Device_Set_Application_Software_Version("none");
-  Device_Set_Description("Example of a simple BACnet server");
-
-  return;
-}
-  
 static void Init_Service_Handlers(void)
 {
   // we need to handle who-is to support dynamic device binding
@@ -264,7 +250,7 @@ int main(int argc, char *argv[])
 
   (void)argc;
   (void)argv;
-  Init_Device_Parameters();
+  Device_Set_Object_Instance_Number(126);
   Init_Service_Handlers();
   // init the physical layer
   #ifdef BACDL_BIP

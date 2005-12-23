@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_BACERROR -g
 
 SRCS = bacdcode.c \
+       bacstr.c \
        bigend.c \
        bacerror.c \
        test/ctest.c

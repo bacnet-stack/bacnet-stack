@@ -8,6 +8,7 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_DEVICE -g
 
 SRCS = bacdcode.c \
        bigend.c \
+       bacstr.c \
        device.c \
        test/ctest.c
 

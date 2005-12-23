@@ -100,25 +100,23 @@ int encode_tagged_object_id(uint8_t * apdu, int object_type, uint32_t instance);
 // from clause 20.2.8 Encoding of an Octet String Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_octet_string(uint8_t * apdu, const uint8_t *octet_string,
-  unsigned len);
-int encode_tagged_octet_string(uint8_t * apdu, const uint8_t *octet_string,
-  unsigned len);
+int encode_octet_string(uint8_t * apdu,
+  BACNET_OCTET_STRING *octet_string);
+int encode_tagged_octet_string(uint8_t * apdu,
+  BACNET_OCTET_STRING *octet_string);
 int decode_octet_string(uint8_t * apdu, uint32_t len_value,
-    uint8_t *buffer, size_t buffer_len);
+  BACNET_OCTET_STRING *octet_string);
 
 
 // from clause 20.2.9 Encoding of a Character String Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_bacnet_string(uint8_t * apdu,
-    const char *char_string, int string_len);
 int encode_bacnet_character_string(uint8_t * apdu,
-    const char *char_string);
+    BACNET_CHARACTER_STRING *char_string);
 int encode_tagged_character_string(uint8_t * apdu,
-    const char *char_string);
+    BACNET_CHARACTER_STRING *char_string);
 int decode_character_string(uint8_t * apdu, uint32_t len_value,
-    char *char_string, size_t string_len);
+    BACNET_CHARACTER_STRING *char_string);
 
 // from clause 20.2.4 Encoding of an Unsigned Integer Value
 // and 20.2.1 General Rules for Encoding BACnet Tags

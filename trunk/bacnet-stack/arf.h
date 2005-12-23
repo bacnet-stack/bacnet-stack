@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacdcode.h"
+#include "bacstr.h"
 
 typedef struct BACnet_Atomic_Read_File_Data
 {
@@ -57,10 +58,7 @@ typedef struct BACnet_Atomic_Read_File_Data
       unsigned RecordCount; 
     } record;
   } type;
-  // These are used for the ACK portion
-  // Set them to an unused buffer for the decode to fill
-  uint8_t *fileData;
-  unsigned fileDataLength;
+  BACNET_OCTET_STRING fileData;
   bool endOfFile;
 } BACNET_ATOMIC_READ_FILE_DATA;
 
