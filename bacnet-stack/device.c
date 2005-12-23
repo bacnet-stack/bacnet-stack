@@ -25,6 +25,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h> /* for memmove*/
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -39,16 +40,16 @@
 static uint32_t Object_Instance_Number = 0;
 // FIXME: it is likely that this name is configurable,
 // so consider a fixed sized string
-static const char *Object_Name = "SimpleServer";
+static char Object_Name[16] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-static const char *Vendor_Name = "ASHRAE";
+static char Vendor_Name[16] = "ASHRAE";
 // vendor id assigned by ASHRAE
 static uint16_t Vendor_Identifier = 0;
-static const char *Model_Name = "GNU";
-static const char *Firmware_Revision = "1.0";
-static const char *Application_Software_Version = "1.0";
-//static char *Location = "USA";
-static const char *Description = "server";
+static char Model_Name[16] = "GNU";
+static char Firmware_Revision[16] = "1.0";
+static char Application_Software_Version[16] = "1.0";
+static char Location[16] = "USA";
+static char Description[16] = "server";
 //static uint8_t Protocol_Version = 1; - constant, not settable
 //static uint8_t Protocol_Revision = 4; - constant, not settable
 //Protocol_Services_Supported
@@ -88,10 +89,16 @@ uint32_t Device_Object_Instance_Number(void)
   return Object_Instance_Number;
 }
 
-void Device_Set_Object_Instance_Number(uint32_t object_id)
+bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
-  // FIXME: bounds check?
-  Object_Instance_Number = object_id;
+  bool status = true; /* return value */
+  
+  if (object_id <= BACNET_MAX_INSTANCE)
+    Object_Instance_Number = object_id;
+  else
+    status = false;
+
+  return status;
 }
 
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
@@ -117,9 +124,18 @@ const char *Device_Vendor_Name(void)
   return Vendor_Name;
 }
 
-void Device_Set_Vendor_Name(const char *name)
+bool Device_Set_Vendor_Name(const char *name, size_t length)
 {
-  Vendor_Name = name;
+  bool status = false; /*return value*/
+  
+  if (length < sizeof(Vendor_Name))
+  {
+    memmove(Vendor_Name,name,length);
+    Vendor_Name[length] = 0;
+    status = true;
+  }
+
+  return status;
 }
 
 uint16_t Device_Vendor_Identifier(void)
@@ -137,9 +153,18 @@ const char *Device_Model_Name(void)
   return Model_Name;
 }
 
-void Device_Set_Model_Name(const char *name)
+bool Device_Set_Model_Name(const char *name, size_t length)
 {
-  Model_Name = name;
+  bool status = false; /*return value*/
+  
+  if (length < sizeof(Model_Name))
+  {
+    memmove(Model_Name,name,length);
+    Model_Name[length] = 0;
+    status = true;
+  }
+
+  return status;
 }
 
 const char *Device_Firmware_Revision(void)
@@ -147,9 +172,18 @@ const char *Device_Firmware_Revision(void)
   return Firmware_Revision;
 }
 
-void Device_Set_Firmware_Revision(const char *name)
+bool Device_Set_Firmware_Revision(const char *name, size_t length)
 {
-  Firmware_Revision = name;
+  bool status = false; /*return value*/
+  
+  if (length < sizeof(Firmware_Revision))
+  {
+    memmove(Firmware_Revision,name,length);
+    Firmware_Revision[length] = 0;
+    status = true;
+  }
+
+  return status;
 }
 
 const char *Device_Application_Software_Version(void)
@@ -157,9 +191,18 @@ const char *Device_Application_Software_Version(void)
   return Application_Software_Version;
 }
 
-void Device_Set_Application_Software_Version(const char *name)
+bool Device_Set_Application_Software_Version(const char *name, size_t length)
 {
-  Application_Software_Version = name;
+  bool status = false; /*return value*/
+  
+  if (length < sizeof(Application_Software_Version))
+  {
+    memmove(Application_Software_Version,name,length);
+    Application_Software_Version[length] = 0;
+    status = true;
+  }
+
+  return status;
 }
 
 const char *Device_Description(void)
@@ -167,9 +210,37 @@ const char *Device_Description(void)
   return Description;
 }
 
-void Device_Set_Description(const char *name)
+bool Device_Set_Description(const char *name, size_t length)
 {
-  Description = name;
+  bool status = false; /*return value*/
+  
+  if (length < sizeof(Description))
+  {
+    memmove(Description,name,length);
+    Description[length] = 0;
+    status = true;
+  }
+
+  return status;
+}
+
+const char *Device_Location(void)
+{
+  return Location;
+}
+
+bool Device_Set_Location(const char *name, size_t length)
+{
+  bool status = false; /*return value*/
+  
+  if (length < sizeof(Location))
+  {
+    memmove(Location,name,length);
+    Location[length] = 0;
+    status = true;
+  }
+
+  return status;
 }
 
 uint8_t Device_Protocol_Version(void)
@@ -301,6 +372,7 @@ int Device_Encode_Property_APDU(
   int apdu_len = 0; // return value
   int len = 0; // apdu len intermediate value
   BACNET_BIT_STRING bit_string;
+  BACNET_CHARACTER_STRING char_string;
   unsigned i = 0;
   int object_type = 0;
   uint32_t instance = 0;
@@ -313,32 +385,44 @@ int Device_Encode_Property_APDU(
         Object_Instance_Number);
       break;
     case PROP_OBJECT_NAME:
-      apdu_len = encode_tagged_character_string(&apdu[0], Object_Name);
+      characterstring_init(&char_string,CHARACTER_ANSI,
+                                 Object_Name,strlen(Object_Name));
+      apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_OBJECT_TYPE:
       apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_DEVICE);
       break;
     case PROP_DESCRIPTION:
-      apdu_len = encode_tagged_character_string(&apdu[0], Description);
+      characterstring_init(&char_string,CHARACTER_ANSI,
+                            Description,strlen(Description));
+      apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_SYSTEM_STATUS:
       apdu_len = encode_tagged_enumerated(&apdu[0], System_Status);
       break;
     case PROP_VENDOR_NAME:
-      apdu_len = encode_tagged_character_string(&apdu[0], Vendor_Name);
+      characterstring_init(&char_string,CHARACTER_ANSI,
+                            Vendor_Name,strlen(Vendor_Name));
+      apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_VENDOR_IDENTIFIER:
       apdu_len = encode_tagged_unsigned(&apdu[0], Vendor_Identifier);
       break;
     case PROP_MODEL_NAME:
-      apdu_len = encode_tagged_character_string(&apdu[0], Model_Name);
+      characterstring_init(&char_string,CHARACTER_ANSI,
+                            Model_Name,strlen(Model_Name));
+      apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_FIRMWARE_REVISION:
-      apdu_len = encode_tagged_character_string(&apdu[0], Firmware_Revision);
+      characterstring_init(&char_string,CHARACTER_ANSI,
+                            Firmware_Revision,strlen(Firmware_Revision));
+      apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_APPLICATION_SOFTWARE_VERSION:
-      apdu_len = encode_tagged_character_string(&apdu[0],
-        Application_Software_Version);
+      characterstring_init(&char_string,CHARACTER_ANSI,
+                            Application_Software_Version,
+                            strlen(Application_Software_Version));
+      apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     // if you support time
     //case PROP_LOCAL_TIME:
@@ -376,7 +460,7 @@ int Device_Encode_Property_APDU(
           // initialize all the services to not-supported
           bitstring_set_bit(&bit_string, (uint8_t)i, false);
         }
-        // initialize those we support
+        /* FIXME: set the services that YOUR device executes */
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_WHO_IS, true);
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_I_AM, true);
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_READ_PROPERTY, true);
@@ -389,8 +473,10 @@ int Device_Encode_Property_APDU(
           // initialize all the object types to not-supported
           bitstring_set_bit(&bit_string, (uint8_t)i, false);
         }
+        /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
+        bitstring_set_bit(&bit_string, OBJECT_ANALOG_OUTPUT, true);
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
@@ -490,10 +576,9 @@ bool Device_Write_Property(
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID)
       { 
         if ((wp_data->value.type.Object_Id.type == OBJECT_DEVICE) &&
-          (wp_data->value.type.Object_Id.instance <= BACNET_MAX_INSTANCE))
+          (Device_Set_Object_Instance_Number(
+             wp_data->value.type.Object_Id.instance)))
         {
-          Device_Set_Object_Instance_Number(
-            wp_data->value.type.Object_Id.instance);
           I_Am_Request = true;
           status = true;
         }
@@ -561,18 +646,18 @@ bool Device_Write_Property(
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
       break;
-      
+
     case PROP_OBJECT_NAME:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)
       {
-       BACNET_CHARACTER_STRING Character_String = wp_data->value.type.Character_String;
-       
-       char decoded_string[MAX_APDU] = { "" };
-       int decoded = 0;
-       //decoded = decode_character_string(&data->application_data[tag_len], len_value_type,  &decoded_string[0], sizeof(decoded_string));
-             
-       //Device_Set_Vendor_Name(const char *name);
-       status = true;
+        status = Device_Set_Vendor_Name(
+          characterstring_value(&wp_data->value.type.Character_String),
+          characterstring_length(&wp_data->value.type.Character_String));
+        if (!status)
+        {
+          *error_class = ERROR_CLASS_PROPERTY;
+          *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
       }
       else
       {
@@ -580,7 +665,7 @@ bool Device_Write_Property(
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
       break;
-      
+
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -597,20 +682,34 @@ bool Device_Write_Property(
 
 void testDevice(Test * pTest)
 {
-  Device_Set_Object_Instance_Number(111);
-  ct_test(pTest, Device_Object_Instance_Number() == 111);
-
+  bool status = false;
+  const char *name = "Patricia";
+  
+  status = Device_Set_Object_Instance_Number(0);
+  ct_test(pTest, Device_Object_Instance_Number() == 0);
+  ct_test(pTest, status == true);
+  status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+  ct_test(pTest, Device_Object_Instance_Number() == BACNET_MAX_INSTANCE);
+  ct_test(pTest, status == true);
+  status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE/2);
+  ct_test(pTest, Device_Object_Instance_Number() == (BACNET_MAX_INSTANCE/2));
+  ct_test(pTest, status == true);
+  status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE+1);
+  ct_test(pTest, Device_Object_Instance_Number() != (BACNET_MAX_INSTANCE+1));
+  ct_test(pTest, status == false);
+  
+  
   Device_Set_System_Status(STATUS_NON_OPERATIONAL);
   ct_test(pTest, Device_System_Status() == STATUS_NON_OPERATIONAL);
 
-  Device_Set_Vendor_Name("MyName");
-  ct_test(pTest, strcmp(Device_Vendor_Name(),"MyName") == 0);
+  Device_Set_Vendor_Name(name,strlen(name));
+  ct_test(pTest, strcmp(Device_Vendor_Name(),name) == 0);
 
   Device_Set_Vendor_Identifier(42);
   ct_test(pTest, Device_Vendor_Identifier() == 42);
 
-  Device_Set_Model_Name("MyModel");
-  ct_test(pTest, strcmp(Device_Model_Name(),"MyModel") == 0);
+  Device_Set_Model_Name(name,strlen(name));
+  ct_test(pTest, strcmp(Device_Model_Name(),name) == 0);
 
   return;
 }

@@ -45,7 +45,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 uint32_t Device_Object_Instance_Number(void);
-void Device_Set_Object_Instance_Number(uint32_t object_id);
+bool Device_Set_Object_Instance_Number(uint32_t object_id);
 bool Device_Valid_Object_Instance_Number(uint32_t object_id);
 unsigned Device_Object_List_Count(void);
 bool Device_Object_List_Identifier(unsigned array_index,
@@ -56,22 +56,25 @@ BACNET_DEVICE_STATUS Device_System_Status(void);
 void Device_Set_System_Status(BACNET_DEVICE_STATUS status);
 
 const char *Device_Vendor_Name(void);
-void Device_Set_Vendor_Name(const char *name);
+bool Device_Set_Vendor_Name(const char *name, size_t length);
 
 uint16_t Device_Vendor_Identifier(void);
 void Device_Set_Vendor_Identifier(uint16_t vendor_id);
 
 const char *Device_Model_Name(void);
-void Device_Set_Model_Name(const char *name);
+bool Device_Set_Model_Name(const char *name, size_t length);
 
 const char *Device_Firmware_Revision(void);
-void Device_Set_Firmware_Revision(const char *name);
+bool Device_Set_Firmware_Revision(const char *name, size_t length);
 
 const char *Device_Application_Software_Version(void);
-void Device_Set_Application_Software_Version(const char *name);
+bool Device_Set_Application_Software_Version(const char *name, size_t length);
 
 const char *Device_Description(void);
-void Device_Set_Description(const char *name);
+bool Device_Set_Description(const char *name, size_t length);
+
+const char *Device_Location(void);
+bool Device_Set_Location(const char *name, size_t length);
 
 // some stack-centric constant values - no set methods
 uint8_t Device_Protocol_Version(void);

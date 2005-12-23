@@ -153,6 +153,7 @@ int bacfile_encode_property_apdu(
 {
   int apdu_len = 0; // return value
   char text_string[32] = {""};
+  BACNET_CHARACTER_STRING char_string;
   
   (void)array_index;
   switch (property)
@@ -164,17 +165,22 @@ int bacfile_encode_property_apdu(
       break;
     case PROP_OBJECT_NAME:
       sprintf(text_string,"FILE %d",object_instance);
-      apdu_len = encode_tagged_character_string(&apdu[0], text_string);
+      characterstring_init_ansi(&char_string, text_string);
+      apdu_len = encode_tagged_character_string(&apdu[0],
+          &char_string);
       break;
     case PROP_OBJECT_TYPE:
       apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_FILE);
       break;
     case PROP_DESCRIPTION:
+      characterstring_init_ansi(&char_string, bacfile_name(object_instance));
       apdu_len = encode_tagged_character_string(&apdu[0],
-        bacfile_name(object_instance));
+          &char_string);
       break;
     case PROP_FILE_TYPE:
-      apdu_len = encode_tagged_character_string(&apdu[0],"TEXT");
+      characterstring_init_ansi(&char_string, "TEXT");
+      apdu_len = encode_tagged_character_string(&apdu[0],
+          &char_string);
       break;
     case PROP_FILE_SIZE:
       apdu_len = encode_tagged_unsigned(&apdu[0],
@@ -300,6 +306,7 @@ bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA *data)
   char *pFilename = NULL;
   bool found = false;
   FILE *pFile = NULL;
+  size_t len = 0;
   
   pFilename = bacfile_name(data->object_instance);
   if (pFilename)
@@ -311,23 +318,24 @@ bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA *data)
       (void)fseek(pFile,
         data->type.stream.fileStartPosition,
         SEEK_SET);
-      data->fileDataLength = fread(data->fileData, 1,
+      len = fread(octetstring_value(&data->fileData), 1,
         data->type.stream.requestedOctetCount, pFile);
-      if (data->fileDataLength < data->type.stream.requestedOctetCount)
+      if (len < data->type.stream.requestedOctetCount)
         data->endOfFile = true;
       else
         data->endOfFile = false;
+      octetstring_truncate(&data->fileData,len);
       fclose(pFile);
     }
     else
     {
-      data->fileDataLength = 0;
+      octetstring_truncate(&data->fileData,0);
       data->endOfFile = true;
     }
   }
   else
   {
-    data->fileDataLength = 0;
+    octetstring_truncate(&data->fileData,0);
     data->endOfFile = true;
   }
 

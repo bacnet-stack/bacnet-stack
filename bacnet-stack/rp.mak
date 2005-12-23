@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_READ_PROPERTY -g
 
 SRCS = bacdcode.c \
+       bacstr.c \
        bigend.c \
        rp.c \
        test/ctest.c

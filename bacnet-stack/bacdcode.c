@@ -807,16 +807,16 @@ int encode_tagged_object_id(
 
 // from clause 20.2.8 Encoding of an Octet String Value
 // returns the number of apdu bytes consumed
-int encode_octet_string(uint8_t * apdu, const uint8_t *octet_string,
-  unsigned len)
+int encode_octet_string(uint8_t * apdu, BACNET_OCTET_STRING *octet_string)
 {
-    unsigned i;
+    int len = 0; /* return value */
 
-    // limit - 6 octets is the most our tag and type could be
-    if (len > (MAX_APDU - 6))
-        len = MAX_APDU - 6;
-    for (i = 0; i < len; i++) {
-        apdu[i] = octet_string[i];
+    if (octet_string)
+    {
+        /* FIXME: might need to pass in the length of the APDU
+           to bounds check since it might not be the only data chunk */
+        len = octetstring_length(octet_string);
+        memmove(&apdu[0], octetstring_value(octet_string), len);
     }
 
     return len;
@@ -825,17 +825,22 @@ int encode_octet_string(uint8_t * apdu, const uint8_t *octet_string,
 // from clause 20.2.8 Encoding of an Octet String Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_tagged_octet_string(uint8_t * apdu, const uint8_t *octet_string,
-  unsigned len)
+int encode_tagged_octet_string(uint8_t * apdu,
+    BACNET_OCTET_STRING *octet_string)
 {
-    int apdu_len;
-    
-    apdu_len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_OCTET_STRING,
-        false, len);
-    if ((apdu_len + len) < MAX_APDU)
-      apdu_len += encode_octet_string(&apdu[apdu_len], octet_string, len);
-    else
-      apdu_len = 0;
+    int apdu_len = 0;
+
+    if (octet_string)
+    {
+        apdu_len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_OCTET_STRING,
+            false, octetstring_length(octet_string));
+        /* FIXME: probably need to pass in the length of the APDU
+          to bounds check since it might not be the only data chunk */
+        if ((apdu_len + octetstring_length(octet_string)) < MAX_APDU)
+            apdu_len += encode_octet_string(&apdu[apdu_len], octet_string);
+        else
+            apdu_len = 0;
+    }
 
     return apdu_len;
 }
@@ -844,21 +849,14 @@ int encode_tagged_octet_string(uint8_t * apdu, const uint8_t *octet_string,
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int decode_octet_string(uint8_t * apdu, uint32_t len_value,
-    uint8_t *buffer, size_t buffer_len)
+    BACNET_OCTET_STRING *octet_string)
 {
     int len = 0; // return value
-    uint32_t i = 0; // counter
+    bool status = false;
 
-    // FIXME: issue warning?
-    if (len_value > buffer_len)
-        len_value = buffer_len;
-
-    if (len_value) {
-        for (i = 0; i < len_value; i++) {
-            buffer[i] = apdu[i];
-        }
-        len += len_value;
-    }
+    status = octetstring_init(octet_string,&apdu[0],len_value);
+    if (status)
+        len = len_value;
 
     return len;
 }
@@ -883,27 +881,28 @@ int encode_bacnet_string(uint8_t * apdu, const char *char_string, int len)
 
 // from clause 20.2.9 Encoding of a Character String Value
 // returns the number of apdu bytes consumed
-int encode_bacnet_character_string(uint8_t * apdu, const char *char_string)
+int encode_bacnet_character_string(uint8_t * apdu,
+    BACNET_CHARACTER_STRING *char_string)
 {
     int len;
 
-    len = strlen(char_string);
-    len = encode_bacnet_string(&apdu[0], char_string, len);
+    len = characterstring_length(char_string);
+    apdu[0] = characterstring_encoding(char_string);
+    memmove(apdu, characterstring_value(char_string), len);
 
-    return len;
+    return len + 1 /* for encoding */;
 }
 
 // from clause 20.2.9 Encoding of a Character String Value
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
-int encode_tagged_character_string(uint8_t * apdu, const char *char_string)
+int encode_tagged_character_string(uint8_t * apdu,
+    BACNET_CHARACTER_STRING *char_string)
 {
     int len = 0;
     int string_len = 0;
 
-    // find the size of the apdu first - not necessarily effecient
-    // but reuses existing functions
-    string_len = encode_bacnet_character_string(&apdu[1], char_string);
+    string_len = characterstring_length(char_string) + 1 /* for encoding */;
     len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_CHARACTER_STRING,
         false, string_len);
     if ((len + string_len) < MAX_APDU)
@@ -918,28 +917,15 @@ int encode_tagged_character_string(uint8_t * apdu, const char *char_string)
 // and 20.2.1 General Rules for Encoding BACnet Tags
 // returns the number of apdu bytes consumed
 int decode_character_string(uint8_t * apdu, uint32_t len_value,
-    char *char_string, size_t string_len)
+    BACNET_CHARACTER_STRING *char_string)
 {
     int len = 0; // return value
-    uint32_t i = 0; // counter
+    bool status = false;
 
-    // FIXME: issue warning?
-    if (len_value > string_len)
-        len_value = string_len;
-
-    if (len_value) {
-        // decode ANSI X3.4
-        if (apdu[len] == 0) {
-            len++;
-            len_value--;
-            for (i = 0; i < len_value; i++) {
-                char_string[i] = apdu[len + i];
-            }
-            // terminate the c string
-            char_string[i] = 0;
-            len += len_value;
-        }
-    }
+    status = characterstring_init(char_string, apdu[0], (char *)&apdu[1],
+      len_value-1);
+    if (status)
+      len = len_value;
 
     return len;
 }
@@ -1509,40 +1495,54 @@ void testBACDCodeOctetString(Test * pTest)
 {
     uint8_t array[MAX_APDU] = { 0 };
     uint8_t encoded_array[MAX_APDU] = { 0 };
-    char test_string[MAX_APDU] = { "" };
-    char decoded_string[MAX_APDU] = { "" };
+    BACNET_OCTET_STRING octet_string;
+    BACNET_OCTET_STRING test_octet_string;
+    uint8_t test_value[MAX_APDU] = { "" };
     int i;                      // for loop counter
     int apdu_len;
     int len;
-    char *test_string0 = "";
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
+    bool status = false;
+    int diff = 0; /* for memcmp */
 
-    apdu_len = encode_tagged_octet_string(&array[0], (uint8_t *)&test_string0[0], 0);
+    status = octetstring_init(
+      &octet_string,
+      NULL,
+      0);
+    ct_test(pTest,status == true);
+    apdu_len = encode_tagged_octet_string(&array[0], &octet_string);
     len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
-    len += decode_octet_string(&array[len], len_value,
-      (uint8_t *)&decoded_string[0], sizeof(decoded_string));
+    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OCTET_STRING);
+    len += decode_octet_string(&array[len], len_value, &test_octet_string);
     ct_test(pTest, apdu_len == len);
-    ct_test(pTest, memcmp(&test_string0[0], &decoded_string[0],
-      len_value) == 0);
+    diff = memcmp(octetstring_value(&octet_string), &test_value[0],
+      octetstring_length(&octet_string));
+    ct_test(pTest,diff == 0);
+
     for (i = 0; i < (MAX_APDU - 6); i++) {
-        test_string[i] = '0' + (i % 10);
-        apdu_len =
-            encode_tagged_octet_string(&encoded_array[0],
-            (uint8_t *)&test_string[0], i);
+        test_value[i] = '0' + (i % 10);
+        status = octetstring_init(
+          &octet_string,
+          test_value,
+          i);
+        ct_test(pTest,status == true);
+        apdu_len = encode_tagged_octet_string(&encoded_array[0],&octet_string);
         len = decode_tag_number_and_value(&encoded_array[0],
           &tag_number, &len_value);
+        ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OCTET_STRING);
         len += decode_octet_string(&encoded_array[len], len_value,
-                (uint8_t *)&decoded_string[0], sizeof(decoded_string));
+          &test_octet_string);
         if (apdu_len != len) {
             printf("test octet string=#%d\n", i);
         }
         ct_test(pTest, apdu_len == len);
-        if (memcmp(&test_string[0], &decoded_string[0], len_value) != 0) {
+        diff = memcmp(octetstring_value(&octet_string), &test_value[0],
+          octetstring_length(&octet_string));
+        if (diff) {
             printf("test octet string=#%d\n", i);
         }
-        ct_test(pTest, memcmp(&test_string[0], &decoded_string[0],
-          len_value) == 0);
+        ct_test(pTest,diff == 0);
     }
 
     return;
@@ -1552,39 +1552,53 @@ void testBACDCodeCharacterString(Test * pTest)
 {
     uint8_t array[MAX_APDU] = { 0 };
     uint8_t encoded_array[MAX_APDU] = { 0 };
-    char test_string[MAX_APDU] = { "" };
-    char decoded_string[MAX_APDU] = { "" };
+    BACNET_CHARACTER_STRING char_string;
+    BACNET_CHARACTER_STRING test_char_string;
+    char test_value[MAX_APDU] = { "" };
     int i;                      // for loop counter
     int apdu_len;
     int len;
-    char *test_string0 = "";
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
+    int diff = 0; /* for comparison */
+    bool status = false;
 
-    apdu_len = encode_tagged_character_string(&array[0], &test_string0[0]);
+    status = characterstring_init(
+      &char_string,
+      CHARACTER_ANSI,
+      NULL,
+      0);
+    ct_test(pTest,status == true);
+    apdu_len = encode_tagged_character_string(&array[0], &char_string);
     len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
-    len += decode_character_string(&array[len], len_value,
-      &decoded_string[0], sizeof(decoded_string));
+    ct_test(pTest,tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING);
+    len += decode_character_string(&array[len], len_value, &test_char_string);
     ct_test(pTest, apdu_len == len);
-    ct_test(pTest, strcmp(&test_string0[0], &decoded_string[0]) == 0);
+    diff = memcmp(characterstring_value(&char_string), &test_value[0],
+      characterstring_length(&char_string));
+    ct_test(pTest, diff == 0);
     for (i = 0; i < (MAX_APDU - 6); i++) {
-        test_string[i] = 'S';
-        test_string[i + 1] = '\0';
+        test_value[i] = 'S';
+        test_value[i + 1] = '\0';
+        status = characterstring_init_ansi(&char_string, test_value);
+        ct_test(pTest,status == true);
         apdu_len =
-            encode_tagged_character_string(&encoded_array[0],
-            &test_string[0]);
+            encode_tagged_character_string(&encoded_array[0], &char_string);
         len = decode_tag_number_and_value(&encoded_array[0],
           &tag_number, &len_value);
+        ct_test(pTest,tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING);
         len += decode_character_string(&encoded_array[len], len_value,
-                &decoded_string[0], sizeof(decoded_string));
+                &test_char_string);
         if (apdu_len != len) {
-            printf("test string=#%d\n", i);
+            printf("test string=#%d apdu_len=%d len=%d\n", i,apdu_len,len);
         }
         ct_test(pTest, apdu_len == len);
-        if (strcmp(&test_string[0], &decoded_string[0]) != 0) {
+        diff = memcmp(characterstring_value(&char_string), &test_value[0],
+          characterstring_length(&char_string));
+        if (diff) {
             printf("test string=#%d\n", i);
         }
-        ct_test(pTest, strcmp(&test_string[0], &decoded_string[0]) == 0);
+        ct_test(pTest, diff == 0);
     }
 
     return;

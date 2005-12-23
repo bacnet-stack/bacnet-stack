@@ -152,6 +152,7 @@ int Analog_Output_Encode_Property_APDU(
   int len = 0;
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
+  BACNET_CHARACTER_STRING char_string;
   char text_string[32] = {""};
   float real_value = 1.414;
   unsigned object_index = 0;
@@ -168,7 +169,9 @@ int Analog_Output_Encode_Property_APDU(
     case PROP_DESCRIPTION:
       // note: the object name must be unique within this device
       sprintf(text_string,"ANALOG OUTPUT %u",object_instance);
-      apdu_len = encode_tagged_character_string(&apdu[0], text_string);
+      characterstring_init_ansi(&char_string, text_string);
+      apdu_len = encode_tagged_character_string(&apdu[0],
+          &char_string);
       break;
     case PROP_OBJECT_TYPE:
       apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_ANALOG_OUTPUT);

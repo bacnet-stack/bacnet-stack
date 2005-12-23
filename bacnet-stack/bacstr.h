@@ -51,7 +51,9 @@ typedef struct BACnet_Bit_String
 typedef struct BACnet_Character_String
 {
   size_t length;
-  char value[MAX_APDU];
+  uint8_t encoding;
+  /* limit - 6 octets is the most our tag and type could be */
+  char value[MAX_APDU-6];
 } BACNET_CHARACTER_STRING;
 
 /* FIXME: convert the bacdcode library to use BACNET_OCTET_STRING
@@ -59,7 +61,8 @@ typedef struct BACnet_Character_String
 typedef struct BACnet_Octet_String
 {
   size_t length;
-  uint8_t value[MAX_APDU];
+  /* limit - 6 octets is the most our tag and type could be */
+  uint8_t value[MAX_APDU-6];
 } BACNET_OCTET_STRING;
 
 #ifdef __cplusplus
@@ -70,13 +73,19 @@ void bitstring_init(BACNET_BIT_STRING *bit_string);
 void bitstring_set_bit(BACNET_BIT_STRING *bit_string, uint8_t bit, bool value);
 bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit);
 uint8_t bitstring_bits_used(BACNET_BIT_STRING *bit_string);
+uint8_t bitstring_bits_capacity(BACNET_BIT_STRING *bit_string);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
 bool characterstring_init(
   BACNET_CHARACTER_STRING *char_string,
+  uint8_t encoding,
   char *value,
   size_t length);
+/* used for ANSI C-Strings */
+bool characterstring_init_ansi(
+    BACNET_CHARACTER_STRING *char_string,
+    char *value);
 /* returns false if the string exceeds capacity */
 bool characterstring_append(
   BACNET_CHARACTER_STRING *char_string,
@@ -88,9 +97,15 @@ bool characterstring_append(
 bool characterstring_truncate(
   BACNET_CHARACTER_STRING *char_string,
   size_t length);
-/* returns the length.  Returns the value in parameter. */
-size_t characterstring_value(BACNET_CHARACTER_STRING *char_string, char *value);
+bool characterstring_set_encoding(
+    BACNET_CHARACTER_STRING *char_string,
+    uint8_t encoding);
+/* Returns the value */
+char *characterstring_value(BACNET_CHARACTER_STRING *char_string);
+/* returns the length */
 size_t characterstring_length(BACNET_CHARACTER_STRING *char_string);
+uint8_t characterstring_encoding(BACNET_CHARACTER_STRING *char_string);
+size_t characterstring_capacity(BACNET_CHARACTER_STRING *char_string);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
@@ -109,9 +124,11 @@ bool octetstring_append(
 bool octetstring_truncate(
     BACNET_OCTET_STRING *octet_string,
   size_t length);
-/* returns the length.  Returns the value in parameter. */
-size_t octetstring_value(BACNET_OCTET_STRING *octet_string, uint8_t *value);
+/* Returns the value */
+uint8_t *octetstring_value(BACNET_OCTET_STRING *octet_string);
+/* Returns the length.*/
 size_t octetstring_length(BACNET_OCTET_STRING *octet_string);
+size_t octetstring_capacity(BACNET_OCTET_STRING *octet_string);
 
 #ifdef __cplusplus
 }

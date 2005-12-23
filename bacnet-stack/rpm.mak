@@ -9,6 +9,7 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_READ_PROPERTY_MULTIPLE -g
 SRCS = bacdcode.c \
        bacerror.c \
        bacapp.c \
+       bacstr.c \
        bigend.c \
        rpm.c \
        test/ctest.c

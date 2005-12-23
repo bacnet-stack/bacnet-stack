@@ -250,23 +250,12 @@ void tsm_free_invoke_id(uint8_t invokeID)
 #include <string.h>
 #include "ctest.h"
 
+// flag to send an I-Am
+bool I_Am_Request = true;
+
 void testTSM(Test * pTest)
 {
-  //unsigned i;
-  uint8_t invokeID = 0;
-  BACNET_ADDRESS dest = {0};
-  uint8_t pdu[MAX_PDU] = {0};
-  uint16_t pdu_len = 0;
-
-  memset(pdu,0xa5,sizeof(pdu));
-  pdu_len = sizeof(pdu);
-  
-  invokeID = tsm_request_confirmed_unsegmented_transaction(
-    &dest,
-    &pdu[0],
-    pdu_len);
-  ct_test(pTest, invokeID != 0);
-
+  /* FIXME: add some unit testing...*/
   return;
 }
 

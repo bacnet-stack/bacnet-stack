@@ -71,6 +71,7 @@ int Analog_Input_Encode_Property_APDU(
 {
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
+  BACNET_CHARACTER_STRING char_string;
   char text_string[32] = {""};
   float value = 3.14;
   
@@ -84,7 +85,9 @@ int Analog_Input_Encode_Property_APDU(
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
       sprintf(text_string,"ANALOG INPUT %u",object_instance);
-      apdu_len = encode_tagged_character_string(&apdu[0], text_string);
+      characterstring_init_ansi(&char_string, text_string);
+      apdu_len = encode_tagged_character_string(&apdu[0],
+          &char_string);
       break;
     case PROP_OBJECT_TYPE:
       apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);

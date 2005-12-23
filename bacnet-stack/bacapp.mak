@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_BACNET_APPLICATION_DATA -g
 
 SRCS = bacdcode.c \
+       bacstr.c \
        bacapp.c \
        bigend.c \
        test/ctest.c

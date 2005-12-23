@@ -6,9 +6,17 @@ BASEDIR = .
 #CFLAGS  = -Wall -I. -g
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_TSM -g
 
-SRCS = bacdcode.c \
+SRCS = address.c \
+       bacdcode.c \
+       bacstr.c \
        bigend.c \
        device.c \
+       ai.c \
+       ao.c \
+       iam.c \
+       npdu.c \
+       apdu.c \
+       datalink.c \
        tsm.c \
        test/ctest.c
 
