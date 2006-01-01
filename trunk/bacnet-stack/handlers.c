@@ -345,6 +345,7 @@ void ReadPropertyAckHandler(
   BACNET_READ_PROPERTY_DATA data;
 
   (void)src;
+  (void)service_data; /* we could use these... */
   len = rp_ack_decode_service_request(
     service_request,
     service_len,

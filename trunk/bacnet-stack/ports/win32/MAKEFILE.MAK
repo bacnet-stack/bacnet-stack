@@ -21,6 +21,8 @@ SRCS = main.c bip-init.c \
        ..\..\bip.c  \
        ..\..\handlers.c  \
        ..\..\bacdcode.c \
+       ..\..\bacapp.c \
+       ..\..\bacstr.c \
        ..\..\bactext.c \
        ..\..\indtext.c \
        ..\..\bigend.c \

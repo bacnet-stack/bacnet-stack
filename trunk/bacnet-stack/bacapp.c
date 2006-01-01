@@ -59,12 +59,14 @@ int bacapp_encode_application_data(
     else if (value->tag == BACNET_APPLICATION_TAG_REAL)
       apdu_len += encode_tagged_real(&apdu[apdu_len],
         value->type.Real);
-/* FIXME: encode the strings using the string datatype
     else if (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)
       apdu_len += encode_tagged_character_string(
         &apdu[apdu_len],
-        &value->type.Character_String[0]);
-*/
+        &value->type.Character_String);
+    else if (value->tag == BACNET_APPLICATION_TAG_OCTET_STRING)
+      apdu_len += encode_tagged_octet_string(
+        &apdu[apdu_len],
+        &value->type.Octet_String);
     else if (value->tag == BACNET_APPLICATION_TAG_ENUMERATED)
       apdu_len += encode_tagged_enumerated(&apdu[apdu_len],
         value->type.Enumerated);
@@ -102,6 +104,8 @@ int bacapp_decode_application_data(
   int object_type = 0;
   uint32_t instance = 0;
 
+  /* FIXME: use apdu_len! */
+  (void)apdu_len;
   if (apdu)
   {
     tag_len = decode_tag_number_and_value(&apdu[0],
@@ -126,7 +130,7 @@ int bacapp_decode_application_data(
           &value->type.Unsigned_Int);
       }
       else if (tag_number == BACNET_APPLICATION_TAG_SIGNED_INT)
-      { 
+      {
         value->tag = tag_number;
         len += decode_signed(&apdu[len],
           len_value_type,
@@ -137,15 +141,20 @@ int bacapp_decode_application_data(
         value->tag = tag_number;
         len += decode_real(&apdu[len],&(value->type.Real));
       }
-/* FIXME: decode the strings using the string datatype
       else if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING)
       {
         value->tag = tag_number;
         len += decode_character_string(&apdu[len],
-          &value->type.Character_String[0],
-          sizeof(value->type.Character_String));
+          len_value_type,
+          &value->type.Character_String);
       }
-*/
+      else if (tag_number == BACNET_APPLICATION_TAG_OCTET_STRING)
+      {
+        value->tag = tag_number;
+        len += decode_octet_string(&apdu[len],
+          len_value_type,
+          &value->type.Octet_String);
+      }
       else if (tag_number == BACNET_APPLICATION_TAG_ENUMERATED)
       {
         value->tag = tag_number;
