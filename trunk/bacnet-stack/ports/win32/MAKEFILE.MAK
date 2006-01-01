@@ -50,7 +50,8 @@ OBJS = $(SRCS:.c=.obj)
 # Compiler definitions
 #
 CC = $(BORLAND_DIR)\bin\bcc32 +bcc32.cfg
-LINK = $(BORLAND_DIR)\bin\tlink32
+#LINK = $(BORLAND_DIR)\bin\tlink32
+LINK = $(BORLAND_DIR)\bin\ilink32
 TLIB = $(BORLAND_DIR)\bin\tlib
 
 #
@@ -64,8 +65,6 @@ CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 # Libraries
 #
 C_LIB_DIR = $(BORLAND_DIR)\lib
-
-LIBDIR = $(C_LIB_DIR)
 
 LIBS = $(C_LIB_DIR)\IMPORT32.lib \
 $(C_LIB_DIR)\CW32MT.lib
@@ -84,7 +83,7 @@ all : bcc32.cfg $(PRODUCT_EXE)
 # need a temp response file (@&&) because command line is too long
 $(PRODUCT_EXE) : $(OBJS)
 	@echo Running Linker for $(PRODUCT_EXE)
-	$(LINK)	-L$(LINKER_LIB) -m -c -s -v @&&| # temp response file, starts with |
+	$(LINK)	-L$(C_LIB_DIR) -m -c -s -v @&&| # temp response file, starts with |
 	  $(BORLAND_DIR)\lib\c0x32.obj $**  # $** lists each dependency
 	$<
 	$*.map
