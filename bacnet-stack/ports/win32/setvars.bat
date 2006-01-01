@@ -1,2 +1,2 @@
-set BORLAND_DIR=\bc5
+set BORLAND_DIR=\bcc55
 
