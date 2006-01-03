@@ -113,6 +113,10 @@ SOURCE=..\..\..\arf.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\bacapp.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\bacdcode.c
 # End Source File
 # Begin Source File
@@ -122,6 +126,10 @@ SOURCE=..\..\..\bacerror.c
 # Begin Source File
 
 SOURCE=..\..\..\bacfile.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\bacstr.c
 # End Source File
 # Begin Source File
 
@@ -225,6 +233,10 @@ SOURCE=..\..\..\arcnet.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\bacapp.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\bacdcode.h
 # End Source File
 # Begin Source File
@@ -238,6 +250,10 @@ SOURCE=..\..\..\bacenum.h
 # Begin Source File
 
 SOURCE=..\..\..\bacerror.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\bacstr.h
 # End Source File
 # Begin Source File
 
