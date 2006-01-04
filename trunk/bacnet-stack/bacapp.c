@@ -258,6 +258,30 @@ bool bacapp_compare(
         if (test_value->type.Object_Id.instance != value->type.Object_Id.instance)
           status = false;
         break;
+      case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+        {
+          size_t length, test_length, i;
+          char *str,*test_str;
+          length = characterstring_length(&value->type.Character_String);
+          str = characterstring_value(&value->type.Character_String);
+          test_length = characterstring_length(&test_value->type.Character_String);
+          test_str = characterstring_value(&test_value->type.Character_String);
+          if (length != test_length)
+          {
+            status = false;
+            printf("length=%d test_length=%d\n",length,test_length);
+          }
+          for (i = 0; i < test_length; i++)
+          {
+            if (str[i] != test_str[i])
+            {
+              status = false;
+              printf("str[%d]=%c test_str[%d]=%c\n",
+                i,str[i],i,test_str[i]);
+            }
+          }
+        }
+        break;
       default:
         status = false;
         break;
@@ -359,6 +383,10 @@ void testBACnetApplicationData(Test * pTest)
   ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
   value.type.Object_Id.type = OBJECT_LIFE_SAFETY_ZONE;
   value.type.Object_Id.instance = BACNET_MAX_INSTANCE;
+  ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
+
+  value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
+  characterstring_init_ansi(&value.type.Character_String,"Karg!");
   ct_test(pTest,testBACnetApplicationDataValue(pTest, &value));
 
   return;
