@@ -191,7 +191,7 @@ bool characterstring_truncate(
   return status;
 }
 
-/* returns the length.  Returns the value in parameter. */
+/* Returns the value. */
 char *characterstring_value(BACNET_CHARACTER_STRING *char_string)
 {
   char *value = NULL;
