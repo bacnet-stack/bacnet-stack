@@ -4,6 +4,14 @@ Build for Visual C++ 6.0
 When building the BACnet stack using Visual C++ compiler, 
 there are some settings that are important.
 
+Q. error LNK2001: unresolved external symbol _WinMain@16
+
+A. The demo ports/win32/main.c was designed as a Win32 Console 
+Application.  If you want to change it to a Windows GUI application, 
+you will have to add all the Windows GUI code, including WinMain().
+I recommend that you use a framework, such as WxWidgets/WxWindows,
+but this has not been done yet.
+
 Q. error C1083: Cannot open include file: 'stdint.h': No such file
 
 A. The BACnet stack uses some header files, and Visual C++ needs to know
