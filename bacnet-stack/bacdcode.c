@@ -888,7 +888,7 @@ int encode_bacnet_character_string(uint8_t * apdu,
 
     len = characterstring_length(char_string);
     apdu[0] = characterstring_encoding(char_string);
-    memmove(apdu, characterstring_value(char_string), len);
+    memmove(&apdu[1], characterstring_value(char_string), len);
 
     return len + 1 /* for encoding */;
 }
