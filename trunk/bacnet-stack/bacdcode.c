@@ -1529,7 +1529,7 @@ void testBACDCodeCharacterString(Test * pTest)
 
     status = characterstring_init(
       &char_string,
-      CHARACTER_ANSI,
+      CHARACTER_ANSI_X34,
       NULL,
       0);
     ct_test(pTest,status == true);
@@ -1541,7 +1541,7 @@ void testBACDCodeCharacterString(Test * pTest)
     diff = memcmp(characterstring_value(&char_string), &test_value[0],
       characterstring_length(&char_string));
     ct_test(pTest, diff == 0);
-    for (i = 0; i < (MAX_APDU - 6); i++) {
+    for (i = 0; i < MAX_CHARACTER_STRING_BYTES-1; i++) {
         test_value[i] = 'S';
         test_value[i + 1] = '\0';
         status = characterstring_init_ansi(&char_string, test_value);
