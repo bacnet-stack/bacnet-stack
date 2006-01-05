@@ -729,7 +729,7 @@ typedef enum
 
 typedef enum
 {
-  CHARACTER_ANSI = 0,
+  CHARACTER_ANSI_X34 = 0,
   CHARACTER_MS_DBCS = 1,
   CHARACTER_JISC_6226 = 2,
   CHARACTER_UCS4 = 3,

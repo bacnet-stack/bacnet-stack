@@ -48,12 +48,13 @@ typedef struct BACnet_Bit_String
   uint8_t value[MAX_BITSTRING_BYTES];
 } BACNET_BIT_STRING;
 
+#define MAX_CHARACTER_STRING_BYTES (MAX_APDU-6)
 typedef struct BACnet_Character_String
 {
   size_t length;
   uint8_t encoding;
   /* limit - 6 octets is the most our tag and type could be */
-  char value[MAX_APDU-6];
+  char value[MAX_CHARACTER_STRING_BYTES];
 } BACNET_CHARACTER_STRING;
 
 /* FIXME: convert the bacdcode library to use BACNET_OCTET_STRING

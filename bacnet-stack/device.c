@@ -38,8 +38,6 @@
 #endif
 
 static uint32_t Object_Instance_Number = 0;
-// FIXME: it is likely that this name is configurable,
-// so consider a fixed sized string
 static char Object_Name[16] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char Vendor_Name[16] = "ASHRAE";
@@ -106,6 +104,25 @@ bool Device_Valid_Object_Instance_Number(uint32_t object_id)
   // BACnet allows for a wildcard instance number
   return ((Object_Instance_Number == object_id) || 
     (object_id == BACNET_MAX_INSTANCE));
+}
+
+const char *Device_Object_Name(void)
+{
+  return Object_Name;
+}
+
+bool Device_Set_Object_Name(const char *name, size_t length)
+{
+  bool status = false; /*return value*/
+  
+  if (length < sizeof(Object_Name))
+  {
+    memmove(Object_Name,name,length);
+    Object_Name[length] = 0;
+    status = true;
+  }
+
+  return status;
 }
 
 BACNET_DEVICE_STATUS Device_System_Status(void)
@@ -385,43 +402,36 @@ int Device_Encode_Property_APDU(
         Object_Instance_Number);
       break;
     case PROP_OBJECT_NAME:
-      characterstring_init(&char_string,CHARACTER_ANSI,
-                                 Object_Name,strlen(Object_Name));
+      characterstring_init_ansi(&char_string, Object_Name);
       apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_OBJECT_TYPE:
       apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_DEVICE);
       break;
     case PROP_DESCRIPTION:
-      characterstring_init(&char_string,CHARACTER_ANSI,
-                            Description,strlen(Description));
+      characterstring_init_ansi(&char_string, Description);
       apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_SYSTEM_STATUS:
       apdu_len = encode_tagged_enumerated(&apdu[0], System_Status);
       break;
     case PROP_VENDOR_NAME:
-      characterstring_init(&char_string,CHARACTER_ANSI,
-                            Vendor_Name,strlen(Vendor_Name));
+      characterstring_init_ansi(&char_string, Vendor_Name);
       apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_VENDOR_IDENTIFIER:
       apdu_len = encode_tagged_unsigned(&apdu[0], Vendor_Identifier);
       break;
     case PROP_MODEL_NAME:
-      characterstring_init(&char_string,CHARACTER_ANSI,
-                            Model_Name,strlen(Model_Name));
+      characterstring_init_ansi(&char_string, Model_Name);
       apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_FIRMWARE_REVISION:
-      characterstring_init(&char_string,CHARACTER_ANSI,
-                            Firmware_Revision,strlen(Firmware_Revision));
+      characterstring_init_ansi(&char_string, Firmware_Revision);
       apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     case PROP_APPLICATION_SOFTWARE_VERSION:
-      characterstring_init(&char_string,CHARACTER_ANSI,
-                            Application_Software_Version,
-                            strlen(Application_Software_Version));
+      characterstring_init_ansi(&char_string, Application_Software_Version);
       apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
       break;
     // if you support time
@@ -460,7 +470,7 @@ int Device_Encode_Property_APDU(
           // initialize all the services to not-supported
           bitstring_set_bit(&bit_string, (uint8_t)i, false);
         }
-        /* FIXME: set the services that YOUR device executes */
+        /* FIXME: set only the services that YOUR device executes */
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_WHO_IS, true);
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_I_AM, true);
         bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_READ_PROPERTY, true);
@@ -650,13 +660,23 @@ bool Device_Write_Property(
     case PROP_OBJECT_NAME:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)
       {
-        status = Device_Set_Vendor_Name(
-          characterstring_value(&wp_data->value.type.Character_String),
-          characterstring_length(&wp_data->value.type.Character_String));
-        if (!status)
+        uint8_t encoding;
+        encoding = characterstring_encoding(&wp_data->value.type.Character_String);
+        if (encoding == CHARACTER_ANSI_X34)
+        {
+          status = Device_Set_Object_Name(
+            characterstring_value(&wp_data->value.type.Character_String),
+            characterstring_length(&wp_data->value.type.Character_String));
+          if (!status)
+          {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+          }
+        }
+        else
         {
           *error_class = ERROR_CLASS_PROPERTY;
-          *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+          *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
         }
       }
       else

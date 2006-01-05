@@ -168,6 +168,7 @@ uint8_t bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
     return 0;
 }
 
+#define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
 bool characterstring_init(
@@ -183,19 +184,26 @@ bool characterstring_init(
   {
     char_string->length = 0;
     char_string->encoding = encoding;
-    if (length <= sizeof(char_string->value))
+    /* save a byte at the end for NULL - 
+       note: assumes printable characters */
+    if (length <= CHARACTER_STRING_CAPACITY)
     {
       if (value)
       {
-        for (i = 0; i < length; i++)
+        for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++)
         {
-          char_string->value[char_string->length] = value[i];
-          char_string->length++;
+          if (i < length)
+          {
+            char_string->value[char_string->length] = value[i];
+            char_string->length++;
+          }
+          else
+            char_string->value[i] = 0;
         }
       }
       else
       {
-        for (i = 0; i < sizeof(char_string->value); i++)
+        for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++)
         {
           char_string->value[i] = 0;
         }
@@ -208,12 +216,12 @@ bool characterstring_init(
 }
 
 bool characterstring_init_ansi(
-    BACNET_CHARACTER_STRING *char_string,
-    char *value)
+  BACNET_CHARACTER_STRING *char_string,
+  char *value)
 {
   return characterstring_init(
       char_string,
-      CHARACTER_ANSI,
+      CHARACTER_ANSI_X34,
       value, value?strlen(value):0);
 }
 
@@ -228,7 +236,7 @@ bool characterstring_append(
 
   if (char_string)
   {
-    if ((length + char_string->length) <= sizeof(char_string->value))
+    if ((length + char_string->length) <= CHARACTER_STRING_CAPACITY)
     {
       for (i = 0; i < length; i++)
       {
@@ -253,7 +261,7 @@ bool characterstring_truncate(
 
   if (char_string)
   {
-    if (length <= sizeof(char_string->value))
+    if (length <= CHARACTER_STRING_CAPACITY)
     {
       char_string->length = length;
       status = true;
@@ -296,7 +304,7 @@ size_t characterstring_capacity(BACNET_CHARACTER_STRING *char_string)
 
   if (char_string)
   {
-    length = sizeof(char_string->value);
+    length = CHARACTER_STRING_CAPACITY;
   }
 
   return length;
@@ -318,7 +326,7 @@ uint8_t characterstring_encoding(BACNET_CHARACTER_STRING *char_string)
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
 bool octetstring_init(
-    BACNET_OCTET_STRING *octet_string,
+  BACNET_OCTET_STRING *octet_string,
   uint8_t *value,
   size_t length)
 {
