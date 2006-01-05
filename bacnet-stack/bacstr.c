@@ -495,14 +495,14 @@ void testCharacterString(Test * pTest)
   size_t i = 0;
 
   // verify initialization
-  status = characterstring_init(&bacnet_string,CHARACTER_ANSI,NULL,0);
+  status = characterstring_init(&bacnet_string,CHARACTER_ANSI_X34,NULL,0);
   ct_test(pTest, status == true);
   ct_test(pTest,characterstring_length(&bacnet_string) == 0);
-  ct_test(pTest,characterstring_encoding(&bacnet_string) == CHARACTER_ANSI);
+  ct_test(pTest,characterstring_encoding(&bacnet_string) == CHARACTER_ANSI_X34);
   /* bounds check */
   status = characterstring_init(
       &bacnet_string,
-      CHARACTER_ANSI,
+      CHARACTER_ANSI_X34,
       NULL,
       characterstring_capacity(&bacnet_string)+1);
   ct_test(pTest, status == false);
@@ -516,7 +516,7 @@ void testCharacterString(Test * pTest)
   test_length = strlen(test_value); 
   status = characterstring_init(
     &bacnet_string,
-    CHARACTER_ANSI,
+    CHARACTER_ANSI_X34,
     &test_value[0],
     test_length);
   ct_test(pTest, status == true);
