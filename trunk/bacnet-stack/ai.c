@@ -96,11 +96,12 @@ int Analog_Input_Encode_Property_APDU(
       apdu_len = encode_tagged_real(&apdu[0], value);
       break;
     case PROP_STATUS_FLAGS:
-        bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-        bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
-        bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-        bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
-        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
+      bitstring_init(&bit_string);
+      bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
+      bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
+      bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
+      bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+      apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
       break;
     case PROP_EVENT_STATE:
       apdu_len = encode_tagged_enumerated(&apdu[0],EVENT_STATE_NORMAL);

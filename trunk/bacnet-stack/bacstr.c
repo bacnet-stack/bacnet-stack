@@ -88,6 +88,78 @@ uint8_t bitstring_bits_used(BACNET_BIT_STRING *bit_string)
   return bit_string->bits_used;
 }
 
+// returns the number of bytes that a bit string is using
+int bitstring_bytes_used(BACNET_BIT_STRING *bit_string)
+{
+  int len = 0; // return value
+  uint8_t used_bytes = 0;
+  uint8_t last_bit = 0;
+
+  if (bit_string->bits_used)
+  {
+    last_bit = bit_string->bits_used - 1;
+    used_bytes = last_bit / 8;
+    // add one for the first byte
+    used_bytes++;
+    len = used_bytes;
+  }
+
+  return len;
+}
+
+uint8_t bitstring_octet(BACNET_BIT_STRING *bit_string, uint8_t index)
+{
+  uint8_t octet = 0;
+
+  if (bit_string)
+  {
+    if (index < MAX_BITSTRING_BYTES)
+    {
+      octet = bit_string->value[index];
+    }
+  }
+
+  return octet;
+}
+
+bool bitstring_set_octet(
+    BACNET_BIT_STRING *bit_string,
+    uint8_t index,
+    uint8_t octet)
+{
+  bool status = false;
+
+  if (bit_string)
+  {
+    if (index < MAX_BITSTRING_BYTES)
+    {
+      bit_string->value[index] = octet;
+      status = true;
+    }
+  }
+
+  return status;
+}
+
+bool bitstring_set_bits_used(
+  BACNET_BIT_STRING *bit_string,
+  uint8_t bytes_used,
+  uint8_t unused_bits)
+{
+  bool status = false;
+
+  if (bit_string)
+  {
+    /* FIXME: check that bytes_used is at least one? */
+    bit_string->bits_used = bytes_used * 8;
+    bit_string->bits_used -= unused_bits;
+    status = true;
+  }
+
+  return status;
+}
+
+
 uint8_t bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
 {
   if (bit_string)

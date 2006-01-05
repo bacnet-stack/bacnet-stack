@@ -267,18 +267,11 @@ bool bacapp_compare(
           test_length = characterstring_length(&test_value->type.Character_String);
           test_str = characterstring_value(&test_value->type.Character_String);
           if (length != test_length)
-          {
             status = false;
-            printf("length=%d test_length=%d\n",length,test_length);
-          }
           for (i = 0; i < test_length; i++)
           {
             if (str[i] != test_str[i])
-            {
               status = false;
-              printf("str[%d]=%c test_str[%d]=%c\n",
-                i,str[i],i,test_str[i]);
-            }
           }
         }
         break;
