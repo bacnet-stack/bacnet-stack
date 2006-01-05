@@ -845,24 +845,6 @@ int decode_octet_string(uint8_t * apdu, uint32_t len_value,
 
 // from clause 20.2.9 Encoding of a Character String Value
 // returns the number of apdu bytes consumed
-int encode_bacnet_string(uint8_t * apdu, const char *char_string, int len)
-{
-    int i;
-
-    // limit - 6 octets is the most our tag and type could be
-    if (len > (MAX_APDU - 6))
-        len = MAX_APDU - 6;
-    for (i = 0; i < len; i++) {
-        apdu[1 + i] = char_string[i];
-    }
-    apdu[0] = CHARACTER_ANSI;
-    len++;
-
-    return len;
-}
-
-// from clause 20.2.9 Encoding of a Character String Value
-// returns the number of apdu bytes consumed
 int encode_bacnet_character_string(uint8_t * apdu,
     BACNET_CHARACTER_STRING *char_string)
 {
