@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
   (void)argc;
   (void)argv;
   Device_Set_Object_Instance_Number(124);
-Init_Service_Handlers();
+  Init_Service_Handlers();
   // init the data link layer
   /* configure standard BACnet/IP port */
   bip_set_port(0xBAC0);
@@ -281,7 +281,9 @@ Init_Service_Handlers();
       Send_WhoIs();
     }
     else
-      Read_Properties();
+    {
+      //Read_Properties();
+    }
 
     // output
 
