@@ -596,7 +596,7 @@ int decode_bitstring(uint8_t * apdu, uint32_t len_value,
         len = 1;
         for (i = 0; i < bytes_used; i++)
         {
-          bitstring_set_octet(bit_string, i, byte_reverse_bits(apdu[len++]));
+          bitstring_set_octet(bit_string, (uint8_t)i, byte_reverse_bits(apdu[len++]));
         }
         unused_bits = apdu[0] & 0x07;
         bitstring_set_bits_used(bit_string,
