@@ -18,8 +18,10 @@ Commit changes to CVS.
 Set a CVS tag on the ?bacnet-stack? module called ?bacnet-stack-0-0-0?
 $ cvs tag bacnet-stack-0-0-0
 	 
-Get a clean version out of CVS that doesn't have CVS in it.
-$ cvs -d:pserver:anonymous@cvs.sf.net:/cvsroot/bacnet export -Dtomorrow bacnet-stack
+Get a clean version out of CVS that doesn't have CVS in it. Don't
+use the pserver since it is not updated instantly and may not have
+the latest changes in it.
+$ cvs -d:ext:skarg@cvs.sf.net:/cvsroot/bacnet export -Dtomorrow bacnet-stack
 	   
 tar and gzip the clean directory from one directory up.
 $ tar -cvvzf bacnet-stack-0.0.0.tgz bacnet/ 
