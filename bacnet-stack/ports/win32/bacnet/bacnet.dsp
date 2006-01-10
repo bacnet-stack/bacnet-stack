@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "BACDL_BIP" /FR /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /I "c:\code\bacnet-stack\demo\object" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "BACDL_BIP" /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -97,11 +97,11 @@ SOURCE=..\..\..\address.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\ai.c
+SOURCE=..\..\..\demo\object\ai.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\ao.c
+SOURCE=..\..\..\demo\object\ao.c
 # End Source File
 # Begin Source File
 
@@ -125,7 +125,7 @@ SOURCE=..\..\..\bacerror.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\bacfile.c
+SOURCE=..\..\..\demo\object\bacfile.c
 # End Source File
 # Begin Source File
 
@@ -157,7 +157,7 @@ SOURCE=..\..\..\datalink.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\device.c
+SOURCE=..\..\..\demo\object\device.c
 # End Source File
 # Begin Source File
 
@@ -217,11 +217,11 @@ SOURCE=..\..\..\address.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\ai.h
+SOURCE=..\..\..\demo\object\ai.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\ao.h
+SOURCE=..\..\..\demo\object\ao.h
 # End Source File
 # Begin Source File
 
@@ -250,6 +250,10 @@ SOURCE=..\..\..\bacenum.h
 # Begin Source File
 
 SOURCE=..\..\..\bacerror.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\bacfile.h
 # End Source File
 # Begin Source File
 
@@ -285,7 +289,7 @@ SOURCE=..\..\..\datalink.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\device.h
+SOURCE=..\..\..\demo\object\device.h
 # End Source File
 # Begin Source File
 
