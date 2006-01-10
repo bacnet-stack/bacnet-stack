@@ -1,18 +1,17 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
 # -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_TSM -g
+DEFINES = -DTEST -DTEST_TSM
+INCLUDES = -I. -Idemo/object -Itest -Iports/linux
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = address.c \
        bacdcode.c \
        bacstr.c \
        bigend.c \
-       device.c \
-       ai.c \
-       ao.c \
+       demo/object/device.c \
+       demo/object/ai.c \
+       demo/object/ao.c \
        iam.c \
        npdu.c \
        apdu.c \

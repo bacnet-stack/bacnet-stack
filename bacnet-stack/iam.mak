@@ -1,10 +1,10 @@
 #Makefile to build test case
 CC      = gcc
 BASEDIR = .
-#CFLAGS  = -Wall -I.
 # -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_IAM -g
+DEFINES = -DBACFILE=1 -DTEST -DTEST_IAM
+INCLUDES = -I. -Idemo/object -Itest 
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = bacdcode.c \
        bacstr.c \

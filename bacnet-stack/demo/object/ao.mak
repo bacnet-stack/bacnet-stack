@@ -4,17 +4,18 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_DEVICE -g
+CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_ANALOG_OUTPUT -g
 
+# NOTE: this file is normally called by the unittest.sh from up directory
 SRCS = bacdcode.c \
-       bigend.c \
        bacstr.c \
-       device.c \
+       bigend.c \
+       demo/object/ao.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
 
-TARGET = device
+TARGET = analog_output
 
 all: ${TARGET}
  

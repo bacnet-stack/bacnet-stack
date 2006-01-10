@@ -39,12 +39,6 @@
 // However, it could handle multiple data links with the
 // addition of passing a network number or datalink number
 // as part of the calls.
-#if defined(BACDL_ARCNET) || defined(BACDL_MSTP) || \
-  defined(BACDL_ETHERNET)  || defined(BACDL_BIP) 
-  /* valid! */
-#else
-  #error BACDL_ARCNET, BACDL_MSTP, BACDL_ETHERNET, or BACDL_BIP must be defined! 
-#endif
 
 /* returns number of bytes sent on success, negative on failure */
 int datalink_send_pdu(
