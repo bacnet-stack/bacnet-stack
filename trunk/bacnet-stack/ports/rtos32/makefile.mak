@@ -40,10 +40,10 @@ SRCS = init.c main.c ethernet.c bip-init.c \
        ..\..\wp.c \
        ..\..\arf.c \
        ..\..\awf.c \
-       ..\..\bacfile.c \
-       ..\..\device.c \
-       ..\..\ai.c \
-       ..\..\ao.c \
+       ..\..\demo\object\bacfile.c \
+       ..\..\demo\object\device.c \
+       ..\..\demo\object\ai.c \
+       ..\..\demo\object\ao.c \
        ..\..\datalink.c \
        ..\..\tsm.c \
        ..\..\address.c \

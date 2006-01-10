@@ -6,10 +6,13 @@ BASEDIR = .
 #CFLAGS  = -Wall -I. -O2 -g
 # Note: you can strip out symbols using the strip command
 # to get an idea of how big the compile really is.
-#CFLAGS  = -Wall -I. -Iports/linux -g -DBACFILE=1 -DBACDL_ETHERNET=1
-#CFLAGS  = -Wall -I. -Iports/linux -g -DBACFILE=1 -DBACDL_ARCNET=1
-#CFLAGS  = -Wall -I. -Iports/linux -g -DBACFILE=1 -DBACDL_MSTP=1 
-CFLAGS  = -Wall -I. -Iports/linux -g -DBACFILE=1 -DBACDL_BIP=1
+#DEFINES = -DBACFILE=1 -DBACDL_ETHERNET=1
+#DEFINES = -DBACFILE=1 -DBACDL_ARCNET=1
+#DEFINES = -DBACFILE=1 -DBACDL_MSTP=1 
+DEFINES = -DBACFILE=1 -DBACDL_BIP=1 
+INCLUDES = -I. -Iports/linux -Idemo/object
+
+CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
 SRCS = ports/linux/main.c \
        ports/linux/ethernet.c \
@@ -30,10 +33,10 @@ SRCS = ports/linux/main.c \
        tsm.c \
        datalink.c \
        address.c \
-       device.c \
-       ai.c \
-       ao.c \
-       bacfile.c \
+       demo/object/device.c \
+       demo/object/ai.c \
+       demo/object/ao.c \
+       demo/object/bacfile.c \
        arf.c \
        awf.c \
        abort.c \

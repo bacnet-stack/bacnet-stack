@@ -14,15 +14,15 @@ make -f address.mak
 ./address >> test.log
 make -f address.mak clean
 
-make -f ai.mak clean
-make -f ai.mak
+make -f demo/object/ai.mak clean
+make -f demo/object/ai.mak
 ./analog_input >> test.log
-make -f ai.mak clean
+make -f demo/object/ai.mak clean
 
-make -f ao.mak clean
-make -f ao.mak
+make -f demo/object/ao.mak clean
+make -f demo/object/ao.mak
 ./analog_output >> test.log
-make -f ao.mak clean
+make -f demo/object/ao.mak clean
 
 make -f arf.mak clean
 make -f arf.mak
@@ -59,10 +59,10 @@ make -f crc.mak
 ./crc >> test.log
 make -f crc.mak clean
 
-make -f device.mak clean
-make -f device.mak
+make -f demo/object/device.mak clean
+make -f demo/object/device.mak
 ./device >> test.log
-make -f device.mak clean
+make -f demo/object/device.mak clean
 
 make -f iam.mak clean
 make -f iam.mak
