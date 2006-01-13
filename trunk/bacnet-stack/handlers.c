@@ -210,8 +210,6 @@ bool Send_Read_Property_Request(
   return status;
 }
 
-
-
 bool Send_Write_Property_Request(
   uint32_t device_id, // destination device
   BACNET_OBJECT_TYPE object_type,
