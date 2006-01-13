@@ -108,6 +108,8 @@ bool tsm_get_transaction_pdu(
   uint8_t *pdu,
   uint16_t *pdu_len);
 
+bool tsm_invoke_id_free(uint8_t invokeID);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
