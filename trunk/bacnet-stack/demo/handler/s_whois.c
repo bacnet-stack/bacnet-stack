@@ -22,14 +22,56 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef TXBUF_H
-#define TXBUF_H
-
 #include <stddef.h>
 #include <stdint.h>
 #include "config.h"
+#include "config.h"
+#include "txbuf.h"
+#include "bacdef.h"
+#include "bacdcode.h"
+#include "address.h"
+#include "tsm.h"
+#include "npdu.h"
+#include "apdu.h"
+#include "device.h"
 #include "datalink.h"
+#include "whois.h"
+/* some demo stuff needed */
+#include "handlers.h"
+#include "txbuf.h"
 
-extern uint8_t Handler_Transmit_Buffer[MAX_MPDU];
+/* find a specific device, or use -1 for limit if you want unlimited */
+void Send_WhoIs(
+  int32_t low_limit,
+  int32_t high_limit)
+{
+  int pdu_len = 0;
+  BACNET_ADDRESS dest;
+  int bytes_sent = 0;
 
-#endif
+  // Who-Is is a global broadcast
+  datalink_get_broadcast_address(&dest);
+
+  // encode the NPDU portion of the packet
+  pdu_len = npdu_encode_apdu(
+    &Handler_Transmit_Buffer[0],
+    &dest,
+    NULL,
+    false,  // true for confirmed messages
+    MESSAGE_PRIORITY_NORMAL);
+
+  // encode the APDU portion of the packet
+  pdu_len += whois_encode_apdu(
+    &Handler_Transmit_Buffer[pdu_len],
+    low_limit,
+    high_limit);
+
+  bytes_sent = datalink_send_pdu(
+    &dest,  // destination address
+    &Handler_Transmit_Buffer[0],
+    pdu_len); // number of bytes of data
+  if (bytes_sent > 0)
+    fprintf(stderr,"Sent Who-Is Request!\n");
+  else
+    fprintf(stderr,"Failed to Send Who-Is Request (%s)!\n", strerror(errno));
+}

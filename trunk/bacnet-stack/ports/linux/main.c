@@ -32,6 +32,7 @@
 #include "address.h"
 #include "bacdef.h"
 #include "handlers.h"
+#include "client.h"
 #include "bacdcode.h"
 #include "npdu.h"
 #include "apdu.h"
@@ -41,8 +42,10 @@
 #include "bacfile.h"
 #include "datalink.h"
 #include "net.h"
+#include "txbuf.h"
 
 // This is an example application using the BACnet Stack on Linux
+bool Who_Is_Request = true;
 
 // buffers used for receiving
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
@@ -175,7 +178,7 @@ static void Init_Service_Handlers(void)
   // we need to handle who-is to support dynamic device binding
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_WHO_IS,
-    WhoIsHandler);
+    handler_who_is);
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_I_AM,
     LocalIAmHandler);
@@ -183,25 +186,25 @@ static void Init_Service_Handlers(void)
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
   apdu_set_unrecognized_service_handler_handler(
-    UnrecognizedServiceHandler);
+    handler_unrecognized_service);
   // Set the handlers for any confirmed services that we support.
   // We must implement read property - it's required!
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
-    ReadPropertyHandler);
+    handler_read_property);
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_WRITE_PROPERTY,
-    WritePropertyHandler);
+    handler_write_property);
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-    AtomicReadFileHandler);
+    handler_atomic_read_file);
   // handle the data coming back from confirmed requests
   apdu_set_confirmed_ack_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
-    ReadPropertyAckHandler);
+    handler_read_property_ack);
   apdu_set_confirmed_ack_handler(
     SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-    AtomicReadFileAckHandler);
+    handler_atomic_read_file_ack);
 }
 
 static void print_address_cache(void)
@@ -308,11 +311,11 @@ int main(int argc, char *argv[])
     if (I_Am_Request)
     {
       I_Am_Request = false;
-      Send_IAm();
+      iam_send(&Handler_Transmit_Buffer[0]);
     } else if (Who_Is_Request)
     {
       Who_Is_Request = false;
-      Send_WhoIs();
+      Send_WhoIs(-1,-1);
     }
     // output
     // some round robin task switching

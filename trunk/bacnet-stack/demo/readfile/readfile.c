@@ -24,11 +24,9 @@
 *********************************************************************/
 
 /* READFILE: command line tool that reads a file from a BACnet device. */
-#include <winsock2.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <conio.h> /* for kbhit and getch */
 #include <time.h> /* for time */
 #include "bactext.h"
 #include "iam.h"
@@ -57,6 +55,8 @@ static char *Local_File_Name = NULL;
 static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
 static uint8_t Current_Invoke_ID = 0;
+
+#define MIN(X,Y) ((X) < (Y) ? : (X) : (Y))
 
 static void Atomic_Read_File_Error_Handler(
   BACNET_ADDRESS *src,
@@ -325,7 +325,6 @@ int main(int argc, char *argv[])
   uint16_t pdu_len = 0;
   unsigned timeout = 100; // milliseconds
   unsigned max_apdu = 0;
-  bool status = false;
   time_t elapsed_seconds = 0;
   time_t last_seconds = 0; 
   time_t current_seconds = 0;
@@ -334,6 +333,7 @@ int main(int argc, char *argv[])
   unsigned requestedOctetCount = 0;
   uint8_t invoke_id = 0;
   bool found = false;
+  uint16_t my_max_apdu = 0;
   
   if (argc < 4)
   {
@@ -415,7 +415,11 @@ int main(int argc, char *argv[])
            and remove the overhead of the APDU (about 14 octets max).
            note: we could fail if there is a bottle neck (router)
            and smaller MPDU in betweeen. */
-        requestedOctetCount = min(max_apdu,MAX_APDU) - 14;
+        if (max_apdu < MAX_APDU)
+          my_max_apdu = max_apdu;
+        else
+          my_max_apdu = MAX_APDU;
+        requestedOctetCount = my_max_apdu - 14;
         /* has the previous invoke id expired or returned?
            note: invoke ID = 0 is invalid, so it will be idle */
         if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id))
@@ -440,9 +444,6 @@ int main(int argc, char *argv[])
           break;
       }
     }
-    /* wait for ESC from keyboard before quitting */
-    if (kbhit() && (getch() == 0x1B))
-      break;
     /* keep track of time for next check */
     last_seconds = current_seconds;
   }

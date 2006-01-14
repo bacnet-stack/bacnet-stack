@@ -22,14 +22,44 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef TXBUF_H
-#define TXBUF_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
 #include <stddef.h>
 #include <stdint.h>
-#include "config.h"
-#include "datalink.h"
+#include <stdio.h>
+#include "bacdef.h"
+#include "apdu.h"
+#include "bacapp.h"
 
-extern uint8_t Handler_Transmit_Buffer[MAX_MPDU];
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/* FIXME: probably should return the invoke ID for confirmed request */
+bool Send_Read_Property_Request(
+  uint32_t device_id, /* destination device */
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance,
+  BACNET_PROPERTY_ID object_property,
+  int32_t array_index);
+
+void Send_WhoIs(
+  int32_t low_limit,
+  int32_t high_limit);
+
+/* FIXME: probably should return the invoke ID for confirmed request */
+bool Send_Write_Property_Request(
+    uint32_t device_id, // destination device
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance,
+  BACNET_PROPERTY_ID object_property,
+  BACNET_APPLICATION_DATA_VALUE object_value,
+  uint8_t priority,
+  int32_t array_index);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
