@@ -28,6 +28,8 @@
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "iam.h"
+#include "address.h"
 
 void handler_i_am(
   uint8_t *service_request,

@@ -22,14 +22,60 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef TXBUF_H
-#define TXBUF_H
-
 #include <stddef.h>
 #include <stdint.h>
 #include "config.h"
+#include "config.h"
+#include "txbuf.h"
+#include "bacdef.h"
+#include "bacdcode.h"
+#include "address.h"
+#include "tsm.h"
+#include "npdu.h"
+#include "apdu.h"
+#include "device.h"
 #include "datalink.h"
+#include "bactext.h"
+#include "rp.h"
+/* some demo stuff needed */
+#include "handlers.h"
+#include "txbuf.h"
 
-extern uint8_t Handler_Transmit_Buffer[MAX_MPDU];
+/* for debugging... */
+static void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA *data)
+{
+  if (data)
+  {
+    if (data->array_index == BACNET_ARRAY_ALL)
+      fprintf(stderr,"%s #%u %s\n",
+        bactext_object_type_name(data->object_type),
+        data->object_instance,
+        bactext_property_name(data->object_property));
+    else
+      fprintf(stderr,"%s #%u %s[%d]\n",
+        bactext_object_type_name(data->object_type),
+        data->object_instance,
+        bactext_property_name(data->object_property),
+        data->array_index);
+  }
+}
 
-#endif
+void handler_read_property_ack(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+{
+  int len = 0;
+  BACNET_READ_PROPERTY_DATA data;
+
+  (void)src;
+  (void)service_data; /* we could use these... */
+  len = rp_ack_decode_service_request(
+    service_request,
+    service_len,
+    &data);
+  fprintf(stderr,"Received Read-Property Ack!\n");
+  if (len > 0)
+    PrintReadPropertyData(&data);
+}

@@ -14,7 +14,9 @@ INCLUDES = -I. -Iports/linux -Idemo/object -Idemo/handler
 
 CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
-SRCS = ports/linux/main.c \
+TARGET = readfile
+
+SRCS = demo/readfile/readfile.c \
        ports/linux/ethernet.c \
        ports/linux/arcnet.c \
        ports/linux/bip-init.c \
@@ -24,23 +26,16 @@ SRCS = ports/linux/main.c \
        demo/handler/noserv.c \
        demo/handler/h_whois.c \
        demo/handler/h_rp.c \
-       demo/handler/h_wp.c \
-       demo/handler/h_iam.c \
-       demo/handler/h_rp_a.c \
-       demo/handler/h_arf.c \
-       demo/handler/h_arf_a.c \
-       demo/handler/s_rp.c \
-       demo/handler/s_whois.c \
-       demo/handler/s_wp.c \
+       rp.c \
        bacdcode.c \
        bacapp.c \
        bacprop.c \
        bacstr.c \
+       bactext.c \
+       indtext.c \
        bigend.c \
        whois.c \
        iam.c \
-       rp.c \
-       wp.c \
        tsm.c \
        datalink.c \
        address.c \
@@ -49,18 +44,13 @@ SRCS = ports/linux/main.c \
        demo/object/ao.c \
        demo/object/bacfile.c \
        arf.c \
-       awf.c \
        abort.c \
        reject.c \
        bacerror.c \
-       indtext.c \
-       bactext.c \
        apdu.c \
        npdu.c
 
 OBJS = ${SRCS:.c=.o}
-
-TARGET = bacnet
 
 all: ${TARGET}
  

@@ -56,6 +56,31 @@ void handler_read_property(
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
+void handler_read_property_ack(
+    uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+
+void handler_write_property(
+    uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data);
+
+void handler_atomic_read_file(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data);
+
+void handler_atomic_read_file_ack(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
