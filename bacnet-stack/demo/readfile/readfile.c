@@ -38,6 +38,7 @@
 #include "npdu.h"
 #include "apdu.h"
 #include "device.h"
+#include "net.h"
 #include "datalink.h"
 #include "whois.h"
 /* some demo stuff needed */
@@ -55,8 +56,6 @@ static char *Local_File_Name = NULL;
 static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
 static uint8_t Current_Invoke_ID = 0;
-
-#define MIN(X,Y) ((X) < (Y) ? : (X) : (Y))
 
 static void Atomic_Read_File_Error_Handler(
   BACNET_ADDRESS *src,
@@ -362,6 +361,7 @@ int main(int argc, char *argv[])
   address_init();
   Init_Service_Handlers();
   /* configure standard BACnet/IP port */
+  bip_set_interface("eth0"); /* for linux */
   bip_set_port(0xBAC0);
   if (!bip_init())
     return 1;

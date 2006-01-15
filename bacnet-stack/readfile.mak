@@ -17,11 +17,8 @@ CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 TARGET = readfile
 
 SRCS = demo/readfile/readfile.c \
-       ports/linux/ethernet.c \
-       ports/linux/arcnet.c \
        ports/linux/bip-init.c \
        bip.c \
-       dlmstp.c \
        demo/handler/txbuf.c \
        demo/handler/noserv.c \
        demo/handler/h_whois.c \
