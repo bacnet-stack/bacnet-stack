@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /I "c:\code\bacnet-stack\demo\object\\" /I "c:\code\bacnet-stack\demo\handler\\" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACDL_BIP" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /I "c:\code\bacnet-stack\demo\object" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "BACDL_BIP" /FR /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "c:\code\bacnet-stack\demo\object" /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /I "c:\code\bacnet-stack\demo\object\\" /I "c:\code\bacnet-stack\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -161,7 +161,31 @@ SOURCE=..\..\..\demo\object\device.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\handlers.c
+SOURCE=..\..\..\demo\handler\h_arf.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\h_arf_a.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\h_iam.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\h_rp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\h_rp_a.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\h_whois.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\h_wp.c
 # End Source File
 # Begin Source File
 
@@ -174,6 +198,10 @@ SOURCE=..\..\..\indtext.c
 # Begin Source File
 
 SOURCE=..\main.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\noserv.c
 # End Source File
 # Begin Source File
 
@@ -193,7 +221,23 @@ SOURCE=..\..\..\rp.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\handler\s_rp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\s_whois.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\s_wp.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\tsm.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\txbuf.c
 # End Source File
 # Begin Source File
 

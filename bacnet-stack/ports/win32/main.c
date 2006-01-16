@@ -24,7 +24,7 @@
 *********************************************************************/
 
 // This is one way to use the embedded BACnet stack under Win32
-// compiled with Borland C++ 5.02
+// compiled with Borland C++ 5.02 or Visual C++ 6.0
 #include <winsock2.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -38,10 +38,14 @@
 #include "apdu.h"
 #include "device.h"
 #include "handlers.h"
+#include "client.h"
 #include "datalink.h"
+#include "txbuf.h"
 
 // buffer used for receive
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
+/* send a whois to see who is on the network */
+static bool Who_Is_Request = true;
 
 static void Read_Properties(void)
 {
@@ -164,7 +168,7 @@ static void Init_Service_Handlers(void)
   // we need to handle who-is to support dynamic device binding
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_WHO_IS,
-    WhoIsHandler);
+    handler_who_is);
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_I_AM,
     LocalIAmHandler);
@@ -172,18 +176,18 @@ static void Init_Service_Handlers(void)
   // set the handler for all the services we don't implement
   // It is required to send the proper reject message...
   apdu_set_unrecognized_service_handler_handler(
-    UnrecognizedServiceHandler);
+    handler_unrecognized_service);
   // we must implement read property - it's required!
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
-    ReadPropertyHandler);
+    handler_read_property);
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_WRITE_PROPERTY,
-    WritePropertyHandler);
+    handler_write_property);
   // handle the data coming back from confirmed requests
   apdu_set_confirmed_ack_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
-    ReadPropertyAckHandler);
+    handler_read_property_ack);
 }
 
 static void print_address(
@@ -274,11 +278,11 @@ int main(int argc, char *argv[])
     if (I_Am_Request)
     {
       I_Am_Request = false;
-      Send_IAm();
+      iam_send(&Handler_Transmit_Buffer[0]);
     } else if (Who_Is_Request)
     {
       Who_Is_Request = false;
-      Send_WhoIs();
+      Send_WhoIs(-1,-1);
     }
     else
     {

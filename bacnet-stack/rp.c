@@ -82,7 +82,7 @@ int rp_decode_service_request(
   uint32_t len_value_type = 0;
   int type = 0; // for decoding
   int property = 0; // for decoding
-  unsigned array_value = 0; // for decoding
+  uint32_t array_value = 0; // for decoding
 
   // check for value pointers
   if (apdu_len && data)
@@ -198,7 +198,7 @@ int rp_ack_decode_service_request(
   int tag_len = 0; // length of tag decode
   int len = 0; // total length of decodes
   int object = 0, property = 0; // for decoding
-  unsigned array_value = 0; // for decoding
+  uint32_t array_value = 0; // for decoding
 
   // FIXME: check apdu_len against the len during decode  
   // Tag 0: Object ID

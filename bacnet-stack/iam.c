@@ -90,7 +90,7 @@ int iam_decode_service_request(
   uint32_t object_instance = 0;
   uint8_t tag_number = 0;
   uint32_t len_value = 0;
-  unsigned int decoded_value = 0;
+  uint32_t decoded_value = 0;
   int decoded_integer = 0;
 
   // OBJECT ID - object id
@@ -134,7 +134,7 @@ int iam_decode_service_request(
   if (decoded_value > 0xFFFF)
     return -1;
   if (pVendor_id)
-    *pVendor_id = decoded_value;
+    *pVendor_id = (uint16_t)decoded_value;
   
   return apdu_len;
 }

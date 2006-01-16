@@ -27,7 +27,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h> /* for time */
+#include <errno.h>
 #include "bactext.h"
 #include "iam.h"
 #include "arf.h"

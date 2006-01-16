@@ -85,6 +85,12 @@ static void cleanup(void)
   WSACleanup();
 }
 
+void bip_set_interface(char *ifname)
+{
+  (void)ifname;
+  /* dummy function */
+}
+
 bool bip_init(void)
 {
     int rv = 0; // return from socket lib calls
