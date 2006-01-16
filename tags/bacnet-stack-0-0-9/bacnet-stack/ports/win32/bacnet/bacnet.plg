@@ -1,0 +1,119 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: bacnet - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP58A.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /I "c:\code\bacnet-stack\demo\object" /I "c:\code\bacnet-stack\\" /I "c:\code\bacnet-stack\ports\win32\\" /I "c:\code\bacnet-stack\demo\object\\" /I "c:\code\bacnet-stack\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\code\bacnet-stack\ports\win32\main.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP58A.tmp" 
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP58B.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
+".\Debug\abort.obj"
+".\Debug\address.obj"
+".\Debug\ai.obj"
+".\Debug\ao.obj"
+".\Debug\apdu.obj"
+".\Debug\arf.obj"
+".\Debug\bacapp.obj"
+".\Debug\bacdcode.obj"
+".\Debug\bacerror.obj"
+".\Debug\bacfile.obj"
+".\Debug\bacstr.obj"
+".\Debug\bactext.obj"
+".\Debug\bigend.obj"
+".\Debug\bip-init.obj"
+".\Debug\bip.obj"
+".\Debug\crc.obj"
+".\Debug\datalink.obj"
+".\Debug\device.obj"
+".\Debug\iam.obj"
+".\Debug\indtext.obj"
+".\Debug\main.obj"
+".\Debug\npdu.obj"
+".\Debug\reject.obj"
+".\Debug\ringbuf.obj"
+".\Debug\rp.obj"
+".\Debug\tsm.obj"
+".\Debug\whois.obj"
+".\Debug\wp.obj"
+".\Debug\s_rp.obj"
+".\Debug\s_whois.obj"
+".\Debug\s_wp.obj"
+".\Debug\txbuf.obj"
+".\Debug\h_arf.obj"
+".\Debug\h_arf_a.obj"
+".\Debug\h_iam.obj"
+".\Debug\h_rp.obj"
+".\Debug\h_rp_a.obj"
+".\Debug\h_whois.obj"
+".\Debug\h_wp.obj"
+".\Debug\noserv.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP58B.tmp"
+<h3>Output Window</h3>
+Compiling...
+main.c
+c:\code\bacnet-stack\ports\win32\net.h(30) : warning C4005: 'STRICT' : macro redefinition
+        c:\program files\microsoft visual studio\vc98\include\windef.h(15) : see previous definition of 'STRICT'
+Linking...
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP58C.tmp" with contents
+[
+/nologo /o"Debug/bacnet.bsc" 
+".\Debug\abort.sbr"
+".\Debug\address.sbr"
+".\Debug\ai.sbr"
+".\Debug\ao.sbr"
+".\Debug\apdu.sbr"
+".\Debug\arf.sbr"
+".\Debug\bacapp.sbr"
+".\Debug\bacdcode.sbr"
+".\Debug\bacerror.sbr"
+".\Debug\bacfile.sbr"
+".\Debug\bacstr.sbr"
+".\Debug\bactext.sbr"
+".\Debug\bigend.sbr"
+".\Debug\bip-init.sbr"
+".\Debug\bip.sbr"
+".\Debug\crc.sbr"
+".\Debug\datalink.sbr"
+".\Debug\device.sbr"
+".\Debug\iam.sbr"
+".\Debug\indtext.sbr"
+".\Debug\main.sbr"
+".\Debug\npdu.sbr"
+".\Debug\reject.sbr"
+".\Debug\ringbuf.sbr"
+".\Debug\rp.sbr"
+".\Debug\tsm.sbr"
+".\Debug\whois.sbr"
+".\Debug\wp.sbr"
+".\Debug\s_rp.sbr"
+".\Debug\s_whois.sbr"
+".\Debug\s_wp.sbr"
+".\Debug\txbuf.sbr"
+".\Debug\h_arf.sbr"
+".\Debug\h_arf_a.sbr"
+".\Debug\h_iam.sbr"
+".\Debug\h_rp.sbr"
+".\Debug\h_rp_a.sbr"
+".\Debug\h_whois.sbr"
+".\Debug\h_wp.sbr"
+".\Debug\noserv.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP58C.tmp"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+bacnet.exe - 0 error(s), 1 warning(s)
+</pre>
+</body>
+</html>
