@@ -34,14 +34,12 @@
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
-#include "rp.h"
+#include "arf.h"
 /* demo objects */
 #include "device.h"
 #include "ai.h"
 #include "ao.h"
-#if BACFILE
 #include "bacfile.h"
-#endif
 
 void handler_atomic_read_file(
   uint8_t *service_request,

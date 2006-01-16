@@ -43,8 +43,6 @@
 #include "bacfile.h"
 #endif
 
-static uint8_t Temp_Buf[MAX_APDU] = {0};
-
 void handler_write_property(
   uint8_t *service_request,
   uint16_t service_len,

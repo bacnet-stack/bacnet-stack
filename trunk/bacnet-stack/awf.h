@@ -47,12 +47,12 @@ typedef struct BACnet_Atomic_Write_File_Data
   {
     struct
     {
-      int fileStartPosition;
+      int32_t fileStartPosition;
     } stream;
     struct
     {
-      int fileStartRecord;
-      unsigned returnedRecordCount;
+      int32_t fileStartRecord;
+      uint32_t returnedRecordCount;
     } record;
   } type;
   BACNET_OCTET_STRING fileData;

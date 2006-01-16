@@ -608,7 +608,8 @@ bool Device_Write_Property(
     case PROP_NUMBER_OF_APDU_RETRIES:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
       {
-       Device_Set_Number_Of_APDU_Retries(wp_data->value.type.Unsigned_Int);
+		  /* FIXME: bounds check? */
+       Device_Set_Number_Of_APDU_Retries((uint8_t)wp_data->value.type.Unsigned_Int);
        status = true;
       }
       else
@@ -621,7 +622,8 @@ bool Device_Write_Property(
     case PROP_APDU_TIMEOUT:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
       {
-       Device_Set_APDU_Timeout(wp_data->value.type.Unsigned_Int);
+		  /* FIXME: bounds check? */
+       Device_Set_APDU_Timeout((uint16_t)wp_data->value.type.Unsigned_Int);
        status = true;
       }
       else
@@ -634,7 +636,8 @@ bool Device_Write_Property(
     case PROP_VENDOR_IDENTIFIER:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
       {
-       Device_Set_Vendor_Identifier(wp_data->value.type.Unsigned_Int);
+		  /* FIXME: bounds check? */
+       Device_Set_Vendor_Identifier((uint16_t)wp_data->value.type.Unsigned_Int);
        status = true;
       }
       else

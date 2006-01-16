@@ -46,8 +46,8 @@ typedef struct BACnet_Application_Data_Value
   {
     /* NULL - not needed as it is encoded in the tag alone */
     bool Boolean;
-    unsigned Unsigned_Int;
-    int Signed_Int;
+    uint32_t Unsigned_Int;
+    int32_t Signed_Int;
     float Real;
     double Double;
     BACNET_OCTET_STRING Octet_String;

@@ -24,6 +24,7 @@
 *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
+#include <errno.h>
 #include "config.h"
 #include "config.h"
 #include "txbuf.h"

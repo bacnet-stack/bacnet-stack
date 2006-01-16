@@ -1110,10 +1110,10 @@ int encode_bacnet_unsigned(uint8_t * apdu, uint32_t value)
     int len = 0;                // return value
 
     if (value < 0x100) {
-        apdu[0] = value;
+        apdu[0] = (uint8_t)value;
         len = 1;
     } else if (value < 0x10000) {
-        len = encode_unsigned16(&apdu[0],value);
+        len = encode_unsigned16(&apdu[0],(uint16_t)value);
     } else if (value < 0x1000000) {
         len = encode_unsigned24(&apdu[0],value);
     } else {
@@ -1187,7 +1187,7 @@ int decode_unsigned(uint8_t * apdu, uint32_t len_value, uint32_t *value)
 // returns the number of apdu bytes consumed
 int decode_enumerated(uint8_t * apdu, uint32_t len_value, int *value)
 {
-    unsigned unsigned_value = 0;
+    uint32_t unsigned_value = 0;
     int len;
 
     len = decode_unsigned(apdu, len_value, &unsigned_value);
@@ -1280,9 +1280,9 @@ int encode_bacnet_signed(uint8_t * apdu, int32_t value)
   octet is 0, and the first octet shall not be X'FF' if the most
   significant bit of the second octet is 1. */
   if ((value >= -128) && (value < 128)) {
-    len = encode_signed8(&apdu[0],value);
+    len = encode_signed8(&apdu[0],(int8_t)value);
   } else if ((value >= -32768) && (value < 32768)) {
-    len = encode_signed16(&apdu[0],value);
+    len = encode_signed16(&apdu[0],(int16_t)value);
   } else if ((value > -8388608) && (value < 8388608)) {
     len = encode_signed24(&apdu[0],value);
   } else {

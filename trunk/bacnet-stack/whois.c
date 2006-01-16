@@ -79,7 +79,7 @@ int whois_decode_service_request(
   int len = 0;
   uint8_t tag_number = 0;
   uint32_t len_value = 0;
-  unsigned int decoded_value = 0;
+  uint32_t decoded_value = 0;
 
   // optional limits - must be used as a pair
   if (apdu_len)
