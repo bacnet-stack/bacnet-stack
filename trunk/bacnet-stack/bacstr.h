@@ -126,6 +126,9 @@ bool octetstring_init(
   BACNET_OCTET_STRING *octet_string,
   uint8_t *value,
   size_t length);
+bool octetstring_copy(
+  BACNET_OCTET_STRING *octet_string_dest,
+  BACNET_OCTET_STRING *octet_string_src);
 /* returns false if the string exceeds capacity */
 bool octetstring_append(
     BACNET_OCTET_STRING *octet_string,
