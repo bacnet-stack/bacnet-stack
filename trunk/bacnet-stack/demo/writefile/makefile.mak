@@ -53,7 +53,8 @@ OBJS = $(SRCS:.c=.obj)
 
 # Compiler definitions
 #
-CC = $(BORLAND_DIR)\bin\bcc32 +bcc32.cfg
+BCC_CFG = bcc32.cfg
+CC = $(BORLAND_DIR)\bin\bcc32 +$(BCC_CFG)
 #LINK = $(BORLAND_DIR)\bin\tlink32
 LINK = $(BORLAND_DIR)\bin\ilink32
 TLIB = $(BORLAND_DIR)\bin\tlib
@@ -78,7 +79,7 @@ $(C_LIB_DIR)\CW32MT.lib
 #
 # This should be the first one in the makefile
 
-all : bcc32.cfg $(PRODUCT_EXE)
+all : $(BCC_CFG) $(PRODUCT_EXE)
 
 # Linker specific: the link below is for BCC linker/compiler. If you link
 # with a different linker - please change accordingly.
@@ -107,7 +108,7 @@ clean :
 	del ..\..\ports\win32\*.obj
 	del $(PRODUCT_EXE)
 	del *.map
-	del bcc32.cfg
+	del $(BCC_CFG)
 
 #
 # Generic rules
@@ -121,7 +122,7 @@ clean :
 	$(CC) -o$@ $<
 
 # Compiler configuration file
-bcc32.cfg :
+$(BCC_CFG) :
    Copy &&|
 $(CFLAGS) 
 -c 
