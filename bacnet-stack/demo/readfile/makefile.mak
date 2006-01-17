@@ -99,8 +99,12 @@ $(PRODUCT_EXE) : $(OBJS)
 
 clean :
 	@echo Deleting obj files, $(PRODUCT_EXE) and map files.
+#	del $(OBJS) # command too long, bummer!
 	del *.obj
 	del ..\..\*.obj
+	del ..\..\demo\handler\*.obj
+	del ..\..\demo\object\*.obj
+	del ..\..\ports\win32\*.obj
 	del $(PRODUCT_EXE)
 	del *.map
 	del bcc32.cfg
