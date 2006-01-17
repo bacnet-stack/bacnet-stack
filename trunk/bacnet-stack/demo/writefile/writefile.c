@@ -174,7 +174,7 @@ static uint8_t Send_Atomic_Write_File_Stream(
     }
     else
       fprintf(stderr,"Failed to Send AtomicWriteFile Request "
-        "(payload [%d] exceeds octet string capacity)!\n");
+        "(payload [%d] exceeds octet string capacity)!\n",pdu_len);
   }
 
   return invoke_id;
@@ -352,7 +352,10 @@ int main(int argc, char *argv[])
     if (current_seconds != last_seconds)
       tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
     if (End_Of_File_Detected || Error_Detected)
+    {
+      printf("\r\n");
       break;
+    }
     if (I_Am_Request)
     {
       I_Am_Request = false;
@@ -368,14 +371,14 @@ int main(int argc, char *argv[])
       if (found)
       {
         /* calculate the smaller of our APDU size or theirs
-           and remove the overhead of the APDU (about 20 octets max).
+           and remove the overhead of the APDU (about 24 octets max).
            note: we could fail if there is a bottle neck (router)
            and smaller MPDU in betweeen. */
         if (max_apdu < MAX_APDU)
           my_max_apdu = max_apdu;
         else
           my_max_apdu = MAX_APDU;
-        requestedOctetCount = my_max_apdu - 20;
+        requestedOctetCount = my_max_apdu - 24;
         /* has the previous invoke id expired or returned?
            note: invoke ID = 0 is invalid, so it will be idle */
         if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id))
@@ -397,6 +400,8 @@ int main(int argc, char *argv[])
             octetstring_truncate(&fileData,len);
             fclose(pFile);
           }
+          else
+            End_Of_File_Detected = true;
           printf("\rSending %d bytes",(fileStartPosition+len));
           invoke_id = Send_Atomic_Write_File_Stream(
             Target_Device_Object_Instance,
