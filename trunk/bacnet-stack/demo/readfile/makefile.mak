@@ -11,7 +11,7 @@ BORLAND_DIR_Not_Defined:
    @echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
-PRODUCT = readfile
+PRODUCT = bacarf
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
