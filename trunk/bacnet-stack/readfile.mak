@@ -14,7 +14,7 @@ INCLUDES = -I. -Iports/linux -Idemo/object -Idemo/handler
 
 CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
-TARGET = readfile
+TARGET = bacarf
 
 SRCS = demo/readfile/readfile.c \
        ports/linux/bip-init.c \
