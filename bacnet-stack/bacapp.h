@@ -73,10 +73,19 @@ int bacapp_encode_application_data(
   uint8_t *apdu,
   BACNET_APPLICATION_DATA_VALUE *value);
 
+bool bacapp_copy(
+  BACNET_APPLICATION_DATA_VALUE *dest_value,
+  BACNET_APPLICATION_DATA_VALUE *src_value);
+
 bool bacapp_compare(
   BACNET_APPLICATION_DATA_VALUE *value,
   BACNET_APPLICATION_DATA_VALUE *test_value);
 
+bool bacapp_parse_application_data(
+  BACNET_APPLICATION_TAG tag_number,
+  const char *argv,
+  BACNET_APPLICATION_DATA_VALUE *value);
+  
 #ifdef TEST
 #include "ctest.h"
 void testBACnetApplicationData(Test * pTest);
