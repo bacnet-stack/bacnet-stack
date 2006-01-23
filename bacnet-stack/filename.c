@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2004 Steve Karg
+ Copyright (C) 2006 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -31,47 +31,73 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#ifndef IAM_H
-#define IAM_H
+#include <stdio.h>
+#include <string.h>
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "bacdef.h"
+char *filename_remove_path(const char *filename_in)
+{
+  char *filename_out = NULL;
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+  /* allow the device ID to be set */
+  if (filename_in)
+  {
+    filename_out = strrchr(filename_in,'\\');
+    if (!filename_out)
+      filename_out = strrchr(filename_in,'/');
+    /* go beyond the slash */
+    if (filename_out)
+      filename_out++;
+  }
 
-int iam_encode_apdu(
-  uint8_t *apdu, 
-  uint32_t device_id,
-  unsigned max_apdu,
-  int segmentation,
-  uint16_t vendor_id);
-
-int iam_decode_service_request(
-  uint8_t *apdu, 
-  uint32_t *pDevice_id,
-  unsigned *pMax_apdu,
-  int *pSegmentation,
-  uint16_t *pVendor_id);
-  
-int iam_decode_apdu(
-  uint8_t *apdu, 
-  uint32_t *pDevice_id,
-  unsigned *pMax_apdu,
-  int *pSegmentation,
-  uint16_t *pVendor_id);
-  
-int iam_send(uint8_t *buffer);
+  return filename_out;
+}
 
 #ifdef TEST
+#include <assert.h>
+#include <string.h>
+
 #include "ctest.h"
-void testIAm(Test * pTest);
-#endif
 
-#ifdef __cplusplus
+void testFilename(Test* pTest)
+{
+  char *data1 = "c:\\Joshua\\run";
+  char *data2 = "/home/Anna/run";
+  char *data3 = "c:\\Program Files\\Christopher\\run.exe";
+  char *data4 = "//Mary/data/run";
+  char *filename = NULL;
+
+  filename = filename_remove_path(data1);
+  ct_test(pTest,strcmp("run",filename) == 0);
+  filename = filename_remove_path(data2);
+  ct_test(pTest,strcmp("run",filename) == 0);
+  filename = filename_remove_path(data3);
+  ct_test(pTest,strcmp("run.exe",filename) == 0);
+  filename = filename_remove_path(data4);
+  ct_test(pTest,strcmp("run",filename) == 0);
+
+  return;
 }
-#endif /* __cplusplus */
 
-#endif
+#ifdef TEST_FILENAME
+int main(void)
+{
+  Test *pTest;
+  bool rc;
+
+  pTest = ct_create("filename remove path", NULL);
+
+  /* individual tests */
+  rc = ct_addTestFunction(pTest, testFilename);
+  assert(rc);
+
+  ct_setStream(pTest, stdout);
+  ct_run(pTest);
+  (void)ct_report(pTest);
+
+  ct_destroy(pTest);
+
+  return 0;
+}
+#endif /* TEST_FILENAME */
+#endif /* TEST */
+

@@ -51,8 +51,8 @@
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /* global variables used in this file */
-static uint32_t Target_File_Object_Instance = 4194303;
-static uint32_t Target_Device_Object_Instance = 4194303;
+static uint32_t Target_File_Object_Instance = BACNET_MAX_INSTANCE;
+static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
 static char *Local_File_Name = NULL;
 static bool End_Of_File_Detected = false;

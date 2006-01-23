@@ -15,7 +15,7 @@ PRODUCT = bacarf
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-DEFINES = -DBACDL_BIP=1
+DEFINES = -DBACDL_BIP=1;TSM_ENABLED=1
 
 SRCS = readfile.c \
        ..\..\ports\win32\bip-init.c \

@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-      //Read_Properties();
+      Read_Properties();
     }
 
     // output
