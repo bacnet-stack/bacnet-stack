@@ -69,7 +69,6 @@ void apdu_set_unrecognized_service_handler_handler(
 static unconfirmed_function 
 Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE] = 
 {
-    iam_handler,
     NULL
 };
 
