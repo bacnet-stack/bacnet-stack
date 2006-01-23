@@ -39,6 +39,9 @@
 #include <stddef.h>
 #include "bacdef.h"
 
+/* note: TSM functionality is optional - only needed if we are 
+   doing client requests */
+#if TSM_ENABLED
 typedef enum
 {
   TSM_STATE_IDLE,
@@ -109,6 +112,11 @@ bool tsm_get_transaction_pdu(
   uint16_t *pdu_len);
 
 bool tsm_invoke_id_free(uint8_t invokeID);
+#else
+#define tsm_free_invoke_id(x) (void)x;
+
+
+#endif
 
 #ifdef __cplusplus
 }
