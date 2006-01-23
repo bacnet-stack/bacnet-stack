@@ -71,8 +71,6 @@ void Send_WhoIs(
     &dest,  // destination address
     &Handler_Transmit_Buffer[0],
     pdu_len); // number of bytes of data
-  if (bytes_sent > 0)
-    fprintf(stderr,"Sent Who-Is Request!\n");
-  else
+  if (bytes_sent <= 0)
     fprintf(stderr,"Failed to Send Who-Is Request (%s)!\n", strerror(errno));
 }

@@ -41,8 +41,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-/* returns false if device is not bound or no tsm available */
-bool Send_Read_Property_Request(
+/* returns invoke id of 0 if device is not bound or no tsm available */
+uint8_t Send_Read_Property_Request(
   uint32_t device_id, /* destination device */
   BACNET_OBJECT_TYPE object_type,
   uint32_t object_instance,
@@ -99,9 +99,7 @@ bool Send_Read_Property_Request(
           &dest,  // destination address
       &Handler_Transmit_Buffer[0],
       pdu_len); // number of bytes of data
-      if (bytes_sent > 0)
-        fprintf(stderr,"Sent ReadProperty Request!\n");
-      else
+      if (bytes_sent <= 0)
         fprintf(stderr,"Failed to Send ReadProperty Request (%s)!\n",
                 strerror(errno));
     }
@@ -110,5 +108,5 @@ bool Send_Read_Property_Request(
           "(exceeds destination maximum APDU)!\n");
   }
 
-  return status;
+  return invoke_id;
 }

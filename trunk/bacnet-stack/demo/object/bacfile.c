@@ -239,6 +239,7 @@ uint32_t bacfile_instance(char *filename)
   return instance;
 }
 
+#if TSM_ENABLED
 // this is one way to match up the invoke ID with
 // the file ID from the AtomicReadFile request.
 // Another way would be to store the
@@ -300,6 +301,7 @@ uint32_t bacfile_instance_from_tsm(
   
   return object_instance;
 }
+#endif
 
 bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 {

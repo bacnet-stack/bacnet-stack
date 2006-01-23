@@ -41,13 +41,13 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-/* FIXME: probably should return the invoke ID for confirmed request */
-bool Send_Write_Property_Request(
+/* returns the invoke ID for confirmed request, or zero on failure */
+uint8_t Send_Write_Property_Request(
   uint32_t device_id, // destination device
   BACNET_OBJECT_TYPE object_type,
   uint32_t object_instance,
   BACNET_PROPERTY_ID object_property,
-  BACNET_APPLICATION_DATA_VALUE object_value,
+  BACNET_APPLICATION_DATA_VALUE *object_value,
   uint8_t priority,
   int32_t array_index)
 {
@@ -81,7 +81,7 @@ bool Send_Write_Property_Request(
     data.object_instance = object_instance;
     data.object_property = object_property;
     data.array_index = array_index;
-    data.value = object_value;
+    bacapp_copy(&data.value,object_value);
     data.priority = priority;
     pdu_len += wp_encode_apdu(
       &Handler_Transmit_Buffer[pdu_len],
@@ -103,9 +103,7 @@ bool Send_Write_Property_Request(
         &dest,  // destination address
         &Handler_Transmit_Buffer[0],
         pdu_len); // number of bytes of data
-      if (bytes_sent > 0)
-        fprintf(stderr,"Sent ReadProperty Request!\n");
-      else
+      if (bytes_sent <= 0)
         fprintf(stderr,"Failed to Send WriteProperty Request (%s)!\n",
           strerror(errno));
     }
@@ -114,6 +112,6 @@ bool Send_Write_Property_Request(
         "(exceeds destination maximum APDU)!\n");
   }
 
-  return status;
+  return invoke_id;
 }
 

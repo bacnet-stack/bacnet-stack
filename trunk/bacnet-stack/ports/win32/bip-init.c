@@ -63,7 +63,8 @@ static void set_broadcast_address(uint32_t net_address)
   long broadcast_address = 0;
   long mask = 0;
 
-  #if 0
+  #if USE_INADDR
+  (void)net_address;
   bip_set_broadcast_addr(INADDR_BROADCAST);
   #else
   if (IN_CLASSA(ntohl(net_address)))
@@ -102,7 +103,8 @@ bool bip_init(void)
     WSADATA wd;
     struct in_addr address;
 
-    Result = WSAStartup(MAKEWORD(2,2), &wd);
+    Result = WSAStartup((1 << 8) | 1, &wd);
+    //Result = WSAStartup(MAKEWORD(2,2), &wd);
     if (Result != 0)
     {
       Code = WSAGetLastError();
@@ -124,11 +126,14 @@ bool bip_init(void)
     bip_set_addr(address.s_addr);
     set_broadcast_address(address.s_addr);
 
-    // assumes that the driver has already been initialized
+    /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     bip_set_socket(sock_fd);
     if (sock_fd < 0)
+    {
+      fprintf(stderr,"bip: failed to allocate a socket.\n");
       return false;
+    }
 
     // Allow us to use the same socket for sending and receiving
     // This makes sure that the src port is correct when sending
@@ -136,6 +141,7 @@ bool bip_init(void)
         (char *)&value, sizeof(value));
     if (rv < 0)
     {
+      fprintf(stderr,"bip: failed to set REUSEADDR socket option.\n");
       close(sock_fd);
       bip_set_socket(-1);
       return false;
@@ -145,6 +151,7 @@ bool bip_init(void)
       (char *)&value, sizeof(value));
     if (rv < 0)
     {
+      fprintf(stderr,"bip: failed to set BROADCAST socket option.\n");
       close(sock_fd);
       bip_set_socket(-1);
       return false;
@@ -168,11 +175,14 @@ bool bip_init(void)
        Note: sometimes INADDR_ANY does not let me get
        any unicast messages.  Not sure why...
        */
-    /* sin.sin_addr.s_addr = htonl(INADDR_ANY); */
+    #if USE_INADDR
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    #else
     /* or we could use the specific adapter address
        note: already in network byte order */
-    sin.sin_addr.s_addr = address.s_addr;
+    //sin.sin_addr.s_addr = address.s_addr;
     sin.sin_port = htons(bip_get_port());
+    #endif
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     rv = bind(sock_fd,
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));

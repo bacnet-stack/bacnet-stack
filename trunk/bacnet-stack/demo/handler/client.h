@@ -54,7 +54,7 @@ bool Send_Write_Property_Request(
   BACNET_OBJECT_TYPE object_type,
   uint32_t object_instance,
   BACNET_PROPERTY_ID object_property,
-  BACNET_APPLICATION_DATA_VALUE object_value,
+  BACNET_APPLICATION_DATA_VALUE *object_value,
   uint8_t priority,
   int32_t array_index);
 

@@ -228,7 +228,7 @@ typedef enum
   PROP_UPDATE_TIME = 189,
   PROP_VALUE_BEFORE_CHANGE = 190,
   PROP_VALUE_SET = 191,
-  PROP_VALUE_CHANGE_TIME = 192
+  PROP_VALUE_CHANGE_TIME = 192,
 
   // The special property identifiers all, optional, and required 
   // are reserved for use in the ReadPropertyConditional and
@@ -237,6 +237,7 @@ typedef enum
   // Enumerated values 512-4194303 may be used by others subject to the 
   // procedures and constraints described in Clause 23. 
   // The highest enumeration used in this version is 168.
+  MAX_BACNET_PROPERTY_ID = 4194303
 } BACNET_PROPERTY_ID;
 
 typedef enum
@@ -701,7 +702,8 @@ typedef enum
   // Enumerated values 0-127 are reserved for definition by ASHRAE.
   // Enumerated values 128-1023 may be used by others subject to 
   // the procedures and constraints described in Clause 23.
-  MAX_BACNET_OBJECT_TYPES = 25 // used for bit string loop
+  MAX_ASHRAE_OBJECT_TYPE = 25, // used for bit string loop
+  MAX_BACNET_OBJECT_TYPE = 1023
 } BACNET_OBJECT_TYPE;
 
 typedef enum
@@ -753,7 +755,8 @@ typedef enum {
     BACNET_APPLICATION_TAG_OBJECT_ID = 12,
     BACNET_APPLICATION_TAG_RESERVED1 = 13,
     BACNET_APPLICATION_TAG_RESERVED2 = 14,
-    BACNET_APPLICATION_TAG_RESERVED3 = 15
+    BACNET_APPLICATION_TAG_RESERVED3 = 15,
+    MAX_BACNET_APPLICATION_TAG = 16
 } BACNET_APPLICATION_TAG;
 
 // note: these are not the real values,

@@ -478,7 +478,7 @@ int Device_Encode_Property_APDU(
         break;
     case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
         bitstring_init(&bit_string);
-        for (i = 0; i < MAX_BACNET_OBJECT_TYPES; i++)
+        for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++)
         {
           // initialize all the object types to not-supported
           bitstring_set_bit(&bit_string, (uint8_t)i, false);

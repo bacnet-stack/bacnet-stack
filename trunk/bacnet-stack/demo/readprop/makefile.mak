@@ -1,5 +1,5 @@
 #
-# Simple makefile to build an RTB executable for RTOS-32
+# Simple makefile to build an executable for Win32
 #
 # This makefile assumes Borland bcc32 development environment
 # on Windows NT/9x/2000/XP
@@ -11,21 +11,22 @@ BORLAND_DIR_Not_Defined:
    @echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
-PRODUCT = bacnet
+PRODUCT = bacrp
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
 DEFINES = -DBACDL_BIP=1;TSM_ENABLED=1
 
-SRCS = main.c bip-init.c \
+SRCS = readprop.c \
+       ..\..\ports\win32\bip-init.c \
+       ..\..\filename.c \
        ..\..\bip.c  \
-       ..\..\demo\handler\h_iam.c  \
+       ..\..\demo\handler\txbuf.c  \
+       ..\..\demo\handler\noserv.c  \
        ..\..\demo\handler\h_whois.c  \
-       ..\..\demo\handler\h_wp.c  \
+       ..\..\demo\handler\h_iam.c  \
        ..\..\demo\handler\h_rp.c  \
        ..\..\demo\handler\h_rp_a.c  \
-       ..\..\demo\handler\noserv.c  \
-       ..\..\demo\handler\txbuf.c  \
        ..\..\demo\handler\s_rp.c  \
        ..\..\demo\handler\s_whois.c  \
        ..\..\bacdcode.c \
@@ -57,8 +58,7 @@ OBJS = $(SRCS:.c=.obj)
 
 # Compiler definitions
 #
-BCC_CFG = bcc32.cfg
-CC = $(BORLAND_DIR)\bin\bcc32 +$(BCC_CFG)
+CC = $(BORLAND_DIR)\bin\bcc32 +bcc32.cfg
 #LINK = $(BORLAND_DIR)\bin\tlink32
 LINK = $(BORLAND_DIR)\bin\ilink32
 TLIB = $(BORLAND_DIR)\bin\tlib
@@ -67,7 +67,7 @@ TLIB = $(BORLAND_DIR)\bin\tlib
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-INCL_DIRS = -I$(BORLAND_DIR)\include;..\..\;..\..\demo\handler\;..\..\demo\object\;.
+INCL_DIRS = -I$(BORLAND_DIR)\include;..\..\;..\..\demo\object\;..\..\demo\handler\;..\..\ports\win32\;.
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
@@ -83,7 +83,7 @@ $(C_LIB_DIR)\CW32MT.lib
 #
 # This should be the first one in the makefile
 
-all : $(BCC_CFG) $(PRODUCT_EXE)
+all : bcc32.cfg $(PRODUCT_EXE)
 
 # Linker specific: the link below is for BCC linker/compiler. If you link
 # with a different linker - please change accordingly.
@@ -104,13 +104,15 @@ $(PRODUCT_EXE) : $(OBJS)
 
 clean :
 	@echo Deleting obj files, $(PRODUCT_EXE) and map files.
+#	del $(OBJS) # command too long, bummer!
 	del *.obj
 	del ..\..\*.obj
 	del ..\..\demo\handler\*.obj
 	del ..\..\demo\object\*.obj
+	del ..\..\ports\win32\*.obj
 	del $(PRODUCT_EXE)
 	del *.map
-	del $(BCC_CFG)
+	del bcc32.cfg
 
 #
 # Generic rules
@@ -124,7 +126,7 @@ clean :
 	$(CC) -o$@ $<
 
 # Compiler configuration file
-$(BCC_CFG) :
+bcc32.cfg :
    Copy &&|
 $(CFLAGS) 
 -c 
