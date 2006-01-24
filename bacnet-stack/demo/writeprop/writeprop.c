@@ -112,6 +112,15 @@ void MyRejectHandler(
   Error_Detected = true;
 }
 
+void MyWritePropertySimpleAckHandler(
+  BACNET_ADDRESS *src,
+  uint8_t invoke_id)
+{
+  (void)src;
+  (void)invoke_id;
+  printf("\r\nWriteProperty Acknowledged!\r\n");
+}
+
 static void Init_Service_Handlers(void)
 {
   /* we need to handle who-is 
@@ -131,9 +140,13 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
     handler_read_property);
+  /* handle the ack coming back */
+  apdu_set_confirmed_simple_ack_handler(
+    SERVICE_CONFIRMED_WRITE_PROPERTY,
+    MyWritePropertySimpleAckHandler);
   /* handle any errors coming back */
   apdu_set_error_handler(
-    SERVICE_CONFIRMED_READ_PROPERTY,
+    SERVICE_CONFIRMED_WRITE_PROPERTY,
     MyErrorHandler);
   apdu_set_abort_handler(
     MyAbortHandler);
@@ -173,7 +186,7 @@ int main(int argc, char *argv[])
   value_string = argv[6];
   /* optional priority */
   if (argc > 7)
-    Target_Object_Property_Index = strtol(argv[7],NULL,0);
+    Target_Object_Property_Priority = strtol(argv[7],NULL,0);
   /* optional index */
   if (argc > 8)
     Target_Object_Property_Index = strtol(argv[8],NULL,0);
