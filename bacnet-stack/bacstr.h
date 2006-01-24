@@ -99,6 +99,9 @@ bool characterstring_init(
 bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING *char_string,
     char *value);
+bool characterstring_copy(
+  BACNET_CHARACTER_STRING *dest,
+  BACNET_CHARACTER_STRING *src);
 /* returns false if the string exceeds capacity */
 bool characterstring_append(
   BACNET_CHARACTER_STRING *char_string,
@@ -127,8 +130,8 @@ bool octetstring_init(
   uint8_t *value,
   size_t length);
 bool octetstring_copy(
-  BACNET_OCTET_STRING *octet_string_dest,
-  BACNET_OCTET_STRING *octet_string_src);
+  BACNET_OCTET_STRING *dest,
+  BACNET_OCTET_STRING *src);
 /* returns false if the string exceeds capacity */
 bool octetstring_append(
     BACNET_OCTET_STRING *octet_string,
