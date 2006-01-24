@@ -66,7 +66,7 @@ int wp_encode_apdu(
     apdu_len += bacapp_encode_application_data(&apdu[apdu_len], &data->value);
     apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
     // optional priority - 0 if not set, 1..16 if set
-    if (data->priority)
+    if (data->priority != BACNET_NO_PRIORITY)
       apdu_len += encode_context_unsigned(&apdu[apdu_len], 4,
         data->priority);
   }
@@ -133,8 +133,8 @@ int wp_decode_service_request(
       return -1;
     // a tag number of 3 is not extended so only one octet
     len++;
-    // Tag 4: optional Priority
-    data->priority = BACNET_MAX_PRIORITIES;
+    // Tag 4: optional Priority - assumed MAX if not explicitly set
+    data->priority = BACNET_MAX_PRIORITY;
     if ((unsigned)len < apdu_len)
     {
       tag_len = decode_tag_number_and_value(&apdu[len],
@@ -143,8 +143,13 @@ int wp_decode_service_request(
       {
         len += tag_len;
         len = decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
-		/* FIXME: bounds check */
-        data->priority = (uint8_t)unsigned_value;
+        if ((unsigned_value >= BACNET_MIN_PRIORITY) && 
+          (unsigned_value <= BACNET_MAX_PRIORITY))
+        {
+          data->priority = (uint8_t)unsigned_value;
+        }
+        else
+          return -1;
       }
     }
   }
