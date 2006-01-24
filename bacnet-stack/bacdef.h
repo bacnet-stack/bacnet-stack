@@ -49,7 +49,9 @@
 #define BACNET_ARRAY_LENGTH_INDEX 0
 #define BACNET_ARRAY_ALL (~0)
 // Priority Array for commandable objects
-#define BACNET_MAX_PRIORITIES 16
+#define BACNET_NO_PRIORITY 0
+#define BACNET_MIN_PRIORITY 1
+#define BACNET_MAX_PRIORITY 16
 
 // embedded systems need fixed name sizes
 #define MAX_OBJECT_NAME 10

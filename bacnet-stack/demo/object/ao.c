@@ -46,7 +46,7 @@
 // Here is our Priority Array.  They are supposed to be Real, but
 // we don't have that kind of memory, so we will use a single byte
 // and load a Real for returning the value when asked.
-static uint8_t Analog_Output_Level[MAX_ANALOG_OUTPUTS][BACNET_MAX_PRIORITIES];
+static uint8_t Analog_Output_Level[MAX_ANALOG_OUTPUTS][BACNET_MAX_PRIORITY];
 // Writable out-of-service allows others to play with our Present Value
 // without changing the physical output
 static bool Analog_Output_Out_Of_Service[MAX_ANALOG_OUTPUTS];
@@ -65,7 +65,7 @@ void Analog_Output_Init(void)
     // initialize all the analog output priority arrays to NULL
     for (i = 0; i < MAX_ANALOG_OUTPUTS; i++)
     {
-      for (j = 0; j < BACNET_MAX_PRIORITIES; j++)
+      for (j = 0; j < BACNET_MAX_PRIORITY; j++)
       {
         Analog_Output_Level[i][j] = AO_LEVEL_NULL;
       }
@@ -128,7 +128,7 @@ static float Analog_Output_Present_Value(uint32_t object_instance)
   index = Analog_Output_Instance_To_Index(object_instance);
   if (index < MAX_ANALOG_OUTPUTS)
   {
-    for (i = 0; i < BACNET_MAX_PRIORITIES; i++)
+    for (i = 0; i < BACNET_MAX_PRIORITY; i++)
     {
       if (Analog_Output_Level[index][i] != AO_LEVEL_NULL)
       {
@@ -200,13 +200,13 @@ int Analog_Output_Encode_Property_APDU(
     case PROP_PRIORITY_ARRAY:
       // Array element zero is the number of elements in the array
       if (array_index == BACNET_ARRAY_LENGTH_INDEX)
-        apdu_len = encode_tagged_unsigned(&apdu[0], BACNET_MAX_PRIORITIES);
+        apdu_len = encode_tagged_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
       // if no index was specified, then try to encode the entire list
       // into one packet.
       else if (array_index == BACNET_ARRAY_ALL)
       {
         object_index = Analog_Output_Instance_To_Index(object_instance);
-        for (i = 0; i < BACNET_MAX_PRIORITIES; i++)
+        for (i = 0; i < BACNET_MAX_PRIORITY; i++)
         {
           // FIXME: check if we have room before adding it to APDU
           if (Analog_Output_Level[object_index][i] == AO_LEVEL_NULL)
@@ -231,7 +231,7 @@ int Analog_Output_Encode_Property_APDU(
       else
       {
         object_index = Analog_Output_Instance_To_Index(object_instance);
-        if (array_index <= BACNET_MAX_PRIORITIES)
+        if (array_index <= BACNET_MAX_PRIORITY)
         {
           if (Analog_Output_Level[object_index][array_index] == AO_LEVEL_NULL)
             len = encode_tagged_null(&apdu[apdu_len]);
@@ -288,7 +288,7 @@ bool Analog_Output_Write_Property(
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL)
       {
         priority = wp_data->priority;
-        if (priority && (priority <= BACNET_MAX_PRIORITIES) &&
+        if (priority && (priority <= BACNET_MAX_PRIORITY) &&
            (priority != 6 /* reserved */) &&
            (wp_data->value.type.Real >= 0.0) &&
            (wp_data->value.type.Real <= 100.0))
@@ -320,7 +320,7 @@ bool Analog_Output_Write_Property(
         object_index = Analog_Output_Instance_To_Index(
           wp_data->object_instance);
         priority = wp_data->priority;
-        if (priority && (priority <= BACNET_MAX_PRIORITIES))
+        if (priority && (priority <= BACNET_MAX_PRIORITY))
         {
           priority--;
           Analog_Output_Level[object_index][priority] = level;
