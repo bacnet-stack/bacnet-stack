@@ -151,7 +151,6 @@ int main(int argc, char *argv[])
   time_t last_seconds = 0; 
   time_t current_seconds = 0;
   time_t timeout_seconds = 0;
-  int fileStartPosition = 0;
   uint8_t invoke_id = 0;
   bool found = false;
   char *value_string = NULL;
