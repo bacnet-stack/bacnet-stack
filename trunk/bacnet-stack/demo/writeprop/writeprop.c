@@ -57,9 +57,12 @@ static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static uint32_t Target_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_OBJECT_TYPE Target_Object_Type = OBJECT_ANALOG_INPUT;
 static BACNET_PROPERTY_ID Target_Object_Property = PROP_ACKED_TRANSITIONS;
+/* array index value or BACNET_ARRAY_ALL */
 static int32_t Target_Object_Property_Index = BACNET_ARRAY_ALL;
 static BACNET_APPLICATION_TAG Target_Object_Property_Tag = BACNET_APPLICATION_TAG_NULL;
 static BACNET_APPLICATION_DATA_VALUE Target_Object_Property_Value = {0};
+/* 0 if not set, 1..16 if set */
+static uint8_t Target_Object_Property_Priority = 0;
 
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
@@ -128,10 +131,6 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
     handler_read_property);
-  /* handle the data coming back from confirmed requests */
-  apdu_set_confirmed_ack_handler(
-    SERVICE_CONFIRMED_READ_PROPERTY,
-    handler_read_property_ack);
   /* handle any errors coming back */
   apdu_set_error_handler(
     SERVICE_CONFIRMED_READ_PROPERTY,
@@ -156,10 +155,13 @@ int main(int argc, char *argv[])
   uint8_t invoke_id = 0;
   bool found = false;
   char *value_string = NULL;
+  bool status = false;
   
   if (argc < 7)
   {
-    printf("%s device-instance object-type object-instance property [index] tag value\r\n",
+    /* note: priority 16 and 0 should produce the same end results... */
+    printf("%s device-instance object-type object-instance "
+      "property tag value [priority] [index]\r\n",
       filename_remove_path(argv[0]));
     return 0;
   }
@@ -168,18 +170,14 @@ int main(int argc, char *argv[])
   Target_Object_Type = strtol(argv[2],NULL,0);
   Target_Object_Instance = strtol(argv[3],NULL,0);
   Target_Object_Property = strtol(argv[4],NULL,0);
-  /* optional index */
+  Target_Object_Property_Tag = strtol(argv[5],NULL,0);
+  value_string = argv[6];
+  /* optional priority */
   if (argc > 7)
-  {
-    Target_Object_Property_Index = strtol(argv[5],NULL,0);
-    Target_Object_Property_Tag = strtol(argv[6],NULL,0);
-    value_string = argv[7];
-  }
-  else
-  {
-    Target_Object_Property_Tag = strtol(argv[5],NULL,0);
-    value_string = argv[6];
-  }
+    Target_Object_Property_Index = strtol(argv[7],NULL,0);
+  /* optional index */
+  if (argc > 8)
+    Target_Object_Property_Index = strtol(argv[8],NULL,0);
     
   if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE)
   {
@@ -280,17 +278,12 @@ int main(int argc, char *argv[])
         if (invoke_id == 0) 
         {
           invoke_id = Send_Write_Property_Request(
-  uint32_t device_id, // destination device
-  BACNET_OBJECT_TYPE object_type,
-  uint32_t object_instance,
-  BACNET_PROPERTY_ID object_property,
-  BACNET_APPLICATION_DATA_VALUE object_value,
-  uint8_t priority,
-  int32_t array_index)
             Target_Device_Object_Instance,
             Target_Object_Type,
             Target_Object_Instance,
             Target_Object_Property,
+            &Target_Object_Property_Value,
+            Target_Object_Property_Priority,
             Target_Object_Property_Index);
         }
         else if (tsm_invoke_id_free(invoke_id))
