@@ -225,6 +225,16 @@ bool characterstring_init_ansi(
       value, value?strlen(value):0);
 }
 
+bool characterstring_copy(
+  BACNET_CHARACTER_STRING *dest,
+  BACNET_CHARACTER_STRING *src)
+{
+  return characterstring_init(dest,
+    characterstring_encoding(src),
+    characterstring_value(src),
+    characterstring_length(src));
+}
+
 /* returns false if the string exceeds capacity */
 bool characterstring_append(
   BACNET_CHARACTER_STRING *char_string,
@@ -361,12 +371,12 @@ bool octetstring_init(
 }
 
 bool octetstring_copy(
-  BACNET_OCTET_STRING *octet_string_dest,
-  BACNET_OCTET_STRING *octet_string_src)
+  BACNET_OCTET_STRING *dest,
+  BACNET_OCTET_STRING *src)
 {
-  return octetstring_init(octet_string_dest,
-    octetstring_value(octet_string_src),
-    octetstring_length(octet_string_src));
+  return octetstring_init(dest,
+    octetstring_value(src),
+    octetstring_length(src));
 }
 
 /* returns false if the string exceeds capacity */
