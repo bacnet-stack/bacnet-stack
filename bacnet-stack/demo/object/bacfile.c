@@ -49,6 +49,7 @@ static BACNET_FILE_LISTING BACnet_File_Listing[] =
 {
   {0, "test.log"},
   {1, "script.txt"},
+  {2, "bacenum.h"},
   {0, NULL} // last file indication
 };
 
