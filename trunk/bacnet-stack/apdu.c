@@ -42,6 +42,56 @@
 #include "tsm.h"
 #include "iam.h"
 
+/* a simple table for crossing the services supported */
+static BACNET_SERVICES_SUPPORTED confirmed_service_supported[MAX_BACNET_CONFIRMED_SERVICE] =
+{
+  SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM,
+  SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION,
+  SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION,
+  SERVICE_SUPPORTED_GET_ALARM_SUMMARY,
+  SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY,
+  SERVICE_SUPPORTED_SUBSCRIBE_COV,
+  SERVICE_SUPPORTED_ATOMIC_READ_FILE,
+  SERVICE_SUPPORTED_ATOMIC_WRITE_FILE,
+  SERVICE_SUPPORTED_ADD_LIST_ELEMENT,
+  SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT,
+  SERVICE_SUPPORTED_CREATE_OBJECT,
+  SERVICE_SUPPORTED_DELETE_OBJECT,
+  SERVICE_SUPPORTED_READ_PROPERTY,
+  SERVICE_SUPPORTED_READ_PROPERTY_CONDITIONAL,
+  SERVICE_SUPPORTED_READ_PROPERTY_MULTIPLE,
+  SERVICE_SUPPORTED_WRITE_PROPERTY,
+  SERVICE_SUPPORTED_WRITE_PROPERTY_MULTIPLE,
+  SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL,
+  SERVICE_SUPPORTED_PRIVATE_TRANSFER,
+  SERVICE_SUPPORTED_TEXT_MESSAGE,
+  SERVICE_SUPPORTED_REINITIALIZE_DEVICE,
+  SERVICE_SUPPORTED_VT_OPEN,
+  SERVICE_SUPPORTED_VT_CLOSE,
+  SERVICE_SUPPORTED_VT_DATA,
+  SERVICE_SUPPORTED_AUTHENTICATE,
+  SERVICE_SUPPORTED_REQUEST_KEY,
+  SERVICE_SUPPORTED_READ_RANGE,
+  SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION,
+  SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY,
+  SERVICE_SUPPORTED_GET_EVENT_INFORMATION
+};
+
+/* a simple table for crossing the services supported */
+static BACNET_SERVICES_SUPPORTED unconfirmed_service_supported[MAX_BACNET_UNCONFIRMED_SERVICE] =
+{
+  SERVICE_SUPPORTED_I_AM,
+  SERVICE_SUPPORTED_I_HAVE,
+  SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION,
+  SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION,
+  SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER,
+  SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE,
+  SERVICE_SUPPORTED_TIME_SYNCHRONIZATION,
+  SERVICE_SUPPORTED_WHO_HAS,
+  SERVICE_SUPPORTED_WHO_IS,
+  SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION
+};
+
 // Confirmed Function Handlers
 // If they are not set, they are handled by a reject message
 static confirmed_function 
@@ -53,6 +103,56 @@ void apdu_set_confirmed_handler(
 {
   if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
     Confirmed_Function[service_choice] = pFunction;
+}
+
+/* returns true if the handler is set */
+bool apdu_confirmed_handler(
+    BACNET_CONFIRMED_SERVICE service_choice)
+{
+  bool status = false;
+  if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
+       (Confirmed_Function[service_choice] != NULL))
+    status = true;
+
+  return status;
+}
+
+bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
+{
+  int i = 0;
+  bool status = false;
+  bool found = false;
+  int service = 0;
+
+  if (service_supported < MAX_BACNET_SERVICES_SUPPORTED)
+  {
+    /* is it a confirmed service? */
+    for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++)
+    {
+      if (confirmed_service_supported[i] == service_supported)
+      {
+        if (apdu_confirmed_handler(i))
+          status = true;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found)
+    {
+      /* is it an unconfirmed service? */
+      for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++)
+      {
+        if (unconfirmed_service_supported[i] == service_supported)
+        {
+          if (apdu_unconfirmed_handler(i))
+            status = true;
+          break;
+        }
+      }
+    }
+  }
+  return status;
 }
 
 // Allow the APDU handler to automatically reject
@@ -80,6 +180,17 @@ void apdu_set_unconfirmed_handler(
     Unconfirmed_Function[service_choice] = pFunction;
 }
 
+bool apdu_unconfirmed_handler(
+    BACNET_UNCONFIRMED_SERVICE service_choice)
+{
+  bool status = false;
+  
+  if ((service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) &&
+       (Unconfirmed_Function[service_choice] != NULL))
+    status = true;
+
+  return status;
+}
 // Confirmed ACK Function Handlers
 static void *Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 

@@ -394,7 +394,7 @@ int Device_Encode_Property_APDU(
   int object_type = 0;
   uint32_t instance = 0;
   unsigned count = 0;
-  
+
   switch (property)
   {
     case PROP_OBJECT_IDENTIFIER:
@@ -463,20 +463,18 @@ int Device_Encode_Property_APDU(
         apdu_len = encode_tagged_unsigned(&apdu[0], 1);
         break;
     case PROP_PROTOCOL_SERVICES_SUPPORTED:
+        /* Note: list of services that are executed, not initiated. */
         bitstring_init(&bit_string);
         for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++)
         {
-          // bitstring_set_bit(&bit_string, i, apdu_service_supported(i));
-          // initialize all the services to not-supported
-          bitstring_set_bit(&bit_string, (uint8_t)i, false);
+          /* automatic lookup based on handlers set */
+          bitstring_set_bit(&bit_string, (uint8_t)i, apdu_service_supported(i));
         }
-        /* FIXME: set only the services that YOUR device executes */
-        bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_WHO_IS, true);
-        bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_I_AM, true);
-        bitstring_set_bit(&bit_string, SERVICE_SUPPORTED_READ_PROPERTY, true);
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
+        /* Note: this is the list of objects that can be in this device,
+           not a list of objects that this device can access */
         bitstring_init(&bit_string);
         for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++)
         {
@@ -487,6 +485,9 @@ int Device_Encode_Property_APDU(
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_OUTPUT, true);
+        #if BACFILE
+        bitstring_set_bit(&bit_string, OBJECT_FILE, true);
+        #endif
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
