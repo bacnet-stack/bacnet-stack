@@ -1,81 +1,17 @@
-#Makefile to build BACnet Application for the Linux Port
-CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -O2 -g
-# Note: you can strip out symbols using the strip command
-# to get an idea of how big the compile really is.
-#DEFINES = -DBACFILE=1 -DBACDL_ETHERNET=1
-#DEFINES = -DBACFILE=1 -DBACDL_ARCNET=1
-#DEFINES = -DBACFILE=1 -DBACDL_MSTP=1 
-DEFINES = -DBACFILE=1 -DBACDL_BIP=1 
-INCLUDES = -I. -Iports/linux -Idemo/object -Idemo/handler
+all: readprop writeprop readfile writefile server
+	echo "utilities are in demo/xx directories"
+readprop: demo/readprop/Makefile
+	( cd demo/readprop ; make clean ; make )
 
-CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
+writeprop: demo/writeprop/Makefile
+	( cd demo/readprop ; make clean ; make )
 
-SRCS = ports/linux/main.c \
-       ports/linux/ethernet.c \
-       ports/linux/arcnet.c \
-       ports/linux/bip-init.c \
-       bip.c \
-       dlmstp.c \
-       demo/handler/txbuf.c \
-       demo/handler/noserv.c \
-       demo/handler/h_whois.c \
-       demo/handler/h_rp.c \
-       demo/handler/h_wp.c \
-       demo/handler/h_iam.c \
-       demo/handler/h_rp_a.c \
-       demo/handler/h_arf.c \
-       demo/handler/h_arf_a.c \
-       demo/handler/s_rp.c \
-       demo/handler/s_whois.c \
-       demo/handler/s_wp.c \
-       bacdcode.c \
-       bacapp.c \
-       bacprop.c \
-       bacstr.c \
-       bigend.c \
-       whois.c \
-       iam.c \
-       rp.c \
-       wp.c \
-       tsm.c \
-       datalink.c \
-       address.c \
-       demo/object/device.c \
-       demo/object/ai.c \
-       demo/object/ao.c \
-       demo/object/bacfile.c \
-       arf.c \
-       awf.c \
-       abort.c \
-       reject.c \
-       bacerror.c \
-       indtext.c \
-       bactext.c \
-       apdu.c \
-       npdu.c
+readfile: demo/readfile/Makefile
+	( cd demo/readfile ; make clean ; make )
 
-OBJS = ${SRCS:.c=.o}
+writefile: demo/writefile/Makefile
+	( cd demo/writefile ; make clean ; make )
 
-TARGET = bacnet
-
-all: ${TARGET}
- 
-${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
-
-.c.o:
-	${CC} -c ${CFLAGS} $*.c -o $@
-	
-depend:
-	rm -f .depend
-	${CC} -MM ${CFLAGS} *.c >> .depend
-	
-clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak ports/linux/*.bak *.1 *.ini
-
-include: .depend
+server: demo/server/Makefile
+	( cd demo/server ; make clean ; make )
 
