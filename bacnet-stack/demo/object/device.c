@@ -30,6 +30,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h" // the custom stuff
+#include "apdu.h"
 #include "ai.h" // object list dependency
 #include "ao.h" // object list dependency
 #include "wp.h" // write property handling

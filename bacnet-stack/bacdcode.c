@@ -1678,7 +1678,7 @@ void testBACDCodeSignedValue(Test * pTest, int32_t value)
 {
   uint8_t array[5] = { 0 };
   uint8_t encoded_array[5] = { 0 };
-  long decoded_value = 0;
+  int decoded_value = 0;
   int len = 0, apdu_len = 0;
   uint8_t apdu[MAX_APDU] = { 0 };
   uint8_t tag_number = 0;
@@ -1692,7 +1692,7 @@ void testBACDCodeSignedValue(Test * pTest, int32_t value)
   ct_test(pTest, decoded_value == value);
   if (decoded_value != value)
   {
-    printf("value=%d decoded_value=%ld\n", value, decoded_value);
+    printf("value=%d decoded_value=%d\n", value, decoded_value);
     print_apdu(&array[0],sizeof(array));
   }
   encode_tagged_signed(&encoded_array[0], decoded_value);

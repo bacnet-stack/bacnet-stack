@@ -1,8 +1,8 @@
 #Makefile to build test case
 CC      = gcc
 # -g for debugging with gdb
-DEFINES = -DTEST -DTEST_TSM
-INCLUDES = -I. -Idemo/object -Itest -Iports/linux
+DEFINES = -DTSM_ENABLED=1 -DTEST -DTEST_TSM
+INCLUDES = -I. -Idemo/object -Idemo/handler -Itest -Iports/linux
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = address.c \
