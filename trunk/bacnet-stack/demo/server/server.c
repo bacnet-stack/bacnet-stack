@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(strtol(argv[1],NULL,0));
   if (argc > 2)
     bip_set_port(strtol(argv[2],NULL,0));
-  printf("BACnet Server Demo - Device #%lu\r\n",
+  printf("BACnet Server Demo - Device #%u\r\n",
     Device_Object_Instance_Number());
   Init_Service_Handlers();
   #ifdef BACDL_ETHERNET
