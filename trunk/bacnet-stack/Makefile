@@ -1,10 +1,18 @@
 all: readprop writeprop readfile writefile server
 	echo "utilities are in demo/xx directories"
+
+clean: demo/readprop/Makefile demo/writeprop/Makefile demo/readfile/Makefile demo/writefile/Makefile demo/server/Makefile
+	( cd demo/readprop ; make clean )
+	( cd demo/writeprop ; make clean )
+	( cd demo/readfile ; make clean )
+	( cd demo/writefile ; make clean )
+	( cd demo/server ; make clean )
+
 readprop: demo/readprop/Makefile
 	( cd demo/readprop ; make clean ; make )
 
 writeprop: demo/writeprop/Makefile
-	( cd demo/readprop ; make clean ; make )
+	( cd demo/writeprop ; make clean ; make )
 
 readfile: demo/readfile/Makefile
 	( cd demo/readfile ; make clean ; make )
