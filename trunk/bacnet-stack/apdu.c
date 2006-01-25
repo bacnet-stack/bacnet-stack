@@ -122,7 +122,6 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
   int i = 0;
   bool status = false;
   bool found = false;
-  int service = 0;
 
   if (service_supported < MAX_BACNET_SERVICES_SUPPORTED)
   {
