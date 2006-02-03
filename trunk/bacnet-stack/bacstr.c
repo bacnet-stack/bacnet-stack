@@ -41,7 +41,7 @@
 void bitstring_init(BACNET_BIT_STRING *bit_string)
 {
   int i;
-  
+
   bit_string->bits_used = 0;
   for (i = 0; i < MAX_BITSTRING_BYTES; i++)
   {
@@ -72,7 +72,7 @@ bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit)
   bool value = false;
   uint8_t byte_number = bit/8;
   uint8_t bit_mask = 1;
-  
+
   if (bit < (MAX_BITSTRING_BYTES * 8))
   {
     bit_mask = bit_mask << (bit - (byte_number * 8));
@@ -184,7 +184,7 @@ bool characterstring_init(
   {
     char_string->length = 0;
     char_string->encoding = encoding;
-    /* save a byte at the end for NULL - 
+    /* save a byte at the end for NULL -
        note: assumes printable characters */
     if (length <= CHARACTER_STRING_CAPACITY)
     {
@@ -233,6 +233,33 @@ bool characterstring_copy(
     characterstring_encoding(src),
     characterstring_value(src),
     characterstring_length(src));
+}
+
+bool characterstring_same(
+  BACNET_CHARACTER_STRING *dest,
+  BACNET_CHARACTER_STRING *src)
+{
+  size_t i; /* counter */
+  bool same_status = false;
+
+  if (src && dest)
+  {
+    if ((src->length == dest->length) &&
+      (src->encoding == dest->encoding))
+    {
+      same_status = true;
+      for (i = 0; i < src->length; i++)
+      {
+        if (src->value[i] != dest->value[i])
+        {
+          same_status = false;
+          break;
+        }
+      }
+    }
+  }
+
+  return same_status;
 }
 
 /* returns false if the string exceeds capacity */
@@ -285,7 +312,7 @@ bool characterstring_truncate(
 char *characterstring_value(BACNET_CHARACTER_STRING *char_string)
 {
   char *value = NULL;
-  
+
   if (char_string)
   {
     value = char_string->value;
@@ -429,7 +456,7 @@ bool octetstring_truncate(
 uint8_t *octetstring_value(BACNET_OCTET_STRING *octet_string)
 {
   uint8_t *value = NULL;
-  
+
   if (octet_string)
   {
     value = octet_string->value;
@@ -477,13 +504,13 @@ void testBitString(Test * pTest)
   BACNET_BIT_STRING bit_string;
 
   bitstring_init(&bit_string);
-  // verify initialization 
+  // verify initialization
   ct_test(pTest, bitstring_bits_used(&bit_string) == 0);
   for (bit = 0; bit < (MAX_BITSTRING_BYTES*8); bit++)
   {
     ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
   }
-  
+
   // test for true
   for (bit = 0; bit < (MAX_BITSTRING_BYTES*8); bit++)
   {
@@ -532,7 +559,7 @@ void testCharacterString(Test * pTest)
       &bacnet_string,characterstring_capacity(&bacnet_string));
   ct_test(pTest, status == true);
 
-  test_length = strlen(test_value); 
+  test_length = strlen(test_value);
   status = characterstring_init(
     &bacnet_string,
     CHARACTER_ANSI_X34,
