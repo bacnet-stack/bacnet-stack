@@ -102,6 +102,10 @@ bool characterstring_init_ansi(
 bool characterstring_copy(
   BACNET_CHARACTER_STRING *dest,
   BACNET_CHARACTER_STRING *src);
+/* returns true if the strings are the same length, encoding, value */
+bool characterstring_same(
+  BACNET_CHARACTER_STRING *dest,
+  BACNET_CHARACTER_STRING *src);
 /* returns false if the string exceeds capacity */
 bool characterstring_append(
   BACNET_CHARACTER_STRING *char_string,
