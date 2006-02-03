@@ -51,7 +51,9 @@ static long gethostaddr(void)
 
   if (gethostname(host_name, sizeof(host_name)) != 0)
     return -1;
+  #ifdef BIP_DEBUG
   printf("host name: %s\n",host_name);
+  #endif
   if ((host_ent = gethostbyname(host_name)) == NULL)
     return -1;
 
@@ -63,6 +65,8 @@ static void set_broadcast_address(uint32_t net_address)
   long broadcast_address = 0;
   long mask = 0;
 
+  /*   Note: sometimes INADDR_BROADCAST does not let me get
+       any unicast messages.  Not sure why... */
   #if USE_INADDR
   (void)net_address;
   bip_set_broadcast_addr(INADDR_BROADCAST);
@@ -122,7 +126,9 @@ bool bip_init(void)
         Code);
       exit(1);
     }
+    #ifdef BIP_DEBUG
     printf("host address: %s\n",inet_ntoa(address));
+    #endif
     bip_set_addr(address.s_addr);
     set_broadcast_address(address.s_addr);
 
@@ -159,6 +165,7 @@ bool bip_init(void)
 
     // bind the socket to the local port number and IP address
     sin.sin_family = AF_INET;
+    #if USE_INADDR
     /* by setting sin.sin_addr.s_addr to INADDR_ANY,
        I am telling the IP stack to automatically fill
        in the IP address of the machine the process
@@ -173,16 +180,14 @@ bool bip_init(void)
        IP addresses.
 
        Note: sometimes INADDR_ANY does not let me get
-       any unicast messages.  Not sure why...
-       */
-    #if USE_INADDR
+       any unicast messages.  Not sure why... */
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     #else
     /* or we could use the specific adapter address
        note: already in network byte order */
-    //sin.sin_addr.s_addr = address.s_addr;
-    sin.sin_port = htons(bip_get_port());
+    sin.sin_addr.s_addr = address.s_addr;
     #endif
+    sin.sin_port = htons(bip_get_port());
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     rv = bind(sock_fd,
         (const struct sockaddr*)&sin, sizeof(struct sockaddr));
