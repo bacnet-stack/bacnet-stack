@@ -4,6 +4,15 @@ Build for Visual C++ 6.0
 When building the BACnet stack using Visual C++ compiler, 
 there are some settings that are important.
 
+Q. MSVC refuses to open bacnet.dsw and bacnet.dsp.
+
+A. bacnet.dsw and bacnet.dsp are text files that were retrieved
+from CVS on a unix client and are now in unix text file format since
+they end with a "\r\n" rather than "\n".  Use the unix2dos commandline
+tool to convert them back to dos:
+unix2dos bacnet.dsw
+unix2dos bacnet.dsp
+
 Q. error LNK2001: unresolved external symbol _WinMain@16
 
 A. The demo ports/win32/main.c was designed as a Win32 Console 
@@ -24,7 +33,8 @@ where they are:
 6. Type the path to stdint.h in that edit box (using a comma if necessary)
 7. Type the path to bacdcode.h in that edit box (using a comma if necessary)
 In my system, the paths look like:
-c:\code\bacnet-stack\,c:\code\bacnet-stack\ports\win32\
+c:\code\bacnet-stack\,c:\code\bacnet-stack\ports\win32\,
+c:\code\bacnet-stack\demo\handler\,c:\code\bacnet-stack\demo\object\
 8. Press OK
 9. Compile the project again...
 
@@ -37,9 +47,9 @@ its datalink layer. In Visual C++, add a Preprocessor Definition by:
 3. Select the "C/C++" tab (3rd Tab)
 4. Select the Category: General
 5. You can see the "Preprocessor Definitions:" box
-6. Type BACDL_BIP in that edit box (using a comma if necessary)
+6. Type BACDL_BIP=1 in that edit box (using a comma if necessary)
 7. Press OK
-8. Compile the project again...
+8. Compile the entire project again...
 
 Q. error LNK2001: unresolved external symbol __imp__closesocket@4
 
@@ -50,5 +60,17 @@ A. Visual C++ needs to have the Winsock library to be happy:
 4. You can see "Object/library modules:" edit box
 5. Type Wsock32.LIB in that edit box
 6. Press OK
-7. Compile the project again...
+7. Compile the entire project again...
 
+Q. error C2061: in file tsm.c
+A. The BACnet stack uses a preprocessor define to configure
+client functionality in the Transaction State Machine (TSM). 
+In Visual C++, add a Preprocessor Definition by: 
+1. Select "Project" menu
+2. Select "Settings..."
+3. Select the "C/C++" tab (3rd Tab)
+4. Select the Category: General
+5. You can see the "Preprocessor Definitions:" box
+6. Type TSM_ENABLED=1 in that edit box (using a comma if necessary)
+7. Press OK
+8. Compile the entire project again...
