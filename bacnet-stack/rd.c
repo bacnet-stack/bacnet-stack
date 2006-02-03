@@ -37,15 +37,15 @@
 #include "bacdef.h"
 #include "rd.h"
 
-// encode service
+/* encode service */
 int rd_encode_apdu(
   uint8_t *apdu,
   uint8_t invoke_id,
   BACNET_REINITIALIZED_STATE state,
   BACNET_CHARACTER_STRING *password)
 {
-  int len = 0; // length of each encoding
-  int apdu_len = 0; // total length of the apdu, return value
+  int len = 0; /* length of each encoding */
+  int apdu_len = 0; /* total length of the apdu, return value */
 
   if (apdu)
   {
@@ -57,16 +57,20 @@ int rd_encode_apdu(
     len = encode_context_enumerated(&apdu[apdu_len], 0,
       state);
     apdu_len += len;
-    /* FIXME: must be at least 1 character, limited to 20 characters */
-    len = encode_context_character_string(&apdu[apdu_len], 1,
-      password);
-    apdu_len += len;
+    /* optional password */
+    if (password)
+    {
+      /* FIXME: must be at least 1 character, limited to 20 characters */
+      len = encode_context_character_string(&apdu[apdu_len], 1,
+        password);
+      apdu_len += len;
+    }
   }
 
   return apdu_len;
 }
 
-// decode the service request only
+/* decode the service request only */
 int rd_decode_service_request(
   uint8_t *apdu,
   unsigned apdu_len,
@@ -76,8 +80,9 @@ int rd_decode_service_request(
   unsigned len = 0;
   uint8_t tag_number = 0;
   uint32_t len_value_type = 0;
+  int value = 0;
 
-  // check for value pointers
+  /* check for value pointers */
   if (apdu_len)
   {
     /* Tag 0: reinitializedStateOfDevice */
@@ -85,13 +90,18 @@ int rd_decode_service_request(
       return -1;
     len += decode_tag_number_and_value(&apdu[len],
         &tag_number, &len_value_type);
-    len += decode_enumerated(&apdu[len], len_value_type, (int*)state);
-    // Tag 1: password
-    if (!decode_is_context_tag(&apdu[len], 1))
-      return -1;
-    len += decode_tag_number_and_value(&apdu[len],
-        &tag_number, &len_value_type);
-    len += decode_character_string(&apdu[len], len_value_type, password);
+    len += decode_enumerated(&apdu[len], len_value_type, &value);
+    if (state)
+      *state = value;
+    /* Tag 1: password - optional */
+    if (len < apdu_len)
+    {
+      if (!decode_is_context_tag(&apdu[len], 1))
+        return -1;
+      len += decode_tag_number_and_value(&apdu[len],
+          &tag_number, &len_value_type);
+      len += decode_character_string(&apdu[len], len_value_type, password);
+    }
   }
 
   return (int)len;
