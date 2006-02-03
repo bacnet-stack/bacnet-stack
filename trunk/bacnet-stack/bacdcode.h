@@ -115,6 +115,8 @@ int encode_bacnet_character_string(uint8_t * apdu,
     BACNET_CHARACTER_STRING *char_string);
 int encode_tagged_character_string(uint8_t * apdu,
     BACNET_CHARACTER_STRING *char_string);
+int encode_context_character_string(uint8_t * apdu, int tag_number,
+    BACNET_CHARACTER_STRING *char_string);
 int decode_character_string(uint8_t * apdu, uint32_t len_value,
     BACNET_CHARACTER_STRING *char_string);
 
@@ -183,7 +185,7 @@ int decode_max_segs(uint8_t octet);
 int decode_max_apdu(uint8_t octet);
 
 // returns the number of apdu bytes consumed
-int encode_simple_ack(uint8_t * apdu, uint8_t invoke_id, 
+int encode_simple_ack(uint8_t * apdu, uint8_t invoke_id,
   uint8_t service_choice);
 
 #ifdef __cplusplus
