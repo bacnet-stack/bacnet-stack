@@ -241,8 +241,6 @@ int main(int argc, char *argv[])
   time_t timeout_seconds = 0;
   uint8_t invoke_id = 0;
   bool found = false;
-  char *value_string = NULL;
-  bool status = false;
   #ifdef BIP_DEBUG
   BACNET_ADDRESS my_address, broadcast_address;
   #endif
