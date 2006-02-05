@@ -43,6 +43,11 @@
 #include "bip.h"
 #include "net.h"
 
+void bip_set_interface(char *ifname)
+{
+  /*dummy function - to make the demos compile easier */
+}
+
 /* To fill a need, we invent the gethostaddr() function. */
 static long gethostaddr(void)
 {

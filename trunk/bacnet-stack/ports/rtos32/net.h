@@ -25,6 +25,7 @@
 #ifndef NET_H
 #define NET_H
 
+/* network file for RTOS-32 from On-Time */
 #define WIN32_LEAN_AND_MEAN
 #define STRICT
 
@@ -33,19 +34,18 @@
 #include <stdlib.h>
 #include <process.h>
 
-#ifndef HOST
-
-   #include <rttarget.h>
-   #include <rtk32.h>
-   #include <clock.h>
-   #include <socket.h>
-
-#else
-
-   #include <winsock.h>
-
+#ifdef BACDL_BIP
+  #include "bip.h"
+  #ifndef HOST
+    #include "netcfg.h"
+    #include <rttarget.h>
+    #include <rtk32.h>
+    #include <clock.h>
+    #include <socket.h>
+  #else
+    #include <winsock.h>
+  #endif
+  #define close closesocket
 #endif
-
-#define close closesocket
 
 #endif
