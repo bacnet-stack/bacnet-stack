@@ -71,6 +71,9 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_ATOMIC_READ_FILE,
     handler_atomic_read_file);
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+    handler_reinitialize_device);
 }
 
 static void cleanup(void)

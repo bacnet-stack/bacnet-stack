@@ -28,6 +28,7 @@ SRCS = server.c \
        ..\..\demo\handler\h_rp.c  \
        ..\..\demo\handler\h_wp.c  \
        ..\..\demo\handler\h_arf.c  \
+       ..\..\demo\handler\h_rd.c  \
        ..\..\bacdcode.c \
        ..\..\bacapp.c \
        ..\..\bacstr.c \
@@ -40,6 +41,7 @@ SRCS = server.c \
        ..\..\wp.c \
        ..\..\arf.c \
        ..\..\awf.c \
+       ..\..\rd.c \
        ..\..\demo\object\bacfile.c \
        ..\..\demo\object\device.c \
        ..\..\demo\object\ai.c \

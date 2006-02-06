@@ -29,6 +29,7 @@ SRCS = server.c \
        $(BACNET_HANDLER)/h_rp.c \
        $(BACNET_HANDLER)/h_wp.c  \
        $(BACNET_HANDLER)/h_arf.c  \
+       $(BACNET_HANDLER)/h_rd.c  \
        $(BACNET_OBJECT)/device.c \
        $(BACNET_OBJECT)/ai.c \
        $(BACNET_OBJECT)/ao.c \
@@ -47,6 +48,7 @@ SRCS = server.c \
        $(BACNET_ROOT)/rp.c \
        $(BACNET_ROOT)/wp.c \
        $(BACNET_ROOT)/arf.c \
+       $(BACNET_ROOT)/rd.c \
        $(BACNET_ROOT)/abort.c \
        $(BACNET_ROOT)/reject.c \
        $(BACNET_ROOT)/bacerror.c \
