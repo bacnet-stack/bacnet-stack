@@ -447,7 +447,7 @@ bool bacapp_print_value(
           if (isprint(*char_str))
             fprintf(stream,"%c",*char_str);
           else
-            fprintf(stream,".",*char_str);
+            fprintf(stream,".");
           char_str++;
         }
         fprintf(stream,"\"");
