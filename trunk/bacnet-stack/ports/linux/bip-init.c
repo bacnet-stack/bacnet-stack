@@ -38,6 +38,7 @@
 #include "bip.h"
 #include "net.h"
 
+
 static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
 {
     int fd;
@@ -79,11 +80,15 @@ void bip_set_interface(char *ifname)
     /* setup local address */
     get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
     bip_set_addr(local_address.s_addr);
+    #ifdef BIP_DEBUG
     fprintf(stderr,"IP Address: %s\n",inet_ntoa(local_address));
+    #endif
     /* setup local broadcast address */
     get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
     bip_set_broadcast_addr(broadcast_address.s_addr);
-    fprintf(stderr,"Broadcast Address: %s\n",inet_ntoa(broadcast_address));   
+    #ifdef BIP_DEBUG
+    fprintf(stderr,"Broadcast Address: %s\n",inet_ntoa(broadcast_address));
+    #endif
 }
 
 bool bip_init(void)
@@ -135,5 +140,3 @@ bool bip_init(void)
 
     return true;
 }
-
-
