@@ -109,7 +109,7 @@ void handler_read_property(
             data.array_index,
             &error_class,
             &error_code);
-          if (len > 0)
+          if (len >= 0)
           {
             // encode the APDU portion of the packet
             data.application_data = &Temp_Buf[0];
@@ -138,7 +138,7 @@ void handler_read_property(
             data.array_index,
             &error_class,
             &error_code);
-          if (len > 0)
+          if (len >= 0)
           {
             // encode the APDU portion of the packet
             data.application_data = &Temp_Buf[0];
@@ -167,7 +167,7 @@ void handler_read_property(
             data.array_index,
             &error_class,
             &error_code);
-          if (len > 0)
+          if (len >= 0)
           {
             // encode the APDU portion of the packet
             data.application_data = &Temp_Buf[0];
@@ -197,7 +197,7 @@ void handler_read_property(
             data.array_index,
             &error_class,
             &error_code);
-          if (len > 0)
+          if (len >= 0)
           {
             // encode the APDU portion of the packet
             data.application_data = &Temp_Buf[0];

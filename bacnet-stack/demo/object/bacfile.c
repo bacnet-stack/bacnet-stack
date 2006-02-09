@@ -144,6 +144,7 @@ static unsigned bacfile_file_size(uint32_t object_instance)
   return file_size;
 }
 
+/* return the number of bytes used, or -1 on error */
 int bacfile_encode_property_apdu(
   uint8_t *apdu,
   uint32_t object_instance,
@@ -215,6 +216,7 @@ int bacfile_encode_property_apdu(
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+      apdu_len = -1;
       break;
   }
 
