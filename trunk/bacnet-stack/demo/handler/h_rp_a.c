@@ -44,8 +44,16 @@
 /* for debugging... */
 static void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA *data)
 {
+  BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
+  int len = 0;
+  uint8_t *application_data;
+  int application_data_len;
+  bool first_value = true;
+  bool print_brace = false;
+
   if (data)
   {
+    #if 0
     if (data->array_index == BACNET_ARRAY_ALL)
       fprintf(stderr,"%s #%u %s\n",
         bactext_object_type_name(data->object_type),
@@ -57,6 +65,41 @@ static void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA *data)
         data->object_instance,
         bactext_property_name(data->object_property),
         data->array_index);
+    #endif
+    application_data = data->application_data;
+    application_data_len = data->application_data_len;
+    /* value? need to loop until all of the len is gone... */
+    for (;;)
+    {
+      len = bacapp_decode_application_data(
+        application_data,
+        application_data_len,
+        &value);
+      if (first_value && (len < application_data_len))
+      {
+        first_value = false;
+        fprintf(stdout,"{");
+        print_brace = true;
+      }
+      bacapp_print_value(stdout,&value,data->object_property);
+      if (len)
+      {
+        if (len < application_data_len)
+        {
+          application_data += len;
+          application_data_len -= len;
+          /* there's more! */
+          fprintf(stdout,",");
+        }
+        else
+          break;
+      }
+      else
+        break;
+    }
+    if (print_brace)
+      fprintf(stdout,"}");
+    fprintf(stdout,"\r\n");
   }
 }
 
@@ -75,7 +118,9 @@ void handler_read_property_ack(
     service_request,
     service_len,
     &data);
+  #if 0
   fprintf(stderr,"Received Read-Property Ack!\n");
+  #endif
   if (len > 0)
     PrintReadPropertyData(&data);
 }

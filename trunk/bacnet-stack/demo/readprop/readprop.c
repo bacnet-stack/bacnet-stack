@@ -71,10 +71,8 @@ static void MyErrorHandler(
   /* FIXME: verify src and invoke id */
   (void)src;
   (void)invoke_id;
-  printf("\r\nBACnet Error!\r\n");
-  printf("Error Class: %s\r\n",
-    bactext_error_class_name(error_class));
-  printf("Error Code: %s\r\n",
+  printf("BACnet Error: %s: %s\r\n",
+    bactext_error_class_name(error_class),
     bactext_error_code_name(error_code));
   Error_Detected = true;
 }
@@ -87,8 +85,7 @@ void MyAbortHandler(
   /* FIXME: verify src and invoke id */
   (void)src;
   (void)invoke_id;
-  printf("\r\nBACnet Abort!\r\n");
-  printf("Abort Reason: %s\r\n",
+  printf("BACnet Abort: %s\r\n",
     bactext_abort_reason_name(abort_reason));
   Error_Detected = true;
 }
@@ -101,15 +98,14 @@ void MyRejectHandler(
   /* FIXME: verify src and invoke id */
   (void)src;
   (void)invoke_id;
-  printf("\r\nBACnet Reject!\r\n");
-  printf("Reject Reason: %s\r\n",
+  printf("BACnet Reject: %s\r\n",
     bactext_reject_reason_name(reject_reason));
   Error_Detected = true;
 }
 
 static void Init_Service_Handlers(void)
 {
-  /* we need to handle who-is 
+  /* we need to handle who-is
      to support dynamic device binding to us */
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_WHO_IS,
@@ -147,12 +143,12 @@ int main(int argc, char *argv[])
   unsigned timeout = 100; // milliseconds
   unsigned max_apdu = 0;
   time_t elapsed_seconds = 0;
-  time_t last_seconds = 0; 
+  time_t last_seconds = 0;
   time_t current_seconds = 0;
   time_t timeout_seconds = 0;
   uint8_t invoke_id = 0;
   bool found = false;
-  
+
   if (argc < 5)
   {
     printf("%s device-instance object-type object-instance property [index]\r\n",
@@ -190,7 +186,7 @@ int main(int argc, char *argv[])
       Target_Object_Property,MAX_BACNET_PROPERTY_ID+1);
     return 1;
   }
-  
+
   /* setup my info */
   Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
   address_init();
@@ -204,6 +200,8 @@ int main(int argc, char *argv[])
   last_seconds = time(NULL);
   timeout_seconds = (Device_APDU_Timeout() / 1000) *
     Device_Number_Of_APDU_Retries();
+  /* no need to spam the world */
+  I_Am_Request = false;
   /* try to bind with the device */
   Send_WhoIs(Target_Device_Object_Instance,Target_Device_Object_Instance);
   /* loop forever */
@@ -246,7 +244,7 @@ int main(int argc, char *argv[])
         &Target_Address);
       if (found)
       {
-        if (invoke_id == 0) 
+        if (invoke_id == 0)
         {
           invoke_id = Send_Read_Property_Request(
             Target_Device_Object_Instance,
