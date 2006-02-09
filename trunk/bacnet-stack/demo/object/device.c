@@ -91,7 +91,7 @@ uint32_t Device_Object_Instance_Number(void)
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
   bool status = true; /* return value */
-  
+
   if (object_id <= BACNET_MAX_INSTANCE)
     Object_Instance_Number = object_id;
   else
@@ -103,7 +103,7 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
   // BACnet allows for a wildcard instance number
-  return ((Object_Instance_Number == object_id) || 
+  return ((Object_Instance_Number == object_id) ||
     (object_id == BACNET_MAX_INSTANCE));
 }
 
@@ -115,7 +115,7 @@ const char *Device_Object_Name(void)
 bool Device_Set_Object_Name(const char *name, size_t length)
 {
   bool status = false; /*return value*/
-  
+
   if (length < sizeof(Object_Name))
   {
     memmove(Object_Name,name,length);
@@ -145,7 +145,7 @@ const char *Device_Vendor_Name(void)
 bool Device_Set_Vendor_Name(const char *name, size_t length)
 {
   bool status = false; /*return value*/
-  
+
   if (length < sizeof(Vendor_Name))
   {
     memmove(Vendor_Name,name,length);
@@ -174,7 +174,7 @@ const char *Device_Model_Name(void)
 bool Device_Set_Model_Name(const char *name, size_t length)
 {
   bool status = false; /*return value*/
-  
+
   if (length < sizeof(Model_Name))
   {
     memmove(Model_Name,name,length);
@@ -193,7 +193,7 @@ const char *Device_Firmware_Revision(void)
 bool Device_Set_Firmware_Revision(const char *name, size_t length)
 {
   bool status = false; /*return value*/
-  
+
   if (length < sizeof(Firmware_Revision))
   {
     memmove(Firmware_Revision,name,length);
@@ -212,7 +212,7 @@ const char *Device_Application_Software_Version(void)
 bool Device_Set_Application_Software_Version(const char *name, size_t length)
 {
   bool status = false; /*return value*/
-  
+
   if (length < sizeof(Application_Software_Version))
   {
     memmove(Application_Software_Version,name,length);
@@ -231,7 +231,7 @@ const char *Device_Description(void)
 bool Device_Set_Description(const char *name, size_t length)
 {
   bool status = false; /*return value*/
-  
+
   if (length < sizeof(Description))
   {
     memmove(Description,name,length);
@@ -250,7 +250,7 @@ const char *Device_Location(void)
 bool Device_Set_Location(const char *name, size_t length)
 {
   bool status = false; /*return value*/
-  
+
   if (length < sizeof(Location))
   {
     memmove(Location,name,length);
@@ -328,15 +328,15 @@ unsigned Device_Object_List_Count(void)
 }
 
 bool Device_Object_List_Identifier(unsigned array_index,
-  int *object_type, 
+  int *object_type,
   uint32_t *instance)
 {
   bool status = false;
   unsigned object_index = 0;
-  
+
   if (array_index == 1)
   {
-    *object_type = OBJECT_DEVICE; 
+    *object_type = OBJECT_DEVICE;
     *instance = Object_Instance_Number;
     status = true;
   }
@@ -347,7 +347,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
     object_index = array_index - 2;
     if (object_index < Analog_Input_Count())
     {
-      *object_type = OBJECT_ANALOG_INPUT; 
+      *object_type = OBJECT_ANALOG_INPUT;
       *instance = Analog_Input_Index_To_Instance(object_index);
       status = true;
     }
@@ -375,8 +375,8 @@ bool Device_Object_List_Identifier(unsigned array_index,
     }
   }
   #endif
-    
-  return status;  
+
+  return status;
 }
 
 // return the length of the apdu encoded
@@ -447,12 +447,11 @@ int Device_Encode_Property_APDU(
     //case PROP_LOCAL_DATE:
       //t = time(NULL);
       //my_tm = localtime(&t);
-      // year = years since 1900
       // month 1=Jan
       // day = day of month
       // wday 1=Monday...7=Sunday
       //apdu_len = encode_tagged_date(&apdu[0],
-      //    my_tm->tm_year,
+      //    my_tm->tm_year+1900,
       //    my_tm->tm_mon + 1,
       //    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday));
       //break;
@@ -554,6 +553,11 @@ int Device_Encode_Property_APDU(
     case PROP_NUMBER_OF_APDU_RETRIES:
       apdu_len = encode_tagged_unsigned(&apdu[0], Number_Of_APDU_Retries);
       break;
+    case PROP_DEVICE_ADDRESS_BINDING:
+      apdu_len += encode_opening_tag(&apdu[0], 3);
+      /* put the list here, if it exists */
+      apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
+      break;
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -573,7 +577,7 @@ bool Device_Write_Property(
   BACNET_ERROR_CODE *error_code)
 {
   bool status = false; // return value
-  
+
   if (!Device_Valid_Object_Instance_Number(wp_data->object_instance))
   {
     *error_class = ERROR_CLASS_OBJECT;
@@ -586,7 +590,7 @@ bool Device_Write_Property(
   {
     case PROP_OBJECT_IDENTIFIER:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID)
-      { 
+      {
         if ((wp_data->value.type.Object_Id.type == OBJECT_DEVICE) &&
           (Device_Set_Object_Instance_Number(
              wp_data->value.type.Object_Id.instance)))
@@ -606,7 +610,7 @@ bool Device_Write_Property(
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
       break;
-      
+
     case PROP_NUMBER_OF_APDU_RETRIES:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
       {
@@ -619,8 +623,8 @@ bool Device_Write_Property(
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
-      break;      
-      
+      break;
+
     case PROP_APDU_TIMEOUT:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
       {
@@ -634,7 +638,7 @@ bool Device_Write_Property(
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
       break;
-            
+
     case PROP_VENDOR_IDENTIFIER:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
       {
@@ -648,7 +652,7 @@ bool Device_Write_Property(
         *error_code = ERROR_CODE_INVALID_DATA_TYPE;
       }
       break;
-    
+
     case PROP_SYSTEM_STATUS:
       if (wp_data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED)
       {
@@ -709,7 +713,7 @@ void testDevice(Test * pTest)
 {
   bool status = false;
   const char *name = "Patricia";
-  
+
   status = Device_Set_Object_Instance_Number(0);
   ct_test(pTest, Device_Object_Instance_Number() == 0);
   ct_test(pTest, status == true);
@@ -722,8 +726,8 @@ void testDevice(Test * pTest)
   status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE+1);
   ct_test(pTest, Device_Object_Instance_Number() != (BACNET_MAX_INSTANCE+1));
   ct_test(pTest, status == false);
-  
-  
+
+
   Device_Set_System_Status(STATUS_NON_OPERATIONAL);
   ct_test(pTest, Device_System_Status() == STATUS_NON_OPERATIONAL);
 
