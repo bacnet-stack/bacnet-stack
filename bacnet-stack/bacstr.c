@@ -159,7 +159,6 @@ bool bitstring_set_bits_used(
   return status;
 }
 
-
 uint8_t bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
 {
   if (bit_string)
