@@ -86,10 +86,10 @@ typedef struct BACnet_Device_Address BACNET_ADDRESS;
 /* date */
 typedef struct BACnet_Date
 {
-  uint8_t year;
-  uint8_t month;
-  uint8_t day;
-  uint8_t wday;
+  uint16_t year; /* AD */
+  uint8_t month; /* 1=Jan */
+  uint8_t day; /* 1..31 */
+  uint8_t wday; /* 1=Monday */
 } BACNET_DATE;
 
 /* time */
