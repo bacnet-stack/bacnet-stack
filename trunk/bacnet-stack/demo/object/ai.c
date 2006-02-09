@@ -61,6 +61,7 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
   return index;
 }
 
+/* return apdu length, or -1 on error */
 int Analog_Input_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,
@@ -115,6 +116,7 @@ int Analog_Input_Encode_Property_APDU(
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+      apdu_len = -1;
       break;
   }
 
@@ -147,7 +149,7 @@ void testAnalogInput(Test * pTest)
     BACNET_ARRAY_ALL,
     &error_class,
     &error_code);
-  ct_test(pTest, len != 0);
+  ct_test(pTest, len >= 0);
   len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
   ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
   len = decode_object_id(&apdu[len],

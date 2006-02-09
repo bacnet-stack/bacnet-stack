@@ -141,6 +141,7 @@ static float Analog_Output_Present_Value(uint32_t object_instance)
   return value;
 }
 
+/* return apdu len, or -1 on error */
 int Analog_Output_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,
@@ -223,7 +224,7 @@ int Analog_Output_Encode_Property_APDU(
           {
             *error_class = ERROR_CLASS_SERVICES;
             *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-            apdu_len = 0;
+            apdu_len = -1;
             break;
           }
         }
@@ -245,6 +246,7 @@ int Analog_Output_Encode_Property_APDU(
         {
           *error_class = ERROR_CLASS_PROPERTY;
           *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+          apdu_len = -1;
         }
       }
     
@@ -256,6 +258,7 @@ int Analog_Output_Encode_Property_APDU(
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+      apdu_len = -1;
       break;
   }
 

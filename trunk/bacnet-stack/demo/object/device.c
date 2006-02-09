@@ -379,7 +379,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
   return status;
 }
 
-// return the length of the apdu encoded
+// return the length of the apdu encoded or -1 for error
 int Device_Encode_Property_APDU(
   uint8_t *apdu,
   BACNET_PROPERTY_ID property,
@@ -514,7 +514,7 @@ int Device_Encode_Property_APDU(
             {
               *error_class = ERROR_CLASS_SERVICES;
               *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-              apdu_len = 0;
+              apdu_len = -1;
               break;
             }
           }
@@ -523,7 +523,7 @@ int Device_Encode_Property_APDU(
             // error: internal error?
             *error_class = ERROR_CLASS_SERVICES;
             *error_code = ERROR_CODE_OTHER;
-            apdu_len = 0;
+            apdu_len = -1;
             break;
           }
         }
@@ -536,6 +536,7 @@ int Device_Encode_Property_APDU(
         {
           *error_class = ERROR_CLASS_PROPERTY;
           *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+          apdu_len = -1;
         }
       }
       break;
@@ -554,13 +555,12 @@ int Device_Encode_Property_APDU(
       apdu_len = encode_tagged_unsigned(&apdu[0], Number_Of_APDU_Retries);
       break;
     case PROP_DEVICE_ADDRESS_BINDING:
-      apdu_len += encode_opening_tag(&apdu[0], 3);
-      /* put the list here, if it exists */
-      apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
+      /* encode the list here, if it exists */
       break;
     default:
       *error_class = ERROR_CLASS_PROPERTY;
       *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+      apdu_len = -1;
       break;
   }
 
