@@ -360,8 +360,8 @@ const char *bactext_property_name(int index)
 unsigned bactext_property_id(const char* name)
 {
  return indtext_by_istring_default(
-    bacnet_property_names, 
-    name, 
+    bacnet_property_names,
+    name,
     0);
 }
 
@@ -551,7 +551,7 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
   { UNITS_DEGREES_KELVIN_PER_MINUTE, "degrees-Kelvin-per-minute"},
   { UNITS_JOULE_SECONDS, "joule-seconds"},
   { UNITS_RADIANS_PER_SECOND, "radians-per-second"},
-  { UNITS_SQUARE_METERS_PER_NEWTON, "square-meters-per-Newton"}, 
+  { UNITS_SQUARE_METERS_PER_NEWTON, "square-meters-per-Newton"},
   { UNITS_KILOGRAMS_PER_CUBIC_METER, "kilograms-per-cubic-meter"},
   { UNITS_NEWTON_SECONDS, "newton-seconds"},
   { UNITS_NEWTONS_PER_METER, "newtons-per-meter"},
@@ -701,3 +701,154 @@ const char *bactext_error_code_name(int index)
     Vendor_Proprietary_String);
 }
 
+INDTEXT_DATA bacnet_month_names[] = {
+  {1, "January"},
+  {2, "February"},
+  {3, "March"},
+  {4, "April"},
+  {5, "May"},
+  {6, "June"},
+  {7, "July"},
+  {8, "August"},
+  {9, "September"},
+  {10, "October"},
+  {11, "November"},
+  {12, "December"},
+  {255,"Any Month"},
+  {0,NULL}
+};
+
+const char *bactext_month_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_month_names,
+    index,
+    ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_week_of_month_names[] = {
+  {1, "days numbered 1-7"},
+  {2, "days numbered 8-14"},
+  {3, "days numbered 15-21"},
+  {4, "days numbered 22-28"},
+  {5, "days numbered 29-31"},
+  {6, "last 7 days of this month"},
+  {255, "any week of this month"},
+  {0,NULL}
+};
+
+const char *bactext_week_of_month_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_week_of_month_names,
+    index,
+    ASHRAE_Reserved_String);
+}
+
+/* note: different than DaysOfWeek bit string where 0=monday */
+INDTEXT_DATA bacnet_day_of_week_names[] = {
+  {1, "Monday"},
+  {2, "Tuesday"},
+  {3, "Wednesday"},
+  {4, "Thursday"},
+  {5, "Friday"},
+  {6, "Saturday"},
+  {7, "Sunday"},
+  {255, "any day of week"},
+  {0,NULL}
+};
+
+const char *bactext_day_of_week_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_day_of_week_names,
+    index,
+    ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_event_state_names[] = {
+  {EVENT_STATE_NORMAL, "normal"},
+  {EVENT_STATE_FAULT, "fault"},
+  {EVENT_STATE_OFFNORMAL, "offnormal"},
+  {EVENT_STATE_HIGH_LIMIT, "high limit"},
+  {EVENT_STATE_LOW_LIMIT, "low limit"},
+  {0,NULL}
+};
+
+const char *bactext_event_state_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_event_state_names,
+    index,
+    ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_binary_present_value_names[] = {
+  {BINARY_INACTIVE,"inactive"},
+  {BINARY_ACTIVE,"active"},
+  {0,NULL}
+};
+
+const char *bactext_binary_present_value_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_binary_present_value_names,
+    index,
+    ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_reliability_names[] = {
+  {RELIABILITY_NO_FAULT_DETECTED,"no-fault-detected"},
+  {RELIABILITY_NO_SENSOR,"no-sensor"},
+  {RELIABILITY_OVER_RANGE,"over-range"},
+  {RELIABILITY_UNDER_RANGE,"under-range"},
+  {RELIABILITY_OPEN_LOOP,"open-loop"},
+  {RELIABILITY_SHORTED_LOOP,"shorted-loop"},
+  {RELIABILITY_NO_OUTPUT,"no-output"},
+  {RELIABILITY_UNRELIABLE_OTHER,"unreliable-other"},
+  {RELIABILITY_PROCESS_ERROR,"process-error"},
+  {RELIABILITY_MULTI_STATE_FAULT,"mult-state-fault"},
+  {RELIABILITY_CONFIGURATION_ERROR,"configuration-error"},
+  {0,NULL}
+};
+
+const char *bactext_reliability_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_reliability_names,
+    index,
+    ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_device_status_names[] = {
+  {STATUS_OPERATIONAL,"operational"},
+  {STATUS_OPERATIONAL_READ_ONLY,"operational-read-only"},
+  {STATUS_DOWNLOAD_REQUIRED,"download-required"},
+  {STATUS_DOWNLOAD_IN_PROGRESS,"download-in-progress"},
+  {STATUS_NON_OPERATIONAL,"non-operational"},
+  {0,NULL}
+};
+
+const char *bactext_device_status_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_device_status_names,
+    index,
+    ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_segmentation_names[] = {
+  {SEGMENTATION_BOTH,"segmented-both"},
+  {SEGMENTATION_TRANSMIT,"segmented-transmit"},
+  {SEGMENTATION_RECEIVE,"segmented-receive"},
+  {SEGMENTATION_NONE,"no-segmentation"},
+  {0,NULL}
+};
+
+const char *bactext_segmentation_name(int index)
+{
+  return indtext_by_index_default(
+    bacnet_segmentation_names,
+    index,
+    ASHRAE_Reserved_String);
+}

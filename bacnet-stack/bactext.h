@@ -13,9 +13,9 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with this program; if not, write to 
+ along with this program; if not, write to
  The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330 
+ 59 Temple Place - Suite 330
  Boston, MA  02111-1307, USA.
 
  As a special exception, if other files instantiate templates or
@@ -53,6 +53,16 @@ const char *bactext_abort_reason_name(int index);
 const char *bactext_error_class_name(int index);
 const char *bactext_error_code_name(int index);
 unsigned bactext_property_id(const char* name);
+const char *bactext_month_name(int index);
+const char *bactext_week_of_month_name(int index);
+const char *bactext_day_of_week_name(int index);
+const char *bactext_event_state_name(int index);
+const char *bactext_binary_present_value_name(int index);
+const char *bactext_reliability_name(int index);
+const char *bactext_device_status_name(int index);
+const char *bactext_segmentation_name(int index);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

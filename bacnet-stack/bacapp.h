@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "bacdef.h"
 #include "bacstr.h"
 
@@ -85,7 +86,12 @@ bool bacapp_parse_application_data(
   BACNET_APPLICATION_TAG tag_number,
   const char *argv,
   BACNET_APPLICATION_DATA_VALUE *value);
-  
+
+bool bacapp_print_value(
+  FILE *stream,
+  BACNET_APPLICATION_DATA_VALUE *value,
+  BACNET_PROPERTY_ID property);
+
 #ifdef TEST
 #include "ctest.h"
 void testBACnetApplicationData(Test * pTest);
