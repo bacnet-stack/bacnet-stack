@@ -106,6 +106,9 @@ bool characterstring_copy(
 bool characterstring_same(
   BACNET_CHARACTER_STRING *dest,
   BACNET_CHARACTER_STRING *src);
+bool characterstring_ansi_same(
+  BACNET_CHARACTER_STRING *dest,
+  const char *src);
 /* returns false if the string exceeds capacity */
 bool characterstring_append(
   BACNET_CHARACTER_STRING *char_string,

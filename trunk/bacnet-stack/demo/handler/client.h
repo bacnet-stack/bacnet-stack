@@ -31,25 +31,26 @@
 #include "bacdef.h"
 #include "apdu.h"
 #include "bacapp.h"
+#include "bacenum.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-/* FIXME: probably should return the invoke ID for confirmed request */
-bool Send_Read_Property_Request(
+void Send_WhoIs(
+  int32_t low_limit,
+  int32_t high_limit);
+
+/* returns the invoke ID for confirmed request, or 0 if failed */
+uint8_t Send_Read_Property_Request(
   uint32_t device_id, /* destination device */
   BACNET_OBJECT_TYPE object_type,
   uint32_t object_instance,
   BACNET_PROPERTY_ID object_property,
   int32_t array_index);
 
-void Send_WhoIs(
-  int32_t low_limit,
-  int32_t high_limit);
-
-/* FIXME: probably should return the invoke ID for confirmed request */
-bool Send_Write_Property_Request(
+/* returns the invoke ID for confirmed request, or 0 if failed */
+uint8_t Send_Write_Property_Request(
     uint32_t device_id, // destination device
   BACNET_OBJECT_TYPE object_type,
   uint32_t object_instance,
@@ -57,6 +58,19 @@ bool Send_Write_Property_Request(
   BACNET_APPLICATION_DATA_VALUE *object_value,
   uint8_t priority,
   int32_t array_index);
+
+/* returns the invoke ID for confirmed request, or 0 if failed */
+uint8_t Send_Reinitialize_Device_Request(
+  uint32_t device_id,
+  BACNET_REINITIALIZED_STATE state,
+  char *password);
+
+/* returns the invoke ID for confirmed request, or 0 if failed */
+uint8_t Send_Device_Communication_Control_Request(
+  uint32_t device_id,
+  uint16_t timeDuration, /* 0=optional */
+  BACNET_COMMUNICATION_ENABLE_DISABLE state,
+  char *password); /* NULL=optional */
 
 #ifdef __cplusplus
 }

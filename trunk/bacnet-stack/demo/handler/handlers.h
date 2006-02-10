@@ -96,6 +96,12 @@ void handler_reinitialize_device(
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
+void handler_device_communication_control(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src,
+  BACNET_CONFIRMED_SERVICE_DATA *service_data);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

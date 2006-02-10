@@ -36,6 +36,7 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
+#include "dcc.h"
 #include "whois.h"
 /* some demo stuff needed */
 #include "handlers.h"
@@ -59,6 +60,9 @@ uint8_t Send_Write_Property_Request(
   int pdu_len = 0;
   int bytes_sent = 0;
   BACNET_WRITE_PROPERTY_DATA data;
+
+  if (!dcc_communication_enabled())
+    return 0;
 
   /* is the device bound? */
   status = address_get_by_device(device_id, &max_apdu, &dest);

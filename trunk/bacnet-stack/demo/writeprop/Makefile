@@ -50,6 +50,7 @@ SRCS = writeprop.c \
        $(BACNET_ROOT)/datalink.c \
        $(BACNET_ROOT)/address.c \
        $(BACNET_ROOT)/arf.c \
+       $(BACNET_ROOT)/dcc.c \
        $(BACNET_ROOT)/abort.c \
        $(BACNET_ROOT)/reject.c \
        $(BACNET_ROOT)/bacerror.c \
