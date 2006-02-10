@@ -257,6 +257,16 @@ bool characterstring_same(
       }
     }
   }
+  else if (src)
+  {
+    if (src->length == 0)
+      same_status = true;
+  }
+  else if (dest)
+  {
+    if (dest->length == 0)
+      same_status = true;
+  }
 
   return same_status;
 }
