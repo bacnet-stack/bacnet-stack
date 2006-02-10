@@ -36,14 +36,31 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacenum.h"
+#include "bacstr.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+/* return the status */
+BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void);
+bool dcc_communication_enabled(void);
+bool dcc_communication_disabled(void);
+bool dcc_communication_initiation_disabled(void);
+/* return the time */
+uint32_t dcc_duration_seconds(void);
+/* called every second or so.  If more than one second,
+  then seconds should be the number of seconds to tick away */
+void dcc_timer_seconds(uint32_t seconds);
+/* setup the communication values */
+bool dcc_set_status_duration(
+  BACNET_COMMUNICATION_ENABLE_DISABLE status,
+  uint16_t minutes);
+
 // encode service
 int dcc_encode_apdu(
-  uint8_t *apdu, 
+  uint8_t *apdu,
   uint8_t invoke_id,
   uint16_t timeDuration, /* 0=optional */
   BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,

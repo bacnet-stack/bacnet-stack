@@ -40,6 +40,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "tsm.h"
+#include "dcc.h"
 #include "iam.h"
 
 /* a simple table for crossing the services supported */
@@ -347,26 +348,30 @@ void apdu_handler(
           &service_choice,
           &service_request,
           &service_request_len);
-        if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
-        {
-          if (Confirmed_Function[service_choice])
-            Confirmed_Function[service_choice](
-              service_request,
-              service_request_len,
-              src,
-              &service_data);
-          else
-          {
-            if (Unrecognized_Service_Handler)
-              Unrecognized_Service_Handler(
-                service_request,
-                service_request_len,
-                src,
-                &service_data);
-          }
-        }
+        /* When network communications are completely disabled,
+           only DeviceCommunicationControl and ReinitializeDevice APDUs
+           shall be processed and no messages shall be initiated.*/
+        if (dcc_communication_disabled() &&
+            ((service_choice != SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL) &&
+             (service_choice != SERVICE_CONFIRMED_REINITIALIZE_DEVICE)))
+          break;
+        if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
+            (Confirmed_Function[service_choice]))
+          Confirmed_Function[service_choice](
+            service_request,
+            service_request_len,
+            src,
+            &service_data);
+        else if (Unrecognized_Service_Handler)
+          Unrecognized_Service_Handler(
+            service_request,
+            service_request_len,
+            src,
+            &service_data);
         break;
       case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
+        if (dcc_communication_disabled())
+          break;
         service_choice = apdu[1];
         service_request = &apdu[2];
         service_request_len = apdu_len - 2;
@@ -374,9 +379,9 @@ void apdu_handler(
         {
           if (Unconfirmed_Function[service_choice])
             Unconfirmed_Function[service_choice](
-                service_request,
-                service_request_len,
-                src);
+              service_request,
+              service_request_len,
+              src);
         }
         break;
       case PDU_TYPE_SIMPLE_ACK:

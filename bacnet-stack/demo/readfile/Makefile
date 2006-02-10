@@ -40,11 +40,13 @@ SRCS = readfile.c \
        $(BACNET_ROOT)/tsm.c \
        $(BACNET_ROOT)/datalink.c \
        $(BACNET_ROOT)/address.c \
+       $(BACNET_ROOT)/filename.c \
        $(BACNET_OBJECT)/device.c \
        $(BACNET_OBJECT)/ai.c \
        $(BACNET_OBJECT)/ao.c \
        $(BACNET_OBJECT)/bacfile.c \
        $(BACNET_ROOT)/arf.c \
+       $(BACNET_ROOT)/dcc.c \
        $(BACNET_ROOT)/abort.c \
        $(BACNET_ROOT)/reject.c \
        $(BACNET_ROOT)/bacerror.c \

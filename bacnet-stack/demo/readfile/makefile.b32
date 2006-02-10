@@ -36,6 +36,7 @@ SRCS = readfile.c \
        ..\..\wp.c \
        ..\..\arf.c \
        ..\..\awf.c \
+       ..\..\dcc.c \
        ..\..\demo\object\bacfile.c \
        ..\..\demo\object\device.c \
        ..\..\demo\object\ai.c \

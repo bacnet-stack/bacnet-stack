@@ -271,6 +271,44 @@ bool characterstring_same(
   return same_status;
 }
 
+bool characterstring_ansi_same(
+  BACNET_CHARACTER_STRING *dest,
+  const char *src)
+{
+  size_t i; /* counter */
+  bool same_status = false;
+
+  if (src && dest)
+  {
+    if ((dest->length == strlen(src)) &&
+      (dest->encoding == CHARACTER_ANSI_X34))
+    {
+      same_status = true;
+      for (i = 0; i < dest->length; i++)
+      {
+        if (src[i] != dest->value[i])
+        {
+          same_status = false;
+          break;
+        }
+      }
+    }
+  }
+  /* NULL matches an empty string in our world */
+  else if (src)
+  {
+    if (strlen(src) == 0)
+      same_status = true;
+  }
+  else if (dest)
+  {
+    if (dest->length == 0)
+      same_status = true;
+  }
+
+  return same_status;
+}
+
 /* returns false if the string exceeds capacity */
 bool characterstring_append(
   BACNET_CHARACTER_STRING *char_string,

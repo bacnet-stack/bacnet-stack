@@ -41,6 +41,7 @@
 #include "device.h"
 #include "bacfile.h"
 #include "datalink.h"
+#include "dcc.h"
 #include "net.h"
 #include "txbuf.h"
 
@@ -55,7 +56,6 @@ static void Init_Service_Handlers(void)
   apdu_set_unconfirmed_handler(
     SERVICE_UNCONFIRMED_WHO_IS,
     handler_who_is);
-
   /* set the handler for all the services we don't implement */
   /* It is required to send the proper reject message... */
   apdu_set_unrecognized_service_handler_handler(
@@ -74,6 +74,10 @@ static void Init_Service_Handlers(void)
   apdu_set_confirmed_handler(
     SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
     handler_reinitialize_device);
+  /* handle communication so we can shutup when asked */
+  apdu_set_confirmed_handler(
+    SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    handler_device_communication_control);
 }
 
 static void cleanup(void)
@@ -104,6 +108,8 @@ int main(int argc, char *argv[])
   uint16_t pdu_len = 0;
   unsigned timeout = 100; // milliseconds
   BACNET_ADDRESS my_address, broadcast_address;
+  time_t last_seconds = 0;
+  time_t current_seconds = 0;
 
   /* allow the device ID to be set */
   if (argc > 1)
@@ -133,13 +139,15 @@ int main(int argc, char *argv[])
   datalink_get_my_address(&my_address);
   print_address("Address",&my_address);
   atexit(cleanup);  
-
+  /* configure the timeout values */
+  last_seconds = time(NULL);
   /* broadcast an I-Am on startup */
   I_Am_Request = true;
   // loop forever
   for (;;)
   {
     // input
+    current_seconds = time(NULL);
 
     // returns 0 bytes on timeout
     pdu_len = datalink_receive(
@@ -156,6 +164,10 @@ int main(int argc, char *argv[])
         &Rx_Buf[0],
         pdu_len);
     }
+    /* at least one second has passed */
+    if (current_seconds != last_seconds)
+      dcc_timer_seconds(current_seconds - last_seconds);
+    /* send out the I-Am if requested */
     if (I_Am_Request)
     {
       I_Am_Request = false;

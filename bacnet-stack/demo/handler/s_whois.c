@@ -36,6 +36,7 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
+#include "dcc.h"
 #include "whois.h"
 /* some demo stuff needed */
 #include "handlers.h"
@@ -49,6 +50,9 @@ void Send_WhoIs(
   int pdu_len = 0;
   BACNET_ADDRESS dest;
   int bytes_sent = 0;
+
+  if (!dcc_communication_enabled())
+    return;
 
   // Who-Is is a global broadcast
   datalink_get_broadcast_address(&dest);

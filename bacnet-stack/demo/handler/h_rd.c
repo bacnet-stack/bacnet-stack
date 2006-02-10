@@ -112,6 +112,8 @@ void handler_reinitialize_device(
       fprintf(stderr,"ReinitializeDevice: Sending Simple Ack!\n");
       /* FIXME: now you can reboot, restart, quit, or something clever */
       /* Note: you can use a mix of state and password to do specific stuff */
+      /* Note: if you don't do something clever like actually restart,
+         you probably should clear any DCC status and timeouts */
     }
     else
     {

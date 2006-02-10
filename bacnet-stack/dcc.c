@@ -37,6 +37,88 @@
 #include "bacdef.h"
 #include "dcc.h"
 
+/* note: the disable and time are not expected to survive
+   over a power cycle or reinitialization. */
+/* note: time duration is given in Minutes, but in order to be accurate,
+   we need to count down in seconds. */
+static uint32_t DCC_Time_Duration_Seconds = 0;
+static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable = 
+   COMMUNICATION_ENABLE;
+/* password is optionally supported */
+
+BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void)
+{
+  return DCC_Enable_Disable;
+}
+
+bool dcc_communication_enabled(void)
+{
+  return (DCC_Enable_Disable == COMMUNICATION_ENABLE);
+}
+
+/* When network communications are completely disabled,
+   only DeviceCommunicationControl and ReinitializeDevice APDUs
+   shall be processed and no messages shall be initiated.*/
+bool dcc_communication_disabled(void)
+{
+  return (DCC_Enable_Disable == COMMUNICATION_DISABLE);
+}
+
+/* When the initiation of communications is disabled,
+   all APDUs shall be processed and responses returned as
+   required and no messages shall be initiated with the
+   exception of I-Am requests, which shall be initiated only in
+   response to Who-Is messages. In this state, a device that
+   supports I-Am request initiation shall send one I-Am request
+   for any Who-Is request that is received if and only if
+   the Who-Is request does not contain an address range or
+   the device is included in the address range. */
+bool dcc_communication_initiation_disabled(void)
+{
+  return (DCC_Enable_Disable == COMMUNICATION_DISABLE_INITIATION);
+}
+
+uint32_t dcc_duration_seconds(void)
+{
+  return DCC_Time_Duration_Seconds;
+}
+
+/* called every second or so.  If more than one second,
+  then seconds should be the number of seconds to tick away */
+void dcc_timer_seconds(uint32_t seconds)
+{
+  if (DCC_Time_Duration_Seconds)
+  {
+    if (DCC_Time_Duration_Seconds > seconds)
+      DCC_Time_Duration_Seconds -= seconds;
+    else
+      DCC_Time_Duration_Seconds = 0;
+    /* just expired - do something */
+    if (DCC_Time_Duration_Seconds == 0)
+      DCC_Enable_Disable = COMMUNICATION_ENABLE;
+  }
+}
+
+bool dcc_set_status_duration(
+  BACNET_COMMUNICATION_ENABLE_DISABLE status,
+  uint16_t minutes)
+{
+  bool valid = false;
+
+  /* valid? */
+  if (status < MAX_BACNET_COMMUNICATION_ENABLE_DISABLE)
+  {
+    DCC_Enable_Disable = status;
+    if (status == COMMUNICATION_ENABLE)
+      DCC_Time_Duration_Seconds = 0;
+    else
+      DCC_Time_Duration_Seconds = minutes * 60;
+    valid = true;
+  }
+
+  return valid;
+}
+
 /* encode service */
 int dcc_encode_apdu(
   uint8_t *apdu,
