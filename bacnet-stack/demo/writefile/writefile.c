@@ -44,6 +44,7 @@
 #include "datalink.h"
 #include "whois.h"
 /* some demo stuff needed */
+#include "filename.h"
 #include "handlers.h"
 #include "txbuf.h"
 
@@ -293,7 +294,8 @@ int main(int argc, char *argv[])
   if (argc < 4)
   {
     /* FIXME: what about access method - record or stream? */
-    printf("%s device-instance file-instance local-name\r\n",argv[0]);
+    printf("%s device-instance file-instance local-name\r\n",
+      filename_remove_path(argv[0]));
     return 0;
   }
   /* decode the command line parameters */

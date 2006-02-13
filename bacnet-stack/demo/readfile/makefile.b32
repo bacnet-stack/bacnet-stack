@@ -29,6 +29,7 @@ SRCS = readfile.c \
        ..\..\bacstr.c \
        ..\..\bactext.c \
        ..\..\indtext.c \
+       ..\..\filename.c \
        ..\..\bigend.c \
        ..\..\whois.c \
        ..\..\iam.c \
