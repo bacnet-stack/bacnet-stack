@@ -11,6 +11,7 @@ SRCS = bacdcode.c \
        bigend.c \
        npdu.c \
        apdu.c \
+       dcc.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}

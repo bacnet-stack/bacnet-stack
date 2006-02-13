@@ -10,6 +10,8 @@ SRCS = bacdcode.c \
        bacstr.c \
        bacapp.c \
        bigend.c \
+       bactext.c \
+       indtext.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}

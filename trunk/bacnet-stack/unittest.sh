@@ -14,6 +14,11 @@ make -f address.mak
 ./address >> test.log
 make -f address.mak clean
 
+make -f dcc.mak clean
+make -f dcc.mak
+./dcc >> test.log
+make -f dcc.mak clean
+
 make -f demo/object/ai.mak clean
 make -f demo/object/ai.mak
 ./analog_input >> test.log
@@ -84,6 +89,11 @@ make -f npdu.mak
 ./npdu >> test.log
 make -f npdu.mak clean
 
+make -f rd.mak clean
+make -f rd.mak
+./reinitialize_device >> test.log
+make -f rd.mak clean
+
 make -f reject.mak clean
 make -f reject.mak
 ./reject >> test.log
@@ -118,6 +128,11 @@ make -f whois.mak clean
 make -f whois.mak
 ./whois >> test.log
 make -f whois.mak clean
+
+make -f whohas.mak clean
+make -f whohas.mak
+./whohas >> test.log
+make -f whohas.mak clean
 
 make -f wp.mak clean
 make -f wp.mak
