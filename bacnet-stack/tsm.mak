@@ -13,6 +13,7 @@ SRCS = address.c \
        demo/object/ai.c \
        demo/object/ao.c \
        iam.c \
+       dcc.c \
        npdu.c \
        apdu.c \
        datalink.c \

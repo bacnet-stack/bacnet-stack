@@ -739,10 +739,10 @@ void testBACnetApplicationData(Test * pTest)
 
   status = bacapp_parse_application_data(
     BACNET_APPLICATION_TAG_DATE,
-    "5/5/22:1",
+    "2005/5/22:1",
     &value);
   ct_test(pTest,status == true);
-  ct_test(pTest,value.type.Date.year == 5);
+  ct_test(pTest,value.type.Date.year == 2005);
   ct_test(pTest,value.type.Date.month == 5);
   ct_test(pTest,value.type.Date.day == 22);
   ct_test(pTest,value.type.Date.wday == 1);

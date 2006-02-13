@@ -10,6 +10,8 @@ SRCS = bacdcode.c \
        bacstr.c \
        bigend.c \
        bacapp.c \
+       bactext.c \
+       indtext.c \
        wp.c \
        test/ctest.c
 

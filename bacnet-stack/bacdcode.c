@@ -1393,6 +1393,14 @@ int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
 int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
     int wday)
 {
+    /* allow 2 digit years */
+    if (year < 1900)
+    {
+      if (year <= 38)
+	      year += 2000;
+      else
+	      year += 1900;
+    }
     apdu[0] = year - 1900;
     apdu[1] = month;
     apdu[2] = day;

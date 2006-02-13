@@ -332,7 +332,7 @@ void testWriteProperty(Test * pTest)
   testWritePropertyTag(pTest, &data);
   
   data.value.tag = BACNET_APPLICATION_TAG_DATE;
-  data.value.type.Date.year = 5;
+  data.value.type.Date.year = 2005;
   data.value.type.Date.month = 5;
   data.value.type.Date.day = 22;
   data.value.type.Date.wday = 1;
