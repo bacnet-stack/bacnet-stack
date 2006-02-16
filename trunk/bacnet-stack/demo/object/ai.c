@@ -61,7 +61,21 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
   return index;
 }
 
+char *Analog_Input_Name(uint32_t object_instance)
+{
+  static char text_string[32] = ""; /* okay for single thread */
+  
+  if (object_instance < MAX_ANALOG_INPUTS)
+  {
+    sprintf(text_string,"ANALOG INPUT %u",object_instance);
+    return text_string;
+  }
+
+  return NULL;  
+}
+
 /* return apdu length, or -1 on error */
+/* assumption - object has already exists */
 int Analog_Input_Encode_Property_APDU(
   uint8_t *apdu,
   uint32_t object_instance,
@@ -85,8 +99,7 @@ int Analog_Input_Encode_Property_APDU(
       break;
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
-      sprintf(text_string,"ANALOG INPUT %u",object_instance);
-      characterstring_init_ansi(&char_string, text_string);
+      characterstring_init_ansi(&char_string, Analog_Input_Name(object_instance));
       apdu_len = encode_tagged_character_string(&apdu[0],
           &char_string);
       break;

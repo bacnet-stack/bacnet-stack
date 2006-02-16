@@ -48,7 +48,7 @@ int whohas_encode_apdu(
 
   if (apdu && data) {
     apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-    apdu[1] = SERVICE_UNCONFIRMED_WHO_IS;     // service choice
+    apdu[1] = SERVICE_UNCONFIRMED_WHO_HAS;     // service choice
     apdu_len = 2;
     // optional limits - must be used as a pair
     if ((data->low_limit >= 0) && (data->low_limit <= BACNET_MAX_INSTANCE) &&

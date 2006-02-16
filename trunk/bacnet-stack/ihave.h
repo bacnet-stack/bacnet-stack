@@ -31,47 +31,41 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#ifndef WHOHAS_H
-#define WHOHAS_H
+#ifndef IHAVE_H
+#define IHAVE_H
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacstr.h"
 
-typedef struct BACnet_Who_Has_Data
+typedef struct BACnet_I_Have_Data
 {
-  int32_t low_limit; /* deviceInstanceRange */
-  int32_t high_limit;
-  bool object_name; /* true if a string */
-  union
-  {
-    BACNET_OBJECT_ID identifier;
-    BACNET_CHARACTER_STRING name;
-  } object;
-} BACNET_WHO_HAS_DATA;
+  BACNET_OBJECT_ID device_id;
+  BACNET_OBJECT_ID object_id;
+  BACNET_CHARACTER_STRING object_name;
+} BACNET_I_HAVE_DATA;
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-// encode service  - use -1 for limit if you want unlimited
-int whohas_encode_apdu(
+int ihave_encode_apdu(
   uint8_t *apdu,
-  BACNET_WHO_HAS_DATA *data);
+  BACNET_I_HAVE_DATA *data);
 
-int whohas_decode_service_request(
+int ihave_decode_service_request(
   uint8_t *apdu,
   unsigned apdu_len,
-  BACNET_WHO_HAS_DATA *data);
+  BACNET_I_HAVE_DATA *data);
 
-int whohas_decode_apdu(
+int ihave_decode_apdu(
   uint8_t *apdu,
   unsigned apdu_len,
-  BACNET_WHO_HAS_DATA *data);
+  BACNET_I_HAVE_DATA *data);
 
 #ifdef TEST
 #include "ctest.h"
-void testWhoHas(Test * pTest);
+void testIHave(Test * pTest);
 #endif
 
 #ifdef __cplusplus
