@@ -25,7 +25,6 @@ SRCS = main.c \
        ..\..\demo\handler\txbuf.c  \
        ..\..\demo\handler\noserv.c  \
        ..\..\demo\handler\h_whois.c  \
-       ..\..\demo\handler\h_iam.c  \
        ..\..\demo\handler\h_ihave.c  \
        ..\..\demo\handler\h_rp.c  \
        ..\..\demo\handler\s_ihave.c  \
@@ -37,9 +36,9 @@ SRCS = main.c \
        ..\..\indtext.c \
        ..\..\bigend.c \
        ..\..\whois.c \
-       ..\..\ihave.c \
-       ..\..\whohas.c \
        ..\..\iam.c \
+       ..\..\whohas.c \
+       ..\..\ihave.c \
        ..\..\rp.c \
        ..\..\wp.c \
        ..\..\arf.c \
