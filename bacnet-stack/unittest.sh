@@ -74,6 +74,11 @@ make -f iam.mak
 ./iam >> test.log
 make -f iam.mak clean
 
+make -f ihave.mak clean
+make -f ihave.mak
+./ihave >> test.log
+make -f ihave.mak clean
+
 make -f indtext.mak clean
 make -f indtext.mak
 ./indtext >> test.log

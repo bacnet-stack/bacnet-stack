@@ -87,7 +87,6 @@ int Analog_Input_Encode_Property_APDU(
   int apdu_len = 0; // return value
   BACNET_BIT_STRING bit_string;
   BACNET_CHARACTER_STRING char_string;
-  char text_string[32] = {""};
   float value = 3.14;
   
   (void)array_index;

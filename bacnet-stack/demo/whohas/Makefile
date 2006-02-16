@@ -9,7 +9,7 @@ BASEDIR = .
 #DEFINES = -DBACFILE=1 -DBACDL_ETHERNET=1
 #DEFINES = -DBACFILE=1 -DBACDL_ARCNET=1
 #DEFINES = -DBACFILE=1 -DBACDL_MSTP=1 
-DEFINES = -DBACFILE=1 -DTSM_ENABLED=1 -DBACDL_BIP=1
+DEFINES = -DBACFILE=1 -DTSM_ENABLED=0 -DBACDL_BIP=1
 BACNET_PORT = ../../ports/linux
 BACNET_OBJECT = ../object
 BACNET_HANDLER = ../handler
@@ -18,7 +18,7 @@ INCLUDES = -I$(BACNET_ROOT) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDL
 
 CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
-TARGET = bacrd
+TARGET = bacwh
 
 SRCS = main.c \
        $(BACNET_ROOT)/rd.c \
@@ -27,10 +27,10 @@ SRCS = main.c \
        $(BACNET_HANDLER)/txbuf.c \
        $(BACNET_HANDLER)/noserv.c \
        $(BACNET_HANDLER)/h_whois.c \
+       $(BACNET_HANDLER)/h_ihave.c \
        $(BACNET_HANDLER)/h_rp.c \
-       $(BACNET_HANDLER)/h_iam.c  \
-       $(BACNET_HANDLER)/s_whois.c  \
-       $(BACNET_HANDLER)/s_rd.c  \
+       $(BACNET_HANDLER)/s_whohas.c  \
+       $(BACNET_HANDLER)/s_ihave.c  \
        $(BACNET_OBJECT)/device.c \
        $(BACNET_OBJECT)/ai.c \
        $(BACNET_OBJECT)/ao.c \
@@ -47,7 +47,8 @@ SRCS = main.c \
        $(BACNET_ROOT)/bigend.c \
        $(BACNET_ROOT)/whois.c \
        $(BACNET_ROOT)/iam.c \
-       $(BACNET_ROOT)/tsm.c \
+       $(BACNET_ROOT)/whohas.c \
+       $(BACNET_ROOT)/ihave.c \
        $(BACNET_ROOT)/datalink.c \
        $(BACNET_ROOT)/address.c \
        $(BACNET_ROOT)/arf.c \

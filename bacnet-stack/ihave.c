@@ -79,7 +79,6 @@ int ihave_decode_service_request(
   int len = 0;
   uint8_t tag_number = 0;
   uint32_t len_value = 0;
-  uint32_t decoded_value = 0; /* for decoding */
   int decoded_type = 0; /* for decoding */
 
   if (apdu_len && data)
@@ -175,7 +174,6 @@ void testIHaveData(Test * pTest, BACNET_I_HAVE_DATA *data)
     data->object_id.instance);
   ct_test(pTest, characterstring_same(
     &test_data.object_name,&data->object_name));
-  }
 }
 
 void testIHave(Test * pTest)
