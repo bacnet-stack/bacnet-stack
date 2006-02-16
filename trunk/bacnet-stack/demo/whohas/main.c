@@ -135,13 +135,10 @@ int main(int argc, char *argv[])
   BACNET_ADDRESS src = {0};  // address where message came from
   uint16_t pdu_len = 0;
   unsigned timeout = 100; // milliseconds
-  unsigned max_apdu = 0;
   time_t elapsed_seconds = 0;
   time_t last_seconds = 0; 
   time_t current_seconds = 0;
   time_t timeout_seconds = 0;
-  uint8_t invoke_id = 0;
-  bool found = false;
   #ifdef BIP_DEBUG
   BACNET_ADDRESS my_address, broadcast_address;
   #endif
