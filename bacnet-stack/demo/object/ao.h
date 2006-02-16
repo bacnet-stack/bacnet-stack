@@ -38,6 +38,7 @@ extern "C" {
 bool Analog_Output_Valid_Instance(uint32_t object_instance);
 unsigned Analog_Output_Count(void);
 uint32_t Analog_Output_Index_To_Instance(unsigned index);
+char *Analog_Output_Name(uint32_t object_instance);
 
 int Analog_Output_Encode_Property_APDU(
   uint8_t *apdu,

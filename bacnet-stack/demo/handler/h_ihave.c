@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -22,37 +22,41 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef AI_H
-#define AI_H
-
-#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include "config.h"
+#include "txbuf.h"
 #include "bacdef.h"
+#include "bacdcode.h"
+#include "bactext.h"
+#include "ihave.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+void handler_i_have(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src)
+{
+  int len = 0;
+  BACNET_I_HAVE_DATA data;
 
-bool Analog_Input_Valid_Instance(uint32_t object_instance);
-unsigned Analog_Input_Count(void);
-uint32_t Analog_Input_Index_To_Instance(unsigned index);
-char *Analog_Input_Name(uint32_t object_instance);
+  (void)service_len;
+  (void)src;
+  len = ihave_decode_service_request(
+    service_request,
+    service_len,
+    &data);
+  if (len != -1)
+  {
+    fprintf(stderr,"I-Have: %s %d from %s %u!\r\n",
+      bactext_object_type_name(data.object_id.type),
+      data.object_id.instance,
+      bactext_object_type_name(data.device_id.type),
+      data.device_id.instance);
+  }
+  else
+    fprintf(stderr,"I-Have: received, but unable to decode!\n");
 
-int Analog_Input_Encode_Property_APDU(
-  uint8_t *apdu,
-  uint32_t object_instance,
-  BACNET_PROPERTY_ID property,
-  int32_t array_index,
-  BACNET_ERROR_CLASS *error_class,
-  BACNET_ERROR_CODE *error_code);
-
-#ifdef TEST
-#include "ctest.h"
-void testAnalogInput(Test * pTest);
-#endif
-
-#ifdef __cplusplus
+  return;  
 }
-#endif /* __cplusplus */
 
-#endif

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2005-2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -46,6 +46,11 @@ void handler_unrecognized_service(
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 void handler_who_is(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src);
+  
+void handler_who_has(
   uint8_t *service_request,
   uint16_t service_len,
   BACNET_ADDRESS *src);
@@ -101,6 +106,11 @@ void handler_device_communication_control(
   uint16_t service_len,
   BACNET_ADDRESS *src,
   BACNET_CONFIRMED_SERVICE_DATA *service_data);
+
+void handler_i_have(
+  uint8_t *service_request,
+  uint16_t service_len,
+  BACNET_ADDRESS *src);
 
 #ifdef __cplusplus
 }

@@ -141,6 +141,20 @@ static float Analog_Output_Present_Value(uint32_t object_instance)
   return value;
 }
 
+/* note: the object name must be unique within this device */
+char *Analog_Output_Name(uint32_t object_instance)
+{
+  static char text_string[32] = ""; /* okay for single thread */
+  
+  if (object_instance < MAX_ANALOG_OUTPUTS)
+  {
+    sprintf(text_string,"ANALOG OUTPUT %u",object_instance);
+    return text_string;
+  }
+
+  return NULL;  
+}
+
 /* return apdu len, or -1 on error */
 int Analog_Output_Encode_Property_APDU(
   uint8_t *apdu,
@@ -168,9 +182,7 @@ int Analog_Output_Encode_Property_APDU(
       break;
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
-      // note: the object name must be unique within this device
-      sprintf(text_string,"ANALOG OUTPUT %u",object_instance);
-      characterstring_init_ansi(&char_string, text_string);
+      characterstring_init_ansi(&char_string, Analog_Output_Name(object_instance));
       apdu_len = encode_tagged_character_string(&apdu[0],
           &char_string);
       break;

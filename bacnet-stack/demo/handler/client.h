@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -37,10 +37,28 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* unconfirmed requests */
 void Send_WhoIs(
   int32_t low_limit,
   int32_t high_limit);
 
+void Send_WhoHas_Object(
+  int32_t low_limit,
+  int32_t high_limit,
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance);
+
+void Send_WhoHas_Name(
+  int32_t low_limit,
+  int32_t high_limit,
+  char *object_name);
+
+void Send_I_Have(
+  uint32_t device_id,
+  BACNET_OBJECT_TYPE object_type,
+  uint32_t object_instance,
+  char *object_name);
+  
 /* returns the invoke ID for confirmed request, or 0 if failed */
 uint8_t Send_Read_Property_Request(
   uint32_t device_id, /* destination device */
@@ -71,7 +89,7 @@ uint8_t Send_Device_Communication_Control_Request(
   uint16_t timeDuration, /* 0=optional */
   BACNET_COMMUNICATION_ENABLE_DISABLE state,
   char *password); /* NULL=optional */
-
+  
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

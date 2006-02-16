@@ -29,60 +29,65 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
-#include "config.h" // the custom stuff
+#include "config.h" /* the custom stuff */
 #include "apdu.h"
-#include "ai.h" // object list dependency
-#include "ao.h" // object list dependency
-#include "wp.h" // write property handling
+#include "ai.h" /* object list dependency */
+#include "ao.h" /* object list dependency */
+#include "wp.h" /* write property handling */
+#include "device.h" /* me */
 #if BACFILE
-#include "bacfile.h" // object list dependency
+#include "bacfile.h" /* object list dependency */
 #endif
 
+/* note: you really only need to define variables for 
+   properties that are writable or that may change. 
+   The properties that are constant can be hard coded
+   into the read-property encoding. */
 static uint32_t Object_Instance_Number = 0;
 static char Object_Name[16] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char Vendor_Name[16] = "ASHRAE";
-// vendor id assigned by ASHRAE
+/* FIXME: your vendor id assigned by ASHRAE */
 static uint16_t Vendor_Identifier = 0;
 static char Model_Name[16] = "GNU";
 static char Firmware_Revision[16] = "1.0";
 static char Application_Software_Version[16] = "1.0";
 static char Location[16] = "USA";
 static char Description[16] = "server";
-//static uint8_t Protocol_Version = 1; - constant, not settable
-//static uint8_t Protocol_Revision = 4; - constant, not settable
-//Protocol_Services_Supported
-//Protocol_Object_Types_Supported
-//Object_List
-//static uint16_t Max_APDU_Length_Accepted = MAX_APDU; - constant
-//static BACNET_SEGMENTATION Segmentation_Supported = SEGMENTATION_NONE;
-//static uint8_t Max_Segments_Accepted = 0;
-//VT_Classes_Supported
-//Active_VT_Sessions
-//Local_Time - rely on OS, if there is one
-//Local_Date - rely on OS, if there is one
-//UTC_Offset - rely on OS, if there is one
-//Daylight_Savings_Status - rely on OS, if there is one
-//APDU_Segment_Timeout
+/* static uint8_t Protocol_Version = 1; - constant, not settable */
+/* static uint8_t Protocol_Revision = 4; - constant, not settable */
+/* Protocol_Services_Supported - dynamically generated */
+/* Protocol_Object_Types_Supported - in RP encoding */
+/* Object_List - dynamically generated */
+/* static uint16_t Max_APDU_Length_Accepted = MAX_APDU; - constant */
+/* static BACNET_SEGMENTATION Segmentation_Supported = SEGMENTATION_NONE; */
+/* static uint8_t Max_Segments_Accepted = 0; */
+/* VT_Classes_Supported */
+/* Active_VT_Sessions */
+/* Local_Time - rely on OS, if there is one */
+/* Local_Date - rely on OS, if there is one */
+/* UTC_Offset - rely on OS, if there is one */
+/* Daylight_Savings_Status - rely on OS, if there is one */
+/* APDU_Segment_Timeout */
 static uint16_t APDU_Timeout = 3000;
 static uint8_t Number_Of_APDU_Retries = 3;
-//List_Of_Session_Keys
-//Time_Synchronization_Recipients
-//Max_Master - rely on MS/TP subsystem, if there is one
-//Max_Info_Frames - rely on MS/TP subsystem, if there is one
-//Device_Address_Binding - required, but relies on binding cache
+/* List_Of_Session_Keys */
+/* Time_Synchronization_Recipients */
+/* Max_Master - rely on MS/TP subsystem, if there is one */
+/* Max_Info_Frames - rely on MS/TP subsystem, if there is one */
+/* Device_Address_Binding - required, but relies on binding cache */
 static uint8_t Database_Revision = 0;
-//Configuration_Files
-//Last_Restore_Time
-//Backup_Failure_Timeout
-//Active_COV_Subscriptions
-//Slave_Proxy_Enable
-//Manual_Slave_Address_Binding
-//Auto_Slave_Discovery
-//Slave_Address_Binding
-//Profile_Name
+/* Configuration_Files */
+/* Last_Restore_Time */
+/* Backup_Failure_Timeout */
+/* Active_COV_Subscriptions */
+/* Slave_Proxy_Enable */
+/* Manual_Slave_Address_Binding */
+/* Auto_Slave_Discovery */
+/* Slave_Address_Binding */
+/* Profile_Name */
 
-// methods to manipulate the data
+/* methods to manipulate the data */
 uint32_t Device_Object_Instance_Number(void)
 {
   return Object_Instance_Number;
@@ -377,6 +382,71 @@ bool Device_Object_List_Identifier(unsigned array_index,
   #endif
 
   return status;
+}
+
+bool Device_Valid_Object_Name(
+  const char *object_name,
+  int *object_type,
+  uint32_t *object_instance)
+{
+  bool found = false;
+  int type = 0;
+  uint32_t instance;
+  unsigned max_objects = 0, i = 0;
+  bool check_id = false;
+  char *name = NULL;
+  
+  max_objects = Device_Object_List_Count();
+  for (i = 0; i < max_objects; i++)
+  {
+    check_id = Device_Object_List_Identifier(i, &type, &instance);
+    if (check_id)
+    {
+      name = Device_Valid_Object_Id(type,instance);
+      if (strcmp(name,object_name) == 0)
+      {
+        found = true;
+        if (object_type)
+          *object_type = type;
+        if (object_instance)
+          *object_instance = instance;
+        break;
+      }
+    }
+  }
+  
+  return found;
+}
+
+/* returns the name or NULL if not found */
+char *Device_Valid_Object_Id(
+  int object_type,
+  uint32_t object_instance)
+{
+  char *name = NULL; /* return value */
+
+  switch (object_type)
+  {
+    case OBJECT_ANALOG_INPUT:
+      name = Analog_Input_Name(object_instance);
+      break;
+    case OBJECT_ANALOG_OUTPUT:
+      name = Analog_Output_Name(object_instance);
+      break;
+#if BACFILE
+    case OBJECT_FILE:
+      name = bacfile_name(object_instance);
+      break;
+#endif
+    case OBJECT_DEVICE:
+      if (object_instance == Object_Instance_Number)
+        name = Object_Name;
+      break;
+    default:
+      break;
+  }
+  
+  return name;
 }
 
 // return the length of the apdu encoded or -1 for error

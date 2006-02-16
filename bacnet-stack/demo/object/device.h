@@ -91,6 +91,14 @@ void Device_Set_Number_Of_APDU_Retries(uint8_t retries);
 uint8_t Device_Database_Revision(void);
 void Device_Set_Database_Revision(uint8_t revision);
 
+bool Device_Valid_Object_Name(
+  const char *object_name,
+  int *object_type,
+  uint32_t *object_instance);
+char *Device_Valid_Object_Id(
+  int object_type,
+  uint32_t object_instance);
+
 int Device_Encode_Property_APDU(
   uint8_t *apdu,
   BACNET_PROPERTY_ID property,
