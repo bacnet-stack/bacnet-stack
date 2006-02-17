@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
       "The object-name can be any string of characters.\r\n",
       filename_remove_path(argv[0]),
       MAX_BACNET_OBJECT_TYPE-1,
-      BACNET_MAX_INSTANCE-1);
+      BACNET_MAX_INSTANCE);
     return 0;
   }
   /* decode the command line parameters */
@@ -169,18 +169,18 @@ int main(int argc, char *argv[])
   {
     Target_Object_Type = strtol(argv[1],NULL,0);
     Target_Object_Instance = strtol(argv[2],NULL,0);
-  }
-  if (Target_Object_Instance > BACNET_MAX_INSTANCE)
-  {
-    fprintf(stderr,"object-instance=%u - it must be less than %u\r\n",
-      Target_Object_Instance,BACNET_MAX_INSTANCE+1);
-    return 1;
-  }
-  if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE)
-  {
-    fprintf(stderr,"object-type=%u - it must be less than %u\r\n",
-      Target_Object_Type,MAX_BACNET_OBJECT_TYPE+1);
-    return 1;
+    if (Target_Object_Instance > BACNET_MAX_INSTANCE)
+    {
+      fprintf(stderr,"object-instance=%u - it must be less than %u\r\n",
+        Target_Object_Instance,BACNET_MAX_INSTANCE+1);
+      return 1;
+    }
+    if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE)
+    {
+      fprintf(stderr,"object-type=%u - it must be less than %u\r\n",
+        Target_Object_Type,MAX_BACNET_OBJECT_TYPE+1);
+      return 1;
+    }
   }
   /* setup my info */
   Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
