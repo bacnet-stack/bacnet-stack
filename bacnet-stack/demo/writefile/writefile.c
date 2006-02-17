@@ -373,14 +373,22 @@ int main(int argc, char *argv[])
       if (found)
       {
         /* calculate the smaller of our APDU size or theirs
-           and remove the overhead of the APDU (about 24 octets max).
+           and remove the overhead of the APDU (varies depending on size).
            note: we could fail if there is a bottle neck (router)
            and smaller MPDU in betweeen. */
         if (max_apdu < MAX_APDU)
           my_max_apdu = max_apdu;
         else
           my_max_apdu = MAX_APDU;
-        requestedOctetCount = my_max_apdu - 24;
+        /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
+        if (my_max_apdu <= 50)
+          requestedOctetCount = my_max_apdu - 16;
+        else if (my_max_apdu <= 480)
+          requestedOctetCount = my_max_apdu - 32;
+        else if (my_max_apdu <= 1476)
+          requestedOctetCount = my_max_apdu - 64;
+        else
+          requestedOctetCount = my_max_apdu / 2;
         /* has the previous invoke id expired or returned?
            note: invoke ID = 0 is invalid, so it will be idle */
         if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id))
