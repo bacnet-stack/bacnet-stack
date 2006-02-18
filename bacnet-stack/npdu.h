@@ -40,50 +40,39 @@
 #include "bacenum.h"
 
 // an NPDU structure keeps the parameter stack to a minimum
-typedef struct bacnet_npdu_data_t
-{
-  uint8_t protocol_version;
-  // parts of the control octet:
-  bool data_expecting_reply;  // true for confirmed messages
-  bool network_layer_message; // false if APDU
-  BACNET_MESSAGE_PRIORITY priority;
-  // optional network message info
-  BACNET_NETWORK_MESSAGE_TYPE network_message_type; // optional
-  uint16_t vendor_id; // optional, if net message type is > 0x80
-  uint8_t hop_count;
+typedef struct bacnet_npdu_data_t {
+    uint8_t protocol_version;
+    // parts of the control octet:
+    bool data_expecting_reply;  // true for confirmed messages
+    bool network_layer_message; // false if APDU
+    BACNET_MESSAGE_PRIORITY priority;
+    // optional network message info
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type;   // optional
+    uint16_t vendor_id;         // optional, if net message type is > 0x80
+    uint8_t hop_count;
 } BACNET_NPDU_DATA;
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-uint8_t npdu_encode_max_seg_max_apdu(int max_segs, int max_apdu);
-int npdu_encode_raw(
-  uint8_t *npdu,
-  BACNET_ADDRESS *dest,
-  BACNET_ADDRESS *src,
-  BACNET_NPDU_DATA *npdu_data);
+    uint8_t npdu_encode_max_seg_max_apdu(int max_segs, int max_apdu);
+    int npdu_encode_raw(uint8_t * npdu,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data);
 // encode the NPDU portion of the packet for an APDU
-int npdu_encode_apdu(
-  uint8_t *npdu,
-  BACNET_ADDRESS *dest,
-  BACNET_ADDRESS *src,
-  bool data_expecting_reply,  // true for confirmed messages
-  BACNET_MESSAGE_PRIORITY priority);
+    int npdu_encode_apdu(uint8_t * npdu, BACNET_ADDRESS * dest, BACNET_ADDRESS * src, bool data_expecting_reply,        // true for confirmed messages
+        BACNET_MESSAGE_PRIORITY priority);
 
-int npdu_decode(
-  uint8_t *npdu,
-  BACNET_ADDRESS *dest,
-  BACNET_ADDRESS *src,
-  BACNET_NPDU_DATA *npdu_data);
+    int npdu_decode(uint8_t * npdu,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data);
 
-void npdu_handler(
-  BACNET_ADDRESS *src,  // source address
-  uint8_t *pdu, // PDU data
-  uint16_t pdu_len); // length PDU 
+    void npdu_handler(BACNET_ADDRESS * src,     // source address
+        uint8_t * pdu,          // PDU data
+        uint16_t pdu_len);      // length PDU 
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

@@ -40,66 +40,54 @@
 #include "bacdef.h"
 #include "bacstr.h"
 
-typedef struct BACnet_Application_Data_Value
-{
-  uint8_t tag;
-  union
-  {
-    /* NULL - not needed as it is encoded in the tag alone */
-    bool Boolean;
-    uint32_t Unsigned_Int;
-    int32_t Signed_Int;
-    float Real;
-    double Double;
-    BACNET_OCTET_STRING Octet_String;
-    BACNET_CHARACTER_STRING Character_String;
-    BACNET_BIT_STRING Bit_String;
-    int Enumerated;
-    BACNET_DATE Date;
-    BACNET_TIME Time;
-    BACNET_OBJECT_ID Object_Id;
-  } type;
+typedef struct BACnet_Application_Data_Value {
+    uint8_t tag;
+    union {
+        /* NULL - not needed as it is encoded in the tag alone */
+        bool Boolean;
+        uint32_t Unsigned_Int;
+        int32_t Signed_Int;
+        float Real;
+        double Double;
+        BACNET_OCTET_STRING Octet_String;
+        BACNET_CHARACTER_STRING Character_String;
+        BACNET_BIT_STRING Bit_String;
+        int Enumerated;
+        BACNET_DATE Date;
+        BACNET_TIME Time;
+        BACNET_OBJECT_ID Object_Id;
+    } type;
 } BACNET_APPLICATION_DATA_VALUE;
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-int bacapp_decode_application_data(
-  uint8_t *apdu,
-  uint8_t apdu_len,
-  BACNET_APPLICATION_DATA_VALUE *value);
+    int bacapp_decode_application_data(uint8_t * apdu,
+        uint8_t apdu_len, BACNET_APPLICATION_DATA_VALUE * value);
 
-int bacapp_encode_application_data(
-  uint8_t *apdu,
-  BACNET_APPLICATION_DATA_VALUE *value);
+    int bacapp_encode_application_data(uint8_t * apdu,
+        BACNET_APPLICATION_DATA_VALUE * value);
 
-bool bacapp_copy(
-  BACNET_APPLICATION_DATA_VALUE *dest_value,
-  BACNET_APPLICATION_DATA_VALUE *src_value);
+    bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
+        BACNET_APPLICATION_DATA_VALUE * src_value);
 
-bool bacapp_compare(
-  BACNET_APPLICATION_DATA_VALUE *value,
-  BACNET_APPLICATION_DATA_VALUE *test_value);
+    bool bacapp_compare(BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_APPLICATION_DATA_VALUE * test_value);
 
-bool bacapp_parse_application_data(
-  BACNET_APPLICATION_TAG tag_number,
-  const char *argv,
-  BACNET_APPLICATION_DATA_VALUE *value);
+    bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
+        const char *argv, BACNET_APPLICATION_DATA_VALUE * value);
 
-bool bacapp_print_value(
-  FILE *stream,
-  BACNET_APPLICATION_DATA_VALUE *value,
-  BACNET_PROPERTY_ID property);
+    bool bacapp_print_value(FILE * stream,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_PROPERTY_ID property);
 
 #ifdef TEST
 #include "ctest.h"
-void testBACnetApplicationData(Test * pTest);
+    void testBACnetApplicationData(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif
-

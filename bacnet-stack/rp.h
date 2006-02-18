@@ -37,65 +37,49 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct BACnet_Read_Property_Data
-{
-  BACNET_OBJECT_TYPE object_type;
-  uint32_t object_instance;
-  BACNET_PROPERTY_ID object_property;
-  int32_t array_index;
-  uint8_t *application_data;
-  int application_data_len;
+typedef struct BACnet_Read_Property_Data {
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_PROPERTY_ID object_property;
+    int32_t array_index;
+    uint8_t *application_data;
+    int application_data_len;
 } BACNET_READ_PROPERTY_DATA;
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
 // encode service
-int rp_encode_apdu(
-  uint8_t *apdu, 
-  uint8_t invoke_id,
-  BACNET_READ_PROPERTY_DATA *data);
+    int rp_encode_apdu(uint8_t * apdu,
+        uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data);
 
 // decode the service request only
-int rp_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_READ_PROPERTY_DATA *data);
-  
-int rp_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  uint8_t *invoke_id,
-  BACNET_READ_PROPERTY_DATA *data);
+    int rp_decode_service_request(uint8_t * apdu,
+        unsigned apdu_len, BACNET_READ_PROPERTY_DATA * data);
 
-int rp_ack_encode_apdu(
-  uint8_t *apdu,
-  uint8_t invoke_id,
-  BACNET_READ_PROPERTY_DATA *data);
+    int rp_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len,
+        uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * data);
 
-int rp_ack_decode_service_request(
-  uint8_t *apdu,
-  int apdu_len, // total length of the apdu
-  BACNET_READ_PROPERTY_DATA *data);
+    int rp_ack_encode_apdu(uint8_t * apdu,
+        uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data);
 
-int rp_ack_decode_apdu(
-  uint8_t *apdu,
-  int apdu_len, // total length of the apdu
-  uint8_t *invoke_id,
-  BACNET_READ_PROPERTY_DATA *data);
+    int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len,     // total length of the apdu
+        BACNET_READ_PROPERTY_DATA * data);
 
-  
+    int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,        // total length of the apdu
+        uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * data);
+
+
 #ifdef TEST
 #include "ctest.h"
 
-void test_ReadProperty(Test * pTest);
-void test_ReadPropertyAck(Test * pTest);
+    void test_ReadProperty(Test * pTest);
+    void test_ReadPropertyAck(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif
-

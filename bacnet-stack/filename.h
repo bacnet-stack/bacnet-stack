@@ -36,12 +36,11 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-char *filename_remove_path(const char *filename_in);
+    char *filename_remove_path(const char *filename_in);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

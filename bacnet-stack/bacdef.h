@@ -56,11 +56,10 @@
 // embedded systems need fixed name sizes
 #define MAX_OBJECT_NAME 10
 // common object properties
-typedef struct BACnet_Object_Data
-{
-  uint32_t Object_Identifier;
-  char Object_Name[MAX_OBJECT_NAME];
-  BACNET_OBJECT_TYPE Object_Type;
+typedef struct BACnet_Object_Data {
+    uint32_t Object_Identifier;
+    char Object_Name[MAX_OBJECT_NAME];
+    BACNET_OBJECT_TYPE Object_Type;
 } BACNET_OBJECT_DATA;
 
 #define BACNET_BROADCAST_NETWORK 0xFFFF
@@ -75,39 +74,36 @@ struct BACnet_Device_Address {
     // DNET,DLEN,DADR or SNET,SLEN,SADR
     // the following are used if the device is behind a router
     // net = 0 indicates local
-    uint16_t net; /* BACnet network number */
+    uint16_t net;               /* BACnet network number */
     // LEN = 0 denotes broadcast MAC ADR and ADR field is absent
     // LEN > 0 specifies length of ADR field
-    int len; /* length of MAC address */
-    uint8_t adr[MAX_MAC_LEN]; /* hwaddr (MAC) address */
+    int len;                    /* length of MAC address */
+    uint8_t adr[MAX_MAC_LEN];   /* hwaddr (MAC) address */
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;
 
 /* date */
-typedef struct BACnet_Date
-{
-  uint16_t year; /* AD */
-  uint8_t month; /* 1=Jan */
-  uint8_t day; /* 1..31 */
-  uint8_t wday; /* 1=Monday */
+typedef struct BACnet_Date {
+    uint16_t year;              /* AD */
+    uint8_t month;              /* 1=Jan */
+    uint8_t day;                /* 1..31 */
+    uint8_t wday;               /* 1=Monday */
 } BACNET_DATE;
 
 /* time */
-typedef struct BACnet_Time
-{
-  uint8_t hour;
-  uint8_t min;
-  uint8_t sec;
-  uint8_t hundredths;
+typedef struct BACnet_Time {
+    uint8_t hour;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t hundredths;
 } BACNET_TIME;
 
 /* note: with microprocessors having lots more code space than memory,
    it might be better to have a packed encoding with a library to
    easily access the data. */
-typedef struct BACnet_Object_Id
-{
-  uint16_t type;
-  uint32_t instance;
+typedef struct BACnet_Object_Id {
+    uint16_t type;
+    uint32_t instance;
 } BACNET_OBJECT_ID;
 
 #define MAX_NPDU (1+1+2+1+MAX_MAC_LEN+2+1+MAX_MAC_LEN+1+1+2)

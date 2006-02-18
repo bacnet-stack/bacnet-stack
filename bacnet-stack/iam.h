@@ -40,38 +40,28 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-int iam_encode_apdu(
-  uint8_t *apdu, 
-  uint32_t device_id,
-  unsigned max_apdu,
-  int segmentation,
-  uint16_t vendor_id);
+    int iam_encode_apdu(uint8_t * apdu,
+        uint32_t device_id,
+        unsigned max_apdu, int segmentation, uint16_t vendor_id);
 
-int iam_decode_service_request(
-  uint8_t *apdu, 
-  uint32_t *pDevice_id,
-  unsigned *pMax_apdu,
-  int *pSegmentation,
-  uint16_t *pVendor_id);
-  
-int iam_decode_apdu(
-  uint8_t *apdu, 
-  uint32_t *pDevice_id,
-  unsigned *pMax_apdu,
-  int *pSegmentation,
-  uint16_t *pVendor_id);
-  
-int iam_send(uint8_t *buffer);
+    int iam_decode_service_request(uint8_t * apdu,
+        uint32_t * pDevice_id,
+        unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id);
+
+    int iam_decode_apdu(uint8_t * apdu,
+        uint32_t * pDevice_id,
+        unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id);
+
+    int iam_send(uint8_t * buffer);
 
 #ifdef TEST
 #include "ctest.h"
-void testIAm(Test * pTest);
+    void testIAm(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

@@ -42,34 +42,30 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct ring_buffer_t
-{
-  char *data; // block of memory or array of data
-  unsigned element_size; // how many bytes for each chunk
-  unsigned element_count; // number of chunks of data
-  unsigned head; // first chunk of data
-  unsigned count; // number of chunks in use
+struct ring_buffer_t {
+    char *data;                 // block of memory or array of data
+    unsigned element_size;      // how many bytes for each chunk
+    unsigned element_count;     // number of chunks of data
+    unsigned head;              // first chunk of data
+    unsigned count;             // number of chunks in use
 };
 typedef struct ring_buffer_t RING_BUFFER;
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-bool Ringbuf_Empty(RING_BUFFER const *b);
-char *Ringbuf_Get_Front(RING_BUFFER const *b);
-char *Ringbuf_Pop_Front(RING_BUFFER *b);
-bool Ringbuf_Put(
-  RING_BUFFER *b, // ring buffer structure
-  char *data_element); // one element to add to the ring
-void Ringbuf_Init(
-  RING_BUFFER *b, // ring buffer structure
-  char *data, // data block or array of data
-  unsigned element_size, // size of one element in the data block
-  unsigned element_count); // number of elements in the data block
+    bool Ringbuf_Empty(RING_BUFFER const *b);
+    char *Ringbuf_Get_Front(RING_BUFFER const *b);
+    char *Ringbuf_Pop_Front(RING_BUFFER * b);
+    bool Ringbuf_Put(RING_BUFFER * b,   // ring buffer structure
+        char *data_element);    // one element to add to the ring
+    void Ringbuf_Init(RING_BUFFER * b,  // ring buffer structure
+        char *data,             // data block or array of data
+        unsigned element_size,  // size of one element in the data block
+        unsigned element_count);        // number of elements in the data block
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

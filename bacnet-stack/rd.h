@@ -39,37 +39,32 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
 // encode service
-int rd_encode_apdu(
-  uint8_t *apdu, 
-  uint8_t invoke_id,
-  BACNET_REINITIALIZED_STATE state,
-  BACNET_CHARACTER_STRING *password);
+    int rd_encode_apdu(uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_REINITIALIZED_STATE state,
+        BACNET_CHARACTER_STRING * password);
 
 // decode the service request only
-int rd_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_REINITIALIZED_STATE *state,
-  BACNET_CHARACTER_STRING *password);
-  
-int rd_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  uint8_t *invoke_id,
-  BACNET_REINITIALIZED_STATE *state,
-  BACNET_CHARACTER_STRING *password);
+    int rd_decode_service_request(uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_REINITIALIZED_STATE * state,
+        BACNET_CHARACTER_STRING * password);
+
+    int rd_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len,
+        uint8_t * invoke_id,
+        BACNET_REINITIALIZED_STATE * state,
+        BACNET_CHARACTER_STRING * password);
 
 #ifdef TEST
 #include "ctest.h"
-void test_ReinitializeDevice(Test * pTest);
+    void test_ReinitializeDevice(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif
-

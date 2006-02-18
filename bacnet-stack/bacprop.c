@@ -37,63 +37,75 @@
 #include "bacprop.h"
 
 PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
-  {PROP_OBJECT_IDENTIFIER, BACNET_APPLICATION_TAG_OBJECT_ID},
-  {PROP_OBJECT_NAME, BACNET_APPLICATION_TAG_CHARACTER_STRING},
-  {PROP_OBJECT_TYPE, BACNET_APPLICATION_TAG_ENUMERATED},
-  {PROP_SYSTEM_STATUS, BACNET_APPLICATION_TAG_ENUMERATED},
-  {PROP_VENDOR_NAME, BACNET_APPLICATION_TAG_CHARACTER_STRING},
-  {PROP_VENDOR_IDENTIFIER, BACNET_APPLICATION_TAG_UNSIGNED_INT},
-  {PROP_MODEL_NAME, BACNET_APPLICATION_TAG_CHARACTER_STRING},
-  {PROP_FIRMWARE_REVISION, BACNET_APPLICATION_TAG_CHARACTER_STRING},
-  {PROP_APPLICATION_SOFTWARE_VERSION, BACNET_APPLICATION_TAG_CHARACTER_STRING},
-  {PROP_PROTOCOL_VERSION, BACNET_APPLICATION_TAG_UNSIGNED_INT},
-  {PROP_PROTOCOL_CONFORMANCE_CLASS, BACNET_APPLICATION_TAG_UNSIGNED_INT},
-  {PROP_PROTOCOL_SERVICES_SUPPORTED, BACNET_APPLICATION_TAG_BIT_STRING},
-  {PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, BACNET_APPLICATION_TAG_BIT_STRING},
-  {PROP_MAX_APDU_LENGTH_ACCEPTED, BACNET_APPLICATION_TAG_UNSIGNED_INT},
-  {PROP_SEGMENTATION_SUPPORTED, BACNET_APPLICATION_TAG_ENUMERATED},
-  {PROP_APDU_TIMEOUT, BACNET_APPLICATION_TAG_UNSIGNED_INT},
-  {PROP_NUMBER_OF_APDU_RETRIES, BACNET_APPLICATION_TAG_UNSIGNED_INT},
-  { -1, -1 }
+    {PROP_OBJECT_IDENTIFIER, BACNET_APPLICATION_TAG_OBJECT_ID}
+    ,
+    {PROP_OBJECT_NAME, BACNET_APPLICATION_TAG_CHARACTER_STRING}
+    ,
+    {PROP_OBJECT_TYPE, BACNET_APPLICATION_TAG_ENUMERATED}
+    ,
+    {PROP_SYSTEM_STATUS, BACNET_APPLICATION_TAG_ENUMERATED}
+    ,
+    {PROP_VENDOR_NAME, BACNET_APPLICATION_TAG_CHARACTER_STRING}
+    ,
+    {PROP_VENDOR_IDENTIFIER, BACNET_APPLICATION_TAG_UNSIGNED_INT}
+    ,
+    {PROP_MODEL_NAME, BACNET_APPLICATION_TAG_CHARACTER_STRING}
+    ,
+    {PROP_FIRMWARE_REVISION, BACNET_APPLICATION_TAG_CHARACTER_STRING}
+    ,
+    {PROP_APPLICATION_SOFTWARE_VERSION,
+        BACNET_APPLICATION_TAG_CHARACTER_STRING}
+    ,
+    {PROP_PROTOCOL_VERSION, BACNET_APPLICATION_TAG_UNSIGNED_INT}
+    ,
+    {PROP_PROTOCOL_CONFORMANCE_CLASS, BACNET_APPLICATION_TAG_UNSIGNED_INT}
+    ,
+    {PROP_PROTOCOL_SERVICES_SUPPORTED, BACNET_APPLICATION_TAG_BIT_STRING}
+    ,
+    {PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+        BACNET_APPLICATION_TAG_BIT_STRING}
+    ,
+    {PROP_MAX_APDU_LENGTH_ACCEPTED, BACNET_APPLICATION_TAG_UNSIGNED_INT}
+    ,
+    {PROP_SEGMENTATION_SUPPORTED, BACNET_APPLICATION_TAG_ENUMERATED}
+    ,
+    {PROP_APDU_TIMEOUT, BACNET_APPLICATION_TAG_UNSIGNED_INT}
+    ,
+    {PROP_NUMBER_OF_APDU_RETRIES, BACNET_APPLICATION_TAG_UNSIGNED_INT}
+    ,
+    {-1, -1}
 };
 
-signed bacprop_tag_by_index_default(
-  PROP_TAG_DATA *data_list,
-  signed index,
-  signed default_ret)
+signed bacprop_tag_by_index_default(PROP_TAG_DATA * data_list,
+    signed index, signed default_ret)
 {
-  signed pUnsigned = 0;
+    signed pUnsigned = 0;
 
-  if (data_list)
-  {
-    while (data_list->prop_id != -1)
-    {
-      if (data_list->prop_id == index)
-      {
-        pUnsigned = data_list->tag_id;
-        break;
-      }
-      data_list++;
+    if (data_list) {
+        while (data_list->prop_id != -1) {
+            if (data_list->prop_id == index) {
+                pUnsigned = data_list->tag_id;
+                break;
+            }
+            data_list++;
+        }
     }
-  }
 
-  return pUnsigned?pUnsigned:default_ret;
+    return pUnsigned ? pUnsigned : default_ret;
 }
 
 
 signed bacprop_property_tag(BACNET_OBJECT_TYPE type, signed prop)
 {
-  switch (type)
-  {
-    case  OBJECT_DEVICE:
-      return bacprop_tag_by_index_default(
-        bacnet_object_device_property_tag_map,
-        prop,
-        -1);
+    switch (type) {
+    case OBJECT_DEVICE:
+        return
+            bacprop_tag_by_index_default
+            (bacnet_object_device_property_tag_map, prop, -1);
     default:
-      fprintf(stderr, "Unsupported object type"); 
-      break;
-  }
+        fprintf(stderr, "Unsupported object type");
+        break;
+    }
 
-  return -1;
+    return -1;
 }
