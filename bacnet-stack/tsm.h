@@ -112,15 +112,17 @@ bool tsm_get_transaction_pdu(
   uint16_t *pdu_len);
 
 bool tsm_invoke_id_free(uint8_t invokeID);
-#else
-#define tsm_free_invoke_id(x) (void)x;
-
-
-#endif
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/* define out any functions necessary for compile */
+#else
+
+#define tsm_free_invoke_id(x) (void)x;
+
+#endif
 
 #endif
 
