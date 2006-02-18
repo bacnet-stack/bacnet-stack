@@ -34,40 +34,30 @@
 #include "npdu.h"
 #include "reject.h"
 
-void handler_unrecognized_service(
-  uint8_t *service_request,
-  uint16_t service_len,
-  BACNET_ADDRESS *dest,
-  BACNET_CONFIRMED_SERVICE_DATA *service_data)
+void handler_unrecognized_service(uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * dest, BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-  BACNET_ADDRESS src;
-  int pdu_len = 0;
-  int bytes_sent = 0;
-  
-  (void)service_request;
-  (void)service_len;
-  datalink_get_my_address(&src);
+    BACNET_ADDRESS src;
+    int pdu_len = 0;
+    int bytes_sent = 0;
 
-  // encode the NPDU portion of the packet
-  pdu_len = npdu_encode_apdu(
-    &Handler_Transmit_Buffer[0],
-    dest,
-    &src,
-    false,  // true for confirmed messages
-    MESSAGE_PRIORITY_NORMAL);
-  
-  // encode the APDU portion of the packet
-  pdu_len += reject_encode_apdu(
-    &Handler_Transmit_Buffer[pdu_len], 
-    service_data->invoke_id,
-    REJECT_REASON_UNRECOGNIZED_SERVICE);
+    (void) service_request;
+    (void) service_len;
+    datalink_get_my_address(&src);
 
-  bytes_sent = datalink_send_pdu(
-    dest,  // destination address
-    &Handler_Transmit_Buffer[0],
-    pdu_len); // number of bytes of data
-  if (bytes_sent > 0)
-    fprintf(stderr,"Sent Reject!\n");
-  else
-    fprintf(stderr,"Failed to Send Reject (%s)!\n", strerror(errno));
+    // encode the NPDU portion of the packet
+    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], dest, &src, false,  // true for confirmed messages
+        MESSAGE_PRIORITY_NORMAL);
+
+    // encode the APDU portion of the packet
+    pdu_len += reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        service_data->invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+
+    bytes_sent = datalink_send_pdu(dest,        // destination address
+        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    if (bytes_sent > 0)
+        fprintf(stderr, "Sent Reject!\n");
+    else
+        fprintf(stderr, "Failed to Send Reject (%s)!\n", strerror(errno));
 }

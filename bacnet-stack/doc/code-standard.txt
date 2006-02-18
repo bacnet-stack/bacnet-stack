@@ -6,7 +6,9 @@ Don't use C++-style comments (comments beginning with "//" and running
 to the end of the line) for modules that are written in C.  The module
 may run through C rather than C++ compilers, and not all C compilers
 support C++-style comments (GCC does, but IBM's C compiler for AIX, for
-example, doesn't do so by default).
+example, doesn't do so by default).  Note: there is a program
+called usr/bin/ccmtcnvt in the liwc package that converts the C++
+comments to C comments.
 
 Don't initialize variables in their declaration with non-constant
 values. Not all compilers support this. E.g. don't use

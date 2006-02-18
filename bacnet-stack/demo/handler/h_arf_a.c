@@ -47,54 +47,42 @@
 // that someone can read from us.  It is common to
 // use the description as the file name.
 #if BACFILE
-void handler_atomic_read_file_ack(
-  uint8_t *service_request,
-  uint16_t service_len,
-  BACNET_ADDRESS *src,
-  BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+void handler_atomic_read_file_ack(uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
-  int len = 0;
-  BACNET_ATOMIC_READ_FILE_DATA data;
-  FILE *pFile = NULL;
-  char *pFilename = NULL;
-  uint32_t instance = 0;
+    int len = 0;
+    BACNET_ATOMIC_READ_FILE_DATA data;
+    FILE *pFile = NULL;
+    char *pFilename = NULL;
+    uint32_t instance = 0;
 
-  (void)src;
-  // get the file instance from the tsm data before freeing it
-  instance = bacfile_instance_from_tsm(service_data->invoke_id);
-  len = arf_ack_decode_service_request(
-    service_request,
-    service_len,
-    &data);
-  fprintf(stderr,"Received Read-File Ack!\n");
-  if ((len > 0) && (instance <= BACNET_MAX_INSTANCE))
-  {
-    // write the data received to the file specified
-    if (data.access == FILE_STREAM_ACCESS)
-    {
-      pFilename = bacfile_name(instance);
-      if (pFilename)
-      {
-        pFile = fopen(pFilename, "rb");
-        if (pFile)
-        {
-          (void)fseek(pFile,
-            data.type.stream.fileStartPosition,
-            SEEK_SET);
-          if (fwrite(octetstring_value(&data.fileData),
-              octetstring_length(&data.fileData),1,pFile) != 1)
-            fprintf(stderr,"Failed to write to %s (%u)!\n",
-              pFilename, instance);
-          fclose(pFile);
+    (void) src;
+    // get the file instance from the tsm data before freeing it
+    instance = bacfile_instance_from_tsm(service_data->invoke_id);
+    len = arf_ack_decode_service_request(service_request,
+        service_len, &data);
+    fprintf(stderr, "Received Read-File Ack!\n");
+    if ((len > 0) && (instance <= BACNET_MAX_INSTANCE)) {
+        // write the data received to the file specified
+        if (data.access == FILE_STREAM_ACCESS) {
+            pFilename = bacfile_name(instance);
+            if (pFilename) {
+                pFile = fopen(pFilename, "rb");
+                if (pFile) {
+                    (void) fseek(pFile,
+                        data.type.stream.fileStartPosition, SEEK_SET);
+                    if (fwrite(octetstring_value(&data.fileData),
+                            octetstring_length(&data.fileData), 1,
+                            pFile) != 1)
+                        fprintf(stderr, "Failed to write to %s (%u)!\n",
+                            pFilename, instance);
+                    fclose(pFile);
+                }
+            }
+        } else if (data.access == FILE_RECORD_ACCESS) {
+            // FIXME: add handling for Record Access
         }
-      }
     }
-    else if (data.access == FILE_RECORD_ACCESS)
-    {
-      // FIXME: add handling for Record Access
-    }
-  }
 }
 #endif
-
-

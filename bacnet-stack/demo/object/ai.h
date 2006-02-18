@@ -31,28 +31,25 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-bool Analog_Input_Valid_Instance(uint32_t object_instance);
-unsigned Analog_Input_Count(void);
-uint32_t Analog_Input_Index_To_Instance(unsigned index);
-char *Analog_Input_Name(uint32_t object_instance);
+    bool Analog_Input_Valid_Instance(uint32_t object_instance);
+    unsigned Analog_Input_Count(void);
+    uint32_t Analog_Input_Index_To_Instance(unsigned index);
+    char *Analog_Input_Name(uint32_t object_instance);
 
-int Analog_Input_Encode_Property_APDU(
-  uint8_t *apdu,
-  uint32_t object_instance,
-  BACNET_PROPERTY_ID property,
-  int32_t array_index,
-  BACNET_ERROR_CLASS *error_class,
-  BACNET_ERROR_CODE *error_code);
+    int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID property,
+        int32_t array_index,
+        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
 
 #ifdef TEST
 #include "ctest.h"
-void testAnalogInput(Test * pTest);
+    void testAnalogInput(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

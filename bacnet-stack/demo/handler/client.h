@@ -35,63 +35,45 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
 /* unconfirmed requests */
-void Send_WhoIs(
-  int32_t low_limit,
-  int32_t high_limit);
+    void Send_WhoIs(int32_t low_limit, int32_t high_limit);
 
-void Send_WhoHas_Object(
-  int32_t low_limit,
-  int32_t high_limit,
-  BACNET_OBJECT_TYPE object_type,
-  uint32_t object_instance);
+    void Send_WhoHas_Object(int32_t low_limit,
+        int32_t high_limit,
+        BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
-void Send_WhoHas_Name(
-  int32_t low_limit,
-  int32_t high_limit,
-  char *object_name);
+    void Send_WhoHas_Name(int32_t low_limit,
+        int32_t high_limit, char *object_name);
 
-void Send_I_Have(
-  uint32_t device_id,
-  BACNET_OBJECT_TYPE object_type,
-  uint32_t object_instance,
-  char *object_name);
-  
-/* returns the invoke ID for confirmed request, or 0 if failed */
-uint8_t Send_Read_Property_Request(
-  uint32_t device_id, /* destination device */
-  BACNET_OBJECT_TYPE object_type,
-  uint32_t object_instance,
-  BACNET_PROPERTY_ID object_property,
-  int32_t array_index);
+    void Send_I_Have(uint32_t device_id,
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance, char *object_name);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
-uint8_t Send_Write_Property_Request(
-    uint32_t device_id, // destination device
-  BACNET_OBJECT_TYPE object_type,
-  uint32_t object_instance,
-  BACNET_PROPERTY_ID object_property,
-  BACNET_APPLICATION_DATA_VALUE *object_value,
-  uint8_t priority,
-  int32_t array_index);
+    uint8_t Send_Read_Property_Request(uint32_t device_id,      /* destination device */
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID object_property, int32_t array_index);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
-uint8_t Send_Reinitialize_Device_Request(
-  uint32_t device_id,
-  BACNET_REINITIALIZED_STATE state,
-  char *password);
+    uint8_t Send_Write_Property_Request(uint32_t device_id,     // destination device
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID object_property,
+        BACNET_APPLICATION_DATA_VALUE * object_value,
+        uint8_t priority, int32_t array_index);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
-uint8_t Send_Device_Communication_Control_Request(
-  uint32_t device_id,
-  uint16_t timeDuration, /* 0=optional */
-  BACNET_COMMUNICATION_ENABLE_DISABLE state,
-  char *password); /* NULL=optional */
-  
+    uint8_t Send_Reinitialize_Device_Request(uint32_t device_id,
+        BACNET_REINITIALIZED_STATE state, char *password);
+
+/* returns the invoke ID for confirmed request, or 0 if failed */
+    uint8_t Send_Device_Communication_Control_Request(uint32_t device_id, uint16_t timeDuration,        /* 0=optional */
+        BACNET_COMMUNICATION_ENABLE_DISABLE state, char *password);     /* NULL=optional */
+
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

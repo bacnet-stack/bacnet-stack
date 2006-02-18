@@ -32,31 +32,24 @@
 #include "bactext.h"
 #include "ihave.h"
 
-void handler_i_have(
-  uint8_t *service_request,
-  uint16_t service_len,
-  BACNET_ADDRESS *src)
+void handler_i_have(uint8_t * service_request,
+    uint16_t service_len, BACNET_ADDRESS * src)
 {
-  int len = 0;
-  BACNET_I_HAVE_DATA data;
+    int len = 0;
+    BACNET_I_HAVE_DATA data;
 
-  (void)service_len;
-  (void)src;
-  len = ihave_decode_service_request(
-    service_request,
-    service_len,
-    &data);
-  if (len != -1)
-  {
-    fprintf(stderr,"I-Have: %s %d from %s %u!\r\n",
-      bactext_object_type_name(data.object_id.type),
-      data.object_id.instance,
-      bactext_object_type_name(data.device_id.type),
-      data.device_id.instance);
-  }
-  else
-    fprintf(stderr,"I-Have: received, but unable to decode!\n");
+    (void) service_len;
+    (void) src;
+    len = ihave_decode_service_request(service_request,
+        service_len, &data);
+    if (len != -1) {
+        fprintf(stderr, "I-Have: %s %d from %s %u!\r\n",
+            bactext_object_type_name(data.object_id.type),
+            data.object_id.instance,
+            bactext_object_type_name(data.device_id.type),
+            data.device_id.instance);
+    } else
+        fprintf(stderr, "I-Have: received, but unable to decode!\n");
 
-  return;  
+    return;
 }
-
