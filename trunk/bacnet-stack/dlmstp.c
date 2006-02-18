@@ -41,55 +41,52 @@
 
 void dlmstp_init(void)
 {
-  
+
 }
 
 void dlmstp_cleanup(void)
 {
-  
+
 }
 
 /* returns number of bytes sent on success, negative on failure */
-int dlmstp_send_pdu(
-  BACNET_ADDRESS *dest,  // destination address
-  uint8_t *pdu, // any data to be sent - may be null
-  unsigned pdu_len) // number of bytes of data
+int dlmstp_send_pdu(BACNET_ADDRESS * dest,      // destination address
+    uint8_t * pdu,              // any data to be sent - may be null
+    unsigned pdu_len)           // number of bytes of data
 {
 
-  (void)dest;
-  (void)pdu;
-  (void)pdu_len;
+    (void) dest;
+    (void) pdu;
+    (void) pdu_len;
 
-  return 0;
+    return 0;
 }
 
 // returns the number of octets in the PDU, or zero on failure
-uint16_t dlmstp_receive(
-  BACNET_ADDRESS *src,  // source address
-  uint8_t *pdu, // PDU data
-  uint16_t max_pdu,  // amount of space available in the PDU 
-  unsigned timeout) // milliseconds to wait for a packet
+uint16_t dlmstp_receive(BACNET_ADDRESS * src,   // source address
+    uint8_t * pdu,              // PDU data
+    uint16_t max_pdu,           // amount of space available in the PDU 
+    unsigned timeout)           // milliseconds to wait for a packet
 {
-  (void)src;
-  (void)pdu;
-  (void)max_pdu;
-  (void)timeout;
-  
-  return 0;
+    (void) src;
+    (void) pdu;
+    (void) max_pdu;
+    (void) timeout;
+
+    return 0;
 }
 
-void dlmstp_set_my_address(BACNET_ADDRESS *my_address)
+void dlmstp_set_my_address(BACNET_ADDRESS * my_address)
 {
-  return;
+    return;
 }
 
-void dlmstp_get_my_address(BACNET_ADDRESS *my_address)
+void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
 {
-  return;
+    return;
 }
 
-void dlmstp_get_broadcast_address(
-  BACNET_ADDRESS *dest)  // destination address
+void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)        // destination address
 {
-  return;
+    return;
 }

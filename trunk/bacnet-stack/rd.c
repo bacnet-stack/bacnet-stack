@@ -38,106 +38,93 @@
 #include "rd.h"
 
 /* encode service */
-int rd_encode_apdu(
-  uint8_t *apdu,
-  uint8_t invoke_id,
-  BACNET_REINITIALIZED_STATE state,
-  BACNET_CHARACTER_STRING *password)
+int rd_encode_apdu(uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_REINITIALIZED_STATE state, BACNET_CHARACTER_STRING * password)
 {
-  int len = 0; /* length of each encoding */
-  int apdu_len = 0; /* total length of the apdu, return value */
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
-  if (apdu)
-  {
-    apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-    apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
-    apdu[2] = invoke_id;
-    apdu[3] = SERVICE_CONFIRMED_REINITIALIZE_DEVICE;
-    apdu_len = 4;
-    len = encode_context_enumerated(&apdu[apdu_len], 0,
-      state);
-    apdu_len += len;
-    /* optional password */
-    if (password)
-    {
-      /* FIXME: must be at least 1 character, limited to 20 characters */
-      len = encode_context_character_string(&apdu[apdu_len], 1,
-        password);
-      apdu_len += len;
+    if (apdu) {
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[2] = invoke_id;
+        apdu[3] = SERVICE_CONFIRMED_REINITIALIZE_DEVICE;
+        apdu_len = 4;
+        len = encode_context_enumerated(&apdu[apdu_len], 0, state);
+        apdu_len += len;
+        /* optional password */
+        if (password) {
+            /* FIXME: must be at least 1 character, limited to 20 characters */
+            len = encode_context_character_string(&apdu[apdu_len], 1,
+                password);
+            apdu_len += len;
+        }
     }
-  }
 
-  return apdu_len;
+    return apdu_len;
 }
 
 /* decode the service request only */
-int rd_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_REINITIALIZED_STATE *state,
-  BACNET_CHARACTER_STRING *password)
+int rd_decode_service_request(uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_REINITIALIZED_STATE * state, BACNET_CHARACTER_STRING * password)
 {
-  unsigned len = 0;
-  uint8_t tag_number = 0;
-  uint32_t len_value_type = 0;
-  int value = 0;
+    unsigned len = 0;
+    uint8_t tag_number = 0;
+    uint32_t len_value_type = 0;
+    int value = 0;
 
-  /* check for value pointers */
-  if (apdu_len)
-  {
-    /* Tag 0: reinitializedStateOfDevice */
-    if (!decode_is_context_tag(&apdu[len], 0))
-      return -1;
-    len += decode_tag_number_and_value(&apdu[len],
-        &tag_number, &len_value_type);
-    len += decode_enumerated(&apdu[len], len_value_type, &value);
-    if (state)
-      *state = value;
-    /* Tag 1: password - optional */
-    if (len < apdu_len)
-    {
-      if (!decode_is_context_tag(&apdu[len], 1))
-        return -1;
-      len += decode_tag_number_and_value(&apdu[len],
-          &tag_number, &len_value_type);
-      len += decode_character_string(&apdu[len], len_value_type, password);
+    /* check for value pointers */
+    if (apdu_len) {
+        /* Tag 0: reinitializedStateOfDevice */
+        if (!decode_is_context_tag(&apdu[len], 0))
+            return -1;
+        len += decode_tag_number_and_value(&apdu[len],
+            &tag_number, &len_value_type);
+        len += decode_enumerated(&apdu[len], len_value_type, &value);
+        if (state)
+            *state = value;
+        /* Tag 1: password - optional */
+        if (len < apdu_len) {
+            if (!decode_is_context_tag(&apdu[len], 1))
+                return -1;
+            len += decode_tag_number_and_value(&apdu[len],
+                &tag_number, &len_value_type);
+            len +=
+                decode_character_string(&apdu[len], len_value_type,
+                password);
+        }
     }
-  }
 
-  return (int)len;
+    return (int) len;
 }
 
-int rd_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  uint8_t *invoke_id,
-  BACNET_REINITIALIZED_STATE *state,
-  BACNET_CHARACTER_STRING *password)
+int rd_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id,
+    BACNET_REINITIALIZED_STATE * state, BACNET_CHARACTER_STRING * password)
 {
-  int len = 0;
-  unsigned offset = 0;
+    int len = 0;
+    unsigned offset = 0;
 
-  if (!apdu)
-    return -1;
-  // optional checking - most likely was already done prior to this call
-  if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
-    return -1;
-  //  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
-  *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-  if (apdu[3] != SERVICE_CONFIRMED_REINITIALIZE_DEVICE)
-    return -1;
-  offset = 4;
+    if (!apdu)
+        return -1;
+    // optional checking - most likely was already done prior to this call
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+        return -1;
+    //  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
+    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+    if (apdu[3] != SERVICE_CONFIRMED_REINITIALIZE_DEVICE)
+        return -1;
+    offset = 4;
 
-  if (apdu_len > offset)
-  {
-    len = rd_decode_service_request(
-      &apdu[offset],
-      apdu_len - offset,
-      state,
-      password);
-  }
+    if (apdu_len > offset) {
+        len = rd_decode_service_request(&apdu[offset],
+            apdu_len - offset, state, password);
+    }
 
-  return len;
+    return len;
 }
 
 #ifdef TEST
@@ -147,38 +134,30 @@ int rd_decode_apdu(
 
 void test_ReinitializeDevice(Test * pTest)
 {
-  uint8_t apdu[480] = {0};
-  int len = 0;
-  int apdu_len = 0;
-  uint8_t invoke_id = 128;
-  uint8_t test_invoke_id = 0;
-  BACNET_REINITIALIZED_STATE state;
-  BACNET_REINITIALIZED_STATE test_state;
-  BACNET_CHARACTER_STRING password;
-  BACNET_CHARACTER_STRING test_password;
+    uint8_t apdu[480] = { 0 };
+    int len = 0;
+    int apdu_len = 0;
+    uint8_t invoke_id = 128;
+    uint8_t test_invoke_id = 0;
+    BACNET_REINITIALIZED_STATE state;
+    BACNET_REINITIALIZED_STATE test_state;
+    BACNET_CHARACTER_STRING password;
+    BACNET_CHARACTER_STRING test_password;
 
-  state = BACNET_REINIT_WARMSTART;
-  characterstring_init_ansi(&password,"John 3:16");
-  len = rd_encode_apdu(
-    &apdu[0],
-    invoke_id,
-    state,
-    &password);
-  ct_test(pTest, len != 0);
-  apdu_len = len;
+    state = BACNET_REINIT_WARMSTART;
+    characterstring_init_ansi(&password, "John 3:16");
+    len = rd_encode_apdu(&apdu[0], invoke_id, state, &password);
+    ct_test(pTest, len != 0);
+    apdu_len = len;
 
-  len = rd_decode_apdu(
-    &apdu[0],
-    apdu_len,
-    &test_invoke_id,
-    &test_state,
-    &test_password);
-  ct_test(pTest, len != -1);
-  ct_test(pTest, test_invoke_id == invoke_id);
-  ct_test(pTest, test_state == state);
-  ct_test(pTest, characterstring_same(&test_password,&password));
+    len = rd_decode_apdu(&apdu[0],
+        apdu_len, &test_invoke_id, &test_state, &test_password);
+    ct_test(pTest, len != -1);
+    ct_test(pTest, test_invoke_id == invoke_id);
+    ct_test(pTest, test_state == state);
+    ct_test(pTest, characterstring_same(&test_password, &password));
 
-  return;
+    return;
 }
 
 #ifdef TEST_REINITIALIZE_DEVICE

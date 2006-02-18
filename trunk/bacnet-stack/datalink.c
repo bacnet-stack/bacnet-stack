@@ -41,121 +41,88 @@
 // as part of the calls.
 
 /* returns number of bytes sent on success, negative on failure */
-int datalink_send_pdu(
-  BACNET_ADDRESS *dest,  // destination address
-  uint8_t *pdu, // any data to be sent - may be null
-  unsigned pdu_len) // number of bytes of data
+int datalink_send_pdu(BACNET_ADDRESS * dest,    // destination address
+    uint8_t * pdu,              // any data to be sent - may be null
+    unsigned pdu_len)           // number of bytes of data
 {
 #ifdef BACDL_ARCNET
-  return arcnet_send_pdu(
-    dest,
-    pdu,
-    pdu_len);
+    return arcnet_send_pdu(dest, pdu, pdu_len);
 #endif
 #ifdef BACDL_MSTP
-  return dlmstp_send_pdu(
-    dest,
-    pdu,
-    pdu_len);
+    return dlmstp_send_pdu(dest, pdu, pdu_len);
 #endif
 #ifdef BACDL_ETHERNET
-  return ethernet_send_pdu(
-    dest,
-    pdu,
-    pdu_len);
+    return ethernet_send_pdu(dest, pdu, pdu_len);
 #endif
 #ifdef BACDL_BIP
-  return bip_send_pdu(
-    dest,
-    pdu,
-    pdu_len);
+    return bip_send_pdu(dest, pdu, pdu_len);
 #endif
 }
 
 // returns the number of octets in the PDU, or zero on failure
-uint16_t datalink_receive(
-  BACNET_ADDRESS *src,  // source address
-  uint8_t *pdu, // PDU data
-  uint16_t max_pdu, // amount of space available in the PDU 
-  unsigned timeout) // number of milliseconds to wait for a packet
+uint16_t datalink_receive(BACNET_ADDRESS * src, // source address
+    uint8_t * pdu,              // PDU data
+    uint16_t max_pdu,           // amount of space available in the PDU 
+    unsigned timeout)           // number of milliseconds to wait for a packet
 {
-  #ifdef BACDL_ARCNET
-  return arcnet_receive(
-    src,
-    pdu,
-    max_pdu,
-    timeout);
-  #endif
-  #ifdef BACDL_MSTP
-  return dlmstp_receive(
-    src,
-    pdu,
-    max_pdu,
-    timeout);
-  #endif
-  #ifdef BACDL_ETHERNET
-  return ethernet_receive(
-    src,
-    pdu,
-    max_pdu,
-    timeout);
-  #endif
-  #ifdef BACDL_BIP
-  return bip_receive(
-    src,
-    pdu,
-    max_pdu,
-    timeout);
-  #endif
+#ifdef BACDL_ARCNET
+    return arcnet_receive(src, pdu, max_pdu, timeout);
+#endif
+#ifdef BACDL_MSTP
+    return dlmstp_receive(src, pdu, max_pdu, timeout);
+#endif
+#ifdef BACDL_ETHERNET
+    return ethernet_receive(src, pdu, max_pdu, timeout);
+#endif
+#ifdef BACDL_BIP
+    return bip_receive(src, pdu, max_pdu, timeout);
+#endif
 }
 
 void datalink_cleanup(void)
 {
 #ifdef BACDL_ETHERNET
-  ethernet_cleanup();
+    ethernet_cleanup();
 #endif
 #ifdef BACDL_BIP
-  bip_cleanup();
+    bip_cleanup();
 #endif
 #ifdef BACDL_ARCNET
-  arcnet_cleanup();
+    arcnet_cleanup();
 #endif
 #ifdef BACDL_MSTP
-  dlmstp_cleanup();
+    dlmstp_cleanup();
 #endif
 }
 
-void datalink_get_broadcast_address(
-  BACNET_ADDRESS *dest) // destination address
+void datalink_get_broadcast_address(BACNET_ADDRESS * dest)      // destination address
 {
 #ifdef BACDL_ARCNET
-  arcnet_get_broadcast_address(dest);
+    arcnet_get_broadcast_address(dest);
 #endif
 #ifdef BACDL_MSTP
-  dlmstp_get_broadcast_address(dest);
+    dlmstp_get_broadcast_address(dest);
 #endif
 #ifdef BACDL_ETHERNET
-  ethernet_get_broadcast_address(dest);
+    ethernet_get_broadcast_address(dest);
 #endif
 #ifdef BACDL_BIP
-  bip_get_broadcast_address(dest);
+    bip_get_broadcast_address(dest);
 #endif
 }
 
-void datalink_get_my_address(
-  BACNET_ADDRESS *my_address)
+void datalink_get_my_address(BACNET_ADDRESS * my_address)
 {
 #ifdef BACDL_ARCNET
-  arcnet_get_my_address(my_address);
+    arcnet_get_my_address(my_address);
 #endif
 #ifdef BACDL_MSTP
-  dlmstp_get_my_address(my_address);
+    dlmstp_get_my_address(my_address);
 #endif
 #ifdef BACDL_ETHERNET
-  ethernet_get_my_address(my_address);
+    ethernet_get_my_address(my_address);
 #endif
 #ifdef BACDL_BIP
-  bip_get_my_address(my_address);
+    bip_get_my_address(my_address);
 #endif
 }
-

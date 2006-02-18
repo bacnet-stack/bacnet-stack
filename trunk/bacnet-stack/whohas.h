@@ -38,45 +38,35 @@
 #include <stdbool.h>
 #include "bacstr.h"
 
-typedef struct BACnet_Who_Has_Data
-{
-  int32_t low_limit; /* deviceInstanceRange */
-  int32_t high_limit;
-  bool object_name; /* true if a string */
-  union
-  {
-    BACNET_OBJECT_ID identifier;
-    BACNET_CHARACTER_STRING name;
-  } object;
+typedef struct BACnet_Who_Has_Data {
+    int32_t low_limit;          /* deviceInstanceRange */
+    int32_t high_limit;
+    bool object_name;           /* true if a string */
+    union {
+        BACNET_OBJECT_ID identifier;
+        BACNET_CHARACTER_STRING name;
+    } object;
 } BACNET_WHO_HAS_DATA;
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
 // encode service  - use -1 for limit if you want unlimited
-int whohas_encode_apdu(
-  uint8_t *apdu,
-  BACNET_WHO_HAS_DATA *data);
+    int whohas_encode_apdu(uint8_t * apdu, BACNET_WHO_HAS_DATA * data);
 
-int whohas_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_WHO_HAS_DATA *data);
+    int whohas_decode_service_request(uint8_t * apdu,
+        unsigned apdu_len, BACNET_WHO_HAS_DATA * data);
 
-int whohas_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_WHO_HAS_DATA *data);
+    int whohas_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len, BACNET_WHO_HAS_DATA * data);
 
 #ifdef TEST
 #include "ctest.h"
-void testWhoHas(Test * pTest);
+    void testWhoHas(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif
-

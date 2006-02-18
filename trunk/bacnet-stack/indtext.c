@@ -39,219 +39,190 @@
 #define strcasecmp stricmp
 #endif
 
-bool indtext_by_string(
-  INDTEXT_DATA *data_list,
-  const char *search_name,
-  unsigned *found_index)
+bool indtext_by_string(INDTEXT_DATA * data_list,
+    const char *search_name, unsigned *found_index)
 {
-  bool found = false;
-  unsigned index = 0;
+    bool found = false;
+    unsigned index = 0;
 
-  if (data_list && search_name)
-  {
-    while (data_list->pString)
-    {
-      if (strcmp(data_list->pString,search_name) == 0)
-      {
-        index = data_list->index;
-        found = true;
-        break;
-      }
-      data_list++;
+    if (data_list && search_name) {
+        while (data_list->pString) {
+            if (strcmp(data_list->pString, search_name) == 0) {
+                index = data_list->index;
+                found = true;
+                break;
+            }
+            data_list++;
+        }
     }
-  }
 
-  if (found && found_index)
-    *found_index = index;
+    if (found && found_index)
+        *found_index = index;
 
-  return found;
+    return found;
 }
 
 /* case insensitive version */
-bool indtext_by_istring(
-  INDTEXT_DATA *data_list,
-  const char *search_name,
-  unsigned *found_index)
+bool indtext_by_istring(INDTEXT_DATA * data_list,
+    const char *search_name, unsigned *found_index)
 {
-  bool found = false;
-  unsigned index = 0;
+    bool found = false;
+    unsigned index = 0;
 
-  if (data_list && search_name)
-  {
-    while (data_list->pString)
-    {
-      if (strcasecmp(data_list->pString,search_name) == 0)
-      {
-        index = data_list->index;
-        found = true;
-        break;
-      }
-      data_list++;
+    if (data_list && search_name) {
+        while (data_list->pString) {
+            if (strcasecmp(data_list->pString, search_name) == 0) {
+                index = data_list->index;
+                found = true;
+                break;
+            }
+            data_list++;
+        }
     }
-  }
 
-  if (found && found_index)
-    *found_index = index;
+    if (found && found_index)
+        *found_index = index;
 
-  return found;
+    return found;
 }
 
-unsigned indtext_by_string_default(
-  INDTEXT_DATA *data_list,
-  const char *search_name,
-  unsigned default_index)
+unsigned indtext_by_string_default(INDTEXT_DATA * data_list,
+    const char *search_name, unsigned default_index)
 {
-  unsigned index = 0;
+    unsigned index = 0;
 
-  if (!indtext_by_string(data_list,search_name,&index))
-    index = default_index;
+    if (!indtext_by_string(data_list, search_name, &index))
+        index = default_index;
 
-  return index;
+    return index;
 }
 
-unsigned indtext_by_istring_default(
-  INDTEXT_DATA *data_list,
-  const char *search_name,
-  unsigned default_index)
+unsigned indtext_by_istring_default(INDTEXT_DATA * data_list,
+    const char *search_name, unsigned default_index)
 {
-  unsigned index = 0;
+    unsigned index = 0;
 
-  if (!indtext_by_istring(data_list,search_name,&index))
-    index = default_index;
+    if (!indtext_by_istring(data_list, search_name, &index))
+        index = default_index;
 
-  return index;
+    return index;
 }
 
-const char *indtext_by_index_default(
-  INDTEXT_DATA *data_list,
-  unsigned index,
-  const char *default_string)
+const char *indtext_by_index_default(INDTEXT_DATA * data_list,
+    unsigned index, const char *default_string)
 {
-  const char *pString = NULL;
+    const char *pString = NULL;
 
-  if (data_list)
-  {
-    while (data_list->pString)
-    {
-      if (data_list->index == index)
-      {
-        pString = data_list->pString;
-        break;
-      }
-      data_list++;
+    if (data_list) {
+        while (data_list->pString) {
+            if (data_list->index == index) {
+                pString = data_list->pString;
+                break;
+            }
+            data_list++;
+        }
     }
-  }
 
-  return pString?pString:default_string;
+    return pString ? pString : default_string;
 }
 
-const char *indtext_by_index_split_default(
-  INDTEXT_DATA *data_list,
-  int index,
-  int split_index,
-  const char *before_split_default_name,
-  const char *default_name)
+const char *indtext_by_index_split_default(INDTEXT_DATA * data_list,
+    int index,
+    int split_index,
+    const char *before_split_default_name, const char *default_name)
 {
- if (index < split_index)
-   return indtext_by_index_default(data_list, index, before_split_default_name);
- else
-   return indtext_by_index_default(data_list, index, default_name);
+    if (index < split_index)
+        return indtext_by_index_default(data_list, index,
+            before_split_default_name);
+    else
+        return indtext_by_index_default(data_list, index, default_name);
 };
 
 
-const char *indtext_by_index(
-  INDTEXT_DATA *data_list,
-  unsigned index)
+const char *indtext_by_index(INDTEXT_DATA * data_list, unsigned index)
 {
-  return indtext_by_index_default(
-    data_list,
-    index,
-    NULL);
+    return indtext_by_index_default(data_list, index, NULL);
 }
 
-unsigned indtext_count(
-  INDTEXT_DATA *data_list)
+unsigned indtext_count(INDTEXT_DATA * data_list)
 {
-  unsigned count = 0; /* return value */
+    unsigned count = 0;         /* return value */
 
-  if (data_list)
-  {
-    while (data_list->pString)
-    {
-      count++;
-      data_list++;
+    if (data_list) {
+        while (data_list->pString) {
+            count++;
+            data_list++;
+        }
     }
-  }
-  return count;
+    return count;
 }
 
 #ifdef TEST
 #include <assert.h>
 #include "ctest.h"
 
-static INDTEXT_DATA data_list[] =
-{
-  {1, "Joshua"},
-  {2, "Mary"},
-  {3, "Anna"},
-  {4, "Christopher"},
-  {5, "Patricia"},
-  {0, NULL}
+static INDTEXT_DATA data_list[] = {
+    {1, "Joshua"},
+    {2, "Mary"},
+    {3, "Anna"},
+    {4, "Christopher"},
+    {5, "Patricia"},
+    {0, NULL}
 };
 
-void testIndexText(Test* pTest)
+void testIndexText(Test * pTest)
 {
-  unsigned i; /*counter */
-  const char *pString;
-  unsigned index;
-  bool valid;
-  unsigned count = 0;
+    unsigned i;                 /*counter */
+    const char *pString;
+    unsigned index;
+    bool valid;
+    unsigned count = 0;
 
-  for (i = 0; i < 10; i++)
-  {
-    pString = indtext_by_index(data_list,i);
-    if (pString)
-    {
-      count++;
-      valid = indtext_by_string(data_list,pString,&index);
-      ct_test(pTest,valid == true);
-      ct_test(pTest,index == i);
-      ct_test(pTest,index == indtext_by_string_default(data_list,pString,index));
+    for (i = 0; i < 10; i++) {
+        pString = indtext_by_index(data_list, i);
+        if (pString) {
+            count++;
+            valid = indtext_by_string(data_list, pString, &index);
+            ct_test(pTest, valid == true);
+            ct_test(pTest, index == i);
+            ct_test(pTest, index == indtext_by_string_default(data_list,
+                    pString, index));
+        }
     }
-  }
-  ct_test(pTest,indtext_count(data_list) == count);
-  ct_test(pTest,indtext_by_string(data_list,"Harry",NULL) == false);
-  ct_test(pTest,indtext_by_string(data_list,NULL,NULL) == false);
-  ct_test(pTest,indtext_by_string(NULL,NULL,NULL) == false);
-  ct_test(pTest,indtext_by_index(data_list,0) == NULL);
-  ct_test(pTest,indtext_by_index(data_list,10) == NULL);
-  ct_test(pTest,indtext_by_index(NULL,10) == NULL);
-  /* case insensitive versions */
-  ct_test(pTest,indtext_by_istring(data_list,"JOSHUA",NULL) == true);
-  ct_test(pTest,indtext_by_istring(data_list,"joshua",NULL) == true);
-  valid = indtext_by_istring(data_list,"ANNA",&index);
-  ct_test(pTest,index == indtext_by_istring_default(data_list,"ANNA",index));
+    ct_test(pTest, indtext_count(data_list) == count);
+    ct_test(pTest, indtext_by_string(data_list, "Harry", NULL) == false);
+    ct_test(pTest, indtext_by_string(data_list, NULL, NULL) == false);
+    ct_test(pTest, indtext_by_string(NULL, NULL, NULL) == false);
+    ct_test(pTest, indtext_by_index(data_list, 0) == NULL);
+    ct_test(pTest, indtext_by_index(data_list, 10) == NULL);
+    ct_test(pTest, indtext_by_index(NULL, 10) == NULL);
+    /* case insensitive versions */
+    ct_test(pTest, indtext_by_istring(data_list, "JOSHUA", NULL) == true);
+    ct_test(pTest, indtext_by_istring(data_list, "joshua", NULL) == true);
+    valid = indtext_by_istring(data_list, "ANNA", &index);
+    ct_test(pTest, index == indtext_by_istring_default(data_list, "ANNA",
+            index));
 }
 #endif
 
 #ifdef TEST_INDEX_TEXT
 int main(void)
 {
-  Test *pTest;
-  bool rc;
+    Test *pTest;
+    bool rc;
 
-  pTest = ct_create("index text", NULL);
+    pTest = ct_create("index text", NULL);
 
-  /* individual tests */
-  rc = ct_addTestFunction(pTest, testIndexText);
-  assert(rc);
+    /* individual tests */
+    rc = ct_addTestFunction(pTest, testIndexText);
+    assert(rc);
 
-  ct_setStream(pTest, stdout);
-  ct_run(pTest);
-  (void)ct_report(pTest);
+    ct_setStream(pTest, stdout);
+    ct_run(pTest);
+    (void) ct_report(pTest);
 
-  ct_destroy(pTest);
+    ct_destroy(pTest);
 
-  return 0;
+    return 0;
 }
-#endif /* TEST_INDEX_TEXT */
+#endif                          /* TEST_INDEX_TEXT */

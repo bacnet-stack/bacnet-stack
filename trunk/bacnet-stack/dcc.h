@@ -41,55 +41,46 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
 /* return the status */
-BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void);
-bool dcc_communication_enabled(void);
-bool dcc_communication_disabled(void);
-bool dcc_communication_initiation_disabled(void);
+    BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void);
+    bool dcc_communication_enabled(void);
+    bool dcc_communication_disabled(void);
+    bool dcc_communication_initiation_disabled(void);
 /* return the time */
-uint32_t dcc_duration_seconds(void);
+    uint32_t dcc_duration_seconds(void);
 /* called every second or so.  If more than one second,
   then seconds should be the number of seconds to tick away */
-void dcc_timer_seconds(uint32_t seconds);
+    void dcc_timer_seconds(uint32_t seconds);
 /* setup the communication values */
-bool dcc_set_status_duration(
-  BACNET_COMMUNICATION_ENABLE_DISABLE status,
-  uint16_t minutes);
+    bool dcc_set_status_duration(BACNET_COMMUNICATION_ENABLE_DISABLE
+        status, uint16_t minutes);
 
 // encode service
-int dcc_encode_apdu(
-  uint8_t *apdu,
-  uint8_t invoke_id,
-  uint16_t timeDuration, /* 0=optional */
-  BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-  BACNET_CHARACTER_STRING *password); /* NULL=optional */
+    int dcc_encode_apdu(uint8_t * apdu, uint8_t invoke_id, uint16_t timeDuration,       /* 0=optional */
+        BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable, BACNET_CHARACTER_STRING * password);        /* NULL=optional */
 
 // decode the service request only
-int dcc_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  uint16_t *timeDuration,
-  BACNET_COMMUNICATION_ENABLE_DISABLE *enable_disable,
-  BACNET_CHARACTER_STRING *password);
-  
-int dcc_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  uint8_t *invoke_id,
-  uint16_t *timeDuration,
-  BACNET_COMMUNICATION_ENABLE_DISABLE *enable_disable,
-  BACNET_CHARACTER_STRING *password);
+    int dcc_decode_service_request(uint8_t * apdu,
+        unsigned apdu_len,
+        uint16_t * timeDuration,
+        BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
+        BACNET_CHARACTER_STRING * password);
+
+    int dcc_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len,
+        uint8_t * invoke_id,
+        uint16_t * timeDuration,
+        BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
+        BACNET_CHARACTER_STRING * password);
 
 #ifdef TEST
 #include "ctest.h"
-void test_DeviceCommunicationControl(Test * pTest);
+    void test_DeviceCommunicationControl(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif
-

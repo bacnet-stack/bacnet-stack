@@ -41,51 +41,34 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-void address_init(void);
+    void address_init(void);
 
-void address_copy(
-  BACNET_ADDRESS *dest,
-  BACNET_ADDRESS *src);
+    void address_copy(BACNET_ADDRESS * dest, BACNET_ADDRESS * src);
 
-void address_add(
-  uint32_t device_id,
-  unsigned max_apdu,
-  BACNET_ADDRESS *src);
+    void address_add(uint32_t device_id,
+        unsigned max_apdu, BACNET_ADDRESS * src);
 
-void address_remove_device(
-  uint32_t device_id);
+    void address_remove_device(uint32_t device_id);
 
-bool address_get_by_device(
-  uint32_t device_id,
-  unsigned *max_apdu,
-  BACNET_ADDRESS *src);
+    bool address_get_by_device(uint32_t device_id,
+        unsigned *max_apdu, BACNET_ADDRESS * src);
 
-bool address_get_by_index(
-  unsigned index,
-  uint32_t *device_id,
-  unsigned *max_apdu,
-  BACNET_ADDRESS *src);
+    bool address_get_by_index(unsigned index,
+        uint32_t * device_id, unsigned *max_apdu, BACNET_ADDRESS * src);
 
-unsigned address_count(void);
+    unsigned address_count(void);
 
-bool address_match(
-  BACNET_ADDRESS *dest,
-  BACNET_ADDRESS *src);
-  
-bool address_bind_request(
-  uint32_t device_id,
-  unsigned *max_apdu,
-  BACNET_ADDRESS *src);
-  
-void address_add_binding(
-  uint32_t device_id,
-  unsigned max_apdu,
-  BACNET_ADDRESS *src);  
+    bool address_match(BACNET_ADDRESS * dest, BACNET_ADDRESS * src);
+
+    bool address_bind_request(uint32_t device_id,
+        unsigned *max_apdu, BACNET_ADDRESS * src);
+
+    void address_add_binding(uint32_t device_id,
+        unsigned max_apdu, BACNET_ADDRESS * src);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

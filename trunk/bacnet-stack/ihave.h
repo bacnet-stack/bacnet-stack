@@ -38,39 +38,30 @@
 #include <stdbool.h>
 #include "bacstr.h"
 
-typedef struct BACnet_I_Have_Data
-{
-  BACNET_OBJECT_ID device_id;
-  BACNET_OBJECT_ID object_id;
-  BACNET_CHARACTER_STRING object_name;
+typedef struct BACnet_I_Have_Data {
+    BACNET_OBJECT_ID device_id;
+    BACNET_OBJECT_ID object_id;
+    BACNET_CHARACTER_STRING object_name;
 } BACNET_I_HAVE_DATA;
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-int ihave_encode_apdu(
-  uint8_t *apdu,
-  BACNET_I_HAVE_DATA *data);
+    int ihave_encode_apdu(uint8_t * apdu, BACNET_I_HAVE_DATA * data);
 
-int ihave_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_I_HAVE_DATA *data);
+    int ihave_decode_service_request(uint8_t * apdu,
+        unsigned apdu_len, BACNET_I_HAVE_DATA * data);
 
-int ihave_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_I_HAVE_DATA *data);
+    int ihave_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len, BACNET_I_HAVE_DATA * data);
 
 #ifdef TEST
 #include "ctest.h"
-void testIHave(Test * pTest);
+    void testIHave(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif
-

@@ -39,137 +39,122 @@
 
 /* encode service  - use -1 for limit for unlimited */
 
-int whohas_encode_apdu(
-  uint8_t *apdu,
-  BACNET_WHO_HAS_DATA *data)
+int whohas_encode_apdu(uint8_t * apdu, BACNET_WHO_HAS_DATA * data)
 {
-  int len = 0; // length of each encoding
-  int apdu_len = 0; // total length of the apdu, return value
+    int len = 0;                // length of each encoding
+    int apdu_len = 0;           // total length of the apdu, return value
 
-  if (apdu && data) {
-    apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-    apdu[1] = SERVICE_UNCONFIRMED_WHO_HAS;     // service choice
-    apdu_len = 2;
-    // optional limits - must be used as a pair
-    if ((data->low_limit >= 0) && (data->low_limit <= BACNET_MAX_INSTANCE) &&
-        (data->high_limit >= 0) && (data->high_limit <= BACNET_MAX_INSTANCE))
-    {
-      len = encode_context_unsigned(
-        &apdu[apdu_len],
-        0,
-        data->low_limit);
-      apdu_len += len;
-      len = encode_context_unsigned(
-        &apdu[apdu_len],
-        1,
-        data->high_limit);
-      apdu_len += len;
+    if (apdu && data) {
+        apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
+        apdu[1] = SERVICE_UNCONFIRMED_WHO_HAS;  // service choice
+        apdu_len = 2;
+        // optional limits - must be used as a pair
+        if ((data->low_limit >= 0)
+            && (data->low_limit <= BACNET_MAX_INSTANCE)
+            && (data->high_limit >= 0)
+            && (data->high_limit <= BACNET_MAX_INSTANCE)) {
+            len =
+                encode_context_unsigned(&apdu[apdu_len], 0,
+                data->low_limit);
+            apdu_len += len;
+            len = encode_context_unsigned(&apdu[apdu_len],
+                1, data->high_limit);
+            apdu_len += len;
+        }
+        if (data->object_name) {
+            len = encode_context_character_string(&apdu[apdu_len],
+                3, &data->object.name);
+            apdu_len += len;
+        } else {
+            len = encode_context_object_id(&apdu[apdu_len],
+                2,
+                data->object.identifier.type,
+                data->object.identifier.instance);
+            apdu_len += len;
+        }
     }
-    if (data->object_name)
-    {
-      len = encode_context_character_string(
-        &apdu[apdu_len],
-        3,
-        &data->object.name);
-      apdu_len += len;
-    }
-    else
-    {
-      len = encode_context_object_id(
-        &apdu[apdu_len],
-        2,
-        data->object.identifier.type,
-        data->object.identifier.instance);
-      apdu_len += len;
-    }
-  }
 
-  return apdu_len;
+    return apdu_len;
 }
 
 // decode the service request only
-int whohas_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_WHO_HAS_DATA *data)
+int whohas_decode_service_request(uint8_t * apdu,
+    unsigned apdu_len, BACNET_WHO_HAS_DATA * data)
 {
-  int len = 0;
-  uint8_t tag_number = 0;
-  uint32_t len_value = 0;
-  uint32_t decoded_value = 0; /* for decoding */
-  int decoded_type = 0; /* for decoding */
+    int len = 0;
+    uint8_t tag_number = 0;
+    uint32_t len_value = 0;
+    uint32_t decoded_value = 0; /* for decoding */
+    int decoded_type = 0;       /* for decoding */
 
-  if (apdu_len && data)
-  {
-    /* optional limits - must be used as a pair */
-    if (decode_is_context_tag(&apdu[len], 0))
-    {
-      len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-      len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-      if (decoded_value <= BACNET_MAX_INSTANCE)
-        data->low_limit = decoded_value;
-      if (!decode_is_context_tag(&apdu[len], 1))
-        return -1;
-      len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-      len += decode_unsigned(&apdu[len],
-        len_value, &decoded_value);
-      if (decoded_value <= BACNET_MAX_INSTANCE)
-        data->high_limit = decoded_value;
+    if (apdu_len && data) {
+        /* optional limits - must be used as a pair */
+        if (decode_is_context_tag(&apdu[len], 0)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+            if (decoded_value <= BACNET_MAX_INSTANCE)
+                data->low_limit = decoded_value;
+            if (!decode_is_context_tag(&apdu[len], 1))
+                return -1;
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+            if (decoded_value <= BACNET_MAX_INSTANCE)
+                data->high_limit = decoded_value;
+        } else {
+            data->low_limit = -1;
+            data->high_limit = -1;
+        }
+        /* object id */
+        if (decode_is_context_tag(&apdu[len], 2)) {
+            data->object_name = false;
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len +=
+                decode_object_id(&apdu[len], &decoded_type,
+                &data->object.identifier.instance);
+            data->object.identifier.type = decoded_type;
+        }
+        /* object name */
+        else if (decode_is_context_tag(&apdu[len], 3)) {
+            data->object_name = true;
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len +=
+                decode_character_string(&apdu[len], len_value,
+                &data->object.name);
+        }
+        /* missing required parameters */
+        else
+            return -1;
     }
-    else
-    {
-      data->low_limit = -1;
-      data->high_limit = -1;
-    }
-    /* object id */
-    if (decode_is_context_tag(&apdu[len], 2))
-    {
-      data->object_name = false;
-      len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-      len += decode_object_id(&apdu[len], &decoded_type,
-        &data->object.identifier.instance);
-      data->object.identifier.type = decoded_type;
-    }
-    /* object name */
-    else if (decode_is_context_tag(&apdu[len], 3))
-    {
-      data->object_name = true;
-      len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-      len += decode_character_string(&apdu[len], len_value,
-        &data->object.name);
-    }
-    /* missing required parameters */
-    else
-      return -1;
-  }
 
-  return len;
+    return len;
 }
 
-int whohas_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  BACNET_WHO_HAS_DATA *data)
+int whohas_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len, BACNET_WHO_HAS_DATA * data)
 {
-  int len = 0;
+    int len = 0;
 
-  if (!apdu)
-    return -1;
-  // optional checking - most likely was already done prior to this call
-  if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
-    return -1;
-  if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS)
-    return -1;
-  // optional limits - must be used as a pair
-  if (apdu_len > 2)
-  {
-    len = whohas_decode_service_request(
-      &apdu[2],
-      apdu_len - 2,
-      data);
-  }
+    if (!apdu)
+        return -1;
+    // optional checking - most likely was already done prior to this call
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+        return -1;
+    if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS)
+        return -1;
+    // optional limits - must be used as a pair
+    if (apdu_len > 2) {
+        len = whohas_decode_service_request(&apdu[2], apdu_len - 2, data);
+    }
 
-  return len;
+    return len;
 }
 
 #ifdef TEST
@@ -177,84 +162,68 @@ int whohas_decode_apdu(
 #include <string.h>
 #include "ctest.h"
 
-void testWhoHasData(Test * pTest, BACNET_WHO_HAS_DATA *data)
+void testWhoHasData(Test * pTest, BACNET_WHO_HAS_DATA * data)
 {
-  uint8_t apdu[480] = {0};
-  int len = 0;
-  int apdu_len = 0;
-  BACNET_WHO_HAS_DATA test_data;
+    uint8_t apdu[480] = { 0 };
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_WHO_HAS_DATA test_data;
 
-  len = whohas_encode_apdu(
-    &apdu[0],
-    data);
-  ct_test(pTest, len != 0);
-  apdu_len = len;
+    len = whohas_encode_apdu(&apdu[0], data);
+    ct_test(pTest, len != 0);
+    apdu_len = len;
 
-  len = whohas_decode_apdu(
-    &apdu[0],
-    apdu_len,
-    &test_data);
-  ct_test(pTest, len != -1);
-  ct_test(pTest, test_data.low_limit == data->low_limit);
-  ct_test(pTest, test_data.high_limit == data->high_limit);
-  ct_test(pTest, test_data.object_name == data->object_name);
-  /* Object ID */
-  if (data->object_name == false)
-  {
-    ct_test(pTest, test_data.object.identifier.type ==
-      data->object.identifier.type);
-    ct_test(pTest, test_data.object.identifier.instance ==
-      data->object.identifier.instance);
-  }
-  /* Object Name */
-  else
-  {
-    ct_test(pTest, characterstring_same(
-      &test_data.object.name,&data->object.name));
-  }
+    len = whohas_decode_apdu(&apdu[0], apdu_len, &test_data);
+    ct_test(pTest, len != -1);
+    ct_test(pTest, test_data.low_limit == data->low_limit);
+    ct_test(pTest, test_data.high_limit == data->high_limit);
+    ct_test(pTest, test_data.object_name == data->object_name);
+    /* Object ID */
+    if (data->object_name == false) {
+        ct_test(pTest, test_data.object.identifier.type ==
+            data->object.identifier.type);
+        ct_test(pTest, test_data.object.identifier.instance ==
+            data->object.identifier.instance);
+    }
+    /* Object Name */
+    else {
+        ct_test(pTest, characterstring_same(&test_data.object.name,
+                &data->object.name));
+    }
 }
 
 void testWhoHas(Test * pTest)
 {
-  BACNET_WHO_HAS_DATA data;
+    BACNET_WHO_HAS_DATA data;
 
-  data.low_limit = -1;
-  data.high_limit = -1;
-  data.object_name = false;
-  data.object.identifier.type = OBJECT_ANALOG_INPUT;
-  data.object.identifier.instance = 1;
-  testWhoHasData(pTest,&data);
+    data.low_limit = -1;
+    data.high_limit = -1;
+    data.object_name = false;
+    data.object.identifier.type = OBJECT_ANALOG_INPUT;
+    data.object.identifier.instance = 1;
+    testWhoHasData(pTest, &data);
 
-  for (
-    data.low_limit = 0;
-    data.low_limit <= BACNET_MAX_INSTANCE;
-    data.low_limit += (BACNET_MAX_INSTANCE/4))
-  {
-    for (
-      data.high_limit = 0;
-      data.high_limit <= BACNET_MAX_INSTANCE;
-      data.high_limit += (BACNET_MAX_INSTANCE/4))
-    {
-      data.object_name = false;
-      for (
-        data.object.identifier.type = OBJECT_ANALOG_INPUT;
-        data.object.identifier.type <= MAX_BACNET_OBJECT_TYPE;
-        data.object.identifier.type++)
-      {
-        for (
-          data.object.identifier.instance = 1;
-          data.object.identifier.instance <= BACNET_MAX_INSTANCE;
-          data.object.identifier.instance <<= 1)
-        {
-          testWhoHasData(pTest,&data);
+    for (data.low_limit = 0;
+        data.low_limit <= BACNET_MAX_INSTANCE;
+        data.low_limit += (BACNET_MAX_INSTANCE / 4)) {
+        for (data.high_limit = 0;
+            data.high_limit <= BACNET_MAX_INSTANCE;
+            data.high_limit += (BACNET_MAX_INSTANCE / 4)) {
+            data.object_name = false;
+            for (data.object.identifier.type = OBJECT_ANALOG_INPUT;
+                data.object.identifier.type <= MAX_BACNET_OBJECT_TYPE;
+                data.object.identifier.type++) {
+                for (data.object.identifier.instance = 1;
+                    data.object.identifier.instance <= BACNET_MAX_INSTANCE;
+                    data.object.identifier.instance <<= 1) {
+                    testWhoHasData(pTest, &data);
+                }
+            }
+            data.object_name = true;
+            characterstring_init_ansi(&data.object.name, "patricia");
+            testWhoHasData(pTest, &data);
         }
-      }
-      data.object_name = true;
-      characterstring_init_ansi(
-        &data.object.name,"patricia");
-      testWhoHasData(pTest,&data);
     }
-  }
 }
 
 #ifdef TEST_WHOHAS

@@ -39,33 +39,23 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-int abort_encode_apdu(
-  uint8_t *apdu, 
-  uint8_t invoke_id,
-  uint8_t abort_reason);
+    int abort_encode_apdu(uint8_t * apdu,
+        uint8_t invoke_id, uint8_t abort_reason);
 
-int abort_decode_service_request(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  uint8_t *invoke_id,
-  uint8_t *abort_reason);
-  
-int abort_decode_apdu(
-  uint8_t *apdu,
-  unsigned apdu_len,
-  uint8_t *invoke_id,
-  uint8_t *abort_reason);
+    int abort_decode_service_request(uint8_t * apdu,
+        unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason);
+
+    int abort_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason);
 
 #ifdef TEST
 #include "ctest.h"
-void testAbort(Test * pTest);
+    void testAbort(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif
-

@@ -57,31 +57,26 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
 /* returns number of bytes sent on success, negative on failure */
-int datalink_send_pdu(
-  BACNET_ADDRESS *dest,  // destination address
-  uint8_t *pdu, // any data to be sent - may be null
-  unsigned pdu_len); // number of bytes of data
+    int datalink_send_pdu(BACNET_ADDRESS * dest,        // destination address
+        uint8_t * pdu,          // any data to be sent - may be null
+        unsigned pdu_len);      // number of bytes of data
 
 // returns the number of octets in the PDU, or zero on failure
-uint16_t datalink_receive(
-  BACNET_ADDRESS *src,  // source address
-  uint8_t *pdu, // PDU data
-  uint16_t max_pdu, // amount of space available in the PDU 
-  unsigned timeout); // number of milliseconds to wait for a packet
+    uint16_t datalink_receive(BACNET_ADDRESS * src,     // source address
+        uint8_t * pdu,          // PDU data
+        uint16_t max_pdu,       // amount of space available in the PDU 
+        unsigned timeout);      // number of milliseconds to wait for a packet
 
-void datalink_cleanup(void);
+    void datalink_cleanup(void);
 
-void datalink_get_broadcast_address(
-  BACNET_ADDRESS *dest); // destination address
+    void datalink_get_broadcast_address(BACNET_ADDRESS * dest); // destination address
 
-void datalink_get_my_address(
-  BACNET_ADDRESS *my_address);
+    void datalink_get_my_address(BACNET_ADDRESS * my_address);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

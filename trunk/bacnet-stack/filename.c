@@ -36,20 +36,19 @@
 
 char *filename_remove_path(const char *filename_in)
 {
-  char *filename_out = NULL;
+    char *filename_out = NULL;
 
-  /* allow the device ID to be set */
-  if (filename_in)
-  {
-    filename_out = strrchr(filename_in,'\\');
-    if (!filename_out)
-      filename_out = strrchr(filename_in,'/');
-    /* go beyond the slash */
-    if (filename_out)
-      filename_out++;
-  }
+    /* allow the device ID to be set */
+    if (filename_in) {
+        filename_out = strrchr(filename_in, '\\');
+        if (!filename_out)
+            filename_out = strrchr(filename_in, '/');
+        /* go beyond the slash */
+        if (filename_out)
+            filename_out++;
+    }
 
-  return filename_out;
+    return filename_out;
 }
 
 #ifdef TEST
@@ -58,46 +57,45 @@ char *filename_remove_path(const char *filename_in)
 
 #include "ctest.h"
 
-void testFilename(Test* pTest)
+void testFilename(Test * pTest)
 {
-  char *data1 = "c:\\Joshua\\run";
-  char *data2 = "/home/Anna/run";
-  char *data3 = "c:\\Program Files\\Christopher\\run.exe";
-  char *data4 = "//Mary/data/run";
-  char *filename = NULL;
+    char *data1 = "c:\\Joshua\\run";
+    char *data2 = "/home/Anna/run";
+    char *data3 = "c:\\Program Files\\Christopher\\run.exe";
+    char *data4 = "//Mary/data/run";
+    char *filename = NULL;
 
-  filename = filename_remove_path(data1);
-  ct_test(pTest,strcmp("run",filename) == 0);
-  filename = filename_remove_path(data2);
-  ct_test(pTest,strcmp("run",filename) == 0);
-  filename = filename_remove_path(data3);
-  ct_test(pTest,strcmp("run.exe",filename) == 0);
-  filename = filename_remove_path(data4);
-  ct_test(pTest,strcmp("run",filename) == 0);
+    filename = filename_remove_path(data1);
+    ct_test(pTest, strcmp("run", filename) == 0);
+    filename = filename_remove_path(data2);
+    ct_test(pTest, strcmp("run", filename) == 0);
+    filename = filename_remove_path(data3);
+    ct_test(pTest, strcmp("run.exe", filename) == 0);
+    filename = filename_remove_path(data4);
+    ct_test(pTest, strcmp("run", filename) == 0);
 
-  return;
+    return;
 }
 
 #ifdef TEST_FILENAME
 int main(void)
 {
-  Test *pTest;
-  bool rc;
+    Test *pTest;
+    bool rc;
 
-  pTest = ct_create("filename remove path", NULL);
+    pTest = ct_create("filename remove path", NULL);
 
-  /* individual tests */
-  rc = ct_addTestFunction(pTest, testFilename);
-  assert(rc);
+    /* individual tests */
+    rc = ct_addTestFunction(pTest, testFilename);
+    assert(rc);
 
-  ct_setStream(pTest, stdout);
-  ct_run(pTest);
-  (void)ct_report(pTest);
+    ct_setStream(pTest, stdout);
+    ct_run(pTest);
+    (void) ct_report(pTest);
 
-  ct_destroy(pTest);
+    ct_destroy(pTest);
 
-  return 0;
+    return 0;
 }
-#endif /* TEST_FILENAME */
-#endif /* TEST */
-
+#endif                          /* TEST_FILENAME */
+#endif                          /* TEST */
