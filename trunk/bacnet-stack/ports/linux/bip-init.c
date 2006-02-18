@@ -39,7 +39,8 @@
 #include "net.h"
 
 
-static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
+static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr,
+    int request)
 {
     int fd;
     int rv;                     // return value
@@ -54,16 +55,14 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
     return rv;
 }
 
-static int get_local_address_ioctl(
-    char *ifname, 
-    struct in_addr *addr,
-    int request)
+static int get_local_address_ioctl(char *ifname,
+    struct in_addr *addr, int request)
 {
     struct ifreq ifr = { {{0}} };
     struct sockaddr_in *tcpip_address;
     int rv;                     // return value
 
-    rv = get_local_ifr_ioctl(ifname,&ifr,request);
+    rv = get_local_ifr_ioctl(ifname, &ifr, request);
     if (rv >= 0) {
         tcpip_address = (struct sockaddr_in *) &ifr.ifr_addr;
         memcpy(addr, &tcpip_address->sin_addr, sizeof(struct in_addr));
@@ -80,20 +79,21 @@ void bip_set_interface(char *ifname)
     /* setup local address */
     get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
     bip_set_addr(local_address.s_addr);
-    #ifdef BIP_DEBUG
-    fprintf(stderr,"IP Address: %s\n",inet_ntoa(local_address));
-    #endif
+#ifdef BIP_DEBUG
+    fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
+#endif
     /* setup local broadcast address */
     get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
     bip_set_broadcast_addr(broadcast_address.s_addr);
-    #ifdef BIP_DEBUG
-    fprintf(stderr,"Broadcast Address: %s\n",inet_ntoa(broadcast_address));
-    #endif
+#ifdef BIP_DEBUG
+    fprintf(stderr, "Broadcast Address: %s\n",
+        inet_ntoa(broadcast_address));
+#endif
 }
 
 bool bip_init(void)
 {
-    int status = 0; // return from socket lib calls
+    int status = 0;             // return from socket lib calls
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;
@@ -108,8 +108,7 @@ bool bip_init(void)
     sockopt = 1;
     status = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR,
         &sockopt, sizeof(sockopt));
-    if (status < 0)
-    {
+    if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
         return status;
@@ -117,22 +116,19 @@ bool bip_init(void)
     // allow us to send a broadcast
     status = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST,
         &sockopt, sizeof(sockopt));
-    if (status < 0)
-    {
+    if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
         return status;
     }
-
     // bind the socket to the local port number and IP address
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(bip_get_port());
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     status = bind(sock_fd,
-        (const struct sockaddr*)&sin, sizeof(struct sockaddr));
-    if (status < 0)
-    {
+        (const struct sockaddr *) &sin, sizeof(struct sockaddr));
+    if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
         return false;

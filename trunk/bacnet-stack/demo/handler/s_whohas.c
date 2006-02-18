@@ -43,83 +43,67 @@
 #include "txbuf.h"
 
 /* find a specific device, or use -1 for limit if you want unlimited */
-void Send_WhoHas_Name(
-  int32_t low_limit,
-  int32_t high_limit,
-  char *object_name)
+void Send_WhoHas_Name(int32_t low_limit,
+    int32_t high_limit, char *object_name)
 {
-  int pdu_len = 0;
-  BACNET_ADDRESS dest;
-  int bytes_sent = 0;
-  BACNET_WHO_HAS_DATA data;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest;
+    int bytes_sent = 0;
+    BACNET_WHO_HAS_DATA data;
 
-  /* if we are forbidden to send, don't send! */
-  if (!dcc_communication_enabled())
-    return;
-  /* Who-Has is a global broadcast */
-  datalink_get_broadcast_address(&dest);
-  /* encode the NPDU portion of the packet */
-  pdu_len = npdu_encode_apdu(
-    &Handler_Transmit_Buffer[0],
-    &dest,
-    NULL,
-    false,  /* true for confirmed messages */
-    MESSAGE_PRIORITY_NORMAL);
-  /* encode the APDU portion of the packet */
-  data.low_limit = low_limit;
-  data.high_limit = high_limit;
-  data.object_name = true;
-  characterstring_init_ansi(&data.object.name,object_name);
-  pdu_len += whohas_encode_apdu(
-    &Handler_Transmit_Buffer[pdu_len],
-    &data);
-  /* send the data */
-  bytes_sent = datalink_send_pdu(
-    &dest,  // destination address
-    &Handler_Transmit_Buffer[0],
-    pdu_len); // number of bytes of data
-  if (bytes_sent <= 0)
-    fprintf(stderr,"Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+    /* if we are forbidden to send, don't send! */
+    if (!dcc_communication_enabled())
+        return;
+    /* Who-Has is a global broadcast */
+    datalink_get_broadcast_address(&dest);
+    /* encode the NPDU portion of the packet */
+    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, /* true for confirmed messages */
+        MESSAGE_PRIORITY_NORMAL);
+    /* encode the APDU portion of the packet */
+    data.low_limit = low_limit;
+    data.high_limit = high_limit;
+    data.object_name = true;
+    characterstring_init_ansi(&data.object.name, object_name);
+    pdu_len += whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        &data);
+    /* send the data */
+    bytes_sent = datalink_send_pdu(&dest,       // destination address
+        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
+            strerror(errno));
 }
 
 /* find a specific device, or use -1 for limit if you want unlimited */
-void Send_WhoHas_Object(
-  int32_t low_limit,
-  int32_t high_limit,
-  BACNET_OBJECT_TYPE object_type,
-  uint32_t object_instance)
+void Send_WhoHas_Object(int32_t low_limit,
+    int32_t high_limit,
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
-  int pdu_len = 0;
-  BACNET_ADDRESS dest;
-  int bytes_sent = 0;
-  BACNET_WHO_HAS_DATA data;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest;
+    int bytes_sent = 0;
+    BACNET_WHO_HAS_DATA data;
 
-  /* if we are forbidden to send, don't send! */
-  if (!dcc_communication_enabled())
-    return;
-  /* Who-Has is a global broadcast */
-  datalink_get_broadcast_address(&dest);
-  /* encode the NPDU portion of the packet */
-  pdu_len = npdu_encode_apdu(
-    &Handler_Transmit_Buffer[0],
-    &dest,
-    NULL,
-    false,  /* true for confirmed messages */
-    MESSAGE_PRIORITY_NORMAL);
-  /* encode the APDU portion of the packet */
-  data.low_limit = low_limit;
-  data.high_limit = high_limit;
-  data.object_name = false;
-  data.object.identifier.type = object_type;
-  data.object.identifier.instance = object_instance;
-  pdu_len += whohas_encode_apdu(
-    &Handler_Transmit_Buffer[pdu_len],
-    &data);
-  /* send the data */
-  bytes_sent = datalink_send_pdu(
-    &dest,  // destination address
-    &Handler_Transmit_Buffer[0],
-    pdu_len); // number of bytes of data
-  if (bytes_sent <= 0)
-    fprintf(stderr,"Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+    /* if we are forbidden to send, don't send! */
+    if (!dcc_communication_enabled())
+        return;
+    /* Who-Has is a global broadcast */
+    datalink_get_broadcast_address(&dest);
+    /* encode the NPDU portion of the packet */
+    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, /* true for confirmed messages */
+        MESSAGE_PRIORITY_NORMAL);
+    /* encode the APDU portion of the packet */
+    data.low_limit = low_limit;
+    data.high_limit = high_limit;
+    data.object_name = false;
+    data.object.identifier.type = object_type;
+    data.object.identifier.instance = object_instance;
+    pdu_len += whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        &data);
+    /* send the data */
+    bytes_sent = datalink_send_pdu(&dest,       // destination address
+        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
+            strerror(errno));
 }

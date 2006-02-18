@@ -33,33 +33,28 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif                          /* __cplusplus */
 
-bool Analog_Output_Valid_Instance(uint32_t object_instance);
-unsigned Analog_Output_Count(void);
-uint32_t Analog_Output_Index_To_Instance(unsigned index);
-char *Analog_Output_Name(uint32_t object_instance);
+    bool Analog_Output_Valid_Instance(uint32_t object_instance);
+    unsigned Analog_Output_Count(void);
+    uint32_t Analog_Output_Index_To_Instance(unsigned index);
+    char *Analog_Output_Name(uint32_t object_instance);
 
-int Analog_Output_Encode_Property_APDU(
-  uint8_t *apdu,
-  uint32_t object_instance,
-  BACNET_PROPERTY_ID property,
-  int32_t array_index,
-  BACNET_ERROR_CLASS *error_class,
-  BACNET_ERROR_CODE *error_code);
+    int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID property,
+        int32_t array_index,
+        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
 
-bool Analog_Output_Write_Property(
-  BACNET_WRITE_PROPERTY_DATA *wp_data,
-  BACNET_ERROR_CLASS *error_class,
-  BACNET_ERROR_CODE *error_code);
+    bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
 
 #ifdef TEST
 #include "ctest.h"
-void testAnalogOutput(Test * pTest);
+    void testAnalogOutput(Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-
+#endif                          /* __cplusplus */
 #endif

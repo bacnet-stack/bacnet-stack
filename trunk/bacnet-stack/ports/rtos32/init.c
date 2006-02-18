@@ -30,34 +30,33 @@
 extern void RTEmuInit(void);
 
 #ifdef _MSC_VER
-   #define VOIDEXPORT _declspec(dllexport) void __cdecl
+#define VOIDEXPORT _declspec(dllexport) void __cdecl
 #else
-   #define VOIDEXPORT void __export __cdecl
+#define VOIDEXPORT void __export __cdecl
 #endif
 
 /* DISK SYSTEM */
-#ifdef DOC  // include DiskOnChip driver
-  #include <rtfiles.h>
-  #define RTF_MAX_FILES 16      // support for more open files (default is 8)
-  #define RTF_BUFFERS_IN_BSS    // we do not need file I/O before the run-time
-  #include <rtfdata.c>          // system is initialized
+#ifdef DOC                      // include DiskOnChip driver
+#include <rtfiles.h>
+#define RTF_MAX_FILES 16        // support for more open files (default is 8)
+#define RTF_BUFFERS_IN_BSS      // we do not need file I/O before the run-time
+#include <rtfdata.c>            // system is initialized
 
   //#define READ_HEAD_BUFFER_SIZE 2048+4
 
   //static BYTE ReadAheadBuffer[READ_HEAD_BUFFER_SIZE];
 
-  static RTFDrvFLPYData FLPYDriveAData = {0};
-  static RTFDrvDOCData  DOCDriveData   = {0};
-  static RTFDrvIDEData  IDEDriveData   = {0};
+static RTFDrvFLPYData FLPYDriveAData = { 0 };
+static RTFDrvDOCData DOCDriveData = { 0 };
+static RTFDrvIDEData IDEDriveData = { 0 };
 
-  RTFDevice RTFDeviceList[] = 
-  { 
+RTFDevice RTFDeviceList[] = {
     /* type,number,flags,driver,driverdata */
-    { RTF_DEVICE_FLOPPY, 0, 0, &RTFDrvFloppy, &FLPYDriveAData},
-    { RTF_DEVICE_FDISK , 0, 0, &RTFDrvDOC,    &DOCDriveData},
-    { RTF_DEVICE_FDISK , 0, 0, &RTFDrvIDE,    &IDEDriveData},
-    { 0                , 0, 0, NULL,          NULL} 
-  };
+    {RTF_DEVICE_FLOPPY, 0, 0, &RTFDrvFloppy, &FLPYDriveAData},
+    {RTF_DEVICE_FDISK, 0, 0, &RTFDrvDOC, &DOCDriveData},
+    {RTF_DEVICE_FDISK, 0, 0, &RTFDrvIDE, &IDEDriveData},
+    {0, 0, 0, NULL, NULL}
+};
 #endif
 /* END OF DISK SYSTEM */
 
@@ -67,14 +66,14 @@ extern void RTEmuInit(void);
 #define MAXOBJECTS 1024
 #define MAXTYPES   32
 
-RTW32Handle RTHandleTable[MAXHANDLES] = {{0}};
-int         RTHandleCount = MAXHANDLES;
+RTW32Handle RTHandleTable[MAXHANDLES] = { {0} };
+int RTHandleCount = MAXHANDLES;
 
-RTW32Object RTObjectTable[MAXOBJECTS] = {{0}};
-int         RTObjectCount = MAXOBJECTS;
+RTW32Object RTObjectTable[MAXOBJECTS] = { {0} };
+int RTObjectCount = MAXOBJECTS;
 
-RTW32Types  RTTypeTable[MAXTYPES] = {{0}};
-int         RTTypeCount = MAXTYPES;
+RTW32Types RTTypeTable[MAXTYPES] = { {0} };
+int RTTypeCount = MAXTYPES;
 
 #if 0
 /* We can embed some files in the RTB file, like a binary
@@ -85,44 +84,41 @@ int         RTTypeCount = MAXTYPES;
    that here, as well as the LPT, console, and FAT.
    From RTFiles-32 manual, ch. 7, "Using RTFiles-32 with
    RTTarget-32" */
-RTFileSystem Console =
-{ RT_FS_CONSOLE, 0, 0, &RTConsoleFileSystem };
+RTFileSystem Console = { RT_FS_CONSOLE, 0, 0, &RTConsoleFileSystem };
 
-RTFileSystem LPTFiles =
-{ RT_FS_LPT_DEVICE, 0, 0, &RTLPTFileSystem };
+RTFileSystem LPTFiles = { RT_FS_LPT_DEVICE, 0, 0, &RTLPTFileSystem };
 
 /* logical drive Z: can be used to access the RAM drive */
 RTFileSystem RAMFiles =
-{ RT_FS_FILE,1 << ('Z'-'A'), 0, &RTRAMFileSystem };
+    { RT_FS_FILE, 1 << ('Z' - 'A'), 0, &RTRAMFileSystem };
 
 /* logical drive A: through D: are reserved for FAT */
 RTFileSystem FATFiles =
-{ RT_FS_FILE | RT_FS_IS_DEFAULT, 0x0F, 0x03, &RTFilesFileSystem };
+    { RT_FS_FILE | RT_FS_IS_DEFAULT, 0x0F, 0x03, &RTFilesFileSystem };
 
-RTFileSystem *RTFileSystemList[] =
-{
-  &Console,
-  &LPTFiles,
-  &RAMFiles,
-  &FATFiles,
-  NULL,
+RTFileSystem *RTFileSystemList[] = {
+    &Console,
+    &LPTFiles,
+    &RAMFiles,
+    &FATFiles,
+    NULL,
 };
 #endif
 
 /*-----------------------------------*/
 VOIDEXPORT Init(void)
 {
-   (void)RTSetFlags(RT_MM_VIRTUAL, 1);  // this is the better method
-   (void)RTCMOSExtendHeap();            // get as much memory as we can
-   RTCMOSSetSystemTime();         // get the right date and time
-   RTEmuInit();                   // set up floating point emulation
-   // pizza - RTHaltCPL3 appears to cause problems with file handling
-   //RTIdleHandler = (void RTTAPI *)RTHaltCPL3;  // low power when idle
-   // not needed with pre-emptive
-   //RTKTimeSlice(2);               // allow same priority task switch
-   RTKConfig.Flags |= RF_PREEMPTIVE; // preemptive multitasking
-   RTKConfig.Flags |= RF_WIN32MUTEX_MUTEX; // Win32 mutexes are RTK32 mutexes
-   RTKConfig.Flags |= RF_FPCONTEXT; // saves floating point context for tasks
-   RTKConfig.HookedIRQs |= 1 << 1; // hook the keyboard IRQ 
-   RTKConfig.DefaultTaskStackSize = 1024*8; // for Win32 task stacks req = 0
+    (void) RTSetFlags(RT_MM_VIRTUAL, 1);        // this is the better method
+    (void) RTCMOSExtendHeap();  // get as much memory as we can
+    RTCMOSSetSystemTime();      // get the right date and time
+    RTEmuInit();                // set up floating point emulation
+    // pizza - RTHaltCPL3 appears to cause problems with file handling
+    //RTIdleHandler = (void RTTAPI *)RTHaltCPL3;  // low power when idle
+    // not needed with pre-emptive
+    //RTKTimeSlice(2);               // allow same priority task switch
+    RTKConfig.Flags |= RF_PREEMPTIVE;   // preemptive multitasking
+    RTKConfig.Flags |= RF_WIN32MUTEX_MUTEX;     // Win32 mutexes are RTK32 mutexes
+    RTKConfig.Flags |= RF_FPCONTEXT;    // saves floating point context for tasks
+    RTKConfig.HookedIRQs |= 1 << 1;     // hook the keyboard IRQ 
+    RTKConfig.DefaultTaskStackSize = 1024 * 8;  // for Win32 task stacks req = 0
 }

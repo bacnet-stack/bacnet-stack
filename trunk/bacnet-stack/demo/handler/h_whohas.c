@@ -35,65 +35,51 @@
 #include "device.h"
 #include "client.h"
 
-void handler_who_has(
-  uint8_t *service_request,
-  uint16_t service_len,
-  BACNET_ADDRESS *src)
+void handler_who_has(uint8_t * service_request,
+    uint16_t service_len, BACNET_ADDRESS * src)
 {
-  int len = 0;
-  BACNET_WHO_HAS_DATA data;
-  bool directed_to_me = false;
-  int object_type = 0;
-  uint32_t object_instance = 0;
-  char *object_name = NULL;
-  bool found = false;
+    int len = 0;
+    BACNET_WHO_HAS_DATA data;
+    bool directed_to_me = false;
+    int object_type = 0;
+    uint32_t object_instance = 0;
+    char *object_name = NULL;
+    bool found = false;
 
-  (void)src;
-  len = whohas_decode_service_request(
-    service_request,
-    service_len,
-    &data);
-  if (len > 0)
-  { 
-    if ((data.low_limit == -1)  || (data.high_limit == -1))
-      directed_to_me = true;
-    else if ((Device_Object_Instance_Number() >= (uint32_t)data.low_limit) &&
-      (Device_Object_Instance_Number() <= (uint32_t)data.high_limit))
-      directed_to_me = true;
-    if (directed_to_me)
-    {
-      /* do we have such an object?  If so, send an I-Have.
-         note: we should have only 1 of such an object */
-      if (data.object_name)
-      {
-        /* valid name in my device? */
-        object_name = characterstring_value(&data.object.name);
-        found = Device_Valid_Object_Name(
-          object_name,
-          &object_type, 
-          &object_instance);
-        if (found)
-          Send_I_Have(
-            Device_Object_Instance_Number(),
-            object_type,
-            object_instance,
-            object_name);
-      }
-      else
-      {
-        /* valid object in my device? */
-        object_name = Device_Valid_Object_Id(
-          data.object.identifier.type, 
-          data.object.identifier.instance);
-        if (object_name)
-          Send_I_Have(
-            Device_Object_Instance_Number(),
-            data.object.identifier.type,
-            data.object.identifier.instance,
-            object_name);
-      }
+    (void) src;
+    len = whohas_decode_service_request(service_request,
+        service_len, &data);
+    if (len > 0) {
+        if ((data.low_limit == -1) || (data.high_limit == -1))
+            directed_to_me = true;
+        else if ((Device_Object_Instance_Number() >=
+                (uint32_t) data.low_limit)
+            && (Device_Object_Instance_Number() <=
+                (uint32_t) data.high_limit))
+            directed_to_me = true;
+        if (directed_to_me) {
+            /* do we have such an object?  If so, send an I-Have.
+               note: we should have only 1 of such an object */
+            if (data.object_name) {
+                /* valid name in my device? */
+                object_name = characterstring_value(&data.object.name);
+                found = Device_Valid_Object_Name(object_name,
+                    &object_type, &object_instance);
+                if (found)
+                    Send_I_Have(Device_Object_Instance_Number(),
+                        object_type, object_instance, object_name);
+            } else {
+                /* valid object in my device? */
+                object_name =
+                    Device_Valid_Object_Id(data.object.identifier.type,
+                    data.object.identifier.instance);
+                if (object_name)
+                    Send_I_Have(Device_Object_Instance_Number(),
+                        data.object.identifier.type,
+                        data.object.identifier.instance, object_name);
+            }
+        }
     }
-  }
 
-  return;  
+    return;
 }

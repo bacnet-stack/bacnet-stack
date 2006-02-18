@@ -35,17 +35,17 @@
 #include <process.h>
 
 #ifdef BACDL_BIP
-  #include "bip.h"
-  #ifndef HOST
-    #include "netcfg.h"
-    #include <rttarget.h>
-    #include <rtk32.h>
-    #include <clock.h>
-    #include <socket.h>
-  #else
-    #include <winsock.h>
-  #endif
-  #define close closesocket
+#include "bip.h"
+#ifndef HOST
+#include "netcfg.h"
+#include <rttarget.h>
+#include <rtk32.h>
+#include <clock.h>
+#include <socket.h>
+#else
+#include <winsock.h>
+#endif
+#define close closesocket
 #endif
 
 #endif

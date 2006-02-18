@@ -576,8 +576,7 @@ void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             // that is not known to this node.
             // FIXME: change this if you add a proprietary type
             else if /*( */ (mstp_port->FrameType >=
-                FRAME_TYPE_PROPRIETARY_MIN)
-            {                   /*&& */
+                FRAME_TYPE_PROPRIETARY_MIN) {   /*&& */
                 /*(FrameType <= FRAME_TYPE_PROPRIETARY_MAX)) */
                 /* unnecessary if FrameType is uint8_t with max of 255 */
                 // an unexpected or unwanted frame was received.
