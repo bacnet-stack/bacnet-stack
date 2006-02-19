@@ -15,7 +15,7 @@ $ indent -kr -nut -nlp *.c *.h
       
 Commit changes to CVS.
        
-Set a CVS tag on the ?bacnet-stack? module called ?bacnet-stack-0-0-0?
+Set a CVS tag on the "bacnet-stack" module called "bacnet-stack-0-0-0"
 $ cvs tag bacnet-stack-0-0-0
 	 
 Get a clean version out of CVS that doesn't have CVS in it. Don't
@@ -24,7 +24,7 @@ the latest changes in it.
 $ cvs -d:ext:skarg@cvs.sf.net:/cvsroot/bacnet export -Dtomorrow bacnet-stack
 	   
 tar and gzip the clean directory from one directory up.
-$ tar -cvvzf bacnet-stack-0.0.0.tgz bacnet/ 
+$ tar -cvvzf bacnet-stack-0.0.0.tgz bacnet-stack/ 
 
 Put the new release up on SourceForge
 Connect to ftp://upload.sourceforge.net/ as anonymous
@@ -33,7 +33,7 @@ Upload the tarball to the incoming directory.
 Go to http://sourceforge.net/projects/bacnet/
   Admin -> File Releases
   Add Release
-    Release Name ?bacnet-stack-0.0.0?
+    Release Name "bacnet-stack-0.0.0"
     Set status to Hidden (for now).
   Create a change log (use cvs2cl.pl)
   [Submit/Refresh]
@@ -41,7 +41,7 @@ Go to http://sourceforge.net/projects/bacnet/
   [Add Files and/or Refresh View]
   Set file metadata
     Processor: i386
-    Release Date: Today?s date
+    Release Date: Today's date
     File Type: Source .gz
   [Update/Refresh]
   Activate Release
@@ -51,5 +51,5 @@ Go to http://sourceforge.net/projects/bacnet/
 		 
   Update the website (if necessary)
 				  
-  Add release notes under What?s New on SourceForge
+  Add release notes under What's New on SourceForge
 
