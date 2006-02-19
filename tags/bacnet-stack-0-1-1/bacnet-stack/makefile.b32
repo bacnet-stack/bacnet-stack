@@ -1,0 +1,63 @@
+# Master Makefile for BACnet Stack demos
+# for Borland C++
+
+all: readprop writeprop readfile writefile server
+        @echo "utilities are in demo/x directories"
+
+clean: demo/readprop/makefile.b32 demo/writeprop/makefile.b32 demo/readfile/makefile.b32 demo/writefile/makefile.b32 demo/server/makefile.b32
+        cd demo/readprop
+        make -i -f makefile.b32 clean
+        cd ..
+        cd ..
+        cd demo/writeprop
+        make -i -f makefile.b32 clean
+        cd ..
+        cd ..
+        cd demo/readfile
+        make -i -f makefile.b32 clean
+        cd ..
+        cd ..
+        cd demo/writefile
+        make -i -f makefile.b32 clean
+        cd ..
+        cd ..
+        cd demo/server
+        make -i -f makefile.b32 clean
+        cd ..
+        cd ..
+
+readprop: demo/readprop/makefile.b32
+	cd demo/readprop
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+writeprop: demo/writeprop/makefile.b32
+	cd demo/writeprop
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+readfile: demo/readfile/makefile.b32
+	cd demo/readfile
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+writefile: demo/writefile/makefile.b32
+	cd demo/writefile
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+server: demo/server/makefile.b32
+	cd demo/server
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
