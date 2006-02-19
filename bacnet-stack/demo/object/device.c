@@ -766,6 +766,12 @@ void testDevice(Test * pTest)
 
 #ifdef TEST_DEVICE
 /* stubs to dependencies to keep unit test simple */
+char *Analog_Input_Name(uint32_t object_instance)
+{
+  (void)object_instance;
+  return "";
+}
+
 unsigned Analog_Input_Count(void)
 {
     return 0;
@@ -774,6 +780,12 @@ unsigned Analog_Input_Count(void)
 uint32_t Analog_Input_Index_To_Instance(unsigned index)
 {
     return index;
+}
+
+char *Analog_Output_Name(uint32_t object_instance)
+{
+  (void)object_instance;
+  return "";
 }
 
 unsigned Analog_Output_Count(void)
