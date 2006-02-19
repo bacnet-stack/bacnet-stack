@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-// Analog Output Objects - customize for your use
+/* Analog Output Objects - customize for your use */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -31,28 +31,28 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
-#include "config.h"             // the custom stuff
+#include "config.h"             /* the custom stuff */
 #include "wp.h"
 
 #define MAX_ANALOG_OUTPUTS 4
 
-// we choose to have a NULL level in our system represented by
-// a particular value.  When the priorities are not in use, they
-// will be relinquished (i.e. set to the NULL level).
+/* we choose to have a NULL level in our system represented by */
+/* a particular value.  When the priorities are not in use, they */
+/* will be relinquished (i.e. set to the NULL level). */
 #define AO_LEVEL_NULL 255
-// When all the priorities are level null, the present value returns
-// the Relinquish Default value
+/* When all the priorities are level null, the present value returns */
+/* the Relinquish Default value */
 #define AO_RELINQUISH_DEFAULT 0
-// Here is our Priority Array.  They are supposed to be Real, but
-// we don't have that kind of memory, so we will use a single byte
-// and load a Real for returning the value when asked.
+/* Here is our Priority Array.  They are supposed to be Real, but */
+/* we don't have that kind of memory, so we will use a single byte */
+/* and load a Real for returning the value when asked. */
 static uint8_t
     Analog_Output_Level[MAX_ANALOG_OUTPUTS][BACNET_MAX_PRIORITY];
-// Writable out-of-service allows others to play with our Present Value
-// without changing the physical output
+/* Writable out-of-service allows others to play with our Present Value */
+/* without changing the physical output */
 static bool Analog_Output_Out_Of_Service[MAX_ANALOG_OUTPUTS];
 
-// we need to have our arrays initialized before answering any calls
+/* we need to have our arrays initialized before answering any calls */
 static bool Analog_Ouput_Initialized = false;
 
 void Analog_Output_Init(void)
@@ -62,7 +62,7 @@ void Analog_Output_Init(void)
     if (!Analog_Ouput_Initialized) {
         Analog_Ouput_Initialized = true;
 
-        // initialize all the analog output priority arrays to NULL
+        /* initialize all the analog output priority arrays to NULL */
         for (i = 0; i < MAX_ANALOG_OUTPUTS; i++) {
             for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
                 Analog_Output_Level[i][j] = AO_LEVEL_NULL;
@@ -73,9 +73,9 @@ void Analog_Output_Init(void)
     return;
 }
 
-// we simply have 0-n object instances.  Yours might be
-// more complex, and then you need validate that the
-// given instance exists
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then you need validate that the */
+/* given instance exists */
 bool Analog_Output_Valid_Instance(uint32_t object_instance)
 {
     Analog_Output_Init();
@@ -85,26 +85,26 @@ bool Analog_Output_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-// we simply have 0-n object instances.  Yours might be
-// more complex, and then count how many you have
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then count how many you have */
 unsigned Analog_Output_Count(void)
 {
     Analog_Output_Init();
     return MAX_ANALOG_OUTPUTS;
 }
 
-// we simply have 0-n object instances.  Yours might be
-// more complex, and then you need to return the instance
-// that correlates to the correct index
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then you need to return the instance */
+/* that correlates to the correct index */
 uint32_t Analog_Output_Index_To_Instance(unsigned index)
 {
     Analog_Output_Init();
     return index;
 }
 
-// we simply have 0-n object instances.  Yours might be
-// more complex, and then you need to return the index
-// that correlates to the correct instance number
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then you need to return the index */
+/* that correlates to the correct instance number */
 unsigned Analog_Output_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ANALOG_OUTPUTS;
@@ -157,7 +157,7 @@ int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
     int len = 0;
-    int apdu_len = 0;           // return value
+    int apdu_len = 0;           /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     float real_value = 1.414;
@@ -202,24 +202,24 @@ int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
         break;
     case PROP_PRIORITY_ARRAY:
-        // Array element zero is the number of elements in the array
+        /* Array element zero is the number of elements in the array */
         if (array_index == BACNET_ARRAY_LENGTH_INDEX)
             apdu_len =
                 encode_tagged_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-        // if no index was specified, then try to encode the entire list
-        // into one packet.
+        /* if no index was specified, then try to encode the entire list */
+        /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
             object_index =
                 Analog_Output_Instance_To_Index(object_instance);
             for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-                // FIXME: check if we have room before adding it to APDU
+                /* FIXME: check if we have room before adding it to APDU */
                 if (Analog_Output_Level[object_index][i] == AO_LEVEL_NULL)
                     len = encode_tagged_null(&apdu[apdu_len]);
                 else {
                     real_value = Analog_Output_Level[object_index][i];
                     len = encode_tagged_real(&apdu[apdu_len], real_value);
                 }
-                // add it if we have room
+                /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
                     apdu_len += len;
                 else {
@@ -263,11 +263,11 @@ int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
     return apdu_len;
 }
 
-// returns true if successful
+/* returns true if successful */
 bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
-    bool status = false;        // return value
+    bool status = false;        /* return value */
     unsigned int object_index = 0;
     unsigned int priority = 0;
     uint8_t level = AO_LEVEL_NULL;
@@ -278,7 +278,7 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
-    // decode the some of the request
+    /* decode the some of the request */
     switch (wp_data->object_property) {
     case PROP_PRESENT_VALUE:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL) {
@@ -293,9 +293,9 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                     object_instance);
                 priority--;
                 Analog_Output_Level[object_index][priority] = level;
-                // if Out of Service is TRUE, then don't set the
-                // physical output.  This comment may apply to the
-                // main loop (i.e. check out of service before changing output)
+                /* if Out of Service is TRUE, then don't set the */
+                /* physical output.  This comment may apply to the */
+                /* main loop (i.e. check out of service before changing output) */
                 status = true;
             } else if (priority == 6) {
                 *error_class = ERROR_CLASS_PROPERTY;

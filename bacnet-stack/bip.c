@@ -32,11 +32,11 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>             // for standard integer types uint8_t etc.
-#include <stdbool.h>            // for the standard bool type.
+#include <stdint.h>             /* for standard integer types uint8_t etc. */
+#include <stdbool.h>            /* for the standard bool type. */
 #include "bacdcode.h"
 #include "bip.h"
-#include "net.h"                // custom per port
+#include "net.h"                /* custom per port */
 
 static int BIP_Socket = -1;
 /* port to use - stored in host byte order */
@@ -95,37 +95,37 @@ void bip_set_broadcast_address(uint8_t octet1,
         octet4);
 }
 
-// set using network byte order
+/* set using network byte order */
 void bip_set_addr(uint32_t net_address)
 {
     BIP_Address.s_addr = ntohl(net_address);
 }
 
-// returns host byte order
+/* returns host byte order */
 uint32_t bip_get_addr(void)
 {
     return BIP_Address.s_addr;
 }
 
-// set using network byte order
+/* set using network byte order */
 void bip_set_broadcast_addr(uint32_t net_address)
 {
     BIP_Broadcast_Address.s_addr = ntohl(net_address);
 }
 
-// returns host byte order
+/* returns host byte order */
 uint32_t bip_get_broadcast_addr(void)
 {
     return BIP_Broadcast_Address.s_addr;
 }
 
-// set using host byte order
+/* set using host byte order */
 void bip_set_port(uint16_t port)
 {
     BIP_Port = port;
 }
 
-// returns host byte order
+/* returns host byte order */
 uint16_t bip_get_port(void)
 {
     return BIP_Port;
@@ -133,14 +133,14 @@ uint16_t bip_get_port(void)
 
 /* function to send a packet out the BACnet/IP socket (Annex J) */
 /* returns number of bytes sent on success, negative number on failure */
-static int bip_send(struct sockaddr_in *bip_dest, uint8_t * pdu,        // any data to be sent - may be null
-    unsigned pdu_len)           // number of bytes of data
-{
+static int bip_send(struct sockaddr_in *bip_dest, uint8_t * pdu,        /* any data to be sent - may be null */
+    unsigned pdu_len)
+{                               /* number of bytes of data */
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
 
-    // assumes that the driver has already been initialized
+    /* assumes that the driver has already been initialized */
     if (BIP_Socket < 0)
         return BIP_Socket;
 
@@ -165,10 +165,10 @@ static int bip_send(struct sockaddr_in *bip_dest, uint8_t * pdu,        // any d
 
 /* function to send a packet out the BACnet/IP socket (Annex J) */
 /* returns number of bytes sent on success, negative number on failure */
-int bip_send_pdu(BACNET_ADDRESS * dest, // destination address
-    uint8_t * pdu,              // any data to be sent - may be null
-    unsigned pdu_len)           // number of bytes of data
-{
+int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
+    uint8_t * pdu,              /* any data to be sent - may be null */
+    unsigned pdu_len)
+{                               /* number of bytes of data */
     struct sockaddr_in bip_dest;
 
     /* load destination IP address */
@@ -189,21 +189,21 @@ int bip_send_pdu(BACNET_ADDRESS * dest, // destination address
 
     /* function to send a packet out the BACnet/IP socket */
     /* returns 1 on success, 0 on failure */
-    return bip_send(&bip_dest,  // destination address
-        pdu,                    // any data to be sent - may be null
-        pdu_len);               // number of bytes of data
+    return bip_send(&bip_dest,  /* destination address */
+        pdu,                    /* any data to be sent - may be null */
+        pdu_len);               /* number of bytes of data */
 }
 
-// receives a BACnet/IP packet
-// returns the number of octets in the PDU, or zero on failure
-uint16_t bip_receive(BACNET_ADDRESS * src,      // source address
-    uint8_t * pdu,              // PDU data
-    uint16_t max_pdu,           // amount of space available in the PDU 
-    unsigned timeout)           // number of milliseconds to wait for a packet
-{
+/* receives a BACnet/IP packet */
+/* returns the number of octets in the PDU, or zero on failure */
+uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
+    uint8_t * pdu,              /* PDU data */
+    uint16_t max_pdu,           /* amount of space available in the PDU  */
+    unsigned timeout)
+{                               /* number of milliseconds to wait for a packet */
     int received_bytes;
-    uint8_t buf[MAX_MPDU] = { 0 };      // data
-    uint16_t pdu_len = 0;       // return value
+    uint8_t buf[MAX_MPDU] = { 0 };      /* data */
+    uint16_t pdu_len = 0;       /* return value */
     fd_set read_fds;
     int max;
     struct timeval select_timeout;
@@ -259,16 +259,16 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      // source address
             src->mac_len = 6;
             (void) encode_unsigned32(&src->mac[0], sin.sin_addr.s_addr);
             (void) encode_unsigned16(&src->mac[4], sin.sin_port);
-            // FIXME: check destination address
-            // see if it is broadcast or for us
+            /* FIXME: check destination address */
+            /* see if it is broadcast or for us */
             /* decode the length of the PDU - length is inclusive of BVLC */
             (void) decode_unsigned16(&buf[2], &pdu_len);
             /* copy the buffer into the PDU */
             pdu_len -= 4;       /* BVLC header */
             if (pdu_len < max_pdu)
                 memmove(&pdu[0], &buf[4], pdu_len);
-            // ignore packets that are too large
-            // clients should check my max-apdu first
+            /* ignore packets that are too large */
+            /* clients should check my max-apdu first */
             else
                 pdu_len = 0;
         }
@@ -295,9 +295,9 @@ void bip_get_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void bip_get_broadcast_address(BACNET_ADDRESS * dest)   // destination address
-{
-    int i = 0;                  // counter
+void bip_get_broadcast_address(BACNET_ADDRESS * dest)
+{                               /* destination address */
+    int i = 0;                  /* counter */
 
     if (dest) {
         dest->mac_len = 6;

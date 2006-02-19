@@ -50,7 +50,7 @@ typedef struct BACnet_Atomic_Read_File_Data {
         } stream;
         struct {
             int32_t fileStartRecord;
-            // requested or returned record count
+            /* requested or returned record count */
             uint32_t RecordCount;
         } record;
     } type;
@@ -62,12 +62,12 @@ typedef struct BACnet_Atomic_Read_File_Data {
 extern "C" {
 #endif                          /* __cplusplus */
 
-// Atomic Read File
-// encode service
+/* Atomic Read File */
+/* encode service */
     int arf_encode_apdu(uint8_t * apdu,
         uint8_t invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data);
 
-// decode the service request only
+/* decode the service request only */
     int arf_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA * data);
 
@@ -75,13 +75,13 @@ extern "C" {
         unsigned apdu_len,
         uint8_t * invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data);
 
-// Atomic Read File Ack
+/* Atomic Read File Ack */
 
-// encode service
+/* encode service */
     int arf_ack_encode_apdu(uint8_t * apdu,
         uint8_t invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data);
 
-// decode the service request only
+/* decode the service request only */
     int arf_ack_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA * data);
 

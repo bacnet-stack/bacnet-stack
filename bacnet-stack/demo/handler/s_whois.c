@@ -52,19 +52,19 @@ void Send_WhoIs(int32_t low_limit, int32_t high_limit)
     if (!dcc_communication_enabled())
         return;
 
-    // Who-Is is a global broadcast
+    /* Who-Is is a global broadcast */
     datalink_get_broadcast_address(&dest);
 
-    // encode the NPDU portion of the packet
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, // true for confirmed messages
+    /* encode the NPDU portion of the packet */
+    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, /* true for confirmed messages */
         MESSAGE_PRIORITY_NORMAL);
 
-    // encode the APDU portion of the packet
+    /* encode the APDU portion of the packet */
     pdu_len += whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         low_limit, high_limit);
 
-    bytes_sent = datalink_send_pdu(&dest,       // destination address
-        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
+        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",
             strerror(errno));

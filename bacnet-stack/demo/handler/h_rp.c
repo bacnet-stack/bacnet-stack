@@ -62,12 +62,12 @@ void handler_read_property(uint8_t * service_request,
     len = rp_decode_service_request(service_request, service_len, &data);
     if (len <= 0)
         fprintf(stderr, "Unable to decode Read-Property Request!\n");
-    // prepare a reply
+    /* prepare a reply */
     datalink_get_my_address(&my_address);
-    // encode the NPDU portion of the packet
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], src, &my_address, false,    // true for confirmed messages
+    /* encode the NPDU portion of the packet */
+    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], src, &my_address, false,    /* true for confirmed messages */
         MESSAGE_PRIORITY_NORMAL);
-    // bad decoding - send an abort
+    /* bad decoding - send an abort */
     if (len == -1) {
         pdu_len += abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER);
@@ -82,16 +82,16 @@ void handler_read_property(uint8_t * service_request,
     } else {
         switch (data.object_type) {
         case OBJECT_DEVICE:
-            // FIXME: probably need a length limitation sent with encode
+            /* FIXME: probably need a length limitation sent with encode */
             if (data.object_instance == Device_Object_Instance_Number()) {
                 len = Device_Encode_Property_APDU(&Temp_Buf[0],
                     data.object_property,
                     data.array_index, &error_class, &error_code);
                 if (len >= 0) {
-                    // encode the APDU portion of the packet
+                    /* encode the APDU portion of the packet */
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
-                    // FIXME: probably need a length limitation sent with encode
+                    /* FIXME: probably need a length limitation sent with encode */
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
@@ -109,10 +109,10 @@ void handler_read_property(uint8_t * service_request,
                     data.object_property,
                     data.array_index, &error_class, &error_code);
                 if (len >= 0) {
-                    // encode the APDU portion of the packet
+                    /* encode the APDU portion of the packet */
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
-                    // FIXME: probably need a length limitation sent with encode
+                    /* FIXME: probably need a length limitation sent with encode */
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
@@ -130,10 +130,10 @@ void handler_read_property(uint8_t * service_request,
                     data.object_property,
                     data.array_index, &error_class, &error_code);
                 if (len >= 0) {
-                    // encode the APDU portion of the packet
+                    /* encode the APDU portion of the packet */
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
-                    // FIXME: probably need a length limitation sent with encode
+                    /* FIXME: probably need a length limitation sent with encode */
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
@@ -152,10 +152,10 @@ void handler_read_property(uint8_t * service_request,
                     data.object_property,
                     data.array_index, &error_class, &error_code);
                 if (len >= 0) {
-                    // encode the APDU portion of the packet
+                    /* encode the APDU portion of the packet */
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
-                    // FIXME: probably need a length limitation sent with encode
+                    /* FIXME: probably need a length limitation sent with encode */
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
@@ -180,8 +180,8 @@ void handler_read_property(uint8_t * service_request,
         send = true;
     }
     if (send) {
-        bytes_sent = datalink_send_pdu(src,     // destination address
-            &Handler_Transmit_Buffer[0], pdu_len);      // number of bytes of data
+        bytes_sent = datalink_send_pdu(src,     /* destination address */
+            &Handler_Transmit_Buffer[0], pdu_len);      /* number of bytes of data */
         if (bytes_sent <= 0)
             fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
     }

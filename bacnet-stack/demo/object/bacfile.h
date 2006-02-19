@@ -51,18 +51,18 @@ extern "C" {
     uint32_t bacfile_index_to_instance(unsigned find_index);
     uint32_t bacfile_instance(char *filename);
 #if TSM_ENABLED
-// this is one way to match up the invoke ID with
-// the file ID from the AtomicReadFile request.
-// Another way would be to store the
-// invokeID and file instance in a list or table
-// when the request was sent
+/* this is one way to match up the invoke ID with */
+/* the file ID from the AtomicReadFile request. */
+/* Another way would be to store the */
+/* invokeID and file instance in a list or table */
+/* when the request was sent */
     uint32_t bacfile_instance_from_tsm(uint8_t invokeID);
 #endif
 
-// AtomicReadFile ACK helper
+/* AtomicReadFile ACK helper */
     bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA * data);
 
-// handling for read property service
+/* handling for read property service */
     int bacfile_encode_property_apdu(uint8_t * apdu,
         uint32_t object_instance,
         BACNET_PROPERTY_ID property,

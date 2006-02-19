@@ -36,11 +36,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// Accumulate "dataValue" into the CRC in crcValue.
-// Return value is updated CRC
-//
-//  The ^ operator means exclusive OR.
-// Note: This function is copied directly from the BACnet standard.
+/* Accumulate "dataValue" into the CRC in crcValue. */
+/* Return value is updated CRC */
+/* */
+/*  The ^ operator means exclusive OR. */
+/* Note: This function is copied directly from the BACnet standard. */
 uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue)
 {
     uint16_t crc;
@@ -56,11 +56,11 @@ uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue)
     return (crc & 0xfe) ^ ((crc >> 8) & 1);
 }
 
-// Accumulate "dataValue" into the CRC in crcValue.
-//  Return value is updated CRC
-//
-//  The ^ operator means exclusive OR.
-// Note: This function is copied directly from the BACnet standard.
+/* Accumulate "dataValue" into the CRC in crcValue. */
+/*  Return value is updated CRC */
+/* */
+/*  The ^ operator means exclusive OR. */
+/* Note: This function is copied directly from the BACnet standard. */
 uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
 {
     uint16_t crcLow;
@@ -79,11 +79,11 @@ uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
 #include "ctest.h"
 #include "bytes.h"
 
-// test from Annex G 1.0 of BACnet Standard
+/* test from Annex G 1.0 of BACnet Standard */
 void testCRC8(Test * pTest)
 {
-    uint8_t crc = 0xff;         // accumulates the crc value
-    uint8_t frame_crc;          // appended to the end of the frame
+    uint8_t crc = 0xff;         /* accumulates the crc value */
+    uint8_t frame_crc;          /* appended to the end of the frame */
 
     crc = CRC_Calc_Header(0x00, crc);
     ct_test(pTest, crc == 0x55);
@@ -95,16 +95,16 @@ void testCRC8(Test * pTest)
     ct_test(pTest, crc == 0x95);
     crc = CRC_Calc_Header(0x00, crc);
     ct_test(pTest, crc == 0x73);
-    // send the ones complement of the CRC in place of
-    // the CRC, and the resulting CRC will always equal 0x55.
+    /* send the ones complement of the CRC in place of */
+    /* the CRC, and the resulting CRC will always equal 0x55. */
     frame_crc = ~crc;
     ct_test(pTest, frame_crc == 0x8C);
-    // use the ones complement value and the next to last CRC value
+    /* use the ones complement value and the next to last CRC value */
     crc = CRC_Calc_Header(frame_crc, crc);
     ct_test(pTest, crc == 0x55);
 }
 
-// test from Annex G 2.0 of BACnet Standard
+/* test from Annex G 2.0 of BACnet Standard */
 void testCRC16(Test * pTest)
 {
     uint16_t crc = 0xffff;
@@ -116,8 +116,8 @@ void testCRC16(Test * pTest)
     ct_test(pTest, crc == 0xEB70);
     crc = CRC_Calc_Data(0x30, crc);
     ct_test(pTest, crc == 0x42EF);
-    // send the ones complement of the CRC in place of
-    // the CRC, and the resulting CRC will always equal 0xF0B8.
+    /* send the ones complement of the CRC in place of */
+    /* the CRC, and the resulting CRC will always equal 0xF0B8. */
     data_crc = ~crc;
     ct_test(pTest, data_crc == 0xBD10);
     crc = CRC_Calc_Data(LO_BYTE(data_crc), crc);

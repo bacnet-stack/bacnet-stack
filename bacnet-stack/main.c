@@ -43,19 +43,19 @@
 
 int main(void)
 {
-    struct mstp_port_struct_t mstp_port;        // port data
-    uint8_t my_mac = 0x05;      // local MAC address
+    struct mstp_port_struct_t mstp_port;        /* port data */
+    uint8_t my_mac = 0x05;      /* local MAC address */
 
     MSTP_Init(&mstp_port, my_mac);
 
-    // loop forever
+    /* loop forever */
     for (;;) {
-        // input
+        /* input */
         RS485_Check_UART_Data(&mstp_port);
         MSTP_Receive_Frame_FSM(&mstp_port);
-        // process
+        /* process */
 
-        // output
+        /* output */
         MSTP_Master_Node_FSM(&mstp_port);
 
     }

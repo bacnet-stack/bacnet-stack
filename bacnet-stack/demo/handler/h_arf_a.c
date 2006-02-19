@@ -41,11 +41,11 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-// We performed an AtomicReadFile Request,
-// and here is the data from the server
-// Note: it does not have to be the same file=instance
-// that someone can read from us.  It is common to
-// use the description as the file name.
+/* We performed an AtomicReadFile Request, */
+/* and here is the data from the server */
+/* Note: it does not have to be the same file=instance */
+/* that someone can read from us.  It is common to */
+/* use the description as the file name. */
 #if BACFILE
 void handler_atomic_read_file_ack(uint8_t * service_request,
     uint16_t service_len,
@@ -58,13 +58,13 @@ void handler_atomic_read_file_ack(uint8_t * service_request,
     uint32_t instance = 0;
 
     (void) src;
-    // get the file instance from the tsm data before freeing it
+    /* get the file instance from the tsm data before freeing it */
     instance = bacfile_instance_from_tsm(service_data->invoke_id);
     len = arf_ack_decode_service_request(service_request,
         service_len, &data);
     fprintf(stderr, "Received Read-File Ack!\n");
     if ((len > 0) && (instance <= BACNET_MAX_INSTANCE)) {
-        // write the data received to the file specified
+        /* write the data received to the file specified */
         if (data.access == FILE_STREAM_ACCESS) {
             pFilename = bacfile_name(instance);
             if (pFilename) {
@@ -81,7 +81,7 @@ void handler_atomic_read_file_ack(uint8_t * service_request,
                 }
             }
         } else if (data.access == FILE_RECORD_ACCESS) {
-            // FIXME: add handling for Record Access
+            /* FIXME: add handling for Record Access */
         }
     }
 }

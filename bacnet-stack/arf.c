@@ -38,20 +38,20 @@
 #include "device.h"
 #include "arf.h"
 
-// Atomic Read File
+/* Atomic Read File */
 
-// encode service
+/* encode service */
 int arf_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data)
 {
-    int apdu_len = 0;           // total length of the apdu, return value
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] =
             encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
         apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;   // service choice
+        apdu[3] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;   /* service choice */
         apdu_len = 4;
         apdu_len += encode_tagged_object_id(&apdu[apdu_len],
             data->object_type, data->object_instance);
@@ -80,7 +80,7 @@ int arf_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-// decode the service request only
+/* decode the service request only */
 int arf_decode_service_request(uint8_t * apdu,
     unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA * data)
 {
@@ -88,9 +88,9 @@ int arf_decode_service_request(uint8_t * apdu,
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int type = 0;               // for decoding
+    int type = 0;               /* for decoding */
 
-    // check for value pointers
+    /* check for value pointers */
     if (apdu_len && data) {
         len =
             decode_tag_number_and_value(&apdu[0], &tag_number,
@@ -101,9 +101,9 @@ int arf_decode_service_request(uint8_t * apdu,
         data->object_type = type;
         if (decode_is_opening_tag_number(&apdu[len], 0)) {
             data->access = FILE_STREAM_ACCESS;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
-            // fileStartPosition
+            /* fileStartPosition */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -111,7 +111,7 @@ int arf_decode_service_request(uint8_t * apdu,
                 return -1;
             len += decode_signed(&apdu[len],
                 len_value_type, &data->type.stream.fileStartPosition);
-            // requestedOctetCount
+            /* requestedOctetCount */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -121,13 +121,13 @@ int arf_decode_service_request(uint8_t * apdu,
                 len_value_type, &data->type.stream.requestedOctetCount);
             if (!decode_is_closing_tag_number(&apdu[len], 0))
                 return -1;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
         } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
             data->access = FILE_RECORD_ACCESS;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
-            // fileStartRecord
+            /* fileStartRecord */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -135,7 +135,7 @@ int arf_decode_service_request(uint8_t * apdu,
                 return -1;
             len += decode_signed(&apdu[len],
                 len_value_type, &data->type.record.fileStartRecord);
-            // RecordCount
+            /* RecordCount */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -145,7 +145,7 @@ int arf_decode_service_request(uint8_t * apdu,
                 len_value_type, &data->type.record.RecordCount);
             if (!decode_is_closing_tag_number(&apdu[len], 1))
                 return -1;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
         } else
             return -1;
@@ -163,10 +163,10 @@ int arf_decode_apdu(uint8_t * apdu,
 
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -1;
-    //  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
+    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_READ_FILE)
         return -1;
@@ -180,18 +180,18 @@ int arf_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-// encode service
+/* encode service */
 int arf_ack_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data)
 {
-    int apdu_len = 0;           // total length of the apdu, return value
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK;
         apdu[1] = invoke_id;
-        apdu[2] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;   // service choice
+        apdu[2] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;   /* service choice */
         apdu_len = 3;
-        // endOfFile
+        /* endOfFile */
         apdu_len +=
             encode_tagged_boolean(&apdu[apdu_len], data->endOfFile);
         switch (data->access) {
@@ -221,7 +221,7 @@ int arf_ack_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-// decode the service request only
+/* decode the service request only */
 int arf_ack_decode_service_request(uint8_t * apdu,
     unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA * data)
 {
@@ -230,7 +230,7 @@ int arf_ack_decode_service_request(uint8_t * apdu,
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
 
-    // check for value pointers
+    /* check for value pointers */
     if (apdu_len && data) {
         len =
             decode_tag_number_and_value(&apdu[0], &tag_number,
@@ -240,9 +240,9 @@ int arf_ack_decode_service_request(uint8_t * apdu,
         data->endOfFile = decode_boolean(len_value_type);
         if (decode_is_opening_tag_number(&apdu[len], 0)) {
             data->access = FILE_STREAM_ACCESS;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
-            // fileStartPosition
+            /* fileStartPosition */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -250,7 +250,7 @@ int arf_ack_decode_service_request(uint8_t * apdu,
                 return -1;
             len += decode_signed(&apdu[len],
                 len_value_type, &data->type.stream.fileStartPosition);
-            // fileData
+            /* fileData */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -260,13 +260,13 @@ int arf_ack_decode_service_request(uint8_t * apdu,
                 len_value_type, &data->fileData);
             if (!decode_is_closing_tag_number(&apdu[len], 0))
                 return -1;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
         } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
             data->access = FILE_RECORD_ACCESS;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
-            // fileStartRecord
+            /* fileStartRecord */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -274,7 +274,7 @@ int arf_ack_decode_service_request(uint8_t * apdu,
                 return -1;
             len += decode_signed(&apdu[len],
                 len_value_type, &data->type.record.fileStartRecord);
-            // returnedRecordCount
+            /* returnedRecordCount */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -282,7 +282,7 @@ int arf_ack_decode_service_request(uint8_t * apdu,
                 return -1;
             len += decode_unsigned(&apdu[len],
                 len_value_type, &data->type.record.RecordCount);
-            // fileData
+            /* fileData */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
@@ -292,7 +292,7 @@ int arf_ack_decode_service_request(uint8_t * apdu,
                 len_value_type, &data->fileData);
             if (!decode_is_closing_tag_number(&apdu[len], 1))
                 return -1;
-            // a tag number is not extended so only one octet
+            /* a tag number is not extended so only one octet */
             len++;
         } else
             return -1;
@@ -310,7 +310,7 @@ int arf_ack_decode_apdu(uint8_t * apdu,
 
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
         return -1;
     *invoke_id = apdu[1];       /* invoke id - filled in by net layer */

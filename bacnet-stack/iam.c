@@ -40,17 +40,17 @@
 #include "bacdcode.h"
 #include "address.h"
 
-// encode I-Am service
+/* encode I-Am service */
 int iam_encode_apdu(uint8_t * apdu,
     uint32_t device_id,
     unsigned max_apdu, int segmentation, uint16_t vendor_id)
 {
-    int len = 0;                // length of each encoding
-    int apdu_len = 0;           // total length of the apdu, return value
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_I_AM;     // service choice
+        apdu[1] = SERVICE_UNCONFIRMED_I_AM;     /* service choice */
         apdu_len = 2;
         len = encode_tagged_object_id(&apdu[apdu_len],
             OBJECT_DEVICE, device_id);
@@ -71,15 +71,15 @@ int iam_decode_service_request(uint8_t * apdu,
     unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id)
 {
     int len = 0;
-    int apdu_len = 0;           // total length of the apdu, return value
-    int object_type = 0;        // should be a Device Object
+    int apdu_len = 0;           /* total length of the apdu, return value */
+    int object_type = 0;        /* should be a Device Object */
     uint32_t object_instance = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0;
     int decoded_integer = 0;
 
-    // OBJECT ID - object id
+    /* OBJECT ID - object id */
     len =
         decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
         &len_value);
@@ -93,7 +93,7 @@ int iam_decode_service_request(uint8_t * apdu,
         return -1;
     if (pDevice_id)
         *pDevice_id = object_instance;
-    // MAX APDU - unsigned
+    /* MAX APDU - unsigned */
     len =
         decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
         &len_value);
@@ -104,7 +104,7 @@ int iam_decode_service_request(uint8_t * apdu,
     apdu_len += len;
     if (pMax_apdu)
         *pMax_apdu = decoded_value;
-    // Segmentation - enumerated
+    /* Segmentation - enumerated */
     len =
         decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
         &len_value);
@@ -117,7 +117,7 @@ int iam_decode_service_request(uint8_t * apdu,
         return -1;
     if (pSegmentation)
         *pSegmentation = decoded_integer;
-    // Vendor ID - unsigned16
+    /* Vendor ID - unsigned16 */
     len =
         decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
         &len_value);
@@ -138,12 +138,12 @@ int iam_decode_apdu(uint8_t * apdu,
     uint32_t * pDevice_id,
     unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id)
 {
-    int apdu_len = 0;           // total length of the apdu, return value
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
-    // valid data?
+    /* valid data? */
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
         return -1;
     if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
@@ -160,20 +160,20 @@ int iam_send(uint8_t * buffer)
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
 
-    // I-Am is a global broadcast
+    /* I-Am is a global broadcast */
     datalink_get_broadcast_address(&dest);
 
-    // encode the NPDU portion of the packet
-    pdu_len = npdu_encode_apdu(&buffer[0], &dest, NULL, false,  // true for confirmed messages
+    /* encode the NPDU portion of the packet */
+    pdu_len = npdu_encode_apdu(&buffer[0], &dest, NULL, false,  /* true for confirmed messages */
         MESSAGE_PRIORITY_NORMAL);
 
-    // encode the APDU portion of the packet
+    /* encode the APDU portion of the packet */
     pdu_len += iam_encode_apdu(&buffer[pdu_len],
         Device_Object_Instance_Number(),
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
 
-    bytes_sent = datalink_send_pdu(&dest,       // destination address
-        &buffer[0], pdu_len);   // number of bytes of data
+    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
+        &buffer[0], pdu_len);   /* number of bytes of data */
 
     return bytes_sent;
 }
@@ -212,16 +212,16 @@ void testIAm(Test * pTest)
 }
 
 #ifdef TEST_IAM
-// Dummy stubs to eliminate depencies
-void datalink_get_broadcast_address(BACNET_ADDRESS * dest)      // destination address
-{
+/* Dummy stubs to eliminate depencies */
+void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
+{                               /* destination address */
     (void) dest;
 }
 
-int datalink_send_pdu(BACNET_ADDRESS * dest,    // destination address
-    uint8_t * pdu,              // any data to be sent - may be null
-    unsigned pdu_len)           // number of bytes of data
-{
+int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+    uint8_t * pdu,              /* any data to be sent - may be null */
+    unsigned pdu_len)
+{                               /* number of bytes of data */
     (void) dest;
     (void) pdu;
 
@@ -246,10 +246,10 @@ void address_add_binding(uint32_t device_id,
     (void) src;
 }
 
-// dummy for apdu dependency
+/* dummy for apdu dependency */
 void tsm_free_invoke_id(uint8_t invokeID)
 {
-    // dummy stub for testing
+    /* dummy stub for testing */
     (void) invokeID;
 }
 

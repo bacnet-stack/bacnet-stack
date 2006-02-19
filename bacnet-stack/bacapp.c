@@ -46,7 +46,7 @@
 int bacapp_encode_application_data(uint8_t * apdu,
     BACNET_APPLICATION_DATA_VALUE * value)
 {
-    int apdu_len = 0;           // total length of the apdu, return value
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         if (value->tag == BACNET_APPLICATION_TAG_NULL)

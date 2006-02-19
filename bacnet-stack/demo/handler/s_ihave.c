@@ -68,8 +68,8 @@ void Send_I_Have(uint32_t device_id,
     characterstring_init_ansi(&data.object_name, object_name);
     pdu_len += ihave_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     /* send the data */
-    bytes_sent = datalink_send_pdu(&dest,       // destination address
-        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
+        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Have Reply (%s)!\n",
             strerror(errno));

@@ -67,11 +67,11 @@ uint8_t Send_Read_Property_Request(uint32_t device_id,  /* destination device */
         status = tsm_transaction_available();
     if (status) {
         datalink_get_my_address(&my_address);
-        pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, &my_address, true,       // true for confirmed messages
+        pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, &my_address, true,       /* true for confirmed messages */
             MESSAGE_PRIORITY_NORMAL);
 
         invoke_id = tsm_next_free_invokeID();
-        // load the data for the encoding
+        /* load the data for the encoding */
         data.object_type = object_type;
         data.object_instance = object_instance;
         data.object_property = object_property;
@@ -86,8 +86,8 @@ uint8_t Send_Read_Property_Request(uint32_t device_id,  /* destination device */
         if ((unsigned) pdu_len < max_apdu) {
             tsm_set_confirmed_unsegmented_transaction(invoke_id,
                 &dest, &Handler_Transmit_Buffer[0], pdu_len);
-            bytes_sent = datalink_send_pdu(&dest,       // destination address
-                &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+            bytes_sent = datalink_send_pdu(&dest,       /* destination address */
+                &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
             if (bytes_sent <= 0)
                 fprintf(stderr,
                     "Failed to Send ReadProperty Request (%s)!\n",

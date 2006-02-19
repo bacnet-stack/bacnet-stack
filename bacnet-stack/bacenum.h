@@ -130,7 +130,7 @@ typedef enum {
     PROP_PROGRAM_STATE = 92,
     PROP_PROPORTIONAL_CONSTANT = 93,
     PROP_PROPORTIONAL_CONSTANT_UNITS = 94,
-    PROP_PROTOCOL_CONFORMANCE_CLASS = 95,       // deleted in version 1 revision 2
+    PROP_PROTOCOL_CONFORMANCE_CLASS = 95,       /* deleted in version 1 revision 2 */
     PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED = 96,
     PROP_PROTOCOL_SERVICES_SUPPORTED = 97,
     PROP_PROTOCOL_VERSION = 98,
@@ -229,13 +229,13 @@ typedef enum {
     PROP_VALUE_SET = 191,
     PROP_VALUE_CHANGE_TIME = 192,
 
-    // The special property identifiers all, optional, and required 
-    // are reserved for use in the ReadPropertyConditional and
-    // ReadPropertyMultiple services or services not defined in this standard.
-    // Enumerated values 0-511 are reserved for definition by ASHRAE. 
-    // Enumerated values 512-4194303 may be used by others subject to the 
-    // procedures and constraints described in Clause 23. 
-    // The highest enumeration used in this version is 168.
+    /* The special property identifiers all, optional, and required  */
+    /* are reserved for use in the ReadPropertyConditional and */
+    /* ReadPropertyMultiple services or services not defined in this standard. */
+    /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 512-4194303 may be used by others subject to the  */
+    /* procedures and constraints described in Clause 23.  */
+    /* The highest enumeration used in this version is 168. */
     MAX_BACNET_PROPERTY_ID = 4194303
 } BACNET_PROPERTY_ID;
 
@@ -520,9 +520,9 @@ typedef enum {
     PROGRAM_ERROR_INTERNAL = 2,
     PROGRAM_ERROR_PROGRAM = 3,
     PROGRAM_ERROR_OTHER = 4
-        // Enumerated values 0-63 are reserved for definition by ASHRAE. 
-        // Enumerated values 64-65535 may be used by others subject to 
-        // the procedures and constraints described in Clause 23.
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* the procedures and constraints described in Clause 23. */
 } BACNET_PROGRAM_ERROR;
 
 typedef enum {
@@ -537,9 +537,9 @@ typedef enum {
     RELIABILITY_PROCESS_ERROR = 8,
     RELIABILITY_MULTI_STATE_FAULT = 9,
     RELIABILITY_CONFIGURATION_ERROR = 10
-        // Enumerated values 0-63 are reserved for definition by ASHRAE. 
-        // Enumerated values 64-65535 may be used by others subject to 
-        // the procedures and constraints described in Clause 23.
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* the procedures and constraints described in Clause 23. */
 } BACNET_RELIABILITY;
 
 typedef enum {
@@ -555,13 +555,13 @@ typedef enum {
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11,
-    // Enumerated values 0-63 are reserved for definition by ASHRAE. 
-    // Enumerated values 64-65535 may be used by others subject to 
-    // the procedures and constraints described in Clause 23. 
-    // It is expected that these enumerated values will correspond to 
-    // the use of the complex-event-type CHOICE [6] of the 
-    // BACnetNotificationParameters production.
-    // The last enumeration used in this version is 11.
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 64-65535 may be used by others subject to  */
+    /* the procedures and constraints described in Clause 23.  */
+    /* It is expected that these enumerated values will correspond to  */
+    /* the use of the complex-event-type CHOICE [6] of the  */
+    /* BACnetNotificationParameters production. */
+    /* The last enumeration used in this version is 11. */
 } BACNET_EVENT_TYPE;
 
 typedef enum {
@@ -586,9 +586,9 @@ typedef enum {
     LIFE_SAFETY_MODE_DISABLED = 12,
     LIFE_SAFETY_MODE_AUTOMATIC_RELEASE_DISABLED = 13,
     LIFE_SAFETY_MODE_DEFAULT = 14
-        // Enumerated values 0-255 are reserved for definition by ASHRAE. 
-        // Enumerated values 256-65535 may be used by others subject to 
-        // procedures and constraints described in Clause 23.
+        /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 256-65535 may be used by others subject to  */
+        /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_MODE;
 
 typedef enum {
@@ -602,9 +602,9 @@ typedef enum {
     LIFE_SAFETY_OPERATION_UNSILENCE = 7,
     LIFE_SAFETY_OPERATION_UNSILENCE_AUDIBLE = 8,
     LIFE_SAFETY_OPERATION_UNSILENCE_VISUAL = 9
-        // Enumerated values 0-63 are reserved for definition by ASHRAE. 
-        // Enumerated values 64-65535 may be used by others subject to 
-        // procedures and constraints described in Clause 23.
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_OPERATION;
 
 typedef enum {
@@ -632,9 +632,9 @@ typedef enum {
     LIFE_SAFETY_STATE_GENERAL_ALARM = 21,
     LIFE_SAFETY_STATE_SUPERVISORY = 22,
     LIFE_SAFETY_STATE_TEST_SUPERVISORY = 23
-        // Enumerated values 0-255 are reserved for definition by ASHRAE. 
-        // Enumerated values 256-65535 may be used by others subject to 
-        // procedures and constraints described in Clause 23.
+        /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 256-65535 may be used by others subject to  */
+        /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_STATE;
 
 typedef enum {
@@ -642,9 +642,9 @@ typedef enum {
     MAINTENANCE_PERIODIC_TEST = 1,
     AINTENANCE_NEED_SERVICE_OPERATIONAL = 2,
     MAINTENANCE_NEED_SERVICE_INOPERATIVE = 3
-        // Enumerated values 0-255 are reserved for definition by ASHRAE. 
-        // Enumerated values 256-65535 may be used by others subject to 
-        // procedures and constraints described in Clause 23.
+        /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 256-65535 may be used by others subject to  */
+        /* procedures and constraints described in Clause 23. */
 } BACNET_MAINTENANCE;
 
 typedef enum {
@@ -679,10 +679,10 @@ typedef enum {
     OBJECT_LIFE_SAFETY_ZONE = 22,
     OBJECT_ACCUMULATOR = 23,
     OBJECT_PULSE_CONVERTER = 24,
-    // Enumerated values 0-127 are reserved for definition by ASHRAE.
-    // Enumerated values 128-1023 may be used by others subject to 
-    // the procedures and constraints described in Clause 23.
-    MAX_ASHRAE_OBJECT_TYPE = 25,        // used for bit string loop
+    /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
+    /* Enumerated values 128-1023 may be used by others subject to  */
+    /* the procedures and constraints described in Clause 23. */
+    MAX_ASHRAE_OBJECT_TYPE = 25,        /* used for bit string loop */
     MAX_BACNET_OBJECT_TYPE = 1023
 } BACNET_OBJECT_TYPE;
 
@@ -702,9 +702,9 @@ typedef enum {
     VT_CLASS_DEC_VT220 = 4,
     VT_CLASS_HP_700_94 = 5,     /* real name is HP 700/94 */
     VT_CLASS_IBM_3130 = 6
-        // Enumerated values 0-63 are reserved for definition by ASHRAE. 
-        // Enumerated values 64-65535 may be used by others subject to 
-        // the procedures and constraints described in Clause 23.
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* the procedures and constraints described in Clause 23. */
 } BACNET_VT_CLASS;
 
 typedef enum {
@@ -736,8 +736,8 @@ typedef enum {
     MAX_BACNET_APPLICATION_TAG = 16
 } BACNET_APPLICATION_TAG;
 
-// note: these are not the real values,
-// but are shifted left for easy encoding
+/* note: these are not the real values, */
+/* but are shifted left for easy encoding */
 typedef enum {
     PDU_TYPE_CONFIRMED_SERVICE_REQUEST = 0,
     PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST = 0x10,
@@ -750,7 +750,7 @@ typedef enum {
 } BACNET_PDU_TYPE;
 
 typedef enum {
-    // Alarm and Event Services
+    /* Alarm and Event Services */
     SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM = 0,
     SERVICE_CONFIRMED_COV_NOTIFICATION = 1,
     SERVICE_CONFIRMED_EVENT_NOTIFICATION = 2,
@@ -760,10 +760,10 @@ typedef enum {
     SERVICE_CONFIRMED_SUBSCRIBE_COV = 5,
     SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY = 28,
     SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION = 27,
-    // File Access Services
+    /* File Access Services */
     SERVICE_CONFIRMED_ATOMIC_READ_FILE = 6,
     SERVICE_CONFIRMED_ATOMIC_WRITE_FILE = 7,
-    // Object Access Services
+    /* Object Access Services */
     SERVICE_CONFIRMED_ADD_LIST_ELEMENT = 8,
     SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT = 9,
     SERVICE_CONFIRMED_CREATE_OBJECT = 10,
@@ -774,23 +774,23 @@ typedef enum {
     SERVICE_CONFIRMED_READ_RANGE = 26,
     SERVICE_CONFIRMED_WRITE_PROPERTY = 15,
     SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE = 16,
-    // Remote Device Management Services
+    /* Remote Device Management Services */
     SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL = 17,
     SERVICE_CONFIRMED_PRIVATE_TRANSFER = 18,
     SERVICE_CONFIRMED_TEXT_MESSAGE = 19,
     SERVICE_CONFIRMED_REINITIALIZE_DEVICE = 20,
-    // Virtual Terminal Services
+    /* Virtual Terminal Services */
     SERVICE_CONFIRMED_VT_OPEN = 21,
     SERVICE_CONFIRMED_VT_CLOSE = 22,
     SERVICE_CONFIRMED_VT_DATA = 23,
-    // Security Services
+    /* Security Services */
     SERVICE_CONFIRMED_AUTHENTICATE = 24,
     SERVICE_CONFIRMED_REQUEST_KEY = 25,
-    // Services added after 1995
-    // readRange (26) see Object Access Services
-    // lifeSafetyOperation (27) see Alarm and Event Services
-    // subscribeCOVProperty (28) see Alarm and Event Services
-    // getEventInformation (29) see Alarm and Event Services
+    /* Services added after 1995 */
+    /* readRange (26) see Object Access Services */
+    /* lifeSafetyOperation (27) see Alarm and Event Services */
+    /* subscribeCOVProperty (28) see Alarm and Event Services */
+    /* getEventInformation (29) see Alarm and Event Services */
     MAX_BACNET_CONFIRMED_SERVICE = 30
 } BACNET_CONFIRMED_SERVICE;
 
@@ -805,17 +805,17 @@ typedef enum {
     SERVICE_UNCONFIRMED_WHO_HAS = 7,
     SERVICE_UNCONFIRMED_WHO_IS = 8,
     SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION = 9,
-    // Other services to be added as they are defined.
-    // All choice values in this production are reserved
-    // for definition by ASHRAE.
-    // Proprietary extensions are made by using the
-    // UnconfirmedPrivateTransfer service. See Clause 23.
+    /* Other services to be added as they are defined. */
+    /* All choice values in this production are reserved */
+    /* for definition by ASHRAE. */
+    /* Proprietary extensions are made by using the */
+    /* UnconfirmedPrivateTransfer service. See Clause 23. */
     MAX_BACNET_UNCONFIRMED_SERVICE = 10
 } BACNET_UNCONFIRMED_SERVICE;
 
-// Bit String Enumerations
+/* Bit String Enumerations */
 typedef enum {
-    // Alarm and Event Services
+    /* Alarm and Event Services */
     SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM = 0,
     SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION = 1,
     SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION = 2,
@@ -825,10 +825,10 @@ typedef enum {
     SERVICE_SUPPORTED_SUBSCRIBE_COV = 5,
     SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY = 38,
     SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION = 37,
-    // File Access Services
+    /* File Access Services */
     SERVICE_SUPPORTED_ATOMIC_READ_FILE = 6,
     SERVICE_SUPPORTED_ATOMIC_WRITE_FILE = 7,
-    // Object Access Services
+    /* Object Access Services */
     SERVICE_SUPPORTED_ADD_LIST_ELEMENT = 8,
     SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT = 9,
     SERVICE_SUPPORTED_CREATE_OBJECT = 10,
@@ -839,16 +839,16 @@ typedef enum {
     SERVICE_SUPPORTED_READ_RANGE = 35,
     SERVICE_SUPPORTED_WRITE_PROPERTY = 15,
     SERVICE_SUPPORTED_WRITE_PROPERTY_MULTIPLE = 16,
-    // Remote Device Management Services
+    /* Remote Device Management Services */
     SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL = 17,
     SERVICE_SUPPORTED_PRIVATE_TRANSFER = 18,
     SERVICE_SUPPORTED_TEXT_MESSAGE = 19,
     SERVICE_SUPPORTED_REINITIALIZE_DEVICE = 20,
-    // Virtual Terminal Services
+    /* Virtual Terminal Services */
     SERVICE_SUPPORTED_VT_OPEN = 21,
     SERVICE_SUPPORTED_VT_CLOSE = 22,
     SERVICE_SUPPORTED_VT_DATA = 23,
-    // Security Services
+    /* Security Services */
     SERVICE_SUPPORTED_AUTHENTICATE = 24,
     SERVICE_SUPPORTED_REQUEST_KEY = 25,
     SERVICE_SUPPORTED_I_AM = 26,
@@ -861,13 +861,13 @@ typedef enum {
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
     SERVICE_SUPPORTED_WHO_IS = 34,
-    // Other services to be added as they are defined.
-    // All values in this production are reserved
-    // for definition by ASHRAE.
+    /* Other services to be added as they are defined. */
+    /* All values in this production are reserved */
+    /* for definition by ASHRAE. */
     MAX_BACNET_SERVICES_SUPPORTED = 40
 } BACNET_SERVICES_SUPPORTED;
 
-// Bit String Enumerations
+/* Bit String Enumerations */
 typedef enum {
     STATUS_FLAG_IN_ALARM = 0,
     STATUS_FLAG_FAULT = 1,
@@ -918,10 +918,10 @@ typedef enum {
     MESSAGE_PRIORITY_LIFE_SAFETY = 3
 } BACNET_MESSAGE_PRIORITY;
 
-//Network Layer Message Type
-//If Bit 7 of the control octet described in 6.2.2 is 1,
-// a message type octet shall be present as shown in Figure 6-1.
-// The following message types are indicated:
+/*Network Layer Message Type */
+/*If Bit 7 of the control octet described in 6.2.2 is 1, */
+/* a message type octet shall be present as shown in Figure 6-1. */
+/* The following message types are indicated: */
 typedef enum {
     NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK = 0,
     NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK = 1,
@@ -933,8 +933,8 @@ typedef enum {
     NETWORK_MESSAGE_INITIALIZE_ROUTING_TABLE_ACK = 7,
     NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK = 8,
     NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK = 9
-        // X'0A' to X'7F': Reserved for use by ASHRAE,
-        // X'80' to X'FF': Available for vendor proprietary messages
+        /* X'0A' to X'7F': Reserved for use by ASHRAE, */
+        /* X'80' to X'FF': Available for vendor proprietary messages */
 } BACNET_NETWORK_MESSAGE_TYPE;
 
 
@@ -954,9 +954,9 @@ typedef enum {
     ABORT_REASON_INVALID_APDU_IN_THIS_STATE = 2,
     ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK = 3,
     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED = 4,
-    // Enumerated values 0-63 are reserved for definition by ASHRAE.
-    // Enumerated values 64-65535 may be used by others subject to
-    // the procedures and constraints described in Clause 23.
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
+    /* Enumerated values 64-65535 may be used by others subject to */
+    /* the procedures and constraints described in Clause 23. */
     MAX_BACNET_ABORT_REASON = 5,
     FIRST_PROPRIETARY_ABORT_REASON = 64,
     LAST_PROPRIETARY_ABORT_REASON = 65535
@@ -973,9 +973,9 @@ typedef enum {
     REJECT_REASON_TOO_MANY_ARGUMENTS = 7,
     REJECT_REASON_UNDEFINED_ENUMERATION = 8,
     REJECT_REASON_UNRECOGNIZED_SERVICE = 9,
-    // Enumerated values 0-63 are reserved for definition by ASHRAE.
-    // Enumerated values 64-65535 may be used by others subject to
-    // the procedures and constraints described in Clause 23.
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
+    /* Enumerated values 64-65535 may be used by others subject to */
+    /* the procedures and constraints described in Clause 23. */
     MAX_BACNET_REJECT_REASON = 10,
     FIRST_PROPRIETARY_REJECT_REASON = 64,
     LAST_PROPRIETARY_REJECT_REASON = 65535
@@ -989,9 +989,9 @@ typedef enum {
     ERROR_CLASS_SECURITY = 4,
     ERROR_CLASS_SERVICES = 5,
     ERROR_CLASS_VT = 6,
-    // Enumerated values 0-63 are reserved for definition by ASHRAE.
-    // Enumerated values 64-65535 may be used by others subject to
-    // the procedures and constraints described in Clause 23.
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
+    /* Enumerated values 64-65535 may be used by others subject to */
+    /* the procedures and constraints described in Clause 23. */
     MAX_BACNET_ERROR_CLASS = 7,
     FIRST_PROPRIETARY_ERROR_CLASS = 64,
     LAST_PROPRIETARY_ERROR_CLASS = 65535
@@ -1057,10 +1057,10 @@ typedef enum {
     /* see duplicate-name           (48), */
     /* see duplicate-object-id      (49), */
     /* see property-is-not-an-array (50), */
-    // Enumerated values 0-255 are reserved for definition by ASHRAE.
-    // Enumerated values 256-65535 may be used by others subject to
-    // the procedures and constraints described in Clause 23.
-    // The last enumeration used in this version is 50.
+    /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
+    /* Enumerated values 256-65535 may be used by others subject to */
+    /* the procedures and constraints described in Clause 23. */
+    /* The last enumeration used in this version is 50. */
     MAX_BACNET_ERROR_CODE = 51,
     FIRST_PROPRIETARY_ERROR_CODE = 256,
     LAST_PROPRIETARY_ERROR_CODE = 65535
@@ -1077,4 +1077,4 @@ typedef enum {
     MAX_BACNET_REINITIALIZED_STATE = 7
 } BACNET_REINITIALIZED_STATE;
 
-#endif                          // end of BACENUM_H
+#endif                          /* end of BACENUM_H */

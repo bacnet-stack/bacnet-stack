@@ -35,16 +35,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "datalink.h"
-// currently this is oriented to a single data link
-// However, it could handle multiple data links with the
-// addition of passing a network number or datalink number
-// as part of the calls.
+/* currently this is oriented to a single data link */
+/* However, it could handle multiple data links with the */
+/* addition of passing a network number or datalink number */
+/* as part of the calls. */
 
 /* returns number of bytes sent on success, negative on failure */
-int datalink_send_pdu(BACNET_ADDRESS * dest,    // destination address
-    uint8_t * pdu,              // any data to be sent - may be null
-    unsigned pdu_len)           // number of bytes of data
-{
+int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+    uint8_t * pdu,              /* any data to be sent - may be null */
+    unsigned pdu_len)
+{                               /* number of bytes of data */
 #ifdef BACDL_ARCNET
     return arcnet_send_pdu(dest, pdu, pdu_len);
 #endif
@@ -59,12 +59,12 @@ int datalink_send_pdu(BACNET_ADDRESS * dest,    // destination address
 #endif
 }
 
-// returns the number of octets in the PDU, or zero on failure
-uint16_t datalink_receive(BACNET_ADDRESS * src, // source address
-    uint8_t * pdu,              // PDU data
-    uint16_t max_pdu,           // amount of space available in the PDU 
-    unsigned timeout)           // number of milliseconds to wait for a packet
-{
+/* returns the number of octets in the PDU, or zero on failure */
+uint16_t datalink_receive(BACNET_ADDRESS * src, /* source address */
+    uint8_t * pdu,              /* PDU data */
+    uint16_t max_pdu,           /* amount of space available in the PDU  */
+    unsigned timeout)
+{                               /* number of milliseconds to wait for a packet */
 #ifdef BACDL_ARCNET
     return arcnet_receive(src, pdu, max_pdu, timeout);
 #endif
@@ -95,8 +95,8 @@ void datalink_cleanup(void)
 #endif
 }
 
-void datalink_get_broadcast_address(BACNET_ADDRESS * dest)      // destination address
-{
+void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
+{                               /* destination address */
 #ifdef BACDL_ARCNET
     arcnet_get_broadcast_address(dest);
 #endif

@@ -93,8 +93,8 @@ static BACNET_SERVICES_SUPPORTED
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION
 };
 
-// Confirmed Function Handlers
-// If they are not set, they are handled by a reject message
+/* Confirmed Function Handlers */
+/* If they are not set, they are handled by a reject message */
 static confirmed_function Confirmed_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
 void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice,
@@ -146,7 +146,7 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
     return status;
 }
 
-// Allow the APDU handler to automatically reject
+/* Allow the APDU handler to automatically reject */
 static confirmed_function Unrecognized_Service_Handler;
 
 void apdu_set_unrecognized_service_handler_handler(confirmed_function
@@ -155,8 +155,8 @@ void apdu_set_unrecognized_service_handler_handler(confirmed_function
     Unrecognized_Service_Handler = pFunction;
 }
 
-// Unconfirmed Function Handlers
-// If they are not set, they are not handled
+/* Unconfirmed Function Handlers */
+/* If they are not set, they are not handled */
 static unconfirmed_function
     Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE] = {
     NULL
@@ -180,7 +180,7 @@ bool apdu_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE service_choice)
     return status;
 }
 
-// Confirmed ACK Function Handlers
+/* Confirmed ACK Function Handlers */
 static void *Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
 void apdu_set_confirmed_simple_ack_handler(BACNET_CONFIRMED_SERVICE
@@ -193,19 +193,19 @@ void apdu_set_confirmed_simple_ack_handler(BACNET_CONFIRMED_SERVICE
     case SERVICE_CONFIRMED_SUBSCRIBE_COV:
     case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
     case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
-        // Object Access Services
+        /* Object Access Services */
     case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
     case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
     case SERVICE_CONFIRMED_DELETE_OBJECT:
     case SERVICE_CONFIRMED_WRITE_PROPERTY:
     case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
-        // Remote Device Management Services
+        /* Remote Device Management Services */
     case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
     case SERVICE_CONFIRMED_TEXT_MESSAGE:
     case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
-        // Virtual Terminal Services
+        /* Virtual Terminal Services */
     case SERVICE_CONFIRMED_VT_CLOSE:
-        // Security Services
+        /* Security Services */
     case SERVICE_CONFIRMED_REQUEST_KEY:
         Confirmed_ACK_Function[service_choice] = (void *) pFunction;
         break;
@@ -221,21 +221,21 @@ void apdu_set_confirmed_ack_handler(BACNET_CONFIRMED_SERVICE
     case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
     case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
     case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
-        // File Access Services
+        /* File Access Services */
     case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
     case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
-        // Object Access Services
+        /* Object Access Services */
     case SERVICE_CONFIRMED_CREATE_OBJECT:
     case SERVICE_CONFIRMED_READ_PROPERTY:
     case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
     case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
     case SERVICE_CONFIRMED_READ_RANGE:
-        // Remote Device Management Services
+        /* Remote Device Management Services */
     case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
-        // Virtual Terminal Services
+        /* Virtual Terminal Services */
     case SERVICE_CONFIRMED_VT_OPEN:
     case SERVICE_CONFIRMED_VT_DATA:
-        // Security Services
+        /* Security Services */
     case SERVICE_CONFIRMED_AUTHENTICATE:
         Confirmed_ACK_Function[service_choice] = (void *) pFunction;
         break;
@@ -267,13 +267,13 @@ void apdu_set_reject_handler(reject_function pFunction)
     Reject_Function = pFunction;
 }
 
-uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  // APDU data
+uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  /* APDU data */
     uint16_t apdu_len,
     BACNET_CONFIRMED_SERVICE_DATA * service_data,
     uint8_t * service_choice,
     uint8_t ** service_request, uint16_t * service_request_len)
 {
-    uint16_t len = 0;           // counts where we are in PDU
+    uint16_t len = 0;           /* counts where we are in PDU */
 
     service_data->segmented_message = (apdu[0] & BIT3) ? true : false;
     service_data->more_follows = (apdu[0] & BIT2) ? true : false;
@@ -294,8 +294,8 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  // APDU data
     return len;
 }
 
-void apdu_handler(BACNET_ADDRESS * src, // source address
-    bool data_expecting_reply, uint8_t * apdu,  // APDU data
+void apdu_handler(BACNET_ADDRESS * src, /* source address */
+    bool data_expecting_reply, uint8_t * apdu,  /* APDU data */
     uint16_t apdu_len)
 {
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
@@ -304,7 +304,7 @@ void apdu_handler(BACNET_ADDRESS * src, // source address
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    uint16_t len = 0;           // counts where we are in PDU
+    uint16_t len = 0;           /* counts where we are in PDU */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     int error_code = 0;
@@ -313,10 +313,10 @@ void apdu_handler(BACNET_ADDRESS * src, // source address
 
     (void) data_expecting_reply;
     if (apdu) {
-        // PDU Type
+        /* PDU Type */
         switch (apdu[0] & 0xF0) {
         case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-            len = apdu_decode_confirmed_service_request(&apdu[0],       // APDU data
+            len = apdu_decode_confirmed_service_request(&apdu[0],       /* APDU data */
                 apdu_len,
                 &service_data,
                 &service_choice, &service_request, &service_request_len);
@@ -359,19 +359,19 @@ void apdu_handler(BACNET_ADDRESS * src, // source address
             case SERVICE_CONFIRMED_SUBSCRIBE_COV:
             case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
             case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
-                // Object Access Services
+                /* Object Access Services */
             case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
             case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
             case SERVICE_CONFIRMED_DELETE_OBJECT:
             case SERVICE_CONFIRMED_WRITE_PROPERTY:
             case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
-                // Remote Device Management Services
+                /* Remote Device Management Services */
             case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
             case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
             case SERVICE_CONFIRMED_TEXT_MESSAGE:
-                // Virtual Terminal Services
+                /* Virtual Terminal Services */
             case SERVICE_CONFIRMED_VT_CLOSE:
-                // Security Services
+                /* Security Services */
             case SERVICE_CONFIRMED_REQUEST_KEY:
                 if (Confirmed_ACK_Function[service_choice]) {
                     ((confirmed_simple_ack_function)
@@ -402,20 +402,20 @@ void apdu_handler(BACNET_ADDRESS * src, // source address
             case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
             case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
             case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
-                // File Access Services
+                /* File Access Services */
             case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
             case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
-                // Object Access Services
+                /* Object Access Services */
             case SERVICE_CONFIRMED_CREATE_OBJECT:
             case SERVICE_CONFIRMED_READ_PROPERTY:
             case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
             case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
             case SERVICE_CONFIRMED_READ_RANGE:
             case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
-                // Virtual Terminal Services
+                /* Virtual Terminal Services */
             case SERVICE_CONFIRMED_VT_OPEN:
             case SERVICE_CONFIRMED_VT_DATA:
-                // Security Services
+                /* Security Services */
             case SERVICE_CONFIRMED_AUTHENTICATE:
                 if (Confirmed_ACK_Function[service_choice]) {
                     ((confirmed_ack_function)

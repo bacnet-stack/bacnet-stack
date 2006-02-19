@@ -58,7 +58,7 @@ extern "C" {
         BACNET_PROPERTY_ID object_property, int32_t array_index);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
-    uint8_t Send_Write_Property_Request(uint32_t device_id,     // destination device
+    uint8_t Send_Write_Property_Request(uint32_t device_id,     /* destination device */
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_PROPERTY_ID object_property,

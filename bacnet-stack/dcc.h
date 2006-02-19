@@ -57,11 +57,11 @@ extern "C" {
     bool dcc_set_status_duration(BACNET_COMMUNICATION_ENABLE_DISABLE
         status, uint16_t minutes);
 
-// encode service
+/* encode service */
     int dcc_encode_apdu(uint8_t * apdu, uint8_t invoke_id, uint16_t timeDuration,       /* 0=optional */
         BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable, BACNET_CHARACTER_STRING * password);        /* NULL=optional */
 
-// decode the service request only
+/* decode the service request only */
     int dcc_decode_service_request(uint8_t * apdu,
         unsigned apdu_len,
         uint16_t * timeDuration,

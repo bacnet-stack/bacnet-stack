@@ -34,7 +34,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <string.h>             // memmove()
+#include <string.h>             /* memmove() */
 #include "bits.h"
 #include "apdu.h"
 #include "bacdef.h"
@@ -47,23 +47,23 @@
 #include "handlers.h"
 #include "address.h"
 
-// Transaction State Machine
-// Really only needed for segmented messages
-// and a little for sending confirmed messages
-// If we are only a server and only initiate broadcasts,
-// then we don't need a TSM layer.
+/* Transaction State Machine */
+/* Really only needed for segmented messages */
+/* and a little for sending confirmed messages */
+/* If we are only a server and only initiate broadcasts, */
+/* then we don't need a TSM layer. */
 
-// FIXME: not coded for segmentation
+/* FIXME: not coded for segmentation */
 
-// declare space for the TSM transactions, and set it up in the init.
+/* declare space for the TSM transactions, and set it up in the init. */
 /* table rules: an Invoke ID = 0 is an unused spot in the table */
 static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS] = { {0} };
 
-// returns MAX_TSM_TRANSACTIONS if not found
+/* returns MAX_TSM_TRANSACTIONS if not found */
 static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
 {
-    unsigned i = 0;             // counter
-    uint8_t index = MAX_TSM_TRANSACTIONS;       // return value
+    unsigned i = 0;             /* counter */
+    uint8_t index = MAX_TSM_TRANSACTIONS;       /* return value */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == invokeID) {
@@ -77,8 +77,8 @@ static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
 
 static uint8_t tsm_find_first_free_index(void)
 {
-    unsigned i = 0;             // counter
-    uint8_t index = MAX_TSM_TRANSACTIONS;       // return value
+    unsigned i = 0;             /* counter */
+    uint8_t index = MAX_TSM_TRANSACTIONS;       /* return value */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == 0) {
@@ -92,12 +92,12 @@ static uint8_t tsm_find_first_free_index(void)
 
 bool tsm_transaction_available(void)
 {
-    bool status = false;        // return value
-    unsigned i = 0;             // counter
+    bool status = false;        /* return value */
+    unsigned i = 0;             /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == 0) {
-            // one is available!
+            /* one is available! */
             status = true;
             break;
         }
@@ -108,13 +108,13 @@ bool tsm_transaction_available(void)
 
 uint8_t tsm_transaction_idle_count(void)
 {
-    uint8_t count = 0;          // return value
-    unsigned i = 0;             // counter
+    uint8_t count = 0;          /* return value */
+    unsigned i = 0;             /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if ((TSM_List[i].InvokeID == 0) &&
             (TSM_List[i].state == TSM_STATE_IDLE)) {
-            // one is available!
+            /* one is available! */
             count++;
         }
     }
@@ -127,7 +127,7 @@ uint8_t tsm_transaction_idle_count(void)
    returns 0 if none are available */
 uint8_t tsm_next_free_invokeID(void)
 {
-    static uint8_t current_invokeID = 1;        // incremented...
+    static uint8_t current_invokeID = 1;        /* incremented... */
     uint8_t index = 0;
     uint8_t invokeID = 0;
     bool found = false;
@@ -145,7 +145,7 @@ uint8_t tsm_next_free_invokeID(void)
                 TSM_List[index].RequestTimer = Device_APDU_Timeout();
                 /* update for the next call or check */
                 current_invokeID++;
-                // skip zero - we treat that internally as invalid or no free
+                /* skip zero - we treat that internally as invalid or no free */
                 if (current_invokeID == 0)
                     current_invokeID = 1;
             }
@@ -164,12 +164,12 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
     if (invokeID) {
         index = tsm_find_invokeID_index(invokeID);
         if (index < MAX_TSM_TRANSACTIONS) {
-            // assign the transaction
+            /* assign the transaction */
             TSM_List[index].state = TSM_STATE_AWAIT_CONFIRMATION;
             TSM_List[index].RetryCount = Device_Number_Of_APDU_Retries();
-            // start the timer
+            /* start the timer */
             TSM_List[index].RequestTimer = Device_APDU_Timeout();
-            // copy the data
+            /* copy the data */
             for (j = 0; j < pdu_len; j++) {
                 TSM_List[index].pdu[j] = pdu[j];
             }
@@ -181,8 +181,8 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
     return;
 }
 
-// used to retrieve the transaction payload
-// if we wanted to find out what we sent (i.e. when we get an ack)
+/* used to retrieve the transaction payload */
+/* if we wanted to find out what we sent (i.e. when we get an ack) */
 bool tsm_get_transaction_pdu(uint8_t invokeID,
     BACNET_ADDRESS * dest, uint8_t * pdu, uint16_t * pdu_len)
 {
@@ -192,11 +192,11 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
 
     if (invokeID) {
         index = tsm_find_invokeID_index(invokeID);
-        // how much checking is needed?  state?  dest match? just invokeID?
+        /* how much checking is needed?  state?  dest match? just invokeID? */
         if (index < MAX_TSM_TRANSACTIONS) {
-            // FIXME: we may want to free the transaction so it doesn't timeout
-            // retrieve the transaction
-            // FIXME: bounds check the pdu_len?
+            /* FIXME: we may want to free the transaction so it doesn't timeout */
+            /* retrieve the transaction */
+            /* FIXME: bounds check the pdu_len? */
             *pdu_len = TSM_List[index].pdu_len;
             for (j = 0; j < *pdu_len; j++) {
                 pdu[j] = TSM_List[index].pdu[j];
@@ -212,7 +212,7 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
 /* called once a millisecond or slower */
 void tsm_timer_milliseconds(uint16_t milliseconds)
 {
-    unsigned i = 0;             // counter
+    unsigned i = 0;             /* counter */
     int bytes_sent = 0;
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
@@ -266,7 +266,7 @@ bool tsm_invoke_id_free(uint8_t invokeID)
 #include <string.h>
 #include "ctest.h"
 
-// flag to send an I-Am
+/* flag to send an I-Am */
 bool I_Am_Request = true;
 
 void testTSM(Test * pTest)

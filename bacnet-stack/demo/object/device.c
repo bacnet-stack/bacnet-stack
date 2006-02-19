@@ -107,7 +107,7 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
 
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
-    // BACnet allows for a wildcard instance number
+    /* BACnet allows for a wildcard instance number */
     return ((Object_Instance_Number == object_id) ||
         (object_id == BACNET_MAX_INSTANCE));
 }
@@ -137,7 +137,7 @@ BACNET_DEVICE_STATUS Device_System_Status(void)
 
 void Device_Set_System_Status(BACNET_DEVICE_STATUS status)
 {
-    // FIXME: bounds check?
+    /* FIXME: bounds check? */
     System_Status = status;
 }
 
@@ -285,7 +285,7 @@ uint16_t Device_APDU_Timeout(void)
     return APDU_Timeout;
 }
 
-// in milliseconds
+/* in milliseconds */
 void Device_Set_APDU_Timeout(uint16_t timeout)
 {
     APDU_Timeout = timeout;
@@ -311,8 +311,8 @@ void Device_Set_Database_Revision(uint8_t revision)
     Database_Revision = revision;
 }
 
-// Since many network clients depend on the object list
-// for discovery, it must be consistent!
+/* Since many network clients depend on the object list */
+/* for discovery, it must be consistent! */
 unsigned Device_Object_List_Count(void)
 {
     unsigned count = 1;
@@ -339,7 +339,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
     }
 
     if (!status) {
-        // array index starts at 1, and 1 for the device object
+        /* array index starts at 1, and 1 for the device object */
         object_index = array_index - 2;
         if (object_index < Analog_Input_Count()) {
             *object_type = OBJECT_ANALOG_INPUT;
@@ -426,14 +426,14 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
     return name;
 }
 
-// return the length of the apdu encoded or -1 for error
+/* return the length of the apdu encoded or -1 for error */
 int Device_Encode_Property_APDU(uint8_t * apdu,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
-    int apdu_len = 0;           // return value
-    int len = 0;                // apdu len intermediate value
+    int apdu_len = 0;           /* return value */
+    int len = 0;                /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned i = 0;
@@ -480,31 +480,31 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             Application_Software_Version);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
-        // if you support time
-        //case PROP_LOCAL_TIME:
-        //t = time(NULL);
-        //my_tm = localtime(&t);
-        //apdu_len =
-        //    encode_tagged_time(&apdu[0], my_tm->tm_hour, my_tm->tm_min,
-        //    my_tm->tm_sec, 0);
-        //break;
-        // if you support date
-        //case PROP_LOCAL_DATE:
-        //t = time(NULL);
-        //my_tm = localtime(&t);
-        // month 1=Jan
-        // day = day of month
-        // wday 1=Monday...7=Sunday
-        //apdu_len = encode_tagged_date(&apdu[0],
-        //    my_tm->tm_year+1900,
-        //    my_tm->tm_mon + 1,
-        //    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday));
-        //break;
+        /* if you support time */
+        /*case PROP_LOCAL_TIME: */
+        /*t = time(NULL); */
+        /*my_tm = localtime(&t); */
+        /*apdu_len = */
+        /*    encode_tagged_time(&apdu[0], my_tm->tm_hour, my_tm->tm_min, */
+        /*    my_tm->tm_sec, 0); */
+        /*break; */
+        /* if you support date */
+        /*case PROP_LOCAL_DATE: */
+        /*t = time(NULL); */
+        /*my_tm = localtime(&t); */
+        /* month 1=Jan */
+        /* day = day of month */
+        /* wday 1=Monday...7=Sunday */
+        /*apdu_len = encode_tagged_date(&apdu[0], */
+        /*    my_tm->tm_year+1900, */
+        /*    my_tm->tm_mon + 1, */
+        /*    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday)); */
+        /*break; */
     case PROP_PROTOCOL_VERSION:
         apdu_len =
             encode_tagged_unsigned(&apdu[0], Device_Protocol_Version());
         break;
-        // BACnet Legacy Support
+        /* BACnet Legacy Support */
     case PROP_PROTOCOL_CONFORMANCE_CLASS:
         apdu_len = encode_tagged_unsigned(&apdu[0], 1);
         break;
@@ -523,7 +523,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
            not a list of objects that this device can access */
         bitstring_init(&bit_string);
         for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
-            // initialize all the object types to not-supported
+            /* initialize all the object types to not-supported */
             bitstring_set_bit(&bit_string, (uint8_t) i, false);
         }
         /* FIXME: indicate the objects that YOU support */
@@ -537,13 +537,13 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_OBJECT_LIST:
         count = Device_Object_List_Count();
-        // Array element zero is the number of objects in the list
+        /* Array element zero is the number of objects in the list */
         if (array_index == BACNET_ARRAY_LENGTH_INDEX)
             apdu_len = encode_tagged_unsigned(&apdu[0], count);
-        // if no index was specified, then try to encode the entire list
-        // into one packet.  Note that more than likely you will have
-        // to return an error if the number of encoded objects exceeds
-        // your maximum APDU size.
+        /* if no index was specified, then try to encode the entire list */
+        /* into one packet.  Note that more than likely you will have */
+        /* to return an error if the number of encoded objects exceeds */
+        /* your maximum APDU size. */
         else if (array_index == BACNET_ARRAY_ALL) {
             for (i = 1; i <= count; i++) {
                 if (Device_Object_List_Identifier(i, &object_type,
@@ -552,8 +552,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
                         encode_tagged_object_id(&apdu[apdu_len],
                         object_type, instance);
                     apdu_len += len;
-                    // assume next one is the same size as this one
-                    // can we all fit into the APDU?
+                    /* assume next one is the same size as this one */
+                    /* can we all fit into the APDU? */
                     if ((apdu_len + len) >= MAX_APDU) {
                         *error_class = ERROR_CLASS_SERVICES;
                         *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
@@ -561,7 +561,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
                         break;
                     }
                 } else {
-                    // error: internal error?
+                    /* error: internal error? */
                     *error_class = ERROR_CLASS_SERVICES;
                     *error_code = ERROR_CODE_OTHER;
                     apdu_len = -1;
@@ -609,21 +609,21 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     return apdu_len;
 }
 
-// we can send an I-Am when our device ID changes
+/* we can send an I-Am when our device ID changes */
 extern bool I_Am_Request;
 
-// returns true if successful
+/* returns true if successful */
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
-    bool status = false;        // return value
+    bool status = false;        /* return value */
 
     if (!Device_Valid_Object_Instance_Number(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
-    // decode the some of the request
+    /* decode the some of the request */
     switch (wp_data->object_property) {
     case PROP_OBJECT_IDENTIFIER:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
@@ -765,7 +765,7 @@ void testDevice(Test * pTest)
 }
 
 #ifdef TEST_DEVICE
-// stubs to dependencies to keep unit test simple
+/* stubs to dependencies to keep unit test simple */
 unsigned Analog_Input_Count(void)
 {
     return 0;

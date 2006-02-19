@@ -62,56 +62,56 @@ extern "C" {
         uint8_t proposed_window_number;
     } BACNET_CONFIRMED_SERVICE_ACK_DATA;
 
-// generic unconfirmed function handler
-// Suitable to handle the following services:
-// I_Am, Who_Is, Unconfirmed_COV_Notification, I_Have,
-// Unconfirmed_Event_Notification, Unconfirmed_Private_Transfer,
-// Unconfirmed_Text_Message, Time_Synchronization, Who_Has,
-// UTC_Time_Synchronization
+/* generic unconfirmed function handler */
+/* Suitable to handle the following services: */
+/* I_Am, Who_Is, Unconfirmed_COV_Notification, I_Have, */
+/* Unconfirmed_Event_Notification, Unconfirmed_Private_Transfer, */
+/* Unconfirmed_Text_Message, Time_Synchronization, Who_Has, */
+/* UTC_Time_Synchronization */
     typedef void (*unconfirmed_function) (uint8_t * service_request,
         uint16_t len, BACNET_ADDRESS * src);
 
-// generic confirmed function handler
-// Suitable to handle the following services:
-// Acknowledge_Alarm, Confirmed_COV_Notification,
-// Confirmed_Event_Notification, Get_Alarm_Summary,
-// Get_Enrollment_Summary_Handler, Get_Event_Information,
-// Subscribe_COV_Handler, Subscribe_COV_Property,
-// Life_Safety_Operation, Atomic_Read_File,
-// Confirmed_Atomic_Write_File, Add_List_Element,
-// Remove_List_Element, Create_Object_Handler,
-// Delete_Object_Handler, Read_Property,
-// Read_Property_Conditional, Read_Property_Multiple, Read_Range,
-// Write_Property, Write_Property_Multiple,
-// Device_Communication_Control, Confirmed_Private_Transfer,
-// Confirmed_Text_Message, Reinitialize_Device,
-// VT_Open, VT_Close, VT_Data_Handler,
-// Authenticate, Request_Key
+/* generic confirmed function handler */
+/* Suitable to handle the following services: */
+/* Acknowledge_Alarm, Confirmed_COV_Notification, */
+/* Confirmed_Event_Notification, Get_Alarm_Summary, */
+/* Get_Enrollment_Summary_Handler, Get_Event_Information, */
+/* Subscribe_COV_Handler, Subscribe_COV_Property, */
+/* Life_Safety_Operation, Atomic_Read_File, */
+/* Confirmed_Atomic_Write_File, Add_List_Element, */
+/* Remove_List_Element, Create_Object_Handler, */
+/* Delete_Object_Handler, Read_Property, */
+/* Read_Property_Conditional, Read_Property_Multiple, Read_Range, */
+/* Write_Property, Write_Property_Multiple, */
+/* Device_Communication_Control, Confirmed_Private_Transfer, */
+/* Confirmed_Text_Message, Reinitialize_Device, */
+/* VT_Open, VT_Close, VT_Data_Handler, */
+/* Authenticate, Request_Key */
     typedef void (*confirmed_function) (uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-// generic confirmed simple ack function handler
+/* generic confirmed simple ack function handler */
     typedef void (*confirmed_simple_ack_function) (BACNET_ADDRESS * src,
         uint8_t invoke_id);
 
-// generic confirmed ack function handler
+/* generic confirmed ack function handler */
     typedef void (*confirmed_ack_function) (uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
-// generic error reply function
+/* generic error reply function */
     typedef void (*error_function) (BACNET_ADDRESS * src,
         uint8_t invoke_id,
         BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code);
 
-// generic abort reply function
+/* generic abort reply function */
     typedef void (*abort_function) (BACNET_ADDRESS * src,
         uint8_t invoke_id, uint8_t abort_reason);
 
-// generic reject reply function
+/* generic reject reply function */
     typedef void (*reject_function) (BACNET_ADDRESS * src,
         uint8_t invoke_id, uint8_t reject_reason);
 
@@ -121,7 +121,7 @@ extern "C" {
     void apdu_set_confirmed_simple_ack_handler(BACNET_CONFIRMED_SERVICE
         service_choice, confirmed_simple_ack_function pFunction);
 
-// configure reject for confirmed services that are not supported
+/* configure reject for confirmed services that are not supported */
     void apdu_set_unrecognized_service_handler_handler(confirmed_function
         pFunction);
 
@@ -149,15 +149,15 @@ extern "C" {
 
     void apdu_set_reject_handler(reject_function pFunction);
 
-    uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,      // APDU data
+    uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,      /* APDU data */
         uint16_t apdu_len,
         BACNET_CONFIRMED_SERVICE_DATA * service_data,
         uint8_t * service_choice,
         uint8_t ** service_request, uint16_t * service_request_len);
 
-    void apdu_handler(BACNET_ADDRESS * src,     // source address
-        bool data_expecting_reply, uint8_t * apdu,      // APDU data
-        uint16_t pdu_len);      // for confirmed messages
+    void apdu_handler(BACNET_ADDRESS * src,     /* source address */
+        bool data_expecting_reply, uint8_t * apdu,      /* APDU data */
+        uint16_t pdu_len);      /* for confirmed messages */
 
 #ifdef __cplusplus
 }
