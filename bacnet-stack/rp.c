@@ -200,8 +200,8 @@ int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len, /* total length 
         data->array_index = array_value;
     } else
         data->array_index = BACNET_ARRAY_ALL;
-        /* Tag 3: opening context tag */
-        if (decode_is_opening_tag_number(&apdu[len], 3)) {
+    /* Tag 3: opening context tag */
+    if (decode_is_opening_tag_number(&apdu[len], 3)) {
         /* a tag number of 3 is not extended so only one octet */
         len++;
         /* don't decode the application tag number or its data here */

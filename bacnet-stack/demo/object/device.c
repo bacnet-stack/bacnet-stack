@@ -768,8 +768,8 @@ void testDevice(Test * pTest)
 /* stubs to dependencies to keep unit test simple */
 char *Analog_Input_Name(uint32_t object_instance)
 {
-  (void)object_instance;
-  return "";
+    (void) object_instance;
+    return "";
 }
 
 unsigned Analog_Input_Count(void)
@@ -784,8 +784,8 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
 
 char *Analog_Output_Name(uint32_t object_instance)
 {
-  (void)object_instance;
-  return "";
+    (void) object_instance;
+    return "";
 }
 
 unsigned Analog_Output_Count(void)
