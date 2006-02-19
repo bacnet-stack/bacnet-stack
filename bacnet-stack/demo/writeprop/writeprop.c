@@ -49,7 +49,7 @@
 #include "client.h"
 #include "txbuf.h"
 
-// buffer used for receive
+/* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
@@ -142,9 +142,9 @@ static void Init_Service_Handlers(void)
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; // address where message came from
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     // milliseconds
+    unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;

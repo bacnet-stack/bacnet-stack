@@ -33,9 +33,9 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-// The module handles sending data out the RS-485 port
-// and handles receiving data from the RS-485 port.
-// Customize this file for your specific hardware
+/* The module handles sending data out the RS-485 port */
+/* and handles receiving data from the RS-485 port. */
+/* Customize this file for your specific hardware */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -43,18 +43,18 @@
 
 #include "mstp.h"
 
-// Transmits a Frame on the wire
-void RS485_Send_Frame(struct mstp_port_struct_t *mstp_port,     // port specific data
-    uint8_t * buffer,           // frame to send (up to 501 bytes of data)
-    uint16_t nbytes)            // number of bytes of data (up to 501)
-{
+/* Transmits a Frame on the wire */
+void RS485_Send_Frame(struct mstp_port_struct_t *mstp_port,     /* port specific data */
+    uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
+    uint16_t nbytes)
+{                               /* number of bytes of data (up to 501) */
 
-    // in order to avoid line contention
+    /* in order to avoid line contention */
     while (mstp_port->Turn_Around_Waiting) {
-        // wait, yield, or whatever
+        /* wait, yield, or whatever */
     }
 
-    // Disable the receiver, and enable the transmit line driver.
+    /* Disable the receiver, and enable the transmit line driver. */
 
     while (nbytes) {
         putc(*buffer, stderr);
@@ -62,32 +62,32 @@ void RS485_Send_Frame(struct mstp_port_struct_t *mstp_port,     // port specific
         nbytes--;
     }
 
-    // Wait until the final stop bit of the most significant CRC octet 
-    // has been transmitted but not more than Tpostdrive.
+    /* Wait until the final stop bit of the most significant CRC octet  */
+    /* has been transmitted but not more than Tpostdrive. */
 
-    // Disable the transmit line driver.
+    /* Disable the transmit line driver. */
 
     return;
 }
 
-// called by timer, interrupt(?) or other thread
+/* called by timer, interrupt(?) or other thread */
 void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port->ReceiveError == true) {
-        // wait for state machine to clear this
+        /* wait for state machine to clear this */
     }
-    // wait for state machine to read from the DataRegister
+    /* wait for state machine to read from the DataRegister */
     else if (mstp_port->DataAvailable == false) {
-        // check for data
+        /* check for data */
 
-        // if error,
-        // ReceiveError = TRUE;
-        // return;
+        /* if error, */
+        /* ReceiveError = TRUE; */
+        /* return; */
 
-        mstp_port->DataRegister = 0;    // FIXME: Get this data from UART or buffer
+        mstp_port->DataRegister = 0;    /* FIXME: Get this data from UART or buffer */
 
-        // if data is ready,
-        // DataAvailable = TRUE;
-        // return;
+        /* if data is ready, */
+        /* DataAvailable = TRUE; */
+        /* return; */
     }
 }

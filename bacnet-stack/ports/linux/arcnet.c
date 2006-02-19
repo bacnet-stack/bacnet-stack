@@ -37,13 +37,13 @@
 #include "arcnet.h"
 #include "net.h"
 
-// my local device data - MAC address
+/* my local device data - MAC address */
 uint8_t ARCNET_MAC_Address = 0;
-// ARCNET file handle
+/* ARCNET file handle */
 static int ARCNET_Sock_FD = -1;
-// ARCNET socket address (has the interface name)
+/* ARCNET socket address (has the interface name) */
 static struct sockaddr ARCNET_Socket_Address;
-// Broadcast address
+/* Broadcast address */
 #define ARCNET_BROADCAST 0
 
 /*
@@ -95,9 +95,9 @@ void arcnet_cleanup(void)
 
 static int arcnet_bind(char *interface_name)
 {
-    int sock_fd = -1;           // return value
+    int sock_fd = -1;           /* return value */
     struct ifreq ifr;
-    int rv;                     // return value - error value from df or ioctl call
+    int rv;                     /* return value - error value from df or ioctl call */
     int uid = 0;
 
     /* check to see if we are being run as root */
@@ -109,10 +109,10 @@ static int arcnet_bind(char *interface_name)
         return sock_fd;
     }
     fprintf(stderr, "arcnet: opening \"%s\"\n", interface_name);
-    // note: on some systems you may have to add or enable in
-    // modules.conf (or in modutils/alias on Debian with update-modules)
-    // alias net-pf-17 af_packet
-    // Then follow it by: # modprobe af_packet
+    /* note: on some systems you may have to add or enable in */
+    /* modules.conf (or in modutils/alias on Debian with update-modules) */
+    /* alias net-pf-17 af_packet */
+    /* Then follow it by: # modprobe af_packet */
     if ((sock_fd = socket(PF_PACKET, SOCK_PACKET, htons(ETH_P_ALL))) < 0) {
         /* Error occured */
         fprintf(stderr,
@@ -129,7 +129,7 @@ static int arcnet_bind(char *interface_name)
     if (ARCNET_Sock_FD >= 0) {
         /* Bind the socket to an interface name so we only get packets from it */
         ARCNET_Socket_Address.sa_family = ARPHRD_ARCNET;
-        //ARCNET_Socket_Address.sa_family = PF_INET;
+        /*ARCNET_Socket_Address.sa_family = PF_INET; */
         /* Clear the memory before copying */
         memset(ARCNET_Socket_Address.sa_data, '\0',
             sizeof(ARCNET_Socket_Address.sa_data));
@@ -158,9 +158,9 @@ static int arcnet_bind(char *interface_name)
     rv = ioctl(sock_fd, SIOCGIFHWADDR, &ifr);
     if (rv != -1)               /* worked okay */
         ARCNET_MAC_Address = ifr.ifr_hwaddr.sa_data[0];
-    // copy this info into the local copy since bind wiped it out
+    /* copy this info into the local copy since bind wiped it out */
     ARCNET_Socket_Address.sa_family = ARPHRD_ARCNET;
-    //ARCNET_Socket_Address.sa_family = PF_INET;
+    /*ARCNET_Socket_Address.sa_family = PF_INET; */
     /* Clear the memory before copying */
     memset(ARCNET_Socket_Address.sa_data, '\0',
         sizeof(ARCNET_Socket_Address.sa_data));
@@ -184,17 +184,17 @@ bool arcnet_init(char *interface_name)
 
 /* function to send a packet out the socket */
 /* returns number of bytes sent on success, negative on failure */
-int arcnet_send(BACNET_ADDRESS * dest,  // destination address
-    BACNET_ADDRESS * src,       // source address
-    uint8_t * pdu,              // any data to be sent - may be null
-    unsigned pdu_len)           // number of bytes of data
-{
+int arcnet_send(BACNET_ADDRESS * dest,  /* destination address */
+    BACNET_ADDRESS * src,       /* source address */
+    uint8_t * pdu,              /* any data to be sent - may be null */
+    unsigned pdu_len)
+{                               /* number of bytes of data */
     int bytes = 0;
     uint8_t mtu[512] = { 0 };
     int mtu_len = 0;
     struct archdr *pkt = (struct archdr *) mtu;
 
-    // don't waste time if the socket is not valid
+    /* don't waste time if the socket is not valid */
     if (ARCNET_Sock_FD < 0) {
         fprintf(stderr, "arcnet: socket is invalid!\n");
         return -1;
@@ -239,30 +239,30 @@ int arcnet_send(BACNET_ADDRESS * dest,  // destination address
 
 /* function to send a PDU out the socket */
 /* returns number of bytes sent on success, negative on failure */
-int arcnet_send_pdu(BACNET_ADDRESS * dest,      // destination address
-    uint8_t * pdu,              // any data to be sent - may be null
-    unsigned pdu_len)           // number of bytes of data
-{
-    BACNET_ADDRESS src = { 0 }; // source address
+int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
+    uint8_t * pdu,              /* any data to be sent - may be null */
+    unsigned pdu_len)
+{                               /* number of bytes of data */
+    BACNET_ADDRESS src = { 0 }; /* source address */
 
     src.mac[0] = ARCNET_MAC_Address;
     src.mac_len = 1;
-    return arcnet_send(dest,    // destination address
-        &src,                   // source address
-        pdu,                    // any data to be sent - may be null
-        pdu_len);               // number of bytes of data
+    return arcnet_send(dest,    /* destination address */
+        &src,                   /* source address */
+        pdu,                    /* any data to be sent - may be null */
+        pdu_len);               /* number of bytes of data */
 }
 
-// receives an framed packet
-// returns the number of octets in the PDU, or zero on failure
-uint16_t arcnet_receive(BACNET_ADDRESS * src,   // source address
-    uint8_t * pdu,              // PDU data
-    uint16_t max_pdu,           // amount of space available in the PDU 
-    unsigned timeout)           // milliseconds to wait for a packet
-{
+/* receives an framed packet */
+/* returns the number of octets in the PDU, or zero on failure */
+uint16_t arcnet_receive(BACNET_ADDRESS * src,   /* source address */
+    uint8_t * pdu,              /* PDU data */
+    uint16_t max_pdu,           /* amount of space available in the PDU  */
+    unsigned timeout)
+{                               /* milliseconds to wait for a packet */
     int received_bytes;
-    uint8_t buf[512] = { 0 };   // data
-    uint16_t pdu_len = 0;       // return value
+    uint8_t buf[512] = { 0 };   /* data */
+    uint16_t pdu_len = 0;       /* return value */
     fd_set read_fds;
     int max;
     struct timeval select_timeout;
@@ -294,9 +294,9 @@ uint16_t arcnet_receive(BACNET_ADDRESS * src,   // source address
 
     /* See if there is a problem */
     if (received_bytes < 0) {
-        // EAGAIN Non-blocking I/O has been selected 
-        // using O_NONBLOCK and no data
-        // was immediately available for reading.
+        /* EAGAIN Non-blocking I/O has been selected  */
+        /* using O_NONBLOCK and no data */
+        /* was immediately available for reading. */
         if (errno != EAGAIN)
             fprintf(stderr,
                 "ethernet: Read error in receiving packet: %s\n",
@@ -344,10 +344,10 @@ uint16_t arcnet_receive(BACNET_ADDRESS * src,   // source address
     /* compute the PDU length */
     pdu_len = received_bytes - ARC_HDR_SIZE;
     pdu_len -= 4 /* SC, DSAP, SSAP, LLC Control */ ;
-    // copy the buffer into the PDU
+    /* copy the buffer into the PDU */
     if (pdu_len < max_pdu)
         memmove(&pdu[0], &pkt->soft.raw[4], pdu_len);
-    // silently ignore packets that are too large
+    /* silently ignore packets that are too large */
     else
         pdu_len = 0;
 
@@ -360,7 +360,7 @@ void arcnet_get_my_address(BACNET_ADDRESS * my_address)
 
     my_address->mac_len = 1;
     my_address->mac[0] = ARCNET_MAC_Address;
-    my_address->net = 0;        // local only, no routing
+    my_address->net = 0;        /* local only, no routing */
     my_address->len = 0;
     for (i = 0; i < MAX_MAC_LEN; i++) {
         my_address->adr[i] = 0;
@@ -369,15 +369,15 @@ void arcnet_get_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void arcnet_get_broadcast_address(BACNET_ADDRESS * dest)        // destination address
-{
-    int i = 0;                  // counter
+void arcnet_get_broadcast_address(BACNET_ADDRESS * dest)
+{                               /* destination address */
+    int i = 0;                  /* counter */
 
     if (dest) {
         dest->mac[0] = ARCNET_BROADCAST;
         dest->mac_len = 1;
         dest->net = BACNET_BROADCAST_NETWORK;
-        dest->len = 0;          // len=0 denotes broadcast address 
+        dest->len = 0;          /* len=0 denotes broadcast address  */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }

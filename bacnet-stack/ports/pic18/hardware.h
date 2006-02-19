@@ -115,13 +115,13 @@
 #define SHIFTREG_CLK             PORTCbits.RC1
 #define SHIFTREG_DATA            PORTCbits.RC0
 
-#define NO_ANALOGS             0x06 // None
-#define ALL_ANALOG             0x00 // RA0 RA1 RA2 RA3 RA5 RE0 RE1 RE2 Ref=Vdd
-#define ANALOG_RA3_REF         0x01 // RA0 RA1 RA2 RA5 RE0 RE1 RE2 Ref=RA3
-#define A_ANALOG               0x02 // RA0 RA1 RA2 RA3 RA5 Ref=Vdd
-#define A_ANALOG_RA3_REF       0x03 // RA0 RA1 RA2 RA5 Ref=RA3
-#define RA0_RA1_RA3_ANALOG     0x04 // RA0 RA1 RA3 Ref=Vdd
-#define RA0_RA1_ANALOG_RA3_REF 0x05 // RA0 RA1 Ref=RA3
+#define NO_ANALOGS             0x06     /* None */
+#define ALL_ANALOG             0x00     /* RA0 RA1 RA2 RA3 RA5 RE0 RE1 RE2 Ref=Vdd */
+#define ANALOG_RA3_REF         0x01     /* RA0 RA1 RA2 RA5 RE0 RE1 RE2 Ref=RA3 */
+#define A_ANALOG               0x02     /* RA0 RA1 RA2 RA3 RA5 Ref=Vdd */
+#define A_ANALOG_RA3_REF       0x03     /* RA0 RA1 RA2 RA5 Ref=RA3 */
+#define RA0_RA1_RA3_ANALOG     0x04     /* RA0 RA1 RA3 Ref=Vdd */
+#define RA0_RA1_ANALOG_RA3_REF 0x05     /* RA0 RA1 Ref=RA3 */
 
 #define ANALOG_RA3_RA2_REF              0x08
 #define ANALOG_NOT_RE1_RE2              0x09
@@ -132,7 +132,7 @@
 #define RA0_ANALOG                      0x0E
 #define RA0_ANALOG_RA3_RA2_REF          0x0F
 
-// Constants used for SETUP_ADC() are:
+/* Constants used for SETUP_ADC() are: */
 #define ADC_OFF                0
 #define ADC_START              4
 #define ADC_CLOCK_DIV_2        1
@@ -242,9 +242,9 @@
 #define USART_TRANSMIT(x) TXREG = (x)
 #define USART_RECEIVE() RCREG
 #define USART_RX_FRAME_ERROR() rcstabits.FERR
-// combine the sequence correctly
-#define USART_RX_SETUP() PIE1bits.RCIE = 1; RCSTAbits.CREN = 1 
+/* combine the sequence correctly */
+#define USART_RX_SETUP() PIE1bits.RCIE = 1; RCSTAbits.CREN = 1
 #define USART_TX_SETUP() PIE1bits.TXIE = 1; TXSTAbits.TXEN = 1
 
 
-#endif /* HARDWARE_H */
+#endif                          /* HARDWARE_H */

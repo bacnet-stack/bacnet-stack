@@ -26,7 +26,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-// used for timing stuff - counts up to 0xFF.
+/* used for timing stuff - counts up to 0xFF. */
 extern volatile uint8_t Milliseconds;
 
 void Timer_Millisecond_Interrupt(void);

@@ -36,15 +36,15 @@ extern void RTEmuInit(void);
 #endif
 
 /* DISK SYSTEM */
-#ifdef DOC                      // include DiskOnChip driver
+#ifdef DOC                      /* include DiskOnChip driver */
 #include <rtfiles.h>
-#define RTF_MAX_FILES 16        // support for more open files (default is 8)
-#define RTF_BUFFERS_IN_BSS      // we do not need file I/O before the run-time
-#include <rtfdata.c>            // system is initialized
+#define RTF_MAX_FILES 16        /* support for more open files (default is 8) */
+#define RTF_BUFFERS_IN_BSS      /* we do not need file I/O before the run-time */
+#include <rtfdata.c>            /* system is initialized */
 
-  //#define READ_HEAD_BUFFER_SIZE 2048+4
+  /*#define READ_HEAD_BUFFER_SIZE 2048+4 */
 
-  //static BYTE ReadAheadBuffer[READ_HEAD_BUFFER_SIZE];
+  /*static BYTE ReadAheadBuffer[READ_HEAD_BUFFER_SIZE]; */
 
 static RTFDrvFLPYData FLPYDriveAData = { 0 };
 static RTFDrvDOCData DOCDriveData = { 0 };
@@ -108,17 +108,17 @@ RTFileSystem *RTFileSystemList[] = {
 /*-----------------------------------*/
 VOIDEXPORT Init(void)
 {
-    (void) RTSetFlags(RT_MM_VIRTUAL, 1);        // this is the better method
-    (void) RTCMOSExtendHeap();  // get as much memory as we can
-    RTCMOSSetSystemTime();      // get the right date and time
-    RTEmuInit();                // set up floating point emulation
-    // pizza - RTHaltCPL3 appears to cause problems with file handling
-    //RTIdleHandler = (void RTTAPI *)RTHaltCPL3;  // low power when idle
-    // not needed with pre-emptive
-    //RTKTimeSlice(2);               // allow same priority task switch
-    RTKConfig.Flags |= RF_PREEMPTIVE;   // preemptive multitasking
-    RTKConfig.Flags |= RF_WIN32MUTEX_MUTEX;     // Win32 mutexes are RTK32 mutexes
-    RTKConfig.Flags |= RF_FPCONTEXT;    // saves floating point context for tasks
-    RTKConfig.HookedIRQs |= 1 << 1;     // hook the keyboard IRQ 
-    RTKConfig.DefaultTaskStackSize = 1024 * 8;  // for Win32 task stacks req = 0
+    (void) RTSetFlags(RT_MM_VIRTUAL, 1);        /* this is the better method */
+    (void) RTCMOSExtendHeap();  /* get as much memory as we can */
+    RTCMOSSetSystemTime();      /* get the right date and time */
+    RTEmuInit();                /* set up floating point emulation */
+    /* pizza - RTHaltCPL3 appears to cause problems with file handling */
+    /*RTIdleHandler = (void RTTAPI *)RTHaltCPL3;  // low power when idle */
+    /* not needed with pre-emptive */
+    /*RTKTimeSlice(2);               // allow same priority task switch */
+    RTKConfig.Flags |= RF_PREEMPTIVE;   /* preemptive multitasking */
+    RTKConfig.Flags |= RF_WIN32MUTEX_MUTEX;     /* Win32 mutexes are RTK32 mutexes */
+    RTKConfig.Flags |= RF_FPCONTEXT;    /* saves floating point context for tasks */
+    RTKConfig.HookedIRQs |= 1 << 1;     /* hook the keyboard IRQ  */
+    RTKConfig.DefaultTaskStackSize = 1024 * 8;  /* for Win32 task stacks req = 0 */
 }

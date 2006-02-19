@@ -23,8 +23,8 @@
 *
 *********************************************************************/
 
-// This is one way to use the embedded BACnet stack under Win32
-// compiled with Borland C++ 5.02 or Visual C++ 6.0
+/* This is one way to use the embedded BACnet stack under Win32 */
+/* compiled with Borland C++ 5.02 or Visual C++ 6.0 */
 #include <winsock2.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -42,7 +42,7 @@
 #include "datalink.h"
 #include "txbuf.h"
 
-// buffer used for receive
+/* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* send a whois to see who is on the network */
@@ -102,7 +102,7 @@ static void Read_Properties(void)
             if (object_props[property] < 0)
                 next_device = true;
             else {
-                status = Send_Read_Property_Request(device_id,  // destination device
+                status = Send_Read_Property_Request(device_id,  /* destination device */
                     OBJECT_DEVICE,
                     device_id, object_props[property], BACNET_ARRAY_ALL);
                 if (status)
@@ -147,29 +147,29 @@ static void LocalIAmHandler(uint8_t * service_request,
 
 static void Init_Service_Handlers(void)
 {
-    // we need to handle who-is to support dynamic device binding
+    /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
         handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
         LocalIAmHandler);
 
-    // set the handler for all the services we don't implement
-    // It is required to send the proper reject message...
+    /* set the handler for all the services we don't implement */
+    /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
-    // we must implement read property - it's required!
+    /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
-    // handle the data coming back from confirmed requests
+    /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property_ack);
 }
 
-static void print_address(char *name, BACNET_ADDRESS * dest)    // destination address
-{
-    int i = 0;                  // counter
+static void print_address(char *name, BACNET_ADDRESS * dest)
+{                               /* destination address */
+    int i = 0;                  /* counter */
 
     if (dest) {
         printf("%s: ", name);
@@ -203,16 +203,16 @@ static void print_address_cache(void)
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; // address where message came from
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     // milliseconds
+    unsigned timeout = 100;     /* milliseconds */
     BACNET_ADDRESS my_address, broadcast_address;
 
     (void) argc;
     (void) argv;
     Device_Set_Object_Instance_Number(124);
     Init_Service_Handlers();
-    // init the data link layer
+    /* init the data link layer */
     /* configure standard BACnet/IP port */
     bip_set_port(0xBAC0);
     if (!bip_init())
@@ -224,14 +224,14 @@ int main(int argc, char *argv[])
     print_address("Address", &my_address);
 
     printf("BACnet stack running...\n");
-    // loop forever
+    /* loop forever */
     for (;;) {
-        // input
+        /* input */
 
-        // returns 0 bytes on timeout
+        /* returns 0 bytes on timeout */
         pdu_len = bip_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
-        // process
+        /* process */
 
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
@@ -246,9 +246,9 @@ int main(int argc, char *argv[])
             Read_Properties();
         }
 
-        // output
+        /* output */
 
-        // blink LEDs, Turn on or off outputs, etc
+        /* blink LEDs, Turn on or off outputs, etc */
 
         /* wait for ESC from keyboard before quitting */
         if (kbhit() && (getch() == 0x1B))

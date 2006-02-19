@@ -32,8 +32,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>             // for standard integer types uint8_t etc.
-#include <stdbool.h>            // for the standard bool type.
+#include <stdint.h>             /* for standard integer types uint8_t etc. */
+#include <stdbool.h>            /* for the standard bool type. */
 #include "bacdcode.h"
 #include "bip.h"
 #include "net.h"
@@ -43,7 +43,7 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr,
     int request)
 {
     int fd;
-    int rv;                     // return value
+    int rv;                     /* return value */
 
     strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name));
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -60,7 +60,7 @@ static int get_local_address_ioctl(char *ifname,
 {
     struct ifreq ifr = { {{0}} };
     struct sockaddr_in *tcpip_address;
-    int rv;                     // return value
+    int rv;                     /* return value */
 
     rv = get_local_ifr_ioctl(ifname, &ifr, request);
     if (rv >= 0) {
@@ -93,18 +93,18 @@ void bip_set_interface(char *ifname)
 
 bool bip_init(void)
 {
-    int status = 0;             // return from socket lib calls
+    int status = 0;             /* return from socket lib calls */
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;
 
-    // assumes that the driver has already been initialized
+    /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     bip_set_socket(sock_fd);
     if (sock_fd < 0)
         return false;
-    // Allow us to use the same socket for sending and receiving
-    // This makes sure that the src port is correct when sending
+    /* Allow us to use the same socket for sending and receiving */
+    /* This makes sure that the src port is correct when sending */
     sockopt = 1;
     status = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR,
         &sockopt, sizeof(sockopt));
@@ -113,7 +113,7 @@ bool bip_init(void)
         bip_set_socket(-1);
         return status;
     }
-    // allow us to send a broadcast
+    /* allow us to send a broadcast */
     status = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST,
         &sockopt, sizeof(sockopt));
     if (status < 0) {
@@ -121,7 +121,7 @@ bool bip_init(void)
         bip_set_socket(-1);
         return status;
     }
-    // bind the socket to the local port number and IP address
+    /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(bip_get_port());

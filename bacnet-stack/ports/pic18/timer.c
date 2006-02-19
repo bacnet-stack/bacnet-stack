@@ -25,7 +25,7 @@
 *********************************************************************/
 #include <stdint.h>
 
-volatile uint8_t Milliseconds; // used for timing stuff - counts up to 0xFF.
+volatile uint8_t Milliseconds;  /* used for timing stuff - counts up to 0xFF. */
 
 /****************************************************************************
 * DESCRIPTION: Timer is set to go off every 1ms.  We increment the counter, 
@@ -37,9 +37,9 @@ volatile uint8_t Milliseconds; // used for timing stuff - counts up to 0xFF.
 *****************************************************************************/
 void Timer_Millisecond_Interrupt(void)
 {
-  // Global Milisecond timer
-  if (Milliseconds < 0xFF)
-    Milliseconds++;
+    /* Global Milisecond timer */
+    if (Milliseconds < 0xFF)
+        Milliseconds++;
 
-  return;
+    return;
 }

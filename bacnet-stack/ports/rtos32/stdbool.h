@@ -1,7 +1,7 @@
 #ifndef STDBOOL_H
 #define STDBOOL_H
 
-// C99 Boolean types for compilers without C99 support
+/* C99 Boolean types for compilers without C99 support */
 
 #ifndef __cplusplus
 typedef int _Bool;

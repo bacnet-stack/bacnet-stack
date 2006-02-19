@@ -37,8 +37,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>             // for standard integer types uint8_t etc.
-#include <stdbool.h>            // for the standard bool type.
+#include <stdint.h>             /* for standard integer types uint8_t etc. */
+#include <stdbool.h>            /* for the standard bool type. */
 #include "bacdcode.h"
 #include "bip.h"
 #include "net.h"
@@ -102,7 +102,7 @@ void bip_set_interface(char *ifname)
 
 bool bip_init(void)
 {
-    int rv = 0;                 // return from socket lib calls
+    int rv = 0;                 /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
     int value = 1;
     int sock_fd = -1;
@@ -112,7 +112,7 @@ bool bip_init(void)
     struct in_addr address;
 
     Result = WSAStartup((1 << 8) | 1, &wd);
-    //Result = WSAStartup(MAKEWORD(2,2), &wd);
+    /*Result = WSAStartup(MAKEWORD(2,2), &wd); */
     if (Result != 0) {
         Code = WSAGetLastError();
         printf("TCP/IP stack initialization failed, error code: %i\n",
@@ -140,8 +140,8 @@ bool bip_init(void)
         fprintf(stderr, "bip: failed to allocate a socket.\n");
         return false;
     }
-    // Allow us to use the same socket for sending and receiving
-    // This makes sure that the src port is correct when sending
+    /* Allow us to use the same socket for sending and receiving */
+    /* This makes sure that the src port is correct when sending */
     rv = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR,
         (char *) &value, sizeof(value));
     if (rv < 0) {
@@ -150,7 +150,7 @@ bool bip_init(void)
         bip_set_socket(-1);
         return false;
     }
-    // allow us to send a broadcast
+    /* allow us to send a broadcast */
     rv = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST,
         (char *) &value, sizeof(value));
     if (rv < 0) {
@@ -159,7 +159,7 @@ bool bip_init(void)
         bip_set_socket(-1);
         return false;
     }
-    // bind the socket to the local port number and IP address
+    /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
 #if USE_INADDR
     /* by setting sin.sin_addr.s_addr to INADDR_ANY,

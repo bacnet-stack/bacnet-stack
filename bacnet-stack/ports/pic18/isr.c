@@ -31,7 +31,7 @@
 #include "hardware.h"
 #include "timer.h"
 
-// interrupt service routines
+/* interrupt service routines */
 extern void RS485_Receive_Interrupt(void);
 extern void RS485_Transmit_Interrupt(void);
 
@@ -45,76 +45,65 @@ extern void RS485_Transmit_Interrupt(void);
 #pragma interruptlow InterruptHandlerLow save=PROD, section(".tmpdata")
 void InterruptHandlerLow(void)
 {
-  // check for timer0 interrupt
-  if((INTCONbits.TMR0IF) && (INTCONbits.TMR0IE))
-  {
-    // clear interrupt flag
-    INTCONbits.TMR0IF = 0;
-    // call interrupt handler
-  }
-  //check for timer1 interrupt
-  if ((PIR1bits.TMR1IF) && (PIE1bits.TMR1IE))
-  {
-    PIR1bits.TMR1IF = 0;
-    // call interrupt handler
-  }
-  //check for timer2 interrupt
-  if ((PIR1bits.TMR2IF) && (PIE1bits.TMR2IE))
-  {
-    PIR1bits.TMR2IF = 0;
-    Timer_Millisecond_Interrupt();
-  }
-  //check for timer3 interrupt
-  if ((PIR2bits.TMR3IF) && (PIE2bits.TMR3IE))
-  {
-    PIR2bits.TMR3IF = 0;
-    // call interrupt handler
-  }
-  //check for compare 1 int
-  if ((PIR1bits.CCP1IF) && (PIE1bits.CCP1IE))
-  {
-    PIR1bits.CCP1IF = 0;
-    // call interrupt handler
-  }
-  //check for compare 2 int
-  if ((PIR2bits.CCP2IF) && (PIE2bits.CCP2IE))
-  {
-    PIR2bits.CCP2IF = 0;
-    // call interrupt handler
-  }
-  //check for USART Rx int
-  if ((PIR2bits.EEIF) && (PIE2bits.EEIE))
-  {
-    PIR2bits.EEIF = 0; //clear interrupt flag
-    EECON1bits.WREN = 0; // disable writes
-    // call interrupt handler
-  }
-  //check for USART Tx int
-  if ((PIR1bits.TXIF) && (PIE1bits.TXIE))
-  {
-    // call interrupt handler
-    RS485_Transmit_Interrupt();
-  }
-  //check for USART Rx int
-  if ((PIR1bits.RCIF) && (PIE1bits.RCIE))
-  {
-    // call interrupt handler
-    RS485_Receive_Interrupt();
-  }
-  //check for AD int
-  if ((PIR1bits.ADIF) && (PIE1bits.ADIE))
-  {
-    // call interrupt handler
-    PIR1bits.ADIF = 0;
-  }
-  //check for I2C receive int (MSSP int)
-  if ((PIR1bits.SSPIF) && (PIE1bits.SSPIE))
-  {
-    PIR1bits.SSPIF = 0;
-    // call interrupt handler
-  }
+    /* check for timer0 interrupt */
+    if ((INTCONbits.TMR0IF) && (INTCONbits.TMR0IE)) {
+        /* clear interrupt flag */
+        INTCONbits.TMR0IF = 0;
+        /* call interrupt handler */
+    }
+    /*check for timer1 interrupt */
+    if ((PIR1bits.TMR1IF) && (PIE1bits.TMR1IE)) {
+        PIR1bits.TMR1IF = 0;
+        /* call interrupt handler */
+    }
+    /*check for timer2 interrupt */
+    if ((PIR1bits.TMR2IF) && (PIE1bits.TMR2IE)) {
+        PIR1bits.TMR2IF = 0;
+        Timer_Millisecond_Interrupt();
+    }
+    /*check for timer3 interrupt */
+    if ((PIR2bits.TMR3IF) && (PIE2bits.TMR3IE)) {
+        PIR2bits.TMR3IF = 0;
+        /* call interrupt handler */
+    }
+    /*check for compare 1 int */
+    if ((PIR1bits.CCP1IF) && (PIE1bits.CCP1IE)) {
+        PIR1bits.CCP1IF = 0;
+        /* call interrupt handler */
+    }
+    /*check for compare 2 int */
+    if ((PIR2bits.CCP2IF) && (PIE2bits.CCP2IE)) {
+        PIR2bits.CCP2IF = 0;
+        /* call interrupt handler */
+    }
+    /*check for USART Rx int */
+    if ((PIR2bits.EEIF) && (PIE2bits.EEIE)) {
+        PIR2bits.EEIF = 0;      /*clear interrupt flag */
+        EECON1bits.WREN = 0;    /* disable writes */
+        /* call interrupt handler */
+    }
+    /*check for USART Tx int */
+    if ((PIR1bits.TXIF) && (PIE1bits.TXIE)) {
+        /* call interrupt handler */
+        RS485_Transmit_Interrupt();
+    }
+    /*check for USART Rx int */
+    if ((PIR1bits.RCIF) && (PIE1bits.RCIE)) {
+        /* call interrupt handler */
+        RS485_Receive_Interrupt();
+    }
+    /*check for AD int */
+    if ((PIR1bits.ADIF) && (PIE1bits.ADIE)) {
+        /* call interrupt handler */
+        PIR1bits.ADIF = 0;
+    }
+    /*check for I2C receive int (MSSP int) */
+    if ((PIR1bits.SSPIF) && (PIE1bits.SSPIE)) {
+        PIR1bits.SSPIF = 0;
+        /* call interrupt handler */
+    }
 
-  return;
+    return;
 }
 
 /****************************************************************************
@@ -128,26 +117,24 @@ void InterruptHandlerLow(void)
 #pragma interrupt InterruptHandlerHigh
 void InterruptHandlerHigh(void)
 {
-  //check for external int
-  if ((INTCONbits.INT0IF) && (INTCONbits.INT0IE))
-  {
-    /* Test to ensure that we are not getting a false trigger on the
-       falling edge. Only trigger on Rising edge. */
-    if (ZERO_CROSS)
-    {
-      // timer used to determine when power is gone (no zero crosses)
-//      Power_Timeout = 30;
-//      if (ABUS_Current_Status.Zerox_Fail)
-//      {
-//        ABUS_Flags.SendStatus = TRUE;
-//        ABUS_Current_Status.Zerox_Fail = FALSE;
-//      }
-      // if we get here it means power is good
-//      System_Flags.PowerFail = FALSE;
+    /*check for external int */
+    if ((INTCONbits.INT0IF) && (INTCONbits.INT0IE)) {
+        /* Test to ensure that we are not getting a false trigger on the
+           falling edge. Only trigger on Rising edge. */
+        if (ZERO_CROSS) {
+            /* timer used to determine when power is gone (no zero crosses) */
+/*      Power_Timeout = 30; */
+/*      if (ABUS_Current_Status.Zerox_Fail) */
+/*      { */
+/*        ABUS_Flags.SendStatus = TRUE; */
+/*        ABUS_Current_Status.Zerox_Fail = FALSE; */
+/*      } */
+            /* if we get here it means power is good */
+/*      System_Flags.PowerFail = FALSE; */
+        }
+        INTCONbits.INT0IF = 0;
     }
-    INTCONbits.INT0IF = 0;
-  }
-  return;
+    return;
 }
 
 /****************************************************************************
@@ -160,10 +147,9 @@ void InterruptHandlerHigh(void)
 #pragma code InterruptVectorHigh = 0x08
 void InterruptVectorHigh(void)
 {
-  _asm
-  goto InterruptHandlerHigh                   //jump to interrupt routine
-  _endasm
-}
+    _asm goto InterruptHandlerHigh      /*jump to interrupt routine */
+_endasm}
+
 #pragma code
 
 /****************************************************************************
@@ -176,9 +162,7 @@ void InterruptVectorHigh(void)
 #pragma code InterruptVectorLow = 0x18
 void InterruptVectorLow(void)
 {
-  _asm
-  goto InterruptHandlerLow                    //jump to interrupt routine
-  _endasm
-}
-#pragma code
+    _asm goto InterruptHandlerLow       /*jump to interrupt routine */
+_endasm}
 
+#pragma code
