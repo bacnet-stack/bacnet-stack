@@ -38,18 +38,18 @@
 #include "device.h"
 #include "wp.h"
 
-// encode service
+/* encode service */
 int wp_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA * data)
 {
-    int apdu_len = 0;           // total length of the apdu, return value
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] =
             encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
         apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_WRITE_PROPERTY;     // service choice
+        apdu[3] = SERVICE_CONFIRMED_WRITE_PROPERTY;     /* service choice */
         apdu_len = 4;
         apdu_len += encode_context_object_id(&apdu[apdu_len], 0,
             data->object_type, data->object_instance);
@@ -59,12 +59,12 @@ int wp_encode_apdu(uint8_t * apdu,
         if (data->array_index != BACNET_ARRAY_ALL)
             apdu_len += encode_context_unsigned(&apdu[apdu_len], 2,
                 data->array_index);
-        // propertyValue
+        /* propertyValue */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len +=
             bacapp_encode_application_data(&apdu[apdu_len], &data->value);
         apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
-        // optional priority - 0 if not set, 1..16 if set
+        /* optional priority - 0 if not set, 1..16 if set */
         if (data->priority != BACNET_NO_PRIORITY)
             apdu_len += encode_context_unsigned(&apdu[apdu_len], 4,
                 data->priority);
@@ -83,26 +83,26 @@ int wp_decode_service_request(uint8_t * apdu,
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int type = 0;               // for decoding
-    int property = 0;           // for decoding
+    int type = 0;               /* for decoding */
+    int property = 0;           /* for decoding */
     uint32_t unsigned_value = 0;
 
-    // check for value pointers
+    /* check for value pointers */
     if (apdu_len && data) {
-        // Tag 0: Object ID         
+        /* Tag 0: Object ID          */
         if (!decode_is_context_tag(&apdu[len++], 0))
             return -1;
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
         data->object_type = type;
-        // Tag 1: Property ID
+        /* Tag 1: Property ID */
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != 1)
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &property);
         data->object_property = property;
-        // Tag 2: Optional Array Index
-        // note: decode without incrementing len so we can check for opening tag
+        /* Tag 2: Optional Array Index */
+        /* note: decode without incrementing len so we can check for opening tag */
         tag_len = decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number == 2) {
@@ -112,10 +112,10 @@ int wp_decode_service_request(uint8_t * apdu,
             data->array_index = unsigned_value;
         } else
             data->array_index = BACNET_ARRAY_ALL;
-        // Tag 3: opening context tag */
-        if (!decode_is_opening_tag_number(&apdu[len], 3))
+        /* Tag 3: opening context tag */ */
+            if (!decode_is_opening_tag_number(&apdu[len], 3))
             return -1;
-        // a tag number of 3 is not extended so only one octet
+        /* a tag number of 3 is not extended so only one octet */
         len++;
         len += bacapp_decode_application_data(&apdu[len],
             apdu_len - len, &data->value);
@@ -123,9 +123,9 @@ int wp_decode_service_request(uint8_t * apdu,
         /* FIXME: there might be more than one data element in here! */
         if (!decode_is_closing_tag_number(&apdu[len], 3))
             return -1;
-        // a tag number of 3 is not extended so only one octet
+        /* a tag number of 3 is not extended so only one octet */
         len++;
-        // Tag 4: optional Priority - assumed MAX if not explicitly set
+        /* Tag 4: optional Priority - assumed MAX if not explicitly set */
         data->priority = BACNET_MAX_PRIORITY;
         if ((unsigned) len < apdu_len) {
             tag_len = decode_tag_number_and_value(&apdu[len],
@@ -156,10 +156,10 @@ int wp_decode_apdu(uint8_t * apdu,
 
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -1;
-    //  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
+    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_WRITE_PROPERTY)
         return -1;

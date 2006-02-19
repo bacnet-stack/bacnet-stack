@@ -36,20 +36,20 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 
-// encode service
+/* encode service */
 int bacerror_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id,
     BACNET_CONFIRMED_SERVICE service,
     BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
 {
-    int apdu_len = 0;           // total length of the apdu, return value
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_ERROR;
         apdu[1] = invoke_id;
         apdu[2] = service;
         apdu_len = 3;
-        // service parameters
+        /* service parameters */
         apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_class);
         apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_code);
     }
@@ -57,7 +57,7 @@ int bacerror_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-// decode the application class and code
+/* decode the application class and code */
 int bacerror_decode_error_class_and_code(uint8_t * apdu,
     unsigned apdu_len,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
@@ -68,7 +68,7 @@ int bacerror_decode_error_class_and_code(uint8_t * apdu,
     int decoded_value = 0;
 
     if (apdu_len) {
-        // error class
+        /* error class */
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
@@ -77,7 +77,7 @@ int bacerror_decode_error_class_and_code(uint8_t * apdu,
             decode_enumerated(&apdu[len], len_value_type, &decoded_value);
         if (error_class)
             *error_class = decoded_value;
-        // error code
+        /* error code */
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
@@ -91,7 +91,7 @@ int bacerror_decode_error_class_and_code(uint8_t * apdu,
     return len;
 }
 
-// decode the service request only
+/* decode the service request only */
 int bacerror_decode_service_request(uint8_t * apdu,
     unsigned apdu_len,
     uint8_t * invoke_id,
@@ -105,7 +105,7 @@ int bacerror_decode_service_request(uint8_t * apdu,
             *invoke_id = apdu[0];
         if (service)
             *service = apdu[1];
-        // decode the application class and code
+        /* decode the application class and code */
         len = bacerror_decode_error_class_and_code(&apdu[2],
             apdu_len - 2, error_class, error_code);
     }
@@ -113,7 +113,7 @@ int bacerror_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-// decode the whole APDU - mainly used for unit testing
+/* decode the whole APDU - mainly used for unit testing */
 int bacerror_decode_apdu(uint8_t * apdu,
     unsigned apdu_len,
     uint8_t * invoke_id,
@@ -124,7 +124,7 @@ int bacerror_decode_apdu(uint8_t * apdu,
 
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu_len) {
         if (apdu[0] != PDU_TYPE_ERROR)
             return -1;
@@ -171,7 +171,7 @@ void testBACError(Test * pTest)
     ct_test(pTest, test_error_class == error_class);
     ct_test(pTest, test_error_code == error_code);
 
-    // change type to get negative response
+    /* change type to get negative response */
     apdu[0] = PDU_TYPE_ABORT;
     len = bacerror_decode_apdu(&apdu[0],
         apdu_len,
@@ -179,14 +179,14 @@ void testBACError(Test * pTest)
         &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len == -1);
 
-    // test NULL APDU
+    /* test NULL APDU */
     len = bacerror_decode_apdu(NULL,
         apdu_len,
         &test_invoke_id,
         &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len == -1);
 
-    // force a zero length
+    /* force a zero length */
     len = bacerror_decode_apdu(&apdu[0],
         0,
         &test_invoke_id,
@@ -194,7 +194,7 @@ void testBACError(Test * pTest)
     ct_test(pTest, len == 0);
 
 
-    // check them all...  
+    /* check them all...   */
     for (service = 0; service < MAX_BACNET_CONFIRMED_SERVICE; service++) {
         for (error_class = 0;
             error_class < MAX_BACNET_ERROR_CLASS; error_class++) {
@@ -217,7 +217,7 @@ void testBACError(Test * pTest)
         }
     }
 
-    // max boundaries
+    /* max boundaries */
     service = 255;
     error_class = LAST_PROPRIETARY_ERROR_CLASS;
     error_code = LAST_PROPRIETARY_ERROR_CODE;

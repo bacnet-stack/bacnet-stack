@@ -59,12 +59,12 @@ void handler_atomic_read_file(uint8_t * service_request,
     len = arf_decode_service_request(service_request, service_len, &data);
     if (len < 0)
         fprintf(stderr, "Unable to decode Atomic-Read-File Request!\n");
-    // prepare a reply
+    /* prepare a reply */
     datalink_get_my_address(&my_address);
-    // encode the NPDU portion of the packet
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], src, &my_address, false,    // true for confirmed messages
+    /* encode the NPDU portion of the packet */
+    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], src, &my_address, false,    /* true for confirmed messages */
         MESSAGE_PRIORITY_NORMAL);
-    // bad decoding - send an abort
+    /* bad decoding - send an abort */
     if (len < 0) {
         pdu_len += abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER);
@@ -112,8 +112,8 @@ void handler_atomic_read_file(uint8_t * service_request,
         send = true;
     }
     if (send) {
-        bytes_sent = datalink_send_pdu(src,     // destination address
-            &Handler_Transmit_Buffer[0], pdu_len);      // number of bytes of data
+        bytes_sent = datalink_send_pdu(src,     /* destination address */
+            &Handler_Transmit_Buffer[0], pdu_len);      /* number of bytes of data */
         if (bytes_sent <= 0)
             fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
     }

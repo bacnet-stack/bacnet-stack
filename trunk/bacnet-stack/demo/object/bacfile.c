@@ -48,7 +48,7 @@ static BACNET_FILE_LISTING BACnet_File_Listing[] = {
     {0, "test.log"},
     {1, "script.txt"},
     {2, "bacenum.h"},
-    {0, NULL}                   // last file indication
+    {0, NULL}                   /* last file indication */
 };
 
 char *bacfile_name(uint32_t instance)
@@ -56,7 +56,7 @@ char *bacfile_name(uint32_t instance)
     uint32_t index = 0;
     char *filename = NULL;
 
-    // linear search for file instance match
+    /* linear search for file instance match */
     while (BACnet_File_Listing[index].filename) {
         if (BACnet_File_Listing[index].instance == instance) {
             filename = BACnet_File_Listing[index].filename;
@@ -77,7 +77,7 @@ uint32_t bacfile_count(void)
 {
     uint32_t index = 0;
 
-    // linear search for file instance match
+    /* linear search for file instance match */
     while (BACnet_File_Listing[index].filename) {
         index++;
     }
@@ -90,7 +90,7 @@ uint32_t bacfile_index_to_instance(unsigned find_index)
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
     uint32_t index = 0;
 
-    // bounds checking...
+    /* bounds checking... */
     while (BACnet_File_Listing[index].filename) {
         if (index == find_index) {
             instance = BACnet_File_Listing[index].instance;
@@ -141,7 +141,7 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
     int32_t array_index,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
-    int apdu_len = 0;           // return value
+    int apdu_len = 0;           /* return value */
     char text_string[32] = { "" };
     BACNET_CHARACTER_STRING char_string;
 
@@ -173,18 +173,18 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
             bacfile_file_size(object_instance));
         break;
     case PROP_MODIFICATION_DATE:
-        // FIXME: get the actual value
+        /* FIXME: get the actual value */
         apdu_len = encode_tagged_date(&apdu[0],
             2005, 12, 25, 7 /* sunday */ );
-        // FIXME: get the actual value
+        /* FIXME: get the actual value */
         apdu_len += encode_tagged_time(&apdu[apdu_len], 12, 0, 0, 0);
         break;
     case PROP_ARCHIVE:
-        // FIXME: get the actual value: note it may be inverse...
+        /* FIXME: get the actual value: note it may be inverse... */
         apdu_len = encode_tagged_boolean(&apdu[0], true);
         break;
     case PROP_READ_ONLY:
-        // FIXME: get the actual value
+        /* FIXME: get the actual value */
         apdu_len = encode_tagged_boolean(&apdu[0], true);
         break;
     case PROP_FILE_ACCESS_METHOD:
@@ -205,7 +205,7 @@ uint32_t bacfile_instance(char *filename)
     uint32_t index = 0;
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
 
-    // linear search for filename match
+    /* linear search for filename match */
     while (BACnet_File_Listing[index].filename) {
         if (strcmp(BACnet_File_Listing[index].filename, filename) == 0) {
             instance = BACnet_File_Listing[index].instance;
@@ -218,37 +218,37 @@ uint32_t bacfile_instance(char *filename)
 }
 
 #if TSM_ENABLED
-// this is one way to match up the invoke ID with
-// the file ID from the AtomicReadFile request.
-// Another way would be to store the
-// invokeID and file instance in a list or table
-// when the request was sent
+/* this is one way to match up the invoke ID with */
+/* the file ID from the AtomicReadFile request. */
+/* Another way would be to store the */
+/* invokeID and file instance in a list or table */
+/* when the request was sent */
 uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
 {
-    BACNET_NPDU_DATA npdu_data = { 0 }; // dummy for getting npdu length
+    BACNET_NPDU_DATA npdu_data = { 0 }; /* dummy for getting npdu length */
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    BACNET_ADDRESS dest;        // where the original packet was destined
-    uint8_t pdu[MAX_PDU] = { 0 };       // original sent packet
-    uint16_t pdu_len = 0;       // original packet length
-    uint16_t len = 0;           // apdu header length
+    BACNET_ADDRESS dest;        /* where the original packet was destined */
+    uint8_t pdu[MAX_PDU] = { 0 };       /* original sent packet */
+    uint16_t pdu_len = 0;       /* original packet length */
+    uint16_t len = 0;           /* apdu header length */
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
-    uint32_t object_instance = BACNET_MAX_INSTANCE + 1; // return value
+    uint32_t object_instance = BACNET_MAX_INSTANCE + 1; /* return value */
     bool found = false;
     int apdu_offset = 0;
 
     found = tsm_get_transaction_pdu(invokeID, &dest, &pdu[0], &pdu_len);
     if (found) {
-        apdu_offset = npdu_decode(&pdu[0],      // data to decode
-            NULL,               // destination address - get the DNET/DLEN/DADR if in there
-            NULL,               // source address - get the SNET/SLEN/SADR if in there
-            &npdu_data);        // amount of data to decode
+        apdu_offset = npdu_decode(&pdu[0],      /* data to decode */
+            NULL,               /* destination address - get the DNET/DLEN/DADR if in there */
+            NULL,               /* source address - get the SNET/SLEN/SADR if in there */
+            &npdu_data);        /* amount of data to decode */
         if (!npdu_data.network_layer_message &&
             ((pdu[apdu_offset] & 0xF0) ==
                 PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
-            len = apdu_decode_confirmed_service_request(&pdu[apdu_offset],      // APDU data
+            len = apdu_decode_confirmed_service_request(&pdu[apdu_offset],      /* APDU data */
                 pdu_len - apdu_offset,
                 &service_data,
                 &service_choice, &service_request, &service_request_len);

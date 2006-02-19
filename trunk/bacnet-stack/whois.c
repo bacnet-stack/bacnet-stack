@@ -36,18 +36,18 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 
-// encode I-Am service  - use -1 for limit if you want unlimited
+/* encode I-Am service  - use -1 for limit if you want unlimited */
 int whois_encode_apdu(uint8_t * apdu,
     int32_t low_limit, int32_t high_limit)
 {
-    int len = 0;                // length of each encoding
-    int apdu_len = 0;           // total length of the apdu, return value
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_WHO_IS;   // service choice
+        apdu[1] = SERVICE_UNCONFIRMED_WHO_IS;   /* service choice */
         apdu_len = 2;
-        // optional limits - must be used as a pair
+        /* optional limits - must be used as a pair */
         if ((low_limit >= 0) && (low_limit <= BACNET_MAX_INSTANCE) &&
             (high_limit >= 0) && (high_limit <= BACNET_MAX_INSTANCE)) {
             len = encode_context_unsigned(&apdu[apdu_len], 0, low_limit);
@@ -60,7 +60,7 @@ int whois_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-// decode the service request only
+/* decode the service request only */
 int whois_decode_service_request(uint8_t * apdu,
     unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit)
 {
@@ -69,7 +69,7 @@ int whois_decode_service_request(uint8_t * apdu,
     uint32_t len_value = 0;
     uint32_t decoded_value = 0;
 
-    // optional limits - must be used as a pair
+    /* optional limits - must be used as a pair */
     if (apdu_len) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -103,12 +103,12 @@ int whois_decode_apdu(uint8_t * apdu,
 
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
         return -1;
     if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS)
         return -1;
-    // optional limits - must be used as a pair
+    /* optional limits - must be used as a pair */
     if (apdu_len > 2) {
         len = whois_decode_service_request(&apdu[2],
             apdu_len - 2, pLow_limit, pHigh_limit);

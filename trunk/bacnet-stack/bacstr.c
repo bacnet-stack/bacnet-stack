@@ -55,7 +55,7 @@ void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit,
     uint8_t bit_mask = 1;
 
     if (byte_number < MAX_BITSTRING_BYTES) {
-        // set max bits used
+        /* set max bits used */
         if (bit_string->bits_used < (bit + 1))
             bit_string->bits_used = bit + 1;
         bit_mask = bit_mask << (bit - (byte_number * 8));
@@ -86,17 +86,17 @@ uint8_t bitstring_bits_used(BACNET_BIT_STRING * bit_string)
     return bit_string->bits_used;
 }
 
-// returns the number of bytes that a bit string is using
+/* returns the number of bytes that a bit string is using */
 int bitstring_bytes_used(BACNET_BIT_STRING * bit_string)
 {
-    int len = 0;                // return value
+    int len = 0;                /* return value */
     uint8_t used_bytes = 0;
     uint8_t last_bit = 0;
 
     if (bit_string->bits_used) {
         last_bit = bit_string->bits_used - 1;
         used_bytes = last_bit / 8;
-        // add one for the first byte
+        /* add one for the first byte */
         used_bytes++;
         len = used_bytes;
     }
@@ -471,19 +471,19 @@ void testBitString(Test * pTest)
     BACNET_BIT_STRING bit_string;
 
     bitstring_init(&bit_string);
-    // verify initialization
+    /* verify initialization */
     ct_test(pTest, bitstring_bits_used(&bit_string) == 0);
     for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
         ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
     }
 
-    // test for true
+    /* test for true */
     for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
         bitstring_set_bit(&bit_string, bit, true);
         ct_test(pTest, bitstring_bits_used(&bit_string) == (bit + 1));
         ct_test(pTest, bitstring_bit(&bit_string, bit) == true);
     }
-    // test for false
+    /* test for false */
     bitstring_init(&bit_string);
     for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
         bitstring_set_bit(&bit_string, bit, false);
@@ -504,7 +504,7 @@ void testCharacterString(Test * pTest)
     size_t test_length = 0;
     size_t i = 0;
 
-    // verify initialization
+    /* verify initialization */
     status =
         characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
     ct_test(pTest, status == true);
@@ -562,7 +562,7 @@ void testOctetString(Test * pTest)
     size_t test_length = 0;
     size_t i = 0;
 
-    // verify initialization
+    /* verify initialization */
     status = octetstring_init(&bacnet_string, NULL, 0);
     ct_test(pTest, status == true);
     ct_test(pTest, octetstring_length(&bacnet_string) == 0);
@@ -625,7 +625,7 @@ int main(void)
     assert(rc);
     rc = ct_addTestFunction(pTest, testOctetString);
     assert(rc);
-    // configure output
+    /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);
     (void) ct_report(pTest);

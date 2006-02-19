@@ -67,8 +67,8 @@ void Send_WhoHas_Name(int32_t low_limit,
     pdu_len += whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         &data);
     /* send the data */
-    bytes_sent = datalink_send_pdu(&dest,       // destination address
-        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
+        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
             strerror(errno));
@@ -101,8 +101,8 @@ void Send_WhoHas_Object(int32_t low_limit,
     pdu_len += whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         &data);
     /* send the data */
-    bytes_sent = datalink_send_pdu(&dest,       // destination address
-        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
+        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
             strerror(errno));

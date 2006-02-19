@@ -41,14 +41,14 @@
 
 int whohas_encode_apdu(uint8_t * apdu, BACNET_WHO_HAS_DATA * data)
 {
-    int len = 0;                // length of each encoding
-    int apdu_len = 0;           // total length of the apdu, return value
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_WHO_HAS;  // service choice
+        apdu[1] = SERVICE_UNCONFIRMED_WHO_HAS;  /* service choice */
         apdu_len = 2;
-        // optional limits - must be used as a pair
+        /* optional limits - must be used as a pair */
         if ((data->low_limit >= 0)
             && (data->low_limit <= BACNET_MAX_INSTANCE)
             && (data->high_limit >= 0)
@@ -77,7 +77,7 @@ int whohas_encode_apdu(uint8_t * apdu, BACNET_WHO_HAS_DATA * data)
     return apdu_len;
 }
 
-// decode the service request only
+/* decode the service request only */
 int whohas_decode_service_request(uint8_t * apdu,
     unsigned apdu_len, BACNET_WHO_HAS_DATA * data)
 {
@@ -144,12 +144,12 @@ int whohas_decode_apdu(uint8_t * apdu,
 
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
         return -1;
     if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS)
         return -1;
-    // optional limits - must be used as a pair
+    /* optional limits - must be used as a pair */
     if (apdu_len > 2) {
         len = whohas_decode_service_request(&apdu[2], apdu_len - 2, data);
     }

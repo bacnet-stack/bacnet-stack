@@ -36,11 +36,11 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 
-// encode service
+/* encode service */
 int reject_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id, uint8_t reject_reason)
 {
-    int apdu_len = 0;           // total length of the apdu, return value
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_REJECT;
@@ -52,7 +52,7 @@ int reject_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-// decode the service request only
+/* decode the service request only */
 int reject_decode_service_request(uint8_t * apdu,
     unsigned apdu_len, uint8_t * invoke_id, uint8_t * reject_reason)
 {
@@ -68,7 +68,7 @@ int reject_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-// decode the whole APDU - mainly used for unit testing
+/* decode the whole APDU - mainly used for unit testing */
 int reject_decode_apdu(uint8_t * apdu,
     unsigned apdu_len, uint8_t * invoke_id, uint8_t * reject_reason)
 {
@@ -76,7 +76,7 @@ int reject_decode_apdu(uint8_t * apdu,
 
     if (!apdu)
         return -1;
-    // optional checking - most likely was already done prior to this call
+    /* optional checking - most likely was already done prior to this call */
     if (apdu_len) {
         if (apdu[0] != PDU_TYPE_REJECT)
             return -1;
@@ -114,24 +114,24 @@ void testReject(Test * pTest)
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_reject_reason == reject_reason);
 
-    // change type to get negative response
+    /* change type to get negative response */
     apdu[0] = PDU_TYPE_ABORT;
     len = reject_decode_apdu(&apdu[0],
         apdu_len, &test_invoke_id, &test_reject_reason);
     ct_test(pTest, len == -1);
 
-    // test NULL APDU
+    /* test NULL APDU */
     len = reject_decode_apdu(NULL,
         apdu_len, &test_invoke_id, &test_reject_reason);
     ct_test(pTest, len == -1);
 
-    // force a zero length
+    /* force a zero length */
     len = reject_decode_apdu(&apdu[0],
         0, &test_invoke_id, &test_reject_reason);
     ct_test(pTest, len == 0);
 
 
-    // check them all...  
+    /* check them all...   */
     for (invoke_id = 0; invoke_id < 255; invoke_id++) {
         for (reject_reason = 0; reject_reason < 255; reject_reason++) {
             len = reject_encode_apdu(&apdu[0], invoke_id, reject_reason);

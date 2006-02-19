@@ -76,7 +76,7 @@ extern "C" {
     const char *Device_Location(void);
     bool Device_Set_Location(const char *name, size_t length);
 
-// some stack-centric constant values - no set methods
+/* some stack-centric constant values - no set methods */
     uint8_t Device_Protocol_Version(void);
     uint8_t Device_Protocol_Revision(void);
     uint16_t Device_Max_APDU_Length_Accepted(void);

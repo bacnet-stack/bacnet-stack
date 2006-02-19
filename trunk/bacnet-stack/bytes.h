@@ -1,4 +1,4 @@
-// Defines the bit/byte/word/long conversions that are used in code
+/* Defines the bit/byte/word/long conversions that are used in code */
 
 
 #ifndef BYTES_H
@@ -67,4 +67,4 @@
 
 
 
-#endif                          // end of header file
+#endif                          /* end of header file */

@@ -41,13 +41,13 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-// encode service
+/* encode service */
     int rd_encode_apdu(uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_REINITIALIZED_STATE state,
         BACNET_CHARACTER_STRING * password);
 
-// decode the service request only
+/* decode the service request only */
     int rd_decode_service_request(uint8_t * apdu,
         unsigned apdu_len,
         BACNET_REINITIALIZED_STATE * state,

@@ -72,7 +72,7 @@ extern "C" {
         bool value);
     bool bitstring_bit(BACNET_BIT_STRING * bit_string, uint8_t bit);
     uint8_t bitstring_bits_used(BACNET_BIT_STRING * bit_string);
-// returns the number of bytes that a bit string is using
+/* returns the number of bytes that a bit string is using */
     int bitstring_bytes_used(BACNET_BIT_STRING * bit_string);
     uint8_t bitstring_bits_capacity(BACNET_BIT_STRING * bit_string);
 /* used for encoding and decoding from the APDU */

@@ -55,7 +55,7 @@ void handler_write_property(uint8_t * service_request,
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     int bytes_sent = 0;
 
-    // decode the service request only
+    /* decode the service request only */
     len = wp_decode_service_request(service_request,
         service_len, &wp_data);
     fprintf(stderr, "Received Write-Property Request!\n");
@@ -66,12 +66,12 @@ void handler_write_property(uint8_t * service_request,
             wp_data.object_property, wp_data.array_index);
     else
         fprintf(stderr, "Unable to decode Write-Property Request!\n");
-    // prepare a reply
+    /* prepare a reply */
     datalink_get_my_address(&my_address);
-    // encode the NPDU portion of the packet
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], src, &my_address, false,    // true for confirmed messages
+    /* encode the NPDU portion of the packet */
+    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], src, &my_address, false,    /* true for confirmed messages */
         MESSAGE_PRIORITY_NORMAL);
-    // bad decoding or something we didn't understand - send an abort
+    /* bad decoding or something we didn't understand - send an abort */
     if (len == -1) {
         pdu_len += abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER);
@@ -134,8 +134,8 @@ void handler_write_property(uint8_t * service_request,
             break;
         }
     }
-    bytes_sent = datalink_send_pdu(src, // destination address
-        &Handler_Transmit_Buffer[0], pdu_len);  // number of bytes of data
+    bytes_sent = datalink_send_pdu(src, /* destination address */
+        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
 

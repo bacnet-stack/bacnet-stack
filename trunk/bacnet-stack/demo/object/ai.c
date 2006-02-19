@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-// Analog Input Objects customize for your use
+/* Analog Input Objects customize for your use */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -31,13 +31,13 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
-#include "config.h"             // the custom stuff
+#include "config.h"             /* the custom stuff */
 
 #define MAX_ANALOG_INPUTS 7
 
-// we simply have 0-n object instances.  Yours might be
-// more complex, and then you need validate that the
-// given instance exists
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then you need validate that the */
+/* given instance exists */
 bool Analog_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ANALOG_INPUTS)
@@ -46,16 +46,16 @@ bool Analog_Input_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-// we simply have 0-n object instances.  Yours might be
-// more complex, and then count how many you have
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then count how many you have */
 unsigned Analog_Input_Count(void)
 {
     return MAX_ANALOG_INPUTS;
 }
 
-// we simply have 0-n object instances.  Yours might be
-// more complex, and then you need to return the instance
-// that correlates to the correct index
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then you need to return the instance */
+/* that correlates to the correct index */
 uint32_t Analog_Input_Index_To_Instance(unsigned index)
 {
     return index;
@@ -81,7 +81,7 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
     int32_t array_index,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
-    int apdu_len = 0;           // return value
+    int apdu_len = 0;           /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     float value = 3.14;
@@ -149,7 +149,7 @@ void testAnalogInput(Test * pTest)
     BACNET_ERROR_CODE error_code;
 
 
-    // FIXME: we should do a lot more testing here...
+    /* FIXME: we should do a lot more testing here... */
     len = Analog_Input_Encode_Property_APDU(&apdu[0],
         instance,
         PROP_OBJECT_IDENTIFIER,

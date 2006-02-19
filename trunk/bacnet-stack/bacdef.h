@@ -39,23 +39,23 @@
 #include "bacenum.h"
 #include "config.h"
 
-// largest BACnet Instance Number
-// Also used as a device instance number wildcard address
+/* largest BACnet Instance Number */
+/* Also used as a device instance number wildcard address */
 #define BACNET_MAX_INSTANCE (0x3FFFFF)
 #define BACNET_INSTANCE_BITS 22
-// large BACnet Object Type
+/* large BACnet Object Type */
 #define BACNET_MAX_OBJECT (0x3FF)
-// Array index 0=size of array, n=array element n,  MAX=all array elements
+/* Array index 0=size of array, n=array element n,  MAX=all array elements */
 #define BACNET_ARRAY_LENGTH_INDEX 0
 #define BACNET_ARRAY_ALL (~0)
-// Priority Array for commandable objects
+/* Priority Array for commandable objects */
 #define BACNET_NO_PRIORITY 0
 #define BACNET_MIN_PRIORITY 1
 #define BACNET_MAX_PRIORITY 16
 
-// embedded systems need fixed name sizes
+/* embedded systems need fixed name sizes */
 #define MAX_OBJECT_NAME 10
-// common object properties
+/* common object properties */
 typedef struct BACnet_Object_Data {
     uint32_t Object_Identifier;
     char Object_Name[MAX_OBJECT_NAME];
@@ -63,20 +63,20 @@ typedef struct BACnet_Object_Data {
 } BACNET_OBJECT_DATA;
 
 #define BACNET_BROADCAST_NETWORK 0xFFFF
-// IPv6 (16 octets) coupled with port number (2 octets)
+/* IPv6 (16 octets) coupled with port number (2 octets) */
 #define MAX_MAC_LEN 18
 struct BACnet_Device_Address {
-    // mac_len = 0 if global address
+    /* mac_len = 0 if global address */
     int mac_len;
-    // note: MAC for IP addresses uses 4 bytes for addr, 2 bytes for port
-    // use de/encode_unsigned32/16 for re/storing the IP address
+    /* note: MAC for IP addresses uses 4 bytes for addr, 2 bytes for port */
+    /* use de/encode_unsigned32/16 for re/storing the IP address */
     uint8_t mac[MAX_MAC_LEN];
-    // DNET,DLEN,DADR or SNET,SLEN,SADR
-    // the following are used if the device is behind a router
-    // net = 0 indicates local
+    /* DNET,DLEN,DADR or SNET,SLEN,SADR */
+    /* the following are used if the device is behind a router */
+    /* net = 0 indicates local */
     uint16_t net;               /* BACnet network number */
-    // LEN = 0 denotes broadcast MAC ADR and ADR field is absent
-    // LEN > 0 specifies length of ADR field
+    /* LEN = 0 denotes broadcast MAC ADR and ADR field is absent */
+    /* LEN > 0 specifies length of ADR field */
     int len;                    /* length of MAC address */
     uint8_t adr[MAX_MAC_LEN];   /* hwaddr (MAC) address */
 };

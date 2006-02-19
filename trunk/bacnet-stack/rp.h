@@ -50,11 +50,11 @@ typedef struct BACnet_Read_Property_Data {
 extern "C" {
 #endif                          /* __cplusplus */
 
-// encode service
+/* encode service */
     int rp_encode_apdu(uint8_t * apdu,
         uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data);
 
-// decode the service request only
+/* decode the service request only */
     int rp_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, BACNET_READ_PROPERTY_DATA * data);
 
@@ -65,10 +65,10 @@ extern "C" {
     int rp_ack_encode_apdu(uint8_t * apdu,
         uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data);
 
-    int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len,     // total length of the apdu
+    int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len,     /* total length of the apdu */
         BACNET_READ_PROPERTY_DATA * data);
 
-    int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,        // total length of the apdu
+    int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,        /* total length of the apdu */
         uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * data);
 
 
