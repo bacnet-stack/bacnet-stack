@@ -147,7 +147,7 @@ int whohas_decode_apdu(uint8_t * apdu,
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
         return -1;
-    if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS)
+    if (apdu[1] != SERVICE_UNCONFIRMED_WHO_HAS)
         return -1;
     /* optional limits - must be used as a pair */
     if (apdu_len > 2) {
