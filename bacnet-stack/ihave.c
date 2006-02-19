@@ -157,7 +157,7 @@ void testIHave(Test * pTest)
 {
     BACNET_I_HAVE_DATA data;
 
-    characterstring_init_ansi(&data.object_name, "patricia");
+    characterstring_init_ansi(&data.object_name, "Patricia - my love!");
     data.device_id.type = OBJECT_DEVICE;
     for (data.device_id.instance = 1;
         data.device_id.instance <= BACNET_MAX_INSTANCE;
