@@ -14,3 +14,10 @@ do
   echo Indenting $filename
   indent -kr -nut -nlp $filename
 done
+
+for filename in $( find $directory -name '*~' )
+do
+  echo Removing backup $filename
+  rm $filename
+done
+
