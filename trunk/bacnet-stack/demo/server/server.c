@@ -82,9 +82,9 @@ static void cleanup(void)
     datalink_cleanup();
 }
 
-static void print_address(char *name, BACNET_ADDRESS * dest)    // destination address
-{
-    int i = 0;                  // counter
+static void print_address(char *name, BACNET_ADDRESS * dest)
+{                               /* destination address */
+    int i = 0;                  /* counter */
 
     if (dest) {
         printf("%s: ", name);
@@ -97,9 +97,9 @@ static void print_address(char *name, BACNET_ADDRESS * dest)    // destination a
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; // address where message came from
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     // milliseconds
+    unsigned timeout = 100;     /* milliseconds */
     BACNET_ADDRESS my_address, broadcast_address;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
         Device_Object_Instance_Number());
     Init_Service_Handlers();
 #ifdef BACDL_ETHERNET
-    // init the physical layer
+    /* init the physical layer */
     if (!ethernet_init("eth0"))
         return 1;
 #endif
@@ -136,15 +136,15 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     /* broadcast an I-Am on startup */
     I_Am_Request = true;
-    // loop forever
+    /* loop forever */
     for (;;) {
-        // input
+        /* input */
         current_seconds = time(NULL);
 
-        // returns 0 bytes on timeout
+        /* returns 0 bytes on timeout */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
-        // process
+        /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
             I_Am_Request = false;
             iam_send(&Handler_Transmit_Buffer[0]);
         }
-        // output
+        /* output */
 
-        // blink LEDs, Turn on or off outputs, etc
+        /* blink LEDs, Turn on or off outputs, etc */
     }
 }

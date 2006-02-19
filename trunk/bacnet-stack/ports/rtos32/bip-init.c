@@ -32,12 +32,12 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>             // for standard integer types uint8_t etc.
-#include <stdbool.h>            // for the standard bool type.
+#include <stdint.h>             /* for standard integer types uint8_t etc. */
+#include <stdbool.h>            /* for the standard bool type. */
 #include "bip.h"
 
 #if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
-static int interface = SOCKET_ERROR;    // SOCKET_ERROR means no open interface
+static int interface = SOCKET_ERROR;    /* SOCKET_ERROR means no open interface */
 #endif
 
 void bip_set_interface(char *ifname)
@@ -73,50 +73,50 @@ void InterfaceCleanup(void)
 #endif
 
 static void NetInitialize(void)
-// initialize the TCP/IP stack
+/* initialize the TCP/IP stack */
 {
     int Result;
 
 #ifndef HOST
 
-    RTKernelInit(0);            // get the kernel going
+    RTKernelInit(0);            /* get the kernel going */
 
-    if (!RTKDebugVersion())     // switch of all diagnostics and error messages of RTIP-32
+    if (!RTKDebugVersion())     /* switch of all diagnostics and error messages of RTIP-32 */
         xn_callbacks()->cb_wr_screen_string_fnc = NULL;
 
-    CLKSetTimerIntVal(10 * 1000);       // 10 millisecond tick
+    CLKSetTimerIntVal(10 * 1000);       /* 10 millisecond tick */
     RTKDelay(1);
-    RTCMOSSetSystemTime();      // get the right time-of-day
+    RTCMOSSetSystemTime();      /* get the right time-of-day */
 
 #ifdef RTUSB_VER
-    RTURegisterCallback(USBAX172);      // ax172 and ax772 drivers
+    RTURegisterCallback(USBAX172);      /* ax172 and ax772 drivers */
     RTURegisterCallback(USBAX772);
-    RTURegisterCallback(USBKeyboard);   // support USB keyboards
-    FindUSBControllers();       // install USB host controllers
-    Sleep(2000);                // give the USB stack time to enumerate devices
+    RTURegisterCallback(USBKeyboard);   /* support USB keyboards */
+    FindUSBControllers();       /* install USB host controllers */
+    Sleep(2000);                /* give the USB stack time to enumerate devices */
 #endif
 
 #ifdef DHCP
-    XN_REGISTER_DHCP_CLI()      // and optionally the DHCP client
+    XN_REGISTER_DHCP_CLI()      /* and optionally the DHCP client */
 #endif
-        Result = xn_rtip_init();        // Initialize the RTIP stack
+        Result = xn_rtip_init();        /* Initialize the RTIP stack */
     if (Result != 0)
         Error("xn_rtip_init failed");
 
-    atexit(InterfaceCleanup);   // make sure the driver is shut down properly
-    RTCallDebugger(RT_DBG_CALLRESET, (DWORD) exit, 0);  // even if we get restarted by the debugger
+    atexit(InterfaceCleanup);   /* make sure the driver is shut down properly */
+    RTCallDebugger(RT_DBG_CALLRESET, (DWORD) exit, 0);  /* even if we get restarted by the debugger */
 
-    Result = BIND_DRIVER(MINOR_0);      // tell RTIP what Ethernet driver we want (see netcfg.h)
+    Result = BIND_DRIVER(MINOR_0);      /* tell RTIP what Ethernet driver we want (see netcfg.h) */
     if (Result != 0)
         Error("driver initialization failed");
 
 #if DEVICE_ID == PRISM_PCMCIA_DEVICE
-    // if this is a PCMCIA device, start the PCMCIA driver
+    /* if this is a PCMCIA device, start the PCMCIA driver */
     if (RTPCInit(-1, 0, 2, NULL) == 0)
         Error("No PCMCIA controller found");
 #endif
 
-    // Open the interface
+    /* Open the interface */
     interface =
         xn_interface_open_config(DEVICE_ID, MINOR_0, ED_IO_ADD, ED_IRQ,
         ED_MEM_ADD);
@@ -143,29 +143,29 @@ static void NetInitialize(void)
     }
 
 #if DEVICE_ID == PRISM_PCMCIA_DEVICE || DEVICE_ID == PRISM_DEVICE
-    xn_wlan_setup(interface,    // iface_no: value returned by xn_interface_open_config()
-        "network name",         // SSID    : network name set in the access point
-        "station name",         // Name    : name of this node
-        0,                      // Channel : 0 for access points, 1..14 for ad-hoc
-        0,                      // KeyIndex: 0 .. 3
-        "12345",                // WEP Key : key to use (5 or 13 bytes)
-        0);                     // Flags   : see manual and Wlanapi.h for details
-    Sleep(1000);                // wireless devices need a little time before they can be used
-#endif                          // WLAN device
+    xn_wlan_setup(interface,    /* iface_no: value returned by xn_interface_open_config() */
+        "network name",         /* SSID    : network name set in the access point */
+        "station name",         /* Name    : name of this node */
+        0,                      /* Channel : 0 for access points, 1..14 for ad-hoc */
+        0,                      /* KeyIndex: 0 .. 3 */
+        "12345",                /* WEP Key : key to use (5 or 13 bytes) */
+        0);                     /* Flags   : see manual and Wlanapi.h for details */
+    Sleep(1000);                /* wireless devices need a little time before they can be used */
+#endif                          /* WLAN device */
 
-#if defined(AUTO_IP)            // use xn_autoip() to get an IP address
+#if defined(AUTO_IP)            /* use xn_autoip() to get an IP address */
     Result = xn_autoip(interface, MinIP, MaxIP, NetMask, TargetIP);
     if (Result == SOCKET_ERROR)
         Error("xn_autoip failed");
     else {
         printf("Auto-assigned IP address %i.%i.%i.%i\n", TargetIP[0],
             TargetIP[1], TargetIP[2], TargetIP[3]);
-        // define default gateway and DNS server
+        /* define default gateway and DNS server */
         xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1, interface,
             RT_INF);
         xn_set_server_list((DWORD *) DNSServer, 1);
     }
-#elif defined(DHCP)             // use DHCP
+#elif defined(DHCP)             /* use DHCP */
     {
         DHCP_param param[] = { {SUBNET_MASK, 1}
         , {DNS_OP, 1}
@@ -174,11 +174,11 @@ static void NetInitialize(void)
         DHCP_session DS;
         DHCP_conf DC;
 
-        xn_init_dhcp_conf(&DC); // load default DHCP options
-        DC.plist = param;       // add MASK, DNS, and gateway options
+        xn_init_dhcp_conf(&DC); /* load default DHCP options */
+        DC.plist = param;       /* add MASK, DNS, and gateway options */
         DC.plist_entries = sizeof(param) / sizeof(param[0]);
         printf("Contacting DHCP server, please wait...\n");
-        Result = xn_dhcp(interface, &DS, &DC);  // contact DHCP server
+        Result = xn_dhcp(interface, &DS, &DC);  /* contact DHCP server */
         if (Result == SOCKET_ERROR)
             Error("xn_dhcp failed");
         memcpy(TargetIP, DS.client_ip, 4);
@@ -186,16 +186,16 @@ static void NetInitialize(void)
             TargetIP[2], TargetIP[3]);
     }
 #else
-    // Set the IP address and interface
+    /* Set the IP address and interface */
     printf("Using static IP address %i.%i.%i.%i\n", TargetIP[0],
         TargetIP[1], TargetIP[2], TargetIP[3]);
     Result = xn_set_ip(interface, TargetIP, NetMask);
-    // define default gateway and DNS server
+    /* define default gateway and DNS server */
     xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1, interface, RT_INF);
     xn_set_server_list((DWORD *) DNSServer, 1);
 #endif
 
-#else                           // HOST defined, run on Windows
+#else                           /* HOST defined, run on Windows */
 
     WSADATA wd;
     Result = WSAStartup(0x0101, &wd);
@@ -209,7 +209,7 @@ static void NetInitialize(void)
 
 bool bip_init(void)
 {
-    int rv = 0;                 // return from socket lib calls
+    int rv = 0;                 /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
     int value = 1;
     int sock_fd = -1;
@@ -218,7 +218,7 @@ bool bip_init(void)
 
     bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
 
-    // FIXME:
+    /* FIXME: */
 #if 0
     bip_set_address(NetMask[0], NetMask[1], NetMask[2], NetMask[3]);
     extern unsigned long bip_get_addr(void);
@@ -232,13 +232,13 @@ bool bip_init(void)
     bip_set_port(0xBAC0);
 #endif
 
-    // assumes that the driver has already been initialized
+    /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);
     bip_set_socket(sock_fd);
     if (sock_fd < 0)
         return false;
 
-    // bind the socket to the local port number and IP address
+    /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(bip_get_port());

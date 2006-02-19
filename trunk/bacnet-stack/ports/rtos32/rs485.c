@@ -29,7 +29,7 @@
 #include <itimer.h>
 #include "mstp.h"
 
-// note: use the RTKernel-C API so that it can use this library
+/* note: use the RTKernel-C API so that it can use this library */
 
 #define RS485_IO_ENABLE(p)       ModemControl(p,0,DTR);
 #define RS485_TRANSMIT_ENABLE(p) ModemControl(p,1,RTS);
@@ -101,11 +101,11 @@ void RS485_Initialize(void)
     RS485_Open_Port(RS485_Port, RS485_Baud, RS485_Base, RS485_IRQ_Number);
 }
 
-void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    // port specific data
-    uint8_t * buffer,           // frame to send (up to 501 bytes of data)
-    uint16_t nbytes)            // number of bytes of data (up to 501)
-{
-    bool status = true;         // return value
+void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port specific data */
+    uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
+    uint16_t nbytes)
+{                               /* number of bytes of data (up to 501) */
+    bool status = true;         /* return value */
 
     (void) mstp_port;
     RS485_TRANSMIT_ENABLE(RS485_Port);
@@ -119,23 +119,23 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    // port 
     return;
 }
 
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)       // port specific data
-{
+void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+{                               /* port specific data */
     COMData com_data = 0;       /* byte from COM driver */
-    unsigned timeout = 10;      // milliseconds to wait for a character
+    unsigned timeout = 10;      /* milliseconds to wait for a character */
     Duration ticks;             /* duration to wait for data */
 
     if (mstp_port->ReceiveError) {
-        // wait for state machine to clear this
+        /* wait for state machine to clear this */
     }
-    // wait for state machine to read from the DataRegister
+    /* wait for state machine to read from the DataRegister */
     else if (!mstp_port->DataAvailable) {
-        // check for data
+        /* check for data */
         ticks = MilliSecsToTicks(timeout);
         if (!ticks)
             ticks = 1;
         if (RTKGetTimed(ReceiveBuffer[RS485_Port], &com_data, ticks)) {
-            // if error,
+            /* if error, */
             if (com_data & (COM_OVERRUN << 8))
                 mstp_port->ReceiveError = true;
             else if (com_data & (COM_FRAME << 8))
@@ -150,5 +150,5 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)       
 
 void RS485_Process_Tx_Message(void)
 {
-    // nothing to do
+    /* nothing to do */
 }

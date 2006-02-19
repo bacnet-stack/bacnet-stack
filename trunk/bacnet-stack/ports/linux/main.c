@@ -44,10 +44,10 @@
 #include "net.h"
 #include "txbuf.h"
 
-// This is an example application using the BACnet Stack on Linux
+/* This is an example application using the BACnet Stack on Linux */
 bool Who_Is_Request = true;
 
-// buffers used for receiving
+/* buffers used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 static void LocalIAmHandler(uint8_t * service_request,
@@ -134,7 +134,7 @@ static void Read_Properties(void)
                    invoke ID from the sending of the request, and wait until we
                    got the reply with matching invoke ID or the TSM of the
                    invoke ID expired.  This demo is doing things asynchronously. */
-                status = Send_Read_Property_Request(device_id,  // destination device
+                status = Send_Read_Property_Request(device_id,  /* destination device */
                     OBJECT_DEVICE,
                     device_id, object_props[property], BACNET_ARRAY_ALL);
                 if (status)
@@ -156,25 +156,25 @@ static void Read_Properties(void)
 
 static void Init_Service_Handlers(void)
 {
-    // we need to handle who-is to support dynamic device binding
+    /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
         handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
         LocalIAmHandler);
 
-    // set the handler for all the services we don't implement
-    // It is required to send the proper reject message...
+    /* set the handler for all the services we don't implement */
+    /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
-    // Set the handlers for any confirmed services that we support.
-    // We must implement read property - it's required!
+    /* Set the handlers for any confirmed services that we support. */
+    /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
         handler_atomic_read_file);
-    // handle the data coming back from confirmed requests
+    /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property_ack);
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
@@ -223,23 +223,23 @@ static void sig_handler(int signo)
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; // address where message came from
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     // milliseconds
-    unsigned count = 0;         // milliseconds
+    unsigned timeout = 100;     /* milliseconds */
+    unsigned count = 0;         /* milliseconds */
     time_t start_time;
     time_t new_time = 0;
 
     start_time = time(NULL);    /* get current time */
-    // Linux specials
+    /* Linux specials */
     signal(SIGINT, sig_handler);
     signal(SIGHUP, sig_handler);
     signal(SIGTERM, sig_handler);
-    // setup this BACnet Server device
+    /* setup this BACnet Server device */
     Device_Set_Object_Instance_Number(111);
     Init_Service_Handlers();
 #ifdef BACDL_ETHERNET
-    // init the physical layer
+    /* init the physical layer */
     if (!ethernet_init("eth0"))
         return 1;
 #endif
@@ -254,14 +254,14 @@ int main(int argc, char *argv[])
         return 1;
 #endif
 
-    // loop forever
+    /* loop forever */
     for (;;) {
-        // input
+        /* input */
         new_time = time(NULL);
-        // returns 0 bytes on timeout
+        /* returns 0 bytes on timeout */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
-        // process
+        /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
@@ -276,13 +276,13 @@ int main(int argc, char *argv[])
             Who_Is_Request = false;
             Send_WhoIs(-1, -1);
         }
-        // output
-        // some round robin task switching
+        /* output */
+        /* some round robin task switching */
         count++;
         switch (count) {
         case 1:
-            // used for testing, but kind of noisy on the network
-            //Read_Properties();
+            /* used for testing, but kind of noisy on the network */
+            /*Read_Properties(); */
             break;
         case 2:
             break;
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
             break;
         }
 
-        // blink LEDs, Turn on or off outputs, etc
+        /* blink LEDs, Turn on or off outputs, etc */
     }
 
     return 0;
