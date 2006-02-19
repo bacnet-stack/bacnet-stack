@@ -2,13 +2,21 @@ This software runs on many platforms, and can be compiled with a number of
 different compilers; here are some rules for writing code that will work
 on multiple platforms.
 
+Regarding tabs, indenting, and code style: we run "indent -kr -nut -nlp"
+on the code prior to releasing it.  This ensures a standard look and feel
+to the code regardless of the authors preferred style.  You may certainly
+adjust the code to your preferred style using the indent tool.  We use the
+script indent.sh to adjust all the .c and .h files.
+
 Don't use C++-style comments (comments beginning with "//" and running
 to the end of the line) for modules that are written in C.  The module
 may run through C rather than C++ compilers, and not all C compilers
 support C++-style comments (GCC does, but IBM's C compiler for AIX, for
-example, doesn't do so by default).  Note: there is a program
+example, doesn't do so by default).  Note: there is an application
 called usr/bin/ccmtcnvt in the liwc package that converts the C++
-comments to C comments.
+comments to C comments.  There is a script utilizing ccmtcnvt called
+comment.sh created for this project that searches all the c and h files
+for C++ headers and converts them.
 
 Don't initialize variables in their declaration with non-constant
 values. Not all compilers support this. E.g. don't use
