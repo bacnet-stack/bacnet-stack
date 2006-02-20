@@ -45,7 +45,7 @@
 #include "net.h"
 #include "txbuf.h"
 
-/* This is an example application using the BACnet Stack */
+/* This is an example server application using the BACnet Stack */
 
 /* buffers used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     /* configure the timeout values */
     last_seconds = time(NULL);
     /* broadcast an I-Am on startup */
-    I_Am_Request = true;
+    iam_send(&Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {
         /* input */
@@ -151,11 +151,6 @@ int main(int argc, char *argv[])
         /* at least one second has passed */
         if (current_seconds != last_seconds)
             dcc_timer_seconds(current_seconds - last_seconds);
-        /* send out the I-Am if requested */
-        if (I_Am_Request) {
-            I_Am_Request = false;
-            iam_send(&Handler_Transmit_Buffer[0]);
-        }
         /* output */
 
         /* blink LEDs, Turn on or off outputs, etc */

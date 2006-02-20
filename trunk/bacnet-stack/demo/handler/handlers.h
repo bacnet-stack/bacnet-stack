@@ -32,9 +32,6 @@
 #include "apdu.h"
 #include "bacapp.h"
 
-/* flag requesting main loop to send an I-Am */
-extern bool I_Am_Request;
-
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */

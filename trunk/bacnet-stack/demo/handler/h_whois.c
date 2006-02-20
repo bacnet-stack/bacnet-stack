@@ -33,9 +33,8 @@
 #include "bacdcode.h"
 #include "whois.h"
 #include "device.h"
-
-/* global flag to send an I-Am */
-bool I_Am_Request = true;
+#include "client.h"
+#include "txbuf.h"
 
 void handler_who_is(uint8_t * service_request,
     uint16_t service_len, BACNET_ADDRESS * src)
@@ -50,11 +49,15 @@ void handler_who_is(uint8_t * service_request,
     /* in our simple system, we just set a flag and let the main loop
        send the I-Am request. */
     if (len == 0)
-        I_Am_Request = true;
+        iam_send(&Handler_Transmit_Buffer[0]);
     else if (len != -1) {
-        if ((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t) high_limit))
-            I_Am_Request = true;
+        /* is my device id within the limits? */
+        if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
+            (Device_Object_Instance_Number() <= (uint32_t) high_limit)) ||
+            /* BACnet wildcard is the max instance number - everyone responds */
+            ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
+             (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
+            iam_send(&Handler_Transmit_Buffer[0]);
     }
 
     return;
