@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-/* WRITEPROP: command line tool that writes a property to a BACnet device. */
+/* command line tool that sends a BACnet service, and displays the reply */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -309,30 +309,25 @@ int main(int argc, char *argv[])
                         last_seconds) * 1000));
         if (Error_Detected)
             break;
-        if (I_Am_Request) {
-            I_Am_Request = false;
-            iam_send(&Handler_Transmit_Buffer[0]);
+        /* wait until the device is bound, or timeout and quit */
+        found = address_bind_request(Target_Device_Object_Instance,
+            &max_apdu, &Target_Address);
+        if (found) {
+            if (invoke_id == 0) {
+                invoke_id =
+                    Send_Write_Property_Request
+                    (Target_Device_Object_Instance, Target_Object_Type,
+                    Target_Object_Instance, Target_Object_Property,
+                    &Target_Object_Property_Value,
+                    Target_Object_Property_Priority,
+                    Target_Object_Property_Index);
+            } else if (tsm_invoke_id_free(invoke_id))
+                break;
         } else {
-            /* wait until the device is bound, or timeout and quit */
-            found = address_bind_request(Target_Device_Object_Instance,
-                &max_apdu, &Target_Address);
-            if (found) {
-                if (invoke_id == 0) {
-                    invoke_id =
-                        Send_Write_Property_Request
-                        (Target_Device_Object_Instance, Target_Object_Type,
-                        Target_Object_Instance, Target_Object_Property,
-                        &Target_Object_Property_Value,
-                        Target_Object_Property_Priority,
-                        Target_Object_Property_Index);
-                } else if (tsm_invoke_id_free(invoke_id))
-                    break;
-            } else {
-                /* increment timer - exit if timed out */
-                elapsed_seconds += (current_seconds - last_seconds);
-                if (elapsed_seconds > timeout_seconds)
-                    break;
-            }
+            /* increment timer - exit if timed out */
+            elapsed_seconds += (current_seconds - last_seconds);
+            if (elapsed_seconds > timeout_seconds)
+                break;
         }
         /* keep track of time for next check */
         last_seconds = current_seconds;

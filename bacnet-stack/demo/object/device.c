@@ -609,9 +609,6 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     return apdu_len;
 }
 
-/* we can send an I-Am when our device ID changes */
-extern bool I_Am_Request;
-
 /* returns true if successful */
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
@@ -630,7 +627,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             if ((wp_data->value.type.Object_Id.type == OBJECT_DEVICE) &&
                 (Device_Set_Object_Instance_Number(wp_data->value.type.
                         Object_Id.instance))) {
-                I_Am_Request = true;
+                /* we could send an I-Am broadcast to let the world know */
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -807,8 +804,6 @@ uint32_t bacfile_index_to_instance(unsigned find_index)
 {
     return find_index;
 }
-
-bool I_Am_Request = false;
 
 int main(void)
 {

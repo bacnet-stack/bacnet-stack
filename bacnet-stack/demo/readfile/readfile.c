@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-/* READFILE: command line tool that reads a file from a BACnet device. */
+/* command line tool that sends a BACnet service, and displays the reply */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -335,43 +335,38 @@ int main(int argc, char *argv[])
                         last_seconds) * 1000));
         if (End_Of_File_Detected || Error_Detected)
             break;
-        if (I_Am_Request) {
-            I_Am_Request = false;
-            iam_send(&Handler_Transmit_Buffer[0]);
-        } else {
-            /* wait until the device is bound, or timeout and quit */
-            found = address_bind_request(Target_Device_Object_Instance,
-                &max_apdu, &Target_Address);
-            if (found) {
-                /* calculate the smaller of our APDU size or theirs
-                   and remove the overhead of the APDU (about 16 octets max).
-                   note: we could fail if there is a bottle neck (router)
-                   and smaller MPDU in betweeen. */
-                if (max_apdu < MAX_APDU)
-                    my_max_apdu = max_apdu;
-                else
-                    my_max_apdu = MAX_APDU;
-                requestedOctetCount = my_max_apdu - 16;
-                /* has the previous invoke id expired or returned?
-                   note: invoke ID = 0 is invalid, so it will be idle */
-                if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id)) {
-                    if (invoke_id != 0)
-                        fileStartPosition += requestedOctetCount;
-                    /* we'll read the file in chunks
-                       less than max_apdu to keep unsegmented */
-                    invoke_id =
-                        Send_Atomic_Read_File_Stream
-                        (Target_Device_Object_Instance,
-                        Target_File_Object_Instance, fileStartPosition,
-                        requestedOctetCount);
-                    Current_Invoke_ID = invoke_id;
-                }
-            } else {
-                /* increment timer - exit if timed out */
-                elapsed_seconds += (current_seconds - last_seconds);
-                if (elapsed_seconds > timeout_seconds)
-                    break;
+        /* wait until the device is bound, or timeout and quit */
+        found = address_bind_request(Target_Device_Object_Instance,
+            &max_apdu, &Target_Address);
+        if (found) {
+            /* calculate the smaller of our APDU size or theirs
+               and remove the overhead of the APDU (about 16 octets max).
+               note: we could fail if there is a bottle neck (router)
+               and smaller MPDU in betweeen. */
+            if (max_apdu < MAX_APDU)
+                my_max_apdu = max_apdu;
+            else
+                my_max_apdu = MAX_APDU;
+            requestedOctetCount = my_max_apdu - 16;
+            /* has the previous invoke id expired or returned?
+               note: invoke ID = 0 is invalid, so it will be idle */
+            if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id)) {
+                if (invoke_id != 0)
+                    fileStartPosition += requestedOctetCount;
+                /* we'll read the file in chunks
+                   less than max_apdu to keep unsegmented */
+                invoke_id =
+                    Send_Atomic_Read_File_Stream
+                    (Target_Device_Object_Instance,
+                    Target_File_Object_Instance, fileStartPosition,
+                    requestedOctetCount);
+                Current_Invoke_ID = invoke_id;
             }
+        } else {
+            /* increment timer - exit if timed out */
+            elapsed_seconds += (current_seconds - last_seconds);
+            if (elapsed_seconds > timeout_seconds)
+                break;
         }
         /* keep track of time for next check */
         last_seconds = current_seconds;
