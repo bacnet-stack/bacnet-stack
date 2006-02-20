@@ -32,6 +32,8 @@
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
+#include "arf.h"
+#include "tsm.h"
 #include "address.h"
 #include "config.h"
 #include "bacdef.h"
@@ -40,6 +42,7 @@
 #include "device.h"
 #include "net.h"
 #include "datalink.h"
+#include "whohas.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -50,8 +53,9 @@
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
-static int32_t Target_Object_Instance_Min = 0;
-static int32_t Target_Object_Instance_Max = BACNET_MAX_INSTANCE;
+static BACNET_OBJECT_TYPE Target_Object_Type = MAX_BACNET_OBJECT_TYPE;
+static uint32_t Target_Object_Instance = BACNET_MAX_INSTANCE;
+static char *Target_Object_Name = NULL;
 
 static bool Error_Detected = false;
 
@@ -91,8 +95,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the reply (request) coming back */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
-        handler_i_am_add);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_HAVE,
+        handler_i_have);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
@@ -113,27 +117,6 @@ static void print_address(char *name, BACNET_ADDRESS * dest)
 }
 #endif
 
-static void print_address_cache(void)
-{
-    int i, j;
-    BACNET_ADDRESS address;
-    uint32_t device_id = 0;
-    unsigned max_apdu = 0;
-
-    fprintf(stderr, "Device\tMAC\tMaxAPDU\tNet\n");
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
-            fprintf(stderr, "%u\t", device_id);
-            for (j = 0; j < address.mac_len; j++) {
-                fprintf(stderr, "%02X", address.mac[j]);
-            }
-            fprintf(stderr, "\t");
-            fprintf(stderr, "%hu\t", max_apdu);
-            fprintf(stderr, "%hu\n", address.net);
-        }
-    }
-}
-
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -148,38 +131,34 @@ int main(int argc, char *argv[])
 #endif
 
     if (argc < 2) {
-        printf("Usage: %s device-instance | device-instance-min device-instance-max\r\n"
-            "Send BACnet WhoIs request to devices, and wait for responses.\r\n"
+        /* note: priority 16 and 0 should produce the same end results... */
+        printf("Usage: %s <object-type object-instance | object-name>\r\n"
+            "Send BACnet WhoHas request to devices, and wait for responses.\r\n"
             "\r\n"
-            "The device-instance can be 0 to %d, or -1 for ALL.\r\n"
-            "The device-instance can also be specified as a range.\r\n",
+            "Use either:\r\n"
+            "The object-type can be 0 to %d.\r\n"
+            "The object-instance can be 0 to %d.\r\n"
+            "or:\r\n"
+            "The object-name can be any string of characters.\r\n",
             filename_remove_path(argv[0]),
-            BACNET_MAX_INSTANCE);
+            MAX_BACNET_OBJECT_TYPE - 1, BACNET_MAX_INSTANCE);
         return 0;
     }
     /* decode the command line parameters */
     if (argc < 3) {
-        Target_Object_Instance_Min = strtol(argv[1], NULL, 0);
-        Target_Object_Instance_Max = Target_Object_Instance_Min;
-        if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
-            fprintf(stderr,
-                "object-instance-min=%u - it must be less than %u\r\n",
-                Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
-            return 1;
-        }
+        Target_Object_Name = argv[1];
     } else {
-        Target_Object_Instance_Min = strtol(argv[1], NULL, 0);
-        Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
-        if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
+        Target_Object_Type = strtol(argv[1], NULL, 0);
+        Target_Object_Instance = strtol(argv[2], NULL, 0);
+        if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
             fprintf(stderr,
-                "object-instance-min=%u - it must be less than %u\r\n",
-                Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
+                "object-instance=%u - it must be less than %u\r\n",
+                Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
             return 1;
         }
-        if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
-            fprintf(stderr,
-                "object-instance-max=%u - it must be less than %u\r\n",
-                Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
+        if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
+            fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+                Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
             return 1;
         }
     }
@@ -201,7 +180,11 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = Device_APDU_Timeout() / 1000;
     /* send the request */
-    Send_WhoIs(Target_Object_Instance_Min, Target_Object_Instance_Max);
+    if (argc < 3)
+        Send_WhoHas_Name(-1, -1, Target_Object_Name);
+    else
+        Send_WhoHas_Object(-1, -1,
+            Target_Object_Type, Target_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
@@ -221,7 +204,6 @@ int main(int argc, char *argv[])
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
-    print_address_cache();
 
     return 0;
 }
