@@ -1704,7 +1704,7 @@ void testBACDCodeSignedValue(Test * pTest, int32_t value)
 {
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
-    int32 decoded_value = 0;
+    int32_t decoded_value = 0;
     int len = 0, apdu_len = 0;
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t tag_number = 0;
