@@ -1,4 +1,4 @@
-all: readprop writeprop readfile writefile reinit server dcc whohas
+all: readprop writeprop readfile writefile reinit server dcc whohas whois
 	@echo "utilities are in demo/xx directories"
 
 clean: \
@@ -8,7 +8,8 @@ clean: \
 	demo/writefile/Makefile \
 	demo/server/Makefile \
 	demo/dcc/Makefile \
-	demo/whohas/Makefile
+	demo/whohas/Makefile \
+	demo/whois/Makefile
 	( cd demo/readprop ; make clean )
 	( cd demo/writeprop ; make clean )
 	( cd demo/readfile ; make clean )
@@ -17,6 +18,7 @@ clean: \
 	( cd demo/server ; make clean )
 	( cd demo/dcc ; make clean )
 	( cd demo/whohas ; make clean )
+	( cd demo/whois ; make clean )
 
 readprop: demo/readprop/Makefile
 	( cd demo/readprop ; make clean ; make )
@@ -42,3 +44,5 @@ dcc: demo/dcc/Makefile
 whohas: demo/whohas/Makefile
 	( cd demo/whohas ; make clean ; make )
 
+whois: demo/whois/Makefile
+	( cd demo/whois ; make clean ; make )
