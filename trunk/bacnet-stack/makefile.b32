@@ -1,30 +1,55 @@
 # Master Makefile for BACnet Stack demos
 # for Borland C++
 
-all: readprop writeprop readfile writefile server
-        @echo "utilities are in demo/x directories"
+all: readprop writeprop readfile writefile server dcc reinit whois whohas
+  @echo "utilities are in demo/x directories"
 
-clean: demo/readprop/makefile.b32 demo/writeprop/makefile.b32 demo/readfile/makefile.b32 demo/writefile/makefile.b32 demo/server/makefile.b32
-        cd demo/readprop
-        make -i -f makefile.b32 clean
-        cd ..
-        cd ..
-        cd demo/writeprop
-        make -i -f makefile.b32 clean
-        cd ..
-        cd ..
-        cd demo/readfile
-        make -i -f makefile.b32 clean
-        cd ..
-        cd ..
-        cd demo/writefile
-        make -i -f makefile.b32 clean
-        cd ..
-        cd ..
-        cd demo/server
-        make -i -f makefile.b32 clean
-        cd ..
-        cd ..
+clean: \
+  demo/readprop/makefile.b32 \
+  demo/writeprop/makefile.b32 \
+  demo/readfile/makefile.b32 \
+  demo/writefile/makefile.b32 \
+  demo/server/makefile.b32 \
+  demo/dcc/makefile.b32 \
+  demo/reinit/makefile.b32 \
+  demo/whois/makefile.b32 \
+  demo/whohas/makefile.b32
+  cd demo/readprop
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/writeprop
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/readfile
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/writefile
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/server
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/dcc
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/reinit
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/whois
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/whohas
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
 
 readprop: demo/readprop/makefile.b32
 	cd demo/readprop
@@ -61,3 +86,30 @@ server: demo/server/makefile.b32
   cd ..
   cd ..
 
+dcc: demo/dcc/makefile.b32
+	cd demo/dcc
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+reinit: demo/reinit/makefile.b32
+	cd demo/reinit
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+whois: demo/whois/makefile.b32
+	cd demo/whois
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+whohas: demo/whohas/makefile.b32
+	cd demo/whohas
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
