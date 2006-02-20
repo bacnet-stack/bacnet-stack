@@ -32,6 +32,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "whois.h"
+#include "iam.h"
 #include "device.h"
 #include "client.h"
 #include "txbuf.h"
