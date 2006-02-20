@@ -28,6 +28,7 @@ SRCS = main.c \
        $(BACNET_HANDLER)/noserv.c \
        $(BACNET_HANDLER)/h_whois.c \
        $(BACNET_HANDLER)/h_ihave.c \
+       $(BACNET_HANDLER)/h_iam.c \
        $(BACNET_HANDLER)/h_rp.c \
        $(BACNET_HANDLER)/s_ihave.c  \
        $(BACNET_HANDLER)/s_whois.c  \
