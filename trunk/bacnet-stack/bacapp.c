@@ -306,7 +306,7 @@ bool bacapp_compare(BACNET_APPLICATION_DATA_VALUE * value,
                 status = false;
             break;
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-            status = !characterstring_same(&value->type.Character_String,
+            status = characterstring_same(&value->type.Character_String,
                 &test_value->type.Character_String);
             break;
         case BACNET_APPLICATION_TAG_BIT_STRING:
