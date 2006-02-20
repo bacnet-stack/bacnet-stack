@@ -216,8 +216,6 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (Device_APDU_Timeout() / 1000) *
         Device_Number_Of_APDU_Retries();
-    /* don't send an I-Am unless asked */
-    I_Am_Request = false;
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance,
         Target_Device_Object_Instance);
@@ -239,28 +237,23 @@ int main(int argc, char *argv[])
                         last_seconds) * 1000));
         if (Error_Detected)
             break;
-        if (I_Am_Request) {
-            I_Am_Request = false;
-            iam_send(&Handler_Transmit_Buffer[0]);
+        /* wait until the device is bound, or timeout and quit */
+        found = address_bind_request(Target_Device_Object_Instance,
+            &max_apdu, &Target_Address);
+        if (found) {
+            if (invoke_id == 0) {
+                invoke_id =
+                    Send_Device_Communication_Control_Request
+                    (Target_Device_Object_Instance,
+                    Communication_Timeout_Minutes, Communication_State,
+                    Communication_Password);
+            } else if (tsm_invoke_id_free(invoke_id))
+                break;
         } else {
-            /* wait until the device is bound, or timeout and quit */
-            found = address_bind_request(Target_Device_Object_Instance,
-                &max_apdu, &Target_Address);
-            if (found) {
-                if (invoke_id == 0) {
-                    invoke_id =
-                        Send_Device_Communication_Control_Request
-                        (Target_Device_Object_Instance,
-                        Communication_Timeout_Minutes, Communication_State,
-                        Communication_Password);
-                } else if (tsm_invoke_id_free(invoke_id))
-                    break;
-            } else {
-                /* increment timer - exit if timed out */
-                elapsed_seconds += (current_seconds - last_seconds);
-                if (elapsed_seconds > timeout_seconds)
-                    break;
-            }
+            /* increment timer - exit if timed out */
+            elapsed_seconds += (current_seconds - last_seconds);
+            if (elapsed_seconds > timeout_seconds)
+                break;
         }
         /* keep track of time for next check */
         last_seconds = current_seconds;
