@@ -11,54 +11,49 @@ BORLAND_DIR_Not_Defined:
    @echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
-PRODUCT = bacwi
+PRODUCT = bacwh
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
 DEFINES = -DBACDL_BIP=1;TSM_ENABLED=0;USE_INADDR=1
-# Directories
-BACNET_PORT = ..\..\ports\win32
-BACNET_OBJECT = ..\object
-BACNET_HANDLER = ..\handler
-BACNET_ROOT = ..\..
 
 SRCS = main.c \
-       $(BACNET_PORT)\bip-init.c \
-       $(BACNET_ROOT)\bip.c  \
-       $(BACNET_HANDLER)\txbuf.c  \
-       $(BACNET_HANDLER)\noserv.c  \
-       $(BACNET_HANDLER)\h_whois.c  \
-       $(BACNET_HANDLER)\h_iam.c  \
-       $(BACNET_HANDLER)\h_rp.c  \
-       $(BACNET_HANDLER)\s_whois.c  \
-       $(BACNET_OBJECT)\bacfile.c \
-       $(BACNET_OBJECT)\device.c \
-       $(BACNET_OBJECT)\ai.c \
-       $(BACNET_OBJECT)\ao.c \
-       $(BACNET_ROOT)\address.c \
-       $(BACNET_ROOT)\filename.c \
-       $(BACNET_ROOT)\bacdcode.c \
-       $(BACNET_ROOT)\bacapp.c \
-       $(BACNET_ROOT)\bacstr.c \
-       $(BACNET_ROOT)\bactext.c \
-       $(BACNET_ROOT)\indtext.c \
-       $(BACNET_ROOT)\bigend.c \
-       $(BACNET_ROOT)\whois.c \
-       $(BACNET_ROOT)\iam.c \
-       $(BACNET_ROOT)\whohas.c \
-       $(BACNET_ROOT)\ihave.c \
-       $(BACNET_ROOT)\rd.c \
-       $(BACNET_ROOT)\rp.c \
-       $(BACNET_ROOT)\wp.c \
-       $(BACNET_ROOT)\arf.c \
-       $(BACNET_ROOT)\awf.c \
-       $(BACNET_ROOT)\dcc.c \
-       $(BACNET_ROOT)\datalink.c \
-       $(BACNET_ROOT)\abort.c \
-       $(BACNET_ROOT)\reject.c \
-       $(BACNET_ROOT)\bacerror.c \
-       $(BACNET_ROOT)\apdu.c \
-       $(BACNET_ROOT)\npdu.c
+       ..\..\rd.c \
+       ..\..\ports\win32\bip-init.c \
+       ..\..\filename.c \
+       ..\..\bip.c  \
+       ..\..\demo\handler\txbuf.c  \
+       ..\..\demo\handler\noserv.c  \
+       ..\..\demo\handler\h_whois.c  \
+       ..\..\demo\handler\h_ihave.c  \
+       ..\..\demo\handler\h_rp.c  \
+       ..\..\demo\handler\s_ihave.c  \
+       ..\..\demo\handler\s_whohas.c  \
+       ..\..\bacdcode.c \
+       ..\..\bacapp.c \
+       ..\..\bacstr.c \
+       ..\..\bactext.c \
+       ..\..\indtext.c \
+       ..\..\bigend.c \
+       ..\..\whois.c \
+       ..\..\iam.c \
+       ..\..\whohas.c \
+       ..\..\ihave.c \
+       ..\..\rp.c \
+       ..\..\wp.c \
+       ..\..\arf.c \
+       ..\..\awf.c \
+       ..\..\dcc.c \
+       ..\..\demo\object\bacfile.c \
+       ..\..\demo\object\device.c \
+       ..\..\demo\object\ai.c \
+       ..\..\demo\object\ao.c \
+       ..\..\datalink.c \
+       ..\..\abort.c \
+       ..\..\reject.c \
+       ..\..\bacerror.c \
+       ..\..\apdu.c \
+       ..\..\npdu.c
 
 OBJS = $(SRCS:.c=.obj)
 
@@ -73,7 +68,7 @@ TLIB = $(BORLAND_DIR)\bin\tlib
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-INCL_DIRS = -I$(BORLAND_DIR)\include;$(BACNET_ROOT)\;$(BACNET_OBJECT)\;$(BACNET_HANDLER)\;$(BACNET_PORT)\;.
+INCL_DIRS = -I$(BORLAND_DIR)\include;..\..\;..\..\demo\object\;..\..\demo\handler\;..\..\ports\win32\;.
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
@@ -112,10 +107,10 @@ clean :
 	@echo Deleting obj files, $(PRODUCT_EXE) and map files.
 #	del $(OBJS) # command too long, bummer!
 	del *.obj
-	del $(BACNET_ROOT)\*.obj
-	del $(BACNET_HANDLER)\*.obj
-	del $(BACNET_OBJECT)\*.obj
-	del $(BACNET_PORT)\*.obj
+	del ..\..\*.obj
+	del ..\..\demo\handler\*.obj
+	del ..\..\demo\object\*.obj
+	del ..\..\ports\win32\*.obj
 	del $(PRODUCT_EXE)
 	del *.map
 	del bcc32.cfg

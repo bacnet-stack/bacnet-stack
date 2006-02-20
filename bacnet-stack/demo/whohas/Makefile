@@ -18,7 +18,7 @@ INCLUDES = -I$(BACNET_ROOT) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDL
 
 CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
-TARGET = bacwi
+TARGET = bacwh
 
 SRCS = main.c \
        $(BACNET_ROOT)/rd.c \
@@ -28,10 +28,9 @@ SRCS = main.c \
        $(BACNET_HANDLER)/noserv.c \
        $(BACNET_HANDLER)/h_whois.c \
        $(BACNET_HANDLER)/h_ihave.c \
-       $(BACNET_HANDLER)/h_iam.c \
        $(BACNET_HANDLER)/h_rp.c \
+       $(BACNET_HANDLER)/s_whohas.c  \
        $(BACNET_HANDLER)/s_ihave.c  \
-       $(BACNET_HANDLER)/s_whois.c  \
        $(BACNET_OBJECT)/device.c \
        $(BACNET_OBJECT)/ai.c \
        $(BACNET_OBJECT)/ao.c \
