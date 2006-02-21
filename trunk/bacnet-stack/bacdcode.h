@@ -155,12 +155,9 @@ extern "C" {
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-    int encode_bacnet_time(uint8_t * apdu, int hour, int min, int sec,
-        int hundredths);
-    int encode_tagged_time(uint8_t * apdu, int hour, int min, int sec,
-        int hundredths);
-    int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
-        int *hundredths);
+    int encode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime);
+    int encode_tagged_time(uint8_t * apdu, BACNET_TIME *btime);
+    int decode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime);
 
 /* BACnet Date */
 /* year = years since 1900 */
@@ -171,12 +168,9 @@ extern "C" {
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-    int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
-        int wday);
-    int encode_tagged_date(uint8_t * apdu, int year, int month, int day,
-        int wday);
-    int decode_date(uint8_t * apdu, int *year, int *month, int *day,
-        int *wday);
+    int encode_bacnet_date(uint8_t * apdu, BACNET_DATE *bdate);
+    int encode_tagged_date(uint8_t * apdu, BACNET_DATE *bdate);
+    int decode_date(uint8_t * apdu, BACNET_DATE *bdate);
 
 /* two octet unsigned16 */
     int encode_unsigned16(uint8_t * apdu, uint16_t value);
