@@ -1342,13 +1342,12 @@ int encode_context_signed(uint8_t * apdu, int tag_number, int32_t value)
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_time(uint8_t * apdu, int hour, int min, int sec,
-    int hundredths)
+int encode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime)
 {
-    apdu[0] = hour;
-    apdu[1] = min;
-    apdu[2] = sec;
-    apdu[3] = hundredths;
+    apdu[0] = btime->hour;
+    apdu[1] = btime->min;
+    apdu[2] = btime->sec;
+    apdu[3] = btime->hundredths;
 
     return 4;
 }
@@ -1356,13 +1355,12 @@ int encode_bacnet_time(uint8_t * apdu, int hour, int min, int sec,
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_tagged_time(uint8_t * apdu, int hour, int min, int sec,
-    int hundredths)
+int encode_tagged_time(uint8_t * apdu, BACNET_TIME *btime)
 {
     int len = 0;
 
     /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_time(&apdu[1], hour, min, sec, hundredths);
+    len = encode_bacnet_time(&apdu[1], btime);
     len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_TIME, false, len);
 
     return len;
@@ -1372,13 +1370,12 @@ int encode_tagged_time(uint8_t * apdu, int hour, int min, int sec,
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
-    int *hundredths)
+int decode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime)
 {
-    *hour = apdu[0];
-    *min = apdu[1];
-    *sec = apdu[2];
-    *hundredths = apdu[3];
+    btime->hour = apdu[0];
+    btime->min = apdu[1];
+    btime->sec = apdu[2];
+    btime->hundredths = apdu[3];
 
     return 4;
 }
@@ -1392,20 +1389,19 @@ int decode_bacnet_time(uint8_t * apdu, int *hour, int *min, int *sec,
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
-    int wday)
+int encode_bacnet_date(uint8_t * apdu, BACNET_DATE *bdate)
 {
     /* allow 2 digit years */
-    if (year < 1900) {
-        if (year <= 38)
-            year += 2000;
+    if (bdate->year < 1900) {
+        if (bdate->year <= 38)
+            bdate->year += 2000;
         else
-            year += 1900;
+            bdate->year += 1900;
     }
-    apdu[0] = year - 1900;
-    apdu[1] = month;
-    apdu[2] = day;
-    apdu[3] = wday;
+    apdu[0] = bdate->year - 1900;
+    apdu[1] = bdate->month;
+    apdu[2] = bdate->day;
+    apdu[3] = bdate->wday;
 
     return 4;
 }
@@ -1413,13 +1409,12 @@ int encode_bacnet_date(uint8_t * apdu, int year, int month, int day,
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_tagged_date(uint8_t * apdu, int year, int month, int day,
-    int wday)
+int encode_tagged_date(uint8_t * apdu, BACNET_DATE *bdate)
 {
     int len = 0;
 
     /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_date(&apdu[1], year, month, day, wday);
+    len = encode_bacnet_date(&apdu[1], bdate);
     len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_DATE, false, len);
 
     return len;
@@ -1429,12 +1424,12 @@ int encode_tagged_date(uint8_t * apdu, int year, int month, int day,
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int decode_date(uint8_t * apdu, int *year, int *month, int *day, int *wday)
+int decode_date(uint8_t * apdu, BACNET_DATE *bdate)
 {
-    *year = apdu[0] + 1900;
-    *month = apdu[1];
-    *day = apdu[2];
-    *wday = apdu[3];
+    bdate->year = apdu[0] + 1900;
+    bdate->month = apdu[1];
+    bdate->day = apdu[2];
+    bdate->wday = apdu[3];
 
     return 4;
 }
