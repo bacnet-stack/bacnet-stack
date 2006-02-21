@@ -1,7 +1,8 @@
 # Master Makefile for BACnet Stack demos
 # for Borland C++
 
-all: readprop writeprop readfile writefile server dcc reinit whois whohas
+all: readprop writeprop readfile writefile server dcc reinit \
+  whois whohas timesync
   @echo "utilities are in demo/x directories"
 
 clean: \
@@ -13,7 +14,8 @@ clean: \
   demo/dcc/makefile.b32 \
   demo/reinit/makefile.b32 \
   demo/whois/makefile.b32 \
-  demo/whohas/makefile.b32
+  demo/whohas/makefile.b32 \
+  demo/timesync/makefile.b32
   cd demo/readprop
   make -i -f makefile.b32 clean
   cd ..
@@ -47,6 +49,10 @@ clean: \
   cd ..
   cd ..
   cd demo/whohas
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/timesync
   make -i -f makefile.b32 clean
   cd ..
   cd ..
@@ -109,6 +115,13 @@ whois: demo/whois/makefile.b32
 
 whohas: demo/whohas/makefile.b32
 	cd demo/whohas
+  make -i -f makefile.b32 clean
+  make -f makefile.b32
+  cd ..
+  cd ..
+
+timesync: demo/timesync/makefile.b32
+	cd demo/timesync
   make -i -f makefile.b32 clean
   make -f makefile.b32
   cd ..
