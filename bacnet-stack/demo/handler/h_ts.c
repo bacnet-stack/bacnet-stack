@@ -40,9 +40,9 @@ static void show_bacnet_date_time(
     fprintf(stderr, "/%u", (unsigned)bdate->month);
     fprintf(stderr, "/%u", (unsigned)bdate->day);
     /* show the time received */
-    fprintf(stderr, " %u", (unsigned)btime->hour);
-    fprintf(stderr, ":%u", (unsigned)btime->min);
-    fprintf(stderr, ":%u", (unsigned)btime->sec);
+    fprintf(stderr, " %02u", (unsigned)btime->hour);
+    fprintf(stderr, ":%02u", (unsigned)btime->min);
+    fprintf(stderr, ":%02u", (unsigned)btime->sec);
     fprintf(stderr, ".%02u", (unsigned)btime->hundredths);
     fprintf(stderr, "\r\n");
 }
