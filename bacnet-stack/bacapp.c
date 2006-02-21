@@ -82,14 +82,10 @@ int bacapp_encode_application_data(uint8_t * apdu,
                 value->type.Enumerated);
         else if (value->tag == BACNET_APPLICATION_TAG_DATE)
             apdu_len += encode_tagged_date(&apdu[apdu_len],
-                value->type.Date.year,
-                value->type.Date.month,
-                value->type.Date.day, value->type.Date.wday);
+                &value->type.Date);
         else if (value->tag == BACNET_APPLICATION_TAG_TIME)
             apdu_len += encode_tagged_time(&apdu[apdu_len],
-                value->type.Time.hour,
-                value->type.Time.min,
-                value->type.Time.sec, value->type.Time.hundredths);
+                &value->type.Time);
         else if (value->tag == BACNET_APPLICATION_TAG_OBJECT_ID)
             apdu_len += encode_tagged_object_id(&apdu[apdu_len],
                 value->type.Object_Id.type,
@@ -106,8 +102,6 @@ int bacapp_decode_application_data(uint8_t * apdu,
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int hour, min, sec, hundredths;
-    int year, month, day, wday;
     int object_type = 0;
     uint32_t instance = 0;
 
@@ -147,21 +141,11 @@ int bacapp_decode_application_data(uint8_t * apdu,
             else if (tag_number == BACNET_APPLICATION_TAG_ENUMERATED)
                 len += decode_enumerated(&apdu[len],
                     len_value_type, &value->type.Enumerated);
-            else if (tag_number == BACNET_APPLICATION_TAG_DATE) {
-                len += decode_date(&apdu[len], &year, &month, &day, &wday);
-                value->type.Date.year = year;
-                value->type.Date.month = month;
-                value->type.Date.day = day;
-                value->type.Date.wday = wday;
-            } else if (tag_number == BACNET_APPLICATION_TAG_TIME) {
-                len +=
-                    decode_bacnet_time(&apdu[len], &hour, &min, &sec,
-                    &hundredths);
-                value->type.Time.hour = hour;
-                value->type.Time.min = min;
-                value->type.Time.sec = sec;
-                value->type.Time.hundredths = hundredths;
-            } else if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
+            else if (tag_number == BACNET_APPLICATION_TAG_DATE)
+                len += decode_date(&apdu[len], &value->type.Date);
+            else if (tag_number == BACNET_APPLICATION_TAG_TIME)
+                len += decode_bacnet_time(&apdu[len], &value->type.Time);
+            else if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 len += decode_object_id(&apdu[len],
                     &object_type, &instance);
                 value->type.Object_Id.type = object_type;
@@ -238,8 +222,51 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
     return status;
 }
 
-/* generic - can be used by other unit tests */
-bool bacapp_compare(BACNET_APPLICATION_DATA_VALUE * value,
+/* returns true if matching or same, false if different */
+bool bacapp_same_date(BACNET_DATE *date1, BACNET_DATE *date2)
+{
+    bool status = false;
+
+    if (date1 && date2)
+    {
+        status = true;
+        if (date1->year != date2->year)
+            status = false;
+        if (date1->month != date2->month)
+            status = false;
+        if (date1->day != date2->day)
+            status = false;
+        if (date1->wday != date2->wday)
+            status = false;
+    }
+
+    return status;
+}
+
+/* returns true if matching or same, false if different */
+bool bacapp_same_time(BACNET_TIME *time1, BACNET_TIME *time2)
+{
+    bool status = false;
+
+    if (time1 && time2)
+    {
+        status = true;
+        if (time1->hour != time2->hour)
+            status = false;
+        if (time1->min != time2->min)
+            status = false;
+        if (time1->sec != time2->sec)
+            status = false;
+        if (time1->hundredths != time2->hundredths)
+            status = false;
+    }
+
+    return status;
+}
+
+/* generic - can be used by other unit tests
+   returns true if matching or same, false if different */
+bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
     BACNET_APPLICATION_DATA_VALUE * test_value)
 {
     bool status = true;         /*return value */
@@ -277,25 +304,12 @@ bool bacapp_compare(BACNET_APPLICATION_DATA_VALUE * value,
                 status = false;
             break;
         case BACNET_APPLICATION_TAG_DATE:
-            if (test_value->type.Date.year != value->type.Date.year)
-                status = false;
-            if (test_value->type.Date.month != value->type.Date.month)
-                status = false;
-            if (test_value->type.Date.day != value->type.Date.day)
-                status = false;
-            if (test_value->type.Date.wday != value->type.Date.wday)
-                status = false;
+            status = bacapp_same_date(&test_value->type.Date,
+              &value->type.Date);
             break;
         case BACNET_APPLICATION_TAG_TIME:
-            if (test_value->type.Time.hour != value->type.Time.hour)
-                status = false;
-            if (test_value->type.Time.min != value->type.Time.min)
-                status = false;
-            if (test_value->type.Time.sec != value->type.Time.sec)
-                status = false;
-            if (test_value->type.Time.hundredths !=
-                value->type.Time.hundredths)
-                status = false;
+            status = bacapp_same_time(&test_value->type.Time,
+                &value->type.Time);
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             if (test_value->type.Object_Id.type !=
@@ -541,12 +555,12 @@ static bool testBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *
     apdu_len = bacapp_encode_application_data(&apdu[0], value);
     len = bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
 
-    return bacapp_compare(value, &test_value);
+    return bacapp_same_value(value, &test_value);
 }
 
 void testBACnetApplicationData(Test * pTest)
 {
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value;
     bool status = false;
 
 
