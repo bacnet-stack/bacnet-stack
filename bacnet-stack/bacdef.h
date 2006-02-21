@@ -87,7 +87,7 @@ typedef struct BACnet_Date {
     uint16_t year;              /* AD */
     uint8_t month;              /* 1=Jan */
     uint8_t day;                /* 1..31 */
-    uint8_t wday;               /* 1=Monday */
+    uint8_t wday;               /* 1=Monday-7=Sunday */
 } BACNET_DATE;
 
 /* time */
