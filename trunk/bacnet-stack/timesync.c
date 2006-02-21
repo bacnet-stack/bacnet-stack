@@ -35,6 +35,7 @@
 #include "bacenum.h"
 #include "bacdcode.h"
 #include "bacdef.h"
+#include "bacapp.h"
 #include "timesync.h"
 
 /* encode service  - use -1 for limit for unlimited */
