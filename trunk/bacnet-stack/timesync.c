@@ -194,20 +194,20 @@ void testTimeSyncData(Test * pTest,
 
 void testTimeSync(Test * pTest)
 {
-    BACNET_DATE my_date;
-    BACNET_TIME my_time;
+    BACNET_DATE bdate;
+    BACNET_TIME btime;
 
-    my_date.year = 2006;              /* AD */
-    my_date.month = 4;              /* 1=Jan */
-    my_date.day = 11;                /* 1..31 */
-    my_date.wday = 1;               /* 1=Monday */
+    bdate.year = 2006;              /* AD */
+    bdate.month = 4;              /* 1=Jan */
+    bdate.day = 11;                /* 1..31 */
+    bdate.wday = 1;               /* 1=Monday */
 
-    my_time.hour = 7;
-    my_time.min = 0;
-    my_time.sec = 3;
-    my_time.hundredths = 1;
+    btime.hour = 7;
+    btime.min = 0;
+    btime.sec = 3;
+    btime.hundredths = 1;
 
-    testTimeSyncData(pTest, &my_date, &my_time);
+    testTimeSyncData(pTest, &bdate, &btime);
 }
 
 #ifdef TEST_TIMESYNC

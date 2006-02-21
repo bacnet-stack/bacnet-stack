@@ -144,6 +144,8 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
     int apdu_len = 0;           /* return value */
     char text_string[32] = { "" };
     BACNET_CHARACTER_STRING char_string;
+    BACNET_DATE bdate;
+    BACNET_TIME btime;
 
     (void) array_index;
     switch (property) {
@@ -173,11 +175,18 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
             bacfile_file_size(object_instance));
         break;
     case PROP_MODIFICATION_DATE:
+        /* FIXME: get the actual value instead of April Fool's Day */
+        bdate.year = 2006;              /* AD */
+        bdate.month = 4;              /* 1=Jan */
+        bdate.day = 1;                /* 1..31 */
+        bdate.wday = 6;               /* 1=Monday */
+        apdu_len = encode_tagged_date(&apdu[0], &bdate);
         /* FIXME: get the actual value */
-        apdu_len = encode_tagged_date(&apdu[0],
-            2005, 12, 25, 7 /* sunday */ );
-        /* FIXME: get the actual value */
-        apdu_len += encode_tagged_time(&apdu[apdu_len], 12, 0, 0, 0);
+        btime.hour = 7;
+        btime.min = 0;
+        btime.sec = 3;
+        btime.hundredths = 1;
+        apdu_len += encode_tagged_time(&apdu[apdu_len], &btime);
         break;
     case PROP_ARCHIVE:
         /* FIXME: get the actual value: note it may be inverse... */

@@ -54,7 +54,6 @@ extern "C" {
         unsigned apdu_len,
         BACNET_DATE *my_date,
         BACNET_TIME *my_time);
-
     int timesync_utc_decode_apdu(uint8_t * apdu,
         unsigned apdu_len,
         BACNET_DATE *my_date,
