@@ -72,7 +72,9 @@ extern "C" {
     bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
 
-    bool bacapp_compare(BACNET_APPLICATION_DATA_VALUE * value,
+    bool bacapp_same_time(BACNET_TIME *time1, BACNET_TIME *time2);
+    bool bacapp_same_date(BACNET_DATE *date1, BACNET_DATE *date2);
+    bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
 
     bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
