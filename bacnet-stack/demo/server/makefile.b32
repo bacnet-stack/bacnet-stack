@@ -30,6 +30,7 @@ SRCS = server.c \
        ..\..\demo\handler\h_arf.c  \
        ..\..\demo\handler\h_rd.c  \
        ..\..\demo\handler\h_dcc.c  \
+       ..\..\demo\handler\h_ts.c  \
        ..\..\demo\handler\h_whohas.c  \
        ..\..\demo\handler\s_ihave.c  \
        ..\..\bacdcode.c \
@@ -48,6 +49,7 @@ SRCS = server.c \
        ..\..\awf.c \
        ..\..\rd.c \
        ..\..\dcc.c \
+       ..\..\timesync.c \
        ..\..\demo\object\bacfile.c \
        ..\..\demo\object\device.c \
        ..\..\demo\object\ai.c \

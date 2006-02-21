@@ -71,6 +71,10 @@ static void Init_Service_Handlers(void)
         handler_atomic_read_file);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+        handler_timesync_utc);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
+        handler_timesync);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler
         (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
