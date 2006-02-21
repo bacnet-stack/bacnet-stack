@@ -38,9 +38,9 @@
 #include "bacapp.h"
 #include "timesync.h"
 
-/* encode service  - use -1 for limit for unlimited */
-
-int timesync_encode_apdu(uint8_t * apdu,
+/* encode service */
+int timesync_encode_apdu_service(uint8_t * apdu,
+    BACNET_UNCONFIRMED_SERVICE service,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
 {
@@ -49,7 +49,7 @@ int timesync_encode_apdu(uint8_t * apdu,
 
     if (apdu && my_date && my_time) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION;
+        apdu[1] = service;
         apdu_len = 2;
         len = encode_tagged_date(&apdu[apdu_len], my_date);
         apdu_len += len;
@@ -58,6 +58,26 @@ int timesync_encode_apdu(uint8_t * apdu,
     }
 
     return apdu_len;
+}
+
+int timesync_utc_encode_apdu(uint8_t * apdu,
+    BACNET_DATE *my_date,
+    BACNET_TIME *my_time)
+{
+  return timesync_encode_apdu_service(apdu,
+      SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+      my_date,
+      my_time);
+}
+
+int timesync_encode_apdu(uint8_t * apdu,
+    BACNET_DATE *my_date,
+    BACNET_TIME *my_time)
+{
+  return timesync_encode_apdu_service(apdu,
+      SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
+      my_date,
+      my_time);
 }
 
 /* decode the service request only */
@@ -92,7 +112,8 @@ int timesync_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-int timesync_decode_apdu(uint8_t * apdu,
+int timesync_decode_apdu_service(uint8_t * apdu,
+    BACNET_UNCONFIRMED_SERVICE service,
     unsigned apdu_len,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
@@ -104,7 +125,7 @@ int timesync_decode_apdu(uint8_t * apdu,
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
         return -1;
-    if (apdu[1] != SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION)
+    if (apdu[1] != service)
         return -1;
     /* optional limits - must be used as a pair */
     if (apdu_len > 2) {
@@ -113,6 +134,30 @@ int timesync_decode_apdu(uint8_t * apdu,
     }
 
     return len;
+}
+
+int timesync_utc_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_DATE *my_date,
+    BACNET_TIME *my_time)
+{
+    return timesync_decode_apdu_service(apdu,
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+        apdu_len,
+        my_date,
+        my_time);
+}
+
+int timesync_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_DATE *my_date,
+    BACNET_TIME *my_time)
+{
+    return timesync_decode_apdu_service(apdu,
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
+        apdu_len,
+        my_date,
+        my_time);
 }
 
 #ifdef TEST
@@ -134,6 +179,14 @@ void testTimeSyncData(Test * pTest,
     ct_test(pTest, len != 0);
     apdu_len = len;
     len = timesync_decode_apdu(&apdu[0], apdu_len, &test_date, &test_time);
+    ct_test(pTest, len != -1);
+    ct_test(pTest, bacapp_same_time(my_time, &test_time));
+    ct_test(pTest, bacapp_same_date(my_date, &test_date));
+
+    len = timesync_utc_encode_apdu(&apdu[0], my_date, my_time);
+    ct_test(pTest, len != 0);
+    apdu_len = len;
+    len = timesync_utc_decode_apdu(&apdu[0], apdu_len, &test_date, &test_time);
     ct_test(pTest, len != -1);
     ct_test(pTest, bacapp_same_time(my_time, &test_time));
     ct_test(pTest, bacapp_same_date(my_date, &test_date));

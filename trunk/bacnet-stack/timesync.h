@@ -31,37 +31,42 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#ifndef REINITIALIZE_DEVICE_H
-#define REINITIALIZE_DEVICE_H
+#ifndef TIMESYNC_H
+#define TIMESYNC_H
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */
 
 /* encode service */
-    int rd_encode_apdu(uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_REINITIALIZED_STATE state,
-        BACNET_CHARACTER_STRING * password);
-
+    int timesync_utc_encode_apdu(uint8_t * apdu,
+        BACNET_DATE *my_date,
+        BACNET_TIME *my_time);
+    int timesync_encode_apdu(uint8_t * apdu,
+        BACNET_DATE *my_date,
+        BACNET_TIME *my_time);
 /* decode the service request only */
-    int rd_decode_service_request(uint8_t * apdu,
+    int timesync_decode_service_request(uint8_t * apdu,
         unsigned apdu_len,
-        BACNET_REINITIALIZED_STATE * state,
-        BACNET_CHARACTER_STRING * password);
+        BACNET_DATE *my_date,
+        BACNET_TIME *my_time);
 
-    int rd_decode_apdu(uint8_t * apdu,
+    int timesync_utc_decode_apdu(uint8_t * apdu,
         unsigned apdu_len,
-        uint8_t * invoke_id,
-        BACNET_REINITIALIZED_STATE * state,
-        BACNET_CHARACTER_STRING * password);
+        BACNET_DATE *my_date,
+        BACNET_TIME *my_time);
+    int timesync_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_DATE *my_date,
+        BACNET_TIME *my_time);
 
 #ifdef TEST
 #include "ctest.h"
-    void test_ReinitializeDevice(Test * pTest);
+    void testTimeSync(Test * pTest);
 #endif
 
 #ifdef __cplusplus
