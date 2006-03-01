@@ -47,6 +47,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* send a whois to see who is on the network */
 static bool Who_Is_Request = true;
+bool I_Am_Request = true;
 
 static void Read_Properties(void)
 {
