@@ -36,6 +36,7 @@ SRCS = server.c \
        $(BACNET_HANDLER)/s_ihave.c  \
        $(BACNET_OBJECT)/device.c \
        $(BACNET_OBJECT)/ai.c \
+       $(BACNET_OBJECT)/bi.c \
        $(BACNET_OBJECT)/ao.c \
        $(BACNET_OBJECT)/bacfile.c \
        $(BACNET_ROOT)/datalink.c \

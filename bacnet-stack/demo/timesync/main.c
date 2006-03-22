@@ -90,7 +90,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the reply (request) coming in */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+    apdu_set_unconfirmed_handler
+        (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
         handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
         handler_timesync);
@@ -124,7 +125,7 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     time_t rawtime;
-    struct tm * my_time;
+    struct tm *my_time;
     BACNET_DATE bdate;
     BACNET_TIME btime;
 
@@ -133,7 +134,7 @@ int main(int argc, char *argv[])
 #endif
 
     /* FIXME: we could send directed time sync, and how to we send UTC? */
-    #if 0
+#if 0
     if (argc < 2) {
         printf("Usage: %s date time [device-instance]\r\n"
             "Send BACnet TimeSynchronization request to all devices.\r\n"
@@ -153,7 +154,7 @@ int main(int argc, char *argv[])
             filename_remove_path(argv[0]));
         return 0;
     }
-    #endif
+#endif
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
@@ -172,17 +173,17 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = Device_APDU_Timeout() / 1000;
     /* send the request */
-    time ( &rawtime );
-    my_time = localtime ( &rawtime );
+    time(&rawtime);
+    my_time = localtime(&rawtime);
     bdate.year = my_time->tm_year + 1900;
     bdate.month = my_time->tm_mon + 1;
     bdate.day = my_time->tm_mday;
-    bdate.wday = my_time->tm_wday?my_time->tm_wday:7;
+    bdate.wday = my_time->tm_wday ? my_time->tm_wday : 7;
     btime.hour = my_time->tm_hour;
     btime.min = my_time->tm_min;
     btime.sec = my_time->tm_sec;
     btime.hundredths = 0;
-    Send_TimeSync(&bdate,&btime);
+    Send_TimeSync(&bdate, &btime);
     /* loop forever - not necessary for time sync, but we can watch */
     for (;;) {
         /* increment timer - exit if timed out */

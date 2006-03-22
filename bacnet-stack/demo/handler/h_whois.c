@@ -54,10 +54,11 @@ void handler_who_is(uint8_t * service_request,
     else if (len != -1) {
         /* is my device id within the limits? */
         if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t) high_limit)) ||
+                (Device_Object_Instance_Number() <= (uint32_t) high_limit))
+            ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-             (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
+                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
             iam_send(&Handler_Transmit_Buffer[0]);
     }
 

@@ -59,6 +59,11 @@ make -f bacstr.mak
 ./bacstr >> test.log
 make -f bacstr.mak clean
 
+make -f demo/object/bi.mak clean
+make -f demo/object/bi.mak
+./binary_input >> test.log
+make -f demo/object/bi.mak clean
+
 make -f crc.mak clean
 make -f crc.mak
 ./crc >> test.log

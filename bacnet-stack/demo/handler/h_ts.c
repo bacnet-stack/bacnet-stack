@@ -31,19 +31,17 @@
 #include "bacdcode.h"
 #include "timesync.h"
 
-static void show_bacnet_date_time(
-    BACNET_DATE *bdate,
-    BACNET_TIME *btime)
+static void show_bacnet_date_time(BACNET_DATE * bdate, BACNET_TIME * btime)
 {
     /* show the date received */
-    fprintf(stderr, "%u", (unsigned)bdate->year);
-    fprintf(stderr, "/%u", (unsigned)bdate->month);
-    fprintf(stderr, "/%u", (unsigned)bdate->day);
+    fprintf(stderr, "%u", (unsigned) bdate->year);
+    fprintf(stderr, "/%u", (unsigned) bdate->month);
+    fprintf(stderr, "/%u", (unsigned) bdate->day);
     /* show the time received */
-    fprintf(stderr, " %02u", (unsigned)btime->hour);
-    fprintf(stderr, ":%02u", (unsigned)btime->min);
-    fprintf(stderr, ":%02u", (unsigned)btime->sec);
-    fprintf(stderr, ".%02u", (unsigned)btime->hundredths);
+    fprintf(stderr, " %02u", (unsigned) btime->hour);
+    fprintf(stderr, ":%02u", (unsigned) btime->min);
+    fprintf(stderr, ":%02u", (unsigned) btime->sec);
+    fprintf(stderr, ".%02u", (unsigned) btime->hundredths);
     fprintf(stderr, "\r\n");
 }
 
@@ -57,9 +55,7 @@ void handler_timesync(uint8_t * service_request,
     (void) src;
     (void) service_len;
     len = timesync_decode_service_request(service_request,
-      service_len,
-      &bdate,
-      &btime);
+        service_len, &bdate, &btime);
     fprintf(stderr, "Received TimeSyncronization Request\r\n");
     show_bacnet_date_time(&bdate, &btime);
     /* FIXME: set the time? */
@@ -77,9 +73,7 @@ void handler_timesync_utc(uint8_t * service_request,
     (void) src;
     (void) service_len;
     len = timesync_decode_service_request(service_request,
-      service_len,
-      &bdate,
-      &btime);
+        service_len, &bdate, &btime);
     fprintf(stderr, "Received TimeSyncronization Request\r\n");
     show_bacnet_date_time(&bdate, &btime);
     /* FIXME: set the time? */

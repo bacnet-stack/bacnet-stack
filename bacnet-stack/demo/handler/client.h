@@ -73,8 +73,8 @@ extern "C" {
     uint8_t Send_Device_Communication_Control_Request(uint32_t device_id, uint16_t timeDuration,        /* 0=optional */
         BACNET_COMMUNICATION_ENABLE_DISABLE state, char *password);     /* NULL=optional */
 
-    void Send_TimeSync(BACNET_DATE *bdate, BACNET_TIME *btime);
-    void Send_TimeSyncUTC(BACNET_DATE *bdate, BACNET_TIME *btime);
+    void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime);
+    void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime);
 
 
 #ifdef __cplusplus

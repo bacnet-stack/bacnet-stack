@@ -1342,7 +1342,7 @@ int encode_context_signed(uint8_t * apdu, int tag_number, int32_t value)
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime)
+int encode_bacnet_time(uint8_t * apdu, BACNET_TIME * btime)
 {
     apdu[0] = btime->hour;
     apdu[1] = btime->min;
@@ -1355,7 +1355,7 @@ int encode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime)
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_tagged_time(uint8_t * apdu, BACNET_TIME *btime)
+int encode_tagged_time(uint8_t * apdu, BACNET_TIME * btime)
 {
     int len = 0;
 
@@ -1370,7 +1370,7 @@ int encode_tagged_time(uint8_t * apdu, BACNET_TIME *btime)
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int decode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime)
+int decode_bacnet_time(uint8_t * apdu, BACNET_TIME * btime)
 {
     btime->hour = apdu[0];
     btime->min = apdu[1];
@@ -1389,7 +1389,7 @@ int decode_bacnet_time(uint8_t * apdu, BACNET_TIME *btime)
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_date(uint8_t * apdu, BACNET_DATE *bdate)
+int encode_bacnet_date(uint8_t * apdu, BACNET_DATE * bdate)
 {
     /* allow 2 digit years */
     if (bdate->year < 1900) {
@@ -1409,7 +1409,7 @@ int encode_bacnet_date(uint8_t * apdu, BACNET_DATE *bdate)
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_tagged_date(uint8_t * apdu, BACNET_DATE *bdate)
+int encode_tagged_date(uint8_t * apdu, BACNET_DATE * bdate)
 {
     int len = 0;
 
@@ -1424,7 +1424,7 @@ int encode_tagged_date(uint8_t * apdu, BACNET_DATE *bdate)
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int decode_date(uint8_t * apdu, BACNET_DATE *bdate)
+int decode_date(uint8_t * apdu, BACNET_DATE * bdate)
 {
     bdate->year = apdu[0] + 1900;
     bdate->month = apdu[1];

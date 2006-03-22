@@ -223,12 +223,11 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
 }
 
 /* returns true if matching or same, false if different */
-bool bacapp_same_date(BACNET_DATE *date1, BACNET_DATE *date2)
+bool bacapp_same_date(BACNET_DATE * date1, BACNET_DATE * date2)
 {
     bool status = false;
 
-    if (date1 && date2)
-    {
+    if (date1 && date2) {
         status = true;
         if (date1->year != date2->year)
             status = false;
@@ -244,12 +243,11 @@ bool bacapp_same_date(BACNET_DATE *date1, BACNET_DATE *date2)
 }
 
 /* returns true if matching or same, false if different */
-bool bacapp_same_time(BACNET_TIME *time1, BACNET_TIME *time2)
+bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2)
 {
     bool status = false;
 
-    if (time1 && time2)
-    {
+    if (time1 && time2) {
         status = true;
         if (time1->hour != time2->hour)
             status = false;
@@ -305,7 +303,7 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
             break;
         case BACNET_APPLICATION_TAG_DATE:
             status = bacapp_same_date(&test_value->type.Date,
-              &value->type.Date);
+                &value->type.Date);
             break;
         case BACNET_APPLICATION_TAG_TIME:
             status = bacapp_same_time(&test_value->type.Time,

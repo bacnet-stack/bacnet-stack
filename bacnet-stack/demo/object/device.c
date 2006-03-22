@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2005,2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -32,6 +32,7 @@
 #include "config.h"             /* the custom stuff */
 #include "apdu.h"
 #include "ai.h"                 /* object list dependency */
+#include "bi.h"                 /* object list dependency */
 #include "ao.h"                 /* object list dependency */
 #include "wp.h"                 /* write property handling */
 #include "device.h"             /* me */
@@ -318,6 +319,7 @@ unsigned Device_Object_List_Count(void)
     unsigned count = 1;
 
     count += Analog_Input_Count();
+    count += Binary_Input_Count();
     count += Analog_Output_Count();
 #if BACFILE
     count += bacfile_count();
@@ -332,12 +334,13 @@ bool Device_Object_List_Identifier(unsigned array_index,
     bool status = false;
     unsigned object_index = 0;
 
+    /* device object */
     if (array_index == 1) {
         *object_type = OBJECT_DEVICE;
         *instance = Object_Instance_Number;
         status = true;
     }
-
+    /* analog input objects */
     if (!status) {
         /* array index starts at 1, and 1 for the device object */
         object_index = array_index - 2;
@@ -347,17 +350,37 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
+    /* binary input objects */
     if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
         object_index -= Analog_Input_Count();
+        /* is it a valid index for this object? */
+        if (object_index < Binary_Input_Count()) {
+            *object_type = OBJECT_BINARY_INPUT;
+            *instance = Binary_Input_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+    /* analog output objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= Binary_Input_Count();
+        /* is it a valid index for this object? */
         if (object_index < Analog_Output_Count()) {
             *object_type = OBJECT_ANALOG_OUTPUT;
             *instance = Analog_Output_Index_To_Instance(object_index);
             status = true;
         }
     }
+    /**/
 #if BACFILE
-    if (!status) {
+        if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
         object_index -= Analog_Output_Count();
+        /* is it a valid index for this object? */
         if (object_index < bacfile_count()) {
             *object_type = OBJECT_FILE;
             *instance = bacfile_index_to_instance(object_index);
@@ -406,6 +429,9 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
     switch (object_type) {
     case OBJECT_ANALOG_INPUT:
         name = Analog_Input_Name(object_instance);
+        break;
+    case OBJECT_BINARY_INPUT:
+        name = Binary_Input_Name(object_instance);
         break;
     case OBJECT_ANALOG_OUTPUT:
         name = Analog_Output_Name(object_instance);
@@ -775,6 +801,23 @@ unsigned Analog_Input_Count(void)
 }
 
 uint32_t Analog_Input_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
+/* stubs to dependencies to keep unit test simple */
+char *Binary_Input_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Binary_Input_Count(void)
+{
+    return 0;
+}
+
+uint32_t Binary_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
