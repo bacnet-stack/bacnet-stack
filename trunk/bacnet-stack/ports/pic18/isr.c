@@ -148,10 +148,8 @@ void InterruptHandlerHigh(void)
 void InterruptVectorHigh(void)
 {
     _asm goto InterruptHandlerHigh      /*jump to interrupt routine */
-_endasm}
-
+ _endasm}
 #pragma code
-
 /****************************************************************************
 * DESCRIPTION: Low priority interrupt vector
 * PARAMETERS:  none
@@ -163,6 +161,5 @@ _endasm}
 void InterruptVectorLow(void)
 {
     _asm goto InterruptHandlerLow       /*jump to interrupt routine */
-_endasm}
-
+ _endasm}
 #pragma code

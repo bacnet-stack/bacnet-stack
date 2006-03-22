@@ -90,7 +90,7 @@ extern "C" {
 
     void handler_i_have(uint8_t * service_request,
         uint16_t service_len, BACNET_ADDRESS * src);
-    
+
     void handler_timesync(uint8_t * service_request,
         uint16_t service_len, BACNET_ADDRESS * src);
 

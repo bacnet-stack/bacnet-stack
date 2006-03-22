@@ -176,10 +176,10 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
         break;
     case PROP_MODIFICATION_DATE:
         /* FIXME: get the actual value instead of April Fool's Day */
-        bdate.year = 2006;              /* AD */
-        bdate.month = 4;              /* 1=Jan */
-        bdate.day = 1;                /* 1..31 */
-        bdate.wday = 6;               /* 1=Monday */
+        bdate.year = 2006;      /* AD */
+        bdate.month = 4;        /* 1=Jan */
+        bdate.day = 1;          /* 1..31 */
+        bdate.wday = 6;         /* 1=Monday */
         apdu_len = encode_tagged_date(&apdu[0], &bdate);
         /* FIXME: get the actual value */
         btime.hour = 7;

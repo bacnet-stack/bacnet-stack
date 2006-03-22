@@ -148,13 +148,12 @@ int main(int argc, char *argv[])
 #endif
 
     if (argc < 2) {
-        printf("Usage: %s device-instance | device-instance-min device-instance-max\r\n"
+        printf
+            ("Usage: %s device-instance | device-instance-min device-instance-max\r\n"
             "Send BACnet WhoIs request to devices, and wait for responses.\r\n"
-            "\r\n"
-            "The device-instance can be 0 to %d, or -1 for ALL.\r\n"
+            "\r\n" "The device-instance can be 0 to %d, or -1 for ALL.\r\n"
             "The device-instance can also be specified as a range.\r\n",
-            filename_remove_path(argv[0]),
-            BACNET_MAX_INSTANCE);
+            filename_remove_path(argv[0]), BACNET_MAX_INSTANCE);
         return 0;
     }
     /* decode the command line parameters */

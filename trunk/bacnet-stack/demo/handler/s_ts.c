@@ -42,7 +42,7 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-void Send_TimeSync(BACNET_DATE *bdate, BACNET_TIME *btime)
+void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -60,14 +60,15 @@ void Send_TimeSync(BACNET_DATE *bdate, BACNET_TIME *btime)
     pdu_len += timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         bdate, btime);
     /* send it out the datalink */
-    bytes_sent = datalink_send_pdu(&dest,       
-        &Handler_Transmit_Buffer[0], pdu_len);  
+    bytes_sent = datalink_send_pdu(&dest,
+        &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Time-Synchronization Request (%s)!\n",
+        fprintf(stderr,
+            "Failed to Send Time-Synchronization Request (%s)!\n",
             strerror(errno));
 }
 
-void Send_TimeSyncUTC(BACNET_DATE *bdate, BACNET_TIME *btime)
+void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -85,9 +86,10 @@ void Send_TimeSyncUTC(BACNET_DATE *bdate, BACNET_TIME *btime)
     pdu_len += timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         bdate, btime);
     /* send it out the datalink */
-    bytes_sent = datalink_send_pdu(&dest,       
-        &Handler_Transmit_Buffer[0], pdu_len);  
+    bytes_sent = datalink_send_pdu(&dest,
+        &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
+        fprintf(stderr,
+            "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
             strerror(errno));
 }

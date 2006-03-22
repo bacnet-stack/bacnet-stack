@@ -11,6 +11,7 @@ SRCS = address.c \
        bigend.c \
        demo/object/device.c \
        demo/object/ai.c \
+       demo/object/bi.c \
        demo/object/ao.c \
        iam.c \
        dcc.c \

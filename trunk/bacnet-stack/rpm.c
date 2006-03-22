@@ -624,7 +624,7 @@ void testReadPropertyMultipleAck(Test * pTest)
     test_len = bacapp_decode_application_data(&service_request[len],
         service_request_len - len, &test_application_data);
     ct_test(pTest, test_len > 0);
-    ct_test(pTest, bacapp_compare(&application_data[0],
+    ct_test(pTest, bacapp_same_value(&application_data[0],
             &test_application_data));
     len += test_len;
     ct_test(pTest, decode_is_closing_tag_number(&service_request[len], 4));
@@ -643,7 +643,7 @@ void testReadPropertyMultipleAck(Test * pTest)
     test_len = bacapp_decode_application_data(&service_request[len],
         service_request_len - len, &test_application_data);
     ct_test(pTest, test_len > 0);
-    ct_test(pTest, bacapp_compare(&application_data[1],
+    ct_test(pTest, bacapp_same_value(&application_data[1],
             &test_application_data));
     len += test_len;
     ct_test(pTest, decode_is_closing_tag_number(&service_request[len], 4));
@@ -679,7 +679,7 @@ void testReadPropertyMultipleAck(Test * pTest)
     test_len = bacapp_decode_application_data(&service_request[len],
         service_request_len - len, &test_application_data);
     ct_test(pTest, test_len > 0);
-    ct_test(pTest, bacapp_compare(&application_data[2],
+    ct_test(pTest, bacapp_same_value(&application_data[2],
             &test_application_data));
     len += test_len;
     ct_test(pTest, decode_is_closing_tag_number(&service_request[len], 4));
