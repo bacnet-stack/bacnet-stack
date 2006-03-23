@@ -39,6 +39,8 @@
 #include "device.h"
 #include "ai.h"
 #include "ao.h"
+#include "bi.h"
+#include "bo.h"
 #if BACFILE
 #include "bacfile.h"
 #endif
@@ -100,6 +102,7 @@ void handler_write_property(uint8_t * service_request,
             }
             break;
         case OBJECT_ANALOG_INPUT:
+        case OBJECT_BINARY_INPUT:
             error_class = ERROR_CLASS_PROPERTY;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             pdu_len +=
@@ -107,6 +110,23 @@ void handler_write_property(uint8_t * service_request,
                 service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
                 error_class, error_code);
             fprintf(stderr, "Sending Write Access Error!\n");
+            break;
+        case OBJECT_BINARY_OUTPUT:
+            if (Binary_Output_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                pdu_len +=
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+                fprintf(stderr, "Sending Write Property Simple Ack!\n");
+            } else {
+                pdu_len +=
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                    error_code);
+                fprintf(stderr, "Sending Write Access Error!\n");
+            }
             break;
         case OBJECT_ANALOG_OUTPUT:
             if (Analog_Output_Write_Property(&wp_data, &error_class,

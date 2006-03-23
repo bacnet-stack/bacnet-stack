@@ -53,14 +53,14 @@ static uint8_t
 static bool Analog_Output_Out_Of_Service[MAX_ANALOG_OUTPUTS];
 
 /* we need to have our arrays initialized before answering any calls */
-static bool Analog_Ouput_Initialized = false;
+static bool Analog_Output_Initialized = false;
 
 void Analog_Output_Init(void)
 {
     unsigned i, j;
 
-    if (!Analog_Ouput_Initialized) {
-        Analog_Ouput_Initialized = true;
+    if (!Analog_Output_Initialized) {
+        Analog_Output_Initialized = true;
 
         /* initialize all the analog output priority arrays to NULL */
         for (i = 0; i < MAX_ANALOG_OUTPUTS; i++) {
@@ -163,6 +163,7 @@ int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
     float real_value = 1.414;
     unsigned object_index = 0;
     unsigned i = 0;
+    bool state = false;
 
     Analog_Output_Init();
     switch (property) {
@@ -196,7 +197,9 @@ int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
-        apdu_len = encode_tagged_boolean(&apdu[0], false);
+        object_index = Analog_Output_Instance_To_Index(object_instance);
+        state = Analog_Output_Out_Of_Service[object_index];
+        apdu_len = encode_tagged_boolean(&apdu[0], state);
         break;
     case PROP_UNITS:
         apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
@@ -283,6 +286,9 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_PRESENT_VALUE:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL) {
             priority = wp_data->priority;
+            /* Command priority 6 is reserved for use by Minimum On/Off
+                algorithm and may not be used for other purposes in any
+                object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
                 (wp_data->value.type.Real >= 0.0) &&
@@ -293,11 +299,16 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                     object_instance);
                 priority--;
                 Analog_Output_Level[object_index][priority] = level;
-                /* if Out of Service is TRUE, then don't set the */
-                /* physical output.  This comment may apply to the */
-                /* main loop (i.e. check out of service before changing output) */
+                /* Note: you could set the physical output here if we
+                   are the highest priority.
+                   However, if Out of Service is TRUE, then don't set the 
+                   physical output.  This comment may apply to the 
+                   main loop (i.e. check out of service before changing output) */
                 status = true;
             } else if (priority == 6) {
+                /* Command priority 6 is reserved for use by Minimum On/Off
+                   algorithm and may not be used for other purposes in any
+                   object. */
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
@@ -312,6 +323,12 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                 priority--;
                 Analog_Output_Level[object_index][priority] = level;
+                /* Note: you could set the physical output here to the next
+                   highest priority, or to the relinquish default if no
+                   priorities are set.
+                   However, if Out of Service is TRUE, then don't set the 
+                   physical output.  This comment may apply to the 
+                   main loop (i.e. check out of service before changing output) */
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;

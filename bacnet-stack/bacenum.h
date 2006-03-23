@@ -245,8 +245,11 @@ typedef enum {
 } BACNET_ACTION;
 
 typedef enum {
+    MIN_BINARY_PV = 0, /* for validating incoming values */
     BINARY_INACTIVE = 0,
-    BINARY_ACTIVE = 1
+    BINARY_ACTIVE = 1,
+    MAX_BINARY_PV = 1, /* for validating incoming values */
+    BINARY_NULL = 2 /* our homemade way of storing this info */
 } BACNET_BINARY_PV;
 
 typedef enum {

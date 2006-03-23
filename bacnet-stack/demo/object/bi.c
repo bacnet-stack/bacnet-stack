@@ -65,7 +65,7 @@ uint32_t Binary_Input_Index_To_Instance(unsigned index)
 
 void Binary_Input_Init(void)
 {
-    bool initialized = false;
+    static bool initialized = false;
     unsigned i;
 
     if (!initialized) {
