@@ -287,8 +287,8 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL) {
             priority = wp_data->priority;
             /* Command priority 6 is reserved for use by Minimum On/Off
-                algorithm and may not be used for other purposes in any
-                object. */
+               algorithm and may not be used for other purposes in any
+               object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
                 (wp_data->value.type.Real >= 0.0) &&
