@@ -46,6 +46,7 @@ SRCS = writefile.c \
        $(BACNET_OBJECT)/ao.c \
        $(BACNET_OBJECT)/bi.c \
        $(BACNET_OBJECT)/bo.c \
+       $(BACNET_OBJECT)/lsp.c \
        $(BACNET_OBJECT)/bacfile.c \
        $(BACNET_ROOT)/arf.c \
        $(BACNET_ROOT)/awf.c \

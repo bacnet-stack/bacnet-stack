@@ -56,6 +56,7 @@ SRCS = server.c \
        ..\..\demo\object\ao.c \
        ..\..\demo\object\bi.c \
        ..\..\demo\object\bo.c \
+       ..\..\demo\object\lsp.c \
        ..\..\datalink.c \
        ..\..\abort.c \
        ..\..\reject.c \

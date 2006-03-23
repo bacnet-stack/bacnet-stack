@@ -574,6 +574,7 @@ typedef enum {
 } BACNET_FILE_ACCESS_METHOD;
 
 typedef enum {
+    MIN_LIFE_SAFETY_MODE = 0,
     LIFE_SAFETY_MODE_OFF = 0,
     LIFE_SAFETY_MODE_ON = 1,
     LIFE_SAFETY_MODE_TEST = 2,
@@ -588,7 +589,8 @@ typedef enum {
     LIFE_SAFETY_MODE_ENABLED = 11,
     LIFE_SAFETY_MODE_DISABLED = 12,
     LIFE_SAFETY_MODE_AUTOMATIC_RELEASE_DISABLED = 13,
-    LIFE_SAFETY_MODE_DEFAULT = 14
+    LIFE_SAFETY_MODE_DEFAULT = 14,
+    MAX_LIFE_SAFETY_MODE = 14
         /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
         /* Enumerated values 256-65535 may be used by others subject to  */
         /* procedures and constraints described in Clause 23. */
@@ -611,6 +613,7 @@ typedef enum {
 } BACNET_LIFE_SAFETY_OPERATION;
 
 typedef enum {
+    MIN_LIFE_SAFETY_STATE = 0,
     LIFE_SAFETY_STATE_QUIET = 0,
     LIFE_SAFETY_STATE_PRE_ALARM = 1,
     LIFE_SAFETY_STATE_ALARM = 2,
@@ -634,11 +637,23 @@ typedef enum {
     LIFE_SAFETY_STATE_LOCAL_ALARM = 20,
     LIFE_SAFETY_STATE_GENERAL_ALARM = 21,
     LIFE_SAFETY_STATE_SUPERVISORY = 22,
-    LIFE_SAFETY_STATE_TEST_SUPERVISORY = 23
+    LIFE_SAFETY_STATE_TEST_SUPERVISORY = 23,
+    MAX_LIFE_SAFETY_STATE = 0
         /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
         /* Enumerated values 256-65535 may be used by others subject to  */
         /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_STATE;
+
+typedef enum
+{
+    SILENCED_STATE_UNSILENCED = 0,
+    SILENCED_STATE_AUDIBLE_SILENCED = 1,
+    SILENCED_STATE_VISIBLE_SILENCED = 2,
+    SILENCED_STATE_ALL_SILENCED = 3,
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.*/
+    /* Enumerated values 64-65535 may be used by others subject to */
+    /* procedures and constraints described in Clause 23. */
+} BACNET_SILENCED_STATE;
 
 typedef enum {
     MAINTENANCE_NONE = 0,
