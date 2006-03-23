@@ -160,8 +160,8 @@ int Binary_Output_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_BINARY_OUTPUT,
             object_instance);
         break;
-    /* note: Name and Description don't have to be the same.
-       You could make Description writable and different */
+        /* note: Name and Description don't have to be the same.
+           You could make Description writable and different */
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string,
@@ -213,7 +213,9 @@ int Binary_Output_Encode_Property_APDU(uint8_t * apdu,
                     len = encode_tagged_null(&apdu[apdu_len]);
                 else {
                     present_value = Binary_Output_Level[object_index][i];
-                    len = encode_tagged_enumerated(&apdu[apdu_len], present_value);
+                    len =
+                        encode_tagged_enumerated(&apdu[apdu_len],
+                        present_value);
                 }
                 /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
@@ -235,7 +237,9 @@ int Binary_Output_Encode_Property_APDU(uint8_t * apdu,
                 else {
                     present_value =
                         Binary_Output_Level[object_index][array_index];
-                    len = encode_tagged_enumerated(&apdu[apdu_len], present_value);
+                    len =
+                        encode_tagged_enumerated(&apdu[apdu_len],
+                        present_value);
                 }
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -280,8 +284,8 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
             priority = wp_data->priority;
             /* Command priority 6 is reserved for use by Minimum On/Off
-                algorithm and may not be used for other purposes in any
-                object. */
+               algorithm and may not be used for other purposes in any
+               object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
                 (wp_data->value.type.Enumerated >= MIN_BINARY_PV) &&
