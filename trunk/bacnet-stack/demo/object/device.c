@@ -33,6 +33,7 @@
 #include "apdu.h"
 #include "ai.h"                 /* object list dependency */
 #include "bi.h"                 /* object list dependency */
+#include "bo.h"                 /* object list dependency */
 #include "ao.h"                 /* object list dependency */
 #include "wp.h"                 /* write property handling */
 #include "device.h"             /* me */
@@ -320,6 +321,7 @@ unsigned Device_Object_List_Count(void)
 
     count += Analog_Input_Count();
     count += Binary_Input_Count();
+    count += Binary_Output_Count();
     count += Analog_Output_Count();
 #if BACFILE
     count += bacfile_count();
@@ -362,11 +364,23 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
-    /* analog output objects */
+    /* binary output objects */
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
         object_index -= Binary_Input_Count();
+        /* is it a valid index for this object? */
+        if (object_index < Binary_Output_Count()) {
+            *object_type = OBJECT_BINARY_OUTPUT;
+            *instance = Binary_Output_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+    /* analog output objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= Binary_Output_Count();
         /* is it a valid index for this object? */
         if (object_index < Analog_Output_Count()) {
             *object_type = OBJECT_ANALOG_OUTPUT;
@@ -432,6 +446,9 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
         break;
     case OBJECT_BINARY_INPUT:
         name = Binary_Input_Name(object_instance);
+        break;
+    case OBJECT_BINARY_OUTPUT:
+        name = Binary_Output_Name(object_instance);
         break;
     case OBJECT_ANALOG_OUTPUT:
         name = Analog_Output_Name(object_instance);
@@ -818,6 +835,22 @@ unsigned Binary_Input_Count(void)
 }
 
 uint32_t Binary_Input_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
+char *Binary_Output_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Binary_Output_Count(void)
+{
+    return 0;
+}
+
+uint32_t Binary_Output_Index_To_Instance(unsigned index)
 {
     return index;
 }

@@ -44,8 +44,10 @@ SRCS = main.c \
        ..\..\dcc.c \
        ..\..\demo\object\bacfile.c \
        ..\..\demo\object\device.c \
-       ..\..\demo\object\bi.c \
+       ..\..\demo\object\ai.c \
        ..\..\demo\object\ao.c \
+       ..\..\demo\object\bi.c \
+       ..\..\demo\object\bo.c \
        ..\..\datalink.c \
        ..\..\tsm.c \
        ..\..\address.c \
