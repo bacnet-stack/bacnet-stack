@@ -41,6 +41,7 @@
 #include "ao.h"
 #include "bi.h"
 #include "bo.h"
+#include "lsp.h"
 #if BACFILE
 #include "bacfile.h"
 #endif
@@ -130,6 +131,23 @@ void handler_write_property(uint8_t * service_request,
             break;
         case OBJECT_ANALOG_OUTPUT:
             if (Analog_Output_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                pdu_len +=
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+                fprintf(stderr, "Sending Write Property Simple Ack!\n");
+            } else {
+                pdu_len +=
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                    error_code);
+                fprintf(stderr, "Sending Write Access Error!\n");
+            }
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+            if (Life_Safety_Point_Write_Property(&wp_data, &error_class,
                     &error_code)) {
                 pdu_len +=
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],

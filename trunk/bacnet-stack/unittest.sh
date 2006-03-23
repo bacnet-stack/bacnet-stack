@@ -64,6 +64,11 @@ make -f demo/object/bi.mak
 ./binary_input >> test.log
 make -f demo/object/bi.mak clean
 
+make -f demo/object/bo.mak clean
+make -f demo/object/bo.mak
+./binary_output >> test.log
+make -f demo/object/bo.mak clean
+
 make -f crc.mak clean
 make -f crc.mak
 ./crc >> test.log
@@ -88,6 +93,11 @@ make -f indtext.mak clean
 make -f indtext.mak
 ./indtext >> test.log
 make -f indtext.mak clean
+
+make -f demo/object/lsp.mak clean
+make -f demo/object/lsp.mak
+./lsp >> test.log
+make -f demo/object/lsp.mak clean
 
 make -f mstp.mak clean
 make -f mstp.mak

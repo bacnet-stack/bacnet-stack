@@ -35,6 +35,7 @@
 #include "bi.h"                 /* object list dependency */
 #include "bo.h"                 /* object list dependency */
 #include "ao.h"                 /* object list dependency */
+#include "lsp.h"                 /* object list dependency */
 #include "wp.h"                 /* write property handling */
 #include "device.h"             /* me */
 #if BACFILE
@@ -323,6 +324,7 @@ unsigned Device_Object_List_Count(void)
     count += Binary_Input_Count();
     count += Binary_Output_Count();
     count += Analog_Output_Count();
+    count += Life_Safety_Point_Count();
 #if BACFILE
     count += bacfile_count();
 #endif
@@ -388,12 +390,24 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
-    /**/
+    /* life safety point objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= Analog_Output_Count();
+        /* is it a valid index for this object? */
+        if (object_index < Life_Safety_Point_Count()) {
+            *object_type = OBJECT_LIFE_SAFETY_POINT;
+            *instance = Life_Safety_Point_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+    /* file objects */
 #if BACFILE
         if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
-        object_index -= Analog_Output_Count();
+        object_index -= Life_Safety_Point_Count();
         /* is it a valid index for this object? */
         if (object_index < bacfile_count()) {
             *object_type = OBJECT_FILE;
@@ -451,6 +465,9 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
         name = Binary_Output_Name(object_instance);
         break;
     case OBJECT_ANALOG_OUTPUT:
+        name = Analog_Output_Name(object_instance);
+        break;
+    case OBJECT_LIFE_SAFETY_POINT:
         name = Analog_Output_Name(object_instance);
         break;
 #if BACFILE
@@ -867,6 +884,22 @@ unsigned Analog_Output_Count(void)
 }
 
 uint32_t Analog_Output_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
+char *Life_Safety_Point_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Life_Safety_Point_Count(void)
+{
+    return 0;
+}
+
+uint32_t Life_Safety_Point_Index_To_Instance(unsigned index)
 {
     return index;
 }

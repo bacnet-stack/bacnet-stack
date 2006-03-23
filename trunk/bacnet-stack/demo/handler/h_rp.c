@@ -41,6 +41,7 @@
 #include "ao.h"
 #include "bi.h"
 #include "bo.h"
+#include "lsp.h"
 #if BACFILE
 #include "bacfile.h"
 #endif
@@ -170,6 +171,27 @@ void handler_read_property(uint8_t * service_request,
         case OBJECT_ANALOG_OUTPUT:
             if (Analog_Output_Valid_Instance(data.object_instance)) {
                 len = Analog_Output_Encode_Property_APDU(&Temp_Buf[0],
+                    data.object_instance,
+                    data.object_property,
+                    data.array_index, &error_class, &error_code);
+                if (len >= 0) {
+                    /* encode the APDU portion of the packet */
+                    data.application_data = &Temp_Buf[0];
+                    data.application_data_len = len;
+                    /* FIXME: probably need a length limitation sent with encode */
+                    pdu_len +=
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
+                        [pdu_len], service_data->invoke_id, &data);
+                    fprintf(stderr, "Sending Read Property Ack!\n");
+                    send = true;
+                } else
+                    error = true;
+            } else
+                error = true;
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+            if (Life_Safety_Point_Valid_Instance(data.object_instance)) {
+                len = Life_Safety_Point_Encode_Property_APDU(&Temp_Buf[0],
                     data.object_instance,
                     data.object_property,
                     data.array_index, &error_class, &error_code);
