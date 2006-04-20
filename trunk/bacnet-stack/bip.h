@@ -40,9 +40,11 @@
 #include "bacdef.h"
 #include "net.h"
 
-/* specific defines for Ethernet */
+/* specific defines for BACnet/IP over Ethernet */
 #define MAX_HEADER (1 + 1 + 2)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
+
+#define BVLL_TYPE_BACNET_IP (0x81)
 
 #ifdef __cplusplus
 extern "C" {

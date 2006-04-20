@@ -40,35 +40,110 @@
 
 /* Handle the BACnet Broadcast Management Device,
    Broadcast Distribution Table, and Foreign Device Registration */
+
+int bbmd_encode_bvlc_result(
+    uint8_t *pdu,
+    BACNET_BVLC_RESULT result_code)
+{
+    if (pdu) {
+        pdu[0] = BVLL_TYPE_BACNET_IP;
+        pdu[1] = BVLC_RESULT;
+        /* The 2-octet BVLC Length field is the length, in octets, 
+           of the entire BVLL message, including the two octets of the 
+           length field itself, most significant octet first. */
+        encode_unsigned16(&pdu[2], 6);
+        encode_unsigned16(&pdu[4], result_code);
+    }
+
+    return 6;
+}
+
+int bbmd_encode_write_bdt_init(
+    uint8_t *pdu,
+    unsigned entries)
+{
+    int len = 0;
+
+    if (pdu) {
+        pdu[0] = BVLL_TYPE_BACNET_IP;
+        pdu[1] = BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE;
+        /* The 2-octet BVLC Length field is the length, in octets, 
+           of the entire BVLL message, including the two octets of the 
+           length field itself, most significant octet first. */
+        encode_unsigned16(&pdu[2], 4 + entries * 10);
+        len = 4;
+    }
+
+    return len;
+}
+
+int bbmd_encode_write_bdt_entry(
+    uint8_t *pdu,
+    struct in_addr *address,
+    uint16_t port,
+    struct in_addr *mask)
+{
+    int len = 0;
+    
+    if (pdu) {
+        encode_unsigned32(&pdu[0], address->s_addr);
+        encode_unsigned16(&pdu[4], port);
+        encode_unsigned32(&pdu[6], mask->s_addr);
+        len = 10;
+    }
+
+    return len;
+}
+
+int bbmd_encode_read_bdt(
+    uint8_t *pdu)
+)
+{
+    int len = 0;
+    
+    if (pdu) {
+        pdu[0] = BVLL_TYPE_BACNET_IP;
+        pdu[1] = BVLC_READ_BROADCAST_DISTRIBUTION_TABLE;
+        /* The 2-octet BVLC Length field is the length, in octets, 
+           of the entire BVLL message, including the two octets of the 
+           length field itself, most significant octet first. */
+        encode_unsigned16(&pdu[2], 4);
+        len = 4;
+    }
+
+    return len;
+}
    
 void bbmd_handler(uint8_t *buf, int len, struct sockaddr_in *sin)
 {
   int function_type = 0;
   
-    if (buf[0] != 0x81)
+    if (buf[0] != BVLL_TYPE_BACNET_IP)
       return;
     function_type = buf[1];
     switch (function_type)
     {
-      case 0:
+      case BVLC_RESULT:
         break;
-      case 1:
+      case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
         break;
-      case 2:
+      case BVLC_READ_BROADCAST_DISTRIBUTION_TABLE:
         break;
-      case 3:
+      case BVLC_READ_BROADCAST_DISTRIBUTION_TABLE_ACK:
         break;
-      case 4:
+      case BVLC_FORWARDED_NPDU:
         break;
-      case 5:
+      case BVLC_REGISTER_FOREIGN_DEVICE:
         break;
-      case 6:
+      case BVLC_READ_FOREIGN_DEVICE_TABLE:
         break;
-      case 7:
+      case BVLC_READ_FOREIGN_DEVICE_TABLE_ACK:
         break;
-      case 8:
+      case BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY:
         break;
-      case 9:
+      case BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:
+        break;
+      case BVLC_ORIGINAL_BROADCAST_NPDU:
         break;
       default:
         break;
