@@ -887,17 +887,17 @@ typedef enum {
 
 typedef enum {
   BVLC_RESULT = 0,
-  BVLC_Write_Broadcast_Distribution_Table = 1,
-  BVLC_Read_Broadcast_Distribution_Table = 2,
-  BVLC_Read_Broadcast_Distribution_Table_Ack = 3,
-  BVLC_Forwarded_NPDU = 4,
-  BVLC_Register_Foreign_Device = 5,
-  BVLC_Read_Foreign_Device_Table = 6, 
-  BVLC_Read_Foreign_Device_Table_Ack = 7,
-  BVLC_Delete_Foreign_Device_Table_Entry = 8,
-  BVLC_Distribute_Broadcast_To_Network = 9,
-  BVLC_Original_Unicast_NPDU = 10,
-  BVLC_Original_Broadcast_NPDU = 11,
+  BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE = 1,
+  BVLC_READ_BROADCAST_DISTRIBUTION_TABLE = 2,
+  BVLC_READ_BROADCAST_DISTRIBUTION_TABLE_ACK = 3,
+  BVLC_FORWARDED_NPDU = 4,
+  BVLC_REGISTER_FOREIGN_DEVICE = 5,
+  BVLC_READ_FOREIGN_DEVICE_TABLE = 6, 
+  BVLC_READ_FOREIGN_DEVICE_TABLE_ACK = 7,
+  BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY = 8,
+  BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK = 9,
+  BVLC_ORIGINAL_UNICAST_NPDU = 10,
+  BVLC_ORIGINAL_BROADCAST_NPDU = 11,
   MAX_BVLC_FUNCTION = 12
 } BACNET_BVLC_FUNCTION;
 
