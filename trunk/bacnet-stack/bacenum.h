@@ -885,6 +885,22 @@ typedef enum {
     MAX_BACNET_SERVICES_SUPPORTED = 40
 } BACNET_SERVICES_SUPPORTED;
 
+typedef enum {
+  BVLC_RESULT = 0,
+  BVLC_Write_Broadcast_Distribution_Table = 1,
+  BVLC_Read_Broadcast_Distribution_Table = 2,
+  BVLC_Read_Broadcast_Distribution_Table_Ack = 3,
+  BVLC_Forwarded_NPDU = 4,
+  BVLC_Register_Foreign_Device = 5,
+  BVLC_Read_Foreign_Device_Table = 6, 
+  BVLC_Read_Foreign_Device_Table_Ack = 7,
+  BVLC_Delete_Foreign_Device_Table_Entry = 8,
+  BVLC_Distribute_Broadcast_To_Network = 9,
+  BVLC_Original_Unicast_NPDU = 10,
+  BVLC_Original_Broadcast_NPDU = 11,
+  MAX_BVLC_FUNCTION = 12
+} BACNET_BVLC_FUNCTION;
+
 /* Bit String Enumerations */
 typedef enum {
     STATUS_FLAG_IN_ALARM = 0,
