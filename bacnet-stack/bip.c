@@ -144,11 +144,11 @@ static int bip_send(struct sockaddr_in *bip_dest, uint8_t * pdu,        /* any d
     if (BIP_Socket < 0)
         return BIP_Socket;
 
-    mtu[0] = 0x81;              /* BVLL for BACnet/IP */
+    mtu[0] = BVLL_TYPE_BACNET_IP;
     if (bip_dest->sin_addr.s_addr == htonl(BIP_Broadcast_Address.s_addr))
-        mtu[1] = 0x0B;          /* Original-Broadcast-NPDU */
+        mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     else
-        mtu[1] = 0x0A;          /* Original-Unicast-NPDU */
+        mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
     mtu_len = 2;
     mtu_len +=
         encode_unsigned16(&mtu[mtu_len],
@@ -246,10 +246,10 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
         return 0;
 
     /* the signature of a BACnet/IP packet */
-    if (buf[0] != 0x81)
+    if (buf[0] != BVLL_TYPE_BACNET_IP)
         return 0;
-    /* Original-Broadcast-NPDU or Original-Unicast-NPDU */
-    if ((buf[1] == 0x0B) || (buf[1] == 0x0A)) {
+    if ((buf[1] == BVLC_ORIGINAL_UNICAST_NPDU) || 
+      (buf[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
         if (sin.sin_addr.s_addr == BIP_Address.s_addr)
             pdu_len = 0;
@@ -274,7 +274,7 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
         }
     }
     #ifdef BBMD_ENABLED
-    if (buf[1] <= 0x09) {
+    if (buf[1] < MAX_BVLC_FUNCTION) {
       bbmd_handler(&buf[0], received_bytes, &sin); 
     }
     #endif
