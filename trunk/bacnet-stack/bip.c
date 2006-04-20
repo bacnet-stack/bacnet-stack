@@ -273,6 +273,11 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
                 pdu_len = 0;
         }
     }
+    #ifdef BBMD_ENABLED
+    if (buf[1] <= 0x09) {
+      bbmd_handler(&buf[0], received_bytes, &sin); 
+    }
+    #endif
 
     return pdu_len;
 }
