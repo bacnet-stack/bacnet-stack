@@ -159,6 +159,19 @@ bool bip_init(void)
         bip_set_socket(-1);
         return false;
     }
+    #if 0
+    /* probably only for Apple... */
+    /* rebind a port that is already in use.
+       Note: all users of the port must specify this flag */
+    rv = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEPORT,
+        (char *) &value, sizeof(value));
+    if (rv < 0) {
+        fprintf(stderr, "bip: failed to set REUSEPORT socket option.\n");
+        close(sock_fd);
+        bip_set_socket(-1);
+        return false;
+    }
+    #endif
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
 #if USE_INADDR

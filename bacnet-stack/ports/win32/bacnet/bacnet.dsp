@@ -137,6 +137,14 @@ SOURCE=..\..\..\bactext.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\object\bi.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\bi.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\bigend.c
 # End Source File
 # Begin Source File
@@ -146,6 +154,14 @@ SOURCE="..\bip-init.c"
 # Begin Source File
 
 SOURCE=..\..\..\bip.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\bo.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\bo.h
 # End Source File
 # Begin Source File
 
@@ -198,6 +214,14 @@ SOURCE=..\..\..\iam.c
 # Begin Source File
 
 SOURCE=..\..\..\indtext.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\lsp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\lsp.h
 # End Source File
 # Begin Source File
 

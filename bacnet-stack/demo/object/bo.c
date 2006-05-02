@@ -104,9 +104,9 @@ unsigned Binary_Output_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-static float Binary_Output_Present_Value(uint32_t object_instance)
+static BACNET_BINARY_PV Binary_Output_Present_Value(uint32_t object_instance)
 {
-    float value = RELINQUISH_DEFAULT;
+    BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
     unsigned index = 0;
     unsigned i = 0;
 
