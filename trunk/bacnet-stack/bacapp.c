@@ -488,7 +488,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
             value->type.Signed_Int = long_value;
         } else if (tag_number == BACNET_APPLICATION_TAG_REAL) {
             double_value = strtod(argv, NULL);
-            value->type.Real = double_value;
+            value->type.Real = (float)double_value;
         } else if (tag_number == BACNET_APPLICATION_TAG_DOUBLE) {
             double_value = strtod(argv, NULL);
             value->type.Double = double_value;
