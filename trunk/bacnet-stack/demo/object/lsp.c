@@ -288,7 +288,7 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 #include <string.h>
 #include "ctest.h"
 
-void testAnalogOutput(Test * pTest)
+void testLifeSafetyPoint(Test * pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -316,15 +316,15 @@ void testAnalogOutput(Test * pTest)
     return;
 }
 
-#ifdef TEST_ANALOG_OUTPUT
+#ifdef TEST_LIFE_SAFETY_POINT
 int main(void)
 {
     Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Analog Output", NULL);
+    pTest = ct_create("BACnet Life Safety Point", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testAnalogOutput);
+    rc = ct_addTestFunction(pTest, testLifeSafetyPoint);
     assert(rc);
 
     ct_setStream(pTest, stdout);
@@ -334,5 +334,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_ANALOG_INPUT */
+#endif                          /* TEST_LIFE_SAFETY_POINT */
 #endif                          /* TEST */

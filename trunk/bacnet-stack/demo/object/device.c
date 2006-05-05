@@ -468,7 +468,7 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
         name = Analog_Output_Name(object_instance);
         break;
     case OBJECT_LIFE_SAFETY_POINT:
-        name = Analog_Output_Name(object_instance);
+        name = Life_Safety_Point_Name(object_instance);
         break;
 #if BACFILE
     case OBJECT_FILE:
@@ -588,10 +588,19 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         }
         /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
-        bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
-        bitstring_set_bit(&bit_string, OBJECT_ANALOG_OUTPUT, true);
+        if (Analog_Input_Count())
+          bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
+        if (Analog_Output_Count())
+          bitstring_set_bit(&bit_string, OBJECT_ANALOG_OUTPUT, true);
+        if (Binary_Input_Count())
+          bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
+        if (Binary_Output_Count())
+          bitstring_set_bit(&bit_string, OBJECT_BINARY_OUTPUT, true);
+        if (Life_Safety_Point_Count())
+          bitstring_set_bit(&bit_string, OBJECT_LIFE_SAFETY_POINT, true);
 #if BACFILE
-        bitstring_set_bit(&bit_string, OBJECT_FILE, true);
+        if (bacfile_count())
+          bitstring_set_bit(&bit_string, OBJECT_FILE, true);
 #endif
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;

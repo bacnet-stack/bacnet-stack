@@ -51,7 +51,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
-    void testAnalogOutput(Test * pTest);
+    void testLifeSafetyPoint(Test * pTest);
 #endif
 
 #ifdef __cplusplus
