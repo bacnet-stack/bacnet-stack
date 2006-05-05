@@ -67,10 +67,11 @@ static char Description[16] = "server";
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
-/* Local_Time - rely on OS, if there is one */
-/* Local_Date - rely on OS, if there is one */
-/* UTC_Offset - rely on OS, if there is one */
-/* Daylight_Savings_Status - rely on OS, if there is one */
+BACNET_TIME Local_Time; /* rely on OS, if there is one */
+BACNET_DATE Local_Date; /* rely on OS, if there is one */
+/* BACnet UTC is inverse of standard offset - i.e. relative to local */
+static int UTC_Offset = 5; 
+static bool Daylight_Savings_Status = false; /* rely on OS */
 /* APDU_Segment_Timeout */
 static uint16_t APDU_Timeout = 3000;
 static uint8_t Number_Of_APDU_Retries = 3;
@@ -270,7 +271,7 @@ uint8_t Device_Protocol_Version(void)
 
 uint8_t Device_Protocol_Revision(void)
 {
-    return 4;
+    return 5;
 }
 
 uint16_t Device_Max_APDU_Length_Accepted(void)
@@ -540,29 +541,40 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             Application_Software_Version);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
-        /* if you support time */
-        /*case PROP_LOCAL_TIME: */
-        /*t = time(NULL); */
-        /*my_tm = localtime(&t); */
-        /*apdu_len = */
-        /*    encode_tagged_time(&apdu[0], my_tm->tm_hour, my_tm->tm_min, */
-        /*    my_tm->tm_sec, 0); */
-        /*break; */
-        /* if you support date */
-        /*case PROP_LOCAL_DATE: */
-        /*t = time(NULL); */
-        /*my_tm = localtime(&t); */
-        /* month 1=Jan */
-        /* day = day of month */
-        /* wday 1=Monday...7=Sunday */
-        /*apdu_len = encode_tagged_date(&apdu[0], */
-        /*    my_tm->tm_year+1900, */
-        /*    my_tm->tm_mon + 1, */
-        /*    my_tm->tm_mday, ((my_tm->tm_wday == 0) ? 7 : my_tm->tm_wday)); */
-        /*break; */
+    /* FIXME: if you support time */
+    case PROP_LOCAL_TIME:
+        /* FIXME: get the actual value */
+        Local_Time.hour = 7;
+        Local_Time.min = 0;
+        Local_Time.sec = 3;
+        Local_Time.hundredths = 1;
+        apdu_len =
+            encode_tagged_time(&apdu[0], &Local_Time);
+        break; 
+    /* FIXME: if you support time */
+    case PROP_UTC_OFFSET:
+        /* NOTE: if your UTC offset is -5, then BACnet UTC offset is 5 */
+        apdu_len = encode_tagged_signed(&apdu[0], UTC_Offset);
+        break;
+    /* FIXME: if you support date */
+    case PROP_LOCAL_DATE:
+        /* FIXME: get the actual value instead of April Fool's Day */
+        Local_Date.year = 2006;      /* AD */
+        Local_Date.month = 4;        /* 1=Jan */
+        Local_Date.day = 1;          /* 1..31 */
+        Local_Date.wday = 6;         /* 1=Monday */
+        apdu_len = encode_tagged_date(&apdu[0],&Local_Date);
+        break;
+    case PROP_DAYLIGHT_SAVINGS_STATUS:
+        apdu_len = encode_tagged_boolean(&apdu[0], Daylight_Savings_Status);
+        break;
     case PROP_PROTOCOL_VERSION:
         apdu_len =
             encode_tagged_unsigned(&apdu[0], Device_Protocol_Version());
+        break;
+    case PROP_PROTOCOL_REVISION:
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], Device_Protocol_Revision());
         break;
         /* BACnet Legacy Support */
     case PROP_PROTOCOL_CONFORMANCE_CLASS:
@@ -666,7 +678,11 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             encode_tagged_unsigned(&apdu[0], Number_Of_APDU_Retries);
         break;
     case PROP_DEVICE_ADDRESS_BINDING:
-        /* encode the list here, if it exists */
+        /* FIXME: encode the list here, if it exists */
+        break;
+    case PROP_DATABASE_REVISION:
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], Database_Revision);
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;
