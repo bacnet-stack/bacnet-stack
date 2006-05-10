@@ -128,7 +128,7 @@ int dcc_encode_apdu(uint8_t * apdu, uint8_t invoke_id, uint16_t timeDuration,   
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_REINITIALIZE_DEVICE;
+        apdu[3] = SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL;
         apdu_len = 4;
         /* optional timeDuration */
         if (timeDuration) {
@@ -218,7 +218,7 @@ int dcc_decode_apdu(uint8_t * apdu,
         return -1;
     /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_REINITIALIZE_DEVICE)
+    if (apdu[3] != SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL)
         return -1;
     offset = 4;
 
