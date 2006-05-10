@@ -38,10 +38,12 @@
 #include "bip.h"
 #include "net.h"                /* custom per port */
 
-/* Handle the BACnet Broadcast Management Device,
-   Broadcast Distribution Table, and Foreign Device Registration */
+/* Handle the BACnet Virtual Link Control (BVLC), which includes:
+   BACnet Broadcast Management Device,
+   Broadcast Distribution Table, and
+   Foreign Device Registration */
 
-int bbmd_encode_bvlc_result(
+int bvlc_encode_bvlc_result(
     uint8_t *pdu,
     BACNET_BVLC_RESULT result_code)
 {
@@ -58,7 +60,7 @@ int bbmd_encode_bvlc_result(
     return 6;
 }
 
-int bbmd_encode_write_bdt_init(
+int bvlc_encode_write_bdt_init(
     uint8_t *pdu,
     unsigned entries)
 {
@@ -77,7 +79,7 @@ int bbmd_encode_write_bdt_init(
     return len;
 }
 
-int bbmd_encode_address(
+int bvlc_encode_address(
     uint8_t *pdu,
     struct in_addr *address, /* in host format */
     uint16_t port)
@@ -93,7 +95,7 @@ int bbmd_encode_address(
 }
 
 /* used for both read and write entries */
-int bbmd_encode_address_entry(
+int bvlc_encode_address_entry(
     uint8_t *pdu,
     struct in_addr *address,
     uint16_t port,
@@ -102,14 +104,14 @@ int bbmd_encode_address_entry(
     int len = 0;
 
     if (pdu) {
-        len = bbmd_encode_address(pdu, address, port);
+        len = bvlc_encode_address(pdu, address, port);
         len += encode_unsigned32(&pdu[len], mask->s_addr);
     }
 
     return len;
 }
 
-int bbmd_encode_read_bdt(
+int bvlc_encode_read_bdt(
     uint8_t *pdu)
 {
     int len = 0;
@@ -127,7 +129,7 @@ int bbmd_encode_read_bdt(
     return len;
 }
 
-int bbmd_encode_read_bdt_ack_init(
+int bvlc_encode_read_bdt_ack_init(
     uint8_t *pdu,
     unsigned entries)
 {
@@ -146,7 +148,7 @@ int bbmd_encode_read_bdt_ack_init(
     return len;
 }
 
-int bbmd_encode_forwarded_npdu(
+int bvlc_encode_forwarded_npdu(
     uint8_t *pdu,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
@@ -176,7 +178,7 @@ int bbmd_encode_forwarded_npdu(
     return len;
 }
 
-int bbmd_encode_register_foreign_device(
+int bvlc_encode_register_foreign_device(
     uint8_t *pdu,
     uint16_t time_to_live_seconds)
 {
@@ -196,7 +198,7 @@ int bbmd_encode_register_foreign_device(
     return len;
 }
 
-int bbmd_encode_read_fdt(
+int bvlc_encode_read_fdt(
     uint8_t *pdu)
 {
     int len = 0;
@@ -214,7 +216,7 @@ int bbmd_encode_read_fdt(
     return len;
 }
 
-int bbmd_encode_read_fdt_ack_init(
+int bvlc_encode_read_fdt_ack_init(
     uint8_t *pdu,
     unsigned entries)
 {
@@ -233,7 +235,7 @@ int bbmd_encode_read_fdt_ack_init(
     return len;
 }
 
-int bbmd_encode_delete_fdt_entry(
+int bvlc_encode_delete_fdt_entry(
     uint8_t *pdu,
     struct in_addr *address,
     uint16_t port)
@@ -256,7 +258,7 @@ int bbmd_encode_delete_fdt_entry(
     return len;
 }
 
-int bbmd_encode_distribute_broadcast_to_network(
+int bvlc_encode_distribute_broadcast_to_network(
     uint8_t *pdu,
     uint8_t *npdu,
     unsigned npdu_length)
@@ -280,7 +282,7 @@ int bbmd_encode_distribute_broadcast_to_network(
     return len;
 }
 
-int bbmd_encode_original_unicast_npdu(
+int bvlc_encode_original_unicast_npdu(
     uint8_t * pdu,
     uint8_t * npdu,
     unsigned npdu_length)
@@ -304,7 +306,7 @@ int bbmd_encode_original_unicast_npdu(
     return len;
 }
 
-int bbmd_encode_original_broadcast_npdu(
+int bvlc_encode_original_broadcast_npdu(
     uint8_t * pdu,
     uint8_t * npdu,
     unsigned npdu_length)
@@ -328,7 +330,7 @@ int bbmd_encode_original_broadcast_npdu(
     return len;
 }
 
-void bbmd_handler(uint8_t *buf, int len, struct sockaddr_in *sin)
+void bvlc_handler(uint8_t *buf, int len, struct sockaddr_in *sin)
 {
   int function_type = 0;
 
@@ -371,8 +373,9 @@ void bbmd_handler(uint8_t *buf, int len, struct sockaddr_in *sin)
 #include <string.h>
 #include "ctest.h"
 
-void testBBMD(Test * pTest)
+void testBVLC(Test * pTest)
 {
+  (void)pTest;
 }
 
 #ifdef TEST_BBMD
@@ -381,9 +384,9 @@ int main(void)
     Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Broadcast Management Device (BBMD)", NULL);
+    pTest = ct_create("BACnet Virtual Link Control", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testBBMD);
+    rc = ct_addTestFunction(pTest, testBVLC);
     assert(rc);
 
     /* configure output */
