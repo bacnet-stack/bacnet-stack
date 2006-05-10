@@ -31,8 +31,8 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#ifndef BBMD_H
-#define BBMD_H
+#ifndef BVLC_H
+#define BVLC_H
 
 #include <stdint.h>             /* for standard integer types uint8_t etc. */
 #include <stdbool.h>            /* for the standard bool type. */
@@ -42,7 +42,7 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-void bbmd_handler(uint8_t *buf, int len, struct sockaddr_in *sin);
+void bvlc_handler(uint8_t *buf, int len, struct sockaddr_in *sin);
 
 #ifdef __cplusplus
 }
