@@ -42,6 +42,7 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+/* called from BACnet/IP handler */
 void bvlc_handler(uint8_t *buf, int len, struct sockaddr_in *sin);
 
 #ifdef __cplusplus
