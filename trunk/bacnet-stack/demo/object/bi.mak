@@ -10,7 +10,7 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_BINARY_INPUT -g
 SRCS = bacdcode.c \
        bacstr.c \
        bigend.c \
-       demo/object/ai.c \
+       demo/object/bi.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}

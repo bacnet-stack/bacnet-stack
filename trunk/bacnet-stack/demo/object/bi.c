@@ -198,8 +198,8 @@ void testBinaryInput(Test * pTest)
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_BINARY_OUTPUT
-        uint32_t decoded_instance = 0;
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_BINARY_OUTPUT;
+    uint32_t decoded_instance = 0;
     uint32_t instance = 123;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
@@ -215,7 +215,7 @@ void testBinaryInput(Test * pTest)
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
     len = decode_object_id(&apdu[len],
         (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_ANALOG_INPUT);
+    ct_test(pTest, decoded_type == OBJECT_BINARY_INPUT);
     ct_test(pTest, decoded_instance == instance);
 
     return;
