@@ -13,15 +13,26 @@ $ make clean
 Make the source code look the same
 $ indent -kr -nut -nlp *.c *.h
       
-Commit changes to CVS.
+Verify that the code compiles and runs the demos without error or
+warnings:
+$ make all
+$ demo/server 123 (etc)
+Verify that the unit tests compile and pass:
+$ ./unittest.sh
+$ cat test.log | grep Failed
+
+Commit any changes to subversion.
+$ svn commit
+$ svn update
+
+Create the change log
+svn log --xml --verbose | xsltproc svn2cl.xsl - > ChangeLog
        
-Set a CVS tag on the "bacnet-stack" module called "bacnet-stack-0-0-0"
-$ cvs tag bacnet-stack-0-0-0
+Set a tag on the "bacnet-stack" module called "bacnet-stack-0-0-0"
+$ svn copy https://svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-0-0
 	 
-Get a clean version out of CVS that doesn't have CVS in it. Don't
-use the pserver since it is not updated instantly and may not have
-the latest changes in it.
-$ cvs -d:ext:skarg@cvs.sf.net:/cvsroot/bacnet export -Dtomorrow bacnet-stack
+Get a clean version out of subversion that doesn't have subversion in it.
+$ svn https://svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack bacnet-stack
 	   
 tar and gzip the clean directory from one directory up.
 $ tar -cvvzf bacnet-stack-0.0.0.tgz bacnet-stack/ 
