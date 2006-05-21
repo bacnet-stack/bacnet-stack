@@ -121,6 +121,10 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
     case PROP_UNITS:
         apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
         break;
+    /* test case for signed encoding and decoding negative value correctly */
+    case 9999:
+        apdu_len = encode_tagged_signed(&apdu[0], -200);
+        break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
