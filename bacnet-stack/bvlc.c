@@ -34,6 +34,7 @@
 
 #include <stdint.h>             /* for standard integer types uint8_t etc. */
 #include <stdbool.h>            /* for the standard bool type. */
+#include <time.h>            /* for the standard bool type. */
 #include "bacdcode.h"
 #include "bip.h"
 #include "net.h"                /* custom per port */
@@ -45,17 +46,11 @@
 
 typedef struct
 {
-  /* IP Address - stored in host byte order */
-  struct in_addr address;
-  uint16_t port;
-} BIP_ADDRESS;
-
-typedef struct
-{
     /* true if valid entry - false if not */
     bool valid;
     /* BACnet/IP address */
-    BIP_ADDRESS bip_address;
+    struct in_addr dest_address;
+    uint16_t dest_port;
     /* Broadcast Distribution Mask - stored in host byte order */
     struct in_addr broadcast_mask;
 } BBMD_TABLE_ENTRY;
@@ -76,14 +71,15 @@ typedef struct
 {
     bool valid;
     /* BACnet/IP address */
-    BIP_ADDRESS bip_address;
+    struct in_addr dest_address;
+    uint16_t dest_port;
     /* seconds for valid entry lifetime */
     uint16_t time_to_live;
-    time_t seconds_remaining;
+    time_t seconds_remaining; /* includes 30 second grace period */
 } FD_TABLE_ENTRY;
 
 #define MAX_FD_ENTRIES 128
-static FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
+static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 
 void bvlc_maintenance_timer(unsigned seconds)
 {
@@ -92,14 +88,19 @@ void bvlc_maintenance_timer(unsigned seconds)
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid)
         {
-            if (FD_Table[i].time_to_live
+            if (FD_Table[i].seconds_remaining)
+            {
+                if (FD_Table[i].seconds_remaining < seconds)
+                  FD_Table[i].seconds_remaining = 0;
+                else
+                  FD_Table[i].seconds_remaining -= seconds;
+                if (FD_Table[i].seconds_remaining == 0)
+                {
+                    FD_Table[i].valid = false;
+                }
+            }
         }
     }
-
-
-static FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
-
-
 }
 
 int bvlc_encode_bip_address(
@@ -401,7 +402,7 @@ int bvlc_encode_original_broadcast_npdu(
 /* copy the source internet address to the BACnet address */
 /* FIXME: IPv6? */
 /* FIXME: is sockaddr_in host or network order? */
-void bvlc_internet_to_bacnet_address
+void bvlc_internet_to_bacnet_address(
     BACNET_ADDRESS * src, /* returns the BACnet source address */
     struct sockaddr_in * sin) /* source internet address */
 {
@@ -422,7 +423,7 @@ void bvlc_internet_to_bacnet_address
 /* copy the source internet address to the BACnet address */
 /* FIXME: IPv6? */
 /* FIXME: is sockaddr_in host or network order? */
-void bvlc_bacnet_to_internet_address
+void bvlc_bacnet_to_internet_address(
     struct sockaddr_in * sin, /* source internet address */
     BACNET_ADDRESS * src) /* returns the BACnet source address */
 {
@@ -449,17 +450,20 @@ void bvlc_bdt_forward_npdu(
     int mtu_len = 0;
     int bytes_sent = 0;
     unsigned i = 0; /* loop counter */
+    struct sockaddr_in bip_dest;
 
     /* assumes that the driver has already been initialized */
-    if (BIP_Socket < 0)
-        return BIP_Socket;
+    if (bip_socket() < 0)
+        return;
 
     mtu_len = bvlc_encode_forwarded_npdu(
         &mtu[0],
-        src,
+        sin,
         npdu,
         npdu_length);
 
+    /* load destination IP address */
+    bip_dest.sin_family = AF_INET;
     /* loop through the BDT and send one to each entry, except us */
     for (i = 0; i < MAX_BBMD_ENTRIES; i++)
     {
@@ -470,14 +474,18 @@ void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
 
+            bip_dest.sin_addr.s_addr =
+              htonl(((~BBMD_Table[i].broadcast_mask.s_addr) |
+                BBMD_Table[i].dest_address.s_addr));
+            bip_dest.sin_port = htons(BBMD_Table[i].dest_port);
+
             /* Send the packet */
-            bytes_sent = sendto(BIP_Socket, (char *) mtu, mtu_len, 0,
+            bytes_sent = sendto(bip_socket(), (char *) mtu, mtu_len, 0,
                 (struct sockaddr *) bip_dest, sizeof(struct sockaddr));
         }
 
     return bytes_sent;
 }
-
 
 void bvlc_fdt_forward_npdu(
     struct sockaddr_in *sin, /* the source address */

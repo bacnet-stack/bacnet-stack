@@ -56,6 +56,7 @@ extern "C" {
 /* normal functions... */
     void bip_cleanup(void);
     void bip_set_socket(int sock_fd);
+    int bip_socket(void);
     bool bip_valid(void);
     void bip_get_broadcast_address(BACNET_ADDRESS * dest);      /* destination address */
     void bip_get_my_address(BACNET_ADDRESS * my_address);
