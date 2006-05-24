@@ -254,7 +254,7 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
     if (buf[0] != BVLL_TYPE_BACNET_IP)
         return 0;
     if ((buf[1] == BVLC_ORIGINAL_UNICAST_NPDU) ||
-      (buf[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
+        (buf[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
         if (sin.sin_addr.s_addr == BIP_Address.s_addr)
             pdu_len = 0;
@@ -278,11 +278,11 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
                 pdu_len = 0;
         }
     }
-    #ifdef BBMD_ENABLED
+#ifdef BBMD_ENABLED
     if (buf[1] < MAX_BVLC_FUNCTION) {
-      bbmd_handler(&buf[0], received_bytes, &sin);
+        bbmd_handler(&buf[0], received_bytes, &sin);
     }
-    #endif
+#endif
 
     return pdu_len;
 }

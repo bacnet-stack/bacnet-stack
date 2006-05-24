@@ -30,23 +30,24 @@
  based on this file might be covered by the GNU General Public
  License.
  -------------------------------------------
-####COPYRIGHTEND####*/
+####COPYRIGHTEND####*/  
 #ifndef BVLC_H
 #define BVLC_H
-
+    
 #include <stdint.h>             /* for standard integer types uint8_t etc. */
 #include <stdbool.h>            /* for the standard bool type. */
 #include "bip.h"
-
+    
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
-
-/* called from BACnet/IP handler */
-void bvlc_handler(uint8_t *buf, int len, struct sockaddr_in *sin);
-
+    
+#endif  /* __cplusplus */
+    
+/* called from BACnet/IP handler */ 
+    void bvlc_handler(uint8_t * buf, int len, struct sockaddr_in *sin);
+    
 #ifdef __cplusplus
-}
-#endif                          /* __cplusplus */
+} 
+#endif  /* __cplusplus */
 
-#endif
+#endif  /*  */
