@@ -174,7 +174,7 @@ int dcc_decode_service_request(uint8_t * apdu,
                 &len_value_type);
             len += decode_unsigned(&apdu[len], len_value_type, &value32);
             if (timeDuration)
-                *timeDuration = (uint16_t)value32;
+                *timeDuration = (uint16_t) value32;
         } else if (timeDuration)
             *timeDuration = 0;
         /* Tag 1: enable_disable */

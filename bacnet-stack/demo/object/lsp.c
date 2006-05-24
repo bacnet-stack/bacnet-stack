@@ -61,7 +61,8 @@ void Life_Safety_Point_Init(void)
         for (i = 0; i < MAX_LIFE_SAFETY_POINTS; i++) {
             Life_Safety_Point_Mode[i] = LIFE_SAFETY_MODE_DEFAULT;
             Life_Safety_Point_State[i] = LIFE_SAFETY_STATE_QUIET;
-            Life_Safety_Point_Silenced_State[i] = SILENCED_STATE_UNSILENCED;
+            Life_Safety_Point_Silenced_State[i] =
+                SILENCED_STATE_UNSILENCED;
             Life_Safety_Point_Operation[i] = LIFE_SAFETY_OPERATION_NONE;
         }
     }
@@ -112,7 +113,8 @@ unsigned Life_Safety_Point_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(uint32_t object_instance)
+static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(uint32_t
+    object_instance)
 {
     BACNET_LIFE_SAFETY_STATE present_value = LIFE_SAFETY_STATE_QUIET;
     unsigned index = 0;
@@ -156,12 +158,12 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
     unsigned object_index = 0;
     bool state = false;
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
-
-    (void)array_index; /* currently not used */
+    (void) array_index;        /* currently not used */
     Life_Safety_Point_Init();
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_LIFE_SAFETY_POINT,
+        apdu_len =
+            encode_tagged_object_id(&apdu[0], OBJECT_LIFE_SAFETY_POINT,
             object_instance);
         break;
     case PROP_OBJECT_NAME:
@@ -190,7 +192,8 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
-        object_index = Life_Safety_Point_Instance_To_Index(object_instance);
+        object_index =
+            Life_Safety_Point_Instance_To_Index(object_instance);
         state = Life_Safety_Point_Out_Of_Service[object_index];
         apdu_len = encode_tagged_boolean(&apdu[0], state);
         break;
@@ -200,24 +203,27 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], reliability);
         break;
     case PROP_MODE:
-        object_index = Life_Safety_Point_Instance_To_Index(object_instance);
+        object_index =
+            Life_Safety_Point_Instance_To_Index(object_instance);
         mode = Life_Safety_Point_Mode[object_index];
         apdu_len = encode_tagged_enumerated(&apdu[0], mode);
         break;
     case PROP_ACCEPTED_MODES:
-        for (mode = MIN_LIFE_SAFETY_MODE; mode < MAX_LIFE_SAFETY_MODE; mode++)
-        {
-          len = encode_tagged_enumerated(&apdu[apdu_len], mode);
-          apdu_len += len;
+        for (mode = MIN_LIFE_SAFETY_MODE; mode < MAX_LIFE_SAFETY_MODE;
+            mode++) {
+            len = encode_tagged_enumerated(&apdu[apdu_len], mode);
+            apdu_len += len;
         }
         break;
     case PROP_SILENCED:
-        object_index = Life_Safety_Point_Instance_To_Index(object_instance);
+        object_index =
+            Life_Safety_Point_Instance_To_Index(object_instance);
         silenced_state = Life_Safety_Point_Silenced_State[object_index];
         apdu_len = encode_tagged_enumerated(&apdu[0], silenced_state);
         break;
     case PROP_OPERATION_EXPECTED:
-        object_index = Life_Safety_Point_Instance_To_Index(object_instance);
+        object_index =
+            Life_Safety_Point_Instance_To_Index(object_instance);
         operation = Life_Safety_Point_Operation[object_index];
         apdu_len = encode_tagged_enumerated(&apdu[0], operation);
         break;
@@ -248,10 +254,13 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     switch (wp_data->object_property) {
     case PROP_MODE:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-          if ((wp_data->value.type.Enumerated >= MIN_LIFE_SAFETY_MODE) &&
+            if ((wp_data->value.type.Enumerated >= MIN_LIFE_SAFETY_MODE) &&
                 (wp_data->value.type.Enumerated <= MIN_LIFE_SAFETY_MODE)) {
-                object_index = Life_Safety_Point_Instance_To_Index(wp_data->object_instance);
-                Life_Safety_Point_Mode[object_index] = wp_data->value.type.Enumerated;
+                object_index =
+                    Life_Safety_Point_Instance_To_Index(wp_data->
+                    object_instance);
+                Life_Safety_Point_Mode[object_index] =
+                    wp_data->value.type.Enumerated;
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -265,7 +274,8 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_OUT_OF_SERVICE:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
-                Life_Safety_Point_Instance_To_Index(wp_data->object_instance);
+                Life_Safety_Point_Instance_To_Index(wp_data->
+                object_instance);
             Life_Safety_Point_Out_Of_Service[object_index] =
                 wp_data->value.type.Boolean;
             status = true;

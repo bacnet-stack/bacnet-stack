@@ -159,7 +159,7 @@ bool bip_init(void)
         bip_set_socket(-1);
         return false;
     }
-    #if 0
+#if 0
     /* probably only for Apple... */
     /* rebind a port that is already in use.
        Note: all users of the port must specify this flag */
@@ -171,7 +171,7 @@ bool bip_init(void)
         bip_set_socket(-1);
         return false;
     }
-    #endif
+#endif
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
 #if USE_INADDR
