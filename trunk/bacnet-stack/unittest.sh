@@ -14,6 +14,11 @@ make -f address.mak
 ./address >> test.log
 make -f address.mak clean
 
+make -f cov.mak clean
+make -f cov.mak
+./cov >> test.log
+make -f cov.mak clean
+
 make -f dcc.mak clean
 make -f dcc.mak
 ./dcc >> test.log
