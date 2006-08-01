@@ -355,7 +355,7 @@ void testCOV(Test * pTest)
 }
 
 #ifdef TEST_COV
-int main(void)
+int main(int argc, char *argv[])
 {
     Test *pTest;
     bool rc;
