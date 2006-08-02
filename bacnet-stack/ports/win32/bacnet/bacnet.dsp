@@ -105,6 +105,10 @@ SOURCE=..\..\..\demo\object\ao.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\object\av.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\apdu.c
 # End Source File
 # Begin Source File
@@ -141,7 +145,11 @@ SOURCE=..\..\..\demo\object\bi.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\demo\object\bi.h
+SOURCE=..\..\..\demo\object\bo.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\bv.h
 # End Source File
 # Begin Source File
 
@@ -154,10 +162,6 @@ SOURCE="..\bip-init.c"
 # Begin Source File
 
 SOURCE=..\..\..\bip.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\demo\object\bo.c
 # End Source File
 # Begin Source File
 

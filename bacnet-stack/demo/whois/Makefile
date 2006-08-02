@@ -35,8 +35,10 @@ SRCS = main.c \
        $(BACNET_OBJECT)/device.c \
        $(BACNET_OBJECT)/ai.c \
        $(BACNET_OBJECT)/ao.c \
+       $(BACNET_OBJECT)/av.c \
        $(BACNET_OBJECT)/bi.c \
        $(BACNET_OBJECT)/bo.c \
+       $(BACNET_OBJECT)/bv.c \
        $(BACNET_OBJECT)/lsp.c \
        $(BACNET_OBJECT)/bacfile.c \
        $(BACNET_ROOT)/filename.c \
