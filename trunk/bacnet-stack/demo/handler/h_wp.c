@@ -39,8 +39,10 @@
 #include "device.h"
 #include "ai.h"
 #include "ao.h"
+#include "av.h"
 #include "bi.h"
 #include "bo.h"
+#include "bv.h"
 #include "lsp.h"
 #if BACFILE
 #include "bacfile.h"
@@ -92,14 +94,15 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack!\n");
+                fprintf(stderr,
+                  "Sending Write Property Simple Ack for Device!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
                     error_code);
-                fprintf(stderr, "Sending Write Property Error!\n");
+                fprintf(stderr, "Sending Write Property Error for Device!\n");
             }
             break;
         case OBJECT_ANALOG_INPUT:
@@ -119,14 +122,31 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack!\n");
+                fprintf(stderr, "Sending Write Property Simple Ack for BO!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
                     error_code);
-                fprintf(stderr, "Sending Write Access Error!\n");
+                fprintf(stderr, "Sending Write Access Error for BO!\n");
+            }
+            break;
+        case OBJECT_BINARY_VALUE:
+            if (Binary_Value_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                pdu_len +=
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+                fprintf(stderr, "Sending Write Property Simple Ack for BV!\n");
+            } else {
+                pdu_len +=
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                    error_code);
+                fprintf(stderr, "Sending Write Access Error for BV!\n");
             }
             break;
         case OBJECT_ANALOG_OUTPUT:
@@ -136,14 +156,31 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack!\n");
+                fprintf(stderr, "Sending Write Property Simple Ack for AO!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
                     error_code);
-                fprintf(stderr, "Sending Write Access Error!\n");
+                fprintf(stderr, "Sending Write Access Error for AO!\n");
+            }
+            break;
+        case OBJECT_ANALOG_VALUE:
+            if (Analog_Value_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                pdu_len +=
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+                fprintf(stderr, "Sending Write Property Simple Ack for AV!\n");
+            } else {
+                pdu_len +=
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                    error_code);
+                fprintf(stderr, "Sending Write Access Error for AV!\n");
             }
             break;
         case OBJECT_LIFE_SAFETY_POINT:
@@ -153,16 +190,35 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack!\n");
+                fprintf(stderr, "Sending Write Property Simple Ack for LSP!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
                     error_code);
-                fprintf(stderr, "Sending Write Access Error!\n");
+                fprintf(stderr, "Sending Write Access Error for LSP!\n");
             }
             break;
+#if BACFILE
+        case OBJECT_FILE:
+            if (bacfile_write_property(&wp_data, &error_class,
+                    &error_code)) {
+                pdu_len +=
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+                fprintf(stderr, "Sending Write Property Simple Ack for File!\n");
+            } else {
+                pdu_len +=
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                    error_code);
+                fprintf(stderr, "Sending Write Access Error for File!\n");
+            }
+            break;
+#endif
         default:
             pdu_len +=
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
