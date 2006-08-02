@@ -37,21 +37,25 @@
 #include "bacdef.h"
 #include "bacapp.h"
 #include "cov.h"
+#include "device.h"
 #include "datalink.h"
 #include "npdu.h"
 
 /* encode service */
 
-int cov_encode_apdu(uint8_t * apdu, BACNET_COV_DATA * data)
+/* Change-Of-Value Services
+COV Subscribe
+COV Subscribe Property
+COV Notification
+Unconfirmed COV Notification
+*/
+static int notify_encode_adpu(uint8_t * apdu, BACNET_COV_DATA * data)
 {
     int len = 0;                /* length of each encoding */
     int apdu_len = 0;           /* total length of the apdu, return value */
     BACNET_PROPERTY_VALUE *value = NULL;        /* value in list */
-
-    if (apdu && data) {
-        apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
-        apdu_len = 2;
+    
+    if (apdu) {
         /* tag 0 - subscriberProcessIdentifier */
         len = encode_context_unsigned(&apdu[apdu_len],
             0, data->subscriberProcessIdentifier);
@@ -75,7 +79,7 @@ int cov_encode_apdu(uint8_t * apdu, BACNET_COV_DATA * data)
         apdu_len += len;
         /* the first value includes a pointer to the next value, etc */
         /* FIXME: for small implementations, we might try a partial 
-           approach like the rpm.c where the values are added with
+           approach like the rpm.c where the values are encoded with
            a separate function */
         value = &data->listOfValues;
         while (value != NULL) {
@@ -115,8 +119,45 @@ int cov_encode_apdu(uint8_t * apdu, BACNET_COV_DATA * data)
     return apdu_len;
 }
 
+int ccov_notify_encode_apdu(uint8_t * apdu,
+    uint8_t invoke_id, BACNET_COV_DATA * data)
+{
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
+    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
+
+    if (apdu) {
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[2] = invoke_id;
+        apdu[3] = SERVICE_CONFIRMED_COV_NOTIFICATION;
+        apdu_len = 4;
+        len = notify_encode_adpu(&apdu[apdu_len], data);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+int ucov_notify_encode_apdu(uint8_t * apdu, BACNET_COV_DATA * data)
+{
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
+
+    if (apdu && data) {
+        apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
+        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
+        apdu_len = 2;
+        len = notify_encode_adpu(&apdu[apdu_len], data);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
 /* decode the service request only */
-int cov_decode_service_request(uint8_t * apdu,
+/* COV and Unconfirmed COV are the same */
+int cov_notify_decode_service_request(uint8_t * apdu,
     unsigned apdu_len, BACNET_COV_DATA * data)
 {
     int len = 0;                /* return value */
@@ -233,27 +274,58 @@ int cov_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-int cov_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, BACNET_COV_DATA * data)
+int ccov_notify_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id,
+    BACNET_COV_DATA * data)
 {
     int len = 0;
+    unsigned offset = 0;
 
     if (!apdu)
         return -1;
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
-        return -1;
-    if (apdu[1] != SERVICE_UNCONFIRMED_COV_NOTIFICATION)
-        return -1;
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+        return -2;
+    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+    if (apdu[3] != SERVICE_CONFIRMED_COV_NOTIFICATION)
+        return -3;
+    offset = 4;
+
     /* optional limits - must be used as a pair */
-    if (apdu_len > 2) {
-        len = cov_decode_service_request(&apdu[2], apdu_len - 2, data);
+    if (apdu_len > offset) {
+        len = cov_notify_decode_service_request(
+            &apdu[offset], apdu_len - offset, data);
     }
 
     return len;
 }
 
-int cov_send(uint8_t * buffer, BACNET_COV_DATA * data)
+int ucov_notify_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len, BACNET_COV_DATA * data)
+{
+    int len = 0;
+    unsigned offset = 0;
+
+    if (!apdu)
+        return -1;
+    /* optional checking - most likely was already done prior to this call */
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+        return -2;
+    if (apdu[1] != SERVICE_UNCONFIRMED_COV_NOTIFICATION)
+        return -3;
+    /* optional limits - must be used as a pair */
+    offset = 2;
+    if (apdu_len > offset) {
+        len = cov_notify_decode_service_request(
+            &apdu[offset], apdu_len - offset, data);
+    }
+
+    return len;
+}
+
+int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -263,11 +335,12 @@ int cov_send(uint8_t * buffer, BACNET_COV_DATA * data)
     datalink_get_broadcast_address(&dest);
 
     /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&buffer[0], &dest, NULL, false /* true for confirmed messages */,
+    pdu_len = npdu_encode_apdu(&buffer[0], &dest, NULL,
+        false /* true for confirmed messages */,
         MESSAGE_PRIORITY_NORMAL);
 
     /* encode the APDU portion of the packet */
-    pdu_len += cov_encode_apdu(&buffer[pdu_len], data);
+    pdu_len += ucov_notify_encode_apdu(&buffer[pdu_len], data);
 
     bytes_sent = datalink_send_pdu(&dest,       /* destination address */
         &buffer[0], pdu_len);   /* number of bytes of data */
@@ -301,38 +374,73 @@ void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
 {
 }
 
-void testCOVData(Test * pTest, BACNET_COV_DATA * data)
+/* dummy function stubs */
+uint16_t Device_Max_APDU_Length_Accepted(void)
+{
+  return MAX_APDU;
+}
+
+void testCOVNotifyData(Test * pTest,
+  BACNET_COV_DATA * data,
+  BACNET_COV_DATA * test_data)
+{
+    ct_test(pTest,
+        test_data->subscriberProcessIdentifier ==
+        data->subscriberProcessIdentifier);
+    ct_test(pTest,
+        test_data->initiatingDeviceIdentifier ==
+        data->initiatingDeviceIdentifier);
+    ct_test(pTest,
+        test_data->monitoredObjectIdentifier.type ==
+        data->monitoredObjectIdentifier.type);
+    ct_test(pTest,
+        test_data->monitoredObjectIdentifier.instance ==
+        data->monitoredObjectIdentifier.instance);
+    ct_test(pTest,
+        test_data->timeRemaining == data->timeRemaining);
+    /* FIXME: test the listOfValues in some clever manner */
+}
+
+void testUCOVNotifyData(Test * pTest, BACNET_COV_DATA * data)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     BACNET_COV_DATA test_data;
 
-    len = cov_encode_apdu(&apdu[0], data);
+    len = ucov_notify_encode_apdu(&apdu[0], data);
+    ct_test(pTest, len > 0);
+    apdu_len = len;
+
+    test_data.listOfValues.next = NULL;
+    len = ucov_notify_decode_apdu(&apdu[0], apdu_len, &test_data);
+    ct_test(pTest, len != -1);
+    testCOVNotifyData(pTest, data, &test_data);
+}
+
+void testCCOVNotifyData(Test * pTest, uint8_t invoke_id, BACNET_COV_DATA * data)
+{
+    uint8_t apdu[480] = { 0 };
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_COV_DATA test_data;
+    uint8_t test_invoke_id = 0;
+
+    len = ccov_notify_encode_apdu(&apdu[0], invoke_id, data);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
     test_data.listOfValues.next = NULL;
-    len = cov_decode_apdu(&apdu[0], apdu_len, &test_data);
-    ct_test(pTest, len != -1);
-    ct_test(pTest,
-        test_data.subscriberProcessIdentifier ==
-        data->subscriberProcessIdentifier);
-    ct_test(pTest,
-        test_data.initiatingDeviceIdentifier ==
-        data->initiatingDeviceIdentifier);
-    ct_test(pTest,
-        test_data.monitoredObjectIdentifier.type ==
-        data->monitoredObjectIdentifier.type);
-    ct_test(pTest,
-        test_data.monitoredObjectIdentifier.instance ==
-        data->monitoredObjectIdentifier.instance);
-    ct_test(pTest, test_data.timeRemaining == data->timeRemaining);
-    /* FIXME: test the listOfValues in some clever manner */
+    len = ccov_notify_decode_apdu(&apdu[0], apdu_len,
+        &test_invoke_id, &test_data);
+    ct_test(pTest, len > 0);
+    ct_test(pTest, test_invoke_id == invoke_id);
+    testCOVNotifyData(pTest, data, &test_data);
 }
 
-void testCOV(Test * pTest)
+void testCOVNotify(Test * pTest)
 {
+    uint8_t invoke_id = 12;
     BACNET_COV_DATA data;
     /* BACNET_PROPERTY_VALUE value2; */
 
@@ -349,7 +457,8 @@ void testCOV(Test * pTest)
     data.listOfValues.priority = 0;
     data.listOfValues.next = NULL;
 
-    testCOVData(pTest, &data);
+    testUCOVNotifyData(pTest, &data);
+    testCCOVNotifyData(pTest, invoke_id, &data);
 
     /* FIXME: add more values to the list of values */
 }
@@ -362,7 +471,7 @@ int main(int argc, char *argv[])
 
     pTest = ct_create("BACnet COV", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testCOV);
+    rc = ct_addTestFunction(pTest, testCOVNotify);
     assert(rc);
 
     ct_setStream(pTest, stdout);

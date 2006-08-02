@@ -557,7 +557,7 @@ typedef enum {
     EVENT_CHANGE_OF_LIFE_SAFETY = 8,
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
-    EVENT_UNSIGNED_RANGE = 11,
+    EVENT_UNSIGNED_RANGE = 11
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
     /* Enumerated values 64-65535 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23.  */
@@ -648,7 +648,7 @@ typedef enum {
     SILENCED_STATE_UNSILENCED = 0,
     SILENCED_STATE_AUDIBLE_SILENCED = 1,
     SILENCED_STATE_VISIBLE_SILENCED = 2,
-    SILENCED_STATE_ALL_SILENCED = 3,
+    SILENCED_STATE_ALL_SILENCED = 3
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* procedures and constraints described in Clause 23. */

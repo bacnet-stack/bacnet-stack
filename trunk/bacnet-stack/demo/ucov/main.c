@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
     /* only one value in our value list */
     cov_data.listOfValues.next = NULL;
 
-    cov_send(&Handler_Transmit_Buffer[0],&cov_data);
+    ucov_notify_send(&Handler_Transmit_Buffer[0],&cov_data);
 
     return 0;
 }

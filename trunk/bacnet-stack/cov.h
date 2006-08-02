@@ -61,21 +61,32 @@ typedef struct BACnet_COV_Data {
 extern "C" {
 #endif                          /* __cplusplus */
 
-/* encode service  - use -1 for limit if you want unlimited */
-    int cov_encode_apdu(uint8_t * apdu, BACNET_COV_DATA * data);
+    int ucov_notify_encode_apdu(uint8_t * apdu, BACNET_COV_DATA * data);
 
-    int cov_decode_service_request(uint8_t * apdu,
+    int ucov_notify_decode_apdu(uint8_t * apdu,
         unsigned apdu_len, BACNET_COV_DATA * data);
 
-    int cov_decode_apdu(uint8_t * apdu,
+    int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data);
+
+    int ccov_notify_encode_apdu(uint8_t * apdu,
+        uint8_t invoke_id, BACNET_COV_DATA * data);
+
+    int ccov_notify_decode_apdu(uint8_t * apdu,
+        unsigned apdu_len,
+        uint8_t * invoke_id,
+        BACNET_COV_DATA * data);
+
+    /* common for both confirmed and unconfirmed */
+    int cov_notify_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, BACNET_COV_DATA * data);
 
-    int cov_send(uint8_t * buffer, BACNET_COV_DATA * data);
+
+
 
 
 #ifdef TEST
 #include "ctest.h"
-    void testCOV(Test * pTest);
+    void testCOVNotify(Test * pTest);
 #endif
 
 #ifdef __cplusplus
