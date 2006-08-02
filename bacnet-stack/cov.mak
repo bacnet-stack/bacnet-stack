@@ -4,7 +4,7 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_COV -g
+CFLAGS  = -Wall -I. -Itest -Idemo/object -DTEST -DTEST_COV -g
 
 SRCS = bacdcode.c \
        bacstr.c \
