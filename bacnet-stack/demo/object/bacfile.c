@@ -189,6 +189,13 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
         apdu_len += encode_tagged_time(&apdu[apdu_len], &btime);
         break;
     case PROP_ARCHIVE:
+        /* 12.13.8 Archive
+        This property, of type BOOLEAN, indicates whether the File
+        object has been saved for historical or backup purposes. This
+        property shall be logical TRUE only if no changes have been
+        made to the file data by internal processes or through File
+        Access Services since the last time the object was archived.
+        */
         /* FIXME: get the actual value: note it may be inverse... */
         apdu_len = encode_tagged_boolean(&apdu[0], true);
         break;
@@ -208,6 +215,63 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
 
     return apdu_len;
 }
+
+/* returns true if successful */
+bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
+    BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
+{
+    bool status = false;        /* return value */
+
+    if (!bacfile_valid_instance(wp_data->object_instance)) {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
+    /* decode the some of the request */
+    switch (wp_data->object_property) {
+    case PROP_ARCHIVE:
+        /* 12.13.8 Archive
+        This property, of type BOOLEAN, indicates whether the File
+        object has been saved for historical or backup purposes. This
+        property shall be logical TRUE only if no changes have been
+        made to the file data by internal processes or through File
+        Access Services since the last time the object was archived. */
+        if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+          if (wp_data->value.type.Boolean)
+          {
+            /* FIXME: do something to wp_data->object_instance */
+          }
+          else
+          {
+            /* FIXME: do something to wp_data->object_instance */
+          }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        break;
+    case PROP_FILE_SIZE:
+        /* If the file size can be changed by writing to the file,
+            and File_Access_Method is STREAM_ACCESS, then this property
+            shall be writable. */
+        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+          /* FIXME: do something with wp_data->value.type.Unsigned
+             to wp_data->object_instance */
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        break;
+    default:
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        break;
+    }
+
+    return status;
+}
+
+
 
 uint32_t bacfile_instance(char *filename)
 {
