@@ -36,6 +36,7 @@ SRCS = main.c bip-init.c \
        ..\..\bigend.c \
        ..\..\whois.c \
        ..\..\iam.c \
+       ..\..\dcc.c \
        ..\..\rp.c \
        ..\..\wp.c \
        ..\..\arf.c \

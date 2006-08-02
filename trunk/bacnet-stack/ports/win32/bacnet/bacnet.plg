@@ -6,13 +6,12 @@
 --------------------Configuration: bacnet - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A6.tmp" with contents
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP4F5.tmp" with contents
 [
 /nologo /MLd /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
 "C:\code\bacnet-stack\abort.c"
 "C:\code\bacnet-stack\address.c"
 "C:\code\bacnet-stack\demo\object\ai.c"
-"C:\code\bacnet-stack\demo\object\ao.c"
 "C:\code\bacnet-stack\apdu.c"
 "C:\code\bacnet-stack\arf.c"
 "C:\code\bacnet-stack\bacapp.c"
@@ -21,6 +20,7 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A6.tmp" with conten
 "C:\code\bacnet-stack\demo\object\bacfile.c"
 "C:\code\bacnet-stack\bacstr.c"
 "C:\code\bacnet-stack\bactext.c"
+"C:\code\bacnet-stack\demo\object\bi.c"
 "C:\code\bacnet-stack\bigend.c"
 "C:\code\bacnet-stack\ports\win32\bip-init.c"
 "C:\code\bacnet-stack\bip.c"
@@ -37,6 +37,7 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A6.tmp" with conten
 "C:\code\bacnet-stack\demo\handler\h_wp.c"
 "C:\code\bacnet-stack\iam.c"
 "C:\code\bacnet-stack\indtext.c"
+"C:\code\bacnet-stack\demo\object\lsp.c"
 "C:\code\bacnet-stack\ports\win32\main.c"
 "C:\code\bacnet-stack\demo\handler\noserv.c"
 "C:\code\bacnet-stack\npdu.c"
@@ -50,18 +51,18 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A6.tmp" with conten
 "C:\code\bacnet-stack\demo\handler\txbuf.c"
 "C:\code\bacnet-stack\whois.c"
 "C:\code\bacnet-stack\wp.c"
-"C:\code\bacnet-stack\demo\object\bi.c"
+"C:\code\bacnet-stack\demo\object\ao.c"
+"C:\code\bacnet-stack\demo\object\av.c"
 "C:\code\bacnet-stack\demo\object\bo.c"
-"C:\code\bacnet-stack\demo\object\lsp.c"
+"C:\code\bacnet-stack\demo\object\bv.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A6.tmp" 
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A7.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP4F5.tmp" 
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP4F6.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
 ".\Debug\abort.obj"
 ".\Debug\address.obj"
 ".\Debug\ai.obj"
-".\Debug\ao.obj"
 ".\Debug\apdu.obj"
 ".\Debug\arf.obj"
 ".\Debug\bacapp.obj"
@@ -70,6 +71,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\bacfile.obj"
 ".\Debug\bacstr.obj"
 ".\Debug\bactext.obj"
+".\Debug\bi.obj"
 ".\Debug\bigend.obj"
 ".\Debug\bip-init.obj"
 ".\Debug\bip.obj"
@@ -86,6 +88,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\h_wp.obj"
 ".\Debug\iam.obj"
 ".\Debug\indtext.obj"
+".\Debug\lsp.obj"
 ".\Debug\main.obj"
 ".\Debug\noserv.obj"
 ".\Debug\npdu.obj"
@@ -99,19 +102,18 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\txbuf.obj"
 ".\Debug\whois.obj"
 ".\Debug\wp.obj"
-".\Debug\bi.obj"
+".\Debug\ao.obj"
+".\Debug\av.obj"
 ".\Debug\bo.obj"
-".\Debug\lsp.obj"
+".\Debug\bv.obj"
 ]
-Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A7.tmp"
+Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP4F6.tmp"
 <h3>Output Window</h3>
 Compiling...
 abort.c
 address.c
 ai.c
 c:\code\bacnet-stack\demo\object\ai.c(87) : warning C4305: 'initializing' : truncation from 'const double ' to 'float '
-ao.c
-c:\code\bacnet-stack\demo\object\ao.c(163) : warning C4305: 'initializing' : truncation from 'const double ' to 'float '
 apdu.c
 arf.c
 bacapp.c
@@ -120,6 +122,7 @@ bacerror.c
 bacfile.c
 bacstr.c
 bactext.c
+bi.c
 bigend.c
 bip-init.c
 bip.c
@@ -129,7 +132,7 @@ dcc.c
 device.c
 h_arf.c
 Generating Code...
-c:\code\bacnet-stack\demo\object\bacfile.c(263) : warning C4761: integral size mismatch in argument; conversion supplied
+c:\code\bacnet-stack\demo\object\bacfile.c(327) : warning C4761: integral size mismatch in argument; conversion supplied
 c:\code\bacnet-stack\bacapp.c(444) : warning C4761: integral size mismatch in argument; conversion supplied
 Compiling...
 h_arf_a.c
@@ -140,6 +143,7 @@ h_whois.c
 h_wp.c
 iam.c
 indtext.c
+lsp.c
 main.c
 noserv.c
 npdu.c
@@ -151,27 +155,29 @@ s_whois.c
 s_wp.c
 tsm.c
 txbuf.c
-whois.c
 Generating Code...
 c:\code\bacnet-stack\demo\handler\s_wp.c(92) : warning C4761: integral size mismatch in argument; conversion supplied
 c:\code\bacnet-stack\demo\handler\s_rp.c(88) : warning C4761: integral size mismatch in argument; conversion supplied
 c:\code\bacnet-stack\npdu.c(289) : warning C4761: integral size mismatch in argument; conversion supplied
 c:\code\bacnet-stack\demo\handler\h_rp_a.c(73) : warning C4761: integral size mismatch in argument; conversion supplied
 Compiling...
+whois.c
 wp.c
-bi.c
+ao.c
+c:\code\bacnet-stack\demo\object\ao.c(163) : warning C4305: 'initializing' : truncation from 'const double ' to 'float '
+av.c
+c:\code\bacnet-stack\demo\object\av.c(163) : warning C4305: 'initializing' : truncation from 'const double ' to 'float '
 bo.c
-lsp.c
+bv.c
 Generating Code...
 c:\code\bacnet-stack\wp.c(121) : warning C4761: integral size mismatch in argument; conversion supplied
 Linking...
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A9.tmp" with contents
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP4F8.tmp" with contents
 [
 /nologo /o"Debug/bacnet.bsc" 
 ".\Debug\abort.sbr"
 ".\Debug\address.sbr"
 ".\Debug\ai.sbr"
-".\Debug\ao.sbr"
 ".\Debug\apdu.sbr"
 ".\Debug\arf.sbr"
 ".\Debug\bacapp.sbr"
@@ -180,6 +186,7 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A9.tmp" with conten
 ".\Debug\bacfile.sbr"
 ".\Debug\bacstr.sbr"
 ".\Debug\bactext.sbr"
+".\Debug\bi.sbr"
 ".\Debug\bigend.sbr"
 ".\Debug\bip-init.sbr"
 ".\Debug\bip.sbr"
@@ -196,6 +203,7 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A9.tmp" with conten
 ".\Debug\h_wp.sbr"
 ".\Debug\iam.sbr"
 ".\Debug\indtext.sbr"
+".\Debug\lsp.sbr"
 ".\Debug\main.sbr"
 ".\Debug\noserv.sbr"
 ".\Debug\npdu.sbr"
@@ -209,17 +217,18 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A9.tmp" with conten
 ".\Debug\txbuf.sbr"
 ".\Debug\whois.sbr"
 ".\Debug\wp.sbr"
-".\Debug\bi.sbr"
+".\Debug\ao.sbr"
+".\Debug\av.sbr"
 ".\Debug\bo.sbr"
-".\Debug\lsp.sbr"]
-Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP3A9.tmp"
+".\Debug\bv.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP4F8.tmp"
 Creating browse info file...
 <h3>Output Window</h3>
 
 
 
 <h3>Results</h3>
-bacnet.exe - 0 error(s), 9 warning(s)
+bacnet.exe - 0 error(s), 10 warning(s)
 </pre>
 </body>
 </html>
