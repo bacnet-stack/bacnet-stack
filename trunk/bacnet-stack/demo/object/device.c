@@ -32,9 +32,11 @@
 #include "config.h"             /* the custom stuff */
 #include "apdu.h"
 #include "ai.h"                 /* object list dependency */
+#include "ao.h"                 /* object list dependency */
+#include "av.h"                 /* object list dependency */
 #include "bi.h"                 /* object list dependency */
 #include "bo.h"                 /* object list dependency */
-#include "ao.h"                 /* object list dependency */
+#include "bv.h"                 /* object list dependency */
 #include "lsp.h"                /* object list dependency */
 #include "wp.h"                 /* write property handling */
 #include "device.h"             /* me */
@@ -325,6 +327,7 @@ unsigned Device_Object_List_Count(void)
     count += Binary_Input_Count();
     count += Binary_Output_Count();
     count += Analog_Output_Count();
+    count += Analog_Value_Count();
     count += Life_Safety_Point_Count();
 #if BACFILE
     count += bacfile_count();
@@ -338,6 +341,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
 {
     bool status = false;
     unsigned object_index = 0;
+    unsigned object_count = 0;
 
     /* device object */
     if (array_index == 1) {
@@ -349,7 +353,8 @@ bool Device_Object_List_Identifier(unsigned array_index,
     if (!status) {
         /* array index starts at 1, and 1 for the device object */
         object_index = array_index - 2;
-        if (object_index < Analog_Input_Count()) {
+        object_count = Analog_Input_Count();
+        if (object_index < object_count) {
             *object_type = OBJECT_ANALOG_INPUT;
             *instance = Analog_Input_Index_To_Instance(object_index);
             status = true;
@@ -359,9 +364,10 @@ bool Device_Object_List_Identifier(unsigned array_index,
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
-        object_index -= Analog_Input_Count();
+        object_index -= object_count;
+        object_count = Binary_Input_Count();
         /* is it a valid index for this object? */
-        if (object_index < Binary_Input_Count()) {
+        if (object_index < object_count) {
             *object_type = OBJECT_BINARY_INPUT;
             *instance = Binary_Input_Index_To_Instance(object_index);
             status = true;
@@ -371,9 +377,10 @@ bool Device_Object_List_Identifier(unsigned array_index,
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
-        object_index -= Binary_Input_Count();
+        object_index -= object_count;
+        object_count = Binary_Output_Count();
         /* is it a valid index for this object? */
-        if (object_index < Binary_Output_Count()) {
+        if (object_index < object_count) {
             *object_type = OBJECT_BINARY_OUTPUT;
             *instance = Binary_Output_Index_To_Instance(object_index);
             status = true;
@@ -383,11 +390,25 @@ bool Device_Object_List_Identifier(unsigned array_index,
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
-        object_index -= Binary_Output_Count();
+        object_index -= object_count;
+        object_count = Analog_Output_Count();
         /* is it a valid index for this object? */
-        if (object_index < Analog_Output_Count()) {
+        if (object_index < object_count) {
             *object_type = OBJECT_ANALOG_OUTPUT;
             *instance = Analog_Output_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+    /* analog value objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= object_count;
+        object_count = Analog_Value_Count();
+        /* is it a valid index for this object? */
+        if (object_index < object_count) {
+            *object_type = OBJECT_ANALOG_VALUE;
+            *instance = Analog_Value_Index_To_Instance(object_index);
             status = true;
         }
     }
@@ -395,9 +416,10 @@ bool Device_Object_List_Identifier(unsigned array_index,
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
-        object_index -= Analog_Output_Count();
+        object_index -= object_count;
+        object_count = Life_Safety_Point_Count();
         /* is it a valid index for this object? */
-        if (object_index < Life_Safety_Point_Count()) {
+        if (object_index < object_count) {
             *object_type = OBJECT_LIFE_SAFETY_POINT;
             *instance = Life_Safety_Point_Index_To_Instance(object_index);
             status = true;
@@ -408,9 +430,10 @@ bool Device_Object_List_Identifier(unsigned array_index,
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
-        object_index -= Life_Safety_Point_Count();
+        object_index -= object_count;
+        object_count = bacfile_count();
         /* is it a valid index for this object? */
-        if (object_index < bacfile_count()) {
+        if (object_index < object_count) {
             *object_type = OBJECT_FILE;
             *instance = bacfile_index_to_instance(object_index);
             status = true;
@@ -467,6 +490,9 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
         break;
     case OBJECT_ANALOG_OUTPUT:
         name = Analog_Output_Name(object_instance);
+        break;
+    case OBJECT_ANALOG_VALUE:
+        name = Analog_Value_Name(object_instance);
         break;
     case OBJECT_LIFE_SAFETY_POINT:
         name = Life_Safety_Point_Name(object_instance);
@@ -604,6 +630,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
         if (Analog_Output_Count())
             bitstring_set_bit(&bit_string, OBJECT_ANALOG_OUTPUT, true);
+        if (Analog_Value_Count())
+            bitstring_set_bit(&bit_string, OBJECT_ANALOG_VALUE, true);
         if (Binary_Input_Count())
             bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
         if (Binary_Output_Count())
@@ -908,6 +936,22 @@ unsigned Analog_Output_Count(void)
 }
 
 uint32_t Analog_Output_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
+char *Analog_Value_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Analog_Value_Count(void)
+{
+    return 0;
+}
+
+uint32_t Analog_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }

@@ -44,6 +44,11 @@ SRCS = main.c bip-init.c \
        ..\..\demo\object\device.c \
        ..\..\demo\object\ai.c \
        ..\..\demo\object\ao.c \
+       ..\..\demo\object\av.c \
+       ..\..\demo\object\bi.c \
+       ..\..\demo\object\bo.c \
+       ..\..\demo\object\bv.c \
+       ..\..\demo\object\lsp.c \
        ..\..\datalink.c \
        ..\..\tsm.c \
        ..\..\address.c \

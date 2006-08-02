@@ -34,6 +34,11 @@ make -f demo/object/ao.mak
 ./analog_output >> test.log
 make -f demo/object/ao.mak clean
 
+make -f demo/object/av.mak clean
+make -f demo/object/av.mak
+./analog_value >> test.log
+make -f demo/object/av.mak clean
+
 make -f arf.mak clean
 make -f arf.mak
 ./atomicreadfile >> test.log
@@ -73,6 +78,11 @@ make -f demo/object/bo.mak clean
 make -f demo/object/bo.mak
 ./binary_output >> test.log
 make -f demo/object/bo.mak clean
+
+make -f demo/object/bv.mak clean
+make -f demo/object/bv.mak
+./binary_value >> test.log
+make -f demo/object/bv.mak clean
 
 make -f crc.mak clean
 make -f crc.mak
