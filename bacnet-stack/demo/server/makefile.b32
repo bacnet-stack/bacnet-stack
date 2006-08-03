@@ -98,6 +98,9 @@ $(C_LIB_DIR)\CW32MT.lib
 
 all : $(BCC_CFG) $(PRODUCT_EXE)
 
+install: $(PRODUCT_EXE)
+	copy $(PRODUCT_EXE) ..\..\utils\$(PRODUCT_EXE)
+
 # Linker specific: the link below is for BCC linker/compiler. If you link
 # with a different linker - please change accordingly.
 #
