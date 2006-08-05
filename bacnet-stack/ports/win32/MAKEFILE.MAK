@@ -50,6 +50,7 @@ SRCS = main.c bip-init.c \
        ..\..\demo\object\bo.c \
        ..\..\demo\object\bv.c \
        ..\..\demo\object\lsp.c \
+       ..\..\demo\object\mso.c \
        ..\..\datalink.c \
        ..\..\tsm.c \
        ..\..\address.c \

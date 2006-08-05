@@ -49,6 +49,7 @@ SRCS = readfile.c \
        $(BACNET_OBJECT)/bo.c \
        $(BACNET_OBJECT)/bv.c \
        $(BACNET_OBJECT)/lsp.c \
+       $(BACNET_OBJECT)/mso.c \
        $(BACNET_OBJECT)/bacfile.c \
        $(BACNET_ROOT)/arf.c \
        $(BACNET_ROOT)/dcc.c \

@@ -44,6 +44,7 @@
 #include "bo.h"
 #include "bv.h"
 #include "lsp.h"
+#include "mso.h"
 #if BACFILE
 #include "bacfile.h"
 #endif
@@ -198,6 +199,23 @@ void handler_write_property(uint8_t * service_request,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
                     error_code);
                 fprintf(stderr, "Sending Write Access Error for LSP!\n");
+            }
+            break;
+        case OBJECT_MULTI_STATE_OUTPUT:
+            if (Multistate_Output_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                pdu_len +=
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+                fprintf(stderr, "Sending Write Property Simple Ack for MSO!\n");
+            } else {
+                pdu_len +=
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                    error_code);
+                fprintf(stderr, "Sending Write Access Error for MSO!\n");
             }
             break;
 #if BACFILE

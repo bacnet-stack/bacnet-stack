@@ -38,6 +38,7 @@
 #include "bo.h"                 /* object list dependency */
 #include "bv.h"                 /* object list dependency */
 #include "lsp.h"                /* object list dependency */
+#include "mso.h"                /* object list dependency */
 #include "wp.h"                 /* write property handling */
 #include "device.h"             /* me */
 #if BACFILE
@@ -329,6 +330,7 @@ unsigned Device_Object_List_Count(void)
     count += Analog_Output_Count();
     count += Analog_Value_Count();
     count += Life_Safety_Point_Count();
+    count += Multistate_Output_Count();
 #if BACFILE
     count += bacfile_count();
 #endif
@@ -425,6 +427,19 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
+    /* multi-state output objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= object_count;
+        object_count = Multistate_Output_Count();
+        /* is it a valid index for this object? */
+        if (object_index < object_count) {
+            *object_type = OBJECT_MULTI_STATE_OUTPUT;
+            *instance = Multistate_Output_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
     /* file objects */
 #if BACFILE
     if (!status) {
@@ -496,6 +511,9 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
         break;
     case OBJECT_LIFE_SAFETY_POINT:
         name = Life_Safety_Point_Name(object_instance);
+        break;
+    case OBJECT_MULTI_STATE_OUTPUT:
+        name = Multistate_Output_Name(object_instance);
         break;
 #if BACFILE
     case OBJECT_FILE:
@@ -638,6 +656,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             bitstring_set_bit(&bit_string, OBJECT_BINARY_OUTPUT, true);
         if (Life_Safety_Point_Count())
             bitstring_set_bit(&bit_string, OBJECT_LIFE_SAFETY_POINT, true);
+        if (Multistate_Output_Count())
+            bitstring_set_bit(&bit_string, OBJECT_MULTI_STATE_OUTPUT, true);
 #if BACFILE
         if (bacfile_count())
             bitstring_set_bit(&bit_string, OBJECT_FILE, true);
@@ -968,6 +988,22 @@ unsigned Life_Safety_Point_Count(void)
 }
 
 uint32_t Life_Safety_Point_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
+char *Multistate_Output_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Multistate_Output_Count(void)
+{
+    return 0;
+}
+
+uint32_t Multistate_Output_Index_To_Instance(unsigned index)
 {
     return index;
 }
