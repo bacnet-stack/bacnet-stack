@@ -558,13 +558,13 @@ typedef enum {
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 64-65535 may be used by others subject to  */
-    /* the procedures and constraints described in Clause 23.  */
-    /* It is expected that these enumerated values will correspond to  */
-    /* the use of the complex-event-type CHOICE [6] of the  */
-    /* BACnetNotificationParameters production. */
-    /* The last enumeration used in this version is 11. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* the procedures and constraints described in Clause 23.  */
+        /* It is expected that these enumerated values will correspond to  */
+        /* the use of the complex-event-type CHOICE [6] of the  */
+        /* BACnetNotificationParameters production. */
+        /* The last enumeration used in this version is 11. */
 } BACNET_EVENT_TYPE;
 
 typedef enum {
@@ -649,9 +649,9 @@ typedef enum {
     SILENCED_STATE_AUDIBLE_SILENCED = 1,
     SILENCED_STATE_VISIBLE_SILENCED = 2,
     SILENCED_STATE_ALL_SILENCED = 3
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
-    /* Enumerated values 64-65535 may be used by others subject to */
-    /* procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
+        /* Enumerated values 64-65535 may be used by others subject to */
+        /* procedures and constraints described in Clause 23. */
 } BACNET_SILENCED_STATE;
 
 typedef enum {

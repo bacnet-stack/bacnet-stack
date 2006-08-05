@@ -114,6 +114,11 @@ make -f demo/object/lsp.mak
 ./lsp >> test.log
 make -f demo/object/lsp.mak clean
 
+make -f demo/object/mso.mak clean
+make -f demo/object/mso.mak
+./multistate_output >> test.log
+make -f demo/object/mso.mak clean
+
 make -f mstp.mak clean
 make -f mstp.mak
 ./mstp >> test.log

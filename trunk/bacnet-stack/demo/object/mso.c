@@ -109,8 +109,7 @@ unsigned Multistate_Output_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-static uint32_t Multistate_Output_Present_Value(uint32_t
-    object_instance)
+static uint32_t Multistate_Output_Present_Value(uint32_t object_instance)
 {
     uint32_t value = MULTISTATE_RELINQUISH_DEFAULT;
     unsigned index = 0;
@@ -162,7 +161,8 @@ int Multistate_Output_Encode_Property_APDU(uint8_t * apdu,
     Multistate_Output_Init();
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_MULTI_STATE_OUTPUT,
+        apdu_len =
+            encode_tagged_object_id(&apdu[0], OBJECT_MULTI_STATE_OUTPUT,
             object_instance);
         break;
         /* note: Name and Description don't have to be the same.
@@ -195,7 +195,8 @@ int Multistate_Output_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
-        object_index = Multistate_Output_Instance_To_Index(object_instance);
+        object_index =
+            Multistate_Output_Instance_To_Index(object_instance);
         state = Multistate_Output_Out_Of_Service[object_index];
         apdu_len = encode_tagged_boolean(&apdu[0], state);
         break;
@@ -211,10 +212,12 @@ int Multistate_Output_Encode_Property_APDU(uint8_t * apdu,
                 Multistate_Output_Instance_To_Index(object_instance);
             for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
-                if (Multistate_Output_Level[object_index][i] == MULTISTATE_NULL)
+                if (Multistate_Output_Level[object_index][i] ==
+                    MULTISTATE_NULL)
                     len = encode_tagged_null(&apdu[apdu_len]);
                 else {
-                    present_value = Multistate_Output_Level[object_index][i];
+                    present_value =
+                        Multistate_Output_Level[object_index][i];
                     len =
                         encode_tagged_unsigned(&apdu[apdu_len],
                         present_value);
@@ -295,7 +298,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
-                (wp_data->value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
+                (wp_data->value.type.Unsigned_Int <=
+                    MULTISTATE_NUMBER_OF_STATES)) {
                 level = wp_data->value.type.Unsigned_Int;
                 object_index =
                     Multistate_Output_Instance_To_Index(wp_data->
@@ -321,7 +325,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         } else if (wp_data->value.tag == BACNET_APPLICATION_TAG_NULL) {
             level = MULTISTATE_NULL;
             object_index =
-                Multistate_Output_Instance_To_Index(wp_data->object_instance);
+                Multistate_Output_Instance_To_Index(wp_data->
+                object_instance);
             priority = wp_data->priority;
             if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                 priority--;
@@ -345,7 +350,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_OUT_OF_SERVICE:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
-                Multistate_Output_Instance_To_Index(wp_data->object_instance);
+                Multistate_Output_Instance_To_Index(wp_data->
+                object_instance);
             Multistate_Output_Out_Of_Service[object_index] =
                 wp_data->value.type.Boolean;
             status = true;

@@ -657,7 +657,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         if (Life_Safety_Point_Count())
             bitstring_set_bit(&bit_string, OBJECT_LIFE_SAFETY_POINT, true);
         if (Multistate_Output_Count())
-            bitstring_set_bit(&bit_string, OBJECT_MULTI_STATE_OUTPUT, true);
+            bitstring_set_bit(&bit_string, OBJECT_MULTI_STATE_OUTPUT,
+                true);
 #if BACFILE
         if (bacfile_count())
             bitstring_set_bit(&bit_string, OBJECT_FILE, true);

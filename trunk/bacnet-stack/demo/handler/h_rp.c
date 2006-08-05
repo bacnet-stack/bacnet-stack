@@ -101,7 +101,8 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
-                    fprintf(stderr, "Sending Read Property Ack for Device!\n");
+                    fprintf(stderr,
+                        "Sending Read Property Ack for Device!\n");
                     send = true;
                 } else
                     error = true;
@@ -248,7 +249,8 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
-                    fprintf(stderr, "Sending Read Property Ack for LSP!\n");
+                    fprintf(stderr,
+                        "Sending Read Property Ack for LSP!\n");
                     send = true;
                 } else
                     error = true;
@@ -269,7 +271,8 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
-                    fprintf(stderr, "Sending Read Property Ack for MSO!\n");
+                    fprintf(stderr,
+                        "Sending Read Property Ack for MSO!\n");
                     send = true;
                 } else
                     error = true;
@@ -291,7 +294,8 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len +=
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
-                    fprintf(stderr, "Sending Read Property Ack for File!\n");
+                    fprintf(stderr,
+                        "Sending Read Property Ack for File!\n");
                     send = true;
                 } else
                     error = true;
