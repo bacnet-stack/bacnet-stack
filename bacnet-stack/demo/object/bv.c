@@ -170,8 +170,7 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
-        apdu_len =
-            encode_tagged_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
+        apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
         break;
     case PROP_PRESENT_VALUE:
         present_value = Binary_Value_Present_Value(object_instance);
@@ -206,8 +205,7 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
-            object_index =
-                Binary_Value_Instance_To_Index(object_instance);
+            object_index = Binary_Value_Instance_To_Index(object_instance);
             for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
                 if (Binary_Value_Level[object_index][i] == BINARY_NULL)
@@ -229,8 +227,7 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
                 }
             }
         } else {
-            object_index =
-                Binary_Value_Instance_To_Index(object_instance);
+            object_index = Binary_Value_Instance_To_Index(object_instance);
             if (array_index <= BACNET_MAX_PRIORITY) {
                 if (Binary_Value_Level[object_index][array_index] ==
                     BINARY_NULL)

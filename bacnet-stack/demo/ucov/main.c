@@ -143,8 +143,7 @@ int main(int argc, char *argv[])
             "%s 1 2 3 4 5 85 4 100.0\r\n"
             "where 1=pid, 2=device-id, 3=AV, 4=object-id, 5=time,\r\n"
             "85=Present-Value, 4=REAL, 100.0=value\r\n",
-            filename_remove_path(argv[0]),
-            filename_remove_path(argv[0]));
+            filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
@@ -163,7 +162,8 @@ int main(int argc, char *argv[])
         cov_data.listOfValues.priority = BACNET_NO_PRIORITY;
     /* optional index */
     if (argc > 10)
-        cov_data.listOfValues.propertyArrayIndex = strtol(argv[10], NULL, 0);
+        cov_data.listOfValues.propertyArrayIndex =
+            strtol(argv[10], NULL, 0);
     else
         cov_data.listOfValues.propertyArrayIndex = BACNET_ARRAY_ALL;
 
@@ -174,17 +174,20 @@ int main(int argc, char *argv[])
     }
     if (cov_data.monitoredObjectIdentifier.type > MAX_BACNET_OBJECT_TYPE) {
         fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            cov_data.monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE + 1);
+            cov_data.monitoredObjectIdentifier.type,
+            MAX_BACNET_OBJECT_TYPE + 1);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-            cov_data.monitoredObjectIdentifier.instance, BACNET_MAX_INSTANCE + 1);
+            cov_data.monitoredObjectIdentifier.instance,
+            BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (cov_data.listOfValues.propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
         fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            cov_data.listOfValues.propertyIdentifier, MAX_BACNET_PROPERTY_ID + 1);
+            cov_data.listOfValues.propertyIdentifier,
+            MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {
@@ -212,7 +215,7 @@ int main(int argc, char *argv[])
     /* only one value in our value list */
     cov_data.listOfValues.next = NULL;
 
-    ucov_notify_send(&Handler_Transmit_Buffer[0],&cov_data);
+    ucov_notify_send(&Handler_Transmit_Buffer[0], &cov_data);
 
     return 0;
 }

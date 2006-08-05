@@ -72,9 +72,7 @@ extern "C" {
         uint8_t invoke_id, BACNET_COV_DATA * data);
 
     int ccov_notify_decode_apdu(uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        BACNET_COV_DATA * data);
+        unsigned apdu_len, uint8_t * invoke_id, BACNET_COV_DATA * data);
 
     /* common for both confirmed and unconfirmed */
     int cov_notify_decode_service_request(uint8_t * apdu,

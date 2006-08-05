@@ -96,14 +96,15 @@ void handler_write_property(uint8_t * service_request,
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
                 fprintf(stderr,
-                  "Sending Write Property Simple Ack for Device!\n");
+                    "Sending Write Property Simple Ack for Device!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
                     error_code);
-                fprintf(stderr, "Sending Write Property Error for Device!\n");
+                fprintf(stderr,
+                    "Sending Write Property Error for Device!\n");
             }
             break;
         case OBJECT_ANALOG_INPUT:
@@ -123,7 +124,8 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack for BO!\n");
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for BO!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -140,7 +142,8 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack for BV!\n");
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for BV!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -157,7 +160,8 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack for AO!\n");
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for AO!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -174,7 +178,8 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack for AV!\n");
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for AV!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -191,7 +196,8 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack for LSP!\n");
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for LSP!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -208,7 +214,8 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack for MSO!\n");
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for MSO!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -226,7 +233,8 @@ void handler_write_property(uint8_t * service_request,
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                fprintf(stderr, "Sending Write Property Simple Ack for File!\n");
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for File!\n");
             } else {
                 pdu_len +=
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],

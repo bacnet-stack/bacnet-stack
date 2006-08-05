@@ -190,12 +190,12 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
         break;
     case PROP_ARCHIVE:
         /* 12.13.8 Archive
-        This property, of type BOOLEAN, indicates whether the File
-        object has been saved for historical or backup purposes. This
-        property shall be logical TRUE only if no changes have been
-        made to the file data by internal processes or through File
-        Access Services since the last time the object was archived.
-        */
+           This property, of type BOOLEAN, indicates whether the File
+           object has been saved for historical or backup purposes. This
+           property shall be logical TRUE only if no changes have been
+           made to the file data by internal processes or through File
+           Access Services since the last time the object was archived.
+         */
         /* FIXME: get the actual value: note it may be inverse... */
         apdu_len = encode_tagged_boolean(&apdu[0], true);
         break;
@@ -231,20 +231,17 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     switch (wp_data->object_property) {
     case PROP_ARCHIVE:
         /* 12.13.8 Archive
-        This property, of type BOOLEAN, indicates whether the File
-        object has been saved for historical or backup purposes. This
-        property shall be logical TRUE only if no changes have been
-        made to the file data by internal processes or through File
-        Access Services since the last time the object was archived. */
+           This property, of type BOOLEAN, indicates whether the File
+           object has been saved for historical or backup purposes. This
+           property shall be logical TRUE only if no changes have been
+           made to the file data by internal processes or through File
+           Access Services since the last time the object was archived. */
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-          if (wp_data->value.type.Boolean)
-          {
-            /* FIXME: do something to wp_data->object_instance */
-          }
-          else
-          {
-            /* FIXME: do something to wp_data->object_instance */
-          }
+            if (wp_data->value.type.Boolean) {
+                /* FIXME: do something to wp_data->object_instance */
+            } else {
+                /* FIXME: do something to wp_data->object_instance */
+            }
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -252,11 +249,11 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
     case PROP_FILE_SIZE:
         /* If the file size can be changed by writing to the file,
-            and File_Access_Method is STREAM_ACCESS, then this property
-            shall be writable. */
+           and File_Access_Method is STREAM_ACCESS, then this property
+           shall be writable. */
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-          /* FIXME: do something with wp_data->value.type.Unsigned
-             to wp_data->object_instance */
+            /* FIXME: do something with wp_data->value.type.Unsigned
+               to wp_data->object_instance */
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;

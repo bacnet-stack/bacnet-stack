@@ -54,7 +54,7 @@ static int notify_encode_adpu(uint8_t * apdu, BACNET_COV_DATA * data)
     int len = 0;                /* length of each encoding */
     int apdu_len = 0;           /* total length of the apdu, return value */
     BACNET_PROPERTY_VALUE *value = NULL;        /* value in list */
-    
+
     if (apdu) {
         /* tag 0 - subscriberProcessIdentifier */
         len = encode_context_unsigned(&apdu[apdu_len],
@@ -275,9 +275,7 @@ int cov_notify_decode_service_request(uint8_t * apdu,
 }
 
 int ccov_notify_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len,
-    uint8_t * invoke_id,
-    BACNET_COV_DATA * data)
+    unsigned apdu_len, uint8_t * invoke_id, BACNET_COV_DATA * data)
 {
     int len = 0;
     unsigned offset = 0;
@@ -295,8 +293,9 @@ int ccov_notify_decode_apdu(uint8_t * apdu,
 
     /* optional limits - must be used as a pair */
     if (apdu_len > offset) {
-        len = cov_notify_decode_service_request(
-            &apdu[offset], apdu_len - offset, data);
+        len =
+            cov_notify_decode_service_request(&apdu[offset],
+            apdu_len - offset, data);
     }
 
     return len;
@@ -318,8 +317,9 @@ int ucov_notify_decode_apdu(uint8_t * apdu,
     /* optional limits - must be used as a pair */
     offset = 2;
     if (apdu_len > offset) {
-        len = cov_notify_decode_service_request(
-            &apdu[offset], apdu_len - offset, data);
+        len =
+            cov_notify_decode_service_request(&apdu[offset],
+            apdu_len - offset, data);
     }
 
     return len;
@@ -336,7 +336,7 @@ int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
 
     /* encode the NPDU portion of the packet */
     pdu_len = npdu_encode_apdu(&buffer[0], &dest, NULL,
-        false /* true for confirmed messages */,
+        false /* true for confirmed messages */ ,
         MESSAGE_PRIORITY_NORMAL);
 
     /* encode the APDU portion of the packet */
@@ -355,18 +355,18 @@ int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
 #include "bacapp.h"
 
 /* dummy function stubs */
-int npdu_encode_apdu(uint8_t * npdu, BACNET_ADDRESS * dest, BACNET_ADDRESS * src, bool data_expecting_reply,        /* true for confirmed messages */
-        BACNET_MESSAGE_PRIORITY priority)
+int npdu_encode_apdu(uint8_t * npdu, BACNET_ADDRESS * dest, BACNET_ADDRESS * src, bool data_expecting_reply,    /* true for confirmed messages */
+    BACNET_MESSAGE_PRIORITY priority)
 {
-  return 0;
+    return 0;
 }
 
 /* dummy function stubs */
-int datalink_send_pdu(BACNET_ADDRESS * dest,        /* destination address */
-        uint8_t * pdu,          /* any data to be sent - may be null */
-        unsigned pdu_len)      /* number of bytes of data */
-{
-  return 0;
+int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+    uint8_t * pdu,              /* any data to be sent - may be null */
+    unsigned pdu_len)
+{                               /* number of bytes of data */
+    return 0;
 }
 
 /* dummy function stubs */
@@ -377,12 +377,11 @@ void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
 /* dummy function stubs */
 uint16_t Device_Max_APDU_Length_Accepted(void)
 {
-  return MAX_APDU;
+    return MAX_APDU;
 }
 
 void testCOVNotifyData(Test * pTest,
-  BACNET_COV_DATA * data,
-  BACNET_COV_DATA * test_data)
+    BACNET_COV_DATA * data, BACNET_COV_DATA * test_data)
 {
     ct_test(pTest,
         test_data->subscriberProcessIdentifier ==
@@ -396,8 +395,7 @@ void testCOVNotifyData(Test * pTest,
     ct_test(pTest,
         test_data->monitoredObjectIdentifier.instance ==
         data->monitoredObjectIdentifier.instance);
-    ct_test(pTest,
-        test_data->timeRemaining == data->timeRemaining);
+    ct_test(pTest, test_data->timeRemaining == data->timeRemaining);
     /* FIXME: test the listOfValues in some clever manner */
 }
 
@@ -418,7 +416,8 @@ void testUCOVNotifyData(Test * pTest, BACNET_COV_DATA * data)
     testCOVNotifyData(pTest, data, &test_data);
 }
 
-void testCCOVNotifyData(Test * pTest, uint8_t invoke_id, BACNET_COV_DATA * data)
+void testCCOVNotifyData(Test * pTest, uint8_t invoke_id,
+    BACNET_COV_DATA * data)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;

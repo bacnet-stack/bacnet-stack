@@ -70,8 +70,8 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
 
 /* handling for write property service */
-bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
+    bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
 
 #ifdef __cplusplus
 }

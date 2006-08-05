@@ -46,8 +46,7 @@
 /* Here is our Priority Array.  They are supposed to be Real, but */
 /* we don't have that kind of memory, so we will use a single byte */
 /* and load a Real for returning the value when asked. */
-static uint8_t
-    Analog_Value_Level[MAX_ANALOG_VALUES][BACNET_MAX_PRIORITY];
+static uint8_t Analog_Value_Level[MAX_ANALOG_VALUES][BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
 static bool Analog_Value_Out_Of_Service[MAX_ANALOG_VALUES];
@@ -178,8 +177,7 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
-        apdu_len =
-            encode_tagged_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
+        apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
         break;
     case PROP_PRESENT_VALUE:
         real_value = Analog_Value_Present_Value(object_instance);
@@ -212,11 +210,11 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
-            object_index =
-                Analog_Value_Instance_To_Index(object_instance);
+            object_index = Analog_Value_Instance_To_Index(object_instance);
             for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
-                if (Analog_Value_Level[object_index][i] == ANALOG_LEVEL_NULL)
+                if (Analog_Value_Level[object_index][i] ==
+                    ANALOG_LEVEL_NULL)
                     len = encode_tagged_null(&apdu[apdu_len]);
                 else {
                     real_value = Analog_Value_Level[object_index][i];
@@ -233,8 +231,7 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
                 }
             }
         } else {
-            object_index =
-                Analog_Value_Instance_To_Index(object_instance);
+            object_index = Analog_Value_Instance_To_Index(object_instance);
             if (array_index <= BACNET_MAX_PRIORITY) {
                 if (Analog_Value_Level[object_index][array_index] ==
                     ANALOG_LEVEL_NULL)
@@ -412,5 +409,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_ANALOG_VALUE*/
+#endif                          /* TEST_ANALOG_VALUE */
 #endif                          /* TEST */
