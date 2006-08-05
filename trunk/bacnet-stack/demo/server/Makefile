@@ -42,6 +42,7 @@ SRCS = server.c \
        $(BACNET_OBJECT)/bo.c \
        $(BACNET_OBJECT)/bv.c \
        $(BACNET_OBJECT)/lsp.c \
+       $(BACNET_OBJECT)/mso.c \
        $(BACNET_OBJECT)/bacfile.c \
        $(BACNET_ROOT)/datalink.c \
        $(BACNET_ROOT)/filename.c \

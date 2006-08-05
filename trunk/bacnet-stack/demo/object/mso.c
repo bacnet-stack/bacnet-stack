@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-/* Binary Output Objects - customize for your use */
+/* Multi-state Output Objects - customize for your use */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -34,19 +34,24 @@
 #include "config.h"             /* the custom stuff */
 #include "wp.h"
 
-#define MAX_BINARY_VALUES 2
+#define MAX_MULTISTATE_OUTPUTS 4
 
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
-#define RELINQUISH_DEFAULT BINARY_INACTIVE
+#define MULTISTATE_RELINQUISH_DEFAULT 0
+
+/* NULL part of the array */
+#define MULTISTATE_NULL (255)
+/* how many states? 0-253 is 254 states */
+#define MULTISTATE_NUMBER_OF_STATES (254)
 /* Here is our Priority Array.*/
-static BACNET_BINARY_PV
-    Binary_Value_Level[MAX_BINARY_VALUES][BACNET_MAX_PRIORITY];
+static uint8_t
+    Multistate_Output_Level[MAX_MULTISTATE_OUTPUTS][BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
-static bool Binary_Value_Out_Of_Service[MAX_BINARY_VALUES];
+static bool Multistate_Output_Out_Of_Service[MAX_MULTISTATE_OUTPUTS];
 
-void Binary_Value_Init(void)
+void Multistate_Output_Init(void)
 {
     unsigned i, j;
     static bool initialized = false;
@@ -55,9 +60,9 @@ void Binary_Value_Init(void)
         initialized = true;
 
         /* initialize all the analog output priority arrays to NULL */
-        for (i = 0; i < MAX_BINARY_VALUES; i++) {
+        for (i = 0; i < MAX_MULTISTATE_OUTPUTS; i++) {
             for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
-                Binary_Value_Level[i][j] = BINARY_NULL;
+                Multistate_Output_Level[i][j] = MULTISTATE_NULL;
             }
         }
     }
@@ -68,9 +73,9 @@ void Binary_Value_Init(void)
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Binary_Value_Valid_Instance(uint32_t object_instance)
+bool Multistate_Output_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_MULTISTATE_OUTPUTS)
         return true;
 
     return false;
@@ -78,15 +83,15 @@ bool Binary_Value_Valid_Instance(uint32_t object_instance)
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Binary_Value_Count(void)
+unsigned Multistate_Output_Count(void)
 {
-    return MAX_BINARY_VALUES;
+    return MAX_MULTISTATE_OUTPUTS;
 }
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Binary_Value_Index_To_Instance(unsigned index)
+uint32_t Multistate_Output_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -94,29 +99,29 @@ uint32_t Binary_Value_Index_To_Instance(unsigned index)
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
+unsigned Multistate_Output_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_BINARY_VALUES;
+    unsigned index = MAX_MULTISTATE_OUTPUTS;
 
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_MULTISTATE_OUTPUTS)
         index = object_instance;
 
     return index;
 }
 
-static BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t
+static uint32_t Multistate_Output_Present_Value(uint32_t
     object_instance)
 {
-    BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
+    uint32_t value = MULTISTATE_RELINQUISH_DEFAULT;
     unsigned index = 0;
     unsigned i = 0;
 
-    Binary_Value_Init();
-    index = Binary_Value_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_VALUES) {
+    Multistate_Output_Init();
+    index = Multistate_Output_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            if (Binary_Value_Level[index][i] != BINARY_NULL) {
-                value = Binary_Value_Level[index][i];
+            if (Multistate_Output_Level[index][i] != MULTISTATE_NULL) {
+                value = Multistate_Output_Level[index][i];
                 break;
             }
         }
@@ -126,12 +131,12 @@ static BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t
 }
 
 /* note: the object name must be unique within this device */
-char *Binary_Value_Name(uint32_t object_instance)
+char *Multistate_Output_Name(uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
 
-    if (object_instance < MAX_BINARY_VALUES) {
-        sprintf(text_string, "BINARY VALUE %u", object_instance);
+    if (object_instance < MAX_MULTISTATE_OUTPUTS) {
+        sprintf(text_string, "MULTISTATE OUTPUT %u", object_instance);
         return text_string;
     }
 
@@ -139,7 +144,7 @@ char *Binary_Value_Name(uint32_t object_instance)
 }
 
 /* return apdu len, or -1 on error */
-int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
+int Multistate_Output_Encode_Property_APDU(uint8_t * apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
@@ -149,16 +154,15 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
     int apdu_len = 0;           /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    BACNET_BINARY_PV present_value = BINARY_INACTIVE;
-    BACNET_POLARITY polarity = POLARITY_NORMAL;
+    uint32_t present_value = 0;
     unsigned object_index = 0;
     unsigned i = 0;
     bool state = false;
 
-    Binary_Value_Init();
+    Multistate_Output_Init();
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_BINARY_VALUE,
+        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_MULTI_STATE_OUTPUT,
             object_instance);
         break;
         /* note: Name and Description don't have to be the same.
@@ -166,16 +170,16 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string,
-            Binary_Value_Name(object_instance));
+            Multistate_Output_Name(object_instance));
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
         apdu_len =
-            encode_tagged_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
+            encode_tagged_enumerated(&apdu[0], OBJECT_MULTI_STATE_OUTPUT);
         break;
     case PROP_PRESENT_VALUE:
-        present_value = Binary_Value_Present_Value(object_instance);
-        apdu_len = encode_tagged_enumerated(&apdu[0], present_value);
+        present_value = Multistate_Output_Present_Value(object_instance);
+        apdu_len = encode_tagged_unsigned(&apdu[0], present_value);
         break;
     case PROP_STATUS_FLAGS:
         /* note: see the details in the standard on how to use these */
@@ -191,12 +195,9 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
-        object_index = Binary_Value_Instance_To_Index(object_instance);
-        state = Binary_Value_Out_Of_Service[object_index];
+        object_index = Multistate_Output_Instance_To_Index(object_instance);
+        state = Multistate_Output_Out_Of_Service[object_index];
         apdu_len = encode_tagged_boolean(&apdu[0], state);
-        break;
-    case PROP_POLARITY:
-        apdu_len = encode_tagged_enumerated(&apdu[0], polarity);
         break;
     case PROP_PRIORITY_ARRAY:
         /* Array element zero is the number of elements in the array */
@@ -207,15 +208,15 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
             object_index =
-                Binary_Value_Instance_To_Index(object_instance);
+                Multistate_Output_Instance_To_Index(object_instance);
             for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
-                if (Binary_Value_Level[object_index][i] == BINARY_NULL)
+                if (Multistate_Output_Level[object_index][i] == MULTISTATE_NULL)
                     len = encode_tagged_null(&apdu[apdu_len]);
                 else {
-                    present_value = Binary_Value_Level[object_index][i];
+                    present_value = Multistate_Output_Level[object_index][i];
                     len =
-                        encode_tagged_enumerated(&apdu[apdu_len],
+                        encode_tagged_unsigned(&apdu[apdu_len],
                         present_value);
                 }
                 /* add it if we have room */
@@ -230,16 +231,16 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
             }
         } else {
             object_index =
-                Binary_Value_Instance_To_Index(object_instance);
+                Multistate_Output_Instance_To_Index(object_instance);
             if (array_index <= BACNET_MAX_PRIORITY) {
-                if (Binary_Value_Level[object_index][array_index] ==
-                    BINARY_NULL)
+                if (Multistate_Output_Level[object_index][array_index] ==
+                    MULTISTATE_NULL)
                     len = encode_tagged_null(&apdu[apdu_len]);
                 else {
                     present_value =
-                        Binary_Value_Level[object_index][array_index];
+                        Multistate_Output_Level[object_index][array_index];
                     len =
-                        encode_tagged_enumerated(&apdu[apdu_len],
+                        encode_tagged_unsigned(&apdu[apdu_len],
                         present_value);
                 }
             } else {
@@ -251,9 +252,14 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
 
         break;
     case PROP_RELINQUISH_DEFAULT:
-        present_value = RELINQUISH_DEFAULT;
+        present_value = MULTISTATE_RELINQUISH_DEFAULT;
         apdu_len = encode_tagged_enumerated(&apdu[0], present_value);
         break;
+    case PROP_NUMBER_OF_STATES:
+        apdu_len = encode_tagged_unsigned(&apdu[apdu_len],
+            MULTISTATE_NUMBER_OF_STATES);
+        break;
+
     default:
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -265,16 +271,16 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
 }
 
 /* returns true if successful */
-bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
+bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
     unsigned int priority = 0;
-    BACNET_BINARY_PV level = BINARY_NULL;
+    uint32_t level = 0;
 
-    Binary_Value_Init();
-    if (!Binary_Value_Valid_Instance(wp_data->object_instance)) {
+    Multistate_Output_Init();
+    if (!Multistate_Output_Valid_Instance(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
@@ -282,21 +288,20 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     /* decode the some of the request */
     switch (wp_data->object_property) {
     case PROP_PRESENT_VALUE:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             priority = wp_data->priority;
             /* Command priority 6 is reserved for use by Minimum On/Off
                algorithm and may not be used for other purposes in any
                object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
-                (wp_data->value.type.Enumerated >= MIN_BINARY_PV) &&
-                (wp_data->value.type.Enumerated <= MAX_BINARY_PV)) {
-                level = wp_data->value.type.Enumerated;
+                (wp_data->value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
+                level = wp_data->value.type.Unsigned_Int;
                 object_index =
-                    Binary_Value_Instance_To_Index(wp_data->
+                    Multistate_Output_Instance_To_Index(wp_data->
                     object_instance);
                 priority--;
-                Binary_Value_Level[object_index][priority] = level;
+                Multistate_Output_Level[object_index][priority] = level;
                 /* Note: you could set the physical output here if we
                    are the highest priority.
                    However, if Out of Service is TRUE, then don't set the 
@@ -314,13 +319,13 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
         } else if (wp_data->value.tag == BACNET_APPLICATION_TAG_NULL) {
-            level = BINARY_NULL;
+            level = MULTISTATE_NULL;
             object_index =
-                Binary_Value_Instance_To_Index(wp_data->object_instance);
+                Multistate_Output_Instance_To_Index(wp_data->object_instance);
             priority = wp_data->priority;
             if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                 priority--;
-                Binary_Value_Level[object_index][priority] = level;
+                Multistate_Output_Level[object_index][priority] = level;
                 /* Note: you could set the physical output here to the next
                    highest priority, or to the relinquish default if no
                    priorities are set.
@@ -340,8 +345,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_OUT_OF_SERVICE:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
-                Binary_Value_Instance_To_Index(wp_data->object_instance);
-            Binary_Value_Out_Of_Service[object_index] =
+                Multistate_Output_Instance_To_Index(wp_data->object_instance);
+            Multistate_Output_Out_Of_Service[object_index] =
                 wp_data->value.type.Boolean;
             status = true;
         } else {
@@ -364,20 +369,20 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 #include <string.h>
 #include "ctest.h"
 
-void testBinary_Value(Test * pTest)
+void testMultistateOutput(Test * pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_BINARY_VALUE;
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_MULTI_STATE_OUTPUT;
     uint32_t decoded_instance = 0;
     uint32_t instance = 123;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
 
 
-    len = Binary_Value_Encode_Property_APDU(&apdu[0],
+    len = Multistate_Output_Encode_Property_APDU(&apdu[0],
         instance,
         PROP_OBJECT_IDENTIFIER,
         BACNET_ARRAY_ALL, &error_class, &error_code);
@@ -386,21 +391,21 @@ void testBinary_Value(Test * pTest)
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
     len = decode_object_id(&apdu[len],
         (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_BINARY_VALUE);
+    ct_test(pTest, decoded_type == OBJECT_MULTI_STATE_OUTPUT);
     ct_test(pTest, decoded_instance == instance);
 
     return;
 }
 
-#ifdef TEST_BINARY_VALUE
+#ifdef TEST_MULTISTATE_OUTPUT
 int main(void)
 {
     Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Binary_Value", NULL);
+    pTest = ct_create("BACnet Multi-state Output", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testBinary_Value);
+    rc = ct_addTestFunction(pTest, testMultistateOutput);
     assert(rc);
 
     ct_setStream(pTest, stdout);
@@ -410,5 +415,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_BINARY_VALUE */
+#endif                          /* TEST_BINARY_INPUT */
 #endif                          /* TEST */

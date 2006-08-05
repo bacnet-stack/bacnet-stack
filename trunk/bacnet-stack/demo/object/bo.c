@@ -290,7 +290,7 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
                 (wp_data->value.type.Enumerated >= MIN_BINARY_PV) &&
-                (wp_data->value.type.Real <= MAX_BINARY_PV)) {
+                (wp_data->value.type.Enumerated <= MAX_BINARY_PV)) {
                 level = wp_data->value.type.Enumerated;
                 object_index =
                     Binary_Output_Instance_To_Index(wp_data->
