@@ -128,15 +128,8 @@ extern "C" {
     void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE
         service_choice, confirmed_function pFunction);
 
-/* returns true if the handler is set */
-    bool apdu_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice);
-
     void apdu_set_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE
         service_choice, unconfirmed_function pFunction);
-
-/* returns true if the handler is set */
-    bool apdu_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE
-        service_choice);
 
 /* returns true if the service is supported by a handler */
     bool apdu_service_supported(BACNET_SERVICES_SUPPORTED
