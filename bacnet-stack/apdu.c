@@ -104,48 +104,6 @@ void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice,
         Confirmed_Function[service_choice] = pFunction;
 }
 
-/* returns true if the handler is set */
-bool apdu_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice)
-{
-    bool status = false;
-    if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
-        (Confirmed_Function[service_choice] != NULL))
-        status = true;
-
-    return status;
-}
-
-bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
-{
-    int i = 0;
-    bool status = false;
-    bool found = false;
-
-    if (service_supported < MAX_BACNET_SERVICES_SUPPORTED) {
-        /* is it a confirmed service? */
-        for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
-            if (confirmed_service_supported[i] == service_supported) {
-                if (apdu_confirmed_handler(i))
-                    status = true;
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            /* is it an unconfirmed service? */
-            for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
-                if (unconfirmed_service_supported[i] == service_supported) {
-                    if (apdu_unconfirmed_handler(i))
-                        status = true;
-                    break;
-                }
-            }
-        }
-    }
-    return status;
-}
-
 /* Allow the APDU handler to automatically reject */
 static confirmed_function Unrecognized_Service_Handler;
 
@@ -169,14 +127,34 @@ void apdu_set_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE
         Unconfirmed_Function[service_choice] = pFunction;
 }
 
-bool apdu_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE service_choice)
+bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
 {
+    int i = 0;
     bool status = false;
+    bool found = false;
 
-    if ((service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) &&
-        (Unconfirmed_Function[service_choice] != NULL))
-        status = true;
+    if (service_supported < MAX_BACNET_SERVICES_SUPPORTED) {
+        /* is it a confirmed service? */
+        for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
+            if (confirmed_service_supported[i] == service_supported) {
+                if (Confirmed_Function[i] != NULL)
+                    status = true;
+                found = true;
+                break;
+            }
+        }
 
+        if (!found) {
+            /* is it an unconfirmed service? */
+            for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
+                if (unconfirmed_service_supported[i] == service_supported) {
+                    if (Unconfirmed_Function[i] != NULL)
+                        status = true;
+                    break;
+                }
+            }
+        }
+    }
     return status;
 }
 
