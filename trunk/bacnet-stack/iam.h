@@ -50,14 +50,14 @@ extern "C" {
         uint32_t * pDevice_id,
         unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id);
 
-    int iam_decode_apdu(uint8_t * apdu,
-        uint32_t * pDevice_id,
-        unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id);
-
     int iam_send(uint8_t * buffer);
 
 #ifdef TEST
 #include "ctest.h"
+    int iam_decode_apdu(uint8_t * apdu,
+        uint32_t * pDevice_id,
+        unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id);
+
     void testIAm(Test * pTest);
 #endif
 

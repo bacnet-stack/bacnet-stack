@@ -109,32 +109,6 @@ int rp_decode_service_request(uint8_t * apdu,
     return (int) len;
 }
 
-int rp_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len,
-    uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * data)
-{
-    int len = 0;
-    unsigned offset = 0;
-
-    if (!apdu)
-        return -1;
-    /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
-        return -1;
-    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
-    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY)
-        return -1;
-    offset = 4;
-
-    if (apdu_len > offset) {
-        len = rp_decode_service_request(&apdu[offset],
-            apdu_len - offset, data);
-    }
-
-    return len;
-}
-
 int rp_ack_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * data)
 {
@@ -213,6 +187,37 @@ int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len, /* total length 
     return len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
+int rp_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * data)
+{
+    int len = 0;
+    unsigned offset = 0;
+
+    if (!apdu)
+        return -1;
+    /* optional checking - most likely was already done prior to this call */
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+        return -1;
+    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+    if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY)
+        return -1;
+    offset = 4;
+
+    if (apdu_len > offset) {
+        len = rp_decode_service_request(&apdu[offset],
+            apdu_len - offset, data);
+    }
+
+    return len;
+}
+
 int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,    /* total length of the apdu */
     uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * data)
 {
@@ -235,11 +240,6 @@ int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,    /* total length of the a
 
     return len;
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 void testReadPropertyAck(Test * pTest)
 {
