@@ -72,21 +72,23 @@ extern "C" {
     bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
 
-    bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2);
-    bool bacapp_same_date(BACNET_DATE * date1, BACNET_DATE * date2);
-    bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
-        BACNET_APPLICATION_DATA_VALUE * test_value);
-
+#if PRINT_ENABLED
     bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
         const char *argv, BACNET_APPLICATION_DATA_VALUE * value);
 
     bool bacapp_print_value(FILE * stream,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
+#endif
 
 #ifdef TEST
 #include "ctest.h"
-    void testBACnetApplicationData(Test * pTest);
+    bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2);
+    bool bacapp_same_date(BACNET_DATE * date1, BACNET_DATE * date2);
+    bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_APPLICATION_DATA_VALUE * test_value);
+
+void testBACnetApplicationData(Test * pTest);
 #endif
 
 #ifdef __cplusplus
