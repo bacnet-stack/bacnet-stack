@@ -68,6 +68,11 @@ int reject_decode_service_request(uint8_t * apdu,
     return len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
 /* decode the whole APDU - mainly used for unit testing */
 int reject_decode_apdu(uint8_t * apdu,
     unsigned apdu_len, uint8_t * invoke_id, uint8_t * reject_reason)
@@ -88,11 +93,6 @@ int reject_decode_apdu(uint8_t * apdu,
 
     return len;
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 void testReject(Test * pTest)
 {

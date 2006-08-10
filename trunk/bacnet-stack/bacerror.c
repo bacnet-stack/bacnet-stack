@@ -113,6 +113,11 @@ int bacerror_decode_service_request(uint8_t * apdu,
     return len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
 /* decode the whole APDU - mainly used for unit testing */
 int bacerror_decode_apdu(uint8_t * apdu,
     unsigned apdu_len,
@@ -136,11 +141,6 @@ int bacerror_decode_apdu(uint8_t * apdu,
 
     return len;
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 void testBACError(Test * pTest)
 {
