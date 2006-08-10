@@ -143,11 +143,11 @@ void Ringbuf_Init(RING_BUFFER * b,      /* ring buffer structure */
 
 /* test the FIFO */
 #define RING_BUFFER_DATA_SIZE 5
-#define RING_BUFFER_SIZE 16
+#define RING_BUFFER_COUNT 16
 void testRingBuf(Test * pTest)
 {
     RING_BUFFER test_buffer;
-    char data_store[RING_BUFFER_DATA_SIZE * RING_BUFFER_SIZE];
+    char data_store[RING_BUFFER_DATA_SIZE * RING_BUFFER_COUNT];
     char data[RING_BUFFER_DATA_SIZE];
     char *test_data;
     unsigned index;
@@ -157,7 +157,7 @@ void testRingBuf(Test * pTest)
     bool status;
 
     Ringbuf_Init(&test_buffer, data_store, RING_BUFFER_DATA_SIZE,
-        RING_BUFFER_SIZE);
+        RING_BUFFER_COUNT);
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
     for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
@@ -180,7 +180,7 @@ void testRingBuf(Test * pTest)
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
     /* fill to max */
-    for (index = 0; index < RING_BUFFER_SIZE; index++) {
+    for (index = 0; index < RING_BUFFER_COUNT; index++) {
         for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE;
             data_index++) {
             data[data_index] = index;
@@ -190,7 +190,7 @@ void testRingBuf(Test * pTest)
         ct_test(pTest, !Ringbuf_Empty(&test_buffer));
     }
     /* verify actions on full buffer */
-    for (index = 0; index < RING_BUFFER_SIZE; index++) {
+    for (index = 0; index < RING_BUFFER_COUNT; index++) {
         for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE;
             data_index++) {
             data[data_index] = index;
@@ -201,7 +201,7 @@ void testRingBuf(Test * pTest)
     }
 
     /* check buffer full */
-    for (index = 0; index < RING_BUFFER_SIZE; index++) {
+    for (index = 0; index < RING_BUFFER_COUNT; index++) {
         test_data = Ringbuf_Get_Front(&test_buffer);
         for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE;
             data_index++) {
@@ -217,7 +217,7 @@ void testRingBuf(Test * pTest)
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
     /* test the ring around the buffer */
-    for (index = 0; index < RING_BUFFER_SIZE; index++) {
+    for (index = 0; index < RING_BUFFER_COUNT; index++) {
         for (count = 1; count < 4; count++) {
             dummy = index * count;
             for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE;
