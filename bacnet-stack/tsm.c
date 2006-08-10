@@ -57,7 +57,7 @@
 
 /* declare space for the TSM transactions, and set it up in the init. */
 /* table rules: an Invoke ID = 0 is an unused spot in the table */
-static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS] = { {0} };
+static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS];
 
 /* returns MAX_TSM_TRANSACTIONS if not found */
 static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
