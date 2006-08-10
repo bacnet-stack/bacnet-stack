@@ -68,6 +68,8 @@ extern "C" {
         BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
         BACNET_CHARACTER_STRING * password);
 
+#ifdef TEST
+#include "ctest.h"
     int dcc_decode_apdu(uint8_t * apdu,
         unsigned apdu_len,
         uint8_t * invoke_id,
@@ -75,8 +77,6 @@ extern "C" {
         BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
         BACNET_CHARACTER_STRING * password);
 
-#ifdef TEST
-#include "ctest.h"
     void test_DeviceCommunicationControl(Test * pTest);
 #endif
 

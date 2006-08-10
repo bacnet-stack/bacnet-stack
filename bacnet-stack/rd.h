@@ -53,14 +53,14 @@ extern "C" {
         BACNET_REINITIALIZED_STATE * state,
         BACNET_CHARACTER_STRING * password);
 
+#ifdef TEST
+#include "ctest.h"
     int rd_decode_apdu(uint8_t * apdu,
         unsigned apdu_len,
         uint8_t * invoke_id,
         BACNET_REINITIALIZED_STATE * state,
         BACNET_CHARACTER_STRING * password);
 
-#ifdef TEST
-#include "ctest.h"
     void test_ReinitializeDevice(Test * pTest);
 #endif
 

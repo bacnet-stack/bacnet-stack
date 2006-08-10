@@ -201,6 +201,11 @@ int dcc_decode_service_request(uint8_t * apdu,
     return (int) len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
 int dcc_decode_apdu(uint8_t * apdu,
     unsigned apdu_len,
     uint8_t * invoke_id,
@@ -229,11 +234,6 @@ int dcc_decode_apdu(uint8_t * apdu,
 
     return len;
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 void test_DeviceCommunicationControlData(Test * pTest,
     uint8_t invoke_id,
