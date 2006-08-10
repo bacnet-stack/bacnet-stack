@@ -47,11 +47,11 @@ extern "C" {
     int abort_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason);
 
+#ifdef TEST
+#include "ctest.h"
     int abort_decode_apdu(uint8_t * apdu,
         unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason);
 
-#ifdef TEST
-#include "ctest.h"
     void testAbort(Test * pTest);
 #endif
 
