@@ -240,114 +240,7 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
     return status;
 }
 
-/* returns true if matching or same, false if different */
-bool bacapp_same_date(BACNET_DATE * date1, BACNET_DATE * date2)
-{
-    bool status = false;
-
-    if (date1 && date2) {
-        status = true;
-        if (date1->year != date2->year)
-            status = false;
-        if (date1->month != date2->month)
-            status = false;
-        if (date1->day != date2->day)
-            status = false;
-        if (date1->wday != date2->wday)
-            status = false;
-    }
-
-    return status;
-}
-
-/* returns true if matching or same, false if different */
-bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2)
-{
-    bool status = false;
-
-    if (time1 && time2) {
-        status = true;
-        if (time1->hour != time2->hour)
-            status = false;
-        if (time1->min != time2->min)
-            status = false;
-        if (time1->sec != time2->sec)
-            status = false;
-        if (time1->hundredths != time2->hundredths)
-            status = false;
-    }
-
-    return status;
-}
-
-/* generic - can be used by other unit tests
-   returns true if matching or same, false if different */
-bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
-    BACNET_APPLICATION_DATA_VALUE * test_value)
-{
-    bool status = true;         /*return value */
-
-    /* does the tag match? */
-    if (test_value->tag != value->tag)
-        status = false;
-    if (status) {
-        /* does the value match? */
-        switch (test_value->tag) {
-        case BACNET_APPLICATION_TAG_NULL:
-            break;
-        case BACNET_APPLICATION_TAG_BOOLEAN:
-            if (test_value->type.Boolean != value->type.Boolean)
-                status = false;
-            break;
-        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            if (test_value->type.Unsigned_Int != value->type.Unsigned_Int)
-                status = false;
-            break;
-        case BACNET_APPLICATION_TAG_SIGNED_INT:
-            if (test_value->type.Signed_Int != value->type.Signed_Int)
-                status = false;
-            break;
-        case BACNET_APPLICATION_TAG_REAL:
-            if (test_value->type.Real != value->type.Real)
-                status = false;
-            break;
-        case BACNET_APPLICATION_TAG_DOUBLE:
-            if (test_value->type.Double != value->type.Double)
-                status = false;
-            break;
-        case BACNET_APPLICATION_TAG_ENUMERATED:
-            if (test_value->type.Enumerated != value->type.Enumerated)
-                status = false;
-            break;
-        case BACNET_APPLICATION_TAG_DATE:
-            status = bacapp_same_date(&test_value->type.Date,
-                &value->type.Date);
-            break;
-        case BACNET_APPLICATION_TAG_TIME:
-            status = bacapp_same_time(&test_value->type.Time,
-                &value->type.Time);
-            break;
-        case BACNET_APPLICATION_TAG_OBJECT_ID:
-            if (test_value->type.Object_Id.type !=
-                value->type.Object_Id.type)
-                status = false;
-            if (test_value->type.Object_Id.instance !=
-                value->type.Object_Id.instance)
-                status = false;
-            break;
-        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-            status = characterstring_same(&value->type.Character_String,
-                &test_value->type.Character_String);
-            break;
-        case BACNET_APPLICATION_TAG_BIT_STRING:
-        default:
-            status = false;
-            break;
-        }
-    }
-    return status;
-}
-
+#if PRINT_ENABLED
 bool bacapp_print_value(FILE * stream,
     BACNET_APPLICATION_DATA_VALUE * value, BACNET_PROPERTY_ID property)
 {
@@ -553,12 +446,118 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 
     return status;
 }
-
+#endif
 
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+/* returns true if matching or same, false if different */
+bool bacapp_same_date(BACNET_DATE * date1, BACNET_DATE * date2)
+{
+    bool status = false;
+
+    if (date1 && date2) {
+        status = true;
+        if (date1->year != date2->year)
+            status = false;
+        if (date1->month != date2->month)
+            status = false;
+        if (date1->day != date2->day)
+            status = false;
+        if (date1->wday != date2->wday)
+            status = false;
+    }
+
+    return status;
+}
+
+/* returns true if matching or same, false if different */
+bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2)
+{
+    bool status = false;
+
+    if (time1 && time2) {
+        status = true;
+        if (time1->hour != time2->hour)
+            status = false;
+        if (time1->min != time2->min)
+            status = false;
+        if (time1->sec != time2->sec)
+            status = false;
+        if (time1->hundredths != time2->hundredths)
+            status = false;
+    }
+
+    return status;
+}
+/* generic - can be used by other unit tests
+   returns true if matching or same, false if different */
+bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
+    BACNET_APPLICATION_DATA_VALUE * test_value)
+{
+    bool status = true;         /*return value */
+
+    /* does the tag match? */
+    if (test_value->tag != value->tag)
+        status = false;
+    if (status) {
+        /* does the value match? */
+        switch (test_value->tag) {
+        case BACNET_APPLICATION_TAG_NULL:
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            if (test_value->type.Boolean != value->type.Boolean)
+                status = false;
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            if (test_value->type.Unsigned_Int != value->type.Unsigned_Int)
+                status = false;
+            break;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            if (test_value->type.Signed_Int != value->type.Signed_Int)
+                status = false;
+            break;
+        case BACNET_APPLICATION_TAG_REAL:
+            if (test_value->type.Real != value->type.Real)
+                status = false;
+            break;
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            if (test_value->type.Double != value->type.Double)
+                status = false;
+            break;
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            if (test_value->type.Enumerated != value->type.Enumerated)
+                status = false;
+            break;
+        case BACNET_APPLICATION_TAG_DATE:
+            status = bacapp_same_date(&test_value->type.Date,
+                &value->type.Date);
+            break;
+        case BACNET_APPLICATION_TAG_TIME:
+            status = bacapp_same_time(&test_value->type.Time,
+                &value->type.Time);
+            break;
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            if (test_value->type.Object_Id.type !=
+                value->type.Object_Id.type)
+                status = false;
+            if (test_value->type.Object_Id.instance !=
+                value->type.Object_Id.instance)
+                status = false;
+            break;
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            status = characterstring_same(&value->type.Character_String,
+                &test_value->type.Character_String);
+            break;
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+        default:
+            status = false;
+            break;
+        }
+    }
+    return status;
+}
 
 static bool testBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *
     value)
