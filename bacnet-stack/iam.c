@@ -134,26 +134,6 @@ int iam_decode_service_request(uint8_t * apdu,
     return apdu_len;
 }
 
-int iam_decode_apdu(uint8_t * apdu,
-    uint32_t * pDevice_id,
-    unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id)
-{
-    int apdu_len = 0;           /* total length of the apdu, return value */
-
-    /* valid data? */
-    if (!apdu)
-        return -1;
-    /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
-        return -1;
-    if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
-        return -1;
-    apdu_len = iam_decode_service_request(&apdu[2],
-        pDevice_id, pMax_apdu, pSegmentation, pVendor_id);
-
-    return apdu_len;
-}
-
 int iam_send(uint8_t * buffer)
 {
     int pdu_len = 0;
@@ -182,6 +162,26 @@ int iam_send(uint8_t * buffer)
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+
+int iam_decode_apdu(uint8_t * apdu,
+    uint32_t * pDevice_id,
+    unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id)
+{
+    int apdu_len = 0;           /* total length of the apdu, return value */
+
+    /* valid data? */
+    if (!apdu)
+        return -1;
+    /* optional checking - most likely was already done prior to this call */
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+        return -1;
+    if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
+        return -1;
+    apdu_len = iam_decode_service_request(&apdu[2],
+        pDevice_id, pMax_apdu, pSegmentation, pVendor_id);
+
+    return apdu_len;
+}
 
 void testIAm(Test * pTest)
 {
