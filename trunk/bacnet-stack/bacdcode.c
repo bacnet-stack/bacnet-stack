@@ -38,11 +38,11 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bits.h"
-#include "bigend.h"
 #include "bacstr.h"
 
 /* NOTE: byte order plays a role in decoding multibyte values */
 /* http://www.unixpapa.com/incnote/byteorder.html */
+/* define BIG_ENDIAN=1 or BIG_ENDIAN=0 for your target! */
 
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
@@ -195,13 +195,13 @@ int encode_unsigned16(uint8_t * apdu, uint16_t value)
     0}};
 
     short_data.value = value;
-    if (big_endian()) {
-        apdu[0] = short_data.byte[0];
-        apdu[1] = short_data.byte[1];
-    } else {
-        apdu[0] = short_data.byte[1];
-        apdu[1] = short_data.byte[0];
-    }
+    #if BIG_ENDIAN
+    apdu[0] = short_data.byte[0];
+    apdu[1] = short_data.byte[1];
+    #else
+    apdu[0] = short_data.byte[1];
+    apdu[1] = short_data.byte[0];
+    #endif
 
     return 2;
 }
@@ -214,13 +214,13 @@ int decode_unsigned16(uint8_t * apdu, uint16_t * value)
     } short_data = { {
     0}};
 
-    if (big_endian()) {
-        short_data.byte[0] = apdu[0];
-        short_data.byte[1] = apdu[1];
-    } else {
-        short_data.byte[1] = apdu[0];
-        short_data.byte[0] = apdu[1];
-    }
+    #if BIG_ENDIAN
+    short_data.byte[0] = apdu[0];
+    short_data.byte[1] = apdu[1];
+    #else
+    short_data.byte[1] = apdu[0];
+    short_data.byte[0] = apdu[1];
+    #endif
     if (value)
         *value = short_data.value;
 
@@ -236,15 +236,15 @@ int encode_unsigned24(uint8_t * apdu, uint32_t value)
     0}};
 
     long_data.value = value;
-    if (big_endian()) {
-        apdu[0] = long_data.byte[1];
-        apdu[1] = long_data.byte[2];
-        apdu[2] = long_data.byte[3];
-    } else {
-        apdu[0] = long_data.byte[2];
-        apdu[1] = long_data.byte[1];
-        apdu[2] = long_data.byte[0];
-    }
+    #if BIG_ENDIAN
+    apdu[0] = long_data.byte[1];
+    apdu[1] = long_data.byte[2];
+    apdu[2] = long_data.byte[3];
+    #else
+    apdu[0] = long_data.byte[2];
+    apdu[1] = long_data.byte[1];
+    apdu[2] = long_data.byte[0];
+    #endif
 
     return 3;
 }
@@ -257,15 +257,15 @@ int decode_unsigned24(uint8_t * apdu, uint32_t * value)
     } long_data = { {
     0}};
 
-    if (big_endian()) {
-        long_data.byte[1] = apdu[0];
-        long_data.byte[2] = apdu[1];
-        long_data.byte[3] = apdu[2];
-    } else {
-        long_data.byte[2] = apdu[0];
-        long_data.byte[1] = apdu[1];
-        long_data.byte[0] = apdu[2];
-    }
+    #if BIG_ENDIAN
+    long_data.byte[1] = apdu[0];
+    long_data.byte[2] = apdu[1];
+    long_data.byte[3] = apdu[2];
+    #else
+    long_data.byte[2] = apdu[0];
+    long_data.byte[1] = apdu[1];
+    long_data.byte[0] = apdu[2];
+    #endif
     if (value)
         *value = long_data.value;
 
@@ -281,17 +281,17 @@ int encode_unsigned32(uint8_t * apdu, uint32_t value)
     0}};
 
     long_data.value = value;
-    if (big_endian()) {
-        apdu[0] = long_data.byte[0];
-        apdu[1] = long_data.byte[1];
-        apdu[2] = long_data.byte[2];
-        apdu[3] = long_data.byte[3];
-    } else {
-        apdu[0] = long_data.byte[3];
-        apdu[1] = long_data.byte[2];
-        apdu[2] = long_data.byte[1];
-        apdu[3] = long_data.byte[0];
-    }
+    #if BIG_ENDIAN
+    apdu[0] = long_data.byte[0];
+    apdu[1] = long_data.byte[1];
+    apdu[2] = long_data.byte[2];
+    apdu[3] = long_data.byte[3];
+    #else
+    apdu[0] = long_data.byte[3];
+    apdu[1] = long_data.byte[2];
+    apdu[2] = long_data.byte[1];
+    apdu[3] = long_data.byte[0];
+    #endif
 
     return 4;
 }
@@ -304,17 +304,17 @@ int decode_unsigned32(uint8_t * apdu, uint32_t * value)
     } long_data = { {
     0}};
 
-    if (big_endian()) {
-        long_data.byte[0] = apdu[0];
-        long_data.byte[1] = apdu[1];
-        long_data.byte[2] = apdu[2];
-        long_data.byte[3] = apdu[3];
-    } else {
-        long_data.byte[3] = apdu[0];
-        long_data.byte[2] = apdu[1];
-        long_data.byte[1] = apdu[2];
-        long_data.byte[0] = apdu[3];
-    }
+    #if BIG_ENDIAN
+    long_data.byte[0] = apdu[0];
+    long_data.byte[1] = apdu[1];
+    long_data.byte[2] = apdu[2];
+    long_data.byte[3] = apdu[3];
+    #else
+    long_data.byte[3] = apdu[0];
+    long_data.byte[2] = apdu[1];
+    long_data.byte[1] = apdu[2];
+    long_data.byte[0] = apdu[3];
+    #endif
     if (value)
         *value = long_data.value;
 
@@ -359,13 +359,13 @@ int encode_signed16(uint8_t * apdu, int16_t value)
     0}};
 
     short_data.value = value;
-    if (big_endian()) {
-        apdu[0] = short_data.byte[0];
-        apdu[1] = short_data.byte[1];
-    } else {
-        apdu[0] = short_data.byte[1];
-        apdu[1] = short_data.byte[0];
-    }
+    #if BIG_ENDIAN
+    apdu[0] = short_data.byte[0];
+    apdu[1] = short_data.byte[1];
+    #else
+    apdu[0] = short_data.byte[1];
+    apdu[1] = short_data.byte[0];
+    #endif
 
     return 2;
 }
@@ -378,13 +378,13 @@ int decode_signed16(uint8_t * apdu, int16_t * value)
     } short_data = { {
     0}};
 
-    if (big_endian()) {
-        short_data.byte[0] = apdu[0];
-        short_data.byte[1] = apdu[1];
-    } else {
-        short_data.byte[1] = apdu[0];
-        short_data.byte[0] = apdu[1];
-    }
+    #if BIG_ENDIAN
+    short_data.byte[0] = apdu[0];
+    short_data.byte[1] = apdu[1];
+    #else
+    short_data.byte[1] = apdu[0];
+    short_data.byte[0] = apdu[1];
+    #endif
     if (value)
         *value = short_data.value;
 
@@ -400,15 +400,15 @@ int encode_signed24(uint8_t * apdu, int32_t value)
     0}};
 
     long_data.value = value;
-    if (big_endian()) {
-        apdu[0] = long_data.byte[1];
-        apdu[1] = long_data.byte[2];
-        apdu[2] = long_data.byte[3];
-    } else {
-        apdu[0] = long_data.byte[2];
-        apdu[1] = long_data.byte[1];
-        apdu[2] = long_data.byte[0];
-    }
+    #if BIG_ENDIAN
+    apdu[0] = long_data.byte[1];
+    apdu[1] = long_data.byte[2];
+    apdu[2] = long_data.byte[3];
+    #else
+    apdu[0] = long_data.byte[2];
+    apdu[1] = long_data.byte[1];
+    apdu[2] = long_data.byte[0];
+    #endif
 
     return 3;
 }
@@ -421,23 +421,23 @@ int decode_signed24(uint8_t * apdu, int32_t * value)
     } long_data = { {
     0}};
 
-    if (big_endian()) {
-        /* negative - bit 7 is set */
-        if (apdu[0] & 0x80)
-            long_data.byte[0] = 0xFF;
-        /* fill in the rest */
-        long_data.byte[1] = apdu[0];
-        long_data.byte[2] = apdu[1];
-        long_data.byte[3] = apdu[2];
-    } else {
-        /* negative - bit 7 is set */
-        if (apdu[0] & 0x80)
-            long_data.byte[3] = 0xFF;
-        /* fill in the rest */
-        long_data.byte[2] = apdu[0];
-        long_data.byte[1] = apdu[1];
-        long_data.byte[0] = apdu[2];
-    }
+    #if BIG_ENDIAN
+    /* negative - bit 7 is set */
+    if (apdu[0] & 0x80)
+        long_data.byte[0] = 0xFF;
+    /* fill in the rest */
+    long_data.byte[1] = apdu[0];
+    long_data.byte[2] = apdu[1];
+    long_data.byte[3] = apdu[2];
+    #else
+    /* negative - bit 7 is set */
+    if (apdu[0] & 0x80)
+        long_data.byte[3] = 0xFF;
+    /* fill in the rest */
+    long_data.byte[2] = apdu[0];
+    long_data.byte[1] = apdu[1];
+    long_data.byte[0] = apdu[2];
+    #endif
     if (value)
         *value = long_data.value;
 
@@ -453,17 +453,17 @@ int encode_signed32(uint8_t * apdu, int32_t value)
     0}};
 
     long_data.value = value;
-    if (big_endian()) {
-        apdu[0] = long_data.byte[0];
-        apdu[1] = long_data.byte[1];
-        apdu[2] = long_data.byte[2];
-        apdu[3] = long_data.byte[3];
-    } else {
-        apdu[0] = long_data.byte[3];
-        apdu[1] = long_data.byte[2];
-        apdu[2] = long_data.byte[1];
-        apdu[3] = long_data.byte[0];
-    }
+    #if BIG_ENDIAN
+    apdu[0] = long_data.byte[0];
+    apdu[1] = long_data.byte[1];
+    apdu[2] = long_data.byte[2];
+    apdu[3] = long_data.byte[3];
+    #else
+    apdu[0] = long_data.byte[3];
+    apdu[1] = long_data.byte[2];
+    apdu[2] = long_data.byte[1];
+    apdu[3] = long_data.byte[0];
+    #endif
 
     return 4;
 }
@@ -476,17 +476,17 @@ int decode_signed32(uint8_t * apdu, int32_t * value)
     } long_data = { {
     0}};
 
-    if (big_endian()) {
-        long_data.byte[0] = apdu[0];
-        long_data.byte[1] = apdu[1];
-        long_data.byte[2] = apdu[2];
-        long_data.byte[3] = apdu[3];
-    } else {
-        long_data.byte[3] = apdu[0];
-        long_data.byte[2] = apdu[1];
-        long_data.byte[1] = apdu[2];
-        long_data.byte[0] = apdu[3];
-    }
+    #if BIG_ENDIAN
+    long_data.byte[0] = apdu[0];
+    long_data.byte[1] = apdu[1];
+    long_data.byte[2] = apdu[2];
+    long_data.byte[3] = apdu[3];
+    #else
+    long_data.byte[3] = apdu[0];
+    long_data.byte[2] = apdu[1];
+    long_data.byte[1] = apdu[2];
+    long_data.byte[0] = apdu[3];
+    #endif
     if (value)
         *value = long_data.value;
 
@@ -875,17 +875,18 @@ int decode_real(uint8_t * apdu, float *real_value)
         float real_value;
     } my_data;
 
-    if (big_endian()) {
-        my_data.byte[0] = apdu[0];
-        my_data.byte[1] = apdu[1];
-        my_data.byte[2] = apdu[2];
-        my_data.byte[3] = apdu[3];
-    } else {
-        my_data.byte[0] = apdu[3];
-        my_data.byte[1] = apdu[2];
-        my_data.byte[2] = apdu[1];
-        my_data.byte[3] = apdu[0];
-    }
+    /* NOTE: assumes the compiler stores float as IEEE-754 float */
+    #if BIG_ENDIAN
+    my_data.byte[0] = apdu[0];
+    my_data.byte[1] = apdu[1];
+    my_data.byte[2] = apdu[2];
+    my_data.byte[3] = apdu[3];
+    #else
+    my_data.byte[0] = apdu[3];
+    my_data.byte[1] = apdu[2];
+    my_data.byte[2] = apdu[1];
+    my_data.byte[3] = apdu[0];
+    #endif
 
     *real_value = my_data.real_value;
 
@@ -901,19 +902,19 @@ int encode_bacnet_real(float value, uint8_t * apdu)
         float real_value;
     } my_data;
 
+    /* NOTE: assumes the compiler stores float as IEEE-754 float */
     my_data.real_value = value;
-
-    if (big_endian()) {
-        apdu[0] = my_data.byte[0];
-        apdu[1] = my_data.byte[1];
-        apdu[2] = my_data.byte[2];
-        apdu[3] = my_data.byte[3];
-    } else {
-        apdu[0] = my_data.byte[3];
-        apdu[1] = my_data.byte[2];
-        apdu[2] = my_data.byte[1];
-        apdu[3] = my_data.byte[0];
-    }
+    #if BIG_ENDIAN
+    apdu[0] = my_data.byte[0];
+    apdu[1] = my_data.byte[1];
+    apdu[2] = my_data.byte[2];
+    apdu[3] = my_data.byte[3];
+    #else
+    apdu[0] = my_data.byte[3];
+    apdu[1] = my_data.byte[2];
+    apdu[2] = my_data.byte[1];
+    apdu[3] = my_data.byte[0];
+    #endif
 
     return 4;
 }
@@ -1122,7 +1123,6 @@ int decode_character_string(uint8_t * apdu, uint32_t len_value,
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-/* FIXME: What about endian? */
 int encode_bacnet_unsigned(uint8_t * apdu, uint32_t value)
 {
     int len = 0;                /* return value */
@@ -1171,7 +1171,6 @@ int encode_tagged_unsigned(uint8_t * apdu, uint32_t value)
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-/* FIXME: What about endian? */
 int decode_unsigned(uint8_t * apdu, uint32_t len_value, uint32_t * value)
 {
     uint16_t unsigned16_value = 0;
