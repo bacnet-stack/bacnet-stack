@@ -34,6 +34,9 @@
 #ifndef BACTEXT_H
 #define BACTEXT_H
 
+/* tiny implementations have no need to print */
+#if PRINT_ENABLED
+
 #include <stdbool.h>
 #include <stdint.h>
 #include "indtext.h"
@@ -66,4 +69,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
+
+#endif
+
 #endif
