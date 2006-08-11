@@ -29,30 +29,24 @@
 #include "bacdef.h"
 #include "mstp.h"
 #include "dlmstp.h"
-#include "ringbuf.h"
 #include "rs485.h"
 
-#define RB_PACKET_COUNT 2
-#define RB_PACKET_SIZE sizeof(DLMSTP_PACKET)
-static RING_BUFFER Receive_Buffer;
-static char Receive_Data_Store[RB_PACKET_COUNT * RB_PACKET_SIZE];
-static RING_BUFFER Transmit_Buffer;
-static char Transmit_Data_Store[RB_PACKET_COUNT * RB_PACKET_SIZE];
-
+static DLMSTP_PACKET Receive_Buffer;
+static DLMSTP_PACKET Transmit_Buffer;
 volatile struct mstp_port_struct_t MSTP_Port;   /* port data */
 static uint8_t MSTP_MAC_Address = 0x05; /* local MAC address */
-DLMSTP_PACKET Temp_Packet;
 
 void dlmstp_init(void)
 {
-    Ringbuf_Init(&Receive_Buffer, 
-        &Receive_Data_Store[0], 
-        RB_PACKET_SIZE,
-        RB_PACKET_COUNT);
-    Ringbuf_Init(&Transmit_Buffer, 
-        &Transmit_Data_Store[0], 
-        RB_PACKET_SIZE,
-        RB_PACKET_COUNT);
+    /* initialize buffer */
+    Receive_Buffer.ready = false;
+    Receive_Buffer.data_expecting_reply = false;
+    Receive_Buffer.pdu_len = 0;
+    /* initialize buffer */
+    Transmit_Buffer.ready = false;
+    Transmit_Buffer.data_expecting_reply = false;
+    Transmit_Buffer.pdu_len = 0;
+    /* initialize hardware */
     RS485_Initialize();
     MSTP_Init(&MSTP_Port, MSTP_MAC_Address);
 }
@@ -62,7 +56,7 @@ void dlmstp_cleanup(void)
   /* nothing to do for static buffers */
 }
 
-/* returns number of bytes sent on success, negative on failure */
+/* returns number of bytes sent on success, zero on failure */
 int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -70,18 +64,24 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     bool status;
     int bytes_sent = 0;
     
-    memmove(&Temp_Packet.address,dest,sizeof(Temp_Packet.address));
-    Temp_Packet.pdu_len = pdu_len;
-    memmove(Temp_Packet.pdu,pdu,sizeof(Temp_Packet.pdu));
-    status = Ringbuf_Put(&Transmit_Buffer, &Temp_Packet);
-    if (status)
+    if (Transmit_Buffer.ready == false)
+    {
+        /* FIXME: how do we get data_expecting_reply? */
+        Transmit_Buffer.data_expecting_reply = false;
+        Receive_Buffer.pdu_len = 0;
+        memmove(&Transmit_Buffer.address,dest,sizeof(Transmit_Buffer.address));
+        Transmit_Buffer.pdu_len = pdu_len;
+        /* FIXME: copy the whole PDU or just the pdu_len? */
+        memmove(Transmit_Buffer.pdu,pdu,sizeof(Transmit_Buffer.pdu));
         bytes_sent = pdu_len;
+        Transmit_Buffer.ready = true;
+    }
 
     return bytes_sent;
 }
 
 /* function for MS/TP to use to get a packet to transmit
-   returns the number of bytes in the packet, or 0 if none. */
+   returns the number of bytes in the packet, or zero if none. */
 int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest,      /* destination address */
     uint8_t * pdu)              /* any data to be sent - may be null */
 {
@@ -89,15 +89,19 @@ int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest,      /* destination address *
     DLMSTP_PACKET *packet;
     unsigned pdu_len = 0;
     
-    if (!Ringbuf_Empty(&Transmit_Buffer))
+    if (Transmit_Buffer.ready)
     {
-        packet = Ringbuf_Pop_Front(&Transmit_Buffer);
         memmove(dest,&packet->address,sizeof(packet->address));
         pdu_len = packet->pdu_len;
         memmove(pdu,packet->pdu,sizeof(packet.pdu));
     }
 
     return pdu_len;
+}
+
+int dlmstp_set_transmit_pdu_ready(bool ready)
+{
+    Transmit_Buffer.ready = ready;
 }
 
 void dlmstp_task(void)
