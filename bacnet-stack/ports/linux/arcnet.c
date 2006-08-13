@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include "bacdef.h"
+#include "npdu.h"
 #include "arcnet.h"
 #include "net.h"
 
@@ -182,17 +183,22 @@ bool arcnet_init(char *interface_name)
     return arcnet_valid();
 }
 
-/* function to send a packet out the socket */
+/* function to send a PDU out the socket */
 /* returns number of bytes sent on success, negative on failure */
-int arcnet_send(BACNET_ADDRESS * dest,  /* destination address */
-    BACNET_ADDRESS * src,       /* source address */
+int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
+    BACNET_NPDU_DATA * npdu_data,   /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
+    BACNET_ADDRESS src = { 0 }; /* source address */
     int bytes = 0;
     uint8_t mtu[512] = { 0 };
     int mtu_len = 0;
+    int npdu_len = 0;
     struct archdr *pkt = (struct archdr *) mtu;
+
+    src.mac[0] = ARCNET_MAC_Address;
+    src.mac_len = 1;
 
     /* don't waste time if the socket is not valid */
     if (ARCNET_Sock_FD < 0) {
@@ -206,24 +212,25 @@ int arcnet_send(BACNET_ADDRESS * dest,  /* destination address */
         fprintf(stderr, "arcnet: invalid destination MAC address!\n");
         return -2;
     }
-    if (src->mac_len == 1)
-        pkt->hard.source = src->mac[0];
+    if (src.mac_len == 1)
+        pkt->hard.source = src.mac[0];
     else {
         fprintf(stderr, "arcnet: invalid source MAC address!\n");
         return -3;
-    }
-    if ((ARC_HDR_SIZE + pdu_len) > 512) {
-        fprintf(stderr, "arcnet: PDU is too big to send!\n");
-        return -4;
     }
     /* Logical PDU portion */
     pkt->soft.raw[0] = 0xCD;    /* SC for BACnet */
     pkt->soft.raw[1] = 0x82;    /* DSAP for BACnet */
     pkt->soft.raw[2] = 0x82;    /* SSAP for BACnet */
-    pkt->soft.raw[3] = 0x03;    /* Control byte in header */
-    memcpy(&pkt->soft.raw[4], pdu, pdu_len);
+    pkt->soft.raw[3] = 0x03;    /* LLC Control byte in header */
+    npdu_len = npdu_encode_pdu(&pkt->soft.raw[4], dest, &src, npdu_data);
     /* packet length */
-    mtu_len = ARC_HDR_SIZE + 4 /*SC,DSAP,SSAP,LLC */  + pdu_len;
+    mtu_len = ARC_HDR_SIZE + 4 /*SC,DSAP,SSAP,LLC */  + npdu_len + pdu_len;
+    if (mtu_len > 512) {
+        fprintf(stderr, "arcnet: PDU is too big to send!\n");
+        return -4;
+    }
+    memcpy(&pkt->soft.raw[4+npdu_len], pdu, pdu_len);
     /* Send the packet */
     bytes =
         sendto(ARCNET_Sock_FD, &mtu, mtu_len, 0,
@@ -235,22 +242,6 @@ int arcnet_send(BACNET_ADDRESS * dest,  /* destination address */
             strerror(errno));
 
     return bytes;
-}
-
-/* function to send a PDU out the socket */
-/* returns number of bytes sent on success, negative on failure */
-int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
-    uint8_t * pdu,              /* any data to be sent - may be null */
-    unsigned pdu_len)
-{                               /* number of bytes of data */
-    BACNET_ADDRESS src = { 0 }; /* source address */
-
-    src.mac[0] = ARCNET_MAC_Address;
-    src.mac_len = 1;
-    return arcnet_send(dest,    /* destination address */
-        &src,                   /* source address */
-        pdu,                    /* any data to be sent - may be null */
-        pdu_len);               /* number of bytes of data */
 }
 
 /* receives an framed packet */

@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "npdu.h"
 
 /* specific defines for ARCNET */
 #define MAX_HEADER (1+1+2+2+1+1+1+1)
@@ -52,15 +53,9 @@ extern "C" {
     bool arcnet_init(char *interface_name);
 
 /* function to send a packet out the 802.2 socket */
-/* returns 0 on success, non-zero on failure */
-    int arcnet_send(BACNET_ADDRESS * dest,      /* destination address */
-        BACNET_ADDRESS * src,   /* source address */
-        uint8_t * pdu,          /* any data to be sent - may be null */
-        unsigned pdu_len);      /* number of bytes of data */
-
-/* function to send a packet out the 802.2 socket */
 /* returns zero on success, non-zero on failure */
     int arcnet_send_pdu(BACNET_ADDRESS * dest,  /* destination address */
+        BACNET_NPDU_DATA * npdu_data,   /* network information */
         uint8_t * pdu,          /* any data to be sent - may be null */
         unsigned pdu_len);      /* number of bytes of data */
 
