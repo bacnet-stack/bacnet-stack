@@ -274,6 +274,31 @@ int cov_notify_decode_service_request(uint8_t * apdu,
     return len;
 }
 
+int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
+{
+    int pdu_len = 0;
+    BACNET_ADDRESS dest;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+
+    /* unconfirmed is a broadcast */
+    datalink_get_broadcast_address(&dest);
+    /* encode the APDU portion of the packet */
+    pdu_len = ucov_notify_encode_apdu(&buffer[0], data);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    /* send the data */
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
+
+    return bytes_sent;
+}
+
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+#include "bacapp.h"
+
 int ccov_notify_decode_apdu(uint8_t * apdu,
     unsigned apdu_len, uint8_t * invoke_id, BACNET_COV_DATA * data)
 {
@@ -325,44 +350,17 @@ int ucov_notify_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
-{
-    int pdu_len = 0;
-    BACNET_ADDRESS dest;
-    int bytes_sent = 0;
-
-    /* unconfirmed is a broadcast */
-    datalink_get_broadcast_address(&dest);
-
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&buffer[0], &dest, NULL,
-        false /* true for confirmed messages */ ,
-        MESSAGE_PRIORITY_NORMAL);
-
-    /* encode the APDU portion of the packet */
-    pdu_len += ucov_notify_encode_apdu(&buffer[pdu_len], data);
-
-    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
-        &buffer[0], pdu_len);   /* number of bytes of data */
-
-    return bytes_sent;
-}
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-#include "bacapp.h"
 
 /* dummy function stubs */
-int npdu_encode_apdu(uint8_t * npdu, BACNET_ADDRESS * dest, BACNET_ADDRESS * src, bool data_expecting_reply,    /* true for confirmed messages */
+void npdu_encode_unconfirmed_apdu(BACNET_NPDU_DATA * npdu,
     BACNET_MESSAGE_PRIORITY priority)
 {
-    return 0;
+    return;
 }
 
 /* dummy function stubs */
 int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+    BACNET_NPDU_DATA * npdu_data, /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */

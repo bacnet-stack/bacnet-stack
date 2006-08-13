@@ -51,26 +51,27 @@ void Send_I_Have(uint32_t device_id,
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_I_HAVE_DATA data;
+    BACNET_NPDU_DATA npdu_data;
 
     /* if we are forbidden to send, don't send! */
     if (!dcc_communication_enabled())
         return;
     /* Who-Has is a global broadcast */
     datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, /* true for confirmed messages */
-        MESSAGE_PRIORITY_NORMAL);
     /* encode the APDU portion of the packet */
     data.device_id.type = OBJECT_DEVICE;
     data.device_id.instance = device_id;
     data.object_id.type = object_type;
     data.object_id.instance = object_instance;
     characterstring_init_ansi(&data.object_name, object_name);
-    pdu_len += ihave_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
+    pdu_len = ihave_encode_apdu(&Handler_Transmit_Buffer[0], &data);
     /* send the data */
-    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
+    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
+    #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Have Reply (%s)!\n",
             strerror(errno));
+    #endif
 }

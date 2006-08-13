@@ -269,12 +269,12 @@ bool Device_Set_Location(const char *name, size_t length)
 
 uint8_t Device_Protocol_Version(void)
 {
-    return 1;
+    return BACNET_PROTOCOL_VERSION;
 }
 
 uint8_t Device_Protocol_Revision(void)
 {
-    return 5;
+    return BACNET_PROTOCOL_REVISION;
 }
 
 uint16_t Device_Max_APDU_Length_Accepted(void)

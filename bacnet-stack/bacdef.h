@@ -39,6 +39,10 @@
 #include "bacenum.h"
 #include "config.h"
 
+/* This stack implements this version of BACnet */
+#define BACNET_PROTOCOL_VERSION 1
+#define BACNET_PROTOCOL_REVISION 5
+
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
 #define BACNET_MAX_INSTANCE (0x3FFFFF)

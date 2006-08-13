@@ -26,6 +26,8 @@ SRCS = readfile.c \
        $(BACNET_HANDLER)/txbuf.c \
        $(BACNET_HANDLER)/noserv.c \
        $(BACNET_HANDLER)/h_whois.c \
+       $(BACNET_HANDLER)/s_whois.c \
+       $(BACNET_HANDLER)/s_arfs.c \
        $(BACNET_HANDLER)/h_rp.c \
        $(BACNET_ROOT)/rp.c \
        $(BACNET_ROOT)/bacdcode.c \

@@ -47,25 +47,26 @@ void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime)
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
 
     if (!dcc_communication_enabled())
         return;
 
     /* we could use unicast or broadcast */
     datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, /* true for confirmed messages */
-        MESSAGE_PRIORITY_NORMAL);
     /* encode the APDU portion of the packet */
-    pdu_len += timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+    pdu_len = timesync_encode_apdu(&Handler_Transmit_Buffer[0],
         bdate, btime);
+    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     /* send it out the datalink */
-    bytes_sent = datalink_send_pdu(&dest,
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
+    #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,
             "Failed to Send Time-Synchronization Request (%s)!\n",
             strerror(errno));
+    #endif
 }
 
 void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime)
@@ -73,23 +74,23 @@ void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime)
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
 
     if (!dcc_communication_enabled())
         return;
 
     /* we could use unicast or broadcast */
     datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, /* true for confirmed messages */
-        MESSAGE_PRIORITY_NORMAL);
     /* encode the APDU portion of the packet */
-    pdu_len += timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+    pdu_len = timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0],
         bdate, btime);
-    /* send it out the datalink */
-    bytes_sent = datalink_send_pdu(&dest,
+    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
+    #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,
             "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
             strerror(errno));
+    #endif
 }

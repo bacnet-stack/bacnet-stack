@@ -272,8 +272,8 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  /* APDU data */
     return len;
 }
 
-void apdu_handler(BACNET_ADDRESS * src, /* source address */
-    bool data_expecting_reply, uint8_t * apdu,  /* APDU data */
+void apdu_handler(BACNET_ADDRESS * src,
+    uint8_t * apdu,  /* APDU data */
     uint16_t apdu_len)
 {
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
@@ -289,7 +289,6 @@ void apdu_handler(BACNET_ADDRESS * src, /* source address */
     int error_class = 0;
     uint8_t reason = 0;
 
-    (void) data_expecting_reply;
     if (apdu) {
         /* PDU Type */
         switch (apdu[0] & 0xF0) {

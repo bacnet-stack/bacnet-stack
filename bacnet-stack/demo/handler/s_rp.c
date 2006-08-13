@@ -49,13 +49,13 @@ uint8_t Send_Read_Property_Request(uint32_t device_id,  /* destination device */
     BACNET_PROPERTY_ID object_property, int32_t array_index)
 {
     BACNET_ADDRESS dest;
-    BACNET_ADDRESS my_address;
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_READ_PROPERTY_DATA data;
+    BACNET_NPDU_DATA npdu_data;
 
     if (!dcc_communication_enabled())
         return 0;
@@ -64,19 +64,14 @@ uint8_t Send_Read_Property_Request(uint32_t device_id,  /* destination device */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
     if (status)
-        status = tsm_transaction_available();
-    if (status) {
-        datalink_get_my_address(&my_address);
-        pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, &my_address, true,       /* true for confirmed messages */
-            MESSAGE_PRIORITY_NORMAL);
-
         invoke_id = tsm_next_free_invokeID();
+    if (invoke_id) {
         /* load the data for the encoding */
         data.object_type = object_type;
         data.object_instance = object_instance;
         data.object_property = object_property;
         data.array_index = array_index;
-        pdu_len += rp_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        pdu_len = rp_encode_apdu(&Handler_Transmit_Buffer[0],
             invoke_id, &data);
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
@@ -84,17 +79,25 @@ uint8_t Send_Read_Property_Request(uint32_t device_id,  /* destination device */
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned) pdu_len < max_apdu) {
+            npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
             tsm_set_confirmed_unsegmented_transaction(invoke_id,
-                &dest, &Handler_Transmit_Buffer[0], pdu_len);
-            bytes_sent = datalink_send_pdu(&dest,       /* destination address */
-                &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
+                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+            bytes_sent = datalink_send_pdu(&dest, &npdu_data,
+                &Handler_Transmit_Buffer[0], pdu_len);
+            #if PRINT_ENABLED
             if (bytes_sent <= 0)
                 fprintf(stderr,
                     "Failed to Send ReadProperty Request (%s)!\n",
                     strerror(errno));
-        } else
+            #endif
+        } else {
+            tsm_free_invoke_id(invoke_id);
+            invoke_id = 0;
+            #if PRINT_ENABLED
             fprintf(stderr, "Failed to Send ReadProperty Request "
                 "(exceeds destination maximum APDU)!\n");
+            #endif
+        }
     }
 
     return invoke_id;

@@ -36,6 +36,14 @@
 
 /* tiny implementations have no need to print */
 #if PRINT_ENABLED
+    #define BACTEXT_PRINT_ENABLED
+#else
+  #ifdef TEST
+        #define BACTEXT_PRINT_ENABLED
+  #endif
+#endif
+
+#ifdef BACTEXT_PRINT_ENABLED
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -70,6 +78,6 @@ extern "C" {
 }
 #endif                          /* __cplusplus */
 
-#endif
+#endif /* BACTEXT_PRINT_ENABLED */
 
 #endif

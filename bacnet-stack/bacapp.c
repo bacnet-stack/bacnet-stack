@@ -240,7 +240,7 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
     return status;
 }
 
-#if PRINT_ENABLED
+#ifdef BACAPP_PRINT_ENABLED
 bool bacapp_print_value(FILE * stream,
     BACNET_APPLICATION_DATA_VALUE * value, BACNET_PROPERTY_ID property)
 {

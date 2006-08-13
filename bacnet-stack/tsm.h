@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "npdu.h"
 
 /* note: TSM functionality is optional - only needed if we are 
    doing client requests */
@@ -80,9 +81,11 @@ typedef struct BACnet_TSM_Data {
     BACNET_TSM_STATE state;
     /* the address we sent it to */
     BACNET_ADDRESS dest;
-    /* copy of the PDU, should we need to send it again */
-    uint8_t pdu[MAX_PDU];
-    unsigned pdu_len;
+    /* the network layer info */
+    BACNET_NPDU_DATA npdu_data;
+    /* copy of the APDU, should we need to send it again */
+    uint8_t apdu[MAX_PDU];
+    unsigned apdu_len;
 } BACNET_TSM_DATA;
 
 #ifdef __cplusplus
@@ -98,10 +101,12 @@ extern "C" {
     uint8_t tsm_next_free_invokeID(void);
 /* returns the same invoke ID that was given */
     void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
-        BACNET_ADDRESS * dest, uint8_t * pdu, uint16_t pdu_len);
+        BACNET_ADDRESS * dest, BACNET_NPDU_DATA * ndpu_data,
+        uint8_t * apdu, uint16_t apdu_len);
 /* returns true if transaction is found */
     bool tsm_get_transaction_pdu(uint8_t invokeID,
-        BACNET_ADDRESS * dest, uint8_t * pdu, uint16_t * pdu_len);
+        BACNET_ADDRESS * dest, BACNET_NPDU_DATA * ndpu_data,
+        uint8_t * apdu, uint16_t * apdu_len);
 
     bool tsm_invoke_id_free(uint8_t invokeID);
 

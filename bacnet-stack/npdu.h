@@ -43,7 +43,7 @@
 typedef struct bacnet_npdu_data_t {
     uint8_t protocol_version;
     /* parts of the control octet: */
-    bool data_expecting_reply;  /* true for confirmed messages */
+    bool confirmed_message;  /* true for confirmed messages */
     bool network_layer_message; /* false if APDU */
     BACNET_MESSAGE_PRIORITY priority;
     /* optional network message info */
@@ -57,12 +57,17 @@ extern "C" {
 #endif                          /* __cplusplus */
 
     uint8_t npdu_encode_max_seg_max_apdu(int max_segs, int max_apdu);
-    int npdu_encode_raw(uint8_t * npdu,
+
+    int npdu_encode_pdu(uint8_t * npdu,
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data);
-/* encode the NPDU portion of the packet for an APDU */
-    int npdu_encode_apdu(uint8_t * npdu, BACNET_ADDRESS * dest, BACNET_ADDRESS * src, bool data_expecting_reply,        /* true for confirmed messages */
+
+    void npdu_encode_confirmed_apdu(BACNET_NPDU_DATA * npdu,
         BACNET_MESSAGE_PRIORITY priority);
+    void npdu_encode_unconfirmed_apdu(BACNET_NPDU_DATA * npdu,
+        BACNET_MESSAGE_PRIORITY priority);
+
+    void npdu_copy_data(BACNET_NPDU_DATA * dest, BACNET_NPDU_DATA * src);
 
     int npdu_decode(uint8_t * npdu,
         BACNET_ADDRESS * dest,

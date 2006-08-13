@@ -43,13 +43,18 @@ void handler_i_have(uint8_t * service_request,
     len = ihave_decode_service_request(service_request,
         service_len, &data);
     if (len != -1) {
+        #if PRINT_ENABLED
         fprintf(stderr, "I-Have: %s %d from %s %u!\r\n",
             bactext_object_type_name(data.object_id.type),
             data.object_id.instance,
             bactext_object_type_name(data.device_id.type),
             data.device_id.instance);
-    } else
+        #endif
+    } else {
+        #if PRINT_ENABLED
         fprintf(stderr, "I-Have: received, but unable to decode!\n");
+        #endif
+    }
 
     return;
 }

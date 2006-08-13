@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "npdu.h"
 #include "net.h"
 
 /* specific defines for BACnet/IP over Ethernet */
@@ -64,6 +65,7 @@ extern "C" {
 /* function to send a packet out the BACnet/IP socket */
 /* returns zero on success, non-zero on failure */
     int bip_send_pdu(BACNET_ADDRESS * dest,     /* destination address */
+        BACNET_NPDU_DATA * npdu_data, /* network information */
         uint8_t * pdu,          /* any data to be sent - may be null */
         unsigned pdu_len);      /* number of bytes of data */
 

@@ -138,65 +138,52 @@ uint16_t bip_get_port(void)
 
 /* function to send a packet out the BACnet/IP socket (Annex J) */
 /* returns number of bytes sent on success, negative number on failure */
-static int bip_send(struct sockaddr_in *bip_dest, uint8_t * pdu,        /* any data to be sent - may be null */
-    unsigned pdu_len)
-{                               /* number of bytes of data */
-    uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
-    int bytes_sent = 0;
-
-    /* assumes that the driver has already been initialized */
-    if (BIP_Socket < 0)
-        return BIP_Socket;
-
-    mtu[0] = BVLL_TYPE_BACNET_IP;
-    if (bip_dest->sin_addr.s_addr == htonl(BIP_Broadcast_Address.s_addr))
-        mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
-    else
-        mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
-    mtu_len = 2;
-    mtu_len +=
-        encode_unsigned16(&mtu[mtu_len],
-        (uint16_t) (pdu_len + 4 /*inclusive */ ));
-    memcpy(&mtu[mtu_len], pdu, pdu_len);
-    mtu_len += pdu_len;
-
-    /* Send the packet */
-    bytes_sent = sendto(BIP_Socket, (char *) mtu, mtu_len, 0,
-        (struct sockaddr *) bip_dest, sizeof(struct sockaddr));
-
-    return bytes_sent;
-}
-
-/* function to send a packet out the BACnet/IP socket (Annex J) */
-/* returns number of bytes sent on success, negative number on failure */
 int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
+    BACNET_NPDU_DATA * npdu_data, /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
     struct sockaddr_in bip_dest;
+    uint8_t mtu[MAX_MPDU] = { 0 };
+    int mtu_len = 0;
+    int bytes_sent = 0;
+    BACNET_ADDRESS src;
 
-    /* load destination IP address */
+    /* assumes that the driver has already been initialized */
+    if (BIP_Socket < 0)
+        return BIP_Socket;
+    
+    mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
     if (dest->mac_len == 6) {
         (void) decode_unsigned32(&dest->mac[0],
             &(bip_dest.sin_addr.s_addr));
         (void) decode_unsigned16(&dest->mac[4], &(bip_dest.sin_port));
         memset(&(bip_dest.sin_zero), '\0', 8);
+        mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
     }
     /* broadcast */
     else if (dest->mac_len == 0) {
         bip_dest.sin_addr.s_addr = htonl(BIP_Broadcast_Address.s_addr);
         bip_dest.sin_port = htons(BIP_Port);
         memset(&(bip_dest.sin_zero), '\0', 8);
+        mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     } else
         return -1;
 
-    /* function to send a packet out the BACnet/IP socket */
-    /* returns 1 on success, 0 on failure */
-    return bip_send(&bip_dest,  /* destination address */
-        pdu,                    /* any data to be sent - may be null */
-        pdu_len);               /* number of bytes of data */
+    /* len is encoded at mtu[2], but we haven't finished packing yet */
+    bip_get_my_address(&src);
+    mtu_len = npdu_encode_pdu(&mtu[4], dest, &src, npdu_data);
+    mtu_len += 4;
+    memcpy(&mtu[mtu_len], pdu, pdu_len);
+    mtu_len += pdu_len;
+    encode_unsigned16(&mtu[2],mtu_len);
+
+    /* Send the packet */
+    bytes_sent = sendto(BIP_Socket, (char *) mtu, mtu_len, 0,
+        (struct sockaddr *) &bip_dest, sizeof(struct sockaddr));
+
+    return bytes_sent;
 }
 
 /* receives a BACnet/IP packet */
