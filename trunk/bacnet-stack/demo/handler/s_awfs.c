@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -36,31 +36,23 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
-#include "dcc.h"
-#include "whois.h"
+#include "awf.h"
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
 
-/* returns the invoke ID for confirmed request, or zero on failure */
-uint8_t Send_Write_Property_Request(uint32_t device_id, /* destination device */
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID object_property,
-    BACNET_APPLICATION_DATA_VALUE * object_value,
-    uint8_t priority, int32_t array_index)
+uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
+    uint32_t file_instance,
+    int fileStartPosition, BACNET_OCTET_STRING * fileData)
 {
     BACNET_ADDRESS dest;
+    BACNET_NPDU_DATA npdu_data;
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
     int pdu_len = 0;
     int bytes_sent = 0;
-    BACNET_WRITE_PROPERTY_DATA data;
-    BACNET_NPDU_DATA npdu_data;
-
-    if (!dcc_communication_enabled())
-        return 0;
+    BACNET_ATOMIC_WRITE_FILE_DATA data;
 
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
@@ -69,40 +61,51 @@ uint8_t Send_Write_Property_Request(uint32_t device_id, /* destination device */
         invoke_id = tsm_next_free_invokeID();
     if (invoke_id) {
         /* load the data for the encoding */
-        data.object_type = object_type;
-        data.object_instance = object_instance;
-        data.object_property = object_property;
-        data.array_index = array_index;
-        bacapp_copy(&data.value, object_value);
-        data.priority = priority;
-        pdu_len = wp_encode_apdu(&Handler_Transmit_Buffer[0],
-            invoke_id, &data);
-        /* will it fit in the sender?
-           note: if there is a bottleneck router in between
-           us and the destination, we won't know unless
-           we have a way to check for that and update the
-           max_apdu in the address binding table. */
-        if ((unsigned) pdu_len < max_apdu) {
-            npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
-            tsm_set_confirmed_unsegmented_transaction(invoke_id,
-                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-            bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-                &Handler_Transmit_Buffer[0], pdu_len);
-            #if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr,
-                    "Failed to Send WriteProperty Request (%s)!\n",
-                    strerror(errno));
-            #endif
+        data.object_type = OBJECT_FILE;
+        data.object_instance = file_instance;
+        data.access = FILE_STREAM_ACCESS;
+        data.type.stream.fileStartPosition = fileStartPosition;
+        status = octetstring_copy(&data.fileData, fileData);
+        if (status) {
+            pdu_len = awf_encode_apdu(&Handler_Transmit_Buffer[0],
+                invoke_id, &data);
+            /* will the APDU fit the target device?
+               note: if there is a bottleneck router in between
+               us and the destination, we won't know unless
+               we have a way to check for that and update the
+               max_apdu in the address binding table. */
+            if ((unsigned) pdu_len <= max_apdu) {
+                npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+                tsm_set_confirmed_unsegmented_transaction(invoke_id,
+                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+                bytes_sent = datalink_send_pdu(&dest, &npdu_data,
+                    &Handler_Transmit_Buffer[0], pdu_len);
+                #if PRINT_ENABLED
+                if (bytes_sent <= 0)
+                    fprintf(stderr,
+                        "Failed to Send AtomicWriteFile Request (%s)!\n",
+                        strerror(errno));
+                #endif
+            } else {
+                tsm_free_invoke_id(invoke_id);
+                invoke_id = 0;
+                #if PRINT_ENABLED
+                fprintf(stderr, "Failed to Send AtomicWriteFile Request "
+                    "(payload [%d] exceeds destination maximum APDU [%u])!\n",
+                    pdu_len, max_apdu);
+                #endif
+            }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
             #if PRINT_ENABLED
-            fprintf(stderr, "Failed to Send WriteProperty Request "
-                "(exceeds destination maximum APDU)!\n");
+            fprintf(stderr, "Failed to Send AtomicWriteFile Request "
+                "(payload [%d] exceeds octet string capacity)!\n",
+                pdu_len);
             #endif
         }
     }
 
     return invoke_id;
 }
+

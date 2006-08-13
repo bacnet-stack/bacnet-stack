@@ -139,21 +139,20 @@ int iam_send(uint8_t * buffer)
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
 
     /* I-Am is a global broadcast */
     datalink_get_broadcast_address(&dest);
 
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&buffer[0], &dest, NULL, false,  /* true for confirmed messages */
-        MESSAGE_PRIORITY_NORMAL);
-
     /* encode the APDU portion of the packet */
-    pdu_len += iam_encode_apdu(&buffer[pdu_len],
+    pdu_len = iam_encode_apdu(&buffer[0],
         Device_Object_Instance_Number(),
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
-
-    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
-        &buffer[0], pdu_len);   /* number of bytes of data */
+    /* encode the NPDU portion of the packet */
+    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    /* send data */
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
+        &buffer[0], pdu_len);
 
     return bytes_sent;
 }
@@ -219,6 +218,7 @@ void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
 }
 
 int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+    BACNET_NPDU_DATA * npdu_data, /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */

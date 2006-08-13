@@ -76,6 +76,13 @@ extern "C" {
     void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime);
     void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime);
 
+    uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id,
+        uint32_t file_instance, int fileStartPosition,
+        unsigned requestedOctetCount);
+    uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
+        uint32_t file_instance,
+        int fileStartPosition, BACNET_OCTET_STRING * fileData);
+
 
 #ifdef __cplusplus
 }

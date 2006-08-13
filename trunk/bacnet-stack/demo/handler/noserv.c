@@ -38,26 +38,25 @@ void handler_unrecognized_service(uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * dest, BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-    BACNET_ADDRESS src;
     int pdu_len = 0;
     int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
 
     (void) service_request;
     (void) service_len;
-    datalink_get_my_address(&src);
-
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], dest, &src, false,  /* true for confirmed messages */
-        MESSAGE_PRIORITY_NORMAL);
 
     /* encode the APDU portion of the packet */
-    pdu_len += reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+    pdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[0],
         service_data->invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
-
-    bytes_sent = datalink_send_pdu(dest,        /* destination address */
-        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
+    /* encode the NPDU portion of the packet */
+    npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    /* send the data */
+    bytes_sent = datalink_send_pdu(dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
+    #if PRINT_ENABLED
     if (bytes_sent > 0)
         fprintf(stderr, "Sent Reject!\n");
     else
         fprintf(stderr, "Failed to Send Reject (%s)!\n", strerror(errno));
+    #endif
 }

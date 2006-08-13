@@ -44,12 +44,19 @@ void handler_i_am_add(uint8_t * service_request,
     (void) service_len;
     len = iam_decode_service_request(service_request,
         &device_id, &max_apdu, &segmentation, &vendor_id);
+    #if PRINT_ENABLED
     fprintf(stderr, "Received I-Am Request");
+    #endif
     if (len != -1) {
+        #if PRINT_ENABLED
         fprintf(stderr, " from %u!\n", device_id);
+        #endif
         address_add(device_id, max_apdu, src);
-    } else
+    } else {
+        #if PRINT_ENABLED
         fprintf(stderr, "!\n");
+        #endif
+    }
 
     return;
 }

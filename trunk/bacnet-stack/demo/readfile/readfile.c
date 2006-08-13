@@ -46,6 +46,7 @@
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
+#include "client.h"
 #include "txbuf.h"
 
 /* buffer used for receive */
@@ -95,84 +96,6 @@ void MyRejectHandler(BACNET_ADDRESS * src,
     printf("Reject Reason: %s\r\n",
         bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
-}
-
-static uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id,
-    uint32_t file_instance,
-    int fileStartPosition, unsigned requestedOctetCount)
-{
-    BACNET_ADDRESS dest;
-    BACNET_ADDRESS my_address;
-    unsigned max_apdu = 0;
-    uint8_t invoke_id = 0;
-    bool status = false;
-    int pdu_len = 0;
-    int bytes_sent = 0;
-    BACNET_ATOMIC_READ_FILE_DATA data;
-
-    /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
-    /* is there a tsm available? */
-    if (status)
-        status = tsm_transaction_available();
-    if (status) {
-        datalink_get_my_address(&my_address);
-        pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, &my_address, true,       /* true for confirmed messages */
-            MESSAGE_PRIORITY_NORMAL);
-
-        invoke_id = tsm_next_free_invokeID();
-        /* load the data for the encoding */
-        data.object_type = OBJECT_FILE;
-        data.object_instance = file_instance;
-        data.access = FILE_STREAM_ACCESS;
-        data.type.stream.fileStartPosition = fileStartPosition;
-        data.type.stream.requestedOctetCount = requestedOctetCount;
-        pdu_len += arf_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            invoke_id, &data);
-        /* will the APDU fit the target device?
-           note: if there is a bottleneck router in between
-           us and the destination, we won't know unless
-           we have a way to check for that and update the
-           max_apdu in the address binding table. */
-        if ((unsigned) pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id,
-                &dest, &Handler_Transmit_Buffer[0], pdu_len);
-            bytes_sent = datalink_send_pdu(&dest,       /* destination address */
-                &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
-            if (bytes_sent <= 0)
-                fprintf(stderr,
-                    "Failed to Send AtomicReadFile Request (%s)!\n",
-                    strerror(errno));
-        } else
-            fprintf(stderr, "Failed to Send AtomicReadFile Request "
-                "(payload exceeds destination maximum APDU)!\n");
-    }
-
-    return invoke_id;
-}
-
-static void Send_WhoIs(uint32_t device_id)
-{
-    int pdu_len = 0;
-    BACNET_ADDRESS dest;
-    int bytes_sent = 0;
-
-    /* Who-Is is a global broadcast */
-    datalink_get_broadcast_address(&dest);
-
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], &dest, NULL, false, /* true for confirmed messages */
-        MESSAGE_PRIORITY_NORMAL);
-
-    /* encode the APDU portion of the packet */
-    pdu_len += whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-        device_id, device_id);
-
-    bytes_sent = datalink_send_pdu(&dest,       /* destination address */
-        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
-    if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",
-            strerror(errno));
 }
 
 static void AtomicReadFileAckHandler(uint8_t * service_request,
@@ -316,7 +239,7 @@ int main(int argc, char *argv[])
     timeout_seconds = (Device_APDU_Timeout() / 1000) *
         Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
-    Send_WhoIs(Target_Device_Object_Instance);
+    Send_WhoIs(Target_Device_Object_Instance,Target_Device_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */

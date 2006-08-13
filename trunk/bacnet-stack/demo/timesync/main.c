@@ -49,8 +49,10 @@
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
+#if 0
 static int32_t Target_Object_Instance_Min = 0;
 static int32_t Target_Object_Instance_Max = BACNET_MAX_INSTANCE;
+#endif
 
 static bool Error_Detected = false;
 
@@ -133,7 +135,7 @@ int main(int argc, char *argv[])
     BACNET_ADDRESS my_address, broadcast_address;
 #endif
 
-    /* FIXME: we could send directed time sync, and how to we send UTC? */
+    /* FIXME: we could send directed time sync, and how do we send UTC? */
 #if 0
     if (argc < 2) {
         printf("Usage: %s date time [device-instance]\r\n"

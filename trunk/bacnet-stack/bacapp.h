@@ -73,6 +73,14 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * src_value);
 
 #if PRINT_ENABLED
+    #define BACAPP_PRINT_ENABLED
+#else
+  #ifdef TEST
+        #define BACAPP_PRINT_ENABLED
+  #endif
+#endif
+
+#ifdef BACAPP_PRINT_ENABLED
     bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
         const char *argv, BACNET_APPLICATION_DATA_VALUE * value);
 
