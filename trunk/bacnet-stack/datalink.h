@@ -40,20 +40,17 @@
 #include "bacdef.h"
 #include "npdu.h"
 
-#ifdef BACDL_ETHERNET
+#if defined(BACDL_ETHERNET)
 #include "ethernet.h"
-#endif
-
-#ifdef BACDL_ARCNET
+#elif defined(BACDL_ARCNET)
 #include "arcnet.h"
-#endif
-
-#ifdef BACDL_MSTP
+#elif defined(BACDL_MSTP)
 #include "dlmstp.h"
-#endif
-
-#ifdef BACDL_BIP
+#elif defined(BACDL_BIP)
 #include "bip.h"
+#else
+    #define MAX_HEADER (1 + 1 + 2)
+    #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 #endif
 
 #ifdef __cplusplus

@@ -177,16 +177,23 @@ bool ethernet_init(char *interface_name)
 }
 
 /* function to send a packet out the 802.2 socket */
-/* returns bytes sent success, negative on failure */
-int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
-    BACNET_ADDRESS * src,       /* source address */
+/* returns number of bytes sent on success, negative on failure */
+int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+    BACNET_NPDU_DATA * npdu_data,   /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
+    int i = 0;                  /* counter */
     int bytes = 0;
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    BACNET_ADDRESS src = { 0 }; /* source address for npdu*/
+    uint8_t mtu[MAX_MPDU] = { 0 }; /* our buffer */
     int mtu_len = 0;
-    int i = 0;
+    int len = 0;
+
+    for (i = 0; i < 6; i++) {
+        src.mac[i] = Ethernet_MAC_Address[i];
+        src.mac_len++;
+    }
 
     /* don't waste time if the socket is not valid */
     if (eth802_sockfd < 0) {
@@ -196,8 +203,7 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     /* load destination ethernet MAC address */
     if (dest->mac_len == 6) {
         for (i = 0; i < 6; i++) {
-            mtu[mtu_len] = dest->mac[i];
-            mtu_len++;
+            mtu[i] = dest->mac[i];
         }
     } else {
         fprintf(stderr, "ethernet: invalid destination MAC address!\n");
@@ -205,28 +211,28 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     }
 
     /* load source ethernet MAC address */
-    if (src->mac_len == 6) {
+    if (src.mac_len == 6) {
         for (i = 0; i < 6; i++) {
-            mtu[mtu_len] = src->mac[i];
-            mtu_len++;
+            mtu[6 + i] = src.mac[i];
         }
     } else {
         fprintf(stderr, "ethernet: invalid source MAC address!\n");
         return -3;
     }
-    if ((14 + 3 + pdu_len) > MAX_MPDU) {
+    /* Logical PDU portion */
+    mtu[14] = 0x82;      /* DSAP for BACnet */
+    mtu[15] = 0x82;      /* SSAP for BACnet */
+    mtu[16] = 0x03;      /* Control byte in header */
+    len = npdu_encode_pdu(&mtu[17], dest, &src, npdu_data);
+    mtu_len = 17 + len;
+    if ((mtu_len + pdu_len) > MAX_MPDU) {
         fprintf(stderr, "ethernet: PDU is too big to send!\n");
         return -4;
     }
-    /* packet length */
-    mtu_len += encode_unsigned16(&mtu[12],
-        3 /*DSAP,SSAP,LLC */  + pdu_len);
-    /* Logical PDU portion */
-    mtu[mtu_len++] = 0x82;      /* DSAP for BACnet */
-    mtu[mtu_len++] = 0x82;      /* SSAP for BACnet */
-    mtu[mtu_len++] = 0x03;      /* Control byte in header */
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
+    /* packet length */
+    encode_unsigned16(&mtu[12],mtu_len);
 
     /* Send the packet */
     bytes =
@@ -238,27 +244,6 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
             strerror(errno));
 
     return bytes;
-}
-
-/* function to send a packet out the 802.2 socket */
-/* returns number of bytes sent on success, negative on failure */
-int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
-    uint8_t * pdu,              /* any data to be sent - may be null */
-    unsigned pdu_len)
-{                               /* number of bytes of data */
-    int i = 0;                  /* counter */
-    BACNET_ADDRESS src = { 0 }; /* source address */
-
-    for (i = 0; i < 6; i++) {
-        src.mac[i] = Ethernet_MAC_Address[i];
-        src.mac_len++;
-    }
-    /* function to send a packet out the 802.2 socket */
-    /* returns 1 on success, 0 on failure */
-    return ethernet_send(dest,  /* destination address */
-        &src,                   /* source address */
-        pdu,                    /* any data to be sent - may be null */
-        pdu_len);               /* number of bytes of data */
 }
 
 /* receives an 802.2 framed packet */

@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 /* declare a single physical layer */
+/*#include "bip.h" */
 /*#include "ethernet.h" */
 /*#include "arcnet.h" */
 /*#include "mstp.h" */

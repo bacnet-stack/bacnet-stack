@@ -147,7 +147,7 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
-    BACNET_ADDRESS src;
+    BACNET_ADDRESS src = { 0 };
 
     /* assumes that the driver has already been initialized */
     if (BIP_Socket < 0)

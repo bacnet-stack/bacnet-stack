@@ -112,8 +112,10 @@ int main(int argc, char *argv[])
     /* allow the device ID to be set */
     if (argc > 1)
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
+    #if defined(BACDL_BIP)
     if (argc > 2)
         bip_set_port(strtol(argv[2], NULL, 0));
+    #endif
     printf("BACnet Server Demo - Device #%u\r\n",
         Device_Object_Instance_Number());
     Init_Service_Handlers();
