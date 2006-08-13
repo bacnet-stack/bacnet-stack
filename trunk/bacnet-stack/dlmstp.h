@@ -44,13 +44,12 @@
 #define MAX_HEADER (2+1+1+1+2+1+2+1)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
-typedef struct dlmstp_packet
-{
-    bool ready; /* true if ready to be sent or received */
+typedef struct dlmstp_packet {
+    bool ready;                 /* true if ready to be sent or received */
     bool data_expecting_reply;
-    BACNET_ADDRESS address; /* src or dest address*/
-    unsigned pdu_len; /* packet length */
-    uint8_t pdu[MAX_MPDU]; /* packet */
+    BACNET_ADDRESS address;     /* src or dest address */
+    unsigned pdu_len;           /* packet length */
+    uint8_t pdu[MAX_MPDU];      /* packet */
 } DLMSTP_PACKET;
 
 #ifdef __cplusplus
@@ -72,13 +71,13 @@ extern "C" {
         uint8_t * pdu,          /* PDU data */
         uint16_t max_pdu,       /* amount of space available in the PDU  */
         unsigned timeout);      /* milliseconds to wait for a packet */
-        
+
 /* function for MS/TP state machine to use to get a packet 
    to transmit.  It returns the number of bytes in the 
    packet, or 0 if none. */
-    int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest, /* destination address */
-        uint8_t * pdu);  /* any data to be sent - may be null */
-        
+    int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest,  /* destination address */
+        uint8_t * pdu);         /* any data to be sent - may be null */
+
 
     void dlmstp_set_my_address(uint8_t my_address);
     void dlmstp_get_my_address(BACNET_ADDRESS * my_address);

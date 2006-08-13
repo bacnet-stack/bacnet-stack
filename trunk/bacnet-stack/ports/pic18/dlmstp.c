@@ -53,7 +53,7 @@ void dlmstp_init(void)
 
 void dlmstp_cleanup(void)
 {
-  /* nothing to do for static buffers */
+    /* nothing to do for static buffers */
 }
 
 /* returns number of bytes sent on success, zero on failure */
@@ -63,16 +63,16 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
 {                               /* number of bytes of data */
     bool status;
     int bytes_sent = 0;
-    
-    if (Transmit_Buffer.ready == false)
-    {
+
+    if (Transmit_Buffer.ready == false) {
         /* FIXME: how do we get data_expecting_reply? */
         Transmit_Buffer.data_expecting_reply = false;
         Receive_Buffer.pdu_len = 0;
-        memmove(&Transmit_Buffer.address,dest,sizeof(Transmit_Buffer.address));
+        memmove(&Transmit_Buffer.address, dest,
+            sizeof(Transmit_Buffer.address));
         Transmit_Buffer.pdu_len = pdu_len;
         /* FIXME: copy the whole PDU or just the pdu_len? */
-        memmove(Transmit_Buffer.pdu,pdu,sizeof(Transmit_Buffer.pdu));
+        memmove(Transmit_Buffer.pdu, pdu, sizeof(Transmit_Buffer.pdu));
         bytes_sent = pdu_len;
         Transmit_Buffer.ready = true;
     }
@@ -83,17 +83,16 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
 /* function for MS/TP to use to get a packet to transmit
    returns the number of bytes in the packet, or zero if none. */
 int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest,      /* destination address */
-    uint8_t * pdu)              /* any data to be sent - may be null */
-{
+    uint8_t * pdu)
+{                               /* any data to be sent - may be null */
     bool status;
     DLMSTP_PACKET *packet;
     unsigned pdu_len = 0;
-    
-    if (Transmit_Buffer.ready)
-    {
-        memmove(dest,&packet->address,sizeof(packet->address));
+
+    if (Transmit_Buffer.ready) {
+        memmove(dest, &packet->address, sizeof(packet->address));
         pdu_len = packet->pdu_len;
-        memmove(pdu,packet->pdu,sizeof(packet.pdu));
+        memmove(pdu, packet->pdu, sizeof(packet.pdu));
     }
 
     return pdu_len;
@@ -130,28 +129,27 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
 
     (void) timeout;
     /* see if there is a packet available */
-    if (!Ringbuf_Empty(&Receive_Buffer))
-    {
-        packet = (char *)Ringbuf_Pop_Front(&Receive_Buffer);
-        memmove(src,&packet->address,sizeof(packet->address));
+    if (!Ringbuf_Empty(&Receive_Buffer)) {
+        packet = (char *) Ringbuf_Pop_Front(&Receive_Buffer);
+        memmove(src, &packet->address, sizeof(packet->address));
         pdu_len = packet->pdu_len;
-        memmove(pdu,packet->pdu,max_pdu);
+        memmove(pdu, packet->pdu, max_pdu);
     }
 
     return pdu_len;
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t dlmstp_put_receive(BACNET_ADDRESS * src,   /* source address */
+uint16_t dlmstp_put_receive(BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,              /* PDU data */
     uint16_t pdu_len)
-{                               
+{
     bool status;
     int bytes_put = 0;
 
-    memmove(&Temp_Packet.address,src,sizeof(Temp_Packet.address));
+    memmove(&Temp_Packet.address, src, sizeof(Temp_Packet.address));
     Temp_Packet.pdu_len = pdu_len;
-    memmove(Temp_Packet.pdu,pdu,sizeof(Temp_Packet.pdu));
+    memmove(Temp_Packet.pdu, pdu, sizeof(Temp_Packet.pdu));
     status = Ringbuf_Put(&Receive_Buffer, &Temp_Packet);
     if (status)
         bytes_put = pdu_len;
@@ -163,7 +161,7 @@ void dlmstp_set_my_address(uint8_t mac_address)
 {
     /* FIXME: Master Nodes can only have address 1-127 */
     MSTP_MAC_Address = mac_address;
-   
+
     return;
 }
 

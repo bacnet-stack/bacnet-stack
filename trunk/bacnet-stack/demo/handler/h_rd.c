@@ -55,46 +55,46 @@ void handler_reinitialize_device(uint8_t * service_request,
     /* decode the service request only */
     len = rd_decode_service_request(service_request,
         service_len, &state, &their_password);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     fprintf(stderr, "ReinitializeDevice!\n");
     if (len > 0)
         fprintf(stderr, "ReinitializeDevice: state=%u password=%s\n",
             (unsigned) state, characterstring_value(&their_password));
     else
         fprintf(stderr, "ReinitializeDevice: Unable to decode request!\n");
-    #endif
+#endif
     /* bad decoding or something we didn't understand - send an abort */
     if (len < 0) {
         pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id, ABORT_REASON_OTHER);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr,
             "ReinitializeDevice: Sending Abort - could not decode.\n");
-        #endif         
+#endif
     } else if (service_data->segmented_message) {
         pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr,
             "ReinitializeDevice: Sending Abort - segmented message.\n");
-        #endif
+#endif
     } else if (state >= MAX_BACNET_REINITIALIZED_STATE) {
         pdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr,
             "ReinitializeDevice: Sending Reject - undefined enumeration\n");
-        #endif
+#endif
     } else {
         characterstring_init_ansi(&My_Password, Password);
         if (characterstring_same(&their_password, &My_Password)) {
             pdu_len = encode_simple_ack(&Handler_Transmit_Buffer[0],
                 service_data->invoke_id,
                 SERVICE_CONFIRMED_REINITIALIZE_DEVICE);
-            #if PRINT_ENABLED
+#if PRINT_ENABLED
             fprintf(stderr, "ReinitializeDevice: Sending Simple Ack!\n");
-            #endif
+#endif
             /* FIXME: now you can reboot, restart, quit, or something clever */
             /* Note: you can use a mix of state and password to do specific stuff */
             /* Note: if you don't do something clever like actually restart,
@@ -105,20 +105,20 @@ void handler_reinitialize_device(uint8_t * service_request,
                 service_data->invoke_id,
                 SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
                 ERROR_CLASS_SERVICES, ERROR_CODE_PASSWORD_FAILURE);
-            #if PRINT_ENABLED
+#if PRINT_ENABLED
             fprintf(stderr,
                 "ReinitializeDevice: Sending Error - password failure.\n");
-            #endif
+#endif
         }
     }
     npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "ReinitializeDevice: Failed to send PDU (%s)!\n",
             strerror(errno));
-    #endif
+#endif
 
     return;
 }

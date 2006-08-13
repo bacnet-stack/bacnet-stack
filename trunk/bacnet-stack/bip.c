@@ -139,7 +139,7 @@ uint16_t bip_get_port(void)
 /* function to send a packet out the BACnet/IP socket (Annex J) */
 /* returns number of bytes sent on success, negative number on failure */
 int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
-    BACNET_NPDU_DATA * npdu_data, /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
@@ -152,7 +152,7 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
     /* assumes that the driver has already been initialized */
     if (BIP_Socket < 0)
         return BIP_Socket;
-    
+
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
     if (dest->mac_len == 6) {
@@ -177,7 +177,7 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
     mtu_len += 4;
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
-    encode_unsigned16(&mtu[2],mtu_len);
+    encode_unsigned16(&mtu[2], mtu_len);
 
     /* Send the packet */
     bytes_sent = sendto(BIP_Socket, (char *) mtu, mtu_len, 0,

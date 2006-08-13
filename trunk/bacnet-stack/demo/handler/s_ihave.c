@@ -67,11 +67,10 @@ void Send_I_Have(uint32_t device_id,
     pdu_len = ihave_encode_apdu(&Handler_Transmit_Buffer[0], &data);
     /* send the data */
     npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
-    #if PRINT_ENABLED
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);    /* number of bytes of data */
+#if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Have Reply (%s)!\n",
             strerror(errno));
-    #endif
+#endif
 }
