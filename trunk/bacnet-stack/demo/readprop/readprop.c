@@ -174,11 +174,21 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
-    /* configure standard BACnet/IP port */
-    bip_set_interface("eth0");  /* for linux */
-    bip_set_port(0xBAC0);
+#if defined(BACDL_ETHERNET)
+    /* init the physical layer */
+    if (!ethernet_init("eth0"))
+        return 1;
+#elif defined(BACDL_BIP)
+    bip_set_interface("eth0");
     if (!bip_init())
         return 1;
+    printf("bip: using port %hu\r\n", bip_get_port());
+#elif defined(BACDL_ARCNET)
+    if (!arcnet_init("arc0"))
+        return 1;
+#else
+    #error Datalink (BACDL_ETHERNET,BACDL_BIP, or BACDL_ARCNET) undefined
+#endif
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (Device_APDU_Timeout() / 1000) *
@@ -192,7 +202,7 @@ int main(int argc, char *argv[])
         current_seconds = time(NULL);
 
         /* returns 0 bytes on timeout */
-        pdu_len = bip_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
         /* process */
         if (pdu_len) {
