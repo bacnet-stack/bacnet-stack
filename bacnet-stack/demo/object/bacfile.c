@@ -301,8 +301,8 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
     BACNET_ADDRESS dest;        /* where the original packet was destined */
-    uint8_t apdu[MAX_PDU] = { 0 };       /* original APDU packet */
-    uint16_t apdu_len = 0;       /* original APDU packet length */
+    uint8_t apdu[MAX_PDU] = { 0 };      /* original APDU packet */
+    uint16_t apdu_len = 0;      /* original APDU packet length */
     uint16_t len = 0;           /* apdu header length */
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint32_t object_instance = BACNET_MAX_INSTANCE + 1; /* return value */
@@ -312,12 +312,12 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
     found = tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
         &apdu_len);
     if (found) {
-        if (!npdu_data.network_layer_message && npdu_data.confirmed_message &&
-            (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
-            len = apdu_decode_confirmed_service_request(&apdu[0],
-                apdu_len - apdu_offset,
-                &service_data,
-                &service_choice, &service_request, &service_request_len);
+        if (!npdu_data.network_layer_message && npdu_data.confirmed_message
+            && (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+            len =
+                apdu_decode_confirmed_service_request(&apdu[0],
+                apdu_len - apdu_offset, &service_data, &service_choice,
+                &service_request, &service_request_len);
             if (service_choice == SERVICE_CONFIRMED_ATOMIC_READ_FILE) {
                 len = arf_decode_service_request(service_request,
                     service_request_len, &data);

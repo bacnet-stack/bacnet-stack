@@ -151,8 +151,7 @@ int iam_send(uint8_t * buffer)
     /* encode the NPDU portion of the packet */
     npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     /* send data */
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-        &buffer[0], pdu_len);
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
     return bytes_sent;
 }
@@ -218,7 +217,7 @@ void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
 }
 
 int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
-    BACNET_NPDU_DATA * npdu_data, /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */

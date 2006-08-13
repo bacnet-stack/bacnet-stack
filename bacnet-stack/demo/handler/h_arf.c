@@ -52,31 +52,32 @@ void handler_atomic_read_file(uint8_t * service_request,
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
-    #endif
+#endif
     len = arf_decode_service_request(service_request, service_len, &data);
     /* prepare a reply */
     /* bad decoding - send an abort */
     if (len < 0) {
         pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id, ABORT_REASON_OTHER);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr, "Bad Encoding. Sending Abort!\n");
-        #endif
+#endif
     } else if (service_data->segmented_message) {
         pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr, "Segmented Message. Sending Abort!\n");
-        #endif
+#endif
     } else {
         if (data.access == FILE_STREAM_ACCESS) {
             if (data.type.stream.requestedOctetCount <
                 octetstring_capacity(&data.fileData)) {
                 if (bacfile_read_data(&data)) {
-                    pdu_len = arf_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    pdu_len =
+                        arf_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
                 } else {
                     error = true;
@@ -86,27 +87,29 @@ void handler_atomic_read_file(uint8_t * service_request,
                     abort_encode_apdu(&Handler_Transmit_Buffer[0],
                     service_data->invoke_id,
                     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-                #if PRINT_ENABLED
+#if PRINT_ENABLED
                 fprintf(stderr, "Too Big To Send. Sending Abort!\n");
-                #endif
+#endif
             }
         } else {
-            pdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-                ERROR_CLASS_SERVICES, ERROR_CODE_INVALID_FILE_ACCESS_METHOD);
-            #if PRINT_ENABLED
+            pdu_len =
+                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id,
+                SERVICE_CONFIRMED_ATOMIC_READ_FILE, ERROR_CLASS_SERVICES,
+                ERROR_CODE_INVALID_FILE_ACCESS_METHOD);
+#if PRINT_ENABLED
             fprintf(stderr, "Record Access Requested. Sending Error!\n");
-            #endif
+#endif
         }
     }
     npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     if (bytes_sent <= 0) {
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
     }
-    #endif
+#endif
 
     return;
 }

@@ -57,8 +57,7 @@ void npdu_copy_data(BACNET_NPDU_DATA * dest, BACNET_NPDU_DATA * src)
 
 int npdu_encode_pdu(uint8_t * npdu,
     BACNET_ADDRESS * dest,
-    BACNET_ADDRESS * src,
-    BACNET_NPDU_DATA * npdu_data)
+    BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data)
 {
     int len = 0;                /* return value - number of octets loaded in this function */
     int i = 0;                  /* counter  */
@@ -158,13 +157,12 @@ int npdu_encode_pdu(uint8_t * npdu,
 void npdu_encode_confirmed_apdu(BACNET_NPDU_DATA * npdu_data,
     BACNET_MESSAGE_PRIORITY priority)
 {
-    if (npdu_data)
-    {
+    if (npdu_data) {
         npdu_data->confirmed_message = true;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
-        npdu_data->network_layer_message = false;    /* false if APDU */
-        npdu_data->network_message_type = 0; /* optional */
-        npdu_data->vendor_id = 0;    /* optional, if net message type is > 0x80 */
+        npdu_data->network_layer_message = false;       /* false if APDU */
+        npdu_data->network_message_type = 0;    /* optional */
+        npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
         npdu_data->hop_count = 0;
     }
@@ -173,13 +171,12 @@ void npdu_encode_confirmed_apdu(BACNET_NPDU_DATA * npdu_data,
 void npdu_encode_unconfirmed_apdu(BACNET_NPDU_DATA * npdu_data,
     BACNET_MESSAGE_PRIORITY priority)
 {
-    if (npdu_data)
-    {
+    if (npdu_data) {
         npdu_data->confirmed_message = false;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
-        npdu_data->network_layer_message = false;    /* false if APDU */
-        npdu_data->network_message_type = 0; /* optional */
-        npdu_data->vendor_id = 0;    /* optional, if net message type is > 0x80 */
+        npdu_data->network_layer_message = false;       /* false if APDU */
+        npdu_data->network_message_type = 0;    /* optional */
+        npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
         npdu_data->hop_count = 0;
     }
@@ -339,7 +336,7 @@ void testNPDU2(Test * pTest)
     BACNET_ADDRESS npdu_dest = { 0 };
     BACNET_ADDRESS npdu_src = { 0 };
     int len = 0;
-    bool confirmed_message = true;  /* true for confirmed messages */
+    bool confirmed_message = true;      /* true for confirmed messages */
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0;                  /* counter */
@@ -403,7 +400,7 @@ void testNPDU1(Test * pTest)
     BACNET_ADDRESS npdu_dest = { 0 };
     BACNET_ADDRESS npdu_src = { 0 };
     int len = 0;
-    bool confirmed_message = false;  /* true for confirmed messages */
+    bool confirmed_message = false;     /* true for confirmed messages */
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0;                  /* counter */

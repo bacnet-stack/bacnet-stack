@@ -73,11 +73,11 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * src_value);
 
 #if PRINT_ENABLED
-    #define BACAPP_PRINT_ENABLED
+#define BACAPP_PRINT_ENABLED
 #else
-  #ifdef TEST
-        #define BACAPP_PRINT_ENABLED
-  #endif
+#ifdef TEST
+#define BACAPP_PRINT_ENABLED
+#endif
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
@@ -96,7 +96,7 @@ extern "C" {
     bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
 
-void testBACnetApplicationData(Test * pTest);
+    void testBACnetApplicationData(Test * pTest);
 #endif
 
 #ifdef __cplusplus

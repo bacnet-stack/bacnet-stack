@@ -61,9 +61,9 @@ void Send_WhoIs(int32_t low_limit, int32_t high_limit)
     npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",
             strerror(errno));
-    #endif
+#endif
 }

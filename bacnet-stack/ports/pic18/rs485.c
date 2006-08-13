@@ -50,7 +50,7 @@ static struct {
 /* Duplicate of the RCSTA reg used due to the double buffering of the */
 /* fifo.  Reading the RCREG reg will cause the second RCSTA reg to be */
 /* loaded if there is one. */
-    struct _rcstabits {
+struct _rcstabits {
     unsigned char RX9D:1;
     unsigned char OERR:1;
     unsigned char FERR:1;

@@ -62,9 +62,9 @@ void handler_atomic_read_file_ack(uint8_t * service_request,
     instance = bacfile_instance_from_tsm(service_data->invoke_id);
     len = arf_ack_decode_service_request(service_request,
         service_len, &data);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     fprintf(stderr, "Received Read-File Ack!\n");
-    #endif
+#endif
     if ((len > 0) && (instance <= BACNET_MAX_INSTANCE)) {
         /* write the data received to the file specified */
         if (data.access == FILE_STREAM_ACCESS) {
@@ -76,12 +76,11 @@ void handler_atomic_read_file_ack(uint8_t * service_request,
                         data.type.stream.fileStartPosition, SEEK_SET);
                     if (fwrite(octetstring_value(&data.fileData),
                             octetstring_length(&data.fileData), 1,
-                            pFile) != 1)
-                    {
-                        #if PRINT_ENABLED
+                            pFile) != 1) {
+#if PRINT_ENABLED
                         fprintf(stderr, "Failed to write to %s (%u)!\n",
                             pFilename, instance);
-                        #endif
+#endif
                     }
                     fclose(pFile);
                 }

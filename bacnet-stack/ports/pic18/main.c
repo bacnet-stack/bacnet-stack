@@ -52,8 +52,9 @@
 static uint8_t Temp_Buf[MAX_APDU];
 /* buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+
 /* address where message came from */
-static BACNET_ADDRESS src; 
+static BACNET_ADDRESS src;
 /* address used to send */
 static BACNET_ADDRESS my_address;
 
@@ -170,7 +171,7 @@ void main(void)
     Device_Set_Object_Instance_Number(5);
     dlmstp_set_my_address(0x05);
     dlmstp_init();
-    
+
     init_hardware();
 
     /* broadcast an I-Am on startup */

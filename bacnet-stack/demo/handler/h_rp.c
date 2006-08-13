@@ -66,25 +66,25 @@ void handler_read_property(uint8_t * service_request,
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
     len = rp_decode_service_request(service_request, service_len, &data);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     if (len <= 0)
         fprintf(stderr, "Unable to decode Read-Property Request!\n");
-    #endif
+#endif
     /* bad decoding - send an abort */
     if (len < 0) {
         pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id, ABORT_REASON_OTHER);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr, "Sending Abort!\n");
-        #endif
+#endif
         send = true;
     } else if (service_data->segmented_message) {
         pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr, "Sending Abort!\n");
-        #endif
+#endif
         send = true;
     } else {
         switch (data.object_type) {
@@ -99,12 +99,13 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len = rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    pdu_len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr,
                         "Sending Read Property Ack for Device!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -125,9 +126,9 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for AI!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -148,9 +149,9 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for BI!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -168,11 +169,12 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len = rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
-                    service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+                    pdu_len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                        service_data->invoke_id, &data);
+#if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for BO!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -193,9 +195,9 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for BV!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -216,9 +218,9 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for AO!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -239,9 +241,9 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for AV!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -262,10 +264,10 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr,
                         "Sending Read Property Ack for LSP!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -286,10 +288,10 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr,
                         "Sending Read Property Ack for MSO!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
@@ -311,17 +313,17 @@ void handler_read_property(uint8_t * service_request,
                     pdu_len =
                         rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
                         service_data->invoke_id, &data);
-                    #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr,
                         "Sending Read Property Ack for File!\n");
-                    #endif
+#endif
                     send = true;
                 } else
                     error = true;
             } else
                 error = true;
             break;
-#endif /* BACFILE */
+#endif                          /* BACFILE */
         default:
             error = true;
             break;
@@ -331,19 +333,18 @@ void handler_read_property(uint8_t * service_request,
         pdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id,
             SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
         fprintf(stderr, "Sending Read Property Error!\n");
-        #endif
+#endif
         send = true;
     }
     if (send) {
         npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
-        bytes_sent = datalink_send_pdu(src, &npdu_data,
-            &Handler_Transmit_Buffer[0], pdu_len);      /* number of bytes of data */
-        #if PRINT_ENABLED
+        bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
+#if PRINT_ENABLED
         if (bytes_sent <= 0)
             fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
-        #endif
+#endif
     }
 
     return;

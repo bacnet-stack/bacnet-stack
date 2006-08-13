@@ -195,13 +195,13 @@ int encode_unsigned16(uint8_t * apdu, uint16_t value)
     0}};
 
     short_data.value = value;
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     apdu[0] = short_data.byte[0];
     apdu[1] = short_data.byte[1];
-    #else
+#else
     apdu[0] = short_data.byte[1];
     apdu[1] = short_data.byte[0];
-    #endif
+#endif
 
     return 2;
 }
@@ -214,13 +214,13 @@ int decode_unsigned16(uint8_t * apdu, uint16_t * value)
     } short_data = { {
     0}};
 
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     short_data.byte[0] = apdu[0];
     short_data.byte[1] = apdu[1];
-    #else
+#else
     short_data.byte[1] = apdu[0];
     short_data.byte[0] = apdu[1];
-    #endif
+#endif
     if (value)
         *value = short_data.value;
 
@@ -236,15 +236,15 @@ int encode_unsigned24(uint8_t * apdu, uint32_t value)
     0}};
 
     long_data.value = value;
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     apdu[0] = long_data.byte[1];
     apdu[1] = long_data.byte[2];
     apdu[2] = long_data.byte[3];
-    #else
+#else
     apdu[0] = long_data.byte[2];
     apdu[1] = long_data.byte[1];
     apdu[2] = long_data.byte[0];
-    #endif
+#endif
 
     return 3;
 }
@@ -257,15 +257,15 @@ int decode_unsigned24(uint8_t * apdu, uint32_t * value)
     } long_data = { {
     0}};
 
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     long_data.byte[1] = apdu[0];
     long_data.byte[2] = apdu[1];
     long_data.byte[3] = apdu[2];
-    #else
+#else
     long_data.byte[2] = apdu[0];
     long_data.byte[1] = apdu[1];
     long_data.byte[0] = apdu[2];
-    #endif
+#endif
     if (value)
         *value = long_data.value;
 
@@ -281,17 +281,17 @@ int encode_unsigned32(uint8_t * apdu, uint32_t value)
     0}};
 
     long_data.value = value;
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     apdu[0] = long_data.byte[0];
     apdu[1] = long_data.byte[1];
     apdu[2] = long_data.byte[2];
     apdu[3] = long_data.byte[3];
-    #else
+#else
     apdu[0] = long_data.byte[3];
     apdu[1] = long_data.byte[2];
     apdu[2] = long_data.byte[1];
     apdu[3] = long_data.byte[0];
-    #endif
+#endif
 
     return 4;
 }
@@ -304,17 +304,17 @@ int decode_unsigned32(uint8_t * apdu, uint32_t * value)
     } long_data = { {
     0}};
 
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     long_data.byte[0] = apdu[0];
     long_data.byte[1] = apdu[1];
     long_data.byte[2] = apdu[2];
     long_data.byte[3] = apdu[3];
-    #else
+#else
     long_data.byte[3] = apdu[0];
     long_data.byte[2] = apdu[1];
     long_data.byte[1] = apdu[2];
     long_data.byte[0] = apdu[3];
-    #endif
+#endif
     if (value)
         *value = long_data.value;
 
@@ -359,13 +359,13 @@ int encode_signed16(uint8_t * apdu, int16_t value)
     0}};
 
     short_data.value = value;
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     apdu[0] = short_data.byte[0];
     apdu[1] = short_data.byte[1];
-    #else
+#else
     apdu[0] = short_data.byte[1];
     apdu[1] = short_data.byte[0];
-    #endif
+#endif
 
     return 2;
 }
@@ -378,13 +378,13 @@ int decode_signed16(uint8_t * apdu, int16_t * value)
     } short_data = { {
     0}};
 
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     short_data.byte[0] = apdu[0];
     short_data.byte[1] = apdu[1];
-    #else
+#else
     short_data.byte[1] = apdu[0];
     short_data.byte[0] = apdu[1];
-    #endif
+#endif
     if (value)
         *value = short_data.value;
 
@@ -400,15 +400,15 @@ int encode_signed24(uint8_t * apdu, int32_t value)
     0}};
 
     long_data.value = value;
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     apdu[0] = long_data.byte[1];
     apdu[1] = long_data.byte[2];
     apdu[2] = long_data.byte[3];
-    #else
+#else
     apdu[0] = long_data.byte[2];
     apdu[1] = long_data.byte[1];
     apdu[2] = long_data.byte[0];
-    #endif
+#endif
 
     return 3;
 }
@@ -421,7 +421,7 @@ int decode_signed24(uint8_t * apdu, int32_t * value)
     } long_data = { {
     0}};
 
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     /* negative - bit 7 is set */
     if (apdu[0] & 0x80)
         long_data.byte[0] = 0xFF;
@@ -429,7 +429,7 @@ int decode_signed24(uint8_t * apdu, int32_t * value)
     long_data.byte[1] = apdu[0];
     long_data.byte[2] = apdu[1];
     long_data.byte[3] = apdu[2];
-    #else
+#else
     /* negative - bit 7 is set */
     if (apdu[0] & 0x80)
         long_data.byte[3] = 0xFF;
@@ -437,7 +437,7 @@ int decode_signed24(uint8_t * apdu, int32_t * value)
     long_data.byte[2] = apdu[0];
     long_data.byte[1] = apdu[1];
     long_data.byte[0] = apdu[2];
-    #endif
+#endif
     if (value)
         *value = long_data.value;
 
@@ -453,17 +453,17 @@ int encode_signed32(uint8_t * apdu, int32_t value)
     0}};
 
     long_data.value = value;
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     apdu[0] = long_data.byte[0];
     apdu[1] = long_data.byte[1];
     apdu[2] = long_data.byte[2];
     apdu[3] = long_data.byte[3];
-    #else
+#else
     apdu[0] = long_data.byte[3];
     apdu[1] = long_data.byte[2];
     apdu[2] = long_data.byte[1];
     apdu[3] = long_data.byte[0];
-    #endif
+#endif
 
     return 4;
 }
@@ -476,17 +476,17 @@ int decode_signed32(uint8_t * apdu, int32_t * value)
     } long_data = { {
     0}};
 
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     long_data.byte[0] = apdu[0];
     long_data.byte[1] = apdu[1];
     long_data.byte[2] = apdu[2];
     long_data.byte[3] = apdu[3];
-    #else
+#else
     long_data.byte[3] = apdu[0];
     long_data.byte[2] = apdu[1];
     long_data.byte[1] = apdu[2];
     long_data.byte[0] = apdu[3];
-    #endif
+#endif
     if (value)
         *value = long_data.value;
 
@@ -876,17 +876,17 @@ int decode_real(uint8_t * apdu, float *real_value)
     } my_data;
 
     /* NOTE: assumes the compiler stores float as IEEE-754 float */
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     my_data.byte[0] = apdu[0];
     my_data.byte[1] = apdu[1];
     my_data.byte[2] = apdu[2];
     my_data.byte[3] = apdu[3];
-    #else
+#else
     my_data.byte[0] = apdu[3];
     my_data.byte[1] = apdu[2];
     my_data.byte[2] = apdu[1];
     my_data.byte[3] = apdu[0];
-    #endif
+#endif
 
     *real_value = my_data.real_value;
 
@@ -904,17 +904,17 @@ int encode_bacnet_real(float value, uint8_t * apdu)
 
     /* NOTE: assumes the compiler stores float as IEEE-754 float */
     my_data.real_value = value;
-    #if BIG_ENDIAN
+#if BIG_ENDIAN
     apdu[0] = my_data.byte[0];
     apdu[1] = my_data.byte[1];
     apdu[2] = my_data.byte[2];
     apdu[3] = my_data.byte[3];
-    #else
+#else
     apdu[0] = my_data.byte[3];
     apdu[1] = my_data.byte[2];
     apdu[2] = my_data.byte[1];
     apdu[3] = my_data.byte[0];
-    #endif
+#endif
 
     return 4;
 }

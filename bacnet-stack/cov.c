@@ -360,7 +360,7 @@ void npdu_encode_unconfirmed_apdu(BACNET_NPDU_DATA * npdu,
 
 /* dummy function stubs */
 int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
-    BACNET_NPDU_DATA * npdu_data, /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */

@@ -48,65 +48,61 @@ int bacapp_encode_application_data(uint8_t * apdu,
 {
     int apdu_len = 0;           /* total length of the apdu, return value */
 
-    if (value && apdu)
-    {
+    if (value && apdu) {
         switch (value->tag) {
-            case BACNET_APPLICATION_TAG_NULL:
-                apdu[0] = value->tag;
-                apdu_len++;
-                break;
-            case BACNET_APPLICATION_TAG_BOOLEAN:
-                apdu_len = encode_tagged_boolean(&apdu[0],
-                    value->type.Boolean);
-                break;
-            case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                apdu_len = encode_tagged_unsigned(&apdu[0],
-                    value->type.Unsigned_Int);
-                break;
-            case BACNET_APPLICATION_TAG_SIGNED_INT:
-                apdu_len = encode_tagged_signed(&apdu[0],
-                    value->type.Signed_Int);
-                break;
-            case BACNET_APPLICATION_TAG_REAL:
-                apdu_len = encode_tagged_real(&apdu[0],
-                    value->type.Real);
-                break;
-            case BACNET_APPLICATION_TAG_ENUMERATED:
-                apdu_len = encode_tagged_enumerated(&apdu[0],
-                    value->type.Enumerated);
-                break;
-            case BACNET_APPLICATION_TAG_DATE:
-                apdu_len = encode_tagged_date(&apdu[0],
-                    &value->type.Date);
-                break;
-            case BACNET_APPLICATION_TAG_TIME:
-                apdu_len = encode_tagged_time(&apdu[0],
-                    &value->type.Time);
-                break;
-            case BACNET_APPLICATION_TAG_OBJECT_ID:
-                apdu_len = encode_tagged_object_id(&apdu[0],
-                    value->type.Object_Id.type,
-                    value->type.Object_Id.instance);
-                break;
-            case BACNET_APPLICATION_TAG_OCTET_STRING:
-                apdu_len = encode_tagged_octet_string(&apdu[0],
-                    &value->type.Octet_String);
-                break;
-            case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                apdu_len = encode_tagged_character_string(&apdu[0],
-                    &value->type.Character_String);
-                break;
-            case BACNET_APPLICATION_TAG_BIT_STRING:
-                apdu_len = encode_tagged_bitstring(&apdu[0],
-                    &value->type.Bit_String);
-                break;
-            case BACNET_APPLICATION_TAG_DOUBLE:
-                /* FIXME: double is not implemented yet.
-                apdu_len = encode_tagged_double(&apdu[0],
-                    value->type.Double);
-                */
-            default:
-                break;
+        case BACNET_APPLICATION_TAG_NULL:
+            apdu[0] = value->tag;
+            apdu_len++;
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            apdu_len = encode_tagged_boolean(&apdu[0],
+                value->type.Boolean);
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            apdu_len = encode_tagged_unsigned(&apdu[0],
+                value->type.Unsigned_Int);
+            break;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            apdu_len = encode_tagged_signed(&apdu[0],
+                value->type.Signed_Int);
+            break;
+        case BACNET_APPLICATION_TAG_REAL:
+            apdu_len = encode_tagged_real(&apdu[0], value->type.Real);
+            break;
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            apdu_len = encode_tagged_enumerated(&apdu[0],
+                value->type.Enumerated);
+            break;
+        case BACNET_APPLICATION_TAG_DATE:
+            apdu_len = encode_tagged_date(&apdu[0], &value->type.Date);
+            break;
+        case BACNET_APPLICATION_TAG_TIME:
+            apdu_len = encode_tagged_time(&apdu[0], &value->type.Time);
+            break;
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            apdu_len = encode_tagged_object_id(&apdu[0],
+                value->type.Object_Id.type,
+                value->type.Object_Id.instance);
+            break;
+        case BACNET_APPLICATION_TAG_OCTET_STRING:
+            apdu_len = encode_tagged_octet_string(&apdu[0],
+                &value->type.Octet_String);
+            break;
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            apdu_len = encode_tagged_character_string(&apdu[0],
+                &value->type.Character_String);
+            break;
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+            apdu_len = encode_tagged_bitstring(&apdu[0],
+                &value->type.Bit_String);
+            break;
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            /* FIXME: double is not implemented yet.
+               apdu_len = encode_tagged_double(&apdu[0],
+               value->type.Double);
+             */
+        default:
+            break;
         }
     }
 
@@ -491,6 +487,7 @@ bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2)
 
     return status;
 }
+
 /* generic - can be used by other unit tests
    returns true if matching or same, false if different */
 bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,

@@ -61,12 +61,12 @@ void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime)
     /* send it out the datalink */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,
             "Failed to Send Time-Synchronization Request (%s)!\n",
             strerror(errno));
-    #endif
+#endif
 }
 
 void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime)
@@ -87,10 +87,10 @@ void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime)
     npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,
             "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
             strerror(errno));
-    #endif
+#endif
 }

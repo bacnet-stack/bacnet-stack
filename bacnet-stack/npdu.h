@@ -43,7 +43,7 @@
 typedef struct bacnet_npdu_data_t {
     uint8_t protocol_version;
     /* parts of the control octet: */
-    bool confirmed_message;  /* true for confirmed messages */
+    bool confirmed_message;     /* true for confirmed messages */
     bool network_layer_message; /* false if APDU */
     BACNET_MESSAGE_PRIORITY priority;
     /* optional network message info */

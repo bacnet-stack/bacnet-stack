@@ -133,8 +133,7 @@ uint8_t tsm_next_free_invokeID(void)
     bool found = false;
 
     /* is there even space available? */
-    if (tsm_transaction_available())
-    {
+    if (tsm_transaction_available()) {
         while (!found) {
             index = tsm_find_invokeID_index(current_invokeID);
             /* not found - that is good! */
@@ -208,7 +207,7 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
             for (j = 0; j < *apdu_len; j++) {
                 apdu[j] = TSM_List[index].apdu[j];
             }
-            npdu_copy_data(ndpu_data,&TSM_List[index].npdu_data);
+            npdu_copy_data(ndpu_data, &TSM_List[index].npdu_data);
             address_copy(dest, &TSM_List[index].dest);
             found = true;
         }
