@@ -128,17 +128,14 @@ const unsigned Tusage_delay = 15;
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
 const unsigned Tusage_timeout = 20;
 
-unsigned MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
+/* creates the 8 octet frame header */
+unsigned MSTP_Create_Frame_Header(uint8_t * buffer,    /* where frame is loaded */
     unsigned buffer_len,        /* amount of space available */
     uint8_t frame_type,         /* type of frame to send - see defines */
     uint8_t destination,        /* destination address */
-    uint8_t source,             /* source address */
-    uint8_t * data,             /* any data to be sent - may be null */
-    unsigned data_len)
+    uint8_t source)             /* source address */
 {                               /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
-    uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
-    unsigned index = 0;         /* used to load the data portion of the frame */
 
     /* not enough to do a header */
     if (buffer_len < 8)
@@ -158,24 +155,53 @@ unsigned MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
 
-    index = 8;
-    while (data_len && data && (index < buffer_len)) {
-        buffer[index] = *data;
-        crc16 = CRC_Calc_Data(buffer[index], crc16);
-        data++;
-        index++;
-        data_len--;
+    return 8;               /* returns the frame length */
+}
+
+/* copies the PDU to a buffer while calculating its CRC checksum
+   The CRC checksum is appended to the last two octets. */
+unsigned MSTP_Copy_PDU_CRC(uint8_t * buffer,    /* where frame is loaded */
+    unsigned buffer_len,        /* amount of space available */
+    uint16_t crc16,    /* used to calculate the crc value */
+    uint8_t * data,             /* any data to be sent - may be null */
+    unsigned data_len)
+{
+    unsigned index = 0;         /* offset into the buffer */
+    
+    if (buffer && data && data_len && ((data_len + 2) < buffer_len))
+    {
+        for (index = 0; index < data_len; index++)
+        {
+            buffer[index] = data[index];
+            crc16 = CRC_Calc_Data(buffer[index], crc16);
+        }
+
+        crc16 = ~crc16;
+        buffer[data_len] = LO_BYTE(crc16);
+        buffer[data_len + 1] = HI_BYTE(crc16);
+        index = data_len + 2;
     }
-    /* append the data CRC if necessary */
-    if (index > 8) {
-        if ((index + 2) <= buffer_len) {
-            crc16 = ~crc16;
-            buffer[index] = LO_BYTE(crc16);
-            index++;
-            buffer[index] = HI_BYTE(crc16);
-            index++;
-        } else
-            return 0;
+
+    return index;
+}
+
+unsigned MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
+    unsigned buffer_len,        /* amount of space available */
+    uint8_t frame_type,         /* type of frame to send - see defines */
+    uint8_t destination,        /* destination address */
+    uint8_t source,             /* source address */
+    uint8_t * data,             /* any data to be sent - may be null */
+    unsigned data_len)
+{                               /* number of bytes of data (up to 501) */
+    uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
+    unsigned index = 0;         /* used to load the data portion of the frame */
+
+    index = MSTP_Create_Frame_Header(buffer, buffer_len, frame_type,
+        destination, source);
+    if (data && data_len)
+    {
+        index += MSTP_Copy_PDU_CRC(&buffer[index], buffer_len - index,
+            crc16, data, data_len);
     }
 
     return index;               /* returns the frame length */

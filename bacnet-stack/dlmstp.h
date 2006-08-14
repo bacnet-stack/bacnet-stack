@@ -39,6 +39,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "npdu.h"
 
 /* defines specific to MS/TP */
 #define MAX_HEADER (2+1+1+1+2+1+2+1)
@@ -46,7 +47,6 @@
 
 typedef struct dlmstp_packet {
     bool ready;                 /* true if ready to be sent or received */
-    bool data_expecting_reply;
     BACNET_ADDRESS address;     /* src or dest address */
     unsigned pdu_len;           /* packet length */
     uint8_t pdu[MAX_MPDU];      /* packet */
@@ -61,23 +61,41 @@ extern "C" {
     void dlmstp_task(void);
     void dlmstp_millisecond_timer(void);
 
-/* returns number of bytes sent on success, negative on failure */
+    /* returns number of bytes sent on success, negative on failure */
     int dlmstp_send_pdu(BACNET_ADDRESS * dest,  /* destination address */
+        BACNET_NPDU_DATA * npdu_data,   /* network information */
         uint8_t * pdu,          /* any data to be sent - may be null */
         unsigned pdu_len);      /* number of bytes of data */
 
-/* returns the number of octets in the PDU, or zero on failure */
+    /* returns the number of octets in the PDU, or zero on failure */
     uint16_t dlmstp_receive(BACNET_ADDRESS * src,       /* source address */
         uint8_t * pdu,          /* PDU data */
         uint16_t max_pdu,       /* amount of space available in the PDU  */
         unsigned timeout);      /* milliseconds to wait for a packet */
 
-/* function for MS/TP state machine to use to get a packet 
-   to transmit.  It returns the number of bytes in the 
-   packet, or 0 if none. */
+    /* function for MS/TP state machine to use to get a packet 
+    to transmit.  It returns the number of bytes in the
+    packet, or 0 if none. */
     int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest,  /* destination address */
         uint8_t * pdu);         /* any data to be sent - may be null */
 
+    /* This parameter represents the value of the Max_Info_Frames property of */
+    /* the node's Device object. The value of Max_Info_Frames specifies the */
+    /* maximum number of information frames the node may send before it must */
+    /* pass the token. Max_Info_Frames may have different values on different */
+    /* nodes. This may be used to allocate more or less of the available link */
+    /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
+    /* node, its value shall be 1. */
+    void dlmstp_set_max_info_frames(unsigned max_info_frames);
+    unsigned dlmstp_max_info_frames(void);
+
+    /* This parameter represents the value of the Max_Master property of the */
+    /* node's Device object. The value of Max_Master specifies the highest */
+    /* allowable address for master nodes. The value of Max_Master shall be */
+    /* less than or equal to 127. If Max_Master is not writable in a node, */
+    /* its value shall be 127. */
+    void dlmstp_set_max_info_frames(uint8_t max_master);
+    uint8_t dlmstp_max_master(void);
 
     void dlmstp_set_my_address(uint8_t my_address);
     void dlmstp_get_my_address(BACNET_ADDRESS * my_address);

@@ -30,11 +30,13 @@
 #include "mstp.h"
 #include "dlmstp.h"
 #include "rs485.h"
+#include "npdu.h"
 
 static DLMSTP_PACKET Receive_Buffer;
 static DLMSTP_PACKET Transmit_Buffer;
+static uint8_t PDU_Buffer[MAX_MPDU];
+/* local MS/TP port data */
 volatile struct mstp_port_struct_t MSTP_Port;   /* port data */
-static uint8_t MSTP_MAC_Address = 0x05; /* local MAC address */
 
 void dlmstp_init(void)
 {
@@ -48,7 +50,7 @@ void dlmstp_init(void)
     Transmit_Buffer.pdu_len = 0;
     /* initialize hardware */
     RS485_Initialize();
-    MSTP_Init(&MSTP_Port, MSTP_MAC_Address);
+    MSTP_Init(&MSTP_Port, MSTP_Port.This_Station);
 }
 
 void dlmstp_cleanup(void)
@@ -58,22 +60,57 @@ void dlmstp_cleanup(void)
 
 /* returns number of bytes sent on success, zero on failure */
 int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
+    BACNET_NPDU_DATA * npdu_data,   /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
     bool status;
     int bytes_sent = 0;
+    int npdu_len = 0;
+    uint8_t frame_type = 0;
+    uint8_t destination = 0;        /* destination address */
+    BACNET_ADDRESS src;
 
     if (Transmit_Buffer.ready == false) {
-        /* FIXME: how do we get data_expecting_reply? */
-        Transmit_Buffer.data_expecting_reply = false;
-        Receive_Buffer.pdu_len = 0;
-        memmove(&Transmit_Buffer.address, dest,
-            sizeof(Transmit_Buffer.address));
-        Transmit_Buffer.pdu_len = pdu_len;
-        /* FIXME: copy the whole PDU or just the pdu_len? */
-        memmove(Transmit_Buffer.pdu, pdu, sizeof(Transmit_Buffer.pdu));
-        bytes_sent = pdu_len;
+        if (npdu_data->confirmed_message)
+            frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+        else
+            frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+
+        /* load destination MAC address */
+        if (dest && dest->mac_len == 1) {
+            destination = dest->mac[0];
+        } else {
+            #if PRINT_ENABLED
+            fprintf(stderr, "mstp: invalid destination MAC address!\n");
+            #endif
+            return -2;
+        }
+        dlmstp_get_my_address(&src);
+        npdu_len = npdu_encode_pdu(&PDU_Buffer[0], dest, &src, npdu_data);
+        if ((8 + npdu_len + pdu_len) > MAX_MPDU) {
+            #if PRINT_ENABLED
+            fprintf(stderr, "mstp: PDU is too big to send!\n");
+            #endif
+            return -4;
+        }
+        memcpy(&PDU_Buffer[npdu_len], pdu, pdu_len);
+/* copies the PDU to a buffer while calculating its CRC checksum
+   The CRC checksum is appended to the last two octets. */
+unsigned MSTP_Copy_PDU_CRC(uint8_t * buffer,    /* where frame is loaded */
+    unsigned buffer_len,        /* amount of space available */
+    uint16_t crc16,    /* used to calculate the crc value */
+    uint8_t * data,             /* any data to be sent - may be null */
+    unsigned data_len);
+        
+        bytes_sent = MSTP_Create_Frame(
+            &Transmit_Buffer.pdu[0],
+            sizeof(Transmit_Buffer.pdu),
+            frame_type,
+            destination,
+            MSTP_Port.This_Station,
+            &PDU_Buffer[0],
+            npdu_len + pdu_len);
         Transmit_Buffer.ready = true;
     }
 
@@ -160,15 +197,51 @@ uint16_t dlmstp_put_receive(BACNET_ADDRESS * src,       /* source address */
 void dlmstp_set_my_address(uint8_t mac_address)
 {
     /* FIXME: Master Nodes can only have address 1-127 */
-    MSTP_MAC_Address = mac_address;
+    MSTP_Port.This_Station = mac_address;
 
     return;
+}
+
+/* This parameter represents the value of the Max_Info_Frames property of */
+/* the node's Device object. The value of Max_Info_Frames specifies the */
+/* maximum number of information frames the node may send before it must */
+/* pass the token. Max_Info_Frames may have different values on different */
+/* nodes. This may be used to allocate more or less of the available link */
+/* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
+/* node, its value shall be 1. */
+void dlmstp_set_max_info_frames(unsigned max_info_frames)
+{
+    MSTP_Port.Nmax_info_frames = max_info_frames;
+
+    return;
+}
+
+unsigned dlmstp_max_info_frames(void)
+{
+    return MSTP_Port.Nmax_info_frames;
+}
+
+/* This parameter represents the value of the Max_Master property of the */
+/* node's Device object. The value of Max_Master specifies the highest */
+/* allowable address for master nodes. The value of Max_Master shall be */
+/* less than or equal to 127. If Max_Master is not writable in a node, */
+/* its value shall be 127. */
+void dlmstp_set_max_info_frames(uint8_t max_master)
+{
+    MSTP_Port.Nmax_master = max_master;
+
+    return;
+}
+
+uint8_t dlmstp_max_master(void)
+{
+    return MSTP_Port.Nmax_master;
 }
 
 void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
 {
     my_address->mac_len = 1;
-    my_address->mac[0] = MSTP_MAC_Address;
+    my_address->mac[0] = MSTP_Port.This_Station;
     my_address->net = 0;        /* local only, no routing */
     my_address->len = 0;
     for (i = 0; i < MAX_MAC_LEN; i++) {
