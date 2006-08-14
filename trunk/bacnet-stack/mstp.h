@@ -214,6 +214,21 @@ extern "C" {
     void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t
         *mstp_port);
 
+/* creates the 8 octet frame header */
+unsigned MSTP_Create_Frame_Header(uint8_t * buffer,    /* where frame is loaded */
+    unsigned buffer_len,        /* amount of space available */
+    uint8_t frame_type,         /* type of frame to send - see defines */
+    uint8_t destination,        /* destination address */
+    uint8_t source);             /* source address */
+/* copies the PDU to a buffer while calculating its CRC checksum
+   The CRC checksum is appended to the last two octets. */
+unsigned MSTP_Copy_PDU_CRC(uint8_t * buffer,    /* where frame is loaded */
+    unsigned buffer_len,        /* amount of space available */
+    uint16_t crc16,    /* used to calculate the crc value */
+    uint8_t * data,             /* any data to be sent - may be null */
+    unsigned data_len);
+        
+
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
