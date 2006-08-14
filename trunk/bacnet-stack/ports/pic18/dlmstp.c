@@ -32,22 +32,18 @@
 #include "rs485.h"
 #include "npdu.h"
 
+/* receive buffer */
 static DLMSTP_PACKET Receive_Buffer;
-static DLMSTP_PACKET Transmit_Buffer;
+/* temp buffer for NPDU insertion */
 static uint8_t PDU_Buffer[MAX_MPDU];
 /* local MS/TP port data */
-volatile struct mstp_port_struct_t MSTP_Port;   /* port data */
+static volatile struct mstp_port_struct_t MSTP_Port;   
 
 void dlmstp_init(void)
 {
     /* initialize buffer */
     Receive_Buffer.ready = false;
-    Receive_Buffer.data_expecting_reply = false;
     Receive_Buffer.pdu_len = 0;
-    /* initialize buffer */
-    Transmit_Buffer.ready = false;
-    Transmit_Buffer.data_expecting_reply = false;
-    Transmit_Buffer.pdu_len = 0;
     /* initialize hardware */
     RS485_Initialize();
     MSTP_Init(&MSTP_Port, MSTP_Port.This_Station);
@@ -71,11 +67,11 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     uint8_t destination = 0;        /* destination address */
     BACNET_ADDRESS src;
 
-    if (Transmit_Buffer.ready == false) {
+    if (MSTP_Port.TxReady == false) {
         if (npdu_data->confirmed_message)
-            frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+            MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
         else
-            frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+            MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
 
         /* load destination MAC address */
         if (dest && dest->mac_len == 1) {
@@ -88,56 +84,26 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         }
         dlmstp_get_my_address(&src);
         npdu_len = npdu_encode_pdu(&PDU_Buffer[0], dest, &src, npdu_data);
-        if ((8 + npdu_len + pdu_len) > MAX_MPDU) {
+        if ((8 /* header len */ + npdu_len + pdu_len) > MAX_MPDU) {
             #if PRINT_ENABLED
             fprintf(stderr, "mstp: PDU is too big to send!\n");
             #endif
             return -4;
         }
-        memcpy(&PDU_Buffer[npdu_len], pdu, pdu_len);
-/* copies the PDU to a buffer while calculating its CRC checksum
-   The CRC checksum is appended to the last two octets. */
-unsigned MSTP_Copy_PDU_CRC(uint8_t * buffer,    /* where frame is loaded */
-    unsigned buffer_len,        /* amount of space available */
-    uint16_t crc16,    /* used to calculate the crc value */
-    uint8_t * data,             /* any data to be sent - may be null */
-    unsigned data_len);
-        
+        memmove(&PDU_Buffer[npdu_len], pdu, pdu_len);
         bytes_sent = MSTP_Create_Frame(
-            &Transmit_Buffer.pdu[0],
-            sizeof(Transmit_Buffer.pdu),
-            frame_type,
+            &MSTP_Port.TxBuffer[0],
+            sizeof(MSTP_Port.TxBuffer),
+            MSTP_Port.TxFrameType,
             destination,
             MSTP_Port.This_Station,
             &PDU_Buffer[0],
             npdu_len + pdu_len);
-        Transmit_Buffer.ready = true;
+        MSTP_Port.TxLength = bytes_sent;
+        MSTP_Port.TxReady = true;
     }
 
     return bytes_sent;
-}
-
-/* function for MS/TP to use to get a packet to transmit
-   returns the number of bytes in the packet, or zero if none. */
-int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest,      /* destination address */
-    uint8_t * pdu)
-{                               /* any data to be sent - may be null */
-    bool status;
-    DLMSTP_PACKET *packet;
-    unsigned pdu_len = 0;
-
-    if (Transmit_Buffer.ready) {
-        memmove(dest, &packet->address, sizeof(packet->address));
-        pdu_len = packet->pdu_len;
-        memmove(pdu, packet->pdu, sizeof(packet.pdu));
-    }
-
-    return pdu_len;
-}
-
-int dlmstp_set_transmit_pdu_ready(bool ready)
-{
-    Transmit_Buffer.ready = ready;
 }
 
 void dlmstp_task(void)
@@ -162,15 +128,16 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
     uint16_t max_pdu,           /* amount of space available in the PDU  */
     unsigned timeout)
 {
-    DLMSTP_PACKET *packet;
-
+    uint16_t pdu_len = 0;
+    
     (void) timeout;
     /* see if there is a packet available */
-    if (!Ringbuf_Empty(&Receive_Buffer)) {
-        packet = (char *) Ringbuf_Pop_Front(&Receive_Buffer);
-        memmove(src, &packet->address, sizeof(packet->address));
-        pdu_len = packet->pdu_len;
-        memmove(pdu, packet->pdu, max_pdu);
+    if (Receive_Buffer.ready)
+    {
+        memmove(src, &Receive_Buffer.address, sizeof(Receive_Buffer.address));
+        pdu_len = Receive_Buffer.pdu_len;
+        memmove(&pdu[0], &Receive_Buffer.pdu[0], max_pdu);
+        Receive_Buffer.ready = false;
     }
 
     return pdu_len;
@@ -181,17 +148,11 @@ uint16_t dlmstp_put_receive(BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,              /* PDU data */
     uint16_t pdu_len)
 {
-    bool status;
-    int bytes_put = 0;
+    memmove(&Receive_Buffer.address, src, sizeof(Receive_Buffer.address));
+    Receive_Buffer.pdu_len = pdu_len;
+    memmove(Receive_Buffer.pdu, pdu, sizeof(Receive_Buffer.pdu));
 
-    memmove(&Temp_Packet.address, src, sizeof(Temp_Packet.address));
-    Temp_Packet.pdu_len = pdu_len;
-    memmove(Temp_Packet.pdu, pdu, sizeof(Temp_Packet.pdu));
-    status = Ringbuf_Put(&Receive_Buffer, &Temp_Packet);
-    if (status)
-        bytes_put = pdu_len;
-
-    return bytes_put;
+    return pdu_len;
 }
 
 void dlmstp_set_my_address(uint8_t mac_address)
@@ -226,7 +187,7 @@ unsigned dlmstp_max_info_frames(void)
 /* allowable address for master nodes. The value of Max_Master shall be */
 /* less than or equal to 127. If Max_Master is not writable in a node, */
 /* its value shall be 127. */
-void dlmstp_set_max_info_frames(uint8_t max_master)
+void dlmstp_set_max_master(uint8_t max_master)
 {
     MSTP_Port.Nmax_master = max_master;
 
@@ -240,6 +201,8 @@ uint8_t dlmstp_max_master(void)
 
 void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
 {
+    int i = 0;                  /* counter */
+
     my_address->mac_len = 1;
     my_address->mac[0] = MSTP_Port.This_Station;
     my_address->net = 0;        /* local only, no routing */

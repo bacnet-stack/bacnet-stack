@@ -64,6 +64,9 @@
 /* of a Proprietary frame shall be in the range of 2 to 501 octets. */
 #define FRAME_TYPE_PROPRIETARY_MIN 128
 #define FRAME_TYPE_PROPRIETARY_MAX 255
+/* The initial CRC16 checksum value */
+#define CRC16_INITIAL_VALUE (0xFFFF)
+
 
 /* receive FSM states */
 typedef enum {
@@ -191,6 +194,13 @@ struct mstp_port_struct_t {
     /* less than or equal to 127. If Max_Master is not writable in a node, */
     /* its value shall be 127. */
     unsigned Nmax_master;
+
+    /* An array of octets, used to store PDU octets prior to being transmitted. */
+    /* This array is not used for passing token frames */
+    uint8_t TxBuffer[MAX_MPDU];
+    int TxLength;
+    bool TxReady;                 /* true if ready to be sent or received */
+    uint8_t TxFrameType;            /* type of message - needed by MS/TP */
 };
 
 #define DEFAULT_MAX_INFO_FRAMES 1
@@ -214,19 +224,13 @@ extern "C" {
     void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t
         *mstp_port);
 
-/* creates the 8 octet frame header */
-unsigned MSTP_Create_Frame_Header(uint8_t * buffer,    /* where frame is loaded */
+unsigned MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
     unsigned buffer_len,        /* amount of space available */
     uint8_t frame_type,         /* type of frame to send - see defines */
     uint8_t destination,        /* destination address */
-    uint8_t source);             /* source address */
-/* copies the PDU to a buffer while calculating its CRC checksum
-   The CRC checksum is appended to the last two octets. */
-unsigned MSTP_Copy_PDU_CRC(uint8_t * buffer,    /* where frame is loaded */
-    unsigned buffer_len,        /* amount of space available */
-    uint16_t crc16,    /* used to calculate the crc value */
+    uint8_t source,             /* source address */
     uint8_t * data,             /* any data to be sent - may be null */
-    unsigned data_len);
+    unsigned data_len);          /* number of bytes of data (up to 501) */
         
 
 #ifdef __cplusplus

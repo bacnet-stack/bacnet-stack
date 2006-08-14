@@ -53,6 +53,9 @@ extern "C" {
 
     void RS485_Process_Tx_Message(void);
 
+    bool RS485_Tx_Complete(void);
+
+
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */

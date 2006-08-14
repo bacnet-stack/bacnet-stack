@@ -50,7 +50,6 @@
 #include "bytes.h"
 #include "crc.h"
 #include "rs485.h"
-#include "ringbuf.h"
 
 /* MS/TP Frame Format */
 /* All frames are of the following format: */
@@ -128,14 +127,17 @@ const unsigned Tusage_delay = 15;
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
 const unsigned Tusage_timeout = 20;
 
-/* creates the 8 octet frame header */
-unsigned MSTP_Create_Frame_Header(uint8_t * buffer,    /* where frame is loaded */
+unsigned MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
     unsigned buffer_len,        /* amount of space available */
     uint8_t frame_type,         /* type of frame to send - see defines */
     uint8_t destination,        /* destination address */
-    uint8_t source)             /* source address */
+    uint8_t source,             /* source address */
+    uint8_t * data,             /* any data to be sent - may be null */
+    unsigned data_len)
 {                               /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
+    uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
+    unsigned index = 0;         /* used to load the data portion of the frame */
 
     /* not enough to do a header */
     if (buffer_len < 8)
@@ -155,53 +157,24 @@ unsigned MSTP_Create_Frame_Header(uint8_t * buffer,    /* where frame is loaded 
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
 
-    return 8;               /* returns the frame length */
-}
-
-/* copies the PDU to a buffer while calculating its CRC checksum
-   The CRC checksum is appended to the last two octets. */
-unsigned MSTP_Copy_PDU_CRC(uint8_t * buffer,    /* where frame is loaded */
-    unsigned buffer_len,        /* amount of space available */
-    uint16_t crc16,    /* used to calculate the crc value */
-    uint8_t * data,             /* any data to be sent - may be null */
-    unsigned data_len)
-{
-    unsigned index = 0;         /* offset into the buffer */
-    
-    if (buffer && data && data_len && ((data_len + 2) < buffer_len))
-    {
-        for (index = 0; index < data_len; index++)
-        {
-            buffer[index] = data[index];
-            crc16 = CRC_Calc_Data(buffer[index], crc16);
-        }
-
-        crc16 = ~crc16;
-        buffer[data_len] = LO_BYTE(crc16);
-        buffer[data_len + 1] = HI_BYTE(crc16);
-        index = data_len + 2;
+    index = 8;
+    while (data_len && data && (index < buffer_len)) {
+        buffer[index] = *data;
+        crc16 = CRC_Calc_Data(buffer[index], crc16);
+        data++;
+        index++;
+        data_len--;
     }
-
-    return index;
-}
-
-unsigned MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
-    unsigned buffer_len,        /* amount of space available */
-    uint8_t frame_type,         /* type of frame to send - see defines */
-    uint8_t destination,        /* destination address */
-    uint8_t source,             /* source address */
-    uint8_t * data,             /* any data to be sent - may be null */
-    unsigned data_len)
-{                               /* number of bytes of data (up to 501) */
-    uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
-    unsigned index = 0;         /* used to load the data portion of the frame */
-
-    index = MSTP_Create_Frame_Header(buffer, buffer_len, frame_type,
-        destination, source);
-    if (data && data_len)
-    {
-        index += MSTP_Copy_PDU_CRC(&buffer[index], buffer_len - index,
-            crc16, data, data_len);
+    /* append the data CRC if necessary */
+    if (index > 8) {
+        if ((index + 2) <= buffer_len) {
+            crc16 = ~crc16;
+            buffer[index] = LO_BYTE(crc16);
+            index++;
+            buffer[index] = HI_BYTE(crc16);
+            index++;
+        } else
+            return 0;
     }
 
     return index;               /* returns the frame length */
@@ -214,10 +187,10 @@ void MSTP_Create_And_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,  
     uint8_t * data,             /* any data to be sent - may be null */
     unsigned data_len)
 {                               /* number of bytes of data (up to 501) */
-    uint8_t buffer[MAX_MPDU] = { 0 };
+    uint8_t buffer[MAX_MPDU] = {0}; /* buffer for sending */
     uint16_t len = 0;           /* number of bytes to send */
 
-    len = (uint16_t) MSTP_Create_Frame(buffer,  /* where frame is loaded */
+    len = (uint16_t) MSTP_Create_Frame(&buffer[0],  /* where frame is loaded */
         sizeof(buffer),         /* amount of space available */
         frame_type,             /* type of frame to send - see defines */
         destination,            /* destination address */
@@ -225,7 +198,9 @@ void MSTP_Create_And_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,  
         data,                   /* any data to be sent - may be null */
         data_len);              /* number of bytes of data (up to 501) */
 
-    RS485_Send_Frame(mstp_port, buffer, len);
+    RS485_Send_Frame(mstp_port, &buffer[0], len);
+    RS485_Process_Tx_Message();
+    while (RS485_Tx_Complete()) {/* FIXME: watchdog? */};
 }
 
 /* Millisecond Timer - called every millisecond */
@@ -543,6 +518,8 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 
 void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
 {
+    int mtu_len = 0;
+    int frame_type = 0;
 
     switch (mstp_port->master_state) {
     case MSTP_MASTER_STATE_INITIALIZE:
@@ -669,31 +646,40 @@ void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
         /* proprietary frames. */
     case MSTP_MASTER_STATE_USE_TOKEN:
         /* NothingToSend */
-        /* FIXME: If there is no data frame awaiting transmission, */
+        if (!mstp_port->TxReady)
         {
             mstp_port->FrameCount = mstp_port->Nmax_info_frames;
             mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
         }
-        /* SendNoWait */
-        /* FIXME: If there is a frame awaiting transmission that */
-        /* is of type Test_Response, BACnet Data Not Expecting Reply,  */
-        /* or a proprietary type that does not expect a reply, */
-/*      { */
-/*        // transmit the data frame */
-/*        MSTP_Create_And_Send_Frame(?????????????); */
-/*        FrameCount++; */
-/*        mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN; */
-/*      } */
-        /* SendAndWait */
-        /* FIXME: If there is a frame awaiting transmission that is of  */
-        /* type Test_Request, BACnet Data Expecting Reply, or  */
-        /* a proprietary type that expects a reply, */
-/*      { */
-/*        // transmit the data frame */
-/*        MSTP_Create_And_Send_Frame(); */
-/*        FrameCount++; */
-/*        mstp_port->master_state = MSTP_MASTER_STATE_WAIT_FOR_REPLY; */
-/*      } */
+        else
+        {
+            RS485_Send_Frame(
+                mstp_port,
+                &mstp_port->TxBuffer[0],
+                mstp_port->TxLength);
+            RS485_Process_Tx_Message();
+            while (RS485_Tx_Complete()) {/* FIXME: watchdog? */};
+            mstp_port->TxReady = false;
+            mstp_port->FrameCount++;
+            /* SendNoWait */
+            /* There is a frame awaiting transmission that */
+            /* is of type Test_Response, BACnet Data Not Expecting Reply,  */
+            /* or a proprietary type that does not expect a reply, */
+            if ((mstp_port->TxFrameType == FRAME_TYPE_TEST_RESPONSE) ||
+                (mstp_port->TxFrameType == FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY))
+            {
+                mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
+            }
+            /* SendAndWait */
+            /* If there is a frame awaiting transmission that is of  */
+            /* type Test_Request, BACnet Data Expecting Reply, or  */
+            /* a proprietary type that expects a reply, */
+            else if ((mstp_port->TxFrameType == FRAME_TYPE_TEST_REQUEST) ||
+               (mstp_port->TxFrameType == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY))
+            {
+                mstp_port->master_state = MSTP_MASTER_STATE_WAIT_FOR_REPLY;
+            }
+        }
         /* In the WAIT_FOR_REPLY state, the node waits for  */
         /* a reply from another node. */
     case MSTP_MASTER_STATE_WAIT_FOR_REPLY:

@@ -208,6 +208,17 @@ void RS485_Process_Tx_Message(void)
 }
 
 /****************************************************************************
+* DESCRIPTION: Returns the value of Transmit Complete flag.
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool RS485_Tx_Complete(void)
+{
+  return RS485_Flags.TransmitComplete;
+}
+
+/****************************************************************************
 * DESCRIPTION: Checks for data on the receive UART, and handles errors
 * RETURN:      none
 * ALGORITHM:   none

@@ -73,12 +73,6 @@ extern "C" {
         uint16_t max_pdu,       /* amount of space available in the PDU  */
         unsigned timeout);      /* milliseconds to wait for a packet */
 
-    /* function for MS/TP state machine to use to get a packet 
-    to transmit.  It returns the number of bytes in the
-    packet, or 0 if none. */
-    int dlmstp_get_transmit_pdu(BACNET_ADDRESS * dest,  /* destination address */
-        uint8_t * pdu);         /* any data to be sent - may be null */
-
     /* This parameter represents the value of the Max_Info_Frames property of */
     /* the node's Device object. The value of Max_Info_Frames specifies the */
     /* maximum number of information frames the node may send before it must */
@@ -94,7 +88,7 @@ extern "C" {
     /* allowable address for master nodes. The value of Max_Master shall be */
     /* less than or equal to 127. If Max_Master is not writable in a node, */
     /* its value shall be 127. */
-    void dlmstp_set_max_info_frames(uint8_t max_master);
+    void dlmstp_set_max_master(uint8_t max_master);
     uint8_t dlmstp_max_master(void);
 
     void dlmstp_set_my_address(uint8_t my_address);
