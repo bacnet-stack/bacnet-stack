@@ -237,7 +237,9 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                         &TSM_List[i].npdu_data,
                         &TSM_List[i].apdu[0], TSM_List[i].apdu_len);
                 } else {
-                    TSM_List[i].InvokeID = 0;
+                    /* note: the invoke id has not been cleared yet
+                    and this indicates a failed message:
+                    IDLE and a valid invoke id */
                     TSM_List[i].state = TSM_STATE_IDLE;
                 }
             }
@@ -268,6 +270,25 @@ bool tsm_invoke_id_free(uint8_t invokeID)
 
     return status;
 }
+
+/* see if the invoke ID has failed get a confirmation */
+bool tsm_invoke_id_failed(uint8_t invokeID)
+{
+  bool status = false;
+  uint8_t index;
+
+  index = tsm_find_invokeID_index(invokeID);
+  if (index < MAX_TSM_TRANSACTIONS)
+  {
+      /* a valid invoke ID and the state is IDLE is a
+         message that failed to confirm */
+      if (TSM_List[index].state == TSM_STATE_IDLE)
+          status = true;
+  }
+
+  return status;
+}
+
 
 #ifdef TEST
 #include <assert.h>

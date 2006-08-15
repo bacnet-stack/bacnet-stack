@@ -109,7 +109,8 @@ extern "C" {
         uint8_t * apdu, uint16_t * apdu_len);
 
     bool tsm_invoke_id_free(uint8_t invokeID);
-
+    bool tsm_invoke_id_failed(uint8_t invokeID);
+    
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */

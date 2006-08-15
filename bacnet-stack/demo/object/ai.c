@@ -121,7 +121,13 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
     case PROP_UNITS:
         apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
         break;
-        /* test case for signed encoding and decoding negative value correctly */
+    case 9997:
+        apdu_len = encode_tagged_real(&apdu[0], 90.510);
+        break;
+    case 9998:
+        apdu_len = encode_tagged_unsigned(&apdu[0], 90);
+        break;
+        /* test case for signed encoding-decoding negative value correctly */
     case 9999:
         apdu_len = encode_tagged_signed(&apdu[0], -200);
         break;
