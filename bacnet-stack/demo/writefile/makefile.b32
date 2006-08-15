@@ -25,7 +25,7 @@ SRCS = writefile.c \
        ..\..\demo\handler\h_whois.c  \
        ..\..\demo\handler\h_rp.c  \
        ..\..\demo\handler\s_whois.c  \
-       ..\..\demo\handler\s_awr.c  \
+       ..\..\demo\handler\s_awfs.c  \
        ..\..\bacdcode.c \
        ..\..\bacapp.c \
        ..\..\bacstr.c \

@@ -263,7 +263,10 @@ int main(int argc, char *argv[])
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds)
+            {
+                printf("\rError: APDU Timeout!");
                 break;
+            }
         }
         /* keep track of time for next check */
         last_seconds = current_seconds;
