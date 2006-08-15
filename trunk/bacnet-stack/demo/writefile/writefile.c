@@ -264,12 +264,19 @@ int main(int argc, char *argv[])
                     &fileData);
                 Current_Invoke_ID = invoke_id;
             }
+            else if (tsm_invoke_id_failed(invoke_id))
+            {
+              fprintf(stderr, "\rError: TSM Timeout!\r\n");
+              tsm_free_invoke_id(invoke_id);
+              /* try again or abort? */
+              break;
+            }
         } else {
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds)
             {
-                printf("\rError: APDU Timeout!");
+                fprintf(stderr, "\rError: APDU Timeout!\r\n");
                 break;
             }
         }
