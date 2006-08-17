@@ -974,7 +974,11 @@ int encode_context_object_id(uint8_t * apdu,
 
     /* assumes that the tag only consumes 1 octet */
     len = encode_bacnet_object_id(&apdu[1], object_type, instance);
-    len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if ((tag_number <= 14) && (len <= 4))
+      len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    else
+      len = 0;
 
     return len;
 }
@@ -1149,7 +1153,11 @@ int encode_context_unsigned(uint8_t * apdu, int tag_number, uint32_t value)
     int len = 0;
 
     len = encode_bacnet_unsigned(&apdu[1], value);
-    len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if ((tag_number <= 14) && (len <= 4))
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    else
+        len = 0;
 
     return len;
 }
@@ -1246,7 +1254,11 @@ int encode_context_enumerated(uint8_t * apdu, int tag_number, int value)
 
     /* assumes that the tag only consumes 1 octet */
     len = encode_bacnet_enumerated(&apdu[1], value);
-    len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if ((tag_number <= 14) && (len <= 4))
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    else
+        len = 0;
 
     return len;
 }
@@ -1333,7 +1345,11 @@ int encode_context_signed(uint8_t * apdu, int tag_number, int32_t value)
 
     /* assumes that the tag only consumes 1 octet */
     len = encode_bacnet_signed(&apdu[1], value);
-    len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if ((tag_number <= 14) && (len <= 4))
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    else
+        len = 0;
 
     return len;
 }
@@ -1418,6 +1434,21 @@ int encode_tagged_date(uint8_t * apdu, BACNET_DATE * bdate)
 
     return len;
 
+}
+
+int encode_context_date(uint8_t * apdu, int tag_number, BACNET_DATE * bdate)
+{
+    int len = 0;                /* return value */
+
+    /* assumes that the tag only consumes 1 octet */
+    len = encode_bacnet_date(&apdu[1], bdate);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if ((tag_number <= 14) && (len <= 4))
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    else
+        len = 0;
+
+    return len;
 }
 
 /* from clause 20.2.12 Encoding of a Date Value */

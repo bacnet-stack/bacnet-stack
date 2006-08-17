@@ -170,6 +170,8 @@ extern "C" {
 /* returns the number of apdu bytes consumed */
     int encode_bacnet_date(uint8_t * apdu, BACNET_DATE * bdate);
     int encode_tagged_date(uint8_t * apdu, BACNET_DATE * bdate);
+    int encode_context_date(uint8_t * apdu, int tag_number,
+        BACNET_DATE * bdate);
     int decode_date(uint8_t * apdu, BACNET_DATE * bdate);
 
 /* two octet unsigned16 */
