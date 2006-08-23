@@ -15,7 +15,7 @@ PRODUCT = bacnet
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-DEFINES = -DBACDL_BIP=1;TSM_ENABLED=1
+DEFINES = -DBACDL_BIP=1;TSM_ENABLED=1;BIG_ENDIAN=0
 
 SRCS = main.c bip-init.c \
        ..\..\bip.c  \

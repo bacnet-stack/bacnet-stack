@@ -34,10 +34,10 @@
 #if defined(AUTO_IP)            /* use xn_autoip() to get an IP address */
 static BYTE TargetIP[] = { 0, 0, 0, 0 };        /* will be filled at run-time */
 static BYTE NetMask[] = { 255, 255, 255, 0 };
-static BYTE MinIP[] = { 192, 168, 1, 128 };
-static BYTE MaxIP[] = { 192, 168, 1, 255 };
-static BYTE DefaultGateway[] = { 192, 168, 1, 1 };      /* set to zero if not available or required */
-static BYTE DNSServer[] = { 192, 168, 1, 1 };   /* ditto */
+static BYTE MinIP[] = { 192, 168, 0, 128 };
+static BYTE MaxIP[] = { 192, 168, 0, 255 };
+static BYTE DefaultGateway[] = { 192, 168, 0, 1 };      /* set to zero if not available or required */
+static BYTE DNSServer[] = { 192, 168, 0, 1 };   /* ditto */
 #elif defined(DHCP)             /* use DHCP */
 #include <dhcpcapi.h>
 static BYTE TargetIP[] = { 0, 0, 0, 0 };        /* will be filled at run-time */

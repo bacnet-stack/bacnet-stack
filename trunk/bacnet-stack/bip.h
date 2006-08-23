@@ -76,11 +76,6 @@ extern "C" {
         uint16_t max_pdu,       /* amount of space available in the PDU  */
         unsigned timeout);      /* milliseconds to wait for a packet */
 
-    void bip_set_address(uint8_t octet1, uint8_t octet2,
-        uint8_t octet3, uint8_t octet4);
-    void bip_set_broadcast_address(uint8_t octet1, uint8_t octet2,
-        uint8_t octet3, uint8_t octet4);
-
 /* use host byte order for setting */
     void bip_set_port(uint16_t port);
 /* returns host byte order */

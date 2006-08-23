@@ -22,19 +22,36 @@ PRODUCT_RTB = $(PRODUCT).rtb
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-DEFINES = -DDOC;BACDL_BIP=1
-#DEFINES = -DDOC;BACDL_ETHERNET=1
-#DEFINES = -DDOC;BACDL_MSTP=1
+#DEFINES = -DDOC;BIG_ENDIAN=0;TSM_ENABLED=1;PRINT_ENABLED=1;BACDL_BIP=1
+#DEFINES = -DDOC;BIG_ENDIAN=0;TSM_ENABLED=1;PRINT_ENABLED=1;BACDL_ETHERNET=1
+#DEFINES = -DDOC;BIG_ENDIAN=0;TSM_ENABLED=1;PRINT_ENABLED=1;BACDL_ARCNET=1
+DEFINES = -DDOC;BIG_ENDIAN=0;TSM_ENABLED=1;PRINT_ENABLED=1;BACDL_MSTP=1
 
-SRCS = init.c main.c ethernet.c bip-init.c \
-			 rs485.c \
+SRCS = main.c \
+       ethernet.c \
+       bip-init.c \
+       dlmstp.c \
+       rs485.c \
+       init.c \
        ..\..\bip.c  \
        ..\..\mstp.c  \
        ..\..\crc.c  \
-       ..\..\handlers.c  \
+       ..\..\demo\handler\h_iam.c  \
+       ..\..\demo\handler\h_whois.c  \
+       ..\..\demo\handler\h_wp.c  \
+       ..\..\demo\handler\h_rp.c  \
+       ..\..\demo\handler\noserv.c  \
+       ..\..\demo\handler\txbuf.c  \
+       ..\..\demo\handler\s_rp.c  \
+       ..\..\demo\handler\s_whois.c  \
        ..\..\bacdcode.c \
+       ..\..\bacstr.c \
+       ..\..\bactext.c \
+       ..\..\indtext.c \
+       ..\..\bacapp.c \
        ..\..\bigend.c \
        ..\..\whois.c \
+       ..\..\dcc.c \
        ..\..\iam.c \
        ..\..\rp.c \
        ..\..\wp.c \
@@ -44,6 +61,12 @@ SRCS = init.c main.c ethernet.c bip-init.c \
        ..\..\demo\object\device.c \
        ..\..\demo\object\ai.c \
        ..\..\demo\object\ao.c \
+       ..\..\demo\object\av.c \
+       ..\..\demo\object\bi.c \
+       ..\..\demo\object\bo.c \
+       ..\..\demo\object\bv.c \
+       ..\..\demo\object\lsp.c \
+       ..\..\demo\object\mso.c \
        ..\..\datalink.c \
        ..\..\tsm.c \
        ..\..\address.c \
@@ -59,6 +82,7 @@ OBJS = $(SRCS:.c=.obj)
 #
 CC = $(BORLAND_DIR)\bin\bcc32 +bcc32.cfg
 LINK = $(BORLAND_DIR)\bin\tlink32
+#LINK = $(BORLAND_DIR)\bin\ilink32
 TLIB = $(BORLAND_DIR)\bin\tlib
 LOCATE = $(RTOS32_DIR)\bin\rtloc
 
@@ -66,7 +90,7 @@ LOCATE = $(RTOS32_DIR)\bin\rtloc
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;..\..\;.
+INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;..\..\;..\..\demo\handler\;..\..\demo\object\;.
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
@@ -156,6 +180,7 @@ bcc32.cfg :
    Copy &&|
 $(CFLAGS) 
 -c 
+#-g2    #stop after gN warnings
 -y     #include line numbers in OBJ's
 -v     #include debug info
 -w+    #turn on all warnings

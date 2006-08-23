@@ -51,11 +51,6 @@ extern "C" {
 
     void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port);  /* port specific data */
 
-    void RS485_Process_Tx_Message(void);
-
-    bool RS485_Tx_Complete(void);
-
-
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */

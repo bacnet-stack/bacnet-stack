@@ -70,36 +70,6 @@ void bip_cleanup(void)
     return;
 }
 
-static void set_network_address(struct in_addr *net_address,
-    uint8_t octet1, uint8_t octet2, uint8_t octet3, uint8_t octet4)
-{
-    union {
-        uint8_t byte[4];
-        uint32_t value;
-    } long_data = { {
-    0}};
-
-    long_data.byte[0] = octet1;
-    long_data.byte[1] = octet2;
-    long_data.byte[2] = octet3;
-    long_data.byte[3] = octet4;
-
-    net_address->s_addr = long_data.value;
-}
-
-void bip_set_address(uint8_t octet1,
-    uint8_t octet2, uint8_t octet3, uint8_t octet4)
-{
-    set_network_address(&BIP_Address, octet1, octet2, octet3, octet4);
-}
-
-void bip_set_broadcast_address(uint8_t octet1,
-    uint8_t octet2, uint8_t octet3, uint8_t octet4)
-{
-    set_network_address(&BIP_Broadcast_Address, octet1, octet2, octet3,
-        octet4);
-}
-
 /* set using network byte order */
 void bip_set_addr(uint32_t net_address)
 {

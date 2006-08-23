@@ -47,7 +47,7 @@
 
 typedef struct dlmstp_packet {
     bool ready;                 /* true if ready to be sent or received */
-    BACNET_ADDRESS address;     /* src or dest address */
+    BACNET_ADDRESS address;     /* source address */
     unsigned pdu_len;           /* packet length */
     uint8_t pdu[MAX_MPDU];      /* packet */
 } DLMSTP_PACKET;
@@ -94,6 +94,13 @@ extern "C" {
     void dlmstp_set_my_address(uint8_t my_address);
     void dlmstp_get_my_address(BACNET_ADDRESS * my_address);
     void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest);   /* destination address */
+    
+    /* MS/TP state machine functions */
+    uint16_t dlmstp_put_receive(
+        uint8_t src,       /* source MS/TP address */
+        uint8_t * pdu,              /* PDU data */
+        uint16_t pdu_len);
+    
 
 #ifdef __cplusplus
 }

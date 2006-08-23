@@ -124,7 +124,8 @@ struct mstp_port_struct_t {
     uint8_t DestinationAddress;
     /* Used to count the number of received octets or errors. */
     /* This is used in the detection of link activity. */
-    unsigned EventCount;
+    /* Compared to Nmin_octets */
+    uint8_t EventCount;
     /* Used to store the frame type of a received frame. */
     uint8_t FrameType;
     /* The number of frames sent by this node during a single token hold. */
@@ -157,12 +158,12 @@ struct mstp_port_struct_t {
     /* Since the timer resolution is limited and the timer is not necessarily */
     /* synchronized to other machine events, a timer value of N will actually */
     /* denote intervals between N-1 and N */
-    unsigned SilenceTimer;
+    uint16_t SilenceTimer;
 
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */
     /* Machine when a Data Expecting Reply Answer activity is completed. */
-    unsigned ReplyPostponedTimer;
+    uint16_t ReplyPostponedTimer;
 
     /* Used to store the Source Address of a received frame. */
     uint8_t SourceAddress;
@@ -196,9 +197,9 @@ struct mstp_port_struct_t {
     unsigned Nmax_master;
 
     /* An array of octets, used to store PDU octets prior to being transmitted. */
-    /* This array is not used for passing token frames */
+    /* This array is only used for APDU messages */
     uint8_t TxBuffer[MAX_MPDU];
-    int TxLength;
+    unsigned TxLength;
     bool TxReady;                 /* true if ready to be sent or received */
     uint8_t TxFrameType;            /* type of message - needed by MS/TP */
 };

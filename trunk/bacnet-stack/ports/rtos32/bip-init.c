@@ -34,18 +34,17 @@
 
 #include <stdint.h>             /* for standard integer types uint8_t etc. */
 #include <stdbool.h>            /* for the standard bool type. */
+#include "bacdcode.h"
 #include "bip.h"
 
-#if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
 static int interface = SOCKET_ERROR;    /* SOCKET_ERROR means no open interface */
-#endif
 
 void bip_set_interface(char *ifname)
 {
     /*dummy function - to make the demos compile easier */
+  (void)ifname;
 }
 
-#if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
 /*-----------------------------------*/
 static void Error(const char *Msg)
 {
@@ -70,7 +69,6 @@ void InterfaceCleanup(void)
 #endif
     }
 }
-#endif
 
 static void NetInitialize(void)
 /* initialize the TCP/IP stack */
@@ -78,15 +76,8 @@ static void NetInitialize(void)
     int Result;
 
 #ifndef HOST
-
-    RTKernelInit(0);            /* get the kernel going */
-
     if (!RTKDebugVersion())     /* switch of all diagnostics and error messages of RTIP-32 */
         xn_callbacks()->cb_wr_screen_string_fnc = NULL;
-
-    CLKSetTimerIntVal(10 * 1000);       /* 10 millisecond tick */
-    RTKDelay(1);
-    RTCMOSSetSystemTime();      /* get the right time-of-day */
 
 #ifdef RTUSB_VER
     RTURegisterCallback(USBAX172);      /* ax172 and ax772 drivers */
@@ -207,30 +198,67 @@ static void NetInitialize(void)
 }
 #endif
 
+/******************************************************************
+* DESCRIPTION:  Converts the byte stored address to an inet address
+* RETURN:       none
+* ALGORITHM:    none
+* NOTES:        none
+******************************************************************/
+static void RTIP_To_Network_Address(
+  BYTE *octet_address,
+  struct in_addr *addr)
+{
+  uint32_t ip_address = 0; /* for decoding the subnet mask */
+
+  decode_unsigned32(octet_address, &ip_address);
+  addr->s_addr = htonl(ip_address);
+
+  return;
+}
+
+static void set_broadcast_address(uint32_t net_address)
+{
+    long broadcast_address = 0;
+    long mask = 0;
+
+    /*   Note: sometimes INADDR_BROADCAST does not let me get
+       any unicast messages.  Not sure why... */
+#if USE_INADDR
+    (void) net_address;
+    bip_set_broadcast_addr(INADDR_BROADCAST);
+#else
+    if (IN_CLASSA(ntohl(net_address)))
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSA_HOST) | IN_CLASSA_HOST;
+    else if (IN_CLASSB(ntohl(net_address)))
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSB_HOST) | IN_CLASSB_HOST;
+    else if (IN_CLASSC(ntohl(net_address)))
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSC_HOST) | IN_CLASSC_HOST;
+    else if (IN_CLASSD(ntohl(net_address)))
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
+    else
+        broadcast_address = INADDR_BROADCAST;
+    bip_set_broadcast_addr(htonl(broadcast_address));
+#endif
+}
+
 bool bip_init(void)
 {
     int rv = 0;                 /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
     int value = 1;
     int sock_fd = -1;
+    struct in_addr my_addr;
 
     NetInitialize();
 
-    bip_set_address(TargetIP[0], TargetIP[1], TargetIP[2], TargetIP[3]);
-
-    /* FIXME: */
-#if 0
-    bip_set_address(NetMask[0], NetMask[1], NetMask[2], NetMask[3]);
-    extern unsigned long bip_get_addr(void);
-    unsigned long broadcast_address = 0;
-    unsigned long subnet_mask = 0;
-
-    /* local broadcast address */
-    broadcast_address = bip_get_addr();
-    broadcast_address |= ~(BIP_Subnet_Mask.s_addr);
-    /* configure standard BACnet/IP port */
+    RTIP_To_Network_Address(TargetIP, &my_addr);
+    bip_set_addr(my_addr.s_addr);
+    set_broadcast_address(my_addr.s_addr);
     bip_set_port(0xBAC0);
-#endif
 
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);

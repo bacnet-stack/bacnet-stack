@@ -27,6 +27,9 @@
 #include <rtkernel.h>
 #include <rtcom.h>
 #include <itimer.h>
+#if PRINT_ENABLED
+#include <stdio.h>
+#endif
 #include "mstp.h"
 
 /* note: use the RTKernel-C API so that it can use this library */
@@ -69,11 +72,29 @@ static void RS485_Standard_Port_Settings(long port, long *pIRQ,
     }
 }
 
+static int TestCOMPort(
+  int Base)/* base address of UART */
+{
+   int i;
+
+   for (i=0; i<256; i++)
+   {
+      RTOut(Base+7, (BYTE)i);          // write scratch register
+      RTOut(Base+1, RTIn(Base+1));     // read/write IER
+      if (RTIn(Base+7) != i)           // check scratch register
+         return FALSE;
+   }
+   return TRUE;
+}
+
 static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
     long baud,                  /* baud rate */
     unsigned base,              /* io base address */
     int irq)
 {                               /* hardware IRQ number */
+    if (!TestCOMPort(base))
+        return;
+
     /* setup the COM IO */
     SetIOBase(port, base);
     SetIRQ(port, irq);
@@ -90,6 +111,9 @@ static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
     /* enable the 485 via the DTR pin */
     RS485_IO_ENABLE(port);
     RS485_RECEIVE_ENABLE(port);
+    #if PRINT_ENABLED
+    fprintf(stderr,"RS485: COM%d Enabled\r\n",port+1);
+    #endif
 
     return;
 }
@@ -115,6 +139,21 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
     while (!(LineStatus(RS485_Port) & TX_SHIFT_EMPTY))
         RTKScheduler();
     RS485_RECEIVE_ENABLE(RS485_Port);
+    #if PRINT_ENABLED
+    {
+        int i = 0;
+        fprintf(stderr,"RS485 Tx:");
+        for (i = 0; i < nbytes; i++)
+        {
+            fprintf(stderr," %02X",buffer[i]);
+            if ((!(i%20)) && (i != 0))
+            {
+                fprintf(stderr,"\r\n         ");
+            }
+        }
+        fprintf(stderr,"\r\n");
+    }
+    #endif
 
     return;
 }
@@ -146,9 +185,4 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
             }
         }
     }
-}
-
-void RS485_Process_Tx_Message(void)
-{
-    /* nothing to do */
 }
