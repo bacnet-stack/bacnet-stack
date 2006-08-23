@@ -71,23 +71,17 @@ void My_Read_Property_Handler(uint8_t * service_request,
     int bytes_sent = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_NPDU_DATA npdu_data;
 
     len = rp_decode_service_request(service_request, service_len, &data);
-    /* prepare a reply */
-    datalink_get_my_address(&my_address);
-    /* encode the NPDU portion of the packet */
-    pdu_len = npdu_encode_apdu(&Handler_Transmit_Buffer[0], src, &my_address, false,    /* true for confirmed messages */
-        MESSAGE_PRIORITY_NORMAL);
     /* bad decoding - send an abort */
-    if (len == -1) {
-        pdu_len += abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+    if (len < 0) {
+        pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id, ABORT_REASON_OTHER);
-        send = true;
     } else if (service_data->segmented_message) {
-        pdu_len += abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
-        send = true;
     } else {
         switch (data.object_type) {
         case OBJECT_DEVICE:
@@ -101,10 +95,7 @@ void My_Read_Property_Handler(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len +=
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-                    send = true;
+                    pdu_len = rp_ack_encode_apdu(&Handler_Transmit_Buffer[0], service_data->invoke_id, &data);
                 } else
                     error = true;
             } else
@@ -116,15 +107,13 @@ void My_Read_Property_Handler(uint8_t * service_request,
         }
     }
     if (error) {
-        pdu_len += bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        pdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[0],
             service_data->invoke_id,
             SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
-        send = true;
     }
-    if (send) {
-        bytes_sent = datalink_send_pdu(src,     /* destination address */
-            &Handler_Transmit_Buffer[0], pdu_len);      /* number of bytes of data */
-    }
+    npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    bytes_sent = datalink_send_pdu(src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);      /* number of bytes of data */
 
     return;
 }

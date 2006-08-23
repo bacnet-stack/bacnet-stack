@@ -28,35 +28,106 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <conio.h> /* for kbhit */
 #include "config.h"
 #include "bacdef.h"
 #include "npdu.h"
 #include "apdu.h"
 #include "device.h"
 #include "handlers.h"
-#include "net.h"
+#include "datalink.h"
+#include "iam.h"
+#include "txbuf.h"
+
+/* RTOS-32 */
+#include "rtkernel.h"
+#if defined(RTK32_VER)
+  #define _USER32_
+  #define _KERNEL32_
+  #include <windows.h>
+  #include <rttarget.h> /* for RTCMOSSetSystemTime */
+  #include <rtfiles.h> /* file system */
+  #include <rtfsys.h> /* file system */
+  #include <Rttbios.h>
+#endif
+#include <rtcom.h> /* serial port driver */
+#include <itimer.h> /* time measurement & timer interrupt rate control */
+#include <rtkeybrd.h> /* interrupt handler for the keyboard */
 
 /* buffers used for transmit and receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
-#ifdef BACDL_MSTP
-volatile struct mstp_port_struct_t MSTP_Port;   /* port data */
-static uint8_t MSTP_MAC_Address = 0x05; /* local MAC address */
-#endif
-
 static void Init_Service_Handlers(void)
 {
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, WhoIsHandler);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (UnrecognizedServiceHandler);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        ReadPropertyHandler);
+        handler_read_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        WritePropertyHandler);
+        handler_write_property);
+}
+
+void millisecond_task(void)
+{
+  Time ticks = 0; /* task cycle */
+  const int UPDATE_CYCLE = 5; /* task cycle in mS */
+  int i = 0; /* loop counter */
+
+  ticks = RTKGetTime() + MilliSecsToTicks(UPDATE_CYCLE);
+  while (TRUE)
+  {
+    RTKDelayUntil(ticks);
+    for (i = 0; i < UPDATE_CYCLE; i++)
+      dlmstp_millisecond_timer();
+    ticks += MilliSecsToTicks(UPDATE_CYCLE);
+  }
+}
+
+void RTOS_Initialize(void)
+{
+    /* allow OS to setup IRQ 1 by using a dummy call */
+    (void)kbhit();
+    RTKernelInit(0);            /* get the kernel going */
+    RTKeybrdInit();
+    //(void)CPUMoniInit(); /* not needed - just monitor idle task */
+    RTComInit();
+    ITimerInit();
+  
+    if (RTCallDebugger(RT_DBG_MONITOR,0,0) != -1)
+    {
+        /* Win32 structured exception - if no handler is
+           installed, TerminateProcess() will be called,
+           which will reboot - a good thing in our case. */
+        RTRaiseCPUException(0); // Divide Error DIV and IDIV instructions.
+        RTRaiseCPUException(1); // Debug Any code or data reference.
+        RTRaiseCPUException(2); // NMI
+        RTRaiseCPUException(3); // Breakpoint INT 3 instruction.
+        RTRaiseCPUException(4); // Overflow INTO instruction.
+        RTRaiseCPUException(5); // BOUND Range Exceeded BOUND instruction.
+        RTRaiseCPUException(6); // Invalid Opcode (Undefined Opcode)
+    //  RTRaiseCPUException(7); // Device Not Available (No Math Coprocessor)
+        RTRaiseCPUException(8); // Double Fault any exception instruction,NMI,INTR.
+        RTRaiseCPUException(9); // Co-Processor overrun
+        RTRaiseCPUException(10); // Invalid TSS Task switch or TSS access.
+        RTRaiseCPUException(11); // Segment Not Present Loading segment registers
+        RTRaiseCPUException(12); // Stack Seg Fault Stack ops /SS reg loads.
+        RTRaiseCPUException(13); // General Protection Any memory reference
+        RTRaiseCPUException(14); // Page Fault Any memory reference.
+        RTRaiseCPUException(15); // reserved
+        RTRaiseCPUException(16); // Floating-Point Error (Math Fault)
+    }
+    /* setup 1ms timer tick */
+    SetTimerIntVal(1000);
+    /* per recommendation in manual */
+    RTKDelay(1);
+    RTCMOSSetSystemTime();      /* get the right time-of-day */
+    
+    /* create timer tick task */
+    RTKCreateTask(millisecond_task,1,1024*8,"millisec task");
 }
 
 int main(int argc, char *argv[])
@@ -69,6 +140,7 @@ int main(int argc, char *argv[])
     (void) argv;
     Device_Set_Object_Instance_Number(126);
     Init_Service_Handlers();
+    RTOS_Initialize();    
     /* init the physical layer */
 #ifdef BACDL_BIP
     if (!bip_init())
@@ -79,39 +151,27 @@ int main(int argc, char *argv[])
         return 1;
 #endif
 #ifdef BACDL_MSTP
-    RS485_Initialize();
-    MSTP_Init(&MSTP_Port, MSTP_MAC_Address);
+    dlmstp_set_my_address(0x05);
+    dlmstp_init();
 #endif
-
-
+    iam_send(&Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {
         /* input */
 #ifdef BACDL_MSTP
-        MSTP_Millisecond_Timer(&MSTP_Port);
-        /* note: also called by RS-485 Receive ISR */
-        RS485_Check_UART_Data(&MSTP_Port);
-        MSTP_Receive_Frame_FSM(&MSTP_Port);
+        dlmstp_task();
 #endif
-
 #if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
         /* returns 0 bytes on timeout */
-        pdu_len = bacdl_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 #endif
-
         /* process */
-
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-        if (I_Am_Request) {
-            I_Am_Request = false;
-            Send_IAm();
-        }
         /* output */
-#ifdef BACDL_MSTP
-        MSTP_Master_Node_FSM(&MSTP_Port);
-#endif
+        
+
 
         /* blink LEDs, Turn on or off outputs, etc */
     }

@@ -67,6 +67,7 @@ file_047=no
 file_048=no
 file_049=no
 file_050=no
+file_051=no
 [FILE_INFO]
 file_000=C:\code\bacnet-stack\abort.c
 file_001=C:\code\bacnet-stack\apdu.c
@@ -119,6 +120,7 @@ file_047=C:\code\bacnet-stack\demo\object\ao.h
 file_048=C:\code\bacnet-stack\demo\object\device.h
 file_049=stdbool.h
 file_050=stdint.h
+file_051=hardware.h
 [SUITE_INFO]
 suite_guid={5B7D72DD-9861-47BD-9F60-2BE967BF8416}
 suite_state=

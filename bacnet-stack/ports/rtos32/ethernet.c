@@ -34,6 +34,7 @@
 #include <windows.h>
 #include "ethernet.h"
 #include "bacdcode.h"
+#include "npdu.h"
 
 /* commonly used comparison address for ethernet */
 uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
@@ -86,12 +87,14 @@ bool ethernet_init(char *interface_name)
 /* returns bytes sent on success, negative number on failure */
 int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     BACNET_ADDRESS * src,       /* source address */
+    BACNET_NPDU_DATA * npdu_data,   /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
     int bytes = 0;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
+    int npdu_len = 0;
     int i = 0;
 
     /* don't waste time if the socket is not valid */
@@ -131,8 +134,16 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     mtu[mtu_len++] = 0x82;      /* DSAP for BACnet */
     mtu[mtu_len++] = 0x82;      /* SSAP for BACnet */
     mtu[mtu_len++] = 0x03;      /* Control byte in header */
+    npdu_len = npdu_encode_pdu(&mtu[17], dest, src, npdu_data);
+    mtu_len = 17 + npdu_len;
+    if ((mtu_len + pdu_len) > MAX_MPDU) {
+        fprintf(stderr, "ethernet: PDU is too big to send!\n");
+        return -4;
+    }
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
+    /* packet length - only the logical portion, not the address */
+    encode_unsigned16(&mtu[12], 3 + npdu_len + pdu_len);
 
     /* Send the packet */
     bytes = send(Ethernet_Socket, (const char *) &mtu, mtu_len, 0);
@@ -147,6 +158,7 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
 /* function to send a packet out the 802.2 socket */
 /* returns bytes sent on success, negative number on failure */
 int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+    BACNET_NPDU_DATA * npdu_data,   /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
@@ -157,10 +169,13 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
         src.mac[i] = Ethernet_MAC_Address[i];
         src.mac_len++;
     }
+    
+    /* FIXME: npdu_data? */
     /* function to send a packet out the 802.2 socket */
     /* returns 1 on success, 0 on failure */
     return ethernet_send(dest,  /* destination address */
         &src,                   /* source address */
+        npdu_data,
         pdu,                    /* any data to be sent - may be null */
         pdu_len);               /* number of bytes of data */
 }
