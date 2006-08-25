@@ -161,10 +161,8 @@ int main(int argc, char *argv[])
 #ifdef BACDL_MSTP
         dlmstp_task();
 #endif
-#if (defined(BACDL_ETHERNET) || defined(BACDL_BIP))
         /* returns 0 bytes on timeout */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-#endif
         /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
