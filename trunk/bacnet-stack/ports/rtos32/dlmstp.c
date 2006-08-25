@@ -112,7 +112,8 @@ void dlmstp_task(void)
 {
     RS485_Check_UART_Data(&MSTP_Port);
     MSTP_Receive_Frame_FSM(&MSTP_Port);
-    MSTP_Master_Node_FSM(&MSTP_Port);
+    if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE)
+        MSTP_Master_Node_FSM(&MSTP_Port);
 }
 
 /* called about once a millisecond */
@@ -175,17 +176,17 @@ uint16_t dlmstp_put_receive(
     uint8_t * pdu,              /* PDU data */
     uint16_t pdu_len)
 {
-    if (Receive_Buffer.ready)
-    {
+    if (Receive_Buffer.ready) {
       /* FIXME: what to do when we miss a message? */
-      pdu_len = 0;
-    }
-    else
-    {
+        pdu_len = 0;
+    } else if (pdu_len < sizeof(Receive_Buffer.pdu)) {
         dlmstp_fill_bacnet_address(&Receive_Buffer.address, src);
         Receive_Buffer.pdu_len = pdu_len;
-        memmove(Receive_Buffer.pdu, pdu, sizeof(Receive_Buffer.pdu));
+        memmove(Receive_Buffer.pdu, pdu, pdu_len);
         Receive_Buffer.ready = true;
+    } else {
+        /* FIXME: message too large? */
+        pdu_len = 0;
     }
     
     return pdu_len;

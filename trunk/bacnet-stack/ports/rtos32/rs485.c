@@ -22,12 +22,13 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
+#define PRINT_ENABLED_RS485 0
 
 #include <stdint.h>
 #include <rtkernel.h>
 #include <rtcom.h>
 #include <itimer.h>
-#if PRINT_ENABLED
+#if PRINT_ENABLED_RS485
 #include <stdio.h>
 #endif
 #include "mstp.h"
@@ -41,7 +42,7 @@
 /* COM port number - COM1 = 0 */
 static int RS485_Port = COM2;
 /* baud rate */
-static long RS485_Baud = 38400;
+static long RS485_Baud = 9600;
 /* io base address */
 static long RS485_Base = 0;
 /* hardware IRQ number */
@@ -111,7 +112,7 @@ static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
     /* enable the 485 via the DTR pin */
     RS485_IO_ENABLE(port);
     RS485_RECEIVE_ENABLE(port);
-    #if PRINT_ENABLED
+    #if PRINT_ENABLED_RS485
     fprintf(stderr,"RS485: COM%d Enabled\r\n",port+1);
     #endif
 
@@ -139,7 +140,7 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
     while (!(LineStatus(RS485_Port) & TX_SHIFT_EMPTY))
         RTKScheduler();
     RS485_RECEIVE_ENABLE(RS485_Port);
-    #if PRINT_ENABLED
+    #if PRINT_ENABLED_RS485
     {
         int i = 0;
         fprintf(stderr,"RS485 Tx:");
