@@ -74,16 +74,14 @@ static void Init_Service_Handlers(void)
 void millisecond_task(void)
 {
   Time ticks = 0; /* task cycle */
-  const int UPDATE_CYCLE = 5; /* task cycle in mS */
   int i = 0; /* loop counter */
 
-  ticks = RTKGetTime() + MilliSecsToTicks(UPDATE_CYCLE);
+  ticks = RTKGetTime() + MilliSecsToTicks(1);
   while (TRUE)
   {
     RTKDelayUntil(ticks);
-    for (i = 0; i < UPDATE_CYCLE; i++)
-      dlmstp_millisecond_timer();
-    ticks += MilliSecsToTicks(UPDATE_CYCLE);
+    dlmstp_millisecond_timer();
+    ticks += MilliSecsToTicks(1);
   }
 }
 
