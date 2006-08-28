@@ -111,7 +111,13 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
 void dlmstp_task(void)
 {
     RS485_Check_UART_Data(&MSTP_Port);
-    MSTP_Receive_Frame_FSM(&MSTP_Port);
+    /* only do receive state machine while we don't have a frame */
+    if ((MSTP_Port.ReceivedValidFrame == false) && 
+        (MSTP_Port.ReceivedInvalidFrame == false))
+    {
+        MSTP_Receive_Frame_FSM(&MSTP_Port);
+    }
+    /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE)
         MSTP_Master_Node_FSM(&MSTP_Port);
 }
