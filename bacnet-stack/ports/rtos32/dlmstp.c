@@ -107,19 +107,6 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     return bytes_sent;
 }
 
-void dlmstp_task(void)
-{
-    RS485_Check_UART_Data(&MSTP_Port);
-    /* only do receive state machine while we don't have a frame */
-    if ((MSTP_Port.ReceivedValidFrame == false) &&
-        (MSTP_Port.ReceivedInvalidFrame == false)) {
-        MSTP_Receive_Frame_FSM(&MSTP_Port);
-    }
-    /* only do master state machine while rx is idle */
-    if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE)
-        MSTP_Master_Node_FSM(&MSTP_Port);
-}
-
 /* called about once a millisecond */
 void dlmstp_millisecond_timer(void)
 {
@@ -136,6 +123,16 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
     uint16_t pdu_len = 0;
 
     (void) timeout;
+    /* only do receive state machine while we don't have a frame */
+    if ((MSTP_Port.ReceivedValidFrame == false) &&
+        (MSTP_Port.ReceivedInvalidFrame == false)) {
+        RS485_Check_UART_Data(&MSTP_Port);
+        MSTP_Receive_Frame_FSM(&MSTP_Port);
+    }
+    /* only do master state machine while rx is idle */
+    if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
+        while (MSTP_Master_Node_FSM(&MSTP_Port)) {};
+    }
     /* see if there is a packet available */
     if (Receive_Buffer.ready) {
         memmove(src, &Receive_Buffer.address,

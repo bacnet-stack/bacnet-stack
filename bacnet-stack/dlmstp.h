@@ -58,7 +58,6 @@ extern "C" {
 
     void dlmstp_init(void);
     void dlmstp_cleanup(void);
-    void dlmstp_task(void);
     void dlmstp_millisecond_timer(void);
 
     /* returns number of bytes sent on success, negative on failure */
