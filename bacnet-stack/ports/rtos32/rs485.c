@@ -73,19 +73,17 @@ static void RS485_Standard_Port_Settings(long port, long *pIRQ,
     }
 }
 
-static int TestCOMPort(
-  int Base)/* base address of UART */
-{
-   int i;
+static int TestCOMPort(int Base)
+{                               /* base address of UART */
+    int i;
 
-   for (i=0; i<256; i++)
-   {
-      RTOut(Base+7, (BYTE)i);          // write scratch register
-      RTOut(Base+1, RTIn(Base+1));     // read/write IER
-      if (RTIn(Base+7) != i)           // check scratch register
-         return FALSE;
-   }
-   return TRUE;
+    for (i = 0; i < 256; i++) {
+        RTOut(Base + 7, (BYTE) i);      // write scratch register
+        RTOut(Base + 1, RTIn(Base + 1));        // read/write IER
+        if (RTIn(Base + 7) != i)        // check scratch register
+            return FALSE;
+    }
+    return TRUE;
 }
 
 static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
@@ -112,9 +110,9 @@ static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
     /* enable the 485 via the DTR pin */
     RS485_IO_ENABLE(port);
     RS485_RECEIVE_ENABLE(port);
-    #if PRINT_ENABLED_RS485
-    fprintf(stderr,"RS485: COM%d Enabled\r\n",port+1);
-    #endif
+#if PRINT_ENABLED_RS485
+    fprintf(stderr, "RS485: COM%d Enabled\r\n", port + 1);
+#endif
 
     return;
 }
@@ -140,21 +138,19 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
         RTKScheduler();
     RS485_RECEIVE_ENABLE(RS485_Port);
     mstp_port->SilenceTimer = 0;
-    #if PRINT_ENABLED_RS485
+#if PRINT_ENABLED_RS485
     {
         int i = 0;
-        fprintf(stderr,"RS485 Tx:");
-        for (i = 0; i < nbytes; i++)
-        {
-            fprintf(stderr," %02X",buffer[i]);
-            if ((!(i%20)) && (i != 0))
-            {
-                fprintf(stderr,"\r\n         ");
+        fprintf(stderr, "RS485 Tx:");
+        for (i = 0; i < nbytes; i++) {
+            fprintf(stderr, " %02X", buffer[i]);
+            if ((!(i % 20)) && (i != 0)) {
+                fprintf(stderr, "\r\n         ");
             }
         }
-        fprintf(stderr,"\r\n");
+        fprintf(stderr, "\r\n");
     }
-    #endif
+#endif
 
     return;
 }
@@ -165,18 +161,18 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
     unsigned timeout = 1;      /* milliseconds to wait for a character */
     static Duration ticks = 0; /* duration to wait for data */
 
-    if (!ticks)
-    {
-        ticks = MilliSecsToTicks(timeout);
-        if (!ticks)
-            ticks = 1;
-    }
     if (mstp_port->ReceiveError) {
         /* wait for state machine to clear this */
-        RTKDelay(ticks);
+        RTKScheduler();
     }
     /* wait for state machine to read from the DataRegister */
     else if (!mstp_port->DataAvailable) {
+        if (!ticks)
+        {
+            ticks = MilliSecsToTicks(timeout);
+            if (!ticks)
+                ticks = 1;
+        }
         /* check for data */
         if (RTKGetTimed(ReceiveBuffer[RS485_Port], &com_data, ticks)) {
             /* if error, */
@@ -191,6 +187,5 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
         }
     }
     else 
-        RTKDelay(ticks);
-      
+        RTKScheduler();
 }
