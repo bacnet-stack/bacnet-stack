@@ -227,6 +227,7 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
+    
     /* decode the some of the request */
     switch (wp_data->object_property) {
     case PROP_ARCHIVE:

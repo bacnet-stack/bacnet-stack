@@ -47,8 +47,7 @@ typedef struct BACnet_Write_Property_Data {
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
     int32_t array_index;        /* use BACNET_ARRAY_ALL when not setting */
-    uint8_t value[MAX_APDU];
-    uint16_t value_len;
+    BACNET_APPLICATION_DATA_VALUE value;
     uint8_t priority;           /* use BACNET_NO_PRIORITY if no priority */
 } BACNET_WRITE_PROPERTY_DATA;
 
@@ -60,22 +59,15 @@ extern "C" {
     int wp_encode_apdu(uint8_t * apdu,
         uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA * data);
 
-    int wp_encode_application_apdu(uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_WRITE_PROPERTY_DATA * data,
-        BACNET_APPLICATION_DATA_VALUE * value);
-
 /* decode the service request only */
     int wp_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA * data);
 
+#ifdef TEST
+#include "ctest.h"
     int wp_decode_apdu(uint8_t * apdu,
         unsigned apdu_len,
         uint8_t * invoke_id, BACNET_WRITE_PROPERTY_DATA * data);
-
-
-#ifdef TEST
-#include "ctest.h"
 
     void test_ReadProperty(Test * pTest);
     void test_ReadPropertyAck(Test * pTest);

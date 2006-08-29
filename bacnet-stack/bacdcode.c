@@ -1041,6 +1041,27 @@ int encode_tagged_octet_string(uint8_t * apdu,
 /* from clause 20.2.8 Encoding of an Octet String Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
+int encode_context_octet_string(uint8_t * apdu,
+    int tag_number,
+    BACNET_OCTET_STRING * octet_string)
+{
+    int apdu_len = 0;
+
+    if (apdu && octet_string) {
+        apdu_len = encode_tag(&apdu[0], (uint8_t) tag_number, 
+            true, octetstring_length(octet_string));
+        if ((apdu_len + octetstring_length(octet_string)) < MAX_APDU)
+            apdu_len += encode_octet_string(&apdu[apdu_len], octet_string);
+        else
+            apdu_len = 0;
+    }
+
+    return apdu_len;
+}
+
+/* from clause 20.2.8 Encoding of an Octet String Value */
+/* and 20.2.1 General Rules for Encoding BACnet Tags */
+/* returns the number of apdu bytes consumed */
 int decode_octet_string(uint8_t * apdu, uint32_t len_value,
     BACNET_OCTET_STRING * octet_string)
 {
