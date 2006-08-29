@@ -172,9 +172,7 @@ void main(void)
 
         /* input */
         Check_Timer_Milliseconds();
-        dlmstp_task();
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
         /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
