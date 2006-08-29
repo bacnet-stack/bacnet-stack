@@ -158,8 +158,8 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
 void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
 {                               /* port specific data */
     COMData com_data = 0;       /* byte from COM driver */
-    unsigned timeout = 1;      /* milliseconds to wait for a character */
-    static Duration ticks = 0; /* duration to wait for data */
+    unsigned timeout = 1;       /* milliseconds to wait for a character */
+    static Duration ticks = 0;  /* duration to wait for data */
 
     if (mstp_port->ReceiveError) {
         /* wait for state machine to clear this */
@@ -167,8 +167,7 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
     }
     /* wait for state machine to read from the DataRegister */
     else if (!mstp_port->DataAvailable) {
-        if (!ticks)
-        {
+        if (!ticks) {
             ticks = MilliSecsToTicks(timeout);
             if (!ticks)
                 ticks = 1;
@@ -185,7 +184,6 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
                 mstp_port->DataAvailable = true;
             }
         }
-    }
-    else 
+    } else
         RTKScheduler();
 }

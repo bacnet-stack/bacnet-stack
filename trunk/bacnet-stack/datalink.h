@@ -49,8 +49,8 @@
 #elif defined(BACDL_BIP)
 #include "bip.h"
 #else
-    #define MAX_HEADER (1 + 1 + 2)
-    #define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define MAX_HEADER (1 + 1 + 2)
+#define MAX_MPDU (MAX_HEADER+MAX_PDU)
 #endif
 
 #ifdef __cplusplus

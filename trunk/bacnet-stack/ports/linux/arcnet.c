@@ -186,7 +186,7 @@ bool arcnet_init(char *interface_name)
 /* function to send a PDU out the socket */
 /* returns number of bytes sent on success, negative on failure */
 int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
-    BACNET_NPDU_DATA * npdu_data,   /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
@@ -230,7 +230,7 @@ int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         fprintf(stderr, "arcnet: PDU is too big to send!\n");
         return -4;
     }
-    memcpy(&pkt->soft.raw[4+npdu_len], pdu, pdu_len);
+    memcpy(&pkt->soft.raw[4 + npdu_len], pdu, pdu_len);
     /* Send the packet */
     bytes =
         sendto(ARCNET_Sock_FD, &mtu, mtu_len, 0,

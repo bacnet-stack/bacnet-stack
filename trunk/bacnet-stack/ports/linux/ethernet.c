@@ -179,14 +179,14 @@ bool ethernet_init(char *interface_name)
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */
 int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
-    BACNET_NPDU_DATA * npdu_data,   /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
     int i = 0;                  /* counter */
     int bytes = 0;
-    BACNET_ADDRESS src = { 0 }; /* source address for npdu*/
-    uint8_t mtu[MAX_MPDU] = { 0 }; /* our buffer */
+    BACNET_ADDRESS src = { 0 }; /* source address for npdu */
+    uint8_t mtu[MAX_MPDU] = { 0 };      /* our buffer */
     int mtu_len = 0;
     int npdu_len = 0;
 
@@ -221,9 +221,9 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
         return -3;
     }
     /* Logical PDU portion */
-    mtu[14] = 0x82;      /* DSAP for BACnet */
-    mtu[15] = 0x82;      /* SSAP for BACnet */
-    mtu[16] = 0x03;      /* Control byte in header */
+    mtu[14] = 0x82;             /* DSAP for BACnet */
+    mtu[15] = 0x82;             /* SSAP for BACnet */
+    mtu[16] = 0x03;             /* Control byte in header */
     npdu_len = npdu_encode_pdu(&mtu[17], dest, &src, npdu_data);
     mtu_len = 17 + npdu_len;
     if ((mtu_len + pdu_len) > MAX_MPDU) {

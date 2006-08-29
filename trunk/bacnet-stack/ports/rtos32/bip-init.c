@@ -42,7 +42,7 @@ static int interface = SOCKET_ERROR;    /* SOCKET_ERROR means no open interface 
 void bip_set_interface(char *ifname)
 {
     /*dummy function - to make the demos compile easier */
-  (void)ifname;
+    (void) ifname;
 }
 
 /*-----------------------------------*/
@@ -204,16 +204,15 @@ static void NetInitialize(void)
 * ALGORITHM:    none
 * NOTES:        none
 ******************************************************************/
-static void RTIP_To_Network_Address(
-  BYTE *octet_address,
-  struct in_addr *addr)
+static void RTIP_To_Network_Address(BYTE * octet_address,
+    struct in_addr *addr)
 {
-  uint32_t ip_address = 0; /* for decoding the subnet mask */
+    uint32_t ip_address = 0;    /* for decoding the subnet mask */
 
-  decode_unsigned32(octet_address, &ip_address);
-  addr->s_addr = htonl(ip_address);
+    decode_unsigned32(octet_address, &ip_address);
+    addr->s_addr = htonl(ip_address);
 
-  return;
+    return;
 }
 
 static void set_broadcast_address(uint32_t net_address)

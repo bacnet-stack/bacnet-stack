@@ -215,7 +215,7 @@ void RS485_Process_Tx_Message(void)
 *****************************************************************************/
 bool RS485_Tx_Complete(void)
 {
-  return RS485_Flags.TransmitComplete;
+    return RS485_Flags.TransmitComplete;
 }
 
 /****************************************************************************

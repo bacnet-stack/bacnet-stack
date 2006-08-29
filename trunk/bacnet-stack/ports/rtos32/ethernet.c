@@ -87,7 +87,7 @@ bool ethernet_init(char *interface_name)
 /* returns bytes sent on success, negative number on failure */
 int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     BACNET_ADDRESS * src,       /* source address */
-    BACNET_NPDU_DATA * npdu_data,   /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
@@ -158,7 +158,7 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
 /* function to send a packet out the 802.2 socket */
 /* returns bytes sent on success, negative number on failure */
 int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
-    BACNET_NPDU_DATA * npdu_data,   /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
@@ -169,14 +169,13 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
         src.mac[i] = Ethernet_MAC_Address[i];
         src.mac_len++;
     }
-    
+
     /* FIXME: npdu_data? */
     /* function to send a packet out the 802.2 socket */
     /* returns 1 on success, 0 on failure */
     return ethernet_send(dest,  /* destination address */
         &src,                   /* source address */
-        npdu_data,
-        pdu,                    /* any data to be sent - may be null */
+        npdu_data, pdu,         /* any data to be sent - may be null */
         pdu_len);               /* number of bytes of data */
 }
 

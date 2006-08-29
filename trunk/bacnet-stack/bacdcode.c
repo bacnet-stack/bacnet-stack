@@ -976,9 +976,9 @@ int encode_context_object_id(uint8_t * apdu,
     len = encode_bacnet_object_id(&apdu[1], object_type, instance);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if ((tag_number <= 14) && (len <= 4))
-      len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
     else
-      len = 0;
+        len = 0;
 
     return len;
 }
@@ -1436,7 +1436,8 @@ int encode_tagged_date(uint8_t * apdu, BACNET_DATE * bdate)
 
 }
 
-int encode_context_date(uint8_t * apdu, int tag_number, BACNET_DATE * bdate)
+int encode_context_date(uint8_t * apdu, int tag_number,
+    BACNET_DATE * bdate)
 {
     int len = 0;                /* return value */
 

@@ -95,7 +95,9 @@ void My_Read_Property_Handler(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len = rp_ack_encode_apdu(&Handler_Transmit_Buffer[0], service_data->invoke_id, &data);
+                    pdu_len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                        service_data->invoke_id, &data);
                 } else
                     error = true;
             } else
@@ -112,8 +114,7 @@ void My_Read_Property_Handler(uint8_t * service_request,
             SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
     }
     npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
-    bytes_sent = datalink_send_pdu(src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);      /* number of bytes of data */
+    bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);      /* number of bytes of data */
 
     return;
 }
