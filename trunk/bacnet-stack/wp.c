@@ -67,8 +67,8 @@ int wp_encode_apdu(uint8_t * apdu,
         /* propertyValue */
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
-        memmove(&apdu[apdu_len], &data->value[0], value_len);
-        apdu_len += value_len;
+        len = bacapp_encode_application_data(&apdu[apdu_len], &data->value);
+        apdu_len += len;
         len = encode_closing_tag(&apdu[apdu_len], 3);
         apdu_len += len;
         /* optional priority - 0 if not set, 1..16 if set */
@@ -82,24 +82,11 @@ int wp_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-int wp_encode_application_apdu(uint8_t * apdu,
-     uint8_t invoke_id,
-     BACNET_WRITE_PROPERTY_DATA * data,
-     BACNET_APPLICATION_DATA_VALUE * value)
-{
-     data->value_len = bacapp_encode_application_data(
-       &data->value[0], value);
-
-     return  wp_encode_apdu(apdu, invoke_id, data);
-}
-
-
 /* decode the service request only */
 /* FIXME: there could be various error messages returned
    using unique values less than zero */
 int wp_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA * data,
-    BACNET_APPLICATION_DATA_VALUE * value)
+    unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA * data)
 {
     int len = 0;
     int tag_len = 0;
@@ -143,11 +130,11 @@ int wp_decode_service_request(uint8_t * apdu,
         if (decode_is_context_specific(&apdu[len]))
             return -2;
         len += bacapp_decode_application_data(&apdu[len],
-            apdu_len - len, &value);
+            apdu_len - len, &data->value);
         /* FIXME: check the return value; abort if no valid data? */
         /* FIXME: there might be more than one data element in here! */
         if (!decode_is_closing_tag_number(&apdu[len], 3))
-            return -1;
+            return -4;
         /* a tag number of 3 is not extended so only one octet */
         len++;
         /* Tag 4: optional Priority - assumed MAX if not explicitly set */
@@ -164,7 +151,7 @@ int wp_decode_service_request(uint8_t * apdu,
                     && (unsigned_value <= BACNET_MAX_PRIORITY)) {
                     data->priority = (uint8_t) unsigned_value;
                 } else
-                    return -1;
+                    return -5;
             }
         }
     }

@@ -108,6 +108,9 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string);
     int encode_tagged_octet_string(uint8_t * apdu,
         BACNET_OCTET_STRING * octet_string);
+    int encode_context_octet_string(uint8_t * apdu,
+        int tag_number,
+        BACNET_OCTET_STRING * octet_string);
     int decode_octet_string(uint8_t * apdu, uint32_t len_value,
         BACNET_OCTET_STRING * octet_string);
 
