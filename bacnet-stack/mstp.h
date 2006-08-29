@@ -199,8 +199,8 @@ struct mstp_port_struct_t {
     /* This array is only used for APDU messages */
     uint8_t TxBuffer[MAX_MPDU];
     unsigned TxLength;
-    bool TxReady;                 /* true if ready to be sent or received */
-    uint8_t TxFrameType;            /* type of message - needed by MS/TP */
+    bool TxReady;               /* true if ready to be sent or received */
+    uint8_t TxFrameType;        /* type of message - needed by MS/TP */
 };
 
 #define DEFAULT_MAX_INFO_FRAMES 1
@@ -223,18 +223,18 @@ extern "C" {
         *mstp_port);
     void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t
         *mstp_port);
-    
+
     /* returns true if line is active */
     bool MSTP_Line_Active(volatile struct mstp_port_struct_t *mstp_port);
 
-    unsigned MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
-        unsigned buffer_len,        /* amount of space available */
-        uint8_t frame_type,         /* type of frame to send - see defines */
-        uint8_t destination,        /* destination address */
-        uint8_t source,             /* source address */
-        uint8_t * data,             /* any data to be sent - may be null */
-        unsigned data_len);          /* number of bytes of data (up to 501) */
-        
+    unsigned MSTP_Create_Frame(uint8_t * buffer,        /* where frame is loaded */
+        unsigned buffer_len,    /* amount of space available */
+        uint8_t frame_type,     /* type of frame to send - see defines */
+        uint8_t destination,    /* destination address */
+        uint8_t source,         /* source address */
+        uint8_t * data,         /* any data to be sent - may be null */
+        unsigned data_len);     /* number of bytes of data (up to 501) */
+
 
 #ifdef __cplusplus
 }

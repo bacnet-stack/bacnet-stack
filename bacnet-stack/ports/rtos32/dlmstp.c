@@ -40,7 +40,7 @@ static DLMSTP_PACKET Receive_Buffer;
 /* temp buffer for NPDU insertion */
 static uint8_t PDU_Buffer[MAX_MPDU];
 /* local MS/TP port data */
-static volatile struct mstp_port_struct_t MSTP_Port;   
+static volatile struct mstp_port_struct_t MSTP_Port;
 
 void dlmstp_init(void)
 {
@@ -59,48 +59,47 @@ void dlmstp_cleanup(void)
 
 /* returns number of bytes sent on success, zero on failure */
 int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
-    BACNET_NPDU_DATA * npdu_data,   /* network information */
+    BACNET_NPDU_DATA * npdu_data,       /* network information */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
     int bytes_sent = 0;
     unsigned npdu_len = 0;
     uint8_t frame_type = 0;
-    uint8_t destination = 0;        /* destination address */
+    uint8_t destination = 0;    /* destination address */
     BACNET_ADDRESS src;
 
     if (MSTP_Port.TxReady == false) {
         if (npdu_data->confirmed_message)
             MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
         else
-            MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+            MSTP_Port.TxFrameType =
+                FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
 
         /* load destination MAC address */
         if (dest && dest->mac_len == 1) {
             destination = dest->mac[0];
         } else {
-            #if PRINT_ENABLED
+#if PRINT_ENABLED
             fprintf(stderr, "mstp: invalid destination MAC address!\n");
-            #endif
+#endif
             return -2;
         }
         dlmstp_get_my_address(&src);
         npdu_len = npdu_encode_pdu(&PDU_Buffer[0], dest, &src, npdu_data);
-        if ((8 /* header len */ + npdu_len + pdu_len) > MAX_MPDU) {
-            #if PRINT_ENABLED
+        if ((8 /* header len */  + npdu_len + pdu_len) > MAX_MPDU) {
+#if PRINT_ENABLED
             fprintf(stderr, "mstp: PDU is too big to send!\n");
-            #endif
+#endif
             return -4;
         }
         memmove(&PDU_Buffer[npdu_len], pdu, pdu_len);
         bytes_sent = MSTP_Create_Frame(
-            (uint8_t *)&MSTP_Port.TxBuffer[0],
+            (uint8_t *) & MSTP_Port.TxBuffer[0],
             sizeof(MSTP_Port.TxBuffer),
             MSTP_Port.TxFrameType,
             destination,
-            MSTP_Port.This_Station,
-            &PDU_Buffer[0],
-            npdu_len + pdu_len);
+            MSTP_Port.This_Station, &PDU_Buffer[0], npdu_len + pdu_len);
         MSTP_Port.TxLength = bytes_sent;
         MSTP_Port.TxReady = true;
     }
@@ -112,9 +111,8 @@ void dlmstp_task(void)
 {
     RS485_Check_UART_Data(&MSTP_Port);
     /* only do receive state machine while we don't have a frame */
-    if ((MSTP_Port.ReceivedValidFrame == false) && 
-        (MSTP_Port.ReceivedInvalidFrame == false))
-    {
+    if ((MSTP_Port.ReceivedValidFrame == false) &&
+        (MSTP_Port.ReceivedInvalidFrame == false)) {
         MSTP_Receive_Frame_FSM(&MSTP_Port);
     }
     /* only do master state machine while rx is idle */
@@ -136,12 +134,12 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
     unsigned timeout)
 {
     uint16_t pdu_len = 0;
-    
+
     (void) timeout;
     /* see if there is a packet available */
-    if (Receive_Buffer.ready)
-    {
-        memmove(src, &Receive_Buffer.address, sizeof(Receive_Buffer.address));
+    if (Receive_Buffer.ready) {
+        memmove(src, &Receive_Buffer.address,
+            sizeof(Receive_Buffer.address));
         pdu_len = Receive_Buffer.pdu_len;
         memmove(&pdu[0], &Receive_Buffer.pdu[0], max_pdu);
         Receive_Buffer.ready = false;
@@ -154,19 +152,16 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
 {
     int i = 0;
 
-    if (mstp_address == MSTP_BROADCAST_ADDRESS)
-    {
+    if (mstp_address == MSTP_BROADCAST_ADDRESS) {
         /* mac_len = 0 if broadcast address */
         src->mac_len = 0;
         src->mac[0] = 0;
-    }
-    else
-    {
+    } else {
         src->mac_len = 1;
         src->mac[0] = mstp_address;
     }
     /* fill with 0's starting with index 1; index 0 filled above */
-    for (i = 1; i <MAX_MAC_LEN; i++) {
+    for (i = 1; i < MAX_MAC_LEN; i++) {
         src->mac[i] = 0;
     }
     src->net = 0;
@@ -177,13 +172,12 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t dlmstp_put_receive(
-    uint8_t src,       /* source MS/TP address */
+uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
     uint8_t * pdu,              /* PDU data */
     uint16_t pdu_len)
 {
     if (Receive_Buffer.ready) {
-      /* FIXME: what to do when we miss a message? */
+        /* FIXME: what to do when we miss a message? */
         pdu_len = 0;
     } else if (pdu_len < sizeof(Receive_Buffer.pdu)) {
         dlmstp_fill_bacnet_address(&Receive_Buffer.address, src);
@@ -194,7 +188,7 @@ uint16_t dlmstp_put_receive(
         /* FIXME: message too large? */
         pdu_len = 0;
     }
-    
+
     return pdu_len;
 }
 

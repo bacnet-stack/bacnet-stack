@@ -66,9 +66,9 @@
 #define IN_CLASSC_HOST          0x000000ff
 
 #define IN_CLASSD(i)            (((long)(i) & 0xf0000000) == 0xe0000000)
-#define IN_CLASSD_NET           0xf0000000       /* These ones aren't really */
-#define IN_CLASSD_NSHIFT        28               /* net and host fields, but */
-#define IN_CLASSD_HOST          0x0fffffff       /* routing needn't know.    */
+#define IN_CLASSD_NET           0xf0000000      /* These ones aren't really */
+#define IN_CLASSD_NSHIFT        28      /* net and host fields, but */
+#define IN_CLASSD_HOST          0x0fffffff      /* routing needn't know.    */
 #define IN_MULTICAST(i)         IN_CLASSD(i)
 
 #else
