@@ -221,7 +221,7 @@ extern "C" {
         *mstp_port);
     void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t
         *mstp_port);
-    void MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t
+    bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t
         *mstp_port);
 
     /* returns true if line is active */

@@ -22,7 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#define PRINT_ENABLED_RS485 1
+#define PRINT_ENABLED_RS485 0
 
 #include <stdint.h>
 #include <rtkernel.h>
@@ -47,6 +47,36 @@ static long RS485_Baud = 9600;
 static long RS485_Base = 0;
 /* hardware IRQ number */
 static long RS485_IRQ_Number = 0;
+
+#if PRINT_ENABLED_RS485
+static FineTime RS485_Debug_Transmit_Timer;
+#endif
+
+#if PRINT_ENABLED_RS485
+void RS485_Print_Frame(int port,
+    FineTime timer,
+    uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
+    uint16_t nbytes)
+{
+    uint16_t i; // byte counter
+    unsigned long duration; // measures the time from last output to this one
+    unsigned long seconds;
+    unsigned long milliseconds;
+  
+    duration = ElapsedMilliSecs(timer);
+    seconds = duration / 1000U;
+    milliseconds = duration - (seconds * 1000U);
+    fprintf(stderr,"%0lu.%03lu: COM%d:",seconds,milliseconds,port+1);
+    for (i = 0; i < nbytes; i++)
+    {
+      unsigned value;
+      value = buffer[i];
+      fprintf(stderr," %02X",value);
+    }
+    fprintf(stderr,"\n");
+    fflush(stderr);
+}
+#endif
 
 static void RS485_Standard_Port_Settings(long port, long *pIRQ,
     long *pBase)
@@ -119,6 +149,9 @@ static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
 
 void RS485_Initialize(void)
 {
+#if PRINT_ENABLED_RS485
+    MarkTime(&RS485_Debug_Transmit_Timer);
+#endif
     RS485_Standard_Port_Settings(RS485_Port, &RS485_IRQ_Number,
         &RS485_Base);
     RS485_Open_Port(RS485_Port, RS485_Baud, RS485_Base, RS485_IRQ_Number);
@@ -137,19 +170,16 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
     while (!(LineStatus(RS485_Port) & TX_SHIFT_EMPTY))
         RTKScheduler();
     RS485_RECEIVE_ENABLE(RS485_Port);
+    /* SilenceTimer is cleared by the Receive State Machine when 
+       activity is detected and by the SendFrame procedure as each 
+       octet is transmitted. */
     mstp_port->SilenceTimer = 0;
 #if PRINT_ENABLED_RS485
-    {
-        int i = 0;
-        fprintf(stderr, "RS485 Tx:");
-        for (i = 0; i < nbytes; i++) {
-            fprintf(stderr, " %02X", buffer[i]);
-            if ((!(i % 20)) && (i != 0)) {
-                fprintf(stderr, "\r\n         ");
-            }
-        }
-        fprintf(stderr, "\r\n");
-    }
+    RS485_Print_Frame(RS485_Port,
+      RS485_Debug_Transmit_Timer,
+      buffer,           /* frame to send (up to 501 bytes of data) */
+      nbytes);
+    MarkTime(&RS485_Debug_Transmit_Timer);
 #endif
 
     return;

@@ -90,7 +90,7 @@ void RTOS_Initialize(void)
 {
     /* allow OS to setup IRQ 1 by using a dummy call */
     (void) kbhit();
-    RTKernelInit(0);            /* get the kernel going */
+    RTKernelInit(5);            /* get the kernel going */
     RTKeybrdInit();
     //(void)CPUMoniInit(); /* not needed - just monitor idle task */
     RTComInit();
@@ -125,7 +125,7 @@ void RTOS_Initialize(void)
     RTCMOSSetSystemTime();      /* get the right time-of-day */
 
     /* create timer tick task */
-    RTKCreateTask(millisecond_task, 1, 1024 * 8, "millisec task");
+    RTKCreateTask(millisecond_task, 16, 1024 * 8, "millisec task");
 }
 
 int main(int argc, char *argv[])
@@ -156,9 +156,7 @@ int main(int argc, char *argv[])
     /* loop forever */
     for (;;) {
         /* input */
-#ifdef BACDL_MSTP
-        dlmstp_task();
-#endif
+
         /* returns 0 bytes on timeout */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
         /* process */
