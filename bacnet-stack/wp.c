@@ -43,6 +43,7 @@ int wp_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA * data)
 {
     int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;           /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -51,33 +52,54 @@ int wp_encode_apdu(uint8_t * apdu,
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_WRITE_PROPERTY;     /* service choice */
         apdu_len = 4;
-        apdu_len += encode_context_object_id(&apdu[apdu_len], 0,
+        len = encode_context_object_id(&apdu[apdu_len], 0,
             data->object_type, data->object_instance);
-        apdu_len += encode_context_enumerated(&apdu[apdu_len], 1,
+        apdu_len += len;
+        len = encode_context_enumerated(&apdu[apdu_len], 1,
             data->object_property);
+        apdu_len += len;
         /* optional array index; ALL is -1 which is assumed when missing */
-        if (data->array_index != BACNET_ARRAY_ALL)
-            apdu_len += encode_context_unsigned(&apdu[apdu_len], 2,
+        if (data->array_index != BACNET_ARRAY_ALL) {
+            len = encode_context_unsigned(&apdu[apdu_len], 2,
                 data->array_index);
+            apdu_len += len;
+        }
         /* propertyValue */
-        apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
-        apdu_len +=
-            bacapp_encode_application_data(&apdu[apdu_len], &data->value);
-        apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
+        len = encode_opening_tag(&apdu[apdu_len], 3);
+        apdu_len += len;
+        memmove(&apdu[apdu_len], &data->value[0], value_len);
+        apdu_len += value_len;
+        len = encode_closing_tag(&apdu[apdu_len], 3);
+        apdu_len += len;
         /* optional priority - 0 if not set, 1..16 if set */
-        if (data->priority != BACNET_NO_PRIORITY)
-            apdu_len += encode_context_unsigned(&apdu[apdu_len], 4,
+        if (data->priority != BACNET_NO_PRIORITY) {
+            len = encode_context_unsigned(&apdu[apdu_len], 4,
                 data->priority);
+            apdu_len += len;
+        }
     }
 
     return apdu_len;
 }
 
+int wp_encode_application_apdu(uint8_t * apdu,
+     uint8_t invoke_id,
+     BACNET_WRITE_PROPERTY_DATA * data,
+     BACNET_APPLICATION_DATA_VALUE * value)
+{
+     data->value_len = bacapp_encode_application_data(
+       &data->value[0], value);
+
+     return  wp_encode_apdu(apdu, invoke_id, data);
+}
+
+
 /* decode the service request only */
 /* FIXME: there could be various error messages returned
    using unique values less than zero */
 int wp_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA * data)
+    unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA * data,
+    BACNET_APPLICATION_DATA_VALUE * value)
 {
     int len = 0;
     int tag_len = 0;
@@ -117,8 +139,11 @@ int wp_decode_service_request(uint8_t * apdu,
             return -1;
         /* a tag number of 3 is not extended so only one octet */
         len++;
+        /* FIXME: decode the length of the context specific tag value */
+        if (decode_is_context_specific(&apdu[len]))
+            return -2;
         len += bacapp_decode_application_data(&apdu[len],
-            apdu_len - len, &data->value);
+            apdu_len - len, &value);
         /* FIXME: check the return value; abort if no valid data? */
         /* FIXME: there might be more than one data element in here! */
         if (!decode_is_closing_tag_number(&apdu[len], 3))
