@@ -36,11 +36,12 @@
 #include "npdu.h"
 
 /* receive buffer */
+#pragma udata MSTPPortData
 static DLMSTP_PACKET Receive_Buffer;
 /* temp buffer for NPDU insertion */
 static uint8_t PDU_Buffer[MAX_MPDU];
-/* local MS/TP port data */
-static volatile struct mstp_port_struct_t MSTP_Port;
+/* local MS/TP port data - shared with RS-485 */
+volatile struct mstp_port_struct_t MSTP_Port;
 
 void dlmstp_init(void)
 {
@@ -141,6 +142,7 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
         memmove(&pdu[0], &Receive_Buffer.pdu[0], max_pdu);
         Receive_Buffer.ready = false;
     }
+    RS485_Process_Tx_Message();
 
     return pdu_len;
 }

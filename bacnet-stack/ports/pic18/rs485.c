@@ -80,6 +80,37 @@ volatile static enum {
 } RS485_State;
 
 /****************************************************************************
+* DESCRIPTION: Processes the RS485 message to be sent
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Process_Tx_Message(void)
+{
+    if (RS485_Flags.TransmitComplete)
+        RS485_Flags.TransmitComplete = FALSE;
+    /* start a new transmisstion if we are ready */
+    if (RS485_Flags.TransmitStart && (RS485_State == RS485_STATE_IDLE)) {
+        /* Disable the receiver */
+        USART_RX_INT_DISABLE();
+        USART_CONTINUOUS_RX_DISABLE();
+        /* Enable the transmit line driver and interrupts */
+        RS485_TRANSMIT_ENABLE();
+        RS485_State = RS485_STATE_TX_DATA;
+        /* Configure the ISR handler for an outgoing message */
+        RS485_Tx_Index = 0;
+        /* update the flags for beginning a send */
+        RS485_Flags.TransmitComplete = FALSE;
+        RS485_Flags.TransmitStart = FALSE;
+        /* send the first byte */
+        USART_TRANSMIT(RS485_Tx_Buffer[0]);
+        USART_TX_SETUP();
+    }
+
+    return;
+}
+
+/****************************************************************************
 * DESCRIPTION: Transmits a frame using the UART
 * RETURN:      none
 * ALGORITHM:   none
@@ -119,6 +150,7 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
     }
     /* signal the task to start sending when it is ready */
     RS485_Flags.TransmitStart = TRUE;
+    mstp_port->SilenceTimer = 0;
 
     return;
 }
@@ -140,6 +172,7 @@ void RS485_Transmit_Interrupt(void)
             data = RS485_Tx_Buffer[RS485_Tx_Index];
             USART_TRANSMIT(data);
             MSTP_Port.SilenceTimer = 0;
+            
         } else {
             /* wait until the last bit is sent */
             while (!USART_TX_EMPTY());
@@ -171,37 +204,6 @@ void RS485_Transmit_Interrupt(void)
         break;
     default:
         break;
-    }
-
-    return;
-}
-
-/****************************************************************************
-* DESCRIPTION: Processes the RS485 message to be sent
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Process_Tx_Message(void)
-{
-    if (RS485_Flags.TransmitComplete)
-        RS485_Flags.TransmitComplete = FALSE;
-    /* start a new transmisstion if we are ready */
-    if (RS485_Flags.TransmitStart && (RS485_State == RS485_STATE_IDLE)) {
-        /* Disable the receiver */
-        USART_RX_INT_DISABLE();
-        USART_CONTINUOUS_RX_DISABLE();
-        /* Enable the transmit line driver and interrupts */
-        RS485_TRANSMIT_ENABLE();
-        RS485_State = RS485_STATE_TX_DATA;
-        /* Configure the ISR handler for an outgoing message */
-        RS485_Tx_Index = 0;
-        /* update the flags for beginning a send */
-        RS485_Flags.TransmitComplete = FALSE;
-        RS485_Flags.TransmitStart = FALSE;
-        /* send the first byte */
-        USART_TRANSMIT(RS485_Tx_Buffer[0]);
-        USART_TX_SETUP();
     }
 
     return;
