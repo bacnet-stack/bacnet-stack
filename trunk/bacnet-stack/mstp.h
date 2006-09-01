@@ -44,6 +44,8 @@
 
 /*  The value 255 is used to denote broadcast when used as a */
 /* destination address but is not allowed as a value for a station. */
+/* Station addresses for master nodes can be 0-127.  */
+/* Station addresses for slave nodes can be 127-254.  */
 #define MSTP_BROADCAST_ADDRESS 255
 
 /* MS/TP Frame Type */
