@@ -29,7 +29,6 @@
 #include "bytes.h"
 #include "crc.h"
 #include "rs485.h"
-#include "ringbuf.h"
 #include "init.h"
 #include "timer.h"
 #include "datalink.h"
@@ -152,7 +151,7 @@ void main(void)
         (handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+        My_Read_Property_Handler);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler
         (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
