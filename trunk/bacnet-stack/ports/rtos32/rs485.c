@@ -22,7 +22,11 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#define PRINT_ENABLED_RS485 0
+#if PRINT_ENABLED
+  #define PRINT_ENABLED_RS485 1
+#else
+  #define PRINT_ENABLED_RS485 0
+#endif
 
 #include <stdint.h>
 #include <rtkernel.h>
