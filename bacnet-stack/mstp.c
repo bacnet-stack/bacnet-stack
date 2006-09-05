@@ -55,9 +55,15 @@
 #include "rs485.h"
 
 /* debug print statements */
-#define PRINT_ENABLED_RECEIVE 0
-#define PRINT_ENABLED_RECEIVE_DATA 0
-#define PRINT_ENABLED_MASTER 0
+#if PRINT_ENABLED
+  #define PRINT_ENABLED_RECEIVE 0
+  #define PRINT_ENABLED_RECEIVE_DATA 1
+  #define PRINT_ENABLED_MASTER 0
+#else
+  #define PRINT_ENABLED_RECEIVE 0
+  #define PRINT_ENABLED_RECEIVE_DATA 0
+  #define PRINT_ENABLED_MASTER 0
+#endif
 
 /* MS/TP Frame Format */
 /* All frames are of the following format: */
@@ -443,7 +449,67 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     CRC_Calc_Header(mstp_port->DataRegister,
                     mstp_port->HeaderCRC);
                 mstp_port->DataAvailable = false;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER_CRC;
+                /* don't wait for next state - do it here */
+                /* MSTP_RECEIVE_STATE_HEADER_CRC */
+                if (mstp_port->HeaderCRC != 0x55) {
+                    /* BadCRC */
+                    /* indicate that an error has occurred during the reception of a frame */
+                    mstp_port->ReceivedInvalidFrame = true;
+                    /* wait for the start of the next frame. */
+                    mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                } else {
+                    if ((mstp_port->DestinationAddress == mstp_port->This_Station)
+                        || (mstp_port->DestinationAddress ==
+                            MSTP_BROADCAST_ADDRESS)) {
+                        /* FrameTooLong */
+                        if (mstp_port->DataLength > MAX_MPDU) {
+                            /* indicate that a frame with an illegal or  */
+                            /* unacceptable data length has been received */
+                            mstp_port->ReceivedInvalidFrame = true;
+                            /* wait for the start of the next frame. */
+                            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                        }
+                        /* NoData */
+                        else if (mstp_port->DataLength == 0) {
+                            /* CHEAT: it is very difficult to respond to 
+                               poll for master in the Master Node state machine
+                               before Tusage_timeout, so we will do it here. */
+                            if ((mstp_port->FrameType == FRAME_TYPE_POLL_FOR_MASTER) &&
+                                (mstp_port->DestinationAddress == mstp_port->This_Station) &&
+                                (mstp_port->master_state == MSTP_MASTER_STATE_IDLE))
+                            {
+                                MSTP_Create_And_Send_Frame(mstp_port,
+                                    FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
+                                    mstp_port->SourceAddress, mstp_port->This_Station,
+                                    NULL, 0);
+                                /* don't indicate that a frame has been received */
+                                mstp_port->ReceivedInvalidFrame = false;
+                                mstp_port->ReceivedValidFrame = false;
+                            }
+                            else
+                            {
+                                /* indicate that a frame with no data has been received */
+                                mstp_port->ReceivedValidFrame = true;
+                            }
+                            /* wait for the start of the next frame. */
+                            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                        }
+                        /* Data */
+                        else {
+                            mstp_port->Index = 0;
+                            mstp_port->DataCRC = 0xFFFF;
+                            /* receive the data portion of the frame. */
+                            mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
+                        }
+                    }
+                    /* NotForUs */
+                    else {
+                        /* wait for the start of the next frame. */
+                        mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                    }
+                }
+              
+              
             }
             /* not per MS/TP standard, but it is a case not covered */
             else {
@@ -461,45 +527,6 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
         /* In the HEADER_CRC state, the node validates the CRC on the fixed */
         /* message header. */
     case MSTP_RECEIVE_STATE_HEADER_CRC:
-        /* BadCRC */
-        if (mstp_port->HeaderCRC != 0x55) {
-            /* indicate that an error has occurred during the reception of a frame */
-            mstp_port->ReceivedInvalidFrame = true;
-            /* wait for the start of the next frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-        } else {
-            if ((mstp_port->DestinationAddress == mstp_port->This_Station)
-                || (mstp_port->DestinationAddress ==
-                    MSTP_BROADCAST_ADDRESS)) {
-                /* FrameTooLong */
-                if (mstp_port->DataLength > MAX_MPDU) {
-                    /* indicate that a frame with an illegal or  */
-                    /* unacceptable data length has been received */
-                    mstp_port->ReceivedInvalidFrame = true;
-                    /* wait for the start of the next frame. */
-                    mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-                }
-                /* NoData */
-                else if (mstp_port->DataLength == 0) {
-                    /* indicate that a frame with no data has been received */
-                    mstp_port->ReceivedValidFrame = true;
-                    /* wait for the start of the next frame. */
-                    mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-                }
-                /* Data */
-                else {
-                    mstp_port->Index = 0;
-                    mstp_port->DataCRC = 0xFFFF;
-                    /* receive the data portion of the frame. */
-                    mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
-                }
-            }
-            /* NotForUs */
-            else {
-                /* wait for the start of the next frame. */
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-            }
-        }
         break;
         /* In the DATA state, the node waits for the data portion of a frame. */
     case MSTP_RECEIVE_STATE_DATA:
@@ -753,6 +780,10 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     break;
                     /* ReceivedPFM */
                 case FRAME_TYPE_POLL_FOR_MASTER:
+                    /* CHEAT: we cheat a little and this is really handled in the
+                       receive state machine since it is difficult to respond
+                       quick enough (i.e. faster than Tusage_timeout of the 
+                       other node which could be 20ms). */
                     MSTP_Create_And_Send_Frame(mstp_port,
                         FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
                         mstp_port->SourceAddress, mstp_port->This_Station,
