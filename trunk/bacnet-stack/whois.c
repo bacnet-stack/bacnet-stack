@@ -96,6 +96,11 @@ int whois_decode_service_request(uint8_t * apdu,
     return len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
 int whois_decode_apdu(uint8_t * apdu,
     unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit)
 {
@@ -116,11 +121,6 @@ int whois_decode_apdu(uint8_t * apdu,
 
     return len;
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 void testWhoIs(Test * pTest)
 {

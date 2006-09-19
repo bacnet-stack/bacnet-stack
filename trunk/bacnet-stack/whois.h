@@ -48,10 +48,10 @@ extern "C" {
     int whois_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit);
 
+#ifdef TEST
     int whois_decode_apdu(uint8_t * apdu,
         unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit);
 
-#ifdef TEST
     void testWhoIs(Test * pTest);
 #endif
 
