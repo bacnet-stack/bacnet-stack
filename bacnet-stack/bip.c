@@ -117,7 +117,6 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
-    BACNET_ADDRESS src = { 0 };
 
     /* assumes that the driver has already been initialized */
     if (BIP_Socket < 0)
@@ -141,13 +140,12 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
     } else
         return -1;
 
-    /* len is encoded at mtu[2], but we haven't finished packing yet */
-    bip_get_my_address(&src);
-    mtu_len = npdu_encode_pdu(&mtu[4], dest, &src, npdu_data);
-    mtu_len += 4;
+    mtu_len = 2;
+    mtu_len +=
+        encode_unsigned16(&mtu[mtu_len],
+        (uint16_t) (pdu_len + 4 /*inclusive */ ));
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
-    encode_unsigned16(&mtu[2], mtu_len);
 
     /* Send the packet */
     bytes_sent = sendto(BIP_Socket, (char *) mtu, mtu_len, 0,

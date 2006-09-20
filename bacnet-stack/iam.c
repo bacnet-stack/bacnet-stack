@@ -136,6 +136,7 @@ int iam_decode_service_request(uint8_t * apdu,
 
 int iam_send(uint8_t * buffer)
 {
+    int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -143,13 +144,14 @@ int iam_send(uint8_t * buffer)
 
     /* I-Am is a global broadcast */
     datalink_get_broadcast_address(&dest);
-
+    /* encode the NPDU portion of the packet */
+    npdu_encode_apdu(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    len = npdu_encode_pdu(&buffer[0], &dest, NULL, &npdu_data);
     /* encode the APDU portion of the packet */
-    pdu_len = iam_encode_apdu(&buffer[0],
+    len = iam_encode_apdu(&buffer[pdu_len],
         Device_Object_Instance_Number(),
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
-    /* encode the NPDU portion of the packet */
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    pdu_len += len;
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
