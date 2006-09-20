@@ -44,7 +44,7 @@ void npdu_copy_data(BACNET_NPDU_DATA * dest, BACNET_NPDU_DATA * src)
 {
     if (dest && src) {
         dest->protocol_version = src->protocol_version;
-        dest->confirmed_message = src->confirmed_message;
+        dest->data_expecting_reply = src->data_expecting_reply;
         dest->network_layer_message = src->network_layer_message;
         dest->priority = src->priority;
         dest->network_message_type = src->network_message_type;
@@ -55,6 +55,44 @@ void npdu_copy_data(BACNET_NPDU_DATA * dest, BACNET_NPDU_DATA * src)
     return;
 }
 
+/*
+
+The following ICI parameters are exchanged with the
+various service primitives across an API:
+
+'destination_address' (DA): the address of the device(s)
+intended to receive the service primitive. Its format (device name,
+network address, etc.) is a local matter. This address
+may also be a multicast, local broadcast or global broadcast type.
+
+'source_address' (SA): the address of the device from which
+the service primitive was received. Its format (device name,
+network address, etc.) is a local matter.
+
+'network_priority' (NP): a four-level network priority parameter
+described in 6.2.2.
+
+'data_expecting_reply' (DER): a Boolean parameter that indicates
+whether (TRUE) or not (FALSE) a reply service primitive
+is expected for the service being issued.
+
+
+Table 5-1. Applicability of ICI parameters for abstract service primitives
+     Service Primitive         DA           SA         NP        DER
+CONF_SERV.request              Yes          No         Yes       Yes
+CONF_SERV.indication           Yes         Yes         Yes       Yes
+CONF_SERV.response             Yes          No         Yes       Yes
+CONF_SERV.confirm              Yes         Yes         Yes        No
+UNCONF_SERV.request            Yes          No         Yes        No
+UNCONF_SERV.indication         Yes         Yes         Yes        No
+REJECT.request                 Yes          No         Yes        No
+REJECT.indication              Yes         Yes         Yes        No
+SEGMENT_ACK.request            Yes          No         Yes        No
+SEGMENT_ACK.indication         Yes         Yes         Yes        No
+ABORT.request                  Yes          No         Yes        No
+ABORT.indication               Yes         Yes         Yes        No
+*/
+
 int npdu_encode_pdu(uint8_t * npdu,
     BACNET_ADDRESS * dest,
     BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data)
@@ -64,9 +102,6 @@ int npdu_encode_pdu(uint8_t * npdu,
 
 
     if (npdu && npdu_data) {
-        /* only include src address for data expecting reply, or replies */
-        if (!(npdu_data->confirmed_message))
-            src = NULL;
         /* protocol version */
         npdu[0] = npdu_data->protocol_version;
         /* initialize the control octet */
@@ -101,7 +136,7 @@ int npdu_encode_pdu(uint8_t * npdu,
         /* 0 indicates that other than a BACnet-Confirmed-Request-PDU, */
         /* a segment of a BACnet-ComplexACK-PDU, */
         /* or a network layer message expecting a reply is present. */
-        if (npdu_data->confirmed_message)
+        if (npdu_data->data_expecting_reply)
             npdu[1] |= BIT2;
         /* Bits 1,0: Network priority where: */
         /* B'11' = Life Safety message */
@@ -154,25 +189,12 @@ int npdu_encode_pdu(uint8_t * npdu,
 
 /* Configure the NPDU portion of the packet for an APDU */
 /* This function does not handle the network messages, just APDUs. */
-void npdu_encode_confirmed_apdu(BACNET_NPDU_DATA * npdu_data,
+void npdu_encode_apdu(BACNET_NPDU_DATA * npdu_data,
+    bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
 {
     if (npdu_data) {
-        npdu_data->confirmed_message = true;
-        npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
-        npdu_data->network_layer_message = false;       /* false if APDU */
-        npdu_data->network_message_type = 0;    /* optional */
-        npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
-        npdu_data->priority = priority;
-        npdu_data->hop_count = 0;
-    }
-}
-
-void npdu_encode_unconfirmed_apdu(BACNET_NPDU_DATA * npdu_data,
-    BACNET_MESSAGE_PRIORITY priority)
-{
-    if (npdu_data) {
-        npdu_data->confirmed_message = false;
+        npdu_data->data_expecting_reply = data_expecting_reply;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
         npdu_data->network_layer_message = false;       /* false if APDU */
         npdu_data->network_message_type = 0;    /* optional */
@@ -212,7 +234,7 @@ int npdu_decode(uint8_t * npdu,
         /* 0 indicates that other than a BACnet-Confirmed-Request-PDU, */
         /* a segment of a BACnet-ComplexACK-PDU, */
         /* or a network layer message expecting a reply is present. */
-        npdu_data->confirmed_message = (npdu[1] & BIT2) ? true : false;
+        npdu_data->data_expecting_reply = (npdu[1] & BIT2) ? true : false;
         /* Bits 1,0: Network priority where: */
         /* B'11' = Life Safety message */
         /* B'10' = Critical Equipment message */
@@ -336,7 +358,7 @@ void testNPDU2(Test * pTest)
     BACNET_ADDRESS npdu_dest = { 0 };
     BACNET_ADDRESS npdu_src = { 0 };
     int len = 0;
-    bool confirmed_message = true;      /* true for confirmed messages */
+    bool data_expecting_reply = true;  
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0;                  /* counter */
@@ -366,13 +388,13 @@ void testNPDU2(Test * pTest)
     for (i = 0; i < src.len; i++) {
         src.adr[i] = 0x40;
     }
-    npdu_encode_confirmed_apdu(&npdu_data, priority);
+    npdu_encode_apdu(&npdu_data, true, priority);
     len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
     ct_test(pTest, len != 0);
     /* can we get the info back? */
     npdu_len = npdu_decode(&pdu[0], &npdu_dest, &npdu_src, &npdu_data);
     ct_test(pTest, npdu_len != 0);
-    ct_test(pTest, npdu_data.confirmed_message == confirmed_message);
+    ct_test(pTest, npdu_data.data_expecting_reply == data_expecting_reply);
     ct_test(pTest,
         npdu_data.network_layer_message == network_layer_message);
     ct_test(pTest, npdu_data.network_message_type == network_message_type);
@@ -400,7 +422,7 @@ void testNPDU1(Test * pTest)
     BACNET_ADDRESS npdu_dest = { 0 };
     BACNET_ADDRESS npdu_src = { 0 };
     int len = 0;
-    bool confirmed_message = false;     /* true for confirmed messages */
+    bool data_expecting_reply = false;
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0;                  /* counter */
@@ -430,13 +452,13 @@ void testNPDU1(Test * pTest)
     for (i = 0; i < MAX_MAC_LEN; i++) {
         src.adr[i] = 0;
     }
-    npdu_encode_unconfirmed_apdu(&npdu_data, priority);
+    npdu_encode_apdu(&npdu_data, false, priority);
     len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
     ct_test(pTest, len != 0);
     /* can we get the info back? */
     npdu_len = npdu_decode(&pdu[0], &npdu_dest, &npdu_src, &npdu_data);
     ct_test(pTest, npdu_len != 0);
-    ct_test(pTest, npdu_data.confirmed_message == confirmed_message);
+    ct_test(pTest, npdu_data.data_expecting_reply == data_expecting_reply);
     ct_test(pTest,
         npdu_data.network_layer_message == network_layer_message);
     ct_test(pTest, npdu_data.network_message_type == network_message_type);
