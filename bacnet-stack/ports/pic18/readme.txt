@@ -26,5 +26,5 @@ Stack: Multi-bank Model
 
 MPLAB C18 Tab: General: Macro Definitions:
 PRINT_ENABLED=0
-BACDL_MSTP
-BIG_ENDIAN=1
+BACDL_MSTP=1
+BIG_ENDIAN=0
