@@ -881,6 +881,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 mstp_port->ReceivedInvalidFrame = false;
                 mstp_port->master_state =
                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
+                transition_now = true;
             } else if (mstp_port->ReceivedValidFrame == true) {
                 if (mstp_port->DestinationAddress ==
                     mstp_port->This_Station) {
@@ -918,8 +919,8 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
                 }
                 mstp_port->ReceivedValidFrame = false;
+                transition_now = true;
             }
-            transition_now = true;
         }
         break;
         /* The DONE_WITH_TOKEN state either sends another data frame,  */
