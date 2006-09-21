@@ -103,6 +103,11 @@ int timesync_decode_service_request(uint8_t * apdu,
     return len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
 int timesync_decode_apdu_service(uint8_t * apdu,
     BACNET_UNCONFIRMED_SERVICE service,
     unsigned apdu_len, BACNET_DATE * my_date, BACNET_TIME * my_time)
@@ -140,11 +145,6 @@ int timesync_decode_apdu(uint8_t * apdu,
         SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
         apdu_len, my_date, my_time);
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 void testTimeSyncData(Test * pTest,
     BACNET_DATE * my_date, BACNET_TIME * my_time)
