@@ -137,6 +137,11 @@ int whohas_decode_service_request(uint8_t * apdu,
     return len;
 }
 
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
 int whohas_decode_apdu(uint8_t * apdu,
     unsigned apdu_len, BACNET_WHO_HAS_DATA * data)
 {
@@ -156,11 +161,6 @@ int whohas_decode_apdu(uint8_t * apdu,
 
     return len;
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 void testWhoHasData(Test * pTest, BACNET_WHO_HAS_DATA * data)
 {
