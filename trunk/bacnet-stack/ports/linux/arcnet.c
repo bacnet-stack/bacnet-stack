@@ -194,9 +194,9 @@ int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     int bytes = 0;
     uint8_t mtu[512] = { 0 };
     int mtu_len = 0;
-    int npdu_len = 0;
     struct archdr *pkt = (struct archdr *) mtu;
 
+    (void)npdu_data;
     src.mac[0] = ARCNET_MAC_Address;
     src.mac_len = 1;
 
@@ -223,14 +223,13 @@ int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     pkt->soft.raw[1] = 0x82;    /* DSAP for BACnet */
     pkt->soft.raw[2] = 0x82;    /* SSAP for BACnet */
     pkt->soft.raw[3] = 0x03;    /* LLC Control byte in header */
-    npdu_len = npdu_encode_pdu(&pkt->soft.raw[4], dest, &src, npdu_data);
     /* packet length */
-    mtu_len = ARC_HDR_SIZE + 4 /*SC,DSAP,SSAP,LLC */  + npdu_len + pdu_len;
+    mtu_len = ARC_HDR_SIZE + 4 /*SC,DSAP,SSAP,LLC */  + pdu_len;
     if (mtu_len > 512) {
         fprintf(stderr, "arcnet: PDU is too big to send!\n");
         return -4;
     }
-    memcpy(&pkt->soft.raw[4 + npdu_len], pdu, pdu_len);
+    memcpy(&pkt->soft.raw[4], pdu, pdu_len);
     /* Send the packet */
     bytes =
         sendto(ARCNET_Sock_FD, &mtu, mtu_len, 0,

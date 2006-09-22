@@ -64,10 +64,10 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     unsigned pdu_len)
 {                               /* number of bytes of data */
     int bytes_sent = 0;
-    unsigned npdu_len = 0;
     uint8_t frame_type = 0;
     uint8_t destination = 0;    /* destination address */
     BACNET_ADDRESS src;
+    unsigned mtu_len = 0;
 
     if (MSTP_Port.TxReady == false) {
         if (npdu_data->confirmed_message)
@@ -85,21 +85,22 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
 #endif
             return -2;
         }
-        dlmstp_get_my_address(&src);
-        npdu_len = npdu_encode_pdu(&PDU_Buffer[0], dest, &src, npdu_data);
-        if ((8 /* header len */  + npdu_len + pdu_len) > MAX_MPDU) {
+        /* header len */
+        mtu_len = 8;
+        if ((mtu_len  + pdu_len) > MAX_MPDU) {
 #if PRINT_ENABLED
             fprintf(stderr, "mstp: PDU is too big to send!\n");
 #endif
             return -4;
         }
-        memmove(&PDU_Buffer[npdu_len], pdu, pdu_len);
+        memmove(&PDU_Buffer[mtu_len], pdu, pdu_len);
+        mtu_len += pdu_len;
         bytes_sent = MSTP_Create_Frame(
             (uint8_t *) & MSTP_Port.TxBuffer[0],
             sizeof(MSTP_Port.TxBuffer),
             MSTP_Port.TxFrameType,
             destination,
-            MSTP_Port.This_Station, &PDU_Buffer[0], npdu_len + pdu_len);
+            MSTP_Port.This_Station, &PDU_Buffer[0], mtu_len);
         MSTP_Port.TxLength = bytes_sent;
         MSTP_Port.TxReady = true;
     }

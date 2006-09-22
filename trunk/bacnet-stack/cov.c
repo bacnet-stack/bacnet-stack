@@ -276,6 +276,7 @@ int cov_notify_decode_service_request(uint8_t * apdu,
 
 int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
 {
+    int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -283,10 +284,12 @@ int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
 
     /* unconfirmed is a broadcast */
     datalink_get_broadcast_address(&dest);
-    /* encode the APDU portion of the packet */
-    pdu_len = ucov_notify_encode_apdu(&buffer[0], data);
     /* encode the NPDU portion of the packet */
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&buffer[0], &dest, NULL, &npdu_data);
+    /* encode the APDU portion of the packet */
+    len = ucov_notify_encode_apdu(&buffer[pdu_len], data);
+    pdu_len += len;
     /* send the data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 

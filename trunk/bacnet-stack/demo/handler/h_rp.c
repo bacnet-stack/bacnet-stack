@@ -59,33 +59,37 @@ void handler_read_property(uint8_t * service_request,
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    bool send = false;
-    bool error = false;
+    bool error = true;
     int bytes_sent = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_ADDRESS my_address;
 
     len = rp_decode_service_request(service_request, service_len, &data);
+    /* encode the NPDU portion of the packet */
+    datalink_get_my_address(&my_address);
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, 
+        &my_address, &npdu_data);
+    
 #if PRINT_ENABLED
     if (len <= 0)
         fprintf(stderr, "Unable to decode Read-Property Request!\n");
 #endif
     /* bad decoding - send an abort */
     if (len < 0) {
-        pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER);
 #if PRINT_ENABLED
         fprintf(stderr, "Sending Abort!\n");
 #endif
-        send = true;
     } else if (service_data->segmented_message) {
-        pdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[0],
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
 #if PRINT_ENABLED
         fprintf(stderr, "Sending Abort!\n");
 #endif
-        send = true;
     } else {
         switch (data.object_type) {
         case OBJECT_DEVICE:
@@ -99,8 +103,8 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr,

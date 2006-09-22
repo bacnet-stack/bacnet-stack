@@ -188,8 +188,8 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
     BACNET_ADDRESS src = { 0 }; /* source address for npdu */
     uint8_t mtu[MAX_MPDU] = { 0 };      /* our buffer */
     int mtu_len = 0;
-    int npdu_len = 0;
 
+    (void)ndpu_data;
     /* load the BACnet address for NPDU data */
     for (i = 0; i < 6; i++) {
         src.mac[i] = Ethernet_MAC_Address[i];
@@ -224,8 +224,7 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
     mtu[14] = 0x82;             /* DSAP for BACnet */
     mtu[15] = 0x82;             /* SSAP for BACnet */
     mtu[16] = 0x03;             /* Control byte in header */
-    npdu_len = npdu_encode_pdu(&mtu[17], dest, &src, npdu_data);
-    mtu_len = 17 + npdu_len;
+    mtu_len = 17;
     if ((mtu_len + pdu_len) > MAX_MPDU) {
         fprintf(stderr, "ethernet: PDU is too big to send!\n");
         return -4;
@@ -233,7 +232,7 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
     /* packet length - only the logical portion, not the address */
-    encode_unsigned16(&mtu[12], 3 + npdu_len + pdu_len);
+    encode_unsigned16(&mtu[12], 3 + pdu_len);
 
     /* Send the packet */
     bytes =

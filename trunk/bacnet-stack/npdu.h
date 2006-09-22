@@ -62,7 +62,7 @@ extern "C" {
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data);
 
-    void npdu_encode_apdu(BACNET_NPDU_DATA * npdu,
+    void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu,
         bool data_expecting_reply,
         BACNET_MESSAGE_PRIORITY priority);
 

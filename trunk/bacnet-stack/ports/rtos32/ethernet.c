@@ -94,9 +94,9 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     int bytes = 0;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
-    int npdu_len = 0;
     int i = 0;
 
+    (void)npdu_data;
     /* don't waste time if the socket is not valid */
     if (Ethernet_Socket < 0) {
         fprintf(stderr, "ethernet: 802.2 socket is invalid!\n");
@@ -134,8 +134,7 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     mtu[mtu_len++] = 0x82;      /* DSAP for BACnet */
     mtu[mtu_len++] = 0x82;      /* SSAP for BACnet */
     mtu[mtu_len++] = 0x03;      /* Control byte in header */
-    npdu_len = npdu_encode_pdu(&mtu[17], dest, src, npdu_data);
-    mtu_len = 17 + npdu_len;
+    mtu_len = 17;
     if ((mtu_len + pdu_len) > MAX_MPDU) {
         fprintf(stderr, "ethernet: PDU is too big to send!\n");
         return -4;
@@ -143,7 +142,7 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
     /* packet length - only the logical portion, not the address */
-    encode_unsigned16(&mtu[12], 3 + npdu_len + pdu_len);
+    encode_unsigned16(&mtu[12], 3 + pdu_len);
 
     /* Send the packet */
     bytes = send(Ethernet_Socket, (const char *) &mtu, mtu_len, 0);

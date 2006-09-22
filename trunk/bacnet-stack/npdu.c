@@ -189,7 +189,7 @@ int npdu_encode_pdu(uint8_t * npdu,
 
 /* Configure the NPDU portion of the packet for an APDU */
 /* This function does not handle the network messages, just APDUs. */
-void npdu_encode_apdu(BACNET_NPDU_DATA * npdu_data,
+void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu_data,
     bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
 {
@@ -388,7 +388,7 @@ void testNPDU2(Test * pTest)
     for (i = 0; i < src.len; i++) {
         src.adr[i] = 0x40;
     }
-    npdu_encode_apdu(&npdu_data, true, priority);
+    npdu_encode_npdu_data(&npdu_data, true, priority);
     len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
     ct_test(pTest, len != 0);
     /* can we get the info back? */
@@ -452,7 +452,7 @@ void testNPDU1(Test * pTest)
     for (i = 0; i < MAX_MAC_LEN; i++) {
         src.adr[i] = 0;
     }
-    npdu_encode_apdu(&npdu_data, false, priority);
+    npdu_encode_npdu_data(&npdu_data, false, priority);
     len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
     ct_test(pTest, len != 0);
     /* can we get the info back? */
