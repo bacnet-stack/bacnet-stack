@@ -145,8 +145,8 @@ int iam_send(uint8_t * buffer)
     /* I-Am is a global broadcast */
     datalink_get_broadcast_address(&dest);
     /* encode the NPDU portion of the packet */
-    npdu_encode_apdu(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    len = npdu_encode_pdu(&buffer[0], &dest, NULL, &npdu_data);
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&buffer[0], &dest, NULL, &npdu_data);
     /* encode the APDU portion of the packet */
     len = iam_encode_apdu(&buffer[pdu_len],
         Device_Object_Instance_Number(),
