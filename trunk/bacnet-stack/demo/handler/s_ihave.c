@@ -48,6 +48,7 @@ void Send_I_Have(uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance, char *object_name)
 {
+    int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -59,16 +60,21 @@ void Send_I_Have(uint32_t device_id,
         return;
     /* Who-Has is a global broadcast */
     datalink_get_broadcast_address(&dest);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
+        NULL, &npdu_data);
     /* encode the APDU portion of the packet */
     data.device_id.type = OBJECT_DEVICE;
     data.device_id.instance = device_id;
     data.object_id.type = object_type;
     data.object_id.instance = object_instance;
     characterstring_init_ansi(&data.object_name, object_name);
-    pdu_len = ihave_encode_apdu(&Handler_Transmit_Buffer[0], &data);
+    len = ihave_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
+    pdu_len += len;
     /* send the data */
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);    /* number of bytes of data */
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Have Reply (%s)!\n",
