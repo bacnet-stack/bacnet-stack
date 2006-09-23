@@ -355,10 +355,18 @@ int ucov_notify_decode_apdu(uint8_t * apdu,
 
 
 /* dummy function stubs */
-void npdu_encode_unconfirmed_apdu(BACNET_NPDU_DATA * npdu,
-    BACNET_MESSAGE_PRIORITY priority)
+int npdu_encode_pdu(uint8_t * npdu,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data)
 {
-    return;
+  return 0;
+}
+
+void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu,
+        bool data_expecting_reply,
+        BACNET_MESSAGE_PRIORITY priority)
+{
+
 }
 
 /* dummy function stubs */

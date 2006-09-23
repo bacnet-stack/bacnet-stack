@@ -46,6 +46,7 @@
 void Send_WhoHas_Name(int32_t low_limit,
     int32_t high_limit, char *object_name)
 {
+    int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -57,13 +58,17 @@ void Send_WhoHas_Name(int32_t low_limit,
         return;
     /* Who-Has is a global broadcast */
     datalink_get_broadcast_address(&dest);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
+        NULL, &npdu_data);
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
     data.high_limit = high_limit;
     data.object_name = true;
     characterstring_init_ansi(&data.object.name, object_name);
-    pdu_len = whohas_encode_apdu(&Handler_Transmit_Buffer[0], &data);
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
+    pdu_len += len;
     /* send the data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
@@ -97,7 +102,6 @@ void Send_WhoHas_Object(int32_t low_limit,
     data.object.identifier.type = object_type;
     data.object.identifier.instance = object_instance;
     pdu_len = whohas_encode_apdu(&Handler_Transmit_Buffer[0], &data);
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED

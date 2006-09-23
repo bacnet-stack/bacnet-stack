@@ -59,7 +59,7 @@ void handler_read_property(uint8_t * service_request,
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    bool error = true;
+    bool error = false;
     int bytes_sent = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -71,7 +71,6 @@ void handler_read_property(uint8_t * service_request,
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, 
         &my_address, &npdu_data);
-    
 #if PRINT_ENABLED
     if (len <= 0)
         fprintf(stderr, "Unable to decode Read-Property Request!\n");
@@ -91,6 +90,8 @@ void handler_read_property(uint8_t * service_request,
         fprintf(stderr, "Sending Abort!\n");
 #endif
     } else {
+        /* most cases will be error */
+        error = true;
         switch (data.object_type) {
         case OBJECT_DEVICE:
             /* FIXME: probably need a length limitation sent with encode */
@@ -110,11 +111,9 @@ void handler_read_property(uint8_t * service_request,
                     fprintf(stderr,
                         "Sending Read Property Ack for Device!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_ANALOG_INPUT:
             if (Analog_Input_Valid_Instance(data.object_instance)) {
@@ -127,17 +126,15 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for AI!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_BINARY_INPUT:
             if (Binary_Input_Valid_Instance(data.object_instance)) {
@@ -150,17 +147,15 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for BI!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_BINARY_OUTPUT:
             if (Binary_Output_Valid_Instance(data.object_instance)) {
@@ -173,17 +168,15 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for BO!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_BINARY_VALUE:
             if (Binary_Value_Valid_Instance(data.object_instance)) {
@@ -196,17 +189,15 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for BV!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_ANALOG_OUTPUT:
             if (Analog_Output_Valid_Instance(data.object_instance)) {
@@ -219,17 +210,15 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for AO!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_ANALOG_VALUE:
             if (Analog_Value_Valid_Instance(data.object_instance)) {
@@ -242,17 +231,15 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr, "Sending Read Property Ack for AV!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_LIFE_SAFETY_POINT:
             if (Life_Safety_Point_Valid_Instance(data.object_instance)) {
@@ -265,18 +252,16 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr,
                         "Sending Read Property Ack for LSP!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
         case OBJECT_MULTI_STATE_OUTPUT:
             if (Multistate_Output_Valid_Instance(data.object_instance)) {
@@ -289,18 +274,16 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr,
                         "Sending Read Property Ack for MSO!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
 #if BACFILE
         case OBJECT_FILE:
@@ -314,22 +297,19 @@ void handler_read_property(uint8_t * service_request,
                     data.application_data = &Temp_Buf[0];
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
-                    pdu_len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[0],
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);
 #if PRINT_ENABLED
                     fprintf(stderr,
                         "Sending Read Property Ack for File!\n");
 #endif
-                    send = true;
-                } else
-                    error = true;
-            } else
-                error = true;
+                    error = false;
+                }
+            }
             break;
 #endif                          /* BACFILE */
         default:
-            error = true;
             break;
         }
     }
@@ -340,16 +320,14 @@ void handler_read_property(uint8_t * service_request,
 #if PRINT_ENABLED
         fprintf(stderr, "Sending Read Property Error!\n");
 #endif
-        send = true;
     }
-    if (send) {
-        npdu_encode_confirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
-        bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);  /* number of bytes of data */
+    pdu_len += len;
+    bytes_sent = datalink_send_pdu(src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-        if (bytes_sent <= 0)
-            fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
 #endif
-    }
 
     return;
 }

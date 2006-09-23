@@ -46,6 +46,7 @@
 /* find a specific device, or use -1 for limit if you want unlimited */
 void Send_WhoIs(int32_t low_limit, int32_t high_limit)
 {
+    int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -56,10 +57,14 @@ void Send_WhoIs(int32_t low_limit, int32_t high_limit)
 
     /* Who-Is is a global broadcast */
     datalink_get_broadcast_address(&dest);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
+        NULL, &npdu_data);
     /* encode the APDU portion of the packet */
-    pdu_len = whois_encode_apdu(&Handler_Transmit_Buffer[0],
+    len = whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         low_limit, high_limit);
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    pdu_len += len;
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED

@@ -31,6 +31,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
+#include "dcc.h"
 #include "tsm.h"
 #include "npdu.h"
 #include "apdu.h"
@@ -46,13 +47,19 @@ uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id,
     int fileStartPosition, unsigned requestedOctetCount)
 {
     BACNET_ADDRESS dest;
+    BACNET_ADDRESS my_address;
     BACNET_NPDU_DATA npdu_data;
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
+    int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_ATOMIC_READ_FILE_DATA data;
+
+    /* if we are forbidden to send, don't send! */
+    if (!dcc_communication_enabled())
+        return 0;
 
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
@@ -66,16 +73,20 @@ uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id,
         data.access = FILE_STREAM_ACCESS;
         data.type.stream.fileStartPosition = fileStartPosition;
         data.type.stream.requestedOctetCount = requestedOctetCount;
-        pdu_len = arf_encode_apdu(&Handler_Transmit_Buffer[0],
+        /* encode the NPDU portion of the packet */
+        datalink_get_my_address(&my_address);
+        npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
+        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
+            &my_address, &npdu_data);
+        len = arf_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             invoke_id, &data);
+        pdu_len += len;
         /* will the APDU fit the target device?
            note: if there is a bottleneck router in between
            us and the destination, we won't know unless
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned) pdu_len < max_apdu) {
-            npdu_encode_confirmed_apdu(&npdu_data,
-                MESSAGE_PRIORITY_NORMAL);
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
                 &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             bytes_sent =

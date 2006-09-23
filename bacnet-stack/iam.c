@@ -35,6 +35,7 @@
 #include "bacenum.h"
 #include "bacdef.h"
 #include "npdu.h"
+#include "dcc.h"
 #include "datalink.h"
 #include "device.h"
 #include "bacdcode.h"
@@ -141,6 +142,10 @@ int iam_send(uint8_t * buffer)
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+
+    /* if we are forbidden to send, don't send! */
+    if (!dcc_communication_enabled())
+        return 0;
 
     /* I-Am is a global broadcast */
     datalink_get_broadcast_address(&dest);

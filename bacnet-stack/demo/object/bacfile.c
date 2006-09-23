@@ -313,7 +313,7 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
     found = tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
         &apdu_len);
     if (found) {
-        if (!npdu_data.network_layer_message && npdu_data.confirmed_message
+        if (!npdu_data.network_layer_message && npdu_data.data_expecting_reply
             && (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
             len =
                 apdu_decode_confirmed_service_request(&apdu[0],

@@ -46,14 +46,17 @@ uint8_t Send_Device_Communication_Control_Request(uint32_t device_id, uint16_t t
     BACNET_COMMUNICATION_ENABLE_DISABLE state, char *password)
 {                               /* NULL=optional */
     BACNET_ADDRESS dest;
+    BACNET_ADDRESS my_address;
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
+    int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_CHARACTER_STRING password_string;
     BACNET_NPDU_DATA npdu_data;
 
+    /* if we are forbidden to send, don't send! */
     if (!dcc_communication_enabled())
         return 0;
 
@@ -63,19 +66,23 @@ uint8_t Send_Device_Communication_Control_Request(uint32_t device_id, uint16_t t
     if (status)
         invoke_id = tsm_next_free_invokeID();
     if (invoke_id) {
-        /* load the data for the encoding */
+        /* encode the NPDU portion of the packet */
+        datalink_get_my_address(&my_address);
+        npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
+        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
+                &my_address, &npdu_data);
+        /* encode the APDU portion of the packet */
         characterstring_init_ansi(&password_string, password);
-        pdu_len = dcc_encode_apdu(&Handler_Transmit_Buffer[0],
+        len = dcc_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             invoke_id,
             timeDuration, state, password ? &password_string : NULL);
+        pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
            us and the destination, we won't know unless
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned) pdu_len < max_apdu) {
-            npdu_encode_confirmed_apdu(&npdu_data,
-                MESSAGE_PRIORITY_NORMAL);
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
                 &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             bytes_sent =

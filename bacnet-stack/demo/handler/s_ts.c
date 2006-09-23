@@ -44,6 +44,7 @@
 
 void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime)
 {
+    int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -54,10 +55,14 @@ void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime)
 
     /* we could use unicast or broadcast */
     datalink_get_broadcast_address(&dest);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
+        NULL, &npdu_data);
     /* encode the APDU portion of the packet */
-    pdu_len = timesync_encode_apdu(&Handler_Transmit_Buffer[0],
+    len = timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         bdate, btime);
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
+    pdu_len += len;
     /* send it out the datalink */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
@@ -84,7 +89,6 @@ void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime)
     /* encode the APDU portion of the packet */
     pdu_len = timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0],
         bdate, btime);
-    npdu_encode_unconfirmed_apdu(&npdu_data, MESSAGE_PRIORITY_NORMAL);
     bytes_sent = datalink_send_pdu(&dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED

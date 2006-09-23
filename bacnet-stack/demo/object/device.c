@@ -325,10 +325,11 @@ unsigned Device_Object_List_Count(void)
     unsigned count = 1;
 
     count += Analog_Input_Count();
-    count += Binary_Input_Count();
-    count += Binary_Output_Count();
     count += Analog_Output_Count();
     count += Analog_Value_Count();
+    count += Binary_Input_Count();
+    count += Binary_Output_Count();
+    count += Binary_Value_Count();
     count += Life_Safety_Point_Count();
     count += Multistate_Output_Count();
 #if BACFILE
@@ -362,6 +363,32 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
+    /* analog output objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= object_count;
+        object_count = Analog_Output_Count();
+        /* is it a valid index for this object? */
+        if (object_index < object_count) {
+            *object_type = OBJECT_ANALOG_OUTPUT;
+            *instance = Analog_Output_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+    /* analog value objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= object_count;
+        object_count = Analog_Value_Count();
+        /* is it a valid index for this object? */
+        if (object_index < object_count) {
+            *object_type = OBJECT_ANALOG_VALUE;
+            *instance = Analog_Value_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
     /* binary input objects */
     if (!status) {
         /* normalize the index since
@@ -388,29 +415,16 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
-    /* analog output objects */
+    /* binary value objects */
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
         object_index -= object_count;
-        object_count = Analog_Output_Count();
+        object_count = Binary_Value_Count();
         /* is it a valid index for this object? */
         if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_OUTPUT;
-            *instance = Analog_Output_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* analog value objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Analog_Value_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_VALUE;
-            *instance = Analog_Value_Index_To_Instance(object_index);
+            *object_type = OBJECT_BINARY_VALUE;
+            *instance = Binary_Value_Index_To_Instance(object_index);
             status = true;
         }
     }
@@ -497,17 +511,20 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
     case OBJECT_ANALOG_INPUT:
         name = Analog_Input_Name(object_instance);
         break;
+    case OBJECT_ANALOG_OUTPUT:
+        name = Analog_Output_Name(object_instance);
+        break;
+    case OBJECT_ANALOG_VALUE:
+        name = Analog_Value_Name(object_instance);
+        break;
     case OBJECT_BINARY_INPUT:
         name = Binary_Input_Name(object_instance);
         break;
     case OBJECT_BINARY_OUTPUT:
         name = Binary_Output_Name(object_instance);
         break;
-    case OBJECT_ANALOG_OUTPUT:
-        name = Analog_Output_Name(object_instance);
-        break;
-    case OBJECT_ANALOG_VALUE:
-        name = Analog_Value_Name(object_instance);
+    case OBJECT_BINARY_VALUE:
+        name = Binary_Value_Name(object_instance);
         break;
     case OBJECT_LIFE_SAFETY_POINT:
         name = Life_Safety_Point_Name(object_instance);
@@ -654,6 +671,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
         if (Binary_Output_Count())
             bitstring_set_bit(&bit_string, OBJECT_BINARY_OUTPUT, true);
+        if (Binary_Value_Count())
+            bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
         if (Life_Safety_Point_Count())
             bitstring_set_bit(&bit_string, OBJECT_LIFE_SAFETY_POINT, true);
         if (Multistate_Output_Count())
@@ -912,7 +931,38 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
     return index;
 }
 
-/* stubs to dependencies to keep unit test simple */
+char *Analog_Output_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Analog_Output_Count(void)
+{
+    return 0;
+}
+
+uint32_t Analog_Output_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
+char *Analog_Value_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Analog_Value_Count(void)
+{
+    return 0;
+}
+
+uint32_t Analog_Value_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
 char *Binary_Input_Name(uint32_t object_instance)
 {
     (void) object_instance;
@@ -945,34 +995,18 @@ uint32_t Binary_Output_Index_To_Instance(unsigned index)
     return index;
 }
 
-char *Analog_Output_Name(uint32_t object_instance)
+char *Binary_Value_Name(uint32_t object_instance)
 {
     (void) object_instance;
     return "";
 }
 
-unsigned Analog_Output_Count(void)
+unsigned Binary_Value_Count(void)
 {
     return 0;
 }
 
-uint32_t Analog_Output_Index_To_Instance(unsigned index)
-{
-    return index;
-}
-
-char *Analog_Value_Name(uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Analog_Value_Count(void)
-{
-    return 0;
-}
-
-uint32_t Analog_Value_Index_To_Instance(unsigned index)
+uint32_t Binary_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }
