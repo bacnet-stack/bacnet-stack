@@ -314,7 +314,7 @@ void handler_read_property(uint8_t * service_request,
         }
     }
     if (error) {
-        pdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[0],
+        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id,
             SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
 #if PRINT_ENABLED
