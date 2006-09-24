@@ -115,7 +115,7 @@ void handler_device_communication_control(uint8_t * service_request,
 #endif
         }
     }
-
+    pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
