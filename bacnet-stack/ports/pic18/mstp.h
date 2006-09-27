@@ -72,24 +72,24 @@
 
 /* receive FSM states */
 typedef enum {
-    MSTP_RECEIVE_STATE_IDLE,
-    MSTP_RECEIVE_STATE_PREAMBLE,
-    MSTP_RECEIVE_STATE_HEADER,
-    MSTP_RECEIVE_STATE_HEADER_CRC,
-    MSTP_RECEIVE_STATE_DATA
+    MSTP_RECEIVE_STATE_IDLE = 0,
+    MSTP_RECEIVE_STATE_PREAMBLE = 1,
+    MSTP_RECEIVE_STATE_HEADER = 2,
+    MSTP_RECEIVE_STATE_HEADER_CRC = 3,
+    MSTP_RECEIVE_STATE_DATA = 4
 } MSTP_RECEIVE_STATE;
 
 /* master node FSM states */
 typedef enum {
-    MSTP_MASTER_STATE_INITIALIZE,
-    MSTP_MASTER_STATE_IDLE,
-    MSTP_MASTER_STATE_USE_TOKEN,
-    MSTP_MASTER_STATE_WAIT_FOR_REPLY,
-    MSTP_MASTER_STATE_DONE_WITH_TOKEN,
-    MSTP_MASTER_STATE_PASS_TOKEN,
-    MSTP_MASTER_STATE_NO_TOKEN,
-    MSTP_MASTER_STATE_POLL_FOR_MASTER,
-    MSTP_MASTER_STATE_ANSWER_DATA_REQUEST
+    MSTP_MASTER_STATE_INITIALIZE = 0,
+    MSTP_MASTER_STATE_IDLE = 1,
+    MSTP_MASTER_STATE_USE_TOKEN = 2,
+    MSTP_MASTER_STATE_WAIT_FOR_REPLY = 3,
+    MSTP_MASTER_STATE_DONE_WITH_TOKEN = 4,
+    MSTP_MASTER_STATE_PASS_TOKEN = 5,
+    MSTP_MASTER_STATE_NO_TOKEN = 6,
+    MSTP_MASTER_STATE_POLL_FOR_MASTER = 7,
+    MSTP_MASTER_STATE_ANSWER_DATA_REQUEST = 8
 } MSTP_MASTER_STATE;
 
 struct mstp_port_struct_t {
@@ -103,7 +103,6 @@ struct mstp_port_struct_t {
     unsigned ReceiveError:1;
     /* There is data in the buffer */
     unsigned DataAvailable:1;
-    unsigned FramingError:1;    /* TRUE if we got a framing error */
     unsigned ReceivedInvalidFrame:1;
     /* A Boolean flag set to TRUE by the Receive State Machine  */
     /* if a valid frame is received.  */
@@ -112,9 +111,6 @@ struct mstp_port_struct_t {
     /* A Boolean flag set to TRUE by the master machine if this node is the */
     /* only known master node. */
     unsigned SoleMaster:1;
-    /* After receiving a frame this value will be TRUE until Tturnaround */
-    /* has expired */
-    unsigned Turn_Around_Waiting:1;
     /* stores the latest received data */
     uint8_t DataRegister;
     /* Used to accumulate the CRC on the data field of a frame. */
@@ -141,7 +137,7 @@ struct mstp_port_struct_t {
     /* An array of octets, used to store octets as they are received. */
     /* InputBuffer is indexed from 0 to InputBufferSize-1. */
     /* The maximum size of a frame is 501 octets. */
-    uint8_t InputBuffer[MAX_MPDU];
+    uint8_t *InputBuffer;
     /* "Next Station," the MAC address of the node to which This Station passes */
     /* the token. If the Next_Station is unknown, Next_Station shall be equal to */
     /* This_Station. */
@@ -164,7 +160,9 @@ struct mstp_port_struct_t {
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */
     /* Machine when a Data Expecting Reply Answer activity is completed. */
-    uint16_t ReplyPostponedTimer;
+/* note: we always send a reply postponed since a message other than
+   the reply may be in the transmit queue */
+//    uint16_t ReplyPostponedTimer;
 
     /* Used to store the Source Address of a received frame. */
     uint8_t SourceAddress;
@@ -207,20 +205,24 @@ struct mstp_port_struct_t {
 
 #define DEFAULT_MAX_INFO_FRAMES 1
 #define DEFAULT_MAX_MASTER 127
+#define DEFAULT_MAC_ADDRESS 127
 
 /* The minimum time after the end of the stop bit of the final octet of a */
 /* received frame before a node may enable its EIA-485 driver: 40 bit times. */
 /* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
-#define Tturnaround  40;
+/* At 19200 baud, 40 bit times would be about 2.083 milliseconds */
+/* At 38400 baud, 40 bit times would be about 1.041 milliseconds */
+/* At 57600 baud, 40 bit times would be about 0.694 milliseconds */
+/* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
+/* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
+/* 40 bits is 4 octets including a start and stop bit with each octet */
+#define Tturnaround  40
 
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */
 
-    void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port,
-        uint8_t this_station_mac);
-    void MSTP_Millisecond_Timer(volatile struct mstp_port_struct_t
-        *mstp_port);
+    void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port);
     void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t
         *mstp_port);
     bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t

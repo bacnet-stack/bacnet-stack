@@ -29,86 +29,27 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "hardware.h"
 #include "mstp.h"
+#include "comm.h"
+#include "eeprom.h"
 
 /* public port info */
 extern volatile struct mstp_port_struct_t MSTP_Port;
 
-static uint32_t RS485_Baud_Rate = 9600;
+/* the baud rate is adjustable */
+uint32_t RS485_Baud_Rate = 9600;
+
+/* the ISR and other use this for status and control */
+COMSTAT   RS485_Comstat;
+
+//#pragma udata MSTPPortData
+/* the buffer for receiving characters */
+volatile uint8_t RS485_Rx_Buffer[MAX_MPDU];
 
 /* UART transmission buffer and index */
-static volatile uint8_t RS485_Tx_Buffer[MAX_MPDU];
-static volatile uint8_t RS485_Tx_Index = 0;
-static volatile uint8_t RS485_Tx_Length = 0;
-static volatile char RS485_Tx_Postdrive_Delay = 0;
-static struct {
-    unsigned TransmitStart:1;   /* TRUE if we are requested to transmit */
-    unsigned TransmitComplete:1;        /* TRUE if we are finished transmitting frame */
-} RS485_Flags;
-
-/* Duplicate of the RCSTA reg used due to the double buffering of the */
-/* fifo.  Reading the RCREG reg will cause the second RCSTA reg to be */
-/* loaded if there is one. */
-struct _rcstabits {
-    unsigned char RX9D:1;
-    unsigned char OERR:1;
-    unsigned char FERR:1;
-    unsigned char ADDEN:1;
-    unsigned char CREN:1;
-    unsigned char SREN:1;
-    unsigned char RX9:1;
-    unsigned char SPEN:1;
-};
-
-volatile static enum {
-    RS485_STATE_IDLE = 0,
-    RS485_STATE_RX_DATA = 1,
-    RS485_STATE_RX_CHECKSUM = 2,
-    RS485_STATE_RX_PROCESS = 3,
-    RS485_STATE_TX_DATA = 4,
-    RS485_STATE_WAIT_FOR_ACK = 5,
-    RS485_STATE_WAIT_COMPLETE = 6,
-    RS485_STATE_TX_GLOBAL_ACK = 7,
-    RS485_STATE_TX_POSTDRIVE_DELAY = 8,
-    RS485_STATE_ERROR = 9,
-    RS485_STATE_RX_TEST = 10,
-    RS485_STATE_RX_TEST_EEPROM = 11,
-    RS485_STATE_RX_TEST_DELAY = 12,
-    RS485_STATE_TX_TEST_WAIT = 13,
-    RS485_STATE_TX_TEST = 14
-} RS485_State;
-
-/****************************************************************************
-* DESCRIPTION: Processes the RS485 message to be sent
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Process_Tx_Message(void)
-{
-    if (RS485_Flags.TransmitComplete)
-        RS485_Flags.TransmitComplete = FALSE;
-    /* start a new transmisstion if we are ready */
-    if (RS485_Flags.TransmitStart && (RS485_State == RS485_STATE_IDLE)) {
-        /* Disable the receiver */
-        USART_RX_INT_DISABLE();
-        USART_CONTINUOUS_RX_DISABLE();
-        /* Enable the transmit line driver and interrupts */
-        RS485_TRANSMIT_ENABLE();
-        RS485_State = RS485_STATE_TX_DATA;
-        /* Configure the ISR handler for an outgoing message */
-        RS485_Tx_Index = 0;
-        /* update the flags for beginning a send */
-        RS485_Flags.TransmitComplete = FALSE;
-        RS485_Flags.TransmitStart = FALSE;
-        /* send the first byte */
-        USART_TRANSMIT(RS485_Tx_Buffer[0]);
-        USART_TX_SETUP();
-    }
-
-    return;
-}
+volatile uint8_t RS485_Tx_Buffer[MAX_MPDU];
 
 /****************************************************************************
 * DESCRIPTION: Transmits a frame using the UART
@@ -118,106 +59,53 @@ void RS485_Process_Tx_Message(void)
 *****************************************************************************/
 void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port specific data */
     uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
-    uint16_t nbytes)
-{                               /* number of bytes of data (up to 501) */
-    /* do we check for tx buffer in-use? */
-    /* Or do we just stop the in-progress transmission? */
-    /* Drop any transmission in progress, but don't worry about */
-    /* cleaning up the hardware - the start routine will handle that */
-
-    /* Disable the interrupt since it depends on the global transmit buffer. */
-    USART_TX_INT_DISABLE();
-    switch (RS485_State) {
-    case RS485_STATE_TX_DATA:
-    case RS485_STATE_WAIT_FOR_ACK:
-    case RS485_STATE_WAIT_COMPLETE:
-    case RS485_STATE_TX_GLOBAL_ACK:
-        RS485_State = RS485_STATE_IDLE;
-        break;
-    }
-
-    /* load the frame */
-    RS485_Tx_Length = 0;
-    while (buffer && nbytes) {
-        RS485_Tx_Buffer[RS485_Tx_Length] = *buffer;
-        buffer++;
-        nbytes--;
-        RS485_Tx_Length++;
-        /* check bounds - should this error be indicated somehow? */
-        /* perhaps not send the message? */
-        if (RS485_Tx_Length >= MAX_MPDU)
-            break;
-    }
-    /* signal the task to start sending when it is ready */
-    RS485_Flags.TransmitStart = TRUE;
-    mstp_port->SilenceTimer = 0;
-
-    return;
-}
-
-/****************************************************************************
-* DESCRIPTION: Processes the next RS485 byte for transmit
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       Called by interrupt service routine (ISR)
-*****************************************************************************/
-void RS485_Transmit_Interrupt(void)
+    uint16_t nbytes)            /* number of bytes of data (up to 501) */
 {
-    uint8_t data;               /* data byte to send */
+  uint16_t i = 0; /* loop counter */
+  uint8_t turnaround_time;
 
-    switch (RS485_State) {
-    case RS485_STATE_TX_DATA:
-        RS485_Tx_Index++;
-        if (RS485_Tx_Index < RS485_Tx_Length) {
-            data = RS485_Tx_Buffer[RS485_Tx_Index];
-            USART_TRANSMIT(data);
-            MSTP_Port.SilenceTimer = 0;
-            
-        } else {
-            /* wait until the last bit is sent */
-            while (!USART_TX_EMPTY());
-            RS485_TRANSMIT_DISABLE();
-            /* wait 2 characters after sending (min=15 bit times) */
-            RS485_Tx_Postdrive_Delay = 2;
-            RS485_State = RS485_STATE_TX_POSTDRIVE_DELAY;
-            USART_TRANSMIT(0);
-        }
-        break;
-    case RS485_STATE_TX_POSTDRIVE_DELAY:
-        /* after the message is sent, we wait a certain  */
-        /* number of character times to get a delay */
-        if (RS485_Tx_Postdrive_Delay) {
-            RS485_Tx_Postdrive_Delay--;
-            if (RS485_Tx_Postdrive_Delay == 0)
-                RS485_State = RS485_STATE_WAIT_COMPLETE;
-            USART_TRANSMIT(0);
-        } else
-            RS485_State = RS485_STATE_WAIT_COMPLETE;
-        break;
-    case RS485_STATE_WAIT_COMPLETE:
-        /* wait until the last delay bit is shifted */
-        while (!USART_TX_EMPTY());
-        USART_TX_INT_DISABLE();
-        RS485_Flags.TransmitComplete = TRUE;
-        RS485_State = RS485_STATE_IDLE;
-        USART_RX_SETUP();
-        break;
-    default:
-        break;
-    }
-
+  if (!buffer)
     return;
-}
 
-/****************************************************************************
-* DESCRIPTION: Returns the value of Transmit Complete flag.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_Tx_Complete(void)
-{
-    return RS485_Flags.TransmitComplete;
+  /* bounds check */
+  if (nbytes >= sizeof(RS485_Tx_Buffer))
+    return;
+
+  /* buffer is full.  Wait for ISR to transmit. */
+  while (RS485_Comstat.Tx_Bytes) {};
+
+  /* wait 40 bit times since reception */
+  if (RS485_Baud_Rate == 9600)
+    turnaround_time = 4;
+  else if (RS485_Baud_Rate == 19200)
+    turnaround_time = 2;
+  else
+    turnaround_time = 1;
+
+  while (mstp_port->SilenceTimer < turnaround_time) {};
+
+  RS485_Comstat.TxHead = 0;
+  memcpy((void *)&RS485_Tx_Buffer[0], (void *)buffer, nbytes);
+
+  //for (i = 0; i < nbytes; i++) {
+  //  /* put the data into the buffer */
+  //  RS485_Tx_Buffer[i] = *buffer;
+  //  buffer++;
+  //}
+  RS485_Comstat.Tx_Bytes = nbytes;
+  /* disable the receiver */
+  PIE3bits.RC2IE = 0;
+  RCSTA2bits.CREN = 0;
+  /* enable the transceiver */
+  RS485_TX_ENABLE = 1;
+  RS485_RX_DISABLE = 1;
+  /* enable the transmitter */
+  TXSTA2bits.TXEN = 1;
+  PIE3bits.TX2IE = 1;
+  /* per MSTP spec, sort of */
+  mstp_port->SilenceTimer = 0;
+
+  return;
 }
 
 /****************************************************************************
@@ -226,58 +114,101 @@ bool RS485_Tx_Complete(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+uint8_t RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
 {
-    struct _rcstabits rcstabits;        /* reading it more than once gets wrong data */
-
     /* check for data */
-    if (USART_RX_COMPLETE()) {
-        /* Read the data and the Rx status reg */
-        rcstabits = USART_RX_STATUS();
-        mstp_port->DataRegister = USART_RECEIVE();
-
-        /* Check for buffer overrun error */
-        if (rcstabits.OERR) {
-            /* clear the error */
-            USART_CONTINUOUS_RX_DISABLE();
-            USART_CONTINUOUS_RX_ENABLE();
-            /* let the state machine know */
-            mstp_port->ReceiveError = TRUE;
-        }
-        /* Check for framing errors */
-        else if (USART_RX_FRAME_ERROR()) {
-            /* let the state machine know */
-            mstp_port->FramingError = TRUE;
-            mstp_port->ReceiveError = TRUE;
-        }
-        /* We read a good byte */
-        else {
-            /* state machine will clear this */
-            mstp_port->DataAvailable = TRUE;
-        }
+    if (RS485_Comstat.Rx_Bytes)
+    {
+      mstp_port->DataRegister = RS485_Rx_Buffer[RS485_Comstat.RxTail];
+      if (RS485_Comstat.RxTail >= (sizeof(RS485_Rx_Buffer)-1))
+        RS485_Comstat.RxTail = 0;
+      else
+        RS485_Comstat.RxTail++;
+      RS485_Comstat.Rx_Bytes--;
+      /* errors? let the state machine know */
+      if (RS485_Comstat.Rx_Bufferoverrun)
+      {
+        RS485_Comstat.Rx_Bufferoverrun = FALSE;
+        mstp_port->ReceiveError = TRUE;
+      }
+      /* We read a good byte */
+      else
+        mstp_port->DataAvailable = TRUE;
     }
 
-    return;
+    return  RS485_Comstat.Rx_Bytes;
+}
+/* *************************************************************************
+  DESCRIPTION:  Receives RS485 data stream
+
+  RETURN: none
+
+  ALGORITHM:  none
+
+  NOTES:  none
+ *************************************************************************** */
+void RS485_Interrupt_Rx(void)
+{
+  char  dummy;
+
+  if ((RCSTA2bits.FERR) || (RCSTA2bits.OERR))
+  {
+    /* Clear the error */
+    RCSTA2bits.CREN = 0;
+    RCSTA2bits.CREN = 1;
+    RS485_Comstat.Rx_Bufferoverrun = TRUE;
+    dummy = RCREG2;
+  }
+  else if (RS485_Comstat.Rx_Bytes < sizeof(RS485_Rx_Buffer))
+  {
+    RS485_Rx_Buffer[RS485_Comstat.RxHead] = RCREG2;
+    if (RS485_Comstat.RxHead >= (sizeof(RS485_Rx_Buffer)-1))
+      RS485_Comstat.RxHead = 0;
+    else
+      RS485_Comstat.RxHead++;
+    RS485_Comstat.Rx_Bytes++;
+  }
+  else
+  {
+    RS485_Comstat.Rx_Bufferoverrun = TRUE;
+    dummy = RCREG2;
+    (void)dummy;
+  }
 }
 
-/****************************************************************************
-* DESCRIPTION: Receives a data byte from the USART
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Receive_Interrupt(void)
-{
-    /* get as many bytes as we can get */
-    for (;;) {
-        RS485_Check_UART_Data(&MSTP_Port);
-        if (MSTP_Port.ReceiveError || MSTP_Port.DataAvailable)
-            MSTP_Receive_Frame_FSM(&MSTP_Port);
-        else
-            break;
-    }
+/* *************************************************************************
+  DESCRIPTION:  Transmits a byte using the UART out the RS485 port
 
-    return;
+  RETURN: none
+
+  ALGORITHM:  none
+
+  NOTES:  none
+ *************************************************************************** */
+void RS485_Interrupt_Tx(void)
+{
+  if (RS485_Comstat.Tx_Bytes)
+  {
+    /* Get the data byte */
+    TXREG2 = RS485_Tx_Buffer[RS485_Comstat.TxHead];
+    /* point to the next byte */
+    RS485_Comstat.TxHead++;
+    /* reduce the buffer size */
+    RS485_Comstat.Tx_Bytes--;
+  }
+  else
+  {
+    /* wait for the USART to be empty */
+    while (!TXSTA2bits.TRMT);
+    /* disable this interrupt */
+    PIE3bits.TX2IE = 0;
+    /* enable the receiver */
+    RS485_TX_ENABLE = 0;
+    RS485_RX_DISABLE = 0;
+    // FIXME: might not be necessary
+    PIE3bits.RC2IE = 1;
+    RCSTA2bits.CREN = 1;
+  }
 }
 
 /****************************************************************************
@@ -312,56 +243,11 @@ void RS485_Set_Baud_Rate(uint32_t baud)
     else
         RS485_Baud_Rate = 115200;
 
-}
-
-void RS485_Initialize_Baud(void)
-{
-    /* setup USART Baud Rate Generator */
-    /* see BAUD RATES FOR ASYNCHRONOUS MODE in Data Book */
-    /* Fosc=20MHz
-       BRGH=1              BRGH=0
-       Rate    SPBRG       Rate    SPBRG
-       ------- -----       ------- -----
-       9615   129          9469    32
-       19230    64         19530    15
-       37878    32         78130     3
-       56818    21        104200     2
-       113630    10        312500     0
-       250000     4
-       625000     1
-       1250000     0
-     */
-    switch (RS485_Baud_Rate) {
-    case 19200:
-        SPBRG = 64;
-        TXSTAbits.BRGH = 1;
-        break;
-    case 38400:
-        SPBRG = 32;
-        TXSTAbits.BRGH = 1;
-        break;
-    case 57600:
-        SPBRG = 21;
-        TXSTAbits.BRGH = 1;
-        break;
-    case 76800:
-        SPBRG = 3;
-        TXSTAbits.BRGH = 0;
-        break;
-    case 115200:
-        SPBRG = 10;
-        TXSTAbits.BRGH = 1;
-        break;
-    case 9600:
-    default:
-        SPBRG = 129;
-        TXSTAbits.BRGH = 1;
-        break;
-    }
-    /* select async mode */
-    TXSTAbits.SYNC = 0;
-    /* serial port enable */
-    RCSTAbits.SPEN = 1;
+    I2C_Write_Block(
+        EEPROM_DEVICE_ADDRESS,
+        (char *)&RS485_Baud_Rate,
+        sizeof(RS485_Baud_Rate),
+        EEPROM_MSTP_BAUD_RATE_ADDR);
 }
 
 /****************************************************************************
@@ -371,17 +257,120 @@ void RS485_Initialize_Baud(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
+void RS485_Initialize_Port(void)
+{
+
+  /* Reset USART registers to POR state */
+  TXSTA2 = 0;
+  RCSTA2 = 0;
+  /* configure USART for receiving */
+  /* since the TX will handle setting up for transmit */
+  RCSTA2bits.CREN = 1;
+  /* Interrupt on receipt */
+  PIE3bits.RC2IE = 1;
+  /* enable the transmitter, disable its interrupt */
+  TXSTA2bits.TXEN = 1;
+  PIE3bits.TX2IE = 0;
+  /* setup USART Baud Rate Generator */
+  /* see BAUD RATES FOR ASYNCHRONOUS MODE in Data Book */
+  /* Fosc=20MHz
+      BRGH=1              BRGH=0
+      Rate    SPBRG       Rate    SPBRG
+      ------- -----       ------- -----
+      9615     129          9469    32
+      19230     64         19530    15
+      37878     32         78130     3
+      56818     21        104200     2
+      113630    10        312500     0
+      250000     4
+      625000     1
+      1250000    0
+   */
+   switch (RS485_Baud_Rate)
+   {
+     case 19200:
+       SPBRG2 = 64;
+       TXSTA2bits.BRGH = 1;
+       break;
+     case 38400:
+       SPBRG2 = 32;
+       TXSTA2bits.BRGH = 1;
+       break;
+     case 57600:
+       SPBRG2 = 21;
+       TXSTA2bits.BRGH = 1;
+       break;
+     case 76800:
+       SPBRG2 = 3;
+       TXSTA2bits.BRGH = 0;
+       break;
+     case 115200:
+       SPBRG2 = 10;
+       TXSTA2bits.BRGH = 1;
+       break;
+     case 9600:
+       SPBRG2 = 129;
+       TXSTA2bits.BRGH = 1;
+       break;
+     default:
+       SPBRG2 = 129;
+       TXSTA2bits.BRGH = 1;
+       RS485_Set_Baud_Rate(9600);
+       break;
+  }
+  /* select async mode */
+  TXSTA2bits.SYNC = 0;
+  /* enable transmitter */
+  TXSTA2bits.TXEN = 1;
+  /* serial port enable */
+  RCSTA2bits.SPEN = 1;
+  /* since we are using RS485,
+     we need to explicitly say
+     transmit enable or not */
+  RS485_RX_DISABLE = 0;
+  RS485_TX_ENABLE = 0;
+}
+
+/****************************************************************************
+* DESCRIPTION: Disables the RS485 hardware
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Disable_Port(void)
+{
+  RCSTA2 &= 0x4F;       /* Disable the receiver */
+  TXSTA2bits.TXEN = 0;  /* and transmitter */
+  PIE3 &= 0xCF;         /* Disable both interrupts */
+}
+
+void RS485_Reinit(void)
+{
+    RS485_Set_Baud_Rate(9600);
+}
+
+/****************************************************************************
+* DESCRIPTION: Initializes the data and the port
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
 void RS485_Initialize(void)
 {
-    RS485_Initialize_Baud();
-    /* configure interrupts */
-    USART_TX_INT_DISABLE();
-    USART_RX_INT_ENABLE();
-    /* configure USART for receiving */
-    /* since the TX will handle setting up for transmit */
-    USART_CONTINUOUS_RX_ENABLE();
-    /* since we are using RS485,
-       we need to explicitly say
-       transmit enable or not */
-    RS485_TRANSMIT_DISABLE();
+  /* Init the Rs485 buffers */
+  RS485_Comstat.RxHead = 0;
+  RS485_Comstat.RxTail = 0;
+  RS485_Comstat.Rx_Bytes = 0;
+  RS485_Comstat.Rx_Bufferoverrun = FALSE;
+  RS485_Comstat.TxHead = 0;
+  RS485_Comstat.TxTail = 0;
+  RS485_Comstat.Tx_Bytes = 0;
+
+  I2C_Read_Block(
+      EEPROM_DEVICE_ADDRESS,
+      (char *)&RS485_Baud_Rate,
+      sizeof(RS485_Baud_Rate),
+      EEPROM_MSTP_BAUD_RATE_ADDR);
+
+  RS485_Initialize_Port();
 }
