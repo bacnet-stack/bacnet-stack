@@ -81,14 +81,14 @@
 
 /* The number of tokens received or used before a Poll For Master cycle */
 /* is executed: 50. */
-const unsigned Npoll = 50;
+#define Npoll 50
 
 /* The number of retries on sending Token: 1. */
-const unsigned Nretry_token = 1;
+#define Nretry_token 1
 
 /* The minimum number of DataAvailable or ReceiveError events that must be */
 /* seen by a receiving node in order to declare the line "active": 4. */
-const uint8_t Nmin_octets = 4;
+#define Nmin_octets 4
 
 /* The minimum time without a DataAvailable or ReceiveError event within */
 /* a frame before a receiving node may discard the frame: 60 bit times. */
@@ -96,56 +96,56 @@ const uint8_t Nmin_octets = 4;
 /* not to exceed 100 milliseconds.) */
 /* At 9600 baud, 60 bit times would be about 6.25 milliseconds */
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
-const uint16_t Tframe_abort = 30;
+#define Tframe_abort 30
 
 /* The maximum idle time a sending node may allow to elapse between octets */
 /* of a frame the node is transmitting: 20 bit times. */
-const unsigned Tframe_gap = 20;
+#define Tframe_gap 20
 
 /* The time without a DataAvailable or ReceiveError event before declaration */
 /* of loss of token: 500 milliseconds. */
-const uint16_t Tno_token = 500;
+#define Tno_token 500
 
 /* The maximum time after the end of the stop bit of the final */
 /* octet of a transmitted frame before a node must disable its */
 /* EIA-485 driver: 15 bit times. */
-const unsigned Tpostdrive = 15;
+#define Tpostdrive 15
 
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
-const uint16_t Treply_delay = 10;
+/* note: we always send a reply postponed since a message other than
+   the reply may be in the transmit queue */
+#define Treply_delay 10
 
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
-const uint16_t Treply_timeout = 255;
+#define Treply_timeout 255
 
 /* Repeater turnoff delay. The duration of a continuous logical one state */
 /* at the active input port of an MS/TP repeater after which the repeater */
 /* will enter the IDLE state: 29 bit times < Troff < 40 bit times. */
-const unsigned Troff = 30;
+#define Troff 30
 
 /* The width of the time slot within which a node may generate a token: */
 /* 10 milliseconds. */
-const uint16_t Tslot = 10;
+#define Tslot 10
 
 /* The maximum time a node may wait after reception of the token or */
 /* a Poll For Master frame before sending the first octet of a frame: */
 /* 15 milliseconds. */
-const uint16_t Tusage_delay = 15;
+#define Tusage_delay 15
 
 /* The minimum time without a DataAvailable or ReceiveError event that a */
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
-const uint16_t Tusage_timeout = 30;
+#define Tusage_timeout 20
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) {if (x < 0xFF) x++;}
-#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-
 
 bool MSTP_Line_Active(volatile struct mstp_port_struct_t *mstp_port)
 {
@@ -225,14 +225,6 @@ void MSTP_Create_And_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,  
 
     RS485_Send_Frame(mstp_port, &buffer[0], len);
     /* FIXME: be sure to reset SilenceTimer after each octet is sent! */
-}
-
-/* Millisecond Timer - called every millisecond */
-void MSTP_Millisecond_Timer(volatile struct mstp_port_struct_t *mstp_port)
-{
-    INCREMENT_AND_LIMIT_UINT16(mstp_port->SilenceTimer);
-    INCREMENT_AND_LIMIT_UINT16(mstp_port->ReplyPostponedTimer);
-    return;
 }
 
 #if PRINT_ENABLED_RECEIVE
@@ -471,26 +463,8 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                         }
                         /* NoData */
                         else if (mstp_port->DataLength == 0) {
-                            /* CHEAT: it is very difficult to respond to 
-                               poll for master in the Master Node state machine
-                               before Tusage_timeout, so we will do it here. */
-                            if ((mstp_port->FrameType == FRAME_TYPE_POLL_FOR_MASTER) &&
-                                (mstp_port->DestinationAddress == mstp_port->This_Station) &&
-                                (mstp_port->master_state == MSTP_MASTER_STATE_IDLE))
-                            {
-                                MSTP_Create_And_Send_Frame(mstp_port,
-                                    FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
-                                    mstp_port->SourceAddress, mstp_port->This_Station,
-                                    NULL, 0);
-                                /* don't indicate that a frame has been received */
-                                mstp_port->ReceivedInvalidFrame = false;
-                                mstp_port->ReceivedValidFrame = false;
-                            }
-                            else
-                            {
-                                /* indicate that a frame with no data has been received */
-                                mstp_port->ReceivedValidFrame = true;
-                            }
+                            /* indicate that a frame with no data has been received */
+                            mstp_port->ReceivedValidFrame = true;
                             /* wait for the start of the next frame. */
                             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                         }
@@ -780,10 +754,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     break;
                     /* ReceivedPFM */
                 case FRAME_TYPE_POLL_FOR_MASTER:
-                    /* CHEAT: we cheat a little and this is really handled in the
-                       receive state machine since it is difficult to respond
-                       quick enough (i.e. faster than Tusage_timeout of the 
-                       other node which could be 20ms). */
                     MSTP_Create_And_Send_Frame(mstp_port,
                         FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
                         mstp_port->SourceAddress, mstp_port->This_Station,
@@ -796,9 +766,9 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                         mstp_port->DataLength);
                     break;
                 case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                    mstp_port->ReplyPostponedTimer = 0;
+                    //mstp_port->ReplyPostponedTimer = 0;
                     /* indicate successful reception to the higher layers  */
-                    dlmstp_put_receive(mstp_port->SourceAddress,        /* source MS/TP address */
+                    dlmstp_put_receive(mstp_port->SourceAddress,
                         (uint8_t *) & mstp_port->InputBuffer[0],
                         mstp_port->DataLength);
                     /* broadcast DER just remains IDLE */
@@ -806,7 +776,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                         MSTP_BROADCAST_ADDRESS) {
                         mstp_port->master_state =
                             MSTP_MASTER_STATE_ANSWER_DATA_REQUEST;
-                        transition_now = true;
                     }
                     break;
                 case FRAME_TYPE_TEST_REQUEST:
@@ -831,7 +800,12 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             /* NothingToSend */
             mstp_port->FrameCount = mstp_port->Nmax_info_frames;
             mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
+            transition_now = true;
+        } else if (mstp_port->SilenceTimer > Tusage_delay) {
+            /* if we missed our timing deadline, another token will be sent */
+            mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
         } else {
+            /* don't send it if we are too late in getting out */
             uint8_t destination = mstp_port->TxBuffer[3];
             RS485_Send_Frame(mstp_port,
                 (uint8_t *) & mstp_port->TxBuffer[0], mstp_port->TxLength);
@@ -859,7 +833,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             }
             mstp_port->TxReady = false;
         }
-        transition_now = true;
         break;
         /* In the WAIT_FOR_REPLY state, the node waits for  */
         /* a reply from another node. */
@@ -931,6 +904,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             /* then this node may send another information frame  */
             /* before passing the token.  */
             mstp_port->master_state = MSTP_MASTER_STATE_USE_TOKEN;
+            transition_now = true;
         }
         /* Npoll changed in Errata SSPC-135-2004 */
         else if (mstp_port->TokenCount < (Npoll - 1)) {
@@ -942,6 +916,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 mstp_port->FrameCount = 0;
                 mstp_port->TokenCount++;
                 mstp_port->master_state = MSTP_MASTER_STATE_USE_TOKEN;
+                transition_now = true;
             } else {
                 /* SendToken */
                 /* Npoll changed in Errata SSPC-135-2004 */
@@ -995,7 +970,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             mstp_port->RetryCount = 0;
             mstp_port->master_state = MSTP_MASTER_STATE_POLL_FOR_MASTER;
         }
-        transition_now = true;
         break;
         /* The PASS_TOKEN state listens for a successor to begin using */
         /* the token that this node has just attempted to pass. */
@@ -1037,7 +1011,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 /* find a new successor to TS */
                 mstp_port->master_state =
                     MSTP_MASTER_STATE_POLL_FOR_MASTER;
-                transition_now = true;
             }
         }
         break;
@@ -1076,7 +1049,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 /* enter the POLL_FOR_MASTER state to find a new successor to TS. */
                 mstp_port->master_state =
                     MSTP_MASTER_STATE_POLL_FOR_MASTER;
-                transition_now = true;
             }
         }
         break;
@@ -1108,9 +1080,9 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 /* enter the IDLE state to synchronize with the network.  */
                 /* This action drops the token. */
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
+                transition_now = true;
             }
             mstp_port->ReceivedValidFrame = false;
-            transition_now = true;
         } else if ((mstp_port->SilenceTimer >= Tusage_timeout) ||
             (mstp_port->ReceivedInvalidFrame == true)) {
             if (mstp_port->SoleMaster == true) {
@@ -1120,6 +1092,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 mstp_port->FrameCount = 0;
                 /* mstp_port->TokenCount++; removed in 2004 */
                 mstp_port->master_state = MSTP_MASTER_STATE_USE_TOKEN;
+                transition_now = true;
             } else {
                 if (mstp_port->Next_Station != mstp_port->This_Station) {
                     /* DoneWithPFM */
@@ -1151,18 +1124,21 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                         mstp_port->FrameCount = 0;
                         mstp_port->master_state =
                             MSTP_MASTER_STATE_USE_TOKEN;
+                        transition_now = true;
                     }
                 }
             }
             mstp_port->ReceivedInvalidFrame = false;
-            transition_now = true;
         }
         break;
         /* The ANSWER_DATA_REQUEST state is entered when a  */
         /* BACnet Data Expecting Reply, a Test_Request, or  */
         /* a proprietary frame that expects a reply is received. */
     case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-        if (mstp_port->ReplyPostponedTimer <= Treply_delay) {
+        /* FIXME: if we knew the APDU type received, we could
+           see if the next message was that same APDU type */
+        if ((mstp_port->SilenceTimer <= Treply_delay) &&
+            mstp_port->TxReady) {
             /* Reply */
             /* If a reply is available from the higher layers  */
             /* within Treply_delay after the reception of the  */
@@ -1178,28 +1154,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     mstp_port->TxLength);
                 mstp_port->TxReady = false;
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-                transition_now = true;
-            }
-            /* Test Request */
-            /* If a receiving node can successfully receive and return  */
-            /* the information field, it shall do so. If it cannot receive */
-            /* and return the entire information field but can detect  */
-            /* the reception of a valid Test_Request frame  */
-            /* (for example, by computing the CRC on octets as  */
-            /* they are received), then the receiving node shall discard  */
-            /* the information field and return a Test_Response containing  */
-            /* no information field. If the receiving node cannot detect  */
-            /* the valid reception of frames with overlength information fields,  */
-            /* then no response shall be returned. */
-            else if (mstp_port->FrameType == FRAME_TYPE_TEST_REQUEST) {
-                MSTP_Create_And_Send_Frame(mstp_port,
-                    FRAME_TYPE_TEST_RESPONSE,
-                    mstp_port->SourceAddress,
-                    mstp_port->This_Station,
-                    (uint8_t *) & mstp_port->InputBuffer[0],
-                    mstp_port->DataLength);
-                mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-                transition_now = true;
             }
         }
         /* DeferredReply */
@@ -1217,7 +1171,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 mstp_port->SourceAddress,
                 mstp_port->This_Station, NULL, 0);
             mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-            transition_now = true;
         }
         break;
     default:
@@ -1228,8 +1181,10 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
     return transition_now;
 }
 
-void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port,
-    uint8_t this_station_mac)
+/* note: This_Station should be set with the MAC address */
+/* note: Nmax_info_frames should be set */
+/* note: Nmax_master should be set */
+void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port)
 {
     int i;                      /*loop counter */
 
@@ -1252,19 +1207,21 @@ void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port,
         for (i = 0; i < sizeof(mstp_port->InputBuffer); i++) {
             mstp_port->InputBuffer[i] = 0;
         }
-        mstp_port->Next_Station = this_station_mac;
-        mstp_port->Poll_Station = this_station_mac;
+        mstp_port->Next_Station = mstp_port->This_Station;
+        mstp_port->Poll_Station = mstp_port->This_Station;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
         mstp_port->RetryCount = 0;
         mstp_port->SilenceTimer = 0;
-        mstp_port->ReplyPostponedTimer = 0;
+//        mstp_port->ReplyPostponedTimer = 0;
         mstp_port->SoleMaster = false;
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
-        mstp_port->This_Station = this_station_mac;
+        #if 0
+        // these are adjustable, so should already be set
         mstp_port->Nmax_info_frames = DEFAULT_MAX_INFO_FRAMES;
         mstp_port->Nmax_master = DEFAULT_MAX_MASTER;
+        #endif
 
         /* An array of octets, used to store PDU octets prior to being transmitted. */
         /* This array is only used for APDU messages */
