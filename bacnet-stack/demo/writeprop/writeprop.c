@@ -242,9 +242,9 @@ int main(int argc, char *argv[])
     if (argc > 8)
         Target_Object_Property_Index = strtol(argv[8], NULL, 0);
 
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE+1);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
     }
 
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE-1);
     address_init();
     Init_Service_Handlers();
     /* configure standard BACnet/IP port */
