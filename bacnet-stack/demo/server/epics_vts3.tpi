@@ -62,8 +62,8 @@ BIBBs Supported:
 BACnet Standard Application Services Supported:
 {
 -- AcknowledgeAlarm               Initiate Execute
--- ConfirmedCOVNotification       Initiate Execute
--- UnconfirmedCOVNotification     Initiate Execute
+ ConfirmedCOVNotification       Initiate Execute
+ UnconfirmedCOVNotification     Initiate Execute
 -- ConfirmedEventNotification     Initiate Execute
 -- UnconfirmedEventNotification   Initiate Execute
 -- GetAlarmSummary                Initiate Execute
@@ -122,7 +122,7 @@ Standard Object-Types Supported:
 -- Group                          Createable Deleteable
 -- Loop                           Createable Deleteable
 -- Multi-state Input              Createable Deleteable
--- Multi-state Output             Createable Deleteable
+Multi-state Output
 -- Multi-state Value              Createable Deleteable
 -- Notification Class             Createable Deleteable
 -- Program                        Createable Deleteable
