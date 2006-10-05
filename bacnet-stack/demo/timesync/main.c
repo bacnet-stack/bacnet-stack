@@ -156,6 +156,9 @@ int main(int argc, char *argv[])
             filename_remove_path(argv[0]));
         return 0;
     }
+#else
+    (void)argc;
+    (void)argv;
 #endif
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
