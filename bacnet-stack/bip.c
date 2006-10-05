@@ -118,6 +118,7 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
     int mtu_len = 0;
     int bytes_sent = 0;
 
+    (void)npdu_data;
     /* assumes that the driver has already been initialized */
     if (BIP_Socket < 0)
         return BIP_Socket;
