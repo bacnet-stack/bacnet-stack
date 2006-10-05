@@ -83,14 +83,14 @@ void handler_write_property(uint8_t * service_request,
     /* bad decoding or something we didn't understand - send an abort */
     if (len <= 0) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER);
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "Sending Abort!\n");
 #endif
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "Sending Abort!\n");
 #endif

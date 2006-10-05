@@ -109,7 +109,7 @@ extern "C" {
 
 /* generic abort reply function */
     typedef void (*abort_function) (BACNET_ADDRESS * src,
-        uint8_t invoke_id, uint8_t abort_reason);
+        uint8_t invoke_id, uint8_t abort_reason, bool server);
 
 /* generic reject reply function */
     typedef void (*reject_function) (BACNET_ADDRESS * src,

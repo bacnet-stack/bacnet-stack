@@ -287,6 +287,7 @@ void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
     int error_code = 0;
     int error_class = 0;
     uint8_t reason = 0;
+    bool server = false;
 
     if (apdu) {
         /* PDU Type */
@@ -439,10 +440,11 @@ void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
             tsm_free_invoke_id(invoke_id);
             break;
         case PDU_TYPE_ABORT:
+            server = apdu[0] & 0x01;
             invoke_id = apdu[1];
             reason = apdu[2];
             if (Abort_Function)
-                Abort_Function(src, invoke_id, reason);
+                Abort_Function(src, invoke_id, reason, server);
             tsm_free_invoke_id(invoke_id);
             break;
         default:
