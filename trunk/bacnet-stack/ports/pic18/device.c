@@ -157,7 +157,8 @@ bool Device_Object_List_Identifier(unsigned array_index,
     return status;
 }
 
-/* return the length of the apdu encoded or -1 for error */
+/* return the length of the apdu encoded or -1 for error or 
+   -2 for abort */
 int Device_Encode_Property_APDU(uint8_t * apdu,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
@@ -265,9 +266,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
                     /* assume next one is the same size as this one */
                     /* can we all fit into the APDU? */
                     if ((apdu_len + len) >= MAX_APDU) {
-                        *error_class = ERROR_CLASS_SERVICES;
-                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = -1;
+                        apdu_len = -2;
                         break;
                     }
                 } else {

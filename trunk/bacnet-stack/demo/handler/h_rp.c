@@ -314,9 +314,20 @@ void handler_read_property(uint8_t * service_request,
         }
     }
     if (error) {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
+        switch (len) {
+            /* BACnet APDU too small to fit data, so proper response is Abort */
+            case -2:
+                len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    ABORT_REASON_SEGMENTATION_NOT_SUPPORTED);
+                break; 
+            case -1:
+            default:
+                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
+                break;
+        }
 #if PRINT_ENABLED
         fprintf(stderr, "Sending Read Property Error!\n");
 #endif
