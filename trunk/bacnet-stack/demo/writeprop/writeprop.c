@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
     }
 
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE-1);
+    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
     /* configure standard BACnet/IP port */
