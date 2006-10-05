@@ -42,7 +42,7 @@ extern "C" {
 #endif                          /* __cplusplus */
 
     int abort_encode_apdu(uint8_t * apdu,
-        uint8_t invoke_id, uint8_t abort_reason);
+        uint8_t invoke_id, uint8_t abort_reason, bool server);
 
     int abort_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason);

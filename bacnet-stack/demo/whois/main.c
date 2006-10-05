@@ -56,11 +56,12 @@ static int32_t Target_Object_Instance_Max = BACNET_MAX_INSTANCE;
 static bool Error_Detected = false;
 
 void MyAbortHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t abort_reason)
+    uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
+    (void) server;
     printf("BACnet Abort: %s\r\n",
         bactext_abort_reason_name(abort_reason));
     Error_Detected = true;

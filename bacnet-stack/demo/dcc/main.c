@@ -77,11 +77,12 @@ static void MyErrorHandler(BACNET_ADDRESS * src,
 }
 
 void MyAbortHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t abort_reason)
+    uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
+    (void) server;
     printf("BACnet Abort: %s\r\n",
         bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
