@@ -1,6 +1,12 @@
 # Master Makefile for BACnet Stack demos
 # for Borland C++
 
+!ifndef BORLAND_DIR
+BORLAND_DIR_Not_Defined:
+   @echo .
+   @echo You must define environment variable BORLAND_DIR to compile.
+!endif
+
 all: readprop writeprop readfile writefile server dcc reinit \
   whois whohas timesync
   @echo "demo utilities are in utils directory"
