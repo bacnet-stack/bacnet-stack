@@ -44,7 +44,7 @@ int abort_encode_apdu(uint8_t * apdu,
 
     if (apdu) {
         if (server)
-            apdu[0] = PDU_TYPE_ABORT & 1;
+            apdu[0] = PDU_TYPE_ABORT | 1;
         else
             apdu[0] = PDU_TYPE_ABORT;
         apdu[1] = invoke_id;
