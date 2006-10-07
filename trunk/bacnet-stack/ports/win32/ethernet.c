@@ -430,7 +430,7 @@ void ethernet_debug_address(const char *info, BACNET_ADDRESS * dest)
     if (info) {
         sprintf(msgBuf, "%s", info);
         LogError(msgBuf);
-    }                           // if
+    }                           /* if */
 
     if (dest) {
         sprintf(msgBuf,
@@ -439,7 +439,7 @@ void ethernet_debug_address(const char *info, BACNET_ADDRESS * dest)
         for (i = 0; i < MAX_MAC_LEN; i++) {
             sprintf(msgBuf, "%02X ", (unsigned) dest->mac[i]);
             LogInfo(msgBuf);
-        }                       // for
+        }                       /* for */
         LogInfo("\n");
         sprintf(msgBuf,
             "  Net=%hu\n  Len=%d\n  Adr=", dest->net, dest->len);
@@ -447,9 +447,9 @@ void ethernet_debug_address(const char *info, BACNET_ADDRESS * dest)
         for (i = 0; i < MAX_MAC_LEN; i++) {
             sprintf(msgBuf, "%02X ", (unsigned) dest->adr[i]);
             LogInfo(msgBuf);
-        }                       // for
+        }                       /* for */
         LogInfo("\n");
-    }                           // if ( dest )
+    }                           /* if ( dest ) */
 
     return;
 }

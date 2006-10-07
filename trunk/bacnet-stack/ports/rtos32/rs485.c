@@ -62,8 +62,8 @@ void RS485_Print_Frame(int port,
     uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 {
-    uint16_t i; // byte counter
-    unsigned long duration; // measures the time from last output to this one
+    uint16_t i; /* byte counter */
+    unsigned long duration; /* measures the time from last output to this one */
     unsigned long seconds;
     unsigned long milliseconds;
   
@@ -112,9 +112,9 @@ static int TestCOMPort(int Base)
     int i;
 
     for (i = 0; i < 256; i++) {
-        RTOut(Base + 7, (BYTE) i);      // write scratch register
-        RTOut(Base + 1, RTIn(Base + 1));        // read/write IER
-        if (RTIn(Base + 7) != i)        // check scratch register
+        RTOut(Base + 7, (BYTE) i);      /* write scratch register */
+        RTOut(Base + 1, RTIn(Base + 1));        /* read/write IER */
+        if (RTIn(Base + 7) != i)        /* check scratch register */
             return FALSE;
     }
     return TRUE;

@@ -44,7 +44,7 @@ uint32_t RS485_Baud_Rate = 9600;
 /* the ISR and other use this for status and control */
 COMSTAT   RS485_Comstat;
 
-//#pragma udata MSTPPortData
+/*#pragma udata MSTPPortData */
 /* the buffer for receiving characters */
 volatile uint8_t RS485_Rx_Buffer[MAX_MPDU];
 
@@ -87,11 +87,11 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
   RS485_Comstat.TxHead = 0;
   memcpy((void *)&RS485_Tx_Buffer[0], (void *)buffer, nbytes);
 
-  //for (i = 0; i < nbytes; i++) {
-  //  /* put the data into the buffer */
-  //  RS485_Tx_Buffer[i] = *buffer;
-  //  buffer++;
-  //}
+  /*for (i = 0; i < nbytes; i++) { */
+  /*  /* put the data into the buffer */ */
+  /*  RS485_Tx_Buffer[i] = *buffer; */
+  /*  buffer++; */
+  /*} */
   RS485_Comstat.Tx_Bytes = nbytes;
   /* disable the receiver */
   PIE3bits.RC2IE = 0;
@@ -205,7 +205,7 @@ void RS485_Interrupt_Tx(void)
     /* enable the receiver */
     RS485_TX_ENABLE = 0;
     RS485_RX_DISABLE = 0;
-    // FIXME: might not be necessary
+    /* FIXME: might not be necessary */
     PIE3bits.RC2IE = 1;
     RCSTA2bits.CREN = 1;
   }
