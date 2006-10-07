@@ -36,7 +36,7 @@
 #include "npdu.h"
 #include "eeprom.h"
 
-// Number of MS/TP Packets Rx/Tx 
+/* Number of MS/TP Packets Rx/Tx  */
 uint16_t MSTP_Packets = 0;   
 
 /* receive buffer */
@@ -50,7 +50,7 @@ volatile struct mstp_port_struct_t MSTP_Port;
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 
-// This defines the number of edit fields for this module
+/* This defines the number of edit fields for this module */
 #define MAX_EDIT_FIELD 1
 static  uint8_t  EditField = 0;
 /* *************************************************************************
@@ -204,7 +204,7 @@ void dlmstp_task(void)
     /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
         while (MSTP_Master_Node_FSM(&MSTP_Port)) {};
-        //MSTP_Master_Node_FSM(&MSTP_Port);
+        /*MSTP_Master_Node_FSM(&MSTP_Port); */
     }
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */

@@ -92,7 +92,7 @@ void RTOS_Initialize(void)
     (void) kbhit();
     RTKernelInit(5);            /* get the kernel going */
     RTKeybrdInit();
-    //(void)CPUMoniInit(); /* not needed - just monitor idle task */
+    /*(void)CPUMoniInit(); /* not needed - just monitor idle task */ */
     RTComInit();
     ITimerInit();
 
@@ -100,23 +100,23 @@ void RTOS_Initialize(void)
         /* Win32 structured exception - if no handler is
            installed, TerminateProcess() will be called,
            which will reboot - a good thing in our case. */
-        RTRaiseCPUException(0); // Divide Error DIV and IDIV instructions.
-        RTRaiseCPUException(1); // Debug Any code or data reference.
-        RTRaiseCPUException(2); // NMI
-        RTRaiseCPUException(3); // Breakpoint INT 3 instruction.
-        RTRaiseCPUException(4); // Overflow INTO instruction.
-        RTRaiseCPUException(5); // BOUND Range Exceeded BOUND instruction.
-        RTRaiseCPUException(6); // Invalid Opcode (Undefined Opcode)
-        //  RTRaiseCPUException(7); // Device Not Available (No Math Coprocessor)
-        RTRaiseCPUException(8); // Double Fault any exception instruction,NMI,INTR.
-        RTRaiseCPUException(9); // Co-Processor overrun
-        RTRaiseCPUException(10);        // Invalid TSS Task switch or TSS access.
-        RTRaiseCPUException(11);        // Segment Not Present Loading segment registers
-        RTRaiseCPUException(12);        // Stack Seg Fault Stack ops /SS reg loads.
-        RTRaiseCPUException(13);        // General Protection Any memory reference
-        RTRaiseCPUException(14);        // Page Fault Any memory reference.
-        RTRaiseCPUException(15);        // reserved
-        RTRaiseCPUException(16);        // Floating-Point Error (Math Fault)
+        RTRaiseCPUException(0); /* Divide Error DIV and IDIV instructions. */
+        RTRaiseCPUException(1); /* Debug Any code or data reference. */
+        RTRaiseCPUException(2); /* NMI */
+        RTRaiseCPUException(3); /* Breakpoint INT 3 instruction. */
+        RTRaiseCPUException(4); /* Overflow INTO instruction. */
+        RTRaiseCPUException(5); /* BOUND Range Exceeded BOUND instruction. */
+        RTRaiseCPUException(6); /* Invalid Opcode (Undefined Opcode) */
+        /*  RTRaiseCPUException(7); // Device Not Available (No Math Coprocessor) */
+        RTRaiseCPUException(8); /* Double Fault any exception instruction,NMI,INTR. */
+        RTRaiseCPUException(9); /* Co-Processor overrun */
+        RTRaiseCPUException(10);        /* Invalid TSS Task switch or TSS access. */
+        RTRaiseCPUException(11);        /* Segment Not Present Loading segment registers */
+        RTRaiseCPUException(12);        /* Stack Seg Fault Stack ops /SS reg loads. */
+        RTRaiseCPUException(13);        /* General Protection Any memory reference */
+        RTRaiseCPUException(14);        /* Page Fault Any memory reference. */
+        RTRaiseCPUException(15);        /* reserved */
+        RTRaiseCPUException(16);        /* Floating-Point Error (Math Fault) */
     }
     /* setup 1ms timer tick */
     SetTimerIntVal(1000);
