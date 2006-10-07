@@ -87,7 +87,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         }
         /* header len */
         mtu_len = 8;
-        if ((mtu_len  + pdu_len) > MAX_MPDU) {
+        if ((mtu_len + pdu_len) > MAX_MPDU) {
 #if PRINT_ENABLED
             fprintf(stderr, "mstp: PDU is too big to send!\n");
 #endif
@@ -99,8 +99,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
             (uint8_t *) & MSTP_Port.TxBuffer[0],
             sizeof(MSTP_Port.TxBuffer),
             MSTP_Port.TxFrameType,
-            destination,
-            MSTP_Port.This_Station, &PDU_Buffer[0], mtu_len);
+            destination, MSTP_Port.This_Station, &PDU_Buffer[0], mtu_len);
         MSTP_Port.TxLength = bytes_sent;
         MSTP_Port.TxReady = true;
     }
@@ -132,7 +131,8 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
     }
     /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
-        while (MSTP_Master_Node_FSM(&MSTP_Port)) {};
+        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
+        };
     }
     /* see if there is a packet available */
     if (Receive_Buffer.ready) {

@@ -96,7 +96,7 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
     int mtu_len = 0;
     int i = 0;
 
-    (void)npdu_data;
+    (void) npdu_data;
     /* don't waste time if the socket is not valid */
     if (Ethernet_Socket < 0) {
         fprintf(stderr, "ethernet: 802.2 socket is invalid!\n");

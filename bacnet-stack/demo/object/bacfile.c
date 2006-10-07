@@ -227,7 +227,7 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
-    
+
     /* decode the some of the request */
     switch (wp_data->object_property) {
     case PROP_ARCHIVE:
@@ -313,7 +313,8 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
     found = tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
         &apdu_len);
     if (found) {
-        if (!npdu_data.network_layer_message && npdu_data.data_expecting_reply
+        if (!npdu_data.network_layer_message
+            && npdu_data.data_expecting_reply
             && (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
             len =
                 apdu_decode_confirmed_service_request(&apdu[0],

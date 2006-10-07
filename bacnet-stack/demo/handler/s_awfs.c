@@ -76,9 +76,11 @@ uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
         if (status) {
             /* encode the NPDU portion of the packet */
             datalink_get_my_address(&my_address);
-            npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-            pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-                    &my_address, &npdu_data);
+            npdu_encode_npdu_data(&npdu_data, true,
+                MESSAGE_PRIORITY_NORMAL);
+            pdu_len =
+                npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
+                &my_address, &npdu_data);
             /* encode the APDU portion of the packet */
             len = awf_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 invoke_id, &data);

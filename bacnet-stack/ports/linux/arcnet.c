@@ -196,7 +196,7 @@ int arcnet_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     int mtu_len = 0;
     struct archdr *pkt = (struct archdr *) mtu;
 
-    (void)npdu_data;
+    (void) npdu_data;
     src.mac[0] = ARCNET_MAC_Address;
     src.mac_len = 1;
 

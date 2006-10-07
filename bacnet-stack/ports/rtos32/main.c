@@ -93,7 +93,7 @@ void RTOS_Initialize(void)
     RTKernelInit(5);            /* get the kernel going */
     RTKeybrdInit();
     /*(void)CPUMoniInit(); /* not needed - just monitor idle task */ */
-    RTComInit();
+        RTComInit();
     ITimerInit();
 
     if (RTCallDebugger(RT_DBG_MONITOR, 0, 0) != -1) {

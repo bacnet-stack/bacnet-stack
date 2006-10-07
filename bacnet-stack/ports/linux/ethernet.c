@@ -189,7 +189,7 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
     uint8_t mtu[MAX_MPDU] = { 0 };      /* our buffer */
     int mtu_len = 0;
 
-    (void)npdu_data;
+    (void) npdu_data;
     /* load the BACnet address for NPDU data */
     for (i = 0; i < 6; i++) {
         src.mac[i] = Ethernet_MAC_Address[i];

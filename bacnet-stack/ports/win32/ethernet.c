@@ -430,8 +430,8 @@ void ethernet_debug_address(const char *info, BACNET_ADDRESS * dest)
     if (info) {
         sprintf(msgBuf, "%s", info);
         LogError(msgBuf);
-    }                           /* if */
-
+    }
+    /* if */
     if (dest) {
         sprintf(msgBuf,
             "Address:\n  MAC Length=%d\n  MAC Address=", dest->mac_len);
@@ -449,7 +449,7 @@ void ethernet_debug_address(const char *info, BACNET_ADDRESS * dest)
             LogInfo(msgBuf);
         }                       /* for */
         LogInfo("\n");
-    }                           /* if ( dest ) */
-
+    }
+    /* if ( dest ) */
     return;
 }

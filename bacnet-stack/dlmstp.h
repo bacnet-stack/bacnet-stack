@@ -48,7 +48,7 @@
 typedef struct dlmstp_packet {
     bool ready;                 /* true if ready to be sent or received */
     BACNET_ADDRESS address;     /* source address */
-    uint8_t frame_type;        /* type of message */
+    uint8_t frame_type;         /* type of message */
     unsigned pdu_len;           /* packet length */
     uint8_t pdu[MAX_MPDU];      /* packet */
 } DLMSTP_PACKET;
