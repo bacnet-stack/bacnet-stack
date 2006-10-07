@@ -50,7 +50,8 @@ extern "C" {
 #ifdef TEST
 #include "ctest.h"
     int abort_decode_apdu(uint8_t * apdu,
-        unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason);
+        unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason,
+        bool * server);
 
     void testAbort(Test * pTest);
 #endif
