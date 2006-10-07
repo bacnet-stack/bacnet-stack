@@ -70,7 +70,7 @@ uint8_t Send_Device_Communication_Control_Request(uint32_t device_id, uint16_t t
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
         pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-                &my_address, &npdu_data);
+            &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
         characterstring_init_ansi(&password_string, password);
         len = dcc_encode_apdu(&Handler_Transmit_Buffer[pdu_len],

@@ -77,7 +77,7 @@ void My_Read_Property_Handler(uint8_t * service_request,
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, 
+    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
         &my_address, &npdu_data);
     /* bad decoding - send an abort */
     if (len < 0) {
@@ -101,8 +101,8 @@ void My_Read_Property_Handler(uint8_t * service_request,
                     data.application_data_len = len;
                     /* FIXME: probably need a length limitation sent with encode */
                     len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                        service_data->invoke_id, &data);
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
+                        [pdu_len], service_data->invoke_id, &data);
                 } else
                     error = true;
             } else

@@ -56,13 +56,13 @@
 
 /* debug print statements */
 #if PRINT_ENABLED
-  #define PRINT_ENABLED_RECEIVE 0
-  #define PRINT_ENABLED_RECEIVE_DATA 1
-  #define PRINT_ENABLED_MASTER 0
+#define PRINT_ENABLED_RECEIVE 0
+#define PRINT_ENABLED_RECEIVE_DATA 1
+#define PRINT_ENABLED_MASTER 0
 #else
-  #define PRINT_ENABLED_RECEIVE 0
-  #define PRINT_ENABLED_RECEIVE_DATA 0
-  #define PRINT_ENABLED_MASTER 0
+#define PRINT_ENABLED_RECEIVE 0
+#define PRINT_ENABLED_RECEIVE_DATA 0
+#define PRINT_ENABLED_MASTER 0
 #endif
 
 /* MS/TP Frame Format */
@@ -458,7 +458,8 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     /* wait for the start of the next frame. */
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {
-                    if ((mstp_port->DestinationAddress == mstp_port->This_Station)
+                    if ((mstp_port->DestinationAddress ==
+                            mstp_port->This_Station)
                         || (mstp_port->DestinationAddress ==
                             MSTP_BROADCAST_ADDRESS)) {
                         /* FrameTooLong */
@@ -467,39 +468,42 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             /* unacceptable data length has been received */
                             mstp_port->ReceivedInvalidFrame = true;
                             /* wait for the start of the next frame. */
-                            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                            mstp_port->receive_state =
+                                MSTP_RECEIVE_STATE_IDLE;
                         }
                         /* NoData */
                         else if (mstp_port->DataLength == 0) {
                             /* CHEAT: it is very difficult to respond to 
                                poll for master in the Master Node state machine
                                before Tusage_timeout, so we will do it here. */
-                            if ((mstp_port->FrameType == FRAME_TYPE_POLL_FOR_MASTER) &&
-                                (mstp_port->DestinationAddress == mstp_port->This_Station) &&
-                                (mstp_port->master_state == MSTP_MASTER_STATE_IDLE))
-                            {
+                            if ((mstp_port->FrameType ==
+                                    FRAME_TYPE_POLL_FOR_MASTER)
+                                && (mstp_port->DestinationAddress ==
+                                    mstp_port->This_Station)
+                                && (mstp_port->master_state ==
+                                    MSTP_MASTER_STATE_IDLE)) {
                                 MSTP_Create_And_Send_Frame(mstp_port,
                                     FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
-                                    mstp_port->SourceAddress, mstp_port->This_Station,
-                                    NULL, 0);
+                                    mstp_port->SourceAddress,
+                                    mstp_port->This_Station, NULL, 0);
                                 /* don't indicate that a frame has been received */
                                 mstp_port->ReceivedInvalidFrame = false;
                                 mstp_port->ReceivedValidFrame = false;
-                            }
-                            else
-                            {
+                            } else {
                                 /* indicate that a frame with no data has been received */
                                 mstp_port->ReceivedValidFrame = true;
                             }
                             /* wait for the start of the next frame. */
-                            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                            mstp_port->receive_state =
+                                MSTP_RECEIVE_STATE_IDLE;
                         }
                         /* Data */
                         else {
                             mstp_port->Index = 0;
                             mstp_port->DataCRC = 0xFFFF;
                             /* receive the data portion of the frame. */
-                            mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
+                            mstp_port->receive_state =
+                                MSTP_RECEIVE_STATE_DATA;
                         }
                     }
                     /* NotForUs */
@@ -508,8 +512,8 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                     }
                 }
-              
-              
+
+
             }
             /* not per MS/TP standard, but it is a case not covered */
             else {
@@ -681,7 +685,7 @@ char *mstp_frame_type_text(int type)
 #endif
 
 /* returns true if we need to transition immediately */
-bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
+bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
 {
     int mtu_len = 0;
     int frame_type = 0;

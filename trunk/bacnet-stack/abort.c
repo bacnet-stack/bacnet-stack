@@ -103,9 +103,7 @@ int abort_decode_apdu(uint8_t * apdu,
 }
 
 void testAbortAPDU(Test * pTest,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+    uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -144,8 +142,7 @@ void testAbort(Test * pTest)
     ct_test(pTest, len != 0);
     apdu_len = len;
     len = abort_decode_apdu(&apdu[0],
-        apdu_len, &test_invoke_id, &test_abort_reason,
-        &test_server);
+        apdu_len, &test_invoke_id, &test_abort_reason, &test_server);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_abort_reason == abort_reason);
@@ -170,8 +167,8 @@ void testAbort(Test * pTest)
     /* check them all...   */
     for (invoke_id = 0; invoke_id < 255; invoke_id++) {
         for (abort_reason = 0; abort_reason < 255; abort_reason++) {
-           testAbortAPDU(pTest, invoke_id, abort_reason, false);
-           testAbortAPDU(pTest, invoke_id, abort_reason, true);
+            testAbortAPDU(pTest, invoke_id, abort_reason, false);
+            testAbortAPDU(pTest, invoke_id, abort_reason, true);
         }
     }
 }

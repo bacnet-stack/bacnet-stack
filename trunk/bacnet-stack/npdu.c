@@ -190,8 +190,7 @@ int npdu_encode_pdu(uint8_t * npdu,
 /* Configure the NPDU portion of the packet for an APDU */
 /* This function does not handle the network messages, just APDUs. */
 void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu_data,
-    bool data_expecting_reply,
-    BACNET_MESSAGE_PRIORITY priority)
+    bool data_expecting_reply, BACNET_MESSAGE_PRIORITY priority)
 {
     if (npdu_data) {
         npdu_data->data_expecting_reply = data_expecting_reply;
@@ -358,7 +357,7 @@ void testNPDU2(Test * pTest)
     BACNET_ADDRESS npdu_dest = { 0 };
     BACNET_ADDRESS npdu_src = { 0 };
     int len = 0;
-    bool data_expecting_reply = true;  
+    bool data_expecting_reply = true;
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0;                  /* counter */

@@ -180,36 +180,38 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             Object_Instance_Number);
         break;
     case PROP_OBJECT_NAME:
-        characterstring_init_ansi(&char_string, (char *)"TD");
+        characterstring_init_ansi(&char_string, (char *) "TD");
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
         apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_DEVICE);
         break;
     case PROP_DESCRIPTION:
-        characterstring_init_ansi(&char_string, (char *)"Tiny");
+        characterstring_init_ansi(&char_string, (char *) "Tiny");
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_SYSTEM_STATUS:
-        apdu_len = encode_tagged_enumerated(&apdu[0], Device_System_Status());
+        apdu_len =
+            encode_tagged_enumerated(&apdu[0], Device_System_Status());
         break;
     case PROP_VENDOR_NAME:
-        characterstring_init_ansi(&char_string, (char *)"ASHRAE");
+        characterstring_init_ansi(&char_string, (char *) "ASHRAE");
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_VENDOR_IDENTIFIER:
-        apdu_len = encode_tagged_unsigned(&apdu[0], Device_Vendor_Identifier());
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], Device_Vendor_Identifier());
         break;
     case PROP_MODEL_NAME:
-        characterstring_init_ansi(&char_string, (char *)"GNU");
+        characterstring_init_ansi(&char_string, (char *) "GNU");
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_FIRMWARE_REVISION:
-        characterstring_init_ansi(&char_string, (char *)"1.0");
+        characterstring_init_ansi(&char_string, (char *) "1.0");
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_APPLICATION_SOFTWARE_VERSION:
-        characterstring_init_ansi(&char_string, (char *)"1.0");
+        characterstring_init_ansi(&char_string, (char *) "1.0");
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_PROTOCOL_VERSION:
@@ -303,13 +305,15 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_NUMBER_OF_APDU_RETRIES:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0], Device_Number_Of_APDU_Retries());
+            encode_tagged_unsigned(&apdu[0],
+            Device_Number_Of_APDU_Retries());
         break;
     case PROP_DEVICE_ADDRESS_BINDING:
         /* FIXME: encode the list here, if it exists */
         break;
     case PROP_DATABASE_REVISION:
-        apdu_len = encode_tagged_unsigned(&apdu[0], Device_Database_Revision());
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], Device_Database_Revision());
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;

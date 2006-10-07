@@ -43,7 +43,7 @@ int wp_encode_apdu(uint8_t * apdu,
     uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA * data)
 {
     int apdu_len = 0;           /* total length of the apdu, return value */
-    int len = 0;           /* total length of the apdu, return value */
+    int len = 0;                /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -67,7 +67,8 @@ int wp_encode_apdu(uint8_t * apdu,
         /* propertyValue */
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
-        len = bacapp_encode_application_data(&apdu[apdu_len], &data->value);
+        len =
+            bacapp_encode_application_data(&apdu[apdu_len], &data->value);
         apdu_len += len;
         len = encode_closing_tag(&apdu[apdu_len], 3);
         apdu_len += len;

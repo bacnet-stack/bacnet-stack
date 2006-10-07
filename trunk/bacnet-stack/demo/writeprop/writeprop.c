@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
 
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE+1);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {

@@ -23,9 +23,9 @@
 *
 *********************************************************************/
 #if PRINT_ENABLED
-  #define PRINT_ENABLED_RS485 1
+#define PRINT_ENABLED_RS485 1
 #else
-  #define PRINT_ENABLED_RS485 0
+#define PRINT_ENABLED_RS485 0
 #endif
 
 #include <stdint.h>
@@ -57,27 +57,24 @@ static FineTime RS485_Debug_Transmit_Timer;
 #endif
 
 #if PRINT_ENABLED_RS485
-void RS485_Print_Frame(int port,
-    FineTime timer,
-    uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
+void RS485_Print_Frame(int port, FineTime timer, uint8_t * buffer,      /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 {
-    uint16_t i; /* byte counter */
-    unsigned long duration; /* measures the time from last output to this one */
+    uint16_t i;                 /* byte counter */
+    unsigned long duration;     /* measures the time from last output to this one */
     unsigned long seconds;
     unsigned long milliseconds;
-  
+
     duration = ElapsedMilliSecs(timer);
     seconds = duration / 1000U;
     milliseconds = duration - (seconds * 1000U);
-    fprintf(stderr,"%0lu.%03lu: COM%d:",seconds,milliseconds,port+1);
-    for (i = 0; i < nbytes; i++)
-    {
-      unsigned value;
-      value = buffer[i];
-      fprintf(stderr," %02X",value);
+    fprintf(stderr, "%0lu.%03lu: COM%d:", seconds, milliseconds, port + 1);
+    for (i = 0; i < nbytes; i++) {
+        unsigned value;
+        value = buffer[i];
+        fprintf(stderr, " %02X", value);
     }
-    fprintf(stderr,"\n");
+    fprintf(stderr, "\n");
     fflush(stderr);
 }
 #endif
@@ -179,10 +176,8 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
        octet is transmitted. */
     mstp_port->SilenceTimer = 0;
 #if PRINT_ENABLED_RS485
-    RS485_Print_Frame(RS485_Port,
-      RS485_Debug_Transmit_Timer,
-      buffer,           /* frame to send (up to 501 bytes of data) */
-      nbytes);
+    RS485_Print_Frame(RS485_Port, RS485_Debug_Transmit_Timer, buffer,   /* frame to send (up to 501 bytes of data) */
+        nbytes);
     MarkTime(&RS485_Debug_Transmit_Timer);
 #endif
 
