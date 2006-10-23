@@ -62,8 +62,8 @@ BIBBs Supported:
 BACnet Standard Application Services Supported:
 {
 -- AcknowledgeAlarm               Initiate Execute
- ConfirmedCOVNotification       Initiate Execute
- UnconfirmedCOVNotification     Initiate Execute
+-- ConfirmedCOVNotification       Initiate Execute
+ UnconfirmedCOVNotification     Initiate
 -- ConfirmedEventNotification     Initiate Execute
 -- UnconfirmedEventNotification   Initiate Execute
 -- GetAlarmSummary                Initiate Execute
@@ -109,11 +109,11 @@ Standard Object-Types Supported:
 {
  Analog Input
  Analog Output
--- Analog Value                   Createable Deleteable
+ Analog Value
 -- Averaging                      Createable Deleteable
  Binary Input
  Binary Output
--- Binary Value
+ Binary Value
 -- Calendar                       Createable Deleteable
 -- Command                        Createable Deleteable
  Device
@@ -187,7 +187,7 @@ List of Objects in test device:
     protocol-revision: 5
     protocol-conformance-class: 1
     protocol-services-supported: (F,F,F,F,F,F,T,F,F,F,F,F,T,F,F,T,F,T,F,F,T,F,F,F,F,F,F,F,F,F,F,F,T,T,T,F,T,F,F,F)
-    protocol-object-types-supported: (T,T,F,T,T,F,F,F,T,F,T,F,F,F,F,F,F,F,F,F,F,T,F,F,F)
+    protocol-object-types-supported: (T,T,T,T,T,T,F,F,T,F,T,F,F,F,T,F,F,F,F,F,F,T,F,F,F)
     max-apdu-length-accepted: 480
     segmentation-supported: no-segmentation
     apdu-timeout: 3000
@@ -201,15 +201,19 @@ List of Objects in test device:
     object-list: {
       (device,123),(analog-input,0),(analog-input,1),
       (analog-input,2),(analog-input,3),(analog-input,4),
-      (analog-input,5),(analog-input,6),(binary-input,0),
-      (binary-input,1),(binary-input,2),(binary-input,3),
-      (binary-input,4),(binary-output,0),(binary-output,1),
-      (binary-output,2),(binary-output,3),(binary-output,4),
-      (binary-output,5),(analog-output,0),(analog-output,1),
-      (analog-output,2),(analog-output,3),(life-safety-point,0),
+      (analog-input,5),(analog-input,6),(analog-output,0),
+      (analog-output,1),(analog-output,2),(analog-output,3),
+      (analog-value,0),(analog-value,1),(analog-value,2),
+      (analog-value,3),(binary-input,0),(binary-input,1),
+      (binary-input,2),(binary-input,3),(binary-input,4),
+      (binary-output,0),(binary-output,1),(binary-output,2),
+      (binary-output,3),(binary-output,4),(binary-output,5),
+      (binary-value,0),(binary-value,1),(life-safety-point,0),
       (life-safety-point,1),(life-safety-point,2),(life-safety-point,3),
       (life-safety-point,4),(life-safety-point,5),(life-safety-point,6),
-      (file,0),(file,1),(file,2)
+      (multi-state-output,0),(multi-state-output,1),(multi-state-output,2),
+      (multi-state-output,3),(file,0),(file,1),
+      (file,2)
     }
   },
   {
@@ -288,6 +292,114 @@ List of Objects in test device:
     out-of-service: F
     units: percent
     description: "ANALOG INPUT 6"
+  },
+  {
+    object-identifier: (analog-output,0)
+    object-name: "ANALOG OUTPUT 0"
+    object-type: analog-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
+    description: "ANALOG OUTPUT 0"
+  },
+  {
+    object-identifier: (analog-output,1)
+    object-name: "ANALOG OUTPUT 1"
+    object-type: analog-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
+    description: "ANALOG OUTPUT 1"
+  },
+  {
+    object-identifier: (analog-output,2)
+    object-name: "ANALOG OUTPUT 2"
+    object-type: analog-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
+    description: "ANALOG OUTPUT 2"
+  },
+  {
+    object-identifier: (analog-output,3)
+    object-name: "ANALOG OUTPUT 3"
+    object-type: analog-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
+    description: "ANALOG OUTPUT 3"
+  },
+  {
+    object-identifier: (analog-value,0)
+    object-name: "ANALOG VALUE 0"
+    object-type: analog-value
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    relinquish-default: 0.000000
+    description: "ANALOG VALUE 0"
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
+  },
+  {
+    object-identifier: (analog-value,1)
+    object-name: "ANALOG VALUE 1"
+    object-type: analog-value
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    relinquish-default: 0.000000
+    description: "ANALOG VALUE 1"
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
+  },
+  {
+    object-identifier: (analog-value,2)
+    object-name: "ANALOG VALUE 2"
+    object-type: analog-value
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    relinquish-default: 0.000000
+    description: "ANALOG VALUE 2"
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
+  },
+  {
+    object-identifier: (analog-value,3)
+    object-name: "ANALOG VALUE 3"
+    object-type: analog-value
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    units: percent
+    relinquish-default: 0.000000
+    description: "ANALOG VALUE 3"
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: 0.000000
   },
   {
     object-identifier: (binary-input,0)
@@ -423,56 +535,28 @@ List of Objects in test device:
     description: "BINARY OUTPUT 5"
   },
   {
-    object-identifier: (analog-output,0)
-    object-name: "ANALOG OUTPUT 0"
-    object-type: analog-output
+    object-identifier: (binary-value,0)
+    object-name: "BINARY VALUE 0"
+    object-type: binary-value
     present-value: ?
     status-flags: (F,F,F,F)
     event-state: normal
     out-of-service: F
-    units: percent
+    description: "BINARY VALUE 0"
     priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
-    relinquish-default: 0.000000
-    description: "ANALOG OUTPUT 0"
+    relinquish-default: inactive
   },
   {
-    object-identifier: (analog-output,1)
-    object-name: "ANALOG OUTPUT 1"
-    object-type: analog-output
+    object-identifier: (binary-value,1)
+    object-name: "BINARY VALUE 1"
+    object-type: binary-value
     present-value: ?
     status-flags: (F,F,F,F)
     event-state: normal
     out-of-service: F
-    units: percent
+    description: "BINARY VALUE 1"
     priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
-    relinquish-default: 0.000000
-    description: "ANALOG OUTPUT 1"
-  },
-  {
-    object-identifier: (analog-output,2)
-    object-name: "ANALOG OUTPUT 2"
-    object-type: analog-output
-    present-value: ?
-    status-flags: (F,F,F,F)
-    event-state: normal
-    out-of-service: F
-    units: percent
-    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
-    relinquish-default: 0.000000
-    description: "ANALOG OUTPUT 2"
-  },
-  {
-    object-identifier: (analog-output,3)
-    object-name: "ANALOG OUTPUT 3"
-    object-type: analog-output
-    present-value: ?
-    status-flags: (F,F,F,F)
-    event-state: normal
-    out-of-service: F
-    units: percent
-    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
-    relinquish-default: 0.000000
-    description: "ANALOG OUTPUT 3"
+    relinquish-default: inactive
   },
   {
     object-identifier: (life-safety-point,0)
@@ -483,6 +567,7 @@ List of Objects in test device:
     device-type: ?
     status-flags: (F,F,F,F)
     event-state: normal
+    reliability: ?
     out-of-service: F
     mode: ? W
     silenced: ?
@@ -497,6 +582,7 @@ List of Objects in test device:
     device-type: ?
     status-flags: (F,F,F,F)
     event-state: normal
+    reliability: ?
     out-of-service: F
     mode: ? W
     silenced: ?
@@ -511,6 +597,7 @@ List of Objects in test device:
     device-type: ?
     status-flags: (F,F,F,F)
     event-state: normal
+    reliability: ?
     out-of-service: F
     mode: ? W
     silenced: ?
@@ -525,6 +612,7 @@ List of Objects in test device:
     device-type: ?
     status-flags: (F,F,F,F)
     event-state: normal
+    reliability: ?
     out-of-service: F
     mode: ? W
     silenced: ?
@@ -539,6 +627,7 @@ List of Objects in test device:
     device-type: ?
     status-flags: (F,F,F,F)
     event-state: normal
+    reliability: ?
     out-of-service: F
     mode: ? W
     silenced: ?
@@ -553,6 +642,7 @@ List of Objects in test device:
     device-type: ?
     status-flags: (F,F,F,F)
     event-state: normal
+    reliability: ?
     out-of-service: F
     mode: ? W
     silenced: ?
@@ -567,10 +657,63 @@ List of Objects in test device:
     device-type: ?
     status-flags: (F,F,F,F)
     event-state: normal
+    reliability: ?
     out-of-service: F
     mode: ? W
     silenced: ?
     operation-expected: ?
+  },
+  {
+    object-identifier: (multi-state-output,0)
+    object-name: "MULTISTATE OUTPUT 0"
+    object-type: multi-state-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: inactive
+    number-of-states: 254
+    description: "MULTISTATE OUTPUT 0"
+  },
+  {
+    object-identifier: (multi-state-output,1)
+    object-name: "MULTISTATE OUTPUT 1"
+    object-type: multi-state-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: inactive
+    number-of-states: 254
+    description: "MULTISTATE OUTPUT 1"
+  },
+  {
+    object-identifier: (multi-state-output,2)
+    object-name: "MULTISTATE OUTPUT 2"
+    object-type: multi-state-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: inactive
+    number-of-states: 254
+    description: "MULTISTATE OUTPUT 2"
+  },
+  {
+    object-identifier: (multi-state-output,3)
+    object-name: "MULTISTATE OUTPUT 3"
+    object-type: multi-state-output
+    present-value: ?
+    status-flags: (F,F,F,F)
+    event-state: normal
+    out-of-service: F
+    priority-array: {?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?}
+    relinquish-default: inactive
+    number-of-states: 254
+    description: "MULTISTATE OUTPUT 3"
   },
   {
     object-identifier: (file,0)
