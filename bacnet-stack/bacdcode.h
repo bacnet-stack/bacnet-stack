@@ -70,7 +70,8 @@ extern "C" {
 /* from clause 20.2.3 Encoding of a Boolean Value */
     int encode_tagged_boolean(uint8_t * apdu, bool boolean_value);
     bool decode_boolean(uint32_t len_value);
-    int encode_context_boolean(uint8_t * apdu, bool boolean_value);
+    int encode_context_boolean(uint8_t * apdu, int tag_number,
+        bool boolean_value);
     bool decode_context_boolean(uint8_t * apdu);
 
 /* from clause 20.2.10 Encoding of a Bit String Value */
@@ -88,6 +89,7 @@ extern "C" {
     int decode_real(uint8_t * apdu, float *real_value);
     int encode_bacnet_real(float value, uint8_t * apdu);
     int encode_tagged_real(uint8_t * apdu, float value);
+    int encode_context_real(uint8_t * apdu, int tag_number, float value);
 
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
