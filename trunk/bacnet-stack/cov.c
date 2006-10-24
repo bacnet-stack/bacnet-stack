@@ -273,6 +273,261 @@ int cov_notify_decode_service_request(uint8_t * apdu,
 
     return len;
 }
+/*
+12.11.38Active_COV_Subscriptions
+The Active_COV_Subscriptions property is a List of BACnetCOVSubscription, each of which consists of a Recipient, a
+Monitored Property Reference, an Issue Confirmed Notifications flag, a Time Remaining value and an optional COV
+Increment. This property provides a network-visible indication of those COV subscriptions that are active at any given time.
+Whenever a COV Subscription is created with the SubscribeCOV or SubscribeCOVProperty service, a new entry is added to
+the Active_COV_Subscriptions list. Similarly, whenever a COV Subscription is terminated, the corresponding entry shall be
+removed from the Active_COV_Subscriptions list.
+*/
+/*
+SubscribeCOV-Request ::= SEQUENCE {
+        subscriberProcessIdentifier  [0] Unsigned32,
+        monitoredObjectIdentifier    [1] BACnetObjectIdentifier,
+        issueConfirmedNotifications  [2] BOOLEAN OPTIONAL,
+        lifetime                     [3] Unsigned OPTIONAL
+        }
+*/
+
+int cov_subscribe_encode_adpu(
+  uint8_t * apdu,
+  uint8_t invoke_id,
+  BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
+    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
+
+    if (apdu && data) {
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[2] = invoke_id;
+        apdu[3] = SERVICE_CONFIRMED_SUBSCRIBE_COV;
+        apdu_len = 4;
+        /* tag 0 - subscriberProcessIdentifier */
+        len = encode_context_unsigned(&apdu[apdu_len],
+            0, data->subscriberProcessIdentifier);
+        apdu_len += len;
+        /* tag 1 - monitoredObjectIdentifier */
+        len = encode_context_object_id(&apdu[apdu_len],
+            1,
+            data->monitoredObjectIdentifier.type,
+            data->monitoredObjectIdentifier.instance);
+        apdu_len += len;
+        /*
+        If both the 'Issue Confirmed Notifications' and
+        'Lifetime' parameters are absent, then this shall
+        indicate a cancellation request.
+        */
+        if (!data->cancellationRequest) {
+            /* tag 2 - issueConfirmedNotifications */
+            len = encode_context_boolean(&apdu[apdu_len],
+                2, data->issueConfirmedNotifications);
+            apdu_len += len;
+            /* tag 3 - lifetime */
+            len = encode_context_unsigned(&apdu[apdu_len],
+                3, data->lifetime);
+            apdu_len += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+/* decode the service request only */
+int cov_subscribe_decode_service_request(uint8_t * apdu,
+    unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    int len = 0;                /* return value */
+    uint8_t tag_number = 0;
+    uint32_t len_value = 0;
+    uint32_t decoded_value = 0; /* for decoding */
+    int decoded_type = 0;       /* for decoding */
+
+    if (apdu_len && data) {
+        /* tag 0 - subscriberProcessIdentifier */
+        if (decode_is_context_tag(&apdu[len], 0)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+            data->subscriberProcessIdentifier = decoded_value;
+        } else
+            return -1;
+        /* tag 1 - monitoredObjectIdentifier */
+        if (decode_is_context_tag(&apdu[len], 1)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len +=
+                decode_object_id(&apdu[len], &decoded_type,
+                &data->monitoredObjectIdentifier.instance);
+            data->monitoredObjectIdentifier.type = decoded_type;
+        } else
+            return -1;
+        /* tag 2 - issueConfirmedNotifications - optional */
+        if (decode_is_context_tag(&apdu[len], 2)) {
+            data->cancellationRequest = false;
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            data->issueConfirmedNotifications =
+                decode_context_boolean(&apdu[len]);
+            len += len_value;
+        } else
+            data->cancellationRequest = true;
+        /* tag 3 - lifetime - optional */
+        if (decode_is_context_tag(&apdu[len], 3)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+            data->lifetime = decoded_value;
+        } else
+            data->lifetime = 0;
+    }
+
+    return len;
+}
+
+
+/*
+SubscribeCOVProperty-Request ::= SEQUENCE {
+        subscriberProcessIdentifier  [0] Unsigned32,
+        monitoredObjectIdentifier    [1] BACnetObjectIdentifier,
+        issueConfirmedNotifications  [2] BOOLEAN OPTIONAL,
+        lifetime                     [3] Unsigned OPTIONAL,
+        monitoredPropertyIdentifier  [4] BACnetPropertyReference,
+        covIncrement                 [5] REAL OPTIONAL
+        }
+
+*/
+int cov_subscribe_property_encode_adpu(
+  uint8_t * apdu,
+  uint8_t invoke_id,
+  BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
+    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
+
+    if (apdu && data) {
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[2] = invoke_id;
+        apdu[3] = SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY;
+        apdu_len = 4;
+        /* tag 0 - subscriberProcessIdentifier */
+        len = encode_context_unsigned(&apdu[apdu_len],
+            0, data->subscriberProcessIdentifier);
+        apdu_len += len;
+        /* tag 1 - monitoredObjectIdentifier */
+        len = encode_context_object_id(&apdu[apdu_len],
+            1,
+            data->monitoredObjectIdentifier.type,
+            data->monitoredObjectIdentifier.instance);
+        apdu_len += len;
+        if (!data->cancellationRequest) {
+            /* tag 2 - issueConfirmedNotifications */
+            len = encode_context_boolean(&apdu[apdu_len],
+                2, data->issueConfirmedNotifications);
+            apdu_len += len;
+            /* tag 3 - lifetime */
+            len = encode_context_unsigned(&apdu[apdu_len],
+                3, data->lifetime);
+            apdu_len += len;
+        }
+        /* tag 4 - monitoredPropertyIdentifier */
+        len = encode_context_enumerated(&apdu[apdu_len],
+            4, data->monitoredPropertyIdentifier);
+        apdu_len += len;
+        /* tag 5 - covIncrement */
+        if (data->covIncrementPresent) {
+            len = encode_context_real(&apdu[apdu_len],
+                5, data->covIncrement);
+            apdu_len += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+/* decode the service request only */
+int cov_subscribe_property_decode_service_request(uint8_t * apdu,
+    unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    int len = 0;                /* return value */
+    uint8_t tag_number = 0;
+    uint32_t len_value = 0;
+    uint32_t decoded_value = 0; /* for decoding */
+    int decoded_type = 0;       /* for decoding */
+    int property = 0;           /* for decoding */
+
+    if (apdu_len && data) {
+        /* tag 0 - subscriberProcessIdentifier */
+        if (decode_is_context_tag(&apdu[len], 0)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+            data->subscriberProcessIdentifier = decoded_value;
+        } else
+            return -1;
+        /* tag 1 - monitoredObjectIdentifier */
+        if (decode_is_context_tag(&apdu[len], 1)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len +=
+                decode_object_id(&apdu[len], &decoded_type,
+                &data->monitoredObjectIdentifier.instance);
+            data->monitoredObjectIdentifier.type = decoded_type;
+        } else
+            return -1;
+        /* tag 2 - issueConfirmedNotifications - optional */
+        if (decode_is_context_tag(&apdu[len], 2)) {
+            data->cancellationRequest = false;
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            data->issueConfirmedNotifications =
+                decode_context_boolean(&apdu[len]);
+            len++;
+        } else
+            data->cancellationRequest = true;
+        /* tag 3 - lifetime - optional */
+        if (decode_is_context_tag(&apdu[len], 3)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+            data->lifetime = decoded_value;
+        } else
+            data->lifetime = 0;
+        /* tag 4 - monitoredPropertyIdentifier */
+        if (decode_is_context_tag(&apdu[len], 4)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_enumerated(&apdu[len], len_value, &property);
+            data->monitoredPropertyIdentifier = property;
+        } else
+            return -1;
+        /* tag 5 - covIncrement - optional */
+        if (decode_is_context_tag(&apdu[len], 5)) {
+            data->covIncrementPresent = true;
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_real(&apdu[len], &data->covIncrement);
+        } else
+            data->covIncrementPresent = false;
+    }
+
+    return len;
+}
 
 int ucov_notify_send(uint8_t * buffer, BACNET_COV_DATA * data)
 {
@@ -353,6 +608,59 @@ int ucov_notify_decode_apdu(uint8_t * apdu,
     return len;
 }
 
+int cov_subscribe_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len, uint8_t * invoke_id, BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    int len = 0;
+    unsigned offset = 0;
+
+    if (!apdu)
+        return -1;
+    /* optional checking - most likely was already done prior to this call */
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+        return -2;
+    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+    if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV)
+        return -3;
+    offset = 4;
+
+    /* optional limits - must be used as a pair */
+    if (apdu_len > offset) {
+        len =
+            cov_subscribe_decode_service_request(&apdu[offset],
+            apdu_len - offset, data);
+    }
+
+    return len;
+}
+
+int cov_subscribe_property_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len, uint8_t * invoke_id, BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    int len = 0;
+    unsigned offset = 0;
+
+    if (!apdu)
+        return -1;
+    /* optional checking - most likely was already done prior to this call */
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+        return -2;
+    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+    if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY)
+        return -3;
+    offset = 4;
+
+    /* optional limits - must be used as a pair */
+    if (apdu_len > offset) {
+        len =
+            cov_subscribe_property_decode_service_request(&apdu[offset],
+            apdu_len - offset, data);
+    }
+
+    return len;
+}
 
 /* dummy function stubs */
 int npdu_encode_pdu(uint8_t * npdu,
@@ -470,6 +778,118 @@ void testCOVNotify(Test * pTest)
     /* FIXME: add more values to the list of values */
 }
 
+void testCOVSubscribeData(Test * pTest,
+    BACNET_SUBSCRIBE_COV_DATA * data, BACNET_SUBSCRIBE_COV_DATA * test_data)
+{
+    ct_test(pTest,
+        test_data->subscriberProcessIdentifier ==
+        data->subscriberProcessIdentifier);
+    ct_test(pTest,
+        test_data->monitoredObjectIdentifier.type ==
+        data->monitoredObjectIdentifier.type);
+    ct_test(pTest,
+        test_data->monitoredObjectIdentifier.instance ==
+        data->monitoredObjectIdentifier.instance);
+    ct_test(pTest, test_data->cancellationRequest == data->cancellationRequest);
+    if (!test_data->cancellationRequest) {
+        ct_test(pTest, test_data->issueConfirmedNotifications == data->issueConfirmedNotifications);
+        ct_test(pTest, test_data->lifetime == data->lifetime);
+    }
+}
+
+void testCOVSubscribePropertyData(Test * pTest,
+    BACNET_SUBSCRIBE_COV_DATA * data, BACNET_SUBSCRIBE_COV_DATA * test_data)
+{
+    testCOVSubscribeData(pTest, data, test_data);
+    ct_test(pTest, test_data->monitoredPropertyIdentifier == data->monitoredPropertyIdentifier);
+    ct_test(pTest, test_data->covIncrementPresent == data->covIncrementPresent);
+    if (test_data->covIncrementPresent) {
+        ct_test(pTest, test_data->covIncrement == data->covIncrement);
+    }
+}
+
+void testCOVSubscribeEncoding(Test * pTest, uint8_t invoke_id,
+    BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    uint8_t apdu[480] = { 0 };
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_SUBSCRIBE_COV_DATA test_data;
+    uint8_t test_invoke_id = 0;
+
+    len = cov_subscribe_encode_adpu(&apdu[0], invoke_id, data);
+    ct_test(pTest, len != 0);
+    apdu_len = len;
+
+    len = cov_subscribe_decode_apdu(&apdu[0], apdu_len,
+        &test_invoke_id, &test_data);
+    ct_test(pTest, len > 0);
+    ct_test(pTest, test_invoke_id == invoke_id);
+    testCOVSubscribeData(pTest, data, &test_data);
+}
+
+void testCOVSubscribePropertyEncoding(Test * pTest, uint8_t invoke_id,
+    BACNET_SUBSCRIBE_COV_DATA * data)
+{
+    uint8_t apdu[480] = { 0 };
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_SUBSCRIBE_COV_DATA test_data;
+    uint8_t test_invoke_id = 0;
+
+    len = cov_subscribe_property_encode_adpu(&apdu[0], invoke_id, data);
+    ct_test(pTest, len != 0);
+    apdu_len = len;
+
+    len = cov_subscribe_property_decode_apdu(&apdu[0], apdu_len,
+        &test_invoke_id, &test_data);
+    ct_test(pTest, len > 0);
+    ct_test(pTest, test_invoke_id == invoke_id);
+    testCOVSubscribePropertyData(pTest, data, &test_data);
+}
+
+void testCOVSubscribe(Test * pTest)
+{
+    uint8_t invoke_id = 12;
+    BACNET_SUBSCRIBE_COV_DATA data;
+
+    data.subscriberProcessIdentifier = 1;
+    data.monitoredObjectIdentifier.type = OBJECT_ANALOG_INPUT;
+    data.monitoredObjectIdentifier.instance = 321;
+    data.cancellationRequest = false;
+    data.issueConfirmedNotifications = true;
+    data.lifetime = 456;
+
+    testCOVSubscribeEncoding(pTest, invoke_id, &data);
+    data.cancellationRequest = true;
+    testCOVSubscribeEncoding(pTest, invoke_id, &data);
+}
+
+void testCOVSubscribeProperty(Test * pTest)
+{
+    uint8_t invoke_id = 12;
+    BACNET_SUBSCRIBE_COV_DATA data;
+
+    data.subscriberProcessIdentifier = 1;
+    data.monitoredObjectIdentifier.type = OBJECT_ANALOG_INPUT;
+    data.monitoredObjectIdentifier.instance = 321;
+    data.cancellationRequest = false;
+    data.issueConfirmedNotifications = true;
+    data.lifetime = 456;
+    data.monitoredPropertyIdentifier = PROP_FILE_SIZE;
+    data.covIncrementPresent = true;
+    data.covIncrement = 1.0;
+
+    testCOVSubscribePropertyEncoding(pTest, invoke_id, &data);
+
+    data.cancellationRequest = true;
+    testCOVSubscribePropertyEncoding(pTest, invoke_id, &data);
+
+    data.cancellationRequest = false;
+    data.covIncrementPresent = false;
+    testCOVSubscribePropertyEncoding(pTest, invoke_id, &data);
+}
+
 #ifdef TEST_COV
 int main(int argc, char *argv[])
 {
@@ -479,6 +899,10 @@ int main(int argc, char *argv[])
     pTest = ct_create("BACnet COV", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testCOVNotify);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testCOVSubscribe);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testCOVSubscribeProperty);
     assert(rc);
 
     ct_setStream(pTest, stdout);
