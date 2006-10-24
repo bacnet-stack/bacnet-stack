@@ -733,11 +733,18 @@ int encode_tagged_boolean(uint8_t * apdu, bool boolean_value)
 }
 
 /* context tagged is encoded differently */
-int encode_context_boolean(uint8_t * apdu, bool boolean_value)
+int encode_context_boolean(uint8_t * apdu, int tag_number, bool boolean_value)
 {
-    apdu[0] = boolean_value ? 1 : 0;
+    int len = 1; /* return value */
 
-    return 1;
+    apdu[1] = boolean_value ? 1 : 0;
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if (tag_number <= 14)
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, 1);
+    else
+        len = 0;
+
+    return len;
 }
 
 bool decode_context_boolean(uint8_t * apdu)
@@ -929,6 +936,21 @@ int encode_tagged_real(uint8_t * apdu, float value)
     /* assumes that the tag only consumes 1 octet */
     len = encode_bacnet_real(value, &apdu[1]);
     len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_REAL, false, len);
+
+    return len;
+}
+
+int encode_context_real(uint8_t * apdu, int tag_number, float value)
+{
+    int len = 0;
+
+    /* assumes that the tag only consumes 1 octet */
+    len = encode_bacnet_real(value, &apdu[1]);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if (tag_number <= 14)
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    else
+        len = 0;
 
     return len;
 }
