@@ -20,7 +20,7 @@ CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
 TARGET = bacserv
 
-SRCS = server.c \
+SRCS = main.c \
        $(BACNET_PORT)/bip-init.c \
        $(BACNET_PORT)/ethernet.c \
        $(BACNET_PORT)/arcnet.c \
