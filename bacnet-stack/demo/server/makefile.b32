@@ -19,7 +19,7 @@ PRODUCT_EXE = $(PRODUCT).exe
 # datalink layer that Win32 supports
 DEFINES = -DBACDL_BIP=1;USE_INADDR=1;PRINT_ENABLED=1;BIG_ENDIAN=0
 
-SRCS = server.c \
+SRCS = main.c \
        ..\..\ports\win32\bip-init.c \
        ..\..\bip.c  \
        ..\..\demo\handler\txbuf.c  \

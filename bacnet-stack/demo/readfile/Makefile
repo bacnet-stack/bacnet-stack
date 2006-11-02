@@ -20,7 +20,7 @@ CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
 TARGET = bacarf
 
-SRCS = readfile.c \
+SRCS = main.c \
        $(BACNET_PORT)/bip-init.c \
        $(BACNET_ROOT)/bip.c \
        $(BACNET_HANDLER)/txbuf.c \
