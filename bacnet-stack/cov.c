@@ -403,7 +403,15 @@ SubscribeCOVProperty-Request ::= SEQUENCE {
         covIncrement                 [5] REAL OPTIONAL
         }
 
+BACnetPropertyReference ::= SEQUENCE {
+      propertyIdentifier      [0] BACnetPropertyIdentifier,
+      propertyArrayIndex      [1] Unsigned OPTIONAL
+      -- used only with array datatype
+      -- if omitted with an array the entire array is referenced
+      }
+
 */
+
 int cov_subscribe_property_encode_adpu(
   uint8_t * apdu,
   uint8_t invoke_id,
@@ -440,9 +448,20 @@ int cov_subscribe_property_encode_adpu(
             apdu_len += len;
         }
         /* tag 4 - monitoredPropertyIdentifier */
-        len = encode_context_enumerated(&apdu[apdu_len],
-            4, data->monitoredPropertyIdentifier);
+        len = encode_opening_tag(&apdu[apdu_len], 4);
         apdu_len += len;
+        len = encode_context_enumerated(&apdu[apdu_len],
+            0, data->monitoredProperty.propertyIdentifier);
+        apdu_len += len;
+        if (data->monitoredProperty.propertyArrayIndex != BACNET_ARRAY_ALL) {
+            len = encode_context_unsigned(&apdu[apdu_len],
+            1, data->monitoredProperty.propertyArrayIndex);
+            apdu_len += len;
+
+        }
+        len = encode_closing_tag(&apdu[apdu_len], 4);
+        apdu_len += len;
+
         /* tag 5 - covIncrement */
         if (data->covIncrementPresent) {
             len = encode_context_real(&apdu[apdu_len],
@@ -485,7 +504,7 @@ int cov_subscribe_property_decode_service_request(uint8_t * apdu,
                 &data->monitoredObjectIdentifier.instance);
             data->monitoredObjectIdentifier.type = decoded_type;
         } else
-            return -1;
+            return -2;
         /* tag 2 - issueConfirmedNotifications - optional */
         if (decode_is_context_tag(&apdu[len], 2)) {
             data->cancellationRequest = false;
@@ -507,14 +526,34 @@ int cov_subscribe_property_decode_service_request(uint8_t * apdu,
         } else
             data->lifetime = 0;
         /* tag 4 - monitoredPropertyIdentifier */
-        if (decode_is_context_tag(&apdu[len], 4)) {
+        if (!decode_is_opening_tag_number(&apdu[len], 4))
+            return -3;
+        /* a tag number of 4 is not extended so only one octet */
+        len++;
+        /* the propertyIdentifier is tag 0 */
+        if (decode_is_context_tag(&apdu[len], 0)) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
             len += decode_enumerated(&apdu[len], len_value, &property);
-            data->monitoredPropertyIdentifier = property;
+            data->monitoredProperty.propertyIdentifier = property;
         } else
-            return -1;
+            return -4;
+        /* the optional array index is tag 1 */
+        if (decode_is_context_tag(&apdu[len], 1)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+            data->monitoredProperty.propertyArrayIndex = decoded_value;
+        } else {
+            data->monitoredProperty.propertyArrayIndex = BACNET_ARRAY_ALL;
+        }
+        
+        if (!decode_is_closing_tag_number(&apdu[len], 4))
+            return -5;
+        /* a tag number of 4 is not extended so only one octet */
+        len++;
         /* tag 5 - covIncrement - optional */
         if (decode_is_context_tag(&apdu[len], 5)) {
             data->covIncrementPresent = true;
@@ -801,7 +840,8 @@ void testCOVSubscribePropertyData(Test * pTest,
     BACNET_SUBSCRIBE_COV_DATA * data, BACNET_SUBSCRIBE_COV_DATA * test_data)
 {
     testCOVSubscribeData(pTest, data, test_data);
-    ct_test(pTest, test_data->monitoredPropertyIdentifier == data->monitoredPropertyIdentifier);
+    ct_test(pTest, test_data->monitoredProperty.propertyIdentifier == data->monitoredProperty.propertyIdentifier);
+    ct_test(pTest, test_data->monitoredProperty.propertyArrayIndex == data->monitoredProperty.propertyArrayIndex);
     ct_test(pTest, test_data->covIncrementPresent == data->covIncrementPresent);
     if (test_data->covIncrementPresent) {
         ct_test(pTest, test_data->covIncrement == data->covIncrement);
@@ -876,7 +916,8 @@ void testCOVSubscribeProperty(Test * pTest)
     data.cancellationRequest = false;
     data.issueConfirmedNotifications = true;
     data.lifetime = 456;
-    data.monitoredPropertyIdentifier = PROP_FILE_SIZE;
+    data.monitoredProperty.propertyIdentifier = PROP_FILE_SIZE;
+    data.monitoredProperty.propertyArrayIndex = BACNET_ARRAY_ALL;
     data.covIncrementPresent = true;
     data.covIncrement = 1.0;
 

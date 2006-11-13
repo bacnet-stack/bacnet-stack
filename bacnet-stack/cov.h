@@ -57,13 +57,18 @@ typedef struct BACnet_COV_Data {
     BACNET_PROPERTY_VALUE listOfValues;
 } BACNET_COV_DATA;
 
+typedef struct BACnet_Property_Reference {
+  BACNET_PROPERTY_ID propertyIdentifier;
+  unsigned propertyArrayIndex; /* optional */
+} BACNET_PROPERTY_REFERENCE;
+
 typedef struct BACnet_Subscribe_COV_Data {
     uint32_t subscriberProcessIdentifier;
     BACNET_OBJECT_ID monitoredObjectIdentifier;
     bool cancellationRequest; /* true if this is a cancellation request */
     bool issueConfirmedNotifications; /* optional */
     unsigned lifetime; /* optional */
-    BACNET_PROPERTY_ID monitoredPropertyIdentifier;
+    BACNET_PROPERTY_REFERENCE monitoredProperty;
     bool covIncrementPresent; /* true if present */
     float covIncrement; /* optional */
 } BACNET_SUBSCRIBE_COV_DATA;
