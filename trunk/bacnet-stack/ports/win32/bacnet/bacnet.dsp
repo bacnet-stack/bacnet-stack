@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "NDEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "NDEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D BACAPP_PRINT_ENABLED=1 /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /FR /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -229,6 +229,10 @@ SOURCE=..\main.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\object\mso.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\demo\handler\noserv.c
 # End Source File
 # Begin Source File
@@ -333,6 +337,10 @@ SOURCE=..\..\..\bacstr.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\bactext.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\bigend.h
 # End Source File
 # Begin Source File
@@ -382,6 +390,10 @@ SOURCE=..\..\..\handlers.h
 # Begin Source File
 
 SOURCE=..\..\..\iam.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\mso.h
 # End Source File
 # Begin Source File
 
