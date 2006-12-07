@@ -87,6 +87,9 @@ extern "C" {
     bool bacapp_print_value(FILE * stream,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
+#else
+#define bacapp_parse_application_data(x,y,z) {(void)x;(void)y;(void)z;}
+#define bacapp_print_value(x,y,z) {(void)x;(void)y;(void)z;}
 #endif
 
 #ifdef TEST
