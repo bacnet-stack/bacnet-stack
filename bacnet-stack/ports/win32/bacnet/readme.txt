@@ -4,6 +4,30 @@ Build for Visual C++ 6.0
 When building the BACnet stack using Visual C++ compiler, 
 there are some settings that are important.
 
+Q. Are there some global configuration options for this BACnet stack?
+
+A. The BACnet stack uses some preprocessor defines to configure
+a number of subtle personalities.
+PRINT_ENABLED=1 - enables printing to stdio
+BIG_ENDIAN=0 - chooses the BACnet encoding and decoding order
+BACDL_BIP=1 - chooses BACnet/IP for the datalink layer
+BACDL_ETHERNET=0 - chooses BACnet Ethernet for the datalink layer
+BACDL_ARCNET=0 - chooses BACnet ARCNET for the datalink layer
+BACDL_MSTP=0 - chooses BACnet MS/TP for the datalink layer
+USE_INADDR=1 - uses INADDR_BROADCAST for broadcast rather than CLASSx
+TSM_ENABLED=1 - enables the Transaction State Machine for clients
+BIP_DEBUG=1 - enables print statements for debugging
+In Visual C++, add a Preprocessor Definition by: 
+1. Select "Project" menu
+2. Select "Settings..."
+3. Select the "C/C++" tab (3rd Tab)
+4. Select the Category: General
+5. You can see the "Preprocessor Definitions:" box
+6. Type OPTION_NAME=1 or OPTION_NAME=0 in that edit box 
+   using a comma to separate multiple options.
+7. Press OK
+8. Compile the entire project again...
+
 Q. MSVC refuses to open bacnet.dsw and bacnet.dsp.
 
 A. bacnet.dsw and bacnet.dsp are text files that were retrieved
@@ -48,6 +72,19 @@ its datalink layer. In Visual C++, add a Preprocessor Definition by:
 4. Select the Category: General
 5. You can see the "Preprocessor Definitions:" box
 6. Type BACDL_BIP=1 in that edit box (using a comma if necessary)
+7. Press OK
+8. Compile the entire project again...
+
+Q. error LNK2001: unresolved external symbol _bacapp_print
+
+A. The BACnet stack uses a preprocessor define to configure
+printing to stdio. In Visual C++, add a Preprocessor Definition by: 
+1. Select "Project" menu
+2. Select "Settings..."
+3. Select the "C/C++" tab (3rd Tab)
+4. Select the Category: General
+5. You can see the "Preprocessor Definitions:" box
+6. Type PRINT_ENABLED=1 in that edit box (using a comma if necessary)
 7. Press OK
 8. Compile the entire project again...
 

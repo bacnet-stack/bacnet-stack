@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /FR /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D BACDL_BIP=1 /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"

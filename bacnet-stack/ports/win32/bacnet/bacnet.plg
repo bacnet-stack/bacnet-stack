@@ -6,9 +6,9 @@
 --------------------Configuration: bacnet - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1254.tmp" with contents
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP133F.tmp" with contents
 [
-/nologo /MLd /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+/nologo /MLd /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D BACDL_BIP=1 /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
 "C:\code\bacnet-stack\abort.c"
 "C:\code\bacnet-stack\address.c"
 "C:\code\bacnet-stack\demo\object\ai.c"
@@ -43,6 +43,7 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1254.tmp" with conte
 "C:\code\bacnet-stack\indtext.c"
 "C:\code\bacnet-stack\demo\object\lsp.c"
 "C:\code\bacnet-stack\ports\win32\main.c"
+"C:\code\bacnet-stack\demo\object\mso.c"
 "C:\code\bacnet-stack\demo\handler\noserv.c"
 "C:\code\bacnet-stack\npdu.c"
 "C:\code\bacnet-stack\reject.c"
@@ -55,10 +56,9 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1254.tmp" with conte
 "C:\code\bacnet-stack\demo\handler\txbuf.c"
 "C:\code\bacnet-stack\whois.c"
 "C:\code\bacnet-stack\wp.c"
-"C:\code\bacnet-stack\demo\object\mso.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1254.tmp" 
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1255.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP133F.tmp" 
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1340.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
 ".\Debug\abort.obj"
@@ -95,6 +95,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\indtext.obj"
 ".\Debug\lsp.obj"
 ".\Debug\main.obj"
+".\Debug\mso.obj"
 ".\Debug\noserv.obj"
 ".\Debug\npdu.obj"
 ".\Debug\reject.obj"
@@ -107,22 +108,17 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\txbuf.obj"
 ".\Debug\whois.obj"
 ".\Debug\wp.obj"
-".\Debug\mso.obj"
 ]
-Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1255.tmp"
+Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1340.tmp"
 <h3>Output Window</h3>
 Compiling...
 abort.c
 address.c
 ai.c
-c:\code\bacnet-stack\demo\object\ai.c(87) : warning C4305: 'initializing' : truncation from 'const double ' to 'float '
-c:\code\bacnet-stack\demo\object\ai.c(125) : warning C4305: 'function' : truncation from 'const double ' to 'float '
 ao.c
-c:\code\bacnet-stack\demo\object\ao.c(163) : warning C4305: 'initializing' : truncation from 'const double ' to 'float '
 apdu.c
 arf.c
 av.c
-c:\code\bacnet-stack\demo\object\av.c(162) : warning C4305: 'initializing' : truncation from 'const double ' to 'float '
 bacapp.c
 bacdcode.c
 bacerror.c
@@ -137,8 +133,6 @@ bo.c
 bv.c
 crc.c
 Generating Code...
-c:\code\bacnet-stack\demo\object\bacfile.c(322) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\bacapp.c(351) : warning C4761: integral size mismatch in argument; conversion supplied
 Compiling...
 datalink.c
 dcc.c
@@ -154,31 +148,24 @@ iam.c
 indtext.c
 lsp.c
 main.c
+mso.c
 noserv.c
 npdu.c
 reject.c
 ringbuf.c
 rp.c
-s_rp.c
 Generating Code...
-c:\code\bacnet-stack\demo\handler\s_rp.c(92) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\npdu.c(340) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\demo\handler\h_rp_a.c(73) : warning C4761: integral size mismatch in argument; conversion supplied
 Compiling...
+s_rp.c
 s_whois.c
 s_wp.c
 tsm.c
 txbuf.c
 whois.c
 wp.c
-mso.c
-c:\code\bacnet-stack\demo\object\mso.c(308) : warning C4244: '=' : conversion from 'unsigned long ' to 'unsigned char ', possible loss of data
-c:\code\bacnet-stack\demo\object\mso.c(333) : warning C4244: '=' : conversion from 'unsigned long ' to 'unsigned char ', possible loss of data
 Generating Code...
-c:\code\bacnet-stack\wp.c(134) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\demo\handler\s_wp.c(95) : warning C4761: integral size mismatch in argument; conversion supplied
 Linking...
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1257.tmp" with contents
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1342.tmp" with contents
 [
 /nologo /o"Debug/bacnet.bsc" 
 ".\Debug\abort.sbr"
@@ -215,6 +202,7 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1257.tmp" with conte
 ".\Debug\indtext.sbr"
 ".\Debug\lsp.sbr"
 ".\Debug\main.sbr"
+".\Debug\mso.sbr"
 ".\Debug\noserv.sbr"
 ".\Debug\npdu.sbr"
 ".\Debug\reject.sbr"
@@ -226,16 +214,15 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1257.tmp" with conte
 ".\Debug\tsm.sbr"
 ".\Debug\txbuf.sbr"
 ".\Debug\whois.sbr"
-".\Debug\wp.sbr"
-".\Debug\mso.sbr"]
-Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1257.tmp"
+".\Debug\wp.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1342.tmp"
 Creating browse info file...
 <h3>Output Window</h3>
 
 
 
 <h3>Results</h3>
-bacnet.exe - 0 error(s), 13 warning(s)
+bacnet.exe - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>
