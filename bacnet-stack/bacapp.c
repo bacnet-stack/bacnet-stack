@@ -348,7 +348,7 @@ bool bacapp_print_value(FILE * stream,
             for (i = 0; i < len; i++) {
                 fprintf(stream, "%s",
                     bitstring_bit(&value->type.Bit_String,
-                        i) ? "true" : "false");
+                        (uint8_t)i) ? "true" : "false");
                 if (i < len - 1)
                     fprintf(stream, ",");
             }
