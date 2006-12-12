@@ -334,10 +334,10 @@ void npdu_handler(BACNET_ADDRESS * src, /* source address */
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         /*FIXME: network layer message received!  Handle it! */
-    } else {
+    } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         /* only handle the version that we know how to handle */
         if (npdu_data.protocol_version == BACNET_PROTOCOL_VERSION)
-            apdu_handler(src, &pdu[apdu_offset], pdu_len - apdu_offset);
+            apdu_handler(src, &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
     }
 
     return;

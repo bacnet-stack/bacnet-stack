@@ -305,7 +305,7 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                     Multistate_Output_Instance_To_Index(wp_data->
                     object_instance);
                 priority--;
-                Multistate_Output_Level[object_index][priority] = level;
+                Multistate_Output_Level[object_index][priority] = (uint8_t)level;
                 /* Note: you could set the physical output here if we
                    are the highest priority.
                    However, if Out of Service is TRUE, then don't set the 
@@ -330,7 +330,7 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             priority = wp_data->priority;
             if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                 priority--;
-                Multistate_Output_Level[object_index][priority] = level;
+                Multistate_Output_Level[object_index][priority] = (uint8_t)level;
                 /* Note: you could set the physical output here to the next
                    highest priority, or to the relinquish default if no
                    priorities are set.

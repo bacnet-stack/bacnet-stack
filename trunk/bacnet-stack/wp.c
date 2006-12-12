@@ -130,8 +130,9 @@ int wp_decode_service_request(uint8_t * apdu,
         /* FIXME: decode the length of the context specific tag value */
         if (decode_is_context_specific(&apdu[len]))
             return -2;
+		/* FIXME: what if the length is more than 255 */
         len += bacapp_decode_application_data(&apdu[len],
-            apdu_len - len, &data->value);
+            (uint8_t)(apdu_len - len), &data->value);
         /* FIXME: check the return value; abort if no valid data? */
         /* FIXME: there might be more than one data element in here! */
         if (!decode_is_closing_tag_number(&apdu[len], 3))

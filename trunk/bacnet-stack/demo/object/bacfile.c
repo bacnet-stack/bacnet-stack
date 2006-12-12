@@ -308,7 +308,6 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint32_t object_instance = BACNET_MAX_INSTANCE + 1; /* return value */
     bool found = false;
-    int apdu_offset = 0;
 
     found = tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
         &apdu_len);
@@ -318,7 +317,7 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
             && (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
             len =
                 apdu_decode_confirmed_service_request(&apdu[0],
-                apdu_len - apdu_offset, &service_data, &service_choice,
+                apdu_len, &service_data, &service_choice,
                 &service_request, &service_request_len);
             if (service_choice == SERVICE_CONFIRMED_ATOMIC_READ_FILE) {
                 len = arf_decode_service_request(service_request,
