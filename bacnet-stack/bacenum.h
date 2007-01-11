@@ -228,7 +228,51 @@ typedef enum {
     PROP_VALUE_BEFORE_CHANGE = 190,
     PROP_VALUE_SET = 191,
     PROP_VALUE_CHANGE_TIME = 192,
-
+    /* enumerations 212-225 are used in Addendum e to
+       ANSI/ASHRAE 135-2004 */
+    PROP_ALIGN_INTERVALS = 193,
+    PROP_GROUP_MEMBER_NAMES = 194,
+    PROP_INTERVAL_OFFSET = 195,
+    PROP_LAST_RESTART_REASON = 196,
+    PROP_LOGGING_TYPE = 197,
+    PROP_MEMBER_STATUS_FLAGS = 198,
+    PROP_NOTIFICATION_PERIOD = 199,
+    PROP_PREVIOUS_NOTIFY_RECORD = 200,
+    PROP_REQUESTED_UPDATE_INTERVAL = 201,
+    PROP_RESTART_NOTIFICATION_RECIPIENTS = 202,
+    PROP_TIME_OF_DEVICE_RESTART = 203,
+    PROP_TIME_SYNCHRONIZATION_INTERVAL = 204,
+    PROP_TRIGGER = 205,    
+    PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS = 206,
+    /* enumerations 207-211 are used in Addendum d to 
+       ANSI/ASHRAE 135-2004 */
+    PROP_NODE_SUBTYPE = 207,
+    PROP_NODE_TYPE = 208,
+    PROP_STRUCTURED_OBJECT_LIST = 209,
+    PROP_SUBORDINATE_ANNOTATIONS = 210,
+    PROP_SUBORDINATE_LIST = 211,
+    /* enumerations 212-225 are used in Addendum e to 
+       ANSI/ASHRAE 135-2004 */
+    PROP_ACTUAL_SHED_LEVEL = 212,
+    PROP_DUTY_WINDOW = 213,
+    PROP_EXPECTED_SHED_LEVEL = 214,
+    PROP_FULL_DUTY_BASELINE = 215,
+    PROP_NODE_SUBTYPE = 216,
+    PROP_NODE_TYPE = 217,
+    PROP_REQUESTED_SHED_LEVEL = 218,
+    PROP_SHED_DURATION = 219,
+    PROP_SHED_LEVEL_DESCRIPTIONS = 220,
+    PROP_SHED_LEVELS = 221,
+    PROP_STATE_DESCRIPTION = 222,
+    PROP_STRUCTURED_OBJECT_LIST = 223,
+    /* FIXME: is this the right enumeration?
+    PROP_SUBORDINATE_ANNOTATIONS = 224,
+    PROP_SUBORDINATE_LIST = 225,
+    */
+    /* enumerations 226-235 are used in Addendum f to 
+       ANSI/ASHRAE 135-2004 */
+    PROP_LOG_DEVICE_OBJECT_PROPERTIES = 236,
+    PROP_LOG_MULTIPLE_BUFFER = 237,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
@@ -696,10 +740,15 @@ typedef enum {
     OBJECT_LIFE_SAFETY_ZONE = 22,
     OBJECT_ACCUMULATOR = 23,
     OBJECT_PULSE_CONVERTER = 24,
+    OBJECT_EVENT_LOG = 25,
+    OBJECT_GLOBAL_GROUP = 26,
+    OBJECT_TREND_LOG_MULTIPLE = 27,
+    OBJECT_LOAD_CONTROL = 28,
+    OBJECT_STRUCTURED_VIEW = 29,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
-    MAX_ASHRAE_OBJECT_TYPE = 25,        /* used for bit string loop */
+    MAX_ASHRAE_OBJECT_TYPE = 30,        /* used for bit string loop */
     MAX_BACNET_OBJECT_TYPE = 1023
 } BACNET_OBJECT_TYPE;
 
@@ -1136,5 +1185,27 @@ typedef enum {
     BACNET_REINIT_ABORTRESTORE = 6,
     MAX_BACNET_REINITIALIZED_STATE = 7
 } BACNET_REINITIALIZED_STATE;
+
+typedef enum BACnetNodeType {
+    BACNET_NODE_UNKNOWN = 0,
+    BACNET_NODE_SYSTEM  = 1,
+    BACNET_NODE_NETWORK = 2,
+    BACNET_NODE_DEVICE = 3,
+    BACNET_NODE_ORGANIZATIONAL = 4,
+    BACNET_NODE_AREA = 5,
+    BACNET_NODE_EQUIPMENT = 6,
+    BACNET_NODE_POINT = 7,
+    BACNET_NODE_COLLECTION = 8,
+    BACNET_NODE_PROPERTY = 9,
+    BACNET_NODE_FUNCTIONAL = 10,
+    BACNET_NODE_OTHER = 11
+} BACNET_NODE_TYPE;
+
+typedef enum BACnetShedState {
+    BACNET_SHED_INACTIVE = 0,
+    BACNET_SHED_REQUEST_PENDING = 1,
+    BACNET_SHED_COMPLIANT = 2,
+    BACNET_SHED_NON_COMPLIANT = 3
+} BACNET_SHED_STATE;
 
 #endif                          /* end of BACENUM_H */
