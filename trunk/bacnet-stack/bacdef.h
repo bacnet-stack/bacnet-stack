@@ -102,6 +102,11 @@ typedef struct BACnet_Time {
     uint8_t hundredths;
 } BACNET_TIME;
 
+typedef struct BACnet_DateTime {
+    BACNET_DATE date;
+    BACNET_TIME time;
+} BACNET_DATE_TIME;
+
 /* note: with microprocessors having lots more code space than memory,
    it might be better to have a packed encoding with a library to
    easily access the data. */
