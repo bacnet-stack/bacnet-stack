@@ -238,12 +238,12 @@ int Multistate_Output_Encode_Property_APDU(uint8_t * apdu,
             if (array_index <= BACNET_MAX_PRIORITY) {
                 if (Multistate_Output_Level[object_index][array_index] ==
                     MULTISTATE_NULL)
-                    len = encode_tagged_null(&apdu[apdu_len]);
+                    apdu_len = encode_tagged_null(&apdu[0]);
                 else {
                     present_value =
                         Multistate_Output_Level[object_index][array_index];
-                    len =
-                        encode_tagged_unsigned(&apdu[apdu_len],
+                    apdu_len =
+                        encode_tagged_unsigned(&apdu[0],
                         present_value);
                 }
             } else {
