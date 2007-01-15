@@ -233,12 +233,12 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
         } else {
             object_index = Analog_Value_Instance_To_Index(object_instance);
             if (array_index <= BACNET_MAX_PRIORITY) {
-                if (Analog_Value_Level[object_index][array_index] ==
+                if (Analog_Value_Level[object_index][array_index-1] ==
                     ANALOG_LEVEL_NULL)
                     apdu_len = encode_tagged_null(&apdu[0]);
                 else {
                     real_value =
-                        Analog_Value_Level[object_index][array_index];
+                        Analog_Value_Level[object_index][array_index-1];
                     apdu_len = encode_tagged_real(&apdu[0], real_value);
                 }
             } else {
