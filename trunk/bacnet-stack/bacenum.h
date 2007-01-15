@@ -230,8 +230,7 @@ typedef enum {
     PROP_VALUE_BEFORE_CHANGE = 190,
     PROP_VALUE_SET = 191,
     PROP_VALUE_CHANGE_TIME = 192,
-    /* enumerations 212-225 are used in Addendum e to
-       ANSI/ASHRAE 135-2004 */
+    /* enumerations 193-206 are new */
     PROP_ALIGN_INTERVALS = 193,
     PROP_GROUP_MEMBER_NAMES = 194,
     PROP_INTERVAL_OFFSET = 195,
