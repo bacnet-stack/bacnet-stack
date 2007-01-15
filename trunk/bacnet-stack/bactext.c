@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2005 Steve Karg
+ Copyright (C) 2005-2006 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -488,7 +488,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_LOG_DEVICE_OBJECT, "log-device-object-property"}
     ,
-    {PROP_LOG_ENABLE, "log-enable"}
+    {PROP_ENABLE, "enable"}
     ,
     {PROP_LOG_INTERVAL, "log-interval"}
     ,
@@ -560,6 +560,68 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_PROFILE_NAME, "profile-name"}
     ,
+    {PROP_AUTO_SLAVE_DISCOVERY, "auto-slave-discovery"},
+    {PROP_MANUAL_SLAVE_ADDRESS_BINDING, "manual-slave-address-binding"},
+    {PROP_SLAVE_ADDRESS_BINDING, "slave-address-binding"},
+    {PROP_SLAVE_PROXY_ENABLE = 172,
+    PROP_LAST_NOTIFY_TIME = 173,
+    PROP_SCHEDULE_DEFAULT = 174,
+    PROP_ACCEPTED_MODES = 175,
+    PROP_ADJUST_VALUE = 176,
+    PROP_COUNT = 177,
+    PROP_COUNT_BEFORE_CHANGE = 178,
+    PROP_COUNT_CHANGE_TIME = 179,
+    PROP_COV_PERIOD = 180,
+    PROP_INPUT_REFERENCE = 181,
+    PROP_LIMIT_MONITORING_INTERVAL = 182,
+    PROP_LOGGING_DEVICE = 183,
+    PROP_LOGGING_RECORD = 184,
+    PROP_PRESCALE = 185,
+    PROP_PULSE_RATE = 186,
+    PROP_SCALE = 187,
+    PROP_SCALE_FACTOR = 188,
+    PROP_UPDATE_TIME = 189,
+    PROP_VALUE_BEFORE_CHANGE = 190,
+    PROP_VALUE_SET = 191,
+    PROP_VALUE_CHANGE_TIME = 192,
+    /* enumerations 212-225 are used in Addendum e to
+       ANSI/ASHRAE 135-2004 */
+    PROP_ALIGN_INTERVALS = 193,
+    PROP_GROUP_MEMBER_NAMES = 194,
+    PROP_INTERVAL_OFFSET = 195,
+    PROP_LAST_RESTART_REASON = 196,
+    PROP_LOGGING_TYPE = 197,
+    PROP_MEMBER_STATUS_FLAGS = 198,
+    PROP_NOTIFICATION_PERIOD = 199,
+    PROP_PREVIOUS_NOTIFY_RECORD = 200,
+    PROP_REQUESTED_UPDATE_INTERVAL = 201,
+    PROP_RESTART_NOTIFICATION_RECIPIENTS = 202,
+    PROP_TIME_OF_DEVICE_RESTART = 203,
+    PROP_TIME_SYNCHRONIZATION_INTERVAL = 204,
+    PROP_TRIGGER = 205,    
+    PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS = 206,
+    /* enumerations 207-211 are used in Addendum d to 
+       ANSI/ASHRAE 135-2004 */
+    PROP_NODE_SUBTYPE = 207,
+    PROP_NODE_TYPE = 208,
+    PROP_STRUCTURED_OBJECT_LIST = 209,
+    PROP_SUBORDINATE_ANNOTATIONS = 210,
+    PROP_SUBORDINATE_LIST = 211,
+    /* enumerations 212-225 are used in Addendum e to 
+       ANSI/ASHRAE 135-2004 */
+    PROP_ACTUAL_SHED_LEVEL = 212,
+    PROP_DUTY_WINDOW = 213,
+    PROP_EXPECTED_SHED_LEVEL = 214,
+    PROP_FULL_DUTY_BASELINE = 215,
+    /* FIXME: is this the right enumeration? */
+    /* PROP_NODE_SUBTYPE = 216, */
+    /* PROP_NODE_TYPE = 217, */
+    PROP_REQUESTED_SHED_LEVEL = 218,
+    PROP_SHED_DURATION = 219,
+    PROP_SHED_LEVEL_DESCRIPTIONS = 220,
+    PROP_SHED_LEVELS = 221,
+    PROP_STATE_DESCRIPTION = 222,
+
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the
