@@ -235,11 +235,11 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
             if (array_index <= BACNET_MAX_PRIORITY) {
                 if (Analog_Value_Level[object_index][array_index] ==
                     ANALOG_LEVEL_NULL)
-                    len = encode_tagged_null(&apdu[apdu_len]);
+                    apdu_len = encode_tagged_null(&apdu[0]);
                 else {
                     real_value =
                         Analog_Value_Level[object_index][array_index];
-                    len = encode_tagged_real(&apdu[apdu_len], real_value);
+                    apdu_len = encode_tagged_real(&apdu[0], real_value);
                 }
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
