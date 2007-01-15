@@ -67,10 +67,10 @@ static BACNET_DATE_TIME Load_Control_Start_Time[MAX_LOAD_CONTROLS];
 
 /* indicates the duration of the load shed action, 
    starting at Start_Time */
-static unsigned Load_Control_Shed_Duration[MAX_LOAD_CONTROLS];
+static uint32_t Load_Control_Shed_Duration[MAX_LOAD_CONTROLS];
 
 /* indicates the time window used for load shed accounting */
-static unsigned Load_Control_Duty_Window[MAX_LOAD_CONTROLS];
+static uint32_t Load_Control_Duty_Window[MAX_LOAD_CONTROLS];
 
 /* indicates and controls whether the Load Control object is 
    currently enabled to respond to load shed requests.  */
@@ -96,8 +96,9 @@ static BACNET_SHED_LEVEL Actual_Shed_Level[MAX_LOAD_CONTROLS];
 static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS];
 
 /* represents a description of the shed levels that the 
-   Load Control object can take on.  */
-static char *Shed_Level_Descriptions[MAX_SHED_LEVELS] = {
+   Load Control object can take on.  It is the same for
+   all the load control objects in this example device. */
+static const char *Shed_Level_Descriptions[MAX_SHED_LEVELS] = {
   "dim lights 10%",
   "dim lights 20%",
   "dim lights 30%"
@@ -357,30 +358,18 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
                 break;
         }
         break;
-    
-    
-    
-    
-    case PROP_UNITS:
-        apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
-        break;
-    case PROP_PRIORITY_ARRAY:
+    case PROP_SHED_LEVELS:
         /* Array element zero is the number of elements in the array */
         if (array_index == BACNET_ARRAY_LENGTH_INDEX)
             apdu_len =
-                encode_tagged_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
+                encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
-            for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
+            apdu_len = 0;
+            for (i = 0; i < MAX_SHED_LEVELS; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
-                if (Load_Control_Level[object_index][i] ==
-                    ANALOG_LEVEL_NULL)
-                    len = encode_tagged_null(&apdu[apdu_len]);
-                else {
-                    real_value = Load_Control_Level[object_index][i];
-                    len = encode_tagged_real(&apdu[apdu_len], real_value);
-                }
+                len = encode_tagged_unsigned(&apdu[apdu_len], Shed_Levels[object_index][i]);
                 /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
                     apdu_len += len;
@@ -392,26 +381,53 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
                 }
             }
         } else {
-            if (array_index <= BACNET_MAX_PRIORITY) {
-                if (Load_Control_Level[object_index][array_index] ==
-                    ANALOG_LEVEL_NULL)
-                    len = encode_tagged_null(&apdu[apdu_len]);
-                else {
-                    real_value =
-                        Load_Control_Level[object_index][array_index];
-                    len = encode_tagged_real(&apdu[apdu_len], real_value);
-                }
+            if (array_index <= MAX_SHED_LEVELS) {
+                apdu_len = encode_tagged_unsigned(&apdu[0], 
+                    Shed_Levels[object_index][array_index-1]);
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                 apdu_len = -1;
             }
         }
-
         break;
-    case PROP_RELINQUISH_DEFAULT:
-        real_value = ANALOG_RELINQUISH_DEFAULT;
-        apdu_len = encode_tagged_real(&apdu[0], real_value);
+    case PROP_SHED_LEVEL_DESCRIPTIONS:
+        /* Array element zero is the number of elements in the array */
+        if (array_index == BACNET_ARRAY_LENGTH_INDEX)
+            apdu_len =
+                encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
+        /* if no index was specified, then try to encode the entire list */
+        /* into one packet. */
+        else if (array_index == BACNET_ARRAY_ALL) {
+            apdu_len = 0;
+            for (i = 0; i < MAX_SHED_LEVELS; i++) {
+                /* FIXME: check if we have room before adding it to APDU */
+                characterstring_init_ansi(&char_string,
+                    Shed_Level_Descriptions[i]);
+                len = encode_tagged_character_string(&apdu[apdu_len], 
+                    &char_string);
+                /* add it if we have room */
+                if ((apdu_len + len) < MAX_APDU)
+                    apdu_len += len;
+                else {
+                    *error_class = ERROR_CLASS_SERVICES;
+                    *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                    apdu_len = -1;
+                    break;
+                }
+            }
+        } else {
+            if (array_index <= MAX_SHED_LEVELS) {
+                characterstring_init_ansi(&char_string,
+                    Shed_Level_Descriptions[array_index-1]);
+                apdu_len = encode_tagged_character_string(&apdu[0], 
+                    &char_string);
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                apdu_len = -1;
+            }
+        }
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;
@@ -441,60 +457,56 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     /* decode the some of the request */
     object_index = Load_Control_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
-    case PROP_PRESENT_VALUE:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_REAL) {
-            priority = wp_data->priority;
-            /* Command priority 6 is reserved for use by Minimum On/Off
-               algorithm and may not be used for other purposes in any
-               object. */
-            if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                (priority != 6 /* reserved */ ) &&
-                (wp_data->value.type.Real >= 0.0) &&
-                (wp_data->value.type.Real <= 100.0)) {
-                level = (uint8_t) wp_data->value.type.Real;
-                priority--;
-                Load_Control_Level[object_index][priority] = level;
-                /* Note: you could set the physical output here if we
-                   are the highest priority.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
-                   main loop (i.e. check out of service before changing output) */
-                status = true;
-            } else if (priority == 6) {
-                /* Command priority 6 is reserved for use by Minimum On/Off
-                   algorithm and may not be used for other purposes in any
-                   object. */
+    case PROP_REQUESTED_SHED_LEVEL:
+        /* FIXME: add decoding and validation */
+        break;
+    case PROP_START_TIME:
+        /* FIXME: add decoding and validation */
+        break;
+    case PROP_SHED_DURATION:
+        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            Load_Control_Shed_Duration[object_index] =
+                wp_data->value.type.Unsigned;
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        break;
+    case PROP_DUTY_WINDOW:
+        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            Load_Control_Duty_Window[object_index] =
+                wp_data->value.type.Unsigned;
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        break;
+    case PROP_SHED_LEVELS:
+        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            /* re-write the size of the array? */
+            if (wp_data->array_index == 0) {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-        } else if (wp_data->value.tag == BACNET_APPLICATION_TAG_NULL) {
-            level = ANALOG_LEVEL_NULL;
-            priority = wp_data->priority;
-            if (priority && (priority <= BACNET_MAX_PRIORITY)) {
-                priority--;
-                Load_Control_Level[object_index][priority] = level;
-                /* Note: you could set the physical output here to the next
-                   highest priority, or to the relinquish default if no
-                   priorities are set.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
-                   main loop (i.e. check out of service before changing output) */
+            else if (wp_data->array_index == BACNET_ARRAY_ALL) {
+                /* FIXME: write entire array */
+                status = true;
+            }
+            else if (wp_data->array_index <= MAX_SHED_LEVELS) {
+                Shed_Levels[object_index][wp_data->array_index-1] = wp_data->value.type.Unsigned;
                 status = true;
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-    case PROP_OUT_OF_SERVICE:
+    case PROP_ENABLE:
         if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-            Load_Control_Out_Of_Service[object_index] =
+            Load_Control_Enable[object_index] =
                 wp_data->value.type.Boolean;
             status = true;
         } else {
