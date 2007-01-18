@@ -80,7 +80,9 @@ uint8_t Send_Write_Property_Request(uint32_t device_id, /* destination device */
         data.object_instance = object_instance;
         data.object_property = object_property;
         data.array_index = array_index;
-        bacapp_copy(&data.value, object_value);
+        data.application_data_len =
+            bacapp_encode_application_data(
+                &data.application_data[0],object_value);
         data.priority = priority;
         len = wp_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             invoke_id, &data);
