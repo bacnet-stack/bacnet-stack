@@ -602,7 +602,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = constructed_data_len(&apdu[0], apdu_len,
+    len = bacapp_data_len(&apdu[0], apdu_len,
         PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
     ct_test(pTest, test_len == len);
 
@@ -617,7 +617,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = constructed_data_len(&apdu[0], apdu_len,
+    len = bacapp_data_len(&apdu[0], apdu_len,
         PROP_OBJECT_IDENTIFIER);
     ct_test(pTest, test_len == len);
 
@@ -677,7 +677,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = constructed_data_len(&apdu[0], apdu_len,
+    len = bacapp_data_len(&apdu[0], apdu_len,
         PROP_PRIORITY_ARRAY);
     ct_test(pTest, test_len == len);
 
@@ -709,7 +709,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = constructed_data_len(&apdu[0], apdu_len,
+    len = bacapp_data_len(&apdu[0], apdu_len,
         PROP_START_TIME);
     ct_test(pTest, test_len == len);
 
@@ -728,7 +728,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = constructed_data_len(&apdu[0], apdu_len,
+    len = bacapp_data_len(&apdu[0], apdu_len,
         PROP_REQUESTED_SHED_LEVEL);
     ct_test(pTest, test_len == len);
 }
