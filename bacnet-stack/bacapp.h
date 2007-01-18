@@ -41,7 +41,7 @@
 #include "bacstr.h"
 
 typedef struct BACnet_Application_Data_Value {
-    uint8_t tag;
+    uint8_t tag; /* application or context-specific number */
     union {
         /* NULL - not needed as it is encoded in the tag alone */
         bool Boolean;

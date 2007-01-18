@@ -121,7 +121,7 @@ int bacapp_decode_application_data(uint8_t * apdu,
 
     /* FIXME: use max_apdu_len! */
     (void) max_apdu_len;
-    if (apdu) {
+    if (apdu && !decode_is_context_specific(apdu)) {
         tag_len = decode_tag_number_and_value(&apdu[0],
             &tag_number, &len_value_type);
         if (tag_len) {
@@ -215,7 +215,7 @@ int bacapp_decode_context_data(uint8_t * apdu,
 
     /* FIXME: use max_apdu_len! */
     (void) max_apdu_len;
-    if (apdu) {
+    if (apdu && decode_is_context_specific(apdu)) {
         tag_len = decode_tag_number_and_value(&apdu[0],
             &tag_number, &len_value_type);
         if (tag_len) {
