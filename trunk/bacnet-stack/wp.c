@@ -126,21 +126,15 @@ int wp_decode_service_request(uint8_t * apdu,
         /* Tag 3: opening context tag */
         if (!decode_is_opening_tag_number(&apdu[len], 3))
             return -1;
+        /* determine the length of the data blob */
+        data->application_data_len = bacapp_data_len(&apdu[len], 
+            apdu_len-len, property);
         /* a tag number of 3 is not extended so only one octet */
         len++;
-        /* determine the length of the data blob */
-        
-        
-        /* FIXME: decode the length of the context specific tag value */
-        if (decode_is_context_specific(&apdu[len]))
-            return -2;
-        /* FIXME: what if the length is more than 255 */
-        len += bacapp_decode_application_data(&apdu[len],
-            (uint8_t)(apdu_len - len), &data->value);
-        /* FIXME: check the return value; abort if no valid data? */
-        /* FIXME: there might be more than one data element in here! */
+        /* add on the data length */
+        len += data->application_data_len;
         if (!decode_is_closing_tag_number(&apdu[len], 3))
-            return -4;
+            return -2;
         /* a tag number of 3 is not extended so only one octet */
         len++;
         /* Tag 4: optional Priority - assumed MAX if not explicitly set */

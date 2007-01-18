@@ -31,6 +31,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
+#include "bacapp.h"
 #include "config.h"             /* the custom stuff */
 #include "wp.h"
 
@@ -243,6 +244,8 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
+    int len = 0;
+    BACNET_APPLICATION_DATA_VALUE value;
 
     Life_Safety_Point_Init();
     if (!Life_Safety_Point_Valid_Instance(wp_data->object_instance)) {
@@ -251,16 +254,22 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
+     len = bacapp_decode_application_data(
+        wp_data->application_data, 
+        wp_data->application_data_len,
+        &value);
+    /* FIXME: len < application_data_len: more data? */
+    /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
     case PROP_MODE:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-            if ((wp_data->value.type.Enumerated >= MIN_LIFE_SAFETY_MODE) &&
-                (wp_data->value.type.Enumerated <= MIN_LIFE_SAFETY_MODE)) {
+        if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+            if ((value.type.Enumerated >= MIN_LIFE_SAFETY_MODE) &&
+                (value.type.Enumerated <= MIN_LIFE_SAFETY_MODE)) {
                 object_index =
                     Life_Safety_Point_Instance_To_Index(wp_data->
                     object_instance);
                 Life_Safety_Point_Mode[object_index] =
-                    wp_data->value.type.Enumerated;
+                    value.type.Enumerated;
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -272,12 +281,12 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         }
         break;
     case PROP_OUT_OF_SERVICE:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+        if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
                 Life_Safety_Point_Instance_To_Index(wp_data->
                 object_instance);
             Life_Safety_Point_Out_Of_Service[object_index] =
-                wp_data->value.type.Boolean;
+                value.type.Boolean;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;

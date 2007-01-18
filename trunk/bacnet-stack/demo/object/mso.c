@@ -31,6 +31,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
+#include "bacapp.h"
 #include "config.h"             /* the custom stuff */
 #include "wp.h"
 
@@ -281,6 +282,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     unsigned int object_index = 0;
     unsigned int priority = 0;
     uint32_t level = 0;
+    int len = 0;
+    BACNET_APPLICATION_DATA_VALUE value;
 
     Multistate_Output_Init();
     if (!Multistate_Output_Valid_Instance(wp_data->object_instance)) {
@@ -289,18 +292,24 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
+    len = bacapp_decode_application_data(
+        wp_data->application_data, 
+        wp_data->application_data_len,
+        &value);
+    /* FIXME: len < application_data_len: more data? */
+    /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
     case PROP_PRESENT_VALUE:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             priority = wp_data->priority;
             /* Command priority 6 is reserved for use by Minimum On/Off
                algorithm and may not be used for other purposes in any
                object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
-                (wp_data->value.type.Unsigned_Int <=
+                (value.type.Unsigned_Int <=
                     MULTISTATE_NUMBER_OF_STATES)) {
-                level = wp_data->value.type.Unsigned_Int;
+                level = value.type.Unsigned_Int;
                 object_index =
                     Multistate_Output_Instance_To_Index(wp_data->
                     object_instance);
@@ -322,7 +331,7 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-        } else if (wp_data->value.tag == BACNET_APPLICATION_TAG_NULL) {
+        } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
             level = MULTISTATE_NULL;
             object_index =
                 Multistate_Output_Instance_To_Index(wp_data->
@@ -348,12 +357,12 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         }
         break;
     case PROP_OUT_OF_SERVICE:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+        if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
                 Multistate_Output_Instance_To_Index(wp_data->
                 object_instance);
             Multistate_Output_Out_Of_Service[object_index] =
-                wp_data->value.type.Boolean;
+                value.type.Boolean;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;

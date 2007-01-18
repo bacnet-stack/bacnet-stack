@@ -29,6 +29,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
+#include "bacapp.h"
 #include "config.h"             /* the custom stuff */
 #include "apdu.h"
 #include "ai.h"                 /* object list dependency */
@@ -766,6 +767,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
     bool status = false;        /* return value */
+    int len = 0;
+    BACNET_APPLICATION_DATA_VALUE value;
 
     if (!Device_Valid_Object_Instance_Number(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
@@ -773,13 +776,19 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
+    len = bacapp_decode_application_data(
+        wp_data->application_data, 
+        wp_data->application_data_len,
+        &value);
+    /* FIXME: len < application_data_len: more data? */
+    /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
     case PROP_OBJECT_IDENTIFIER:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            if ((wp_data->value.type.Object_Id.type == OBJECT_DEVICE) &&
-                (Device_Set_Object_Instance_Number(wp_data->value.type.
-                        Object_Id.instance))) {
-                /* we could send an I-Am broadcast to let the world know */
+        if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
+            if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
+                (Device_Set_Object_Instance_Number(
+                    value.type.Object_Id.instance))) {
+                /* FIXME: we could send an I-Am broadcast to let the world know */
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -792,9 +801,9 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
 
     case PROP_NUMBER_OF_APDU_RETRIES:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* FIXME: bounds check? */
-            Device_Set_Number_Of_APDU_Retries((uint8_t) wp_data->value.
+            Device_Set_Number_Of_APDU_Retries((uint8_t) value.
                 type.Unsigned_Int);
             status = true;
         } else {
@@ -804,9 +813,9 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
 
     case PROP_APDU_TIMEOUT:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* FIXME: bounds check? */
-            Device_Set_APDU_Timeout((uint16_t) wp_data->value.type.
+            Device_Set_APDU_Timeout((uint16_t) value.type.
                 Unsigned_Int);
             status = true;
         } else {
@@ -816,9 +825,9 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
 
     case PROP_VENDOR_IDENTIFIER:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* FIXME: bounds check? */
-            Device_Set_Vendor_Identifier((uint16_t) wp_data->value.type.
+            Device_Set_Vendor_Identifier((uint16_t) value.type.
                 Unsigned_Int);
             status = true;
         } else {
@@ -828,8 +837,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
 
     case PROP_SYSTEM_STATUS:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-            Device_Set_System_Status(wp_data->value.type.Enumerated);
+        if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+            Device_Set_System_Status(value.type.Enumerated);
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -838,16 +847,16 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
 
     case PROP_OBJECT_NAME:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+        if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             uint8_t encoding;
             encoding =
-                characterstring_encoding(&wp_data->value.type.
+                characterstring_encoding(&value.type.
                 Character_String);
             if (encoding == CHARACTER_ANSI_X34) {
                 status =
                     Device_Set_Object_Name(characterstring_value(&wp_data->
                         value.type.Character_String),
-                    characterstring_length(&wp_data->value.type.
+                    characterstring_length(&value.type.
                         Character_String));
                 if (!status) {
                     *error_class = ERROR_CLASS_PROPERTY;
