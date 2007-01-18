@@ -67,8 +67,9 @@ int wp_encode_apdu(uint8_t * apdu,
         /* propertyValue */
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
-        len =
-            bacapp_encode_application_data(&apdu[apdu_len], &data->value);
+        for (len = 0; len < data->application_data_len; len++) {
+            apdu[apdu_len++] = data->application_data[len];
+        }
         apdu_len += len;
         len = encode_closing_tag(&apdu[apdu_len], 3);
         apdu_len += len;
@@ -127,10 +128,13 @@ int wp_decode_service_request(uint8_t * apdu,
             return -1;
         /* a tag number of 3 is not extended so only one octet */
         len++;
+        /* determine the length of the data blob */
+        
+        
         /* FIXME: decode the length of the context specific tag value */
         if (decode_is_context_specific(&apdu[len]))
             return -2;
-		/* FIXME: what if the length is more than 255 */
+        /* FIXME: what if the length is more than 255 */
         len += bacapp_decode_application_data(&apdu[len],
             (uint8_t)(apdu_len - len), &data->value);
         /* FIXME: check the return value; abort if no valid data? */

@@ -252,25 +252,20 @@ typedef enum {
     PROP_STRUCTURED_OBJECT_LIST = 209,
     PROP_SUBORDINATE_ANNOTATIONS = 210,
     PROP_SUBORDINATE_LIST = 211,
-    /* enumerations 212-225 are used in Addendum e to 
+    /* enumerations 212-225 are used in Addendum e to
        ANSI/ASHRAE 135-2004 */
     PROP_ACTUAL_SHED_LEVEL = 212,
     PROP_DUTY_WINDOW = 213,
     PROP_EXPECTED_SHED_LEVEL = 214,
     PROP_FULL_DUTY_BASELINE = 215,
-    /* FIXME: is this the right enumeration? */
-    /* PROP_NODE_SUBTYPE = 216, */
-    /* PROP_NODE_TYPE = 217, */
+    /* note: missing enumerations for now */
     PROP_REQUESTED_SHED_LEVEL = 218,
     PROP_SHED_DURATION = 219,
     PROP_SHED_LEVEL_DESCRIPTIONS = 220,
     PROP_SHED_LEVELS = 221,
     PROP_STATE_DESCRIPTION = 222,
-    /* FIXME: is this the right enumeration? */
-    /* PROP_STRUCTURED_OBJECT_LIST = 223, */
-    /* PROP_SUBORDINATE_ANNOTATIONS = 224, */
-    /* PROP_SUBORDINATE_LIST = 225, */
-    /* enumerations 226-235 are used in Addendum f to 
+    /* note: missing enumerations for now */
+    /* enumerations 226-235 are used in Addendum f to
        ANSI/ASHRAE 135-2004 */
     PROP_LOG_DEVICE_OBJECT_PROPERTIES = 236,
     PROP_LOG_MULTIPLE_BUFFER = 237,
