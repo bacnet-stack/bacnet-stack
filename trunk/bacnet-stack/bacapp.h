@@ -64,13 +64,28 @@ extern "C" {
 #endif                          /* __cplusplus */
 
     int bacapp_decode_application_data(uint8_t * apdu,
-        uint8_t apdu_len, BACNET_APPLICATION_DATA_VALUE * value);
+        int max_apdu_len, BACNET_APPLICATION_DATA_VALUE * value);
 
     int bacapp_encode_application_data(uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    int bacapp_decode_context_data(uint8_t * apdu,
+        int max_apdu_len, BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_PROPERTY_ID property);
+
+    int bacapp_encode_context_data(uint8_t * apdu,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_PROPERTY_ID property);
+
     bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
+
+    /* returns the length of data between an opening tag and a closing tag.
+       Expects that the first octet contain the opening tag.
+       Include a value property identifier for context specific data
+       such as the value received in a WriteProperty request */
+    int bacapp_data_len(uint8_t *apdu, int max_apdu_len,
+        BACNET_PROPERTY_ID property);
 
 #if PRINT_ENABLED
 #define BACAPP_PRINT_ENABLED
@@ -99,6 +114,7 @@ extern "C" {
     bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
 
+    void testBACnetApplicationDataLength(Test * pTest);
     void testBACnetApplicationData(Test * pTest);
 #endif
 

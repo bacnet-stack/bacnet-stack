@@ -618,20 +618,18 @@ int decode_tag_number(uint8_t * apdu, uint8_t * tag_number)
     return len;
 }
 
-static bool decode_is_opening_tag(uint8_t * apdu)
+bool decode_is_opening_tag(uint8_t * apdu)
 {
     return ((apdu[0] & 0x07) == 6);
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
 /* returns the number of apdu bytes consumed */
-static bool decode_is_closing_tag(uint8_t * apdu)
+bool decode_is_closing_tag(uint8_t * apdu)
 {
     return ((apdu[0] & 0x07) == 7);
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns the number of apdu bytes consumed */
 /* from clause 20.2.1.3.2 Constructed Data */
 /* returns the number of apdu bytes consumed */
 int decode_tag_number_and_value(uint8_t * apdu,

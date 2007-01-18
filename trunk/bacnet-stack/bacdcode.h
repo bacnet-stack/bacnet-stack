@@ -53,6 +53,7 @@ extern "C" {
 /* returns the number of apdu bytes consumed */
     int encode_opening_tag(uint8_t * apdu, uint8_t tag_number);
     int encode_closing_tag(uint8_t * apdu, uint8_t tag_number);
+    int decode_tag_number(uint8_t * apdu, uint8_t * tag_number);
     int decode_tag_number_and_value(uint8_t * apdu, uint8_t * tag_number,
         uint32_t * value);
 /* returns true if the tag is context specific */
@@ -63,6 +64,10 @@ extern "C" {
     bool decode_is_closing_tag_number(uint8_t * apdu, uint8_t tag_number);
 /* returns true if the tag is context specific and matches */
     bool decode_is_context_tag(uint8_t * apdu, uint8_t tag_number);
+    /* returns true if the tag is an opening tag */
+    bool decode_is_opening_tag(uint8_t * apdu);
+    /* returns true if the tag is a closing tag */
+    bool decode_is_closing_tag(uint8_t * apdu);
 
 /* from clause 20.2.2 Encoding of a Null Value */
     int encode_tagged_null(uint8_t * apdu);
