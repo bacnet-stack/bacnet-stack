@@ -48,7 +48,7 @@ typedef struct BACnet_Write_Property_Data {
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
     int32_t array_index;        /* use BACNET_ARRAY_ALL when not setting */
-    uint8_t *application_data;
+    uint8_t application_data[MAX_APDU];
     int application_data_len;
     uint8_t priority;           /* use BACNET_NO_PRIORITY if no priority */
 } BACNET_WRITE_PROPERTY_DATA;

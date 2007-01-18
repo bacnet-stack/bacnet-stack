@@ -854,10 +854,9 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 Character_String);
             if (encoding == CHARACTER_ANSI_X34) {
                 status =
-                    Device_Set_Object_Name(characterstring_value(&wp_data->
-                        value.type.Character_String),
-                    characterstring_length(&value.type.
-                        Character_String));
+                    Device_Set_Object_Name(
+                        characterstring_value(&value.type.Character_String),
+                        characterstring_length(&value.type.Character_String));
                 if (!status) {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;

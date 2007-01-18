@@ -97,6 +97,7 @@ int wp_decode_service_request(uint8_t * apdu,
     int type = 0;               /* for decoding */
     int property = 0;           /* for decoding */
     uint32_t unsigned_value = 0;
+    int i = 0; /* loop counter */
 
     /* check for value pointers */
     if (apdu_len && data) {
@@ -131,6 +132,10 @@ int wp_decode_service_request(uint8_t * apdu,
             apdu_len-len, property);
         /* a tag number of 3 is not extended so only one octet */
         len++;
+        /* copy the data from the APDU */
+        for (i = 0; i < data->application_data_len; i++) {
+            data->application_data[i] = apdu[len+i];
+        }
         /* add on the data length */
         len += data->application_data_len;
         if (!decode_is_closing_tag_number(&apdu[len], 3))

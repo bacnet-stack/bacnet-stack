@@ -30,6 +30,7 @@
 #include "config.h"
 #include "address.h"
 #include "bacdef.h"
+#include "bacapp.h"
 #include "datalink.h"
 #include "bacdcode.h"
 #include "npdu.h"
@@ -221,6 +222,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
     bool status = false;        /* return value */
+    int len = 0;
+    BACNET_APPLICATION_DATA_VALUE value;
 
     if (!bacfile_valid_instance(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
@@ -229,6 +232,12 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     }
 
     /* decode the some of the request */
+    len = bacapp_decode_application_data(
+        wp_data->application_data, 
+        wp_data->application_data_len,
+        &value);
+    /* FIXME: len < application_data_len: more data? */
+    /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
     case PROP_ARCHIVE:
         /* 12.13.8 Archive
@@ -237,8 +246,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
            property shall be logical TRUE only if no changes have been
            made to the file data by internal processes or through File
            Access Services since the last time the object was archived. */
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-            if (wp_data->value.type.Boolean) {
+        if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if (value.type.Boolean) {
                 /* FIXME: do something to wp_data->object_instance */
             } else {
                 /* FIXME: do something to wp_data->object_instance */
@@ -252,8 +261,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         /* If the file size can be changed by writing to the file,
            and File_Access_Method is STREAM_ACCESS, then this property
            shall be writable. */
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-            /* FIXME: do something with wp_data->value.type.Unsigned
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            /* FIXME: do something with value.type.Unsigned
                to wp_data->object_instance */
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
