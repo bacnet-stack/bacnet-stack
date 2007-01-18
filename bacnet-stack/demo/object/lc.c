@@ -447,6 +447,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     unsigned int object_index = 0;
     unsigned int priority = 0;
     uint8_t level = ANALOG_LEVEL_NULL;
+    int len = 0;
+    BACNET_APPLICATION_DATA_VALUE value;
 
     Load_Control_Init();
     if (!Load_Control_Valid_Instance(wp_data->object_instance)) {
@@ -455,18 +457,68 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
+    len = bacapp_decode_application_data(
+        wp_data->application_data, 
+        wp_data->application_data_len,
+        &value);
+    /* FIXME: len < application_data_len: more data? */
+    /* FIXME: len == 0: unable to decode? */
     object_index = Load_Control_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
     case PROP_REQUESTED_SHED_LEVEL:
-        /* FIXME: add decoding and validation */
+        len = bacapp_decode_context_data(
+            wp_data->application_data, 
+            wp_data->application_data_len,
+            &value, PROP_REQUESTED_SHED_LEVEL);
+        if (value.tag == 0) {
+            /* percent - Unsigned */
+            Requested_Shed_Level[object_index].value.percent = 
+                value.type.Unsigned;
+            status = true;
+        } else if (value.tag == 1) {
+            /* level - Unsigned */
+            Requested_Shed_Level[object_index].value.level = 
+                value.type.Unsigned;
+            status = true;
+        } else if (value.tag == 2) {
+            /* amount - REAL */
+            Requested_Shed_Level[object_index].value.amount = 
+                value.type.Real;
+            status = true;
+        } else {
+            /* error! */
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
         break;
     case PROP_START_TIME:
-        /* FIXME: add decoding and validation */
+        if (value.tag == BACNET_APPLICATION_TAG_DATE) {
+            memcpy(&Load_Control_Start_Time[object_index].date,
+                &value.type.Date,sizeof(value.type.Date));
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        if (!status)
+            break;
+        len = bacapp_decode_application_data(
+            wp_data->application_data + len, 
+            wp_data->application_data_len - len,
+            &value);
+        if (len && value.tag == BACNET_APPLICATION_TAG_TIME) {
+            memcpy(&Load_Control_Start_Time[object_index].time,
+                &value.type.Time,sizeof(value.type.time));
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
         break;
     case PROP_SHED_DURATION:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             Load_Control_Shed_Duration[object_index] =
-                wp_data->value.type.Unsigned;
+                value.type.Unsigned;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -474,9 +526,9 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         }
         break;
     case PROP_DUTY_WINDOW:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             Load_Control_Duty_Window[object_index] =
-                wp_data->value.type.Unsigned;
+                value.type.Unsigned;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -484,7 +536,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         }
         break;
     case PROP_SHED_LEVELS:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* re-write the size of the array? */
             if (wp_data->array_index == 0) {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -495,7 +547,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 status = true;
             }
             else if (wp_data->array_index <= MAX_SHED_LEVELS) {
-                Shed_Levels[object_index][wp_data->array_index-1] = wp_data->value.type.Unsigned;
+                Shed_Levels[object_index][wp_data->array_index-1] = value.type.Unsigned;
                 status = true;
             } else {
             }
@@ -505,9 +557,9 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         }
         break;
     case PROP_ENABLE:
-        if (wp_data->value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+        if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             Load_Control_Enable[object_index] =
-                wp_data->value.type.Boolean;
+                value.type.Boolean;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -557,7 +609,7 @@ void testLoadControl(Test * pTest)
     return;
 }
 
-#ifdef TEST_ANALOG_VALUE
+#ifdef TEST_LOAD_CONTROL
 int main(void)
 {
     Test *pTest;
