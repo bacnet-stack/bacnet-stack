@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>               /* for time */
+#include <string.h>
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
@@ -159,9 +160,10 @@ int main(int argc, char *argv[])
     if (argc < 7) {
         /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s device-instance object-type object-instance "
-            "property tag value [priority] [index]\r\n"
-            "\r\n"
-            "device-instance:\r\n"
+            "property tag value [priority] [index]\r\n",
+            filename_remove_path(argv[0]));
+        if ((argc > 1) && (strcmp(argv[1],"--help") == 0)) {
+        printf("device-instance:\r\n"
             "BACnet Device Object Instance number that you are trying to\r\n"
             "communicate to.  This number will be used to try and bind with\r\n"
             "the device using Who-Is and I-Am services.  For example, if you were\r\n"
@@ -225,8 +227,8 @@ int main(int argc, char *argv[])
             "%s 123 1 0 85 4 100\r\n"
             "You could also send a relinquish command:\r\n"
             "%s 123 1 0 85 0 0\r\n",
-            filename_remove_path(argv[0]),
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
+        }
         return 0;
     }
     /* decode the command line parameters */
