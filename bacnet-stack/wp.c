@@ -68,9 +68,9 @@ int wp_encode_apdu(uint8_t * apdu,
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
         for (len = 0; len < data->application_data_len; len++) {
-            apdu[apdu_len++] = data->application_data[len];
+            apdu[apdu_len+len] = data->application_data[len];
         }
-        apdu_len += len;
+        apdu_len += data->application_data_len;
         len = encode_closing_tag(&apdu[apdu_len], 3);
         apdu_len += len;
         /* optional priority - 0 if not set, 1..16 if set */
