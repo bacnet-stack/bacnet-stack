@@ -485,8 +485,8 @@ void bacapp_set_datetime_values(BACNET_DATE_TIME * bdatetime,
         bdatetime->date.day = day;
         bdatetime->date.wday = wday;
         bdatetime->time.hour = hour;
-        bdatetime->time.min = min;
-        bdatetime->time.sec = sec;
+        bdatetime->time.min = minute;
+        bdatetime->time.sec = seconds;
         bdatetime->time.hundredths = hundredths;
     }
 }

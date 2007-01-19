@@ -221,6 +221,7 @@ void Load_Control_State_Machine_Handler(int object_index)
 {
     static LOAD_CONTROL_STATE state[MAX_LOAD_CONTROLS];
     static initialized = false;
+    unsigned i = 0; /* loop counter */
 
     if (!initialized) {
        initialized = true;
@@ -229,7 +230,7 @@ void Load_Control_State_Machine_Handler(int object_index)
        }
     }
 
-    switch (state)
+    switch (state[object_index])
     {
       case SHED_REQUEST_PENDING:
         /* CancelShed */
@@ -267,7 +268,7 @@ void Load_Control_State_Machine_Handler(int object_index)
                         Requested_Shed_Level[object_index].value.level;
                     break;
             }
-            state = SHED_REQUEST_PENDING;
+            state[object_index] = SHED_REQUEST_PENDING;
         }
         break;
     }
@@ -278,9 +279,11 @@ void Load_Control_State_Machine_Handler(int object_index)
 /* call every second or so */
 void Load_Control_State_Machine(void)
 {
-   for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-      Load_Control_State_Machine_Handler(i);
-   }
+    unsigned i = 0;
+    
+    for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
+        Load_Control_State_Machine_Handler(i);
+    }
 }
 
 /* return apdu len, or -1 on error */
