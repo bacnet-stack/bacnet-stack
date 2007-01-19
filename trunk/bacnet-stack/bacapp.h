@@ -87,6 +87,30 @@ extern "C" {
     int bacapp_data_len(uint8_t *apdu, int max_apdu_len,
         BACNET_PROPERTY_ID property);
 
+    /* utility comparison functions */
+    bool bacapp_same_date(BACNET_DATE * date1, BACNET_DATE * date2);
+    bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2);
+    bool bacapp_same_datetime(
+      BACNET_DATE_TIME * datetime1,
+      BACNET_DATE_TIME * datetime2);
+
+    void bacapp_copy_date(BACNET_DATE * date1, BACNET_DATE * date2);
+    void bacapp_copy_time(BACNET_TIME * time1, BACNET_TIME * time2);
+    void bacapp_copy_datetime(
+      BACNET_DATE_TIME * datetime1,
+      BACNET_DATE_TIME * datetime2);
+
+    void bacapp_set_date(BACNET_DATE * bdate,
+        uint16_t year, uint8_t month, uint8_t day, uint8_t wday);
+    void bacapp_set_time(BACNET_TIME * btime,
+        uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
+    void bacapp_set_datetime(BACNET_DATE_TIME * bdatetime,
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
+    void bacapp_set_datetime_values(BACNET_DATE_TIME * bdatetime,
+        uint16_t year, uint8_t month, uint8_t day, uint8_t wday,
+        uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
+
 #if PRINT_ENABLED
 #define BACAPP_PRINT_ENABLED
 #else
