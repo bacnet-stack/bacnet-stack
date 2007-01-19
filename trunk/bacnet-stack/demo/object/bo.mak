@@ -10,6 +10,9 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_BINARY_OUTPUT -g
 SRCS = bacdcode.c \
        bacstr.c \
        bigend.c \
+       bacapp.c \
+       bactext.c \
+       indtext.c \
        demo/object/bo.c \
        test/ctest.c
 

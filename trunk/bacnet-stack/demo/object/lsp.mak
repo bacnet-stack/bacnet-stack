@@ -10,6 +10,9 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_LIFE_SAFETY_POINT -g
 SRCS = bacdcode.c \
        bacstr.c \
        bigend.c \
+       bacapp.c \
+       bactext.c \
+       indtext.c \
        demo/object/lsp.c \
        test/ctest.c
 

@@ -9,11 +9,18 @@ SRCS = address.c \
        bacdcode.c \
        bacstr.c \
        bigend.c \
+       bacapp.c \
+       bactext.c \
+       indtext.c \
        demo/object/device.c \
        demo/object/ai.c \
        demo/object/ao.c \
+       demo/object/av.c \
        demo/object/bi.c \
        demo/object/bo.c \
+       demo/object/bv.c \
+       demo/object/lsp.c \
+       demo/object/mso.c \
        iam.c \
        dcc.c \
        npdu.c \
