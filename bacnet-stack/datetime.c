@@ -267,6 +267,7 @@ void testBACnetDate(Test * pTest)
     diff = datetime_compare_date(&bdate1, &bdate2);
     ct_test(pTest, diff < 0);
 
+    /* midpoint */
     datetime_set_date(&bdate1, 2007,7,15);
     datetime_copy_date(&bdate2, &bdate1);
     diff = datetime_compare_date(&bdate1, &bdate2);
@@ -323,17 +324,102 @@ void testBACnetTime(Test * pTest)
     diff = datetime_compare_time(&btime1, &btime2);
     ct_test(pTest, diff == 0);
 
+    /* midpoint */
+    datetime_set_time(&btime1, 12,30,30,50);
+    datetime_copy_time(&btime2, &btime1);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff == 0);
+    datetime_set_time(&btime2, 12,30,30,51);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_time(&btime2, 12,30,31,50);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_time(&btime2, 12,31,30,50);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_time(&btime2, 13,30,30,50);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff < 0);
+
+    datetime_set_time(&btime2, 12,30,30,49);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_time(&btime2, 12,30,29,50);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_time(&btime2, 12,29,30,50);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_time(&btime2, 11,30,30,50);
+    diff = datetime_compare_time(&btime1, &btime2);
+    ct_test(pTest, diff > 0);
 
     return;
 }
 
 void testBACnetDateTime(Test * pTest)
 {
-    BACNET_DATE_TIME bdatetime;
-    BACNET_DATE_TIME test_bdatetime;
+    BACNET_DATE_TIME bdatetime1, bdatetime2;
+    BACNET_DATE bdate;
+    BACNET_TIME btime;
     int diff = 0;
 
-    (void)pTest;
+    datetime_set_values(&bdatetime1, 1900,1,1,0,0,0,0);
+    datetime_copy(&bdatetime2, &bdatetime1);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff == 0);
+    datetime_set_time(&btime, 0,0,0,0);
+    datetime_set_date(&bdate, 1900,1,1);
+    datetime_set(&bdatetime1, &bdate, &btime);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff == 0);
+
+    /* midpoint */
+    datetime_set_values(&bdatetime1, 2000,7,15,12,30,30,50);
+    datetime_set_values(&bdatetime2, 2000,7,15,12,30,30,51);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_values(&bdatetime2, 2000,7,15,12,30,31,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_values(&bdatetime2, 2000,7,15,12,31,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_values(&bdatetime2, 2000,7,15,13,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_values(&bdatetime2, 2000,7,16,12,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_values(&bdatetime2, 2000,8,15,12,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_values(&bdatetime2, 2001,7,15,12,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff < 0);
+    datetime_set_values(&bdatetime2, 2000,7,15,12,30,30,49);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_values(&bdatetime2, 2000,7,15,12,30,29,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_values(&bdatetime2, 2000,7,15,12,29,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_values(&bdatetime2, 2000,7,15,11,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_values(&bdatetime2, 2000,7,14,12,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_values(&bdatetime2, 2000,6,15,12,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff > 0);
+    datetime_set_values(&bdatetime2, 1999,7,15,12,30,30,50);
+    diff = datetime_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff > 0);
+
 
     return;
 }
@@ -375,13 +461,14 @@ int main(void)
 
     pTest = ct_create("BACnet Date Time", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testBACnetDayOfWeek);
-    assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetDate);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetTime);
     assert(rc);
-
+    rc = ct_addTestFunction(pTest, testBACnetDateTime);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testBACnetDayOfWeek);
+    assert(rc);
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
