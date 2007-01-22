@@ -86,27 +86,6 @@ struct BACnet_Device_Address {
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;
 
-/* date */
-typedef struct BACnet_Date {
-    uint16_t year;              /* AD */
-    uint8_t month;              /* 1=Jan */
-    uint8_t day;                /* 1..31 */
-    uint8_t wday;               /* 1=Monday-7=Sunday */
-} BACNET_DATE;
-
-/* time */
-typedef struct BACnet_Time {
-    uint8_t hour;
-    uint8_t min;
-    uint8_t sec;
-    uint8_t hundredths;
-} BACNET_TIME;
-
-typedef struct BACnet_DateTime {
-    BACNET_DATE date;
-    BACNET_TIME time;
-} BACNET_DATE_TIME;
-
 /* note: with microprocessors having lots more code space than memory,
    it might be better to have a packed encoding with a library to
    easily access the data. */
