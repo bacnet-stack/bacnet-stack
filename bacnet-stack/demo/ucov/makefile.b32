@@ -31,7 +31,7 @@ SRCS = main.c \
        ..\..\bacstr.c \
        ..\..\bactext.c \
        ..\..\indtext.c \
-       ..\..\bigend.c \
+       ..\..\datetime.c \
        ..\..\whois.c \
        ..\..\iam.c \
        ..\..\rp.c \
