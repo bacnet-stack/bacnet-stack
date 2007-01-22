@@ -89,6 +89,11 @@ make -f crc.mak
 ./crc >> test.log
 make -f crc.mak clean
 
+make -f datetime.mak clean
+make -f datetime.mak
+./datetime >> test.log
+make -f datetime.mak clean
+
 make -f demo/object/device.mak clean
 make -f demo/object/device.mak
 ./device >> test.log
