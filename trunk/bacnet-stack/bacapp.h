@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include "bacdef.h"
 #include "bacstr.h"
+#include "datetime.h"
 
 typedef struct BACnet_Application_Data_Value {
     uint8_t tag; /* application or context-specific number */

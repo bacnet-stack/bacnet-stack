@@ -277,10 +277,10 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
             dest_value->type.Enumerated = src_value->type.Enumerated;
             break;
         case BACNET_APPLICATION_TAG_DATE:
-            bacapp_copy_date(&dest_value->type.Date, &src_value->type.Date);
+            datetime_copy_date(&dest_value->type.Date, &src_value->type.Date);
             break;
         case BACNET_APPLICATION_TAG_TIME:
-            bacapp_copy_time(&dest_value->type.Time, &src_value->type.Time);
+            datetime_copy_time(&dest_value->type.Time, &src_value->type.Time);
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             dest_value->type.Object_Id.type =

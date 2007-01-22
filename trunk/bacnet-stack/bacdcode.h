@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "datetime.h"
 #include "bacstr.h"
 
 #ifdef __cplusplus

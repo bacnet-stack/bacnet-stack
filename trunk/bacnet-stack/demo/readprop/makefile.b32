@@ -32,6 +32,7 @@ SRCS = readprop.c \
        ..\..\bacdcode.c \
        ..\..\bacapp.c \
        ..\..\bacstr.c \
+       ..\..\datetime.c \
        ..\..\bactext.c \
        ..\..\indtext.c \
        ..\..\bigend.c \
