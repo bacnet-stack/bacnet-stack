@@ -148,7 +148,7 @@ int datetime_compare_time(BACNET_TIME * time1, BACNET_TIME * time2)
 /* if the datetime1 is the same as datetime2, return is 0
    if datetime1 is before datetime2, returns negative
    if datetime1 is after datetime2, returns positive */
-bool datetime_compare(BACNET_DATE_TIME * datetime1,
+int datetime_compare(BACNET_DATE_TIME * datetime1,
     BACNET_DATE_TIME * datetime2)
 {
   int diff = 0;
