@@ -765,12 +765,14 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
                 status = false;
             break;
         case BACNET_APPLICATION_TAG_DATE:
-            status = bacapp_same_date(&test_value->type.Date,
-                &value->type.Date);
+            if (datetime_compare_date(&test_value->type.Date,
+                &value->type.Date) != 0)
+                status = false;
             break;
         case BACNET_APPLICATION_TAG_TIME:
-            status = bacapp_same_time(&test_value->type.Time,
-                &value->type.Time);
+            if (datetime_compare_time(&test_value->type.Time,
+                &value->type.Time) != 0)
+                status = false;
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             if (test_value->type.Object_Id.type !=

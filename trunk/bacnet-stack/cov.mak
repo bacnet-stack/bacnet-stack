@@ -8,7 +8,7 @@ CFLAGS  = -Wall -I. -Itest -Idemo/object -DTEST -DTEST_COV -g
 
 SRCS = bacdcode.c \
        bacstr.c \
-       bigend.c \
+       datetime.c \
        bacapp.c \
        indtext.c \
        bactext.c \

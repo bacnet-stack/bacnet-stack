@@ -9,7 +9,7 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_BACNET_APPLICATION_DATA -g
 SRCS = bacdcode.c \
        bacstr.c \
        bacapp.c \
-       bigend.c \
+       datetime.c \
        bactext.c \
        indtext.c \
        test/ctest.c

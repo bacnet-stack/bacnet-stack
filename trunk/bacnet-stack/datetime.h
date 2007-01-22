@@ -31,8 +31,8 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#ifndef DATETIME_H
-#define DATETIME_H
+#ifndef DATE_TIME_H
+#define DATE_TIME_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -67,10 +67,10 @@ extern "C" {
         uint16_t year, uint8_t month, uint8_t day);
     void datetime_set_time(BACNET_TIME * btime,
         uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
-    void datetime_set_datetime(BACNET_DATE_TIME * bdatetime,
+    void datetime_set(BACNET_DATE_TIME * bdatetime,
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
-    void datetime_set_datetime_values(BACNET_DATE_TIME * bdatetime,
+    void datetime_set_values(BACNET_DATE_TIME * bdatetime,
         uint16_t year, uint8_t month, uint8_t day,
         uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
 
@@ -78,16 +78,16 @@ extern "C" {
        if the date/times are the same, return is 0
        if date1 is before date2, returns negative
        if date1 is after date2, returns positive */
-    int datetime_date_compare(BACNET_DATE * date1, BACNET_DATE * date2);
-    int datetime_time_compare(BACNET_TIME * time1, BACNET_TIME * time2);
-    int datetime_datetime_compare(
+    int datetime_compare_date(BACNET_DATE * date1, BACNET_DATE * date2);
+    int datetime_compare_time(BACNET_TIME * time1, BACNET_TIME * time2);
+    int datetime_compare(
       BACNET_DATE_TIME * datetime1,
       BACNET_DATE_TIME * datetime2);
 
     /* utility copy functions */
     void datetime_copy_date(BACNET_DATE * date1, BACNET_DATE * date2);
     void datetime_copy_time(BACNET_TIME * time1, BACNET_TIME * time2);
-    void datetime_copy_datetime(
+    void datetime_copy(
       BACNET_DATE_TIME * datetime1,
       BACNET_DATE_TIME * datetime2);
 
@@ -95,5 +95,5 @@ extern "C" {
 }
 #endif                          /* __cplusplus */
 
-#endif /* DATETIME_H */
+#endif /* DATE_TIME_H */
 

@@ -8,7 +8,7 @@ CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 SRCS = address.c \
        bacdcode.c \
        bacstr.c \
-       bigend.c \
+       datetime.c \
        bacapp.c \
        bactext.c \
        indtext.c \
