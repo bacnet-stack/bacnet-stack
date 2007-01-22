@@ -42,6 +42,7 @@
 #include "bacdef.h"
 #include "bacapp.h"
 #include "bactext.h"
+#include "datetime.h"
 
 int bacapp_encode_application_data(uint8_t * apdu,
     BACNET_APPLICATION_DATA_VALUE * value)
@@ -361,136 +362,6 @@ int bacapp_data_len(uint8_t *apdu, int max_apdu_len,
 
   return total_len;
 }
-
-/* returns true if matching or same, false if different */
-bool bacapp_same_date(BACNET_DATE * date1, BACNET_DATE * date2)
-{
-    bool status = false;
-
-    if (date1 && date2) {
-        status = true;
-        if (date1->year != date2->year)
-            status = false;
-        if (date1->month != date2->month)
-            status = false;
-        if (date1->day != date2->day)
-            status = false;
-        if (date1->wday != date2->wday)
-            status = false;
-    }
-
-    return status;
-}
-
-/* returns true if matching or same, false if different */
-bool bacapp_same_time(BACNET_TIME * time1, BACNET_TIME * time2)
-{
-    bool status = false;
-
-    if (time1 && time2) {
-        status = true;
-        if (time1->hour != time2->hour)
-            status = false;
-        if (time1->min != time2->min)
-            status = false;
-        if (time1->sec != time2->sec)
-            status = false;
-        if (time1->hundredths != time2->hundredths)
-            status = false;
-    }
-
-    return status;
-}
-
-bool bacapp_same_datetime(BACNET_DATE_TIME * datetime1,
-    BACNET_DATE_TIME * datetime2)
-{
-  return (bacapp_same_time(&datetime1->time,&datetime2->time) &&
-    bacapp_same_date(&datetime1->date,&datetime2->date));
-}
-
-void bacapp_copy_date(BACNET_DATE * dest_date, BACNET_DATE * src_date)
-{
-    if (dest_date && src_date) {
-        dest_date->year = src_date->year;
-        dest_date->month = src_date->month;
-        dest_date->day = src_date->day;
-        dest_date->wday = src_date->wday;
-    }
-}
-
-void bacapp_copy_time(BACNET_TIME * dest_time, BACNET_TIME * src_time)
-{
-    if (dest_time && src_time) {
-        dest_time->hour = src_time->hour;
-        dest_time->min = src_time->min;
-        dest_time->sec = src_time->sec;
-        dest_time->hundredths = src_time->hundredths;
-    }
-}
-
-void bacapp_copy_datetime(
-      BACNET_DATE_TIME * dest_datetime,
-      BACNET_DATE_TIME * src_datetime)
-{
-    bacapp_copy_time(&dest_datetime->time,&src_datetime->time);
-    bacapp_copy_date(&dest_datetime->date,&src_datetime->date);
-}
-
-void bacapp_set_date(BACNET_DATE * bdate,
-    uint16_t year, uint8_t month, uint8_t day, uint8_t wday)
-{
-    if (bdate) {
-        bdate->year = year;
-        bdate->month = month;
-        bdate->day = day;
-        bdate->wday = wday;
-    }
-}
-
-void bacapp_set_time(BACNET_TIME * btime,
-    uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths)
-{
-    if (btime) {
-        btime->hour = hour;
-        btime->min = minute;
-        btime->sec = seconds;
-        btime->hundredths = hundredths;
-    }
-}
-
-void bacapp_set_datetime(BACNET_DATE_TIME * bdatetime,
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime)
-{
-    if (bdate && btime && bdatetime) {
-        bdatetime->time.hour = btime->hour;
-        bdatetime->time.min = btime->min;
-        bdatetime->time.sec = btime->sec;
-        bdatetime->time.hundredths = btime->hundredths;
-        bdatetime->date.year = bdate->year;
-        bdatetime->date.month = bdate->month;
-        bdatetime->date.day = bdate->day;
-        bdatetime->date.wday = bdate->wday;
-    }
-}
-
-void bacapp_set_datetime_values(BACNET_DATE_TIME * bdatetime,
-    uint16_t year, uint8_t month, uint8_t day, uint8_t wday,
-    uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths)
-{
-    if (bdatetime) {
-        bdatetime->date.year = year;
-        bdatetime->date.month = month;
-        bdatetime->date.day = day;
-        bdatetime->date.wday = wday;
-        bdatetime->time.hour = hour;
-        bdatetime->time.min = minute;
-        bdatetime->time.sec = seconds;
-        bdatetime->time.hundredths = hundredths;
-    }
-}
-
 
 #ifdef BACAPP_PRINT_ENABLED
 bool bacapp_print_value(FILE * stream,
