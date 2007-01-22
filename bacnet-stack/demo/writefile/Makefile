@@ -35,6 +35,7 @@ SRCS = writefile.c \
        $(BACNET_ROOT)/bacprop.c \
        $(BACNET_ROOT)/bacstr.c \
        $(BACNET_ROOT)/bactext.c \
+       $(BACNET_ROOT)/datetime.c \
        $(BACNET_ROOT)/indtext.c \
        $(BACNET_ROOT)/filename.c \
        $(BACNET_ROOT)/bigend.c \

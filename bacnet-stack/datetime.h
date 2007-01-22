@@ -63,14 +63,14 @@ extern "C" {
 #endif                          /* __cplusplus */
 
     /* utility initialization functions */
-    void bacapp_set_date(BACNET_DATE * bdate,
+    void datetime_set_date(BACNET_DATE * bdate,
         uint16_t year, uint8_t month, uint8_t day);
-    void bacapp_set_time(BACNET_TIME * btime,
+    void datetime_set_time(BACNET_TIME * btime,
         uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
-    void bacapp_set_datetime(BACNET_DATE_TIME * bdatetime,
+    void datetime_set_datetime(BACNET_DATE_TIME * bdatetime,
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
-    void bacapp_set_datetime_values(BACNET_DATE_TIME * bdatetime,
+    void datetime_set_datetime_values(BACNET_DATE_TIME * bdatetime,
         uint16_t year, uint8_t month, uint8_t day,
         uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
 
@@ -78,16 +78,16 @@ extern "C" {
        if the date/times are the same, return is 0
        if date1 is before date2, returns negative
        if date1 is after date2, returns positive */
-    int bacapp_date_compare(BACNET_DATE * date1, BACNET_DATE * date2);
-    int bacapp_time_compare(BACNET_TIME * time1, BACNET_TIME * time2);
-    int bacapp_datetime_compare(
+    int datetime_date_compare(BACNET_DATE * date1, BACNET_DATE * date2);
+    int datetime_time_compare(BACNET_TIME * time1, BACNET_TIME * time2);
+    int datetime_datetime_compare(
       BACNET_DATE_TIME * datetime1,
       BACNET_DATE_TIME * datetime2);
 
     /* utility copy functions */
-    void bacapp_copy_date(BACNET_DATE * date1, BACNET_DATE * date2);
-    void bacapp_copy_time(BACNET_TIME * time1, BACNET_TIME * time2);
-    void bacapp_copy_datetime(
+    void datetime_copy_date(BACNET_DATE * date1, BACNET_DATE * date2);
+    void datetime_copy_time(BACNET_TIME * time1, BACNET_TIME * time2);
+    void datetime_copy_datetime(
       BACNET_DATE_TIME * datetime1,
       BACNET_DATE_TIME * datetime2);
 
@@ -96,3 +96,4 @@ extern "C" {
 #endif                          /* __cplusplus */
 
 #endif /* DATETIME_H */
+

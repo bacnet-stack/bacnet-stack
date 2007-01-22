@@ -376,6 +376,7 @@ void testBACnetDateTime(Test * pTest)
     ct_test(pTest, diff == 0);
 
     /* midpoint */
+    /* if datetime1 is before datetime2, returns negative */
     datetime_set_values(&bdatetime1, 2000,7,15,12,30,30,50);
     datetime_set_values(&bdatetime2, 2000,7,15,12,30,30,51);
     diff = datetime_compare(&bdatetime1, &bdatetime2);

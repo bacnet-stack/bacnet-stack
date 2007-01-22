@@ -48,6 +48,7 @@ SRCS = readprop.c \
        $(BACNET_ROOT)/bacdcode.c \
        $(BACNET_ROOT)/bacapp.c \
        $(BACNET_ROOT)/bacprop.c \
+       $(BACNET_ROOT)/datetime.c \
        $(BACNET_ROOT)/bacstr.c \
        $(BACNET_ROOT)/bactext.c \
        $(BACNET_ROOT)/indtext.c \

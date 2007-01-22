@@ -30,6 +30,7 @@ SRCS = writefile.c \
        ..\..\bacapp.c \
        ..\..\bacstr.c \
        ..\..\bactext.c \
+       ..\..\datetime.c \
        ..\..\indtext.c \
        ..\..\filename.c \
        ..\..\bigend.c \
