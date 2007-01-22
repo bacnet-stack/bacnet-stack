@@ -12,7 +12,7 @@ SRCS = bacdcode.c \
        bactext.c \
        indtext.c \
        bacstr.c \
-       bigend.c \
+       datetime.c \
        rpm.c \
        test/ctest.c
 

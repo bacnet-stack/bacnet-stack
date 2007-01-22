@@ -8,7 +8,7 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_DEVICE -g
 
 # NOTE: this file is normally called by the unittest.sh from up directory
 SRCS = bacdcode.c \
-       bigend.c \
+       datetime.c \
        bacstr.c \
        bacapp.c \
        bactext.c \
