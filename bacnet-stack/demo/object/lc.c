@@ -29,8 +29,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h> /* for memcpy */
+#include <time.h>
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "datetime.h"
 #include "bacenum.h"
 #include "config.h"             /* the custom stuff */
 #include "lc.h"
@@ -48,7 +50,7 @@ typedef enum BACnetShedLevelType {
   BACNET_SHED_TYPE_AMOUNT  /* REAL */
 } BACNET_SHED_LEVEL_TYPE;
 
-/* The shed levels for the LEVEL choice of BACnetShedLevel 
+/* The shed levels for the LEVEL choice of BACnetShedLevel
    that have meaning for this particular Load Control object. */
 #define MAX_SHED_LEVELS 3
 typedef struct {
@@ -71,7 +73,9 @@ static BACNET_SHED_LEVEL Actual_Shed_Level[MAX_LOAD_CONTROLS];
 /* indicates the start of the duty window in which the load controlled
    by the Load Control object must be compliant with the requested shed. */
 static BACNET_DATE_TIME Start_Time[MAX_LOAD_CONTROLS];
+static BACNET_DATE_TIME End_Time[MAX_LOAD_CONTROLS];
 static BACNET_DATE_TIME Previous_Start_Time[MAX_LOAD_CONTROLS];
+static BACNET_DATE_TIME Current_Time;
 
 /* indicates the duration of the load shed action,
    starting at Start_Time in minutes */
@@ -118,8 +122,8 @@ void Load_Control_Init(void)
             Present_Value[i] = BACNET_SHED_INACTIVE;
             Requested_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Requested_Shed_Level[i].value.level = 0;
-            bacapp_set_datetime_values(
-              &Start_Time[i],0,0,0,0,0,0,0,0);
+            datetime_set_values(&Start_Time[i],0,0,0,0,0,0,0);
+            datetime_set_values(&Previous_Start_Time[i],0,0,0,0,0,0,0);
             Shed_Duration[i] = 0;
             Duty_Window[i] = 0;
             Load_Control_Enable[i] = true;
@@ -209,6 +213,38 @@ char *Load_Control_Name(uint32_t object_instance)
     return NULL;
 }
 
+static void Update_Current_Time(BACNET_DATE_TIME * bdatetime)
+{
+    time_t timer;
+    struct tm *tblock;
+
+/*
+struct tm {
+   int tm_sec;
+   int tm_min;
+   int tm_hour;
+   int tm_mday;
+   int tm_mon;
+   int tm_year;
+   int tm_wday;
+   int tm_yday;
+   int tm_isdst;
+};
+*/
+
+    timer = time(NULL);
+    tblock = localtime(&timer);
+    datetime_set_values(
+        bdatetime,
+        tblock->tm_year,
+        tblock->tm_mon,
+        tblock->tm_mday,
+        tblock->tm_hour,
+        tblock->tm_min,
+        tblock->tm_sec,
+        0);
+}
+
 typedef enum load_control_state
 {
   SHED_INACTIVE,
@@ -217,11 +253,12 @@ typedef enum load_control_state
   SHED_COMPLIANT
 } LOAD_CONTROL_STATE;
 
-void Load_Control_State_Machine_Handler(int object_index)
+void Load_Control_State_Machine(int object_index)
 {
     static LOAD_CONTROL_STATE state[MAX_LOAD_CONTROLS];
     static initialized = false;
     unsigned i = 0; /* loop counter */
+    int diff = 0; /* used for datetime comparison */
 
     if (!initialized) {
        initialized = true;
@@ -233,9 +270,21 @@ void Load_Control_State_Machine_Handler(int object_index)
     switch (state[object_index])
     {
       case SHED_REQUEST_PENDING:
-        /* CancelShed */
+        Update_Current_Time(&Current_Time);
+        datetime_copy(&End_Time[object_index],&Start_Time[object_index]);
+        datetime_add_minutes(&End_Time[object_index], Shed_Duration[object_index]);
+        diff = datetime_compare(&End_Time[object_index],&Current_Time);
+        if (diff < 0) {
+            /* CancelShed */
+            /* FIXME: stop shedding! i.e. relinquish */
+            state[object_index] = SHED_INACTIVE;
+            break;
+        }
+        diff = datetime_compare(&Current_Time, &Start_Time[object_index]);
+        /* current time prior to start time */
+        if (diff < 0) {
 
-
+        }
         break;
       case SHED_NON_COMPLIANT:
         break;
@@ -243,8 +292,11 @@ void Load_Control_State_Machine_Handler(int object_index)
         break;
       case SHED_INACTIVE:
       default:
-        if (!bacapp_same_datetime(&Start_Time[object_index],
-            &Previous_Start_Time[object_index])) {
+        diff = datetime_compare(&Previous_Start_Time[object_index],
+            &Start_Time[object_index]);
+        if (diff != 0) {
+            datetime_copy(&Previous_Start_Time[object_index],
+                &Start_Time[object_index]);
             /* FIXME: calculate your Expected Shed Level */
             /* FIXME: calculate your Actual Shed Level */
             Expected_Shed_Level[object_index].type =
@@ -277,12 +329,12 @@ void Load_Control_State_Machine_Handler(int object_index)
 }
 
 /* call every second or so */
-void Load_Control_State_Machine(void)
+void Load_Control_State_Machine_Handler(void)
 {
     unsigned i = 0;
     
     for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-        Load_Control_State_Machine_Handler(i);
+        Load_Control_State_Machine(i);
     }
 }
 
@@ -643,7 +695,6 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
@@ -695,5 +746,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_ANALOG_VALUE */
+#endif                          /* TEST_LOAD_CONTROL */
 #endif                          /* TEST */
