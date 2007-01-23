@@ -87,13 +87,52 @@ static uint32_t days_since_epoch(uint16_t year, uint8_t month, uint8_t day)
     }
     for (months = 1; months < month; months++)
     {
-      days += month_days(months,year);
+      days += month_days(years, months);
     }
     days += (day - 1);
   }
 
   return (days);
 }
+
+static void days_since_epoch_into_ymd(
+    uint32_t days,
+    uint16_t *pYear,
+    uint8_t *pMonth,
+    uint8_t *pDay)
+{
+  int year = 1900;
+  int month = 1;
+  int day = 1;
+
+  while (days >= 365)
+  {
+    if ((is_leap_year(year)) && days == 365)
+      break;
+    days -= 365;
+    if (is_leap_year(year))
+      --days;
+    year++;
+  }
+
+  while (days >= month_days(year, month))
+  {
+    days -= month_days(year, month);
+    month++;
+  }
+
+  day += days;
+
+  if (pYear)
+    *pYear = year;
+  if (pMonth)
+    *pMonth = month;
+  if (pDay)
+    *pDay = day;
+
+  return;
+}
+
 
 /* Jan 1, 1900 is a Monday */
 /* wday 1=Monday...7=Sunday */
@@ -243,10 +282,130 @@ void datetime_set_values(BACNET_DATE_TIME * bdatetime,
     }
 }
 
+static uint32_t seconds_since_midnight(uint8_t hours, uint8_t minutes,
+    uint8_t seconds)
+{
+    return ((hours * 60 * 60) + (minutes * 60) + seconds);
+}
+
+static void seconds_since_midnight_into_hms(uint32_t seconds,
+    uint8_t * pHours,
+    uint8_t *pMinutes,
+    uint8_t *pSeconds)
+{
+    uint8_t hour = 0;
+    uint8_t minute = 0;
+
+    hour =  seconds / (60 * 60);
+    seconds -= (hour * 60 * 60);
+    minute = seconds / 60;
+    seconds -= (minute * 60);
+
+    if (pHours)
+        *pHours =  hour;
+    if (pMinutes)
+        *pMinutes = minute;
+    if (pSeconds)
+        *pSeconds = seconds;
+}
+
+void datetime_add_minutes(BACNET_DATE_TIME * bdatetime, uint32_t minutes)
+{
+    uint32_t bdatetime_minutes = 0;
+    uint32_t bdatetime_days = 0;
+    uint32_t days = 0;
+
+    /* convert bdatetime to seconds and days */
+    bdatetime_minutes = seconds_since_midnight(
+        bdatetime->time.hour,
+        bdatetime->time.min,
+        bdatetime->time.sec) / 60;
+    bdatetime_days = days_since_epoch(
+        bdatetime->date.year,
+        bdatetime->date.month,
+        bdatetime->date.day);
+
+    /* add */
+    days = minutes / (24*60);
+    bdatetime_days += days;
+    minutes -= (days * 24 * 60);
+    bdatetime_minutes += minutes;
+    days = bdatetime_minutes / (24*60);
+    bdatetime_days += days;
+
+    /* convert bdatetime from seconds and days */
+    seconds_since_midnight_into_hms(bdatetime_minutes * 60,
+        &bdatetime->time.hour,
+        &bdatetime->time.min,
+        &bdatetime->time.sec);
+    days_since_epoch_into_ymd(
+        bdatetime_days,
+        &bdatetime->date.year,
+        &bdatetime->date.month,
+        &bdatetime->date.day);
+    bdatetime->date.wday = day_of_week(
+        bdatetime->date.year,
+        bdatetime->date.month,
+        bdatetime->date.day);
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+
+void testBACnetDateTimeAdd(Test * pTest)
+{
+    BACNET_DATE_TIME bdatetime, test_bdatetime;
+    uint32_t minutes = 0;
+    int diff = 0;
+
+    datetime_set_values(&bdatetime, 1900,1,1,0,0,0,0);
+    datetime_copy(&test_bdatetime,&bdatetime);
+    datetime_add_minutes(&bdatetime, minutes);
+    diff = datetime_compare(&test_bdatetime, &bdatetime);
+    ct_test(pTest, diff == 0);
+
+    datetime_set_values(&bdatetime, 1900,1,1,0,0,0,0);
+    datetime_add_minutes(&bdatetime, 60);
+    datetime_set_values(&test_bdatetime, 1900,1,1,1,0,0,0);
+    diff = datetime_compare(&test_bdatetime, &bdatetime);
+    ct_test(pTest, diff == 0);
+
+    datetime_set_values(&bdatetime, 1900,1,1,0,0,0,0);
+    datetime_add_minutes(&bdatetime, (24*60));
+    datetime_set_values(&test_bdatetime, 1900,1,2,0,0,0,0);
+    diff = datetime_compare(&test_bdatetime, &bdatetime);
+    ct_test(pTest, diff == 0);
+
+    datetime_set_values(&bdatetime, 1900,1,1,0,0,0,0);
+    datetime_add_minutes(&bdatetime, (31*24*60));
+    datetime_set_values(&test_bdatetime, 1900,2,1,0,0,0,0);
+    diff = datetime_compare(&test_bdatetime, &bdatetime);
+    ct_test(pTest, diff == 0);
+}
+
+
+
+void testBACnetDateTimeSeconds(Test * pTest)
+{
+    uint8_t hour = 0, minute = 0, second = 0;
+    uint8_t test_hour = 0, test_minute = 0, test_second = 0;
+    uint32_t seconds = 0, test_seconds;
+
+    for (hour = 0; hour < 24; hour++) {
+        for (minute = 0; minute < 60; minute+=3) {
+            for (second = 0; second < 60; second+=17) {
+                seconds = seconds_since_midnight(hour, minute, second);
+                seconds_since_midnight_into_hms(seconds,
+                    &test_hour, &test_minute, &test_second);
+                test_seconds = seconds_since_midnight(
+                    test_hour, test_minute, test_second);
+                ct_test(pTest, seconds == test_seconds);
+            }
+        }
+    }
+}
 
 void testBACnetDate(Test * pTest)
 {
@@ -425,6 +584,35 @@ void testBACnetDateTime(Test * pTest)
     return;
 }
 
+void testDateEpoch(Test * pTest)
+{
+    uint32_t days = 0;
+    uint16_t year = 0, test_year = 0;
+    uint8_t month = 0, test_month = 0;
+    uint8_t day = 0, test_day = 0;
+
+    days = days_since_epoch(1900,1,1);
+    ct_test(pTest, days == 0);
+    days_since_epoch_into_ymd(days, &year, &month, &day);
+    ct_test(pTest, year == 1900);
+    ct_test(pTest, month == 1);
+    ct_test(pTest, day == 1);
+
+
+    for (year = 1900; year <= 2154; year++) {
+        for (month = 1; month <= 12; month++) {
+            for (day = 1; day <= month_days(year, month); day++) {
+                days = days_since_epoch(year, month, day);
+                days_since_epoch_into_ymd(days,
+                    &test_year, &test_month, &test_day);
+                ct_test(pTest, year == test_year);
+                ct_test(pTest, month == test_month);
+                ct_test(pTest, day == test_day);
+            }
+        }
+    }
+}
+
 void testBACnetDayOfWeek(Test * pTest)
 {
     uint8_t dow = 0;
@@ -451,7 +639,6 @@ void testBACnetDayOfWeek(Test * pTest)
 
     dow = day_of_week(2007, 1, 31);
     ct_test(pTest, dow == 3);
-
 }
 
 #ifdef TEST_DATE_TIME
@@ -469,6 +656,12 @@ int main(void)
     rc = ct_addTestFunction(pTest, testBACnetDateTime);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetDayOfWeek);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testDateEpoch);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testBACnetDateTimeSeconds);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testBACnetDateTimeAdd);
     assert(rc);
 
     ct_setStream(pTest, stdout);

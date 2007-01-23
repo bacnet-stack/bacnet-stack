@@ -91,6 +91,9 @@ extern "C" {
       BACNET_DATE_TIME * datetime1,
       BACNET_DATE_TIME * datetime2);
 
+    /* utility add function */
+    void datetime_add_minutes(BACNET_DATE_TIME * bdatetime, uint32_t minutes);
+
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
