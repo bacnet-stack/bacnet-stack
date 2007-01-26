@@ -130,6 +130,7 @@ Multi-state Output
  Life Safety Point
 -- Life Safety Zone               Createable Deleteable
 -- Trend Log                      Createable Deleteable
+ Load Control
 }
 
 Data Link Layer Option:

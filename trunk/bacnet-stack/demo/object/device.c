@@ -38,6 +38,7 @@
 #include "bi.h"                 /* object list dependency */
 #include "bo.h"                 /* object list dependency */
 #include "bv.h"                 /* object list dependency */
+#include "lc.h"                 /* object list dependency */
 #include "lsp.h"                /* object list dependency */
 #include "mso.h"                /* object list dependency */
 #include "wp.h"                 /* write property handling */
@@ -332,6 +333,7 @@ unsigned Device_Object_List_Count(void)
     count += Binary_Output_Count();
     count += Binary_Value_Count();
     count += Life_Safety_Point_Count();
+    count += Load_Control_Count();
     count += Multistate_Output_Count();
 #if BACFILE
     count += bacfile_count();
@@ -442,6 +444,19 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
+    /* load control objects */
+    if (!status) {
+        /* normalize the index since
+           we know it is not the previous objects */
+        object_index -= object_count;
+        object_count = Load_Control_Count();
+        /* is it a valid index for this object? */
+        if (object_index < object_count) {
+            *object_type = OBJECT_LOAD_CONTROL;
+            *instance = Load_Control_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
     /* multi-state output objects */
     if (!status) {
         /* normalize the index since
@@ -529,6 +544,9 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
         break;
     case OBJECT_LIFE_SAFETY_POINT:
         name = Life_Safety_Point_Name(object_instance);
+        break;
+    case OBJECT_LOAD_CONTROL:
+        name = Load_Control_Name(object_instance);
         break;
     case OBJECT_MULTI_STATE_OUTPUT:
         name = Multistate_Output_Name(object_instance);
@@ -677,6 +695,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
         if (Life_Safety_Point_Count())
             bitstring_set_bit(&bit_string, OBJECT_LIFE_SAFETY_POINT, true);
+        if (Load_Control_Count())
+            bitstring_set_bit(&bit_string, OBJECT_LOAD_CONTROL, true);
         if (Multistate_Output_Count())
             bitstring_set_bit(&bit_string, OBJECT_MULTI_STATE_OUTPUT,
                 true);
@@ -1031,6 +1051,22 @@ unsigned Life_Safety_Point_Count(void)
 }
 
 uint32_t Life_Safety_Point_Index_To_Instance(unsigned index)
+{
+    return index;
+}
+
+char *Load_Control_Name(uint32_t object_instance)
+{
+    (void) object_instance;
+    return "";
+}
+
+unsigned Load_Control_Count(void)
+{
+    return 0;
+}
+
+uint32_t Load_Control_Index_To_Instance(unsigned index)
 {
     return index;
 }

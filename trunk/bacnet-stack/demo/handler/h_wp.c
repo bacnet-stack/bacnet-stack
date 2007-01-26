@@ -43,6 +43,7 @@
 #include "bi.h"
 #include "bo.h"
 #include "bv.h"
+#include "lc.h"
 #include "lsp.h"
 #include "mso.h"
 #if BACFILE
@@ -237,6 +238,28 @@ void handler_write_property(uint8_t * service_request,
                     error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "Sending Write Access Error for LSP!\n");
+#endif
+            }
+            break;
+        case OBJECT_LOAD_CONTROL:
+            if (Load_Control_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                len =
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY);
+#if PRINT_ENABLED
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for Load Control!\n");
+#endif
+            } else {
+                len =
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                    error_code);
+#if PRINT_ENABLED
+                fprintf(stderr, "Sending Write Access Error for Load Control!\n");
 #endif
             }
             break;

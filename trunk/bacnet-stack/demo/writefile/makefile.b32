@@ -49,6 +49,7 @@ SRCS = writefile.c \
        ..\..\demo\object\bi.c \
        ..\..\demo\object\bo.c \
        ..\..\demo\object\bv.c \
+       ..\..\demo\object\lc.c \
        ..\..\demo\object\lsp.c \
        ..\..\demo\object\mso.c \
        ..\..\datalink.c \
