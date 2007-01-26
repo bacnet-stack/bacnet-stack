@@ -37,6 +37,7 @@ SRCS = writeprop.c \
        $(BACNET_OBJECT)/bi.c \
        $(BACNET_OBJECT)/bo.c \
        $(BACNET_OBJECT)/bv.c \
+       $(BACNET_OBJECT)/lc.c \
        $(BACNET_OBJECT)/lsp.c \
        $(BACNET_OBJECT)/mso.c \
        $(BACNET_OBJECT)/bacfile.c \
