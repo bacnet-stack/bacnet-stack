@@ -34,45 +34,42 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
-#include "bacdef.h"
-#include "npdu.h"
-
 #if defined(BACDL_ETHERNET)
 #include "ethernet.h"
+
+#define datalink_send_pdu ethernet_send_pdu
+#define datalink_receive ethernet_receive
+#define datalink_cleanup ethernet_cleanup
+#define datalink_get_broadcast_address ethernet_get_broadcast_address
+#define datalink_get_my_address ethernet_get_my_address
+
 #elif defined(BACDL_ARCNET)
 #include "arcnet.h"
+
+#define datalink_send_pdu arcnet_send_pdu
+#define datalink_receive arcnet_receive
+#define datalink_cleanup arcnet_cleanup
+#define datalink_get_broadcast_address arcnet_get_broadcast_address
+#define datalink_get_my_address arcnet_get_my_address
+
 #elif defined(BACDL_MSTP)
 #include "dlmstp.h"
+
+#define datalink_send_pdu dlmstp_send_pdu
+#define datalink_receive dlmstp_receive
+#define datalink_cleanup dlmstp_cleanup
+#define datalink_get_broadcast_address dlmstp_get_broadcast_address
+#define datalink_get_my_address dlmstp_get_my_address
+
 #elif defined(BACDL_BIP)
 #include "bip.h"
+
+#define datalink_send_pdu bip_send_pdu
+#define datalink_receive bip_receive
+#define datalink_cleanup bip_cleanup
+#define datalink_get_broadcast_address bip_get_broadcast_address
+#define datalink_get_my_address bip_get_my_address
+
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif                          /* __cplusplus */
-
-/* returns number of bytes sent on success, negative on failure */
-    int datalink_send_pdu(BACNET_ADDRESS * dest,        /* destination address */
-        BACNET_NPDU_DATA * npdu_data,   /* network information */
-        uint8_t * pdu,          /* any data to be sent - may be null */
-        unsigned pdu_len);      /* number of bytes of data */
-
-/* returns the number of octets in the PDU, or zero on failure */
-    uint16_t datalink_receive(BACNET_ADDRESS * src,     /* source address */
-        uint8_t * pdu,          /* PDU data */
-        uint16_t max_pdu,       /* amount of space available in the PDU  */
-        unsigned timeout);      /* number of milliseconds to wait for a packet */
-
-    void datalink_cleanup(void);
-
-    void datalink_get_broadcast_address(BACNET_ADDRESS * dest); /* destination address */
-
-    void datalink_get_my_address(BACNET_ADDRESS * my_address);
-
-#ifdef __cplusplus
-}
-#endif                          /* __cplusplus */
 #endif
