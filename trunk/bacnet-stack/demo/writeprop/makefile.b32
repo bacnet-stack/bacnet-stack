@@ -53,7 +53,6 @@ SRCS = writeprop.c \
        ..\..\demo\object\lc.c \
        ..\..\demo\object\lsp.c \
        ..\..\demo\object\mso.c \
-       ..\..\datalink.c \
        ..\..\tsm.c \
        ..\..\address.c \
        ..\..\abort.c \

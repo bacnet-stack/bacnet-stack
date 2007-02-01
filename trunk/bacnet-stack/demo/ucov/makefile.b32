@@ -51,7 +51,6 @@ SRCS = main.c \
        ..\..\demo\object\lc.c \
        ..\..\demo\object\lsp.c \
        ..\..\demo\object\mso.c \
-       ..\..\datalink.c \
        ..\..\address.c \
        ..\..\abort.c \
        ..\..\reject.c \
