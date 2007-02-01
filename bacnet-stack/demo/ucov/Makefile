@@ -51,7 +51,6 @@ SRCS = main.c \
        $(BACNET_ROOT)/datetime.c \
        $(BACNET_ROOT)/whois.c \
        $(BACNET_ROOT)/iam.c \
-       $(BACNET_ROOT)/datalink.c \
        $(BACNET_ROOT)/address.c \
        $(BACNET_ROOT)/arf.c \
        $(BACNET_ROOT)/cov.c \
