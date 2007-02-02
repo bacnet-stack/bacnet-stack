@@ -39,6 +39,56 @@
 #include "iam.h"
 #include "txbuf.h"
 
+/* chip configuration data */
+/* define this to enable ICD */
+/* #define USE_ICD */
+
+// Configuration Bits 
+#pragma config OSC = HS, OSCS = OFF
+#pragma config PWRT = ON
+#pragma config BOR = ON, BORV = 27
+#pragma config CCP2MUX = ON
+#pragma config STVR = ON
+#pragma config LVP = OFF
+#pragma config CP0 = OFF
+#pragma config CP1 = OFF
+#pragma config CP2 = OFF
+#pragma config CP3 = OFF
+#pragma config CP4 = OFF
+#pragma config CP5 = OFF
+#pragma config CP6 = OFF
+#pragma config CP7 = OFF
+#pragma config CPB = OFF
+#pragma config CPD = OFF
+#pragma config WRT0 = OFF
+#pragma config WRT1 = OFF
+#pragma config WRT2 = OFF
+#pragma config WRT3 = OFF
+#pragma config WRT4 = OFF
+#pragma config WRT5 = OFF
+#pragma config WRT6 = OFF
+#pragma config WRT7 = OFF
+#pragma config WRTB = OFF
+#pragma config WRTC = OFF
+#pragma config WRTD = OFF
+#pragma config EBTR0 = OFF
+#pragma config EBTR1 = OFF
+#pragma config EBTR2 = OFF
+#pragma config EBTR3 = OFF
+#pragma config EBTR4 = OFF
+#pragma config EBTR5 = OFF
+#pragma config EBTR6 = OFF
+#pragma config EBTR7 = OFF
+#pragma config EBTRB = OFF
+
+#ifdef USE_ICD
+  #pragma config WDT = OFF, WDTPS = 128
+  #pragma config DEBUG = ON
+#else
+  #pragma config WDT = ON, WDTPS = 128
+  #pragma config DEBUG = OFF
+#endif /* USE_ICD */
+
 volatile uint8_t Milliseconds = 0;
 volatile uint8_t System_Seconds = 0;
 volatile uint8_t Zero_Cross_Timeout = 0;
@@ -52,15 +102,16 @@ static void BACnet_Service_Handlers_Init(void)
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    /*apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY, */
-    /*    handler_write_property); */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
-    /*apdu_set_unconfirmed_handler */
-    /*    (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, */
-    /*    handler_timesync_utc); */
-    /*apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, */
-    /*    handler_timesync); */
+    #if 0
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+        handler_write_property);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+        handler_timesync_utc);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
+        handler_timesync);
+    #endif
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler
         (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
@@ -72,8 +123,12 @@ void Reinitialize(void)
     uint8_t i;
     char name = 0;
 
-_asm reset _endasm} void Global_Int(enum INT_STATE state)
-{                               /* FIX ME: add comment */
+    _asm reset _endasm
+    return;
+} 
+
+void Global_Int(enum INT_STATE state)
+{                               
     static uint8_t intstate = 0;
 
     switch (state) {
