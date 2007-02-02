@@ -75,6 +75,7 @@ file_055=no
 file_056=no
 file_057=no
 file_058=no
+file_059=no
 [FILE_INFO]
 file_000=C:\code\bacnet-stack\abort.c
 file_001=C:\code\bacnet-stack\apdu.c
@@ -131,10 +132,11 @@ file_051=stdint.h
 file_052=hardware.h
 file_053=rs485.h
 file_054=C:\code\bacnet-stack\datetime.h
-file_055=datalink.h
-file_056=C:\code\bacnet-stack\demo\handler\txbuf.h
-file_057=mstp.h
-file_058=18F6720.lkr
+file_055=C:\code\bacnet-stack\demo\handler\txbuf.h
+file_056=mstp.h
+file_057=C:\code\bacnet-stack\datalink.h
+file_058=C:\mcc18\h\p18f6720.h
+file_059=18F6720.lkr
 [SUITE_INFO]
 suite_guid={5B7D72DD-9861-47BD-9F60-2BE967BF8416}
 suite_state=
