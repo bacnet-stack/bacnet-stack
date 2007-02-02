@@ -38,7 +38,7 @@
 extern volatile struct mstp_port_struct_t MSTP_Port;
 
 /* the baud rate is adjustable */
-uint32_t RS485_Baud_Rate = 9600;
+uint32_t RS485_Baud_Rate = 38400;
 
 /* the ISR and other use this for status and control */
 COMSTAT RS485_Comstat;
