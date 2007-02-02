@@ -256,7 +256,7 @@ typedef enum load_control_state
 void Load_Control_State_Machine(int object_index)
 {
     static LOAD_CONTROL_STATE state[MAX_LOAD_CONTROLS];
-    static initialized = false;
+    static bool initialized = false;
     unsigned i = 0; /* loop counter */
     int diff = 0; /* used for datetime comparison */
 
@@ -564,7 +564,6 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
-    unsigned int priority = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
