@@ -169,8 +169,6 @@ void dlmstp_task(void)
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
         while (MSTP_Master_Node_FSM(&MSTP_Port)) {
         };
-        /*MSTP_Master_Node_FSM(&MSTP_Port);
- */
     }
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */

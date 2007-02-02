@@ -253,6 +253,15 @@ enum INT_STATE { INT_DISABLED, INT_ENABLED, INT_RESTORE };
                                 _endasm }
 #endif
 
+#define setup_timer4(mode, period, postscale) \
+  T4CON = (mode | (postscale - 1) << 3); \
+  PR4 = period
+
+#define setup_timer2(mode, period, postscale) \
+  T2CON = (mode | (postscale - 1) << 3); \
+  PR2 = period
+
+
 /* Global Vars */
 extern volatile LED_REGS LEDS;
 extern volatile LED_REGS Blink;
