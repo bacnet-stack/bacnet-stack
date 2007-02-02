@@ -217,21 +217,24 @@ void testIAm(Test * pTest)
 }
 
 #ifdef TEST_IAM
-/* Dummy stubs to eliminate depencies */
+/* dummy function stubs */
+int datalink_send_pdu(
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data,
+    uint8_t * pdu,
+    unsigned pdu_len)
+{   
+    (void) dest;
+    (void) npdu_data;
+    (void) pdu;
+    (void) pdu_len;
+
+    return 0;
+}
+
 void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
 {                               /* destination address */
     (void) dest;
-}
-
-int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
-    BACNET_NPDU_DATA * npdu_data,       /* network information */
-    uint8_t * pdu,              /* any data to be sent - may be null */
-    unsigned pdu_len)
-{                               /* number of bytes of data */
-    (void) dest;
-    (void) pdu;
-
-    return pdu_len;
 }
 
 uint16_t Device_Vendor_Identifier(void)

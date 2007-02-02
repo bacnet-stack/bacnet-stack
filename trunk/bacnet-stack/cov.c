@@ -716,17 +716,24 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu,
 }
 
 /* dummy function stubs */
-int datalink_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
-    BACNET_NPDU_DATA * npdu_data,       /* network information */
-    uint8_t * pdu,              /* any data to be sent - may be null */
+int datalink_send_pdu(
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data,
+    uint8_t * pdu,
     unsigned pdu_len)
-{                               /* number of bytes of data */
+{   
+    (void) dest;
+    (void) npdu_data;
+    (void) pdu;
+    (void) pdu_len;
+
     return 0;
 }
 
 /* dummy function stubs */
 void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
 {
+  (void)dest;
 }
 
 /* dummy function stubs */
