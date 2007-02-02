@@ -73,19 +73,13 @@
 #elif defined(BACDL_TEST)
 #include "npdu.h"
 
-    extern int datalink_send_pdu(
-        BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * npdu_data,
-        uint8_t * pdu,
-        unsigned pdu_len);
-    extern uint16_t datalink_receive(
-        BACNET_ADDRESS * src,
-        uint8_t * pdu,
-        uint16_t max_pdu,
-        unsigned timeout);
-    extern void datalink_cleanup(void);
-    extern void datalink_get_broadcast_address(BACNET_ADDRESS * dest);
-    extern void bip_get_my_address(BACNET_ADDRESS * my_address);
+extern int datalink_send_pdu(BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data, uint8_t * pdu, unsigned pdu_len);
+extern uint16_t datalink_receive(BACNET_ADDRESS * src,
+    uint8_t * pdu, uint16_t max_pdu, unsigned timeout);
+extern void datalink_cleanup(void);
+extern void datalink_get_broadcast_address(BACNET_ADDRESS * dest);
+extern void bip_get_my_address(BACNET_ADDRESS * my_address);
 
 #endif
 

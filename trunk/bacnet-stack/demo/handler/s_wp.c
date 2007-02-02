@@ -81,8 +81,8 @@ uint8_t Send_Write_Property_Request(uint32_t device_id, /* destination device */
         data.object_property = object_property;
         data.array_index = array_index;
         data.application_data_len =
-            bacapp_encode_application_data(
-                &data.application_data[0],object_value);
+            bacapp_encode_application_data(&data.application_data[0],
+            object_value);
         data.priority = priority;
         len = wp_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             invoke_id, &data);
@@ -94,7 +94,8 @@ uint8_t Send_Write_Property_Request(uint32_t device_id, /* destination device */
            max_apdu in the address binding table. */
         if ((unsigned) pdu_len < max_apdu) {
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+                &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t) pdu_len);
             bytes_sent =
                 datalink_send_pdu(&dest, &npdu_data,
                 &Handler_Transmit_Buffer[0], pdu_len);

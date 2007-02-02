@@ -337,7 +337,8 @@ void npdu_handler(BACNET_ADDRESS * src, /* source address */
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         /* only handle the version that we know how to handle */
         if (npdu_data.protocol_version == BACNET_PROTOCOL_VERSION)
-            apdu_handler(src, &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
+            apdu_handler(src, &pdu[apdu_offset],
+                (uint16_t) (pdu_len - apdu_offset));
     }
 
     return;

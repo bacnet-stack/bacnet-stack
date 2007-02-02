@@ -48,7 +48,7 @@
 typedef struct dlmstp_packet {
     bool ready;                 /* true if ready to be sent or received */
     BACNET_ADDRESS address;     /* source address */
-    uint8_t frame_type;        /* type of message */
+    uint8_t frame_type;         /* type of message */
     unsigned pdu_len;           /* packet length */
     uint8_t pdu[MAX_MPDU];      /* packet */
 } DLMSTP_PACKET;
@@ -93,7 +93,7 @@ extern "C" {
     /* MAC address for MS/TP */
     void dlmstp_set_my_address(uint8_t my_address);
     uint8_t dlmstp_my_address(void);
-    
+
     /* BACnet address used in datalink */
     void dlmstp_get_my_address(BACNET_ADDRESS * my_address);
     void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest);   /* destination address */

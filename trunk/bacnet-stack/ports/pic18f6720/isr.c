@@ -43,55 +43,44 @@ void Interrupt_CCP2(void);
 void INT0_Interrupt(void);
 
 #pragma code InterruptVectorHigh = 0x308
-void InterruptVectorHigh (void)
+void InterruptVectorHigh(void)
 {
-  _asm goto InterruptHandlerHigh  /* jump to interrupt routine */
-  _endasm
-}
+    _asm goto InterruptHandlerHigh      /* jump to interrupt routine */
+ _endasm}
 #pragma code
-
 #pragma code InterruptVectorLow = 0x318
-void InterruptVectorLow (void)
+void InterruptVectorLow(void)
 {
-  _asm goto InterruptHandlerLow   /* jump to interrupt routine */
-  _endasm
-}
+    _asm goto InterruptHandlerLow       /* jump to interrupt routine */
+ _endasm}
 #pragma code
-
 #pragma interrupt InterruptHandlerHigh
-void InterruptHandlerHigh (void)
+void InterruptHandlerHigh(void)
 {
-  #if 0
-  /* check for USART Rx int */
-  if ((PIR1bits.RCIF) && (PIE1bits.RCIE))
-  {
-    if ((RCSTA1bits.FERR) || (RCSTA1bits.OERR))
-    {
-      Comstat.Rx_Bufferoverrun = TRUE;
-      PIE1bits.RC1IE = 0;         /* Disable Interrupt on receipt */
-    }
-    else if (Comstat.Rx_Bytes++ < RX_BUFFER_SIZE - 1)
-    {
-      Rx_Buffer[Comstat.RxHead++] = RCREG1;
+#if 0
+    /* check for USART Rx int */
+    if ((PIR1bits.RCIF) && (PIE1bits.RCIE)) {
+        if ((RCSTA1bits.FERR) || (RCSTA1bits.OERR)) {
+            Comstat.Rx_Bufferoverrun = TRUE;
+            PIE1bits.RC1IE = 0; /* Disable Interrupt on receipt */
+        } else if (Comstat.Rx_Bytes++ < RX_BUFFER_SIZE - 1) {
+            Rx_Buffer[Comstat.RxHead++] = RCREG1;
 
-      /* Stick a Null on the end to let us use str functions on our
-       * buffer */
-      Rx_Buffer[Comstat.RxHead] = 0;
+            /* Stick a Null on the end to let us use str functions on our
+             * buffer */
+            Rx_Buffer[Comstat.RxHead] = 0;
+        } else {
+            Comstat.Rx_Bufferoverrun = TRUE;
+            PIE1bits.RC1IE = 0; /* Disable Interrupt on receipt */
+        }
     }
-    else
-    {
-      Comstat.Rx_Bufferoverrun = TRUE;
-      PIE1bits.RC1IE = 0;         /* Disable Interrupt on receipt */
-    }
-  }
-  #endif
+#endif
 
-  /* check for timer0 int */
-  if ((INTCONbits.TMR0IF) && (INTCONbits.TMR0IE))
-  {
-    INTCONbits.TMR0IF = 0;
-    System_Seconds++;
-  }
+    /* check for timer0 int */
+    if ((INTCONbits.TMR0IF) && (INTCONbits.TMR0IE)) {
+        INTCONbits.TMR0IF = 0;
+        System_Seconds++;
+    }
 }
 
 #pragma interruptlow InterruptHandlerLow save = PROD, section(".tmpdata"), TABLAT, TBLPTR, section \
@@ -99,46 +88,40 @@ void InterruptHandlerHigh (void)
 
 void InterruptHandlerLow(void)
 {
-  /* check for timer2 int */
-  if ((PIR1bits.TMR2IF) && (PIE1bits.TMR2IE))
-  {
-    PIR1bits.TMR2IF = 0;
-    Interrupt_Timer2();
-  }
+    /* check for timer2 int */
+    if ((PIR1bits.TMR2IF) && (PIE1bits.TMR2IE)) {
+        PIR1bits.TMR2IF = 0;
+        Interrupt_Timer2();
+    }
 
-  /* check for timer3 int */
-  if ((PIR2bits.TMR3IF) && (PIE2bits.TMR3IE))
-  {
-    PIR2bits.TMR3IF = 0;
-    Interrupt_Timer3();
-  }
+    /* check for timer3 int */
+    if ((PIR2bits.TMR3IF) && (PIE2bits.TMR3IE)) {
+        PIR2bits.TMR3IF = 0;
+        Interrupt_Timer3();
+    }
 
-  /* check for timer4 int */
-  if ((PIR3bits.TMR4IF) && (PIE3bits.TMR4IE))
-  {
-    PIR3bits.TMR4IF = 0;
-    dlmstp_millisecond_timer();
-    Interrupt_Timer4();
-  }
+    /* check for timer4 int */
+    if ((PIR3bits.TMR4IF) && (PIE3bits.TMR4IE)) {
+        PIR3bits.TMR4IF = 0;
+        dlmstp_millisecond_timer();
+        Interrupt_Timer4();
+    }
 
-  /* check for compare int */
-  if ((PIR2bits.CCP2IF) && (PIE2bits.CCP2IE))
-  {
-    PIR2bits.CCP2IF = 0;
-    Interrupt_CCP2();
-  }
+    /* check for compare int */
+    if ((PIR2bits.CCP2IF) && (PIE2bits.CCP2IE)) {
+        PIR2bits.CCP2IF = 0;
+        Interrupt_CCP2();
+    }
 
-  /* check for USART Tx int */
-  if ((PIR3bits.TX2IF) && (PIE3bits.TX2IE))
-  {
-    RS485_Interrupt_Tx();
-  }
+    /* check for USART Tx int */
+    if ((PIR3bits.TX2IF) && (PIE3bits.TX2IE)) {
+        RS485_Interrupt_Tx();
+    }
 
-  /* check for USART Rx int */
-  if ((PIR3bits.RC2IF) && (PIE3bits.RC2IE))
-  {
-    RS485_Interrupt_Rx();
-  }
+    /* check for USART Rx int */
+    if ((PIR3bits.RC2IF) && (PIE3bits.RC2IE)) {
+        RS485_Interrupt_Rx();
+    }
 
 /* Unused Interrupts
   //check for timer1 int
@@ -198,13 +181,12 @@ void Interrupt_Timer3(void)
 /* Timer4 is set to go off every 1ms. This is our system tick */
 void Interrupt_Timer4(void)
 {
-  /* Milisecond is our system tick */
-  if (Milliseconds < 0xFF)
-    ++Milliseconds;
+    /* Milisecond is our system tick */
+    if (Milliseconds < 0xFF)
+        ++Milliseconds;
 }
 
 void Interrupt_CCP2(void)
 {
 
 }
-

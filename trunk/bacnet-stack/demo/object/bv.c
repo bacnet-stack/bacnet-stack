@@ -280,10 +280,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, 
-        wp_data->application_data_len,
-        &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
@@ -347,8 +345,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
                 Binary_Value_Instance_To_Index(wp_data->object_instance);
-            Binary_Value_Out_Of_Service[object_index] =
-                value.type.Boolean;
+            Binary_Value_Out_Of_Service[object_index] = value.type.Boolean;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;

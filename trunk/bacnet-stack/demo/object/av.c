@@ -160,7 +160,7 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
     int apdu_len = 0;           /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    float real_value = (float)1.414;
+    float real_value = (float) 1.414;
     unsigned object_index = 0;
     unsigned i = 0;
     bool state = false;
@@ -234,12 +234,12 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
         } else {
             object_index = Analog_Value_Instance_To_Index(object_instance);
             if (array_index <= BACNET_MAX_PRIORITY) {
-                if (Analog_Value_Level[object_index][array_index-1] ==
+                if (Analog_Value_Level[object_index][array_index - 1] ==
                     ANALOG_LEVEL_NULL)
                     apdu_len = encode_tagged_null(&apdu[0]);
                 else {
                     real_value =
-                        Analog_Value_Level[object_index][array_index-1];
+                        Analog_Value_Level[object_index][array_index - 1];
                     apdu_len = encode_tagged_real(&apdu[0], real_value);
                 }
             } else {
@@ -282,10 +282,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, 
-        wp_data->application_data_len,
-        &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
@@ -297,8 +295,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
-                (value.type.Real >= 0.0) &&
-                (value.type.Real <= 100.0)) {
+                (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
                 level = (uint8_t) value.type.Real;
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->
@@ -349,8 +346,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
                 Analog_Value_Instance_To_Index(wp_data->object_instance);
-            Analog_Value_Out_Of_Service[object_index] =
-                value.type.Boolean;
+            Analog_Value_Out_Of_Service[object_index] = value.type.Boolean;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;

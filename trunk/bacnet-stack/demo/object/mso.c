@@ -237,15 +237,15 @@ int Multistate_Output_Encode_Property_APDU(uint8_t * apdu,
             object_index =
                 Multistate_Output_Instance_To_Index(object_instance);
             if (array_index <= BACNET_MAX_PRIORITY) {
-                if (Multistate_Output_Level[object_index][array_index-1] ==
-                    MULTISTATE_NULL)
+                if (Multistate_Output_Level[object_index][array_index -
+                        1] == MULTISTATE_NULL)
                     apdu_len = encode_tagged_null(&apdu[0]);
                 else {
                     present_value =
-                        Multistate_Output_Level[object_index][array_index-1];
+                        Multistate_Output_Level[object_index][array_index -
+                        1];
                     apdu_len =
-                        encode_tagged_unsigned(&apdu[0],
-                        present_value);
+                        encode_tagged_unsigned(&apdu[0], present_value);
                 }
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -292,10 +292,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, 
-        wp_data->application_data_len,
-        &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
@@ -307,14 +305,14 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                object. */
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
-                (value.type.Unsigned_Int <=
-                    MULTISTATE_NUMBER_OF_STATES)) {
+                (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                 level = value.type.Unsigned_Int;
                 object_index =
                     Multistate_Output_Instance_To_Index(wp_data->
                     object_instance);
                 priority--;
-                Multistate_Output_Level[object_index][priority] = (uint8_t)level;
+                Multistate_Output_Level[object_index][priority] =
+                    (uint8_t) level;
                 /* Note: you could set the physical output here if we
                    are the highest priority.
                    However, if Out of Service is TRUE, then don't set the 
@@ -339,7 +337,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             priority = wp_data->priority;
             if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                 priority--;
-                Multistate_Output_Level[object_index][priority] = (uint8_t)level;
+                Multistate_Output_Level[object_index][priority] =
+                    (uint8_t) level;
                 /* Note: you could set the physical output here to the next
                    highest priority, or to the relinquish default if no
                    priorities are set.

@@ -68,7 +68,7 @@ int wp_encode_apdu(uint8_t * apdu,
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
         for (len = 0; len < data->application_data_len; len++) {
-            apdu[apdu_len+len] = data->application_data[len];
+            apdu[apdu_len + len] = data->application_data[len];
         }
         apdu_len += data->application_data_len;
         len = encode_closing_tag(&apdu[apdu_len], 3);
@@ -97,7 +97,7 @@ int wp_decode_service_request(uint8_t * apdu,
     int type = 0;               /* for decoding */
     int property = 0;           /* for decoding */
     uint32_t unsigned_value = 0;
-    int i = 0; /* loop counter */
+    int i = 0;                  /* loop counter */
 
     /* check for value pointers */
     if (apdu_len && data) {
@@ -128,13 +128,13 @@ int wp_decode_service_request(uint8_t * apdu,
         if (!decode_is_opening_tag_number(&apdu[len], 3))
             return -1;
         /* determine the length of the data blob */
-        data->application_data_len = bacapp_data_len(&apdu[len], 
-            apdu_len-len, property);
+        data->application_data_len = bacapp_data_len(&apdu[len],
+            apdu_len - len, property);
         /* a tag number of 3 is not extended so only one octet */
         len++;
         /* copy the data from the APDU */
         for (i = 0; i < data->application_data_len; i++) {
-            data->application_data[i] = apdu[len+i];
+            data->application_data[i] = apdu[len + i];
         }
         /* add on the data length */
         len += data->application_data_len;
@@ -195,7 +195,8 @@ int wp_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-void testWritePropertyTag(Test * pTest, BACNET_APPLICATION_DATA_VALUE * value)
+void testWritePropertyTag(Test * pTest,
+    BACNET_APPLICATION_DATA_VALUE * value)
 {
     BACNET_WRITE_PROPERTY_DATA data = { 0 };
     BACNET_WRITE_PROPERTY_DATA test_data = { 0 };
@@ -207,7 +208,7 @@ void testWritePropertyTag(Test * pTest, BACNET_APPLICATION_DATA_VALUE * value)
     uint8_t test_invoke_id = 0;
 
     data.application_data_len =
-        bacapp_encode_application_data(&data.application_data[0],value);
+        bacapp_encode_application_data(&data.application_data[0], value);
     len = wp_encode_apdu(&apdu[0], invoke_id, &data);
     ct_test(pTest, len != 0);
     /* decode the data */
@@ -219,17 +220,14 @@ void testWritePropertyTag(Test * pTest, BACNET_APPLICATION_DATA_VALUE * value)
     ct_test(pTest, test_data.object_property == data.object_property);
     ct_test(pTest, test_data.array_index == data.array_index);
     /* decode the application value of the request */
-    len = bacapp_decode_application_data(
-        test_data.application_data,
-        test_data.application_data_len,
-        &test_value);
+    len = bacapp_decode_application_data(test_data.application_data,
+        test_data.application_data_len, &test_value);
     ct_test(pTest, test_value.tag == value->tag);
     switch (test_value.tag) {
     case BACNET_APPLICATION_TAG_NULL:
         break;
     case BACNET_APPLICATION_TAG_BOOLEAN:
-        ct_test(pTest, test_value.type.Boolean ==
-            value->type.Boolean);
+        ct_test(pTest, test_value.type.Boolean == value->type.Boolean);
         break;
     case BACNET_APPLICATION_TAG_UNSIGNED_INT:
         ct_test(pTest, test_value.type.Unsigned_Int ==
@@ -247,22 +245,16 @@ void testWritePropertyTag(Test * pTest, BACNET_APPLICATION_DATA_VALUE * value)
             value->type.Enumerated);
         break;
     case BACNET_APPLICATION_TAG_DATE:
-        ct_test(pTest, test_value.type.Date.year ==
-            value->type.Date.year);
+        ct_test(pTest, test_value.type.Date.year == value->type.Date.year);
         ct_test(pTest, test_value.type.Date.month ==
             value->type.Date.month);
-        ct_test(pTest, test_value.type.Date.day ==
-            value->type.Date.day);
-        ct_test(pTest, test_value.type.Date.wday ==
-            value->type.Date.wday);
+        ct_test(pTest, test_value.type.Date.day == value->type.Date.day);
+        ct_test(pTest, test_value.type.Date.wday == value->type.Date.wday);
         break;
     case BACNET_APPLICATION_TAG_TIME:
-        ct_test(pTest, test_value.type.Time.hour ==
-            value->type.Time.hour);
-        ct_test(pTest, test_value.type.Time.min ==
-            value->type.Time.min);
-        ct_test(pTest, test_value.type.Time.sec ==
-            value->type.Time.sec);
+        ct_test(pTest, test_value.type.Time.hour == value->type.Time.hour);
+        ct_test(pTest, test_value.type.Time.min == value->type.Time.min);
+        ct_test(pTest, test_value.type.Time.sec == value->type.Time.sec);
         ct_test(pTest, test_value.type.Time.hundredths ==
             value->type.Time.hundredths);
         break;

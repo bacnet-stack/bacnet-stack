@@ -42,7 +42,7 @@
 #include "datetime.h"
 
 typedef struct BACnet_Application_Data_Value {
-    uint8_t tag; /* application or context-specific number */
+    uint8_t tag;                /* application or context-specific number */
     union {
         /* NULL - not needed as it is encoded in the tag alone */
         bool Boolean;
@@ -85,7 +85,7 @@ extern "C" {
        Expects that the first octet contain the opening tag.
        Include a value property identifier for context specific data
        such as the value received in a WriteProperty request */
-    int bacapp_data_len(uint8_t *apdu, int max_apdu_len,
+    int bacapp_data_len(uint8_t * apdu, int max_apdu_len,
         BACNET_PROPERTY_ID property);
 
 #if PRINT_ENABLED

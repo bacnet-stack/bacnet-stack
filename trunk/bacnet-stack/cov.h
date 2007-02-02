@@ -58,19 +58,19 @@ typedef struct BACnet_COV_Data {
 } BACNET_COV_DATA;
 
 typedef struct BACnet_Property_Reference {
-  BACNET_PROPERTY_ID propertyIdentifier;
-  unsigned propertyArrayIndex; /* optional */
+    BACNET_PROPERTY_ID propertyIdentifier;
+    unsigned propertyArrayIndex;        /* optional */
 } BACNET_PROPERTY_REFERENCE;
 
 typedef struct BACnet_Subscribe_COV_Data {
     uint32_t subscriberProcessIdentifier;
     BACNET_OBJECT_ID monitoredObjectIdentifier;
-    bool cancellationRequest; /* true if this is a cancellation request */
-    bool issueConfirmedNotifications; /* optional */
-    unsigned lifetime; /* optional */
+    bool cancellationRequest;   /* true if this is a cancellation request */
+    bool issueConfirmedNotifications;   /* optional */
+    unsigned lifetime;          /* optional */
     BACNET_PROPERTY_REFERENCE monitoredProperty;
-    bool covIncrementPresent; /* true if present */
-    float covIncrement; /* optional */
+    bool covIncrementPresent;   /* true if present */
+    float covIncrement;         /* optional */
 } BACNET_SUBSCRIBE_COV_DATA;
 
 #ifdef __cplusplus
@@ -97,18 +97,14 @@ extern "C" {
     int cov_subscribe_property_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA * data);
 
-    int cov_subscribe_property_encode_adpu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_SUBSCRIBE_COV_DATA * data);
+    int cov_subscribe_property_encode_adpu(uint8_t * apdu,
+        uint8_t invoke_id, BACNET_SUBSCRIBE_COV_DATA * data);
 
     int cov_subscribe_decode_service_request(uint8_t * apdu,
         unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA * data);
 
-    int cov_subscribe_encode_adpu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_SUBSCRIBE_COV_DATA * data);
+    int cov_subscribe_encode_adpu(uint8_t * apdu,
+        uint8_t invoke_id, BACNET_SUBSCRIBE_COV_DATA * data);
 
 
 #ifdef TEST

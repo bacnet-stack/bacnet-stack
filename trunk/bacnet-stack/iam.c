@@ -218,12 +218,9 @@ void testIAm(Test * pTest)
 
 #ifdef TEST_IAM
 /* dummy function stubs */
-int datalink_send_pdu(
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * pdu,
-    unsigned pdu_len)
-{   
+int datalink_send_pdu(BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data, uint8_t * pdu, unsigned pdu_len)
+{
     (void) dest;
     (void) npdu_data;
     (void) pdu;

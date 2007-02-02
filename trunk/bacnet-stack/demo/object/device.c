@@ -796,18 +796,16 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, 
-        wp_data->application_data_len,
-        &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
     case PROP_OBJECT_IDENTIFIER:
         if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
             if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                (Device_Set_Object_Instance_Number(
-                    value.type.Object_Id.instance))) {
+                (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                        instance))) {
                 /* FIXME: we could send an I-Am broadcast to let the world know */
                 status = true;
             } else {
@@ -835,8 +833,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_APDU_TIMEOUT:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* FIXME: bounds check? */
-            Device_Set_APDU_Timeout((uint16_t) value.type.
-                Unsigned_Int);
+            Device_Set_APDU_Timeout((uint16_t) value.type.Unsigned_Int);
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -870,13 +867,12 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             uint8_t encoding;
             encoding =
-                characterstring_encoding(&value.type.
-                Character_String);
+                characterstring_encoding(&value.type.Character_String);
             if (encoding == CHARACTER_ANSI_X34) {
                 status =
-                    Device_Set_Object_Name(
-                        characterstring_value(&value.type.Character_String),
-                        characterstring_length(&value.type.Character_String));
+                    Device_Set_Object_Name(characterstring_value(&value.
+                        type.Character_String),
+                    characterstring_length(&value.type.Character_String));
                 if (!status) {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;

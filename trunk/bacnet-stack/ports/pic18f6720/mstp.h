@@ -162,7 +162,7 @@ struct mstp_port_struct_t {
     /* Machine when a Data Expecting Reply Answer activity is completed. */
 /* note: we always send a reply postponed since a message other than
    the reply may be in the transmit queue */
-//    uint16_t ReplyPostponedTimer;
+/*    uint16_t ReplyPostponedTimer; */
 
     /* Used to store the Source Address of a received frame. */
     uint8_t SourceAddress;

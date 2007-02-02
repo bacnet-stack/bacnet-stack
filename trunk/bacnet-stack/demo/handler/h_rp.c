@@ -54,8 +54,7 @@ static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
 void handler_read_property(uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, 
-    BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     BACNET_READ_PROPERTY_DATA data;
     int len = 0;

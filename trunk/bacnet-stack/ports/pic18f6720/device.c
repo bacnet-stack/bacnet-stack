@@ -48,24 +48,24 @@
 static uint32_t Object_Instance_Number = 12345;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State = 
-  REINITIALIZED_STATE_IDLE;
+BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
+    REINITIALIZED_STATE_IDLE;
 
 void Device_Reinit(void)
 {
-    dcc_set_status_duration(COMMUNICATION_ENABLE,0);
+    dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
 }
 
 void Device_Init(void)
 {
     Reinitialize_State = REINITIALIZED_STATE_IDLE;
-    dcc_set_status_duration(COMMUNICATION_ENABLE,0);
+    dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* FIXME: Get the data from the eeprom */
     /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS, 
-        (char *)&Object_Instance_Number, 
-        sizeof(Object_Instance_Number), 
-        EEPROM_BACNET_ID_ADDR); */
+       (char *)&Object_Instance_Number, 
+       sizeof(Object_Instance_Number), 
+       EEPROM_BACNET_ID_ADDR); */
 }
 
 /* methods to manipulate the data */
@@ -78,17 +78,15 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
     bool status = true;         /* return value */
 
-    if (object_id <= BACNET_MAX_INSTANCE)
-    {
+    if (object_id <= BACNET_MAX_INSTANCE) {
         Object_Instance_Number = object_id;
         /* FIXME: Write the data to the eeprom */
         /* I2C_Write_Block(
-            EEPROM_DEVICE_ADDRESS, 
-            (char *)&Object_Instance_Number, 
-            sizeof(Object_Instance_Number), 
-            EEPROM_BACNET_ID_ADDR); */
-    }
-    else
+           EEPROM_DEVICE_ADDRESS, 
+           (char *)&Object_Instance_Number, 
+           sizeof(Object_Instance_Number), 
+           EEPROM_BACNET_ID_ADDR); */
+    } else
         status = false;
 
     return status;
@@ -109,7 +107,7 @@ BACNET_DEVICE_STATUS Device_System_Status(void)
 void Device_Set_System_Status(BACNET_DEVICE_STATUS status)
 {
     if (status < MAX_DEVICE_STATUS)
-      System_Status = status;
+        System_Status = status;
 }
 
 /* FIXME: put your vendor ID here! */
@@ -159,7 +157,7 @@ uint8_t Device_Database_Revision(void)
 /* for discovery, it must be consistent! */
 unsigned Device_Object_List_Count(void)
 {
-    unsigned count = 1;/* at least 1 for device object */
+    unsigned count = 1;         /* at least 1 for device object */
 
 /* FIXME: add objects as needed */
 #if 0
@@ -186,7 +184,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
         *instance = Object_Instance_Number;
         status = true;
     }
-    #if 0
+#if 0
     /* FIXME: add objects as needed */
     /* binary input objects */
     if (!status) {
@@ -226,7 +224,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
-    #endif
+#endif
 
     return status;
 }
@@ -247,7 +245,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     unsigned count = 0;
     BACNET_TIME local_time;
     BACNET_DATE local_date;
-    uint8_t   year = 0;
+    uint8_t year = 0;
     char string_buffer[24];
     int16_t TimeZone = 0;
 
@@ -258,7 +256,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             Object_Instance_Number);
         break;
     case PROP_OBJECT_NAME:
-        (void)strcpypgm2ram(&string_buffer[0], "PIC18F6720 Device");
+        (void) strcpypgm2ram(&string_buffer[0], "PIC18F6720 Device");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
@@ -266,38 +264,40 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_DEVICE);
         break;
     case PROP_DESCRIPTION:
-        (void)strcpypgm2ram(&string_buffer[0], "BACnet Demo");
+        (void) strcpypgm2ram(&string_buffer[0], "BACnet Demo");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_SYSTEM_STATUS:
-        apdu_len = encode_tagged_enumerated(&apdu[0], Device_System_Status());
+        apdu_len =
+            encode_tagged_enumerated(&apdu[0], Device_System_Status());
         break;
     case PROP_VENDOR_NAME:
-        (void)strcpypgm2ram(&string_buffer[0], "ASHRAE");
+        (void) strcpypgm2ram(&string_buffer[0], "ASHRAE");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_VENDOR_IDENTIFIER:
-        apdu_len = encode_tagged_unsigned(&apdu[0], Device_Vendor_Identifier());
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], Device_Vendor_Identifier());
         break;
     case PROP_MODEL_NAME:
-        (void)strcpypgm2ram(&string_buffer[0], "GNU Demo");
+        (void) strcpypgm2ram(&string_buffer[0], "GNU Demo");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_FIRMWARE_REVISION:
-        (void)strcpypgm2ram(&string_buffer[0], "1.00");
+        (void) strcpypgm2ram(&string_buffer[0], "1.00");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_APPLICATION_SOFTWARE_VERSION:
-        (void)strcpypgm2ram(&string_buffer[0], "1.00");
+        (void) strcpypgm2ram(&string_buffer[0], "1.00");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_LOCATION:
-        (void)strcpypgm2ram(&string_buffer[0], "USA");
+        (void) strcpypgm2ram(&string_buffer[0], "USA");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
@@ -333,11 +333,11 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         }
         /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
-        #if 0
+#if 0
         bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
         bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
-        #endif
+#endif
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
@@ -399,16 +399,19 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_NUMBER_OF_APDU_RETRIES:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0], Device_Number_Of_APDU_Retries());
+            encode_tagged_unsigned(&apdu[0],
+            Device_Number_Of_APDU_Retries());
         break;
     case PROP_DEVICE_ADDRESS_BINDING:
         /* FIXME: encode the list here, if it exists */
         break;
     case PROP_DATABASE_REVISION:
-        apdu_len = encode_tagged_unsigned(&apdu[0], Device_Database_Revision());
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], Device_Database_Revision());
         break;
     case PROP_MAX_INFO_FRAMES:
-        apdu_len = encode_tagged_unsigned(&apdu[0], dlmstp_max_info_frames());
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], dlmstp_max_info_frames());
         break;
     case PROP_MAX_MASTER:
         apdu_len = encode_tagged_unsigned(&apdu[0], dlmstp_max_master());
@@ -423,14 +426,14 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_UTC_OFFSET:
         /* Note: BACnet Time Zone is inverse of everybody else */
-        apdu_len = encode_tagged_signed(&apdu[0], 5 /* EST */);
+        apdu_len = encode_tagged_signed(&apdu[0], 5 /* EST */ );
         break;
     case PROP_LOCAL_DATE:
         /* FIXME: if you support date */
         local_date.year = 2006; /* AD */
-        local_date.month = 4; /* Jan=1..Dec=12 */
-        local_date.day = 11; /* 1..31 */
-        local_date.wday = 0; /* 1=Mon..7=Sun */
+        local_date.month = 4;   /* Jan=1..Dec=12 */
+        local_date.day = 11;    /* 1..31 */
+        local_date.wday = 0;    /* 1=Mon..7=Sun */
         apdu_len = encode_tagged_date(&apdu[0], &local_date);
         break;
     case PROP_DAYLIGHT_SAVINGS_STATUS:
@@ -463,10 +466,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, 
-        wp_data->application_data_len,
-        &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
@@ -519,7 +520,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             uint8_t encoding;
             size_t len;
-            
+
             encoding =
                 characterstring_encoding(&value.type.Character_String);
             len = characterstring_length(&value.type.Character_String);
@@ -527,8 +528,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 if (len <= 20) {
                     /* FIXME: set the name */
                     /* Display_Set_Name(
-                        characterstring_value(&value.type.Character_String)); */
-                
+                       characterstring_value(&value.type.Character_String)); */
+
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -564,4 +565,3 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 
     return status;
 }
-
