@@ -297,6 +297,27 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
 /* flag to send an I-Am */
 bool I_Am_Request = true;
 
+/* dummy function stubs */
+int datalink_send_pdu(
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data,
+    uint8_t * pdu,
+    unsigned pdu_len)
+{   
+    (void) dest;
+    (void) npdu_data;
+    (void) pdu;
+    (void) pdu_len;
+
+    return 0;
+}
+
+/* dummy function stubs */
+void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
+{
+  (void)dest;
+}
+
 void testTSM(Test * pTest)
 {
     /* FIXME: add some unit testing... */
