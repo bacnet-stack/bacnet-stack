@@ -35,7 +35,7 @@
 #include "rs485.h"
 #include "npdu.h"
 
-/* Number of MS/TP Packets Rx/Tx  */
+/* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
 
 /* receive buffer */
@@ -48,41 +48,6 @@ volatile struct mstp_port_struct_t MSTP_Port;
 #pragma udata
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-
-/* This defines the number of edit fields for this module */
-#define MAX_EDIT_FIELD 1
-static uint8_t EditField = 0;
-/* *************************************************************************
-  DESCRIPTION:  This function handles incrementing or decrementing our
-                EditField
-  RETURN: none
-  ALGORITHM:  none
-  NOTES:  Pass a #>0 to increment #<0 to decrement
- *************************************************************************** */
-void dlmstp_SetEditField(signed char state)
-{                               /* direction our editfield is moving */
-    if (state > 0) {
-        if (++EditField > MAX_EDIT_FIELD)
-            EditField = 0;
-    } else if (state < 0) {
-        if (EditField)
-            EditField--;
-        else
-            EditField = MAX_EDIT_FIELD;
-    } else
-        EditField = 0;
-}
-
-/* *************************************************************************
-  DESCRIPTION:  Gets the current edit field for this module
-  RETURN: the current edit field
-  ALGORITHM:  none
-  NOTES:  none
- *************************************************************************** */
-uint8_t dlmstp_GetEditField(void)
-{
-    return (EditField);
-}
 
 void dlmstp_millisecond_timer(void)
 {
@@ -204,7 +169,8 @@ void dlmstp_task(void)
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
         while (MSTP_Master_Node_FSM(&MSTP_Port)) {
         };
-        /*MSTP_Master_Node_FSM(&MSTP_Port); */
+        /*MSTP_Master_Node_FSM(&MSTP_Port);
+ */
     }
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
