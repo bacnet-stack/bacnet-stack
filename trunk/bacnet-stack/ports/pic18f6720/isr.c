@@ -29,7 +29,6 @@
 #include "dlmstp.h"
 
 /* from main.c */
-extern volatile uint8_t System_Seconds;
 extern volatile uint8_t Milliseconds;
 
 void InterruptHandlerHigh(void);
@@ -42,17 +41,23 @@ void Interrupt_USART_Tx(void);
 void Interrupt_CCP2(void);
 void INT0_Interrupt(void);
 
-#pragma code InterruptVectorHigh = 0x308
+#pragma code InterruptVectorHigh = 0x08
 void InterruptVectorHigh(void)
 {
-    _asm goto InterruptHandlerHigh      /* jump to interrupt routine */
- _endasm}
+    /* jump to interrupt routine */
+    _asm goto InterruptHandlerHigh
+    _endasm
+}
+
 #pragma code
-#pragma code InterruptVectorLow = 0x318
+#pragma code InterruptVectorLow = 0x18
 void InterruptVectorLow(void)
 {
-    _asm goto InterruptHandlerLow       /* jump to interrupt routine */
- _endasm}
+    /* jump to interrupt routine */
+    _asm goto InterruptHandlerLow       
+    _endasm
+}
+
 #pragma code
 #pragma interrupt InterruptHandlerHigh
 void InterruptHandlerHigh(void)
@@ -79,7 +84,6 @@ void InterruptHandlerHigh(void)
     /* check for timer0 int */
     if ((INTCONbits.TMR0IF) && (INTCONbits.TMR0IE)) {
         INTCONbits.TMR0IF = 0;
-        System_Seconds++;
     }
 }
 
