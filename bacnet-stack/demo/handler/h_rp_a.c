@@ -67,11 +67,11 @@ static void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA * data)
 #endif
         application_data = data->application_data;
         application_data_len = data->application_data_len;
-		/* FIXME: what if application_data_len is bigger than 255? */
+        /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
             len = bacapp_decode_application_data(application_data,
-                (uint8_t)application_data_len, &value);
+                (uint8_t) application_data_len, &value);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
                 fprintf(stdout, "{");

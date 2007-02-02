@@ -56,13 +56,13 @@
 
 /* debug print statements */
 #if PRINT_ENABLED
-  #define PRINT_ENABLED_RECEIVE 0
-  #define PRINT_ENABLED_RECEIVE_DATA 1
-  #define PRINT_ENABLED_MASTER 0
+#define PRINT_ENABLED_RECEIVE 0
+#define PRINT_ENABLED_RECEIVE_DATA 1
+#define PRINT_ENABLED_MASTER 0
 #else
-  #define PRINT_ENABLED_RECEIVE 0
-  #define PRINT_ENABLED_RECEIVE_DATA 0
-  #define PRINT_ENABLED_MASTER 0
+#define PRINT_ENABLED_RECEIVE 0
+#define PRINT_ENABLED_RECEIVE_DATA 0
+#define PRINT_ENABLED_MASTER 0
 #endif
 
 /* MS/TP Frame Format */
@@ -450,7 +450,8 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     /* wait for the start of the next frame. */
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {
-                    if ((mstp_port->DestinationAddress == mstp_port->This_Station)
+                    if ((mstp_port->DestinationAddress ==
+                            mstp_port->This_Station)
                         || (mstp_port->DestinationAddress ==
                             MSTP_BROADCAST_ADDRESS)) {
                         /* FrameTooLong */
@@ -459,21 +460,24 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             /* unacceptable data length has been received */
                             mstp_port->ReceivedInvalidFrame = true;
                             /* wait for the start of the next frame. */
-                            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                            mstp_port->receive_state =
+                                MSTP_RECEIVE_STATE_IDLE;
                         }
                         /* NoData */
                         else if (mstp_port->DataLength == 0) {
                             /* indicate that a frame with no data has been received */
                             mstp_port->ReceivedValidFrame = true;
                             /* wait for the start of the next frame. */
-                            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                            mstp_port->receive_state =
+                                MSTP_RECEIVE_STATE_IDLE;
                         }
                         /* Data */
                         else {
                             mstp_port->Index = 0;
                             mstp_port->DataCRC = 0xFFFF;
                             /* receive the data portion of the frame. */
-                            mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
+                            mstp_port->receive_state =
+                                MSTP_RECEIVE_STATE_DATA;
                         }
                     }
                     /* NotForUs */
@@ -482,8 +486,8 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                     }
                 }
-              
-              
+
+
             }
             /* not per MS/TP standard, but it is a case not covered */
             else {
@@ -655,7 +659,7 @@ char *mstp_frame_type_text(int type)
 #endif
 
 /* returns true if we need to transition immediately */
-bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
+bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
 {
     int mtu_len = 0;
     int frame_type = 0;
@@ -766,7 +770,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                         mstp_port->DataLength);
                     break;
                 case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                    //mstp_port->ReplyPostponedTimer = 0;
+                    /*mstp_port->ReplyPostponedTimer = 0; */
                     /* indicate successful reception to the higher layers  */
                     dlmstp_put_receive(mstp_port->SourceAddress,
                         (uint8_t *) & mstp_port->InputBuffer[0],
@@ -1213,15 +1217,15 @@ void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port)
         mstp_port->ReceivedValidFrame = false;
         mstp_port->RetryCount = 0;
         mstp_port->SilenceTimer = 0;
-//        mstp_port->ReplyPostponedTimer = 0;
+/*        mstp_port->ReplyPostponedTimer = 0; */
         mstp_port->SoleMaster = false;
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
-        #if 0
-        // these are adjustable, so should already be set
+#if 0
+        /* these are adjustable, so should already be set */
         mstp_port->Nmax_info_frames = DEFAULT_MAX_INFO_FRAMES;
         mstp_port->Nmax_master = DEFAULT_MAX_MASTER;
-        #endif
+#endif
 
         /* An array of octets, used to store PDU octets prior to being transmitted. */
         /* This array is only used for APDU messages */

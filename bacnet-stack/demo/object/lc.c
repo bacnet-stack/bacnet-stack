@@ -28,7 +28,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h> /* for memcpy */
+#include <string.h>             /* for memcpy */
 #include <time.h>
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -45,9 +45,9 @@
 static BACNET_SHED_STATE Present_Value[MAX_LOAD_CONTROLS];
 
 typedef enum BACnetShedLevelType {
-  BACNET_SHED_TYPE_PERCENT, /* Unsigned */
-  BACNET_SHED_TYPE_LEVEL,  /* Unsigned */
-  BACNET_SHED_TYPE_AMOUNT  /* REAL */
+    BACNET_SHED_TYPE_PERCENT,   /* Unsigned */
+    BACNET_SHED_TYPE_LEVEL,     /* Unsigned */
+    BACNET_SHED_TYPE_AMOUNT     /* REAL */
 } BACNET_SHED_LEVEL_TYPE;
 
 /* The shed levels for the LEVEL choice of BACnetShedLevel
@@ -103,9 +103,9 @@ static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS];
    Load Control object can take on.  It is the same for
    all the load control objects in this example device. */
 static char *Shed_Level_Descriptions[MAX_SHED_LEVELS] = {
-  "dim lights 10%",
-  "dim lights 20%",
-  "dim lights 30%"
+    "dim lights 10%",
+    "dim lights 20%",
+    "dim lights 30%"
 };
 
 /* we need to have our arrays initialized before answering any calls */
@@ -122,8 +122,9 @@ void Load_Control_Init(void)
             Present_Value[i] = BACNET_SHED_INACTIVE;
             Requested_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Requested_Shed_Level[i].value.level = 0;
-            datetime_set_values(&Start_Time[i],0,0,0,0,0,0,0);
-            datetime_set_values(&Previous_Start_Time[i],0,0,0,0,0,0,0);
+            datetime_set_values(&Start_Time[i], 0, 0, 0, 0, 0, 0, 0);
+            datetime_set_values(&Previous_Start_Time[i], 0, 0, 0, 0, 0, 0,
+                0);
             Shed_Duration[i] = 0;
             Duty_Window[i] = 0;
             Load_Control_Enable[i] = true;
@@ -131,7 +132,7 @@ void Load_Control_Init(void)
             for (j = 0; j < MAX_SHED_LEVELS; j++) {
                 /* FIXME: fake data for lighting application */
                 /* The array shall be ordered by increasing shed amount. */
-                Shed_Levels[i][j] = 90 - (j * (30/MAX_SHED_LEVELS));
+                Shed_Levels[i][j] = 90 - (j * (30 / MAX_SHED_LEVELS));
             }
             Expected_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Expected_Shed_Level[i].value.level = 0;
@@ -186,7 +187,8 @@ unsigned Load_Control_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-static BACNET_SHED_STATE Load_Control_Present_Value(uint32_t object_instance)
+static BACNET_SHED_STATE Load_Control_Present_Value(uint32_t
+    object_instance)
 {
     BACNET_SHED_STATE value = BACNET_SHED_INACTIVE;
     unsigned index = 0;
@@ -234,46 +236,41 @@ struct tm {
 
     timer = time(NULL);
     tblock = localtime(&timer);
-    datetime_set_values(
-        bdatetime,
+    datetime_set_values(bdatetime,
         tblock->tm_year,
         tblock->tm_mon,
         tblock->tm_mday,
-        tblock->tm_hour,
-        tblock->tm_min,
-        tblock->tm_sec,
-        0);
+        tblock->tm_hour, tblock->tm_min, tblock->tm_sec, 0);
 }
 
-typedef enum load_control_state
-{
-  SHED_INACTIVE,
-  SHED_REQUEST_PENDING,
-  SHED_NON_COMPLIANT,
-  SHED_COMPLIANT
+typedef enum load_control_state {
+    SHED_INACTIVE,
+    SHED_REQUEST_PENDING,
+    SHED_NON_COMPLIANT,
+    SHED_COMPLIANT
 } LOAD_CONTROL_STATE;
 
 void Load_Control_State_Machine(int object_index)
 {
     static LOAD_CONTROL_STATE state[MAX_LOAD_CONTROLS];
     static bool initialized = false;
-    unsigned i = 0; /* loop counter */
-    int diff = 0; /* used for datetime comparison */
+    unsigned i = 0;             /* loop counter */
+    int diff = 0;               /* used for datetime comparison */
 
     if (!initialized) {
-       initialized = true;
-       for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-         state[i] = SHED_INACTIVE;
-       }
+        initialized = true;
+        for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
+            state[i] = SHED_INACTIVE;
+        }
     }
 
-    switch (state[object_index])
-    {
-      case SHED_REQUEST_PENDING:
+    switch (state[object_index]) {
+    case SHED_REQUEST_PENDING:
         Update_Current_Time(&Current_Time);
-        datetime_copy(&End_Time[object_index],&Start_Time[object_index]);
-        datetime_add_minutes(&End_Time[object_index], Shed_Duration[object_index]);
-        diff = datetime_compare(&End_Time[object_index],&Current_Time);
+        datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
+        datetime_add_minutes(&End_Time[object_index],
+            Shed_Duration[object_index]);
+        diff = datetime_compare(&End_Time[object_index], &Current_Time);
         if (diff < 0) {
             /* CancelShed */
             /* FIXME: stop shedding! i.e. relinquish */
@@ -286,12 +283,12 @@ void Load_Control_State_Machine(int object_index)
 
         }
         break;
-      case SHED_NON_COMPLIANT:
+    case SHED_NON_COMPLIANT:
         break;
-      case SHED_COMPLIANT:
+    case SHED_COMPLIANT:
         break;
-      case SHED_INACTIVE:
-      default:
+    case SHED_INACTIVE:
+    default:
         diff = datetime_compare(&Previous_Start_Time[object_index],
             &Start_Time[object_index]);
         if (diff != 0) {
@@ -301,24 +298,23 @@ void Load_Control_State_Machine(int object_index)
             /* FIXME: calculate your Actual Shed Level */
             Expected_Shed_Level[object_index].type =
                 Requested_Shed_Level[object_index].type;
-            switch (Requested_Shed_Level[object_index].type)
-            {
-                case BACNET_SHED_TYPE_PERCENT:
-                    Actual_Shed_Level[object_index].value.percent =
-                        Expected_Shed_Level[object_index].value.percent =
-                        Requested_Shed_Level[object_index].value.percent;
-                    break;
-                case BACNET_SHED_TYPE_AMOUNT:
-                    Actual_Shed_Level[object_index].value.amount =
-                        Expected_Shed_Level[object_index].value.amount =
-                        Requested_Shed_Level[object_index].value.amount;
-                    break;
-                case BACNET_SHED_TYPE_LEVEL:
-                default:
-                    Actual_Shed_Level[object_index].value.level =
-                        Expected_Shed_Level[object_index].value.level =
-                        Requested_Shed_Level[object_index].value.level;
-                    break;
+            switch (Requested_Shed_Level[object_index].type) {
+            case BACNET_SHED_TYPE_PERCENT:
+                Actual_Shed_Level[object_index].value.percent =
+                    Expected_Shed_Level[object_index].value.percent =
+                    Requested_Shed_Level[object_index].value.percent;
+                break;
+            case BACNET_SHED_TYPE_AMOUNT:
+                Actual_Shed_Level[object_index].value.amount =
+                    Expected_Shed_Level[object_index].value.amount =
+                    Requested_Shed_Level[object_index].value.amount;
+                break;
+            case BACNET_SHED_TYPE_LEVEL:
+            default:
+                Actual_Shed_Level[object_index].value.level =
+                    Expected_Shed_Level[object_index].value.level =
+                    Requested_Shed_Level[object_index].value.level;
+                break;
             }
             state[object_index] = SHED_REQUEST_PENDING;
         }
@@ -332,7 +328,7 @@ void Load_Control_State_Machine(int object_index)
 void Load_Control_State_Machine_Handler(void)
 {
     unsigned i = 0;
-    
+
     for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
         Load_Control_State_Machine(i);
     }
@@ -369,12 +365,12 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
     case PROP_OBJECT_TYPE:
         apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_LOAD_CONTROL);
         break;
-    /* optional property
-    case PROP_DESCRIPTION:
-        characterstring_init_ansi(&char_string,"optional description");
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
-        break;
-    */
+        /* optional property
+           case PROP_DESCRIPTION:
+           characterstring_init_ansi(&char_string,"optional description");
+           apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+           break;
+         */
     case PROP_PRESENT_VALUE:
         enumeration = Load_Control_Present_Value(object_instance);
         apdu_len = encode_tagged_enumerated(&apdu[0], enumeration);
@@ -384,13 +380,13 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         /* IN_ALARM - Logical FALSE (0) if the Event_State property 
            has a value of NORMAL, otherwise logical TRUE (1). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-        /* FAULT - Logical	TRUE (1) if the Reliability property is 
+        /* FAULT - Logical      TRUE (1) if the Reliability property is 
            present and does not have a value of NO_FAULT_DETECTED, 
            otherwise logical FALSE (0). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
         /* OVERRIDDEN - Logical TRUE (1) if the point has been 
            overridden by some mechanism local to the BACnet Device, 
-           otherwise logical FALSE (0).*/
+           otherwise logical FALSE (0). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
         /* OUT_OF_SERVICE - This bit shall always be Logical FALSE (0). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
@@ -400,26 +396,24 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_REQUESTED_SHED_LEVEL:
-        switch (Requested_Shed_Level[object_index].type)
-        {
-            case BACNET_SHED_TYPE_PERCENT:
-                apdu_len = encode_context_unsigned(&apdu[0], 0,
-                    Requested_Shed_Level[object_index].value.percent);
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                apdu_len = encode_context_real(&apdu[0], 2,
-                    Requested_Shed_Level[object_index].value.amount);
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                apdu_len = encode_context_unsigned(&apdu[0], 1,
-                    Requested_Shed_Level[object_index].value.level);
-                break;
+        switch (Requested_Shed_Level[object_index].type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            apdu_len = encode_context_unsigned(&apdu[0], 0,
+                Requested_Shed_Level[object_index].value.percent);
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            apdu_len = encode_context_real(&apdu[0], 2,
+                Requested_Shed_Level[object_index].value.amount);
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+        default:
+            apdu_len = encode_context_unsigned(&apdu[0], 1,
+                Requested_Shed_Level[object_index].value.level);
+            break;
         }
         break;
     case PROP_START_TIME:
-        len = encode_tagged_date(&apdu[0],
-            &Start_Time[object_index].date);
+        len = encode_tagged_date(&apdu[0], &Start_Time[object_index].date);
         apdu_len = len;
         len = encode_tagged_time(&apdu[apdu_len],
             &Start_Time[object_index].time);
@@ -437,58 +431,57 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         state = Load_Control_Enable[object_index];
         apdu_len = encode_tagged_boolean(&apdu[0], state);
         break;
-    case PROP_FULL_DUTY_BASELINE: /* optional */
+    case PROP_FULL_DUTY_BASELINE:      /* optional */
         apdu_len = encode_tagged_real(&apdu[0],
             Full_Duty_Baseline[object_index]);
         break;
     case PROP_EXPECTED_SHED_LEVEL:
-        switch (Expected_Shed_Level[object_index].type)
-        {
-            case BACNET_SHED_TYPE_PERCENT:
-                apdu_len = encode_context_unsigned(&apdu[0], 0,
-                    Expected_Shed_Level[object_index].value.percent);
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                apdu_len = encode_context_real(&apdu[0], 2,
-                    Expected_Shed_Level[object_index].value.amount);
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                apdu_len = encode_context_unsigned(&apdu[0], 1,
-                    Expected_Shed_Level[object_index].value.level);
-                break;
+        switch (Expected_Shed_Level[object_index].type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            apdu_len = encode_context_unsigned(&apdu[0], 0,
+                Expected_Shed_Level[object_index].value.percent);
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            apdu_len = encode_context_real(&apdu[0], 2,
+                Expected_Shed_Level[object_index].value.amount);
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+        default:
+            apdu_len = encode_context_unsigned(&apdu[0], 1,
+                Expected_Shed_Level[object_index].value.level);
+            break;
         }
         break;
     case PROP_ACTUAL_SHED_LEVEL:
-        switch (Actual_Shed_Level[object_index].type)
-        {
-            case BACNET_SHED_TYPE_PERCENT:
-                apdu_len = encode_context_unsigned(&apdu[0], 0,
-                    Actual_Shed_Level[object_index].value.percent);
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                apdu_len = encode_context_real(&apdu[0], 2,
-                    Actual_Shed_Level[object_index].value.amount);
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                apdu_len = encode_context_unsigned(&apdu[0], 1,
-                    Actual_Shed_Level[object_index].value.level);
-                break;
+        switch (Actual_Shed_Level[object_index].type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            apdu_len = encode_context_unsigned(&apdu[0], 0,
+                Actual_Shed_Level[object_index].value.percent);
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            apdu_len = encode_context_real(&apdu[0], 2,
+                Actual_Shed_Level[object_index].value.amount);
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+        default:
+            apdu_len = encode_context_unsigned(&apdu[0], 1,
+                Actual_Shed_Level[object_index].value.level);
+            break;
         }
         break;
     case PROP_SHED_LEVELS:
         /* Array element zero is the number of elements in the array */
         if (array_index == BACNET_ARRAY_LENGTH_INDEX)
-            apdu_len =
-                encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
+            apdu_len = encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
             apdu_len = 0;
             for (i = 0; i < MAX_SHED_LEVELS; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
-                len = encode_tagged_unsigned(&apdu[apdu_len], Shed_Levels[object_index][i]);
+                len =
+                    encode_tagged_unsigned(&apdu[apdu_len],
+                    Shed_Levels[object_index][i]);
                 /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
                     apdu_len += len;
@@ -501,8 +494,8 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
             }
         } else {
             if (array_index <= MAX_SHED_LEVELS) {
-                apdu_len = encode_tagged_unsigned(&apdu[0], 
-                    Shed_Levels[object_index][array_index-1]);
+                apdu_len = encode_tagged_unsigned(&apdu[0],
+                    Shed_Levels[object_index][array_index - 1]);
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -513,8 +506,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
     case PROP_SHED_LEVEL_DESCRIPTIONS:
         /* Array element zero is the number of elements in the array */
         if (array_index == BACNET_ARRAY_LENGTH_INDEX)
-            apdu_len =
-                encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
+            apdu_len = encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
@@ -523,7 +515,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
                 /* FIXME: check if we have room before adding it to APDU */
                 characterstring_init_ansi(&char_string,
                     Shed_Level_Descriptions[i]);
-                len = encode_tagged_character_string(&apdu[apdu_len], 
+                len = encode_tagged_character_string(&apdu[apdu_len],
                     &char_string);
                 /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
@@ -538,8 +530,8 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         } else {
             if (array_index <= MAX_SHED_LEVELS) {
                 characterstring_init_ansi(&char_string,
-                    Shed_Level_Descriptions[array_index-1]);
-                apdu_len = encode_tagged_character_string(&apdu[0], 
+                    Shed_Level_Descriptions[array_index - 1]);
+                apdu_len = encode_tagged_character_string(&apdu[0],
                     &char_string);
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -574,17 +566,15 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data,
-        wp_data->application_data_len,
-        &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
-    object_index = Load_Control_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        Load_Control_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
     case PROP_REQUESTED_SHED_LEVEL:
-        len = bacapp_decode_context_data(
-            wp_data->application_data,
+        len = bacapp_decode_context_data(wp_data->application_data,
             wp_data->application_data_len,
             &value, PROP_REQUESTED_SHED_LEVEL);
         if (value.tag == 0) {
@@ -611,7 +601,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_START_TIME:
         if (value.tag == BACNET_APPLICATION_TAG_DATE) {
             memcpy(&Start_Time[object_index].date,
-                &value.type.Date,sizeof(value.type.Date));
+                &value.type.Date, sizeof(value.type.Date));
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -619,13 +609,12 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         }
         if (!status)
             break;
-        len = bacapp_decode_application_data(
-            wp_data->application_data + len,
-            wp_data->application_data_len - len,
-            &value);
+        len =
+            bacapp_decode_application_data(wp_data->application_data + len,
+            wp_data->application_data_len - len, &value);
         if (len && value.tag == BACNET_APPLICATION_TAG_TIME) {
             memcpy(&Start_Time[object_index].time,
-                &value.type.Time,sizeof(value.type.Time));
+                &value.type.Time, sizeof(value.type.Time));
             status = true;
         } else {
             status = false;
@@ -635,8 +624,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
     case PROP_SHED_DURATION:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-            Shed_Duration[object_index] =
-                value.type.Unsigned_Int;
+            Shed_Duration[object_index] = value.type.Unsigned_Int;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -645,8 +633,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
     case PROP_DUTY_WINDOW:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-            Duty_Window[object_index] =
-                value.type.Unsigned_Int;
+            Duty_Window[object_index] = value.type.Unsigned_Int;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -659,13 +646,11 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             if (wp_data->array_index == 0) {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            }
-            else if (wp_data->array_index == BACNET_ARRAY_ALL) {
+            } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
                 /* FIXME: write entire array */
                 status = true;
-            }
-            else if (wp_data->array_index <= MAX_SHED_LEVELS) {
-                Shed_Levels[object_index][wp_data->array_index-1] =
+            } else if (wp_data->array_index <= MAX_SHED_LEVELS) {
+                Shed_Levels[object_index][wp_data->array_index - 1] =
                     value.type.Unsigned_Int;
                 status = true;
             } else {
@@ -677,8 +662,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         break;
     case PROP_ENABLE:
         if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-            Load_Control_Enable[object_index] =
-                value.type.Boolean;
+            Load_Control_Enable[object_index] = value.type.Boolean;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;

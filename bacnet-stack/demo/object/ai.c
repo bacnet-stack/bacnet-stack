@@ -84,7 +84,7 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
     int apdu_len = 0;           /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    float value = (float)3.14;
+    float value = (float) 3.14;
 
     (void) array_index;
     switch (property) {
@@ -122,7 +122,7 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
         break;
     case 9997:
-        apdu_len = encode_tagged_real(&apdu[0], (float)90.510);
+        apdu_len = encode_tagged_real(&apdu[0], (float) 90.510);
         break;
     case 9998:
         apdu_len = encode_tagged_unsigned(&apdu[0], 90);

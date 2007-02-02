@@ -731,9 +731,10 @@ int encode_tagged_boolean(uint8_t * apdu, bool boolean_value)
 }
 
 /* context tagged is encoded differently */
-int encode_context_boolean(uint8_t * apdu, int tag_number, bool boolean_value)
+int encode_context_boolean(uint8_t * apdu, int tag_number,
+    bool boolean_value)
 {
-    int len = 1; /* return value */
+    int len = 1;                /* return value */
 
     apdu[1] = boolean_value ? 1 : 0;
     /* we only reserved 1 byte for encoding the tag - check the limits */

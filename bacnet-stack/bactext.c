@@ -203,14 +203,20 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_ACCUMULATOR, "Accumulator"}
     ,
-    {OBJECT_PULSE_CONVERTER, "Pulse-Converter"},
-    
-    {OBJECT_EVENT_LOG, "Event-Log"},
-    {OBJECT_GLOBAL_GROUP, "Global-Group"},
-    {OBJECT_TREND_LOG_MULTIPLE, "Trend-Log-Multiple"},
-    {OBJECT_LOAD_CONTROL, "Load-Control"},
-    {OBJECT_STRUCTURED_VIEW, "Structured-View"},
-    
+    {OBJECT_PULSE_CONVERTER, "Pulse-Converter"}
+    ,
+
+    {OBJECT_EVENT_LOG, "Event-Log"}
+    ,
+    {OBJECT_GLOBAL_GROUP, "Global-Group"}
+    ,
+    {OBJECT_TREND_LOG_MULTIPLE, "Trend-Log-Multiple"}
+    ,
+    {OBJECT_LOAD_CONTROL, "Load-Control"}
+    ,
+    {OBJECT_STRUCTURED_VIEW, "Structured-View"}
+    ,
+
     {0, NULL}
 /* Enumerated values 0-127 are reserved for definition by ASHRAE.
    Enumerated values 128-1023 may be used by others subject to
@@ -566,58 +572,112 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_PROFILE_NAME, "profile-name"}
     ,
-    {PROP_AUTO_SLAVE_DISCOVERY, "auto-slave-discovery"},
-    {PROP_MANUAL_SLAVE_ADDRESS_BINDING, "manual-slave-address-binding"},
-    {PROP_SLAVE_ADDRESS_BINDING, "slave-address-binding"},
-    {PROP_SLAVE_PROXY_ENABLE, "slave-proxy-enable"},
-    {PROP_LAST_NOTIFY_TIME, "last-notify-time"},
-    {PROP_SCHEDULE_DEFAULT, "schedule-default"},
-    {PROP_ACCEPTED_MODES, "accepted-modes"},
-    {PROP_ADJUST_VALUE, "adjust-value"},
-    {PROP_COUNT, "count"},
-    {PROP_COUNT_BEFORE_CHANGE, "count-before-change"},
-    {PROP_COUNT_CHANGE_TIME, "count-change-time"},
-    {PROP_COV_PERIOD, "COV-period"},
-    {PROP_INPUT_REFERENCE, "input-reference"},
-    {PROP_LIMIT_MONITORING_INTERVAL, "limit-monitoring-interval"},
-    {PROP_LOGGING_DEVICE, "logging-device"},
-    {PROP_LOGGING_RECORD, "logging-record"},
-    {PROP_PRESCALE, "prescale"},
-    {PROP_PULSE_RATE, "pulse-rate"},
-    {PROP_SCALE, "scale"},
-    {PROP_SCALE_FACTOR, "scale-factor"},
-    {PROP_UPDATE_TIME, "update-time"},
-    {PROP_VALUE_BEFORE_CHANGE, "value-before-change"},
-    {PROP_VALUE_SET, "value-set"},
-    {PROP_VALUE_CHANGE_TIME, "value-change-time"},
-    {PROP_ALIGN_INTERVALS, "align-intervals"},
-    {PROP_GROUP_MEMBER_NAMES, "group-member-names"},
-    {PROP_INTERVAL_OFFSET, "interval-offset"},
-    {PROP_LAST_RESTART_REASON, "last-restart-reason"},
-    {PROP_LOGGING_TYPE, "logging-type"},
-    {PROP_MEMBER_STATUS_FLAGS, "member-status-flags"},
-    {PROP_NOTIFICATION_PERIOD, "notification-period"},
-    {PROP_PREVIOUS_NOTIFY_RECORD, "previous-notify-record"},
-    {PROP_REQUESTED_UPDATE_INTERVAL, "requested-update-interval"},
-    {PROP_RESTART_NOTIFICATION_RECIPIENTS, "restart-notification-recipients"},
-    {PROP_TIME_OF_DEVICE_RESTART, "time-of-device-restart"},
-    {PROP_TIME_SYNCHRONIZATION_INTERVAL, "time-synchronization-interval"},
-    {PROP_TRIGGER, "trigger"},    
-    {PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS, "UTC-time-synchronization-recipients"},
-    {PROP_NODE_SUBTYPE, "node-subtype"},
-    {PROP_NODE_TYPE, "node-type"},
-    {PROP_STRUCTURED_OBJECT_LIST, "structured-object-list"},
-    {PROP_SUBORDINATE_ANNOTATIONS, "subordinate-annotations"},
-    {PROP_SUBORDINATE_LIST, "subordinate-list"},
-    {PROP_ACTUAL_SHED_LEVEL, "actual-shed-level"},
-    {PROP_DUTY_WINDOW, "duty-window"},
-    {PROP_EXPECTED_SHED_LEVEL, "expected-shed-level"},
-    {PROP_FULL_DUTY_BASELINE, "full-duty-baseline"},
-    {PROP_REQUESTED_SHED_LEVEL, "requested-shed-level"},
-    {PROP_SHED_DURATION, "shed-duration"},
-    {PROP_SHED_LEVEL_DESCRIPTIONS, "shed-level-descriptions"},
-    {PROP_SHED_LEVELS, "shed-levels"},
-    {PROP_STATE_DESCRIPTION, "state-descriptions"},
+    {PROP_AUTO_SLAVE_DISCOVERY, "auto-slave-discovery"}
+    ,
+    {PROP_MANUAL_SLAVE_ADDRESS_BINDING, "manual-slave-address-binding"}
+    ,
+    {PROP_SLAVE_ADDRESS_BINDING, "slave-address-binding"}
+    ,
+    {PROP_SLAVE_PROXY_ENABLE, "slave-proxy-enable"}
+    ,
+    {PROP_LAST_NOTIFY_TIME, "last-notify-time"}
+    ,
+    {PROP_SCHEDULE_DEFAULT, "schedule-default"}
+    ,
+    {PROP_ACCEPTED_MODES, "accepted-modes"}
+    ,
+    {PROP_ADJUST_VALUE, "adjust-value"}
+    ,
+    {PROP_COUNT, "count"}
+    ,
+    {PROP_COUNT_BEFORE_CHANGE, "count-before-change"}
+    ,
+    {PROP_COUNT_CHANGE_TIME, "count-change-time"}
+    ,
+    {PROP_COV_PERIOD, "COV-period"}
+    ,
+    {PROP_INPUT_REFERENCE, "input-reference"}
+    ,
+    {PROP_LIMIT_MONITORING_INTERVAL, "limit-monitoring-interval"}
+    ,
+    {PROP_LOGGING_DEVICE, "logging-device"}
+    ,
+    {PROP_LOGGING_RECORD, "logging-record"}
+    ,
+    {PROP_PRESCALE, "prescale"}
+    ,
+    {PROP_PULSE_RATE, "pulse-rate"}
+    ,
+    {PROP_SCALE, "scale"}
+    ,
+    {PROP_SCALE_FACTOR, "scale-factor"}
+    ,
+    {PROP_UPDATE_TIME, "update-time"}
+    ,
+    {PROP_VALUE_BEFORE_CHANGE, "value-before-change"}
+    ,
+    {PROP_VALUE_SET, "value-set"}
+    ,
+    {PROP_VALUE_CHANGE_TIME, "value-change-time"}
+    ,
+    {PROP_ALIGN_INTERVALS, "align-intervals"}
+    ,
+    {PROP_GROUP_MEMBER_NAMES, "group-member-names"}
+    ,
+    {PROP_INTERVAL_OFFSET, "interval-offset"}
+    ,
+    {PROP_LAST_RESTART_REASON, "last-restart-reason"}
+    ,
+    {PROP_LOGGING_TYPE, "logging-type"}
+    ,
+    {PROP_MEMBER_STATUS_FLAGS, "member-status-flags"}
+    ,
+    {PROP_NOTIFICATION_PERIOD, "notification-period"}
+    ,
+    {PROP_PREVIOUS_NOTIFY_RECORD, "previous-notify-record"}
+    ,
+    {PROP_REQUESTED_UPDATE_INTERVAL, "requested-update-interval"}
+    ,
+    {PROP_RESTART_NOTIFICATION_RECIPIENTS,
+            "restart-notification-recipients"}
+    ,
+    {PROP_TIME_OF_DEVICE_RESTART, "time-of-device-restart"}
+    ,
+    {PROP_TIME_SYNCHRONIZATION_INTERVAL, "time-synchronization-interval"}
+    ,
+    {PROP_TRIGGER, "trigger"}
+    ,
+    {PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
+            "UTC-time-synchronization-recipients"}
+    ,
+    {PROP_NODE_SUBTYPE, "node-subtype"}
+    ,
+    {PROP_NODE_TYPE, "node-type"}
+    ,
+    {PROP_STRUCTURED_OBJECT_LIST, "structured-object-list"}
+    ,
+    {PROP_SUBORDINATE_ANNOTATIONS, "subordinate-annotations"}
+    ,
+    {PROP_SUBORDINATE_LIST, "subordinate-list"}
+    ,
+    {PROP_ACTUAL_SHED_LEVEL, "actual-shed-level"}
+    ,
+    {PROP_DUTY_WINDOW, "duty-window"}
+    ,
+    {PROP_EXPECTED_SHED_LEVEL, "expected-shed-level"}
+    ,
+    {PROP_FULL_DUTY_BASELINE, "full-duty-baseline"}
+    ,
+    {PROP_REQUESTED_SHED_LEVEL, "requested-shed-level"}
+    ,
+    {PROP_SHED_DURATION, "shed-duration"}
+    ,
+    {PROP_SHED_LEVEL_DESCRIPTIONS, "shed-level-descriptions"}
+    ,
+    {PROP_SHED_LEVELS, "shed-levels"}
+    ,
+    {PROP_STATE_DESCRIPTION, "state-descriptions"}
+    ,
 
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.

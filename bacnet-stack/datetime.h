@@ -68,8 +68,7 @@ extern "C" {
     void datetime_set_time(BACNET_TIME * btime,
         uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
     void datetime_set(BACNET_DATE_TIME * bdatetime,
-        BACNET_DATE * bdate,
-        BACNET_TIME * btime);
+        BACNET_DATE * bdate, BACNET_TIME * btime);
     void datetime_set_values(BACNET_DATE_TIME * bdatetime,
         uint16_t year, uint8_t month, uint8_t day,
         uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
@@ -80,23 +79,20 @@ extern "C" {
        if date1 is after date2, returns positive */
     int datetime_compare_date(BACNET_DATE * date1, BACNET_DATE * date2);
     int datetime_compare_time(BACNET_TIME * time1, BACNET_TIME * time2);
-    int datetime_compare(
-      BACNET_DATE_TIME * datetime1,
-      BACNET_DATE_TIME * datetime2);
+    int datetime_compare(BACNET_DATE_TIME * datetime1,
+        BACNET_DATE_TIME * datetime2);
 
     /* utility copy functions */
     void datetime_copy_date(BACNET_DATE * date1, BACNET_DATE * date2);
     void datetime_copy_time(BACNET_TIME * time1, BACNET_TIME * time2);
-    void datetime_copy(
-      BACNET_DATE_TIME * datetime1,
-      BACNET_DATE_TIME * datetime2);
+    void datetime_copy(BACNET_DATE_TIME * datetime1,
+        BACNET_DATE_TIME * datetime2);
 
     /* utility add function */
-    void datetime_add_minutes(BACNET_DATE_TIME * bdatetime, uint32_t minutes);
+    void datetime_add_minutes(BACNET_DATE_TIME * bdatetime,
+        uint32_t minutes);
 
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
-
-#endif /* DATE_TIME_H */
-
+#endif                          /* DATE_TIME_H */

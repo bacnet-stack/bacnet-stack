@@ -105,13 +105,13 @@
 
 #define ZERO_CROSS              PORTBbits.RB0
 
-#define PORT_A_TRIS_MASK        0x11  /* 0b00010001 */
-#define PORT_B_TRIS_MASK        0xC7  /* 0b11000111 */
-#define PORT_C_TRIS_MASK        0x9C  /* 0b10011100 */
-#define PORT_D_TRIS_MASK        0xFF  /* 0b11111111 */
-#define PORT_E_TRIS_MASK        0x88  /* 0b10001000 */
-#define PORT_F_TRIS_MASK        0x00  /* 0b00000000 */
-#define PORT_G_TRIS_MASK        0x04  /* 0b00000100 */
+#define PORT_A_TRIS_MASK        0x11    /* 0b00010001 */
+#define PORT_B_TRIS_MASK        0xC7    /* 0b11000111 */
+#define PORT_C_TRIS_MASK        0x9C    /* 0b10011100 */
+#define PORT_D_TRIS_MASK        0xFF    /* 0b11111111 */
+#define PORT_E_TRIS_MASK        0x88    /* 0b10001000 */
+#define PORT_F_TRIS_MASK        0x00    /* 0b00000000 */
+#define PORT_G_TRIS_MASK        0x04    /* 0b00000100 */
 
 #define TURN_OFF_COMPARATORS()  CMCON = 0x07
 
@@ -121,86 +121,81 @@
 #define CLICK()                 Hardware_Sound_Piezo(SHORT_BEEP);
 #define BEEP()                  Hardware_Sound_Piezo(LONG_BEEP);
 
-typedef union
-{
-  struct
-  {
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t Thursday : 1;
-    uint8_t Wednesday : 1;
-    uint8_t Tuesday : 1;
-    uint8_t Monday : 1;
-    uint8_t Program : 1;
-    uint8_t Run : 1;
+typedef union {
+    struct {
+        uint8_t:1;
+        uint8_t:1;
+        uint8_t Thursday:1;
+        uint8_t Wednesday:1;
+        uint8_t Tuesday:1;
+        uint8_t Monday:1;
+        uint8_t Program:1;
+        uint8_t Run:1;
 
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t Input1 : 1;
-    uint8_t Input2 : 1;
-    uint8_t Input3 : 1;
-    uint8_t Input4 : 1;
-    uint8_t Input5 : 1;
-    uint8_t Input6 : 1;
+         uint8_t:1;
+         uint8_t:1;
+        uint8_t Input1:1;
+        uint8_t Input2:1;
+        uint8_t Input3:1;
+        uint8_t Input4:1;
+        uint8_t Input5:1;
+        uint8_t Input6:1;
 
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t Input7 : 1;
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t Input8 : 1;
-    uint8_t Photocell : 1;
+         uint8_t:1;
+         uint8_t:1;
+         uint8_t:1;
+        uint8_t Input7:1;
+         uint8_t:1;
+         uint8_t:1;
+        uint8_t Input8:1;
+        uint8_t Photocell:1;
 
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t Remote : 1;
-    uint8_t Relay8 : 1;
+         uint8_t:1;
+         uint8_t:1;
+         uint8_t:1;
+         uint8_t:1;
+         uint8_t:1;
+         uint8_t:1;
+        uint8_t Remote:1;
+        uint8_t Relay8:1;
 
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t Relay7 : 1;
-    uint8_t Relay6 : 1;
-    uint8_t Relay5 : 1;
-    uint8_t Relay4 : 1;
-    uint8_t Relay3 : 1;
+         uint8_t:1;
+         uint8_t:1;
+         uint8_t:1;
+        uint8_t Relay7:1;
+        uint8_t Relay6:1;
+        uint8_t Relay5:1;
+        uint8_t Relay4:1;
+        uint8_t Relay3:1;
 
-    uint8_t:1;
-    uint8_t:1;
-    uint8_t Relay2 : 1;
-    uint8_t Relay1 : 1;
-    uint8_t Holiday : 1;
-    uint8_t Sunday : 1;
-    uint8_t Saturday : 1;
-    uint8_t Friday : 1;
-  };
-  struct
-  {
-    uint8_t row1;
-    uint8_t row2;
-    uint8_t row3;
-    uint8_t row4;
-    uint8_t row5;
-    uint8_t row6;
-  };
+         uint8_t:1;
+         uint8_t:1;
+        uint8_t Relay2:1;
+        uint8_t Relay1:1;
+        uint8_t Holiday:1;
+        uint8_t Sunday:1;
+        uint8_t Saturday:1;
+        uint8_t Friday:1;
+    };
+    struct {
+        uint8_t row1;
+        uint8_t row2;
+        uint8_t row3;
+        uint8_t row4;
+        uint8_t row5;
+        uint8_t row6;
+    };
 } LED_REGS;
 
-union SWITCH_REGS
-{
-  struct
-  {
-    uint8_t All_On : 1;
-    uint8_t All_Off : 1;
-    uint8_t Addr : 4;
-    uint8_t Pilot_Fault : 1;
-    uint8_t Master : 1;
-  };
-  uint8_t Sw_Byte;
+union SWITCH_REGS {
+    struct {
+        uint8_t All_On:1;
+        uint8_t All_Off:1;
+        uint8_t Addr:4;
+        uint8_t Pilot_Fault:1;
+        uint8_t Master:1;
+    };
+    uint8_t Sw_Byte;
 };
 
 enum INT_STATE { INT_DISABLED, INT_ENABLED, INT_RESTORE };
@@ -259,10 +254,9 @@ enum INT_STATE { INT_DISABLED, INT_ENABLED, INT_RESTORE };
 #endif
 
 /* Global Vars */
-extern volatile LED_REGS  LEDS;
-extern volatile LED_REGS  Blink;
-extern uint8_t              Piezo_Timer;
-extern volatile bool   DataPortLocked;
+extern volatile LED_REGS LEDS;
+extern volatile LED_REGS Blink;
+extern uint8_t Piezo_Timer;
+extern volatile bool DataPortLocked;
 
-#endif /* HARDWARE_H */
-
+#endif                          /* HARDWARE_H */

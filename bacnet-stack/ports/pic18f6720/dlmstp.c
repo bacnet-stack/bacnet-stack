@@ -35,8 +35,8 @@
 #include "rs485.h"
 #include "npdu.h"
 
-// Number of MS/TP Packets Rx/Tx 
-uint16_t MSTP_Packets = 0;   
+/* Number of MS/TP Packets Rx/Tx  */
+uint16_t MSTP_Packets = 0;
 
 /* receive buffer */
 #pragma udata MSTP_RxData
@@ -49,9 +49,9 @@ volatile struct mstp_port_struct_t MSTP_Port;
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 
-// This defines the number of edit fields for this module
+/* This defines the number of edit fields for this module */
 #define MAX_EDIT_FIELD 1
-static  uint8_t  EditField = 0;
+static uint8_t EditField = 0;
 /* *************************************************************************
   DESCRIPTION:  This function handles incrementing or decrementing our
                 EditField
@@ -59,23 +59,18 @@ static  uint8_t  EditField = 0;
   ALGORITHM:  none
   NOTES:  Pass a #>0 to increment #<0 to decrement
  *************************************************************************** */
-void dlmstp_SetEditField(
-  signed char state)  /* direction our editfield is moving */
-{
-  if (state > 0)
-  {
-    if (++EditField > MAX_EDIT_FIELD)
-      EditField = 0;
-  }
-  else if (state < 0)
-  {
-    if (EditField)
-      EditField--;
-    else
-      EditField = MAX_EDIT_FIELD;
-  }
-  else
-    EditField = 0;
+void dlmstp_SetEditField(signed char state)
+{                               /* direction our editfield is moving */
+    if (state > 0) {
+        if (++EditField > MAX_EDIT_FIELD)
+            EditField = 0;
+    } else if (state < 0) {
+        if (EditField)
+            EditField--;
+        else
+            EditField = MAX_EDIT_FIELD;
+    } else
+        EditField = 0;
 }
 
 /* *************************************************************************
@@ -86,12 +81,12 @@ void dlmstp_SetEditField(
  *************************************************************************** */
 uint8_t dlmstp_GetEditField(void)
 {
-  return (EditField);
+    return (EditField);
 }
 
 void dlmstp_millisecond_timer(void)
 {
-  INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
+    INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
 }
 
 void dlmstp_reinit(void)
@@ -105,7 +100,7 @@ void dlmstp_reinit(void)
 void dlmstp_init(void)
 {
     uint8_t data;
-  
+
     /* initialize buffer */
     Receive_Buffer.ready = false;
     Receive_Buffer.pdu_len = 0;
@@ -114,26 +109,26 @@ void dlmstp_init(void)
     MSTP_Port.InputBuffer = &Receive_Buffer.pdu[0];
     MSTP_Init(&MSTP_Port);
     /* FIXME: implement your data storage */
-    data = 64; /* I2C_Read_Byte(
-        EEPROM_DEVICE_ADDRESS, 
-        EEPROM_MSTP_MAC_ADDR); */
+    data = 64;                  /* I2C_Read_Byte(
+                                   EEPROM_DEVICE_ADDRESS, 
+                                   EEPROM_MSTP_MAC_ADDR); */
     if (data <= 127)
         MSTP_Port.This_Station = data;
     else
         dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
     /* FIXME: implement your data storage */
-    data = 127; /* I2C_Read_Byte(
-        EEPROM_DEVICE_ADDRESS, 
-        EEPROM_MSTP_MAX_MASTER_ADDR); */
+    data = 127;                 /* I2C_Read_Byte(
+                                   EEPROM_DEVICE_ADDRESS, 
+                                   EEPROM_MSTP_MAX_MASTER_ADDR); */
     if ((data <= 127) && (data >= MSTP_Port.This_Station))
         MSTP_Port.Nmax_master = data;
     else
         dlmstp_set_max_master(DEFAULT_MAX_MASTER);
     /* FIXME: implement your data storage */
-    data = 1; 
-        /* I2C_Read_Byte(
-            EEPROM_DEVICE_ADDRESS, 
-            EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
+    data = 1;
+    /* I2C_Read_Byte(
+       EEPROM_DEVICE_ADDRESS, 
+       EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
     if (data >= 1)
         MSTP_Port.Nmax_info_frames = data;
     else
@@ -156,7 +151,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     uint8_t frame_type = 0;
     uint8_t destination = 0;    /* destination address */
     BACNET_ADDRESS src;
-    unsigned i = 0; /* loop counter */
+    unsigned i = 0;             /* loop counter */
 
     if (MSTP_Port.TxReady == false) {
         if (npdu_data->data_expecting_reply)
@@ -172,15 +167,14 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
             return -2;
         }
         dlmstp_get_my_address(&src);
-        if ((8 /* header len */ + pdu_len) > MAX_MPDU) {
+        if ((8 /* header len */  + pdu_len) > MAX_MPDU) {
             return -4;
         }
         bytes_sent = MSTP_Create_Frame(
             (uint8_t *) & MSTP_Port.TxBuffer[0],
             sizeof(MSTP_Port.TxBuffer),
             MSTP_Port.TxFrameType,
-            destination,
-            MSTP_Port.This_Station, pdu, pdu_len);
+            destination, MSTP_Port.This_Station, pdu, pdu_len);
         MSTP_Port.TxLength = bytes_sent;
         MSTP_Port.TxReady = true;
         MSTP_Packets++;
@@ -193,15 +187,14 @@ void dlmstp_task(void)
 {
     uint8_t bytes_remaining;
     bool received_frame;
-    
+
     /* only do receive state machine while we don't have a frame */
     if ((MSTP_Port.ReceivedValidFrame == false) &&
-        (MSTP_Port.ReceivedInvalidFrame == false))
-    {
+        (MSTP_Port.ReceivedInvalidFrame == false)) {
         do {
             bytes_remaining = RS485_Check_UART_Data(&MSTP_Port);
             MSTP_Receive_Frame_FSM(&MSTP_Port);
-            received_frame = MSTP_Port.ReceivedValidFrame || 
+            received_frame = MSTP_Port.ReceivedValidFrame ||
                 MSTP_Port.ReceivedInvalidFrame;
             if (received_frame)
                 break;
@@ -209,22 +202,21 @@ void dlmstp_task(void)
     }
     /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
-        while (MSTP_Master_Node_FSM(&MSTP_Port)) {};
-        //MSTP_Master_Node_FSM(&MSTP_Port);
+        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
+        };
+        /*MSTP_Master_Node_FSM(&MSTP_Port); */
     }
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
     if (Receive_Buffer.ready && !MSTP_Port.TxReady) {
         if (Receive_Buffer.pdu_len) {
             MSTP_Packets++;
-            npdu_handler(
-              &Receive_Buffer.address, 
-              &Receive_Buffer.pdu[0], 
-              Receive_Buffer.pdu_len);
+            npdu_handler(&Receive_Buffer.address,
+                &Receive_Buffer.pdu[0], Receive_Buffer.pdu_len);
         }
         Receive_Buffer.ready = false;
     }
-    
+
     return;
 }
 
@@ -252,11 +244,10 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t dlmstp_put_receive(
-  uint8_t src, /* source MS/TP address */
-  uint8_t * pdu, /* PDU data */
-  uint16_t pdu_len) /* amount of PDU data */
-{
+uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
+    uint8_t * pdu,              /* PDU data */
+    uint16_t pdu_len)
+{                               /* amount of PDU data */
     /* PDU is already in the Receive_Buffer */
     dlmstp_fill_bacnet_address(&Receive_Buffer.address, src);
     Receive_Buffer.pdu_len = pdu_len;
@@ -270,9 +261,9 @@ void dlmstp_set_my_address(uint8_t mac_address)
         MSTP_Port.This_Station = mac_address;
         /* FIXME: implement your data storage */
         /* I2C_Write_Byte(
-            EEPROM_DEVICE_ADDRESS, 
-            mac_address,
-            EEPROM_MSTP_MAC_ADDR); */
+           EEPROM_DEVICE_ADDRESS, 
+           mac_address,
+           EEPROM_MSTP_MAC_ADDR); */
         if (mac_address > MSTP_Port.Nmax_master)
             dlmstp_set_max_master(mac_address);
     }
@@ -298,9 +289,9 @@ void dlmstp_set_max_info_frames(uint8_t max_info_frames)
         MSTP_Port.Nmax_info_frames = max_info_frames;
         /* FIXME: implement your data storage */
         /* I2C_Write_Byte(  
-            EEPROM_DEVICE_ADDRESS, 
-            (uint8_t)max_info_frames,
-            EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
+           EEPROM_DEVICE_ADDRESS, 
+           (uint8_t)max_info_frames,
+           EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
     }
 
     return;
@@ -323,9 +314,9 @@ void dlmstp_set_max_master(uint8_t max_master)
             MSTP_Port.Nmax_master = max_master;
             /* FIXME: implement your data storage */
             /* I2C_Write_Byte(
-                EEPROM_DEVICE_ADDRESS, 
-                max_master,
-                EEPROM_MSTP_MAX_MASTER_ADDR); */
+               EEPROM_DEVICE_ADDRESS, 
+               max_master,
+               EEPROM_MSTP_MAX_MASTER_ADDR); */
         }
     }
 

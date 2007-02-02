@@ -259,7 +259,8 @@ void handler_write_property(uint8_t * service_request,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
                     error_code);
 #if PRINT_ENABLED
-                fprintf(stderr, "Sending Write Access Error for Load Control!\n");
+                fprintf(stderr,
+                    "Sending Write Access Error for Load Control!\n");
 #endif
             }
             break;

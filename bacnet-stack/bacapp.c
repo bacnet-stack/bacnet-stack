@@ -173,31 +173,29 @@ int bacapp_decode_application_data(uint8_t * apdu,
 }
 
 int bacapp_encode_context_data(uint8_t * apdu,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    BACNET_PROPERTY_ID property)
+    BACNET_APPLICATION_DATA_VALUE * value, BACNET_PROPERTY_ID property)
 {
     int apdu_len = 0;           /* total length of the apdu, return value */
 
     if (value && apdu) {
         switch (property) {
-            case PROP_REQUESTED_SHED_LEVEL:
-                switch (value->tag) {
-                    case 0:
-                    case 1:
-                        apdu_len = encode_tagged_unsigned(&apdu[0],
-                            value->type.Unsigned_Int);
-                        break;
-                    case 2:
-                        apdu_len = encode_tagged_real(&apdu[0],
-                            value->type.Real);
-                        break;
-                    default:
-                        apdu_len = 0;
-                        break;
-                }
+        case PROP_REQUESTED_SHED_LEVEL:
+            switch (value->tag) {
+            case 0:
+            case 1:
+                apdu_len = encode_tagged_unsigned(&apdu[0],
+                    value->type.Unsigned_Int);
+                break;
+            case 2:
+                apdu_len = encode_tagged_real(&apdu[0], value->type.Real);
                 break;
             default:
+                apdu_len = 0;
                 break;
+            }
+            break;
+        default:
+            break;
         }
     }
     return apdu_len;
@@ -221,25 +219,23 @@ int bacapp_decode_context_data(uint8_t * apdu,
             len += tag_len;
             value->tag = tag_number;
             switch (property) {
-                case PROP_REQUESTED_SHED_LEVEL:
-                    switch (tag_number) {
-                        case 0:
-                        case 1:
-                            len += decode_unsigned(&apdu[len],
-                                len_value_type,
-                                &(value->type.Unsigned_Int));
-                            break;
-                        case 2:
-                            len += decode_real(&apdu[len],
-                                &(value->type.Real));
-                            break;
-                        default:
-                            len = 0;
-                            break;
-                    }
+            case PROP_REQUESTED_SHED_LEVEL:
+                switch (tag_number) {
+                case 0:
+                case 1:
+                    len += decode_unsigned(&apdu[len],
+                        len_value_type, &(value->type.Unsigned_Int));
+                    break;
+                case 2:
+                    len += decode_real(&apdu[len], &(value->type.Real));
                     break;
                 default:
+                    len = 0;
                     break;
+                }
+                break;
+            default:
+                break;
             }
         }
     }
@@ -277,10 +273,12 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
             dest_value->type.Enumerated = src_value->type.Enumerated;
             break;
         case BACNET_APPLICATION_TAG_DATE:
-            datetime_copy_date(&dest_value->type.Date, &src_value->type.Date);
+            datetime_copy_date(&dest_value->type.Date,
+                &src_value->type.Date);
             break;
         case BACNET_APPLICATION_TAG_TIME:
-            datetime_copy_time(&dest_value->type.Time, &src_value->type.Time);
+            datetime_copy_time(&dest_value->type.Time,
+                &src_value->type.Time);
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             dest_value->type.Object_Id.type =
@@ -310,57 +308,56 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
    Expects that the first octet contain the opening tag.
    Include a value property identifier for context specific data
    such as the value received in a WriteProperty request */
-int bacapp_data_len(uint8_t *apdu, int max_apdu_len,
+int bacapp_data_len(uint8_t * apdu, int max_apdu_len,
     BACNET_PROPERTY_ID property)
 {
-  int len = 0;
-  int total_len = 0;
-  int apdu_len = 0;
-  uint8_t tag_number = 0;
-  uint8_t opening_tag_number = 0;
-  uint8_t opening_tag_number_counter = 0;
-  uint32_t value = 0;
-  BACNET_APPLICATION_DATA_VALUE application_value;
+    int len = 0;
+    int total_len = 0;
+    int apdu_len = 0;
+    uint8_t tag_number = 0;
+    uint8_t opening_tag_number = 0;
+    uint8_t opening_tag_number_counter = 0;
+    uint32_t value = 0;
+    BACNET_APPLICATION_DATA_VALUE application_value;
 
-  if (decode_is_opening_tag(&apdu[0])) {
-      len = decode_tag_number_and_value(&apdu[apdu_len],
-          &tag_number, &value);
-      apdu_len += len;
-      opening_tag_number = tag_number;
-      opening_tag_number_counter = 1;
-      while (opening_tag_number_counter) {
-          if (decode_is_opening_tag(&apdu[apdu_len])) {
-              len = decode_tag_number_and_value(&apdu[apdu_len],
-                  &tag_number, &value);
-              if (tag_number == opening_tag_number)
-                  opening_tag_number_counter++;
-          } else if (decode_is_closing_tag(&apdu[apdu_len])) {
-              len = decode_tag_number_and_value(&apdu[apdu_len],
-                  &tag_number, &value);
-              if (tag_number == opening_tag_number)
-                  opening_tag_number_counter--;
-          } else if (decode_is_context_specific(&apdu[apdu_len])) {
-              /* context-specific tagged data */
-              len = bacapp_decode_context_data(&apdu[apdu_len],
-                  max_apdu_len - apdu_len, &application_value, property);
-          } else {
-              /* application tagged data */
-              len = bacapp_decode_application_data(&apdu[apdu_len],
-                  max_apdu_len - apdu_len, &application_value);
-          }
-          apdu_len += len;
-          if (opening_tag_number_counter)
-            total_len += len;
-          /* ERROR! */
-          if (apdu_len > max_apdu_len)
-          {
-            total_len = -1;
-            break;
-          }
-      }
-  }
+    if (decode_is_opening_tag(&apdu[0])) {
+        len = decode_tag_number_and_value(&apdu[apdu_len],
+            &tag_number, &value);
+        apdu_len += len;
+        opening_tag_number = tag_number;
+        opening_tag_number_counter = 1;
+        while (opening_tag_number_counter) {
+            if (decode_is_opening_tag(&apdu[apdu_len])) {
+                len = decode_tag_number_and_value(&apdu[apdu_len],
+                    &tag_number, &value);
+                if (tag_number == opening_tag_number)
+                    opening_tag_number_counter++;
+            } else if (decode_is_closing_tag(&apdu[apdu_len])) {
+                len = decode_tag_number_and_value(&apdu[apdu_len],
+                    &tag_number, &value);
+                if (tag_number == opening_tag_number)
+                    opening_tag_number_counter--;
+            } else if (decode_is_context_specific(&apdu[apdu_len])) {
+                /* context-specific tagged data */
+                len = bacapp_decode_context_data(&apdu[apdu_len],
+                    max_apdu_len - apdu_len, &application_value, property);
+            } else {
+                /* application tagged data */
+                len = bacapp_decode_application_data(&apdu[apdu_len],
+                    max_apdu_len - apdu_len, &application_value);
+            }
+            apdu_len += len;
+            if (opening_tag_number_counter)
+                total_len += len;
+            /* ERROR! */
+            if (apdu_len > max_apdu_len) {
+                total_len = -1;
+                break;
+            }
+        }
+    }
 
-  return total_len;
+    return total_len;
 }
 
 #ifdef BACAPP_PRINT_ENABLED
@@ -475,7 +472,7 @@ bool bacapp_print_value(FILE * stream,
             for (i = 0; i < len; i++) {
                 fprintf(stream, "%s",
                     bitstring_bit(&value->type.Bit_String,
-                        (uint8_t)i) ? "true" : "false");
+                        (uint8_t) i) ? "true" : "false");
                 if (i < len - 1)
                     fprintf(stream, ",");
             }
@@ -580,7 +577,7 @@ void testBACnetApplicationDataLength(Test * pTest)
 {
     int apdu_len = 0;           /* total length of the apdu, return value */
     int len = 0;                /* total length of the apdu, return value */
-    int test_len = 0; /* length of the data */
+    int test_len = 0;           /* length of the data */
     uint8_t apdu[480] = { 0 };
     BACNET_TIME local_time;
     BACNET_DATE local_date;
@@ -609,8 +606,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = bacapp_data_len(&apdu[0], apdu_len,
-        PROP_OBJECT_IDENTIFIER);
+    len = bacapp_data_len(&apdu[0], apdu_len, PROP_OBJECT_IDENTIFIER);
     ct_test(pTest, test_len == len);
 
     /* 3. application tagged data, multiple elements */
@@ -669,8 +665,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = bacapp_data_len(&apdu[0], apdu_len,
-        PROP_PRIORITY_ARRAY);
+    len = bacapp_data_len(&apdu[0], apdu_len, PROP_PRIORITY_ARRAY);
     ct_test(pTest, test_len == len);
 
     /* 4. complex datatype - one element */
@@ -681,10 +676,10 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_opening_tag(&apdu[apdu_len], 3);
     test_len += len;
     apdu_len += len;
-    local_date.year = 2006; /* AD */
-    local_date.month = 4;   /* 1=Jan */
-    local_date.day = 1;     /* 1..31 */
-    local_date.wday = 6;    /* 1=Monday */
+    local_date.year = 2006;     /* AD */
+    local_date.month = 4;       /* 1=Jan */
+    local_date.day = 1;         /* 1..31 */
+    local_date.wday = 6;        /* 1=Monday */
     len = encode_tagged_date(&apdu[apdu_len], &local_date);
     test_len += len;
     apdu_len += len;
@@ -701,8 +696,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = bacapp_data_len(&apdu[0], apdu_len,
-        PROP_START_TIME);
+    len = bacapp_data_len(&apdu[0], apdu_len, PROP_START_TIME);
     ct_test(pTest, test_len == len);
 
     /* 5. complex datatype - multiple elements */
@@ -720,8 +714,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
-    len = bacapp_data_len(&apdu[0], apdu_len,
-        PROP_REQUESTED_SHED_LEVEL);
+    len = bacapp_data_len(&apdu[0], apdu_len, PROP_REQUESTED_SHED_LEVEL);
     ct_test(pTest, test_len == len);
 }
 
@@ -766,12 +759,12 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
             break;
         case BACNET_APPLICATION_TAG_DATE:
             if (datetime_compare_date(&test_value->type.Date,
-                &value->type.Date) != 0)
+                    &value->type.Date) != 0)
                 status = false;
             break;
         case BACNET_APPLICATION_TAG_TIME:
             if (datetime_compare_time(&test_value->type.Time,
-                &value->type.Time) != 0)
+                    &value->type.Time) != 0)
                 status = false;
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
