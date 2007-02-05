@@ -1025,12 +1025,17 @@ int encode_tagged_object_id(uint8_t * apdu,
 int encode_octet_string(uint8_t * apdu, BACNET_OCTET_STRING * octet_string)
 {
     int len = 0;                /* return value */
+    uint8_t *value;
+    int i = 0; /* loop counter */
 
     if (octet_string) {
         /* FIXME: might need to pass in the length of the APDU
            to bounds check since it might not be the only data chunk */
         len = octetstring_length(octet_string);
-        memmove(&apdu[0], octetstring_value(octet_string), len);
+        value = octetstring_value(octet_string);
+        for (i = 0; i < len; i++) {
+            apdu[1+i] = value[i];
+        }
     }
 
     return len;
@@ -1100,11 +1105,15 @@ int decode_octet_string(uint8_t * apdu, uint32_t len_value,
 int encode_bacnet_character_string(uint8_t * apdu,
     BACNET_CHARACTER_STRING * char_string)
 {
-    int len;
+    int len, i;
+    char *pString;
 
     len = characterstring_length(char_string);
     apdu[0] = characterstring_encoding(char_string);
-    memmove(&apdu[1], characterstring_value(char_string), len);
+    pString = characterstring_value(char_string);
+    for (i = 0; i < len; i++) {
+        apdu[1+i] = pString[i];
+    }
 
     return len + 1 /* for encoding */ ;
 }
