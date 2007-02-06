@@ -309,7 +309,7 @@ void handler_write_property(uint8_t * service_request,
 #endif
             }
             break;
-#endif
+#endif /* BACFILE */
         default:
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
