@@ -110,6 +110,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+#include "datetime.h"
     bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
 
