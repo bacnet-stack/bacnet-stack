@@ -280,7 +280,12 @@ void Load_Control_State_Machine(int object_index)
         diff = datetime_compare(&Current_Time, &Start_Time[object_index]);
         /* current time prior to start time */
         if (diff < 0) {
-
+            /* ReconfigurePending */
+            /* PrepareToShed */
+            /* AbleToMeetShed */
+        } else {
+            /* AbleToMeetShed */
+            /* CannotMeetShed */
         }
         break;
     case SHED_NON_COMPLIANT:
