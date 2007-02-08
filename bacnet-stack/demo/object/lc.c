@@ -38,17 +38,22 @@
 #include "lc.h"
 #include "wp.h"
 
-/* number of objects */
-#define MAX_LOAD_CONTROLS 6
+/* number of demo objects */
+#define MAX_LOAD_CONTROLS 4
 
 /*  indicates the current load shedding state of the object */
 static BACNET_SHED_STATE Present_Value[MAX_LOAD_CONTROLS];
 
+/* load control objects are required to support LEVEL */
 typedef enum BACnetShedLevelType {
     BACNET_SHED_TYPE_PERCENT,   /* Unsigned */
     BACNET_SHED_TYPE_LEVEL,     /* Unsigned */
     BACNET_SHED_TYPE_AMOUNT     /* REAL */
 } BACNET_SHED_LEVEL_TYPE;
+
+#define DEFAULT_VALUE_PERCENT 100
+#define DEFAULT_VALUE_LEVEL 0
+#define DEFAULT_VALUE_AMOUNT 0
 
 /* The shed levels for the LEVEL choice of BACnetShedLevel
    that have meaning for this particular Load Control object. */
@@ -266,6 +271,29 @@ void Load_Control_State_Machine(int object_index)
 
     switch (state[object_index]) {
     case SHED_REQUEST_PENDING:
+        /* request to cancel using default values? */
+        switch (Requested_Shed_Level[object_index].type) {
+            case BACNET_SHED_TYPE_PERCENT:
+                if (Requested_Shed_Level[object_index].value.percent == 
+                    DEFAULT_VALUE_PERCENT)
+                    state[object_index] = SHED_INACTIVE;
+                break;
+            case BACNET_SHED_TYPE_AMOUNT:
+                if (Requested_Shed_Level[object_index].value.amount == 
+                    DEFAULT_VALUE_AMOUNT)
+                    state[object_index] = SHED_INACTIVE;
+                break;
+            case BACNET_SHED_TYPE_LEVEL:
+            default:
+                if (Requested_Shed_Level[object_index].value.level ==
+                    DEFAULT_VALUE_LEVEL)
+                    state[object_index] = SHED_INACTIVE;
+                break;
+        }
+        if (state[object_index] == SHED_INACTIVE)
+            break;
+        /* request to cancel using wildcards in start time? */
+        /* cancel because current time is after start time + duration? */
         Update_Current_Time(&Current_Time);
         datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
         datetime_add_minutes(&End_Time[object_index],
@@ -476,7 +504,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_SHED_LEVELS:
         /* Array element zero is the number of elements in the array */
-        if (array_index == BACNET_ARRAY_LENGTH_INDEX)
+        if (array_index == 0)
             apdu_len = encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
@@ -510,7 +538,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_SHED_LEVEL_DESCRIPTIONS:
         /* Array element zero is the number of elements in the array */
-        if (array_index == BACNET_ARRAY_LENGTH_INDEX)
+        if (array_index == 0)
             apdu_len = encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
@@ -584,16 +612,19 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             &value, PROP_REQUESTED_SHED_LEVEL);
         if (value.tag == 0) {
             /* percent - Unsigned */
+            Requested_Shed_Level[object_index].type = BACNET_SHED_TYPE_PERCENT;
             Requested_Shed_Level[object_index].value.percent =
                 value.type.Unsigned_Int;
             status = true;
         } else if (value.tag == 1) {
             /* level - Unsigned */
+            Requested_Shed_Level[object_index].type = BACNET_SHED_TYPE_LEVEL;
             Requested_Shed_Level[object_index].value.level =
                 value.type.Unsigned_Int;
             status = true;
         } else if (value.tag == 2) {
             /* amount - REAL */
+            Requested_Shed_Level[object_index].type = BACNET_SHED_TYPE_AMOUNT;
             Requested_Shed_Level[object_index].value.amount =
                 value.type.Real;
             status = true;

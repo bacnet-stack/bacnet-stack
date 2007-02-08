@@ -709,7 +709,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     case PROP_OBJECT_LIST:
         count = Device_Object_List_Count();
         /* Array element zero is the number of objects in the list */
-        if (array_index == BACNET_ARRAY_LENGTH_INDEX)
+        if (array_index == 0)
             apdu_len = encode_tagged_unsigned(&apdu[0], count);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet.  Note that more than likely you will have */
