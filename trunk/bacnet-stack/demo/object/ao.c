@@ -207,7 +207,7 @@ int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_PRIORITY_ARRAY:
         /* Array element zero is the number of elements in the array */
-        if (array_index == BACNET_ARRAY_LENGTH_INDEX)
+        if (array_index == 0)
             apdu_len =
                 encode_tagged_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
         /* if no index was specified, then try to encode the entire list */
