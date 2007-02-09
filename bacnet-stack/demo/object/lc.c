@@ -36,6 +36,7 @@
 #include "bacenum.h"
 #include "config.h"             /* the custom stuff */
 #include "lc.h"
+#include "ao.h"
 #include "wp.h"
 
 /* number of demo objects */
@@ -127,13 +128,12 @@ void Load_Control_Init(void)
             Present_Value[i] = BACNET_SHED_INACTIVE;
             Requested_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Requested_Shed_Level[i].value.level = 0;
-            datetime_set_values(&Start_Time[i], 0, 0, 0, 0, 0, 0, 0);
-            datetime_set_values(&Previous_Start_Time[i], 0, 0, 0, 0, 0, 0,
-                0);
+            datetime_wildcard_set(&Start_Time[i]);
+            datetime_wildcard_set(&Previous_Start_Time[i]);
             Shed_Duration[i] = 0;
             Duty_Window[i] = 0;
             Load_Control_Enable[i] = true;
-            Full_Duty_Baseline[i] = 0.0;
+            Full_Duty_Baseline[i] = 1.500; /* kilowatts */
             for (j = 0; j < MAX_SHED_LEVELS; j++) {
                 /* FIXME: fake data for lighting application */
                 /* The array shall be ordered by increasing shed amount. */
@@ -248,6 +248,57 @@ struct tm {
         tblock->tm_hour, tblock->tm_min, tblock->tm_sec, 0);
 }
 
+static bool Able_To_Meet_Shed_Request(int object_index)
+{
+    float level = 0.0;
+    float requested_level = 0.0;
+    unsigned priority = 0;
+    bool status = false;
+    int object_instance = 0;
+    unsigned shed_level_index = 0;
+  
+    /* This demo is going to use the Analog Outputs as their Load */
+    object_instance = object_index;
+    /* Assumptions: 1500 watt loads on each Analog Output
+       wattage is linear with analog output level
+       10% reduction is 150 watt reduction
+       Analog Output present value is in percent */
+    priority = Analog_Output_Present_Value_Priority(object_instance);
+    /* we are controlling at Priority 4 - can we control the output? */
+    if (priority >= 4) {
+        /* is the level able to be lowered? */
+        level = Analog_Output_Present_Value(object_instance);
+        switch (Requested_Shed_Level[object_index].type) {
+            case BACNET_SHED_TYPE_PERCENT:
+                requested_level = (float)Requested_Shed_Level[object_index].value.percent;
+                break;
+            case BACNET_SHED_TYPE_AMOUNT:
+                /* Assumptions: wattage is linear with analog output level */
+                requested_level = Full_Duty_Baseline[object_index] - Requested_Shed_Level[object_index].value.amount;
+                requested_level /= Full_Duty_Baseline[object_index];
+                requested_level *= 100.0;
+                break;
+            case BACNET_SHED_TYPE_LEVEL:
+            default:
+                shed_level_index = Requested_Shed_Level[object_index].value.level;
+                if (shed_level_index < MAX_SHED_LEVELS) {
+                    /* FIXME: contradiction - Shed_Levels is able to be changed? */
+                    /* FIXME: Shed_Levels is unsigned, not REAL like baseline */
+                    /* FIXME: where do I get my requested level? */
+                    /* Shed_Levels[object_index][shed_level_index]; */
+                }
+                break;
+        }
+        if (level >= requested_level)
+            status = true;
+
+      
+      
+    }
+    
+  
+}
+
 typedef enum load_control_state {
     SHED_INACTIVE,
     SHED_REQUEST_PENDING,
@@ -293,6 +344,10 @@ void Load_Control_State_Machine(int object_index)
         if (state[object_index] == SHED_INACTIVE)
             break;
         /* request to cancel using wildcards in start time? */
+        if (datetime_wildcard(&Start_Time)) {
+            state[object_index] = SHED_INACTIVE;
+            break;
+        }
         /* cancel because current time is after start time + duration? */
         Update_Current_Time(&Current_Time);
         datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
@@ -306,12 +361,13 @@ void Load_Control_State_Machine(int object_index)
             break;
         }
         diff = datetime_compare(&Current_Time, &Start_Time[object_index]);
-        /* current time prior to start time */
         if (diff < 0) {
+            /* current time prior to start time */
             /* ReconfigurePending */
             /* PrepareToShed */
             /* AbleToMeetShed */
-        } else {
+        } else if (diff > 0) {
+            /* current time after to start time */
             /* AbleToMeetShed */
             /* CannotMeetShed */
         }
