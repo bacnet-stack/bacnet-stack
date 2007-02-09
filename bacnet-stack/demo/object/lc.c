@@ -58,7 +58,6 @@ typedef enum BACnetShedLevelType {
 
 /* The shed levels for the LEVEL choice of BACnetShedLevel
    that have meaning for this particular Load Control object. */
-#define MAX_SHED_LEVELS 3
 typedef struct {
     BACNET_SHED_LEVEL_TYPE type;
     union {
@@ -80,7 +79,6 @@ static BACNET_SHED_LEVEL Actual_Shed_Level[MAX_LOAD_CONTROLS];
    by the Load Control object must be compliant with the requested shed. */
 static BACNET_DATE_TIME Start_Time[MAX_LOAD_CONTROLS];
 static BACNET_DATE_TIME End_Time[MAX_LOAD_CONTROLS];
-static BACNET_DATE_TIME Previous_Start_Time[MAX_LOAD_CONTROLS];
 static BACNET_DATE_TIME Current_Time;
 
 /* indicates the duration of the load shed action,
@@ -94,15 +92,22 @@ static uint32_t Duty_Window[MAX_LOAD_CONTROLS];
    currently enabled to respond to load shed requests.  */
 static bool Load_Control_Enable[MAX_LOAD_CONTROLS];
 
+/* indicates when the object receives a write to any of the properties
+   Requested_Shed_Level, Shed_Duration, Duty_Window */
+static bool Load_Control_Property_Written[MAX_LOAD_CONTROLS];
+/* indicates when the object receives a write to Start_Time */
+static bool Start_Time_Property_Written[MAX_LOAD_CONTROLS];
+
 /* optional: indicates the baseline power consumption value
    for the sheddable load controlled by this object,
    if a fixed baseline is used.
    The units of Full_Duty_Baseline are kilowatts.*/
 static float Full_Duty_Baseline[MAX_LOAD_CONTROLS];
 
+#define MAX_SHED_LEVELS 3
 /* Represents the shed levels for the LEVEL choice of 
    BACnetShedLevel that have meaning for this particular 
-   Load Control object.  */
+   Load Control object. */
 static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS];
 
 /* represents a description of the shed levels that the 
@@ -113,6 +118,12 @@ static char *Shed_Level_Descriptions[MAX_SHED_LEVELS] = {
     "dim lights 20%",
     "dim lights 30%"
 };
+static float Shed_Level_Values[MAX_SHED_LEVELS] = {
+    90.0,
+    80.0,
+    70.0
+};
+
 
 /* we need to have our arrays initialized before answering any calls */
 static bool Load_Control_Initialized = false;
@@ -129,7 +140,6 @@ void Load_Control_Init(void)
             Requested_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Requested_Shed_Level[i].value.level = 0;
             datetime_wildcard_set(&Start_Time[i]);
-            datetime_wildcard_set(&Previous_Start_Time[i]);
             Shed_Duration[i] = 0;
             Duty_Window[i] = 0;
             Load_Control_Enable[i] = true;
@@ -137,7 +147,7 @@ void Load_Control_Init(void)
             for (j = 0; j < MAX_SHED_LEVELS; j++) {
                 /* FIXME: fake data for lighting application */
                 /* The array shall be ordered by increasing shed amount. */
-                Shed_Levels[i][j] = 90 - (j * (30 / MAX_SHED_LEVELS));
+                Shed_Levels[i][j] = 1 + j;
             }
             Expected_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Expected_Shed_Level[i].value.level = 0;
@@ -248,6 +258,74 @@ struct tm {
         tblock->tm_hour, tblock->tm_min, tblock->tm_sec, 0);
 }
 
+/* convert the shed level request into a Analog Output Present_Value */
+static float Requested_Shed_Level_Value(int object_index)
+{
+    unsigned shed_level_index = 0;
+    unsigned i = 0;
+    float requested_level = 0.0;
+
+    switch (Requested_Shed_Level[object_index].type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            requested_level = (float)Requested_Shed_Level[object_index].value.percent;
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            /* Assumptions: wattage is linear with analog output level */
+            requested_level = Full_Duty_Baseline[object_index] - Requested_Shed_Level[object_index].value.amount;
+            requested_level /= Full_Duty_Baseline[object_index];
+            requested_level *= 100.0;
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+        default:
+            for (i = 0; i < MAX_SHED_LEVELS; i++) {
+                if (Shed_Levels[object_index][i] <= Requested_Shed_Level[object_index].value.level)
+                    shed_level_index = i;
+            }
+            requested_level = Shed_Level_Values[shed_level_index];
+            break;
+    }
+
+    return requested_level;    
+}
+
+static void Shed_Level_Copy(BACNET_SHED_LEVEL *dest, BACNET_SHED_LEVEL *src)
+{
+    if (dest && src) {
+        dest->type = src->type;
+        switch (src->type) {
+            case BACNET_SHED_TYPE_PERCENT:
+                dest->value.percent = src->value.percent;
+                break;
+            case BACNET_SHED_TYPE_AMOUNT:
+                dest->value.amount = src->value.amount;
+                break;
+            case BACNET_SHED_TYPE_LEVEL:
+            default:
+                dest->value.level = src->value.level;
+                break;
+        }
+    }
+}
+
+static void Shed_Level_Default_Set(BACNET_SHED_LEVEL *dest, BACNET_SHED_LEVEL_TYPE type)
+{
+    if (dest) {
+        dest->type = type;
+        switch (type) {
+            case BACNET_SHED_TYPE_PERCENT:
+                dest->value.percent = 100;
+                break;
+            case BACNET_SHED_TYPE_AMOUNT:
+                dest->value.amount = 0.0;
+                break;
+            case BACNET_SHED_TYPE_LEVEL:
+            default:
+                dest->value.level = 0;
+                break;
+        }
+    }
+}
+
 static bool Able_To_Meet_Shed_Request(int object_index)
 {
     float level = 0.0;
@@ -256,47 +334,22 @@ static bool Able_To_Meet_Shed_Request(int object_index)
     bool status = false;
     int object_instance = 0;
     unsigned shed_level_index = 0;
+    unsigned i = 0;
   
     /* This demo is going to use the Analog Outputs as their Load */
     object_instance = object_index;
-    /* Assumptions: 1500 watt loads on each Analog Output
-       wattage is linear with analog output level
-       10% reduction is 150 watt reduction
-       Analog Output present value is in percent */
     priority = Analog_Output_Present_Value_Priority(object_instance);
     /* we are controlling at Priority 4 - can we control the output? */
     if (priority >= 4) {
         /* is the level able to be lowered? */
+        requested_level = Requested_Shed_Level_Value(object_index);
         level = Analog_Output_Present_Value(object_instance);
-        switch (Requested_Shed_Level[object_index].type) {
-            case BACNET_SHED_TYPE_PERCENT:
-                requested_level = (float)Requested_Shed_Level[object_index].value.percent;
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                /* Assumptions: wattage is linear with analog output level */
-                requested_level = Full_Duty_Baseline[object_index] - Requested_Shed_Level[object_index].value.amount;
-                requested_level /= Full_Duty_Baseline[object_index];
-                requested_level *= 100.0;
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                shed_level_index = Requested_Shed_Level[object_index].value.level;
-                if (shed_level_index < MAX_SHED_LEVELS) {
-                    /* FIXME: contradiction - Shed_Levels is able to be changed? */
-                    /* FIXME: Shed_Levels is unsigned, not REAL like baseline */
-                    /* FIXME: where do I get my requested level? */
-                    /* Shed_Levels[object_index][shed_level_index]; */
-                }
-                break;
-        }
-        if (level >= requested_level)
+        if (level >= requested_level) {
             status = true;
-
-      
-      
+        }
     }
     
-  
+    return status;  
 }
 
 typedef enum load_control_state {
@@ -364,47 +417,52 @@ void Load_Control_State_Machine(int object_index)
         if (diff < 0) {
             /* current time prior to start time */
             /* ReconfigurePending */
-            /* PrepareToShed */
-            /* AbleToMeetShed */
+            Shed_Level_Copy(
+                &Expected_Shed_Level[object_index], 
+                &Requested_Shed_Level[object_index]);
+            Shed_Level_Default_Set(
+                &Actual_Shed_Level[object_index], 
+                Requested_Shed_Level[object_index].type);
         } else if (diff > 0) {
             /* current time after to start time */
             /* AbleToMeetShed */
-            /* CannotMeetShed */
+            if (Able_To_Meet_Shed_Request(object_index)) {
+                Shed_Level_Copy(
+                    &Expected_Shed_Level[object_index], 
+                    &Requested_Shed_Level[object_index]);
+                Analog_Output_Present_Value_Set(object_index, 
+                    Requested_Shed_Level_Value(object_index), 4);
+                Shed_Level_Copy(
+                    &Actual_Shed_Level[object_index], 
+                    &Requested_Shed_Level[object_index]);
+                state[object_index] = SHED_COMPLIANT;
+            } else {
+                /* CannotMeetShed */
+                Shed_Level_Default_Set(
+                    &Expected_Shed_Level[object_index], 
+                    Requested_Shed_Level[object_index].type);
+                Shed_Level_Default_Set(
+                    &Actual_Shed_Level[object_index], 
+                    Requested_Shed_Level[object_index].type);
+                state[object_index] = SHED_NON_COMPLIANT;
+            }
         }
         break;
     case SHED_NON_COMPLIANT:
+      
         break;
     case SHED_COMPLIANT:
         break;
     case SHED_INACTIVE:
     default:
-        diff = datetime_compare(&Previous_Start_Time[object_index],
-            &Start_Time[object_index]);
-        if (diff != 0) {
-            datetime_copy(&Previous_Start_Time[object_index],
-                &Start_Time[object_index]);
-            /* FIXME: calculate your Expected Shed Level */
-            /* FIXME: calculate your Actual Shed Level */
-            Expected_Shed_Level[object_index].type =
-                Requested_Shed_Level[object_index].type;
-            switch (Requested_Shed_Level[object_index].type) {
-            case BACNET_SHED_TYPE_PERCENT:
-                Actual_Shed_Level[object_index].value.percent =
-                    Expected_Shed_Level[object_index].value.percent =
-                    Requested_Shed_Level[object_index].value.percent;
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                Actual_Shed_Level[object_index].value.amount =
-                    Expected_Shed_Level[object_index].value.amount =
-                    Requested_Shed_Level[object_index].value.amount;
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                Actual_Shed_Level[object_index].value.level =
-                    Expected_Shed_Level[object_index].value.level =
-                    Requested_Shed_Level[object_index].value.level;
-                break;
-            }
+        if (Start_Time_Property_Written[object_index]) {
+            Start_Time_Property_Written[object_index] = false;
+            Shed_Level_Copy(
+                &Expected_Shed_Level[object_index], 
+                &Requested_Shed_Level[object_index]);
+            Shed_Level_Default_Set(
+                &Actual_Shed_Level[object_index], 
+                Requested_Shed_Level[object_index].type);
             state[object_index] = SHED_REQUEST_PENDING;
         }
         break;
@@ -694,6 +752,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         if (value.tag == BACNET_APPLICATION_TAG_DATE) {
             memcpy(&Start_Time[object_index].date,
                 &value.type.Date, sizeof(value.type.Date));
+            Start_Time_Property_Written[object_index] = true;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
