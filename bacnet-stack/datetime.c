@@ -45,6 +45,13 @@
 /* day = day of month 1..31 */
 /* wday 1=Monday...7=Sunday */
 
+/* Wildcards:
+  A value of X'FF' in any of the four octets 
+  shall indicate that the value is unspecified.
+  If all four octets = X'FF', the corresponding
+  time or date may be interpreted as "any" or "don't care"
+*/
+
 static bool is_leap_year(uint16_t year)
 {
     if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0))
@@ -328,10 +335,59 @@ void datetime_add_minutes(BACNET_DATE_TIME * bdatetime, uint32_t minutes)
         bdatetime->date.month, bdatetime->date.day);
 }
 
+bool datetime_wildcard(BACNET_DATE_TIME * bdatetime)
+{
+  bool wildcard_present = false;
+  
+    if (bdatetime) {
+        if ((bdatetime->date.year == (1900 + 0xFF)) &&
+            (bdatetime->date.month == 0xFF) &&
+            (bdatetime->date.day == 0xFF) &&
+            (bdatetime->date.wday == 0xFF) &&
+            (bdatetime->time.hour == 0xFF) &&
+            (bdatetime->time.min == 0xFF) &&
+            (bdatetime->time.sec == 0xFF) &&
+            (bdatetime->time.hundredths == 0xFF)) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+void datetime_wildcard_set(BACNET_DATE_TIME * bdatetime)
+{
+    if (bdatetime) {
+        bdatetime->date.year = 1900 + 0xFF;
+        bdatetime->date.month = 0xFF;
+        bdatetime->date.day = 0xFF;
+        bdatetime->date.wday = 0xFF;
+        bdatetime->time.hour = 0xFF;
+        bdatetime->time.min = 0xFF;
+        bdatetime->time.sec = 0xFF;
+        bdatetime->time.hundredths = 0xFF;
+    }
+}
+
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+
+void testBACnetDateTimeWildcard(Test * pTest)
+{
+    BACNET_DATE_TIME bdatetime;
+    bool status = false;
+    
+    datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+    status = datetime_wildcard(&bdatetime);
+    ct_test(pTest, status == false);
+  
+    datetime_wildcard_set(&bdatetime);
+    status = datetime_wildcard(&bdatetime);
+    ct_test(pTest, status == true);
+}
 
 void testBACnetDateTimeAdd(Test * pTest)
 {
@@ -642,6 +698,8 @@ int main(void)
     rc = ct_addTestFunction(pTest, testBACnetDateTimeSeconds);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetDateTimeAdd);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testBACnetDateTimeWildcard);
     assert(rc);
 
     ct_setStream(pTest, stdout);
