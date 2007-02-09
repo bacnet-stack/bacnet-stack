@@ -39,6 +39,16 @@ extern "C" {
     unsigned Analog_Output_Count(void);
     uint32_t Analog_Output_Index_To_Instance(unsigned index);
     char *Analog_Output_Name(uint32_t object_instance);
+    float Analog_Output_Present_Value(uint32_t object_instance);
+    unsigned Analog_Output_Present_Value_Priority(uint32_t object_instance);
+    bool Analog_Output_Present_Value_Set(
+        uint32_t object_instance, 
+        float value, 
+        unsigned priority);
+    bool Analog_Output_Present_Value_Relinquish(
+        uint32_t object_instance, 
+        int priority);
+ 
 
     int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
         uint32_t object_instance,

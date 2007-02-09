@@ -117,7 +117,7 @@ unsigned Analog_Output_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-static float Analog_Output_Present_Value(uint32_t object_instance)
+float Analog_Output_Present_Value(uint32_t object_instance)
 {
     float value = AO_RELINQUISH_DEFAULT;
     unsigned index = 0;
@@ -135,6 +135,78 @@ static float Analog_Output_Present_Value(uint32_t object_instance)
     }
 
     return value;
+}
+
+unsigned Analog_Output_Present_Value_Priority(uint32_t object_instance)
+{
+    unsigned index = 0; /* instance to index conversion */
+    unsigned i = 0; /* loop counter */
+    unsigned priority = 0; /* return value */
+
+    Analog_Output_Init();
+    index = Analog_Output_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_OUTPUTS) {
+        for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
+            if (Analog_Output_Level[index][i] != AO_LEVEL_NULL) {
+                priority = i + 1;
+                break;
+            }
+        }
+    }
+
+    return priority;
+}
+
+bool Analog_Output_Present_Value_Set(
+    uint32_t object_instance, 
+    float value, 
+    unsigned priority)
+{
+    unsigned index = 0;
+    bool status = false;
+    
+    index = Analog_Output_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_OUTPUTS) {
+        if (priority && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */ ) &&
+            (value >= 0.0) && (value <= 100.0)) {
+            Analog_Output_Level[index][priority] = value;
+            /* Note: you could set the physical output here to the next
+               highest priority, or to the relinquish default if no
+               priorities are set.
+               However, if Out of Service is TRUE, then don't set the 
+               physical output.  This comment may apply to the 
+               main loop (i.e. check out of service before changing output) */
+            status = true;
+        }
+    }
+    
+    return status;
+}
+
+bool Analog_Output_Present_Value_Relinquish(
+    uint32_t object_instance, 
+    int priority)
+{
+    unsigned index = 0;
+    bool status = false;
+    
+    index = Analog_Output_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_OUTPUTS) {
+        if (priority && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */ )) {
+            Analog_Output_Level[index][priority] = AO_LEVEL_NULL;
+            /* Note: you could set the physical output here to the next
+               highest priority, or to the relinquish default if no
+               priorities are set.
+               However, if Out of Service is TRUE, then don't set the 
+               physical output.  This comment may apply to the 
+               main loop (i.e. check out of service before changing output) */
+            status = true;
+        }
+    }
+    
+    return status;
 }
 
 /* note: the object name must be unique within this device */
@@ -273,7 +345,6 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
-    unsigned int priority = 0;
     uint8_t level = AO_LEVEL_NULL;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -292,32 +363,20 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     switch (wp_data->object_property) {
     case PROP_PRESENT_VALUE:
         if (value.tag == BACNET_APPLICATION_TAG_REAL) {
-            priority = wp_data->priority;
             /* Command priority 6 is reserved for use by Minimum On/Off
                algorithm and may not be used for other purposes in any
                object. */
-            if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                (priority != 6 /* reserved */ ) &&
-                (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
-                level = (uint8_t) value.type.Real;
-                object_index =
-                    Analog_Output_Instance_To_Index(wp_data->
-                    object_instance);
-                priority--;
-                Analog_Output_Level[object_index][priority] = level;
-                /* Note: you could set the physical output here if we
-                   are the highest priority.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
-                   main loop (i.e. check out of service before changing output) */
-                status = true;
-            } else if (priority == 6) {
+            status = Analog_Output_Present_Value_Set(
+                wp_data->object_instance, 
+                value.type.Real, 
+                wp_data->priority);
+            if (wp_data->priority == 6) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            } else {
+            } else if (!status) {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
@@ -325,18 +384,10 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             level = AO_LEVEL_NULL;
             object_index =
                 Analog_Output_Instance_To_Index(wp_data->object_instance);
-            priority = wp_data->priority;
-            if (priority && (priority <= BACNET_MAX_PRIORITY)) {
-                priority--;
-                Analog_Output_Level[object_index][priority] = level;
-                /* Note: you could set the physical output here to the next
-                   highest priority, or to the relinquish default if no
-                   priorities are set.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
-                   main loop (i.e. check out of service before changing output) */
-                status = true;
-            } else {
+            status = Analog_Output_Present_Value_Relinquish(
+                wp_data->object_instance, 
+                wp_data->priority);
+            if (!status) {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
