@@ -94,7 +94,7 @@ static bool Load_Control_Enable[MAX_LOAD_CONTROLS];
 
 /* indicates when the object receives a write to any of the properties
    Requested_Shed_Level, Shed_Duration, Duty_Window */
-static bool Load_Control_Property_Written[MAX_LOAD_CONTROLS];
+static bool Load_Control_Request_Written[MAX_LOAD_CONTROLS];
 /* indicates when the object receives a write to Start_Time */
 static bool Start_Time_Property_Written[MAX_LOAD_CONTROLS];
 
@@ -153,6 +153,8 @@ void Load_Control_Init(void)
             Expected_Shed_Level[i].value.level = 0;
             Actual_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Actual_Shed_Level[i].value.level = 0;
+            Load_Control_Request_Written[i] = false;
+            Start_Time_Property_Written[i] = false;
         }
     }
 
@@ -258,7 +260,7 @@ struct tm {
         tblock->tm_hour, tblock->tm_min, tblock->tm_sec, 0);
 }
 
-/* convert the shed level request into a Analog Output Present_Value */
+/* convert the shed level request into an Analog Output Present_Value */
 static float Requested_Shed_Level_Value(int object_index)
 {
     unsigned shed_level_index = 0;
@@ -397,7 +399,7 @@ void Load_Control_State_Machine(int object_index)
         if (state[object_index] == SHED_INACTIVE)
             break;
         /* request to cancel using wildcards in start time? */
-        if (datetime_wildcard(&Start_Time)) {
+        if (datetime_wildcard(&Start_Time[object_index])) {
             state[object_index] = SHED_INACTIVE;
             break;
         }
@@ -449,9 +451,67 @@ void Load_Control_State_Machine(int object_index)
         }
         break;
     case SHED_NON_COMPLIANT:
-      
+        Update_Current_Time(&Current_Time);
+        datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
+        datetime_add_minutes(&End_Time[object_index],
+            Shed_Duration[object_index]);
+        diff = datetime_compare(&End_Time[object_index], &Current_Time);
+        if (diff < 0) {
+            /* FinishedUnsuccessfulShed */
+            state[object_index] = SHED_INACTIVE;
+            break;
+        }
+        if (Load_Control_Request_Written[object_index] || 
+           Start_Time_Property_Written[object_index]) {
+            /* UnsuccessfulShedReconfigured */
+            Load_Control_Request_Written[object_index] = false;
+            Start_Time_Property_Written[object_index] = false;
+            state[object_index] = SHED_REQUEST_PENDING;
+            break;
+        }
+        if (Able_To_Meet_Shed_Request(object_index)) {
+            /* CanNowComplyWithShed */
+            Shed_Level_Copy(
+                &Expected_Shed_Level[object_index], 
+                &Requested_Shed_Level[object_index]);
+            Analog_Output_Present_Value_Set(object_index, 
+                Requested_Shed_Level_Value(object_index), 4);
+            Shed_Level_Copy(
+                &Actual_Shed_Level[object_index], 
+                &Requested_Shed_Level[object_index]);
+            state[object_index] = SHED_COMPLIANT;
+        }
         break;
     case SHED_COMPLIANT:
+        Update_Current_Time(&Current_Time);
+        datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
+        datetime_add_minutes(&End_Time[object_index],
+            Shed_Duration[object_index]);
+        diff = datetime_compare(&End_Time[object_index], &Current_Time);
+        if (diff < 0) {
+            /* FinishedSuccessfulShed */
+            datetime_wildcard_set(&Start_Time[i]);
+            state[object_index] = SHED_INACTIVE;
+            break;
+        }
+        if (Load_Control_Request_Written[object_index] || 
+           Start_Time_Property_Written[object_index]) {
+            /* UnsuccessfulShedReconfigured */
+            Load_Control_Request_Written[object_index] = false;
+            Start_Time_Property_Written[object_index] = false;
+            state[object_index] = SHED_REQUEST_PENDING;
+            break;
+        }
+        if (!Able_To_Meet_Shed_Request(object_index)) {
+            /* CanNoLongerComplyWithShed */
+            Shed_Level_Default_Set(
+                &Expected_Shed_Level[object_index], 
+                Requested_Shed_Level[object_index].type);
+            Shed_Level_Default_Set(
+                &Actual_Shed_Level[object_index], 
+                Requested_Shed_Level[object_index].type);
+            state[object_index] = SHED_NON_COMPLIANT;
+        }
         break;
     case SHED_INACTIVE:
     default:
@@ -747,6 +807,9 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
+        if (status) {
+            Load_Control_Request_Written[object_index] = true;
+        }
         break;
     case PROP_START_TIME:
         if (value.tag == BACNET_APPLICATION_TAG_DATE) {
@@ -776,6 +839,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_SHED_DURATION:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             Shed_Duration[object_index] = value.type.Unsigned_Int;
+            Load_Control_Request_Written[object_index] = true;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -785,6 +849,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     case PROP_DUTY_WINDOW:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             Duty_Window[object_index] = value.type.Unsigned_Int;
+            Load_Control_Request_Written[object_index] = true;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
