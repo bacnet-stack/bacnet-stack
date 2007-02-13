@@ -335,8 +335,6 @@ static bool Able_To_Meet_Shed_Request(int object_index)
     unsigned priority = 0;
     bool status = false;
     int object_instance = 0;
-    unsigned shed_level_index = 0;
-    unsigned i = 0;
   
     /* This demo is going to use the Analog Outputs as their Load */
     object_instance = object_index;
