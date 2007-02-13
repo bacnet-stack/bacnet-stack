@@ -35,6 +35,8 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+    void Load_Control_State_Machine_Handler(void);
+
     bool Load_Control_Valid_Instance(uint32_t object_instance);
     unsigned Load_Control_Count(void);
     uint32_t Load_Control_Index_To_Instance(unsigned index);

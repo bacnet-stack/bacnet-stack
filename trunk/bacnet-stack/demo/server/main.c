@@ -44,6 +44,7 @@
 #include "dcc.h"
 #include "net.h"
 #include "txbuf.h"
+#include "lc.h"
 
 /* This is an example server application using the BACnet Stack */
 
@@ -156,8 +157,10 @@ int main(int argc, char *argv[])
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             dcc_timer_seconds(current_seconds - last_seconds);
+            Load_Control_State_Machine_Handler();
+        }
         /* output */
 
         /* blink LEDs, Turn on or off outputs, etc */
