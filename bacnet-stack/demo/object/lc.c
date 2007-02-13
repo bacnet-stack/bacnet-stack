@@ -254,10 +254,12 @@ struct tm {
     timer = time(NULL);
     tblock = localtime(&timer);
     datetime_set_values(bdatetime,
-        tblock->tm_year,
-        tblock->tm_mon,
-        tblock->tm_mday,
-        tblock->tm_hour, tblock->tm_min, tblock->tm_sec, 0);
+        (uint16_t)tblock->tm_year,
+        (uint8_t)tblock->tm_mon,
+        (uint8_t)tblock->tm_mday,
+        (uint8_t)tblock->tm_hour, 
+		(uint8_t)tblock->tm_min, 
+		(uint8_t)tblock->tm_sec, 0);
 }
 
 /* convert the shed level request into an Analog Output Present_Value */

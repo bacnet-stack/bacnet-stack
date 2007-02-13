@@ -169,7 +169,7 @@ SOURCE=..\..\..\crc.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\datalink.c
+SOURCE=..\..\..\datetime.c
 # End Source File
 # Begin Source File
 
@@ -214,6 +214,14 @@ SOURCE=..\..\..\iam.c
 # Begin Source File
 
 SOURCE=..\..\..\indtext.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\lc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\object\lc.h
 # End Source File
 # Begin Source File
 
@@ -374,6 +382,10 @@ SOURCE=..\..\..\crc.h
 # Begin Source File
 
 SOURCE=..\..\..\datalink.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\datetime.h
 # End Source File
 # Begin Source File
 

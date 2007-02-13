@@ -102,12 +102,12 @@ static uint32_t days_since_epoch(uint16_t year, uint8_t month, uint8_t day)
 static void days_since_epoch_into_ymd(uint32_t days,
     uint16_t * pYear, uint8_t * pMonth, uint8_t * pDay)
 {
-    int year = 1900;
-    int month = 1;
-    int day = 1;
+    uint16_t year = 1900;
+    uint8_t month = 1;
+    uint8_t day = 1;
 
     while (days >= 365) {
-        if ((is_leap_year(year)) && days == 365)
+        if ((is_leap_year(year)) && (days == 365))
             break;
         days -= 365;
         if (is_leap_year(year))
@@ -120,7 +120,7 @@ static void days_since_epoch_into_ymd(uint32_t days,
         month++;
     }
 
-    day += days;
+    day += ((uint8_t)days);
 
     if (pYear)
         *pYear = year;
@@ -137,7 +137,7 @@ static void days_since_epoch_into_ymd(uint32_t days,
 /* wday 1=Monday...7=Sunday */
 static uint8_t day_of_week(uint16_t year, uint8_t month, uint8_t day)
 {
-    return ((days_since_epoch(year, month, day) % 7) + 1);
+    return ((uint8_t)(days_since_epoch(year, month, day) % 7) + 1);
 }
 
 /* if the date1 is the same as date2, return is 0
@@ -292,9 +292,9 @@ static void seconds_since_midnight_into_hms(uint32_t seconds,
     uint8_t hour = 0;
     uint8_t minute = 0;
 
-    hour = seconds / (60 * 60);
+    hour = (uint8_t)(seconds / (60 * 60));
     seconds -= (hour * 60 * 60);
-    minute = seconds / 60;
+    minute = (uint8_t)(seconds / 60);
     seconds -= (minute * 60);
 
     if (pHours)
@@ -302,7 +302,7 @@ static void seconds_since_midnight_into_hms(uint32_t seconds,
     if (pMinutes)
         *pMinutes = minute;
     if (pSeconds)
-        *pSeconds = seconds;
+        *pSeconds = (uint8_t)seconds;
 }
 
 void datetime_add_minutes(BACNET_DATE_TIME * bdatetime, uint32_t minutes)

@@ -6,7 +6,7 @@
 --------------------Configuration: bacnet - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP133F.tmp" with contents
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP606.tmp" with contents
 [
 /nologo /MLd /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D BACDL_BIP=1 /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
 "C:\code\bacnet-stack\abort.c"
@@ -29,7 +29,6 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP133F.tmp" with conte
 "C:\code\bacnet-stack\demo\object\bo.c"
 "C:\code\bacnet-stack\demo\object\bv.c"
 "C:\code\bacnet-stack\crc.c"
-"C:\code\bacnet-stack\datalink.c"
 "C:\code\bacnet-stack\dcc.c"
 "C:\code\bacnet-stack\demo\object\device.c"
 "C:\code\bacnet-stack\demo\handler\h_arf.c"
@@ -56,9 +55,11 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP133F.tmp" with conte
 "C:\code\bacnet-stack\demo\handler\txbuf.c"
 "C:\code\bacnet-stack\whois.c"
 "C:\code\bacnet-stack\wp.c"
+"C:\code\bacnet-stack\demo\object\lc.c"
+"C:\code\bacnet-stack\datetime.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP133F.tmp" 
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1340.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP606.tmp" 
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP607.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
 ".\Debug\abort.obj"
@@ -81,7 +82,6 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\bo.obj"
 ".\Debug\bv.obj"
 ".\Debug\crc.obj"
-".\Debug\datalink.obj"
 ".\Debug\dcc.obj"
 ".\Debug\device.obj"
 ".\Debug\h_arf.obj"
@@ -108,8 +108,10 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\txbuf.obj"
 ".\Debug\whois.obj"
 ".\Debug\wp.obj"
+".\Debug\lc.obj"
+".\Debug\datetime.obj"
 ]
-Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1340.tmp"
+Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP607.tmp"
 <h3>Output Window</h3>
 Compiling...
 abort.c
@@ -134,7 +136,6 @@ bv.c
 crc.c
 Generating Code...
 Compiling...
-datalink.c
 dcc.c
 device.c
 h_arf.c
@@ -154,18 +155,20 @@ npdu.c
 reject.c
 ringbuf.c
 rp.c
+s_rp.c
 Generating Code...
 Compiling...
-s_rp.c
 s_whois.c
 s_wp.c
 tsm.c
 txbuf.c
 whois.c
 wp.c
+lc.c
+datetime.c
 Generating Code...
 Linking...
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1342.tmp" with contents
+Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP609.tmp" with contents
 [
 /nologo /o"Debug/bacnet.bsc" 
 ".\Debug\abort.sbr"
@@ -188,7 +191,6 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1342.tmp" with conte
 ".\Debug\bo.sbr"
 ".\Debug\bv.sbr"
 ".\Debug\crc.sbr"
-".\Debug\datalink.sbr"
 ".\Debug\dcc.sbr"
 ".\Debug\device.sbr"
 ".\Debug\h_arf.sbr"
@@ -214,8 +216,10 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1342.tmp" with conte
 ".\Debug\tsm.sbr"
 ".\Debug\txbuf.sbr"
 ".\Debug\whois.sbr"
-".\Debug\wp.sbr"]
-Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP1342.tmp"
+".\Debug\wp.sbr"
+".\Debug\lc.sbr"
+".\Debug\datetime.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP609.tmp"
 Creating browse info file...
 <h3>Output Window</h3>
 

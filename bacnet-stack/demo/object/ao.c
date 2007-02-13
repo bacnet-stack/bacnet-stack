@@ -170,7 +170,7 @@ bool Analog_Output_Present_Value_Set(
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */ ) &&
             (value >= 0.0) && (value <= 100.0)) {
-            Analog_Output_Level[index][priority] = value;
+            Analog_Output_Level[index][priority] = (uint8_t)value;
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
