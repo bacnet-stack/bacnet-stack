@@ -536,7 +536,9 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
         } else if (tag_number == BACNET_APPLICATION_TAG_DATE) {
             count =
                 sscanf(argv, "%d/%d/%d:%d", &year, &month, &day, &wday);
-            if (count == 4) {
+            if (count == 3) {
+                datetime_set_date(&value->type.Date, year, month, day);
+            } else if (count == 4) {
                 value->type.Date.year = year;
                 value->type.Date.month = month;
                 value->type.Date.day = day;
@@ -552,6 +554,16 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 value->type.Time.min = min;
                 value->type.Time.sec = sec;
                 value->type.Time.hundredths = hundredths;
+            } else if (count == 3) {
+                value->type.Time.hour = hour;
+                value->type.Time.min = min;
+                value->type.Time.sec = sec;
+                value->type.Time.hundredths = 0;
+            } else if (count == 2) {
+                value->type.Time.hour = hour;
+                value->type.Time.min = min;
+                value->type.Time.sec = 0;
+                value->type.Time.hundredths = 0;
             } else
                 status = false;
         } else if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
@@ -918,6 +930,26 @@ void testBACnetApplicationData(Test * pTest)
     ct_test(pTest, value.type.Date.wday == 1);
     ct_test(pTest, testBACnetApplicationDataValue(&value));
 
+    /* Happy Valentines Day! */
+    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_DATE,
+        "2007/2/14", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, value.type.Date.year == 2007);
+    ct_test(pTest, value.type.Date.month == 2);
+    ct_test(pTest, value.type.Date.day == 14);
+    ct_test(pTest, value.type.Date.wday == BACNET_WEEKDAY_WEDNESDAY);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+
+    /* Wildcard Values */
+    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_DATE,
+        "2155/255/255:255", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, value.type.Date.year == 2155);
+    ct_test(pTest, value.type.Date.month == 255);
+    ct_test(pTest, value.type.Date.day == 255);
+    ct_test(pTest, value.type.Date.wday == 255);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+
     status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_TIME,
         "23:59:59.12", &value);
     ct_test(pTest, status == true);
@@ -925,6 +957,24 @@ void testBACnetApplicationData(Test * pTest)
     ct_test(pTest, value.type.Time.min == 59);
     ct_test(pTest, value.type.Time.sec == 59);
     ct_test(pTest, value.type.Time.hundredths == 12);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+
+    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_TIME,
+        "23:59:59", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, value.type.Time.hour == 23);
+    ct_test(pTest, value.type.Time.min == 59);
+    ct_test(pTest, value.type.Time.sec == 59);
+    ct_test(pTest, value.type.Time.hundredths == 0);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+
+    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_TIME,
+        "23:59", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, value.type.Time.hour == 23);
+    ct_test(pTest, value.type.Time.min == 59);
+    ct_test(pTest, value.type.Time.sec == 0);
+    ct_test(pTest, value.type.Time.hundredths == 0);
     ct_test(pTest, testBACnetApplicationDataValue(&value));
 
     status =

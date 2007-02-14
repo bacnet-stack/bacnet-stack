@@ -37,6 +37,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum {
+  BACNET_WEEKDAY_MONDAY = 1,
+  BACNET_WEEKDAY_TUESDAY = 2,
+  BACNET_WEEKDAY_WEDNESDAY = 3,
+  BACNET_WEEKDAY_THURSDAY = 4,
+  BACNET_WEEKDAY_FRIDAY = 5,
+  BACNET_WEEKDAY_SATURDAY = 6,
+  BACNET_WEEKDAY_SUNDAY = 7
+} BACNET_WEEKDAY;
+
 /* date */
 typedef struct BACnet_Date {
     uint16_t year;              /* AD */
