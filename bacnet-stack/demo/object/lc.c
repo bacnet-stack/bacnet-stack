@@ -360,10 +360,10 @@ typedef enum load_control_state {
     SHED_NON_COMPLIANT,
     SHED_COMPLIANT
 } LOAD_CONTROL_STATE;
+static LOAD_CONTROL_STATE Load_Control_State[MAX_LOAD_CONTROLS];
 
 void Load_Control_State_Machine(int object_index)
 {
-    static LOAD_CONTROL_STATE state[MAX_LOAD_CONTROLS];
     static bool initialized = false;
     unsigned i = 0;             /* loop counter */
     int diff = 0;               /* used for datetime comparison */
@@ -371,36 +371,36 @@ void Load_Control_State_Machine(int object_index)
     if (!initialized) {
         initialized = true;
         for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-            state[i] = SHED_INACTIVE;
+            Load_Control_State[i] = SHED_INACTIVE;
         }
     }
 
-    switch (state[object_index]) {
+    switch (Load_Control_State[object_index]) {
     case SHED_REQUEST_PENDING:
         /* request to cancel using default values? */
         switch (Requested_Shed_Level[object_index].type) {
             case BACNET_SHED_TYPE_PERCENT:
                 if (Requested_Shed_Level[object_index].value.percent == 
                     DEFAULT_VALUE_PERCENT)
-                    state[object_index] = SHED_INACTIVE;
+                    Load_Control_State[object_index] = SHED_INACTIVE;
                 break;
             case BACNET_SHED_TYPE_AMOUNT:
                 if (Requested_Shed_Level[object_index].value.amount == 
                     DEFAULT_VALUE_AMOUNT)
-                    state[object_index] = SHED_INACTIVE;
+                    Load_Control_State[object_index] = SHED_INACTIVE;
                 break;
             case BACNET_SHED_TYPE_LEVEL:
             default:
                 if (Requested_Shed_Level[object_index].value.level ==
                     DEFAULT_VALUE_LEVEL)
-                    state[object_index] = SHED_INACTIVE;
+                    Load_Control_State[object_index] = SHED_INACTIVE;
                 break;
         }
-        if (state[object_index] == SHED_INACTIVE)
+        if (Load_Control_State[object_index] == SHED_INACTIVE)
             break;
         /* request to cancel using wildcards in start time? */
         if (datetime_wildcard(&Start_Time[object_index])) {
-            state[object_index] = SHED_INACTIVE;
+            Load_Control_State[object_index] = SHED_INACTIVE;
             break;
         }
         /* cancel because current time is after start time + duration? */
@@ -412,7 +412,7 @@ void Load_Control_State_Machine(int object_index)
         if (diff < 0) {
             /* CancelShed */
             /* FIXME: stop shedding! i.e. relinquish */
-            state[object_index] = SHED_INACTIVE;
+            Load_Control_State[object_index] = SHED_INACTIVE;
             break;
         }
         diff = datetime_compare(&Current_Time, &Start_Time[object_index]);
@@ -437,7 +437,7 @@ void Load_Control_State_Machine(int object_index)
                 Shed_Level_Copy(
                     &Actual_Shed_Level[object_index], 
                     &Requested_Shed_Level[object_index]);
-                state[object_index] = SHED_COMPLIANT;
+                Load_Control_State[object_index] = SHED_COMPLIANT;
             } else {
                 /* CannotMeetShed */
                 Shed_Level_Default_Set(
@@ -446,7 +446,7 @@ void Load_Control_State_Machine(int object_index)
                 Shed_Level_Default_Set(
                     &Actual_Shed_Level[object_index], 
                     Requested_Shed_Level[object_index].type);
-                state[object_index] = SHED_NON_COMPLIANT;
+                Load_Control_State[object_index] = SHED_NON_COMPLIANT;
             }
         }
         break;
@@ -458,7 +458,7 @@ void Load_Control_State_Machine(int object_index)
         diff = datetime_compare(&End_Time[object_index], &Current_Time);
         if (diff < 0) {
             /* FinishedUnsuccessfulShed */
-            state[object_index] = SHED_INACTIVE;
+            Load_Control_State[object_index] = SHED_INACTIVE;
             break;
         }
         if (Load_Control_Request_Written[object_index] || 
@@ -466,7 +466,7 @@ void Load_Control_State_Machine(int object_index)
             /* UnsuccessfulShedReconfigured */
             Load_Control_Request_Written[object_index] = false;
             Start_Time_Property_Written[object_index] = false;
-            state[object_index] = SHED_REQUEST_PENDING;
+            Load_Control_State[object_index] = SHED_REQUEST_PENDING;
             break;
         }
         if (Able_To_Meet_Shed_Request(object_index)) {
@@ -479,7 +479,7 @@ void Load_Control_State_Machine(int object_index)
             Shed_Level_Copy(
                 &Actual_Shed_Level[object_index], 
                 &Requested_Shed_Level[object_index]);
-            state[object_index] = SHED_COMPLIANT;
+            Load_Control_State[object_index] = SHED_COMPLIANT;
         }
         break;
     case SHED_COMPLIANT:
@@ -491,7 +491,7 @@ void Load_Control_State_Machine(int object_index)
         if (diff < 0) {
             /* FinishedSuccessfulShed */
             datetime_wildcard_set(&Start_Time[i]);
-            state[object_index] = SHED_INACTIVE;
+            Load_Control_State[object_index] = SHED_INACTIVE;
             break;
         }
         if (Load_Control_Request_Written[object_index] || 
@@ -499,7 +499,7 @@ void Load_Control_State_Machine(int object_index)
             /* UnsuccessfulShedReconfigured */
             Load_Control_Request_Written[object_index] = false;
             Start_Time_Property_Written[object_index] = false;
-            state[object_index] = SHED_REQUEST_PENDING;
+            Load_Control_State[object_index] = SHED_REQUEST_PENDING;
             break;
         }
         if (!Able_To_Meet_Shed_Request(object_index)) {
@@ -510,7 +510,7 @@ void Load_Control_State_Machine(int object_index)
             Shed_Level_Default_Set(
                 &Actual_Shed_Level[object_index], 
                 Requested_Shed_Level[object_index].type);
-            state[object_index] = SHED_NON_COMPLIANT;
+            Load_Control_State[object_index] = SHED_NON_COMPLIANT;
         }
         break;
     case SHED_INACTIVE:
@@ -523,7 +523,7 @@ void Load_Control_State_Machine(int object_index)
             Shed_Level_Default_Set(
                 &Actual_Shed_Level[object_index], 
                 Requested_Shed_Level[object_index].type);
-            state[object_index] = SHED_REQUEST_PENDING;
+            Load_Control_State[object_index] = SHED_REQUEST_PENDING;
         }
         break;
     }
@@ -536,6 +536,7 @@ void Load_Control_State_Machine_Handler(void)
 {
     unsigned i = 0;
 
+    Load_Control_Init();
     for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
         Load_Control_State_Machine(i);
     }
@@ -899,6 +900,32 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 #include <string.h>
 #include "ctest.h"
 
+void testLoadControlStateMachine(Test * pTest)
+{
+    unsigned i = 0, j = 0;
+    Load_Control_Init();
+    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data;
+
+    /* validate the triggers for each state change */
+    for (j = 0; j < 20; j++) {
+        Load_Control_State_Machine_Handler();
+        for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
+            ct_test(pTest, Load_Control_State[i] == SHED_INACTIVE);
+        }
+    }
+
+    /**/
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+
+
+
+
+}
+
 void testLoadControl(Test * pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -936,6 +963,8 @@ int main(void)
     pTest = ct_create("BACnet Load Control", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testLoadControl);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testLoadControlStateMachine);
     assert(rc);
 
     ct_setStream(pTest, stdout);
