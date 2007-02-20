@@ -20,7 +20,7 @@ CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
 TARGET = bacwp
 
-SRCS = writeprop.c \
+SRCS = main.c \
        $(BACNET_PORT)/bip-init.c \
        $(BACNET_ROOT)/bip.c \
        $(BACNET_HANDLER)/txbuf.c \
@@ -51,7 +51,6 @@ SRCS = writeprop.c \
        $(BACNET_ROOT)/bactext.c \
        $(BACNET_ROOT)/datetime.c \
        $(BACNET_ROOT)/indtext.c \
-       $(BACNET_ROOT)/bigend.c \
        $(BACNET_ROOT)/whois.c \
        $(BACNET_ROOT)/iam.c \
        $(BACNET_ROOT)/tsm.c \
