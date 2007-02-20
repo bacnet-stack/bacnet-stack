@@ -31,6 +31,7 @@
 #include <time.h>               /* for time */
 #include <string.h>
 #include <errno.h>
+#include <ctype.h> /* toupper */
 #include "bactext.h"
 #include "iam.h"
 #include "arf.h"
