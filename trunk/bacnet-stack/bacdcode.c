@@ -734,14 +734,11 @@ int encode_tagged_boolean(uint8_t * apdu, bool boolean_value)
 int encode_context_boolean(uint8_t * apdu, int tag_number,
     bool boolean_value)
 {
-    int len = 1;                /* return value */
+    int len = 0;                /* return value */
 
-    apdu[1] = boolean_value ? 1 : 0;
-    /* we only reserved 1 byte for encoding the tag - check the limits */
-    if (tag_number <= 14)
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, 1);
-    else
-        len = 0;
+    len = encode_tag(&apdu[0], (uint8_t) tag_number, true, 1);
+    apdu[len] = boolean_value ? 1 : 0;
+    len++;
 
     return len;
 }
@@ -775,6 +772,11 @@ bool decode_boolean(uint32_t len_value)
 int encode_tagged_null(uint8_t * apdu)
 {
     return encode_tag(&apdu[0], BACNET_APPLICATION_TAG_NULL, false, 0);
+}
+
+int encode_context_null(uint8_t * apdu,  int tag_number)
+{
+    return encode_tag(&apdu[0], tag_number, true, 0);
 }
 
 static uint8_t byte_reverse_bits(uint8_t in_byte)
@@ -867,6 +869,20 @@ int encode_tagged_bitstring(uint8_t * apdu, BACNET_BIT_STRING * bit_string)
     bit_string_encoded_length += bitstring_bytes_used(bit_string);
     len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_BIT_STRING, false,
         bit_string_encoded_length);
+    len += encode_bitstring(&apdu[len], bit_string);
+
+    return len;
+}
+
+int encode_context_bitstring(uint8_t * apdu, int tag_number,
+  BACNET_BIT_STRING * bit_string)
+{
+    int len = 0;
+    int bit_string_encoded_length = 1;  /* 1 for the bits remaining octet */
+
+    /* bit string may use more than 1 octet for the tag, so find out how many */
+    bit_string_encoded_length += bitstring_bytes_used(bit_string);
+    len = encode_tag(&apdu[0], tag_number, true, bit_string_encoded_length);
     len += encode_bitstring(&apdu[len], bit_string);
 
     return len;
@@ -1429,7 +1445,22 @@ int encode_tagged_time(uint8_t * apdu, BACNET_TIME * btime)
     len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_TIME, false, len);
 
     return len;
+}
 
+int encode_context_time(uint8_t * apdu,  int tag_number,
+    BACNET_TIME * btime)
+{
+    int len = 0;                /* return value */
+
+    /* assumes that the tag only consumes 1 octet */
+    len = encode_bacnet_time(&apdu[1], btime);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if ((tag_number <= 14) && (len <= 4))
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    else
+        len = 0;
+
+    return len;
 }
 
 /* from clause 20.2.13 Encoding of a Time Value */

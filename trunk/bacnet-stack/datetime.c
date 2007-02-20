@@ -115,7 +115,7 @@ static void days_since_epoch_into_ymd(uint32_t days,
         year++;
     }
 
-    while (days >= month_days(year, month)) {
+    while (days >= (uint32_t)month_days(year, month)) {
         days -= month_days(year, month);
         month++;
     }
