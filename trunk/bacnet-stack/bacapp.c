@@ -374,8 +374,6 @@ int bacapp_decode_context_data(uint8_t * apdu,
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int object_type = 0;
-    uint32_t instance = 0;
 
     /* FIXME: use max_apdu_len! */
     (void) max_apdu_len;
