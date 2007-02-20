@@ -159,7 +159,6 @@ int main(int argc, char *argv[])
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
-    bool context_tagged = false;
 
     if (argc < 9) {
         /* note: priority 16 and 0 should produce the same end results... */
