@@ -541,6 +541,7 @@ int encode_opening_tag(uint8_t * apdu, uint8_t tag_number)
 {
     int len = 1;
 
+    /* set class field to context specific */
     apdu[0] = BIT3;
     /* additional tag byte after this byte for extended tag byte */
     if (tag_number <= 14)
@@ -550,8 +551,7 @@ int encode_opening_tag(uint8_t * apdu, uint8_t tag_number)
         apdu[1] = tag_number;
         len++;
     }
-
-    /* type indicates opening tag */
+    /* set type field to opening tag */
     apdu[0] |= 6;
 
     return len;
@@ -563,6 +563,7 @@ int encode_closing_tag(uint8_t * apdu, uint8_t tag_number)
 {
     int len = 1;
 
+    /* set class field to context specific */
     apdu[0] = BIT3;
     /* additional tag byte after this byte for extended tag byte */
     if (tag_number <= 14)
@@ -572,8 +573,7 @@ int encode_closing_tag(uint8_t * apdu, uint8_t tag_number)
         apdu[1] = tag_number;
         len++;
     }
-
-    /* type indicates closing tag */
+    /* set type field to closing tag */
     apdu[0] |= 7;
 
     return len;
@@ -1050,7 +1050,7 @@ int encode_octet_string(uint8_t * apdu, BACNET_OCTET_STRING * octet_string)
         len = octetstring_length(octet_string);
         value = octetstring_value(octet_string);
         for (i = 0; i < len; i++) {
-            apdu[1+i] = value[i];
+            apdu[i] = value[i];
         }
     }
 
