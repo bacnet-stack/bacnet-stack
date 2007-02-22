@@ -377,31 +377,37 @@ void Load_Control_State_Machine(int object_index)
 
     switch (Load_Control_State[object_index]) {
     case SHED_REQUEST_PENDING:
-        /* request to cancel using default values? */
-        switch (Requested_Shed_Level[object_index].type) {
-            case BACNET_SHED_TYPE_PERCENT:
-                if (Requested_Shed_Level[object_index].value.percent == 
-                    DEFAULT_VALUE_PERCENT)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                if (Requested_Shed_Level[object_index].value.amount == 
-                    DEFAULT_VALUE_AMOUNT)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                if (Requested_Shed_Level[object_index].value.level ==
-                    DEFAULT_VALUE_LEVEL)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
+        if (Load_Control_Request_Written[object_index]) {
+            Load_Control_Request_Written[object_index] = false;
+            /* request to cancel using default values? */
+            switch (Requested_Shed_Level[object_index].type) {
+                case BACNET_SHED_TYPE_PERCENT:
+                    if (Requested_Shed_Level[object_index].value.percent == 
+                        DEFAULT_VALUE_PERCENT)
+                        Load_Control_State[object_index] = SHED_INACTIVE;
+                    break;
+                case BACNET_SHED_TYPE_AMOUNT:
+                    if (Requested_Shed_Level[object_index].value.amount == 
+                        DEFAULT_VALUE_AMOUNT)
+                        Load_Control_State[object_index] = SHED_INACTIVE;
+                    break;
+                case BACNET_SHED_TYPE_LEVEL:
+                default:
+                    if (Requested_Shed_Level[object_index].value.level ==
+                        DEFAULT_VALUE_LEVEL)
+                        Load_Control_State[object_index] = SHED_INACTIVE;
+                    break;
+            }
+            if (Load_Control_State[object_index] == SHED_INACTIVE)
                 break;
         }
-        if (Load_Control_State[object_index] == SHED_INACTIVE)
-            break;
-        /* request to cancel using wildcards in start time? */
-        if (datetime_wildcard(&Start_Time[object_index])) {
-            Load_Control_State[object_index] = SHED_INACTIVE;
-            break;
+        if (Start_Time_Property_Written[object_index]) {
+            Start_Time_Property_Written[object_index] = false;
+            /* request to cancel using wildcards in start time? */
+            if (datetime_wildcard(&Start_Time[object_index])) {
+                Load_Control_State[object_index] = SHED_INACTIVE;
+                break;
+            }
         }
         /* cancel because current time is after start time + duration? */
         Update_Current_Time(&Current_Time);
