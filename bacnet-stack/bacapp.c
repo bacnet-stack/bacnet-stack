@@ -713,7 +713,8 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
             count =
                 sscanf(argv, "%d/%d/%d:%d", &year, &month, &day, &wday);
             if (count == 3) {
-                datetime_set_date(&value->type.Date, year, month, day);
+                datetime_set_date(&value->type.Date, 
+					(uint16_t)year, (uint8_t)month, (uint8_t)day);
             } else if (count == 4) {
                 value->type.Date.year = year;
                 value->type.Date.month = month;
