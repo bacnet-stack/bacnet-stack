@@ -953,19 +953,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 void testLoadControlStateMachine(Test * pTest)
 {
     unsigned i = 0, j = 0;
+
     Load_Control_Init();
-
-    BACNET_APPLICATION_DATA_VALUE value;
-
-    BACNET_ERROR_CLASS error_class;
-
-    BACNET_ERROR_CODE error_code;
-
-    bool status = false;
-
-    BACNET_WRITE_PROPERTY_DATA wp_data;
-
-
     /* validate the triggers for each state change */
     for (j = 0; j < 20; j++) {
         Load_Control_State_Machine_Handler();
@@ -973,14 +962,6 @@ void testLoadControlStateMachine(Test * pTest)
             ct_test(pTest, Load_Control_State[i] == SHED_INACTIVE);
         }
     }
-
-     /**/
-        status =
-        Load_Control_Write_Property(&wp_data, &error_class, &error_code);
-
-
-
-
 }
 
 void testLoadControl(Test * pTest)
