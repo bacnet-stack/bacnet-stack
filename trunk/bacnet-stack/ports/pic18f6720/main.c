@@ -43,7 +43,7 @@
 /* define this to enable ICD */
 /* #define USE_ICD */
 
-// Configuration Bits 
+/* Configuration Bits  */
 #pragma config OSC = HS, OSCS = OFF
 #pragma config PWRT = ON
 #pragma config BOR = ON, BORV = 27
@@ -82,12 +82,12 @@
 #pragma config EBTRB = OFF
 
 #ifdef USE_ICD
-  #pragma config WDT = OFF, WDTPS = 128
-  #pragma config DEBUG = ON
+#pragma config WDT = OFF, WDTPS = 128
+#pragma config DEBUG = ON
 #else
-  #pragma config WDT = ON, WDTPS = 128
-  #pragma config DEBUG = OFF
-#endif /* USE_ICD */
+#pragma config WDT = ON, WDTPS = 128
+#pragma config DEBUG = OFF
+#endif                          /* USE_ICD */
 
 volatile uint8_t Milliseconds = 0;
 volatile uint8_t Zero_Cross_Timeout = 0;
@@ -103,14 +103,15 @@ static void BACnet_Service_Handlers_Init(void)
         handler_read_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
-    #if 0
+#if 0
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+    apdu_set_unconfirmed_handler
+        (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
         handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
         handler_timesync);
-    #endif
+#endif
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler
         (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
@@ -122,12 +123,11 @@ void Reinitialize(void)
     uint8_t i;
     char name = 0;
 
-    _asm reset _endasm
-    return;
-} 
+    _asm reset _endasm return;
+}
 
 void Global_Int(enum INT_STATE state)
-{                               
+{
     static uint8_t intstate = 0;
 
     switch (state) {
@@ -151,100 +151,100 @@ void Global_Int(enum INT_STATE state)
 
 void Hardware_Initialize(void)
 {
-  /* PORTA.0 Input - Photocell PORTA.1 Output - LED Row6 PORTA.2 Output
-   * - LED Row5 PORTA.3 Output - LED Row4 PORTA.4 Input - Square Wave
-   * input from RTC PORTA.5 Output - LCD RW */
-  TRISA = 0xD1;
+    /* PORTA.0 Input - Photocell PORTA.1 Output - LED Row6 PORTA.2 Output
+     * - LED Row5 PORTA.3 Output - LED Row4 PORTA.4 Input - Square Wave
+     * input from RTC PORTA.5 Output - LCD RW */
+    TRISA = 0xD1;
 
-  /* PORTB.0 Input - Zero Cross PORTB.1 Input - USB RXF# PORTB.2 Input
-   * USB TXE# PORTB.3 Output - Keypad Row Enable (74HC373 Output Control)
-   * PORTB.4 Output Keypad Row Gate (74HC373 Gate) PORTB.5 Output Switch
-   * Input Latch & Keypad Column Gate (74HC373 Gate) PORTB.6 Input - ICD
-   * connection PORTB.7 Input - ICD connection */
-  TRISB = 0xC7;
+    /* PORTB.0 Input - Zero Cross PORTB.1 Input - USB RXF# PORTB.2 Input
+     * USB TXE# PORTB.3 Output - Keypad Row Enable (74HC373 Output Control)
+     * PORTB.4 Output Keypad Row Gate (74HC373 Gate) PORTB.5 Output Switch
+     * Input Latch & Keypad Column Gate (74HC373 Gate) PORTB.6 Input - ICD
+     * connection PORTB.7 Input - ICD connection */
+    TRISB = 0xC7;
 
-  /* PORTC.0 Output - Pilot Latch PORTC.1 Output - Pilot Output Enable
-   * (low) PORTC.2 I/O - Piezo PORTC.3 Input - I2C clock PORTC.4 Input
-   * I2C data PORTC.5 Output RS232 enable (low) PORTC.6 Output - RS232 Tx
-   * PORTC.7 Input - RS232 Rx */
-  TRISC = 0x9C;
+    /* PORTC.0 Output - Pilot Latch PORTC.1 Output - Pilot Output Enable
+     * (low) PORTC.2 I/O - Piezo PORTC.3 Input - I2C clock PORTC.4 Input
+     * I2C data PORTC.5 Output RS232 enable (low) PORTC.6 Output - RS232 Tx
+     * PORTC.7 Input - RS232 Rx */
+    TRISC = 0x9C;
 
-  /* PORTD.0 I/O - Data bus PORTD.1 I/O - Data bus PORTD.2 I/O - Data
-   * bus PORTD.3 I/O - Data bus PORTD.4 I/O - Data bus PORTD.5 I/O - Data
-   * bus PORTD.6 I/O - Data bus PORTD.7 I/O - Data bus */
-  TRISD = 0xFF;
+    /* PORTD.0 I/O - Data bus PORTD.1 I/O - Data bus PORTD.2 I/O - Data
+     * bus PORTD.3 I/O - Data bus PORTD.4 I/O - Data bus PORTD.5 I/O - Data
+     * bus PORTD.6 I/O - Data bus PORTD.7 I/O - Data bus */
+    TRISD = 0xFF;
 
-  /* PORTE.0 Input - USB RD PORTE.1 Input - USB WR PORTE.2 Output - LCD
-   * RS PORTE.3 Output - 485 transmit enable PORTE.4 Output - Relay data
-   * latch PORTE.5 Output Switch Input Clock PORTE.6 Output - Switch
-   * Input High/Low PORTE.7 Input Switch Input Data */
-  TRISE = 0x83;
+    /* PORTE.0 Input - USB RD PORTE.1 Input - USB WR PORTE.2 Output - LCD
+     * RS PORTE.3 Output - 485 transmit enable PORTE.4 Output - Relay data
+     * latch PORTE.5 Output Switch Input Clock PORTE.6 Output - Switch
+     * Input High/Low PORTE.7 Input Switch Input Data */
+    TRISE = 0x83;
 
-  /* PORTF.0 Output - LED Row2 PORTF.1 Output - LED Row1 PORTF.2 Output
-   * - LED Col5 PORTF.3 Output - LED Col4 PORTF.4 Output - LED Col3
-   * PORTF.5 Output - LED Col2 PORTF.6 Output - LED Col1 PORTF.7 Output
-   * LED Col0 */
-  TRISF = 0x00;
+    /* PORTF.0 Output - LED Row2 PORTF.1 Output - LED Row1 PORTF.2 Output
+     * - LED Col5 PORTF.3 Output - LED Col4 PORTF.4 Output - LED Col3
+     * PORTF.5 Output - LED Col2 PORTF.6 Output - LED Col1 PORTF.7 Output
+     * LED Col0 */
+    TRISF = 0x00;
 
-  /* PORTG.0 Output - 485 receive enable PORTG.1 Output - 485 Tx PORTG.2
-   * Input 485 Rx PORTG.3 Output - LCD E PORTG.4 Output - LED Row0 */
-  TRISG = 0xE6;
+    /* PORTG.0 Output - 485 receive enable PORTG.1 Output - 485 Tx PORTG.2
+     * Input 485 Rx PORTG.3 Output - LCD E PORTG.4 Output - LED Row0 */
+    TRISG = 0xE6;
 
-  /* The initial state of the keypad enables and latches */
-  KEYPAD_ROW_ENABLE = 1;
-  KEYPAD_ROW_LATCH = 0;
-  KEYPAD_COL_LATCH = 1;
+    /* The initial state of the keypad enables and latches */
+    KEYPAD_ROW_ENABLE = 1;
+    KEYPAD_ROW_LATCH = 0;
+    KEYPAD_COL_LATCH = 1;
 
-  RELAY_LATCH = 0;
+    RELAY_LATCH = 0;
 
-  /* Setup to read the switch inputs */
-  SWITCH_COM = 1;
+    /* Setup to read the switch inputs */
+    SWITCH_COM = 1;
 
-  /* Enable the RS232 transmitter */
-  RS232_ENABLE = 0;
+    /* Enable the RS232 transmitter */
+    RS232_ENABLE = 0;
 
-  /* Turn all leds off. These are the hardware pins */
-  LED_ROW1 = 1;
-  LED_ROW2 = 1;
-  LED_ROW3 = 1;
-  LED_ROW4 = 1;
-  LED_ROW5 = 1;
-  LED_ROW6 = 1;
-  LEDPORT = 0x03;
+    /* Turn all leds off. These are the hardware pins */
+    LED_ROW1 = 1;
+    LED_ROW2 = 1;
+    LED_ROW3 = 1;
+    LED_ROW4 = 1;
+    LED_ROW5 = 1;
+    LED_ROW6 = 1;
+    LEDPORT = 0x03;
 
-  /* The initial values for the signals to the LCD */
-  LCD_E = 1;
-  LCD_RW = 1;
-  LCD_RS = 1;
+    /* The initial values for the signals to the LCD */
+    LCD_E = 1;
+    LCD_RW = 1;
+    LCD_RS = 1;
 
-  /* The following gives us a PWM frequency of 1.990KHz with a 50% duty
-   * cycle It also serves to multiplex the LEDs. */
-  PIEZO_OFF();
-  CCPR1L = 0x4E;
-  CCP1CON = 0x2F;
-  setup_timer2(6, 156, 2);
-  PIE1bits.TMR2IE = 1;
+    /* The following gives us a PWM frequency of 1.990KHz with a 50% duty
+     * cycle It also serves to multiplex the LEDs. */
+    PIEZO_OFF();
+    CCPR1L = 0x4E;
+    CCP1CON = 0x2F;
+    setup_timer2(6, 156, 2);
+    PIE1bits.TMR2IE = 1;
 
-  /* We will use Timer4 as our system tick timer. Our system tick is set
-   * to 1ms. Hold off on enabling the int. */
-  setup_timer4(5, 250, 5);
+    /* We will use Timer4 as our system tick timer. Our system tick is set
+     * to 1ms. Hold off on enabling the int. */
+    setup_timer4(5, 250, 5);
 
-  /* Setup our interrupt priorities */
-  RCONbits.IPEN = 1;
-  IPR1 = 0;
-  IPR2 = 0;
-  IPR3 = 0;
+    /* Setup our interrupt priorities */
+    RCONbits.IPEN = 1;
+    IPR1 = 0;
+    IPR2 = 0;
+    IPR3 = 0;
 
-  /* Setup TMR0 to be high priority */
-  INTCON2 = 0xFC;
-  INTCON3 = 0;
+    /* Setup TMR0 to be high priority */
+    INTCON2 = 0xFC;
+    INTCON3 = 0;
 
-  /* USART 1 high priority */
-  IPR1bits.RC1IP = 1;
-  IPR1bits.TX1IP = 1;
+    /* USART 1 high priority */
+    IPR1bits.RC1IP = 1;
+    IPR1bits.TX1IP = 1;
 
-  /* Finally enable our ints */
-  Global_Int(INT_ENABLED);
+    /* Finally enable our ints */
+    Global_Int(INT_ENABLED);
 }
 
 void Initialize_Variables(void)

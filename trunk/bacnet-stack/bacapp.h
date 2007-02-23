@@ -43,8 +43,8 @@
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
-    bool context_specific; /* true if context specific data */
-    uint8_t context_tag; /* only used for context specific data */
+    bool context_specific;      /* true if context specific data */
+    uint8_t context_tag;        /* only used for context specific data */
     uint8_t tag;                /* application tag data type */
     union {
         /* NULL - not needed as it is encoded in the tag alone */
@@ -85,13 +85,11 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
-    int bacapp_encode_context_data_value(uint8_t * apdu, 
-        uint8_t context_tag_number,
-        BACNET_APPLICATION_DATA_VALUE * value);
-  
-    BACNET_APPLICATION_TAG bacapp_context_tag_type(
-        BACNET_PROPERTY_ID property,
-        uint8_t tag_number);
+    int bacapp_encode_context_data_value(uint8_t * apdu,
+        uint8_t context_tag_number, BACNET_APPLICATION_DATA_VALUE * value);
+
+    BACNET_APPLICATION_TAG bacapp_context_tag_type(BACNET_PROPERTY_ID
+        property, uint8_t tag_number);
 
     bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);

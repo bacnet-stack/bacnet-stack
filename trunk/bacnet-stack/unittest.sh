@@ -114,6 +114,11 @@ make -f indtext.mak
 ./indtext >> test.log
 make -f indtext.mak clean
 
+make -f demo/object/lc.mak clean
+make -f demo/object/lc.mak
+./loadcontrol >> test.log
+make -f demo/object/lc.mak clean
+
 make -f demo/object/lsp.mak clean
 make -f demo/object/lsp.mak
 ./lsp >> test.log

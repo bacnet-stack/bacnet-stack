@@ -115,12 +115,12 @@ static void days_since_epoch_into_ymd(uint32_t days,
         year++;
     }
 
-    while (days >= (uint32_t)month_days(year, month)) {
+    while (days >= (uint32_t) month_days(year, month)) {
         days -= month_days(year, month);
         month++;
     }
 
-    day += ((uint8_t)days);
+    day += ((uint8_t) days);
 
     if (pYear)
         *pYear = year;
@@ -137,7 +137,7 @@ static void days_since_epoch_into_ymd(uint32_t days,
 /* wday 1=Monday...7=Sunday */
 static uint8_t day_of_week(uint16_t year, uint8_t month, uint8_t day)
 {
-    return ((uint8_t)(days_since_epoch(year, month, day) % 7) + 1);
+    return ((uint8_t) (days_since_epoch(year, month, day) % 7) + 1);
 }
 
 /* if the date1 is the same as date2, return is 0
@@ -292,9 +292,9 @@ static void seconds_since_midnight_into_hms(uint32_t seconds,
     uint8_t hour = 0;
     uint8_t minute = 0;
 
-    hour = (uint8_t)(seconds / (60 * 60));
+    hour = (uint8_t) (seconds / (60 * 60));
     seconds -= (hour * 60 * 60);
-    minute = (uint8_t)(seconds / 60);
+    minute = (uint8_t) (seconds / 60);
     seconds -= (minute * 60);
 
     if (pHours)
@@ -302,7 +302,7 @@ static void seconds_since_midnight_into_hms(uint32_t seconds,
     if (pMinutes)
         *pMinutes = minute;
     if (pSeconds)
-        *pSeconds = (uint8_t)seconds;
+        *pSeconds = (uint8_t) seconds;
 }
 
 void datetime_add_minutes(BACNET_DATE_TIME * bdatetime, uint32_t minutes)
@@ -337,8 +337,8 @@ void datetime_add_minutes(BACNET_DATE_TIME * bdatetime, uint32_t minutes)
 
 bool datetime_wildcard(BACNET_DATE_TIME * bdatetime)
 {
-  bool wildcard_present = false;
-  
+    bool wildcard_present = false;
+
     if (bdatetime) {
         if ((bdatetime->date.year == (1900 + 0xFF)) &&
             (bdatetime->date.month == 0xFF) &&
@@ -379,11 +379,11 @@ void testBACnetDateTimeWildcard(Test * pTest)
 {
     BACNET_DATE_TIME bdatetime;
     bool status = false;
-    
+
     datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
     status = datetime_wildcard(&bdatetime);
     ct_test(pTest, status == false);
-  
+
     datetime_wildcard_set(&bdatetime);
     status = datetime_wildcard(&bdatetime);
     ct_test(pTest, status == true);

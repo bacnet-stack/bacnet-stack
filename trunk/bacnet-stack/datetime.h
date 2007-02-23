@@ -38,13 +38,13 @@
 #include <stdbool.h>
 
 typedef enum {
-  BACNET_WEEKDAY_MONDAY = 1,
-  BACNET_WEEKDAY_TUESDAY = 2,
-  BACNET_WEEKDAY_WEDNESDAY = 3,
-  BACNET_WEEKDAY_THURSDAY = 4,
-  BACNET_WEEKDAY_FRIDAY = 5,
-  BACNET_WEEKDAY_SATURDAY = 6,
-  BACNET_WEEKDAY_SUNDAY = 7
+    BACNET_WEEKDAY_MONDAY = 1,
+    BACNET_WEEKDAY_TUESDAY = 2,
+    BACNET_WEEKDAY_WEDNESDAY = 3,
+    BACNET_WEEKDAY_THURSDAY = 4,
+    BACNET_WEEKDAY_FRIDAY = 5,
+    BACNET_WEEKDAY_SATURDAY = 6,
+    BACNET_WEEKDAY_SUNDAY = 7
 } BACNET_WEEKDAY;
 
 /* date */
@@ -101,7 +101,7 @@ extern "C" {
     /* utility add function */
     void datetime_add_minutes(BACNET_DATE_TIME * bdatetime,
         uint32_t minutes);
-        
+
     /* date and time wildcards */
     bool datetime_wildcard(BACNET_DATE_TIME * bdatetime);
     void datetime_wildcard_set(BACNET_DATE_TIME * bdatetime);
