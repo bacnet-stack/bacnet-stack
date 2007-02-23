@@ -9,7 +9,11 @@ CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_LOAD_CONTROL -g
 # NOTE: this file is normally called by the unittest.sh from up directory
 SRCS = bacdcode.c \
        bacstr.c \
+       bacapp.c \
+       bactext.c \
+       indtext.c \
        datetime.c \
+       demo/object/ao.c \
        demo/object/lc.c \
        test/ctest.c
 
