@@ -776,7 +776,7 @@ int encode_tagged_null(uint8_t * apdu)
 
 int encode_context_null(uint8_t * apdu, int tag_number)
 {
-    return encode_tag(&apdu[0], tag_number, true, 0);
+    return encode_tag(&apdu[0], (uint8_t)tag_number, true, 0);
 }
 
 static uint8_t byte_reverse_bits(uint8_t in_byte)
@@ -883,7 +883,7 @@ int encode_context_bitstring(uint8_t * apdu, int tag_number,
     /* bit string may use more than 1 octet for the tag, so find out how many */
     bit_string_encoded_length += bitstring_bytes_used(bit_string);
     len =
-        encode_tag(&apdu[0], tag_number, true, bit_string_encoded_length);
+        encode_tag(&apdu[0], (uint8_t)tag_number, true, bit_string_encoded_length);
     len += encode_bitstring(&apdu[len], bit_string);
 
     return len;
