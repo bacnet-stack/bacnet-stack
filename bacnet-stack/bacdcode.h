@@ -72,7 +72,7 @@ extern "C" {
 
 /* from clause 20.2.2 Encoding of a Null Value */
     int encode_tagged_null(uint8_t * apdu);
-    int encode_context_null(uint8_t * apdu,  int tag_number);
+    int encode_context_null(uint8_t * apdu, int tag_number);
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
     int encode_tagged_boolean(uint8_t * apdu, bool boolean_value);
@@ -90,7 +90,7 @@ extern "C" {
     int encode_tagged_bitstring(uint8_t * apdu,
         BACNET_BIT_STRING * bit_string);
     int encode_context_bitstring(uint8_t * apdu, int tag_number,
-      BACNET_BIT_STRING * bit_string);
+        BACNET_BIT_STRING * bit_string);
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -171,7 +171,7 @@ extern "C" {
     int encode_bacnet_time(uint8_t * apdu, BACNET_TIME * btime);
     int encode_tagged_time(uint8_t * apdu, BACNET_TIME * btime);
     int decode_bacnet_time(uint8_t * apdu, BACNET_TIME * btime);
-    int encode_context_time(uint8_t * apdu,  int tag_number,
+    int encode_context_time(uint8_t * apdu, int tag_number,
         BACNET_TIME * btime);
 
 /* BACnet Date */

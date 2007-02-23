@@ -66,7 +66,7 @@ void handler_read_property(uint8_t * service_request,
     if (len < 0) {
         /* bad decoding - send an abort */
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true); 
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],

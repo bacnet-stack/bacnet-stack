@@ -48,9 +48,8 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
-    uint8_t *application_data,
-    int application_data_len,
-    uint8_t priority, int32_t array_index)
+    uint8_t * application_data,
+    int application_data_len, uint8_t priority, int32_t array_index)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -83,7 +82,8 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
         data.object_property = object_property;
         data.array_index = array_index;
         data.application_data_len = application_data_len;
-        memcpy(&data.application_data[0],&application_data[0], application_data_len);
+        memcpy(&data.application_data[0], &application_data[0],
+            application_data_len);
         data.priority = priority;
         len = wp_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             invoke_id, &data);
@@ -126,13 +126,12 @@ uint8_t Send_Write_Property_Request(uint32_t device_id,
     BACNET_APPLICATION_DATA_VALUE * object_value,
     uint8_t priority, int32_t array_index)
 {
-    uint8_t application_data[MAX_APDU] = {0};
+    uint8_t application_data[MAX_APDU] = { 0 };
     int apdu_len = 0, len = 0;
 
     while (object_value) {
-        len = bacapp_encode_data(
-                &application_data[apdu_len],
-                object_value);
+        len = bacapp_encode_data(&application_data[apdu_len],
+            object_value);
         if ((len + apdu_len) < MAX_APDU) {
             apdu_len += len;
         } else {
@@ -140,14 +139,10 @@ uint8_t Send_Write_Property_Request(uint32_t device_id,
         }
         object_value = object_value->next;
     }
-    
-    return Send_Write_Property_Request_Data(
-        device_id,
+
+    return Send_Write_Property_Request_Data(device_id,
         object_type,
         object_instance,
         object_property,
-        &application_data[0],
-        apdu_len,
-        priority,
-        array_index);
+        &application_data[0], apdu_len, priority, array_index);
 }

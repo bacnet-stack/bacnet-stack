@@ -639,7 +639,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_REQUESTED_UPDATE_INTERVAL, "requested-update-interval"}
     ,
     {PROP_RESTART_NOTIFICATION_RECIPIENTS,
-            "restart-notification-recipients"}
+        "restart-notification-recipients"}
     ,
     {PROP_TIME_OF_DEVICE_RESTART, "time-of-device-restart"}
     ,
@@ -648,7 +648,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_TRIGGER, "trigger"}
     ,
     {PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
-            "UTC-time-synchronization-recipients"}
+        "UTC-time-synchronization-recipients"}
     ,
     {PROP_NODE_SUBTYPE, "node-subtype"}
     ,

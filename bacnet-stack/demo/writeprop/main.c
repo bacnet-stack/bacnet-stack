@@ -31,7 +31,7 @@
 #include <time.h>               /* for time */
 #include <string.h>
 #include <errno.h>
-#include <ctype.h> /* toupper */
+#include <ctype.h>              /* toupper */
 #include "bactext.h"
 #include "iam.h"
 #include "arf.h"
@@ -62,7 +62,8 @@ static BACNET_PROPERTY_ID Target_Object_Property = PROP_ACKED_TRANSITIONS;
 /* array index value or BACNET_ARRAY_ALL */
 static int32_t Target_Object_Property_Index = BACNET_ARRAY_ALL;
 #define MAX_PROPERTY_VALUES 16
-static BACNET_APPLICATION_DATA_VALUE Target_Object_Property_Value[MAX_PROPERTY_VALUES];
+static BACNET_APPLICATION_DATA_VALUE
+    Target_Object_Property_Value[MAX_PROPERTY_VALUES];
 
 /* 0 if not set, 1..16 if set */
 static uint8_t Target_Object_Property_Priority = 0;
@@ -269,7 +270,7 @@ int main(int argc, char *argv[])
     }
     args_remaining = (argc - 7);
     for (i = 0; i < MAX_PROPERTY_VALUES; i++) {
-        tag_value_arg = 7+(i*2);
+        tag_value_arg = 7 + (i * 2);
         /* special case for context tagged values */
         if (toupper(argv[tag_value_arg][0]) == 'C') {
             context_tag = strtol(&argv[tag_value_arg][1], NULL, 0);
@@ -281,10 +282,10 @@ int main(int argc, char *argv[])
             Target_Object_Property_Value[i].context_specific = false;
         }
         property_tag = strtol(argv[tag_value_arg], NULL, 0);
-        value_string = argv[tag_value_arg+1];
+        value_string = argv[tag_value_arg + 1];
         args_remaining -= 2;
         /* printf("tag[%d]=%u value[%d]=%s\r\n",
-                i, property_tag, i, value_string); */
+           i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
             fprintf(stderr, "tag=%u - it must be less than %u\r\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
@@ -299,11 +300,11 @@ int main(int argc, char *argv[])
         }
         Target_Object_Property_Value[i].next = NULL;
         if (i > 0) {
-            Target_Object_Property_Value[i-1].next =
+            Target_Object_Property_Value[i - 1].next =
                 &Target_Object_Property_Value[i];
         }
         if (args_remaining <= 0)
-          break;
+            break;
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
@@ -345,12 +346,12 @@ int main(int argc, char *argv[])
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =
-                    Send_Write_Property_Request(
-                        Target_Device_Object_Instance, Target_Object_Type,
-                        Target_Object_Instance, Target_Object_Property,
-                        &Target_Object_Property_Value[0],
-                        Target_Object_Property_Priority,
-                        Target_Object_Property_Index);
+                    Send_Write_Property_Request
+                    (Target_Device_Object_Instance, Target_Object_Type,
+                    Target_Object_Instance, Target_Object_Property,
+                    &Target_Object_Property_Value[0],
+                    Target_Object_Property_Priority,
+                    Target_Object_Property_Index);
             } else if (tsm_invoke_id_free(invoke_id))
                 break;
             else if (tsm_invoke_id_failed(invoke_id)) {

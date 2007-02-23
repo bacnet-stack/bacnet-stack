@@ -45,19 +45,13 @@ void INT0_Interrupt(void);
 void InterruptVectorHigh(void)
 {
     /* jump to interrupt routine */
-    _asm goto InterruptHandlerHigh
-    _endasm
-}
-
+_asm goto InterruptHandlerHigh _endasm}
 #pragma code
 #pragma code InterruptVectorLow = 0x18
 void InterruptVectorLow(void)
 {
     /* jump to interrupt routine */
-    _asm goto InterruptHandlerLow       
-    _endasm
-}
-
+_asm goto InterruptHandlerLow _endasm}
 #pragma code
 #pragma interrupt InterruptHandlerHigh
 void InterruptHandlerHigh(void)

@@ -64,7 +64,7 @@ extern "C" {
         BACNET_PROPERTY_ID object_property,
         BACNET_APPLICATION_DATA_VALUE * object_value,
         uint8_t priority, int32_t array_index);
-        
+
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Reinitialize_Device_Request(uint32_t device_id,
         BACNET_REINITIALIZED_STATE state, char *password);

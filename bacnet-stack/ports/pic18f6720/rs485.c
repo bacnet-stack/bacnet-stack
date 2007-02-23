@@ -88,13 +88,13 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
 
     RS485_Comstat.TxHead = 0;
     memcpy((void *) &RS485_Tx_Buffer[0], (void *) buffer, nbytes);
-    #if 0
+#if 0
     for (i = 0; i < nbytes; i++) {
-        /* put the data into the buffer */ 
+        /* put the data into the buffer */
         RS485_Tx_Buffer[i] = *buffer;
         buffer++;
     }
-    #endif
+#endif
     RS485_Comstat.Tx_Bytes = nbytes;
     /* disable the receiver */
     PIE3bits.RC2IE = 0;
@@ -201,7 +201,7 @@ void RS485_Interrupt_Tx(void)
         RS485_TX_ENABLE = 0;
         RS485_RX_DISABLE = 0;
         /* FIXME: might not be necessary
- */
+         */
         PIE3bits.RC2IE = 1;
         RCSTA2bits.CREN = 1;
     }

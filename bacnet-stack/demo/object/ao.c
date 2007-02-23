@@ -139,9 +139,9 @@ float Analog_Output_Present_Value(uint32_t object_instance)
 
 unsigned Analog_Output_Present_Value_Priority(uint32_t object_instance)
 {
-    unsigned index = 0; /* instance to index conversion */
-    unsigned i = 0; /* loop counter */
-    unsigned priority = 0; /* return value */
+    unsigned index = 0;         /* instance to index conversion */
+    unsigned i = 0;             /* loop counter */
+    unsigned priority = 0;      /* return value */
 
     Analog_Output_Init();
     index = Analog_Output_Instance_To_Index(object_instance);
@@ -157,20 +157,18 @@ unsigned Analog_Output_Present_Value_Priority(uint32_t object_instance)
     return priority;
 }
 
-bool Analog_Output_Present_Value_Set(
-    uint32_t object_instance, 
-    float value, 
-    unsigned priority)
+bool Analog_Output_Present_Value_Set(uint32_t object_instance,
+    float value, unsigned priority)
 {
     unsigned index = 0;
     bool status = false;
-    
+
     index = Analog_Output_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */ ) &&
             (value >= 0.0) && (value <= 100.0)) {
-            Analog_Output_Level[index][priority] = (uint8_t)value;
+            Analog_Output_Level[index][priority] = (uint8_t) value;
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
@@ -180,17 +178,16 @@ bool Analog_Output_Present_Value_Set(
             status = true;
         }
     }
-    
+
     return status;
 }
 
-bool Analog_Output_Present_Value_Relinquish(
-    uint32_t object_instance, 
+bool Analog_Output_Present_Value_Relinquish(uint32_t object_instance,
     int priority)
 {
     unsigned index = 0;
     bool status = false;
-    
+
     index = Analog_Output_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
@@ -205,7 +202,7 @@ bool Analog_Output_Present_Value_Relinquish(
             status = true;
         }
     }
-    
+
     return status;
 }
 
@@ -366,10 +363,9 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             /* Command priority 6 is reserved for use by Minimum On/Off
                algorithm and may not be used for other purposes in any
                object. */
-            status = Analog_Output_Present_Value_Set(
-                wp_data->object_instance, 
-                value.type.Real, 
-                wp_data->priority);
+            status =
+                Analog_Output_Present_Value_Set(wp_data->object_instance,
+                value.type.Real, wp_data->priority);
             if (wp_data->priority == 6) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -384,9 +380,9 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             level = AO_LEVEL_NULL;
             object_index =
                 Analog_Output_Instance_To_Index(wp_data->object_instance);
-            status = Analog_Output_Present_Value_Relinquish(
-                wp_data->object_instance, 
-                wp_data->priority);
+            status =
+                Analog_Output_Present_Value_Relinquish(wp_data->
+                object_instance, wp_data->priority);
             if (!status) {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

@@ -774,7 +774,7 @@ int encode_tagged_null(uint8_t * apdu)
     return encode_tag(&apdu[0], BACNET_APPLICATION_TAG_NULL, false, 0);
 }
 
-int encode_context_null(uint8_t * apdu,  int tag_number)
+int encode_context_null(uint8_t * apdu, int tag_number)
 {
     return encode_tag(&apdu[0], tag_number, true, 0);
 }
@@ -875,14 +875,15 @@ int encode_tagged_bitstring(uint8_t * apdu, BACNET_BIT_STRING * bit_string)
 }
 
 int encode_context_bitstring(uint8_t * apdu, int tag_number,
-  BACNET_BIT_STRING * bit_string)
+    BACNET_BIT_STRING * bit_string)
 {
     int len = 0;
     int bit_string_encoded_length = 1;  /* 1 for the bits remaining octet */
 
     /* bit string may use more than 1 octet for the tag, so find out how many */
     bit_string_encoded_length += bitstring_bytes_used(bit_string);
-    len = encode_tag(&apdu[0], tag_number, true, bit_string_encoded_length);
+    len =
+        encode_tag(&apdu[0], tag_number, true, bit_string_encoded_length);
     len += encode_bitstring(&apdu[len], bit_string);
 
     return len;
@@ -1042,7 +1043,7 @@ int encode_octet_string(uint8_t * apdu, BACNET_OCTET_STRING * octet_string)
 {
     int len = 0;                /* return value */
     uint8_t *value;
-    int i = 0; /* loop counter */
+    int i = 0;                  /* loop counter */
 
     if (octet_string) {
         /* FIXME: might need to pass in the length of the APDU
@@ -1128,7 +1129,7 @@ int encode_bacnet_character_string(uint8_t * apdu,
     apdu[0] = characterstring_encoding(char_string);
     pString = characterstring_value(char_string);
     for (i = 0; i < len; i++) {
-        apdu[1+i] = pString[i];
+        apdu[1 + i] = pString[i];
     }
 
     return len + 1 /* for encoding */ ;
@@ -1447,7 +1448,7 @@ int encode_tagged_time(uint8_t * apdu, BACNET_TIME * btime)
     return len;
 }
 
-int encode_context_time(uint8_t * apdu,  int tag_number,
+int encode_context_time(uint8_t * apdu, int tag_number,
     BACNET_TIME * btime)
 {
     int len = 0;                /* return value */
