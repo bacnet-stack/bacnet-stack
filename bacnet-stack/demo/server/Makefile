@@ -31,6 +31,7 @@ SRCS = main.c \
        $(BACNET_HANDLER)/h_rp.c \
        $(BACNET_HANDLER)/h_wp.c  \
        $(BACNET_HANDLER)/h_arf.c  \
+       $(BACNET_HANDLER)/h_awf.c  \
        $(BACNET_HANDLER)/h_rd.c  \
        $(BACNET_HANDLER)/h_dcc.c  \
        $(BACNET_HANDLER)/h_ts.c  \
@@ -63,6 +64,7 @@ SRCS = main.c \
        $(BACNET_ROOT)/rp.c \
        $(BACNET_ROOT)/wp.c \
        $(BACNET_ROOT)/arf.c \
+       $(BACNET_ROOT)/awf.c \
        $(BACNET_ROOT)/rd.c \
        $(BACNET_ROOT)/dcc.c \
        $(BACNET_ROOT)/timesync.c \

@@ -374,3 +374,30 @@ bool bacfile_read_data(BACNET_ATOMIC_READ_FILE_DATA * data)
 
     return found;
 }
+
+bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA * data)
+{
+    char *pFilename = NULL;
+    bool found = false;
+    FILE *pFile = NULL;
+
+    pFilename = bacfile_name(data->object_instance);
+    if (pFilename) {
+        found = true;
+        /* open the file as a clean slate when starting at 0 */
+        if (data->type.stream.fileStartPosition == 0)
+          pFile = fopen(pFilename, "wb");
+        else
+          pFile = fopen(pFilename, "rb+");
+        if (pFile) {
+            (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
+            if (fwrite(octetstring_value(&data->fileData),
+	        octetstring_length(&data->fileData),1,pFile) != 1) {
+			
+	    }
+            fclose(pFile);
+        }
+    }
+
+    return found;
+}
