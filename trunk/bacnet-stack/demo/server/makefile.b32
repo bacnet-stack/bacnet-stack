@@ -28,6 +28,7 @@ SRCS = main.c \
        ..\..\demo\handler\h_rp.c  \
        ..\..\demo\handler\h_wp.c  \
        ..\..\demo\handler\h_arf.c  \
+       ..\..\demo\handler\h_awf.c  \
        ..\..\demo\handler\h_rd.c  \
        ..\..\demo\handler\h_dcc.c  \
        ..\..\demo\handler\h_ts.c  \

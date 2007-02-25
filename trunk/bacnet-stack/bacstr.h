@@ -115,8 +115,8 @@ extern "C" {
         char_string);
     size_t characterstring_capacity(BACNET_CHARACTER_STRING * char_string);
 
-/* returns false if the string exceeds capacity
-   initialize by using length=0 */
+    /* returns false if the string exceeds capacity
+       initialize by using length=0 */
     bool octetstring_init(BACNET_OCTET_STRING * octet_string,
         uint8_t * value, size_t length);
     bool octetstring_copy(BACNET_OCTET_STRING * dest,
