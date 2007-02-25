@@ -46,9 +46,9 @@ typedef struct {
 } BACNET_FILE_LISTING;
 
 static BACNET_FILE_LISTING BACnet_File_Listing[] = {
-    {0, "test.log"},
-    {1, "script.txt"},
-    {2, "bacenum.h"},
+    {0, "temp_0.txt"},
+    {1, "temp_1.txt"},
+    {2, "temp_2.txt"},
     {0, NULL}                   /* last file indication */
 };
 
