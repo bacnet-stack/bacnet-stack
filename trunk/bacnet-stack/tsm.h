@@ -42,7 +42,9 @@
 
 /* note: TSM functionality is optional - only needed if we are 
    doing client requests */
-#if TSM_ENABLED
+#if (!TSM_ENABLED)
+#define tsm_free_invoke_id(x) (void)x;
+#else
 typedef enum {
     TSM_STATE_IDLE,
     TSM_STATE_AWAIT_CONFIRMATION,
@@ -115,10 +117,6 @@ extern "C" {
 }
 #endif                          /* __cplusplus */
 /* define out any functions necessary for compile */
-#else
-
-#define tsm_free_invoke_id(x) (void)x;
-
 #endif
 
 #endif
