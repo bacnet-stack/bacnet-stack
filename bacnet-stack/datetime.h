@@ -105,6 +105,8 @@ extern "C" {
     /* date and time wildcards */
     bool datetime_wildcard(BACNET_DATE_TIME * bdatetime);
     void datetime_wildcard_set(BACNET_DATE_TIME * bdatetime);
+    void datetime_date_wildcard_set(BACNET_DATE * bdate);
+    void datetime_time_wildcard_set(BACNET_TIME * btime);
 
 #ifdef __cplusplus
 }

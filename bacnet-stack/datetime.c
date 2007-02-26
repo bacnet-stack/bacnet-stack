@@ -355,17 +355,31 @@ bool datetime_wildcard(BACNET_DATE_TIME * bdatetime)
     return wildcard_present;
 }
 
+void datetime_date_wildcard_set(BACNET_DATE * bdate)
+{
+    if (bdate) {
+        bdate->year = 1900 + 0xFF;
+        bdate->month = 0xFF;
+        bdate->day = 0xFF;
+        bdate->wday = 0xFF;
+    }
+}
+
+void datetime_time_wildcard_set(BACNET_TIME * btime)
+{
+    if (btime) {
+        btime->hour = 0xFF;
+        btime->min = 0xFF;
+        btime->sec = 0xFF;
+        btime->hundredths = 0xFF;
+    }
+}
+
 void datetime_wildcard_set(BACNET_DATE_TIME * bdatetime)
 {
     if (bdatetime) {
-        bdatetime->date.year = 1900 + 0xFF;
-        bdatetime->date.month = 0xFF;
-        bdatetime->date.day = 0xFF;
-        bdatetime->date.wday = 0xFF;
-        bdatetime->time.hour = 0xFF;
-        bdatetime->time.min = 0xFF;
-        bdatetime->time.sec = 0xFF;
-        bdatetime->time.hundredths = 0xFF;
+        datetime_date_wildcard_set(&bdatetime->date);
+        datetime_time_wildcard_set(&bdatetime->time);
     }
 }
 
