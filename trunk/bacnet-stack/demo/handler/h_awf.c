@@ -112,9 +112,8 @@ void handler_atomic_write_file(uint8_t * service_request,
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (bacfile_write_stream_data(&data)) {
                 len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                        service_data->invoke_id,
-                        SERVICE_CONFIRMED_ATOMIC_WRITE_FILE);
+                    awf_ack_encode_apdu(&Handler_Transmit_Buffer
+                        [pdu_len], service_data->invoke_id, &data);
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
