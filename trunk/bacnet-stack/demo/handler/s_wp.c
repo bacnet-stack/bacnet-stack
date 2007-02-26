@@ -130,6 +130,12 @@ uint8_t Send_Write_Property_Request(uint32_t device_id,
     int apdu_len = 0, len = 0;
 
     while (object_value) {
+#if PRINT_ENABLED_DEBUG
+        fprintf(stderr, "WriteProperty service: "
+            "%s tag=%d\n",
+            (object_value->context_specific?"context":"application"), 
+            (int)(object_value->context_specific?object_value->context_tag:object_value->tag) );
+#endif
         len = bacapp_encode_data(&application_data[apdu_len],
             object_value);
         if ((len + apdu_len) < MAX_APDU) {

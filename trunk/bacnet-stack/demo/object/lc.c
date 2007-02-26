@@ -391,6 +391,12 @@ void Load_Control_State_Machine(int object_index)
     unsigned i = 0;             /* loop counter */
     int diff = 0;               /* used for datetime comparison */
 
+    /* is the state machine enabled? */
+    if (!Load_Control_Enable[object_index]) {
+        Load_Control_State[object_index] = SHED_INACTIVE;
+        return;
+    }
+
     switch (Load_Control_State[object_index]) {
     case SHED_REQUEST_PENDING:
         if (Load_Control_Request_Written[object_index]) {
@@ -432,7 +438,6 @@ void Load_Control_State_Machine(int object_index)
             break;
         }
         /* cancel because current time is after start time + duration? */
-        Update_Current_Time(&Current_Time);
         datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
         datetime_add_minutes(&End_Time[object_index],
             Shed_Duration[object_index]);
@@ -479,7 +484,6 @@ void Load_Control_State_Machine(int object_index)
         }
         break;
     case SHED_NON_COMPLIANT:
-        Update_Current_Time(&Current_Time);
         datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
         datetime_add_minutes(&End_Time[object_index],
             Shed_Duration[object_index]);
@@ -516,7 +520,6 @@ void Load_Control_State_Machine(int object_index)
         }
         break;
     case SHED_COMPLIANT:
-        Update_Current_Time(&Current_Time);
         datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
         datetime_add_minutes(&End_Time[object_index],
             Shed_Duration[object_index]);
@@ -582,6 +585,7 @@ void Load_Control_State_Machine_Handler(void)
             Load_Control_State_Previously[i] = SHED_INACTIVE;
         }
     }
+    Update_Current_Time(&Current_Time);
     for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
         Load_Control_State_Machine(i);
         if (Load_Control_State[i] != Load_Control_State_Previously[i]) {
@@ -957,15 +961,74 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 void testLoadControlStateMachine(Test * pTest)
 {
     unsigned i = 0, j = 0;
+    bool status = false;
+    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_WRITE_PROPERTY_DATA wp_data;
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
+    int len = 0;
 
     Load_Control_Init();
     /* validate the triggers for each state change */
     for (j = 0; j < 20; j++) {
-        Load_Control_State_Machine_Handler();
+        Load_Control_State_Machine(0);
         for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
             ct_test(pTest, Load_Control_State[i] == SHED_INACTIVE);
         }
     }
+    /* SHED_REQUEST_PENDING */
+    wp_data.object_type = OBJECT_LOAD_CONTROL;
+    wp_data.object_instance = 0;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    /* Set Enable=TRUE */
+    wp_data.object_property = PROP_ENABLE;
+    value.context_specific = false;
+    value.context_tag = 0;
+    value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
+    value.type.Boolean = true;
+    wp_data.application_data_len = 
+        bacapp_encode_data(&wp_data.application_data[0], &value);
+    ct_test(pTest, wp_data.application_data_len > 0);
+    status = Load_Control_Write_Property(&wp_data, 
+        &error_class, &error_code);
+    ct_test(pTest, status == true);
+    /* Set Shed_Duration=60 */
+    wp_data.object_property = PROP_SHED_DURATION;
+    value.context_specific = false;
+    value.context_tag = 0;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 60;
+    wp_data.application_data_len = 
+        bacapp_encode_data(&wp_data.application_data[0], &value);
+    ct_test(pTest, wp_data.application_data_len > 0);
+    status = Load_Control_Write_Property(&wp_data, 
+        &error_class, &error_code);
+    ct_test(pTest, status == true);
+    /* Set Start_Time=wildcards */
+    wp_data.object_property = PROP_START_TIME;
+    value.context_specific = false;
+    value.context_tag = 0;
+    value.tag = BACNET_APPLICATION_TAG_DATE;
+    datetime_date_wildcard_set(&value.type.Date);
+    wp_data.application_data_len = 
+        bacapp_encode_data(&wp_data.application_data[0], &value);
+    ct_test(pTest, wp_data.application_data_len > 0);
+    len = wp_data.application_data_len;
+    value.tag = BACNET_APPLICATION_TAG_TIME;
+    datetime_time_wildcard_set(&value.type.Time);
+    wp_data.application_data_len =
+        bacapp_encode_data(&wp_data.application_data[len], &value);
+    ct_test(pTest, wp_data.application_data_len > 0);
+    wp_data.application_data_len += len;
+    status = Load_Control_Write_Property(&wp_data, 
+        &error_class, &error_code);
+    ct_test(pTest, status == true);
+    /* run the state machine */
+    Load_Control_State_Machine(0);
+    ct_test(pTest, Load_Control_State[i] == SHED_REQUEST_PENDING);
+    Load_Control_State_Machine(0);
+    ct_test(pTest, Load_Control_State[i] == SHED_INACTIVE);
 }
 
 void testLoadControl(Test * pTest)
