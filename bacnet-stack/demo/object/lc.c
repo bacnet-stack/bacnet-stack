@@ -395,38 +395,41 @@ void Load_Control_State_Machine(int object_index)
     case SHED_REQUEST_PENDING:
         if (Load_Control_Request_Written[object_index]) {
             Load_Control_Request_Written[object_index] = false;
-            /* request to cancel using default values? */
-            switch (Requested_Shed_Level[object_index].type) {
-            case BACNET_SHED_TYPE_PERCENT:
-                if (Requested_Shed_Level[object_index].value.percent ==
-                    DEFAULT_VALUE_PERCENT)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                if (Requested_Shed_Level[object_index].value.amount ==
-                    DEFAULT_VALUE_AMOUNT)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                if (Requested_Shed_Level[object_index].value.level ==
-                    DEFAULT_VALUE_LEVEL)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            }
-            if (Load_Control_State[object_index] == SHED_INACTIVE) {
-                printf("Load Control[%d]:Requested Shed Level=Default\n",
-                    object_index);
-                break;
-            }
         }
+        /* request to cancel using default values? */
+        switch (Requested_Shed_Level[object_index].type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            if (Requested_Shed_Level[object_index].value.percent ==
+                DEFAULT_VALUE_PERCENT)
+                Load_Control_State[object_index] = SHED_INACTIVE;
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            if (Requested_Shed_Level[object_index].value.amount ==
+                DEFAULT_VALUE_AMOUNT)
+                Load_Control_State[object_index] = SHED_INACTIVE;
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+        default:
+            if (Requested_Shed_Level[object_index].value.level ==
+                DEFAULT_VALUE_LEVEL)
+                Load_Control_State[object_index] = SHED_INACTIVE;
+            break;
+        }
+        if (Load_Control_State[object_index] == SHED_INACTIVE) {
+            printf("Load Control[%d]:Requested Shed Level=Default\n",
+                object_index);
+            break;
+        }
+        /* clear the flag for Start time if it is written */
         if (Start_Time_Property_Written[object_index]) {
             Start_Time_Property_Written[object_index] = false;
-            /* request to cancel using wildcards in start time? */
-            if (datetime_wildcard(&Start_Time[object_index])) {
-                Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            }
+        }
+        /* request to cancel using wildcards in start time? */
+        if (datetime_wildcard(&Start_Time[object_index])) {
+            Load_Control_State[object_index] = SHED_INACTIVE;
+            printf("Load Control[%d]:Start Time=Wildcard\n",
+                object_index);
+            break;
         }
         /* cancel because current time is after start time + duration? */
         Update_Current_Time(&Current_Time);
@@ -437,8 +440,8 @@ void Load_Control_State_Machine(int object_index)
         if (diff < 0) {
             /* CancelShed */
             /* FIXME: stop shedding! i.e. relinquish */
-            printf
-                ("Load Control[%d]:Current Time is after Start Time + Duration\n",
+            printf("Load Control[%d]:Current Time"
+                " is after Start Time + Duration\n",
                 object_index);
             Load_Control_State[object_index] = SHED_INACTIVE;
             break;
@@ -453,7 +456,8 @@ void Load_Control_State_Machine(int object_index)
                 Requested_Shed_Level[object_index].type);
         } else if (diff > 0) {
             /* current time after to start time */
-            printf("Load Control[%d]:Current Time is after Start Time\n",
+            printf("Load Control[%d]:Current Time"
+                " is after Start Time\n",
                 object_index);
             /* AbleToMeetShed */
             if (Able_To_Meet_Shed_Request(object_index)) {
