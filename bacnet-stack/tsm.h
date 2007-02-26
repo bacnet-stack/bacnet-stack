@@ -42,6 +42,9 @@
 
 /* note: TSM functionality is optional - only needed if we are 
    doing client requests */
+#ifndef TSM_ENABLED
+    #define TSM_ENABLED 0
+#endif
 #if (!TSM_ENABLED)
 #define tsm_free_invoke_id(x) (void)x;
 #else
