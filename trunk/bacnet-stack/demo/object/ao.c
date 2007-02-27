@@ -168,7 +168,7 @@ bool Analog_Output_Present_Value_Set(uint32_t object_instance,
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */ ) &&
             (value >= 0.0) && (value <= 100.0)) {
-            Analog_Output_Level[index][priority] = (uint8_t) value;
+            Analog_Output_Level[index][priority-1] = (uint8_t) value;
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
@@ -192,7 +192,7 @@ bool Analog_Output_Present_Value_Relinquish(uint32_t object_instance,
     if (index < MAX_ANALOG_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */ )) {
-            Analog_Output_Level[index][priority] = AO_LEVEL_NULL;
+            Analog_Output_Level[index][priority-1] = AO_LEVEL_NULL;
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
