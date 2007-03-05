@@ -108,7 +108,19 @@ static float Full_Duty_Baseline[MAX_LOAD_CONTROLS];
 /* Represents the shed levels for the LEVEL choice of 
    BACnetShedLevel that have meaning for this particular 
    Load Control object. */
-static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS];
+/* The elements of the array are required to be writable, 
+   allowing local configuration of how this Load Control 
+   object will participate in load shedding for the
+   facility. This array is not required to be resizable 
+   through BACnet write services. The size of this array 
+   shall be equal to the size of the Shed_Level_Descriptions 
+   array. The behavior of this object when the Shed_Levels 
+   array contains duplicate entries is a local matter. */
+static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS] = {
+    1,
+    2,
+    3,
+};
 
 /* represents a description of the shed levels that the 
    Load Control object can take on.  It is the same for
@@ -146,11 +158,6 @@ void Load_Control_Init(void)
             Duty_Window[i] = 0;
             Load_Control_Enable[i] = true;
             Full_Duty_Baseline[i] = 1.500;      /* kilowatts */
-            for (j = 0; j < MAX_SHED_LEVELS; j++) {
-                /* FIXME: fake data for lighting application */
-                /* The array shall be ordered by increasing shed amount. */
-                Shed_Levels[i][j] = 1 + j;
-            }
             Expected_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
             Expected_Shed_Level[i].value.level = 0;
             Actual_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
