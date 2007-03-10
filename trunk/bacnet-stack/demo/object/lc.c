@@ -116,11 +116,7 @@ static float Full_Duty_Baseline[MAX_LOAD_CONTROLS];
    shall be equal to the size of the Shed_Level_Descriptions 
    array. The behavior of this object when the Shed_Levels 
    array contains duplicate entries is a local matter. */
-static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS] = {
-    1,
-    2,
-    3,
-};
+static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS];
 
 /* represents a description of the shed levels that the 
    Load Control object can take on.  It is the same for
@@ -164,6 +160,9 @@ void Load_Control_Init(void)
             Actual_Shed_Level[i].value.level = 0;
             Load_Control_Request_Written[i] = false;
             Start_Time_Property_Written[i] = false;
+            for (j = 0; j < MAX_SHED_LEVELS; j++) {
+                Shed_Levels[i][j] = j + 1;
+            }
         }
     }
 
@@ -992,6 +991,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 #include <string.h>
 #include "ctest.h"
 
+#if 0
 static void Load_Control_WriteProperty_Request_Shed_Percent(Test * pTest,
     int instance, unsigned percent)
 {
@@ -1017,6 +1017,7 @@ static void Load_Control_WriteProperty_Request_Shed_Percent(Test * pTest,
         &error_class, &error_code);
     ct_test(pTest, status == true);
 }
+#endif
 
 static void Load_Control_WriteProperty_Request_Shed_Level(Test * pTest,
     int instance, unsigned level)
@@ -1044,6 +1045,7 @@ static void Load_Control_WriteProperty_Request_Shed_Level(Test * pTest,
     ct_test(pTest, status == true);
 }
 
+#if 0
 static void Load_Control_WriteProperty_Request_Shed_Amount(Test * pTest,
     int instance, float amount)
 {
@@ -1069,6 +1071,7 @@ static void Load_Control_WriteProperty_Request_Shed_Amount(Test * pTest,
         &error_class, &error_code);
     ct_test(pTest, status == true);
 }
+#endif
 
 static void Load_Control_WriteProperty_Enable(Test * pTest, int instance,
     bool enable)
@@ -1221,7 +1224,6 @@ static void Load_Control_WriteProperty_Start_Time(Test * pTest, int instance,
 void testLoadControlStateMachine(Test * pTest)
 {
     unsigned i = 0, j = 0;
-    int len = 0;
     uint8_t level = 0;
 
     Load_Control_Init();

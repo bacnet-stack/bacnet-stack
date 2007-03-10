@@ -245,15 +245,13 @@ typedef enum {
     PROP_TIME_SYNCHRONIZATION_INTERVAL = 204,
     PROP_TRIGGER = 205,
     PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS = 206,
-    /* enumerations 207-211 are used in Addendum d to 
-       ANSI/ASHRAE 135-2004 */
+    /* enumerations 207-211 are used in Addendum d to ANSI/ASHRAE 135-2004 */
     PROP_NODE_SUBTYPE = 207,
     PROP_NODE_TYPE = 208,
     PROP_STRUCTURED_OBJECT_LIST = 209,
     PROP_SUBORDINATE_ANNOTATIONS = 210,
     PROP_SUBORDINATE_LIST = 211,
-    /* enumerations 212-225 are used in Addendum e to
-       ANSI/ASHRAE 135-2004 */
+    /* enumerations 212-225 are used in Addendum e to ANSI/ASHRAE 135-2004 */
     PROP_ACTUAL_SHED_LEVEL = 212,
     PROP_DUTY_WINDOW = 213,
     PROP_EXPECTED_SHED_LEVEL = 214,
@@ -261,6 +259,7 @@ typedef enum {
     /* enumerations 216-217 are used in Addendum i to ANSI/ASHRAE 135-2004 */
     PROP_BLINK_PRIORITY_THRESHOLD = 216,
     PROP_BLINK_TIME = 217,
+    /* enumerations 212-225 are used in Addendum e to ANSI/ASHRAE 135-2004 */
     PROP_REQUESTED_SHED_LEVEL = 218,
     PROP_SHED_DURATION = 219,
     PROP_SHED_LEVEL_DESCRIPTIONS = 220,
@@ -272,14 +271,14 @@ typedef enum {
     PROP_LIGHTING_COMMAND_PRIORITY = 225,
     /* enumerations 226-235 are used in Addendum f to ANSI/ASHRAE 135-2004 */
     /* enumerations 236-243 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-	PROP_OFF_DELAY = 236,
-	PROP_ON_DELAY = 237,
-	PROP_POWER = 238,
-	PROP_POWER_ON_VALUE = 239,
-	PROP_PROGRESS_VALUE = 240,
-	PROP_RAMP_RATE = 241,
-	PROP_STEP_INCREMENT = 242,
-	PROP_SYSTEM_FAILURE_VALUE = 243,
+    PROP_OFF_DELAY = 236,
+    PROP_ON_DELAY = 237,
+    PROP_POWER = 238,
+    PROP_POWER_ON_VALUE = 239,
+    PROP_PROGRESS_VALUE = 240,
+    PROP_RAMP_RATE = 241,
+    PROP_STEP_INCREMENT = 242,
+    PROP_SYSTEM_FAILURE_VALUE = 243,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
