@@ -258,24 +258,34 @@ typedef enum {
     PROP_DUTY_WINDOW = 213,
     PROP_EXPECTED_SHED_LEVEL = 214,
     PROP_FULL_DUTY_BASELINE = 215,
-    /* note: missing enumerations for now */
+    /* enumerations 216-217 are used in Addendum i to ANSI/ASHRAE 135-2004 */
+    PROP_BLINK_PRIORITY_THRESHOLD = 216,
+    PROP_BLINK_TIME = 217,
     PROP_REQUESTED_SHED_LEVEL = 218,
     PROP_SHED_DURATION = 219,
     PROP_SHED_LEVEL_DESCRIPTIONS = 220,
     PROP_SHED_LEVELS = 221,
     PROP_STATE_DESCRIPTION = 222,
-    /* note: missing enumerations for now */
-    /* enumerations 226-235 are used in Addendum f to
-       ANSI/ASHRAE 135-2004 */
-    PROP_LOG_DEVICE_OBJECT_PROPERTIES = 236,
-    PROP_LOG_MULTIPLE_BUFFER = 237,
+    /* enumerations 223-225 are used in Addendum i to ANSI/ASHRAE 135-2004 */
+    PROP_FADE_TIME = 223,
+    PROP_LIGHTING_COMMAND = 224,
+    PROP_LIGHTING_COMMAND_PRIORITY = 225,
+    /* enumerations 226-235 are used in Addendum f to ANSI/ASHRAE 135-2004 */
+    /* enumerations 236-243 are used in Addendum i to ANSI/ASHRAE 135-2004 */
+	PROP_OFF_DELAY = 236,
+	PROP_ON_DELAY = 237,
+	PROP_POWER = 238,
+	PROP_POWER_ON_VALUE = 239,
+	PROP_PROGRESS_VALUE = 240,
+	PROP_RAMP_RATE = 241,
+	PROP_STEP_INCREMENT = 242,
+	PROP_SYSTEM_FAILURE_VALUE = 243,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
     /* Enumerated values 512-4194303 may be used by others subject to the  */
     /* procedures and constraints described in Clause 23.  */
-    /* The highest enumeration used in this version is 168. */
     MAX_BACNET_PROPERTY_ID = 4194303
 } BACNET_PROPERTY_ID;
 
@@ -742,10 +752,12 @@ typedef enum {
     OBJECT_TREND_LOG_MULTIPLE = 27,
     OBJECT_LOAD_CONTROL = 28,
     OBJECT_STRUCTURED_VIEW = 29,
+	/* what is object type 30? */
+    OBJECT_LIGHTING_OUTPUT = 31,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
-    MAX_ASHRAE_OBJECT_TYPE = 30,        /* used for bit string loop */
+    MAX_ASHRAE_OBJECT_TYPE = 32,        /* used for bit string loop */
     MAX_BACNET_OBJECT_TYPE = 1023
 } BACNET_OBJECT_TYPE;
 
@@ -1205,5 +1217,23 @@ typedef enum BACnetShedState {
     BACNET_SHED_COMPLIANT = 2,
     BACNET_SHED_NON_COMPLIANT = 3
 } BACNET_SHED_STATE;
+
+typedef enum BACnetLightingOperation {
+   BACNET_LIGHTS_STOP = 0,
+   BACNET_LIGHTS_FADE_TO = 1,
+   BACNET_LIGHTS_FADE_TO_OVER = 2,
+   BACNET_LIGHTS_RAMP_TO = 3,
+   BACNET_LIGHTS_RAMP_TO_AT_RATE = 4,
+   BACNET_LIGHTS_RAMP_UP = 5,
+   BACNET_LIGHTS_RAMP_UP_AT_RATE = 6,
+   BACNET_LIGHTS_RAMP_DOWN = 7,
+   BACNET_LIGHTS_RAMP_DOWN_AT_RATE = 8,
+   BACNET_LIGHTS_STEP_UP = 9,
+   BACNET_LIGHTS_STEP_DOWN = 10,
+   BACNET_LIGHTS_STEP_UP_BY = 11,
+   BACNET_LIGHTS_STEP_DOWN_BY = 12,
+   BACNET_LIGHTS_GOTO_LEVEL = 13,
+   BACNET_LIGHTS_RELINQUISH = 14
+} BACNET_LIGHTING_OPERATION;
 
 #endif                          /* end of BACENUM_H */
