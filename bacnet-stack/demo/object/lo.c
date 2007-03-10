@@ -234,6 +234,7 @@ bool Lighting_Output_Present_Value_Relinquish(uint32_t object_instance,
 float Lighting_Output_Progress_Value(uint32_t object_instance)
 {
     float value = LIGHTING_RELINQUISH_DEFAULT;
+    unsigned index = 0;
 
     Lighting_Output_Init();
     index = Lighting_Output_Instance_To_Index(object_instance);
