@@ -66,7 +66,7 @@ char *Analog_Input_Name(uint32_t object_instance)
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_INPUTS) {
-        sprintf(text_string, "ANALOG INPUT %lu", object_instance);
+        sprintf(text_string, "ANALOG INPUT %u", object_instance);
         return text_string;
     }
 

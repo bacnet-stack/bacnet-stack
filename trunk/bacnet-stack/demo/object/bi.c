@@ -114,7 +114,7 @@ char *Binary_Input_Name(uint32_t object_instance)
 
     Binary_Input_Init();
     if (object_instance < MAX_BINARY_INPUTS) {
-        sprintf(text_string, "BINARY INPUT %lu", object_instance);
+        sprintf(text_string, "BINARY INPUT %u", object_instance);
         return text_string;
     }
 
