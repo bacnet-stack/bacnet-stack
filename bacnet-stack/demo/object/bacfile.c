@@ -155,7 +155,7 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
             OBJECT_FILE, object_instance);
         break;
     case PROP_OBJECT_NAME:
-        sprintf(text_string, "FILE %d", object_instance);
+        sprintf(text_string, "FILE %lu", object_instance);
         characterstring_init_ansi(&char_string, text_string);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;

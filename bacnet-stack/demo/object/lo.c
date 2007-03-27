@@ -251,7 +251,7 @@ char *Lighting_Output_Name(uint32_t object_instance)
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_LIGHTING_OUTPUTS) {
-        sprintf(text_string, "LIGHTING OUTPUT %u", object_instance);
+        sprintf(text_string, "LIGHTING OUTPUT %lu", object_instance);
         return text_string;
     }
 
