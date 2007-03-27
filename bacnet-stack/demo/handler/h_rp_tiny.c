@@ -37,6 +37,9 @@
 #include "rp.h"
 /* demo objects */
 #include "device.h"
+#include "ai.h"
+#include "bi.h"
+#include "bv.h"
 
 /* note: this is a minimal handler.  See h_rp.c for another */
 
@@ -80,6 +83,60 @@ void handler_read_property(uint8_t * service_request,
             /* FIXME: probably need a length limitation sent with encode */
             if (data.object_instance == Device_Object_Instance_Number()) {
                 len = Device_Encode_Property_APDU(&Temp_Buf[0],
+                    data.object_property,
+                    data.array_index, &error_class, &error_code);
+                if (len >= 0) {
+                    /* encode the APDU portion of the packet */
+                    data.application_data = &Temp_Buf[0];
+                    data.application_data_len = len;
+                    /* FIXME: probably need a length limitation sent with encode */
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
+                        [pdu_len], service_data->invoke_id, &data);
+                    error = false;
+                }
+            }
+            break;
+        case OBJECT_ANALOG_INPUT:
+            if (Analog_Input_Valid_Instance(data.object_instance)) {
+                len = Analog_Input_Encode_Property_APDU(&Temp_Buf[0],
+                    data.object_instance,
+                    data.object_property,
+                    data.array_index, &error_class, &error_code);
+                if (len >= 0) {
+                    /* encode the APDU portion of the packet */
+                    data.application_data = &Temp_Buf[0];
+                    data.application_data_len = len;
+                    /* FIXME: probably need a length limitation sent with encode */
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
+                        [pdu_len], service_data->invoke_id, &data);
+                    error = false;
+                }
+            }
+            break;
+        case OBJECT_BINARY_INPUT:
+            if (Binary_Input_Valid_Instance(data.object_instance)) {
+                len = Binary_Input_Encode_Property_APDU(&Temp_Buf[0],
+                    data.object_instance,
+                    data.object_property,
+                    data.array_index, &error_class, &error_code);
+                if (len >= 0) {
+                    /* encode the APDU portion of the packet */
+                    data.application_data = &Temp_Buf[0];
+                    data.application_data_len = len;
+                    /* FIXME: probably need a length limitation sent with encode */
+                    len =
+                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
+                        [pdu_len], service_data->invoke_id, &data);
+                    error = false;
+                }
+            }
+            break;
+        case OBJECT_BINARY_VALUE:
+            if (Binary_Value_Valid_Instance(data.object_instance)) {
+                len = Binary_Value_Encode_Property_APDU(&Temp_Buf[0],
+                    data.object_instance,
                     data.object_property,
                     data.array_index, &error_class, &error_code);
                 if (len >= 0) {
