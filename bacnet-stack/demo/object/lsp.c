@@ -134,7 +134,7 @@ char *Life_Safety_Point_Name(uint32_t object_instance)
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_LIFE_SAFETY_POINTS) {
-        sprintf(text_string, "LS POINT %lu", object_instance);
+        sprintf(text_string, "LS POINT %u", object_instance);
         return text_string;
     }
 

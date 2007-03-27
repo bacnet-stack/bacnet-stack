@@ -233,7 +233,7 @@ char *Load_Control_Name(uint32_t object_instance)
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_LOAD_CONTROLS) {
-        sprintf(text_string, "LOAD CONTROL %lu", object_instance);
+        sprintf(text_string, "LOAD CONTROL %u", object_instance);
         return text_string;
     }
 
