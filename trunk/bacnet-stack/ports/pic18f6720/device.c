@@ -160,11 +160,9 @@ unsigned Device_Object_List_Count(void)
     unsigned count = 1;         /* at least 1 for device object */
 
 /* FIXME: add objects as needed */
-#if 0
     count += Binary_Value_Count();
     count += Analog_Input_Count();
     count += Binary_Input_Count();
-#endif
 
     return count;
 }
@@ -184,7 +182,6 @@ bool Device_Object_List_Identifier(unsigned array_index,
         *instance = Object_Instance_Number;
         status = true;
     }
-#if 0
     /* FIXME: add objects as needed */
     /* binary input objects */
     if (!status) {
@@ -224,7 +221,6 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
-#endif
 
     return status;
 }
@@ -333,11 +329,9 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         }
         /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
-#if 0
         bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
         bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
-#endif
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
