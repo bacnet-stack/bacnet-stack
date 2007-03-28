@@ -64,12 +64,14 @@ static void MyErrorHandler(BACNET_ADDRESS * src,
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    /* Ignore errors for EPICS application */
-    /*
+    #if 0
     printf("BACnet Error: %s: %s\r\n",
         bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
-    */
+    #else
+    (void) error_class;
+    (void) error_code;
+    #endif
     Error_Detected = true;
 }
 
@@ -80,11 +82,12 @@ void MyAbortHandler(BACNET_ADDRESS * src,
     (void) src;
     (void) invoke_id;
     (void) server;
-    /* Ignore errors for EPICS application */
-    /*
+    #if 0
     printf("BACnet Abort: %s\r\n",
         bactext_abort_reason_name(abort_reason));
-    */
+    #else
+    (void) abort_reason;
+    #endif
     Error_Detected = true;
 }
 
@@ -94,11 +97,12 @@ void MyRejectHandler(BACNET_ADDRESS * src,
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    /* Ignore errors for EPICS application */
-    /*
+    #if 0
     printf("BACnet Reject: %s\r\n",
         bactext_reject_reason_name(reject_reason));
-    */
+    #else
+    (void) reject_reason;
+    #endif
     Error_Detected = true;
 }
 
