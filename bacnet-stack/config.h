@@ -1,11 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-/* declare a single physical layer */
-/*#include "bip.h" */
-/*#include "ethernet.h" */
-/*#include "arcnet.h" */
-/*#include "mstp.h" */
+/* declare a single physical layer using your compiler define.
+   see datalink.h for possible defines. */
 
 /* Max number of bytes in an APDU. */
 /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
