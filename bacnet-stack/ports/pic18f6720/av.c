@@ -44,29 +44,24 @@
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
 #define ANALOG_RELINQUISH_DEFAULT 0
-/* Here is our Priority Array.  They are supposed to be Real, but */
+/* Here is our Present_Value.  They are supposed to be Real, but */
 /* we don't have that kind of memory, so we will use a single byte */
 /* and load a Real for returning the value when asked. */
-static uint8_t Analog_Value_Level[MAX_ANALOG_VALUES][BACNET_MAX_PRIORITY];
-/* Writable out-of-service allows others to play with our Present Value */
-/* without changing the physical output */
-static bool Analog_Value_Out_Of_Service[MAX_ANALOG_VALUES];
+static uint8_t Present_Value[MAX_ANALOG_VALUES];
 
 /* we need to have our arrays initialized before answering any calls */
 static bool Analog_Value_Initialized = false;
 
 void Analog_Value_Init(void)
 {
-    unsigned i, j;
+    unsigned i;
 
     if (!Analog_Value_Initialized) {
         Analog_Value_Initialized = true;
 
         /* initialize all the analog output priority arrays to NULL */
         for (i = 0; i < MAX_ANALOG_VALUES; i++) {
-            for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
-                Analog_Value_Level[i][j] = ANALOG_LEVEL_NULL;
-            }
+            Present_Value[i] = ANALOG_LEVEL_NULL;
         }
     }
 
@@ -125,12 +120,7 @@ static float Analog_Value_Present_Value(uint32_t object_instance)
     Analog_Value_Init();
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
-        for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            if (Analog_Value_Level[index][i] != ANALOG_LEVEL_NULL) {
-                value = Analog_Value_Level[index][i];
-                break;
-            }
-        }
+        value = Present_Value[index];
     }
 
     return value;
@@ -142,7 +132,7 @@ char *Analog_Value_Name(uint32_t object_instance)
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_VALUES) {
-        sprintf(text_string, "ANALOG VALUE %u", object_instance);
+        sprintf(text_string, "AV-%lu", object_instance);
         return text_string;
     }
 
@@ -196,13 +186,16 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
+#if 0
         object_index = Analog_Value_Instance_To_Index(object_instance);
         state = Analog_Value_Out_Of_Service[object_index];
-        apdu_len = encode_tagged_boolean(&apdu[0], state);
+#endif        
+        apdu_len = encode_tagged_boolean(&apdu[0], false);
         break;
     case PROP_UNITS:
         apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
         break;
+#if 0
     case PROP_PRIORITY_ARRAY:
         /* Array element zero is the number of elements in the array */
         if (array_index == 0)
@@ -214,11 +207,11 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
             object_index = Analog_Value_Instance_To_Index(object_instance);
             for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
-                if (Analog_Value_Level[object_index][i] ==
+                if (Present_Value[object_index][i] ==
                     ANALOG_LEVEL_NULL)
                     len = encode_tagged_null(&apdu[apdu_len]);
                 else {
-                    real_value = Analog_Value_Level[object_index][i];
+                    real_value = Present_Value[object_index][i];
                     len = encode_tagged_real(&apdu[apdu_len], real_value);
                 }
                 /* add it if we have room */
@@ -234,12 +227,12 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
         } else {
             object_index = Analog_Value_Instance_To_Index(object_instance);
             if (array_index <= BACNET_MAX_PRIORITY) {
-                if (Analog_Value_Level[object_index][array_index - 1] ==
+                if (Present_Value[object_index][array_index - 1] ==
                     ANALOG_LEVEL_NULL)
                     apdu_len = encode_tagged_null(&apdu[0]);
                 else {
                     real_value =
-                        Analog_Value_Level[object_index][array_index - 1];
+                        Present_Value[object_index][array_index - 1];
                     apdu_len = encode_tagged_real(&apdu[0], real_value);
                 }
             } else {
@@ -254,6 +247,7 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
         real_value = ANALOG_RELINQUISH_DEFAULT;
         apdu_len = encode_tagged_real(&apdu[0], real_value);
         break;
+#endif
     default:
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -301,7 +295,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                     Analog_Value_Instance_To_Index(wp_data->
                     object_instance);
                 priority--;
-                Analog_Value_Level[object_index][priority] = level;
+                Present_Value[object_index] = level;
                 /* Note: you could set the physical output here if we
                    are the highest priority.
                    However, if Out of Service is TRUE, then don't set the 
@@ -318,14 +312,15 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-        } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
+#if 0
+          } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
             level = ANALOG_LEVEL_NULL;
             object_index =
                 Analog_Value_Instance_To_Index(wp_data->object_instance);
             priority = wp_data->priority;
             if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                 priority--;
-                Analog_Value_Level[object_index][priority] = level;
+                Present_Value[object_index][priority] = level;
                 /* Note: you could set the physical output here to the next
                    highest priority, or to the relinquish default if no
                    priorities are set.
@@ -337,11 +332,13 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-        } else {
+#endif
+          } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
+#if 0
     case PROP_OUT_OF_SERVICE:
         if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
             object_index =
@@ -353,6 +350,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
+#endif
     default:
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

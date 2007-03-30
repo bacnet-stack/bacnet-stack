@@ -38,23 +38,17 @@
 /* demo objects */
 #include "device.h"
 #include "ai.h"
-#include "ao.h"
 #include "av.h"
 #include "bi.h"
-#include "bo.h"
 #include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#if BACFILE
-#include "bacfile.h"
-#endif
+
+/* too big to reside on stack frame for PIC */
+static BACNET_WRITE_PROPERTY_DATA wp_data;
 
 void handler_write_property(uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-    BACNET_WRITE_PROPERTY_DATA wp_data;
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
@@ -131,28 +125,6 @@ void handler_write_property(uint8_t * service_request,
             fprintf(stderr, "Sending Write Access Error!\n");
 #endif
             break;
-        case OBJECT_BINARY_OUTPUT:
-            if (Binary_Output_Write_Property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Sending Write Property Simple Ack for BO!\n");
-#endif
-            } else {
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-#if PRINT_ENABLED
-                fprintf(stderr, "Sending Write Access Error for BO!\n");
-#endif
-            }
-            break;
         case OBJECT_BINARY_VALUE:
             if (Binary_Value_Write_Property(&wp_data, &error_class,
                     &error_code)) {
@@ -172,28 +144,6 @@ void handler_write_property(uint8_t * service_request,
                     error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "Sending Write Access Error for BV!\n");
-#endif
-            }
-            break;
-        case OBJECT_ANALOG_OUTPUT:
-            if (Analog_Output_Write_Property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Sending Write Property Simple Ack for AO!\n");
-#endif
-            } else {
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-#if PRINT_ENABLED
-                fprintf(stderr, "Sending Write Access Error for AO!\n");
 #endif
             }
             break;
@@ -219,97 +169,6 @@ void handler_write_property(uint8_t * service_request,
 #endif
             }
             break;
-        case OBJECT_LIFE_SAFETY_POINT:
-            if (Life_Safety_Point_Write_Property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Sending Write Property Simple Ack for LSP!\n");
-#endif
-            } else {
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-#if PRINT_ENABLED
-                fprintf(stderr, "Sending Write Access Error for LSP!\n");
-#endif
-            }
-            break;
-        case OBJECT_LOAD_CONTROL:
-            if (Load_Control_Write_Property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Sending Write Property Simple Ack for Load Control!\n");
-#endif
-            } else {
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Sending Write Access Error for Load Control!\n");
-#endif
-            }
-            break;
-        case OBJECT_MULTI_STATE_OUTPUT:
-            if (Multistate_Output_Write_Property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Sending Write Property Simple Ack for MSO!\n");
-#endif
-            } else {
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-#if PRINT_ENABLED
-                fprintf(stderr, "Sending Write Access Error for MSO!\n");
-#endif
-            }
-            break;
-#if BACFILE
-        case OBJECT_FILE:
-            if (bacfile_write_property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-                fprintf(stderr,
-                    "Sending Write Property Simple Ack for File!\n");
-#endif
-            } else {
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-#if PRINT_ENABLED
-                fprintf(stderr, "Sending Write Access Error for File!\n");
-#endif
-            }
-            break;
-#endif                          /* BACFILE */
         default:
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],

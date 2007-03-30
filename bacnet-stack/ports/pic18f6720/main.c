@@ -103,9 +103,9 @@ static void BACnet_Service_Handlers_Init(void)
         handler_read_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
-#if 0
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
+#if 0
     apdu_set_unconfirmed_handler
         (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
         handler_timesync_utc);

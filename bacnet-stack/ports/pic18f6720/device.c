@@ -36,6 +36,7 @@
 #include "dlmstp.h"
 #include "rs485.h"
 #include "ai.h"
+#include "av.h"
 #include "bi.h"
 #include "bv.h"
 #include "wp.h"
@@ -182,18 +183,32 @@ bool Device_Object_List_Identifier(unsigned array_index,
         *instance = Object_Instance_Number;
         status = true;
     }
+    /* normalize the index since
+       we know it is not the previous objects */
+    /* array index starts at 1 */ 
+    object_index = array_index - 1;
+    /* 1 for the device object */    
+    object_count = 1;
     /* FIXME: add objects as needed */
-    /* binary input objects */
+    /* binary value objects */
     if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        /* array index starts at 1, and 1 for the device object */
-        object_index = array_index - 2;
+        object_index -= object_count;
         object_count = Binary_Value_Count();
         /* is it a valid index for this object? */
         if (object_index < object_count) {
             *object_type = OBJECT_BINARY_VALUE;
             *instance = Binary_Value_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+    /* analog input objects */
+    if (!status) {
+        /* array index starts at 1, and 1 for the device object */
+        object_index -= object_count;
+        object_count = Analog_Value_Count();
+        if (object_index < object_count) {
+            *object_type = OBJECT_ANALOG_VALUE;
+            *instance = Analog_Value_Index_To_Instance(object_index);
             status = true;
         }
     }
@@ -329,6 +344,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         }
         /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
+        bitstring_set_bit(&bit_string, OBJECT_ANALOG_VALUE, true);
         bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
         bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
