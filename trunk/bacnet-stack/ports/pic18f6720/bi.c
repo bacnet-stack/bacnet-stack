@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-/* Analog Input Objects customize for your use */
+/* Binary Input Objects customize for your use */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -36,6 +36,19 @@
 #define MAX_BINARY_INPUTS 8
 
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
+
+static void Binary_Input_Initialize(void)
+{
+  static bool initialized = false;
+  unsigned i;
+  
+  if (!initialized) {
+    initialized = true;
+    for (i = 0; i < MAX_BINARY_INPUTS; i++) {
+      Present_Value[i] = BINARY_INACTIVE;
+    }
+  }
+}
 
 /* we simply have 0-n object instances. */
 bool Binary_Input_Valid_Instance(uint32_t object_instance)
@@ -77,6 +90,7 @@ static BACNET_BINARY_PV Binary_Input_Present_Value(uint32_t
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned index = 0;
 
+    Binary_Input_Initialize();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
       value = Present_Value[index];
@@ -113,6 +127,7 @@ int Binary_Input_Encode_Property_APDU(uint8_t * apdu,
 
 
     (void) array_index;
+    Binary_Input_Initialize();
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
         apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_BINARY_INPUT,

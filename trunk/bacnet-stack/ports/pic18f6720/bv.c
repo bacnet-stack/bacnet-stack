@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-/* Binary Output Objects - customize for your use */
+/* Binary Value Objects - customize for your use */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -37,6 +37,19 @@
 #define MAX_BINARY_VALUES 8
 
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
+
+static void Binary_Value_Initialize(void)
+{
+  static bool initialized = false;
+  unsigned i;
+  
+  if (!initialized) {
+    initialized = true;
+    for (i = 0; i < MAX_BINARY_VALUES; i++) {
+      Present_Value[i] = BINARY_INACTIVE;
+    }
+  }
+}
 
 /* we simply have 0-n object instances. */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
@@ -75,6 +88,7 @@ static BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
 
+    Binary_Value_Initialize();
     if (object_instance < MAX_BINARY_VALUES) {
         value = Present_Value[object_instance];
     }
@@ -112,6 +126,7 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
     unsigned i = 0;
     bool state = false;
 
+    Binary_Value_Initialize();
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
         apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_BINARY_VALUE,

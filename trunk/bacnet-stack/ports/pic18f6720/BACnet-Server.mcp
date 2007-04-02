@@ -6,7 +6,7 @@ dir_src=
 dir_bin=
 dir_tmp=
 dir_sin=
-dir_inc=C:\code\bacnet-stack;C:\code\bacnet-stack\demo\handler;C:\code\bacnet-stack\demo\object;C:\code\bacnet-stack\ports\pic18
+dir_inc=C:\code\bacnet-stack;C:\code\bacnet-stack\demo\handler;C:\code\bacnet-stack\demo\object;C:\code\bacnet-stack\ports\pic18f6720
 dir_lib=C:\mcc18\lib
 dir_lkr=
 [CAT_FILTERS]
