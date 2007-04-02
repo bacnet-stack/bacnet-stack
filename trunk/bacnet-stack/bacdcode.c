@@ -42,7 +42,9 @@
 
 /* NOTE: byte order plays a role in decoding multibyte values */
 /* http://www.unixpapa.com/incnote/byteorder.html */
-/* define BIG_ENDIAN=1 or BIG_ENDIAN=0 for your target! */
+#ifndef BIG_ENDIAN
+  #error Define BIG_ENDIAN=0 or BIG_ENDIAN=1 for BACnet Stack in compiler settings
+#endif
 
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
