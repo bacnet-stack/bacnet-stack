@@ -45,22 +45,22 @@
 /* the Relinquish Default value */
 #define LIGHTING_RELINQUISH_DEFAULT 0
 
-/* note: although the standard specifies REAL values for some 
+/* note: although the standard specifies REAL values for some
    of the optional parameters, we represent them interally as
    integers. */
 typedef struct LightingCommand {
-	BACNET_LIGHTING_OPERATION operation;
-	uint8_t level; /* 0..100 percent, 255=not used */
-	uint8_t ramp_rate; /* 0..100 percent-per-second, 255=not used */
-	uint8_t step_increment; /* 0..100 amount to step, 255=not used */
-	uint16_t fade_time; /* 1..65535 seconds to transition, 0=not used */ 
-	uint16_t duration; /* 1..65535 minutes until relinquish, 0=not used */
+  BACNET_LIGHTING_OPERATION operation;
+  uint8_t level; /* 0..100 percent, 255=not used */
+  uint8_t ramp_rate; /* 0..100 percent-per-second, 255=not used */
+  uint8_t step_increment; /* 0..100 amount to step, 255=not used */
+  uint16_t fade_time; /* 1..65535 seconds to transition, 0=not used */
+  uint16_t duration; /* 1..65535 minutes until relinquish, 0=not used */
 } BACNET_LIGHTING_COMMAND;
 
 /* Here is our Priority Array.  They are supposed to be Real, but */
 /* we might not have that kind of memory, so we will use a single byte */
 /* and load a Real for returning the value when asked. */
-static uint8_t 
+static uint8_t
     Lighting_Output_Level[MAX_LIGHTING_OUTPUTS][BACNET_MAX_PRIORITY];
 /* The Progress_Value tracks changes such as ramp and fade */
 static uint8_t Lighting_Output_Progress[MAX_LIGHTING_OUTPUTS];
@@ -75,6 +75,101 @@ static uint8_t Lighting_Command_Priority = 16;
 static BACNET_LIGHTING_COMMAND Lighting_Command[MAX_LIGHTING_OUTPUTS];
 /* we need to have our arrays initialized before answering any calls */
 static bool Lighting_Output_Initialized = false;
+
+int Lighting_Output_Encode_Lighting_Command(uint8_t * apdu,
+    BACNET_LIGHTING_COMMAND * data)
+{
+    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;                /* total length of the apdu, return value */
+    float real_value = 0.0;
+    uint32_t unsigned_value = 0;
+
+    if (apdu) {
+        len = encode_context_enumerated(&apdu[apdu_len], 0,
+            data->operation);
+        apdu_len += len;
+        /* optional level? */
+        if (data->level != 255) {
+            real_value = data->level;
+            len = encode_context_real(&apdu[apdu_len], 1,
+                real_value);
+            apdu_len += len;
+        }
+        /* optional ramp-rate */
+        if (data->ramp_rate != 255) {
+            real_value = data->ramp_rate;
+            len = encode_context_real(&apdu[apdu_len], 2,
+                real_value);
+            apdu_len += len;
+        }
+        /* optional step increment */
+        if (data->step_increment != 255) {
+            real_value = data->step_increment;
+            len = encode_context_real(&apdu[apdu_len], 3,
+                real_value);
+            apdu_len += len;
+        }
+        /* optional fade time */
+        if (data->fade_time != 0) {
+            real_value = data->fade_time;
+            len = encode_context_real(&apdu[apdu_len], 4,
+                real_value);
+            apdu_len += len;
+        }
+        /* optional duration */
+        if (data->duration != 0) {
+            unsigned_value = data->duration;
+            len = encode_context_unsigned(&apdu[apdu_len], 5,
+                unsigned_value);
+            apdu_len += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+int Lighting_Output_Decode_Lighting_Command(uint8_t * apdu,
+    unsigned apdu_max_len, BACNET_LIGHTING_COMMAND * data)
+{
+    int len = 0;
+    int apdu_len = 0;
+    int tag_len = 0;
+    uint8_t tag_number = 0;
+    uint32_t len_value_type = 0;
+    int type = 0;               /* for decoding */
+    int property = 0;           /* for decoding */
+    uint32_t unsigned_value = 0;
+    int i = 0;                  /* loop counter */
+    float real_value = 0.0;
+
+    /* check for value pointers */
+    if (apdu_len && data) {
+        /* Tag 0: operation */
+        if (!decode_is_context_tag(&apdu[apdu_len], 0))
+            return -1;
+        len = decode_tag_number_and_value(&apdu[apdu_len],
+            &tag_number, &len_value_type);
+        apdu_len += len;
+        len = decode_enumerated(&apdu[apdu_len], len_value_type, &data->operation);
+        apdu_len += len;
+        /* Tag 1: level - OPTIONAL */
+        if (decode_is_context_tag(&apdu[apdu_len], 1)) {
+            len = decode_tag_number_and_value(&apdu[apdu_len],
+                &tag_number, &len_value_type);
+            apdu_len += len;
+            len = decode_real(&apdu[apdu_len], &real_value);
+            apdu_len += len;
+            data->level = real_value;
+            /* FIXME: are we going to flag errors in decoding values here? */
+        }
+        /* FIXME: finish me! */
+        /* Tag 2:  */
+
+    }
+
+    return len;
+}
+
 
 void Lighting_Output_Init(void)
 {
@@ -197,8 +292,8 @@ bool Lighting_Output_Present_Value_Set(uint32_t object_instance,
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
-               However, if Out of Service is TRUE, then don't set the 
-               physical output.  This comment may apply to the 
+               However, if Out of Service is TRUE, then don't set the
+               physical output.  This comment may apply to the
                main loop (i.e. check out of service before changing output) */
             status = true;
         }
@@ -221,8 +316,8 @@ bool Lighting_Output_Present_Value_Relinquish(uint32_t object_instance,
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
-               However, if Out of Service is TRUE, then don't set the 
-               physical output.  This comment may apply to the 
+               However, if Out of Service is TRUE, then don't set the
+               physical output.  This comment may apply to the
                main loop (i.e. check out of service before changing output) */
             status = true;
         }
@@ -282,8 +377,8 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
-		/* object name must be unique in this device. */
-		/* FIXME: description could be writable and different than object name */
+        /* object name must be unique in this device. */
+        /* FIXME: description could be writable and different than object name */
         characterstring_init_ansi(&char_string,
             Lighting_Output_Name(object_instance));
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
@@ -299,6 +394,10 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
     case PROP_PROGRESS_VALUE:
         real_value = Lighting_Output_Progress_Value(object_instance);
         apdu_len = encode_tagged_real(&apdu[0], real_value);
+        break;
+    case PROP_LIGHTING_COMMAND:
+        apdu_len = Lighting_Output_Encode_Lighting_Command(&apdu[0],
+            &Lighting_Command[object_instance]);
         break;
     case PROP_STATUS_FLAGS:
         bitstring_init(&bit_string);
@@ -428,7 +527,13 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             status =
                 Lighting_Output_Present_Value_Relinquish(wp_data->
                 object_instance, wp_data->priority);
-            if (!status) {
+            if (wp_data->priority == 6) {
+                /* Command priority 6 is reserved for use by Minimum On/Off
+                   algorithm and may not be used for other purposes in any
+                   object. */
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else if (!status) {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
@@ -436,6 +541,12 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
+        break;
+    case PROP_LIGHTING_COMMAND:
+        /* FIXME: error checking? */
+        Lighting_Output_Decode_Lighting_Command(wp_data->application_data,
+            wp_data->application_data_len,
+            &Lighting_Command[wp_data->object_instance]);
         break;
     case PROP_OUT_OF_SERVICE:
         if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {

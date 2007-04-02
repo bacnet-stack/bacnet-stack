@@ -168,7 +168,7 @@ typedef enum {
     PROP_EVENT_TIME_STAMPS = 130,
     PROP_LOG_BUFFER = 131,
     PROP_LOG_DEVICE_OBJECT = 132,
-    /* The enable property is renamed from log-enable in 
+    /* The enable property is renamed from log-enable in
        Addendum b to ANSI/ASHRAE 135-2004(135b-2) */
     PROP_ENABLE = 133,
     PROP_LOG_INTERVAL = 134,
@@ -538,10 +538,10 @@ typedef enum {
     UNITS_SQUARE_METERS_PER_NEWTON = 185,
     UNITS_WATTS_PER_METER_PER_DEGREE_KELVIN = 189,
     UNITS_WATTS_PER_SQUARE_METER_DEGREE_KELVIN = 141
-        /*  Enumerated values 0-255 are reserved for definition by ASHRAE.
-           Enumerated values 256-65535 may be used by others subject to
-           the procedures and constraints described in Clause 23.
-           The last enumeration used in this version is 189. */
+    /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
+    /* Enumerated values 256-65535 may be used by others subject to */
+    /* the procedures and constraints described in Clause 23. */
+    /* The last enumeration used in this version is 189. */
 } BACNET_ENGINEERING_UNITS;
 
 typedef enum {
@@ -573,9 +573,9 @@ typedef enum {
     PROGRAM_ERROR_INTERNAL = 2,
     PROGRAM_ERROR_PROGRAM = 3,
     PROGRAM_ERROR_OTHER = 4
-        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 64-65535 may be used by others subject to  */
-        /* the procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 64-65535 may be used by others subject to  */
+    /* the procedures and constraints described in Clause 23. */
 } BACNET_PROGRAM_ERROR;
 
 typedef enum {
@@ -589,10 +589,12 @@ typedef enum {
     RELIABILITY_UNRELIABLE_OTHER = 7,
     RELIABILITY_PROCESS_ERROR = 8,
     RELIABILITY_MULTI_STATE_FAULT = 9,
-    RELIABILITY_CONFIGURATION_ERROR = 10
-        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 64-65535 may be used by others subject to  */
-        /* the procedures and constraints described in Clause 23. */
+    RELIABILITY_CONFIGURATION_ERROR = 10,
+    RELIABILITY_COMMUNICATION_FAILURE = 12,
+    RELIABILITY_TRIPPED = 13
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 64-65535 may be used by others subject to  */
+    /* the procedures and constraints described in Clause 23. */
 } BACNET_RELIABILITY;
 
 typedef enum {
@@ -608,13 +610,13 @@ typedef enum {
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11
-        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 64-65535 may be used by others subject to  */
-        /* the procedures and constraints described in Clause 23.  */
-        /* It is expected that these enumerated values will correspond to  */
-        /* the use of the complex-event-type CHOICE [6] of the  */
-        /* BACnetNotificationParameters production. */
-        /* The last enumeration used in this version is 11. */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 64-65535 may be used by others subject to  */
+    /* the procedures and constraints described in Clause 23.  */
+    /* It is expected that these enumerated values will correspond to  */
+    /* the use of the complex-event-type CHOICE [6] of the  */
+    /* BACnetNotificationParameters production. */
+    /* The last enumeration used in this version is 11. */
 } BACNET_EVENT_TYPE;
 
 typedef enum {
@@ -641,9 +643,9 @@ typedef enum {
     LIFE_SAFETY_MODE_AUTOMATIC_RELEASE_DISABLED = 13,
     LIFE_SAFETY_MODE_DEFAULT = 14,
     MAX_LIFE_SAFETY_MODE = 14
-        /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 256-65535 may be used by others subject to  */
-        /* procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 256-65535 may be used by others subject to  */
+    /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_MODE;
 
 typedef enum {
@@ -689,9 +691,9 @@ typedef enum {
     LIFE_SAFETY_STATE_SUPERVISORY = 22,
     LIFE_SAFETY_STATE_TEST_SUPERVISORY = 23,
     MAX_LIFE_SAFETY_STATE = 0
-        /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 256-65535 may be used by others subject to  */
-        /* procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 256-65535 may be used by others subject to  */
+    /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_STATE;
 
 typedef enum {
@@ -751,7 +753,7 @@ typedef enum {
     OBJECT_TREND_LOG_MULTIPLE = 27,
     OBJECT_LOAD_CONTROL = 28,
     OBJECT_STRUCTURED_VIEW = 29,
-	/* what is object type 30? */
+    /* what is object type 30? */
     OBJECT_LIGHTING_OUTPUT = 31,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
