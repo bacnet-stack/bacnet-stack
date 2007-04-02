@@ -166,7 +166,7 @@ Character Sets Supported:
 Special Functionality:
 {
  Maximum APDU size in octets: 480 -- Arcnet Maximum 501 less NL Header
--- Maximum APDU size in octets: 474
+-- Maximum APDU size in octets: 480
 -- Segmented Requests Supported, window size: 1
 -- Segmented Responses Supported, window size: 1
 -- Router
