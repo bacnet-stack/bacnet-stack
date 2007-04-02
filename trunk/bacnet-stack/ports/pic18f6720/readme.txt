@@ -20,7 +20,7 @@ Additional handlers as needed: h_wp.c
 2. Project->Options->Project
 
 General Tab: Include Path:
-C:\code\bacnet-stack\;C:\code\bacnet-stack\demo\handler\;C:\code\bacnet-stack\demo\object\;C:\code\bacnet-stack\ports\pic18\
+C:\code\bacnet-stack\;C:\code\bacnet-stack\demo\handler\;C:\code\bacnet-stack\demo\object\;C:\code\bacnet-stack\ports\pic18f6720\
 
 MPLAB C18 Tab: Memory Model:
 Code: Large Code Model
