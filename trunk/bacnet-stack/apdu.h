@@ -39,28 +39,28 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
+typedef struct _confirmed_service_data {
+    bool segmented_message;
+    bool more_follows;
+    bool segmented_response_accepted;
+    int max_segs;
+    int max_resp;
+    uint8_t invoke_id;
+    uint8_t sequence_number;
+    uint8_t proposed_window_number;
+} BACNET_CONFIRMED_SERVICE_DATA;
+
+typedef struct _confirmed_service_ack_data {
+    bool segmented_message;
+    bool more_follows;
+    uint8_t invoke_id;
+    uint8_t sequence_number;
+    uint8_t proposed_window_number;
+} BACNET_CONFIRMED_SERVICE_ACK_DATA;
+
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */
-
-    typedef struct _confirmed_service_data {
-        bool segmented_message;
-        bool more_follows;
-        bool segmented_response_accepted;
-        int max_segs;
-        int max_resp;
-        uint8_t invoke_id;
-        uint8_t sequence_number;
-        uint8_t proposed_window_number;
-    } BACNET_CONFIRMED_SERVICE_DATA;
-
-    typedef struct _confirmed_service_ack_data {
-        bool segmented_message;
-        bool more_follows;
-        uint8_t invoke_id;
-        uint8_t sequence_number;
-        uint8_t proposed_window_number;
-    } BACNET_CONFIRMED_SERVICE_ACK_DATA;
 
 /* generic unconfirmed function handler */
 /* Suitable to handle the following services: */

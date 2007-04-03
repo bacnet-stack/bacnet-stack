@@ -43,11 +43,13 @@
 #include "net.h"
 #include "datalink.h"
 #include "whois.h"
+#include "rp.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
 #include "client.h"
 #include "txbuf.h"
+#include "keylist.h"
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -57,6 +59,15 @@ static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static bool Error_Detected = false;
 static BACNET_ADDRESS Target_Address;
 
+typedef struct BACnet_RP_Service_Data_t {
+    bool new_data;
+    BACNET_CONFIRMED_SERVICE_ACK_DATA service_data;
+    BACNET_READ_PROPERTY_DATA data;
+} BACNET_RP_SERVICE_DATA;
+static BACNET_RP_SERVICE_DATA Read_Property_Data;
+
+static OS_Keylist Object_List;
+
 static void MyErrorHandler(BACNET_ADDRESS * src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
@@ -64,7 +75,7 @@ static void MyErrorHandler(BACNET_ADDRESS * src,
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    #if 0
+    #if 1
     printf("BACnet Error: %s: %s\r\n",
         bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
@@ -82,7 +93,7 @@ void MyAbortHandler(BACNET_ADDRESS * src,
     (void) src;
     (void) invoke_id;
     (void) server;
-    #if 0
+    #if 1
     printf("BACnet Abort: %s\r\n",
         bactext_abort_reason_name(abort_reason));
     #else
@@ -97,13 +108,82 @@ void MyRejectHandler(BACNET_ADDRESS * src,
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    #if 0
+    #if 1
     printf("BACnet Reject: %s\r\n",
         bactext_reject_reason_name(reject_reason));
     #else
     (void) reject_reason;
     #endif
     Error_Detected = true;
+}
+
+void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA * data)
+{
+    BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
+    int len = 0;
+    uint8_t *application_data;
+    int application_data_len;
+    bool first_value = true;
+    bool print_brace = false;
+
+    if (data) {
+#if 0
+        if (data->array_index == BACNET_ARRAY_ALL)
+            fprintf(stderr, "%s #%u %s\n",
+                bactext_object_type_name(data->object_type),
+                data->object_instance,
+                bactext_property_name(data->object_property));
+        else
+            fprintf(stderr, "%s #%u %s[%d]\n",
+                bactext_object_type_name(data->object_type),
+                data->object_instance,
+                bactext_property_name(data->object_property),
+                data->array_index);
+#endif
+        application_data = data->application_data;
+        application_data_len = data->application_data_len;
+        /* value? loop until all of the len is gone... */
+        for (;;) {
+            len = bacapp_decode_application_data(application_data,
+                (uint8_t) application_data_len, &value);
+            if (first_value && (len < application_data_len)) {
+                first_value = false;
+                fprintf(stdout, "{");
+                print_brace = true;
+            }
+            bacapp_print_value(stdout, &value, data->object_property);
+            if (len) {
+                if (len < application_data_len) {
+                    application_data += len;
+                    application_data_len -= len;
+                    /* there's more! */
+                    fprintf(stdout, ",");
+                } else
+                    break;
+            } else
+                break;
+        }
+        if (print_brace)
+            fprintf(stdout, "}");
+        fprintf(stdout, "\r\n");
+    }
+}
+
+void MyReadPropertyAckHandler(uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+{
+    int len = 0;
+    BACNET_READ_PROPERTY_DATA data;
+
+    (void) src;
+    len = rp_ack_decode_service_request(service_request,
+        service_len, &data);
+    if (len > 0) {
+        memmove(&Read_Property_Data.service_data, service_data, sizeof(data));
+        memmove(&Read_Property_Data.data, &data, sizeof(data));
+        Read_Property_Data.new_data = true;
+    }
 }
 
 static void Init_Service_Handlers(void)
@@ -124,7 +204,7 @@ static void Init_Service_Handlers(void)
         handler_read_property);
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property_ack);
+        MyReadPropertyAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         MyErrorHandler);
@@ -170,14 +250,12 @@ static uint8_t Read_Properties(uint32_t device_instance)
         /* note: PROP_OBJECT_LIST is missing cause
            we need to get it with an index method since
            the list could be very large */
-        /* some proprietary properties */
-        514, 515,
         /* end of list */
         -1
     };
     
     if (object_props[index] != -1) {
-        printf("%s: ",bactext_property_name(object_props[index]));
+        printf("    %s: ",bactext_property_name(object_props[index]));
         invoke_id = Send_Read_Property_Request(device_instance,
             OBJECT_DEVICE,
             device_instance, 
@@ -229,7 +307,7 @@ int main(int argc, char *argv[])
     bip_set_interface("eth0");
     if (!bip_init())
         return 1;
-    printf("bip: using port %hu\r\n", bip_get_port());
+    /* printf("bip: using port %hu\r\n", bip_get_port()); */
 #elif defined(BACDL_ARCNET)
     if (!arcnet_init("arc0"))
         return 1;
@@ -243,6 +321,8 @@ int main(int argc, char *argv[])
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance,
         Target_Device_Object_Instance);
+    printf("List of Objects in test device:\r\n");
+    printf("{\r\n");
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
@@ -268,6 +348,10 @@ int main(int argc, char *argv[])
                 if (invoke_id == 0) {
                     break;
                 }
+            } else if ((Read_Property_Data.new_data) && 
+                (invoke_id == Read_Property_Data.service_data.invoke_id)) {
+                Read_Property_Data.new_data = false;
+                PrintReadPropertyData(&Read_Property_Data.data);
             } else if (tsm_invoke_id_free(invoke_id)) {
                 invoke_id = 0;
             }
@@ -277,7 +361,7 @@ int main(int argc, char *argv[])
                 invoke_id = 0;
             } else if (Error_Detected) {
                 invoke_id = 0;
-            }
+	    }
         } else {
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
@@ -289,6 +373,7 @@ int main(int argc, char *argv[])
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
+    printf("}\r\n");
 
     return 0;
 }
