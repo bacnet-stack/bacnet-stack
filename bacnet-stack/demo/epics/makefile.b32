@@ -21,12 +21,13 @@ SRCS = main.c \
        ..\..\ports\win32\bip-init.c \
        ..\..\filename.c \
        ..\..\bip.c  \
+       ..\..\key.c  \
+       ..\..\keylist.c  \
        ..\..\demo\handler\txbuf.c  \
        ..\..\demo\handler\noserv.c  \
        ..\..\demo\handler\h_whois.c  \
        ..\..\demo\handler\h_iam.c  \
        ..\..\demo\handler\h_rp.c  \
-       ..\..\demo\handler\h_rp_a.c  \
        ..\..\demo\handler\s_rp.c  \
        ..\..\demo\handler\s_whois.c  \
        ..\..\bacdcode.c \

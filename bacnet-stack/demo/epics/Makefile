@@ -25,12 +25,13 @@ SRCS = main.c \
        $(BACNET_PORT)/ethernet.c \
        $(BACNET_PORT)/arcnet.c \
        $(BACNET_ROOT)/bip.c \
+       $(BACNET_ROOT)/key.c \
+       $(BACNET_ROOT)/keylist.c \
        $(BACNET_HANDLER)/txbuf.c \
        $(BACNET_HANDLER)/noserv.c \
        $(BACNET_HANDLER)/h_whois.c \
        $(BACNET_HANDLER)/h_rp.c \
        $(BACNET_HANDLER)/h_iam.c  \
-       $(BACNET_HANDLER)/h_rp_a.c  \
        $(BACNET_HANDLER)/s_rp.c  \
        $(BACNET_HANDLER)/s_whois.c  \
        $(BACNET_OBJECT)/device.c \
@@ -84,4 +85,3 @@ clean:
 	rm -rf core ${TARGET} $(OBJS) *.bak ports/linux/*.bak *.1 *.ini
 
 include: .depend
-
