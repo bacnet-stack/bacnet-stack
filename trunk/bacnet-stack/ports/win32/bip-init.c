@@ -51,11 +51,16 @@ static long gethostaddr(void)
 
     if (gethostname(host_name, sizeof(host_name)) != 0)
         return -1;
-#ifdef BIP_DEBUG
-    printf("host name: %s\n", host_name);
-#endif
+
     if ((host_ent = gethostbyname(host_name)) == NULL)
         return -1;
+#ifdef BIP_DEBUG
+    printf("host: %s at %03u.%03u.%03u.%03u\n", host_name, 
+                            ((uint8_t*)host_ent->h_addr)[0], 
+                            ((uint8_t*)host_ent->h_addr)[1], 
+                            ((uint8_t*)host_ent->h_addr)[2], 
+                            ((uint8_t*)host_ent->h_addr)[3]);
+#endif
 
     return *(long *) host_ent->h_addr;
 }
