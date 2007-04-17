@@ -136,8 +136,8 @@ uint8_t tsm_next_free_invokeID(void)
     if (tsm_transaction_available()) {
         while (!found) {
             index = tsm_find_invokeID_index(current_invokeID);
-            /* not found - that is good! */
             if (index == MAX_TSM_TRANSACTIONS) {
+                /* Not found, so this invokeID is not used */
                 found = true;
                 /* set this id into the table */
                 index = tsm_find_first_free_index();
@@ -148,8 +148,17 @@ uint8_t tsm_next_free_invokeID(void)
                     /* update for the next call or check */
                     current_invokeID++;
                     /* skip zero - we treat that internally as invalid or no free */
-                    if (current_invokeID == 0)
+                    if (current_invokeID == 0) {
                         current_invokeID = 1;
+                    }
+                }
+            } else { 
+                /* found! This invokeID is already used */
+                /* try next one */
+                current_invokeID++;
+                /* skip zero - we treat that internally as invalid or no free */
+                if (current_invokeID == 0) {
+                    current_invokeID = 1;
                 }
             }
         }
@@ -247,6 +256,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
     }
 }
 
+/* frees the invokeID and sets its state to IDLE */
 void tsm_free_invoke_id(uint8_t invokeID)
 {
     uint8_t index;
@@ -258,7 +268,7 @@ void tsm_free_invoke_id(uint8_t invokeID)
     }
 }
 
-/* see if the invoke ID has been made free */
+/* check if the invoke ID has been made free */
 bool tsm_invoke_id_free(uint8_t invokeID)
 {
     bool status = true;
