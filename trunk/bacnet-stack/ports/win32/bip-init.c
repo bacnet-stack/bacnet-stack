@@ -55,13 +55,13 @@ static long gethostaddr(void)
     if ((host_ent = gethostbyname(host_name)) == NULL)
         return -1;
 #ifdef BIP_DEBUG
-    printf("host: %s at %03u.%03u.%03u.%03u\n", host_name, 
+    printf("host: %s at %u.%u.%u.%u\n", host_name, 
                             ((uint8_t*)host_ent->h_addr)[0], 
                             ((uint8_t*)host_ent->h_addr)[1], 
                             ((uint8_t*)host_ent->h_addr)[2], 
                             ((uint8_t*)host_ent->h_addr)[3]);
 #endif
-
+    /* note: network byte order */
     return *(long *) host_ent->h_addr;
 }
 
@@ -115,6 +115,7 @@ bool bip_init(void)
     int Code;
     WSADATA wd;
     struct in_addr address;
+    struct in_addr broadcast_address;
 
     Result = WSAStartup((1 << 8) | 1, &wd);
     /*Result = WSAStartup(MAKEWORD(2,2), &wd); */
@@ -126,17 +127,28 @@ bool bip_init(void)
     }
     atexit(cleanup);
 
-    address.s_addr = gethostaddr();
-    if (address.s_addr == (unsigned) -1) {
-        Code = WSAGetLastError();
-        printf("Get host address failed, error code: %i\n", Code);
-        exit(1);
+    /* has address been set? */
+    address.s_addr = htonl(bip_get_addr());
+    if (address.s_addr == 0) {
+        address.s_addr = gethostaddr();
+        if (address.s_addr == (unsigned) -1) {
+            Code = WSAGetLastError();
+            printf("Get host address failed, error code: %i\n", Code);
+            exit(1);
+        }
+        bip_set_addr(address.s_addr);
     }
 #ifdef BIP_DEBUG
     printf("host address: %s\n", inet_ntoa(address));
 #endif
-    bip_set_addr(address.s_addr);
-    set_broadcast_address(address.s_addr);
+    /* has broadcast address been set? */
+    if (bip_get_broadcast_addr() == 0) {
+        set_broadcast_address(address.s_addr);
+    }
+#ifdef BIP_DEBUG
+    broadcast_address.s_addr = htonl(bip_get_broadcast_addr());
+    printf("broadcast address: %s\n", inet_ntoa(broadcast_address));
+#endif
 
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
