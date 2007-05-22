@@ -350,7 +350,7 @@ void arcnet_get_my_address(BACNET_ADDRESS * my_address)
 
     my_address->mac_len = 1;
     my_address->mac[0] = ARCNET_MAC_Address;
-    my_address->net = 0;        /* local only, no routing */
+    my_address->net = 0;        /* DNET=0 is local only, no routing */
     my_address->len = 0;
     for (i = 0; i < MAX_MAC_LEN; i++) {
         my_address->adr[i] = 0;
@@ -367,7 +367,7 @@ void arcnet_get_broadcast_address(BACNET_ADDRESS * dest)
         dest->mac[0] = ARCNET_BROADCAST;
         dest->mac_len = 1;
         dest->net = BACNET_BROADCAST_NETWORK;
-        dest->len = 0;          /* len=0 denotes broadcast address  */
+        dest->len = 0; /* always zero when DNET is broadcast */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }
