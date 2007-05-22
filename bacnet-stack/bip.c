@@ -125,21 +125,23 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
 
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
-    if (dest->mac_len == 6) {
+    if (dest->net == BACNET_BROADCAST_NETWORK) {
+        /* broadcast */
+        bip_dest.sin_addr.s_addr = htonl(BIP_Broadcast_Address.s_addr);
+        bip_dest.sin_port = htons(BIP_Port);
+        memset(&(bip_dest.sin_zero), '\0', 8);
+        mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
+    } else if (dest->mac_len == 6) {
+        /* valid unicast */
         (void) decode_unsigned32(&dest->mac[0],
             &(bip_dest.sin_addr.s_addr));
         (void) decode_unsigned16(&dest->mac[4], &(bip_dest.sin_port));
         memset(&(bip_dest.sin_zero), '\0', 8);
         mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
-    }
-    /* broadcast */
-    else if (dest->mac_len == 0) {
-        bip_dest.sin_addr.s_addr = htonl(BIP_Broadcast_Address.s_addr);
-        bip_dest.sin_port = htons(BIP_Port);
-        memset(&(bip_dest.sin_zero), '\0', 8);
-        mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
-    } else
+    } else {
+        /* invalid address */
         return -1;
+    }
 
     mtu_len = 2;
     mtu_len +=
