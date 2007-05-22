@@ -183,7 +183,7 @@ bool Analog_Output_Present_Value_Set(uint32_t object_instance,
 }
 
 bool Analog_Output_Present_Value_Relinquish(uint32_t object_instance,
-    int priority)
+    unsigned priority)
 {
     unsigned index = 0;
     bool status = false;
