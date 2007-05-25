@@ -202,19 +202,13 @@ int main(int argc, char *argv[])
         fprintf(stderr, "unable to parse the tag value\r\n");
         return 1;
     }
-
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
-    /* configure standard BACnet/IP port */
-    bip_set_interface("eth0");  /* for linux */
-    bip_set_port(0xBAC0);
-    if (!bip_init())
+    if (!datalink_init(NULL))
         return 1;
-
     /* only one value in our value list */
     cov_data.listOfValues.next = NULL;
-
     ucov_notify_send(&Handler_Transmit_Buffer[0], &cov_data);
 
     return 0;

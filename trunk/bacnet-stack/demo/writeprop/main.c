@@ -310,10 +310,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
-    /* configure standard BACnet/IP port */
-    bip_set_interface("eth0");  /* for linux */
-    bip_set_port(0xBAC0);
-    if (!bip_init())
+    if (!datalink_init(NULL))
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
@@ -328,7 +325,7 @@ int main(int argc, char *argv[])
         current_seconds = time(NULL);
 
         /* returns 0 bytes on timeout */
-        pdu_len = bip_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
         /* process */
         if (pdu_len) {

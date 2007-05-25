@@ -8,7 +8,7 @@ BORLAND_DIR_Not_Defined:
 !endif
 
 all: readprop writeprop readfile writefile server dcc reinit \
-  whois whohas timesync ucov
+  whois whohas timesync ucov epics
   @echo "demo utilities are in utils directory"
 
 clean: \
@@ -22,6 +22,7 @@ clean: \
   demo/whois/makefile.b32 \
   demo/whohas/makefile.b32 \
   demo/ucov/makefile.b32 \
+  demo/epics/makefile.b32 \
   demo/timesync/makefile.b32
   cd demo/readprop
   make -i -f makefile.b32 clean
@@ -60,6 +61,10 @@ clean: \
   cd ..
   cd ..
   cd demo/ucov
+  make -i -f makefile.b32 clean
+  cd ..
+  cd ..
+  cd demo/epics
   make -i -f makefile.b32 clean
   cd ..
   cd ..
@@ -142,6 +147,14 @@ whohas: demo/whohas/makefile.b32
 
 ucov: demo/ucov/makefile.b32
 	cd demo/ucov
+  make -i -f makefile.b32 clean
+  make -f makefile.b32 all
+  make -f makefile.b32 install
+  cd ..
+  cd ..
+
+epics: demo/epics/makefile.b32
+	cd demo/epics
   make -i -f makefile.b32 clean
   make -f makefile.b32 all
   make -f makefile.b32 install

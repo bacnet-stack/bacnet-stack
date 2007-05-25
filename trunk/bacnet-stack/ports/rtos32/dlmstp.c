@@ -42,8 +42,9 @@ static uint8_t PDU_Buffer[MAX_MPDU];
 /* local MS/TP port data */
 static volatile struct mstp_port_struct_t MSTP_Port;
 
-void dlmstp_init(void)
+void dlmstp_init(char *ifname)
 {
+    (void)ifname;
     /* initialize buffer */
     Receive_Buffer.ready = false;
     Receive_Buffer.pdu_len = 0;

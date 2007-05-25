@@ -37,6 +37,7 @@
 #if defined(BACDL_ETHERNET)
 #include "ethernet.h"
 
+#define datalink_init ethernet_init
 #define datalink_send_pdu ethernet_send_pdu
 #define datalink_receive ethernet_receive
 #define datalink_cleanup ethernet_cleanup
@@ -46,6 +47,7 @@
 #elif defined(BACDL_ARCNET)
 #include "arcnet.h"
 
+#define datalink_init arcnet_init
 #define datalink_send_pdu arcnet_send_pdu
 #define datalink_receive arcnet_receive
 #define datalink_cleanup arcnet_cleanup
@@ -55,6 +57,7 @@
 #elif defined(BACDL_MSTP)
 #include "dlmstp.h"
 
+#define datalink_init dlmstp_init
 #define datalink_send_pdu dlmstp_send_pdu
 #define datalink_receive dlmstp_receive
 #define datalink_cleanup dlmstp_cleanup
@@ -64,6 +67,7 @@
 #elif defined(BACDL_BIP)
 #include "bip.h"
 
+#define datalink_init bip_init
 #define datalink_send_pdu bip_send_pdu
 #define datalink_receive bip_receive
 #define datalink_cleanup bip_cleanup
@@ -79,7 +83,8 @@ extern uint16_t datalink_receive(BACNET_ADDRESS * src,
     uint8_t * pdu, uint16_t max_pdu, unsigned timeout);
 extern void datalink_cleanup(void);
 extern void datalink_get_broadcast_address(BACNET_ADDRESS * dest);
-extern void bip_get_my_address(BACNET_ADDRESS * my_address);
+extern void datalink_get_my_address(BACNET_ADDRESS * my_address);
+extern void datalink_set_interface(char *ifname);
 
 #endif
 

@@ -51,10 +51,12 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-/* note: define init and cleanup in your ports section */
-    bool bip_init(void);
+    /* note: define init and cleanup in your ports section */
+    /* on Linux, ifname is eth0, ath0, arc0, and others.
+       on Windows, ifname is the dotted ip address of the interface */
+    bool bip_init(char *ifname);
 
-/* normal functions... */
+    /* normal functions... */
     void bip_cleanup(void);
     void bip_set_socket(int sock_fd);
     int bip_socket(void);
@@ -62,36 +64,34 @@ extern "C" {
     void bip_get_broadcast_address(BACNET_ADDRESS * dest);      /* destination address */
     void bip_get_my_address(BACNET_ADDRESS * my_address);
 
-/* function to send a packet out the BACnet/IP socket */
-/* returns zero on success, non-zero on failure */
+    /* function to send a packet out the BACnet/IP socket */
+    /* returns zero on success, non-zero on failure */
     int bip_send_pdu(BACNET_ADDRESS * dest,     /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
         uint8_t * pdu,          /* any data to be sent - may be null */
         unsigned pdu_len);      /* number of bytes of data */
 
-/* receives a BACnet/IP packet */
-/* returns the number of octets in the PDU, or zero on failure */
+    /* receives a BACnet/IP packet */
+    /* returns the number of octets in the PDU, or zero on failure */
     uint16_t bip_receive(BACNET_ADDRESS * src,  /* source address */
         uint8_t * pdu,          /* PDU data */
         uint16_t max_pdu,       /* amount of space available in the PDU  */
         unsigned timeout);      /* milliseconds to wait for a packet */
 
-/* use host byte order for setting */
+    /* use host byte order for setting */
     void bip_set_port(uint16_t port);
-/* returns host byte order */
+    /* returns host byte order */
     uint16_t bip_get_port(void);
 
-/* use network byte order for setting */
+    /* use network byte order for setting */
     void bip_set_addr(uint32_t net_address);
-/* returns host byte order */
+    /* returns host byte order */
     uint32_t bip_get_addr(void);
 
-/* use network byte order for setting */
+    /* use network byte order for setting */
     void bip_set_broadcast_addr(uint32_t net_address);
-/* returns host byte order */
+    /* returns host byte order */
     uint32_t bip_get_broadcast_addr(void);
-
-    void bip_set_interface(char *ifname);
 
 #ifdef __cplusplus
 }

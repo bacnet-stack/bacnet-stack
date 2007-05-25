@@ -71,7 +71,9 @@ static int get_local_address_ioctl(char *ifname,
     return rv;
 }
 
-void bip_set_interface(char *ifname)
+
+/* on Linux, ifname is eth0, ath0, arc0, and others. */
+static void bip_set_interface(char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
@@ -91,13 +93,15 @@ void bip_set_interface(char *ifname)
 #endif
 }
 
-bool bip_init(void)
+bool bip_init(char *ifname)
 {
     int status = 0;             /* return from socket lib calls */
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;
 
+    if (ifname)
+        bip_set_interface(ifname);
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     bip_set_socket(sock_fd);

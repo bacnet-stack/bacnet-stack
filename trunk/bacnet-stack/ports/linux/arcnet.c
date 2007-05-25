@@ -178,7 +178,10 @@ static int arcnet_bind(char *interface_name)
 
 bool arcnet_init(char *interface_name)
 {
-    ARCNET_Sock_FD = arcnet_bind(interface_name);
+    if (interface_name)
+        ARCNET_Sock_FD = arcnet_bind(interface_name);
+    else
+        ARCNET_Sock_FD = arcnet_bind("arc0");
 
     return arcnet_valid();
 }
