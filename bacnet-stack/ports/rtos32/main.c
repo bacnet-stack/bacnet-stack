@@ -140,18 +140,10 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
     RTOS_Initialize();
     /* init the physical layer */
-#ifdef BACDL_BIP
-    if (!bip_init())
-        return 1;
-#endif
-#ifdef BACDL_ETHERNET
-    if (!ethernet_init(NULL))
-        return 1;
-#endif
 #ifdef BACDL_MSTP
     dlmstp_set_my_address(0x05);
-    dlmstp_init();
 #endif
+    datalink_init(NULL);
     iam_send(&Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {

@@ -39,12 +39,6 @@
 
 static int interface = SOCKET_ERROR;    /* SOCKET_ERROR means no open interface */
 
-void bip_set_interface(char *ifname)
-{
-    /*dummy function - to make the demos compile easier */
-    (void) ifname;
-}
-
 /*-----------------------------------*/
 static void Error(const char *Msg)
 {
@@ -244,13 +238,15 @@ static void set_broadcast_address(uint32_t net_address)
 #endif
 }
 
-bool bip_init(void)
+bool bip_init(char *ifname)
 {
     int rv = 0;                 /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
     int value = 1;
     int sock_fd = -1;
     struct in_addr my_addr;
+
+    (void)ifname;
 
     NetInitialize();
 

@@ -99,13 +99,32 @@ static void cleanup(void)
     WSACleanup();
 }
 
+
+/* on Windows, ifname is the dotted ip address of the interface */
 void bip_set_interface(char *ifname)
 {
-    (void) ifname;
-    /* dummy function */
+    struct in_addr address;
+
+    /* setup local address */
+    if (bip_get_addr() == 0) {
+        bip_set_addr(inet_addr(ifname));
+    }
+#ifdef BIP_DEBUG
+    fprintf(stderr, "IP Address: %s\n", inet_ntoa(address));
+#endif
+    /* setup local broadcast address */
+    if (bip_get_broadcast_addr() == 0) {
+        address.s_addr = htonl(bip_get_addr());
+        set_broadcast_address(address.s_addr);
+    }
+#ifdef BIP_DEBUG
+    address.s_addr = htonl(bip_get_broadcast_addr());
+    fprintf(stderr, "Broadcast Address: %s\n",
+        inet_ntoa(address));
+#endif
 }
 
-bool bip_init(void)
+bool bip_init(char *ifname)
 {
     int rv = 0;                 /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
@@ -126,7 +145,9 @@ bool bip_init(void)
         exit(1);
     }
     atexit(cleanup);
-
+    
+    if (ifname)
+        bip_set_interface(ifname);
     /* has address been set? */
     address.s_addr = htonl(bip_get_addr());
     if (address.s_addr == 0) {

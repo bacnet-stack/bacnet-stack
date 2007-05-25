@@ -175,21 +175,8 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
-#if defined(BACDL_ETHERNET)
-    /* init the physical layer */
-    if (!ethernet_init("eth0"))
+    if (!datalink_init(NULL))
         return 1;
-#elif defined(BACDL_BIP)
-    bip_set_interface("eth0");
-    if (!bip_init())
-        return 1;
-    printf("bip: using port %hu\r\n", bip_get_port());
-#elif defined(BACDL_ARCNET)
-    if (!arcnet_init("arc0"))
-        return 1;
-#else
-#error Datalink (BACDL_ETHERNET,BACDL_BIP, or BACDL_ARCNET) undefined
-#endif
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (Device_APDU_Timeout() / 1000) *

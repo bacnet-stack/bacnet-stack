@@ -170,8 +170,13 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
 
 bool ethernet_init(char *interface_name)
 {
-    get_local_hwaddr(interface_name, Ethernet_MAC_Address);
-    eth802_sockfd = ethernet_bind(&eth_addr, interface_name);
+    if (interface_name) {
+        get_local_hwaddr(interface_name, Ethernet_MAC_Address);
+        eth802_sockfd = ethernet_bind(&eth_addr, interface_name);
+    } else {
+        get_local_hwaddr("eth0", Ethernet_MAC_Address);
+        eth802_sockfd = ethernet_bind(&eth_addr, "eth0");
+    }
 
     return ethernet_valid();
 }

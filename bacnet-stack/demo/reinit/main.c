@@ -133,21 +133,6 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-#ifdef BIP_DEBUG
-static void print_address(char *name, BACNET_ADDRESS * dest)
-{                               /* destination address */
-    int i = 0;                  /* counter */
-
-    if (dest) {
-        printf("%s: ", name);
-        for (i = 0; i < dest->mac_len; i++) {
-            printf("%02X", dest->mac[i]);
-        }
-        printf("\n");
-    }
-}
-#endif
-
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -160,9 +145,6 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     uint8_t invoke_id = 0;
     bool found = false;
-#ifdef BIP_DEBUG
-    BACNET_ADDRESS my_address, broadcast_address;
-#endif
 
     if (argc < 3) {
         /* note: priority 16 and 0 should produce the same end results... */
@@ -199,17 +181,8 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
-    /* configure standard BACnet/IP port */
-    bip_set_interface("eth0");  /* for linux */
-    bip_set_port(0xBAC0);
-    if (!bip_init())
+    if (!datalink_init(NULL))
         return 1;
-#ifdef BIP_DEBUG
-    datalink_get_broadcast_address(&broadcast_address);
-    print_address("Broadcast", &broadcast_address);
-    datalink_get_my_address(&my_address);
-    print_address("Address", &my_address);
-#endif
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (Device_APDU_Timeout() / 1000) *
@@ -223,7 +196,11 @@ int main(int argc, char *argv[])
         current_seconds = time(NULL);
 
         /* returns 0 bytes on timeout */
-        pdu_len = bip_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len = datalink_receive(
+            &src, 
+            &Rx_Buf[0], 
+            MAX_MPDU, 
+            timeout);
 
         /* process */
         if (pdu_len) {

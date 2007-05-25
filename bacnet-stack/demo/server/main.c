@@ -122,21 +122,8 @@ int main(int argc, char *argv[])
     printf("BACnet Server Demo - Device #%u\r\n",
         Device_Object_Instance_Number());
     Init_Service_Handlers();
-#ifdef BACDL_ETHERNET
-    /* init the physical layer */
-    if (!ethernet_init("eth0"))
+    if (!datalink_init(NULL))
         return 1;
-#endif
-#ifdef BACDL_BIP
-    bip_set_interface("eth0");
-    if (!bip_init())
-        return 1;
-    printf("bip: using port %hu\r\n", bip_get_port());
-#endif
-#ifdef BACDL_ARCNET
-    if (!arcnet_init("arc0"))
-        return 1;
-#endif
     datalink_get_broadcast_address(&broadcast_address);
     print_address("Broadcast", &broadcast_address);
     datalink_get_my_address(&my_address);
