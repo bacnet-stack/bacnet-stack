@@ -53,7 +53,7 @@ timesync: demo/timesync/Makefile
 	( cd demo/timesync ; make clean ; make ; cp bacts ../../utils )
 
 epics: demo/epics/Makefile
-	( cd demo/epics ; make clean ; make ; cp bacts ../../utils )
+	( cd demo/epics ; make clean ; make ; cp bacepics ../../utils )
 
 ucov: demo/ucov/Makefile
 	( cd demo/ucov ; make clean ; make ; cp bacucov ../../utils )
