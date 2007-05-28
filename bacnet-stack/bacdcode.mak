@@ -1,7 +1,7 @@
 #Makefile to build unit tests
 CC      = gcc
 BASEDIR = .
-CFLAGS  = -Wall -I. -Itest -g -DTEST -DTEST_DECODE
+CFLAGS  = -Wall -I. -Itest -g -DBIG_ENDIAN=0 -DTEST -DTEST_DECODE
 
 TARGET = bacdcode
 

@@ -58,6 +58,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static bool Error_Detected = false;
 static BACNET_ADDRESS Target_Address;
+/* use this parameter to set a special interface:
+   "eth0" on Linux, or dotted IP address on Windows */
 static char *Network_Interface = NULL;
 
 typedef struct BACnet_RP_Service_Data_t {
@@ -67,7 +69,8 @@ typedef struct BACnet_RP_Service_Data_t {
 } BACNET_RP_SERVICE_DATA;
 static BACNET_RP_SERVICE_DATA Read_Property_Data;
 
-static OS_Keylist Object_List;
+/* FIXME: keep the object list in here */
+/* static OS_Keylist Object_List; */
 
 static void MyErrorHandler(BACNET_ADDRESS * src,
     uint8_t invoke_id,
@@ -270,47 +273,6 @@ static uint8_t Read_Properties(uint32_t device_instance)
     return invoke_id;
 } 
 
-static void Interpret_Arguments(int argc, char *argv[])
-{
-    int i = 0, j = 0;           /* used to index through arguments */
-    char *p_arg = NULL;         /* points to current argument */
-    long number = 0;            /* used for strtol */
-    char *p_data = NULL;        /* points to data portion of argument */
-
-    if (!argv)
-        return;
-
-    /* skip 1st one [0] - its the command line for the filename */
-    for (i = 1; i < argc; i++) {
-        p_arg = argv[i];
-        if (p_arg[0] == '-') {
-            p_data = p_arg + 2;
-            switch (p_arg[1]) {
-            case 'a':
-                bip_set_addr(inet_addr(p_data));
-                break;
-            case 'd':
-                Network_Interface = p_data;
-                break;
-            /* double dash */
-            case '-':
-                if (strcmp(p_data, "help") == 0) {
-                    printf
-                        ("%s device-instance\r\n",
-                        filename_remove_path(argv[0]));
-                }
-                exit(1);
-                break;
-            default:
-                /* do nothing */
-                break;
-            }                   /* end of arguments beginning with - */
-        }                       /* dash arguments */
-    }                           /* end of arg loop */
-    return;
-}
-
-
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -324,13 +286,15 @@ int main(int argc, char *argv[])
     uint8_t invoke_id = 0;
     bool found = false;
 
+    /* FIXME: handle multi homed systems - use an argument passed to the datalink_init() */
+    
+    /* print help if not enough arguments */
     if (argc < 2) {
         printf
             ("%s device-instance\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
-    Interpret_Arguments(argc, argv);
 
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);

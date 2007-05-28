@@ -2,7 +2,7 @@
 CC      = gcc
 BASEDIR = .
 # -g for debugging with gdb
-DEFINES = -DBACFILE=1 -DTEST -DTEST_IAM -DBACDL_TEST -DBIG_ENDIAN=0
+DEFINES = -DBACFILE=1 -DTEST -DBIG_ENDIAN=0 -DTEST_IAM -DBACDL_TEST
 INCLUDES = -I. -Idemo/object -Itest 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 

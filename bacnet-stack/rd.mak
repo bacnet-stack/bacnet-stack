@@ -4,7 +4,7 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_REINITIALIZE_DEVICE -g
+CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_REINITIALIZE_DEVICE -g
 
 SRCS = bacdcode.c \
        bacstr.c \
