@@ -1,0 +1,19 @@
+To Do List - BACnet Stack at SourceForge
+
+For the next release, here are some things that need done:
+
+1. Finish demo/epics/main.c - EPICS demo
+2. Finish demo/object/lo.c - Lighting Output object demo
+3. Change bip_init to datalink_init in demos (done, STK)
+4. Change demos main file to main.c (done, STK)
+5. Add parameter passing for IP address or interface for multi homed systems. (done, STK)
+6. Validate the unit tests compile after BIG_ENDIAN change. (done,STK)
+
+Later Work:
+
+1. complete bvlc.c and use it instead of or in compliment to bip.c
+2. complete demo for ReadPropertyMultiple from rpm.c
+3. add HTTP demo like bacnet4linux
+4. add subscribe to change of value support in server demo
+5. add hooks to increment Database_Revision property
+
