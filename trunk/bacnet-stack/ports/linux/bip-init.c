@@ -82,6 +82,7 @@ static void bip_set_interface(char *ifname)
     get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
     bip_set_addr(local_address.s_addr);
 #ifdef BIP_DEBUG
+    fprintf(stderr, "Interface: %s\n", ifname);
     fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
 #endif
     /* setup local broadcast address */
@@ -102,6 +103,9 @@ bool bip_init(char *ifname)
 
     if (ifname)
         bip_set_interface(ifname);
+    else
+        bip_set_interface("eth0");
+        
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     bip_set_socket(sock_fd);
