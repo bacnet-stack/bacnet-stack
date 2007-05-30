@@ -110,6 +110,8 @@ void bip_set_interface(char *ifname)
         bip_set_addr(inet_addr(ifname));
     }
 #ifdef BIP_DEBUG
+    address.s_addr = htonl(bip_get_addr());
+    fprintf(stderr, "Interface: %s\n", ifname);
     fprintf(stderr, "IP Address: %s\n", inet_ntoa(address));
 #endif
     /* setup local broadcast address */
