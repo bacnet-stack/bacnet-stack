@@ -123,7 +123,7 @@ void bip_set_interface(char *ifname)
 static char *winsock_error_code_text(int code)
 {
     switch (code) {
-        case 10013:
+        case WSAEACCES:
             return "Permission denied.";
         case WSAEINTR: 
             return "Interrupted system call.";
