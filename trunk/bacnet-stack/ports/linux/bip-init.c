@@ -105,7 +105,6 @@ bool bip_init(char *ifname)
         bip_set_interface(ifname);
     else
         bip_set_interface("eth0");
-        
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     bip_set_socket(sock_fd);
