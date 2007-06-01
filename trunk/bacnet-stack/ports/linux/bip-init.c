@@ -89,8 +89,11 @@ static void bip_set_interface(char *ifname)
     get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
     bip_set_broadcast_addr(broadcast_address.s_addr);
 #ifdef BIP_DEBUG
-    fprintf(stderr, "Broadcast Address: %s\n",
+    fprintf(stderr, "IP Broadcast Address: %s\n",
         inet_ntoa(broadcast_address));
+    fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
+        bip_get_port(),
+        bip_get_port());
 #endif
 }
 

@@ -50,6 +50,7 @@
 
 /* buffers used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static char *Network_Interface = NULL;
 
 static void Init_Service_Handlers(void)
 {
@@ -90,25 +91,11 @@ static void cleanup(void)
     datalink_cleanup();
 }
 
-static void print_address(char *name, BACNET_ADDRESS * dest)
-{                               /* destination address */
-    int i = 0;                  /* counter */
-
-    if (dest) {
-        printf("%s: ", name);
-        for (i = 0; i < dest->mac_len; i++) {
-            printf("%02X", dest->mac[i]);
-        }
-        printf("\n");
-    }
-}
-
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
-    BACNET_ADDRESS my_address, broadcast_address;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
 
@@ -117,17 +104,16 @@ int main(int argc, char *argv[])
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
 #if defined(BACDL_BIP)
     if (argc > 2)
-        bip_set_port(strtol(argv[2], NULL, 0));
+        Network_Interface = argv[2];
+    if (argc > 3)
+        bip_set_port(strtol(argv[3], NULL, 0));
 #endif
-    printf("BACnet Server Demo - Device #%u\r\n",
+    printf("BACnet Server Demo\n"
+        "BACnet Device ID: %u\r\n",
         Device_Object_Instance_Number());
     Init_Service_Handlers();
-    if (!datalink_init(NULL))
+    if (!datalink_init(Network_Interface))
         return 1;
-    datalink_get_broadcast_address(&broadcast_address);
-    print_address("Broadcast", &broadcast_address);
-    datalink_get_my_address(&my_address);
-    print_address("Address", &my_address);
     atexit(cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
