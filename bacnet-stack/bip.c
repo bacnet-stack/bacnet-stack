@@ -214,7 +214,7 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
     if ((buf[1] == BVLC_ORIGINAL_UNICAST_NPDU) ||
         (buf[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
-        if (sin.sin_addr.s_addr == BIP_Address.s_addr)
+        if (sin.sin_addr.s_addr == htonl(BIP_Address.s_addr))
             pdu_len = 0;
         else {
             /* copy the source address
