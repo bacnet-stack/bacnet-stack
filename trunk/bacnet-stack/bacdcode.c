@@ -1371,18 +1371,13 @@ int encode_context_enumerated(uint8_t * apdu, int tag_number, int value)
 /* returns the number of apdu bytes consumed */
 int decode_signed(uint8_t * apdu, uint32_t len_value, int32_t * value)
 {
-    int8_t signed8_value = 0;
-    int16_t signed16_value = 0;
-
     if (value) {
         switch (len_value) {
         case 1:
             decode_signed8(&apdu[0], value);
-            *value = signed8_value;
             break;
         case 2:
             decode_signed16(&apdu[0], value);
-            *value = signed16_value;
             break;
         case 3:
             decode_signed24(&apdu[0], value);
