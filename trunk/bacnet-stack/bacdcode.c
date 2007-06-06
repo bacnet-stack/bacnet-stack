@@ -323,6 +323,7 @@ int decode_unsigned32(uint8_t * apdu, uint32_t * value)
     return 4;
 }
 
+/* returns the number of APDU octets used */
 int encode_signed8(uint8_t * apdu, int8_t value)
 {
     union {
@@ -337,21 +338,41 @@ int encode_signed8(uint8_t * apdu, int8_t value)
     return 1;
 }
 
-int decode_signed8(uint8_t * apdu, int8_t * value)
+/* returns the number of APDU octets consumed */
+int decode_signed8(uint8_t * apdu, int32_t * value)
 {
     union {
-        uint8_t byte;
-        int8_t value;
-    } byte_data = {
-    0};
+        uint8_t byte[4];
+        int32_t value;
+    } long_data = { {
+    0}};
 
-    byte_data.byte = apdu[0];
+#if BIG_ENDIAN
+    /* negative - bit 7 is set */
+    if (apdu[0] & 0x80) {
+        long_data.byte[0] = 0xFF;
+        long_data.byte[1] = 0xFF;
+        long_data.byte[2] = 0xFF;
+    }
+    /* fill in the rest */
+    long_data.byte[3] = apdu[0];
+#else
+    /* negative - bit 7 is set */
+    if (apdu[0] & 0x80) {
+        long_data.byte[3] = 0xFF;
+        long_data.byte[2] = 0xFF;
+        long_data.byte[1] = 0xFF;
+    }
+    /* fill in the rest */
+    long_data.byte[0] = apdu[0];
+#endif
     if (value)
-        *value = byte_data.value;
+        *value = long_data.value;
 
     return 1;
 }
 
+/* returns the number of APDU octets used */
 int encode_signed16(uint8_t * apdu, int16_t value)
 {
     union {
@@ -372,23 +393,36 @@ int encode_signed16(uint8_t * apdu, int16_t value)
     return 2;
 }
 
-int decode_signed16(uint8_t * apdu, int16_t * value)
+/* returns the number of APDU octets consumed */
+int decode_signed16(uint8_t * apdu, int32_t * value)
 {
     union {
-        uint8_t byte[2];
-        int16_t value;
-    } short_data = { {
+        uint8_t byte[4];
+        int32_t value;
+    } long_data = { {
     0}};
 
 #if BIG_ENDIAN
-    short_data.byte[0] = apdu[0];
-    short_data.byte[1] = apdu[1];
+    /* negative - bit 7 is set */
+    if (apdu[0] & 0x80) {
+        long_data.byte[0] = 0xFF;
+        long_data.byte[1] = 0xFF;
+    }
+    /* fill in the rest */
+    long_data.byte[2] = apdu[0];
+    long_data.byte[3] = apdu[1];
 #else
-    short_data.byte[1] = apdu[0];
-    short_data.byte[0] = apdu[1];
+    /* negative - bit 7 is set */
+    if (apdu[0] & 0x80) {
+        long_data.byte[3] = 0xFF;
+        long_data.byte[2] = 0xFF;
+    }
+    /* fill in the rest */
+    long_data.byte[1] = apdu[0];
+    long_data.byte[0] = apdu[1];
 #endif
     if (value)
-        *value = short_data.value;
+        *value = long_data.value;
 
     return 2;
 }
@@ -1343,11 +1377,11 @@ int decode_signed(uint8_t * apdu, uint32_t len_value, int32_t * value)
     if (value) {
         switch (len_value) {
         case 1:
-            decode_signed8(&apdu[0], &signed8_value);
+            decode_signed8(&apdu[0], value);
             *value = signed8_value;
             break;
         case 2:
-            decode_signed16(&apdu[0], &signed16_value);
+            decode_signed16(&apdu[0], value);
             *value = signed16_value;
             break;
         case 3:
