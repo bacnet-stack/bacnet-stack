@@ -90,6 +90,8 @@ int awf_decode_service_request(uint8_t * apdu,
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
+    int32_t signed_value = 0;
+    uint32_t unsigned_value = 0;
     int type = 0;               /* for decoding */
 
     /* check for value pointers */
@@ -111,8 +113,8 @@ int awf_decode_service_request(uint8_t * apdu,
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
                 return -1;
-            len += decode_signed(&apdu[len],
-                len_value_type, &data->type.stream.fileStartPosition);
+            len += decode_signed(&apdu[len], len_value_type, &signed_value); 
+            data->type.stream.fileStartPosition = signed_value;
             /* fileData */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
@@ -135,16 +137,17 @@ int awf_decode_service_request(uint8_t * apdu,
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
                 return -1;
-            len += decode_signed(&apdu[len],
-                len_value_type, &data->type.record.fileStartRecord);
+            len += decode_signed(&apdu[len], len_value_type, &signed_value);
+            data->type.record.fileStartRecord = signed_value;
             /* returnedRecordCount */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
                 return -1;
-            len += decode_unsigned(&apdu[len],
-                len_value_type, &data->type.record.returnedRecordCount);
+            len += decode_unsigned(&apdu[len], len_value_type, 
+                &unsigned_value);
+            data->type.record.returnedRecordCount = unsigned_value;
             /* fileData */
             tag_len = decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);

@@ -30,6 +30,7 @@
 #include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
+#include "bacstr.h"
 #include "bacerror.h"
 #include "bacdcode.h"
 #include "apdu.h"
@@ -111,6 +112,11 @@ void handler_atomic_write_file(uint8_t * service_request,
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (bacfile_write_stream_data(&data)) {
+#if PRINT_ENABLED
+                fprintf(stderr, "AWF: Stream offset %d, %d bytes\n",
+                    data.type.stream.fileStartPosition,
+                    octetstring_length(&data.fileData));
+#endif
                 len =
                     awf_ack_encode_apdu(&Handler_Transmit_Buffer
                         [pdu_len], service_data->invoke_id, &data);
