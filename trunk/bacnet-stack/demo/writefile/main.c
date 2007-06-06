@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
                 my_max_apdu = MAX_APDU;
             /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
             if (my_max_apdu <= 50)
-                requestedOctetCount = my_max_apdu - 16;
+                requestedOctetCount = my_max_apdu - 19;
             else if (my_max_apdu <= 480)
                 requestedOctetCount = my_max_apdu - 32;
             else if (my_max_apdu <= 1476)

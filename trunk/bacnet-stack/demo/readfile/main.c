@@ -269,7 +269,15 @@ int main(int argc, char *argv[])
                 my_max_apdu = max_apdu;
             else
                 my_max_apdu = MAX_APDU;
-            requestedOctetCount = my_max_apdu - 16;
+            /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
+            if (my_max_apdu <= 50)
+                requestedOctetCount = my_max_apdu - 20;
+            else if (my_max_apdu <= 480)
+                requestedOctetCount = my_max_apdu - 32;
+            else if (my_max_apdu <= 1476)
+                requestedOctetCount = my_max_apdu - 64;
+            else
+                requestedOctetCount = my_max_apdu / 2;
             /* has the previous invoke id expired or returned?
                note: invoke ID = 0 is invalid, so it will be idle */
             if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id)) {
