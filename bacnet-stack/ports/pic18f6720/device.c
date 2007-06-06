@@ -539,7 +539,9 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                     /* FIXME: set the name */
                     /* Display_Set_Name(
                        characterstring_value(&value.type.Character_String)); */
-
+                    /* FIXME:  All the object names in a device must be unique.
+                       Disallow setting the Device Object Name to any objects in 
+                       the device. */
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
