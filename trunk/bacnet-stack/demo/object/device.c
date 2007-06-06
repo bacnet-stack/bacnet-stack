@@ -130,6 +130,9 @@ bool Device_Set_Object_Name(const char *name, size_t length)
 {
     bool status = false;        /*return value */
 
+    /* FIXME:  All the object names in a device must be unique.
+       Disallow setting the Device Object Name to any objects in 
+       the device. */
     if (length < sizeof(Object_Name)) {
         memmove(Object_Name, name, length);
         Object_Name[length] = 0;
