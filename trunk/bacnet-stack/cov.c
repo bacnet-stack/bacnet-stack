@@ -78,7 +78,7 @@ static int notify_encode_adpu(uint8_t * apdu, BACNET_COV_DATA * data)
         len = encode_opening_tag(&apdu[apdu_len], 4);
         apdu_len += len;
         /* the first value includes a pointer to the next value, etc */
-        /* FIXME: for small implementations, we might try a partial 
+        /* FIXME: for small implementations, we might try a partial
            approach like the rpm.c where the values are encoded with
            a separate function */
         value = &data->listOfValues;
@@ -367,7 +367,7 @@ int cov_subscribe_decode_service_request(uint8_t * apdu,
         } else
             return -1;
         /* optional parameters - if missing, means cancellation */
-        if (len > apdu_len) {
+        if (len < apdu_len) {
             /* tag 2 - issueConfirmedNotifications - optional */
             if (decode_is_context_tag(&apdu[len], 2)) {
                 data->cancellationRequest = false;
@@ -841,6 +841,9 @@ void testCOVSubscribeData(Test * pTest,
         data->monitoredObjectIdentifier.instance);
     ct_test(pTest,
         test_data->cancellationRequest == data->cancellationRequest);
+    if (test_data->cancellationRequest != data->cancellationRequest) {
+        printf("cancellation request failed!\n");
+    }
     if (!test_data->cancellationRequest) {
         ct_test(pTest,
             test_data->issueConfirmedNotifications ==
