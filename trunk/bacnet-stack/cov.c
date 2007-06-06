@@ -366,26 +366,32 @@ int cov_subscribe_decode_service_request(uint8_t * apdu,
             data->monitoredObjectIdentifier.type = decoded_type;
         } else
             return -1;
-        /* tag 2 - issueConfirmedNotifications - optional */
-        if (decode_is_context_tag(&apdu[len], 2)) {
-            data->cancellationRequest = false;
-            len +=
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value);
-            data->issueConfirmedNotifications =
-                decode_context_boolean(&apdu[len]);
-            len += len_value;
-        } else
+        /* optional parameters - if missing, means cancellation */
+        if (len > apdu_len) {
+            /* tag 2 - issueConfirmedNotifications - optional */
+            if (decode_is_context_tag(&apdu[len], 2)) {
+                data->cancellationRequest = false;
+                len +=
+                    decode_tag_number_and_value(&apdu[len], &tag_number,
+                    &len_value);
+                data->issueConfirmedNotifications =
+                    decode_context_boolean(&apdu[len]);
+                len += len_value;
+            } else {
+                data->cancellationRequest = true;
+            }
+            /* tag 3 - lifetime - optional */
+            if (decode_is_context_tag(&apdu[len], 3)) {
+                len +=
+                    decode_tag_number_and_value(&apdu[len], &tag_number,
+                    &len_value);
+                len += decode_unsigned(&apdu[len], len_value, &decoded_value);
+                data->lifetime = decoded_value;
+            } else
+                data->lifetime = 0;
+        } else {
             data->cancellationRequest = true;
-        /* tag 3 - lifetime - optional */
-        if (decode_is_context_tag(&apdu[len], 3)) {
-            len +=
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value);
-            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-            data->lifetime = decoded_value;
-        } else
-            data->lifetime = 0;
+        }
     }
 
     return len;
