@@ -6,10 +6,14 @@ BASEDIR = .
 #CFLAGS  = -Wall -I. -O2 -g
 # Note: you can strip out symbols using the strip command
 # to get an idea of how big the compile really is.
-#DEFINES = -DBACFILE=1 -DBACDL_ETHERNET=1
-#DEFINES = -DBACFILE=1 -DBACDL_ARCNET=1
-#DEFINES = -DBACFILE=1 -DBACDL_MSTP=1 
-DEFINES = -DBACFILE=1 -DTSM_ENABLED=0 -DBACDL_BIP=1 -DUSE_INADDR=1 -DBIG_ENDIAN=0 -DPRINT_ENABLED=1
+
+# Set the BACnet datalink layer
+#BACDL_DEFINE = -DBACDL_ETHERNET=1
+#BACDL_DEFINE = -DBACDL_ARCNET=1
+BACDL_DEFINE = -DBACDL_BIP=1 -DUSE_INADDR=1
+BACNET_DEFINES = -DBACFILE=1 -DTSM_ENABLED=0 -DBIG_ENDIAN=0 -DPRINT_ENABLED=1
+DEFINES=$(BACDL_DEFINE) $(BACNET_DEFINES)
+
 BACNET_PORT = ../../ports/linux
 BACNET_OBJECT = ../object
 BACNET_HANDLER = ../handler
@@ -22,6 +26,8 @@ TARGET = bacwi
 
 SRCS = main.c \
        $(BACNET_ROOT)/rd.c \
+       $(BACNET_PORT)/arcnet.c \
+       $(BACNET_PORT)/ethernet.c \
        $(BACNET_PORT)/bip-init.c \
        $(BACNET_ROOT)/bip.c \
        $(BACNET_HANDLER)/txbuf.c \
