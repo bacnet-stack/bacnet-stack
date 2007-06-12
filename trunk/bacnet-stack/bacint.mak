@@ -1,11 +1,11 @@
 #Makefile to build unit tests
 CC      = gcc
 BASEDIR = .
-CFLAGS  = -Wall -I. -Itest -g -DBIG_ENDIAN=0 -DTEST -DTEST_DECODE
+CFLAGS  = -Wall -I. -Itest -g -DBIG_ENDIAN=0 -DTEST -DTEST_BACINT
 
-TARGET = bacdcode
+TARGET = bacint
 
-SRCS = bacdcode.c \
+SRCS = bacint.c \
        bacstr.c \
        test/ctest.c
 
