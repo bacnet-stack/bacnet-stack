@@ -1,6 +1,6 @@
 To Do List - BACnet Stack at SourceForge
 
-For the next release, here are some things that need done:
+For this release, here are some things to do:
 
 1. Finish demo/epics/main.c - EPICS demo
 2. Finish demo/object/lo.c - Lighting Output object demo
@@ -8,12 +8,16 @@ For the next release, here are some things that need done:
 4. Change demos main file to main.c (done, STK)
 5. Add parameter passing for IP address or interface for multi homed systems. (done, STK)
 6. Validate the unit tests compile after BIG_ENDIAN change. (done,STK)
+7. Add arcnet.c and ethernet.c to all the linux Makefiles
+8. Refactor Makefile DEFINES like demo/server/Makefile.
+9. Finish subscribe COV support in server demo.
 
-Later Work:
+For a later release, here are some things to do:
 
-1. complete bvlc.c and use it instead of or in compliment to bip.c
-2. complete demo for ReadPropertyMultiple from rpm.c
-3. add HTTP demo like bacnet4linux
-4. add subscribe to change of value support in server demo
-5. add hooks to increment Database_Revision property
-
+1. Complete bvlc.c and use it instead of or in compliment to bip.c
+2. Complete demo for ReadPropertyMultiple from rpm.c
+3. Add HTTP demo like bacnet4linux
+4. Add subscribe to change of value support in server demo
+5. Add hooks to increment Database_Revision property
+6. Add BBMD and FD support to server example for BACnet/IP.
+7. Add Foreign Device registration options to client examples.

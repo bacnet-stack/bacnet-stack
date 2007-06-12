@@ -5,6 +5,7 @@
 BORLAND_DIR_Not_Defined:
    @echo .
    @echo You must define environment variable BORLAND_DIR to compile.
+   @echo Type: set BORLAND_DIR=c:\Borland\bcc55
 !endif
 
 all: readprop writeprop readfile writefile server dcc reinit \
