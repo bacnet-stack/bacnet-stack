@@ -31,6 +31,7 @@
 #include "bacdcode.h"
 #include "timesync.h"
 
+#if PRINT_ENABLED
 static void show_bacnet_date_time(BACNET_DATE * bdate, BACNET_TIME * btime)
 {
     /* show the date received */
@@ -44,6 +45,7 @@ static void show_bacnet_date_time(BACNET_DATE * bdate, BACNET_TIME * btime)
     fprintf(stderr, ".%02u", (unsigned) btime->hundredths);
     fprintf(stderr, "\r\n");
 }
+#endif
 
 void handler_timesync(uint8_t * service_request,
     uint16_t service_len, BACNET_ADDRESS * src)
@@ -56,8 +58,10 @@ void handler_timesync(uint8_t * service_request,
     (void) service_len;
     len = timesync_decode_service_request(service_request,
         service_len, &bdate, &btime);
+#if PRINT_ENABLED
     fprintf(stderr, "Received TimeSyncronization Request\r\n");
     show_bacnet_date_time(&bdate, &btime);
+#endif
     /* FIXME: set the time? */
 
     return;
@@ -74,9 +78,12 @@ void handler_timesync_utc(uint8_t * service_request,
     (void) service_len;
     len = timesync_decode_service_request(service_request,
         service_len, &bdate, &btime);
+#if PRINT_ENABLED
     fprintf(stderr, "Received TimeSyncronization Request\r\n");
     show_bacnet_date_time(&bdate, &btime);
+#endif
     /* FIXME: set the time? */
 
     return;
 }
+
