@@ -21,3 +21,4 @@ For a later release, here are some things to do:
 5. Add hooks to increment Database_Revision property
 6. Add BBMD and FD support to server example for BACnet/IP.
 7. Add Foreign Device registration options to client examples.
+8. Change bip.c to not use extra buffer (shift data)
