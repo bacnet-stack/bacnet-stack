@@ -8,8 +8,8 @@ For this release, here are some things to do:
 4. Change demos main file to main.c (done, STK)
 5. Add parameter passing for IP address or interface for multi homed systems. (done, STK)
 6. Validate the unit tests compile after BIG_ENDIAN change. (done,STK)
-7. Add arcnet.c and ethernet.c to all the linux Makefiles
-8. Refactor Makefile DEFINES like demo/server/Makefile.
+7. Add arcnet.c and ethernet.c to all the linux Makefiles (done, STK)
+8. Refactor Makefile DEFINES like demo/server/Makefile. (done, STK)
 9. Finish subscribe COV support in server demo.
 
 For a later release, here are some things to do:
