@@ -127,8 +127,8 @@ int bvlc_decode_bip_address(
     int len = 0;
     
     if (pdu) {
-        (void) decode_unsigned32(&pdu[0], &(address.s_addr));
-        (void) decode_unsigned16(&pdu[4], &port);
+        (void) decode_unsigned32(&pdu[0], &(address->s_addr));
+        (void) decode_unsigned16(&pdu[4], port);
         len = 6;
     }
     
@@ -405,21 +405,24 @@ int bvlc_encode_original_broadcast_npdu(uint8_t * pdu,
 
 /* copy the source internet address to the BACnet address */
 /* FIXME: IPv6? */
-/* FIXME: is sockaddr_in host or network order? */
 void bvlc_internet_to_bacnet_address(
     BACNET_ADDRESS * src,     /* returns the BACnet source address */
     struct sockaddr_in *sin)
 {                               /* source internet address */
     int len = 0;
+    uint32_t address;
+    uint16_t port;
 
     if (src && sin) {
-        len = encode_unsigned32(&src->mac[0], sin->sin_addr.s_addr);
-        len += encode_unsigned16(&src->mac[4], sin->sin_port);
+        address = ntohl(sin->sin_addr.s_addr);
+        len = encode_unsigned32(&src->mac[0], address);
+        port = ntohs(sin->sin_port);
+        len += encode_unsigned16(&src->mac[4], port);
         src->mac_len = len;
         src->net = 0;
         src->len = 0;
     }
-    
+
     return;
 }
 
@@ -429,16 +432,20 @@ void bvlc_internet_to_bacnet_address(
 void bvlc_bacnet_to_internet_address(
     struct sockaddr_in *sin,  /* source internet address */
     BACNET_ADDRESS * src) /* returns the BACnet source address */
-{                               
+{ 
     int len = 0;
+    uint32_t address;
+    uint16_t port;
 
     if (src && sin) {
         if (src->mac_len == 6) {
-            len = decode_unsigned32(&src->mac[0], &sin->sin_addr.s_addr);
-            len += decode_unsigned16(&src->mac[4], &sin->sin_port);
+            len = decode_unsigned32(&src->mac[0], &address);
+            len += decode_unsigned16(&src->mac[4], &port );
+            sin->sin_addr.s_addr = htonl(address);
+            sin->sin_port = htons(port);
         }
     }
-    
+
     return;
 }
 
@@ -452,14 +459,16 @@ void bvlc_bdt_forward_npdu(
     int bytes_sent = 0;
     unsigned i = 0;            /* loop counter */
     struct sockaddr_in bip_dest;
+    BACNET_ADDRESS src;
 
     /* assumes that the driver has already been initialized */
     if (bip_socket() < 0) {
         return;
     }
+    bvlc_internet_to_bacnet_address(&src, sin);
     mtu_len = bvlc_encode_forwarded_npdu(
         &mtu[0], 
-        sin, 
+        &src,
         npdu, 
         npdu_length);
     /* load destination IP address */
@@ -478,12 +487,12 @@ void bvlc_bdt_forward_npdu(
             /* Send the packet */
             bytes_sent =
                 sendto(bip_socket(), (char *) mtu, mtu_len, 0,
-                    (struct sockaddr *) bip_dest, 
+                    (struct sockaddr *) &bip_dest, 
                     sizeof(struct sockaddr));
         }
     }
-        
-    return bytes_sent;
+
+    return;
 }
 
 void bvlc_fdt_forward_npdu(
@@ -500,7 +509,6 @@ uint16_t bvlc_handler(
     uint8_t * npdu,         /* returns the NPDU */
     uint16_t max_npdu,      /* amount of space available in the NPDU  */
     unsigned timeout)     /* number of milliseconds to wait for a packet */
-    int received_bytes;
 {       
     uint8_t buf[MAX_MPDU] = {0}; /* data */
     uint16_t pdu_len = 0;  /* return value */
@@ -510,6 +518,7 @@ uint16_t bvlc_handler(
     struct sockaddr_in sin = { -1 };
     socklen_t sin_len = sizeof(sin);
     int function_type = 0;
+    int received_bytes;
 
     /* Make sure the socket is open */
     if (BIP_Socket < 0) {
@@ -663,11 +672,41 @@ uint16_t bvlc_handler(
 #include <string.h>
 #include "ctest.h"
     
-void testBVLC(Test * pTest) 
+void testBIPAddress(Test * pTest)
 {
-        (void) pTest;
+    uint8_t apdu[50] = { 0 };
+    uint32_t value = 0, test_value = 0;
+    int len = 0, test_len = 0;
+    struct in_addr address;
+    struct in_addr test_address;
+    uint16_t port = 0, test_port = 0;
+
+    address.s_addr = 42;
+    len = bvlc_encode_bip_address(&apdu[0],
+        &address, port);
+    test_len = bvlc_decode_bip_address(&apdu[0],
+        &test_address, &test_port);
+    ct_test(pTest, len == test_len);
+    ct_test(pTest, address.s_addr == test_address.s_addr);
+    ct_test(pTest, port == test_port);
 }
-#ifdef TEST_BBMD
+
+void testInternetAddress(Test * pTest)
+{
+    BACNET_ADDRESS src;
+    BACNET_ADDRESS test_src;
+    struct sockaddr_in sin;
+    struct sockaddr_in test_sin;
+
+    sin.sin_port = htons(0xBAC0);
+    sin.sin_addr.s_addr = inet_addr("192.168.0.1");
+    bvlc_internet_to_bacnet_address(&src, &sin);
+    bvlc_bacnet_to_internet_address(&test_sin, &src);
+    ct_test(pTest, sin.sin_port == test_sin.sin_port);
+    ct_test(pTest, sin.sin_addr.s_addr == test_sin.sin_addr.s_addr);
+}
+
+#ifdef TEST_BVLC
 int main(void) 
 {
     Test * pTest;
@@ -675,7 +714,9 @@ int main(void)
 
     pTest = ct_create("BACnet Virtual Link Control", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testBVLC);
+    rc = ct_addTestFunction(pTest, testBIPAddress);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testInternetAddress);
     assert(rc);
     /* configure output */
     ct_setStream(pTest, stdout);
