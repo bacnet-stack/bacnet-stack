@@ -320,7 +320,6 @@ int Analog_Output_Encode_Property_APDU(uint8_t * apdu,
                 apdu_len = -1;
             }
         }
-
         break;
     case PROP_RELINQUISH_DEFAULT:
         real_value = AO_RELINQUISH_DEFAULT;
