@@ -55,10 +55,10 @@ static long gethostaddr(void)
     if ((host_ent = gethostbyname(host_name)) == NULL)
         return -1;
 #ifdef BIP_DEBUG
-    printf("host: %s at %u.%u.%u.%u\n", host_name, 
-                            ((uint8_t*)host_ent->h_addr)[0], 
-                            ((uint8_t*)host_ent->h_addr)[1], 
-                            ((uint8_t*)host_ent->h_addr)[2], 
+    printf("host: %s at %u.%u.%u.%u\n", host_name,
+                            ((uint8_t*)host_ent->h_addr)[0],
+                            ((uint8_t*)host_ent->h_addr)[1],
+                            ((uint8_t*)host_ent->h_addr)[2],
                             ((uint8_t*)host_ent->h_addr)[3]);
 #endif
     /* note: network byte order */
@@ -67,15 +67,15 @@ static long gethostaddr(void)
 
 static void set_broadcast_address(uint32_t net_address)
 {
-    long broadcast_address = 0;
-    long mask = 0;
-
+#if USE_INADDR
     /*   Note: sometimes INADDR_BROADCAST does not let me get
        any unicast messages.  Not sure why... */
-#if USE_INADDR
     (void) net_address;
     bip_set_broadcast_addr(INADDR_BROADCAST);
 #else
+    long broadcast_address = 0;
+    long mask = 0;
+
     if (IN_CLASSA(ntohl(net_address)))
         broadcast_address =
             (ntohl(net_address) & ~IN_CLASSA_HOST) | IN_CLASSA_HOST;
@@ -125,19 +125,19 @@ static char *winsock_error_code_text(int code)
     switch (code) {
         case WSAEACCES:
             return "Permission denied.";
-        case WSAEINTR: 
+        case WSAEINTR:
             return "Interrupted system call.";
-        case WSAEBADF: 
+        case WSAEBADF:
             return "Bad file number.";
-        case WSAEFAULT: 
+        case WSAEFAULT:
             return "Bad address.";
-        case WSAEINVAL: 
+        case WSAEINVAL:
             return "Invalid argument.";
-        case WSAEMFILE: 
+        case WSAEMFILE:
             return "Too many open files.";
-        case WSAEWOULDBLOCK: 
+        case WSAEWOULDBLOCK:
             return "Operation would block.";
-        case WSAEINPROGRESS: 
+        case WSAEINPROGRESS:
             return "Operation now in progress. This error is returned if any Windows Sockets API function is called while a blocking function is in progress.";
         case WSAENOTSOCK:
             return "Socket operation on nonsocket.";
@@ -251,7 +251,7 @@ bool bip_init(char *ifname)
         exit(1);
     }
     atexit(cleanup);
-    
+
     if (ifname)
         bip_set_interface(ifname);
     /* has address been set? */
