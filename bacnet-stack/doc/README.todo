@@ -11,6 +11,7 @@ For this release, here are some things to do:
 7. Add arcnet.c and ethernet.c to all the linux Makefiles (done, STK)
 8. Refactor Makefile DEFINES like demo/server/Makefile. (done, STK)
 9. Finish subscribe COV support in server demo.
+10. Add Visual Studio 2005 makefiles for demos.
 
 For a later release, here are some things to do:
 
