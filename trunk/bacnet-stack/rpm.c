@@ -135,6 +135,13 @@ int rpm_decode_object_end(uint8_t * apdu, unsigned apdu_len)
 }
 
 /* decode the object property portion of the service request only */
+/*  BACnetPropertyReference ::= SEQUENCE {
+        propertyIdentifier [0] BACnetPropertyIdentifier,
+        propertyArrayIndex [1] Unsigned OPTIONAL 
+        --used only with array datatype
+        -- if omitted with an array the entire array is referenced
+    }
+*/
 int rpm_decode_object_property(uint8_t * apdu,
     unsigned apdu_len,
     BACNET_PROPERTY_ID * object_property, int32_t * array_index)
@@ -161,7 +168,7 @@ int rpm_decode_object_property(uint8_t * apdu,
             option_len =
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
-            if (tag_number == 2) {
+            if (tag_number == 1) {
                 len += option_len;
                 len += decode_unsigned(&apdu[len], len_value_type,
                     &array_value);
