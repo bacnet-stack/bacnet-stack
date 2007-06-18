@@ -58,7 +58,7 @@ static char Vendor_Name[16] = "ASHRAE";
 /* FIXME: your vendor id assigned by ASHRAE */
 static uint16_t Vendor_Identifier = 0;
 static char Model_Name[16] = "GNU";
-static char Firmware_Revision[16] = "0.3.1";
+static char Firmware_Revision[16] = "0.3.2";
 static char Application_Software_Version[16] = "1.0";
 static char Location[16] = "USA";
 static char Description[16] = "server";

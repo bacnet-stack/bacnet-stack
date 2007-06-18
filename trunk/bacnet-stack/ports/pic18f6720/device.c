@@ -298,7 +298,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_FIRMWARE_REVISION:
-        (void) strcpypgm2ram(&string_buffer[0], "0.3.1");
+        (void) strcpypgm2ram(&string_buffer[0], "0.3.2");
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
