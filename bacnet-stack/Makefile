@@ -7,12 +7,14 @@ clean: \
 	demo/writeprop/Makefile \
 	demo/readfile/Makefile \
 	demo/writefile/Makefile \
+	demo/reinit/Makefile \
 	demo/server/Makefile \
 	demo/dcc/Makefile \
 	demo/whohas/Makefile \
+	demo/whois/Makefile \
+	demo/ucov/Makefile \
 	demo/timesync/Makefile \
-	demo/epics/Makefile \
-	demo/whois/Makefile
+	demo/epics/Makefile
 	( cd demo/readprop ; make clean )
 	( cd demo/writeprop ; make clean )
 	( cd demo/readfile ; make clean )
@@ -21,9 +23,10 @@ clean: \
 	( cd demo/server ; make clean )
 	( cd demo/dcc ; make clean )
 	( cd demo/whohas ; make clean )
+	( cd demo/whois ; make clean )
+	( cd demo/ucov ; make clean )
 	( cd demo/timesync ; make clean )
 	( cd demo/epics ; make clean )
-	( cd demo/whois ; make clean )
 
 readprop: demo/readprop/Makefile
 	( cd demo/readprop ; make clean ; make ; cp bacrp ../../utils )
