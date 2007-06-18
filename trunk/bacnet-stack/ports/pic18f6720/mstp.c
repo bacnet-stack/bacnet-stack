@@ -770,7 +770,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
                         mstp_port->DataLength);
                     break;
                 case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                    /*mstp_port->ReplyPostponedTimer = 0; */
+                    /*mstp_port->ReplyPostponedTimer = 0; */
                     /* indicate successful reception to the higher layers  */
                     dlmstp_put_receive(mstp_port->SourceAddress,
                         (uint8_t *) & mstp_port->InputBuffer[0],
@@ -1217,12 +1217,12 @@ void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port)
         mstp_port->ReceivedValidFrame = false;
         mstp_port->RetryCount = 0;
         mstp_port->SilenceTimer = 0;
-/*        mstp_port->ReplyPostponedTimer = 0; */
+/*        mstp_port->ReplyPostponedTimer = 0; */
         mstp_port->SoleMaster = false;
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
 #if 0
-        /* these are adjustable, so should already be set */
+        /* these are adjustable, so should already be set */
         mstp_port->Nmax_info_frames = DEFAULT_MAX_INFO_FRAMES;
         mstp_port->Nmax_master = DEFAULT_MAX_MASTER;
 #endif

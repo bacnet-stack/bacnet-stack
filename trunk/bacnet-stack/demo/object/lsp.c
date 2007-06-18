@@ -159,7 +159,8 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
     unsigned object_index = 0;
     bool state = false;
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
-    (void) array_index;        /* currently not used */
+    
+    (void) array_index;        /* currently not used */
     Life_Safety_Point_Init();
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
@@ -354,3 +355,4 @@ int main(void)
 }
 #endif                          /* TEST_LIFE_SAFETY_POINT */
 #endif                          /* TEST */
+
