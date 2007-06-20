@@ -184,7 +184,7 @@ int dcc_decode_service_request(uint8_t * apdu,
             &tag_number, &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (enable_disable)
-            *enable_disable = value;
+            *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE)value;
         /* Tag 2: password --optional-- */
         if (len < apdu_len) {
             if (!decode_is_context_tag(&apdu[len], 2))

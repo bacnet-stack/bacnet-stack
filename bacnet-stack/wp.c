@@ -105,14 +105,14 @@ int wp_decode_service_request(uint8_t * apdu,
         if (!decode_is_context_tag(&apdu[len++], 0))
             return -1;
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
-        data->object_type = type;
+        data->object_type = (BACNET_OBJECT_TYPE)type;
         /* Tag 1: Property ID */
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != 1)
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &property);
-        data->object_property = property;
+        data->object_property = (BACNET_PROPERTY_ID)property;
         /* Tag 2: Optional Array Index */
         /* note: decode without incrementing len so we can check for opening tag */
         tag_len = decode_tag_number_and_value(&apdu[len],
@@ -129,7 +129,7 @@ int wp_decode_service_request(uint8_t * apdu,
             return -1;
         /* determine the length of the data blob */
         data->application_data_len = bacapp_data_len(&apdu[len],
-            apdu_len - len, property);
+            apdu_len - len, (BACNET_PROPERTY_ID)property);
         /* a tag number of 3 is not extended so only one octet */
         len++;
         /* copy the data from the APDU */

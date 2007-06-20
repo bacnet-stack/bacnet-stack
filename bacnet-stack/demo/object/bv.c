@@ -295,7 +295,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 (priority != 6 /* reserved */ ) &&
                 (value.type.Enumerated >= MIN_BINARY_PV) &&
                 (value.type.Enumerated <= MAX_BINARY_PV)) {
-                level = value.type.Enumerated;
+                level = (BACNET_BINARY_PV)value.type.Enumerated;
                 object_index =
                     Binary_Value_Instance_To_Index(wp_data->
                     object_instance);
@@ -303,8 +303,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 Binary_Value_Level[object_index][priority] = level;
                 /* Note: you could set the physical output here if we
                    are the highest priority.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
+                   However, if Out of Service is TRUE, then don't set the
+                   physical output.  This comment may apply to the
                    main loop (i.e. check out of service before changing output) */
                 status = true;
             } else if (priority == 6) {
@@ -328,8 +328,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 /* Note: you could set the physical output here to the next
                    highest priority, or to the relinquish default if no
                    priorities are set.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
+                   However, if Out of Service is TRUE, then don't set the
+                   physical output.  This comment may apply to the
                    main loop (i.e. check out of service before changing output) */
                 status = true;
             } else {

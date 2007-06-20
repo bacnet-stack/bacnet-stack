@@ -196,7 +196,7 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu_data,
         npdu_data->data_expecting_reply = data_expecting_reply;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
         npdu_data->network_layer_message = false;       /* false if APDU */
-        npdu_data->network_message_type = 0;    /* optional */
+        npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;    /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
         npdu_data->hop_count = 0;
@@ -239,7 +239,7 @@ int npdu_decode(uint8_t * npdu,
         /* B'10' = Critical Equipment message */
         /* B'01' = Urgent message */
         /* B'00' = Normal message */
-        npdu_data->priority = npdu[1] & 0x03;
+        npdu_data->priority = (BACNET_MESSAGE_PRIORITY)(npdu[1] & 0x03);
         /* set the offset to where the optional stuff starts */
         len = 2;
         /*Bit 5: Destination specifier where: */
@@ -310,14 +310,16 @@ int npdu_decode(uint8_t * npdu,
         /* Indicates that the NSDU conveys a network layer message. */
         /* Message Type field is present. */
         if (npdu_data->network_layer_message) {
-            npdu_data->network_message_type = npdu[len++];
+            npdu_data->network_message_type = (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
             /* Message Type field contains a value in the range 0x80 - 0xFF, */
             /* then a Vendor ID field shall be present */
             if (npdu_data->network_message_type >= 0x80)
                 len +=
                     decode_unsigned16(&npdu[len], &npdu_data->vendor_id);
-        } else
-            npdu_data->network_message_type = 0;
+        } else {
+          /* FIXME: another value for this? */
+            npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;
+        }
     }
 
     return len;
