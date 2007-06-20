@@ -84,7 +84,7 @@ int rd_decode_service_request(uint8_t * apdu,
             &tag_number, &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (state)
-            *state = value;
+            *state = (BACNET_REINITIALIZED_STATE)value;
         /* Tag 1: password - optional */
         if (len < apdu_len) {
             if (!decode_is_context_tag(&apdu[len], 1))

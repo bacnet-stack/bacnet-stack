@@ -47,8 +47,8 @@
 #include "bacfile.h"            /* object list dependency */
 #endif
 
-/* note: you really only need to define variables for 
-   properties that are writable or that may change. 
+/* note: you really only need to define variables for
+   properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 0;
@@ -131,7 +131,7 @@ bool Device_Set_Object_Name(const char *name, size_t length)
     bool status = false;        /*return value */
 
     /* FIXME:  All the object names in a device must be unique.
-       Disallow setting the Device Object Name to any objects in 
+       Disallow setting the Device Object Name to any objects in
        the device. */
     if (length < sizeof(Object_Name)) {
         memmove(Object_Name, name, length);
@@ -570,7 +570,7 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
     return name;
 }
 
-/* return the length of the apdu encoded or -1 for error or 
+/* return the length of the apdu encoded or -1 for error or
    -2 for abort message */
 int Device_Encode_Property_APDU(uint8_t * apdu,
     BACNET_PROPERTY_ID property,
@@ -670,7 +670,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
             /* automatic lookup based on handlers set */
             bitstring_set_bit(&bit_string, (uint8_t) i,
-                apdu_service_supported(i));
+                apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
         }
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
         break;
@@ -858,7 +858,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 
     case PROP_SYSTEM_STATUS:
         if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-            Device_Set_System_Status(value.type.Enumerated);
+            /* FIXME: bounds check? */
+            Device_Set_System_Status((BACNET_DEVICE_STATUS)value.type.Enumerated);
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;

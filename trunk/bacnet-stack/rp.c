@@ -84,14 +84,14 @@ int rp_decode_service_request(uint8_t * apdu,
         if (!decode_is_context_tag(&apdu[len++], 0))
             return -1;
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
-        data->object_type = type;
+        data->object_type = (BACNET_OBJECT_TYPE)type;
         /* Tag 1: Property ID */
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != 1)
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &property);
-        data->object_property = property;
+        data->object_property = (BACNET_PROPERTY_ID)property;
         /* Tag 2: Optional Array Index */
         if (len < apdu_len) {
             len += decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -157,14 +157,14 @@ int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len, /* total length 
         return -1;
     len = 1;
     len += decode_object_id(&apdu[len], &object, &data->object_instance);
-    data->object_type = object;
+    data->object_type = (BACNET_OBJECT_TYPE)object;
     /* Tag 1: Property ID */
     len += decode_tag_number_and_value(&apdu[len],
         &tag_number, &len_value_type);
     if (tag_number != 1)
         return -1;
     len += decode_enumerated(&apdu[len], len_value_type, &property);
-    data->object_property = property;
+    data->object_property = (BACNET_PROPERTY_ID)property;
     /* Tag 2: Optional Array Index */
     tag_len = decode_tag_number_and_value(&apdu[len],
         &tag_number, &len_value_type);
