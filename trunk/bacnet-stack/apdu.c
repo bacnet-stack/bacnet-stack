@@ -428,7 +428,9 @@ void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
             if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
                 if (Error_Function[service_choice])
                     Error_Function[service_choice] (src,
-                        invoke_id, error_class, error_code);
+                        invoke_id,
+                        (BACNET_ERROR_CLASS)error_class,
+                        (BACNET_ERROR_CODE)error_code);
             }
             tsm_free_invoke_id(invoke_id);
             break;
