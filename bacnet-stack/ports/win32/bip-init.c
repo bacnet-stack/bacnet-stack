@@ -32,9 +32,6 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#define WIN32_LEAN_AND_MEAN
-#define STRICT 1
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>             /* for standard integer types uint8_t etc. */
