@@ -1,9 +1,9 @@
 #
 # Simple makefile to build an executable for Win32 console
 #
-# This makefile assumes Borland bcc32 development environment
-# on Windows NT/9x/2000/XP, which includes make, bcc32, and ilink
-#
+# This makefile assumes Borland development environment
+# on Windows NT/9x/2000/XP
+# Tools: bcc32, make, ilink
 
 !ifndef BORLAND_DIR
 BORLAND_DIR_Not_Defined:
@@ -11,55 +11,13 @@ BORLAND_DIR_Not_Defined:
    @echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
-PRODUCT = bacnet
+PRODUCT = rs485
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-DEFINES = -DBACDL_BIP=1;TSM_ENABLED=1;BIG_ENDIAN=0
+DEFINES = -DBACDL_MSTP=1;TEST_RS485
 
-SRCS = main.c bip-init.c \
-       ..\..\bip.c  \
-       ..\..\demo\handler\h_iam.c  \
-       ..\..\demo\handler\h_whois.c  \
-       ..\..\demo\handler\h_wp.c  \
-       ..\..\demo\handler\h_rp.c  \
-       ..\..\demo\handler\h_rp_a.c  \
-       ..\..\demo\handler\noserv.c  \
-       ..\..\demo\handler\txbuf.c  \
-       ..\..\demo\handler\s_rp.c  \
-       ..\..\demo\handler\s_whois.c  \
-       ..\..\bacdcode.c \
-       ..\..\bacapp.c \
-       ..\..\bacstr.c \
-       ..\..\bactext.c \
-       ..\..\indtext.c \
-       ..\..\bigend.c \
-       ..\..\whois.c \
-       ..\..\iam.c \
-       ..\..\dcc.c \
-       ..\..\rp.c \
-       ..\..\wp.c \
-       ..\..\arf.c \
-       ..\..\awf.c \
-       ..\..\demo\object\bacfile.c \
-       ..\..\demo\object\device.c \
-       ..\..\demo\object\ai.c \
-       ..\..\demo\object\ao.c \
-       ..\..\demo\object\av.c \
-       ..\..\demo\object\bi.c \
-       ..\..\demo\object\bo.c \
-       ..\..\demo\object\bv.c \
-       ..\..\demo\object\lsp.c \
-       ..\..\demo\object\mso.c \
-       ..\..\datalink.c \
-       ..\..\tsm.c \
-       ..\..\address.c \
-       ..\..\abort.c \
-       ..\..\reject.c \
-       ..\..\bacerror.c \
-       ..\..\apdu.c \
-       ..\..\npdu.c
-
+SRCS = rs485.c
 OBJS = $(SRCS:.c=.obj)
 
 # Compiler definitions
@@ -74,7 +32,8 @@ TLIB = $(BORLAND_DIR)\bin\tlib
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-INCL_DIRS = -I$(BORLAND_DIR)\include;..\..\;..\..\demo\handler\;..\..\demo\object\;.
+BACNET_INCL = ..\..\;..\..\demo\handler\;..\..\demo\object\;.
+INCL_DIRS = -I$(BORLAND_DIR)\include;$(BACNET_INCL)
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
