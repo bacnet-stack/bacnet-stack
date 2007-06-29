@@ -29,15 +29,18 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
+/* Linux Includes */
+#include <sched.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
+#include <pthread.h>
+/* project includes */
 #include "bacdef.h"
 #include "mstp.h"
 #include "dlmstp.h"
 #include "rs485.h"
 #include "npdu.h"
-
-#define WIN32_LEAN_AND_MEAN
-#define STRICT 1
-#include <windows.h>
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -72,29 +75,37 @@ void dlmstp_init(void)
     Receive_Buffer.pdu_len = 0;
     /* initialize hardware */
     RS485_Initialize();
-    MSTP_Port.InputBuffer = &Receive_Buffer.pdu[0];
     MSTP_Init(&MSTP_Port);
     /* FIXME: implement your data storage */
-    data = 64;                  /* I2C_Read_Byte(
-                                   EEPROM_DEVICE_ADDRESS,
-                                   EEPROM_MSTP_MAC_ADDR); */
+    data = 64;
+#if 0
+    /* I2C_Read_Byte(
+        EEPROM_DEVICE_ADDRESS,
+        EEPROM_MSTP_MAC_ADDR); */
+#endif
     if (data <= 127)
         MSTP_Port.This_Station = data;
     else
         dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
+
     /* FIXME: implement your data storage */
-    data = 127;                 /* I2C_Read_Byte(
-                                   EEPROM_DEVICE_ADDRESS,
-                                   EEPROM_MSTP_MAX_MASTER_ADDR); */
+    data = 127;
+#if 0
+    /* I2C_Read_Byte(
+        EEPROM_DEVICE_ADDRESS,
+        EEPROM_MSTP_MAX_MASTER_ADDR); */
+#endif
     if ((data <= 127) && (data >= MSTP_Port.This_Station))
         MSTP_Port.Nmax_master = data;
     else
         dlmstp_set_max_master(DEFAULT_MAX_MASTER);
     /* FIXME: implement your data storage */
     data = 1;
+#if 0
     /* I2C_Read_Byte(
        EEPROM_DEVICE_ADDRESS,
        EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
+#endif
     if (data >= 1)
         MSTP_Port.Nmax_info_frames = data;
     else
@@ -146,13 +157,12 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     return bytes_sent;
 }
 
-static void dlmstp_receive_fsm_task(void *pArg)
+static void *dlmstp_receive_fsm_task(void *pArg)
 {
     uint8_t bytes_remaining;
     bool received_frame;
 
-    //(void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    while (TRUE) {
+    for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
             (MSTP_Port.ReceivedInvalidFrame == false)) {
@@ -168,14 +178,13 @@ static void dlmstp_receive_fsm_task(void *pArg)
     }
 }
 
-static void dlmstp_master_fsm_task(void *pArg)
+static void *dlmstp_master_fsm_task(void *pArg)
 {
-    //(void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    while (TRUE) {
+    for (;;) {
         /* only do master state machine while rx is idle */
         if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
             while (MSTP_Master_Node_FSM(&MSTP_Port)) {
-                Sleep(1);
+                sched_yield();
             };
         }
         /* see if there is a packet available, and a place
@@ -335,6 +344,7 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
 
 #ifdef TEST_DLMSTP
 #include <stdio.h>
+
 void npdu_handler(
     BACNET_ADDRESS * src,     /* source address */
     uint8_t * pdu,          /* PDU data */
@@ -346,86 +356,50 @@ void npdu_handler(
     fprintf(stderr, "NPDU: received PDU!\n");
 }
 
-static void test_transmit_task(void *pArg)
+void *test_milliseconds_task(void *pArg)
 {
-    while (TRUE) {
-        Sleep(1000);
+    struct timespec timeOut,remains;
+
+    timeOut.tv_sec = 0;
+    timeOut.tv_nsec = 1000000; /* 1 millisecond */
+
+    for (;;) {
+        nanosleep(&timeOut, &remains);
+        dlmstp_millisecond_timer();
+    }
+
+    return NULL;
+}
+
+int main(void)
+{
+    int rc = 0;
+    pthread_t hThread;
+    struct timespec timeOut,remains;
+
+    timeOut.tv_sec = 1;
+    timeOut.tv_nsec = 0; /* 1 millisecond */
+
+    /* initialize our interface */
+    RS485_Set_Interface("/dev/ttyS0");
+    RS485_Set_Baud_Rate(38400);
+    dlmstp_init();
+    dlmstp_set_my_address(0x05);
+    /* start our MilliSec task */
+    rc = pthread_create(&hThread, NULL, test_milliseconds_task, NULL);
+    rc = pthread_create(&hThread, NULL, dlmstp_receive_fsm_task, NULL);
+    rc = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, NULL);
+    /* forever task */
+    for (;;) {
+#if 0
         MSTP_Create_And_Send_Frame(
             &MSTP_Port,
             FRAME_TYPE_TEST_REQUEST,
             MSTP_Port.SourceAddress,
             MSTP_Port.This_Station,
             NULL, 0);
-    }
-}
-
-/* returns a delta timestamp */
-uint32_t timestamp_ms(void)
-{
-    DWORD ticks = 0, delta_ticks = 0;
-    static DWORD last_ticks = 0;
-
-    ticks = GetTickCount();
-    delta_ticks =
-        (ticks >= last_ticks ?
-        ticks - last_ticks :
-        MAXDWORD - last_ticks);
-    last_ticks = ticks;
-
-    return delta_ticks;
-}
-
-static void test_millisecond_task(void *pArg)
-{
-    DWORD ticks = 0;
-    DWORD last_ticks = GetTickCount();
-    DWORD total_ticks = 0;
-
-    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    while (TRUE) {
-        ticks = GetTickCount();
-        if (ticks > last_ticks) {
-            total_ticks = ticks - last_ticks;
-        } else if (ticks == last_ticks) {
-            Sleep(1);
-            continue;
-        } else {
-            /* integer rollover */
-            total_ticks = (MAXDWORD - last_ticks) + ticks;
-        }
-        while (total_ticks) {
-            dlmstp_millisecond_timer();
-            total_ticks--;
-        }
-        last_ticks = ticks;
-        Sleep(1);
-    }
-}
-
-int main(void)
-{
-    unsigned long hThread = 0;
-    uint32_t arg_value = 0;
-
-    RS485_Set_Interface("COM4");
-    RS485_Set_Baud_Rate(38400);
-    dlmstp_set_my_address(0x05);
-    dlmstp_init();
-    hThread = _beginthread(test_millisecond_task,4096,&arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start timer task\n");
-    }
-    hThread = _beginthread(dlmstp_receive_fsm_task,4096,&arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start recive FSM task\n");
-    }
-    hThread = _beginthread(dlmstp_master_fsm_task,4096,&arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start Master Node FSM task\n");
-    }
-    /* forever task */
-    for (;;) {
-        Sleep(10000);
+#endif
+        nanosleep(&timeOut, &remains);
     }
 
     return 0;

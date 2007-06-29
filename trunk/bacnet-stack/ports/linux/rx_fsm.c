@@ -86,6 +86,7 @@ uint16_t dlmstp_put_receive(
     return 0;
 }
 
+#if 1
 static const uint8_t CRC_Table[256] = 
 {
   0000,  0xfe,  0xff,  0x01,  0xfd,  0x03,  0x02,  0xfc,
@@ -122,7 +123,7 @@ static const uint8_t CRC_Table[256] =
   0xa9,  0x57,  0x56,  0xa8,  0x54,  0xaa,  0xab,  0x55
 };
 
-static uint8_t calculate_header_CRC_table(
+static uint8_t calculate_header_CRC(
     volatile struct mstp_port_struct_t *mstp_port)
 {
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
@@ -136,6 +137,7 @@ static uint8_t calculate_header_CRC_table(
     return (~crc8);
 }
 
+#else
 static uint8_t calculate_header_CRC(
     volatile struct mstp_port_struct_t *mstp_port)
 {
@@ -149,6 +151,7 @@ static uint8_t calculate_header_CRC(
     
     return (~crc8);
 }
+#endif
 
 static void print_received_packet(
     volatile struct mstp_port_struct_t *mstp_port,
@@ -177,8 +180,6 @@ static void print_received_packet(
         mstp_port->HeaderCRCActual);
     if (print_crc_flag) {
         crc8 = calculate_header_CRC(mstp_port);
-        fprintf(stderr, "[%02X] ", crc8);
-        crc8 = calculate_header_CRC_table(mstp_port);
         fprintf(stderr, "[%02X] ", crc8);
     }
     if (mstp_port->DataLength) {

@@ -49,6 +49,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <sched.h>
 
 /* Local includes */
 #include "mstp.h"
@@ -201,6 +202,7 @@ void RS485_Send_Frame(
             turnaround_time = 1;
         while (mstp_port->SilenceTimer < turnaround_time) {
             /* do nothing - wait for timer to increment */
+            sched_yield();
         };
     }
     /*

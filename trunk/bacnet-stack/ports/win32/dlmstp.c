@@ -409,8 +409,8 @@ int main(void)
 
     RS485_Set_Interface("COM4");
     RS485_Set_Baud_Rate(38400);
-    dlmstp_set_my_address(0x05);
     dlmstp_init();
+    dlmstp_set_my_address(0x05);
     hThread = _beginthread(test_millisecond_task,4096,&arg_value);
     if (hThread == 0) {
         fprintf(stderr, "Failed to start timer task\n");
