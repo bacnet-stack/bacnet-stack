@@ -453,6 +453,10 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     /* BadCRC */
                     /* indicate that an error has occurred during the reception of a frame */
                     mstp_port->ReceivedInvalidFrame = true;
+#if PRINT_ENABLED_RECEIVE_DATA
+                    fprintf(stderr, "MS/TP: Rx Header-BadCRC %02X!\n",
+                        mstp_port->DataRegister);
+#endif
                     /* wait for the start of the next frame. */
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {

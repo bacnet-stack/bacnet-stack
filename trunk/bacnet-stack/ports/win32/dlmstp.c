@@ -346,19 +346,6 @@ void npdu_handler(
     fprintf(stderr, "NPDU: received PDU!\n");
 }
 
-static void test_transmit_task(void *pArg)
-{
-    while (TRUE) {
-        Sleep(1000);
-        MSTP_Create_And_Send_Frame(
-            &MSTP_Port,
-            FRAME_TYPE_TEST_REQUEST,
-            MSTP_Port.SourceAddress,
-            MSTP_Port.This_Station,
-            NULL, 0);
-    }
-}
-
 /* returns a delta timestamp */
 uint32_t timestamp_ms(void)
 {
@@ -377,27 +364,9 @@ uint32_t timestamp_ms(void)
 
 static void test_millisecond_task(void *pArg)
 {
-    DWORD ticks = 0;
-    DWORD last_ticks = GetTickCount();
-    DWORD total_ticks = 0;
-
     (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    while (TRUE) {
-        ticks = GetTickCount();
-        if (ticks > last_ticks) {
-            total_ticks = ticks - last_ticks;
-        } else if (ticks == last_ticks) {
-            Sleep(1);
-            continue;
-        } else {
-            /* integer rollover */
-            total_ticks = (MAXDWORD - last_ticks) + ticks;
-        }
-        while (total_ticks) {
-            dlmstp_millisecond_timer();
-            total_ticks--;
-        }
-        last_ticks = ticks;
+    for (;;) {
+        dlmstp_millisecond_timer();
         Sleep(1);
     }
 }
@@ -425,6 +394,14 @@ int main(void)
     }
     /* forever task */
     for (;;) {
+#if 0
+        MSTP_Create_And_Send_Frame(
+            &MSTP_Port,
+            FRAME_TYPE_TEST_REQUEST,
+            MSTP_Port.SourceAddress,
+            MSTP_Port.This_Station,
+            NULL, 0);
+#endif
         Sleep(10000);
     }
 
