@@ -132,6 +132,8 @@ static uint8_t calculate_header_CRC_table(
     crc8 = CRC_Table[mstp_port->SourceAddress ^ crc8];
     crc8 = CRC_Table[HI_BYTE(mstp_port->DataLength) ^ crc8];
     crc8 = CRC_Table[LO_BYTE(mstp_port->DataLength) ^ crc8];
+    
+    return (~crc8);
 }
 
 static uint8_t calculate_header_CRC(
@@ -217,7 +219,7 @@ int main(void)
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
             mstp_port->ReceivedValidFrame = false;
-            print_received_packet(mstp_port, false);
+            print_received_packet(mstp_port, true);
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
