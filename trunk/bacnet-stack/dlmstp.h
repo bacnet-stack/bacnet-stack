@@ -57,7 +57,7 @@ typedef struct dlmstp_packet {
 extern "C" {
 #endif                          /* __cplusplus */
 
-    void dlmstp_init(void);
+    bool dlmstp_init(char *ifname);
     void dlmstp_cleanup(void);
     void dlmstp_millisecond_timer(void);
 
@@ -80,8 +80,8 @@ extern "C" {
     /* nodes. This may be used to allocate more or less of the available link */
     /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
     /* node, its value shall be 1. */
-    void dlmstp_set_max_info_frames(unsigned max_info_frames);
-    unsigned dlmstp_max_info_frames(void);
+    void dlmstp_set_max_info_frames(uint8_t max_info_frames);
+    uint8_t dlmstp_max_info_frames(void);
 
     /* This parameter represents the value of the Max_Master property of the */
     /* node's Device object. The value of Max_Master specifies the highest */
@@ -91,7 +91,10 @@ extern "C" {
     void dlmstp_set_max_master(uint8_t max_master);
     uint8_t dlmstp_max_master(void);
 
-    void dlmstp_set_my_address(uint8_t my_address);
+    /* MAC address 0-127 */
+    void dlmstp_set_mac_address(uint8_t my_address);
+    uint8_t dlmstp_mac_address(void);
+
     void dlmstp_get_my_address(BACNET_ADDRESS * my_address);
     void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest);   /* destination address */
 
@@ -99,6 +102,8 @@ extern "C" {
     uint16_t dlmstp_put_receive(uint8_t src,    /* source MS/TP address */
         uint8_t * pdu,          /* PDU data */
         uint16_t pdu_len);
+
+
 
 
 #ifdef __cplusplus

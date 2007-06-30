@@ -108,6 +108,14 @@ int main(int argc, char *argv[])
     if (argc > 3)
         bip_set_port(strtol(argv[3], NULL, 0));
 #endif
+#if defined(BACDL_MSTP)
+    if (argc > 2) {
+        Network_Interface = argv[2];
+    }
+    if (argc > 3) {
+        dlmstp_set_mac_address(strtol(argv[1], NULL, 0));
+    }
+#endif
     printf("BACnet Server Demo\n"
         "BACnet Device ID: %u\r\n",
         Device_Object_Instance_Number());
