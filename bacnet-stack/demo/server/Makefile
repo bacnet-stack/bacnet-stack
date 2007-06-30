@@ -10,7 +10,8 @@ BASEDIR = .
 # Configure the BACnet Datalink Layer
 #BACDL_DEFINE = -DBACDL_ETHERNET=1
 #BACDL_DEFINE = -DBACDL_ARCNET=1
-BACDL_DEFINE = -DBACDL_BIP=1 -DBIP_DEBUG
+BACDL_DEFINE = -DBACDL_MSTP=1
+#BACDL_DEFINE = -DBACDL_BIP=1 -DBIP_DEBUG
 BACNET_DEFINES = -DBACFILE=1 -DPRINT_ENABLED=1 -DBIG_ENDIAN=0
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
@@ -28,6 +29,10 @@ SRCS = main.c \
        $(BACNET_PORT)/bip-init.c \
        $(BACNET_PORT)/ethernet.c \
        $(BACNET_PORT)/arcnet.c \
+       $(BACNET_PORT)/dlmstp.c \
+       $(BACNET_PORT)/mstp.c \
+       $(BACNET_PORT)/rs485.c \
+       $(BACNET_ROOT)/crc.c \
        $(BACNET_ROOT)/bip.c \
        $(BACNET_HANDLER)/txbuf.c \
        $(BACNET_HANDLER)/noserv.c \
@@ -83,7 +88,7 @@ OBJS = ${SRCS:.c=.o}
 all: ${TARGET}
  
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -pthread -o $@ ${OBJS} 
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@

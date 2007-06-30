@@ -194,7 +194,7 @@ struct mstp_port_struct_t {
     /* nodes. This may be used to allocate more or less of the available link */
     /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
     /* node, its value shall be 1. */
-    unsigned Nmax_info_frames;
+    uint8_t Nmax_info_frames;
 
     /* This parameter represents the value of the Max_Master property of the */
     /* node's Device object. The value of Max_Master specifies the highest */

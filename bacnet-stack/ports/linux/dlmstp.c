@@ -77,7 +77,7 @@ static void *dlmstp_milliseconds_task(void *pArg)
 void dlmstp_reinit(void)
 {
     //RS485_Reinit();
-    dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
+    dlmstp_set_mac_address(DEFAULT_MAC_ADDRESS);
     dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
 }
@@ -156,20 +156,38 @@ static void *dlmstp_master_fsm_task(void *pArg)
         if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
             while (MSTP_Master_Node_FSM(&MSTP_Port)) {
                 sched_yield();
-            };
-        }
-        /* see if there is a packet available, and a place
-           to put the reply (if necessary) and process it */
-        if (Receive_Buffer.ready && !MSTP_Port.TxReady) {
-            if (Receive_Buffer.pdu_len) {
-                MSTP_Packets++;
-                npdu_handler(&Receive_Buffer.address,
-                    &Receive_Buffer.pdu[0], Receive_Buffer.pdu_len);
             }
-            Receive_Buffer.ready = false;
         }
     }
 }
+
+/* copy the packet if one is received.
+   Return the length of the packet */
+uint16_t dlmstp_receive(
+    BACNET_ADDRESS * src, /* source address */
+    uint8_t * pdu, /* PDU data */
+    uint16_t max_pdu, /* amount of space available in the PDU  */
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    uint16_t len = 0;
+    /* see if there is a packet available, and a place
+        to put the reply (if necessary) and process it */
+    if (Receive_Buffer.ready && !MSTP_Port.TxReady) {
+        if (Receive_Buffer.pdu_len) {
+            MSTP_Packets++;
+            len = Receive_Buffer.pdu_len;
+            memcpy(src,&Receive_Buffer.address,sizeof(Receive_Buffer.address));
+            /* FIXME: check pdu_len and max_pdu */
+            memcpy(pdu,&Receive_Buffer.pdu[0],len);
+        }
+        Receive_Buffer.ready = false;
+    } else {
+        sched_yield();
+    }
+
+    return len;
+}
+
 
 void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
 {
@@ -207,7 +225,7 @@ uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
     return pdu_len;
 }
 
-void dlmstp_set_my_address(uint8_t mac_address)
+void dlmstp_set_mac_address(uint8_t mac_address)
 {
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
@@ -250,7 +268,7 @@ void dlmstp_set_max_info_frames(uint8_t max_info_frames)
     return;
 }
 
-unsigned dlmstp_max_info_frames(void)
+uint8_t dlmstp_max_info_frames(void)
 {
     return MSTP_Port.Nmax_info_frames;
 }
@@ -331,7 +349,7 @@ bool dlmstp_init(char *ifname)
     if (data <= 127)
         MSTP_Port.This_Station = data;
     else
-        dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
+        dlmstp_set_mac_address(DEFAULT_MAC_ADDRESS);
     if ((data <= 127) && (data >= MSTP_Port.This_Station))
         MSTP_Port.Nmax_master = data;
     else
@@ -376,7 +394,7 @@ int main(int argc, char *argv[])
         RS485_Set_Interface(argv[1]);
     }
     RS485_Set_Baud_Rate(38400);
-    dlmstp_set_my_address(0x05);
+    dlmstp_set_mac_address(0x05);
     dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
     dlmstp_init();
