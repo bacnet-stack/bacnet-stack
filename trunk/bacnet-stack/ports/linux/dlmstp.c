@@ -313,7 +313,7 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
-void dlmstp_init(void)
+bool dlmstp_init(char *ifname)
 {
     int rc = 0;
     pthread_t hThread;
@@ -322,6 +322,8 @@ void dlmstp_init(void)
     Receive_Buffer.ready = false;
     Receive_Buffer.pdu_len = 0;
     /* initialize hardware */
+    if (ifname)
+        RS485_Set_Interface(ifname);
     RS485_Initialize();
     MSTP_Init(&MSTP_Port);
 #if 0
@@ -345,7 +347,7 @@ void dlmstp_init(void)
     rc = pthread_create(&hThread, NULL, dlmstp_receive_fsm_task, NULL);
     rc = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, NULL);
 
-    atexit(dlmstp_cleanup);
+    return 1;
 }
 
 #ifdef TEST_DLMSTP
