@@ -137,50 +137,6 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     return valid;
 }
 
-
-void RS485_Initialize(void)
-{
-    struct termios newtio;
-
-    /*
-        Open device for reading and writing.
-    */
-    RS485_Handle = open(RS485_Port_Name,
-        O_RDWR | O_NOCTTY | O_NDELAY );
-    if (RS485_Handle < 0) {
-        perror(RS485_Port_Name);
-        exit(-1);
-    }
-#if 0
-    /* non blocking for the read */
-    fcntl(RS485_Handle, F_SETFL, FNDELAY);
-#else
-    /* effecient blocking for the read */
-    fcntl(RS485_Handle, F_SETFL, 0);
-#endif
-    /* save current serial port settings */
-    tcgetattr(RS485_Handle,&RS485_oldtio);
-    /* clear struct for new port settings */
-    bzero(&newtio, sizeof(newtio));
-    /*
-        BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
-        CRTSCTS : output hardware flow control (only used if the cable has
-        all necessary lines. See sect. 7 of Serial-HOWTO)
-        CS8     : 8n1 (8bit,no parity,1 stopbit)
-        CLOCAL  : local connection, no modem contol
-        CREAD   : enable receiving characters
-    */
-    newtio.c_cflag = RS485_Baud | CS8 | CLOCAL | CREAD;
-    /* Raw input */
-    newtio.c_iflag = 0;
-    /* Raw output */
-    newtio.c_oflag = 0;
-    /* no processing */
-    newtio.c_lflag = 0;
-    /* activate the settings for the port after flushing I/O */
-    tcsetattr(RS485_Handle,TCSAFLUSH,&newtio);
-}
-
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
     struct mstp_port_struct_t *mstp_port, /* port specific data */
@@ -253,6 +209,52 @@ void RS485_Cleanup(void)
     close(RS485_Handle);
 }
 
+
+void RS485_Initialize(void)
+{
+    struct termios newtio;
+
+    /*
+        Open device for reading and writing.
+    */
+    RS485_Handle = open(RS485_Port_Name,
+        O_RDWR | O_NOCTTY | O_NDELAY );
+    if (RS485_Handle < 0) {
+        perror(RS485_Port_Name);
+        exit(-1);
+    }
+#if 0
+    /* non blocking for the read */
+    fcntl(RS485_Handle, F_SETFL, FNDELAY);
+#else
+    /* effecient blocking for the read */
+    fcntl(RS485_Handle, F_SETFL, 0);
+#endif
+    /* save current serial port settings */
+    tcgetattr(RS485_Handle,&RS485_oldtio);
+    /* clear struct for new port settings */
+    bzero(&newtio, sizeof(newtio));
+    /*
+        BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
+        CRTSCTS : output hardware flow control (only used if the cable has
+        all necessary lines. See sect. 7 of Serial-HOWTO)
+        CS8     : 8n1 (8bit,no parity,1 stopbit)
+        CLOCAL  : local connection, no modem contol
+        CREAD   : enable receiving characters
+    */
+    newtio.c_cflag = RS485_Baud | CS8 | CLOCAL | CREAD;
+    /* Raw input */
+    newtio.c_iflag = 0;
+    /* Raw output */
+    newtio.c_oflag = 0;
+    /* no processing */
+    newtio.c_lflag = 0;
+    /* activate the settings for the port after flushing I/O */
+    tcsetattr(RS485_Handle,TCSAFLUSH,&newtio);
+    /* destructor */
+    atexit(RS485_Cleanup);
+}
+
 #ifdef TEST_RS485
 #include <string.h>
 int main(int argc, char *argv[])
@@ -270,7 +272,6 @@ int main(int argc, char *argv[])
     }
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
-    atexit(RS485_Cleanup);
 
     for (;;) {
         written = write(RS485_Handle, wbuf, wlen);

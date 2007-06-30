@@ -1203,9 +1203,9 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
     return transition_now;
 }
 
-/* note: This_Station should be set with the MAC address */
-/* note: Nmax_info_frames should be set */
-/* note: Nmax_master should be set */
+/* note: This_Station assumed to be set with the MAC address */
+/* note: Nmax_info_frames assumed to be set (default=1) */
+/* note: Nmax_master assumed to be set (default=127) */
 void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port)
 {
     int i;                      /*loop counter */
