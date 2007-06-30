@@ -55,6 +55,7 @@ extern "C" {
         volatile struct mstp_port_struct_t *mstp_port); /* port specific data */
     uint32_t RS485_Get_Baud_Rate(void);
     bool RS485_Set_Baud_Rate(uint32_t baud);
+    void RS485_Cleanup(void);
 
 #ifdef __cplusplus
 }

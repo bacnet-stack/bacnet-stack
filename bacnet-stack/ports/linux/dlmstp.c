@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
@@ -58,6 +59,21 @@ void dlmstp_millisecond_timer(void)
     INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
 }
 
+static void *dlmstp_milliseconds_task(void *pArg)
+{
+    struct timespec timeOut,remains;
+
+    timeOut.tv_sec = 0;
+    timeOut.tv_nsec = 1000000; /* 1 millisecond */
+
+    for (;;) {
+        nanosleep(&timeOut, &remains);
+        dlmstp_millisecond_timer();
+    }
+
+    return NULL;
+}
+
 void dlmstp_reinit(void)
 {
     //RS485_Reinit();
@@ -66,54 +82,9 @@ void dlmstp_reinit(void)
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
 }
 
-void dlmstp_init(void)
-{
-    uint8_t data;
-
-    /* initialize buffer */
-    Receive_Buffer.ready = false;
-    Receive_Buffer.pdu_len = 0;
-    /* initialize hardware */
-    RS485_Initialize();
-    MSTP_Init(&MSTP_Port);
-    /* FIXME: implement your data storage */
-    data = 64;
-#if 0
-    /* I2C_Read_Byte(
-        EEPROM_DEVICE_ADDRESS,
-        EEPROM_MSTP_MAC_ADDR); */
-#endif
-    if (data <= 127)
-        MSTP_Port.This_Station = data;
-    else
-        dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
-
-    /* FIXME: implement your data storage */
-    data = 127;
-#if 0
-    /* I2C_Read_Byte(
-        EEPROM_DEVICE_ADDRESS,
-        EEPROM_MSTP_MAX_MASTER_ADDR); */
-#endif
-    if ((data <= 127) && (data >= MSTP_Port.This_Station))
-        MSTP_Port.Nmax_master = data;
-    else
-        dlmstp_set_max_master(DEFAULT_MAX_MASTER);
-    /* FIXME: implement your data storage */
-    data = 1;
-#if 0
-    /* I2C_Read_Byte(
-       EEPROM_DEVICE_ADDRESS,
-       EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
-#endif
-    if (data >= 1)
-        MSTP_Port.Nmax_info_frames = data;
-    else
-        dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
-}
-
 void dlmstp_cleanup(void)
 {
+    RS485_Cleanup();
     /* nothing to do for static buffers */
 }
 
@@ -342,6 +313,41 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
+void dlmstp_init(void)
+{
+    int rc = 0;
+    pthread_t hThread;
+
+    /* initialize buffer */
+    Receive_Buffer.ready = false;
+    Receive_Buffer.pdu_len = 0;
+    /* initialize hardware */
+    RS485_Initialize();
+    MSTP_Init(&MSTP_Port);
+#if 0
+    /* FIXME: implement your data storage */
+    if (data <= 127)
+        MSTP_Port.This_Station = data;
+    else
+        dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
+    if ((data <= 127) && (data >= MSTP_Port.This_Station))
+        MSTP_Port.Nmax_master = data;
+    else
+        dlmstp_set_max_master(DEFAULT_MAX_MASTER);
+    if (data >= 1)
+        MSTP_Port.Nmax_info_frames = data;
+    else
+        dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
+#endif
+
+    /* start our MilliSec task */
+    rc = pthread_create(&hThread, NULL, dlmstp_milliseconds_task, NULL);
+    rc = pthread_create(&hThread, NULL, dlmstp_receive_fsm_task, NULL);
+    rc = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, NULL);
+
+    atexit(dlmstp_cleanup);
+}
+
 #ifdef TEST_DLMSTP
 #include <stdio.h>
 
@@ -356,25 +362,8 @@ void npdu_handler(
     fprintf(stderr, "NPDU: received PDU!\n");
 }
 
-void *test_milliseconds_task(void *pArg)
-{
-    struct timespec timeOut,remains;
-
-    timeOut.tv_sec = 0;
-    timeOut.tv_nsec = 1000000; /* 1 millisecond */
-
-    for (;;) {
-        nanosleep(&timeOut, &remains);
-        dlmstp_millisecond_timer();
-    }
-
-    return NULL;
-}
-
 int main(int argc, char *argv[])
 {
-    int rc = 0;
-    pthread_t hThread;
     struct timespec timeOut,remains;
 
     timeOut.tv_sec = 1;
@@ -385,12 +374,10 @@ int main(int argc, char *argv[])
         RS485_Set_Interface(argv[1]);
     }
     RS485_Set_Baud_Rate(38400);
-    dlmstp_init();
     dlmstp_set_my_address(0x05);
-    /* start our MilliSec task */
-    rc = pthread_create(&hThread, NULL, test_milliseconds_task, NULL);
-    rc = pthread_create(&hThread, NULL, dlmstp_receive_fsm_task, NULL);
-    rc = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, NULL);
+    dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
+    dlmstp_set_max_master(DEFAULT_MAX_MASTER);
+    dlmstp_init();
     /* forever task */
     for (;;) {
 #if 0
