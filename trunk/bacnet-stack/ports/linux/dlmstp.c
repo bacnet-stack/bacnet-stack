@@ -371,7 +371,7 @@ void *test_milliseconds_task(void *pArg)
     return NULL;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int rc = 0;
     pthread_t hThread;
@@ -380,8 +380,10 @@ int main(void)
     timeOut.tv_sec = 1;
     timeOut.tv_nsec = 0; /* 1 millisecond */
 
-    /* initialize our interface */
-    RS485_Set_Interface("/dev/ttyS0");
+    /* argv has the "/dev/ttyS0" or some other device */
+    if (argc > 1) {
+        RS485_Set_Interface(argv[1]);
+    }
     RS485_Set_Baud_Rate(38400);
     dlmstp_init();
     dlmstp_set_my_address(0x05);

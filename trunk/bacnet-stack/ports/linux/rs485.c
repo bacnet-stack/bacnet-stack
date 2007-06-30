@@ -54,6 +54,9 @@
 /* Local includes */
 #include "mstp.h"
 
+/* Posix serial programming reference:
+http://www.easysw.com/~mike/serial/serial.html */
+
 /* handle returned from open() */
 static int RS485_Handle = -1;
 /* baudrate settings are defined in <asm/termbits.h>, which is
@@ -90,6 +93,7 @@ uint32_t RS485_Get_Baud_Rate(void)
         case B19200: return 19200;
         case B38400: return 38400;
         case B57600: return 57600;
+        case B115200: return 115200;
         default:
             case B9600: return 9600;
     }
@@ -115,6 +119,12 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         case 38400:
             RS485_Baud = B38400;
             break;
+        case 57600:
+            RS485_Baud = B57600;
+            break;
+        case 115200:
+            RS485_Baud = B115200;
+            break;
         default:
             valid = false;
             break;
@@ -133,18 +143,25 @@ void RS485_Initialize(void)
     struct termios newtio;
 
     /*
-        Open device for reading and writing and not as controlling tty
-        because we don't want to get killed if linenoise sends CTRL-C.
+        Open device for reading and writing.
     */
-    RS485_Handle = open(RS485_Port_Name, O_RDWR | O_NOCTTY );
+    RS485_Handle = open(RS485_Port_Name,
+        O_RDWR | O_NOCTTY | O_NDELAY );
     if (RS485_Handle < 0) {
         perror(RS485_Port_Name);
         exit(-1);
     }
-
-    tcgetattr(RS485_Handle,&RS485_oldtio); /* save current serial port settings */
-    bzero(&newtio, sizeof(newtio)); /* clear struct for new port settings */
-
+#if 0
+    /* non blocking for the read */
+    fcntl(RS485_Handle, F_SETFL, FNDELAY);
+#else
+    /* effecient blocking for the read */
+    fcntl(RS485_Handle, F_SETFL, 0);
+#endif
+    /* save current serial port settings */
+    tcgetattr(RS485_Handle,&RS485_oldtio);
+    /* clear struct for new port settings */
+    bzero(&newtio, sizeof(newtio));
     /*
         BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
         CRTSCTS : output hardware flow control (only used if the cable has
@@ -153,32 +170,15 @@ void RS485_Initialize(void)
         CLOCAL  : local connection, no modem contol
         CREAD   : enable receiving characters
     */
-    newtio.c_cflag = RS485_Baud | CRTSCTS | CS8 | CLOCAL | CREAD;
-
-
-    /*
-        IGNPAR  : ignore bytes with parity errors
-        ICRNL   : map CR to NL (otherwise a CR input on the other computer
-        will not terminate input)
-        otherwise make device raw (no other input processing)
-    */
-    newtio.c_iflag = IGNPAR | ICRNL;
- 
-    /*
-        Raw output.
-    */
+    newtio.c_cflag = RS485_Baud | CS8 | CLOCAL | CREAD;
+    /* Raw input */
+    newtio.c_iflag = 0;
+    /* Raw output */
     newtio.c_oflag = 0;
- 
-    /*
-        ICANON  : enable canonical input
-        disable all echo functionality, and don't send signals to calling program
-    */
-    newtio.c_lflag = ICANON;
-    /* 
-        now clean the modem line and activate the settings for the port
-    */
-    tcflush(RS485_Handle, TCIFLUSH);
-    tcsetattr(RS485_Handle,TCSANOW,&newtio);
+    /* no processing */
+    newtio.c_lflag = 0;
+    /* activate the settings for the port after flushing I/O */
+    tcsetattr(RS485_Handle,TCSAFLUSH,&newtio);
 }
 
 /* Transmits a Frame on the wire */
@@ -189,7 +189,7 @@ void RS485_Send_Frame(
 {
     uint8_t turnaround_time;
     uint32_t baud;
-    ssize_t written  = 0;
+    size_t written = 0;
 
     if (mstp_port) {
         baud = RS485_Get_Baud_Rate();
@@ -246,29 +246,42 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     }
 }
 
+void RS485_Cleanup(void)
+{
+    /* restore the old port settings */
+    tcsetattr(RS485_Handle,TCSANOW,&RS485_oldtio);
+    close(RS485_Handle);
+}
+
 #ifdef TEST_RS485
-int main(void)
+#include <string.h>
+int main(int argc, char *argv[])
 {
     uint8_t buf[8];
+    char *wbuf = {"BACnet!"};
+    size_t wlen = strlen(wbuf)+1;
     unsigned i = 0;
-    int res;
+    size_t written = 0;
+    int rlen;
 
-    RS485_Set_Interface("/dev/ttyS0");
+    /* argv has the "/dev/ttyS0" or some other device */
+    if (argc > 1) {
+        RS485_Set_Interface(argv[1]);
+    }
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
+    atexit(RS485_Cleanup);
 
     for (;;) {
-        res = read(RS485_Handle,buf,sizeof(buf));
+        written = write(RS485_Handle, wbuf, wlen);
+        rlen = read(RS485_Handle,buf,sizeof(buf));
         /* print any characters received */
-        if (res) {
-            for (i = 0; i < res; i++) {
+        if (rlen) {
+            for (i = 0; i < rlen; i++) {
                 fprintf(stderr,"%02X ",buf[i]);
             }
         }
-        res = 0;
     }
-    /* restore the old port settings */
-    tcsetattr(RS485_Handle,TCSANOW,&RS485_oldtio);
 
     return 0;
 }
