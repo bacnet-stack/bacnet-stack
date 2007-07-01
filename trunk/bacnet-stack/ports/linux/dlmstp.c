@@ -99,11 +99,13 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     BACNET_ADDRESS src;
 
     if (MSTP_Port.TxReady == false) {
-        if (npdu_data->data_expecting_reply)
-            MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-        else
+        if (npdu_data->data_expecting_reply) {
+            MSTP_Port.TxFrameType =
+                FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+        } else {
             MSTP_Port.TxFrameType =
                 FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+        }
 
         /* load destination MAC address */
         if (dest && dest->mac_len == 1) {
@@ -128,39 +130,6 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     return bytes_sent;
 }
 
-static void *dlmstp_receive_fsm_task(void *pArg)
-{
-    uint8_t bytes_remaining;
-    bool received_frame;
-
-    for (;;) {
-        /* only do receive state machine while we don't have a frame */
-        if ((MSTP_Port.ReceivedValidFrame == false) &&
-            (MSTP_Port.ReceivedInvalidFrame == false)) {
-            do {
-                bytes_remaining = RS485_Check_UART_Data(&MSTP_Port);
-                MSTP_Receive_Frame_FSM(&MSTP_Port);
-                received_frame = MSTP_Port.ReceivedValidFrame ||
-                    MSTP_Port.ReceivedInvalidFrame;
-                if (received_frame)
-                    break;
-            } while (bytes_remaining);
-        }
-    }
-}
-
-static void *dlmstp_master_fsm_task(void *pArg)
-{
-    for (;;) {
-        /* only do master state machine while rx is idle */
-        if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
-            while (MSTP_Master_Node_FSM(&MSTP_Port)) {
-                sched_yield();
-            }
-        }
-    }
-}
-
 /* copy the packet if one is received.
    Return the length of the packet */
 uint16_t dlmstp_receive(
@@ -170,6 +139,26 @@ uint16_t dlmstp_receive(
     unsigned timeout) /* milliseconds to wait for a packet */
 {
     uint16_t len = 0;
+    bool received_frame;
+
+    /* only do receive state machine while we don't have a frame */
+    if ((MSTP_Port.ReceivedValidFrame == false) &&
+        (MSTP_Port.ReceivedInvalidFrame == false)) {
+        do {
+            RS485_Check_UART_Data(&MSTP_Port);
+            MSTP_Receive_Frame_FSM(&MSTP_Port);
+            received_frame = MSTP_Port.ReceivedValidFrame ||
+                MSTP_Port.ReceivedInvalidFrame;
+            if (received_frame)
+                break;
+        } while (MSTP_Port.DataAvailable);
+    }
+    /* only do master state machine while rx is idle */
+    if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
+        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
+            sched_yield();
+        }
+    }
     /* see if there is a packet available, and a place
         to put the reply (if necessary) and process it */
     if (Receive_Buffer.ready && !MSTP_Port.TxReady) {
@@ -362,8 +351,6 @@ bool dlmstp_init(char *ifname)
 
     /* start our MilliSec task */
     rc = pthread_create(&hThread, NULL, dlmstp_milliseconds_task, NULL);
-    rc = pthread_create(&hThread, NULL, dlmstp_receive_fsm_task, NULL);
-    rc = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, NULL);
 
     return 1;
 }
@@ -371,33 +358,27 @@ bool dlmstp_init(char *ifname)
 #ifdef TEST_DLMSTP
 #include <stdio.h>
 
-void npdu_handler(
-    BACNET_ADDRESS * src,     /* source address */
-    uint8_t * pdu,          /* PDU data */
-    uint16_t pdu_len)      /* length PDU  */
-{
-    (void)src;
-    (void)pdu;
-    (void)pdu_len;
-    fprintf(stderr, "NPDU: received PDU!\n");
-}
+static char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {
     struct timespec timeOut,remains;
+    uint16_t bytes_received = 0;
+    BACNET_ADDRESS src; /* source address */
+    uint8_t pdu[MAX_APDU]; /* PDU data */
 
     timeOut.tv_sec = 1;
     timeOut.tv_nsec = 0; /* 1 millisecond */
 
     /* argv has the "/dev/ttyS0" or some other device */
     if (argc > 1) {
-        RS485_Set_Interface(argv[1]);
+        Network_Interface = argv[1];
     }
     RS485_Set_Baud_Rate(38400);
     dlmstp_set_mac_address(0x05);
     dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
-    dlmstp_init();
+    dlmstp_init(Network_Interface);
     /* forever task */
     for (;;) {
 #if 0
@@ -407,10 +388,14 @@ int main(int argc, char *argv[])
             MSTP_Port.SourceAddress,
             MSTP_Port.This_Station,
             NULL, 0);
-#endif
         nanosleep(&timeOut, &remains);
+#endif
+        bytes_received =
+            dlmstp_receive(&src, &pdu[0], sizeof(pdu), 0);
+        if (bytes_received) {
+            fprintf(stderr,"Received NPDU!\n");
+        }
     }
-
     return 0;
 }
 #endif
