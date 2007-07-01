@@ -224,7 +224,7 @@ void RS485_Initialize(void)
         perror(RS485_Port_Name);
         exit(-1);
     }
-#if 0
+#if 1
     /* non blocking for the read */
     fcntl(RS485_Handle, F_SETFL, FNDELAY);
 #else

@@ -115,6 +115,11 @@ int main(int argc, char *argv[])
     if (argc > 3) {
         dlmstp_set_mac_address(strtol(argv[1], NULL, 0));
     }
+#if 0
+    RS485_Set_Baud_Rate(38400);
+    dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
+    dlmstp_set_max_master(DEFAULT_MAX_MASTER);
+#endif
 #endif
     printf("BACnet Server Demo\n"
         "BACnet Device ID: %u\r\n",
