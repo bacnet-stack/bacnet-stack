@@ -99,12 +99,18 @@ extern "C" {
     void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest);   /* destination address */
 
     /* MS/TP state machine functions */
-    uint16_t dlmstp_put_receive(uint8_t src,    /* source MS/TP address */
-        uint8_t * pdu,          /* PDU data */
+    uint16_t dlmstp_put_receive(
+        uint8_t src, /* source MS/TP address */
+        uint8_t * pdu, /* PDU data */
         uint16_t pdu_len);
 
-
-
+    /* for the MS/TP state machine to use for getting data to send */
+    /* Return: amount of PDU data */
+    uint16_t dlmstp_get_send(
+        uint8_t src, /* source MS/TP address for creating packet */
+        uint8_t * pdu, /* data to send */
+        uint16_t max_pdu, /* amount of space available */
+        unsigned timeout); /* milliseconds to wait for a packet */
 
 #ifdef __cplusplus
 }

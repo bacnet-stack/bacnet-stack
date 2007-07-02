@@ -55,9 +55,6 @@ static int Receive_Client_SockFD = -1;
 static int Transmit_Client_SockFD = -1;
 static int Receive_Server_SockFD = -1;
 static int Transmit_Server_SockFD = -1;
-/* receive buffer */
-static DLMSTP_PACKET Receive_Buffer;
-/* temp buffer for NPDU insertion */
 /* local MS/TP port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
 
@@ -89,12 +86,6 @@ void dlmstp_reinit(void)
     dlmstp_set_mac_address(DEFAULT_MAC_ADDRESS);
     dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
-}
-
-void dlmstp_cleanup(void)
-{
-    RS485_Cleanup();
-    /* nothing to do for static buffers */
 }
 
 /* returns number of bytes sent on success, zero on failure */
@@ -227,8 +218,11 @@ static void *dlmstp_fsm_master_task(void *pArg)
 
     for (;;) {
         nanosleep(&timeOut, &remains);
-        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
+        /* only do master state machine while rx is idle */
+        if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
+            while (MSTP_Master_Node_FSM(&MSTP_Port)) {
                 sched_yield();
+            }
         }
     }
 
@@ -265,7 +259,6 @@ uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
 {                               /* amount of PDU data */
     DLMSTP_PACKET packet;
 
-    /* PDU is already in the Receive_Buffer */
     if (pdu_len) {
         MSTP_Packets++;
         memmove(&packet.pdu[0], pdu, pdu_len);
@@ -287,6 +280,7 @@ uint16_t dlmstp_get_send(
     unsigned timeout) /* milliseconds to wait for a packet */
 {
     uint16_t pdu_len = 0; /* return value */
+    int received_bytes = 0;
     DLMSTP_PACKET packet;
     struct timeval select_timeout;
     fd_set read_fds;
@@ -337,8 +331,8 @@ uint16_t dlmstp_get_send(
         return 0;
 
     /* load destination MAC address */
-    if (packet.address && packet.address.mac_len == 1) {
-        destination = dest->mac[0];
+    if (packet.address.mac_len == 1) {
+        destination = packet.address.mac[0];
     } else {
         return 0;
     }
@@ -472,7 +466,9 @@ static int create_named_server_socket (const char *filename)
     /* Create the socket. */
     sock = socket (PF_LOCAL, SOCK_DGRAM, 0);
     if (sock < 0) {
+#if PRINT_ENABLED
         perror ("socket");
+#endif
         exit (EXIT_FAILURE);
     }
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &sock, sizeof(sock));
@@ -489,7 +485,9 @@ static int create_named_server_socket (const char *filename)
     size = (offsetof (struct sockaddr_un, sun_path)
             + strlen (name.sun_path) + 1);
     if (bind (sock, (struct sockaddr *) &name, size) < 0) {
+#if PRINT_ENABLED
         perror ("bind");
+#endif
         exit (EXIT_FAILURE);
     }
 
@@ -506,7 +504,9 @@ static int connect_named_server_socket (const char *filename)
     /* Create the socket. */
     sock = socket (PF_LOCAL, SOCK_DGRAM, 0);
     if (sock < 0) {
+#if PRINT_ENABLED
         perror ("socket");
+#endif
         exit (EXIT_FAILURE);
     }
     strncpy (name.sun_path, filename, sizeof (name.sun_path));
@@ -521,7 +521,9 @@ static int connect_named_server_socket (const char *filename)
             + strlen (name.sun_path) + 1);
 
     if (connect(sock, (struct sockaddr *) &name, size) < 0) {
+#if PRINT_ENABLED
         perror ("client: can't connect to socket");
+#endif
         exit (EXIT_FAILURE);
     }
 
@@ -531,13 +533,21 @@ static int connect_named_server_socket (const char *filename)
 static char *dlmstp_transmit_socket_name = "/tmp/BACnet_MSTP_Tx";
 static char *dlmstp_receive_socket_name = "/tmp/BACnet_MSTP_Rx";
 
+void dlmstp_cleanup(void)
+{
+    remove(dlmstp_transmit_socket_name);
+    remove(dlmstp_receive_socket_name);
+    RS485_Cleanup();
+    /* nothing to do for static buffers */
+}
+
 bool dlmstp_init(char *ifname)
 {
     int rc = 0;
     pthread_t hThread;
-    struct sockaddr_un name;
-    size_t size;
 
+    remove(dlmstp_transmit_socket_name);
+    remove(dlmstp_receive_socket_name);
     /* create a socket for queuing the NDPU data between MS/TP */
     Transmit_Server_SockFD =
         create_named_server_socket(dlmstp_transmit_socket_name);
@@ -549,12 +559,13 @@ bool dlmstp_init(char *ifname)
     Receive_Client_SockFD =
         connect_named_server_socket(dlmstp_receive_socket_name);
 
-    /* initialize buffer */
-    Receive_Buffer.ready = false;
-    Receive_Buffer.pdu_len = 0;
     /* initialize hardware */
-    if (ifname)
+    if (ifname) {
         RS485_Set_Interface(ifname);
+#if PRINT_ENABLED
+        fprintf(stderr,"MS/TP Interface: %s\n", ifname);
+#endif
+    }
     RS485_Initialize();
     MSTP_Init(&MSTP_Port);
 #if 0
@@ -571,6 +582,14 @@ bool dlmstp_init(char *ifname)
         MSTP_Port.Nmax_info_frames = data;
     else
         dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
+#endif
+#if PRINT_ENABLED
+    fprintf(stderr,"MS/TP MAC: %02X\n",
+        MSTP_Port.This_Station);
+    fprintf(stderr,"MS/TP Max_Master: %02X\n",
+        MSTP_Port.Nmax_master);
+    fprintf(stderr,"MS/TP Max_Info_Frames: %u\n",
+        MSTP_Port.Nmax_info_frames);
 #endif
 
     /* start our MilliSec task */
@@ -589,14 +608,15 @@ static char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {
-    struct timespec timeOut,remains;
     uint16_t bytes_received = 0;
     BACNET_ADDRESS src; /* source address */
     uint8_t pdu[MAX_APDU]; /* PDU data */
+#if (defined(MSTP_TEST_REQUEST) && MSTP_TEST_REQUEST)
+    struct timespec timeOut, remains;
 
     timeOut.tv_sec = 1;
     timeOut.tv_nsec = 0; /* 1 millisecond */
-
+#endif
     /* argv has the "/dev/ttyS0" or some other device */
     if (argc > 1) {
         Network_Interface = argv[1];
@@ -608,7 +628,7 @@ int main(int argc, char *argv[])
     dlmstp_init(Network_Interface);
     /* forever task */
     for (;;) {
-#if 0
+#if (defined(MSTP_TEST_REQUEST) && MSTP_TEST_REQUEST)
         MSTP_Create_And_Send_Frame(
             &MSTP_Port,
             FRAME_TYPE_TEST_REQUEST,
