@@ -13,7 +13,7 @@ SRCS = rs485.c \
 
 OBJS = ${SRCS:.c=.o}
 
-TARGET = rxfsm
+TARGET = rx_fsm
 
 all: ${TARGET}
  
