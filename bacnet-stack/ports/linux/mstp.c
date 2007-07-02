@@ -209,18 +209,19 @@ void MSTP_Create_And_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,  
     uint8_t * data,             /* any data to be sent - may be null */
     unsigned data_len)
 {                               /* number of bytes of data (up to 501) */
-    uint8_t buffer[MAX_MPDU] = { 0 };   /* buffer for sending */
-    uint16_t len = 0;           /* number of bytes to send */
-
-    len = (uint16_t) MSTP_Create_Frame(&buffer[0],      /* where frame is loaded */
-        sizeof(buffer),         /* amount of space available */
+    mstp_port->TxLength = (uint16_t) MSTP_Create_Frame(
+        &mstp_port->TxBuffer[0], /* where frame is loaded */
+        sizeof(mstp_port->TxBuffer), /* amount of space available */
         frame_type,             /* type of frame to send - see defines */
         destination,            /* destination address */
         source,                 /* source address */
         data,                   /* any data to be sent - may be null */
         data_len);              /* number of bytes of data (up to 501) */
 
-    RS485_Send_Frame(mstp_port, &buffer[0], len);
+    RS485_Send_Frame(
+        mstp_port,
+        &mstp_port->TxBuffer[0],
+        mstp_port->TxLength);
     /* FIXME: be sure to reset SilenceTimer after each octet is sent! */
 }
 
@@ -818,7 +819,12 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* more data frames. These may be BACnet Data frames or */
         /* proprietary frames. */
     case MSTP_MASTER_STATE_USE_TOKEN:
-        if (!mstp_port->TxReady) {
+        mstp_port->TxLength = dlmstp_get_send(
+            mstp_port->This_Station,
+            &mstp_port->TxBuffer[0],
+            sizeof(mstp_port->TxBuffer),
+            5); /* milliseconds to wait for a packet */
+        if (mstp_port->TxLength < 1) {
             /* NothingToSend */
             mstp_port->FrameCount = mstp_port->Nmax_info_frames;
             mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
@@ -827,7 +833,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
             /* if we missed our timing deadline, another token will be sent */
             mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
         } else {
-            /* don't send it if we are too late in getting out */
             uint8_t destination = mstp_port->TxBuffer[3];
             RS485_Send_Frame(mstp_port,
                 (uint8_t *) & mstp_port->TxBuffer[0], mstp_port->TxLength);
@@ -1159,6 +1164,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
     case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
         /* FIXME: if we knew the APDU type received, we could
            see if the next message was that same APDU type */
+        /* FIXME: we could always defer the reply to be safe */
         if ((mstp_port->SilenceTimer <= Treply_delay) &&
             mstp_port->TxReady) {
             /* Reply */
@@ -1168,9 +1174,14 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
             /* (the mechanism used to determine this is a local matter), */
             /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
             /* and enter the IDLE state to wait for the next frame. */
+            mstp_port->TxLength = dlmstp_get_send(
+                mstp_port->This_Station,
+                &mstp_port->TxBuffer[0],
+                sizeof(mstp_port->TxBuffer),
+                5); /* milliseconds to wait for a packet */
             if ((mstp_port->FrameType ==
                     FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY)
-                && (mstp_port->TxReady)) {
+                && (mstp_port->TxLength > 0)) {
                 RS485_Send_Frame(mstp_port,
                     (uint8_t *) & mstp_port->TxBuffer[0],
                     mstp_port->TxLength);
