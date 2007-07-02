@@ -57,7 +57,7 @@ HANDLE RS485_Handle;
 /* Original COM Timeouts */
 static COMMTIMEOUTS RS485_Timeouts;
 /* COM port name COM1, COM2, etc  */
-static char *RS485_Port_Name = "COM1";
+static char *RS485_Port_Name = "COM4";
 /* baud rate - MS enumerated
     CBR_110, CBR_300, CBR_600, CBR_1200, CBR_2400,
     CBR_4800, CBR_9600, CBR_14400, CBR_19200, CBR_38400,

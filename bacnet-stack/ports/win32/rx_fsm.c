@@ -125,8 +125,10 @@ static void print_received_packet(
     fprintf(stderr,"\n");
 }
 
+static char *Network_Interface = NULL;
+
 /* simple test to packetize the data and print it */
-int main(void)
+int main(int argc, char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
     int rc = 0;
@@ -135,8 +137,12 @@ int main(void)
 
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
+    /* argv has the "COM4" or some other device */
+    if (argc > 1) {
+        Network_Interface = argv[1];
+    }
     /* initialize our interface */
-    RS485_Set_Interface("COM4");
+    RS485_Set_Interface(Network_Interface);
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
     MSTP_Init(mstp_port);
