@@ -1,5 +1,4 @@
 /* Defines the standard integer types that are used in code */
-/* for the x86 processor and Borland Compiler */
 
 #ifndef STDINT_H
 #define STDINT_H
