@@ -37,11 +37,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-/* Linux includes */
-#include <sys/time.h>
-#include <time.h>
-#include <unistd.h>
-#include <pthread.h>
+/* Windows includes */
+#define WIN32_LEAN_AND_MEAN
+#define STRICT 1
+#include <windows.h>
 
 /* local includes */
 #include "bytes.h"
@@ -53,16 +52,11 @@
 
 /* local port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
-    
+
 void *milliseconds_task(void *pArg)
 {
-    struct timespec timeOut,remains;
-
-    timeOut.tv_sec = 0;
-    timeOut.tv_nsec = 10000000; /* 1 milliseconds */
-
     for (;;) {
-        nanosleep(&timeOut, &remains);
+        Sleep(1);
         dlmstp_millisecond_timer();
     }
 
@@ -82,7 +76,7 @@ uint16_t dlmstp_put_receive(
     (void)src;
     (void)pdu;
     (void)pdu_len;
-    
+
     return 0;
 }
 
@@ -136,19 +130,22 @@ int main(void)
 {
     volatile struct mstp_port_struct_t *mstp_port;
     int rc = 0;
-    pthread_t hThread;
-
+    unsigned long hThread = 0;
+    uint32_t arg_value = 0;
 
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
     /* initialize our interface */
-    RS485_Set_Interface("/dev/ttyS0");
+    RS485_Set_Interface("COM4");
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
     MSTP_Init(mstp_port);
     mstp_port->Lurking = true;
     /* start our MilliSec task */
-    rc = pthread_create(&hThread, NULL, milliseconds_task, NULL);
+    hThread = _beginthread(milliseconds_task,4096,&arg_value);
+    if (hThread == 0) {
+        fprintf(stderr, "Failed to start timer task\n");
+    }
     /* run forever */
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
