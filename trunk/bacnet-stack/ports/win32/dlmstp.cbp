@@ -48,11 +48,11 @@
 		</Unit>
 		<Unit filename="..\..\crc.h" />
 		<Unit filename="..\..\datalink.h" />
+		<Unit filename="..\..\dlmstp.h" />
 		<Unit filename="..\..\npdu.h" />
 		<Unit filename="dlmstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="dlmstp.h" />
 		<Unit filename="mstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
