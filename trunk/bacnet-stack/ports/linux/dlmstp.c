@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -36,6 +36,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <errno.h>
+
 /* project includes */
 #include "bacdef.h"
 #include "mstp.h"
@@ -45,7 +50,11 @@
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
-
+/* Sockets are used for NPDU queues */
+static int Receive_Client_SockFD = -1;
+static int Transmit_Client_SockFD = -1;
+static int Receive_Server_SockFD = -1;
+static int Transmit_Server_SockFD = -1;
 /* receive buffer */
 static DLMSTP_PACKET Receive_Buffer;
 /* temp buffer for NPDU insertion */
@@ -94,37 +103,24 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     uint8_t * pdu,              /* any data to be sent - may be null */
     unsigned pdu_len)
 {                               /* number of bytes of data */
+    DLMSTP_PACKET packet;
     int bytes_sent = 0;
-    uint8_t destination = 0;    /* destination address */
-    BACNET_ADDRESS src;
+    ssize_t rc = 0;
 
-    if (MSTP_Port.TxReady == false) {
+    if (pdu_len) {
         if (npdu_data->data_expecting_reply) {
-            MSTP_Port.TxFrameType =
+            packet.frame_type =
                 FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
         } else {
-            MSTP_Port.TxFrameType =
+            packet.frame_type =
                 FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
         }
-
-        /* load destination MAC address */
-        if (dest && dest->mac_len == 1) {
-            destination = dest->mac[0];
-        } else {
-            return -2;
-        }
-        dlmstp_get_my_address(&src);
-        if ((8 /* header len */  + pdu_len) > MAX_MPDU) {
-            return -4;
-        }
-        bytes_sent = MSTP_Create_Frame(
-            (uint8_t *) & MSTP_Port.TxBuffer[0],
-            sizeof(MSTP_Port.TxBuffer),
-            MSTP_Port.TxFrameType,
-            destination, MSTP_Port.This_Station, pdu, pdu_len);
-        MSTP_Port.TxLength = bytes_sent;
-        MSTP_Port.TxReady = true;
-        MSTP_Packets++;
+        packet.pdu_len = pdu_len;
+        memmove(&packet.pdu[0], &pdu[0], pdu_len);
+        memmove(&packet.address, dest, sizeof(packet.address));
+        rc = write(Transmit_Server_SockFD, &packet, sizeof(packet));
+        if (rc > 0)
+            bytes_sent = rc;
     }
 
     return bytes_sent;
@@ -138,45 +134,106 @@ uint16_t dlmstp_receive(
     uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout) /* milliseconds to wait for a packet */
 {
-    uint16_t len = 0;
-    bool received_frame;
+    uint16_t pdu_len = 0;
+    int received_bytes = 0;
+    DLMSTP_PACKET packet;
+    struct timeval select_timeout;
+    fd_set read_fds;
+    int max = 0;
 
-    /* only do receive state machine while we don't have a frame */
-    if ((MSTP_Port.ReceivedValidFrame == false) &&
-        (MSTP_Port.ReceivedInvalidFrame == false)) {
-        do {
-            RS485_Check_UART_Data(&MSTP_Port);
-            MSTP_Receive_Frame_FSM(&MSTP_Port);
-            received_frame = MSTP_Port.ReceivedValidFrame ||
-                MSTP_Port.ReceivedInvalidFrame;
-            if (received_frame)
-                break;
-        } while (MSTP_Port.DataAvailable);
-    }
-    /* only do master state machine while rx is idle */
-    if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
-        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
-            sched_yield();
-        }
-    }
-    /* see if there is a packet available, and a place
-        to put the reply (if necessary) and process it */
-    if (Receive_Buffer.ready && !MSTP_Port.TxReady) {
-        if (Receive_Buffer.pdu_len) {
-            MSTP_Packets++;
-            len = Receive_Buffer.pdu_len;
-            memcpy(src,&Receive_Buffer.address,sizeof(Receive_Buffer.address));
-            /* FIXME: check pdu_len and max_pdu */
-            memcpy(pdu,&Receive_Buffer.pdu[0],len);
-        }
-        Receive_Buffer.ready = false;
+    /* Make sure the socket is open */
+    if (Receive_Client_SockFD <= 0)
+        return 0;
+
+    if (timeout >= 1000) {
+        select_timeout.tv_sec = timeout / 1000;
+        select_timeout.tv_usec =
+            1000 * (timeout - select_timeout.tv_sec * 1000);
     } else {
-        sched_yield();
+        select_timeout.tv_sec = 0;
+        select_timeout.tv_usec = 1000 * timeout;
+    }
+    FD_ZERO(&read_fds);
+    FD_SET(Receive_Client_SockFD, &read_fds);
+    max = Receive_Client_SockFD;
+
+    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
+        received_bytes = read(
+            Receive_Client_SockFD,
+            &packet,
+            sizeof(packet));
+    } else {
+        return 0;
     }
 
-    return len;
+    /* See if there is a problem */
+    if (received_bytes < 0) {
+        /* EAGAIN Non-blocking I/O has been selected  */
+        /* using O_NONBLOCK and no data */
+        /* was immediately available for reading. */
+        if (errno != EAGAIN) {
+#if PRINT_ENABLED
+            fprintf(stderr,
+                "mstp: Read error in Receive_Client packet: %s\n",
+                strerror(errno));
+#endif
+        }
+        return 0;
+    }
+
+    if (received_bytes == 0)
+        return 0;
+
+    /* copy the buffer into the PDU */
+    pdu_len = packet.pdu_len;
+    memmove(&pdu[0], &packet.pdu[0], pdu_len);
+    memmove(src, &packet.address, sizeof(packet.address));
+    /* not used in this scheme */
+    packet.ready = true; 
+
+
+    return pdu_len;
 }
 
+static void *dlmstp_fsm_receive_task(void *pArg)
+{
+    bool received_frame = false;
+    
+    for (;;) {
+        /* only do receive state machine while we don't have a frame */
+        if ((MSTP_Port.ReceivedValidFrame == false) &&
+            (MSTP_Port.ReceivedInvalidFrame == false)) {
+            do {
+                /* using blocking read with timeout on serial port */
+                RS485_Check_UART_Data(&MSTP_Port);
+                MSTP_Receive_Frame_FSM(&MSTP_Port);
+                received_frame = MSTP_Port.ReceivedValidFrame ||
+                    MSTP_Port.ReceivedInvalidFrame;
+                if (received_frame)
+                    break;
+            } while (MSTP_Port.DataAvailable);
+        }
+    }
+
+    return NULL;
+}
+
+static void *dlmstp_fsm_master_task(void *pArg)
+{
+    struct timespec timeOut,remains;
+
+    timeOut.tv_sec = 0;
+    timeOut.tv_nsec = 100000; /* .1 millisecond */
+
+    for (;;) {
+        nanosleep(&timeOut, &remains);
+        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
+                sched_yield();
+        }
+    }
+
+    return NULL;
+}
 
 void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
 {
@@ -206,10 +263,96 @@ uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
     uint8_t * pdu,              /* PDU data */
     uint16_t pdu_len)
 {                               /* amount of PDU data */
+    DLMSTP_PACKET packet;
+
     /* PDU is already in the Receive_Buffer */
-    dlmstp_fill_bacnet_address(&Receive_Buffer.address, src);
-    Receive_Buffer.pdu_len = pdu_len;
-    Receive_Buffer.ready = true;
+    if (pdu_len) {
+        MSTP_Packets++;
+        memmove(&packet.pdu[0], pdu, pdu_len);
+        dlmstp_fill_bacnet_address(&packet.address, src);
+        packet.pdu_len = pdu_len;
+        packet.ready = true; /* not used in this scheme */
+        write(Receive_Server_SockFD, &packet, sizeof(packet));
+    }
+
+    return pdu_len;
+}
+
+/* for the MS/TP state machine to use for getting data to send */
+/* Return: amount of PDU data */
+uint16_t dlmstp_get_send(
+    uint8_t src, /* source MS/TP address for creating packet */
+    uint8_t * pdu, /* data to send */
+    uint16_t max_pdu, /* amount of space available */
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    uint16_t pdu_len = 0; /* return value */
+    DLMSTP_PACKET packet;
+    struct timeval select_timeout;
+    fd_set read_fds;
+    int max = 0;
+    uint8_t destination = 0;    /* destination address */
+
+    /* Make sure the socket is open */
+    if (Transmit_Client_SockFD <= 0)
+        return 0;
+
+    if (timeout >= 1000) {
+        select_timeout.tv_sec = timeout / 1000;
+        select_timeout.tv_usec =
+            1000 * (timeout - select_timeout.tv_sec * 1000);
+    } else {
+        select_timeout.tv_sec = 0;
+        select_timeout.tv_usec = 1000 * timeout;
+    }
+    FD_ZERO(&read_fds);
+    FD_SET(Transmit_Client_SockFD, &read_fds);
+    max = Transmit_Client_SockFD;
+
+    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
+        received_bytes = read(
+            Transmit_Client_SockFD,
+            &packet,
+            sizeof(packet));
+    } else {
+        return 0;
+    }
+
+    /* See if there is a problem */
+    if (received_bytes < 0) {
+        /* EAGAIN Non-blocking I/O has been selected  */
+        /* using O_NONBLOCK and no data */
+        /* was immediately available for reading. */
+        if (errno != EAGAIN) {
+#if PRINT_ENABLED
+            fprintf(stderr,
+                "mstp: Read error in Transmit_Client packet: %s\n",
+                strerror(errno));
+#endif
+        }
+        return 0;
+    }
+
+    if (received_bytes == 0)
+        return 0;
+
+    /* load destination MAC address */
+    if (packet.address && packet.address.mac_len == 1) {
+        destination = dest->mac[0];
+    } else {
+        return 0;
+    }
+    if ((8 /* header len */  + packet.pdu_len) > MAX_MPDU) {
+        return 0;
+    }
+    /* convert the PDU into the MSTP Frame */
+    pdu_len = MSTP_Create_Frame(
+        pdu, /* <-- loading this */
+        max_pdu,
+        packet.frame_type,
+        destination, src,
+        &packet.pdu[0],
+        packet.pdu_len);
 
     return pdu_len;
 }
@@ -320,10 +463,91 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
+static int create_named_server_socket (const char *filename)
+{
+    struct sockaddr_un name;
+    int sock;
+    size_t size;
+
+    /* Create the socket. */
+    sock = socket (PF_LOCAL, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        perror ("socket");
+        exit (EXIT_FAILURE);
+    }
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &sock, sizeof(sock));
+    /* Bind a name to the socket. */
+    name.sun_family = AF_LOCAL;
+    strncpy (name.sun_path, filename, sizeof (name.sun_path));
+    /* The size of the address is
+        the offset of the start of the filename,
+        plus its length,
+        plus one for the terminating null byte.
+        Alternatively you can just do:
+        size = SUN_LEN (&name);
+    */
+    size = (offsetof (struct sockaddr_un, sun_path)
+            + strlen (name.sun_path) + 1);
+    if (bind (sock, (struct sockaddr *) &name, size) < 0) {
+        perror ("bind");
+        exit (EXIT_FAILURE);
+    }
+
+    return sock;
+}
+
+/* used by the client */
+static int connect_named_server_socket (const char *filename)
+{
+    struct sockaddr_un name;
+    int sock;
+    size_t size;
+
+    /* Create the socket. */
+    sock = socket (PF_LOCAL, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        perror ("socket");
+        exit (EXIT_FAILURE);
+    }
+    strncpy (name.sun_path, filename, sizeof (name.sun_path));
+    /* The size of the address is
+        the offset of the start of the filename,
+        plus its length,
+        plus one for the terminating null byte.
+        Alternatively you can just do:
+        size = SUN_LEN (&name);
+    */
+    size = (offsetof (struct sockaddr_un, sun_path)
+            + strlen (name.sun_path) + 1);
+
+    if (connect(sock, (struct sockaddr *) &name, size) < 0) {
+        perror ("client: can't connect to socket");
+        exit (EXIT_FAILURE);
+    }
+
+    return sock;
+}
+
+static char *dlmstp_transmit_socket_name = "/tmp/BACnet_MSTP_Tx";
+static char *dlmstp_receive_socket_name = "/tmp/BACnet_MSTP_Rx";
+
 bool dlmstp_init(char *ifname)
 {
     int rc = 0;
     pthread_t hThread;
+    struct sockaddr_un name;
+    size_t size;
+
+    /* create a socket for queuing the NDPU data between MS/TP */
+    Transmit_Server_SockFD =
+        create_named_server_socket(dlmstp_transmit_socket_name);
+    Transmit_Client_SockFD =
+        connect_named_server_socket(dlmstp_transmit_socket_name);
+    /* creates sockets for Receiving data */
+    Receive_Server_SockFD =
+        create_named_server_socket(dlmstp_receive_socket_name);
+    Receive_Client_SockFD =
+        connect_named_server_socket(dlmstp_receive_socket_name);
 
     /* initialize buffer */
     Receive_Buffer.ready = false;
@@ -351,6 +575,9 @@ bool dlmstp_init(char *ifname)
 
     /* start our MilliSec task */
     rc = pthread_create(&hThread, NULL, dlmstp_milliseconds_task, NULL);
+    rc = pthread_create(&hThread, NULL, dlmstp_fsm_receive_task, NULL);
+    rc = pthread_create(&hThread, NULL, dlmstp_fsm_master_task, NULL);
+
 
     return 1;
 }
