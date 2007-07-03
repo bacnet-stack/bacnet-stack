@@ -180,7 +180,7 @@ uint16_t dlmstp_receive(
     memmove(&pdu[0], &packet.pdu[0], pdu_len);
     memmove(src, &packet.address, sizeof(packet.address));
     /* not used in this scheme */
-    packet.ready = true; 
+    packet.ready = true;
 
 
     return pdu_len;
@@ -189,7 +189,7 @@ uint16_t dlmstp_receive(
 static void *dlmstp_fsm_receive_task(void *pArg)
 {
     bool received_frame = false;
-    
+
     for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
@@ -457,6 +457,17 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
+/* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
+void dlmstp_set_baud_rate(uint32_t baud)
+{
+    RS485_Set_Baud_Rate(baud);
+}
+
+uint32_t dlmstp_baud_rate(void)
+{
+  return RS485_Get_Baud_Rate();
+}
+
 static int create_named_server_socket (const char *filename)
 {
     struct sockaddr_un name;
@@ -621,7 +632,7 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         Network_Interface = argv[1];
     }
-    RS485_Set_Baud_Rate(38400);
+    dlmstp_set_baud_rate(38400);
     dlmstp_set_mac_address(0x05);
     dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);

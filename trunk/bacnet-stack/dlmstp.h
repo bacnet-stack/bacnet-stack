@@ -98,6 +98,10 @@ extern "C" {
     void dlmstp_get_my_address(BACNET_ADDRESS * my_address);
     void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest);   /* destination address */
 
+    /* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
+    void dlmstp_set_baud_rate(uint32_t baud);
+    uint32_t dlmstp_baud_rate(void);
+
     /* MS/TP state machine functions */
     uint16_t dlmstp_put_receive(
         uint8_t src, /* source MS/TP address */
