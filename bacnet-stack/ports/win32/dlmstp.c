@@ -63,61 +63,6 @@ void dlmstp_reinit(void)
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
 }
 
-bool dlmstp_init(char *ifname)
-{
-    /* initialize buffer */
-    Receive_Buffer.ready = false;
-    Receive_Buffer.pdu_len = 0;
-    /* initialize hardware */
-    /* initialize hardware */
-    if (ifname) {
-        RS485_Set_Interface(ifname);
-#if PRINT_ENABLED
-        fprintf(stderr,"MS/TP Interface: %s\n", ifname);
-#endif
-    }
-    RS485_Initialize();
-    MSTP_Init(&MSTP_Port);
-#if 0
-    uint8_t data;
-
-    /* FIXME: implement your data storage */
-    data = 64;                  /* I2C_Read_Byte(
-                                   EEPROM_DEVICE_ADDRESS,
-                                   EEPROM_MSTP_MAC_ADDR); */
-    if (data <= 127)
-        MSTP_Port.This_Station = data;
-    else
-        dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
-    /* FIXME: implement your data storage */
-    data = 127;                 /* I2C_Read_Byte(
-                                   EEPROM_DEVICE_ADDRESS,
-                                   EEPROM_MSTP_MAX_MASTER_ADDR); */
-    if ((data <= 127) && (data >= MSTP_Port.This_Station))
-        MSTP_Port.Nmax_master = data;
-    else
-        dlmstp_set_max_master(DEFAULT_MAX_MASTER);
-    /* FIXME: implement your data storage */
-    data = 1;
-    /* I2C_Read_Byte(
-       EEPROM_DEVICE_ADDRESS,
-       EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
-    if (data >= 1)
-        MSTP_Port.Nmax_info_frames = data;
-    else
-        dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
-#endif
-#if PRINT_ENABLED
-    fprintf(stderr,"MS/TP MAC: %02X\n",
-        MSTP_Port.This_Station);
-    fprintf(stderr,"MS/TP Max_Master: %02X\n",
-        MSTP_Port.Nmax_master);
-    fprintf(stderr,"MS/TP Max_Info_Frames: %u\n",
-        MSTP_Port.Nmax_info_frames);
-#endif
-    return true;
-}
-
 void dlmstp_cleanup(void)
 {
     /* nothing to do for static buffers */
@@ -163,9 +108,39 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     return bytes_sent;
 }
 
+uint16_t dlmstp_receive(
+    BACNET_ADDRESS * src, /* source address */
+    uint8_t * pdu, /* PDU data */
+    uint16_t max_pdu, /* amount of space available in the PDU  */
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    uint16_t pdu_len = 0;
+
+    /* see if there is a packet available, and a place
+       to put the reply (if necessary) and process it */
+    if (Receive_Buffer.ready) {
+        if (Receive_Buffer.pdu_len) {
+            MSTP_Packets++;
+            if (src) {
+                memmove(src,
+                    &Receive_Buffer.address,
+                    sizeof(Receive_Buffer.address));
+            }
+            if (pdu) {
+                memmove(pdu,
+                    &Receive_Buffer.pdu,
+                    sizeof(Receive_Buffer.pdu));
+            }
+            pdu_len = Receive_Buffer.pdu_len;
+        }
+        Receive_Buffer.ready = false;
+    }
+
+    return pdu_len;
+}
+
 static void dlmstp_receive_fsm_task(void *pArg)
 {
-    uint8_t bytes_remaining;
     bool received_frame;
 
     //(void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
@@ -174,13 +149,13 @@ static void dlmstp_receive_fsm_task(void *pArg)
         if ((MSTP_Port.ReceivedValidFrame == false) &&
             (MSTP_Port.ReceivedInvalidFrame == false)) {
             do {
-                bytes_remaining = RS485_Check_UART_Data(&MSTP_Port);
+                RS485_Check_UART_Data(&MSTP_Port);
                 MSTP_Receive_Frame_FSM(&MSTP_Port);
                 received_frame = MSTP_Port.ReceivedValidFrame ||
                     MSTP_Port.ReceivedInvalidFrame;
                 if (received_frame)
                     break;
-            } while (bytes_remaining);
+            } while (MSTP_Port.DataAvailable);
         }
     }
 }
@@ -192,19 +167,18 @@ static void dlmstp_master_fsm_task(void *pArg)
         /* only do master state machine while rx is idle */
         if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
             while (MSTP_Master_Node_FSM(&MSTP_Port)) {
-                Sleep(1);
+                Sleep(0);
             };
         }
-        /* see if there is a packet available, and a place
-           to put the reply (if necessary) and process it */
-        if (Receive_Buffer.ready && !MSTP_Port.TxReady) {
-            if (Receive_Buffer.pdu_len) {
-                MSTP_Packets++;
-                npdu_handler(&Receive_Buffer.address,
-                    &Receive_Buffer.pdu[0], Receive_Buffer.pdu_len);
-            }
-            Receive_Buffer.ready = false;
-        }
+    }
+}
+
+static void dlmstp_millisecond_task(void *pArg)
+{
+    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+    for (;;) {
+        dlmstp_millisecond_timer();
+        Sleep(1);
     }
 }
 
@@ -339,6 +313,17 @@ uint8_t dlmstp_max_master(void)
     return MSTP_Port.Nmax_master;
 }
 
+/* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
+void dlmstp_set_baud_rate(uint32_t baud)
+{
+    RS485_Set_Baud_Rate(baud);
+}
+
+uint32_t dlmstp_baud_rate(void)
+{
+  return RS485_Get_Baud_Rate();
+}
+
 void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
 {
     int i = 0;                  /* counter */
@@ -371,6 +356,78 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
+bool dlmstp_init(char *ifname)
+{
+    unsigned long hThread = 0;
+    uint32_t arg_value = 0;
+
+    /* initialize buffer */
+    Receive_Buffer.ready = false;
+    Receive_Buffer.pdu_len = 0;
+    /* initialize hardware */
+    /* initialize hardware */
+    if (ifname) {
+        RS485_Set_Interface(ifname);
+#if PRINT_ENABLED
+        fprintf(stderr,"MS/TP Interface: %s\n", ifname);
+#endif
+    }
+    RS485_Initialize();
+    MSTP_Init(&MSTP_Port);
+#if 0
+    uint8_t data;
+
+    /* FIXME: implement your data storage */
+    data = 64;                  /* I2C_Read_Byte(
+                                   EEPROM_DEVICE_ADDRESS,
+                                   EEPROM_MSTP_MAC_ADDR); */
+    if (data <= 127)
+        MSTP_Port.This_Station = data;
+    else
+        dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
+    /* FIXME: implement your data storage */
+    data = 127;                 /* I2C_Read_Byte(
+                                   EEPROM_DEVICE_ADDRESS,
+                                   EEPROM_MSTP_MAX_MASTER_ADDR); */
+    if ((data <= 127) && (data >= MSTP_Port.This_Station))
+        MSTP_Port.Nmax_master = data;
+    else
+        dlmstp_set_max_master(DEFAULT_MAX_MASTER);
+    /* FIXME: implement your data storage */
+    data = 1;
+    /* I2C_Read_Byte(
+       EEPROM_DEVICE_ADDRESS,
+       EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
+    if (data >= 1)
+        MSTP_Port.Nmax_info_frames = data;
+    else
+        dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
+#endif
+#if PRINT_ENABLED
+    fprintf(stderr,"MS/TP MAC: %02X\n",
+        MSTP_Port.This_Station);
+    fprintf(stderr,"MS/TP Max_Master: %02X\n",
+        MSTP_Port.Nmax_master);
+    fprintf(stderr,"MS/TP Max_Info_Frames: %u\n",
+        MSTP_Port.Nmax_info_frames);
+#endif
+    /* start the threads */
+    hThread = _beginthread(dlmstp_millisecond_task,4096,&arg_value);
+    if (hThread == 0) {
+        fprintf(stderr, "Failed to start timer task\n");
+    }
+    hThread = _beginthread(dlmstp_receive_fsm_task,4096,&arg_value);
+    if (hThread == 0) {
+        fprintf(stderr, "Failed to start recive FSM task\n");
+    }
+    hThread = _beginthread(dlmstp_master_fsm_task,4096,&arg_value);
+    if (hThread == 0) {
+        fprintf(stderr, "Failed to start Master Node FSM task\n");
+    }
+
+    return true;
+}
+
 #ifdef TEST_DLMSTP
 #include <stdio.h>
 void npdu_handler(
@@ -400,45 +457,24 @@ uint32_t timestamp_ms(void)
     return delta_ticks;
 }
 
-static void test_millisecond_task(void *pArg)
-{
-    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    for (;;) {
-        dlmstp_millisecond_timer();
-        Sleep(1);
-    }
-}
-
 static char *Network_Interface = NULL;
 
 int main(int argc, char *argv[])
 {
-    unsigned long hThread = 0;
-    uint32_t arg_value = 0;
+    uint16_t pdu_len = 0;
 
     /* argv has the "COM4" or some other device */
     if (argc > 1) {
         Network_Interface = argv[1];
     }
-    RS485_Set_Baud_Rate(38400);
+    dlmstp_set_baud_rate(38400);
     dlmstp_set_mac_address(0x05);
     dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
     dlmstp_init(Network_Interface);
-    hThread = _beginthread(test_millisecond_task,4096,&arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start timer task\n");
-    }
-    hThread = _beginthread(dlmstp_receive_fsm_task,4096,&arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start recive FSM task\n");
-    }
-    hThread = _beginthread(dlmstp_master_fsm_task,4096,&arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start Master Node FSM task\n");
-    }
     /* forever task */
     for (;;) {
+        pdu_len = dlmstp_receive(NULL,NULL,0,0);
 #if 0
         MSTP_Create_And_Send_Frame(
             &MSTP_Port,
@@ -447,7 +483,7 @@ int main(int argc, char *argv[])
             MSTP_Port.This_Station,
             NULL, 0);
 #endif
-        Sleep(10000);
+        Sleep(10);
     }
 
     return 0;

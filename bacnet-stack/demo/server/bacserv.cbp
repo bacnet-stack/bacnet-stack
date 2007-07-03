@@ -51,9 +51,10 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-O" />
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DBACDL_BIP=1" />
+			<Add option="-DBACDL_MSTP=1" />
 			<Add option="-DBIP_DEBUG=1" />
 			<Add option="-DUSE_INADDR=1" />
 			<Add option="-DPRINT_ENABLED=1" />
@@ -109,6 +110,11 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\bip.h" />
+		<Unit filename="..\..\crc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\crc.h" />
+		<Unit filename="..\..\datalink.h" />
 		<Unit filename="..\..\datetime.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -219,7 +225,18 @@
 		<Unit filename="..\..\ports\win32\bip-init.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\..\ports\win32\dlmstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\ports\win32\mstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\ports\win32\mstp.h" />
 		<Unit filename="..\..\ports\win32\net.h" />
+		<Unit filename="..\..\ports\win32\rs485.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\ports\win32\rs485.h" />
 		<Unit filename="..\..\rd.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -250,6 +267,7 @@
 		<Unit filename="..\..\wp.h" />
 		<Extensions>
 			<code_completion />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
