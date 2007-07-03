@@ -27,9 +27,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
-#if PRINT_ENABLED
 #include <stdio.h>
-#endif
 /* Linux Includes */
 #include <sched.h>
 #include <sys/time.h>
