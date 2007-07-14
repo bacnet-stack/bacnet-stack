@@ -49,6 +49,14 @@
 		<Unit filename="..\..\crc.h" />
 		<Unit filename="..\..\datalink.h" />
 		<Unit filename="..\..\dlmstp.h" />
+		<Unit filename="..\..\indtext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\indtext.h" />
+		<Unit filename="..\..\mstptext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\mstptext.h" />
 		<Unit filename="..\..\npdu.h" />
 		<Unit filename="dlmstp.c">
 			<Option compilerVar="CC" />
@@ -63,6 +71,7 @@
 		<Unit filename="rs485.h" />
 		<Extensions>
 			<code_completion />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

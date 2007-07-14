@@ -42,55 +42,6 @@
 #include "bacdef.h"
 #include "dlmstp.h"
 
-/*  The value 255 is used to denote broadcast when used as a */
-/* destination address but is not allowed as a value for a station. */
-/* Station addresses for master nodes can be 0-127.  */
-/* Station addresses for slave nodes can be 127-254.  */
-#define MSTP_BROADCAST_ADDRESS 255
-        
-/* MS/TP Frame Type */
-/* Frame Types 8 through 127 are reserved by ASHRAE. */
-#define FRAME_TYPE_TOKEN 0
-#define FRAME_TYPE_POLL_FOR_MASTER 1
-#define FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER 2
-#define FRAME_TYPE_TEST_REQUEST 3
-#define FRAME_TYPE_TEST_RESPONSE 4
-#define FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY 5
-#define FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY 6
-#define FRAME_TYPE_REPLY_POSTPONED 7
-/* Frame Types 128 through 255: Proprietary Frames */
-/* These frames are available to vendors as proprietary (non-BACnet) frames. */
-/* The first two octets of the Data field shall specify the unique vendor */
-/* identification code, most significant octet first, for the type of */
-/* vendor-proprietary frame to be conveyed. The length of the data portion */
-/* of a Proprietary frame shall be in the range of 2 to 501 octets. */
-#define FRAME_TYPE_PROPRIETARY_MIN 128
-#define FRAME_TYPE_PROPRIETARY_MAX 255
-/* The initial CRC16 checksum value */
-#define CRC16_INITIAL_VALUE (0xFFFF)
-
-/* receive FSM states */
-typedef enum {
-    MSTP_RECEIVE_STATE_IDLE = 0,
-    MSTP_RECEIVE_STATE_PREAMBLE = 1,
-    MSTP_RECEIVE_STATE_HEADER = 2,
-    MSTP_RECEIVE_STATE_HEADER_CRC = 3,
-    MSTP_RECEIVE_STATE_DATA = 4
-} MSTP_RECEIVE_STATE;
-
-/* master node FSM states */
-typedef enum {
-    MSTP_MASTER_STATE_INITIALIZE = 0,
-    MSTP_MASTER_STATE_IDLE = 1,
-    MSTP_MASTER_STATE_USE_TOKEN = 2,
-    MSTP_MASTER_STATE_WAIT_FOR_REPLY = 3,
-    MSTP_MASTER_STATE_DONE_WITH_TOKEN = 4,
-    MSTP_MASTER_STATE_PASS_TOKEN = 5,
-    MSTP_MASTER_STATE_NO_TOKEN = 6,
-    MSTP_MASTER_STATE_POLL_FOR_MASTER = 7,
-    MSTP_MASTER_STATE_ANSWER_DATA_REQUEST = 8
-} MSTP_MASTER_STATE;
-
 struct mstp_port_struct_t {
     MSTP_RECEIVE_STATE receive_state;
     /* When a master node is powered up or reset, */
@@ -141,7 +92,12 @@ struct mstp_port_struct_t {
     /* An array of octets, used to store octets as they are received. */
     /* InputBuffer is indexed from 0 to InputBufferSize-1. */
     /* The maximum size of a frame is 501 octets. */
-    uint8_t InputBuffer[MAX_MPDU];
+    /* FIXME: assign this to an actual array of bytes! */
+    /* Note: the buffer is designed as a pointer since some compilers 
+       and microcontroller architectures have limits as to places to
+       hold contiguous memory. */
+    uint8_t *InputBuffer;
+    uint16_t InputBufferSize;
     /* "Next Station," the MAC address of the node to which This Station passes */
     /* the token. If the Next_Station is unknown, Next_Station shall be equal to */
     /* This_Station. */
@@ -202,13 +158,16 @@ struct mstp_port_struct_t {
     /* less than or equal to 127. If Max_Master is not writable in a node, */
     /* its value shall be 127. */
     unsigned Nmax_master;
-
-    /* An array of octets, used to store PDU octets prior to being transmitted. */
-    /* This array is only used for APDU messages */
-    uint8_t TxBuffer[MAX_MPDU];
-    unsigned TxLength;
-    bool TxReady;               /* true if ready to be sent or received */
-    uint8_t TxFrameType;        /* type of message - needed by MS/TP */
+    
+    /* An array of octets, used to store octets for transmitting */
+    /* OutputBuffer is indexed from 0 to OutputBufferSize-1. */
+    /* The maximum size of a frame is 501 octets. */
+    /* FIXME: assign this to an actual array of bytes! */
+    /* Note: the buffer is designed as a pointer since some compilers 
+       and microcontroller architectures have limits as to places to
+       hold contiguous memory. */
+    uint8_t *OutputBuffer;
+    uint16_t OutputBufferSize;
 };
 
 #define DEFAULT_MAX_INFO_FRAMES 1
@@ -239,14 +198,14 @@ extern "C" {
     /* returns true if line is active */
     bool MSTP_Line_Active(volatile struct mstp_port_struct_t *mstp_port);
 
-    unsigned MSTP_Create_Frame(
+    uint16_t MSTP_Create_Frame(
         uint8_t * buffer,        /* where frame is loaded */
-        unsigned buffer_len,    /* amount of space available */
+        uint16_t buffer_len,    /* amount of space available */
         uint8_t frame_type,     /* type of frame to send - see defines */
         uint8_t destination,    /* destination address */
         uint8_t source,         /* source address */
         uint8_t * data,         /* any data to be sent - may be null */
-        unsigned data_len);     /* number of bytes of data (up to 501) */
+        uint16_t data_len);     /* number of bytes of data (up to 501) */
 
     void MSTP_Create_And_Send_Frame(
         volatile struct mstp_port_struct_t *mstp_port,  /* port to send from */
@@ -254,7 +213,7 @@ extern "C" {
         uint8_t destination,        /* destination address */
         uint8_t source,             /* source address */
         uint8_t * data,             /* any data to be sent - may be null */
-        unsigned data_len);
+        uint16_t data_len);
 
 #ifdef __cplusplus
 }
