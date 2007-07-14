@@ -53,6 +53,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\indtext.h" />
+		<Unit filename="..\..\mstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\mstp.h" />
 		<Unit filename="..\..\mstptext.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -61,10 +65,6 @@
 		<Unit filename="dlmstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="mstp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="mstp.h" />
 		<Unit filename="rs485.c">
 			<Option compilerVar="CC" />
 		</Unit>
