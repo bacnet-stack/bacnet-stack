@@ -53,6 +53,9 @@
 #include "bytes.h"
 #include "crc.h"
 #include "rs485.h"
+#if PRINT_ENABLED
+#include "mstptext.h"
+#endif
 
 /* debug print statements */
 #if PRINT_ENABLED
@@ -227,35 +230,6 @@ void MSTP_Create_And_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,  
     /* FIXME: be sure to reset SilenceTimer after each octet is sent! */
 }
 
-#if PRINT_ENABLED_RECEIVE
-char *mstp_receive_state_text(int state)
-{
-    char *text = "unknown";
-
-    switch (state) {
-    case MSTP_RECEIVE_STATE_IDLE:
-        text = "IDLE";
-        break;
-    case MSTP_RECEIVE_STATE_PREAMBLE:
-        text = "PREAMBLE";
-        break;
-    case MSTP_RECEIVE_STATE_HEADER:
-        text = "HEADER";
-        break;
-    case MSTP_RECEIVE_STATE_HEADER_CRC:
-        text = "HEADER_CRC";
-        break;
-    case MSTP_RECEIVE_STATE_DATA:
-        text = "DATA";
-        break;
-    default:
-        break;
-    }
-
-    return text;
-}
-#endif
-
 void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 {
 #if PRINT_ENABLED_RECEIVE_DATA
@@ -264,7 +238,7 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 #if PRINT_ENABLED_RECEIVE
     fprintf(stderr,
         "MSTP Rx: State=%s Data=%02X hCRC=%02X Index=%u EC=%u DateLen=%u Silence=%u\n",
-        mstp_receive_state_text(mstp_port->receive_state),
+        mstptext_receive_state(mstp_port->receive_state),
         mstp_port->DataRegister, mstp_port->HeaderCRC, mstp_port->Index,
         mstp_port->EventCount, mstp_port->DataLength,
         mstp_port->SilenceTimer);
@@ -576,88 +550,6 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
     return;
 }
 
-#if PRINT_ENABLED
-char *mstp_master_state_text(int state)
-{
-    char *text = "unknown";
-
-    switch (state) {
-    case MSTP_MASTER_STATE_INITIALIZE:
-        text = "INITIALIZE";
-        break;
-    case MSTP_MASTER_STATE_IDLE:
-        text = "IDLE";
-        break;
-    case MSTP_MASTER_STATE_USE_TOKEN:
-        text = "USE_TOKEN";
-        break;
-    case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-        text = "WAIT_FOR_REPLY";
-        break;
-    case MSTP_MASTER_STATE_DONE_WITH_TOKEN:
-        text = "IDLE";
-        break;
-    case MSTP_MASTER_STATE_PASS_TOKEN:
-        text = "DONE_WITH_TOKEN";
-        break;
-    case MSTP_MASTER_STATE_NO_TOKEN:
-        text = "NO_TOKEN";
-        break;
-    case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-        text = "POLL_FOR_MASTER";
-        break;
-    case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-        text = "ANSWER_DATA_REQUEST";
-        break;
-    default:
-        break;
-    }
-
-    return text;
-}
-#endif
-
-#if PRINT_ENABLED
-char *mstp_frame_type_text(int type)
-{
-    char *text = "unknown";
-
-    switch (type) {
-    case FRAME_TYPE_TOKEN:
-        text = "TOKEN";
-        break;
-    case FRAME_TYPE_POLL_FOR_MASTER:
-        text = "POLL_FOR_MASTER";
-        break;
-    case FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER:
-        text = "REPLY_TO_POLL_FOR_MASTER";
-        break;
-    case FRAME_TYPE_TEST_REQUEST:
-        text = "TEST_REQUEST";
-        break;
-    case FRAME_TYPE_TEST_RESPONSE:
-        text = "TEST_RESPONSE";
-        break;
-    case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-        text = "BACNET_DATA_EXPECTING_REPLY";
-        break;
-    case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
-        text = "BACNET_DATA_NOT_EXPECTING_REPLY";
-        break;
-    case FRAME_TYPE_REPLY_POSTPONED:
-        text = "REPLY_POSTPONED";
-        break;
-    default:
-        if ((type >= FRAME_TYPE_PROPRIETARY_MIN) &&
-            (type <= FRAME_TYPE_PROPRIETARY_MAX))
-            text = "PROPRIETARY";
-        break;
-    }
-
-    return text;
-}
-#endif
-
 /* returns true if we need to transition immediately */
 bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
 {
@@ -694,7 +586,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
             mstp_port->EventCount,
             mstp_port->TokenCount,
             mstp_port->SilenceTimer,
-            mstp_master_state_text(mstp_port->master_state));
+            mstptext_master_state(mstp_port->master_state));
     }
 #endif
 
@@ -736,7 +628,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
                 mstp_port->DataLength,
                 mstp_port->FrameCount,
                 mstp_port->SilenceTimer,
-                mstp_frame_type_text(mstp_port->FrameType));
+                mstptext_frame_type(mstp_port->FrameType));
 #endif
             /* destined for me! */
             if ((mstp_port->DestinationAddress ==
@@ -1139,8 +1031,11 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* BACnet Data Expecting Reply, a Test_Request, or  */
         /* a proprietary frame that expects a reply is received. */
     case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
+#if 0
+        /* FIXME: we always defer the reply to be safe */
         /* FIXME: if we knew the APDU type received, we could
-           see if the next message was that same APDU type */
+           see if the next message was that same APDU type
+           along with the matching src/dest and invoke ID */
         if ((mstp_port->SilenceTimer <= Treply_delay) &&
             mstp_port->TxReady) {
             /* Reply */
@@ -1159,7 +1054,8 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
                 mstp_port->TxReady = false;
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
             }
-        }
+        } else 
+#endif
         /* DeferredReply */
         /* If no reply will be available from the higher layers */
         /* within Treply_delay after the reception of the */
@@ -1169,7 +1065,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* Any reply shall wait until this node receives the token. */
         /* Call MSTP_Create_And_Send_Frame to transmit a Reply Postponed frame, */
         /* and enter the IDLE state. */
-        else {
+        {
             MSTP_Create_And_Send_Frame(mstp_port,
                 FRAME_TYPE_REPLY_POSTPONED,
                 mstp_port->SourceAddress,

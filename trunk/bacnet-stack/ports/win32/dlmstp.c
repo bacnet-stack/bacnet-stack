@@ -42,11 +42,14 @@
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
 
-/* receive buffer */
-static DLMSTP_PACKET Receive_Buffer;
-/* temp buffer for NPDU insertion */
+/* packet queues */
+static DLMSTP_PACKET Receive_Packet;
+static DLMSTP_PACKET Transmit_Packet;
 /* local MS/TP port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
+/* buffers needed by mstp port struct */
+static uint8_t TxBuffer[MAX_MPDU];
+static uint8_t RxBuffer[MAX_MPDU];
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 
@@ -76,13 +79,12 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
 {                               /* number of bytes of data */
     int bytes_sent = 0;
     uint8_t destination = 0;    /* destination address */
-    BACNET_ADDRESS src;
 
-    if (MSTP_Port.TxReady == false) {
+    if (!Transmit_Packet.ready) {
         if (npdu_data->data_expecting_reply)
-            MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+            Transmit_Packet.frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
         else
-            MSTP_Port.TxFrameType =
+            Transmit_Packet.frame_type =
                 FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
 
         /* load destination MAC address */
@@ -91,17 +93,17 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         } else {
             return -2;
         }
-        dlmstp_get_my_address(&src);
         if ((8 /* header len */  + pdu_len) > MAX_MPDU) {
             return -4;
         }
-        bytes_sent = MSTP_Create_Frame(
-            (uint8_t *) & MSTP_Port.TxBuffer[0],
-            sizeof(MSTP_Port.TxBuffer),
-            MSTP_Port.TxFrameType,
-            destination, MSTP_Port.This_Station, pdu, pdu_len);
-        MSTP_Port.TxLength = bytes_sent;
-        MSTP_Port.TxReady = true;
+        Transmit_Packet.pdu_len = MSTP_Create_Frame(
+            (uint8_t *) & Transmit_Packet.pdu[0],
+            sizeof(Transmit_Packet.pdu),
+            Transmit_Packet.frame_type,
+            destination,
+            MSTP_Port.This_Station,
+            pdu, pdu_len);
+        Transmit_Packet.ready = true;
         MSTP_Packets++;
     }
 
@@ -118,22 +120,22 @@ uint16_t dlmstp_receive(
 
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
-    if (Receive_Buffer.ready) {
-        if (Receive_Buffer.pdu_len) {
+    if (Receive_Packet.ready) {
+        if (Receive_Packet.pdu_len) {
             MSTP_Packets++;
             if (src) {
                 memmove(src,
-                    &Receive_Buffer.address,
-                    sizeof(Receive_Buffer.address));
+                    &Receive_Packet.address,
+                    sizeof(Receive_Packet.address));
             }
             if (pdu) {
                 memmove(pdu,
-                    &Receive_Buffer.pdu,
-                    sizeof(Receive_Buffer.pdu));
+                    &Receive_Packet.pdu,
+                    sizeof(Receive_Packet.pdu));
             }
-            pdu_len = Receive_Buffer.pdu_len;
+            pdu_len = Receive_Packet.pdu_len;
         }
-        Receive_Buffer.ready = false;
+        Receive_Packet.ready = false;
     }
 
     return pdu_len;
@@ -210,10 +212,10 @@ uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
     uint8_t * pdu,              /* PDU data */
     uint16_t pdu_len)
 {                               /* amount of PDU data */
-    /* PDU is already in the Receive_Buffer */
-    dlmstp_fill_bacnet_address(&Receive_Buffer.address, src);
-    Receive_Buffer.pdu_len = pdu_len;
-    Receive_Buffer.ready = true;
+    /* PDU is already in the Receive_Packet */
+    dlmstp_fill_bacnet_address(&Receive_Packet.address, src);
+    Receive_Packet.pdu_len = pdu_len;
+    Receive_Packet.ready = true;
 
     return pdu_len;
 }
@@ -229,11 +231,15 @@ uint16_t dlmstp_get_send(
     uint16_t pdu_len = 0;
 
     (void)src;
-    (void)max_pdu;
-    if (MSTP_Port.TxReady) {
-        memmove(&pdu[0],(void *)&MSTP_Port.TxBuffer[0],sizeof(MSTP_Port.TxBuffer));
-        pdu_len = MSTP_Port.TxLength;
-        MSTP_Port.TxReady = false;
+    (void)timeout;
+    if (Transmit_Packet.ready) {
+        if (Transmit_Packet.pdu_len <= max_pdu) {
+            memmove(&pdu[0],
+                (void *) & Transmit_Packet.pdu[0],
+                Transmit_Packet.pdu_len);
+            pdu_len = Transmit_Packet.pdu_len;
+        }
+        Transmit_Packet.ready = false;
     }
 
     return pdu_len;
@@ -361,9 +367,9 @@ bool dlmstp_init(char *ifname)
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
 
-    /* initialize buffer */
-    Receive_Buffer.ready = false;
-    Receive_Buffer.pdu_len = 0;
+    /* initialize packet queue */
+    Receive_Packet.ready = false;
+    Receive_Packet.pdu_len = 0;
     /* initialize hardware */
     /* initialize hardware */
     if (ifname) {
@@ -373,6 +379,10 @@ bool dlmstp_init(char *ifname)
 #endif
     }
     RS485_Initialize();
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
     MSTP_Init(&MSTP_Port);
 #if 0
     uint8_t data;

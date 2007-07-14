@@ -1166,46 +1166,33 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* BACnet Data Expecting Reply, a Test_Request, or  */
         /* a proprietary frame that expects a reply is received. */
     case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
+#if 0
         if (mstp_port->ReplyPostponedTimer <= Treply_delay) {
-            /* Reply */
-            /* If a reply is available from the higher layers  */
-            /* within Treply_delay after the reception of the  */
-            /* final octet of the requesting frame  */
-            /* (the mechanism used to determine this is a local matter), */
-            /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
-            /* and enter the IDLE state to wait for the next frame. */
+        /* FIXME: we always defer the reply to be safe */
+        /* FIXME: if we knew the APDU type received, we could
+           see if the next message was that same APDU type
+           along with the matching src/dest and invoke ID */
             if ((mstp_port->FrameType ==
                     FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY)
                 && (mstp_port->TxReady)) {
+                /* Reply */
+                /* If a reply is available from the higher layers  */
+                /* within Treply_delay after the reception of the  */
+                /* final octet of the requesting frame  */
+                /* (the mechanism used to determine this is a local matter), */
+                /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
+                /* and enter the IDLE state to wait for the next frame. */
                 RS485_Send_Frame(mstp_port,
                     (uint8_t *) & mstp_port->TxBuffer[0],
                     mstp_port->TxLength);
                 mstp_port->TxReady = false;
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
                 transition_now = true;
+            } else {
+                /* Test Request - handled directly in IDLE state */
             }
-            /* Test Request */
-            /* If a receiving node can successfully receive and return  */
-            /* the information field, it shall do so. If it cannot receive */
-            /* and return the entire information field but can detect  */
-            /* the reception of a valid Test_Request frame  */
-            /* (for example, by computing the CRC on octets as  */
-            /* they are received), then the receiving node shall discard  */
-            /* the information field and return a Test_Response containing  */
-            /* no information field. If the receiving node cannot detect  */
-            /* the valid reception of frames with overlength information fields,  */
-            /* then no response shall be returned. */
-            else if (mstp_port->FrameType == FRAME_TYPE_TEST_REQUEST) {
-                MSTP_Create_And_Send_Frame(mstp_port,
-                    FRAME_TYPE_TEST_RESPONSE,
-                    mstp_port->SourceAddress,
-                    mstp_port->This_Station,
-                    (uint8_t *) & mstp_port->InputBuffer[0],
-                    mstp_port->DataLength);
-                mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-                transition_now = true;
-            }
-        }
+        } else 
+#endif
         /* DeferredReply */
         /* If no reply will be available from the higher layers */
         /* within Treply_delay after the reception of the */
@@ -1215,7 +1202,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* Any reply shall wait until this node receives the token. */
         /* Call MSTP_Create_And_Send_Frame to transmit a Reply Postponed frame, */
         /* and enter the IDLE state. */
-        else {
+        {
             MSTP_Create_And_Send_Frame(mstp_port,
                 FRAME_TYPE_REPLY_POSTPONED,
                 mstp_port->SourceAddress,
@@ -1719,7 +1706,6 @@ void testMasterNodeFSM(Test * pTest)
 
     MSTP_Init(&mstp_port, my_mac);
     ct_test(pTest, mstp_port.master_state == MSTP_MASTER_STATE_INITIALIZE);
-
 }
 
 #endif
