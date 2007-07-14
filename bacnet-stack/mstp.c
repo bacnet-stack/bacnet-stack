@@ -59,7 +59,7 @@
 /* debug print statements */
 #if PRINT_ENABLED
 #define PRINT_ENABLED_RECEIVE 0
-#define PRINT_ENABLED_RECEIVE_DATA 1
+#define PRINT_ENABLED_RECEIVE_DATA 0
 #define PRINT_ENABLED_RECEIVE_ERRORS 1
 #define PRINT_ENABLED_MASTER 0
 #else
@@ -257,7 +257,7 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
         } else if (mstp_port->DataAvailable == true) {
 #if PRINT_ENABLED_RECEIVE_DATA
-#if defined(_WIN32)
+#if (defined(_WIN32) && defined(TEST_DLMSTP))
             extern uint32_t timestamp_ms(void);
             fprintf(stderr, "MSTP Rx %03u: %02X ",
                 (unsigned)timestamp_ms(),
