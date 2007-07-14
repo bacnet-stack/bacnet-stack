@@ -55,6 +55,9 @@ static int Receive_Server_SockFD = -1;
 static int Transmit_Server_SockFD = -1;
 /* local MS/TP port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
+/* buffers needed by mstp port struct */
+static uint8_t TxBuffer[MAX_MPDU];
+static uint8_t RxBuffer[MAX_MPDU];
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 
@@ -576,6 +579,10 @@ bool dlmstp_init(char *ifname)
 #endif
     }
     RS485_Initialize();
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
     MSTP_Init(&MSTP_Port);
 #if 0
     /* FIXME: implement your data storage */
