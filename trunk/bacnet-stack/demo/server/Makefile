@@ -30,8 +30,8 @@ SRCS = main.c \
        $(BACNET_PORT)/ethernet.c \
        $(BACNET_PORT)/arcnet.c \
        $(BACNET_PORT)/dlmstp.c \
-       $(BACNET_PORT)/mstp.c \
        $(BACNET_PORT)/rs485.c \
+       $(BACNET_ROOT)/mstp.c \
        $(BACNET_ROOT)/crc.c \
        $(BACNET_ROOT)/bip.c \
        $(BACNET_HANDLER)/txbuf.c \
