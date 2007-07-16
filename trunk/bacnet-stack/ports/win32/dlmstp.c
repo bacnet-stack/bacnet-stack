@@ -25,10 +25,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
-#if PRINT_ENABLED
 #include <stdio.h>
-#endif
 #include "bacdef.h"
 #include "mstp.h"
 #include "dlmstp.h"
@@ -44,6 +43,9 @@ uint16_t MSTP_Packets = 0;
 
 /* packet queues */
 static DLMSTP_PACKET Receive_Packet;
+static HANDLE Receive_Packet_Flag;
+/* mechanism to wait for a frame in state machine */
+HANDLE Received_Frame_Flag;
 static DLMSTP_PACKET Transmit_Packet;
 /* local MS/TP port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
@@ -69,6 +71,12 @@ void dlmstp_reinit(void)
 void dlmstp_cleanup(void)
 {
     /* nothing to do for static buffers */
+    if (Received_Frame_Flag) {
+        CloseHandle(Received_Frame_Flag);
+    }
+    if (Receive_Packet_Flag) {
+        CloseHandle(Receive_Packet_Flag);
+    }
 }
 
 /* returns number of bytes sent on success, zero on failure */
@@ -117,25 +125,29 @@ uint16_t dlmstp_receive(
     unsigned timeout) /* milliseconds to wait for a packet */
 {
     uint16_t pdu_len = 0;
+    DWORD wait_status = 0;
 
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
-    if (Receive_Packet.ready) {
-        if (Receive_Packet.pdu_len) {
-            MSTP_Packets++;
-            if (src) {
-                memmove(src,
-                    &Receive_Packet.address,
-                    sizeof(Receive_Packet.address));
+    wait_status = WaitForSingleObject(Receive_Packet_Flag,timeout);
+    if (wait_status == WAIT_OBJECT_0) {
+        if (Receive_Packet.ready) {
+            if (Receive_Packet.pdu_len) {
+                MSTP_Packets++;
+                if (src) {
+                    memmove(src,
+                        &Receive_Packet.address,
+                        sizeof(Receive_Packet.address));
+                }
+                if (pdu) {
+                    memmove(pdu,
+                        &Receive_Packet.pdu,
+                        sizeof(Receive_Packet.pdu));
+                }
+                pdu_len = Receive_Packet.pdu_len;
             }
-            if (pdu) {
-                memmove(pdu,
-                    &Receive_Packet.pdu,
-                    sizeof(Receive_Packet.pdu));
-            }
-            pdu_len = Receive_Packet.pdu_len;
+            Receive_Packet.ready = false;
         }
-        Receive_Packet.ready = false;
     }
 
     return pdu_len;
@@ -145,7 +157,7 @@ static void dlmstp_receive_fsm_task(void *pArg)
 {
     bool received_frame;
 
-    //(void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
     while (TRUE) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
@@ -155,8 +167,10 @@ static void dlmstp_receive_fsm_task(void *pArg)
                 MSTP_Receive_Frame_FSM(&MSTP_Port);
                 received_frame = MSTP_Port.ReceivedValidFrame ||
                     MSTP_Port.ReceivedInvalidFrame;
-                if (received_frame)
+                if (received_frame) {
+                    ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
                     break;
+                }
             } while (MSTP_Port.DataAvailable);
         }
     }
@@ -164,14 +178,27 @@ static void dlmstp_receive_fsm_task(void *pArg)
 
 static void dlmstp_master_fsm_task(void *pArg)
 {
-    //(void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+    DWORD dwMilliseconds = 0;
+
+    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
     while (TRUE) {
-        /* only do master state machine while rx is idle */
-        if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
-            while (MSTP_Master_Node_FSM(&MSTP_Port)) {
-                Sleep(0);
-            };
+        switch (MSTP_Port.master_state) {
+            case MSTP_MASTER_STATE_IDLE:
+                dwMilliseconds = Tno_token;
+                break;
+            case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
+                dwMilliseconds = Treply_timeout;
+                break;
+            case MSTP_MASTER_STATE_POLL_FOR_MASTER:
+                dwMilliseconds = Tusage_timeout;
+                break;
+            default:
+                dwMilliseconds = 0;
+                break;
         }
+        if (dwMilliseconds)
+            WaitForSingleObject(Received_Frame_Flag,dwMilliseconds);
+        MSTP_Master_Node_FSM(&MSTP_Port);
     }
 }
 
@@ -212,6 +239,7 @@ uint16_t MSTP_Put_Receive(
         volatile struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
+    BOOL rc;
 
     if (!Receive_Packet.ready) {
         /* bounds check - maybe this should send an abort? */
@@ -225,6 +253,7 @@ uint16_t MSTP_Put_Receive(
             mstp_port->SourceAddress);
         Receive_Packet.pdu_len = mstp_port->DataLength;
         Receive_Packet.ready = true;
+        rc = ReleaseSemaphore(Receive_Packet_Flag, 1, NULL);
     }
 
     return pdu_len;
@@ -380,6 +409,14 @@ bool dlmstp_init(char *ifname)
     /* initialize packet queue */
     Receive_Packet.ready = false;
     Receive_Packet.pdu_len = 0;
+    Receive_Packet_Flag = CreateSemaphore (NULL,0,1,"dlmstpReceivePacket");
+    if (Receive_Packet_Flag == NULL)
+        exit(1);
+    Received_Frame_Flag = CreateSemaphore (NULL,0,1,"dlsmtpReceiveFrame");
+    if (Received_Frame_Flag == NULL) {
+        CloseHandle(Receive_Packet_Flag);
+        exit(1);
+    }
     /* initialize hardware */
     /* initialize hardware */
     if (ifname) {
@@ -494,7 +531,7 @@ int main(int argc, char *argv[])
     dlmstp_init(Network_Interface);
     /* forever task */
     for (;;) {
-        pdu_len = dlmstp_receive(NULL,NULL,0,0);
+        pdu_len = dlmstp_receive(NULL,NULL,0,INFINITE);
 #if 0
         MSTP_Create_And_Send_Frame(
             &MSTP_Port,
@@ -503,7 +540,6 @@ int main(int argc, char *argv[])
             MSTP_Port.This_Station,
             NULL, 0);
 #endif
-        Sleep(10);
     }
 
     return 0;

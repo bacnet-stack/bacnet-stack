@@ -105,10 +105,6 @@
 /* of a frame the node is transmitting: 20 bit times. */
 #define Tframe_gap 20
 
-/* The time without a DataAvailable or ReceiveError event before declaration */
-/* of loss of token: 500 milliseconds. */
-#define Tno_token 500
-
 /* The maximum time after the end of the stop bit of the final */
 /* octet of a transmitted frame before a node must disable its */
 /* EIA-485 driver: 15 bit times. */
@@ -120,12 +116,6 @@
 /* note: we always send a reply postponed since a message other than
    the reply may be in the transmit queue */
 #define Treply_delay 10
-
-/* The minimum time without a DataAvailable or ReceiveError event */
-/* that a node must wait for a station to begin replying to a */
-/* confirmed request: 255 milliseconds. (Implementations may use */
-/* larger values for this timeout, not to exceed 300 milliseconds.) */
-#define Treply_timeout 255
 
 /* Repeater turnoff delay. The duration of a continuous logical one state */
 /* at the active input port of an MS/TP repeater after which the repeater */
@@ -140,12 +130,6 @@
 /* a Poll For Master frame before sending the first octet of a frame: */
 /* 15 milliseconds. */
 #define Tusage_delay 15
-
-/* The minimum time without a DataAvailable or ReceiveError event that a */
-/* node must wait for a remote node to begin using a token or replying to */
-/* a Poll For Master frame: 20 milliseconds. (Implementations may use */
-/* larger values for this timeout, not to exceed 100 milliseconds.) */
-#define Tusage_timeout 20
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) {if (x < 0xFF) x++;}
