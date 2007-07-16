@@ -719,16 +719,12 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
                     break;
                 case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                     /* indicate successful reception to the higher layers */
-                    dlmstp_put_receive(mstp_port->SourceAddress,
-                        (uint8_t *) & mstp_port->InputBuffer[0],
-                        mstp_port->DataLength);
+                    MSTP_Put_Receive(mstp_port);
                     break;
                 case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                     /*mstp_port->ReplyPostponedTimer = 0; */
                     /* indicate successful reception to the higher layers  */
-                    dlmstp_put_receive(mstp_port->SourceAddress,
-                        (uint8_t *) & mstp_port->InputBuffer[0],
-                        mstp_port->DataLength);
+                    MSTP_Put_Receive(mstp_port);
                     /* broadcast DER just remains IDLE */
                     if (mstp_port->DestinationAddress !=
                         MSTP_BROADCAST_ADDRESS) {
@@ -754,7 +750,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* more data frames. These may be BACnet Data frames or */
         /* proprietary frames. */
     case MSTP_MASTER_STATE_USE_TOKEN:
-        length = dlmstp_get_send(
+        length = MSTP_Get_Send(
             mstp_port->This_Station,
             (uint8_t *)&mstp_port->OutputBuffer[0],
             mstp_port->OutputBufferSize,
@@ -836,9 +832,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
                         /* ReceivedReply */
                         /* or a proprietary type that indicates a reply */
                         /* indicate successful reception to the higher layers */
-                        dlmstp_put_receive(mstp_port->SourceAddress,    /* source MS/TP address */
-                            (uint8_t *) & mstp_port->InputBuffer[0],
-                            mstp_port->DataLength);
+                        MSTP_Put_Receive(mstp_port);
                         mstp_port->master_state =
                             MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                         break;
@@ -1101,10 +1095,11 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* a proprietary frame that expects a reply is received. */
     case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
 #if 0
-        /* FIXME: we always defer the reply to be safe */
+        /* FIXME: we always defer the reply to be legal */
         /* FIXME: if we knew the APDU type received, we could
            see if the next message was that same APDU type
            along with the matching src/dest and invoke ID */
+        /* FIXME: we could use 2 queues: one for DER and one for non-DER */
         if ((mstp_port->SilenceTimer <= Treply_delay) &&
             mstp_port->TxReady) {
             /* Reply */
@@ -1114,7 +1109,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
             /* (the mechanism used to determine this is a local matter), */
             /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
             /* and enter the IDLE state to wait for the next frame. */
-            length = dlmstp_get_send(
+            length = MSTP_Get_Send(
                 mstp_port->This_Station,
                 (uint8_t *)&mstp_port->OutputBuffer[0],
                 mstp_port->OutputBufferSize,

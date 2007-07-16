@@ -208,21 +208,31 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
-    uint8_t * pdu,              /* PDU data */
-    uint16_t pdu_len)
-{                               /* amount of PDU data */
-    /* PDU is already in the Receive_Packet */
-    dlmstp_fill_bacnet_address(&Receive_Packet.address, src);
-    Receive_Packet.pdu_len = pdu_len;
-    Receive_Packet.ready = true;
+uint16_t MSTP_Put_Receive(
+        volatile struct mstp_port_struct_t *mstp_port)
+{
+    uint16_t pdu_len = 0;
+
+    if (!Receive_Packet.ready) {
+        /* bounds check - maybe this should send an abort? */
+        pdu_len = mstp_port->DataLength;
+        if (pdu_len > sizeof(Receive_Packet.pdu))
+            pdu_len = sizeof(Receive_Packet.pdu);
+        memmove((void *) & Receive_Packet.pdu[0],
+            (void *) & mstp_port->InputBuffer[0],
+            pdu_len);
+        dlmstp_fill_bacnet_address(&Receive_Packet.address,
+            mstp_port->SourceAddress);
+        Receive_Packet.pdu_len = mstp_port->DataLength;
+        Receive_Packet.ready = true;
+    }
 
     return pdu_len;
 }
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t dlmstp_get_send(
+uint16_t MSTP_Get_Send(
     uint8_t src, /* source MS/TP address for creating packet */
     uint8_t * pdu, /* data to send */
     uint16_t max_pdu, /* amount of space available */

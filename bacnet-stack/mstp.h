@@ -215,6 +215,19 @@ extern "C" {
         uint8_t * data,             /* any data to be sent - may be null */
         uint16_t data_len);
 
+    /* functions used by the MS/TP state machine to put or get data */
+    /* FIXME: developer must implement these in their DLMSTP module */
+    uint16_t MSTP_Put_Receive(
+        volatile struct mstp_port_struct_t *mstp_port);
+
+    /* for the MS/TP state machine to use for getting data to send */
+    /* Return: amount of PDU data */
+    uint16_t MSTP_Get_Send(
+        uint8_t src, /* source MS/TP address for creating packet */
+        uint8_t * pdu, /* data to send */
+        uint16_t max_pdu, /* amount of space available */
+        unsigned timeout); /* milliseconds to wait for a packet */
+
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
