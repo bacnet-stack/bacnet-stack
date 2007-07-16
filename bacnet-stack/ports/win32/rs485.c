@@ -325,8 +325,7 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
             }
         } else {
             if (dwRead) {
-                mstp_port->DataRegister = lpBuf[0];    /* FIXME: Get this data from UART or buffer */
-                /* if data is ready, */
+                mstp_port->DataRegister = lpBuf[0];
                 mstp_port->DataAvailable = TRUE;
             }
         }
