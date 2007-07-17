@@ -78,6 +78,12 @@ static int Device_Properties_Required[] =
 
 static int Device_Properties_Optional[] = 
 {
+    PROP_DESCRIPTION,
+    PROP_LOCAL_TIME,
+    PROP_UTC_OFFSET,
+    PROP_LOCAL_DATE,
+    PROP_DAYLIGHT_SAVINGS_STATUS,
+    PROP_PROTOCOL_CONFORMANCE_CLASS,
     -1
 };
 

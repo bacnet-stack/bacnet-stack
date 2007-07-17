@@ -96,19 +96,27 @@ void handler_read_property_multiple(uint8_t * service_request, uint16_t service_
     /* bad decoding - send an abort */
     if (service_len == 0)
     {
-        apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len], service_data->invoke_id, ABORT_REASON_OTHER, true);
+        apdu_len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         printf("RPM: Sending Abort!\r\n");
 #endif
     } else if (service_data->segmented_message) {
-        apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len], service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        apdu_len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
     printf("RPM: Sending Abort!\r\n");
 #endif
     } else {
         /* decode apdu request & encode apdu reply
            encode complex ack, invoke id, service choice */
-        apdu_len = rpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len], service_data->invoke_id);
+        apdu_len = rpm_ack_encode_apdu_init(
+            &Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id);
         do
         {
             len = rpm_ack_decode_object_id(
@@ -360,7 +368,11 @@ void handler_read_property_multiple(uint8_t * service_request, uint16_t service_
                 if (!error && property_found) {
                     len = encode_closing_tag(&Temp_Buf[0], 4);
                     if (!copy_apdu_data_buffer(&apdu_len, len, npdu_len)) {
-                        apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len], service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+                        apdu_len = abort_encode_apdu(
+                            &Handler_Transmit_Buffer[npdu_len],
+                            service_data->invoke_id,
+                            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+                            true);
                         break;
                     }
                 } else {
