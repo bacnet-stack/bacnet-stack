@@ -104,6 +104,20 @@ extern "C" {
     bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
 
+    /* support for RPM */
+
+    int Device_Special_Property_Count(BACNET_PROPERTY_ID special_property);
+
+    /* returns the property ID given by the index into the list 
+       or MAX_BACNET_PROPERTY_ID if not found or out of bounds */
+    BACNET_PROPERTY_ID Device_Special_Property_By_Index(
+        BACNET_PROPERTY_ID special_property, /* ALL, OPTIONAL, REQUIRED */
+        int index);
+
+    bool Device_Property(uint8 *pIndex, BACNET_PROPERTY_ID *pProperty, 
+        BACNET_PROPERTY_ID special_property);
+    
+
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
