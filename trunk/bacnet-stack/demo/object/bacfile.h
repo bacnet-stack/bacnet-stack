@@ -46,6 +46,10 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+    void BACfile_Property_Lists(
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
     char *bacfile_name(uint32_t instance);
     bool bacfile_valid_instance(uint32_t object_instance);
     uint32_t bacfile_count(void);

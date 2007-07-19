@@ -48,7 +48,7 @@
 #endif
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static int Device_Properties_Required[] = 
+static const int Device_Properties_Required[] =
 {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -76,7 +76,7 @@ static int Device_Properties_Required[] =
     -1
 };
 
-static int Device_Properties_Optional[] = 
+static const int Device_Properties_Optional[] =
 {
     PROP_DESCRIPTION,
     PROP_LOCAL_TIME,
@@ -87,10 +87,25 @@ static int Device_Properties_Optional[] =
     -1
 };
 
-static int Device_Properties_Proprietary[] = 
+static const int Device_Properties_Proprietary[] =
 {
     -1
 };
+
+void Device_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = Device_Properties_Required;
+    if (*pOptional)
+        *pOptional = Device_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = Device_Properties_Proprietary;
+
+    return;
+}
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.
@@ -943,100 +958,6 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     }
 
     return status;
-}
-
-int int_list_count(const int *pList)
-{
-    int property_count = 0;
-    
-    while (*pList != -1) {
-        property_count++;
-    }
-    
-    return property_count;
-}
-
-/* used to count the ALL, REQUIRED and OPTIONAL */
-int Device_Special_Property_Count(BACNET_PROPERTY_ID special_property)
-{
-    const int *pList = NULL;
-    int property_count = 0;
-
-    if (special_property == PROP_ALL) {
-        property_count = 
-            int_list_count(Device_Properties_Required);
-        property_count += 
-            int_list_count(Device_Properties_Optional);
-        property_count += 
-            int_list_count(Device_Properties_Proprietary);
-    } else if (special_property == PROP_REQUIRED) {
-        property_count = 
-            int_list_count(Device_Properties_Required);
-    } else if (special_property == PROP_OPTIONAL) {
-        property_count = 
-            int_list_count(Device_Properties_Optional);
-    }
-    
-    return property_count;
-}
-
-/* returns the property ID given by the index into the list 
-   or MAX_BACNET_PROPERTY_ID if not found or out of bounds */
-BACNET_PROPERTY_ID Device_Special_Property_By_Index(
-    BACNET_PROPERTY_ID special_property, /* ALL, OPTIONAL, REQUIRED */
-    int index)
-{
-    BACNET_PROPERTY_ID property = MAX_BACNET_PROPERTY_ID;
-    int required = 0, optional = 0, proprietary = 0;
-    /* FIXME: we could use static vars to speed up access */
-    
-    if (special_property == PROP_ALL) {
-        required = 
-            property_list_count(Device_Properties_Required);
-        optional = 
-            property_list_count(Device_Properties_Optional);
-        proprietary = 
-            property_list_count(Device_Properties_Proprietary);
-        if (index < required) {
-            property = Device_Properties_Required[index];
-        } else if (index < (required + optional)) {
-            property = Device_Properties_Optional[index];
-        } else if (index < (required + optional + proprietary)) {
-            property = Device_Properties_Proprietary[index];
-        }
-    } else if (special_property == PROP_REQUIRED) {
-        required = 
-            property_list_count(Device_Properties_Required);
-        if (index < required) {
-            property = Device_Properties_Required[index];
-        }
-    } else if (special_property == PROP_OPTIONAL) {
-        optional = 
-            property_list_count(Device_Properties_Optional);
-        if (index < optional) {
-            property = Device_Properties_Optional[index];
-        }
-    }
-    
-    return property;
-}
-
-/* added for rpm service support when requesting prop_all, 
-   prop_required, or prop_optional */
-bool Device_Property(uint8 *pIndex, BACNET_PROPERTY_ID *pProperty, BACNET_PROPERTY_ID special_property)
-{
-    bool result = false;
-    BACNET_PROPERTY_ID property;
-
-    property = Device_Special_Property_By_Index(
-        special_property, *pIndex);
-    if (property != MAX_BACNET_PROPERTY_ID) {
-        (*pIndex)++;
-        *pProperty = property;
-        result = true;
-    }
-    
-    return result;	
 }
 
 #ifdef TEST

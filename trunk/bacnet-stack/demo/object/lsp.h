@@ -35,6 +35,10 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+    void Life_Safety_Point_Property_Lists(
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
     bool Life_Safety_Point_Valid_Instance(uint32_t object_instance);
     unsigned Life_Safety_Point_Count(void);
     uint32_t Life_Safety_Point_Index_To_Instance(unsigned index);

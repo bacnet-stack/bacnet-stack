@@ -35,6 +35,10 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+    void Analog_Output_Property_Lists(
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
     bool Analog_Output_Valid_Instance(uint32_t object_instance);
     unsigned Analog_Output_Count(void);
     uint32_t Analog_Output_Index_To_Instance(unsigned index);

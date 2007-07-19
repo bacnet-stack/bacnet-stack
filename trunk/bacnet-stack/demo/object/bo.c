@@ -47,6 +47,48 @@ static BACNET_BINARY_PV
 /* without changing the physical output */
 static bool Binary_Output_Out_Of_Service[MAX_BINARY_OUTPUTS];
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Binary_Output_Properties_Required[] =
+{
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_POLARITY,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    -1
+};
+
+static const int Binary_Output_Properties_Optional[] =
+{
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Binary_Output_Properties_Proprietary[] =
+{
+    -1
+};
+
+void Binary_Output_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = Binary_Output_Properties_Required;
+    if (*pOptional)
+        *pOptional = Binary_Output_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = Binary_Output_Properties_Proprietary;
+
+    return;
+}
+
 void Binary_Output_Init(void)
 {
     unsigned i, j;

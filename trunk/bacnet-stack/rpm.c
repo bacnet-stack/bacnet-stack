@@ -112,7 +112,7 @@ int rpm_decode_object_id(uint8_t * apdu,
             return -1;
         len += decode_object_id(&apdu[len], &type, object_instance);
         if (object_type)
-            *object_type = type;
+            *object_type = (BACNET_OBJECT_TYPE)type;
         /* Tag 1: sequence of ReadAccessSpecification */
         if (!decode_is_opening_tag_number(&apdu[len], 1))
             return -1;
@@ -162,7 +162,7 @@ int rpm_decode_object_property(uint8_t * apdu,
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &property);
         if (object_property)
-            *object_property = property;
+            *object_property = (BACNET_PROPERTY_ID)property;
         /* Tag 1: Optional propertyArrayIndex */
         if (len < apdu_len) {
             option_len =
@@ -317,7 +317,7 @@ int rpm_ack_decode_object_id(uint8_t * apdu,
             return -1;
         len += decode_object_id(&apdu[len], &type, object_instance);
         if (object_type)
-            *object_type = type;
+            *object_type = (BACNET_OBJECT_TYPE)type;
         /* Tag 1: listOfResults */
         if (!decode_is_opening_tag_number(&apdu[len], 1))
             return -1;
@@ -360,7 +360,7 @@ int rpm_ack_decode_object_property(uint8_t * apdu,
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &property);
         if (object_property)
-            *object_property = property;
+            *object_property = (BACNET_PROPERTY_ID)property;				
         /* Tag 3: Optional propertyArrayIndex */
         tag_len = decode_tag_number_and_value(&apdu[len], &tag_number,
             &len_value_type);

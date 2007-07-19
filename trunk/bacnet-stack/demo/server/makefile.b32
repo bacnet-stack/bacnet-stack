@@ -32,6 +32,7 @@ SRCS = main.c \
        ..\..\demo\handler\noserv.c  \
        ..\..\demo\handler\h_whois.c  \
        ..\..\demo\handler\h_rp.c  \
+       ..\..\demo\handler\h_rpm.c  \
        ..\..\demo\handler\h_wp.c  \
        ..\..\demo\handler\h_arf.c  \
        ..\..\demo\handler\h_awf.c  \
@@ -52,6 +53,7 @@ SRCS = main.c \
        ..\..\whohas.c \
        ..\..\ihave.c \
        ..\..\rp.c \
+       ..\..\rpm.c \
        ..\..\wp.c \
        ..\..\arf.c \
        ..\..\awf.c \
@@ -153,8 +155,8 @@ clean :
 # Compiler configuration file
 $(BCC_CFG) :
    Copy &&|
-$(CFLAGS) 
--c 
+$(CFLAGS)
+-c
 -y     #include line numbers in OBJ's
 -v     #include debug info
 -w+    #turn on all warnings

@@ -52,6 +52,48 @@ static uint8_t
 /* without changing the physical output */
 static bool Multistate_Output_Out_Of_Service[MAX_MULTISTATE_OUTPUTS];
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Multistate_Output_Properties_Required[] =
+{
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_NUMBER_OF_STATES,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    -1
+};
+
+static const int Multistate_Output_Properties_Optional[] =
+{
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Multistate_Output_Properties_Proprietary[] =
+{
+    -1
+};
+
+void Multistate_Output_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = Multistate_Output_Properties_Required;
+    if (*pOptional)
+        *pOptional = Multistate_Output_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = Multistate_Output_Properties_Proprietary;
+
+    return;
+}
+
 void Multistate_Output_Init(void)
 {
     unsigned i, j;
@@ -315,8 +357,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                     (uint8_t) level;
                 /* Note: you could set the physical output here if we
                    are the highest priority.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
+                   However, if Out of Service is TRUE, then don't set the
+                   physical output.  This comment may apply to the
                    main loop (i.e. check out of service before changing output) */
                 status = true;
             } else if (priority == 6) {
@@ -342,8 +384,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 /* Note: you could set the physical output here to the next
                    highest priority, or to the relinquish default if no
                    priorities are set.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
+                   However, if Out of Service is TRUE, then don't set the
+                   physical output.  This comment may apply to the
                    main loop (i.e. check out of service before changing output) */
                 status = true;
             } else {

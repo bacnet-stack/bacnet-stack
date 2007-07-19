@@ -14,11 +14,6 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-DBACDL_BIP=1" />
-					<Add option="-DBIP_DEBUG=1" />
-					<Add option="-DUSE_INADDR=1" />
-					<Add option="-DPRINT_ENABLED=1" />
-					<Add option="-DBIG_ENDIAN=0" />
 					<Add directory="." />
 					<Add directory="..\handler" />
 					<Add directory="..\object" />
@@ -54,7 +49,7 @@
 			<Add option="-O" />
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DBACDL_MSTP=1" />
+			<Add option="-DBACDL_BIP=1" />
 			<Add option="-DBIP_DEBUG=1" />
 			<Add option="-DUSE_INADDR=1" />
 			<Add option="-DPRINT_ENABLED=1" />
@@ -138,6 +133,9 @@
 		<Unit filename="..\handler\h_rp.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\handler\h_rpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\handler\h_ts.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -150,6 +148,7 @@
 		<Unit filename="..\handler\h_wp.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\handler\handlers.h" />
 		<Unit filename="..\handler\noserv.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -218,6 +217,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\indtext.h" />
+		<Unit filename="..\..\mstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\..\npdu.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -226,9 +228,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\ports\win32\dlmstp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\ports\win32\mstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\ports\win32\mstp.h" />
@@ -249,6 +248,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\rp.h" />
+		<Unit filename="..\..\rpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\rpm.h" />
 		<Unit filename="..\..\timesync.c">
 			<Option compilerVar="CC" />
 		</Unit>

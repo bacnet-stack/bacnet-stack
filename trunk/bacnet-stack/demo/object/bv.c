@@ -47,6 +47,47 @@ static BACNET_BINARY_PV
 /* without changing the physical output */
 static bool Binary_Value_Out_Of_Service[MAX_BINARY_VALUES];
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Binary_Value_Properties_Required[] =
+{
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    -1
+};
+
+static const int Binary_Value_Properties_Optional[] =
+{
+    PROP_DESCRIPTION,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    -1
+};
+
+static const int Binary_Value_Properties_Proprietary[] =
+{
+    -1
+};
+
+void Binary_Value_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = Binary_Value_Properties_Required;
+    if (*pOptional)
+        *pOptional = Binary_Value_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = Binary_Value_Properties_Proprietary;
+
+    return;
+}
+
 void Binary_Value_Init(void)
 {
     unsigned i, j;
@@ -194,9 +235,6 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
         object_index = Binary_Value_Instance_To_Index(object_instance);
         state = Binary_Value_Out_Of_Service[object_index];
         apdu_len = encode_tagged_boolean(&apdu[0], state);
-        break;
-    case PROP_POLARITY:
-        apdu_len = encode_tagged_enumerated(&apdu[0], polarity);
         break;
     case PROP_PRIORITY_ARRAY:
         /* Array element zero is the number of elements in the array */
