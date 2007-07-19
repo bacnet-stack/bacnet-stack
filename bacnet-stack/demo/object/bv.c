@@ -192,7 +192,6 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
-    BACNET_POLARITY polarity = POLARITY_NORMAL;
     unsigned object_index = 0;
     unsigned i = 0;
     bool state = false;
