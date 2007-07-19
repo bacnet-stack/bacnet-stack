@@ -156,6 +156,8 @@ int rpm_decode_object_property(uint8_t * apdu,
     /* check for valid pointers */
     if (apdu && apdu_len && object_property && array_index) {
         /* Tag 0: propertyIdentifier */
+        if (!decode_is_context_specific(&apdu[len]))
+            return -1;
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != 0)
@@ -164,7 +166,9 @@ int rpm_decode_object_property(uint8_t * apdu,
         if (object_property)
             *object_property = (BACNET_PROPERTY_ID)property;
         /* Tag 1: Optional propertyArrayIndex */
-        if (len < apdu_len) {
+        if ((len < apdu_len) &&
+            decode_is_context_specific(&apdu[len]) &&
+            (!decode_is_closing_tag(&apdu[len]))) {
             option_len =
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
@@ -180,34 +184,6 @@ int rpm_decode_object_property(uint8_t * apdu,
     }
 
     return (int) len;
-}
-
-int rpm_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len,
-    uint8_t * invoke_id,
-    uint8_t ** service_request, unsigned *service_request_len)
-{
-    unsigned offset = 0;
-
-    if (!apdu)
-        return -1;
-    /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
-        return -1;
-    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
-    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE)
-        return -1;
-    offset = 4;
-
-    if (apdu_len > offset) {
-        if (service_request)
-            *service_request = &apdu[offset];
-        if (service_request_len)
-            *service_request_len = apdu_len - offset;
-    }
-
-    return offset;
 }
 
 int rpm_ack_encode_apdu_init(uint8_t * apdu, uint8_t invoke_id)
@@ -354,6 +330,8 @@ int rpm_ack_decode_object_property(uint8_t * apdu,
     /* check for valid pointers */
     if (apdu && apdu_len && object_property && array_index) {
         /* Tag 2: propertyIdentifier */
+        if (!decode_is_context_specific(&apdu[len]))
+            return -1;
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != 2)
@@ -362,19 +340,31 @@ int rpm_ack_decode_object_property(uint8_t * apdu,
         if (object_property)
             *object_property = (BACNET_PROPERTY_ID)property;				
         /* Tag 3: Optional propertyArrayIndex */
-        tag_len = decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value_type);
-        if (tag_number == 3) {
-            len += tag_len;
-            len += decode_unsigned(&apdu[len], len_value_type,
-                &array_value);
-            *array_index = array_value;
-        } else
+        if ((len < apdu_len) &&
+            decode_is_context_specific(&apdu[len]) &&
+            (!decode_is_closing_tag(&apdu[len]))) {
+            tag_len = decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
+            if (tag_number == 3) {
+                len += tag_len;
+                len += decode_unsigned(&apdu[len], len_value_type,
+                    &array_value);
+                *array_index = array_value;
+            } else {
+                *array_index = BACNET_ARRAY_ALL;
+            }
+        } else {
             *array_index = BACNET_ARRAY_ALL;
+        }
     }
 
     return (int) len;
 }
+
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
 
 int rpm_ack_decode_apdu(uint8_t * apdu, int apdu_len,   /* total length of the apdu */
     uint8_t * invoke_id,
@@ -401,10 +391,33 @@ int rpm_ack_decode_apdu(uint8_t * apdu, int apdu_len,   /* total length of the a
     return offset;
 }
 
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
+int rpm_decode_apdu(uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id,
+    uint8_t ** service_request, unsigned *service_request_len)
+{
+    unsigned offset = 0;
+
+    if (!apdu)
+        return -1;
+    /* optional checking - most likely was already done prior to this call */
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+        return -1;
+    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+    if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE)
+        return -1;
+    offset = 4;
+
+    if (apdu_len > offset) {
+        if (service_request)
+            *service_request = &apdu[offset];
+        if (service_request_len)
+            *service_request_len = apdu_len - offset;
+    }
+
+    return offset;
+}
 
 void testReadPropertyMultiple(Test * pTest)
 {

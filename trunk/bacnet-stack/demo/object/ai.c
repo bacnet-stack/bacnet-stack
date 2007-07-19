@@ -68,11 +68,11 @@ void Analog_Input_Property_Lists(
     const int **pOptional,
     const int **pProprietary)
 {
-    if (*pRequired)
+    if (pRequired)
         *pRequired = Analog_Input_Properties_Required;
-    if (*pOptional)
+    if (pOptional)
         *pOptional = Analog_Input_Properties_Optional;
-    if (*pProprietary)
+    if (pProprietary)
         *pProprietary = Analog_Input_Properties_Proprietary;
 
     return;

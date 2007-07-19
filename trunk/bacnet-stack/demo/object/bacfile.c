@@ -83,11 +83,11 @@ void BACfile_Property_Lists(
     const int **pOptional,
     const int **pProprietary)
 {
-    if (*pRequired)
+    if (pRequired)
         *pRequired = bacfile_Properties_Required;
-    if (*pOptional)
+    if (pOptional)
         *pOptional = bacfile_Properties_Optional;
-    if (*pProprietary)
+    if (pProprietary)
         *pProprietary = bacfile_Properties_Proprietary;
 
     return;
