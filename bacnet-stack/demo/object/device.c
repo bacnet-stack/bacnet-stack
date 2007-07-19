@@ -69,8 +69,10 @@ static const int Device_Properties_Required[] =
     PROP_SEGMENTATION_SUPPORTED,
     PROP_APDU_TIMEOUT,
     PROP_NUMBER_OF_APDU_RETRIES,
+#if defined(BACDL_MSTP)
     PROP_MAX_MASTER,
     PROP_MAX_INFO_FRAMES,
+#endif
     PROP_DEVICE_ADDRESS_BINDING,
     PROP_DATABASE_REVISION,
     -1
@@ -835,6 +837,15 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     case PROP_DATABASE_REVISION:
         apdu_len = encode_tagged_unsigned(&apdu[0], Database_Revision);
         break;
+#if defined(BACDL_MSTP)
+    case PROP_MAX_INFO_FRAMES:
+        apdu_len =
+            encode_tagged_unsigned(&apdu[0], dlmstp_max_info_frames());
+        break;
+    case PROP_MAX_MASTER:
+        apdu_len = encode_tagged_unsigned(&apdu[0], dlmstp_max_master());
+        break;
+#endif
     default:
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
