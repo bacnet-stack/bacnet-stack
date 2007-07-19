@@ -37,6 +37,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
+#include <process.h>
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -127,6 +128,7 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
     DWORD wait_status = 0;
 
+    (void)max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
     wait_status = WaitForSingleObject(Receive_Packet_Flag,timeout);
@@ -157,6 +159,7 @@ static void dlmstp_receive_fsm_task(void *pArg)
 {
     bool received_frame;
 
+    (void)pArg;
     (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
     while (TRUE) {
         /* only do receive state machine while we don't have a frame */
@@ -180,6 +183,7 @@ static void dlmstp_master_fsm_task(void *pArg)
 {
     DWORD dwMilliseconds = 0;
 
+    (void)pArg;
     (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
     while (TRUE) {
         switch (MSTP_Port.master_state) {
@@ -204,6 +208,7 @@ static void dlmstp_master_fsm_task(void *pArg)
 
 static void dlmstp_millisecond_task(void *pArg)
 {
+    (void)pArg;
     (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
     for (;;) {
         dlmstp_millisecond_timer();

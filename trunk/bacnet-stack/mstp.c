@@ -149,7 +149,7 @@ uint16_t MSTP_Create_Frame(uint8_t * buffer,    /* where frame is loaded */
 {                               /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
-    unsigned index = 0;         /* used to load the data portion of the frame */
+    uint16_t index = 0;         /* used to load the data portion of the frame */
 
     /* not enough to do a header */
     if (buffer_len < 8)
