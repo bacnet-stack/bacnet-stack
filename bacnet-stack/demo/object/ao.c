@@ -56,6 +56,48 @@ static bool Analog_Output_Out_Of_Service[MAX_ANALOG_OUTPUTS];
 /* we need to have our arrays initialized before answering any calls */
 static bool Analog_Output_Initialized = false;
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Analog_Output_Properties_Required[] =
+{
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    -1
+};
+
+static const int Analog_Output_Properties_Optional[] =
+{
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Analog_Output_Properties_Proprietary[] =
+{
+    -1
+};
+
+void Analog_Output_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = Analog_Output_Properties_Required;
+    if (*pOptional)
+        *pOptional = Analog_Output_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = Analog_Output_Properties_Proprietary;
+
+    return;
+}
+
 void Analog_Output_Init(void)
 {
     unsigned i, j;
@@ -172,8 +214,8 @@ bool Analog_Output_Present_Value_Set(uint32_t object_instance,
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
-               However, if Out of Service is TRUE, then don't set the 
-               physical output.  This comment may apply to the 
+               However, if Out of Service is TRUE, then don't set the
+               physical output.  This comment may apply to the
                main loop (i.e. check out of service before changing output) */
             status = true;
         }
@@ -196,8 +238,8 @@ bool Analog_Output_Present_Value_Relinquish(uint32_t object_instance,
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
-               However, if Out of Service is TRUE, then don't set the 
-               physical output.  This comment may apply to the 
+               However, if Out of Service is TRUE, then don't set the
+               physical output.  This comment may apply to the
                main loop (i.e. check out of service before changing output) */
             status = true;
         }

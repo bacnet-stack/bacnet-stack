@@ -19,7 +19,7 @@ BACNET_PORT = ../../ports/linux
 BACNET_OBJECT = ../object
 BACNET_HANDLER = ../handler
 BACNET_ROOT = ../..
-INCLUDES = -I$(BACNET_ROOT) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER) 
+INCLUDES = -I$(BACNET_ROOT) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
 
 CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
@@ -38,6 +38,7 @@ SRCS = main.c \
        $(BACNET_HANDLER)/noserv.c \
        $(BACNET_HANDLER)/h_whois.c \
        $(BACNET_HANDLER)/h_rp.c \
+       $(BACNET_HANDLER)/h_rpm.c \
        $(BACNET_HANDLER)/h_wp.c  \
        $(BACNET_HANDLER)/h_arf.c  \
        $(BACNET_HANDLER)/h_awf.c  \
@@ -71,6 +72,7 @@ SRCS = main.c \
        $(BACNET_ROOT)/whohas.c \
        $(BACNET_ROOT)/ihave.c \
        $(BACNET_ROOT)/rp.c \
+       $(BACNET_ROOT)/rpm.c \
        $(BACNET_ROOT)/wp.c \
        $(BACNET_ROOT)/arf.c \
        $(BACNET_ROOT)/awf.c \
@@ -86,17 +88,17 @@ SRCS = main.c \
 OBJS = ${SRCS:.c=.o}
 
 all: ${TARGET}
- 
+
 ${TARGET}: ${OBJS}
-	${CC} -pthread -o $@ ${OBJS} 
+	${CC} -pthread -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
 	rm -rf core ${TARGET} $(OBJS) *.bak ports/linux/*.bak *.1 *.ini
 

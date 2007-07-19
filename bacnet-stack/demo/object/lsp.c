@@ -50,6 +50,50 @@ static BACNET_LIFE_SAFETY_OPERATION
 /* without changing the physical output */
 static bool Life_Safety_Point_Out_Of_Service[MAX_LIFE_SAFETY_POINTS];
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Life_Safety_Point_Properties_Required[] =
+{
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_RELIABILITY,
+    PROP_MODE,
+    PROP_ACCEPTED_MODES,
+    PROP_SILENCED,
+    PROP_OPERATION_EXPECTED,
+    -1
+};
+
+static const int Life_Safety_Point_Properties_Optional[] =
+{
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Life_Safety_Point_Properties_Proprietary[] =
+{
+    -1
+};
+
+void Life_Safety_Point_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = Life_Safety_Point_Properties_Required;
+    if (*pOptional)
+        *pOptional = Life_Safety_Point_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = Life_Safety_Point_Properties_Proprietary;
+
+    return;
+}
+
 void Life_Safety_Point_Init(void)
 {
     static bool initialized = false;
@@ -159,7 +203,7 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
     unsigned object_index = 0;
     bool state = false;
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
-    
+
     (void) array_index;        /* currently not used */
     Life_Safety_Point_Init();
     switch (property) {

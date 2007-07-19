@@ -35,6 +35,10 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+    void Load_Control_Property_Lists(
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
     void Load_Control_State_Machine_Handler(void);
 
     bool Load_Control_Valid_Instance(uint32_t object_instance);

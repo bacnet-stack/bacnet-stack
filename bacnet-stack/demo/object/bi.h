@@ -33,6 +33,10 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+    void Binary_Input_Property_Lists(
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
     bool Binary_Input_Valid_Instance(uint32_t object_instance);
     unsigned Binary_Input_Count(void);
     uint32_t Binary_Input_Index_To_Instance(unsigned index);

@@ -52,6 +52,48 @@ static BACNET_FILE_LISTING BACnet_File_Listing[] = {
     {0, NULL}                   /* last file indication */
 };
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int bacfile_Properties_Required[] =
+{
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_FILE_TYPE,
+    PROP_FILE_SIZE,
+    PROP_MODIFICATION_DATE,
+    PROP_ARCHIVE,
+    PROP_READ_ONLY,
+    PROP_FILE_ACCESS_METHOD,
+    -1
+};
+
+static const int bacfile_Properties_Optional[] =
+{
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int bacfile_Properties_Proprietary[] =
+{
+    -1
+};
+
+void BACfile_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = bacfile_Properties_Required;
+    if (*pOptional)
+        *pOptional = bacfile_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = bacfile_Properties_Proprietary;
+
+    return;
+}
+
+
 char *bacfile_name(uint32_t instance)
 {
     uint32_t index = 0;
@@ -393,7 +435,7 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA * data)
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
             if (fwrite(octetstring_value(&data->fileData),
 	        octetstring_length(&data->fileData),1,pFile) != 1) {
-			
+
 	    }
             fclose(pFile);
         }

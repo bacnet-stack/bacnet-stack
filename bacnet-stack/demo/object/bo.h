@@ -35,6 +35,10 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+    void Binary_Output_Property_Lists(
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
     bool Binary_Output_Valid_Instance(uint32_t object_instance);
     unsigned Binary_Output_Count(void);
     uint32_t Binary_Output_Index_To_Instance(unsigned index);

@@ -24,6 +24,7 @@
 *********************************************************************/
 
 /* Load Control Objects - customize for your use */
+/* from 135-2004-Addendum e */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -105,20 +106,20 @@ static bool Start_Time_Property_Written[MAX_LOAD_CONTROLS];
 static float Full_Duty_Baseline[MAX_LOAD_CONTROLS];
 
 #define MAX_SHED_LEVELS 3
-/* Represents the shed levels for the LEVEL choice of 
-   BACnetShedLevel that have meaning for this particular 
+/* Represents the shed levels for the LEVEL choice of
+   BACnetShedLevel that have meaning for this particular
    Load Control object. */
-/* The elements of the array are required to be writable, 
-   allowing local configuration of how this Load Control 
+/* The elements of the array are required to be writable,
+   allowing local configuration of how this Load Control
    object will participate in load shedding for the
-   facility. This array is not required to be resizable 
-   through BACnet write services. The size of this array 
-   shall be equal to the size of the Shed_Level_Descriptions 
-   array. The behavior of this object when the Shed_Levels 
+   facility. This array is not required to be resizable
+   through BACnet write services. The size of this array
+   shall be equal to the size of the Shed_Level_Descriptions
+   array. The behavior of this object when the Shed_Levels
    array contains duplicate entries is a local matter. */
 static unsigned Shed_Levels[MAX_LOAD_CONTROLS][MAX_SHED_LEVELS];
 
-/* represents a description of the shed levels that the 
+/* represents a description of the shed levels that the
    Load Control object can take on.  It is the same for
    all the load control objects in this example device. */
 static char *Shed_Level_Descriptions[MAX_SHED_LEVELS] = {
@@ -135,6 +136,54 @@ static float Shed_Level_Values[MAX_SHED_LEVELS] = {
 
 /* we need to have our arrays initialized before answering any calls */
 static bool Load_Control_Initialized = false;
+
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Load_Control_Properties_Required[] =
+{
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_REQUESTED_SHED_LEVEL,
+    PROP_START_TIME,
+    PROP_SHED_DURATION,
+    PROP_DUTY_WINDOW,
+    PROP_ENABLE,
+    PROP_EXPECTED_SHED_LEVEL,
+    PROP_ACTUAL_SHED_LEVEL,
+    PROP_SHED_LEVELS,
+    PROP_SHED_LEVEL_DESCRIPTIONS,
+    -1
+};
+
+static const int Load_Control_Properties_Optional[] =
+{
+    PROP_DESCRIPTION,
+    PROP_FULL_DUTY_BASELINE,
+    -1
+};
+
+static const int Load_Control_Properties_Proprietary[] =
+{
+    -1
+};
+
+void Load_Control_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (*pRequired)
+        *pRequired = Load_Control_Properties_Required;
+    if (*pOptional)
+        *pOptional = Load_Control_Properties_Optional;
+    if (*pProprietary)
+        *pProprietary = Load_Control_Properties_Proprietary;
+
+    return;
+}
 
 void Load_Control_Init(void)
 {
@@ -673,15 +722,15 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_STATUS_FLAGS:
         bitstring_init(&bit_string);
-        /* IN_ALARM - Logical FALSE (0) if the Event_State property 
+        /* IN_ALARM - Logical FALSE (0) if the Event_State property
            has a value of NORMAL, otherwise logical TRUE (1). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-        /* FAULT - Logical      TRUE (1) if the Reliability property is 
-           present and does not have a value of NO_FAULT_DETECTED, 
+        /* FAULT - Logical      TRUE (1) if the Reliability property is
+           present and does not have a value of NO_FAULT_DETECTED,
            otherwise logical FALSE (0). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
-        /* OVERRIDDEN - Logical TRUE (1) if the point has been 
-           overridden by some mechanism local to the BACnet Device, 
+        /* OVERRIDDEN - Logical TRUE (1) if the point has been
+           overridden by some mechanism local to the BACnet Device,
            otherwise logical FALSE (0). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
         /* OUT_OF_SERVICE - This bit shall always be Logical FALSE (0). */
