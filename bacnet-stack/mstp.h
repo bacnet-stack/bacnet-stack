@@ -147,7 +147,7 @@ struct mstp_port_struct_t {
     /* The number of frames sent by this node during a single token hold. */
     /* When this counter reaches the value Nmax_info_frames, the node must */
     /* pass the token. */
-    unsigned FrameCount;
+    uint8_t FrameCount;
     /* Used to accumulate the CRC on the header of a frame. */
     uint8_t HeaderCRC;
     /* Used to store the actual CRC from the header. */
@@ -223,7 +223,7 @@ struct mstp_port_struct_t {
     /* allowable address for master nodes. The value of Max_Master shall be */
     /* less than or equal to 127. If Max_Master is not writable in a node, */
     /* its value shall be 127. */
-    unsigned Nmax_master;
+    uint8_t Nmax_master;
 
     /* An array of octets, used to store octets for transmitting */
     /* OutputBuffer is indexed from 0 to OutputBufferSize-1. */
