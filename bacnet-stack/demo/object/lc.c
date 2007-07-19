@@ -175,11 +175,11 @@ void Load_Control_Property_Lists(
     const int **pOptional,
     const int **pProprietary)
 {
-    if (*pRequired)
+    if (pRequired)
         *pRequired = Load_Control_Properties_Required;
-    if (*pOptional)
+    if (pOptional)
         *pOptional = Load_Control_Properties_Optional;
-    if (*pProprietary)
+    if (pProprietary)
         *pProprietary = Load_Control_Properties_Proprietary;
 
     return;

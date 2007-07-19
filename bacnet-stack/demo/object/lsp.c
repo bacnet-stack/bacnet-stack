@@ -84,11 +84,11 @@ void Life_Safety_Point_Property_Lists(
     const int **pOptional,
     const int **pProprietary)
 {
-    if (*pRequired)
+    if (pRequired)
         *pRequired = Life_Safety_Point_Properties_Required;
-    if (*pOptional)
+    if (pOptional)
         *pOptional = Life_Safety_Point_Properties_Optional;
-    if (*pProprietary)
+    if (pProprietary)
         *pProprietary = Life_Safety_Point_Properties_Proprietary;
 
     return;
