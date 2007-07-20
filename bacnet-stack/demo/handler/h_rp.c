@@ -52,6 +52,139 @@
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
+/* Encodes the property APDU and returns the length,
+   or sets the error, and returns -1 */
+int Encode_Property_APDU(
+    uint8_t * apdu,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID property,
+    int32_t array_index,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
+{
+    int apdu_len = -1;
+
+    /* initialize the default return values */
+    *error_class = ERROR_CLASS_OBJECT;
+    *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    /* handle each object type */
+    switch(object_type) {
+        case OBJECT_DEVICE:
+            if ((object_instance == Device_Object_Instance_Number()) ||
+                (object_instance == BACNET_MAX_INSTANCE)) {
+                apdu_len = Device_Encode_Property_APDU(
+                    &apdu[0],
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_ANALOG_INPUT:
+            if (Analog_Input_Valid_Instance(object_instance)) {
+                apdu_len = Analog_Input_Encode_Property_APDU(
+                    &apdu[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_ANALOG_OUTPUT:
+            if (!Analog_Output_Valid_Instance(object_instance)) {
+                apdu_len = Analog_Output_Encode_Property_APDU(
+                    &apdu[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_ANALOG_VALUE:
+            if (Analog_Value_Valid_Instance(object_instance)) {
+                apdu_len = Analog_Value_Encode_Property_APDU(&Temp_Buf[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_BINARY_INPUT:
+            if (Binary_Input_Valid_Instance(object_instance)) {
+                apdu_len = Binary_Input_Encode_Property_APDU(
+                    &apdu[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_BINARY_OUTPUT:
+            if (Binary_Output_Valid_Instance(object_instance)) {
+                apdu_len = Binary_Output_Encode_Property_APDU(
+                    &apdu[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_BINARY_VALUE:
+            if (Binary_Value_Valid_Instance(object_instance)) {
+                apdu_len = Binary_Value_Encode_Property_APDU(&Temp_Buf[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+            if (Life_Safety_Point_Valid_Instance(object_instance)) {
+                apdu_len = Life_Safety_Point_Encode_Property_APDU(&Temp_Buf[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_LOAD_CONTROL:
+            if (Load_Control_Valid_Instance(object_instance)) {
+                apdu_len = Load_Control_Encode_Property_APDU(&Temp_Buf[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_MULTI_STATE_OUTPUT:
+            if (Multistate_Output_Valid_Instance(object_instance)) {
+                apdu_len = Multistate_Output_Encode_Property_APDU(&Temp_Buf[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+#if BACFILE
+        case OBJECT_FILE:
+            if (bacfile_valid_instance(object_instance)) {
+                apdu_len = bacfile_encode_property_apdu(&Temp_Buf[0],
+                    object_instance,
+                    property,
+                    array_index,
+                    error_class, error_code);
+            }
+            break;
+#endif
+        default:
+            *error_class = ERROR_CLASS_OBJECT;
+            *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+            break;
+    }
+
+    return apdu_len;
+}
+
 void handler_read_property(uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
@@ -94,247 +227,26 @@ void handler_read_property(uint8_t * service_request,
     } else {
         /* most cases will be error */
         error = true;
-        switch (data.object_type) {
-        case OBJECT_DEVICE:
+        len = Encode_Property_APDU(
+            &Temp_Buf[0],
+            data.object_type,
+            data.object_instance,
+            data.object_property,
+            data.array_index,
+            &error_class, &error_code);
+        if (len >= 0) {
+            /* encode the APDU portion of the packet */
+            data.application_data = &Temp_Buf[0];
+            data.application_data_len = len;
             /* FIXME: probably need a length limitation sent with encode */
-            if (data.object_instance == Device_Object_Instance_Number()) {
-                len = Device_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
+            len =
+                rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, &data);
 #if PRINT_ENABLED
-                    fprintf(stderr,
-                        "Sending Read Property Ack for Device!\n");
+            fprintf(stderr,
+                "Sending Read Property Ack!\n");
 #endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_ANALOG_INPUT:
-            if (Analog_Input_Valid_Instance(data.object_instance)) {
-                len = Analog_Input_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr, "Sending Read Property Ack for AI!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance(data.object_instance)) {
-                len = Binary_Input_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr, "Sending Read Property Ack for BI!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_BINARY_OUTPUT:
-            if (Binary_Output_Valid_Instance(data.object_instance)) {
-                len = Binary_Output_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr, "Sending Read Property Ack for BO!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_BINARY_VALUE:
-            if (Binary_Value_Valid_Instance(data.object_instance)) {
-                len = Binary_Value_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr, "Sending Read Property Ack for BV!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_ANALOG_OUTPUT:
-            if (Analog_Output_Valid_Instance(data.object_instance)) {
-                len = Analog_Output_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr, "Sending Read Property Ack for AO!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_ANALOG_VALUE:
-            if (Analog_Value_Valid_Instance(data.object_instance)) {
-                len = Analog_Value_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr, "Sending Read Property Ack for AV!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_LIFE_SAFETY_POINT:
-            if (Life_Safety_Point_Valid_Instance(data.object_instance)) {
-                len = Life_Safety_Point_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr,
-                        "Sending Read Property Ack for LSP!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_LOAD_CONTROL:
-            if (Load_Control_Valid_Instance(data.object_instance)) {
-                len = Load_Control_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr,
-                        "Sending Read Property Ack for Load Control!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-        case OBJECT_MULTI_STATE_OUTPUT:
-            if (Multistate_Output_Valid_Instance(data.object_instance)) {
-                len = Multistate_Output_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr,
-                        "Sending Read Property Ack for MSO!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-#if BACFILE
-        case OBJECT_FILE:
-            if (bacfile_valid_instance(data.object_instance)) {
-                len = bacfile_encode_property_apdu(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property,
-                    data.array_index, &error_class, &error_code);
-                if (len >= 0) {
-                    /* encode the APDU portion of the packet */
-                    data.application_data = &Temp_Buf[0];
-                    data.application_data_len = len;
-                    /* FIXME: probably need a length limitation sent with encode */
-                    len =
-                        rp_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
-#if PRINT_ENABLED
-                    fprintf(stderr,
-                        "Sending Read Property Ack for File!\n");
-#endif
-                    error = false;
-                }
-            }
-            break;
-#endif                          /* BACFILE */
-        default:
-            break;
+            error = false;
         }
     }
     if (error) {
