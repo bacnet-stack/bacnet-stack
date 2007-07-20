@@ -369,7 +369,6 @@ void testNPDU2(Test * pTest)
     BACNET_NETWORK_MESSAGE_TYPE network_message_type = 0;       /* optional */
     uint16_t vendor_id = 0;     /* optional, if net message type is > 0x80 */
 
-    /* mac_len = 0 if global address */
     dest.mac_len = 6;
     for (i = 0; i < dest.mac_len; i++) {
         dest.mac[i] = i;
@@ -399,7 +398,10 @@ void testNPDU2(Test * pTest)
     ct_test(pTest, npdu_data.data_expecting_reply == data_expecting_reply);
     ct_test(pTest,
         npdu_data.network_layer_message == network_layer_message);
-    ct_test(pTest, npdu_data.network_message_type == network_message_type);
+    if (npdu_data.network_layer_message) {
+        ct_test(pTest,
+            npdu_data.network_message_type == network_message_type);
+    }
     ct_test(pTest, npdu_data.vendor_id == vendor_id);
     ct_test(pTest, npdu_data.priority == priority);
     /* DNET,DLEN,DADR */
@@ -463,7 +465,10 @@ void testNPDU1(Test * pTest)
     ct_test(pTest, npdu_data.data_expecting_reply == data_expecting_reply);
     ct_test(pTest,
         npdu_data.network_layer_message == network_layer_message);
-    ct_test(pTest, npdu_data.network_message_type == network_message_type);
+    if (npdu_data.network_layer_message) {
+        ct_test(pTest,
+            npdu_data.network_message_type == network_message_type);
+    }
     ct_test(pTest, npdu_data.vendor_id == vendor_id);
     ct_test(pTest, npdu_data.priority == priority);
     ct_test(pTest, npdu_dest.mac_len == src.mac_len);
