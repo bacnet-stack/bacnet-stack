@@ -46,7 +46,9 @@
 #if BACFILE
 #include "bacfile.h"            /* object list dependency */
 #endif
-
+#if defined(BACDL_MSTP)
+#include "dlmstp.h"
+#endif
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] =
 {
@@ -891,7 +893,6 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-
     case PROP_NUMBER_OF_APDU_RETRIES:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* FIXME: bounds check? */
@@ -903,7 +904,6 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-
     case PROP_APDU_TIMEOUT:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* FIXME: bounds check? */
@@ -914,7 +914,6 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-
     case PROP_VENDOR_IDENTIFIER:
         if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
             /* FIXME: bounds check? */
@@ -926,7 +925,6 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-
     case PROP_SYSTEM_STATUS:
         if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
             /* FIXME: bounds check? */
@@ -937,7 +935,6 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-
     case PROP_OBJECT_NAME:
         if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             uint8_t encoding;
@@ -961,8 +958,38 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-
-    default:
+#if defined(BACDL_MSTP)
+    case PROP_MAX_INFO_FRAMES:
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if (value.type.Unsigned_Int <= 255) {
+                dlmstp_set_max_info_frames(value.type.Unsigned_Int);
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        break;
+    case PROP_MAX_MASTER:
+        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if ((value.type.Unsigned_Int > 0) &&
+                (value.type.Unsigned_Int <= 127)) {
+                dlmstp_set_max_master(value.type.Unsigned_Int);
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+        break;
+#endif
+        default:
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         break;

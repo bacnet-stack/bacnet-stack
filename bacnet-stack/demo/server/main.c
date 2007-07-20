@@ -45,6 +45,9 @@
 #include "net.h"
 #include "txbuf.h"
 #include "lc.h"
+#if defined(BACDL_MSTP)
+#include "rs485.h"
+#endif
 
 /* This is an example server application using the BACnet Stack */
 
@@ -122,8 +125,10 @@ int main(int argc, char *argv[])
     }
 #endif
     printf("BACnet Server Demo\n"
-        "BACnet Device ID: %u\r\n",
-        Device_Object_Instance_Number());
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
+        Device_Object_Instance_Number(),
+        MAX_APDU);
     Init_Service_Handlers();
     if (!datalink_init(Network_Interface))
         return 1;
