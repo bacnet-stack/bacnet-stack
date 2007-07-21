@@ -133,7 +133,9 @@
   for communication, and BACnet/IP is supported under Win32.  BACnet Ethernet 
   can also be used under Win32 with the <a href="http://www.winpcap.org/">WinPcap library</a>.
   Root priveleges are required to run the Ethernet or ARCNET interfaces
-  on Linux, but not needed to run BACnet/IP.</p>
+  on Linux, but not needed to run BACnet/IP. 
+  MS/TP support under Windows or Linux using a USB to RS-485 device is a
+  work in progress. </p>
 
   <code>
   $ make clean all<br>
@@ -183,7 +185,7 @@
   <p>The demos can be compiled under Win32 using <a href="http://www.borland.com/bcppbuilder/freecompiler/">Borland C++</a> or
   <a href="http://msdn.microsoft.com/visualc/vctoolkit2003/">Microsoft Visual C++</a>, both of which
   are free (as in beer) command line compilers. Be sure to pick up the free
-  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a> (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>, <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>), as well as the free turbo debugger.  It might also be possible to create Win32 projects using the free <a href="http://msdn.microsoft.com/vstudio/express/">Visual Studio Express Edition</a> or <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a>, but I have haven't tried it.  I have used <a href="http://codeblocks.org/">Code::Blocks</a> for compiling the unit tests using the MinGW compiler, but have not tried to get the demos working with MinGW. I have used <a href="http://codeblocks.org/">Code::Blocks</a> with the Borland C++ compiler and it successfully compiles the code.</p>
+  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a> (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>, <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>), as well as the free turbo debugger.  It is also possible to create Win32 projects using the free <a href="http://msdn.microsoft.com/vstudio/express/">Visual Studio Express Edition</a> after downloading the platform development kit for your operating system.  You can also use <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a> which comes with Code::Blocks.  I frequently use <a href="http://codeblocks.org/">Code::Blocks</a> for compiling the unit tests using the MinGW compiler and created some Code::Block projects for some of the demos. I have also used <a href="http://codeblocks.org/">Code::Blocks</a> with the Borland C++ compiler and it successfully compiles and runs the code.</p>
 
   <p>There is a Makefile in the ports/rtos32 directory, and a sample 
   application that runs under <a href="http://www.on-time.com/">RTOS-32</a>. 
@@ -288,7 +290,7 @@
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Read Property Multiple</td>
     <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
-    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
   </TR>
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Read Property Conditional</td>
@@ -420,7 +422,7 @@
 
   <p>If you want to help out on this project, join the <a href="http://lists.sourceforge.net/mailman/listinfo/bacnet-developers">developers mailing list</a>, introduce yourself, and tell us what you would like to do.
   If you are trying to implement a BACnet device or service using this project,
-  you are welcome to join the <a href="http://lists.sourceforge.net/mailman/listinfo/bacnet-developers">developers mailing list</a> as well.</p>
+  you are welcome to join the same <a href="http://lists.sourceforge.net/mailman/listinfo/bacnet-developers">developers mailing list</a> as well.</p>
 
   <p>More details about the project can be found on 
   the <a href="http://sourceforge.net/projects/bacnet/">BACnet Source Forge Project Page</a></p>
@@ -446,8 +448,8 @@
   <p>To check out the trunk, use "svn co", e.g.</p>
     <blockquote>
     <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/</code><br />
-    or<br />
-    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-3-0/</code>
+    or for the stable releases:<br />
+    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-3-3/</code>
     </blockquote>
 
 <h2>BACnet Developer Resources</h2>
@@ -507,6 +509,6 @@ access layer. BACnetSim is a fork of bacnet-stack-0.0.1</p>
     <b>BACnet<sup>&reg;</sup></b> are registered trademarks of the American
     Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.,
     1791 Tullie Circle NE, Atlanta, GA 30329.</font> </p>
-  <p>Website updated 2-Apr-2007 by <a href="mailto:skarg@users.sourceforge.net">Steve Karg</a></p>
+  <p>Website updated 21-Jul-2007 by <a href="mailto:skarg@users.sourceforge.net">Steve Karg</a></p>
 </BODY>
 </HTML>
