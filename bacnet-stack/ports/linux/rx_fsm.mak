@@ -8,7 +8,9 @@ CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = rs485.c \
 	rx_fsm.c \
-	mstp.c \
+	../../mstp.c \
+	../../mstptext.c \
+	../../indtext.c \
 	../../crc.c
 
 OBJS = ${SRCS:.c=.o}

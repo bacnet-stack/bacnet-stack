@@ -335,7 +335,7 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 #ifdef TEST_RS485
 static void test_transmit_task(void *pArg)
 {
-    char   	   *TxBuf = "BACnet MS/TP";
+    char *TxBuf = "BACnet MS/TP";
     size_t len = strlen(TxBuf)+1;
 
     while (TRUE) {
