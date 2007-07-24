@@ -29,11 +29,6 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
-					<Add option="-DBACDL_BIP=1" />
-					<Add option="-DBIP_DEBUG=1" />
-					<Add option="-DUSE_INADDR=1" />
-					<Add option="-DPRINT_ENABLED=1" />
-					<Add option="-DBIG_ENDIAN=0" />
 					<Add directory="." />
 					<Add directory="..\handler" />
 					<Add directory="..\object" />
