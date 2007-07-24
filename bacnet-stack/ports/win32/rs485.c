@@ -49,9 +49,6 @@
 
 /* details from Serial Communications in Win32 at MSDN */
 
-#define MAX_WRITE_BUFFER        1024
-#define MAX_READ_BUFFER         2048
-
 /* Win32 handle for the port */
 HANDLE RS485_Handle;
 /* Original COM Timeouts */
@@ -167,7 +164,7 @@ static void RS485_Configure_Status(void)
         RS485_Print_Error();
     }
     /* Set the Comm buffer size */
-    SetupComm(RS485_Handle, MAX_READ_BUFFER, MAX_WRITE_BUFFER);
+    SetupComm(RS485_Handle, MAX_MPDU, MAX_MPDU);
     /* raise DTR */
     if (!EscapeCommFunction(RS485_Handle, SETDTR)) {
         fprintf(stderr,"Unable to set DTR on %s\n", RS485_Port_Name);
@@ -284,6 +281,7 @@ void RS485_Send_Frame(
     uint32_t baud;
     DWORD dwWritten  = 0;
 
+    #if 0
     if (mstp_port) {
         baud = RS485_Get_Baud_Rate();
         /* wait about 40 bit times since reception */
@@ -297,9 +295,10 @@ void RS485_Send_Frame(
             /* do nothing - wait for timer to increment */
         };
     }
+    #endif
     WriteFile(RS485_Handle, buffer, nbytes, &dwWritten, NULL);
 
-    /* per MSTP spec, sort of */
+    /* per MSTP spec, reset SilenceTimer after each byte is sent */
     if (mstp_port) {
         mstp_port->SilenceTimer = 0;
     }
