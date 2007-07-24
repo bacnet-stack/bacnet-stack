@@ -46,13 +46,17 @@
 /* local includes */
 #include "bytes.h"
 #include "rs485.h"
-#include "mstp.h"
 #include "crc.h"
+#include "mstp.h"
+#include "mstptext.h"
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 
 /* local port data - shared with RS-485 */
-volatile struct mstp_port_struct_t MSTP_Port;
+static volatile struct mstp_port_struct_t MSTP_Port;
+/* buffers needed by mstp port struct */
+static uint8_t RxBuffer[MAX_MPDU];
+static uint8_t TxBuffer[MAX_MPDU];
     
 void *milliseconds_task(void *pArg)
 {
@@ -74,32 +78,61 @@ void dlmstp_millisecond_timer(void)
     INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
 }
 
-uint16_t dlmstp_put_receive(
-    uint8_t src,    /* source MS/TP address */
-    uint8_t * pdu,          /* PDU data */
-    uint16_t pdu_len)
+/* functions used by the MS/TP state machine to put or get data */
+uint16_t MSTP_Put_Receive(
+    volatile struct mstp_port_struct_t *mstp_port)
 {
-    (void)src;
-    (void)pdu;
-    (void)pdu_len;
+    (void)mstp_port;
     
     return 0;
 }
 
-uint16_t dlmstp_get_send(
-        uint8_t src, /* source MS/TP address for creating packet */
+/* for the MS/TP state machine to use for getting data to send */
+/* Return: amount of PDU data */
+uint16_t MSTP_Get_Send(
+    uint8_t src, /* source MS/TP address for creating packet */
     uint8_t * pdu, /* data to send */
     uint16_t max_pdu, /* amount of space available */
     unsigned timeout) /* milliseconds to wait for a packet */
 {
+    (void)src;
+    (void)pdu;
+    (void)max_pdu;
+    (void)timeout;
     return 0;
 }
+
+/* returns a delta timestamp */
+int timestamp_ms(void)
+{
+    struct timeval tv;
+    int delta_ticks = 0;
+    long ticks = 0;
+    static long last_ticks = 0;
+    int rv = 0;
+
+    rv = gettimeofday(&tv,NULL);
+    if (rv == -1)
+        ticks = 0;
+    else
+        ticks = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+
+    delta_ticks = ticks - last_ticks;
+    last_ticks = ticks;
+
+    return delta_ticks;
+}
+
+static char *Network_Interface = NULL;
 
 static void print_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    unsigned i;
+    unsigned i = 0;
+    int timestamp = 0;
 
+    timestamp = timestamp_ms();
+    fprintf(stderr,"%03d ",timestamp);
     /* Preamble: two octet preamble: X`55', X`FF' */
     /* Frame Type: one octet */
     /* Destination Address: one octet address */
@@ -128,6 +161,8 @@ static void print_received_packet(
                 mstp_port->DataCRCActualMSB,
                 mstp_port->DataCRCActualLSB);
     }
+    fprintf(stderr,"%s",
+        mstptext_frame_type(mstp_port->FrameType));
     fprintf(stderr,"\n");
 }
 
@@ -142,9 +177,12 @@ int main(void)
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
     /* initialize our interface */
-    RS485_Set_Interface("/dev/ttyS0");
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
     MSTP_Init(mstp_port);
     mstp_port->Lurking = true;
     /* start our MilliSec task */

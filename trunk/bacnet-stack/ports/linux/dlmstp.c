@@ -661,7 +661,7 @@ int main(int argc, char *argv[])
         nanosleep(&timeOut, &remains);
 #endif
         bytes_received =
-            dlmstp_receive(&src, &pdu[0], sizeof(pdu), 0);
+            dlmstp_receive(&src, &pdu[0], sizeof(pdu), 10000);
         if (bytes_received) {
             fprintf(stderr,"Received NPDU!\n");
         }
