@@ -541,7 +541,6 @@ void testBACnetUnsigned(Test * pTest)
     }
 }
 
-
 #ifdef TEST_BACINT
 int main(void)
 {
@@ -576,5 +575,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_DECODE */
+#endif                          /* TEST_BACINT */
 #endif                          /* TEST */
