@@ -1,0 +1,11 @@
+brackets=linux
+indent=spaces=4
+indent-classes
+indent=switches
+indent-cases
+max-instatement-indent=4
+min-conditional-indent=0
+convert-tabs
+mode=c
+suffix=none
+preserve-date
