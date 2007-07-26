@@ -36,11 +36,11 @@
 
 #include <stdint.h>
 
-// This file has the macros that encode and decode the
-// keys for the keylist when used with BACnet Object Id's
+/* This file has the macros that encode and decode the */
+/* keys for the keylist when used with BACnet Object Id's */
 typedef uint32_t KEY;
 
-// assuming a 32 bit KEY
+/* assuming a 32 bit KEY */
 #define KEY_TYPE_OFFSET  22     /* bits - for BACnet */
 #define KEY_TYPE_MASK    0x000003FFL
 #define KEY_ID_MASK  0x003FFFFFL

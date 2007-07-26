@@ -63,7 +63,7 @@ void dlmstp_millisecond_timer(void)
 
 void dlmstp_reinit(void)
 {
-    //RS485_Reinit();
+    /*RS485_Reinit(); */
     dlmstp_set_mac_address(DEFAULT_MAC_ADDRESS);
     dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);

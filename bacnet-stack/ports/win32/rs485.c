@@ -91,7 +91,7 @@ void RS485_Set_Interface(char *ifname)
 
 static void RS485_Print_Error(void)
 {
-    char * szExtended = "";      // error string translated from error code
+    char * szExtended = "";      /* error string translated from error code */
     DWORD dwExtSize;
     DWORD dwErr;
 
