@@ -31,8 +31,8 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-//#define TEST
-//#define TEST_KEY
+/*#define TEST */
+/*#define TEST_KEY */
 #include "key.h"
 
 #ifdef TEST
@@ -41,7 +41,7 @@
 
 #include "ctest.h"
 
-// test the encode and decode macros
+/* test the encode and decode macros */
 void testKeys(Test * pTest)
 {
     int type, id;
@@ -61,7 +61,7 @@ void testKeys(Test * pTest)
     return;
 }
 
-// test the encode and decode macros
+/* test the encode and decode macros */
 void testKeySample(Test * pTest)
 {
     int type, id;
@@ -99,8 +99,8 @@ int main(void)
 
     pTest = ct_create("key", NULL);
     /* add the individual tests */
-//  rc = ct_addTestFunction(pTest, testKeys);
-//  assert(rc);
+/*  rc = ct_addTestFunction(pTest, testKeys); */
+/*  assert(rc); */
     rc = ct_addTestFunction(pTest, testKeySample);
     assert(rc);
     /* run all the tests */
