@@ -6,6 +6,7 @@ CFLAGS  = -Wall -I. -Itest -g -DBIG_ENDIAN=0 -DTEST -DTEST_DECODE
 TARGET = bacdcode
 
 SRCS = bacdcode.c \
+       bacint.c \
        bacstr.c \
        test/ctest.c
 

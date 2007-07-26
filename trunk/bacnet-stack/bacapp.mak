@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_BACNET_APPLICATION_DATA -g
 
 SRCS = bacdcode.c \
+       bacint.c \
        bacstr.c \
        bacapp.c \
        datetime.c \

@@ -36,6 +36,7 @@
 #include <stdbool.h>            /* for the standard bool type. */
 #include <time.h>               /* for the standard bool type. */
 #include "bacdcode.h"
+#include "bacint.h"
 #include "bip.h"
 #include "net.h"                /* custom per port */
 

@@ -7,6 +7,7 @@ INCLUDES = -I. -Idemo/object -Itest
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = bacdcode.c \
+       bacint.c \
        bacstr.c \
        bigend.c \
        npdu.c \

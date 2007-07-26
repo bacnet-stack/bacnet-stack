@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_I_HAVE -g
 
 SRCS = bacdcode.c \
+       bacint.c \
        bacstr.c \
        bigend.c \
        ihave.c \

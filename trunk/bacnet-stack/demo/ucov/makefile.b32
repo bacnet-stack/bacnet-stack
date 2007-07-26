@@ -27,6 +27,7 @@ SRCS = main.c \
        ..\..\demo\handler\h_iam.c  \
        ..\..\demo\handler\h_rp.c  \
        ..\..\bacdcode.c \
+       ..\..\bacint.c \
        ..\..\bacapp.c \
        ..\..\bacstr.c \
        ..\..\bactext.c \

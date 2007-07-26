@@ -30,6 +30,7 @@ SRCS = main.c \
        ..\..\demo\handler\s_whois.c  \
        ..\..\demo\handler\s_rd.c  \
        ..\..\bacdcode.c \
+       ..\..\bacint.c \
        ..\..\bacapp.c \
        ..\..\bacstr.c \
        ..\..\bactext.c \

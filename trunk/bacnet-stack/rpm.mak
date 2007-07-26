@@ -11,6 +11,7 @@ SRCS = bacdcode.c \
        bacapp.c \
        bactext.c \
        indtext.c \
+       bacint.c \
        bacstr.c \
        datetime.c \
        rpm.c \

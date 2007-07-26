@@ -7,6 +7,7 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_REINITIALIZE_DEVICE -g
 
 SRCS = bacdcode.c \
+       bacint.c \
        bacstr.c \
        bigend.c \
        rd.c \

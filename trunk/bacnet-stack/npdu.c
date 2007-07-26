@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bacint.h"
 #include "bacenum.h"
 #include "bits.h"
 #include "npdu.h"

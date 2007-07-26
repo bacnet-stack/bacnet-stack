@@ -189,13 +189,6 @@ extern "C" {
         BACNET_DATE * bdate);
     int decode_date(uint8_t * apdu, BACNET_DATE * bdate);
 
-/* two octet unsigned16 */
-    int encode_unsigned16(uint8_t * apdu, uint16_t value);
-    int decode_unsigned16(uint8_t * apdu, uint16_t * value);
-/* four octet unsigned32 */
-    int encode_unsigned32(uint8_t * apdu, uint32_t value);
-    int decode_unsigned32(uint8_t * apdu, uint32_t * value);
-
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */
 /* returns the encoded octet */
