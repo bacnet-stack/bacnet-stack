@@ -49,6 +49,7 @@ SRCS = main.c \
        $(BACNET_ROOT)/rp.c \
        $(BACNET_ROOT)/wp.c \
        $(BACNET_ROOT)/bacdcode.c \
+       $(BACNET_ROOT)/bacint.c \
        $(BACNET_ROOT)/bacapp.c \
        $(BACNET_ROOT)/bacprop.c \
        $(BACNET_ROOT)/bacstr.c \
