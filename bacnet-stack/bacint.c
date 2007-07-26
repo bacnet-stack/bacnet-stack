@@ -279,111 +279,6 @@ int decode_signed32(uint8_t * apdu, int32_t * value)
     return 4;
 }
 
-/* from clause 20.2.5 Encoding of a Signed Integer Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
-int decode_signed(uint8_t * apdu, uint32_t len_value, int32_t * value)
-{
-    if (value) {
-        switch (len_value) {
-        case 1:
-            decode_signed8(&apdu[0], value);
-            break;
-        case 2:
-            decode_signed16(&apdu[0], value);
-            break;
-        case 3:
-            decode_signed24(&apdu[0], value);
-            break;
-        case 4:
-            decode_signed32(&apdu[0], value);
-            break;
-        default:
-            *value = 0;
-            break;
-        }
-    }
-
-    return len_value;
-}
-
-/* from clause 20.2.5 Encoding of a Signed Integer Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
-int encode_bacnet_signed(uint8_t * apdu, int32_t value)
-{
-    int len = 0;                /* return value */
-
-    /* don't encode the leading X'FF' or X'00' of the two's compliment.
-       That is, the first octet of any multi-octet encoded value shall
-       not be X'00' if the most significant bit (bit 7) of the second
-       octet is 0, and the first octet shall not be X'FF' if the most
-       significant bit of the second octet is 1. */
-    if ((value >= -128) && (value < 128)) {
-        len = encode_signed8(&apdu[0], (int8_t) value);
-    } else if ((value >= -32768) && (value < 32768)) {
-        len = encode_signed16(&apdu[0], (int16_t) value);
-    } else if ((value > -8388608) && (value < 8388608)) {
-        len = encode_signed24(&apdu[0], value);
-    } else {
-        len = encode_signed32(&apdu[0], value);
-    }
-
-    return len;
-}
-
-/* from clause 20.2.4 Encoding of an Unsigned Integer Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
-int encode_bacnet_unsigned(uint8_t * apdu, uint32_t value)
-{
-    int len = 0;                /* return value */
-
-    if (value < 0x100) {
-        apdu[0] = (uint8_t) value;
-        len = 1;
-    } else if (value < 0x10000) {
-        len = encode_unsigned16(&apdu[0], (uint16_t) value);
-    } else if (value < 0x1000000) {
-        len = encode_unsigned24(&apdu[0], value);
-    } else {
-        len = encode_unsigned32(&apdu[0], value);
-    }
-
-    return len;
-}
-
-/* from clause 20.2.4 Encoding of an Unsigned Integer Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
-int decode_unsigned(uint8_t * apdu, uint32_t len_value, uint32_t * value)
-{
-    uint16_t unsigned16_value = 0;
-
-    if (value) {
-        switch (len_value) {
-        case 1:
-            *value = apdu[0];
-            break;
-        case 2:
-            decode_unsigned16(&apdu[0], &unsigned16_value);
-            *value = unsigned16_value;
-            break;
-        case 3:
-            decode_unsigned24(&apdu[0], value);
-            break;
-        case 4:
-            decode_unsigned32(&apdu[0], value);
-            break;
-        default:
-            *value = 0;
-            break;
-        }
-    }
-
-    return len_value;
-}
-
 /* end of decoding_encoding.c */
 #ifdef TEST
 #include <assert.h>
@@ -505,42 +400,6 @@ void testBACnetSigned32(Test * pTest)
     }
 }
 
-void testBACnetSigned(Test * pTest)
-{
-    uint8_t apdu[32] = { 0 };
-    int32_t value = 0, test_value = 0;
-    int len = 0, test_len = 0;
-
-    for (value = -2147483647; value < 0; value+=127) {
-        len = encode_bacnet_signed(&apdu[0], value);
-        test_len = decode_signed(&apdu[0], len, &test_value);
-        ct_test(pTest, len == test_len);
-        ct_test(pTest, value == test_value);
-    }
-    for (value = 2147483647; value > 0; value-=127) {
-        len = encode_bacnet_signed(&apdu[0], value);
-        test_len = decode_signed(&apdu[0], len, &test_value);
-        ct_test(pTest, len == test_len);
-        ct_test(pTest, value == test_value);
-    }
-}
-
-void testBACnetUnsigned(Test * pTest)
-{
-    uint8_t apdu[32] = { 0 };
-    uint32_t value = 0, test_value = 0;
-    int len = 0, test_len = 0;
-
-    for (value = 0; ;value+=0xFF) {
-        len = encode_bacnet_unsigned(&apdu[0], value);
-        test_len = decode_unsigned(&apdu[0], len, &test_value);
-        ct_test(pTest, len == test_len);
-        ct_test(pTest, value == test_value);
-        if (value == 0xFFFFFFFF)
-            break;
-    }
-}
-
 #ifdef TEST_BACINT
 int main(void)
 {
@@ -562,10 +421,6 @@ int main(void)
     rc = ct_addTestFunction(pTest, testBACnetSigned24);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetSigned32);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, testBACnetSigned);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, testBACnetUnsigned);
     assert(rc);
     /* configure output */
     ct_setStream(pTest, stdout);

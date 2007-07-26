@@ -45,6 +45,7 @@ SRCS = main.c \
        $(BACNET_ROOT)\address.c \
        $(BACNET_ROOT)\filename.c \
        $(BACNET_ROOT)\bacdcode.c \
+       $(BACNET_ROOT)\bacint.c \
        $(BACNET_ROOT)\bacapp.c \
        $(BACNET_ROOT)\bacstr.c \
        $(BACNET_ROOT)\bactext.c \

@@ -9,6 +9,7 @@ INCLUDES = -Iports/linux -Itest -I.
 CFLAGS  = -Wall $(INCLUDES)  $(DEFINES) -g
 
 SRCS = bacdcode.c \
+       bacint.c \
        bacstr.c \
        bigend.c \
        bvlc.c \

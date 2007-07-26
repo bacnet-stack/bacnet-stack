@@ -8,6 +8,7 @@ CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_LOAD_CONTROL -g
 
 # NOTE: this file is normally called by the unittest.sh from up directory
 SRCS = bacdcode.c \
+       bacint.c \
        bacstr.c \
        bacapp.c \
        bactext.c \
