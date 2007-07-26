@@ -29,6 +29,7 @@ SRCS = main.c bip-init.c \
        ..\..\demo\handler\s_rp.c  \
        ..\..\demo\handler\s_whois.c  \
        ..\..\bacdcode.c \
+       ..\..\bacint.c \
        ..\..\bacapp.c \
        ..\..\bacstr.c \
        ..\..\bactext.c \
