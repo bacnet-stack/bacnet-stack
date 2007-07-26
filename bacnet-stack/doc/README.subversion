@@ -1,11 +1,74 @@
-Here are some hints about subersion.
+Committers need to properly configure their svn client so that 
+the appropriate subversion properties are set on newly added files. 
+One of the most important properties is the eol-style property 
+that configures OS-specific line-endings for text files.
 
-1. When setting up subversion for a project like this,  set the EOL to be native except those files that either already have a MIME type associated with them or binary files like IDE configurations.
+Add the configuration text below to your subversion client 
+configuration file that is normally in the following location:
 
-2. Configure your subversion client to always add new files with eol-style set to native.
+Windows: %USERPROFILE%\Application Data\Subversion\config
+Linux:   ~/.subversion/config
 
-3. If a file slips into subversion without the eol-style property set, you can periodically run:
+Warning: Make sure the settings are merged into the appropriate 
+section if it already exists, as duplicate section names can 
+cause problems.
+
+[auto-props]
+### The format of the entries is:
+###   file-name-pattern = propname[=value][;propname[=value]...]
+### The file-name-pattern can contain wildcards (such as '*' and
+### '?').  All entries which match will be applied to the file.
+### Note that auto-props functionality must be enabled, which
+### is typically done by setting the 'enable-auto-props' option.
+*.c = svn:eol-style=native
+*.cpp = svn:eol-style=native
+*.h = svn:eol-style=native
+*.dsp = svn:eol-style=CRLF
+*.dsw = svn:eol-style=CRLF
+*.sh = svn:executable;svn:eol-style=native
+*.cmd = svn:mime-type=text/plain;svn:eol-style=CRLF
+*.bat = svn:mime-type=text/plain;svn:eol-style=CRLF
+Makefile = svn:eol-style=native
+*.obj = svn:mime-type=application/octet-stream
+*.bin = svn:mime-type=application/octet-stream
+*.bmp = svn:mime-type=image/bmp
+*.class = svn:mime-type=application/java
+*.doc = svn:mime-type=application/msword
+*.exe = svn:mime-type=application/octet-stream
+*.gif = svn:mime-type=image/gif
+*.gz = svn:mime-type=application/x-gzip
+*.jar = svn:mime-type=application/java-archive
+*.jelly = svn:mime-type=text/plain;svn:eol-style=native
+*.jpg = svn:mime-type=image/jpeg
+*.jpeg = svn:mime-type=image/jpeg
+*.pdf = svn:mime-type=application/pdf
+*.png = svn:mime-type=image/png
+*.tgz = svn:mime-type=application/octet-stream
+*.tif = svn:mime-type=image/tiff
+*.tiff = svn:mime-type=image/tiff
+*.zip = svn:mime-type=application/zip
+*.txt = svn:mime-type=text/plain;svn:eol-style=native
+*.xml = svn:mime-type=text/xml;svn:eol-style=native
+*.ent = svn:mime-type=text/plain;svn:eol-style=native
+*.dtd = svn:mime-type=text/plain;svn:eol-style=native
+*.vsl = svn:mime-type=text/plain;svn:eol-style=native
+*.xsd = svn:mime-type=text/xml;svn:eol-style=native
+*.xsl = svn:mime-type=text/xml;svn:eol-style=native
+*.wsdl = svn:mime-type=text/xml;svn:eol-style=native
+*.htm = svn:mime-type=text/html;svn:eol-style=native
+*.html = svn:mime-type=text/html;svn:eol-style=native
+*.css = svn:mime-type=text/css;svn:eol-style=native
+*.js = svn:mime-type=text/plain;svn:eol-style=native
+*.jsp = svn:mime-type=text/plain;svn:eol-style=native
+*.txt = svn:mime-type=text/plain;svn:eol-style=native
+*.java = svn:mime-type=text/plain;svn:eol-style=native
+*.properties = svn:mime-type=text/plain;svn:eol-style=native
+*.sql = svn:mime-type=text/plain;svn:eol-style=native
+
+To test the properties of a file:
+$ svn proplist 
+
+If a file slips into subversion without the eol-style property set, 
+you can periodically run:
 $ svn propset svn:eol-style native *
 $ svn commit -m "changed eol-style"
-
-

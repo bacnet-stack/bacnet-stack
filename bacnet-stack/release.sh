@@ -14,6 +14,7 @@ then
   exit 1
 fi
 
+# convert 0.0.0 to 0-0-0
 DOTTED_VERSION="$1"
 DASHED_VERSION="$(echo "$1" | sed 's/[\.*]/-/g')"
 
@@ -38,7 +39,7 @@ svn copy -m "Created version $ARCHIVE_NAME" $SVN_TRUNK_NAME $SVN_TAGGED_NAME
 echo "done."
 
 echo "Getting a clean version out of subversion for Linux gzip"
-svn export $SVN_TAGGED_NAME/$SVN_MODULE $ARCHIVE_NAME
+svn export $SVN_TAGGED_NAME $ARCHIVE_NAME
 echo "done."
 
 GZIP_FILENAME=$ARCHIVE_NAME.tgz
@@ -56,7 +57,7 @@ fi
 rm -rf $ARCHIVE_NAME
 
 echo "Getting another clean version out of subversion for Windows zip"
-svn export --native-eol CRLF $SVN_TAGGED_NAME/$SVN_MODULE $ARCHIVE_NAME
+svn export --native-eol CRLF $SVN_TAGGED_NAME $ARCHIVE_NAME
 ZIP_FILENAME=$ARCHIVE_NAME.zip
 echo "done."
 echo "Zipping the directory exported for Windows."
