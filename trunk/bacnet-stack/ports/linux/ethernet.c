@@ -38,7 +38,7 @@
 #include "net.h"
 #include "bacdef.h"
 #include "ethernet.h"
-#include "bacdcode.h"
+#include "bacint.h"
 
 /* commonly used comparison address for ethernet */
 uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
