@@ -35,15 +35,15 @@ struct sockaddr {
 
 
 struct in_addr {
-  uint32_t         s_addr;  // load with inet_aton()
+  uint32_t         s_addr;  /* load with inet_aton() */
 };
 
 struct sockaddr_in 
 {
-  int16_t          sin_family;   // e.g. AF_INET
-  uint16_t         sin_port;     // e.g. htons(3490)
-  struct in_addr   sin_addr;     // see struct in_addr, below
-  char             sin_zero[8];  // zero this if you want to
+  int16_t          sin_family;   /* e.g. AF_INET */
+  uint16_t         sin_port;     /* e.g. htons(3490) */
+  struct in_addr   sin_addr;     /* see struct in_addr, below */
+  char             sin_zero[8];  /* zero this if you want to */
 };
 
 

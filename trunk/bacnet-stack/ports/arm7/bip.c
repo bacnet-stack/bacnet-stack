@@ -64,8 +64,8 @@ bool bip_valid(void)
 
 void bip_cleanup(void)
 {
-//    if (bip_valid())
-//        close(BIP_Socket);
+/*    if (bip_valid()) */
+/*        close(BIP_Socket); */
     BIP_Socket = -1;
 
     return;
@@ -74,7 +74,7 @@ void bip_cleanup(void)
 /* set using network byte order */
 void bip_set_addr(uint32_t net_address)
 {
-//    BIP_Address.s_addr = ntohl(net_address);
+/*    BIP_Address.s_addr = ntohl(net_address); */
     BIP_Address.s_addr = net_address;
 }
 
@@ -87,7 +87,7 @@ uint32_t bip_get_addr(void)
 /* set using network byte order */
 void bip_set_broadcast_addr(uint32_t net_address)
 {
-//    BIP_Broadcast_Address.s_addr = ntohl(net_address);
+/*    BIP_Broadcast_Address.s_addr = ntohl(net_address); */
     BIP_Broadcast_Address.s_addr = net_address;
 }
 
@@ -128,8 +128,8 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
   (void) npdu_data;
   
   /* assumes that the driver has already been initialized */
-//  if (BIP_Socket < 0)
-//      return BIP_Socket;
+/*  if (BIP_Socket < 0) */
+/*      return BIP_Socket; */
   
   mtu[0] = BVLL_TYPE_BACNET_IP;
   bip_dest.sin_family = AF_INET;

@@ -5,7 +5,7 @@
 
 #ifndef __cplusplus
 
-//typedef int _Bool;
+/*typedef int _Bool; */
 #ifndef bool
 #define bool _Bool
 #endif
