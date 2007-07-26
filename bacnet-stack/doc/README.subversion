@@ -1,0 +1,11 @@
+Here are some hints about subersion.
+
+1. When setting up subversion for a project like this,  set the EOL to be native except those files that either already have a MIME type associated with them or binary files like IDE configurations.
+
+2. Configure your subversion client to always add new files with eol-style set to native.
+
+3. If a file slips into subversion without the eol-style property set, you can periodically run:
+$ svn propset svn:eol-style native *
+$ svn commit -m "changed eol-style"
+
+
