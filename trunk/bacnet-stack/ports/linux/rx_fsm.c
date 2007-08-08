@@ -123,8 +123,6 @@ int timestamp_ms(void)
     return delta_ticks;
 }
 
-static char *Network_Interface = NULL;
-
 static void print_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
@@ -167,7 +165,7 @@ static void print_received_packet(
 }
 
 /* simple test to packetize the data and print it */
-int main(void)
+int main(int argc, char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
     int rc = 0;
@@ -177,6 +175,8 @@ int main(void)
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
     /* initialize our interface */
+    if (argc > 1)
+        RS485_Set_Interface(argv[1]);
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
