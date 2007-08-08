@@ -164,6 +164,7 @@ unsigned Device_Object_List_Count(void)
     count += Binary_Value_Count();
     count += Analog_Input_Count();
     count += Binary_Input_Count();
+    count += Analog_Value_Count();
 
     return count;
 }
