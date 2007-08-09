@@ -25,3 +25,10 @@ A. Change bip.c to not use extra buffer (shift data)
 B. Finish subscribe COV support in server demo.
 C. Add Visual Studio 2005 makefiles or projects for demos.
 D. Add Code::Blocks projects for demos.
+E. Convert core code into library.
+   For example, libbacnet.  Includes client and server functionality
+   and only requires a dummy tsm_free_invoke_id function for servers.
+   Create bacnet.h file that includes all the necessary includes.
+   Split core functions into files to make library effecient.
+   For example, rp.c becomes rp_client.c, rp_server.c , rp_test.c;
+   bacint.c becomes bacint_encode.c, bacint_decode.c, bacint_test.c 
