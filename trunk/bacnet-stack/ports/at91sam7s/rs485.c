@@ -33,12 +33,12 @@
 #include <stdio.h>
 #include "mstp.h"
 
-/* This file has been customized for use with UART0 
+/* This file has been customized for use with UART0
    on the AT91SAM7S-EK */
 #include "board.h"
 
 /* UART */
-static AT91S_USART *RS485_Interface = AT91C_BASE_US0;
+static volatile AT91S_USART *RS485_Interface = AT91C_BASE_US0;
 /* baud rate */
 static int RS485_Baud = 38400;
 
@@ -50,7 +50,7 @@ static int RS485_Baud = 38400;
 *****************************************************************************/
 void RS485_Set_Interface(char *ifname)
 {
-    RS485_Interface = (AT91S_USART *)ifname;
+    RS485_Interface = (volatile AT91S_USART *)ifname;
 }
 
 /****************************************************************************
@@ -63,32 +63,32 @@ void RS485_Set_Interface(char *ifname)
 void RS485_Initialize(void)
 {
     // enable the USART0 peripheral clock
-    volatile AT91PS_PMC	pPMC = AT91C_BASE_PMC; 
+    volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_US0);
 
     /* enable the peripheral by disabling the pin in the PIO controller */
     *AT91C_PIOA_PDR = AT91C_PA5_RXD0 | AT91C_PA6_TXD0 | AT91C_PA7_RTS0;
 
-    RS485_Interface->US_CR = 
+    RS485_Interface->US_CR =
         AT91C_US_RSTRX |          /* Reset Receiver      */
         AT91C_US_RSTTX |          /* Reset Transmitter   */
         AT91C_US_RXDIS |          /* Receiver Disable    */
         AT91C_US_TXDIS;           /* Transmitter Disable */
 
-    RS485_Interface->US_MR = 
-        AT91C_US_USMODE_RS485  |  /* RS-485 Mode - RTS auto asserted */
+    RS485_Interface->US_MR =
+        AT91C_US_USMODE_RS485  |  /* RS-485 Mode - RTS auto assert */
         AT91C_US_CLKS_CLOCK    |  /* Clock = MCK */
         AT91C_US_CHRL_8_BITS   |  /* 8-bit Data  */
         AT91C_US_PAR_NONE      |  /* No Parity   */
         AT91C_US_NBSTOP_1_BIT;    /* 1 Stop Bit  */
-    
+
     /* set the Time Guard to release RTS after x bit times */
     RS485_Interface->US_TTGR = 4;
 
     /* baud rate */
     RS485_Interface->US_BRGR = MCK/16/RS485_Baud;
 
-    RS485_Interface->US_CR = 
+    RS485_Interface->US_CR =
         AT91C_US_RXEN  |          /* Receiver Enable     */
         AT91C_US_TXEN;            /* Transmitter Enable  */
 
@@ -146,32 +146,26 @@ void RS485_Send_Frame(
     uint16_t nbytes)   /* number of bytes of data (up to 501) */
 {
     uint8_t turnaround_time;
-    uint32_t baud;
 
     /* toggle LED on send */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
-    if  ((pPIO->PIO_ODSR & LED1) == LED1)
-        pPIO->PIO_CODR = LED1;
-    else
-        pPIO->PIO_SODR = LED1;
+    /* LED ON */
+    pPIO->PIO_CODR = LED1;
     /* delay after reception - per MS/TP spec */
     if (mstp_port) {
-        baud = RS485_Get_Baud_Rate();
         /* wait about 40 bit times since reception */
-        if (baud == 9600)
-            turnaround_time = 4;
-        else if (baud == 19200)
-            turnaround_time = 2;
-        else
+        turnaround_time = (40*1000)/RS485_Baud;
+        if (!turnaround_time) {
             turnaround_time = 1;
+        }
         while (mstp_port->SilenceTimer < turnaround_time) {
             /* do nothing - wait for timer to increment */
         };
     }
     while (nbytes) {
         while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
-            /* do nothing - wait for Tx buffer to get empty */
-        }        
+            /* do nothing - wait until Tx buffer is empty */
+        }
         RS485_Interface->US_THR = *buffer;
         buffer++;
         nbytes--;
@@ -180,6 +174,11 @@ void RS485_Send_Frame(
             mstp_port->SilenceTimer = 0;
         }
     }
+    while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
+        /* do nothing - wait until Tx buffer is empty */
+    }
+    /* LED OFF */
+    pPIO->PIO_SODR = LED1;
 
     return;
 }

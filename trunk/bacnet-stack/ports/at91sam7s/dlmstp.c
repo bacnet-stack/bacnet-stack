@@ -124,9 +124,12 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest, /* destination address */
 
 static void dlmstp_task(void)
 {
+    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
     /* only do receive state machine while we don't have a frame */
     if ((MSTP_Port.ReceivedValidFrame == false) &&
         (MSTP_Port.ReceivedInvalidFrame == false)) {
+	/* LED OFF */
+        pPIO->PIO_SODR = LED2;
         do {
             RS485_Check_UART_Data(&MSTP_Port);
             MSTP_Receive_Frame_FSM(&MSTP_Port);
@@ -135,13 +138,8 @@ static void dlmstp_task(void)
                 break;
         } while (MSTP_Port.DataAvailable);
     } else {
-        /* toggle LED on Frame received */
-        volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
-        if  ((pPIO->PIO_ODSR & LED2) == LED2)
-            pPIO->PIO_CODR = LED2;
-        else
-            pPIO->PIO_SODR = LED2;
-
+	/* LED ON */
+        pPIO->PIO_CODR = LED2;
     }
     /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
