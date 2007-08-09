@@ -12,7 +12,8 @@ LDSCRIPT=at91sam7s256.ld
 
 BACNET_FLAGS = -DBACDL_MSTP=1 -DPRINT_ENABLED=0 -DBIG_ENDIAN=0 -DMAX_APDU=480 -DDLMSTP_TEST
 INCLUDES = -I. -I../.. -I../../demo/handler -I../../demo/object 
-OPTIMIZATION = -O0
+#OPTIMIZATION = -O0
+OPTIMIZATION = -Os
 CFLAGS = -fno-common $(OPTIMIZATION) $(INCLUDES) $(BACNET_FLAGS) -Wall -g
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)

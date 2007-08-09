@@ -917,7 +917,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* The PASS_TOKEN state listens for a successor to begin using */
         /* the token that this node has just attempted to pass. */
     case MSTP_MASTER_STATE_PASS_TOKEN:
-        if (mstp_port->SilenceTimer < Tusage_timeout) {
+        if (mstp_port->SilenceTimer <= Tusage_timeout) {
             if (mstp_port->EventCount > Nmin_octets) {
                 /* SawTokenUser */
                 /* Assume that a frame has been sent by the new token user.  */
@@ -1026,7 +1026,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
                 transition_now = true;
             }
             mstp_port->ReceivedValidFrame = false;
-        } else if ((mstp_port->SilenceTimer >= Tusage_timeout) ||
+        } else if ((mstp_port->SilenceTimer > Tusage_timeout) ||
             (mstp_port->ReceivedInvalidFrame == true)) {
             if (mstp_port->SoleMaster == true) {
                 /* SoleMaster */
