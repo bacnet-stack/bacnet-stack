@@ -46,6 +46,7 @@
 #include "bytes.h"
 #include "rs485.h"
 #include "mstp.h"
+#include "mstptext.h"
 #include "crc.h"
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
@@ -122,6 +123,8 @@ static void print_received_packet(
                 mstp_port->DataCRCActualMSB,
                 mstp_port->DataCRCActualLSB);
     }
+    fprintf(stderr,"%s",
+        mstptext_frame_type(mstp_port->FrameType));
     fprintf(stderr,"\n");
 }
 

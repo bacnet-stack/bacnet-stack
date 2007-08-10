@@ -277,12 +277,12 @@ void RS485_Send_Frame(
     uint8_t * buffer,  /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)   /* number of bytes of data (up to 501) */
 {
-    uint8_t turnaround_time;
-    uint32_t baud;
     DWORD dwWritten  = 0;
 
     #if 0
     if (mstp_port) {
+        uint32_t baud;
+        uint8_t turnaround_time;
         baud = RS485_Get_Baud_Rate();
         /* wait about 40 bit times since reception */
         if (baud == 9600)
