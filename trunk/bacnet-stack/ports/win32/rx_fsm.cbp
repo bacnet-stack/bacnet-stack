@@ -13,8 +13,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-DBIG_ENDIAN=0" />
-					<Add option="-DBACDL_MSTP=1" />
 					<Add directory="." />
 					<Add directory="..\..\" />
 				</Compiler>
@@ -35,19 +33,31 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-DBIG_ENDIAN=0" />
+			<Add option="-DBACDL_MSTP=1" />
+			<Add directory="." />
+			<Add directory="..\..\..\bacnet-stack" />
 		</Compiler>
 		<Unit filename="..\..\crc.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\crc.h" />
-		<Unit filename="mstp.c">
+		<Unit filename="..\..\indtext.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\..\indtext.h" />
+		<Unit filename="..\..\mstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\mstp.h" />
+		<Unit filename="..\..\mstptext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\mstptext.h" />
 		<Unit filename="mstp.h" />
 		<Unit filename="rs485.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="rs485.h" />
 		<Unit filename="rx_fsm.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -55,6 +65,7 @@
 		<Unit filename="stdint.h" />
 		<Extensions>
 			<code_completion />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
