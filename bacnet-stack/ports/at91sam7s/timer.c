@@ -21,7 +21,7 @@
 //                        count =  46.928
 //
 //
-//     Therefore:  set Timer Channel 0 register RC to 9835
+//     Therefore:  set Timer Channel 0 register RC to 46*milliseconds
 //                 turn on capture mode WAVE = 0
 //                 enable the clock  CLKEN = 1
 //                 select TIMER_CLOCK5  TCCLKS = 100
@@ -57,8 +57,10 @@ void Timer0_Setup(int milliseconds) {
     //    SYNC = 0 (no effect)    <===== take  default
     //    SYNC = 1 (generate software trigger for all 3 timer channels simultaneously)
     //
-    AT91PS_TCB pTCB = AT91C_BASE_TCB;        // create a pointer to TC Global Register structure
-    pTCB->TCB_BCR = 0;                        // SYNC trigger not used
+    // create a pointer to TC Global Register structure
+    AT91PS_TCB pTCB = AT91C_BASE_TCB;
+    // SYNC trigger not used
+    pTCB->TCB_BCR = 0;
 
     //        TC Block Mode Register  TC_BMR    (read/write)
     //
@@ -82,7 +84,8 @@ void Timer0_Setup(int milliseconds) {
     //                 = 10 TIOA0 (PA00)
     //                 = 11 TIOA1 (PA26)
     //
-    pTCB->TCB_BMR = 0x15;                    // external clocks not used
+    // external clocks not used
+    pTCB->TCB_BMR = 0x15;
 
 
     //        TC Channel Control Register  TC_CCR    (read/write)
@@ -101,8 +104,10 @@ void Timer0_Setup(int milliseconds) {
     //  SWTRG = 0    no effect
     //  SWTRG = 1    software trigger aserted counter reset and clock starts   <===== we select this one
     //
-    AT91PS_TC pTC = AT91C_BASE_TC0;        // create a pointer to channel 0 Register structure
-    pTC->TC_CCR = 0x5;                    // enable the clock    and start it
+    // create a pointer to channel 0 Register structure
+    AT91PS_TC pTC = AT91C_BASE_TC0;
+    // enable the clock    and start it
+    pTC->TC_CCR = 0x5;
 
     //        TC Channel Mode Register  TC_CMR    (read/write)
     //
@@ -179,9 +184,10 @@ void Timer0_Setup(int milliseconds) {
     //          10 (falling edge of TIOA)
     //          11 (each edge of TIOA)
     //
-    pTC->TC_CMR = 0x4004;              // TCCLKS = 1 (TIMER_CLOCK5)
-                                        // CPCTRG = 1 (RC Compare resets the counter and restarts the clock)
-                                        // WAVE   = 0 (Capture mode enabled)
+    // TCCLKS = 1 (TIMER_CLOCK5)
+    // CPCTRG = 1 (RC Compare resets the counter and restarts the clock)
+    // WAVE   = 0 (Capture mode enabled)
+    pTC->TC_CMR = 0x4004;
 
     //        TC Register C     TC_RC   (read/write)   Compare Register 16-bits
     //
@@ -238,7 +244,8 @@ void Timer0_Setup(int milliseconds) {
     //  ETRGS    = 0  no effect    <===== take  default
     //             1  enable External Trigger interrupt
     //
-    pTC->TC_IER = 0x10;                // enable RC compare interrupt
+    // enable RC compare interrupt
+    pTC->TC_IER = 0x10;
 
     //        TC Interrupt Disable Register  TC_IDR    (write-only)
     //
@@ -272,7 +279,8 @@ void Timer0_Setup(int milliseconds) {
     //  ETRGS    = 0  no effect
     //             1  disable External Trigger interrupt    <===== we select this one
     //
-    pTC->TC_IDR = 0xEF;                // disable all except RC compare interrupt
+    // disable all except RC compare interrupt
+    pTC->TC_IDR = 0xEF;
 }
 
 //  *****************************************************************************
@@ -296,6 +304,15 @@ void Timer0IrqHandler (void) {
     Timer_Milliseconds++;
 }
 
+//  *****************************************************************************
+//
+//     Timer 0 Initialization
+//
+//  From James P Lynch main.c example code
+//  Modified by Steve Karg
+//    Moved timer startup code from main
+//    modified the peripheral clock init
+//  *****************************************************************************
 void TimerInit(void) {
     // enable the Timer0 peripheral clock
     volatile AT91PS_PMC    pPMC = AT91C_BASE_PMC;
@@ -313,13 +330,13 @@ void TimerInit(void) {
     // in AIC Source Mode Register[12]
     pAIC->AIC_SMR[AT91C_ID_TC0] =
         (AT91C_AIC_SRCTYPE_INT_LEVEL_SENSITIVE | 0x4 );
-    // Clear the TC0 interrupt 
+    // Clear the TC0 interrupt
     // in AIC Interrupt Clear Command Register
     pAIC->AIC_ICCR = (1<<AT91C_ID_TC0);
-    // Remove disable timer 0 interrupt 
+    // Remove disable timer 0 interrupt
     // in AIC Interrupt Disable Command Reg
     pAIC->AIC_IDCR = (0<<AT91C_ID_TC0);
-    // Enable the TC0 interrupt 
+    // Enable the TC0 interrupt
     // in AIC Interrupt Enable Command Register
     pAIC->AIC_IECR = (1<<AT91C_ID_TC0);
     // Setup timer0 to generate a 1 msec periodic interrupt
