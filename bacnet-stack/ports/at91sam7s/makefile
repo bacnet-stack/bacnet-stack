@@ -7,6 +7,7 @@ TARGET=bacnet
 CC=arm-elf-gcc
 OBJCOPY=arm-elf-objcopy
 OBJDUMP=arm-elf-objdump
+AR=arm-elf-ar
 
 LDSCRIPT=at91sam7s256.ld
 
@@ -15,10 +16,12 @@ INCLUDES = -I. -I../.. -I../../demo/handler -I../../demo/object
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
 CFLAGS = -fno-common $(OPTIMIZATION) $(INCLUDES) $(BACNET_FLAGS) -Wall -g
+LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 #  -Wl,<options> Pass comma-separated <options> on to the linker
-LDFLAGS = -nostartfiles -Wl,-Map=$(TARGET).map,-lc,-lgcc,-lm,-T$(LDSCRIPT)
+LIBRARIES=-lc,-lgcc,-lm,-L=.,-l$(TARGET)
+LDFLAGS = -nostartfiles -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
 CPFLAGS = --output-target=binary
 ODFLAGS	= -x --syms
 
@@ -34,14 +37,19 @@ PORTSRC = main.c \
 	../../crc.c \
 	../../mstp.c
 
-CORESRC = device.c \
-	ai.c \
+DEMOSRC = ai.c \
 	av.c \
 	bi.c \
 	bv.c \
 	h_rp.c \
 	h_wp.c \
-	../../npdu.c \
+	device.c \
+	../../demo\handler\txbuf.c \
+	../../demo\handler\h_whois.c \
+	../../demo\handler\h_rd.c \
+	../../demo\handler\h_dcc.c
+
+CORESRC = ../../npdu.c \
 	../../bacint.c \
 	../../apdu.c \
 	../../bacdcode.c \
@@ -56,17 +64,14 @@ CORESRC = device.c \
 	../../dcc.c \
 	../../rd.c \
 	../../whois.c \
-	../../iam.c \
-	../../demo\handler\txbuf.c \
-	../../demo\handler\h_whois.c \
-	../../demo\handler\h_rd.c \
-	../../demo\handler\h_dcc.c
+	../../iam.c
 
-#CSRC = $(PORTSRC) $(CORESRC)
+#CSRC = $(PORTSRC) $(DEMOSRC) $(CORESRC)
 CSRC = $(PORTSRC)
 
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
+COREOBJ = $(CORESRC:.c=.o)
 
 all: $(TARGET).bin
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
@@ -74,8 +79,13 @@ all: $(TARGET).bin
 $(TARGET).bin:  $(TARGET).elf
 	$(OBJCOPY) $(TARGET).elf $(CPFLAGS) $(TARGET).bin
 
-$(TARGET).elf: $(COBJ) $(AOBJ) Makefile
+$(TARGET).elf: $(COBJ) $(AOBJ) $(LIBRARY) Makefile
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@ 
+
+lib: $(LIBRARY)
+
+$(LIBRARY): $(COREOBJ) Makefile
+	$(AR) rcs $@ $(COREOBJ) 
 
 $(COBJ): %.o : %.c Makefile
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -85,6 +95,7 @@ $(AOBJ): %.o : %.s Makefile
 
 clean:
 	touch Makefile
-	rm $(COBJ) $(AOBJ) 
+	rm $(COBJ) $(AOBJ) $(COREOBJ) 
 	rm $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
+	rm $(LIBRARY)
 	rm *.lst
