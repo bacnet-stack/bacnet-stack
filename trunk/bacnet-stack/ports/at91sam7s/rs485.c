@@ -1,6 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+* RS-485 initialization on AT91SAM7S inspired by Keil Eletronik serial.c
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the

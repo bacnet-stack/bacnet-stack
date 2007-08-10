@@ -1,6 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+* Portions of the AT91SAM7S startup code were developed by James P Lynch.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -38,17 +39,17 @@
 #include "handlers.h"
 
 //  *******************************************************
-//   FIXME: put in header files         External References
+//   FIXME: use header files?     External References
 //  *******************************************************
-extern	void LowLevelInit(void);
-extern	unsigned enableIRQ(void);
-extern	unsigned enableFIQ(void);
+extern    void LowLevelInit(void);
+extern    unsigned enableIRQ(void);
+extern    unsigned enableFIQ(void);
 
-extern	void TimerInit(void);
+extern    void TimerInit(void);
 extern volatile unsigned long Timer_Milliseconds;
 
 //  *******************************************************
-//               Global Variables - ???
+//  FIXME: use header files?      Global Variables
 //  *******************************************************
 unsigned int FiqCount = 0;
 
@@ -78,38 +79,55 @@ void millisecond_timer(void)
     }
 }
 
-int	main (void) {
-    unsigned long	IdleCount = 0;						// idle loop blink counter (2x)
+int    main (void) {
+    unsigned long    IdleCount = 0; // idle loop blink counter
     bool LED3_Off_Enabled = true;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
     uint8_t pdu[MAX_MPDU]; /* PDU data */
-    
-    // Initialize the Atmel AT91SAM7S256 (watchdog, PLL clock, default interrupts, etc.)
+
+    // Initialize the Atmel AT91SAM7S256
+    // (watchdog, PLL clock, default interrupts, etc.)
     LowLevelInit();
     TimerInit();
     /* Initialize the Parallel I/O Controller A Peripheral Clock */
-    volatile AT91PS_PMC	pPMC = AT91C_BASE_PMC; 
+    volatile AT91PS_PMC    pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_PIOA);
 
     // Set up the LEDs (PA0 - PA3)
-    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;			// pointer to PIO data structure
-    pPIO->PIO_PER = LED_MASK | SW1_MASK;				// PIO Enable Register - allow PIO to control pins P0 - P3 and pin 19
-    pPIO->PIO_OER = LED_MASK;							// PIO Output Enable Register - sets pins P0 - P3 to outputs
-    pPIO->PIO_SODR = LED_MASK;							// PIO Set Output Data Register - turns off the four LEDs
-    
+    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
+    // PIO Enable Register
+    // allow PIO to control pins P0 - P3 and pin 19
+    pPIO->PIO_PER = LED_MASK | SW1_MASK;
+    // PIO Output Enable Register
+    // sets pins P0 - P3 to outputs
+    pPIO->PIO_OER = LED_MASK;
+    // PIO Set Output Data Register
+    // turns off the four LEDs
+    pPIO->PIO_SODR = LED_MASK;
+
     // Select PA19 (pushbutton) to be FIQ function (Peripheral B)
     pPIO->PIO_BSR = SW1_MASK;
-    
+
     // Set up the AIC registers for FIQ (pushbutton SW1)
-    volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;			// pointer to AIC data structure
-    pAIC->AIC_IDCR = (1<<AT91C_ID_FIQ);					// Disable FIQ interrupt in AIC Interrupt Disable Command Register			
-    pAIC->AIC_SMR[AT91C_ID_FIQ] =						// Set the interrupt source type in AIC Source 
-        (AT91C_AIC_SRCTYPE_INT_EDGE_TRIGGERED);  		// Mode Register[0]
-    pAIC->AIC_ICCR = (1<<AT91C_ID_FIQ); 				// Clear the FIQ interrupt in AIC Interrupt Clear Command Register
-    pAIC->AIC_IDCR = (0<<AT91C_ID_FIQ);					// Remove disable FIQ interrupt in AIC Interrupt Disable Command Register			
-    pAIC->AIC_IECR = (1<<AT91C_ID_FIQ); 				// Enable the FIQ interrupt in AIC Interrupt Enable Command Register
-    
+    volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
+    // Disable FIQ interrupt in
+    // AIC Interrupt Disable Command Register
+    pAIC->AIC_IDCR = (1<<AT91C_ID_FIQ);
+    // Set the interrupt source type in
+    // AIC Source Mode Register[0]
+    pAIC->AIC_SMR[AT91C_ID_FIQ] =
+        (AT91C_AIC_SRCTYPE_INT_EDGE_TRIGGERED);
+    // Clear the FIQ interrupt in
+    // AIC Interrupt Clear Command Register
+    pAIC->AIC_ICCR = (1<<AT91C_ID_FIQ);
+    // Remove disable FIQ interrupt in
+    // AIC Interrupt Disable Command Register
+    pAIC->AIC_IDCR = (0<<AT91C_ID_FIQ);
+    // Enable the FIQ interrupt in
+    // AIC Interrupt Enable Command Register
+    pAIC->AIC_IECR = (1<<AT91C_ID_FIQ);
+
 #if defined(BACDL_MSTP)
     RS485_Set_Baud_Rate(38400);
     dlmstp_set_mac_address(55);
@@ -148,24 +166,26 @@ int	main (void) {
         {
             LED3_Off_Enabled = false;
             /* wait */
-            LED_Timer_3 = 250; 
-        } 
+            LED_Timer_3 = 250;
+        }
         if (!LED_Timer_3) {
             /* turn LED3 (DS3) off */
             pPIO->PIO_SODR = LED3;
             LED3_Off_Enabled = true;
         }
         if (!LED_Timer_4) {
-            if  ((pPIO->PIO_ODSR & LED4) == LED4)
-                pPIO->PIO_CODR = LED4;							// turn LED2 (DS2) on	
-            else
-                pPIO->PIO_SODR = LED4;							// turn LED2 (DS2) off
+            if  ((pPIO->PIO_ODSR & LED4) == LED4) {
+                // turn LED2 (DS2) on
+                pPIO->PIO_CODR = LED4;
+            } else {
+                // turn LED2 (DS2) off
+                pPIO->PIO_SODR = LED4;
+            }
             /* wait */
             LED_Timer_4 = 1000;
         }
-        
-        IdleCount++;									// count # of times through the idle loop
-                                            
+        // count # of times through the idle loop
+        IdleCount++;
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &pdu[0], MAX_MPDU, 0);
         if (pdu_len) {
@@ -176,8 +196,3 @@ int	main (void) {
         }
     }
 }
-
-
-
-
-
