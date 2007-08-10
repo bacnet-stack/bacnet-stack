@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2005 Steve Karg
+ Copyright (C) 2007 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -34,6 +34,20 @@
 #ifndef BACNET_H
 #define BACNET_H
 
-
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+/* core modules of the BACnet stack */
+#include "config.h"
+#include "address.h"
+#include "bacdef.h"
+#include "bacdcode.h"
+#include "bacint.h"
+#include "npdu.h"
+#include "apdu.h"
+#include "iam.h"
+#include "tsm.h"
+#include "datalink.h"
+#include "dcc.h"
 
 #endif
