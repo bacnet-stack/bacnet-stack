@@ -33,7 +33,7 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-/* Functional Description: Generic ring buffer library for deeply 
+/* Functional Description: Generic ring buffer library for deeply
    embedded system. See the unit tests for usage examples. */
 
 #include <stddef.h>
@@ -53,7 +53,7 @@ bool Ringbuf_Empty(RING_BUFFER const *b)
 
 /****************************************************************************
 * DESCRIPTION: Looks at the data from the head of the list without removing it
-* RETURN:      none
+* RETURN:      pointer to the data, or NULL if nothing in the list
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
@@ -64,7 +64,7 @@ char *Ringbuf_Get_Front(RING_BUFFER const *b)
 
 /****************************************************************************
 * DESCRIPTION: Gets the data from the front of the list, and removes it
-* RETURN:      none
+* RETURN:      pointer to the data, or NULL if nothing in the list
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
