@@ -71,22 +71,29 @@ static int get_local_address_ioctl(char *ifname,
     return rv;
 }
 
-
 /* on Linux, ifname is eth0, ath0, arc0, and others. */
 static void bip_set_interface(char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
+    int rv = 0;
 
     /* setup local address */
-    get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
+    rv = get_local_address_ioctl(ifname, &local_address, SIOCGIFADDR);
+    if (rv < 0) {
+        local_address.s_addr = 0;
+    }
     bip_set_addr(local_address.s_addr);
 #ifdef BIP_DEBUG
     fprintf(stderr, "Interface: %s\n", ifname);
     fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
 #endif
     /* setup local broadcast address */
-    get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
+    rv = get_local_address_ioctl(ifname, &broadcast_address,
+        SIOCGIFBRDADDR);
+    if (rv < 0) {
+        broadcast_address.s_addr = ~0;
+    }
     bip_set_broadcast_addr(broadcast_address.s_addr);
 #ifdef BIP_DEBUG
     fprintf(stderr, "IP Broadcast Address: %s\n",
