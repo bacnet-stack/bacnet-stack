@@ -165,14 +165,14 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
     uint16_t max_pdu,           /* amount of space available in the PDU  */
     unsigned timeout)
 {                               /* number of milliseconds to wait for a packet */
-    int received_bytes;
-    uint8_t buf[MAX_MPDU] = { 0 };      /* data */
+    int received_bytes = 0;
     uint16_t pdu_len = 0;       /* return value */
     fd_set read_fds;
-    int max;
+    int max = 0;
     struct timeval select_timeout;
     struct sockaddr_in sin = { -1 };
     socklen_t sin_len = sizeof(sin);
+    unsigned i = 0;
 
     /* Make sure the socket is open */
     if (BIP_Socket < 0)
@@ -195,7 +195,7 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
         received_bytes = recvfrom(BIP_Socket,
-            (char *) &buf[0], MAX_MPDU, 0,
+            (char *) &pdu[0], max_pdu, 0,
             (struct sockaddr *) &sin, &sin_len);
     else
         return 0;
@@ -210,10 +210,10 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
         return 0;
 
     /* the signature of a BACnet/IP packet */
-    if (buf[0] != BVLL_TYPE_BACNET_IP)
+    if (pdu[0] != BVLL_TYPE_BACNET_IP)
         return 0;
-    if ((buf[1] == BVLC_ORIGINAL_UNICAST_NPDU) ||
-        (buf[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
+    if ((pdu[1] == BVLC_ORIGINAL_UNICAST_NPDU) ||
+        (pdu[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
         if (sin.sin_addr.s_addr == htonl(BIP_Address.s_addr))
             pdu_len = 0;
@@ -226,22 +226,21 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
             /* FIXME: check destination address */
             /* see if it is broadcast or for us */
             /* decode the length of the PDU - length is inclusive of BVLC */
-            (void) decode_unsigned16(&buf[2], &pdu_len);
-            /* copy the buffer into the PDU */
-            pdu_len -= 4;       /* BVLC header */
-            if (pdu_len < max_pdu)
-                memmove(&pdu[0], &buf[4], pdu_len);
+            (void) decode_unsigned16(&pdu[2], &pdu_len);
+            /* subtract off the BVLC header */
+            pdu_len -= 4;
+            if (pdu_len < max_pdu) {
+                /* shift the buffer to return a valid PDU */
+                for (i = 0; i < pdu_len; i++) {
+                    pdu[i] = pdu[i+4];
+                }
+            }
             /* ignore packets that are too large */
             /* clients should check my max-apdu first */
             else
                 pdu_len = 0;
         }
     }
-#ifdef BBMD_ENABLED
-    if (buf[1] < MAX_BVLC_FUNCTION) {
-        bbmd_handler(&buf[0], received_bytes, &sin);
-    }
-#endif
 
     return pdu_len;
 }
