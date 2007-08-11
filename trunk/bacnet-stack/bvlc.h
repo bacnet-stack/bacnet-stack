@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2006 Steve Karg
+ Copyright (C) 2007 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -34,17 +34,26 @@
 #ifndef BVLC_H
 #define BVLC_H
 
-#include <stdint.h>             /* for standard integer types uint8_t etc. */
-#include <stdbool.h>            /* for the standard bool type. */
-#include "bip.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
+#include "bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {
 
 #endif                          /* __cplusplus */
 
-/* called from BACnet/IP handler */
-    void bvlc_handler(uint8_t * buf, int len, struct sockaddr_in *sin);
+    uint16_t bvlc_receive(
+        BACNET_ADDRESS * src,   /* returns the source address */
+        uint8_t * npdu,         /* returns the NPDU */
+        uint16_t max_npdu,      /* amount of space available in the NPDU  */
+        unsigned timeout);     /* number of milliseconds to wait for a packet */
+
+    int bvlc_send_pdu(BACNET_ADDRESS * dest, /* destination address */
+        BACNET_NPDU_DATA * npdu_data,       /* network information */
+        uint8_t * pdu,              /* any data to be sent - may be null */
+        unsigned pdu_len);
 
 #ifdef __cplusplus
 }

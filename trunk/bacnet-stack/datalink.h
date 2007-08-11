@@ -66,10 +66,18 @@
 
 #elif defined(BACDL_BIP)
 #include "bip.h"
+#ifdef BBMD_ENABLED
+    #include "bvlc.h"
+#endif
 
 #define datalink_init bip_init
-#define datalink_send_pdu bip_send_pdu
-#define datalink_receive bip_receive
+#ifdef BBMD_ENABLED
+    #define datalink_send_pdu bvlc_send_pdu
+    #define datalink_receive bvlc_receive
+#else
+    #define datalink_send_pdu bip_send_pdu
+    #define datalink_receive bip_receive
+#endif
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #define datalink_get_my_address bip_get_my_address
