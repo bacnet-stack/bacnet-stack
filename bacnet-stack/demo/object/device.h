@@ -69,7 +69,6 @@ extern "C" {
     bool Device_Set_Model_Name(const char *name, size_t length);
 
     const char *Device_Firmware_Revision(void);
-    bool Device_Set_Firmware_Revision(const char *name, size_t length);
 
     const char *Device_Application_Software_Version(void);
     bool Device_Set_Application_Software_Version(const char *name,

@@ -42,6 +42,7 @@
 #include "lsp.h"                /* object list dependency */
 #include "mso.h"                /* object list dependency */
 #include "wp.h"                 /* write property handling */
+#include "version.h"
 #include "device.h"             /* me */
 #if BACFILE
 #include "bacfile.h"            /* object list dependency */
@@ -122,7 +123,6 @@ static char Vendor_Name[16] = "ASHRAE";
 /* FIXME: your vendor id assigned by ASHRAE */
 static uint16_t Vendor_Identifier = 0;
 static char Model_Name[16] = "GNU";
-static char Firmware_Revision[16] = "0.3.2";
 static char Application_Software_Version[16] = "1.0";
 static char Location[16] = "USA";
 static char Description[16] = "server";
@@ -265,20 +265,7 @@ bool Device_Set_Model_Name(const char *name, size_t length)
 
 const char *Device_Firmware_Revision(void)
 {
-    return Firmware_Revision;
-}
-
-bool Device_Set_Firmware_Revision(const char *name, size_t length)
-{
-    bool status = false;        /*return value */
-
-    if (length < sizeof(Firmware_Revision)) {
-        memmove(Firmware_Revision, name, length);
-        Firmware_Revision[length] = 0;
-        status = true;
-    }
-
-    return status;
+    return BACnet_Version;
 }
 
 const char *Device_Application_Software_Version(void)
@@ -681,7 +668,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_FIRMWARE_REVISION:
-        characterstring_init_ansi(&char_string, Firmware_Revision);
+        characterstring_init_ansi(&char_string, BACnet_Version);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_APPLICATION_SOFTWARE_VERSION:

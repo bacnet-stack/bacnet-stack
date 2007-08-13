@@ -45,6 +45,7 @@
 #include "net.h"
 #include "txbuf.h"
 #include "lc.h"
+#include "version.h"
 #if defined(BACDL_MSTP)
 #include "rs485.h"
 #endif
@@ -108,6 +109,7 @@ int main(int argc, char *argv[])
     if (argc > 1)
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
 #if defined(BACDL_BIP)
+    /* FIXME: really needs to come from a config file */
     if (argc > 2)
         Network_Interface = argv[2];
     if (argc > 3)
@@ -125,8 +127,10 @@ int main(int argc, char *argv[])
     }
 #endif
     printf("BACnet Server Demo\n"
+        "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n"
         "Max APDU: %d\n",
+        BACnet_Version,
         Device_Object_Instance_Number(),
         MAX_APDU);
     Init_Service_Handlers();
