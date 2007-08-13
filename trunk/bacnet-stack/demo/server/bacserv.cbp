@@ -88,6 +88,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\bacerror.h" />
+		<Unit filename="..\..\bacint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\bacint.h" />
 		<Unit filename="..\..\bacstr.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -251,6 +255,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\timesync.h" />
+		<Unit filename="..\..\version.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\version.h" />
 		<Unit filename="..\..\whohas.c">
 			<Option compilerVar="CC" />
 		</Unit>

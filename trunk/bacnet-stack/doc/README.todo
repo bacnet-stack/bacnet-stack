@@ -1,32 +1,32 @@
 To Do List - BACnet Stack at SourceForge
 Here are some things to do:
 
-1. Finish demo/epics/main.c - EPICS demo. Use object property lists.
-2. Finish demo/object/lo.c - Lighting Output object demo
-3. Complete bvlc.c and use it instead of or in compliment to bip.c
-4. Complete client demo for ReadPropertyMultiple from rpm.c
-5. Add HTTP demo like bacnet4linux
-6. Add subscribe COV support in server demo.
-7. Add hooks to increment Database_Revision property
-8. Add BBMD and FD support to server example for BACnet/IP.
-9. Add Foreign Device registration options to client examples.
-A. Change bip.c to not use extra buffer (shift data)
-B. Add Visual Studio 2005 makefiles or projects for demos.
-C. Add Code::Blocks projects for demos.
-D. Add function headers to each module and function with 
-    doc-tags for some document generator like doxygen, robodoc, 
-    or Natural Docs.  Wikipedia has a nice comparison at:
+A. Finish demo/epics/main.c - EPICS demo. Use object property lists.
+B. Finish demo/object/lo.c - Lighting Output object demo
+C. Complete bvlc.c and use it instead of or in compliment to bip.c
+D. Complete client demo for ReadPropertyMultiple from rpm.c
+E. Add HTTP demo like bacnet4linux
+F. Add subscribe COV support in server demo.
+G. Add hooks to increment Database_Revision property
+H. Add BBMD and FD support to server example for BACnet/IP.
+I. Add Foreign Device registration options to client examples.
+J. Change bip.c to not use extra buffer (shift data)
+K. Add Visual Studio 2005 makefiles or projects for demos.
+L. Add Code::Blocks projects for demos.
+M. Add function headers to each module and function with
+    doc-tags for some document generator like doxygen, robodoc,
+    or Natural Docs.  Wikipedia has a comparison of generators at:
     http://en.wikipedia.org/wiki/Comparison_of_documentation_generators
-E. Convert core code into library.
+N. Convert core code into library.
    For example, libbacnet.  Includes client and server functionality
    and only requires a dummy tsm_free_invoke_id function for servers.
    Create bacnet.h file that includes all the necessary includes.
    Split core functions into files to make library effecient.
    For example, rp.c becomes rp_client.c, rp_server.c , rp_test.c;
    bacint.c becomes bacint_encode.c, bacint_decode.c, bacint_test.c
-F: Change address to store in a file and demos to use file
+O. Change address to store in a file and demos to use file
    instead of having to send who-is for each query.
    Use a config file for interface and interface options.
    These will make scripting cleaner.
+P. Changed encode_tagged_xx to encode_application_xx in bacdcode.c.
 
-Will I use alphabet (G) or hex (10) for the next item?

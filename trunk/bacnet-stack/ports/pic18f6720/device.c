@@ -41,9 +41,10 @@
 #include "bv.h"
 #include "wp.h"
 #include "dcc.h"
+#include "version.h"
 
-/* note: you really only need to define variables for 
-   properties that are writable or that may change. 
+/* note: you really only need to define variables for
+   properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 12345;
@@ -63,9 +64,9 @@ void Device_Init(void)
     Reinitialize_State = REINITIALIZED_STATE_IDLE;
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* FIXME: Get the data from the eeprom */
-    /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS, 
-       (char *)&Object_Instance_Number, 
-       sizeof(Object_Instance_Number), 
+    /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS,
+       (char *)&Object_Instance_Number,
+       sizeof(Object_Instance_Number),
        EEPROM_BACNET_ID_ADDR); */
 }
 
@@ -83,9 +84,9 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
         Object_Instance_Number = object_id;
         /* FIXME: Write the data to the eeprom */
         /* I2C_Write_Block(
-           EEPROM_DEVICE_ADDRESS, 
-           (char *)&Object_Instance_Number, 
-           sizeof(Object_Instance_Number), 
+           EEPROM_DEVICE_ADDRESS,
+           (char *)&Object_Instance_Number,
+           sizeof(Object_Instance_Number),
            EEPROM_BACNET_ID_ADDR); */
     } else
         status = false;
@@ -186,9 +187,9 @@ bool Device_Object_List_Identifier(unsigned array_index,
     }
     /* normalize the index since
        we know it is not the previous objects */
-    /* array index starts at 1 */ 
+    /* array index starts at 1 */
     object_index = array_index - 1;
-    /* 1 for the device object */    
+    /* 1 for the device object */
     object_count = 1;
     /* FIXME: add objects as needed */
     /* binary value objects */
@@ -299,8 +300,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_FIRMWARE_REVISION:
-        (void) strcpypgm2ram(&string_buffer[0], "0.3.3");
-        characterstring_init_ansi(&char_string, string_buffer);
+        characterstring_init_ansi(&char_string, BACnet_Version);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_APPLICATION_SOFTWARE_VERSION:
@@ -541,7 +541,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                     /* Display_Set_Name(
                        characterstring_value(&value.type.Character_String)); */
                     /* FIXME:  All the object names in a device must be unique.
-                       Disallow setting the Device Object Name to any objects in 
+                       Disallow setting the Device Object Name to any objects in
                        the device. */
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;

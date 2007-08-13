@@ -12,7 +12,7 @@ AR=arm-elf-ar
 LDSCRIPT=at91sam7s256.ld
 
 BACNET_FLAGS = -DBACDL_MSTP=1 -DPRINT_ENABLED=0 -DBIG_ENDIAN=0 -DMAX_APDU=480 -DDLMSTP_TEST
-INCLUDES = -I. -I../.. -I../../demo/handler -I../../demo/object 
+INCLUDES = -I. -I../.. -I../../demo/handler -I../../demo/object
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
 CFLAGS = -fno-common $(OPTIMIZATION) $(INCLUDES) $(BACNET_FLAGS) -Wall -g
@@ -64,7 +64,8 @@ CORESRC = ../../npdu.c \
 	../../dcc.c \
 	../../rd.c \
 	../../whois.c \
-	../../iam.c
+	../../iam.c \
+	../../version.c
 
 #CSRC = $(PORTSRC) $(DEMOSRC) $(CORESRC)
 CSRC = $(PORTSRC)
@@ -80,12 +81,12 @@ $(TARGET).bin:  $(TARGET).elf
 	$(OBJCOPY) $(TARGET).elf $(CPFLAGS) $(TARGET).bin
 
 $(TARGET).elf: $(COBJ) $(AOBJ) $(LIBRARY) Makefile
-	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@ 
+	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
 lib: $(LIBRARY)
 
 $(LIBRARY): $(COREOBJ) Makefile
-	$(AR) rcs $@ $(COREOBJ) 
+	$(AR) rcs $@ $(COREOBJ)
 
 $(COBJ): %.o : %.c Makefile
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -95,7 +96,7 @@ $(AOBJ): %.o : %.s Makefile
 
 clean:
 	touch Makefile
-	rm $(COBJ) $(AOBJ) $(COREOBJ) 
+	rm $(COBJ) $(AOBJ) $(COREOBJ)
 	rm $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
 	rm $(LIBRARY)
 	rm *.lst
