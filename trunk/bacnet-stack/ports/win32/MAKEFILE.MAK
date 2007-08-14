@@ -59,7 +59,8 @@ SRCS = main.c bip-init.c \
        ..\..\reject.c \
        ..\..\bacerror.c \
        ..\..\apdu.c \
-       ..\..\npdu.c
+       ..\..\npdu.c \
+       ..\..\version.c
 
 OBJS = $(SRCS:.c=.obj)
 

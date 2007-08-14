@@ -66,7 +66,8 @@ SRCS = main.c \
        $(BACNET_ROOT)/reject.c \
        $(BACNET_ROOT)/bacerror.c \
        $(BACNET_ROOT)/apdu.c \
-       $(BACNET_ROOT)/npdu.c
+       $(BACNET_ROOT)/npdu.c \
+       $(BACNET_ROOT)/version.c
 
 OBJS = ${SRCS:.c=.o}
 
