@@ -249,6 +249,10 @@ SOURCE=..\..\..\npdu.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\version.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\reject.c
 # End Source File
 # Begin Source File
@@ -414,6 +418,10 @@ SOURCE=..\..\..\mstp.h
 # Begin Source File
 
 SOURCE=..\..\..\npdu.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\version.h
 # End Source File
 # Begin Source File
 
