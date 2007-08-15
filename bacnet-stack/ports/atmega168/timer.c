@@ -46,6 +46,8 @@ void timer_initialize(void)
     TCNT1 = TIMER_1_COUNT;
     /* Enable the overflow interrupt */
     BIT_SET(TIMSK1,TOIE1);
+    /* Clear the Power Reduction Timer/Counter0 */
+    BIT_CLEAR(PRR,PRTIM1);
 }
 
 

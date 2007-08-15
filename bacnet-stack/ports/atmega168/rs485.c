@@ -51,8 +51,16 @@ void RS485_Initialize(void)
     /* enable Transmit and Receive */
     UCSR0B = _BV(TXEN0) | _BV(RXEN0); 
 
-    /* Set frame format: 8data, 2stop bit */
-    UCSR0C = _BV(USBS0) | _BV(UCSZ00);
+    /* Set USART Control and Status Register n C */
+    /* Asynchronous USART 8-bit data, No parity, 1 stop */
+    /* Set USART Mode Select: UMSELn1 UMSELn0 = 00 for Asynchronous USART */
+    /* Set Parity Mode:  UPMn1 UPMn0 = 00 for Parity Disabled */
+    /* Set Stop Bit Select: USBSn = 0 for 1 stop bit */
+    /* Set Character Size: UCSZn2 UCSZn1 UCSZn0 = 011 for 8-bit */
+    /* Clock Polarity: UCPOLn = 0 when asynchronous mode is used. */
+    UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
+    /* Clear Power Reduction USART0 */
+    BIT_CLEAR(PRR,PRUSART0);
 
     return;
 }
@@ -131,13 +139,14 @@ void RS485_Send_Frame(
         UDR0 = *buffer;
         buffer++;
         nbytes--;
-        /* per MSTP spec */
-        if (mstp_port) {
-            mstp_port->SilenceTimer = 0;
-        }
     }
-    while (!BIT_CHECK(UCSR0A,UDRE0)) {
-        /* do nothing - wait until Tx buffer is empty */
+    while (!BIT_CHECK(UCSR0A,TXC0)) {
+        /* do nothing - wait until the entire frame in the 
+           Transmit Shift Register has been shifted out */
+    }
+    /* per MSTP spec */
+    if (mstp_port) {
+        mstp_port->SilenceTimer = 0;
     }
 
     return;
@@ -151,8 +160,16 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     }
     /* wait for state machine to read from the DataRegister */
     else if (mstp_port->DataAvailable == false) {
+        /* check for error */
+        if (BIT_CHECK(UCSR0A,FE0)) {
+            mstp_port->ReceiveError = true;
+        }
+
+        if (BIT_CHECK(UCSR0A,DOR0)) {
+            mstp_port->ReceiveError = true;
+        }
         /* check for data */
-        if (!BIT_CHECK(UCSR0A,RXC0)) {
+        if (BIT_CHECK(UCSR0A,RXC0)) {
             mstp_port->DataRegister = UDR0;
             mstp_port->DataAvailable = true;
         }
