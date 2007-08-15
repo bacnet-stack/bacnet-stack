@@ -50,7 +50,9 @@ void init(void)
     DDRD = 0;
     PORTD = 0;
 
-	/* Configure the watchdog timer */
+	/* Configure the watchdog timer - Disabled for testing */
+    BIT_CLEAR(MCUSR,WDRF);
+    WDTCSR = 0;
 
 	/* Configure USART */
     RS485_Set_Baud_Rate(38400);
