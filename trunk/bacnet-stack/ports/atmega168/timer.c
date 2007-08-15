@@ -25,11 +25,16 @@
 
 #include "hardware.h"
 
+/* This module is a 1 millisecond timer */
+
 /* Prescaling: 1, 8, 64, 256, 1024 */
-#define TIMER_1_PRESCALER 1
-/* Count: Timer counts up to 0xFFFF and then signals overflow */
-#define TIMER_1_TICKS (FREQ_CPU/TIMER_1_PRESCALER/1000)
-#define TIMER_1_COUNT (0xFFFF-TIMER_1_TICKS)
+#define TIMER_PRESCALER 64
+/* Count: Timer0 counts up to 0xFF and then signals overflow */
+#define TIMER_TICKS (FREQ_CPU/TIMER_PRESCALER/1000)
+#if (TIMER_TICKS > 0xFF)
+#error Timer Prescaler value too small
+#endif
+#define TIMER_COUNT (0xFF-TIMER_TICKS)
 /* Global variable millisecond timer - used by main.c for timers task */
 volatile uint8_t Timer_Milliseconds = 0;
 
@@ -38,24 +43,34 @@ void timer_initialize(void)
 {
     /* Normal Operation */
     TCCR1A = 0;
-    /* CS10 = clkI/O/1 (No prescaling) */
-    TCCR1B = _BV(CS10);
+    /* CSn2 CSn1 CSn0 Description  
+       ---- ---- ---- -----------
+         0    0    0  No Clock Source
+         0    0    1  No prescaling
+         0    1    0  CLKio/8
+         0    1    1  CLKio/64
+         1    0    0  CLKio/256
+         1    0    1  CLKio/1024
+         1    1    0  Falling Edge of T0 (external)
+         1    1    1  Rising Edge of T0 (external)
+    */
+    TCCR0B = _BV(CS01) | _BV(CS00);
     /* Clear any TOV1 Flag set when the timer overflowed */
-    BIT_CLEAR(TIFR1,TOV1);
+    BIT_CLEAR(TIFR0,TOV0);
     /* Initial value */
-    TCNT1 = TIMER_1_COUNT;
+    TCNT0 = TIMER_COUNT;
     /* Enable the overflow interrupt */
-    BIT_SET(TIMSK1,TOIE1);
+    BIT_SET(TIMSK0,TOIE0);
     /* Clear the Power Reduction Timer/Counter0 */
-    BIT_CLEAR(PRR,PRTIM1);
+    BIT_CLEAR(PRR,PRTIM0);
 }
 
 
 /* Timer Overflowed!  Increment the time. */
-ISR(TIMER1_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
     /* Set the counter for the next interrupt */
-    TCNT1 = TIMER_1_COUNT;
+    TCNT0 = TIMER_COUNT;
     /* Overflow Flag is automatically cleared */
     if (Timer_Milliseconds < 0xFF)
        Timer_Milliseconds++;

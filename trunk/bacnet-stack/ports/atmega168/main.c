@@ -42,7 +42,6 @@ void init(void)
     /* Initialize I/O ports */
     /* For Port DDRx (Data Direction) Input=1, Output=1 */
     /* For Port PORTx (Bit Value) TriState=0, High=1 */
-
     DDRB = 0;
     PORTB = 0;
     DDRC = 0;
@@ -55,11 +54,14 @@ void init(void)
     WDTCSR = 0;
 
 	/* Configure USART */
-    RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
+    RS485_Set_Baud_Rate(38400);
 
     /* Configure Timer0 for millisecond timer */
     timer_initialize();
+
+    /* Enable global interrupts */
+    sei();
 }
 
 void task_milliseconds(void)
