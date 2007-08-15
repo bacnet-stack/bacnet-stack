@@ -127,6 +127,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         case 19200:
         case 38400:
         case 57600:
+        case 76800:
         case 115200:
             RS485_Baud = baud;
             RS485_Interface->US_BRGR = MCK/16/baud;
