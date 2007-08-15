@@ -32,7 +32,7 @@
 /* Count: Timer0 counts up to 0xFF and then signals overflow */
 #define TIMER_TICKS (FREQ_CPU/TIMER_PRESCALER/1000)
 #if (TIMER_TICKS > 0xFF)
-#error Timer Prescaler value too small
+#error Timer Prescaler value is too small
 #endif
 #define TIMER_COUNT (0xFF-TIMER_TICKS)
 /* Global variable millisecond timer - used by main.c for timers task */
@@ -65,13 +65,15 @@ void timer_initialize(void)
     BIT_CLEAR(PRR,PRTIM0);
 }
 
-
+/* Timer interupt */
+/* note: Global interupts must be enabled - sei() */
 /* Timer Overflowed!  Increment the time. */
 ISR(TIMER0_OVF_vect)
 {
     /* Set the counter for the next interrupt */
     TCNT0 = TIMER_COUNT;
     /* Overflow Flag is automatically cleared */
+    /* Update the global timer */
     if (Timer_Milliseconds < 0xFF)
        Timer_Milliseconds++;
 }

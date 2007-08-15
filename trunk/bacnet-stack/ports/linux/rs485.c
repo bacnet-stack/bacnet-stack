@@ -63,7 +63,7 @@ static int RS485_Handle = -1;
    included by <termios.h> */
 static unsigned int RS485_Baud = B38400;
 /* serial port name, /dev/ttyS0,
-  /dev/ttyUSB0 for USB->RS485 from SerialGear or USBGear   */
+  /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
 static char *RS485_Port_Name = "/dev/ttyUSB0";
 /* serial I/O settings */
 static struct termios RS485_oldtio;
