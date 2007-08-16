@@ -107,6 +107,17 @@ typedef enum {
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
 #define Tusage_timeout 25
 
+/* The minimum time after the end of the stop bit of the final octet of a */
+/* received frame before a node may enable its EIA-485 driver: 40 bit times. */
+/* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
+/* At 19200 baud, 40 bit times would be about 2.083 milliseconds */
+/* At 38400 baud, 40 bit times would be about 1.041 milliseconds */
+/* At 57600 baud, 40 bit times would be about 0.694 milliseconds */
+/* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
+/* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
+/* 40 bits is 4 octets including a start and stop bit with each octet */
+#define Tturnaround  (40UL)
+/* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
 
 struct mstp_port_struct_t {
     MSTP_RECEIVE_STATE receive_state;
@@ -239,17 +250,6 @@ struct mstp_port_struct_t {
 #define DEFAULT_MAX_INFO_FRAMES 1
 #define DEFAULT_MAX_MASTER 127
 #define DEFAULT_MAC_ADDRESS 127
-
-/* The minimum time after the end of the stop bit of the final octet of a */
-/* received frame before a node may enable its EIA-485 driver: 40 bit times. */
-/* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
-/* At 19200 baud, 40 bit times would be about 2.083 milliseconds */
-/* At 38400 baud, 40 bit times would be about 1.041 milliseconds */
-/* At 57600 baud, 40 bit times would be about 0.694 milliseconds */
-/* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
-/* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
-/* 40 bits is 4 octets including a start and stop bit with each octet */
-#define Tturnaround  40
 
 #ifdef __cplusplus
 extern "C" {
