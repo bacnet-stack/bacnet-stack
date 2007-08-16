@@ -88,11 +88,11 @@ lib: $(LIBRARY)
 $(LIBRARY): $(COREOBJ) Makefile
 	$(AR) rcs $@ $(COREOBJ)
 
-$(COBJ): %.o : %.c Makefile
-	$(CC) -c $(CFLAGS) $< -o $@
+.c.o:
+	$(CC) -c $(CFLAGS) $*.c -o $@
 
-$(AOBJ): %.o : %.s Makefile
-	$(CC) -c $(AFLAGS) $< -o $@
+.s.o:
+	$(CC) -c $(AFLAGS) $*.s -o $@
 
 clean:
 	touch Makefile

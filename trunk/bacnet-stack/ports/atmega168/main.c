@@ -28,6 +28,7 @@
 #include "hardware.h"
 #include "timer.h"
 #include "rs485.h"
+#include "datalink.h"
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
@@ -38,7 +39,6 @@ static uint8_t Transmit_Frame[MAX_FRAME] = {0xAA, 0x55, 0x01, 0x45, 0xAB };
 
 void init(void)
 {
-
     /* Initialize I/O ports */
     /* For Port DDRx (Data Direction) Input=1, Output=1 */
     /* For Port PORTx (Bit Value) TriState=0, High=1 */
@@ -49,11 +49,11 @@ void init(void)
     DDRD = 0;
     PORTD = 0;
 
-	/* Configure the watchdog timer - Disabled for testing */
+    /* Configure the watchdog timer - Disabled for testing */
     BIT_CLEAR(MCUSR,WDRF);
     WDTCSR = 0;
 
-	/* Configure USART */
+    /* Configure USART */
     RS485_Initialize();
     RS485_Set_Baud_Rate(38400);
 
@@ -67,23 +67,36 @@ void init(void)
 void task_milliseconds(void)
 {
     while (Timer_Milliseconds) {
-	    Timer_Milliseconds--;
-		/* add other millisecond timer tasks here */
+        Timer_Milliseconds--;
+        /* add other millisecond timer tasks here */
         Transmit_Timer++;
-	}
+        dlmstp_millisecond_timer();
+    }
 }
 
+static uint8_t PDUBuffer[MAX_MPDU];
 int main(void)
 {
+    uint16_t pdu_len = 0;
+    BACNET_ADDRESS src; /* source address */
+    
     init();
-	for (;;) {
-	    task_milliseconds();
-		/* other tasks */
-        if (Transmit_Timer > 1000) {
-            Transmit_Timer = 0;
-            RS485_Send_Frame(NULL,Transmit_Frame, MAX_FRAME);
+#if defined(BACDL_MSTP)
+    RS485_Set_Baud_Rate(38400);
+    dlmstp_set_mac_address(86);
+    dlmstp_set_max_master(127);
+    dlmstp_set_max_info_frames(1);
+#endif
+    datalink_init(NULL);
+    for (;;) {
+        task_milliseconds();
+        /* other tasks */
+        /* BACnet handling */
+        pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
+        if (pdu_len) {
+            //npdu_handler(&src, &pdu[0], pdu_len);
         }
-	}
+    }
 
     return 0;
 }

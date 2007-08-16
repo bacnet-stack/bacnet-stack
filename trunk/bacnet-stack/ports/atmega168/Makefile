@@ -6,13 +6,43 @@
 PROJECT = bacnet
 MCU = atmega168
 TARGET = bacnet
-CC = avr-gcc.exe
+CC = avr-gcc
+AR = avr-ar
 
 CSRC = main.c \
 	timer.c \
-	rs485.c
+	rs485.c \
+	dlmstp.c \
+	..\..\mstp.c \
+	..\..\crc.c
 
+CORESRC = device.c \
+	../../npdu.c \
+	../../bacint.c \
+	../../apdu.c \
+	../../bacdcode.c \
+	../../bacstr.c \
+	../../abort.c \
+	../../bacerror.c \
+	../../reject.c \
+	../../bacapp.c \
+	../../datetime.c \
+	../../rp.c \
+	../../wp.c \
+	../../dcc.c \
+	../../rd.c \
+	../../whois.c \
+	../../iam.c \
+	../../version.c
+
+## Include Directories
+INCLUDES = -I. -I../.. -I../../demo/object
+
+# Source to Object conversion
 COBJ = $(CSRC:.c=.o)
+COREOBJ = $(CORESRC:.c=.o)
+
+LIBRARY = lib$(TARGET).a
 
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
@@ -20,8 +50,9 @@ OPTIMIZATION = -O0
 #OPTIMIZATION = -Os
 
 ## Compile options common for all C compilation units.
+BFLAGS = -DBACDL_MSTP -DMAX_APDU=50 -DBIG_ENDIAN=0
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -DF_CPU=7372800UL $(OPTIMIZATION) -fsigned-char
+CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -39,19 +70,16 @@ HEX_EEPROM_FLAGS = -j .eeprom
 HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
-## Include Directories
-INCLUDES = -I. -I..\.. 
-
 ## Objects that must be built in order to link
 OBJECTS = $(COBJ)
 
 ## Build
 TARGET_ELF=$(TARGET).elf
 
-all: $(TARGET_ELF) $(TARGET).hex $(TARGET).eep size
+all: $(TARGET_ELF) $(TARGET).hex $(TARGET).eep size $(LIBRARY) Makefile
 
 ##Link
-$(TARGET_ELF): $(OBJECTS)
+$(TARGET_ELF): $(OBJECTS) 
 	$(CC) $(LDFLAGS) $(OBJECTS) $(LIBDIRS) $(LIBS) -o $@
 
 %.hex: $(TARGET_ELF)
@@ -63,8 +91,13 @@ $(TARGET_ELF): $(OBJECTS)
 %.lss: $(TARGET_ELF)
 	avr-objdump -h -S $< > $@
 
-$(COBJ): %.o : %.c Makefile
-	$(CC) -c $(INCLUDES) $(CFLAGS) $< -o $@
+lib: $(LIBRARY)
+
+$(LIBRARY): $(COREOBJ) Makefile
+	$(AR) rcs $@ $(COREOBJ)
+
+.c.o:
+	$(CC) -c $(INCLUDES) $(CFLAGS) $*.c -o $@
 
 size: ${TARGET_ELF}
 	@echo
@@ -75,6 +108,7 @@ size: ${TARGET_ELF}
 clean:
 	touch Makefile
 	-rm -rf $(OBJECTS) $(TARGET_ELF) dep/* 
+	-rm -rf $(LIBRARY) $(COREOBJ)
 	-rm -rf $(TARGET).hex $(TARGET).eep $(TARGET).lss $(TARGET).map
 
 ## Other dependencies
