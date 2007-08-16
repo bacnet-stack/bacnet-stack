@@ -6,18 +6,29 @@
 PROJECT = bacnet
 MCU = atmega168
 TARGET = bacnet
+## Tools
 CC = avr-gcc
 AR = avr-ar
+OBJCOPY = avr-objcopy
+OBJDUMP = avr-objdump
+SIZE = avr-size
 
 CSRC = main.c \
 	timer.c \
 	rs485.c \
 	dlmstp.c \
-	..\..\mstp.c \
-	..\..\crc.c
+	../../mstp.c \
+	../../crc.c
 
-CORESRC = device.c \
-	../../npdu.c \
+DEMOSRC = h_rp.c \
+	h_wp.c \
+	device.c \
+	../../demo/handler/txbuf.c \
+	../../demo/handler/h_whois.c \
+	../../demo/handler/h_rd.c \
+	../../demo/handler/h_dcc.c
+
+CORESRC = ../../npdu.c \
 	../../bacint.c \
 	../../apdu.c \
 	../../bacdcode.c \
@@ -36,24 +47,26 @@ CORESRC = device.c \
 	../../version.c
 
 ## Include Directories
-INCLUDES = -I. -I../.. -I../../demo/object
+INCLUDES = -I. -I../.. -I../../demo/object -I../../demo/handler
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)
+DEMOOBJ = $(DEMOSRC:.c=.o)
 COREOBJ = $(CORESRC:.c=.o)
 
 LIBRARY = lib$(TARGET).a
 
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
-OPTIMIZATION = -O0
+#OPTIMIZATION = -O0
 #OPTIMIZATION = -Os
+OPTIMIZATION = -Os -mcall-prologues
 
 ## Compile options common for all C compilation units.
 BFLAGS = -DBACDL_MSTP -DMAX_APDU=50 -DBIG_ENDIAN=0
 CFLAGS = $(COMMON)
 CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
-CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
+CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
@@ -62,7 +75,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 
 ## Linker flags
 LDFLAGS = $(COMMON)
-LDFLAGS += -Wl,-Map=$(TARGET).map
+LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
 
 ## Intel Hex file production flags
 HEX_FLASH_FLAGS = -R .eeprom
@@ -71,45 +84,47 @@ HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 ## Objects that must be built in order to link
-OBJECTS = $(COBJ)
+OBJECTS = $(COBJ) $(DEMOOBJ)
 
 ## Build
 TARGET_ELF=$(TARGET).elf
 
-all: $(TARGET_ELF) $(TARGET).hex $(TARGET).eep size $(LIBRARY) Makefile
+all: $(LIBRARY) $(TARGET_ELF) $(TARGET).hex $(TARGET).eep $(TARGET).lst \
+	size Makefile
 
 ##Link
-$(TARGET_ELF): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) $(LIBDIRS) $(LIBS) -o $@
+$(TARGET_ELF): $(OBJECTS) $(LIBRARY)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
 %.hex: $(TARGET_ELF)
-	avr-objcopy -O ihex $(HEX_FLASH_FLAGS)  $< $@
+	$(OBJCOPY) -O ihex $(HEX_FLASH_FLAGS) $< $@
 
 %.eep: $(TARGET_ELF)
-	-avr-objcopy $(HEX_EEPROM_FLAGS) -O ihex $< $@ || exit 0
+	-$(OBJCOPY) $(HEX_EEPROM_FLAGS) -O ihex $< $@ || exit 0
 
-%.lss: $(TARGET_ELF)
-	avr-objdump -h -S $< > $@
+%.lst: $(TARGET_ELF)
+	$(OBJDUMP) -h -S $< > $@
 
 lib: $(LIBRARY)
 
 $(LIBRARY): $(COREOBJ) Makefile
 	$(AR) rcs $@ $(COREOBJ)
+	$(OBJDUMP) --syms $@ > $(LIBRARY:.a=.lst)
 
 .c.o:
 	$(CC) -c $(INCLUDES) $(CFLAGS) $*.c -o $@
 
 size: ${TARGET_ELF}
 	@echo
-	@avr-size -C --mcu=${MCU} ${TARGET_ELF}
+	@${SIZE} -C --mcu=${MCU} ${TARGET_ELF}
 
 ## Clean target
 .PHONY: clean
 clean:
 	touch Makefile
-	-rm -rf $(OBJECTS) $(TARGET_ELF) dep/* 
-	-rm -rf $(LIBRARY) $(COREOBJ)
-	-rm -rf $(TARGET).hex $(TARGET).eep $(TARGET).lss $(TARGET).map
+	-rm -rf $(OBJECTS) $(TARGET_ELF) dep/*
+	-rm -rf $(LIBRARY) $(COREOBJ) $(LIBRARY:.a=.lst)
+	-rm -rf $(TARGET).hex $(TARGET).eep $(TARGET).lst $(TARGET).map
 
 ## Other dependencies
 -include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)

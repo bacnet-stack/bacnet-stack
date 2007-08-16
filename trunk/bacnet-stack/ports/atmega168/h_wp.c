@@ -31,16 +31,19 @@
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bacerror.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
 #include "wp.h"
 /* demo objects */
 #include "device.h"
+#if 0
 #include "ai.h"
 #include "av.h"
 #include "bi.h"
 #include "bv.h"
+#endif
 
 /* too big to reside on stack frame for PIC */
 static BACNET_WRITE_PROPERTY_DATA wp_data;
@@ -89,7 +92,8 @@ void handler_write_property(uint8_t * service_request,
                     error_code);
             }
             break;
-        case OBJECT_ANALOG_INPUT:
+#if 0
+            case OBJECT_ANALOG_INPUT:
         case OBJECT_BINARY_INPUT:
             error_class = ERROR_CLASS_PROPERTY;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -128,7 +132,8 @@ void handler_write_property(uint8_t * service_request,
                     error_code);
             }
             break;
-        default:
+#endif
+            default:
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,

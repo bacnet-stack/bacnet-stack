@@ -44,10 +44,10 @@ DEMOSRC = ai.c \
 	h_rp.c \
 	h_wp.c \
 	device.c \
-	../../demo\handler\txbuf.c \
-	../../demo\handler\h_whois.c \
-	../../demo\handler\h_rd.c \
-	../../demo\handler\h_dcc.c
+	../../demo/handler/txbuf.c \
+	../../demo/handler/h_whois.c \
+	../../demo/handler/h_rd.c \
+	../../demo/handler/h_dcc.c
 
 CORESRC = ../../npdu.c \
 	../../bacint.c \
