@@ -40,12 +40,12 @@ uint16_t MSTP_Packets = 0;
 
 /* local MS/TP port data - shared with RS-485 */
 static volatile struct mstp_port_struct_t MSTP_Port;
-/* receive buffer */
-static DLMSTP_PACKET Receive_Packet;
-static DLMSTP_PACKET Transmit_Packet;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[MAX_MPDU];
 static uint8_t RxBuffer[MAX_MPDU];
+/* buffers used by the datalink layer */
+static DLMSTP_PACKET Receive_Packet;
+static DLMSTP_PACKET Transmit_Packet;
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 

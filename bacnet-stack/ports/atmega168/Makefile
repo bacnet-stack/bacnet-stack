@@ -75,7 +75,8 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 
 ## Linker flags
 LDFLAGS = $(COMMON)
-LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
+#LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
+LDFLAGS += -Wl,-Map=$(TARGET).map
 
 ## Intel Hex file production flags
 HEX_FLASH_FLAGS = -R .eeprom
@@ -84,7 +85,8 @@ HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 ## Objects that must be built in order to link
-OBJECTS = $(COBJ) $(DEMOOBJ)
+#OBJECTS = $(COBJ) $(DEMOOBJ)
+OBJECTS = $(COBJ)
 
 ## Build
 TARGET_ELF=$(TARGET).elf

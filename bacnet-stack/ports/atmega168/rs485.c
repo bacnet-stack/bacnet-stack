@@ -124,7 +124,7 @@ void RS485_Send_Frame(
     /* delay after reception - per MS/TP spec */
     if (mstp_port) {
         /* wait about 40 bit times since reception */
-        turnaround_time = (40UL*1000UL)/RS485_Baud;
+        turnaround_time = (Tturnaround*1000UL)/RS485_Baud;
         if (!turnaround_time) {
             turnaround_time = 1;
         }

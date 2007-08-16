@@ -36,6 +36,26 @@
 
 void init(void)
 {
+    /* Initialize the Clock Prescaler for ATmega48/88/168 */
+    /* The device is shipped with the CKDIV8 Fuse programmed */
+    /* The default CLKPSx bits are factory set to 0011 */
+    /* Enbable the Clock Prescaler */
+    CLKPR = _BV(CLKPCE);
+    /* CLKPS3 CLKPS2 CLKPS1 CLKPS0 Clock Division Factor
+       ------ ------ ------ ------ ---------------------
+          0      0      0      0             1
+          0      0      0      1             2
+          0      0      1      0             4
+          0      0      1      1             8
+          0      1      0      0            16
+          0      1      0      1            32
+          0      1      1      0            64
+          0      1      1      1           128
+          1      0      0      0           256
+          1      x      x      x      Reserved
+    */
+    /* Set the CLKPS3..0 bits to Prescaler of 1 */
+    CLKPR = 0;
     /* Initialize I/O ports */
     /* For Port DDRx (Data Direction) Input=1, Output=1 */
     /* For Port PORTx (Bit Value) TriState=0, High=1 */
@@ -66,7 +86,9 @@ void task_milliseconds(void)
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
         /* add other millisecond timer tasks here */
+#if defined(BACDL_MSTP)
         dlmstp_millisecond_timer();
+#endif
     }
 }
 
@@ -90,7 +112,7 @@ int main(void)
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
         if (pdu_len) {
-            npdu_handler(&src, &PDUBuffer[0], pdu_len);
+            //npdu_handler(&src, &PDUBuffer[0], pdu_len);
         }
     }
 
