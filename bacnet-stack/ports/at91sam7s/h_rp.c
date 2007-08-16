@@ -31,6 +31,7 @@
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bacerror.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"

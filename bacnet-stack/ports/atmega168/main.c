@@ -29,13 +29,10 @@
 #include "timer.h"
 #include "rs485.h"
 #include "datalink.h"
+#include "npdu.h"
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
-
-static uint16_t Transmit_Timer = 0;
-#define MAX_FRAME 5
-static uint8_t Transmit_Frame[MAX_FRAME] = {0xAA, 0x55, 0x01, 0x45, 0xAB };
 
 void init(void)
 {
@@ -69,7 +66,6 @@ void task_milliseconds(void)
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
         /* add other millisecond timer tasks here */
-        Transmit_Timer++;
         dlmstp_millisecond_timer();
     }
 }
@@ -94,7 +90,7 @@ int main(void)
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
         if (pdu_len) {
-            //npdu_handler(&src, &pdu[0], pdu_len);
+            npdu_handler(&src, &PDUBuffer[0], pdu_len);
         }
     }
 

@@ -31,16 +31,19 @@
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bacerror.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
 #include "rp.h"
 /* demo objects */
 #include "device.h"
+#if 0
 #include "ai.h"
 #include "av.h"
 #include "bi.h"
 #include "bv.h"
+#endif
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
@@ -72,7 +75,8 @@ int Encode_Property_APDU(
                     error_class, error_code);
             }
             break;
-        case OBJECT_ANALOG_INPUT:
+#if 0
+            case OBJECT_ANALOG_INPUT:
             if (Analog_Input_Valid_Instance(object_instance)) {
                 apdu_len = Analog_Input_Encode_Property_APDU(
                     &apdu[0],
@@ -110,7 +114,8 @@ int Encode_Property_APDU(
                     error_class, error_code);
             }
             break;
-        default:
+#endif
+            default:
             *error_class = ERROR_CLASS_OBJECT;
             *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
             break;
