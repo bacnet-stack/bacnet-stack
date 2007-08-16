@@ -82,7 +82,7 @@
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #define datalink_get_my_address bip_get_my_address
 
-#elif defined(BACDL_TEST)
+#else
 #include "npdu.h"
 
 extern int datalink_send_pdu(BACNET_ADDRESS * dest,

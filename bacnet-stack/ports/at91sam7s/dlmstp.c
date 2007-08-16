@@ -40,7 +40,6 @@ uint16_t MSTP_Packets = 0;
 /* receive buffer */
 static DLMSTP_PACKET Receive_Packet;
 static DLMSTP_PACKET Transmit_Packet;
-/* temp buffer for NPDU insertion */
 /* local MS/TP port data - shared with RS-485 */
 static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
