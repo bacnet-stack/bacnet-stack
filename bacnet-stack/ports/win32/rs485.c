@@ -307,7 +307,7 @@ void RS485_Send_Frame(
 }
 
 /* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
 {
     char lpBuf[1];
     DWORD dwRead = 0;

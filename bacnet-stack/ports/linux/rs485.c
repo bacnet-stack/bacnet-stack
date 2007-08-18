@@ -195,7 +195,7 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
         /* if error, */
         /* ReceiveError = TRUE; */
         /* return; */
-        if (count) {
+        if (count > 0) {
             mstp_port->DataRegister = buf[0];
             /* if data is ready, */
             mstp_port->DataAvailable = true;
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
         written = write(RS485_Handle, wbuf, wlen);
         rlen = read(RS485_Handle,buf,sizeof(buf));
         /* print any characters received */
-        if (rlen) {
+        if (rlen > 0) {
             for (i = 0; i < rlen; i++) {
                 fprintf(stderr,"%02X ",buf[i]);
             }

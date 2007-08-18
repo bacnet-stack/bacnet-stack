@@ -16,6 +16,7 @@ SRCS = bacdcode.c \
        indtext.c \
        apdu.c \
        dcc.c \
+       version.c \
        demo/object/device.c \
        test/ctest.c
 

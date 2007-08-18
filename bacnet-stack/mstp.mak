@@ -4,7 +4,7 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_MSTP -g
+CFLAGS  = -Wall -I. -Iports/linux -Itest -DTEST -DTEST_MSTP -g
 
 OBJS    = mstp.o crc.o ringbuf.o test/ctest.o
 
