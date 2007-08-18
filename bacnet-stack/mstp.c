@@ -745,16 +745,16 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
             mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
             transition_now = true;
         } else if (mstp_port->SilenceTimer > Tusage_delay) {
-            /* if we missed our timing deadline, another token will be sent */
+            /* Don't send it if we are too late in getting out. */
+            /* Don't worry.  If we missed our timing deadline, 
+               another token will be sent */
             mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
         } else {
-            /* don't send it if we are too late in getting out */
             uint8_t frame_type = mstp_port->OutputBuffer[2];
             uint8_t destination = mstp_port->OutputBuffer[3];
             RS485_Send_Frame(mstp_port,
                 (uint8_t *) & mstp_port->OutputBuffer[0], length);
             mstp_port->FrameCount++;
-            /* last trasmitted frame type */
             switch (frame_type) {
             case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                 /* SendAndWait */
