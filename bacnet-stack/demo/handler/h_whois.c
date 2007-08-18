@@ -47,8 +47,6 @@ void handler_who_is(uint8_t * service_request,
     (void) src;
     len = whois_decode_service_request(service_request,
         service_len, &low_limit, &high_limit);
-    /* in our simple system, we just set a flag and let the main loop
-       send the I-Am request. */
     if (len == 0)
         iam_send(&Handler_Transmit_Buffer[0]);
     else if (len != -1) {

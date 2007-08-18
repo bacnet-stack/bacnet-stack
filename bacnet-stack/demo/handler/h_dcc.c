@@ -53,16 +53,28 @@ void handler_device_communication_control(uint8_t * service_request,
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
-    /* decode the service request only */
-    len = dcc_decode_service_request(service_request,
-        service_len, &timeDuration, &state, &password);
-    /* encode the NPDU portion of the packet */
+    /* encode the NPDU portion of the reply packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
         &my_address, &npdu_data);
 #if PRINT_ENABLED
     fprintf(stderr, "DeviceCommunicationControl!\n");
+#endif
+    if (service_data->segmented_message) {
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+#if PRINT_ENABLED
+        fprintf(stderr, "DeviceCommunicationControl: "
+            "Sending Abort - segmented message.\n");
+#endif
+        goto DCC_ABORT;
+    }    
+    /* decode the service request only */
+    len = dcc_decode_service_request(service_request,
+        service_len, &timeDuration, &state, &password);
+#if PRINT_ENABLED
     if (len > 0)
         fprintf(stderr, "DeviceCommunicationControl: "
             "timeout=%u state=%u password=%s\n",
@@ -77,15 +89,9 @@ void handler_device_communication_control(uint8_t * service_request,
         fprintf(stderr, "DeviceCommunicationControl: "
             "Sending Abort - could not decode.\n");
 #endif
-    } else if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "DeviceCommunicationControl: "
-            "Sending Abort - segmented message.\n");
-#endif
-    } else if (state >= MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
+        goto DCC_ABORT;
+    }
+    if (state >= MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
         len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
 #if PRINT_ENABLED
@@ -115,6 +121,7 @@ void handler_device_communication_control(uint8_t * service_request,
 #endif
         }
     }
+DCC_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
