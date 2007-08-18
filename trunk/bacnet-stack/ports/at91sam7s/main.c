@@ -23,12 +23,15 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
+/* hardware specific */
 #include "AT91SAM7S256.h"
 #include "board.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
-#include "stdbool.h"
+#include "timer.h"
+/* standard libraries */
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
 /* BACnet */
 #include "rs485.h"
 #include "datalink.h"
@@ -37,6 +40,10 @@
 #include "dcc.h"
 #include "iam.h"
 #include "handlers.h"
+#include "device.h"
+#include "dcc.h"
+#include "iam.h"
+#include "txbuf.h"
 
 //  *******************************************************
 //   FIXME: use header files?     External References
@@ -44,9 +51,6 @@
 extern    void LowLevelInit(void);
 extern    unsigned enableIRQ(void);
 extern    unsigned enableFIQ(void);
-
-extern    void TimerInit(void);
-extern volatile unsigned long Timer_Milliseconds;
 
 //  *******************************************************
 //  FIXME: use header files?      Global Variables
@@ -58,8 +62,9 @@ static unsigned long LED_Timer_1 = 0;
 static unsigned long LED_Timer_2 = 0;
 static unsigned long LED_Timer_3 = 0;
 static unsigned long LED_Timer_4 = 1000;
+static unsigned long DCC_Timer = 1000;
 
-void millisecond_timer(void)
+static void millisecond_timer(void)
 {
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
@@ -75,21 +80,15 @@ void millisecond_timer(void)
         if (LED_Timer_4) {
             LED_Timer_4--;
         }
-        dlmstp_millisecond_timer();
+        if (DCC_Timer) {
+            DCC_Timer--;
+        }
     }
+    /* note: MS/TP silence timer is updated in ISR */
 }
 
-int    main (void) {
-    unsigned long    IdleCount = 0; // idle loop blink counter
-    bool LED3_Off_Enabled = true;
-    uint16_t pdu_len = 0;
-    BACNET_ADDRESS src; /* source address */
-    uint8_t pdu[MAX_MPDU]; /* PDU data */
-
-    // Initialize the Atmel AT91SAM7S256
-    // (watchdog, PLL clock, default interrupts, etc.)
-    LowLevelInit();
-    TimerInit();
+static void init(void)
+{
     /* Initialize the Parallel I/O Controller A Peripheral Clock */
     volatile AT91PS_PMC    pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_PIOA);
@@ -127,7 +126,10 @@ int    main (void) {
     // Enable the FIQ interrupt in
     // AIC Interrupt Enable Command Register
     pAIC->AIC_IECR = (1<<AT91C_ID_FIQ);
+}
 
+static void bacnet_init(void)
+{
 #if defined(BACDL_MSTP)
     RS485_Set_Baud_Rate(38400);
     dlmstp_set_mac_address(55);
@@ -135,7 +137,8 @@ int    main (void) {
     dlmstp_set_max_info_frames(1);
     dlmstp_init(NULL);
 #endif
-
+    Device_Init();
+    Device_Set_Object_Instance_Number(22222);
 #ifndef DLMSTP_TEST
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
@@ -153,32 +156,80 @@ int    main (void) {
         (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 #endif
+}
 
+int    main (void) {
+    unsigned long    IdleCount = 0; // idle loop blink counter
+    bool LED1_Off_Enabled = true;
+    bool LED2_Off_Enabled = true;
+    bool LED3_Off_Enabled = true;
+    uint16_t pdu_len = 0;
+    BACNET_ADDRESS src; /* source address */
+    uint8_t pdu[MAX_MPDU]; /* PDU data */
+    // Set up the LEDs (PA0 - PA3)
+    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
+
+    // Initialize the Atmel AT91SAM7S256
+    // (watchdog, PLL clock, default interrupts, etc.)
+    LowLevelInit();
+    TimerInit();
+    init();
+    bacnet_init();
     // enable interrupts
     enableIRQ();
     enableFIQ();
-
-    // endless blink loop
+     /* broadcast an I-Am on startup */
+    iam_send(&Handler_Transmit_Buffer[0]);
+   // endless blink loop
     while (1) {
         millisecond_timer();
-        /* interrupt turns on the LED, we turn it off */
+        if (!DCC_Timer) {
+            dcc_timer_seconds(1);
+            DCC_Timer = 1000;
+        }
+        /* USART Tx turns the LED on, we turn it off */
+        if  (((pPIO->PIO_ODSR & LED1) == LED1) && (LED1_Off_Enabled))
+        {
+            LED1_Off_Enabled = false;
+            /* wait */
+            LED_Timer_1 = 20;
+        }
+        if (!LED_Timer_1) {
+            /* turn off */
+            pPIO->PIO_SODR = LED1;
+            LED1_Off_Enabled = true;
+        }
+        /* USART Rx turns the LED on, we turn it off */
+        if  (((pPIO->PIO_ODSR & LED2) == LED2) && (LED2_Off_Enabled))
+        {
+            LED2_Off_Enabled = false;
+            /* wait */
+            LED_Timer_2 = 20;
+        }
+        if (!LED_Timer_2) {
+            /* turn off */
+            pPIO->PIO_SODR = LED2;
+            LED2_Off_Enabled = true;
+        }
+        /* switch or NPDU turns on the LED, we turn it off */
         if  (((pPIO->PIO_ODSR & LED3) == LED3) && (LED3_Off_Enabled))
         {
             LED3_Off_Enabled = false;
             /* wait */
-            LED_Timer_3 = 250;
+            LED_Timer_3 = 500;
         }
         if (!LED_Timer_3) {
             /* turn LED3 (DS3) off */
             pPIO->PIO_SODR = LED3;
             LED3_Off_Enabled = true;
         }
+        /* Blink LED every second */
         if (!LED_Timer_4) {
             if  ((pPIO->PIO_ODSR & LED4) == LED4) {
-                // turn LED2 (DS2) on
+                /* turn on */
                 pPIO->PIO_CODR = LED4;
             } else {
-                // turn LED2 (DS2) off
+                /* turn off */
                 pPIO->PIO_SODR = LED4;
             }
             /* wait */

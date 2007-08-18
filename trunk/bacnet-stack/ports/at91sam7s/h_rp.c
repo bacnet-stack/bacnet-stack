@@ -134,58 +134,57 @@ void handler_read_property(uint8_t * service_request,
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
 
-    len = rp_decode_service_request(service_request, service_len, &data);
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
         &my_address, &npdu_data);
-    if (len < 0) {
-        /* bad decoding - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
-    } else if (service_data->segmented_message) {
+    if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-    } else {
-        /* most cases will be error */
-        error = true;
-        len = Encode_Property_APDU(
-            &Temp_Buf[0],
-            data.object_type,
-            data.object_instance,
-            data.object_property,
-            data.array_index,
-            &error_class, &error_code);
-        if (len >= 0) {
-            /* encode the APDU portion of the packet */
-            data.application_data = &Temp_Buf[0];
-            data.application_data_len = len;
-            /* FIXME: probably need a length limitation sent with encode */
-            len =
-                rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, &data);
-            error = false;
-        }
+        goto RP_ABORT;
+    }
+    len = rp_decode_service_request(service_request, service_len, &data);
+    if (len < 0) {
+        /* bad decoding - send an abort */
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        goto RP_ABORT;
+    }
+    /* most cases will be error */
+    error = true;
+    len = Encode_Property_APDU(
+        &Temp_Buf[0],
+        data.object_type,
+        data.object_instance,
+        data.object_property,
+        data.array_index,
+        &error_class, &error_code);
+    if (len >= 0) {
+        /* encode the APDU portion of the packet */
+        data.application_data = &Temp_Buf[0];
+        data.application_data_len = len;
+        /* FIXME: probably need a length limitation sent with encode */
+        len =
+            rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, &data);
+        error = false;
     }
     if (error) {
-        switch (len) {
+        if (len == -2) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
-        case -2:
             len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-            break;
-        case -1:
-        default:
-            len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
-            break;
+            goto RP_ABORT;
         }
+        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id,
+            SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
     }
+RP_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

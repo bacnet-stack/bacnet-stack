@@ -40,11 +40,14 @@
 /**********************************************************
                     Header files
  **********************************************************/
+#include <stdint.h>
 #include "AT91SAM7S256.h"
 #include "board.h"
+#include "dlmstp.h"
 
 // global variable counts interrupts
-volatile unsigned long Timer_Milliseconds = 0;
+volatile unsigned long Timer_Milliseconds;
+volatile uint16_t *pTimer_MSTP_Silence;
 
 void Timer0_Setup(int milliseconds) {
     //        TC Block Control Register TC_BCR    (read/write)
@@ -302,6 +305,8 @@ void Timer0IrqHandler (void) {
     dummy = pTC->TC_SR;
     // increment the tick count
     Timer_Milliseconds++;
+    if ((*pTimer_MSTP_Silence) < 0xFFFF)
+        (*pTimer_MSTP_Silence)++;
 }
 
 //  *****************************************************************************
@@ -314,8 +319,9 @@ void Timer0IrqHandler (void) {
 //    modified the peripheral clock init
 //  *****************************************************************************
 void TimerInit(void) {
+    pTimer_MSTP_Silence = dlmstp_millisecond_timer_address();
     // enable the Timer0 peripheral clock
-    volatile AT91PS_PMC    pPMC = AT91C_BASE_PMC;
+    volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_TC0);
     // Set up the AIC  registers for Timer 0
     volatile AT91PS_AIC    pAIC = AT91C_BASE_AIC;
