@@ -4,7 +4,7 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_READ_PROPERTY -g
+CFLAGS  = -Wall -I. -Itest -DTEST -DBIG_ENDIAN=0 -DTEST_READ_PROPERTY -g
 
 SRCS = bacdcode.c \
        bacint.c \

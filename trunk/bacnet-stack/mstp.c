@@ -1184,7 +1184,11 @@ void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port)
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
+#include "ringbuf.h"
 #include "ctest.h"
+
+static uint8_t RxBuffer[MAX_MPDU];
+static uint8_t TxBuffer[MAX_MPDU];
 
 /* test stub functions */
 void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port specific data */
@@ -1238,6 +1242,23 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
     }
 }
 
+uint16_t MSTP_Put_Receive(
+    volatile struct mstp_port_struct_t *mstp_port)
+{
+    return mstp_port->DataLength;
+}
+
+/* for the MS/TP state machine to use for getting data to send */
+/* Return: amount of PDU data */
+uint16_t MSTP_Get_Send(
+    uint8_t src, /* source MS/TP address for creating packet */
+    uint8_t * pdu, /* data to send */
+    uint16_t max_pdu, /* amount of space available */
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    return 0;
+}
+
 void testReceiveNodeFSM(Test * pTest)
 {
     volatile struct mstp_port_struct_t mstp_port;       /* port data */
@@ -1250,7 +1271,14 @@ void testReceiveNodeFSM(Test * pTest)
     uint8_t buffer[MAX_MPDU] = { 0 };
     uint8_t data[MAX_MPDU - 8 /*header */  - 2 /*CRC*/] = { 0 };
 
-    MSTP_Init(&mstp_port, my_mac);
+    mstp_port.InputBuffer = &RxBuffer[0];
+    mstp_port.InputBufferSize = sizeof(RxBuffer);
+    mstp_port.OutputBuffer = &TxBuffer[0];
+    mstp_port.OutputBufferSize = sizeof(TxBuffer);
+    mstp_port.This_Station = my_mac;
+    mstp_port.Nmax_info_frames = 1;
+    mstp_port.Nmax_master = 127;
+    MSTP_Init(&mstp_port);
 
     /* check the receive error during idle */
     mstp_port.receive_state = MSTP_RECEIVE_STATE_IDLE;
@@ -1613,11 +1641,18 @@ void testReceiveNodeFSM(Test * pTest)
 
 void testMasterNodeFSM(Test * pTest)
 {
-    volatile struct mstp_port_struct_t mstp_port;       /* port data */
+    volatile struct mstp_port_struct_t MSTP_Port;       /* port data */
     uint8_t my_mac = 0x05;      /* local MAC address */
 
-    MSTP_Init(&mstp_port, my_mac);
-    ct_test(pTest, mstp_port.master_state == MSTP_MASTER_STATE_INITIALIZE);
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+    MSTP_Port.This_Station = my_mac;
+    MSTP_Port.Nmax_info_frames = 1;
+    MSTP_Port.Nmax_master = 127;
+    MSTP_Init(&MSTP_Port);
+    ct_test(pTest, MSTP_Port.master_state == MSTP_MASTER_STATE_INITIALIZE);
 
 }
 

@@ -53,6 +53,8 @@
 
 /* local port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
+static uint8_t RxBuffer[MAX_MPDU];
+static uint8_t TxBuffer[MAX_MPDU];
 
 void *milliseconds_task(void *pArg)
 {
@@ -137,6 +139,7 @@ int main(int argc, char *argv[])
     int rc = 0;
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
+    int my_mac = 127;
 
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
@@ -144,11 +147,23 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         Network_Interface = argv[1];
     }
+    if (argc > 2) {
+        my_mac = strtol(argv[2], NULL, 0);
+        if (my_mac > 127)
+           my_mac = 127;
+    }
     /* initialize our interface */
     RS485_Set_Interface(Network_Interface);
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
-    MSTP_Init(mstp_port);
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+    MSTP_Port.This_Station = my_mac;
+    MSTP_Port.Nmax_info_frames = 1;
+    MSTP_Port.Nmax_master = 127;
+    MSTP_Init(&MSTP_Port);
     mstp_port->Lurking = true;
     /* start our MilliSec task */
     hThread = _beginthread(milliseconds_task,4096,&arg_value);

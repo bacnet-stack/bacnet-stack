@@ -28,6 +28,7 @@ SRCS = address.c \
        npdu.c \
        apdu.c \
        tsm.c \
+       version.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}

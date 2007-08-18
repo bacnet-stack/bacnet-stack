@@ -67,15 +67,15 @@ void *milliseconds_task(void *pArg)
 
     for (;;) {
         nanosleep(&timeOut, &remains);
-        dlmstp_millisecond_timer();
+        INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
     }
 
     return NULL;
 }
 
-void dlmstp_millisecond_timer(void)
+volatile uint16_t *dlmstp_millisecond_timer_address(void)
 {
-    INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
+  return (&(MSTP_Port.SilenceTimer));
 }
 
 /* functions used by the MS/TP state machine to put or get data */
@@ -170,19 +170,28 @@ int main(int argc, char *argv[])
     volatile struct mstp_port_struct_t *mstp_port;
     int rc = 0;
     pthread_t hThread;
-
+    int my_mac = 127;
 
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
     /* initialize our interface */
-    if (argc > 1)
+    if (argc > 1) {
         RS485_Set_Interface(argv[1]);
+    }
+    if (argc > 2) {
+        my_mac = strtol(argv[2], NULL, 0);
+        if (my_mac > 127)
+           my_mac = 127;
+    }
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+    MSTP_Port.This_Station = my_mac;
+    MSTP_Port.Nmax_info_frames = 1;
+    MSTP_Port.Nmax_master = 127;
     MSTP_Init(mstp_port);
     mstp_port->Lurking = true;
     /* start our MilliSec task */
