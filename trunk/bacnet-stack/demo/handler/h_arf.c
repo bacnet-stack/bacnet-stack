@@ -109,12 +109,21 @@ void handler_atomic_read_file(uint8_t * service_request,
 #if PRINT_ENABLED
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
 #endif
-    len = arf_decode_service_request(service_request, service_len, &data);
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
         &my_address, &npdu_data);
+    if (service_data->segmented_message) {
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+#if PRINT_ENABLED
+        fprintf(stderr, "ARF: Segmented Message. Sending Abort!\n");
+#endif
+        goto ARF_ABORT;
+    } 
+    len = arf_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
     if (len < 0) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -122,14 +131,9 @@ void handler_atomic_read_file(uint8_t * service_request,
 #if PRINT_ENABLED
         fprintf(stderr, "Bad Encoding. Sending Abort!\n");
 #endif
-    } else if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "Segmented Message. Sending Abort!\n");
-#endif
-    } else if (data.object_type == OBJECT_FILE) {
+        goto ARF_ABORT;
+    }
+    if (data.object_type == OBJECT_FILE) {
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
@@ -179,6 +183,7 @@ void handler_atomic_read_file(uint8_t * service_request,
             service_data->invoke_id,
             SERVICE_CONFIRMED_ATOMIC_READ_FILE, error_class, error_code);
     }
+ARF_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

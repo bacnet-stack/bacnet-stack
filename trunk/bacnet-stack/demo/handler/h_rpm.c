@@ -318,41 +318,86 @@ void handler_read_property_multiple(
     npdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0],
         src, &my_address, &npdu_data);
-#if PRINT_ENABLED
-    if (service_len <= 0)
-        printf("RPM: Unable to decode request!\r\n");
-#endif
-    /* bad decoding - send an abort */
-    if (service_len == 0)
-    {
-        apdu_len = abort_encode_apdu(
-            &Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        printf("RPM: Sending Abort!\r\n");
-#endif
-    } else if (service_data->segmented_message) {
+    if (service_data->segmented_message) {
         apdu_len = abort_encode_apdu(
             &Handler_Transmit_Buffer[npdu_len],
             service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
-    printf("RPM: Sending Abort!\r\n");
+        printf("RPM: Segmented message. Sending Abort!\r\n");
 #endif
-    } else {
-        /* decode apdu request & encode apdu reply
-           encode complex ack, invoke id, service choice */
-        apdu_len = rpm_ack_encode_apdu_init(
-            &Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id);
+        goto RPM_ABORT;
+    }
+    /* decode apdu request & encode apdu reply
+       encode complex ack, invoke id, service choice */
+    apdu_len = rpm_ack_encode_apdu_init(
+        &Handler_Transmit_Buffer[npdu_len],
+        service_data->invoke_id);
+    do
+    {
+        len = rpm_decode_object_id(
+            &service_request[decode_len],
+            service_len - decode_len,
+            &object_type, &object_instance);
+        /* end of object? */
+        if (len > 0) {
+            decode_len += len;
+        } else {
+            len = rpm_decode_object_end(
+                &service_request[decode_len],
+                service_len - decode_len);
+            if (len == 1) {
+                decode_len++;
+                len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
+                copy_len = apdu_copy(
+                    &Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
+                    apdu_len, len,
+                    sizeof(Handler_Transmit_Buffer));
+                if (!copy_len) {
+                    apdu_len = abort_encode_apdu(
+                        &Handler_Transmit_Buffer[npdu_len],
+                        service_data->invoke_id,
+                        ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+                        true);
+                    goto RPM_ABORT;
+                } else {
+                    apdu_len += copy_len;
+                }
+            } else {
+                apdu_len = abort_encode_apdu(
+                    &Handler_Transmit_Buffer[npdu_len],
+                    service_data->invoke_id,
+                    ABORT_REASON_OTHER, true);
+                goto RPM_ABORT;
+            }
+            break;
+        }
+        len = rpm_ack_encode_apdu_object_begin(
+            &Temp_Buf[0],
+            object_type, object_instance);
+        copy_len = apdu_copy(
+            &Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
+            apdu_len, len,
+            sizeof(Handler_Transmit_Buffer));
+        if (!copy_len) {
+            apdu_len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
+                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+                true);
+            goto RPM_ABORT;
+        } else {
+            apdu_len += copy_len;
+        }
+        /* do each property of this object of the RPM request */
         do
         {
-            len = rpm_decode_object_id(
+            len = rpm_decode_object_property(
                 &service_request[decode_len],
                 service_len - decode_len,
-                &object_type, &object_instance);
-            /* end of object? */
+                &object_property,
+                &array_index);
+            /* end of property list? */
             if (len > 0) {
                 decode_len += len;
             } else {
@@ -383,108 +428,30 @@ void handler_read_property_multiple(
                         ABORT_REASON_OTHER, true);
                     goto RPM_ABORT;
                 }
+                /* stop decoding properties */
                 break;
             }
-            len = rpm_ack_encode_apdu_object_begin(
-                &Temp_Buf[0],
-                object_type, object_instance);
-            copy_len = apdu_copy(
-                &Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
-                apdu_len, len,
-                sizeof(Handler_Transmit_Buffer));
-            if (!copy_len) {
-                apdu_len = abort_encode_apdu(
-                    &Handler_Transmit_Buffer[npdu_len],
-                    service_data->invoke_id,
-                    ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-                    true);
-                goto RPM_ABORT;
-            } else {
-                apdu_len += copy_len;
-            }
-            /* do each property of this object of the RPM request */
-            do
+            /* handle the special properties */
+            if ((object_property == PROP_ALL) ||
+                (object_property == PROP_REQUIRED) ||
+                (object_property == PROP_OPTIONAL))
             {
-                len = rpm_decode_object_property(
-                    &service_request[decode_len],
-                    service_len - decode_len,
-                    &object_property,
-                    &array_index);
-                /* end of property list? */
-                if (len > 0) {
-                    decode_len += len;
-                } else {
-                    len = rpm_decode_object_end(
-                        &service_request[decode_len],
-                        service_len - decode_len);
-                    if (len == 1) {
-                        decode_len++;
-                        len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
-                        copy_len = apdu_copy(
-                            &Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
-                            apdu_len, len,
-                            sizeof(Handler_Transmit_Buffer));
-                        if (!copy_len) {
-                            apdu_len = abort_encode_apdu(
-                                &Handler_Transmit_Buffer[npdu_len],
-                                service_data->invoke_id,
-                                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-                                true);
-                            goto RPM_ABORT;
-                        } else {
-                            apdu_len += copy_len;
-                        }
-                    } else {
-                        apdu_len = abort_encode_apdu(
-                            &Handler_Transmit_Buffer[npdu_len],
-                            service_data->invoke_id,
-                            ABORT_REASON_OTHER, true);
-                        goto RPM_ABORT;
-                    }
-                    /* stop decoding properties */
-                    break;
-                }
-                /* handle the special properties */
-                if ((object_property == PROP_ALL) ||
-                    (object_property == PROP_REQUIRED) ||
-                    (object_property == PROP_OPTIONAL))
-                {
-                    struct special_property_list_t property_list;
-                    unsigned property_count = 0;
-                    unsigned index = 0;
-                    BACNET_PROPERTY_ID special_object_property;
+                struct special_property_list_t property_list;
+                unsigned property_count = 0;
+                unsigned index = 0;
+                BACNET_PROPERTY_ID special_object_property;
 
-                    special_object_property = object_property;
-                    RPM_Property_List(object_type, &property_list);
-                    property_count = RPM_Object_Property_Count(
+                special_object_property = object_property;
+                RPM_Property_List(object_type, &property_list);
+                property_count = RPM_Object_Property_Count(
+                    &property_list,
+                    special_object_property);
+                for (index = 0; index < property_count; index++)
+                {
+                    object_property = RPM_Object_Property(
                         &property_list,
-                        special_object_property);
-                    for (index = 0; index < property_count; index++)
-                    {
-                        object_property = RPM_Object_Property(
-                            &property_list,
-                            special_object_property,
-                            index);
-                        len = RPM_Encode_Property(
-                            &Handler_Transmit_Buffer[0],
-                            npdu_len + apdu_len,
-                            sizeof(Handler_Transmit_Buffer),
-                            object_type,
-                            object_instance,
-                            object_property,
-                            array_index);
-                        if (len > 0) {
-                            apdu_len += len;
-                        } else {
-                            apdu_len = abort_encode_apdu(
-                                    &Handler_Transmit_Buffer[npdu_len],
-                                    service_data->invoke_id,
-                                    ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-                                goto RPM_ABORT;
-                        }
-                    }
-                } else {
-                    /* handle an individual property */
+                        special_object_property,
+                        index);
                     len = RPM_Encode_Property(
                         &Handler_Transmit_Buffer[0],
                         npdu_len + apdu_len,
@@ -503,12 +470,31 @@ void handler_read_property_multiple(
                             goto RPM_ABORT;
                     }
                 }
-            } while(1);
-            if (decode_len >= service_len) {
-                break;
+            } else {
+                /* handle an individual property */
+                len = RPM_Encode_Property(
+                    &Handler_Transmit_Buffer[0],
+                    npdu_len + apdu_len,
+                    sizeof(Handler_Transmit_Buffer),
+                    object_type,
+                    object_instance,
+                    object_property,
+                    array_index);
+                if (len > 0) {
+                    apdu_len += len;
+                } else {
+                    apdu_len = abort_encode_apdu(
+                            &Handler_Transmit_Buffer[npdu_len],
+                            service_data->invoke_id,
+                            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+                        goto RPM_ABORT;
+                }
             }
         } while(1);
-    }
+        if (decode_len >= service_len) {
+            break;
+        }
+    } while(1);
 RPM_ABORT:
     pdu_len = apdu_len + npdu_len;
     bytes_sent = datalink_send_pdu(

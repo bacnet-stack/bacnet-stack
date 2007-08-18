@@ -53,9 +53,6 @@ void handler_reinitialize_device(uint8_t * service_request,
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
 
-    /* decode the service request only */
-    len = rd_decode_service_request(service_request,
-        service_len, &state, &their_password);
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
@@ -63,6 +60,21 @@ void handler_reinitialize_device(uint8_t * service_request,
         &my_address, &npdu_data);
 #if PRINT_ENABLED
     fprintf(stderr, "ReinitializeDevice!\n");
+#endif
+    if (service_data->segmented_message) {
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+#if PRINT_ENABLED
+        fprintf(stderr,
+            "ReinitializeDevice: Sending Abort - segmented message.\n");
+#endif
+        goto RD_ABORT;
+    }    
+    /* decode the service request only */
+    len = rd_decode_service_request(service_request,
+        service_len, &state, &their_password);
+#if PRINT_ENABLED
     if (len > 0)
         fprintf(stderr, "ReinitializeDevice: state=%u password=%s\n",
             (unsigned) state, characterstring_value(&their_password));
@@ -77,15 +89,10 @@ void handler_reinitialize_device(uint8_t * service_request,
         fprintf(stderr,
             "ReinitializeDevice: Sending Abort - could not decode.\n");
 #endif
-    } else if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(stderr,
-            "ReinitializeDevice: Sending Abort - segmented message.\n");
-#endif
-    } else if (state >= MAX_BACNET_REINITIALIZED_STATE) {
+        goto RD_ABORT;
+    }
+    /* check the data from the request */
+    if (state >= MAX_BACNET_REINITIALIZED_STATE) {
         len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
 #if PRINT_ENABLED
@@ -117,6 +124,7 @@ void handler_reinitialize_device(uint8_t * service_request,
 #endif
         }
     }
+RD_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
