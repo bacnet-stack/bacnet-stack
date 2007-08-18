@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "mstp.h"
+#include "timer.h"
 
 /* This file has been customized for use with UART0
    on the AT91SAM7S-EK */
@@ -63,10 +64,16 @@ void RS485_Set_Interface(char *ifname)
 *****************************************************************************/
 void RS485_Initialize(void)
 {
-    // enable the USART0 peripheral clock
+    /* Enable the USART0 clock in the Power Management Controller */
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_US0);
 
+    /* Disable and clear USART0 interrupt
+       in AIC Interrupt Disable Command Register */
+    volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
+    pAIC->AIC_IDCR = (1<<AT91C_ID_US0);
+    pAIC->AIC_ICCR = (1<<AT91C_ID_US0);
+   
     /* enable the peripheral by disabling the pin in the PIO controller */
     *AT91C_PIOA_PDR = AT91C_PA5_RXD0 | AT91C_PA6_TXD0 | AT91C_PA7_RTS0;
 
@@ -92,7 +99,7 @@ void RS485_Initialize(void)
     RS485_Interface->US_CR =
         AT91C_US_RXEN  |          /* Receiver Enable     */
         AT91C_US_TXEN;            /* Transmitter Enable  */
-
+        
     return;
 }
 
@@ -149,10 +156,6 @@ void RS485_Send_Frame(
 {
     uint8_t turnaround_time;
 
-    /* toggle LED on send */
-    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
-    /* LED ON */
-    pPIO->PIO_CODR = LED1;
     /* delay after reception - per MS/TP spec */
     if (mstp_port) {
         /* wait about 40 bit times since reception */
@@ -164,6 +167,10 @@ void RS485_Send_Frame(
             /* do nothing - wait for timer to increment */
         };
     }
+    /* toggle LED on send */
+    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
+    /* LED ON */
+    pPIO->PIO_CODR = LED1;
     while (nbytes) {
         while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
             /* do nothing - wait until Tx buffer is empty */
@@ -179,8 +186,6 @@ void RS485_Send_Frame(
     while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
         /* do nothing - wait until Tx buffer is empty */
     }
-    /* LED OFF */
-    pPIO->PIO_SODR = LED1;
 
     return;
 }
@@ -188,6 +193,8 @@ void RS485_Send_Frame(
 /* called by timer, interrupt(?) or other thread */
 void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
+    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
+
     if (mstp_port->ReceiveError == true) {
         /* wait for state machine to clear this */
     }
@@ -197,6 +204,8 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
         if ( RS485_Interface->US_CSR & AT91C_US_RXRDY) {
             mstp_port->DataRegister = RS485_Interface->US_RHR;
             mstp_port->DataAvailable = true;
+            /* LED ON */
+            pPIO->PIO_CODR = LED2;
         }
     }
 }

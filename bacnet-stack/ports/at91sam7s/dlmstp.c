@@ -48,9 +48,9 @@ static uint8_t RxBuffer[MAX_MPDU];
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 
-void dlmstp_millisecond_timer(void)
+volatile uint16_t *dlmstp_millisecond_timer_address(void)
 {
-    INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
+    return &(MSTP_Port.SilenceTimer);
 }
 
 void dlmstp_copy_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
@@ -116,6 +116,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest, /* destination address */
         }
         dlmstp_copy_bacnet_address(&Transmit_Packet.address, dest);
         bytes_sent = sizeof(Transmit_Packet);
+        Transmit_Packet.ready = true;
     }
 
     return bytes_sent;
@@ -123,12 +124,9 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest, /* destination address */
 
 static void dlmstp_task(void)
 {
-    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
     /* only do receive state machine while we don't have a frame */
     if ((MSTP_Port.ReceivedValidFrame == false) &&
         (MSTP_Port.ReceivedInvalidFrame == false)) {
-	/* LED OFF */
-        pPIO->PIO_SODR = LED2;
         do {
             RS485_Check_UART_Data(&MSTP_Port);
             MSTP_Receive_Frame_FSM(&MSTP_Port);
@@ -137,8 +135,6 @@ static void dlmstp_task(void)
                 break;
         } while (MSTP_Port.DataAvailable);
     } else {
-	/* LED ON */
-        pPIO->PIO_CODR = LED2;
     }
     /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
