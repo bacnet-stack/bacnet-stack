@@ -33,6 +33,7 @@
 #include "npdu.h"
 /* This file has been customized for use with the AT91SAM7S-EK */
 #include "board.h"
+#include "timer.h"
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -45,13 +46,6 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[MAX_MPDU];
 static uint8_t RxBuffer[MAX_MPDU];
-
-#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-
-volatile uint16_t *dlmstp_millisecond_timer_address(void)
-{
-    return &(MSTP_Port.SilenceTimer);
-}
 
 void dlmstp_copy_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
 {
@@ -83,8 +77,10 @@ bool dlmstp_init(char *ifname)
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+    MSTP_Init.SilenceTimer = Timer_Silence;
+    MSTP_Init.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(&MSTP_Port);
-    
+
     return true;
 }
 

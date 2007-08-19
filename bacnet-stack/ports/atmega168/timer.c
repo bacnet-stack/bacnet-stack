@@ -37,9 +37,11 @@
 #define TIMER_COUNT (0xFF-TIMER_TICKS)
 /* Global variable millisecond timer - used by main.c for timers task */
 volatile uint8_t Timer_Milliseconds = 0;
+/* MS/TP Silence Timer */
+static volatile uint16_t SilenceTime;
 
 /* Configure the Timer */
-void timer_initialize(void)
+void Timer_Initialize(void)
 {
     /* Normal Operation */
     TCCR1A = 0;
@@ -76,4 +78,31 @@ ISR(TIMER0_OVF_vect)
     /* Update the global timer */
     if (Timer_Milliseconds < 0xFF)
        Timer_Milliseconds++;
+    if (SilenceTime < 0xFFFF)
+        SilenceTime++;
+}
+
+/* Public access to the Silence Timer */
+uint16_t Timer_Silence(void)
+{
+    uint16_t timer;
+    uint8_t sreg;
+
+    sreg = SREG;
+    cli();
+    timer = SilenceTime;
+    SREG = sreg;
+
+    return timer;
+}
+
+/* Public reset of the Silence Timer */
+void Timer_Silence_Reset(void)
+{
+    uint8_t sreg;
+
+    sreg = SREG;
+    cli();
+    SilenceTime = 0;
+    SREG = sreg;
 }

@@ -157,7 +157,7 @@ void RS485_Send_Frame(
             turnaround_time = 2;
         else
             turnaround_time = 1;
-        while (mstp_port->SilenceTimer < turnaround_time) {
+        while (mstp_port->SilenceTimer() < turnaround_time) {
             /* do nothing - wait for timer to increment */
             sched_yield();
         };
@@ -173,7 +173,7 @@ void RS485_Send_Frame(
 
     /* per MSTP spec, sort of */
     if (mstp_port) {
-        mstp_port->SilenceTimer = 0;
+        mstp_port->SilenceTimerReset();
     }
 
     return;

@@ -279,7 +279,6 @@ void RS485_Send_Frame(
 {
     DWORD dwWritten  = 0;
 
-    #if 0
     if (mstp_port) {
         uint32_t baud;
         uint8_t turnaround_time;
@@ -291,16 +290,15 @@ void RS485_Send_Frame(
             turnaround_time = 2;
         else
             turnaround_time = 1;
-        while (mstp_port->SilenceTimer < turnaround_time) {
+        while (mstp_port->SilenceTimer() < turnaround_time) {
             /* do nothing - wait for timer to increment */
         };
     }
-    #endif
     WriteFile(RS485_Handle, buffer, nbytes, &dwWritten, NULL);
 
     /* per MSTP spec, reset SilenceTimer after each byte is sent */
     if (mstp_port) {
-        mstp_port->SilenceTimer = 0;
+        mstp_port->SilenceTimerReset();
     }
 
     return;

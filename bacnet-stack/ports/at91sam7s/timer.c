@@ -45,11 +45,12 @@
 #include "board.h"
 #include "dlmstp.h"
 
-// global variable counts interrupts
+/* global variable counts interrupts */
 volatile unsigned long Timer_Milliseconds;
-volatile uint16_t *pTimer_MSTP_Silence;
+/* MS/TP Silence Timer */
+static volatile uint16_t SilenceTime;
 
-void Timer0_Setup(int milliseconds) {
+static void Timer0_Setup(int milliseconds) {
     //        TC Block Control Register TC_BCR    (read/write)
     //
     //    |------------------------------------------------------------------|------|
@@ -296,7 +297,7 @@ void Timer0_Setup(int milliseconds) {
 //  Modified by Steve Karg
 //    simplified and changed to a millisecond count-up timer
 //  *****************************************************************************
-void Timer0IrqHandler (void) {
+static void Timer0IrqHandler (void) {
 
     volatile AT91PS_TC pTC = AT91C_BASE_TC0; // pointer to timer channel 0 register structure
     unsigned int dummy; // temporary
@@ -305,9 +306,20 @@ void Timer0IrqHandler (void) {
     dummy = pTC->TC_SR;
     // increment the tick count
     Timer_Milliseconds++;
-    if ((*pTimer_MSTP_Silence) < 0xFFFF)
-        (*pTimer_MSTP_Silence)++;
+    if (SilenceTime < 0xFFFF)
+        SilenceTime++;
 }
+
+uint16_t Timer_Silence(void)
+{
+    return SilenceTime;
+}
+
+void Timer_Silence_Reset(void)
+{
+    SilenceTime = 0;
+}
+
 
 //  *****************************************************************************
 //

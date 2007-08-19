@@ -22,21 +22,23 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
+
 #ifndef TIMER_H
 #define TIMER_H
 
-extern volatile uint8_t Timer_Milliseconds;
+#include <stdint.h>
+
+extern volatile unsigned long Timer_Milliseconds;
 
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */
 
-void Timer_Initialize(void);
-uint16_t Timer_Silence(void);
-void Timer_Silence_Reset(void);
+    void TimerInit(void);
+    uint16_t Timer_Silence(void);
+    void Timer_Silence_Reset(void);
 
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
-
 #endif

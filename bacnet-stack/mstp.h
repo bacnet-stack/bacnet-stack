@@ -192,7 +192,10 @@ struct mstp_port_struct_t {
     /* Since the timer resolution is limited and the timer is not necessarily */
     /* synchronized to other machine events, a timer value of N will actually */
     /* denote intervals between N-1 and N */
-    uint16_t SilenceTimer;
+    /* Note: done here as functions - put into timer task or ISR
+       so that you can be atomic on 8 bit microcontrollers */
+    uint16_t (*SilenceTimer)(void);
+    void (*SilenceTimerReset)(void);
 
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */

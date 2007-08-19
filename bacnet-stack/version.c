@@ -33,4 +33,4 @@
 ####COPYRIGHTEND####*/
 #include "version.h"
 
-char *BACnet_Version = "0.3.4";
+char *BACnet_Version = BACNET_VERSION_TEXT;
