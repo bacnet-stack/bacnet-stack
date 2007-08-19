@@ -58,12 +58,21 @@ volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[MAX_MPDU];
 static uint8_t RxBuffer[MAX_MPDU];
-
+/* Timer that indicates line silence - and functions */
+static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
+static uint16_t Timer_Silence(void)
+{
+    return SilenceTime;
+}
+static void Timer_Silence_Reset(void)
+{
+    SilenceTime = 0;
+}
 
 void dlmstp_millisecond_timer(void)
 {
-    INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
+    INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
 
 static void *dlmstp_milliseconds_task(void *pArg)
@@ -590,6 +599,8 @@ bool dlmstp_init(char *ifname)
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+    MSTP_Port.SilenceTimer = Timer_Silence;
+    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(&MSTP_Port);
 #if 0
     /* FIXME: implement your data storage */

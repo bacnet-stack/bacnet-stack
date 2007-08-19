@@ -75,7 +75,7 @@ void init(void)
     RS485_Set_Baud_Rate(38400);
 
     /* Configure Timer0 for millisecond timer */
-    timer_initialize();
+    Timer_Initialize();
 
     /* Enable global interrupts */
     sei();
@@ -86,9 +86,6 @@ void task_milliseconds(void)
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
         /* add other millisecond timer tasks here */
-#if defined(BACDL_MSTP)
-        dlmstp_millisecond_timer();
-#endif
     }
 }
 
