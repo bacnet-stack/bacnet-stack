@@ -8,6 +8,7 @@ CC=arm-elf-gcc
 OBJCOPY=arm-elf-objcopy
 OBJDUMP=arm-elf-objdump
 AR=arm-elf-ar
+SIZE = arm-elf-size
 
 LDSCRIPT=at91sam7s256.ld
 
@@ -79,8 +80,9 @@ AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
 COREOBJ = $(CORESRC:.c=.o)
 
-all: $(TARGET).bin
+all: $(TARGET).bin $(TARGET).elf
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
+	$(SIZE) $(TARGET).elf
 
 $(TARGET).bin:  $(TARGET).elf
 	$(OBJCOPY) $(TARGET).elf $(CPFLAGS) $(TARGET).bin
