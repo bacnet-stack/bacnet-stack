@@ -80,6 +80,7 @@ void RS485_Initialize(void)
     RS485_Interface->US_CR =
         AT91C_US_RSTRX |          /* Reset Receiver      */
         AT91C_US_RSTTX |          /* Reset Transmitter   */
+        AT91C_US_RSTSTA |          /* Clear status register */
         AT91C_US_RXDIS |          /* Receiver Disable    */
         AT91C_US_TXDIS;           /* Transmitter Disable */
 
@@ -92,6 +93,9 @@ void RS485_Initialize(void)
 
     /* set the Time Guard to release RTS after x bit times */
     RS485_Interface->US_TTGR = 4;
+    
+    /* Receiver Time-out disabled */
+    RS485_Interface->US_RTOR = 0;
 
     /* baud rate */
     RS485_Interface->US_BRGR = MCK/16/RS485_Baud;
@@ -195,14 +199,18 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
 
-    /* FIXME: Framing or overrun error? */
     if (mstp_port->ReceiveError == true) {
         /* wait for state machine to clear this */
-    }
-    /* wait for state machine to read from the DataRegister */
-    else if (mstp_port->DataAvailable == false) {
-        /* check for data */
-        if ( RS485_Interface->US_CSR & AT91C_US_RXRDY) {
+    } else if (mstp_port->DataAvailable == false) {
+        /* check for data or error */
+        if (RS485_Interface->US_CSR & (AT91C_US_OVRE | AT91C_US_FRAME)) {
+            /* clear the error flag */
+            RS485_Interface->US_CR = AT91C_US_RSTSTA;
+            mstp_port->ReceiveError = true;
+            /* LED ON */
+            pPIO->PIO_CODR = LED2;
+        } else if ( RS485_Interface->US_CSR & AT91C_US_RXRDY) {
+            /* data is available */
             mstp_port->DataRegister = RS485_Interface->US_RHR;
             mstp_port->DataAvailable = true;
             /* LED ON */
