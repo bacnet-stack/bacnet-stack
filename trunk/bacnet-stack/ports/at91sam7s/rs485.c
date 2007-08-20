@@ -162,11 +162,9 @@ void RS485_Send_Frame(
 
     /* delay after reception - per MS/TP spec */
     if (mstp_port) {
-        /* wait about 40 bit times since reception */
-        turnaround_time = (40*1000)/RS485_Baud;
-        if (!turnaround_time) {
-            turnaround_time = 1;
-        }
+        /* wait a minimum 40 bit times since reception */
+        /* at least 1 ms for errors: rounding, clock tick */
+        turnaround_time = 1 + ((Tturnaround*1000)/RS485_Baud);
         while (mstp_port->SilenceTimer() < turnaround_time) {
             /* do nothing - wait for timer to increment */
         };
