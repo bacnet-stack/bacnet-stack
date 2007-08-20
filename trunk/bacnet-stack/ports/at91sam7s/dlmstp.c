@@ -51,15 +51,15 @@ void dlmstp_copy_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
 {
     int i = 0;
 
-    if (src && dest) {
-        src->mac_len = dest->mac_len;
+    if (dest && src) {
+        dest->mac_len = src->mac_len;
         for (i = 0; i < MAX_MAC_LEN; i++) {
-            src->mac[i] = dest->mac[i];
+            dest->mac[i] = src->mac[i];
         }
-        src->net = dest->net;
-        src->len = dest->len;
+        dest->net = src->net;
+        dest->len = src->len;
         for (i = 0; i < MAX_MAC_LEN; i++) {
-            src->adr[i] = dest->adr[i];
+            dest->adr[i] = src->adr[i];
         }
     }
 }
@@ -77,8 +77,8 @@ bool dlmstp_init(char *ifname)
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Init.SilenceTimer = Timer_Silence;
-    MSTP_Init.SilenceTimerReset = Timer_Silence_Reset;
+    MSTP_Port.SilenceTimer = Timer_Silence;
+    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(&MSTP_Port);
 
     return true;
@@ -248,6 +248,7 @@ uint16_t MSTP_Get_Send(
             destination, src,
             &Transmit_Packet.pdu[0],
             Transmit_Packet.pdu_len);
+        Transmit_Packet.ready = false;
     }
 
     return pdu_len;
