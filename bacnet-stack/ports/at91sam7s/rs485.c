@@ -163,7 +163,7 @@ void RS485_Send_Frame(
         if (!turnaround_time) {
             turnaround_time = 1;
         }
-        while (mstp_port->SilenceTimer < turnaround_time) {
+        while (mstp_port->SilenceTimer() < turnaround_time) {
             /* do nothing - wait for timer to increment */
         };
     }
@@ -180,7 +180,7 @@ void RS485_Send_Frame(
         nbytes--;
         /* per MSTP spec */
         if (mstp_port) {
-            mstp_port->SilenceTimer = 0;
+            mstp_port->SilenceTimerReset();
         }
     }
     while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
@@ -195,6 +195,7 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
 
+    /* FIXME: Framing or overrun error? */
     if (mstp_port->ReceiveError == true) {
         /* wait for state machine to clear this */
     }

@@ -330,8 +330,8 @@ void Timer_Silence_Reset(void)
 //    Moved timer startup code from main
 //    modified the peripheral clock init
 //  *****************************************************************************
-void TimerInit(void) {
-    pTimer_MSTP_Silence = dlmstp_millisecond_timer_address();
+void TimerInit(void) 
+{
     // enable the Timer0 peripheral clock
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_TC0);
