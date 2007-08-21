@@ -71,7 +71,6 @@ static void set_broadcast_address(uint32_t net_address)
     bip_set_broadcast_addr(INADDR_BROADCAST);
 #else
     long broadcast_address = 0;
-    long mask = 0;
 
     if (IN_CLASSA(ntohl(net_address)))
         broadcast_address =

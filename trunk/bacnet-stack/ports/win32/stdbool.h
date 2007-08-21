@@ -1,28 +1,17 @@
-#ifndef STDBOOL_H
-#define STDBOOL_H
+#ifndef _STDBOOL_H
+#define _STDBOOL_H
 
 /* C99 Boolean types for compilers without C99 support */
+/* http://www.opengroup.org/onlinepubs/009695399/basedefs/stdbool.h.html */
 
-#ifndef __cplusplus
-typedef int _Bool;
-#ifndef bool
+#if !defined(__cplusplus)
+
+/*typedef enum { _Bool_must_promote_to_int = -1, false = 0, true = 1 } _Bool;*/
 #define bool _Bool
-#endif
-#ifndef true
 #define true 1
-#endif
-#ifndef false
 #define false 0
-#endif
 #define __bool_true_false_are_defined 1
-#endif
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE  1
 #endif
 
 #endif
