@@ -44,12 +44,11 @@
 #include "wp.h"                 /* write property handling */
 #include "version.h"
 #include "device.h"             /* me */
-#if BACFILE
-#include "bacfile.h"            /* object list dependency */
+#include "datalink.h"
+#if defined(BACFILE)
+    #include "bacfile.h"            /* object list dependency */
 #endif
-#if defined(BACDL_MSTP)
-#include "dlmstp.h"
-#endif
+
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] =
 {
@@ -120,8 +119,7 @@ static uint32_t Object_Instance_Number = 0;
 static char Object_Name[16] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char Vendor_Name[16] = "ASHRAE";
-/* FIXME: your vendor id assigned by ASHRAE */
-static uint16_t Vendor_Identifier = 0;
+static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static char Model_Name[16] = "GNU";
 static char Application_Software_Version[16] = "1.0";
 static char Location[16] = "USA";
@@ -389,7 +387,7 @@ unsigned Device_Object_List_Count(void)
     count += Life_Safety_Point_Count();
     count += Load_Control_Count();
     count += Multistate_Output_Count();
-#if BACFILE
+#if defined(BACFILE)
     count += bacfile_count();
 #endif
 
@@ -525,7 +523,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
         }
     }
     /* file objects */
-#if BACFILE
+#if defined(BACFILE)
     if (!status) {
         /* normalize the index since
            we know it is not the previous objects */
@@ -605,7 +603,7 @@ char *Device_Valid_Object_Id(int object_type, uint32_t object_instance)
     case OBJECT_MULTI_STATE_OUTPUT:
         name = Multistate_Output_Name(object_instance);
         break;
-#if BACFILE
+#if defined(BACFILE)
     case OBJECT_FILE:
         name = bacfile_name(object_instance);
         break;
@@ -754,7 +752,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         if (Multistate_Output_Count())
             bitstring_set_bit(&bit_string, OBJECT_MULTI_STATE_OUTPUT,
                 true);
-#if BACFILE
+#if defined(BACFILE)
         if (bacfile_count())
             bitstring_set_bit(&bit_string, OBJECT_FILE, true);
 #endif
@@ -1172,15 +1170,19 @@ uint32_t Multistate_Output_Index_To_Instance(unsigned index)
     return index;
 }
 
+#if defined(BACFILE)
 uint32_t bacfile_count(void)
 {
     return 0;
 }
+#endif
 
+#if defined(BACFILE)
 uint32_t bacfile_index_to_instance(unsigned find_index)
 {
     return find_index;
 }
+#endif
 
 int main(void)
 {

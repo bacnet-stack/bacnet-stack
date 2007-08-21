@@ -444,8 +444,8 @@ bool dlmstp_init(char *ifname)
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Init.SilenceTimer = Timer_Silence;
-    MSTP_Init.SilenceTimerReset = Timer_Silence_Reset;
+    MSTP_Port.SilenceTimer = Timer_Silence;
+    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(&MSTP_Port);
 #if 0
     uint8_t data;

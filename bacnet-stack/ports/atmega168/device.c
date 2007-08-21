@@ -115,10 +115,9 @@ void Device_Set_System_Status(BACNET_DEVICE_STATUS status)
         System_Status = status;
 }
 
-/* FIXME: put your vendor ID here! */
 uint16_t Device_Vendor_Identifier(void)
 {
-    return 0;
+    return BACNET_VENDOR_ID;
 }
 
 uint8_t Device_Protocol_Version(void)
