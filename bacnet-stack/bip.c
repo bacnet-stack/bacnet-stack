@@ -135,7 +135,7 @@ int bip_send_pdu(BACNET_ADDRESS * dest, /* destination address */
     } else if (dest->mac_len == 6) {
         /* valid unicast */
         (void) decode_unsigned32(&dest->mac[0],
-            &(bip_dest.sin_addr.s_addr));
+            (uint32_t *)&(bip_dest.sin_addr.s_addr));
         (void) decode_unsigned16(&dest->mac[4], &(bip_dest.sin_port));
         memset(&(bip_dest.sin_zero), '\0', 8);
         mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
