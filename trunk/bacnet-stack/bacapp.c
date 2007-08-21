@@ -523,10 +523,17 @@ int bacapp_data_len(uint8_t * apdu, int max_apdu_len,
                     max_apdu_len - apdu_len, &application_value);
             }
             apdu_len += len;
-            if (opening_tag_number_counter)
-                total_len += len;
-            /* ERROR! */
+            if (opening_tag_number_counter) {
+                if (len > 0) {
+                    total_len += len;
+                } else {
+                    /* error: len is not incrementing */
+                    total_len = -1;
+                    break;
+                }
+            }
             if (apdu_len > max_apdu_len) {
+                /* error: exceeding our buffer limit */
                 total_len = -1;
                 break;
             }
