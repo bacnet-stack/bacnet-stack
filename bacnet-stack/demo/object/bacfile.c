@@ -337,7 +337,7 @@ uint32_t bacfile_instance(char *filename)
     return instance;
 }
 
-#if TSM_ENABLED
+#if MAX_TSM_TRANSACTIONS
 /* this is one way to match up the invoke ID with */
 /* the file ID from the AtomicReadFile request. */
 /* Another way would be to store the */

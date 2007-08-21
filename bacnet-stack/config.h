@@ -37,6 +37,7 @@
     #define MAX_APDU 480
     /* #define MAX_APDU 1476 */
 #endif
+
 /* for confirmed messages, this is the number of transactions */
 /* that we hold in a queue waiting for timeout. */
 /* Configure to zero if you don't want any confirmed messages */

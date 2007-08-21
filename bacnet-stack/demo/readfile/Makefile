@@ -7,7 +7,7 @@ BASEDIR = .
 # Note: you can strip out symbols using the strip command
 # to get an idea of how big the compile really is.
 
-BACNET_DEFINES=-DBACFILE=1 -DTSM_ENABLED=1 -DBIG_ENDIAN=0 -DPRINT_ENABLED=1
+BACNET_DEFINES=-DPRINT_ENABLED=1
 #BACDL_DEFINE=-DBACDL_ETHERNET=1
 #BACDL_DEFINE=-DBACDL_ARCNET=1
 BACDL_DEFINE=-DBACDL_BIP=1

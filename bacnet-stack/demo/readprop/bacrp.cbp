@@ -1,369 +1,221 @@
-<?xml version="1.0"?>
-<!DOCTYPE CodeBlocks_project_file>
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_project_file>
-	<FileVersion major="1" minor="1"/>
+	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="BACnet Read Property Demo"/>
-		<Option makefile="Makefile"/>
-		<Option makefile_is_custom="0"/>
-		<Option compiler="2"/>
+		<Option title="BACnet Read Property Demo" />
+		<Option pch_mode="0" />
+		<Option compiler="gcc" />
 		<Build>
 			<Target title="default">
-				<Option output="C:\code\bacnet-stack\demo\readprop\bacrp.exe"/>
-				<Option working_dir="."/>
-				<Option object_output=".objs"/>
-				<Option deps_output=".deps"/>
-				<Option type="1"/>
-				<Option compiler="2"/>
-				<Option projectResourceIncludeDirsRelation="1"/>
+				<Option output="C:\code\bacnet-stack\demo\readprop\bacrp.exe" prefix_auto="0" extension_auto="0" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
-					<Add option="-DBACDL_BIP=1;TSM_ENABLED=1"/>
-					<Add directory="..\handler"/>
-					<Add directory="..\object"/>
-					<Add directory="..\..\..\bacnet-stack"/>
-					<Add directory="..\..\ports\win32"/>
+					<Add option="-DBACDL_BIP=1;TSM_ENABLED=1" />
+					<Add directory="..\handler" />
+					<Add directory="..\object" />
+					<Add directory="..\..\..\bacnet-stack" />
+					<Add directory="..\..\ports\win32" />
 				</Compiler>
-				<Linker>
-					<Add library="..\..\..\..\BCC55\Lib\import32.lib"/>
-					<Add library="..\..\..\..\BCC55\Lib\cw32mt.lib"/>
-				</Linker>
 			</Target>
 		</Build>
+		<VirtualTargets>
+			<Add alias="All" targets="default;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add library="ws2_32" />
+		</Linker>
 		<Unit filename="..\..\abort.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\abort.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\abort.h" />
 		<Unit filename="..\..\address.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\address.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\address.h" />
 		<Unit filename="..\..\apdu.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\apdu.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\apdu.h" />
 		<Unit filename="..\..\arf.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\arf.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\arf.h" />
 		<Unit filename="..\..\awf.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\awf.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\awf.h" />
 		<Unit filename="..\..\bacapp.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bacapp.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\bacapp.h" />
 		<Unit filename="..\..\bacdcode.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bacdcode.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
-		<Unit filename="..\..\bacdef.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
-		<Unit filename="..\..\bacenum.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\bacdcode.h" />
+		<Unit filename="..\..\bacdef.h" />
+		<Unit filename="..\..\bacenum.h" />
 		<Unit filename="..\..\bacerror.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bacerror.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
+		<Unit filename="..\..\bacerror.h" />
+		<Unit filename="..\..\bacint.c">
+			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\..\bacint.h" />
 		<Unit filename="..\..\bacstr.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bacstr.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\bacstr.h" />
 		<Unit filename="..\..\bactext.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bactext.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\bactext.h" />
 		<Unit filename="..\..\bigend.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bigend.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\bigend.h" />
 		<Unit filename="..\..\bip.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bip.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
+		<Unit filename="..\..\bip.h" />
+		<Unit filename="..\..\config.h" />
+		<Unit filename="..\..\datalink.h" />
+		<Unit filename="..\..\datetime.c">
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\config.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
+		<Unit filename="..\..\datetime.h" />
+		<Unit filename="..\..\dcc.c">
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\datalink.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
-		</Unit>
-		<Unit filename="..\..\datalink.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
-		<Unit filename="..\handler\client.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\dcc.h" />
+		<Unit filename="..\handler\client.h" />
 		<Unit filename="..\handler\h_iam.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\handler\h_rp.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\handler\h_rp_a.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\handler\h_whois.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\handler\handlers.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\handler\handlers.h" />
 		<Unit filename="..\handler\noserv.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\handler\s_rp.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\handler\s_whois.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\handler\txbuf.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\handler\txbuf.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\handler\txbuf.h" />
 		<Unit filename="..\object\ai.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\object\ai.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\object\ai.h" />
 		<Unit filename="..\object\ao.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\object\ao.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
+		<Unit filename="..\object\ao.h" />
+		<Unit filename="..\object\av.c">
+			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\object\av.h" />
 		<Unit filename="..\object\bacfile.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\object\bacfile.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
+		<Unit filename="..\object\bacfile.h" />
+		<Unit filename="..\object\bi.c">
+			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\object\bi.h" />
+		<Unit filename="..\object\bo.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\bo.h" />
+		<Unit filename="..\object\bv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\bv.h" />
 		<Unit filename="..\object\device.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\object\device.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
+		<Unit filename="..\object\device.h" />
+		<Unit filename="..\object\lc.c">
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="readprop.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+		<Unit filename="..\object\lc.h" />
+		<Unit filename="..\object\lsp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\lsp.h" />
+		<Unit filename="..\object\mso.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\mso.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\filename.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\filename.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\filename.h" />
 		<Unit filename="..\..\iam.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\iam.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\iam.h" />
 		<Unit filename="..\..\indtext.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\indtext.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\indtext.h" />
 		<Unit filename="..\..\npdu.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\npdu.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\npdu.h" />
 		<Unit filename="..\..\ports\win32\bip-init.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\..\ports\win32\net.h" />
+		<Unit filename="..\..\ports\win32\stdbool.h" />
+		<Unit filename="..\..\ports\win32\stdint.h" />
 		<Unit filename="..\..\reject.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\reject.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\reject.h" />
 		<Unit filename="..\..\rp.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\rp.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\rp.h" />
 		<Unit filename="..\..\tsm.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\tsm.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
+		<Unit filename="..\..\tsm.h" />
+		<Unit filename="..\..\version.c">
+			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\..\whois.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\whois.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\whois.h" />
 		<Unit filename="..\..\wp.c">
-			<Option compilerVar="CC"/>
-			<Option target="default"/>
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\wp.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="default"/>
-		</Unit>
+		<Unit filename="..\..\wp.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

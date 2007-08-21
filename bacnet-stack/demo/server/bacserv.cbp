@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="bacserv" />
+		<Option title="BACnet Server Demo" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\bacserv.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Debug\bacserv" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -22,7 +22,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\bacserv.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Release\bacserv" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -49,6 +49,7 @@
 			<Add option="-DUSE_INADDR=1" />
 			<Add option="-DPRINT_ENABLED=1" />
 			<Add option="-DBIG_ENDIAN=0" />
+			<Add option="-DMAX_TSM_TRANSACTIONS=0" />
 			<Add directory="." />
 			<Add directory="..\handler" />
 			<Add directory="..\object" />
@@ -274,6 +275,7 @@
 		<Extensions>
 			<code_completion />
 			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

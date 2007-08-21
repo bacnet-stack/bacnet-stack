@@ -28,15 +28,19 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>               /* for time */
 #include <errno.h>
+#include <time.h>               /* for time */
+
+#define PRINT_ENABLED 1
+
+#include "bacdef.h"
+#include "config.h"
 #include "bactext.h"
+#include "bacerror.h"
 #include "iam.h"
 #include "arf.h"
 #include "tsm.h"
 #include "address.h"
-#include "config.h"
-#include "bacdef.h"
 #include "npdu.h"
 #include "apdu.h"
 #include "device.h"
@@ -70,8 +74,8 @@ static void MyErrorHandler(BACNET_ADDRESS * src,
     (void) src;
     (void) invoke_id;
     printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name(error_class),
-        bactext_error_code_name(error_code));
+        bactext_error_class_name((int)error_class),
+        bactext_error_code_name((int)error_code));
     Error_Detected = true;
 }
 
@@ -83,7 +87,7 @@ void MyAbortHandler(BACNET_ADDRESS * src,
     (void) invoke_id;
     (void) server;
     printf("BACnet Abort: %s\r\n",
-        bactext_abort_reason_name(abort_reason));
+        bactext_abort_reason_name((int)abort_reason));
     Error_Detected = true;
 }
 
@@ -94,7 +98,7 @@ void MyRejectHandler(BACNET_ADDRESS * src,
     (void) src;
     (void) invoke_id;
     printf("BACnet Reject: %s\r\n",
-        bactext_reject_reason_name(reject_reason));
+        bactext_reject_reason_name((int)reject_reason));
     Error_Detected = true;
 }
 
