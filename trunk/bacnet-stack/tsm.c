@@ -47,6 +47,7 @@
 #include "datalink.h"
 #include "handlers.h"
 #include "address.h"
+#include "bacaddr.h"
 
 /* Transaction State Machine */
 /* Really only needed for segmented messages */
@@ -189,7 +190,7 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
             }
             TSM_List[index].apdu_len = apdu_len;
             npdu_copy_data(&TSM_List[index].npdu_data, ndpu_data);
-            address_copy(&TSM_List[index].dest, dest);
+            bacnet_address_copy(&TSM_List[index].dest, dest);
         }
     }
 
@@ -218,7 +219,7 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
                 apdu[j] = TSM_List[index].apdu[j];
             }
             npdu_copy_data(ndpu_data, &TSM_List[index].npdu_data);
-            address_copy(dest, &TSM_List[index].dest);
+            bacnet_address_copy(dest, &TSM_List[index].dest);
             found = true;
         }
     }

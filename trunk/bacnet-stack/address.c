@@ -36,6 +36,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "config.h"
+#include "bacaddr.h"
 #include "address.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -51,25 +52,6 @@ static struct Address_Cache_Entry {
     unsigned max_apdu;
     BACNET_ADDRESS address;
 } Address_Cache[MAX_ADDRESS_CACHE];
-
-void address_copy(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
-{
-    unsigned i = 0;             /* counter */
-
-    if (dest && src) {
-        for (i = 0; i < MAX_MAC_LEN; i++) {
-            dest->mac[i] = src->mac[i];
-        }
-        dest->mac_len = src->mac_len;
-        dest->net = src->net;
-        dest->len = src->len;
-        for (i = 0; i < MAX_MAC_LEN; i++) {
-            dest->adr[i] = src->adr[i];
-        }
-    }
-
-    return;
-}
 
 void address_remove_device(uint32_t device_id)
 {
@@ -108,7 +90,7 @@ bool address_get_by_device(uint32_t device_id,
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (Address_Cache[i].valid &&
             (Address_Cache[i].device_id == device_id)) {
-            address_copy(src, &Address_Cache[i].address);
+            bacnet_address_copy(src, &Address_Cache[i].address);
             *max_apdu = Address_Cache[i].max_apdu;
             found = true;
             break;
@@ -128,7 +110,7 @@ void address_add(uint32_t device_id,
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (Address_Cache[i].valid &&
             (Address_Cache[i].device_id == device_id)) {
-            address_copy(&Address_Cache[i].address, src);
+            bacnet_address_copy(&Address_Cache[i].address, src);
             Address_Cache[i].max_apdu = max_apdu;
             found = true;
             break;
@@ -141,7 +123,7 @@ void address_add(uint32_t device_id,
                 Address_Cache[i].valid = true;
                 Address_Cache[i].device_id = device_id;
                 Address_Cache[i].max_apdu = max_apdu;
-                address_copy(&Address_Cache[i].address, src);
+                bacnet_address_copy(&Address_Cache[i].address, src);
                 break;
             }
         }
@@ -163,7 +145,7 @@ bool address_bind_request(uint32_t device_id,
         if (Address_Cache[i].valid &&
             (Address_Cache[i].device_id == device_id)) {
             found = true;
-            address_copy(src, &Address_Cache[i].address);
+            bacnet_address_copy(src, &Address_Cache[i].address);
             *max_apdu = Address_Cache[i].max_apdu;
             break;
         }
@@ -198,7 +180,7 @@ void address_add_binding(uint32_t device_id,
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (Address_Cache[i].valid &&
             (Address_Cache[i].device_id == device_id)) {
-            address_copy(&Address_Cache[i].address, src);
+            bacnet_address_copy(&Address_Cache[i].address, src);
             Address_Cache[i].max_apdu = max_apdu;
             found = true;
             break;
@@ -212,7 +194,7 @@ void address_add_binding(uint32_t device_id,
                 Address_Cache[i].bind_request = false;
                 Address_Cache[i].device_id = device_id;
                 Address_Cache[i].max_apdu = max_apdu;
-                address_copy(&Address_Cache[i].address, src);
+                bacnet_address_copy(&Address_Cache[i].address, src);
                 break;
             }
         }
@@ -228,7 +210,7 @@ bool address_get_by_index(unsigned index,
 
     if (index < MAX_ADDRESS_CACHE) {
         if (Address_Cache[index].valid) {
-            address_copy(src, &Address_Cache[index].address);
+            bacnet_address_copy(src, &Address_Cache[index].address);
             *device_id = Address_Cache[index].device_id;
             *max_apdu = Address_Cache[index].max_apdu;
             found = true;

@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "bacdef.h"
+#include "bacaddr.h"
 #include "mstp.h"
 #include "dlmstp.h"
 #include "rs485.h"
@@ -90,23 +91,6 @@ void dlmstp_cleanup(void)
     }
 }
 
-void dlmstp_copy_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
-{
-    int i = 0;
-
-    if (dest && src) {
-        dest->mac_len = src->mac_len;
-        for (i = 0; i < MAX_MAC_LEN; i++) {
-            dest->mac[i] = src->mac[i];
-        }
-        dest->net = src->net;
-        dest->len = src->len;
-        for (i = 0; i < MAX_MAC_LEN; i++) {
-            dest->adr[i] = src->adr[i];
-        }
-    }
-}
-
 /* returns number of bytes sent on success, zero on failure */
 int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
@@ -128,7 +112,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         for (i = 0; i < pdu_len; i++) {
             Transmit_Packet.pdu[i] = pdu[i];
         }
-        dlmstp_copy_bacnet_address(&Transmit_Packet.address, dest);
+        bacnet_address_copy(&Transmit_Packet.address, dest);
         bytes_sent = pdu_len + MAX_HEADER;
         Transmit_Packet.ready = true;
     }
@@ -317,30 +301,6 @@ uint16_t MSTP_Get_Send(
     return pdu_len;
 }
 
-bool dlmstp_same_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
-{
-    int i = 0;
-
-    if (!dest || !src)
-        return false;
-    if (dest->mac_len != src->mac_len)
-        return false;
-    for (i = 0; i < dest->mac_len; i++) {
-        if (dest->mac[i] != src->mac[i])
-            return false;
-    }
-    if (dest->net != src->net)
-        return false;
-    if (dest->len != src->len)
-        return false;
-    for (i = 0; i < dest->len; i++) {
-        if (dest->adr[i] != src->adr[i])
-            return false;
-    }
-
-    return true;
-}
-
 bool dlmstp_compare_data_expecting_reply(
     uint8_t *request_pdu,
     uint16_t request_pdu_len,
@@ -382,7 +342,7 @@ bool dlmstp_compare_data_expecting_reply(
     else
         request.service_choice = request_pdu[offset+3];
     /* decode the reply data */
-    dlmstp_copy_bacnet_address(&reply.address, dest_address);
+    bacnet_address_copy(&reply.address, dest_address);
     offset = npdu_decode(&reply_pdu[0],
         &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
@@ -443,7 +403,7 @@ bool dlmstp_compare_data_expecting_reply(
     if (request.npdu_data.priority != reply.npdu_data.priority) {
         return false;
     }
-    if (!dlmstp_same_bacnet_address(&request.address, &reply.address)) {
+    if (!bacnet_address_same(&request.address, &reply.address)) {
         return false;
     }
 
