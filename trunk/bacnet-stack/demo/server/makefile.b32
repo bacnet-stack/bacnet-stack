@@ -15,10 +15,9 @@ PRODUCT = bacserv
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-# Note: unless some other drivers are installed, BIP is the only
-# datalink layer that Win32 supports
-#DEFINES = -DBACDL_MSTP=1;BIP_DEBUG=1;USE_INADDR=1;PRINT_ENABLED=1;BIG_ENDIAN=0
-DEFINES = -DBACDL_BIP=1;BIP_DEBUG=1;USE_INADDR=1;PRINT_ENABLED=1;BIG_ENDIAN=0
+#DATALINK = -DBACDL_MSTP
+DATALINK = -DBACDL_BIP;BIP_DEBUG=1;USE_INADDR=1
+DEFINES = $(DATALINK);PRINT_ENABLED=1;MAX_TSM_TRANSACTIONS=0
 
 SRCS = main.c \
        ..\..\ports\win32\bip-init.c \
