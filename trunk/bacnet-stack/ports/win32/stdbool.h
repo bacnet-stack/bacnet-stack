@@ -6,7 +6,7 @@
 
 #if !defined(__cplusplus)
 
-/*typedef enum { _Bool_must_promote_to_int = -1, false = 0, true = 1 } _Bool;*/
+typedef enum { _Bool_must_promote_to_int = -1, false = 0, true = 1 } _Bool;
 #define bool _Bool
 #define true 1
 #define false 0

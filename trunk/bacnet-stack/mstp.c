@@ -727,28 +727,25 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
                     break;
                 }
             }
-            mstp_port->ReceivedValidFrame = false;
+            /* For DATA_EXPECTING_REPLY, we will keep the Rx Frame for 
+               reference, and the flag will be cleared in the next state */
+            if (mstp_port->master_state !=
+                MSTP_MASTER_STATE_ANSWER_DATA_REQUEST) {
+                mstp_port->ReceivedValidFrame = false;
+            }
         }
         break;
         /* In the USE_TOKEN state, the node is allowed to send one or  */
         /* more data frames. These may be BACnet Data frames or */
         /* proprietary frames. */
     case MSTP_MASTER_STATE_USE_TOKEN:
-        length = MSTP_Get_Send(
-            mstp_port->This_Station,
-            (uint8_t *)&mstp_port->OutputBuffer[0],
-            mstp_port->OutputBufferSize,
-            0); /* milliseconds to wait for a packet */
+        /* FIXME: We could wait for up to Tusage_delay */
+        length = MSTP_Get_Send(mstp_port, 0); 
         if (length < 1) {
             /* NothingToSend */
             mstp_port->FrameCount = mstp_port->Nmax_info_frames;
             mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
             transition_now = true;
-        } else if (mstp_port->SilenceTimer() > Tusage_delay) {
-            /* Don't send it if we are too late in getting out. */
-            /* Don't worry.  If we missed our timing deadline, 
-               another token will be sent */
-            mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
         } else {
             uint8_t frame_type = mstp_port->OutputBuffer[2];
             uint8_t destination = mstp_port->OutputBuffer[3];
@@ -1078,14 +1075,9 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* BACnet Data Expecting Reply, a Test_Request, or  */
         /* a proprietary frame that expects a reply is received. */
     case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-#if 0
-        /* FIXME: we always defer the reply to be legal */
-        /* FIXME: if we knew the APDU type received, we could
-           see if the next message was that same APDU type
-           along with the matching src/dest and invoke ID */
-        /* FIXME: we could use 2 queues: one for DER and one for non-DER */
-        if ((mstp_port->SilenceTimer() <= Treply_delay) &&
-            mstp_port->TxReady) {
+        /* FIXME: we could wait for up to Treply_delay */
+        length = MSTP_Get_Reply(mstp_port, 0); 
+        if (length > 0) {
             /* Reply */
             /* If a reply is available from the higher layers  */
             /* within Treply_delay after the reception of the  */
@@ -1093,38 +1085,28 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
             /* (the mechanism used to determine this is a local matter), */
             /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
             /* and enter the IDLE state to wait for the next frame. */
-            length = MSTP_Get_Send(
-                mstp_port->This_Station,
-                (uint8_t *)&mstp_port->OutputBuffer[0],
-                mstp_port->OutputBufferSize,
-                0); /* milliseconds to wait for a packet */
-            if ((mstp_port->FrameType ==
-                    FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY)
-                && (length > 0)) {
-                RS485_Send_Frame(mstp_port,
-                    (uint8_t *) & mstp_port->TxBuffer[0],
-                    length);
-                mstp_port->TxReady = false;
-                mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-            }
-        } else
-#endif
-        /* DeferredReply */
-        /* If no reply will be available from the higher layers */
-        /* within Treply_delay after the reception of the */
-        /* final octet of the requesting frame (the mechanism */
-        /* used to determine this is a local matter), */
-        /* then an immediate reply is not possible. */
-        /* Any reply shall wait until this node receives the token. */
-        /* Call MSTP_Create_And_Send_Frame to transmit a Reply Postponed frame, */
-        /* and enter the IDLE state. */
-        {
+            RS485_Send_Frame(mstp_port,
+                (uint8_t *) & mstp_port->OutputBuffer[0],
+                length);
+            mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
+        } else {
+            /* DeferredReply */
+            /* If no reply will be available from the higher layers */
+            /* within Treply_delay after the reception of the */
+            /* final octet of the requesting frame (the mechanism */
+            /* used to determine this is a local matter), */
+            /* then an immediate reply is not possible. */
+            /* Any reply shall wait until this node receives the token. */
+            /* Call MSTP_Create_And_Send_Frame to transmit a Reply Postponed frame, */
+            /* and enter the IDLE state. */
             MSTP_Create_And_Send_Frame(mstp_port,
                 FRAME_TYPE_REPLY_POSTPONED,
                 mstp_port->SourceAddress,
                 mstp_port->This_Station, NULL, 0);
             mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
         }
+        /* clear our flag we were holding for comparison */
+        mstp_port->ReceivedValidFrame = false;
         break;
     default:
         mstp_port->master_state = MSTP_MASTER_STATE_IDLE;

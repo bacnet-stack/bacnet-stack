@@ -70,7 +70,7 @@ static void Timer_Silence_Reset(void)
     SilenceTime = 0;
 }
 
-void dlmstp_millisecond_timer(void)
+static void dlmstp_millisecond_timer(void)
 {
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
@@ -290,15 +290,11 @@ uint16_t MSTP_Put_Receive(
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(
-    uint8_t src, /* source MS/TP address for creating packet */
-    uint8_t * pdu, /* data to send */
-    uint16_t max_pdu, /* amount of space available */
+int dlmstp_get_transmit_packet(
+    DLMSTP_PACKET *packet,
     unsigned timeout) /* milliseconds to wait for a packet */
 {
-    uint16_t pdu_len = 0; /* return value */
-    int received_bytes = 0;
-    DLMSTP_PACKET packet;
+    int received_bytes = 0; /* return value */
     struct timeval select_timeout;
     fd_set read_fds;
     int max = 0;
@@ -323,8 +319,8 @@ uint16_t MSTP_Get_Send(
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
         received_bytes = read(
             Transmit_Client_SockFD,
-            &packet,
-            sizeof(packet));
+            packet,
+            sizeof(DLMSTP_PACKET));
     } else {
         return 0;
     }
@@ -344,26 +340,223 @@ uint16_t MSTP_Get_Send(
         return 0;
     }
 
-    if (received_bytes == 0)
-        return 0;
+    return (received_bytes);
+}
 
+/* for the MS/TP state machine to use for getting data to send */
+/* Return: amount of PDU data */
+uint16_t MSTP_Get_Send(
+    volatile struct mstp_port_struct_t *mstp_port,
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    uint16_t pdu_len = 0; /* return value */
+    int received_bytes = 0;
+    DLMSTP_PACKET packet;
+    uint8_t destination = 0;    /* destination address */
+
+    received_bytes = dlmstp_get_transmit_packet(&packet, timeout);
+    if (received_bytes <= 0)
+        return 0;
     /* load destination MAC address */
     if (packet.address.mac_len == 1) {
         destination = packet.address.mac[0];
     } else {
         return 0;
     }
-    if ((8 /* header len */  + packet.pdu_len) > MAX_MPDU) {
+    if ((MAX_HEADER + packet.pdu_len) > MAX_MPDU) {
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
     pdu_len = MSTP_Create_Frame(
-        pdu, /* <-- loading this */
-        max_pdu,
+        &mstp_port->OutputBuffer[0], /* <-- loading this */
+        mstp_port->OutputBufferSize,
         packet.frame_type,
-        destination, src,
+        destination, 
+        mstp_port->This_Station,
         &packet.pdu[0],
         packet.pdu_len);
+
+    return pdu_len;
+}
+
+bool dlmstp_same_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
+{
+    int i = 0;
+
+    if (!dest || !src)
+        return false;
+    if (dest->mac_len != src->mac_len)
+        return false;
+    for (i = 0; i < dest->mac_len; i++) {
+        if (dest->mac[i] != src->mac[i])
+            return false;
+    }
+    if (dest->net != src->net)
+        return false;
+    if (dest->len != src->len)
+        return false;
+    for (i = 0; i < dest->len; i++) {
+        if (dest->adr[i] != src->adr[i])
+            return false;
+    }
+    
+    return true;
+}
+
+bool dlmstp_compare_data_expecting_reply(
+    uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    uint8_t src_address,
+    uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    BACNET_ADDRESS *dest_address)
+{
+    uint16_t offset;
+    /* One way to check the message is to compare NPDU 
+       src, dest, along with the APDU type, invoke id.  
+       Seems a bit overkill */
+    struct DER_compare_t {
+        BACNET_NPDU_DATA npdu_data;
+        BACNET_ADDRESS address;
+        uint8_t pdu_type;
+        uint8_t invoke_id;
+        uint8_t service_choice;
+    };
+    struct DER_compare_t request;
+    struct DER_compare_t reply;
+
+    /* decode the request data */
+    request.address.mac[0] = src_address;
+    request.address.mac_len = 1;
+    offset = npdu_decode(&request_pdu[0], 
+        NULL, &request.address, &request.npdu_data);
+    if (request.npdu_data.network_layer_message) {
+        return false;
+    }
+    request.pdu_type = request_pdu[offset] & 0xF0;
+    if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
+        return false;
+    }
+    request.invoke_id = request_pdu[offset+2];
+    /* segmented message? */
+    if (request_pdu[offset] & BIT3)
+        request.service_choice = request_pdu[offset+5];
+    else
+        request.service_choice = request_pdu[offset+3];
+    /* decode the reply data */
+    dlmstp_copy_bacnet_address(&reply.address, dest_address);
+    offset = npdu_decode(&reply_pdu[0], 
+        &reply.address, NULL, &reply.npdu_data);
+    if (reply.npdu_data.network_layer_message) {
+        return false;
+    }
+    /* reply could be a lot of things: 
+       confirmed, simple ack, abort, reject, error */
+    reply.pdu_type = reply_pdu[offset] & 0xF0;
+    switch (reply.pdu_type) {
+        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
+            reply.invoke_id = reply_pdu[offset+2];
+            /* segmented message? */
+            if (reply_pdu[offset] & BIT3)
+                reply.service_choice = reply_pdu[offset+5];
+            else
+                reply.service_choice = reply_pdu[offset+3];
+            break;
+        case PDU_TYPE_SIMPLE_ACK:
+            reply.invoke_id = reply_pdu[offset+1];
+            reply.service_choice = reply_pdu[offset+2];
+            break;
+        case PDU_TYPE_COMPLEX_ACK:
+            reply.invoke_id = reply_pdu[offset+1];
+            /* segmented message? */
+            if (reply_pdu[offset] & BIT3)
+                reply.service_choice = reply_pdu[offset+4];
+            else
+                reply.service_choice = reply_pdu[offset+2];
+            break;
+        case PDU_TYPE_ERROR:
+            reply.invoke_id = reply_pdu[offset+1];
+            reply.service_choice = reply_pdu[offset+2];
+            break;
+        case PDU_TYPE_REJECT:
+        case PDU_TYPE_ABORT:
+            reply.invoke_id = reply_pdu[offset+1];
+            break;
+        default:
+            return false;
+    }
+    /* these don't have service choice included */
+    if ((reply.pdu_type == PDU_TYPE_REJECT) ||
+        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        if (request.invoke_id != reply.invoke_id) {
+            return false;
+        }
+    } else {
+        if (request.invoke_id != reply.invoke_id) {
+            return false;
+        }
+        if (request.service_choice != reply.service_choice) {
+            return false;
+        }
+    }
+    if (request.npdu_data.protocol_version != reply.npdu_data.protocol_version) {
+        return false;
+    }
+    if (request.npdu_data.priority != reply.npdu_data.priority) {
+        return false;
+    }
+    if (!dlmstp_same_bacnet_address(&request.address, &reply.address)) {
+        return false;
+    }
+    
+    return true;
+}
+
+uint16_t MSTP_Get_Reply(
+    volatile struct mstp_port_struct_t *mstp_port,
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    int received_bytes = 0;
+    DLMSTP_PACKET packet;
+    uint16_t pdu_len = 0; /* return value */
+    uint8_t destination = 0;    /* destination address */
+    bool matched = false;
+
+    received_bytes = dlmstp_get_transmit_packet(&packet, timeout);
+    if (received_bytes <= 0)
+        return 0;
+    /* load destination MAC address */
+    if (Transmit_Packet.address.mac_len == 1) {
+        destination = Transmit_Packet.address.mac[0];
+    } else {
+        return 0;
+    }
+    if ((MAX_HEADER  + Transmit_Packet.pdu_len) > MAX_MPDU) {
+        return 0;
+    }
+    /* is this the reply to the DER? */
+    matched = dlmstp_compare_data_expecting_reply(
+        &mstp_port->InputBuffer[0],
+        mstp_port->DataLength,
+        mstp_port->SourceAddress,
+        &Transmit_Packet.pdu[0],
+        Transmit_Packet.pdu_len,
+        &Transmit_Packet.address);
+    if (matched) {
+        /* convert the PDU into the MSTP Frame */
+        pdu_len = MSTP_Create_Frame(
+            &mstp_port->OutputBuffer[0], /* <-- loading this */
+            mstp_port->OutputBufferSize,
+            Transmit_Packet.frame_type,
+            destination, mstp_port->This_Station,
+            &Transmit_Packet.pdu[0],
+            Transmit_Packet.pdu_len);
+        /* not used here, but setting it anyway */
+        Transmit_Packet.ready = false;
+    } else {
+        /* put it back into the queue */
+        (void)write(Transmit_Server_SockFD, &packet, sizeof(packet));
+    }
 
     return pdu_len;
 }
