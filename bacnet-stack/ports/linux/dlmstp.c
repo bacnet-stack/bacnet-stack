@@ -45,6 +45,7 @@
 #include "dlmstp.h"
 #include "rs485.h"
 #include "npdu.h"
+#include "bits.h"
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -281,7 +282,7 @@ uint16_t MSTP_Put_Receive(
             mstp_port->SourceAddress);
         packet.pdu_len = pdu_len;
         /* ready is not used in this scheme */
-        packet.ready = true; 
+        packet.ready = true;
         write(Receive_Server_SockFD, &packet, sizeof(packet));
     }
 
@@ -371,7 +372,7 @@ uint16_t MSTP_Get_Send(
         &mstp_port->OutputBuffer[0], /* <-- loading this */
         mstp_port->OutputBufferSize,
         packet.frame_type,
-        destination, 
+        destination,
         mstp_port->This_Station,
         &packet.pdu[0],
         packet.pdu_len);
@@ -399,7 +400,7 @@ bool dlmstp_same_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
         if (dest->adr[i] != src->adr[i])
             return false;
     }
-    
+
     return true;
 }
 
@@ -412,8 +413,8 @@ bool dlmstp_compare_data_expecting_reply(
     BACNET_ADDRESS *dest_address)
 {
     uint16_t offset;
-    /* One way to check the message is to compare NPDU 
-       src, dest, along with the APDU type, invoke id.  
+    /* One way to check the message is to compare NPDU
+       src, dest, along with the APDU type, invoke id.
        Seems a bit overkill */
     struct DER_compare_t {
         BACNET_NPDU_DATA npdu_data;
@@ -428,7 +429,7 @@ bool dlmstp_compare_data_expecting_reply(
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(&request_pdu[0], 
+    offset = npdu_decode(&request_pdu[0],
         NULL, &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
@@ -445,12 +446,12 @@ bool dlmstp_compare_data_expecting_reply(
         request.service_choice = request_pdu[offset+3];
     /* decode the reply data */
     dlmstp_copy_bacnet_address(&reply.address, dest_address);
-    offset = npdu_decode(&reply_pdu[0], 
+    offset = npdu_decode(&reply_pdu[0],
         &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
-    /* reply could be a lot of things: 
+    /* reply could be a lot of things:
        confirmed, simple ack, abort, reject, error */
     reply.pdu_type = reply_pdu[offset] & 0xF0;
     switch (reply.pdu_type) {
@@ -508,7 +509,7 @@ bool dlmstp_compare_data_expecting_reply(
     if (!dlmstp_same_bacnet_address(&request.address, &reply.address)) {
         return false;
     }
-    
+
     return true;
 }
 
