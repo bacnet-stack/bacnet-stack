@@ -29,37 +29,37 @@ clean: \
 	( cd demo/epics ; make clean )
 
 readprop: demo/readprop/Makefile
-	( cd demo/readprop ; make clean ; make ; cp bacrp ../../utils )
+	( cd demo/readprop ; make ; cp bacrp ../../utils )
 
 writeprop: demo/writeprop/Makefile
-	( cd demo/writeprop ; make clean ; make ; cp bacwp ../../utils )
+	( cd demo/writeprop ; make ; cp bacwp ../../utils )
 
 readfile: demo/readfile/Makefile
-	( cd demo/readfile ; make clean ; make ; cp bacarf ../../utils )
+	( cd demo/readfile ; make ; cp bacarf ../../utils )
 
 writefile: demo/writefile/Makefile
-	( cd demo/writefile ; make clean ; make ; cp bacawf ../../utils )
+	( cd demo/writefile ; make ; cp bacawf ../../utils )
 
 reinit: demo/reinit/Makefile
-	( cd demo/reinit ; make clean ; make ; cp bacrd ../../utils )
+	( cd demo/reinit ; make ; cp bacrd ../../utils )
 
 server: demo/server/Makefile
-	( cd demo/server ; make clean ; make ; cp bacserv ../../utils )
+	( cd demo/server ; make ; cp bacserv ../../utils )
 
 dcc: demo/dcc/Makefile
-	( cd demo/dcc ; make clean ; make ; cp bacdcc ../../utils )
+	( cd demo/dcc ; make ; cp bacdcc ../../utils )
 
 whohas: demo/whohas/Makefile
-	( cd demo/whohas ; make clean ; make ; cp bacwh ../../utils )
+	( cd demo/whohas ; make ; cp bacwh ../../utils )
 
 timesync: demo/timesync/Makefile
-	( cd demo/timesync ; make clean ; make ; cp bacts ../../utils )
+	( cd demo/timesync ; make ; cp bacts ../../utils )
 
 epics: demo/epics/Makefile
-	( cd demo/epics ; make clean ; make ; cp bacepics ../../utils )
+	( cd demo/epics ; make ; cp bacepics ../../utils )
 
 ucov: demo/ucov/Makefile
-	( cd demo/ucov ; make clean ; make ; cp bacucov ../../utils )
+	( cd demo/ucov ; make ; cp bacucov ../../utils )
 
 whois: demo/whois/Makefile
-	( cd demo/whois ; make clean ; make ; cp bacwi ../../utils )
+	( cd demo/whois ; make ; cp bacwi ../../utils )

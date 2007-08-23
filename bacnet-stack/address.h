@@ -45,8 +45,6 @@ extern "C" {
 
     void address_init(void);
 
-    void address_copy(BACNET_ADDRESS * dest, BACNET_ADDRESS * src);
-
     void address_add(uint32_t device_id,
         unsigned max_apdu, BACNET_ADDRESS * src);
 

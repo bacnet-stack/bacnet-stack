@@ -1,94 +1,56 @@
 #Makefile to build BACnet Application for the Linux Port
-CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -O2 -g
-# Note: you can strip out symbols using the strip command
-# to get an idea of how big the compile really is.
 
-BACNET_DEFINES=-DMAX_TSM_TRANSACTIONS=0 -DPRINT_ENABLED=1
-#BACDL_DEFINE=-DBACDL_ETHERNET=1
-#BACDL_DEFINE=-DBACDL_ARCNET=1
-BACDL_DEFINE=-DBACDL_BIP=1
+# Compiler to use
+CC = gcc
+# Executable file name
+TARGET = bacwh
+
+# Configure the BACnet Datalink Layer
+#BACDL_DEFINE = -DBACDL_ETHERNET=1
+#BACDL_DEFINE = -DBACDL_ARCNET=1
+#BACDL_DEFINE = -DBACDL_MSTP=1
+BACDL_DEFINE = -DBACDL_BIP=1
+BACNET_DEFINES = -DBACFILE=1 -DPRINT_ENABLED=1
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
+# Directories
 BACNET_PORT = ../../ports/linux
 BACNET_OBJECT = ../object
 BACNET_HANDLER = ../handler
 BACNET_ROOT = ../..
-INCLUDES = -I$(BACNET_ROOT) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER) 
+# BACnet Library
+BACNET_LIB_DIR = ../../lib
+BACNET_LIB_NAME = bacnet
+BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
+# Compiler Setup
+INCLUDES = -I$(BACNET_ROOT) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
+LIBRARIES=-lc,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+CFLAGS = -Wall -g $(INCLUDES) $(DEFINES)
+LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
-CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
-
-TARGET = bacwh
-
-SRCS = main.c \
-       $(BACNET_ROOT)/rd.c \
-       $(BACNET_PORT)/bip-init.c \
-       $(BACNET_PORT)/ethernet.c \
-       $(BACNET_PORT)/arcnet.c \
-       $(BACNET_ROOT)/bip.c \
-       $(BACNET_HANDLER)/txbuf.c \
-       $(BACNET_HANDLER)/noserv.c \
-       $(BACNET_HANDLER)/h_whois.c \
-       $(BACNET_HANDLER)/h_ihave.c \
-       $(BACNET_HANDLER)/h_rp.c \
-       $(BACNET_HANDLER)/s_whohas.c  \
-       $(BACNET_HANDLER)/s_ihave.c  \
-       $(BACNET_OBJECT)/device.c \
-       $(BACNET_OBJECT)/ai.c \
-       $(BACNET_OBJECT)/ao.c \
-       $(BACNET_OBJECT)/av.c \
-       $(BACNET_OBJECT)/bi.c \
-       $(BACNET_OBJECT)/bo.c \
-       $(BACNET_OBJECT)/bv.c \
-       $(BACNET_OBJECT)/lc.c \
-       $(BACNET_OBJECT)/lsp.c \
-       $(BACNET_OBJECT)/mso.c \
-       $(BACNET_OBJECT)/bacfile.c \
-       $(BACNET_ROOT)/filename.c \
-       $(BACNET_ROOT)/rp.c \
-       $(BACNET_ROOT)/wp.c \
-       $(BACNET_ROOT)/bacdcode.c \
-       $(BACNET_ROOT)/bacint.c \
-       $(BACNET_ROOT)/bacapp.c \
-       $(BACNET_ROOT)/bacprop.c \
-       $(BACNET_ROOT)/bacstr.c \
-       $(BACNET_ROOT)/bactext.c \
-       $(BACNET_ROOT)/datetime.c \
-       $(BACNET_ROOT)/indtext.c \
-       $(BACNET_ROOT)/bigend.c \
-       $(BACNET_ROOT)/whois.c \
-       $(BACNET_ROOT)/iam.c \
-       $(BACNET_ROOT)/whohas.c \
-       $(BACNET_ROOT)/ihave.c \
-       $(BACNET_ROOT)/address.c \
-       $(BACNET_ROOT)/arf.c \
-       $(BACNET_ROOT)/dcc.c \
-       $(BACNET_ROOT)/abort.c \
-       $(BACNET_ROOT)/reject.c \
-       $(BACNET_ROOT)/bacerror.c \
-       $(BACNET_ROOT)/apdu.c \
-       $(BACNET_ROOT)/npdu.c \
-       $(BACNET_ROOT)/version.c
+SRCS = main.c
 
 OBJS = ${SRCS:.c=.o}
 
-all: ${TARGET}
- 
-${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+all: ${BACNET_LIB_TARGET} Makefile ${TARGET}
+	size ${TARGET}
+
+${TARGET}: ${OBJS} Makefile
+	${CC} -pthread  ${OBJS} ${LFLAGS} -o $@
+
+lib: ${BACNET_LIB_TARGET}
+
+${BACNET_LIB_TARGET}:
+	( cd ${BACNET_LIB_DIR} ; make clean ; make )
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak ports/linux/*.bak *.1 *.ini
+	rm -f core ${TARGET} ${OBJS} ${BACNET_LIB_TARGET}
 
 include: .depend
-

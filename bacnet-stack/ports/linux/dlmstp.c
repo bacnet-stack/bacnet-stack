@@ -41,6 +41,7 @@
 
 /* project includes */
 #include "bacdef.h"
+#include "bacaddr.h"
 #include "mstp.h"
 #include "dlmstp.h"
 #include "rs485.h"
@@ -299,7 +300,6 @@ int dlmstp_get_transmit_packet(
     struct timeval select_timeout;
     fd_set read_fds;
     int max = 0;
-    uint8_t destination = 0;    /* destination address */
 
     /* Make sure the socket is open */
     if (Transmit_Client_SockFD <= 0)
@@ -380,30 +380,6 @@ uint16_t MSTP_Get_Send(
     return pdu_len;
 }
 
-bool dlmstp_same_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
-{
-    int i = 0;
-
-    if (!dest || !src)
-        return false;
-    if (dest->mac_len != src->mac_len)
-        return false;
-    for (i = 0; i < dest->mac_len; i++) {
-        if (dest->mac[i] != src->mac[i])
-            return false;
-    }
-    if (dest->net != src->net)
-        return false;
-    if (dest->len != src->len)
-        return false;
-    for (i = 0; i < dest->len; i++) {
-        if (dest->adr[i] != src->adr[i])
-            return false;
-    }
-
-    return true;
-}
-
 bool dlmstp_compare_data_expecting_reply(
     uint8_t *request_pdu,
     uint16_t request_pdu_len,
@@ -445,7 +421,7 @@ bool dlmstp_compare_data_expecting_reply(
     else
         request.service_choice = request_pdu[offset+3];
     /* decode the reply data */
-    dlmstp_copy_bacnet_address(&reply.address, dest_address);
+    bacnet_address_copy(&reply.address, dest_address);
     offset = npdu_decode(&reply_pdu[0],
         &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
@@ -506,7 +482,7 @@ bool dlmstp_compare_data_expecting_reply(
     if (request.npdu_data.priority != reply.npdu_data.priority) {
         return false;
     }
-    if (!dlmstp_same_bacnet_address(&request.address, &reply.address)) {
+    if (!bacnet_address_same(&request.address, &reply.address)) {
         return false;
     }
 
@@ -518,12 +494,12 @@ uint16_t MSTP_Get_Reply(
     unsigned timeout) /* milliseconds to wait for a packet */
 {
     int received_bytes = 0;
-    DLMSTP_PACKET packet;
+    DLMSTP_PACKET Transmit_Packet;
     uint16_t pdu_len = 0; /* return value */
     uint8_t destination = 0;    /* destination address */
     bool matched = false;
 
-    received_bytes = dlmstp_get_transmit_packet(&packet, timeout);
+    received_bytes = dlmstp_get_transmit_packet(&Transmit_Packet, timeout);
     if (received_bytes <= 0)
         return 0;
     /* load destination MAC address */
@@ -549,14 +525,16 @@ uint16_t MSTP_Get_Reply(
             &mstp_port->OutputBuffer[0], /* <-- loading this */
             mstp_port->OutputBufferSize,
             Transmit_Packet.frame_type,
-            destination, mstp_port->This_Station,
+            destination,
+            mstp_port->This_Station,
             &Transmit_Packet.pdu[0],
             Transmit_Packet.pdu_len);
         /* not used here, but setting it anyway */
         Transmit_Packet.ready = false;
     } else {
         /* put it back into the queue */
-        (void)write(Transmit_Server_SockFD, &packet, sizeof(packet));
+        (void)write(Transmit_Server_SockFD,
+             &Transmit_Packet, sizeof(Transmit_Packet));
     }
 
     return pdu_len;
