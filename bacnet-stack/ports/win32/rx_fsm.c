@@ -36,6 +36,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /* Windows includes */
 #define WIN32_LEAN_AND_MEAN
@@ -49,46 +50,63 @@
 #include "mstptext.h"
 #include "crc.h"
 
-#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-
 /* local port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
+static uint16_t SilenceTime;
+#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
+static uint16_t Timer_Silence(void)
+{
+    return SilenceTime;
+}
+static void Timer_Silence_Reset(void)
+{
+    SilenceTime = 0;
+}
+
+static void dlmstp_millisecond_timer(void)
+{
+    INCREMENT_AND_LIMIT_UINT16(SilenceTime);
+}
 
 void *milliseconds_task(void *pArg)
 {
+    (void)pArg;
     for (;;) {
         Sleep(1);
         dlmstp_millisecond_timer();
     }
 
-    return NULL;
+    //return NULL;
 }
 
-void dlmstp_millisecond_timer(void)
+/* functions used by the MS/TP state machine to put or get data */
+uint16_t MSTP_Put_Receive(
+    volatile struct mstp_port_struct_t *mstp_port)
 {
-    INCREMENT_AND_LIMIT_UINT16(MSTP_Port.SilenceTimer);
-}
-
-uint16_t dlmstp_put_receive(
-    uint8_t src,    /* source MS/TP address */
-    uint8_t * pdu,          /* PDU data */
-    uint16_t pdu_len)
-{
-    (void)src;
-    (void)pdu;
-    (void)pdu_len;
-
+    (void)mstp_port;
+    
     return 0;
 }
 
-uint16_t dlmstp_get_send(
-        uint8_t src, /* source MS/TP address for creating packet */
-    uint8_t * pdu, /* data to send */
-    uint16_t max_pdu, /* amount of space available */
+/* for the MS/TP state machine to use for getting data to send */
+/* Return: amount of PDU data */
+uint16_t MSTP_Get_Send(
+    volatile struct mstp_port_struct_t *mstp_port,
     unsigned timeout) /* milliseconds to wait for a packet */
 {
+    (void)mstp_port;
+    (void)timeout;
+    return 0;
+}
+
+uint16_t MSTP_Get_Reply(
+    volatile struct mstp_port_struct_t *mstp_port,
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    (void)mstp_port;
+    (void)timeout;
     return 0;
 }
 
@@ -163,6 +181,8 @@ int main(int argc, char *argv[])
     MSTP_Port.This_Station = my_mac;
     MSTP_Port.Nmax_info_frames = 1;
     MSTP_Port.Nmax_master = 127;
+    MSTP_Port.SilenceTimer = Timer_Silence;
+    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(&MSTP_Port);
     mstp_port->Lurking = true;
     /* start our MilliSec task */
@@ -185,6 +205,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    return 0;
+    //return 0;
 }
 

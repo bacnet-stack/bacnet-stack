@@ -190,6 +190,37 @@ int npdu_encode_pdu(uint8_t * npdu,
 
 /* Configure the NPDU portion of the packet for an APDU */
 /* This function does not handle the network messages, just APDUs. */
+/* From BACnet 5.1:
+Applicability of ICI parameters for abstract service primitives
+Service Primitive      DA  SA  NP  DER
+-----------------      --- --- --- ---
+CONF_SERV.request      Yes No  Yes Yes
+CONF_SERV.indication   Yes Yes Yes Yes
+CONF_SERV.response     Yes No  Yes Yes
+CONF_SERV.confirm      Yes Yes Yes No
+UNCONF_SERV.request    Yes No  Yes No
+UNCONF_SERV.indication Yes Yes Yes No
+REJECT.request         Yes No  Yes No
+REJECT.indication      Yes Yes Yes No
+SEGMENT_ACK.request    Yes No  Yes No
+SEGMENT_ACK.indication Yes Yes Yes No
+ABORT.request          Yes No  Yes No
+ABORT.indication       Yes Yes Yes No
+
+Where:
+'destination_address' (DA): the address of the device(s) intended 
+to receive the service primitive. Its format (device name,
+network address, etc.) is a local matter. This address may 
+also be a multicast, local broadcast or global broadcast type.
+'source_address' (SA): the address of the device from which 
+the service primitive was received. Its format (device name,
+network address, etc.) is a local matter.
+'network_priority' (NP): a four-level network priority parameter 
+described in 6.2.2.
+'data_expecting_reply' (DER): a Boolean parameter that indicates 
+whether (TRUE) or not (FALSE) a reply service primitive
+is expected for the service being issued.
+*/
 void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu_data,
     bool data_expecting_reply, BACNET_MESSAGE_PRIORITY priority)
 {

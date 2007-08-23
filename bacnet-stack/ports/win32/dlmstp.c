@@ -89,6 +89,23 @@ void dlmstp_cleanup(void)
     }
 }
 
+void dlmstp_copy_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
+{
+    int i = 0;
+
+    if (dest && src) {
+        dest->mac_len = src->mac_len;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->mac[i] = src->mac[i];
+        }
+        dest->net = src->net;
+        dest->len = src->len;
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            dest->adr[i] = src->adr[i];
+        }
+    }
+}
+
 /* returns number of bytes sent on success, zero on failure */
 int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
@@ -97,32 +114,23 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
 {                               /* number of bytes of data */
     int bytes_sent = 0;
     uint8_t destination = 0;    /* destination address */
+    unsigned i = 0;
 
     if (!Transmit_Packet.ready) {
-        if (npdu_data->data_expecting_reply)
-            Transmit_Packet.frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-        else
+        if (npdu_data->data_expecting_reply) {
+            Transmit_Packet.frame_type = 
+                FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+        } else {
             Transmit_Packet.frame_type =
                 FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
-
-        /* load destination MAC address */
-        if (dest && dest->mac_len == 1) {
-            destination = dest->mac[0];
-        } else {
-            return -2;
         }
-        if ((8 /* header len */  + pdu_len) > MAX_MPDU) {
-            return -4;
+        Transmit_Packet.pdu_len = pdu_len;
+        for (i = 0; i < pdu_len; i++) {
+            Transmit_Packet.pdu[i] = pdu[i];
         }
-        Transmit_Packet.pdu_len = MSTP_Create_Frame(
-            (uint8_t *) & Transmit_Packet.pdu[0],
-            sizeof(Transmit_Packet.pdu),
-            Transmit_Packet.frame_type,
-            destination,
-            MSTP_Port.This_Station,
-            pdu, pdu_len);
+        dlmstp_copy_bacnet_address(&Transmit_Packet.address, dest);
+        bytes_sent = pdu_len + MAX_HEADER;
         Transmit_Packet.ready = true;
-        MSTP_Packets++;
     }
 
     return bytes_sent;
@@ -276,24 +284,213 @@ uint16_t MSTP_Put_Receive(
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    uint8_t src, /* source MS/TP address for creating packet */
-    uint8_t * pdu, /* data to send */
-    uint16_t max_pdu, /* amount of space available */
+    volatile struct mstp_port_struct_t *mstp_port,
     unsigned timeout) /* milliseconds to wait for a packet */
 {
     uint16_t pdu_len = 0;
+    uint8_t destination = 0;    /* destination address */
 
-    (void)src;
     (void)timeout;
-    if (Transmit_Packet.ready) {
-        if (Transmit_Packet.pdu_len <= max_pdu) {
-            memmove(&pdu[0],
-                (void *) & Transmit_Packet.pdu[0],
-                Transmit_Packet.pdu_len);
-            pdu_len = Transmit_Packet.pdu_len;
-        }
-        Transmit_Packet.ready = false;
+    if (!Transmit_Packet.ready) {
+        return 0;
     }
+    /* load destination MAC address */
+    if (Transmit_Packet.address.mac_len == 1) {
+        destination = Transmit_Packet.address.mac[0];
+    } else {
+        return 0;
+    }
+    if ((MAX_HEADER + Transmit_Packet.pdu_len) > MAX_MPDU) {
+        return 0;
+    }
+    /* convert the PDU into the MSTP Frame */
+    pdu_len = MSTP_Create_Frame(
+        &mstp_port->OutputBuffer[0], /* <-- loading this */
+        mstp_port->OutputBufferSize,
+        Transmit_Packet.frame_type,
+        destination, 
+        mstp_port->This_Station,
+        &Transmit_Packet.pdu[0],
+        Transmit_Packet.pdu_len);
+    Transmit_Packet.ready = false;
+
+    return pdu_len;
+}
+
+bool dlmstp_same_bacnet_address(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
+{
+    int i = 0;
+
+    if (!dest || !src)
+        return false;
+    if (dest->mac_len != src->mac_len)
+        return false;
+    for (i = 0; i < dest->mac_len; i++) {
+        if (dest->mac[i] != src->mac[i])
+            return false;
+    }
+    if (dest->net != src->net)
+        return false;
+    if (dest->len != src->len)
+        return false;
+    for (i = 0; i < dest->len; i++) {
+        if (dest->adr[i] != src->adr[i])
+            return false;
+    }
+    
+    return true;
+}
+
+bool dlmstp_compare_data_expecting_reply(
+    uint8_t *request_pdu,
+    uint16_t request_pdu_len,
+    uint8_t src_address,
+    uint8_t *reply_pdu,
+    uint16_t reply_pdu_len,
+    BACNET_ADDRESS *dest_address)
+{
+    uint16_t offset;
+    /* One way to check the message is to compare NPDU 
+       src, dest, along with the APDU type, invoke id.  
+       Seems a bit overkill */
+    struct DER_compare_t {
+        BACNET_NPDU_DATA npdu_data;
+        BACNET_ADDRESS address;
+        uint8_t pdu_type;
+        uint8_t invoke_id;
+        uint8_t service_choice;
+    };
+    struct DER_compare_t request;
+    struct DER_compare_t reply;
+
+    /* decode the request data */
+    request.address.mac[0] = src_address;
+    request.address.mac_len = 1;
+    offset = npdu_decode(&request_pdu[0], 
+        NULL, &request.address, &request.npdu_data);
+    if (request.npdu_data.network_layer_message) {
+        return false;
+    }
+    request.pdu_type = request_pdu[offset] & 0xF0;
+    if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
+        return false;
+    }
+    request.invoke_id = request_pdu[offset+2];
+    /* segmented message? */
+    if (request_pdu[offset] & BIT3)
+        request.service_choice = request_pdu[offset+5];
+    else
+        request.service_choice = request_pdu[offset+3];
+    /* decode the reply data */
+    dlmstp_copy_bacnet_address(&reply.address, dest_address);
+    offset = npdu_decode(&reply_pdu[0], 
+        &reply.address, NULL, &reply.npdu_data);
+    if (reply.npdu_data.network_layer_message) {
+        return false;
+    }
+    /* reply could be a lot of things: 
+       confirmed, simple ack, abort, reject, error */
+    reply.pdu_type = reply_pdu[offset] & 0xF0;
+    switch (reply.pdu_type) {
+        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
+            reply.invoke_id = reply_pdu[offset+2];
+            /* segmented message? */
+            if (reply_pdu[offset] & BIT3)
+                reply.service_choice = reply_pdu[offset+5];
+            else
+                reply.service_choice = reply_pdu[offset+3];
+            break;
+        case PDU_TYPE_SIMPLE_ACK:
+            reply.invoke_id = reply_pdu[offset+1];
+            reply.service_choice = reply_pdu[offset+2];
+            break;
+        case PDU_TYPE_COMPLEX_ACK:
+            reply.invoke_id = reply_pdu[offset+1];
+            /* segmented message? */
+            if (reply_pdu[offset] & BIT3)
+                reply.service_choice = reply_pdu[offset+4];
+            else
+                reply.service_choice = reply_pdu[offset+2];
+            break;
+        case PDU_TYPE_ERROR:
+            reply.invoke_id = reply_pdu[offset+1];
+            reply.service_choice = reply_pdu[offset+2];
+            break;
+        case PDU_TYPE_REJECT:
+        case PDU_TYPE_ABORT:
+            reply.invoke_id = reply_pdu[offset+1];
+            break;
+        default:
+            return false;
+    }
+    /* these don't have service choice included */
+    if ((reply.pdu_type == PDU_TYPE_REJECT) ||
+        (reply.pdu_type == PDU_TYPE_ABORT)) {
+        if (request.invoke_id != reply.invoke_id) {
+            return false;
+        }
+    } else {
+        if (request.invoke_id != reply.invoke_id) {
+            return false;
+        }
+        if (request.service_choice != reply.service_choice) {
+            return false;
+        }
+    }
+    if (request.npdu_data.protocol_version != reply.npdu_data.protocol_version) {
+        return false;
+    }
+    if (request.npdu_data.priority != reply.npdu_data.priority) {
+        return false;
+    }
+    if (!dlmstp_same_bacnet_address(&request.address, &reply.address)) {
+        return false;
+    }
+    
+    return true;
+}
+
+/* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
+uint16_t MSTP_Get_Reply(
+    volatile struct mstp_port_struct_t *mstp_port,
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    uint16_t pdu_len = 0; /* return value */
+    uint8_t destination = 0;    /* destination address */
+    bool matched = false;
+
+    (void)timeout;
+    if (!Transmit_Packet.ready) {
+        return 0;
+    }
+    /* load destination MAC address */
+    if (Transmit_Packet.address.mac_len == 1) {
+        destination = Transmit_Packet.address.mac[0];
+    } else {
+        return 0;
+    }
+    if ((MAX_HEADER + Transmit_Packet.pdu_len) > MAX_MPDU) {
+        return 0;
+    }
+    /* is this the reply to the DER? */
+    matched = dlmstp_compare_data_expecting_reply(
+        &mstp_port->InputBuffer[0],
+        mstp_port->DataLength,
+        mstp_port->SourceAddress,
+        &Transmit_Packet.pdu[0],
+        Transmit_Packet.pdu_len,
+        &Transmit_Packet.address);
+    if (!matched)
+        return 0;
+    /* convert the PDU into the MSTP Frame */
+    pdu_len = MSTP_Create_Frame(
+        &mstp_port->OutputBuffer[0], /* <-- loading this */
+        mstp_port->OutputBufferSize,
+        Transmit_Packet.frame_type,
+        destination, mstp_port->This_Station,
+        &Transmit_Packet.pdu[0],
+        Transmit_Packet.pdu_len);
+    Transmit_Packet.ready = false;
 
     return pdu_len;
 }
