@@ -17,6 +17,9 @@ CSRC = main.c \
 	timer.c \
 	rs485.c \
 	dlmstp.c \
+	../../npdu.c \
+	../../bacint.c \
+	../../bacaddr.c \
 	../../mstp.c \
 	../../crc.c
 
@@ -28,7 +31,7 @@ DEMOSRC = h_rp.c \
 	../../demo/handler/h_rd.c \
 	../../demo/handler/h_dcc.c
 
-CORESRC = ../../npdu.c \
+CORESRC =  \
 	../../bacint.c \
 	../../apdu.c \
 	../../bacdcode.c \
