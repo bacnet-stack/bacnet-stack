@@ -29,4 +29,8 @@ O. Change address to store in a file and demos to use file
    Use a config file for interface and interface options.
    These will make scripting cleaner.
 P. Changed encode_tagged_xx to encode_application_xx in bacdcode.c.
+Q. Convert object methods to use an array of object methods
+   for ReadProperty and Device object counts, ids, and names.
+R. Convert datalink methods to use function pointers that can be
+   overridden in main.c.
 
