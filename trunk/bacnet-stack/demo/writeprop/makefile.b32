@@ -14,84 +14,63 @@ BORLAND_DIR_Not_Defined:
 PRODUCT = bacwp
 PRODUCT_EXE = $(PRODUCT).exe
 
-# Choose the Data Link Layer to Enable
-DEFINES = -DBACDL_BIP=1;PRINT_ENABLED=1
+# tools
+CC = $(BORLAND_DIR)\bin\bcc32
+MAKE=$(BORLAND_DIR)\bin\make.exe
+#LINK = $(BORLAND_DIR)\bin\tlink32
+LINK = $(BORLAND_DIR)\bin\ilink32
 
-SRCS = main.c \
-       ..\..\ports\win32\bip-init.c \
-       ..\..\filename.c \
-       ..\..\bip.c  \
-       ..\..\demo\handler\txbuf.c  \
-       ..\..\demo\handler\noserv.c  \
-       ..\..\demo\handler\h_whois.c  \
-       ..\..\demo\handler\h_iam.c  \
-       ..\..\demo\handler\h_rp.c  \
-       ..\..\demo\handler\s_wp.c  \
-       ..\..\demo\handler\s_whois.c  \
-       ..\..\bacdcode.c \
-       ..\..\bacint.c \
-       ..\..\bacapp.c \
-       ..\..\bacstr.c \
-       ..\..\bactext.c \
-       ..\..\datetime.c \
-       ..\..\indtext.c \
-       ..\..\whois.c \
-       ..\..\iam.c \
-       ..\..\rp.c \
-       ..\..\wp.c \
-       ..\..\arf.c \
-       ..\..\awf.c \
-       ..\..\dcc.c \
-       ..\..\demo\object\bacfile.c \
-       ..\..\demo\object\device.c \
-       ..\..\demo\object\ai.c \
-       ..\..\demo\object\ao.c \
-       ..\..\demo\object\av.c \
-       ..\..\demo\object\bi.c \
-       ..\..\demo\object\bo.c \
-       ..\..\demo\object\bv.c \
-       ..\..\demo\object\lc.c \
-       ..\..\demo\object\lsp.c \
-       ..\..\demo\object\mso.c \
-       ..\..\tsm.c \
-       ..\..\address.c \
-       ..\..\abort.c \
-       ..\..\reject.c \
-       ..\..\bacerror.c \
-       ..\..\apdu.c \
-       ..\..\npdu.c \
-       ..\..\version.c
+BACNET_LIB_DIR = ..\..\lib
+BACNET_LIB = $(BACNET_LIB_DIR)\bacnet.lib
+
+# directories
+BACNET_PORT = ..\..\ports\win32
+BACNET_OBJECT = ..\object
+BACNET_HANDLER = ..\handler
+BACNET_ROOT = ..\..
+INCLUDES = \ 
+	-I$(BACNET_ROOT) \
+	-I$(BACNET_PORT) \
+	-I$(BACNET_OBJECT) \
+	-I$(BACNET_HANDLER) \
+	-I$(BORLAND_DIR)\include
+
+#
+BACNET_DEFINES = -DPRINT_ENABLED=1
+#BACDL_DEFINE=-DBACDL_MSTP=1
+BACDL_DEFINE=-DBACDL_BIP=1
+DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
+
+SRCS = main.c
 
 OBJS = $(SRCS:.c=.obj)
 
+#
 # Compiler definitions
 #
-CC = $(BORLAND_DIR)\bin\bcc32 +bcc32.cfg
-#LINK = $(BORLAND_DIR)\bin\tlink32
-LINK = $(BORLAND_DIR)\bin\ilink32
-TLIB = $(BORLAND_DIR)\bin\tlib
+BCC_CFG = bcc32.cfg
 
 #
 # Include directories
 #
-CC_DIR     = $(BORLAND_DIR)\BIN
-INCL_DIRS = -I$(BORLAND_DIR)\include;..\..\;..\..\demo\object\;..\..\demo\handler\;..\..\ports\win32\;.
+CFLAGS = $(INCLUDES) $(DEFINES)
 
-CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
-
+#
 # Libraries
 #
 C_LIB_DIR = $(BORLAND_DIR)\lib
 
-LIBS = $(C_LIB_DIR)\IMPORT32.lib \
-$(C_LIB_DIR)\CW32MT.lib
+LIBS = $(BACNET_LIB) \
+	$(C_LIB_DIR)\IMPORT32.lib \
+	$(C_LIB_DIR)\CW32MT.lib \
 
 #
 # Main target
 #
 # This should be the first one in the makefile
 
-all : bcc32.cfg $(PRODUCT_EXE)
+all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE) 
+	del $(BCC_CFG)
 
 install: $(PRODUCT_EXE)
 	copy $(PRODUCT_EXE) ..\..\utils\$(PRODUCT_EXE)
@@ -100,30 +79,27 @@ install: $(PRODUCT_EXE)
 # with a different linker - please change accordingly.
 #
 
-# need a temp response file (@&&) because command line is too long
+# need a temp response file (@&&| ... |) because command line is too long
+# $** lists each dependency
+# $< target name
+# $* target name without extension
 $(PRODUCT_EXE) : $(OBJS)
 	@echo Running Linker for $(PRODUCT_EXE)
-	$(LINK)	-L$(C_LIB_DIR) -m -c -s -v @&&| # temp response file, starts with |
-	  $(BORLAND_DIR)\lib\c0x32.obj $**  # $** lists each dependency
+	$(LINK)	-L$(C_LIB_DIR) -L$(BACNET_LIB_DIR) -m -c -s -v @&&|
+	  $(BORLAND_DIR)\lib\c0x32.obj $**
 	$<
 	$*.map
 	$(LIBS)
-| # end of temp response file
+|
 
 #
 # Utilities
 
 clean :
-	@echo Deleting obj files, $(PRODUCT_EXE) and map files.
-#	del $(OBJS) # command too long, bummer!
-	del *.obj
-	del ..\..\*.obj
-	del ..\..\demo\handler\*.obj
-	del ..\..\demo\object\*.obj
-	del ..\..\ports\win32\*.obj
+	del $(OBJS)
 	del $(PRODUCT_EXE)
-	del *.map
-	del bcc32.cfg
+	del $(PRODUCT).map
+	del $(BCC_CFG)
 
 #
 # Generic rules
@@ -134,13 +110,13 @@ clean :
 # cc generic rule
 #
 .c.obj:
-	$(CC) -o$@ $<
+	$(CC) +$(BCC_CFG) -o$@ $<
 
 # Compiler configuration file
-bcc32.cfg :
+$(BCC_CFG) :
    Copy &&|
-$(CFLAGS) 
--c 
+$(CFLAGS)
+-c
 -y     #include line numbers in OBJ's
 -v     #include debug info
 -w+    #turn on all warnings

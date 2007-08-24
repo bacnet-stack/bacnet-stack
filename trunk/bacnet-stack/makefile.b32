@@ -8,13 +8,14 @@ BORLAND_DIR_Not_Defined:
 	@echo Type: set BORLAND_DIR=c:\Borland\bcc55
 !endif
 
-MAKE=$(BORLAND_DIR)/bin/make.exe
+MAKE=$(BORLAND_DIR)\bin\make.exe
 
-all: readprop writeprop readfile writefile server dcc reinit \
+all: library \
+	readprop writeprop readfile writefile server dcc reinit \
 	whois whohas timesync ucov epics
 	@echo "demo utilities are in utils directory"
 
-clean: \
+clean: lib\makefile.b32 \
 	demo/readprop/makefile.b32 \
 	demo/writeprop/makefile.b32 \
 	demo/readfile/makefile.b32 \
@@ -27,6 +28,9 @@ clean: \
 	demo/ucov/makefile.b32 \
 	demo/epics/makefile.b32 \
 	demo/timesync/makefile.b32
+	cd lib
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
 	cd demo/readprop
 	$(MAKE) -i -f makefile.b32 clean
 	cd ..
@@ -76,9 +80,13 @@ clean: \
 	cd ..
 	cd ..
 
+library: lib\makefile.b32
+	cd lib
+	$(MAKE) -f makefile.b32 all
+	cd ..
+
 readprop: demo/readprop/makefile.b32
 	cd demo/readprop
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -86,7 +94,6 @@ readprop: demo/readprop/makefile.b32
 
 writeprop: demo/writeprop/makefile.b32
 	cd demo/writeprop
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -94,7 +101,6 @@ writeprop: demo/writeprop/makefile.b32
 
 readfile: demo/readfile/makefile.b32
 	cd demo/readfile
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -102,7 +108,6 @@ readfile: demo/readfile/makefile.b32
 
 writefile: demo/writefile/makefile.b32
 	cd demo/writefile
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -110,7 +115,6 @@ writefile: demo/writefile/makefile.b32
 
 server: demo/server/makefile.b32
 	cd demo/server
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -118,7 +122,6 @@ server: demo/server/makefile.b32
 
 dcc: demo/dcc/makefile.b32
 	cd demo/dcc
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -126,7 +129,6 @@ dcc: demo/dcc/makefile.b32
 
 reinit: demo/reinit/makefile.b32
 	cd demo/reinit
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -134,7 +136,6 @@ reinit: demo/reinit/makefile.b32
 
 whois: demo/whois/makefile.b32
 	cd demo/whois
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -142,7 +143,6 @@ whois: demo/whois/makefile.b32
 
 whohas: demo/whohas/makefile.b32
 	cd demo/whohas
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -150,7 +150,6 @@ whohas: demo/whohas/makefile.b32
 
 ucov: demo/ucov/makefile.b32
 	cd demo/ucov
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -158,7 +157,6 @@ ucov: demo/ucov/makefile.b32
 
 epics: demo/epics/makefile.b32
 	cd demo/epics
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
@@ -166,7 +164,6 @@ epics: demo/epics/makefile.b32
 
 timesync: demo/timesync/makefile.b32
 	cd demo/timesync
-	$(MAKE) -i -f makefile.b32 clean
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..
