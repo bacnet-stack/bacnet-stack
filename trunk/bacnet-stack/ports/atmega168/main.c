@@ -89,6 +89,16 @@ void task_milliseconds(void)
     }
 }
 
+void apdu_handler(BACNET_ADDRESS * src,     /* source address */
+        uint8_t * apdu,         /* APDU data */
+        uint16_t pdu_len)      /* for confirmed messages */
+{
+    (void)src;
+    (void)apdu;
+    (void)pdu_len;
+}
+
+
 static uint8_t PDUBuffer[MAX_MPDU];
 int main(void)
 {

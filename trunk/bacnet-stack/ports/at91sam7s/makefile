@@ -59,6 +59,7 @@ CORESRC = ../../npdu.c \
 	../../bacint.c \
 	../../apdu.c \
 	../../bacdcode.c \
+	../../bacaddr.c \
 	../../bacstr.c \
 	../../abort.c \
 	../../bacerror.c \
