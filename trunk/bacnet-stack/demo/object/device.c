@@ -118,7 +118,7 @@ void Device_Property_Lists(
 static uint32_t Object_Instance_Number = 0;
 static char Object_Name[16] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-static char Vendor_Name[16] = "ASHRAE";
+static char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static char Model_Name[16] = "GNU";
 static char Application_Software_Version[16] = "1.0";
@@ -218,19 +218,6 @@ void Device_Set_System_Status(BACNET_DEVICE_STATUS status)
 const char *Device_Vendor_Name(void)
 {
     return Vendor_Name;
-}
-
-bool Device_Set_Vendor_Name(const char *name, size_t length)
-{
-    bool status = false;        /*return value */
-
-    if (length < sizeof(Vendor_Name)) {
-        memmove(Vendor_Name, name, length);
-        Vendor_Name[length] = 0;
-        status = true;
-    }
-
-    return status;
 }
 
 uint16_t Device_Vendor_Identifier(void)
@@ -1012,11 +999,7 @@ void testDevice(Test * pTest)
     Device_Set_System_Status(STATUS_NON_OPERATIONAL);
     ct_test(pTest, Device_System_Status() == STATUS_NON_OPERATIONAL);
 
-    Device_Set_Vendor_Name(name, strlen(name));
-    ct_test(pTest, strcmp(Device_Vendor_Name(), name) == 0);
-
-    Device_Set_Vendor_Identifier(42);
-    ct_test(pTest, Device_Vendor_Identifier() == 42);
+    ct_test(pTest, Device_Vendor_Identifier() == BACNET_VENDOR_ID);
 
     Device_Set_Model_Name(name, strlen(name));
     ct_test(pTest, strcmp(Device_Model_Name(), name) == 0);

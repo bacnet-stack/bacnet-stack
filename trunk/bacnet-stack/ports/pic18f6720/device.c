@@ -285,7 +285,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             encode_tagged_enumerated(&apdu[0], Device_System_Status());
         break;
     case PROP_VENDOR_NAME:
-        (void) strcpypgm2ram(&string_buffer[0], "ASHRAE");
+        (void) strcpypgm2ram(&string_buffer[0], BACNET_VENDOR_NAME);
         characterstring_init_ansi(&char_string, string_buffer);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;

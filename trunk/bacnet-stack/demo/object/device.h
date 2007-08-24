@@ -60,10 +60,8 @@ extern "C" {
     void Device_Set_System_Status(BACNET_DEVICE_STATUS status);
 
     const char *Device_Vendor_Name(void);
-    bool Device_Set_Vendor_Name(const char *name, size_t length);
 
     uint16_t Device_Vendor_Identifier(void);
-    void Device_Set_Vendor_Identifier(uint16_t vendor_id);
 
     const char *Device_Model_Name(void);
     bool Device_Set_Model_Name(const char *name, size_t length);

@@ -26,6 +26,9 @@
 #if !defined(BACNET_VENDOR_ID)
     #define BACNET_VENDOR_ID 260
 #endif
+#if !defined(BACNET_VENDOR_NAME)
+    #define BACNET_VENDOR_NAME "BACnet Stack at SourceForge"
+#endif
 
 /* Max number of bytes in an APDU. */
 /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */

@@ -112,10 +112,9 @@ void Device_Set_System_Status(BACNET_DEVICE_STATUS status)
         System_Status = status;
 }
 
-/* FIXME: put your vendor ID here! */
 uint16_t Device_Vendor_Identifier(void)
 {
-    return 0;
+    return BACNET_VENDOR_ID;
 }
 
 uint8_t Device_Protocol_Version(void)
@@ -277,7 +276,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             encode_tagged_enumerated(&apdu[0], Device_System_Status());
         break;
     case PROP_VENDOR_NAME:
-        characterstring_init_ansi(&char_string, "ASHRAE");
+        characterstring_init_ansi(&char_string, BACNET_VENDOR_NAME);
         apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
         break;
     case PROP_VENDOR_IDENTIFIER:
