@@ -99,6 +99,7 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/bacfile.c
 
 PORT_SRC = \
+	$(BACNET_ROOT)/datalink.c \
 	$(BACNET_PORT)/bip-init.c \
 	$(BACNET_PORT)/ethernet.c \
 	$(BACNET_PORT)/arcnet.c \
