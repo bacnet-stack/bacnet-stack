@@ -436,6 +436,7 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     /* Data */
                     if ((mstp_port->DataLength) &&
                         (mstp_port->DataLength <= MAX_MPDU)) {
+                        /* FIXME: is limit InputBufferSize or MAX_MPDU? */
                         /* Data - decode anyway to keep from false  */
                         mstp_port->Index = 0;
                         mstp_port->DataCRC = 0xFFFF;
