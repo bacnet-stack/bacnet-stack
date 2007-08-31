@@ -137,7 +137,6 @@ static void bacnet_init(void)
     dlmstp_set_max_info_frames(1);
     dlmstp_init(NULL);
 #endif
-    Device_Init();
     Device_Set_Object_Instance_Number(22222);
 #ifndef DLMSTP_TEST
     /* we need to handle who-is to support dynamic device binding */
