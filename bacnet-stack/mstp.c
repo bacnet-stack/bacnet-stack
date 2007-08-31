@@ -1237,9 +1237,14 @@ uint16_t MSTP_Put_Receive(
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    uint8_t src, /* source MS/TP address for creating packet */
-    uint8_t * pdu, /* data to send */
-    uint16_t max_pdu, /* amount of space available */
+    volatile struct mstp_port_struct_t *mstp_port,
+    unsigned timeout) /* milliseconds to wait for a packet */
+{
+    return 0;
+}
+
+uint16_t MSTP_Get_Reply(
+    volatile struct mstp_port_struct_t *mstp_port,
     unsigned timeout) /* milliseconds to wait for a packet */
 {
     return 0;
@@ -1266,7 +1271,6 @@ void testReceiveNodeFSM(Test * pTest)
     size_t i;                   /* used to loop through the message bytes */
     uint8_t buffer[MAX_MPDU] = { 0 };
     uint8_t data[MAX_PDU] = { 0 };
-    uint8_t dummy[8] = {1,2,3,4,5,6,7,8};
 
     mstp_port.InputBuffer = &RxBuffer[0];
     mstp_port.InputBufferSize = sizeof(RxBuffer);

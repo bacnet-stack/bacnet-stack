@@ -4,7 +4,7 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_DEVICE -g
+CFLAGS  = -g -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_DEVICE -DBACDL_TEST -DMAX_TSM_TRANSACTIONS=0
 
 # NOTE: this file is normally called by the unittest.sh from up directory
 SRCS = bacdcode.c \

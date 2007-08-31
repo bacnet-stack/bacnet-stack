@@ -6,6 +6,7 @@ INCLUDES = -I. -Idemo/object -Idemo/handler -Itest -Iports/linux
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = address.c \
+       bacaddr.c \
        bacdcode.c \
        bacint.c \
        bacstr.c \
