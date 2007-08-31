@@ -6,7 +6,7 @@
 
 /* declare a single physical layer using your compiler define.
    see datalink.h for possible defines. */
-#if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || defined(BACDL_MSTP) || defined(BACDL_BIP))
+#if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_TEST))
     #define BACDL_BIP
 #endif
 

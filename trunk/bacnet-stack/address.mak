@@ -7,7 +7,8 @@ BASEDIR = .
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_ADDRESS -g
 
 SRCS = address.c \
-       test/ctest.c
+	bacaddr.c \
+	test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
 
