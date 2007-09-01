@@ -27,4 +27,4 @@
 #include "config.h"
 #include "datalink.h"
 
-uint8_t Handler_Transmit_Buffer[MAX_MPDU] = { 0 };
+uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };

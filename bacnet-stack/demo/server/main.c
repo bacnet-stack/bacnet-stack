@@ -114,8 +114,7 @@ int main(int argc, char *argv[])
         Network_Interface = argv[2];
     if (argc > 3)
         bip_set_port(strtol(argv[3], NULL, 0));
-#endif
-#if defined(BACDL_MSTP)
+#elif defined(BACDL_MSTP)
     RS485_Set_Baud_Rate(38400);
     dlmstp_set_max_info_frames(1);
     dlmstp_set_max_master(127);
