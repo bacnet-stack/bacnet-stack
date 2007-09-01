@@ -38,7 +38,6 @@
 #include "bip.h"
 #include "net.h"
 
-
 static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr,
     int request)
 {

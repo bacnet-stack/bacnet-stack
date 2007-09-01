@@ -271,7 +271,7 @@ static uint8_t Read_Properties(uint32_t device_instance)
     }
 
     return invoke_id;
-} 
+}
 
 int main(int argc, char *argv[])
 {

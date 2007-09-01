@@ -48,3 +48,36 @@ void (*datalink_get_broadcast_address)(BACNET_ADDRESS * dest);
 
 void (*datalink_get_my_address)(BACNET_ADDRESS * my_address);
 
+void datalink_configure(void)
+{
+#if defined(BACDL_ETHERNET)
+        datalink_init = ethernet_init;
+        datalink_send_pdu = ethernet_send_pdu;
+        datalink_receive = ethernet_receive;
+        datalink_cleanup = ethernet_cleanup;
+        datalink_get_broadcast_address = ethernet_get_broadcast_address;
+        datalink_get_my_address = ethernet_get_my_address;
+#elif defined(BACDL_ARCNET)
+        datalink_init = arcnet_init;
+        datalink_send_pdu = arcnet_send_pdu;
+        datalink_receive = arcnet_receive;
+        datalink_cleanup = arcnet_cleanup;
+        datalink_get_broadcast_address = arcnet_get_broadcast_address;
+        datalink_get_my_address = arcnet_get_my_address;
+#elif defined(BACDL_MSTP)
+        datalink_init = dlmstp_init;
+        datalink_send_pdu = dlmstp_send_pdu;
+        datalink_receive = dlmstp_receive;
+        datalink_cleanup = dlmstp_cleanup;
+        datalink_get_broadcast_address = dlmstp_get_broadcast_address;
+        datalink_get_my_address = dlmstp_get_my_address;
+#elif defined(BACDL_BIP)
+        datalink_init = bip_init;
+        datalink_send_pdu = bip_send_pdu;
+        datalink_receive = bip_receive;
+        datalink_cleanup = bip_cleanup;
+        datalink_get_broadcast_address = bip_get_broadcast_address;
+        datalink_get_my_address = bip_get_my_address;
+#endif
+    }
+}

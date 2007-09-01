@@ -30,6 +30,6 @@
 #include "config.h"
 #include "datalink.h"
 
-extern uint8_t Handler_Transmit_Buffer[MAX_MPDU];
+extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #endif

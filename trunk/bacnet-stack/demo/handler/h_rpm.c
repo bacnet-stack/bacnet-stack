@@ -311,7 +311,7 @@ void handler_read_property_multiple(
     int32_t array_index = 0;
 
     /* jps_debug - see if we are utilizing all the buffer */
-    /* memset(&Handler_Transmit_Buffer[0], 0xff, MAX_MPDU);*/
+    /* memset(&Handler_Transmit_Buffer[0], 0xff, sizeof(Handler_Transmit_Buffer));*/
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
