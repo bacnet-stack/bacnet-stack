@@ -36,8 +36,8 @@
 #include "version.h"
 /* objects */
 #include "device.h"
-#if 0
 #include "ai.h"
+#if 0
 #include "av.h"
 #include "bi.h"
 #include "bv.h"
@@ -162,10 +162,10 @@ unsigned Device_Object_List_Count(void)
     unsigned count = 1;         /* at least 1 for device object */
 
     /* FIXME: add objects as needed */
+    count += Analog_Input_Count();
 #if 0
     count += Binary_Input_Count();
     count += Binary_Value_Count();
-    count += Analog_Input_Count();
     count += Analog_Value_Count();
 #endif
 
@@ -176,10 +176,8 @@ bool Device_Object_List_Identifier(unsigned array_index,
     int *object_type, uint32_t * instance)
 {
     bool status = false;
-#if 0
     unsigned object_index = 0;
     unsigned object_count = 0;
-#endif
 
     /* device object */
     if (array_index == 1) {
@@ -187,7 +185,6 @@ bool Device_Object_List_Identifier(unsigned array_index,
         *instance = Object_Instance_Number;
         status = true;
     }
-#if 0
     /* normalize the index since
        we know it is not the previous objects */
     /* array index starts at 1 */
@@ -195,6 +192,18 @@ bool Device_Object_List_Identifier(unsigned array_index,
     /* 1 for the device object */
     object_count = 1;
     /* FIXME: add objects as needed */
+    /* analog input objects */
+    if (!status) {
+        /* array index starts at 1, and 1 for the device object */
+        object_index -= object_count;
+        object_count = Analog_Input_Count();
+        if (object_index < object_count) {
+            *object_type = OBJECT_ANALOG_INPUT;
+            *instance = Analog_Input_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+#if 0
     /* binary value objects */
     if (!status) {
         object_index -= object_count;
@@ -206,7 +215,7 @@ bool Device_Object_List_Identifier(unsigned array_index,
             status = true;
         }
     }
-    /* analog input objects */
+    /* analog value objects */
     if (!status) {
         /* array index starts at 1, and 1 for the device object */
         object_index -= object_count;
@@ -214,17 +223,6 @@ bool Device_Object_List_Identifier(unsigned array_index,
         if (object_index < object_count) {
             *object_type = OBJECT_ANALOG_VALUE;
             *instance = Analog_Value_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* analog input objects */
-    if (!status) {
-        /* array index starts at 1, and 1 for the device object */
-        object_index -= object_count;
-        object_count = Analog_Input_Count();
-        if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_INPUT;
-            *instance = Analog_Input_Index_To_Instance(object_index);
             status = true;
         }
     }
@@ -341,10 +339,10 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         }
         /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
+        bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
 #if 0
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_VALUE, true);
         bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
-        bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
         bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
 #endif
         apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);

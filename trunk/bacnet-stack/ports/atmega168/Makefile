@@ -25,6 +25,7 @@ CSRC = main.c \
 DEMOSRC = h_rp.c \
 	h_wp.c \
 	device.c \
+	ai.c \
 	../../demo/handler/txbuf.c \
 	../../demo/handler/h_whois.c \
 	../../demo/handler/h_rd.c \
@@ -65,7 +66,7 @@ COMMON = -mmcu=$(MCU)
 OPTIMIZATION = -Os -mcall-prologues
 
 ## Compile options common for all C compilation units.
-BFLAGS = -DBACDL_MSTP -DMAX_APDU=50 -DBIG_ENDIAN=0
+BFLAGS = -DBACDL_MSTP -DMAX_APDU=50 -DBIG_ENDIAN=0 -DMAX_TSM_TRANSACTIONS=0
 CFLAGS = $(COMMON)
 CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
@@ -77,8 +78,8 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 
 ## Linker flags
 LDFLAGS = $(COMMON)
-#LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
-LDFLAGS += -Wl,-Map=$(TARGET).map
+LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
+#LDFLAGS += -Wl,-Map=$(TARGET).map
 
 ## Intel Hex file production flags
 HEX_FLASH_FLAGS = -R .eeprom
@@ -87,8 +88,8 @@ HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 ## Objects that must be built in order to link
-#OBJECTS = $(COBJ) $(DEMOOBJ)
-OBJECTS = $(COBJ)
+OBJECTS = $(COBJ) $(DEMOOBJ)
+#OBJECTS = $(COBJ)
 
 ## Build
 TARGET_ELF=$(TARGET).elf
