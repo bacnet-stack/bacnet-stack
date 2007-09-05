@@ -220,50 +220,20 @@ static uint8_t Read_Properties(uint32_t device_instance)
 {
     uint8_t invoke_id = 0;
     static unsigned index = 0;
-    /* list of required (and some optional) properties in the
-       Device Object
-       note: you could just loop through
+    /* note: you could just loop through
        all the properties in all the objects. */
-    const int object_props[] = {
-        PROP_OBJECT_IDENTIFIER,
-        PROP_OBJECT_NAME,
-        PROP_OBJECT_TYPE,
-        PROP_SYSTEM_STATUS,
-        PROP_VENDOR_NAME,
-        PROP_VENDOR_IDENTIFIER,
-        PROP_MODEL_NAME,
-        PROP_FIRMWARE_REVISION,
-        PROP_APPLICATION_SOFTWARE_VERSION,
-        PROP_PROTOCOL_VERSION,
-        PROP_PROTOCOL_CONFORMANCE_CLASS,
-        PROP_PROTOCOL_SERVICES_SUPPORTED,
-        PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
-        PROP_MAX_APDU_LENGTH_ACCEPTED,
-        PROP_SEGMENTATION_SUPPORTED,
-        PROP_LOCAL_TIME,
-        PROP_LOCAL_DATE,
-        PROP_UTC_OFFSET,
-        PROP_DAYLIGHT_SAVINGS_STATUS,
-        PROP_APDU_SEGMENT_TIMEOUT,
-        PROP_APDU_TIMEOUT,
-        PROP_NUMBER_OF_APDU_RETRIES,
-        PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
-        PROP_MAX_MASTER,
-        PROP_MAX_INFO_FRAMES,
-        PROP_DEVICE_ADDRESS_BINDING,
-        /* note: PROP_OBJECT_LIST is missing cause
-           we need to get it with an index method since
-           the list could be very large */
-        /* end of list */
-        -1
-    };
-    
-    if (object_props[index] != -1) {
-        printf("    %s: ",bactext_property_name(object_props[index]));
+    static const int *pRequired = NULL;
+
+    if (!pRequired) {
+        Device_Property_Lists(&pRequired, NULL, NULL);
+    }
+
+    if (pRequired[index] != -1) {
+        printf("    %s: ",bactext_property_name(pRequired[index]));
         invoke_id = Send_Read_Property_Request(device_instance,
             OBJECT_DEVICE,
-            device_instance, 
-            object_props[index], 
+            device_instance,
+            pRequired[index],
             BACNET_ARRAY_ALL);
         if (invoke_id) {
             index++;
@@ -287,7 +257,7 @@ int main(int argc, char *argv[])
     bool found = false;
 
     /* FIXME: handle multi homed systems - use an argument passed to the datalink_init() */
-    
+
     /* print help if not enough arguments */
     if (argc < 2) {
         printf
@@ -330,22 +300,27 @@ int main(int argc, char *argv[])
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds -
                         last_seconds) * 1000));
+        }
         /* wait until the device is bound, or timeout and quit */
         found = address_bind_request(Target_Device_Object_Instance,
             &max_apdu, &Target_Address);
         if (found) {
+            /* invoke ID is set to zero when it is not in use */
             if (invoke_id == 0) {
                 invoke_id =  Read_Properties(Target_Device_Object_Instance);
                 if (invoke_id == 0) {
                     break;
                 }
-            } else if ((Read_Property_Data.new_data) && 
+            } else if ((Read_Property_Data.new_data) &&
                 (invoke_id == Read_Property_Data.service_data.invoke_id)) {
                 Read_Property_Data.new_data = false;
                 PrintReadPropertyData(&Read_Property_Data.data);
+                if (tsm_invoke_id_free(invoke_id)) {
+                    invoke_id = 0;
+                }
             } else if (tsm_invoke_id_free(invoke_id)) {
                 invoke_id = 0;
             }
@@ -355,7 +330,7 @@ int main(int argc, char *argv[])
                 invoke_id = 0;
             } else if (Error_Detected) {
                 invoke_id = 0;
-	    }
+            }
         } else {
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
