@@ -35,9 +35,22 @@
 
 /* This file has been customized for use with ATMEGA168 */
 #include "hardware.h"
+#include "timer.h"
 
 /* baud rate */
 static uint32_t RS485_Baud = 38400;
+
+/* The minimum time after the end of the stop bit of the final octet of a */
+/* received frame before a node may enable its EIA-485 driver: 40 bit times. */
+/* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
+/* At 19200 baud, 40 bit times would be about 2.083 milliseconds */
+/* At 38400 baud, 40 bit times would be about 1.041 milliseconds */
+/* At 57600 baud, 40 bit times would be about 0.694 milliseconds */
+/* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
+/* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
+/* 40 bits is 4 octets including a start and stop bit with each octet */
+#define Tturnaround  (40UL)
+/* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
 
 /****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
@@ -61,13 +74,11 @@ void RS485_Initialize(void)
     UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
     /* Clear Power Reduction USART0 */
     BIT_CLEAR(PRR,PRUSART0);
+    /* Use port PD2 for RTS - enable and disable of Transceiver Tx/Rx */
+    /* Set port bit as Output */
+    BIT_SET(DDRD,DDD2);
 
     return;
-}
-
-void RS485_Cleanup(void)
-{
-
 }
 
 /****************************************************************************
@@ -83,7 +94,7 @@ uint32_t RS485_Get_Baud_Rate(void)
 
 /****************************************************************************
 * DESCRIPTION: Sets the baud rate for the chip USART
-* RETURN:      none
+* RETURN:      true if valid baud rate
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
@@ -113,23 +124,50 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     return valid;
 }
 
-/* Transmits a Frame on the wire */
-void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t * buffer,  /* frame to send (up to 501 bytes of data) */
-    uint16_t nbytes)   /* number of bytes of data (up to 501) */
+/****************************************************************************
+* DESCRIPTION: Waits on the SilenceTimer for 40 bits.
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Turnaround_Delay(void)
 {
-    uint8_t turnaround_time;
+    uint16_t turnaround_time;
+    
+    /* delay after reception before trasmitting - per MS/TP spec */
+    /* wait a minimum  40 bit times since reception */
+    /* at least 1 ms for errors: rounding, clock tick */
+    turnaround_time = 1 + ((Tturnaround*1000UL)/RS485_Baud);
+    while (Timer_Silence() < turnaround_time) {
+        /* do nothing - wait for timer to increment */
+    };
+}
 
-    /* delay after reception - per MS/TP spec */
-    if (mstp_port) {
-        /* wait a minimum  40 bit times since reception */
-        /* at least 1 ms for errors: rounding, clock tick */
-        turnaround_time = 1 + ((Tturnaround*1000UL)/RS485_Baud);
-        while (mstp_port->SilenceTimer() < turnaround_time) {
-            /* do nothing - wait for timer to increment */
-        };
+/****************************************************************************
+* DESCRIPTION: Enable or disable the transmitter
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Transmitter_Enable(bool enable)
+{
+    if (enable) {
+        BIT_SET(PORTD,PD2);
+    } else {        
+        BIT_CLEAR(PORTD,PD2);
     }
+}
+
+/****************************************************************************
+* DESCRIPTION: Send some data and wait until it is sent
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Send_Data(
+    uint8_t * buffer,       /* data to send */
+    uint8_t nbytes)       /* number of bytes of data */
+{
     while (nbytes) {
         while (!BIT_CHECK(UCSR0A,UDRE0)) {
             /* do nothing - wait until Tx buffer is empty */
@@ -142,34 +180,53 @@ void RS485_Send_Frame(
         /* do nothing - wait until the entire frame in the 
            Transmit Shift Register has been shifted out */
     }
-    /* per MSTP spec */
-    if (mstp_port) {
-        mstp_port->SilenceTimerReset();
-    }
-
-    return;
 }
 
-/* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
-{
-    if (mstp_port->ReceiveError == true) {
-        /* wait for state machine to clear this */
-    }
-    /* wait for state machine to read from the DataRegister */
-    else if (mstp_port->DataAvailable == false) {
-        /* check for error */
-        if (BIT_CHECK(UCSR0A,FE0)) {
-            mstp_port->ReceiveError = true;
-        }
 
-        if (BIT_CHECK(UCSR0A,DOR0)) {
-            mstp_port->ReceiveError = true;
-        }
-        /* check for data */
-        if (BIT_CHECK(UCSR0A,RXC0)) {
-            mstp_port->DataRegister = UDR0;
-            mstp_port->DataAvailable = true;
+/****************************************************************************
+* DESCRIPTION: Return true if a framing or overrun error is present
+* RETURN:      true if error
+* ALGORITHM:   none
+* NOTES:       Clears any error flags.
+*****************************************************************************/
+bool RS485_ReceiveError(void)
+{
+    bool uart_error = false;
+    uint8_t dummy_data;
+
+    /* check for framing error */
+    if (BIT_CHECK(UCSR0A,FE0)) {
+        uart_error = true;
+    }
+    /* check for overrun error */
+    if (BIT_CHECK(UCSR0A,DOR0)) {
+        uart_error = true;
+    }
+    /* flush the receive buffer */
+    if (uart_error) {
+        while (BIT_CHECK(UCSR0A,RXC0)) {
+            dummy_data = UDR0;
         }
     }
+    
+    return uart_error;
+}
+
+/****************************************************************************
+* DESCRIPTION: Return true if data is available 
+* RETURN:      true if data is available, with the data in the parameter set
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool RS485_DataAvailable(uint8_t *data)
+{
+    bool uart_data = false;
+    
+    /* check for data */
+    if (BIT_CHECK(UCSR0A,RXC0)) {
+        *data = UDR0;
+        uart_data = true;
+    }
+    
+    return uart_data;
 }

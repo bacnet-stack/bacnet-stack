@@ -117,7 +117,7 @@ int main(void)
         task_milliseconds();
         /* other tasks */
         /* BACnet handling */
-        pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
+        pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
         if (pdu_len) {
             //npdu_handler(&src, &PDUBuffer[0], pdu_len);
         }
