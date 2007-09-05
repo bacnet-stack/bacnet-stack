@@ -102,7 +102,8 @@ int Encode_Property_APDU(
             break;
         case OBJECT_ANALOG_VALUE:
             if (Analog_Value_Valid_Instance(object_instance)) {
-                apdu_len = Analog_Value_Encode_Property_APDU(&Temp_Buf[0],
+                apdu_len = Analog_Value_Encode_Property_APDU(
+                    &apdu[0],
                     object_instance,
                     property,
                     array_index,
@@ -131,7 +132,8 @@ int Encode_Property_APDU(
             break;
         case OBJECT_BINARY_VALUE:
             if (Binary_Value_Valid_Instance(object_instance)) {
-                apdu_len = Binary_Value_Encode_Property_APDU(&Temp_Buf[0],
+                apdu_len = Binary_Value_Encode_Property_APDU(
+                    &apdu[0],
                     object_instance,
                     property,
                     array_index,
@@ -140,7 +142,8 @@ int Encode_Property_APDU(
             break;
         case OBJECT_LIFE_SAFETY_POINT:
             if (Life_Safety_Point_Valid_Instance(object_instance)) {
-                apdu_len = Life_Safety_Point_Encode_Property_APDU(&Temp_Buf[0],
+                apdu_len = Life_Safety_Point_Encode_Property_APDU(
+                    &apdu[0],
                     object_instance,
                     property,
                     array_index,
@@ -149,7 +152,8 @@ int Encode_Property_APDU(
             break;
         case OBJECT_LOAD_CONTROL:
             if (Load_Control_Valid_Instance(object_instance)) {
-                apdu_len = Load_Control_Encode_Property_APDU(&Temp_Buf[0],
+                apdu_len = Load_Control_Encode_Property_APDU(
+                    &apdu[0],
                     object_instance,
                     property,
                     array_index,
@@ -158,7 +162,8 @@ int Encode_Property_APDU(
             break;
         case OBJECT_MULTI_STATE_OUTPUT:
             if (Multistate_Output_Valid_Instance(object_instance)) {
-                apdu_len = Multistate_Output_Encode_Property_APDU(&Temp_Buf[0],
+                apdu_len = Multistate_Output_Encode_Property_APDU(
+                    &apdu[0],
                     object_instance,
                     property,
                     array_index,
@@ -168,7 +173,8 @@ int Encode_Property_APDU(
 #if BACFILE
         case OBJECT_FILE:
             if (bacfile_valid_instance(object_instance)) {
-                apdu_len = bacfile_encode_property_apdu(&Temp_Buf[0],
+                apdu_len = bacfile_encode_property_apdu(
+                    &apdu[0],
                     object_instance,
                     property,
                     array_index,
