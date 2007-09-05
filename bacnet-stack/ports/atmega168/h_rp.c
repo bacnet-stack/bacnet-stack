@@ -38,8 +38,8 @@
 #include "rp.h"
 /* demo objects */
 #include "device.h"
-#if 0
 #include "ai.h"
+#if 0
 #include "av.h"
 #include "bi.h"
 #include "bv.h"
@@ -75,8 +75,7 @@ int Encode_Property_APDU(
                     error_class, error_code);
             }
             break;
-#if 0
-            case OBJECT_ANALOG_INPUT:
+        case OBJECT_ANALOG_INPUT:
             if (Analog_Input_Valid_Instance(object_instance)) {
                 apdu_len = Analog_Input_Encode_Property_APDU(
                     &apdu[0],
@@ -86,36 +85,7 @@ int Encode_Property_APDU(
                     error_class, error_code);
             }
             break;
-        case OBJECT_ANALOG_VALUE:
-            if (Analog_Value_Valid_Instance(object_instance)) {
-                apdu_len = Analog_Value_Encode_Property_APDU(&Temp_Buf[0],
-                    object_instance,
-                    property,
-                    array_index,
-                    error_class, error_code);
-            }
-            break;
-        case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance(object_instance)) {
-                apdu_len = Binary_Input_Encode_Property_APDU(
-                    &apdu[0],
-                    object_instance,
-                    property,
-                    array_index,
-                    error_class, error_code);
-            }
-            break;
-        case OBJECT_BINARY_VALUE:
-            if (Binary_Value_Valid_Instance(object_instance)) {
-                apdu_len = Binary_Value_Encode_Property_APDU(&Temp_Buf[0],
-                    object_instance,
-                    property,
-                    array_index,
-                    error_class, error_code);
-            }
-            break;
-#endif
-            default:
+        default:
             *error_class = ERROR_CLASS_OBJECT;
             *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
             break;

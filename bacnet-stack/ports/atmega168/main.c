@@ -30,6 +30,8 @@
 #include "rs485.h"
 #include "datalink.h"
 #include "npdu.h"
+#include "txbuf.h"
+#include "iam.h"
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
@@ -89,6 +91,7 @@ void task_milliseconds(void)
     }
 }
 
+#if 0
 void apdu_handler(BACNET_ADDRESS * src,     /* source address */
         uint8_t * apdu,         /* APDU data */
         uint16_t pdu_len)      /* for confirmed messages */
@@ -97,7 +100,7 @@ void apdu_handler(BACNET_ADDRESS * src,     /* source address */
     (void)apdu;
     (void)pdu_len;
 }
-
+#endif
 
 static uint8_t PDUBuffer[MAX_MPDU];
 int main(void)
@@ -113,13 +116,15 @@ int main(void)
     dlmstp_set_max_info_frames(1);
 #endif
     datalink_init(NULL);
+    /* broadcast an I-Am on startup */
+    iam_send(&Handler_Transmit_Buffer[0]);
     for (;;) {
         task_milliseconds();
         /* other tasks */
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
         if (pdu_len) {
-            //npdu_handler(&src, &PDUBuffer[0], pdu_len);
+            npdu_handler(&src, &PDUBuffer[0], pdu_len);
         }
     }
 
