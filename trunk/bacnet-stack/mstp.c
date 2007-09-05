@@ -799,8 +799,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
             } else if (mstp_port->ReceivedValidFrame == true) {
                 if (mstp_port->DestinationAddress ==
                     mstp_port->This_Station) {
-                    /* Last Transmitted Frame Type */
-                    switch (mstp_port->OutputBuffer[2]) {
+                    switch (mstp_port->FrameType) {
                     case FRAME_TYPE_REPLY_POSTPONED:
                         /* ReceivedReplyPostponed */
                         mstp_port->master_state =
