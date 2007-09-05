@@ -20,7 +20,6 @@ CSRC = main.c \
 	../../npdu.c \
 	../../bacint.c \
 	../../bacaddr.c \
-	../../mstp.c \
 	../../crc.c
 
 DEMOSRC = h_rp.c \
