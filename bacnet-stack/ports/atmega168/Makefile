@@ -13,41 +13,57 @@ OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
 SIZE = avr-size
 
+# Source locations
+BACNET_ROOT = ../..
+
 CSRC = main.c \
 	timer.c \
 	rs485.c \
 	dlmstp.c \
-	../../npdu.c \
-	../../bacint.c \
-	../../bacaddr.c \
-	../../crc.c
+	$(BACNET_ROOT)/crc.c
 
 DEMOSRC = h_rp.c \
 	h_wp.c \
 	device.c \
 	ai.c \
-	../../demo/handler/txbuf.c \
-	../../demo/handler/h_whois.c \
-	../../demo/handler/h_rd.c \
-	../../demo/handler/h_dcc.c
+	$(BACNET_ROOT)/demo/handler/txbuf.c \
+	$(BACNET_ROOT)/demo/handler/h_whois.c \
+	$(BACNET_ROOT)/demo/handler/h_rd.c \
+	$(BACNET_ROOT)/demo/handler/h_dcc.c
 
 CORESRC =  \
-	../../bacint.c \
-	../../apdu.c \
-	../../bacdcode.c \
-	../../bacstr.c \
-	../../abort.c \
-	../../bacerror.c \
-	../../reject.c \
-	../../bacapp.c \
-	../../datetime.c \
-	../../rp.c \
-	../../wp.c \
-	../../dcc.c \
-	../../rd.c \
-	../../whois.c \
-	../../iam.c \
-	../../version.c
+	$(BACNET_ROOT)/apdu.c \
+	$(BACNET_ROOT)/npdu.c \
+	$(BACNET_ROOT)/bacdcode.c \
+	$(BACNET_ROOT)/bacint.c \
+	$(BACNET_ROOT)/bacapp.c \
+	$(BACNET_ROOT)/bacprop.c \
+	$(BACNET_ROOT)/bacstr.c \
+	$(BACNET_ROOT)/bactext.c \
+	$(BACNET_ROOT)/datetime.c \
+	$(BACNET_ROOT)/indtext.c \
+	$(BACNET_ROOT)/bigend.c \
+	$(BACNET_ROOT)/arf.c \
+	$(BACNET_ROOT)/awf.c \
+	$(BACNET_ROOT)/cov.c \
+	$(BACNET_ROOT)/dcc.c \
+	$(BACNET_ROOT)/iam.c \
+	$(BACNET_ROOT)/ihave.c \
+	$(BACNET_ROOT)/rd.c \
+	$(BACNET_ROOT)/rp.c \
+	$(BACNET_ROOT)/rpm.c \
+	$(BACNET_ROOT)/timesync.c \
+	$(BACNET_ROOT)/whohas.c \
+	$(BACNET_ROOT)/whois.c \
+	$(BACNET_ROOT)/wp.c \
+	$(BACNET_ROOT)/abort.c \
+	$(BACNET_ROOT)/reject.c \
+	$(BACNET_ROOT)/bacerror.c \
+	$(BACNET_ROOT)/filename.c \
+	$(BACNET_ROOT)/tsm.c \
+	$(BACNET_ROOT)/bacaddr.c \
+	$(BACNET_ROOT)/address.c \
+	$(BACNET_ROOT)/version.c
 
 ## Include Directories
 INCLUDES = -I. -I../.. -I../../demo/object -I../../demo/handler
