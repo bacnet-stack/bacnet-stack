@@ -49,6 +49,7 @@
 #include "address.h"
 #include "bacaddr.h"
 
+#if (MAX_TSM_TRANSACTIONS)
 /* Transaction State Machine */
 /* Really only needed for segmented messages */
 /* and a little for sending confirmed messages */
@@ -353,3 +354,4 @@ int main(void)
 }
 #endif                          /* TEST_TSM */
 #endif                          /* TEST */
+#endif /* MAX_TSM_TRANSACTIONS */
