@@ -91,7 +91,7 @@ void task_milliseconds(void)
     }
 }
 
-#if 0
+#if defined(TEST_MSTP)
 void apdu_handler(BACNET_ADDRESS * src,     /* source address */
         uint8_t * apdu,         /* APDU data */
         uint16_t pdu_len)      /* for confirmed messages */
@@ -117,14 +117,18 @@ int main(void)
 #endif
     datalink_init(NULL);
     /* broadcast an I-Am on startup */
+#if !defined(TEST_MSTP)
     iam_send(&Handler_Transmit_Buffer[0]);
+#endif
     for (;;) {
         task_milliseconds();
         /* other tasks */
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
         if (pdu_len) {
+#if !defined(TEST_MSTP)
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
+#endif
         }
     }
 
