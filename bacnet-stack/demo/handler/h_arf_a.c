@@ -46,7 +46,7 @@
 /* Note: it does not have to be the same file=instance */
 /* that someone can read from us.  It is common to */
 /* use the description as the file name. */
-#if BACFILE
+#if defined(BACFILE)
 void handler_atomic_read_file_ack(uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)

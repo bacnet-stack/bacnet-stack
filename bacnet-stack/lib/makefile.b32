@@ -18,10 +18,9 @@ CC = $(BORLAND_DIR)\bin\bcc32
 TLIB = $(BORLAND_DIR)\bin\tlib
 MAKE = $(BORLAND_DIR)\bin\make
 
-BACNET_DEFINES = -DPRINT_ENABLED=1
-#BACDL_DEFINE=-DBACDL_ETHERNET=1
-#BACDL_DEFINE=-DBACDL_ARCNET=1
-BACDL_DEFINE=-DBACDL_BIP=1
+BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACFILE
+#BACDL_DEFINE=-DBACDL_MSTP -DCRC_USE_TABLE
+#BACDL_DEFINE=-DBACDL_BIP
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
 # directories
@@ -142,7 +141,6 @@ LFLAGS = /E /P4096
 
 all: $(BCC_CFG) $(OBJS) makefile.b32
 	del $(TARGET).BAK
-	del $(BCC_CFG)
 
 clean:
 	del ${CORE1_OBJ}
@@ -173,14 +171,15 @@ $(BCC_CFG) :
 	-y     #include line numbers in OBJ's
 	-v     #include debug info
 	-w+    #turn on all warnings
-	-Od    #disable all optimizations
+	-O2    #optimization 2
+	-WM    #multithread
+	-w-aus # ignore warning assigned a value that is never used
+	-w-sig # ignore warning conversion may lose sig digits
+	#-Od    #disable all optimizations
 	#-a4    #32 bit data alignment
 	#-M     # generate link map
 	#-ls    # linker options
 	#-WM-   #not multithread
-	-WM    #multithread
-	-w-aus # ignore warning assigned a value that is never used
-	-w-sig # ignore warning conversion may lose sig digits
 | $@
 
 # EOF: makefile

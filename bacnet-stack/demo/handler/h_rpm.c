@@ -48,8 +48,8 @@
 #include "lc.h"
 #include "lsp.h"
 #include "mso.h"
-#if BACFILE
-#include "bacfile.h"
+#if defined(BACFILE)
+    #include "bacfile.h"
 #endif
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
@@ -140,7 +140,7 @@ static void RPM_Property_List(
         break;
     case OBJECT_MULTI_STATE_OUTPUT:
         break;
-#if BACFILE
+#if defined(BACFILE)
     case OBJECT_FILE:
         BACfile_Property_Lists(
             &pPropertyList->Required.pList,

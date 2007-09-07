@@ -23,6 +23,8 @@ LINK = $(BORLAND_DIR)\bin\ilink32
 
 BACNET_LIB_DIR = ..\..\lib
 BACNET_LIB = $(BACNET_LIB_DIR)\bacnet.lib
+# getting back from the library
+BACNET_DEMO_DIR = ..\demo\server
 
 # directories
 BACNET_PORT = ..\..\ports\win32
@@ -37,9 +39,9 @@ INCLUDES = \
 	-I$(BORLAND_DIR)\include
 
 #
-BACNET_DEFINES = -DPRINT_ENABLED=1
-#BACDL_DEFINE=-DBACDL_MSTP=1
-BACDL_DEFINE=-DBACDL_BIP=1
+BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACFILE 
+#BACDL_DEFINE=-DBACDL_MSTP -DCRC_USE_TABLE
+BACDL_DEFINE=-DBACDL_BIP
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
 SRCS = main.c
@@ -75,6 +77,12 @@ all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE)
 
 install: $(PRODUCT_EXE)
 	copy $(PRODUCT_EXE) ..\..\utils\$(PRODUCT_EXE)
+    
+$(BACNET_LIB):
+	cd $(BACNET_LIB_DIR)
+	$(MAKE) -i -f makefile.b32 clean
+	$(MAKE) -f makefile.b32 all
+	cd $(BACNET_DEMO_DIR)
 
 # Linker specific: the link below is for BCC linker/compiler. If you link
 # with a different linker - please change accordingly.
@@ -121,14 +129,15 @@ $(CFLAGS)
 -y     #include line numbers in OBJ's
 -v     #include debug info
 -w+    #turn on all warnings
--Od    #disable all optimizations
+#-Od    #disable all optimizations
+-O2    #disable all optimizations
+-WM    #multithread
+#-WM-   #not multithread
+-w-aus # ignore warning assigned a value that is never used
+-w-sig # ignore warning conversion may lose sig digits
 #-a4    #32 bit data alignment
 #-M     # generate link map
 #-ls    # linker options
-#-WM-   #not multithread
--WM    #multithread
--w-aus # ignore warning assigned a value that is never used
--w-sig # ignore warning conversion may lose sig digits
 | $@
 
 # EOF: makefile
