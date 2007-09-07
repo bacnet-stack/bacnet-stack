@@ -36,7 +36,6 @@ extern "C" {
 
     void RS485_Transmitter_Enable(bool enable);
 
-    /* NOTE: Only able to send up to 255 bytes at a time */
     void RS485_Send_Data(
         uint8_t * buffer,       /* data to send */
         uint16_t nbytes);       /* number of bytes of data */

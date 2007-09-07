@@ -238,7 +238,6 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
             mstp_port->SilenceTimerReset();
             INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
             /* wait for the start of a frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
         } else if (mstp_port->DataAvailable == true) {
 #if PRINT_ENABLED_RECEIVE_DATA
 #if (defined(_WIN32) && defined(TEST_DLMSTP))
@@ -252,9 +251,6 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 #endif
             /* Preamble1 */
             if (mstp_port->DataRegister == 0x55) {
-                mstp_port->DataAvailable = false;
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 /* receive the remainder of the frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_PREAMBLE;
             }
@@ -263,12 +259,11 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 #if PRINT_ENABLED_RECEIVE_DATA
                 fprintf(stderr, "\n");
 #endif
-                mstp_port->DataAvailable = false;
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 /* wait for the start of a frame. */
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
             }
+            mstp_port->DataAvailable = false;
+            mstp_port->SilenceTimerReset();
+            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
         }
         break;
         /* In the PREAMBLE state, the node waits for the second octet of the preamble. */
@@ -292,9 +287,6 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 #endif
             /* Preamble2 */
             if (mstp_port->DataRegister == 0xFF) {
-                mstp_port->DataAvailable = false;
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 mstp_port->Index = 0;
                 mstp_port->HeaderCRC = 0xFF;
                 /* receive the remainder of the frame. */
@@ -302,20 +294,16 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
             }
             /* ignore RepeatedPreamble1 */
             else if (mstp_port->DataRegister == 0x55) {
-                mstp_port->DataAvailable = false;
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 /* wait for the second preamble octet. */
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_PREAMBLE;
             }
             /* NotPreamble */
             else {
-                mstp_port->DataAvailable = false;
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 /* wait for the start of a frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
             }
+            mstp_port->DataAvailable = false;
+            mstp_port->SilenceTimerReset();
+            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
         }
         break;
         /* In the HEADER state, the node waits for the fixed message header. */
@@ -349,73 +337,50 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
 #endif
             /* FrameType */
             if (mstp_port->Index == 0) {
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 mstp_port->HeaderCRC =
                     CRC_Calc_Header(mstp_port->DataRegister,
                     mstp_port->HeaderCRC);
                 mstp_port->FrameType = mstp_port->DataRegister;
-                mstp_port->DataAvailable = false;
                 mstp_port->Index = 1;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER;
             }
             /* Destination */
             else if (mstp_port->Index == 1) {
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 mstp_port->HeaderCRC =
                     CRC_Calc_Header(mstp_port->DataRegister,
                     mstp_port->HeaderCRC);
                 mstp_port->DestinationAddress = mstp_port->DataRegister;
-                mstp_port->DataAvailable = false;
                 mstp_port->Index = 2;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER;
             }
             /* Source */
             else if (mstp_port->Index == 2) {
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 mstp_port->HeaderCRC =
                     CRC_Calc_Header(mstp_port->DataRegister,
                     mstp_port->HeaderCRC);
                 mstp_port->SourceAddress = mstp_port->DataRegister;
-                mstp_port->DataAvailable = false;
                 mstp_port->Index = 3;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER;
             }
             /* Length1 */
             else if (mstp_port->Index == 3) {
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 mstp_port->HeaderCRC =
                     CRC_Calc_Header(mstp_port->DataRegister,
                     mstp_port->HeaderCRC);
                 mstp_port->DataLength = mstp_port->DataRegister * 256;
-                mstp_port->DataAvailable = false;
                 mstp_port->Index = 4;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER;
             }
             /* Length2 */
             else if (mstp_port->Index == 4) {
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 mstp_port->HeaderCRC =
                     CRC_Calc_Header(mstp_port->DataRegister,
                     mstp_port->HeaderCRC);
                 mstp_port->DataLength += mstp_port->DataRegister;
-                mstp_port->DataAvailable = false;
                 mstp_port->Index = 5;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER;
             }
             /* HeaderCRC */
             else if (mstp_port->Index == 5) {
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 mstp_port->HeaderCRC =
                     CRC_Calc_Header(mstp_port->DataRegister,
                     mstp_port->HeaderCRC);
                 mstp_port->HeaderCRCActual = mstp_port->DataRegister;
-                mstp_port->DataAvailable = false;
                 /* don't wait for next state - do it here */
                 /* MSTP_RECEIVE_STATE_HEADER_CRC */
                 if (mstp_port->HeaderCRC != 0x55) {
@@ -430,9 +395,10 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     /* wait for the start of the next frame. */
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {
-                    /* FIXME: if we don't decode the data, we could
-                        get confused if the Preamble 55 FF is part
-                        of the data. */
+                    /* Note: proposed change to BACnet MSTP state machine!
+                        If we don't decode data that is not for us, we could
+                        get confused about the start if the Preamble 55 FF
+                        is part of the data. */
                     /* Data */
                     if ((mstp_port->DataLength) &&
                         (mstp_port->DataLength <= mstp_port->InputBufferSize)) {
@@ -444,7 +410,7 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             MSTP_RECEIVE_STATE_DATA;
                     } else {
                         /* FrameTooLong */
-                        if (mstp_port->DataLength > MAX_MPDU) {
+                        if (mstp_port->DataLength) {
 #if PRINT_ENABLED_RECEIVE_ERRORS
                             fprintf(stderr,"MSTP: Rx Header: FrameTooLong %d\n",
                                 mstp_port->DataLength);
@@ -480,8 +446,6 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
             /* not per MS/TP standard, but it is a case not covered */
             else {
                 mstp_port->ReceiveError = false;
-                mstp_port->SilenceTimerReset();
-                INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
                 /* indicate that an error has occurred during  */
                 /* the reception of a frame */
                 mstp_port->ReceivedInvalidFrame = true;
@@ -492,11 +456,17 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 /* wait for the start of a frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
             }
+            mstp_port->SilenceTimerReset();
+            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
+            mstp_port->DataAvailable = false;
         }
         break;
         /* In the HEADER_CRC state, the node validates the CRC on the fixed */
         /* message header. */
     case MSTP_RECEIVE_STATE_HEADER_CRC:
+        /* note: we should never get to this state since we shortcut
+           it earlier in the state machine, and never set this state */
+        mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
         break;
         /* In the DATA state, the node waits for the data portion of a frame. */
     case MSTP_RECEIVE_STATE_DATA:
