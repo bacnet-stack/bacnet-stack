@@ -35,7 +35,7 @@ extern "C" {
 #endif                          /* __cplusplus */
 
     void TimerInit(void);
-    uint16_t Timer_Silence(void);
+    int Timer_Silence(void);
     void Timer_Silence_Reset(void);
 
 #ifdef __cplusplus

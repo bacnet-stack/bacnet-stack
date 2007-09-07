@@ -48,7 +48,7 @@
 /* global variable counts interrupts */
 volatile unsigned long Timer_Milliseconds;
 /* MS/TP Silence Timer */
-static volatile uint16_t SilenceTime;
+static volatile int SilenceTime;
 
 static void Timer0_Setup(int milliseconds) {
     //        TC Block Control Register TC_BCR    (read/write)
@@ -306,11 +306,11 @@ static void Timer0IrqHandler (void) {
     dummy = pTC->TC_SR;
     // increment the tick count
     Timer_Milliseconds++;
-    if (SilenceTime < 0xFFFF)
+    if (SilenceTime < 60000)
         SilenceTime++;
 }
 
-uint16_t Timer_Silence(void)
+int Timer_Silence(void)
 {
     return SilenceTime;
 }

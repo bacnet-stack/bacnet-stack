@@ -180,6 +180,8 @@ void RS485_Send_Data(
         /* do nothing - wait until the entire frame in the 
            Transmit Shift Register has been shifted out */
     }
+    /* per MSTP spec */
+    Timer_Silence_Reset();
 }
 
 
@@ -191,25 +193,25 @@ void RS485_Send_Data(
 *****************************************************************************/
 bool RS485_ReceiveError(void)
 {
-    bool uart_error = false;
+    bool ReceiveError = false;
     uint8_t dummy_data;
 
     /* check for framing error */
     if (BIT_CHECK(UCSR0A,FE0)) {
-        uart_error = true;
+        ReceiveError = true;
     }
     /* check for overrun error */
     if (BIT_CHECK(UCSR0A,DOR0)) {
-        uart_error = true;
+        ReceiveError = true;
     }
     /* flush the receive buffer */
-    if (uart_error) {
+    if (ReceiveError) {
         while (BIT_CHECK(UCSR0A,RXC0)) {
             dummy_data = UDR0;
         }
     }
     
-    return uart_error;
+    return ReceiveError;
 }
 
 /****************************************************************************
@@ -230,3 +232,24 @@ bool RS485_DataAvailable(uint8_t *data)
     
     return uart_data;
 }
+
+#ifdef TEST_RS485
+int main(void)
+{
+    unsigned i = 0;
+    uint8_t DataRegister;
+
+    RS485_Set_Baud_Rate(38400);
+    RS485_Initialize();
+    /* receive task */
+    for (;;) {
+        if (RS485_DataAvailable(&DataRegister)) {
+            fprintf(stderr,"%02X ",DataRegister);
+        } else if (RS485_ReceiveError()) {
+            fprintf(stderr,"ERROR ");
+        }
+
+    }
+}
+#endif                          /* TEST_ABORT */
+

@@ -56,21 +56,14 @@
 #define BACNET_MIN_PRIORITY 1
 #define BACNET_MAX_PRIORITY 16
 
-/* embedded systems need fixed name sizes */
-#define MAX_OBJECT_NAME 10
-/* common object properties */
-typedef struct BACnet_Object_Data {
-    uint32_t Object_Identifier;
-    char Object_Name[MAX_OBJECT_NAME];
-    BACNET_OBJECT_TYPE Object_Type;
-} BACNET_OBJECT_DATA;
-
 #define BACNET_BROADCAST_NETWORK 0xFFFF
 /* IPv6 (16 octets) coupled with port number (2 octets) */
+/* note: you could be lame and only support 6 octets */
+/* FIXME: mac[] only needs to be as big as our datalink MAC */
 #define MAX_MAC_LEN 18
 struct BACnet_Device_Address {
     /* mac_len = 0 if global address */
-    int mac_len;
+    uint8_t mac_len;
     /* note: MAC for IP addresses uses 4 bytes for addr, 2 bytes for port */
     /* use de/encode_unsigned32/16 for re/storing the IP address */
     uint8_t mac[MAX_MAC_LEN];
@@ -80,7 +73,7 @@ struct BACnet_Device_Address {
     uint16_t net;               /* BACnet network number */
     /* LEN = 0 denotes broadcast MAC ADR and ADR field is absent */
     /* LEN > 0 specifies length of ADR field */
-    int len;                    /* length of MAC address */
+    uint8_t len;                    /* length of MAC address */
     uint8_t adr[MAX_MAC_LEN];   /* hwaddr (MAC) address */
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;
