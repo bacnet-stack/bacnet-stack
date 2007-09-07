@@ -46,8 +46,8 @@
 #include "lc.h"
 #include "lsp.h"
 #include "mso.h"
-#if BACFILE
-#include "bacfile.h"
+#if defined(BACFILE)
+    #include "bacfile.h"
 #endif
 
 void handler_write_property(uint8_t * service_request,
@@ -290,7 +290,7 @@ void handler_write_property(uint8_t * service_request,
 #endif
         }
         break;
-#if BACFILE
+#if defined(BACFILE)
     case OBJECT_FILE:
         if (bacfile_write_property(&wp_data, &error_class,
                 &error_code)) {

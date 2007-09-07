@@ -46,8 +46,8 @@
 #include "lc.h"
 #include "lsp.h"
 #include "mso.h"
-#if BACFILE
-#include "bacfile.h"
+#if defined(BACFILE)
+    #include "bacfile.h"
 #endif
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
@@ -170,7 +170,7 @@ int Encode_Property_APDU(
                     error_class, error_code);
             }
             break;
-#if BACFILE
+#if defined(BACFILE)
         case OBJECT_FILE:
             if (bacfile_valid_instance(object_instance)) {
                 apdu_len = bacfile_encode_property_apdu(

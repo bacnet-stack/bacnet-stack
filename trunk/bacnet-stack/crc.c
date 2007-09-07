@@ -36,7 +36,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef CRC_USE_TABLE
+#if defined(CRC_USE_TABLE)
 /* note: table is created using unit test below */
 static const uint8_t HeaderCRC[256] =
 {

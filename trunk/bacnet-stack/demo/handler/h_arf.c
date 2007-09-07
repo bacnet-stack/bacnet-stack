@@ -39,7 +39,9 @@
 #include "device.h"
 #include "ai.h"
 #include "ao.h"
-#include "bacfile.h"
+#if defined(BACFILE)
+    #include "bacfile.h"
+#endif
 
 /*
 from BACnet SSPC-135-2004
@@ -92,6 +94,7 @@ last octet or record of the file, then the 'End Of File' parameter
 shall be TRUE, otherwise FALSE.
 */
 
+#if defined(BACFILE)
 void handler_atomic_read_file(uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
@@ -195,3 +198,4 @@ ARF_ABORT:
 
     return;
 }
+#endif

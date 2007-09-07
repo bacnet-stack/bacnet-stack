@@ -39,7 +39,9 @@
 #include "awf.h"
 /* demo objects */
 #include "device.h"
-#include "bacfile.h"
+#if defined(BACFILE)
+    #include "bacfile.h"
+#endif
 
 /*
 from BACnet SSPC-135-2004
@@ -70,6 +72,7 @@ of the BACnet device is a local matter and is not defined by this
 standard.
 */
 
+#if defined(BACFILE)
 void handler_atomic_write_file(uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
@@ -160,3 +163,4 @@ AWF_ABORT:
 
     return;
 }
+#endif
