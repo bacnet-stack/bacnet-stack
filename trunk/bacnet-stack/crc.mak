@@ -5,6 +5,7 @@ BASEDIR = .
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
 CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_CRC -g
+#CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_CRC -DCRC_USE_TABLE -g
 
 OBJS    = crc.o test/ctest.o
 
