@@ -18,10 +18,14 @@ BACNET_FLAGS += -DPRINT_ENABLED=0
 BACNET_FLAGS += -DMAX_APDU=480
 #BACNET_FLAGS += -DDLMSTP_TEST
 
-INCLUDES = -I. -I../.. -I../../demo/handler -I../../demo/object
+BACNET_ROOT = ../..
+INCLUDES = -I. 
+INCLUDES += -I$(BACNET_ROOT) 
+INCLUDES += -I$(BACNET_ROOT)/demo/handler 
+INCLUDES += -I$(BACNET_ROOT)/demo/object
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
-CFLAGS = -fno-common $(OPTIMIZATION) $(INCLUDES) $(BACNET_FLAGS) -Wall -g
+CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -Wall -g
 LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
@@ -40,8 +44,7 @@ PORTSRC = main.c \
 	blinker.c \
 	rs485.c \
 	dlmstp.c \
-	../../crc.c \
-	../../mstp.c
+	$(BACNET_ROOT)/crc.c
 
 DEMOSRC = ai.c \
 	av.c \
@@ -50,29 +53,29 @@ DEMOSRC = ai.c \
 	h_rp.c \
 	h_wp.c \
 	device.c \
-	../../demo/handler/txbuf.c \
-	../../demo/handler/h_whois.c \
-	../../demo/handler/h_rd.c \
-	../../demo/handler/h_dcc.c
+	$(BACNET_ROOT)/demo/handler/txbuf.c \
+	$(BACNET_ROOT)/demo/handler/h_whois.c \
+	$(BACNET_ROOT)/demo/handler/h_rd.c \
+	$(BACNET_ROOT)/demo/handler/h_dcc.c
 
-CORESRC = ../../npdu.c \
-	../../bacint.c \
-	../../apdu.c \
-	../../bacdcode.c \
-	../../bacaddr.c \
-	../../bacstr.c \
-	../../abort.c \
-	../../bacerror.c \
-	../../reject.c \
-	../../bacapp.c \
-	../../datetime.c \
-	../../rp.c \
-	../../wp.c \
-	../../dcc.c \
-	../../rd.c \
-	../../whois.c \
-	../../iam.c \
-	../../version.c
+CORESRC = $(BACNET_ROOT)/npdu.c \
+	$(BACNET_ROOT)/bacint.c \
+	$(BACNET_ROOT)/apdu.c \
+	$(BACNET_ROOT)/bacdcode.c \
+	$(BACNET_ROOT)/bacaddr.c \
+	$(BACNET_ROOT)/bacstr.c \
+	$(BACNET_ROOT)/abort.c \
+	$(BACNET_ROOT)/bacerror.c \
+	$(BACNET_ROOT)/reject.c \
+	$(BACNET_ROOT)/bacapp.c \
+	$(BACNET_ROOT)/datetime.c \
+	$(BACNET_ROOT)/rp.c \
+	$(BACNET_ROOT)/wp.c \
+	$(BACNET_ROOT)/dcc.c \
+	$(BACNET_ROOT)/rd.c \
+	$(BACNET_ROOT)/whois.c \
+	$(BACNET_ROOT)/iam.c \
+	$(BACNET_ROOT)/version.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)
 #CSRC = $(PORTSRC)
@@ -96,8 +99,21 @@ lib: $(LIBRARY)
 $(LIBRARY): $(COREOBJ) Makefile
 	$(AR) rcs $@ $(COREOBJ)
 
+# allow a single file to be unoptimized for debugging purposes
+#dlmstp.o:
+#	$(CC) -c $(CFLAGS) $*.c -o $@
+#
+#main.o:
+#	$(CC) -c $(CFLAGS) $*.c -o $@
+#
+#$(BACNET_ROOT)/npdu.o:
+#	$(CC) -c $(CFLAGS) $*.c -o $@
+#
+#$(BACNET_ROOT)/apdu.o:
+#	$(CC) -c $(CFLAGS) $*.c -o $@
+
 .c.o:
-	$(CC) -c $(CFLAGS) $*.c -o $@
+	$(CC) -c $(OPTIMIZATION) $(CFLAGS) $*.c -o $@
 
 .s.o:
 	$(CC) -c $(AFLAGS) $*.s -o $@

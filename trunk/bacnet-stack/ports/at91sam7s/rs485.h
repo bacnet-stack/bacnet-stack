@@ -27,24 +27,24 @@
 #define RS485_H
 
 #include <stdint.h>
-#include "mstp.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */
 
-    void RS485_Set_Interface(char *ifname);
-
     void RS485_Initialize(void);
 
-    void RS485_Send_Frame(
-        volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
-        uint8_t * buffer,  /* frame to send (up to 501 bytes of data) */
-        uint16_t nbytes);  /* number of bytes of data (up to 501) */
+    void RS485_Transmitter_Enable(bool enable);
 
-    uint8_t RS485_Check_UART_Data(
-        volatile struct mstp_port_struct_t *mstp_port); /* port specific data */
+    /* NOTE: Only able to send up to 255 bytes at a time */
+    void RS485_Send_Data(
+        uint8_t * buffer,       /* data to send */
+        uint16_t nbytes);       /* number of bytes of data */
 
+    bool RS485_ReceiveError(void);
+    bool RS485_DataAvailable(uint8_t *data);
+
+    void RS485_Turnaround_Delay(void);
     uint32_t RS485_Get_Baud_Rate(void);
     bool RS485_Set_Baud_Rate(uint32_t baud);
 

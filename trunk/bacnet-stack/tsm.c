@@ -35,7 +35,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <string.h>             /* memmove() */
 #include "bits.h"
 #include "apdu.h"
 #include "bacdef.h"

@@ -32,7 +32,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "mstp.h"
 #include "timer.h"
 
 /* This file has been customized for use with UART0
@@ -44,16 +43,17 @@ static volatile AT91S_USART *RS485_Interface = AT91C_BASE_US0;
 /* baud rate */
 static int RS485_Baud = 38400;
 
-/****************************************************************************
-* DESCRIPTION: Sets the interface - UART0 or UART1 or...
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Set_Interface(char *ifname)
-{
-    RS485_Interface = (volatile AT91S_USART *)ifname;
-}
+/* The minimum time after the end of the stop bit of the final octet of a */
+/* received frame before a node may enable its EIA-485 driver: 40 bit times. */
+/* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
+/* At 19200 baud, 40 bit times would be about 2.083 milliseconds */
+/* At 38400 baud, 40 bit times would be about 1.041 milliseconds */
+/* At 57600 baud, 40 bit times would be about 0.694 milliseconds */
+/* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
+/* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
+/* 40 bits is 4 octets including a start and stop bit with each octet */
+#define Tturnaround  (40UL)
+/* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
 
 /****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
@@ -152,27 +152,51 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     return valid;
 }
 
-/* Transmits a Frame on the wire */
-void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t * buffer,  /* frame to send (up to 501 bytes of data) */
-    uint16_t nbytes)   /* number of bytes of data (up to 501) */
+/****************************************************************************
+* DESCRIPTION: Waits on the SilenceTimer for 40 bits.
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Turnaround_Delay(void)
 {
-    uint8_t turnaround_time;
+    uint16_t turnaround_time;
+    
+    /* delay after reception before trasmitting - per MS/TP spec */
+    /* wait a minimum  40 bit times since reception */
+    /* at least 1 ms for errors: rounding, clock tick */
+    turnaround_time = 1 + ((Tturnaround*1000UL)/RS485_Baud);
+    while (Timer_Silence() < turnaround_time) {
+        /* do nothing - wait for timer to increment */
+    };
+}
 
-    /* delay after reception - per MS/TP spec */
-    if (mstp_port) {
-        /* wait a minimum 40 bit times since reception */
-        /* at least 1 ms for errors: rounding, clock tick */
-        turnaround_time = 1 + ((Tturnaround*1000)/RS485_Baud);
-        while (mstp_port->SilenceTimer() < turnaround_time) {
-            /* do nothing - wait for timer to increment */
-        };
-    }
-    /* toggle LED on send */
+/****************************************************************************
+* DESCRIPTION: Enable or disable the transmitter
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       The Atmel ARM7 has an automatic enable/disable in RS485 mode.
+*****************************************************************************/
+void RS485_Transmitter_Enable(bool enable)
+{
+    (void)enable;
+}
+
+/****************************************************************************
+* DESCRIPTION: Send some data and wait until it is sent
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Send_Data(
+    uint8_t * buffer,       /* data to send */
+    uint16_t nbytes)       /* number of bytes of data */
+{
+    /* LED on send */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
     /* LED ON */
     pPIO->PIO_CODR = LED1;
+    /* send all the bytes */
     while (nbytes) {
         while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
             /* do nothing - wait until Tx buffer is empty */
@@ -180,60 +204,78 @@ void RS485_Send_Frame(
         RS485_Interface->US_THR = *buffer;
         buffer++;
         nbytes--;
-        /* per MSTP spec */
-        if (mstp_port) {
-            mstp_port->SilenceTimerReset();
-        }
     }
     while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
         /* do nothing - wait until Tx buffer is empty */
     }
-
-    return;
+    /* per MSTP spec */
+    Timer_Silence_Reset();
 }
 
-/* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
+/****************************************************************************
+* DESCRIPTION: Return true if a framing or overrun error is present
+* RETURN:      true if error
+* ALGORITHM:   none
+* NOTES:       Clears any error flags.
+*****************************************************************************/
+bool RS485_ReceiveError(void)
 {
+    bool ReceiveError = false;
+    /* LED on send */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
 
-    if (mstp_port->ReceiveError == true) {
-        /* wait for state machine to clear this */
-    } else if (mstp_port->DataAvailable == false) {
-        /* check for data or error */
-        if (RS485_Interface->US_CSR & (AT91C_US_OVRE | AT91C_US_FRAME)) {
-            /* clear the error flag */
-            RS485_Interface->US_CR = AT91C_US_RSTSTA;
-            mstp_port->ReceiveError = true;
-            /* LED ON */
-            pPIO->PIO_CODR = LED2;
-        } else if ( RS485_Interface->US_CSR & AT91C_US_RXRDY) {
-            /* data is available */
-            mstp_port->DataRegister = RS485_Interface->US_RHR;
-            mstp_port->DataAvailable = true;
-            /* LED ON */
-            pPIO->PIO_CODR = LED2;
-        }
+    /* check for data or error */
+    if (RS485_Interface->US_CSR & (AT91C_US_OVRE | AT91C_US_FRAME)) {
+        /* clear the error flag */
+        RS485_Interface->US_CR = AT91C_US_RSTSTA;
+        ReceiveError = true;
+        /* LED ON */
+        pPIO->PIO_CODR = LED2;
     }
+
+    return ReceiveError;
+}
+
+/****************************************************************************
+* DESCRIPTION: Return true if data is available 
+* RETURN:      true if data is available, with the data in the parameter set
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool RS485_DataAvailable(uint8_t *DataRegister)
+{
+    bool DataAvailable = false;
+    /* LED on send */
+    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
+    
+    if ( RS485_Interface->US_CSR & AT91C_US_RXRDY) {
+        /* data is available */
+        *DataRegister = RS485_Interface->US_RHR;
+        DataAvailable = true;
+        /* LED ON */
+        pPIO->PIO_CODR = LED2;
+    }
+    
+    return DataAvailable;
 }
 
 #ifdef TEST_RS485
-static struct mstp_port_struct_t MSTP_Port;
-
 int main(void)
 {
     unsigned i = 0;
+    uint8_t DataRegister;
 
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
     /* receive task */
     for (;;) {
-        RS485_Check_UART_Data(&MSTP_Port);
-        if (MSTP_Port.DataAvailable) {
-                fprintf(stderr,"%02X ",MSTP_Port.DataRegister);
-                MSTP_Port.DataAvailable = false;
+        if (RS485_DataAvailable(&DataRegister)) {
+            fprintf(stderr,"%02X ",DataRegister);
+        } else if (RS485_ReceiveError()) {
+            fprintf(stderr,"ERROR ");
         }
+
     }
 }
-#endif                          /* TEST_ABORT */
+#endif 
 

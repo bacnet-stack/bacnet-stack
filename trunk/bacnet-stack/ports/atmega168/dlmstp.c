@@ -441,7 +441,6 @@ static void MSTP_Send_Frame(
         RS485_Send_Data(buffer, 2);
     }
     RS485_Transmitter_Enable(false);
-    Timer_Silence_Reset();
 }
 
 static void MSTP_Receive_Frame_FSM(void)
@@ -1243,6 +1242,9 @@ uint16_t dlmstp_receive(
     if (MSTP_Flag.ReceivePacketPending) {
         MSTP_Flag.ReceivePacketPending = false;
         pdu_len = DataLength;
+        src->mac_len = 1;
+        src->mac[0] = SourceAddress;
+        /* data is already in the pdu pointer */
     }
 
     return pdu_len;
