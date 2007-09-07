@@ -166,7 +166,7 @@ void RS485_Transmitter_Enable(bool enable)
 *****************************************************************************/
 void RS485_Send_Data(
     uint8_t * buffer,       /* data to send */
-    uint8_t nbytes)       /* number of bytes of data */
+    uint16_t nbytes)       /* number of bytes of data */
 {
     while (nbytes) {
         while (!BIT_CHECK(UCSR0A,UDRE0)) {
@@ -180,7 +180,7 @@ void RS485_Send_Data(
         /* do nothing - wait until the entire frame in the 
            Transmit Shift Register has been shifted out */
     }
-    /* per MSTP spec */
+    /* per MSTP spec, sort of */
     Timer_Silence_Reset();
 }
 
@@ -223,13 +223,13 @@ bool RS485_ReceiveError(void)
 bool RS485_DataAvailable(uint8_t *data)
 {
     bool uart_data = false;
-    
+
     /* check for data */
     if (BIT_CHECK(UCSR0A,RXC0)) {
         *data = UDR0;
         uart_data = true;
     }
-    
+
     return uart_data;
 }
 
@@ -243,13 +243,12 @@ int main(void)
     RS485_Initialize();
     /* receive task */
     for (;;) {
-        if (RS485_DataAvailable(&DataRegister)) {
-            fprintf(stderr,"%02X ",DataRegister);
-        } else if (RS485_ReceiveError()) {
+        if (RS485_ReceiveError()) {
             fprintf(stderr,"ERROR ");
+        } else if (RS485_DataAvailable(&DataRegister)) {
+            fprintf(stderr,"%02X ",DataRegister);
         }
-
     }
 }
-#endif                          /* TEST_ABORT */
+#endif                          /* TEST_RS485 */
 

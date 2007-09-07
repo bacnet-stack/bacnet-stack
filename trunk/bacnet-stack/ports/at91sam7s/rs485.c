@@ -269,12 +269,11 @@ int main(void)
     RS485_Initialize();
     /* receive task */
     for (;;) {
-        if (RS485_DataAvailable(&DataRegister)) {
-            fprintf(stderr,"%02X ",DataRegister);
-        } else if (RS485_ReceiveError()) {
+        if (RS485_ReceiveError()) {
             fprintf(stderr,"ERROR ");
+        } else if (RS485_DataAvailable(&DataRegister)) {
+            fprintf(stderr,"%02X ",DataRegister);
         }
-
     }
 }
 #endif 
