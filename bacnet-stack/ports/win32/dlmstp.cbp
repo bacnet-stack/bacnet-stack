@@ -32,17 +32,22 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DBACDL_MSTP=1" />
+			<Add option="-DBACDL_MSTP" />
 			<Add option="-DTEST_DLMSTP=1" />
 			<Add option="-DMAX_APDU=50" />
 			<Add option="-DMAX_TSM_TRANSACTIONS=16" />
 			<Add option="-DMAX_ADDRESS_CACHE=16" />
 			<Add option="-DPRINT_ENABLED=1" />
+			<Add option="-DCRC_USE_TABLE" />
 			<Add directory="." />
 			<Add directory="..\..\..\bacnet-stack" />
 			<Add directory="..\..\demo\handler" />
 			<Add directory="..\..\demo\object" />
 		</Compiler>
+		<Unit filename="..\..\bacaddr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\bacaddr.h" />
 		<Unit filename="..\..\bacdef.h" />
 		<Unit filename="..\..\bacint.c">
 			<Option compilerVar="CC" />
