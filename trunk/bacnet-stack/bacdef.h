@@ -57,10 +57,11 @@
 #define BACNET_MAX_PRIORITY 16
 
 #define BACNET_BROADCAST_NETWORK 0xFFFF
-/* IPv6 (16 octets) coupled with port number (2 octets) */
-/* note: you could be lame and only support 6 octets */
-/* FIXME: mac[] only needs to be as big as our datalink MAC */
-#define MAX_MAC_LEN 18
+/* Any size MAC address should be allowed which is less than or 
+   equal to 7 bytes.  The IPv6 addresses are planned to be handled
+   outside this area. */
+/* FIXME: mac[] only needs to be as big as our local datalink MAC */
+#define MAX_MAC_LEN 7
 struct BACnet_Device_Address {
     /* mac_len = 0 if global address */
     uint8_t mac_len;
