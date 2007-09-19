@@ -278,15 +278,15 @@ typedef enum {
     PROP_PROGRESS_VALUE = 240,
     PROP_RAMP_RATE = 241,
     PROP_STEP_INCREMENT = 242,
-    PROP_SYSTEM_FAILURE_VALUE = 243,
+    PROP_SYSTEM_FAILURE_VALUE = 243
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
     /* Enumerated values 512-4194303 may be used by others subject to the  */
     /* procedures and constraints described in Clause 23.  */
-    MAX_BACNET_PROPERTY_ID = 4194303
 } BACNET_PROPERTY_ID;
+#define MAX_BACNET_PROPERTY_ID 4194303
 
 typedef enum {
     ACTION_DIRECT = 0,
