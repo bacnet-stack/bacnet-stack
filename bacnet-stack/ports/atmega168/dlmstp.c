@@ -216,11 +216,6 @@ static uint8_t TransmitPacketDest;
 /* of a frame the node is transmitting: 20 bit times. */
 #define Tframe_gap 20
 
-/* The maximum time after the end of the stop bit of the final */
-/* octet of a transmitted frame before a node must disable its */
-/* EIA-485 driver: 15 bit times. */
-#define Tpostdrive 15
-
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */

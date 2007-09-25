@@ -30,7 +30,7 @@
 /* Prescaling: 1, 8, 64, 256, 1024 */
 #define TIMER_PRESCALER 64
 /* Count: Timer0 counts up to 0xFF and then signals overflow */
-#define TIMER_TICKS (FREQ_CPU/TIMER_PRESCALER/1000)
+#define TIMER_TICKS (F_CPU/TIMER_PRESCALER/1000)
 #if (TIMER_TICKS > 0xFF)
 #error Timer Prescaler value is too small
 #endif
