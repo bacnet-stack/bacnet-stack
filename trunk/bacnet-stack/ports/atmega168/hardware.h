@@ -25,16 +25,16 @@
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
+/* The processor clock frequency */
+#define F_CPU (7372800)       
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 #include "avr035.h"
 
 #if !defined(__AVR_ATmega168__)
 #error Firmware is configured for ATmega168 only.
 #endif
-
-/* The processor clock frequency */
-#define FREQ_CPU (7372800)       
-
 
 #endif

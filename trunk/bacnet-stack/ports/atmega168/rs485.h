@@ -57,6 +57,8 @@ extern "C" {
     uint32_t RS485_Get_Baud_Rate(void);
     bool RS485_Set_Baud_Rate(uint32_t baud);
 
+    void RS485_LED_Timers(void);
+
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */

@@ -36,10 +36,16 @@
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
+/* Notice: Fuse Bit Settings
+
+    
+
+ */
+
+
 void init(void)
 {
     /* Initialize the Clock Prescaler for ATmega48/88/168 */
-    /* The device is shipped with the CKDIV8 Fuse programmed */
     /* The default CLKPSx bits are factory set to 0011 */
     /* Enbable the Clock Prescaler */
     CLKPR = _BV(CLKPCE);
@@ -59,7 +65,7 @@ void init(void)
     /* Set the CLKPS3..0 bits to Prescaler of 1 */
     CLKPR = 0;
     /* Initialize I/O ports */
-    /* For Port DDRx (Data Direction) Input=1, Output=1 */
+    /* For Port DDRx (Data Direction) Input=0, Output=1 */
     /* For Port PORTx (Bit Value) TriState=0, High=1 */
     DDRB = 0;
     PORTB = 0;
@@ -79,8 +85,33 @@ void init(void)
     /* Configure Timer0 for millisecond timer */
     Timer_Initialize();
 
+    /* Set the LED ports OFF */
+    BIT_SET(PORTD,PD4);
+    BIT_SET(PORTD,PD5);
+    /* Configure the LED ports as outputs */
+    BIT_SET(DDRD,DDD4);
+    BIT_SET(DDRD,DDD5);
+
     /* Enable global interrupts */
     sei();
+}
+
+static uint8_t NPDU_Timer;
+
+static void NDPU_Timers(void)
+{
+    if (NPDU_Timer) {
+        NPDU_Timer--;
+        if (NPDU_Timer == 0) {
+            BIT_SET(PORTD,PD5);
+        }
+    }
+}
+
+static void NPDU_LED_On(void)
+{
+    BIT_CLEAR(PORTD,PD5);
+    NPDU_Timer = 20;
 }
 
 void task_milliseconds(void)
@@ -88,6 +119,28 @@ void task_milliseconds(void)
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
         /* add other millisecond timer tasks here */
+        RS485_LED_Timers();
+        NDPU_Timers();
+    }
+}
+
+static uint8_t Address_Switch;
+
+void input_switch_read(void)
+{
+    uint8_t value;
+    static uint8_t old_value = 0;
+
+    value = BITMASK_CHECK(PINC,0x0F) | (BITMASK_CHECK(PINB,0x07)<<4);
+    if (value != old_value) {
+        old_value = value;
+    } else {
+        if (old_value != Address_Switch) {
+           Address_Switch = old_value;
+#if defined(BACDL_MSTP)
+           dlmstp_set_mac_address(Address_Switch);
+#endif
+        }
     }
 }
 
@@ -111,7 +164,6 @@ int main(void)
     init();
 #if defined(BACDL_MSTP)
     RS485_Set_Baud_Rate(38400);
-    dlmstp_set_mac_address(86);
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);
 #endif
@@ -121,6 +173,7 @@ int main(void)
     iam_send(&Handler_Transmit_Buffer[0]);
 #endif
     for (;;) {
+        input_switch_read();
         task_milliseconds();
         /* other tasks */
         /* BACnet handling */
@@ -129,6 +182,7 @@ int main(void)
 #if !defined(TEST_MSTP)
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
 #endif
+            NPDU_LED_On();
         }
     }
 

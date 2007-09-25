@@ -37,6 +37,10 @@
 #include "hardware.h"
 #include "timer.h"
 
+/* Timers for turning off the TX,RX LED indications */
+static uint8_t LED1_Off_Timer;
+static uint8_t LED3_Off_Timer;
+
 /* baud rate */
 static uint32_t RS485_Baud = 38400;
 
@@ -51,6 +55,13 @@ static uint32_t RS485_Baud = 38400;
 /* 40 bits is 4 octets including a start and stop bit with each octet */
 #define Tturnaround  (40UL)
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
+
+/* The maximum time after the end of the stop bit of the final */
+/* octet of a transmitted frame before a node must disable its */
+/* EIA-485 driver: 15 bit times. */
+/* NOTE: AVR lib delay_us limit is 768us; limit is 7bits/9600bps=729us */
+#define Tpostdrive1 (7UL)
+#define Tpostdrive2 (7UL)
 
 /****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
@@ -75,8 +86,14 @@ void RS485_Initialize(void)
     /* Clear Power Reduction USART0 */
     BIT_CLEAR(PRR,PRUSART0);
     /* Use port PD2 for RTS - enable and disable of Transceiver Tx/Rx */
-    /* Set port bit as Output */
+    /* Set port bit as Output - initially receiving */
+    BIT_CLEAR(PORTD,PD2);
     BIT_SET(DDRD,DDD2);
+    /* Configure Transmit and Receive LEDs - initially off */
+    BIT_SET(PORTD,PD6);
+    BIT_SET(PORTD,PD7);
+    BIT_SET(DDRD,DDD6);
+    BIT_SET(DDRD,DDD7);
 
     return;
 }
@@ -113,7 +130,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             /* 2x speed mode */
             BIT_SET(UCSR0A,U2X0);
             /* configure baud rate */
-            UBRR0 = (FREQ_CPU / (8UL * RS485_Baud)) - 1;
+            UBRR0 = (F_CPU / (8UL * RS485_Baud)) - 1;
             /* FIXME: store the baud rate */
             break;
         default:
@@ -153,9 +170,61 @@ void RS485_Transmitter_Enable(bool enable)
 {
     if (enable) {
         BIT_SET(PORTD,PD2);
-    } else {        
+    } else {
+        #if Tpostdrive1
+        _delay_us(Tpostdrive1/RS485_Baud);
+        #endif
+        #if Tpostdrive2
+        _delay_us(Tpostdrive2/RS485_Baud);
+        #endif
         BIT_CLEAR(PORTD,PD2);
     }
+}
+
+/****************************************************************************
+* DESCRIPTION: Timers for delaying the LED indicators going off
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       expected to be called once a millisecond
+*****************************************************************************/
+void RS485_LED_Timers(void)
+{
+    if (LED1_Off_Timer) {
+        LED1_Off_Timer--;
+        if (LED1_Off_Timer == 0) {
+            BIT_SET(PORTD,PD6);
+        }
+    }
+    if (LED3_Off_Timer) {
+        LED3_Off_Timer--;
+        if (LED3_Off_Timer == 0) {
+            BIT_SET(PORTD,PD7);
+        }
+    }
+}
+
+/****************************************************************************
+* DESCRIPTION: Turn on the LED, and set the off timer to turn it off
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+static void RS485_LED1_On(void)
+{
+    BIT_CLEAR(PORTD,PD6);
+    LED1_Off_Timer = 20;
+}
+
+/****************************************************************************
+* DESCRIPTION: Turn on the LED, and set the off timer to turn it off
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+static void RS485_LED3_On(void)
+{
+    BIT_CLEAR(PORTD,PD7);
+    LED3_Off_Timer = 20;
 }
 
 /****************************************************************************
@@ -168,6 +237,7 @@ void RS485_Send_Data(
     uint8_t * buffer,       /* data to send */
     uint16_t nbytes)       /* number of bytes of data */
 {
+    RS485_LED3_On();
     while (nbytes) {
         while (!BIT_CHECK(UCSR0A,UDRE0)) {
             /* do nothing - wait until Tx buffer is empty */
@@ -176,10 +246,15 @@ void RS485_Send_Data(
         buffer++;
         nbytes--;
     }
+    while (!BIT_CHECK(UCSR0A,UDRE0)) {
+        /* do nothing - wait until Tx buffer is empty */
+    }
+    /* is the frame sent? */
     while (!BIT_CHECK(UCSR0A,TXC0)) {
         /* do nothing - wait until the entire frame in the 
            Transmit Shift Register has been shifted out */
     }
+    BIT_CLEAR(UCSR0A,TXC0);
     /* per MSTP spec, sort of */
     Timer_Silence_Reset();
 }
@@ -204,11 +279,12 @@ bool RS485_ReceiveError(void)
     if (BIT_CHECK(UCSR0A,DOR0)) {
         ReceiveError = true;
     }
-    /* flush the receive buffer */
     if (ReceiveError) {
-        while (BIT_CHECK(UCSR0A,RXC0)) {
+        RS485_LED1_On();
+        /* flush the receive buffer */
+        do {
             dummy_data = UDR0;
-        }
+        } while (BIT_CHECK(UCSR0A,RXC0));
     }
     
     return ReceiveError;
@@ -222,15 +298,16 @@ bool RS485_ReceiveError(void)
 *****************************************************************************/
 bool RS485_DataAvailable(uint8_t *data)
 {
-    bool uart_data = false;
+    bool DataAvailable = false;
 
     /* check for data */
     if (BIT_CHECK(UCSR0A,RXC0)) {
         *data = UDR0;
-        uart_data = true;
+        DataAvailable = true;
+        RS485_LED1_On();
     }
 
-    return uart_data;
+    return DataAvailable;
 }
 
 #ifdef TEST_RS485
