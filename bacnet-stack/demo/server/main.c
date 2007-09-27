@@ -54,7 +54,6 @@
 
 /* buffers used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
-static char *Network_Interface = NULL;
 
 static void Init_Service_Handlers(void)
 {
@@ -106,25 +105,42 @@ int main(int argc, char *argv[])
     unsigned timeout = 100;     /* milliseconds */
     time_t last_seconds = 0;
     time_t current_seconds = 0;
+    char *pEnv = NULL;
 
     /* allow the device ID to be set */
     if (argc > 1)
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
 #if defined(BACDL_BIP)
-    /* FIXME: really needs to come from a config file */
-    if (argc > 2)
-        Network_Interface = argv[2];
-    if (argc > 3)
-        bip_set_port(strtol(argv[3], NULL, 0));
-#elif defined(BACDL_MSTP)
-    RS485_Set_Baud_Rate(38400);
-    dlmstp_set_max_info_frames(1);
-    dlmstp_set_max_master(127);
-    if (argc > 2) {
-        Network_Interface = argv[2];
+    pEnv = getenv("BACNET_IP_PORT");
+    if (pEnv) {
+        bip_set_port(strtol(pEnv, NULL, 0));
+    } else {
+        bip_set_port(0xBAC0);
     }
-    if (argc > 3) {
-        dlmstp_set_mac_address(strtol(argv[3], NULL, 0));
+#elif defined(BACDL_MSTP)
+    pEnv = getenv("BACNET_MAX_INFO_FRAMES");
+    if (pEnv) {
+        dlmstp_set_max_info_frames(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_max_info_frames(1);
+    }
+    pEnv = getenv("BACNET_MAX_MASTER");
+    if (pEnv) {
+        dlmstp_set_max_master(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_max_master(127);
+    }
+    pEnv = getenv("BACNET_MSTP_BAUD");
+    if (pEnv) {
+        RS485_Set_Baud_Rate(strtol(pEnv, NULL, 0));
+    } else {
+        RS485_Set_Baud_Rate(38400);
+    }
+    pEnv = getenv("BACNET_MSTP_MAC");
+    if (pEnv) {
+        dlmstp_set_mac_address(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_mac_address(127);
     }
 #endif
     printf("BACnet Server Demo\n"
@@ -135,7 +151,7 @@ int main(int argc, char *argv[])
         Device_Object_Instance_Number(),
         MAX_APDU);
     Init_Service_Handlers();
-    if (!datalink_init(Network_Interface))
+    if (!datalink_init(getenv("BACNET_IFACE")))
         return 1;
     atexit(cleanup);
     /* configure the timeout values */
