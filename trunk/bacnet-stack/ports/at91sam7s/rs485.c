@@ -92,7 +92,7 @@ void RS485_Initialize(void)
         AT91C_US_NBSTOP_1_BIT;    /* 1 Stop Bit  */
 
     /* set the Time Guard to release RTS after x bit times */
-    RS485_Interface->US_TTGR = 4;
+    RS485_Interface->US_TTGR = 1;
     
     /* Receiver Time-out disabled */
     RS485_Interface->US_RTOR = 0;
