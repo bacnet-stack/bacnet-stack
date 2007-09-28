@@ -80,7 +80,6 @@ void init(void)
 
     /* Configure USART */
     RS485_Initialize();
-    RS485_Set_Baud_Rate(38400);
 
     /* Configure Timer0 for millisecond timer */
     Timer_Initialize();
@@ -163,7 +162,7 @@ int main(void)
     
     init();
 #if defined(BACDL_MSTP)
-    RS485_Set_Baud_Rate(38400);
+    //RS485_Set_Baud_Rate(38400);
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);
 #endif
