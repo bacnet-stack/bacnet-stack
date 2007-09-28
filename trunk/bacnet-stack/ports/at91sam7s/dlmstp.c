@@ -925,7 +925,7 @@ static bool MSTP_Master_Node_FSM(void)
         } else if (next_poll_station == Next_Station) {
             if (MSTP_Flag.SoleMaster == true) {
                 /* SoleMasterRestartMaintenancePFM */
-                Poll_Station = next_poll_station;
+                Poll_Station = next_next_station;
                 MSTP_Send_Frame(
                     FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
                     This_Station, NULL, 0);
