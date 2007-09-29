@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
-    if (!datalink_init(NULL))
+    if (!datalink_init(getenv("BACNET_IFACE")))
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
