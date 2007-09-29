@@ -1,0 +1,404 @@
+/**************************************************************************
+*
+* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to deal in the Software without restriction, including
+* without limitation the rights to use, copy, modify, merge, publish,
+* distribute, sublicense, and/or sell copies of the Software, and to
+* permit persons to whom the Software is furnished to do so, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
+*********************************************************************/
+
+/* The module handles sending data out the RS-485 port */
+/* and handles receiving data from the RS-485 port. */
+/* Customize this file for your specific hardware */
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+//#include "mstp.h"
+
+/* This file has been customized for use with ATMEGA168 */
+#include "hardware.h"
+#include "timer.h"
+
+/* Timers for turning off the TX,RX LED indications */
+static uint8_t LED1_Off_Timer;
+static uint8_t LED3_Off_Timer;
+
+/* baud rate */
+static uint32_t RS485_Baud = 9600;
+/* autobaud - switch baud on errors if autobaud is true */
+static bool RS485_Autobaud = true;
+/* we saw some data, so we are on an active wire */
+static uint8_t RS485_Data_Count;
+/* count of errors before autobaud switching */
+static uint8_t RS485_Error_Count;
+/* time limit */
+#define RS485_ERROR_TIMEOUT 1000
+/* millisecond timer to limit error window */
+static uint16_t RS485_Error_Timer = RS485_ERROR_TIMEOUT;
+/* number of errors in 1000ms before autobaud switching */
+#define RS485_ERROR_LIMIT 30
+
+/* The minimum time after the end of the stop bit of the final octet of a */
+/* received frame before a node may enable its EIA-485 driver: 40 bit times. */
+/* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
+/* At 19200 baud, 40 bit times would be about 2.083 milliseconds */
+/* At 38400 baud, 40 bit times would be about 1.041 milliseconds */
+/* At 57600 baud, 40 bit times would be about 0.694 milliseconds */
+/* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
+/* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
+/* 40 bits is 4 octets including a start and stop bit with each octet */
+#define Tturnaround  (40UL)
+/* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
+
+/* The maximum time after the end of the stop bit of the final */
+/* octet of a transmitted frame before a node must disable its */
+/* EIA-485 driver: 15 bit times. */
+/* NOTE: AVR lib delay_us limit is 768us; limit is 7bits/9600bps=729us */
+#define Tpostdrive1 (7UL)
+#define Tpostdrive2 (7UL)
+
+/****************************************************************************
+* DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
+*              receive mode.
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Initialize(void)
+{
+    /* enable Transmit and Receive */
+    UCSR0B = _BV(TXEN0) | _BV(RXEN0); 
+
+    /* Set USART Control and Status Register n C */
+    /* Asynchronous USART 8-bit data, No parity, 1 stop */
+    /* Set USART Mode Select: UMSELn1 UMSELn0 = 00 for Asynchronous USART */
+    /* Set Parity Mode:  UPMn1 UPMn0 = 00 for Parity Disabled */
+    /* Set Stop Bit Select: USBSn = 0 for 1 stop bit */
+    /* Set Character Size: UCSZn2 UCSZn1 UCSZn0 = 011 for 8-bit */
+    /* Clock Polarity: UCPOLn = 0 when asynchronous mode is used. */
+    UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
+    /* Clear Power Reduction USART0 */
+    BIT_CLEAR(PRR,PRUSART0);
+    /* Use port PD2 for RTS - enable and disable of Transceiver Tx/Rx */
+    /* Set port bit as Output - initially receiving */
+    BIT_CLEAR(PORTD,PD2);
+    BIT_SET(DDRD,DDD2);
+    /* Configure Transmit and Receive LEDs - initially off */
+    BIT_SET(PORTD,PD6);
+    BIT_SET(PORTD,PD7);
+    BIT_SET(DDRD,DDD6);
+    BIT_SET(DDRD,DDD7);
+
+    return;
+}
+
+/****************************************************************************
+* DESCRIPTION: Returns the baud rate that we are currently running at
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+uint32_t RS485_Get_Baud_Rate(void)
+{
+    return RS485_Baud;
+}
+
+/****************************************************************************
+* DESCRIPTION: Sets the baud rate for the chip USART
+* RETURN:      true if valid baud rate
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool RS485_Set_Baud_Rate(uint32_t baud)
+{
+    bool valid = true;
+
+    switch (baud) {
+        case 9600:
+        case 19200:
+        case 38400:
+        case 57600:
+        case 76800:
+        case 115200:
+            RS485_Baud = baud;
+            /* 2x speed mode */
+            BIT_SET(UCSR0A,U2X0);
+            /* configure baud rate */
+            UBRR0 = (F_CPU / (8UL * RS485_Baud)) - 1;
+            /* FIXME: store the baud rate */
+            break;
+        default:
+            valid = false;
+            break;
+    }
+
+    return valid;
+}
+
+void RS485_Next_Baud_Rate(void)
+{
+    uint32_t baud;
+
+    switch (RS485_Baud) {
+        case 9600:
+            baud = 19200;
+            break;
+        case 19200:
+            baud = 38400;
+            break;
+        case 38400:
+            baud = 57600;
+            break;
+        case 57600:
+            baud = 76800;
+            break;
+        case 76800:
+            baud = 115200;
+            break;
+        case 115200:
+        default:
+            baud = 9600;
+            break;
+    }
+    RS485_Set_Baud_Rate(baud);
+}
+
+/****************************************************************************
+* DESCRIPTION: Waits on the SilenceTimer for 40 bits.
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Turnaround_Delay(void)
+{
+    uint16_t turnaround_time;
+    
+    /* delay after reception before trasmitting - per MS/TP spec */
+    /* wait a minimum  40 bit times since reception */
+    /* at least 1 ms for errors: rounding, clock tick */
+    turnaround_time = 1 + ((Tturnaround*1000UL)/RS485_Baud);
+    while (Timer_Silence() < turnaround_time) {
+        /* do nothing - wait for timer to increment */
+    };
+}
+
+/****************************************************************************
+* DESCRIPTION: Enable or disable the transmitter
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Transmitter_Enable(bool enable)
+{
+    if (enable) {
+        BIT_SET(PORTD,PD2);
+    } else {
+        #if Tpostdrive1
+        _delay_us(Tpostdrive1/RS485_Baud);
+        #endif
+        #if Tpostdrive2
+        _delay_us(Tpostdrive2/RS485_Baud);
+        #endif
+        BIT_CLEAR(PORTD,PD2);
+    }
+}
+
+/****************************************************************************
+* DESCRIPTION: Timers for delaying the LED indicators going off
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       expected to be called once a millisecond
+*****************************************************************************/
+void RS485_LED_Timers(void)
+{
+    if (LED1_Off_Timer) {
+        LED1_Off_Timer--;
+        if (LED1_Off_Timer == 0) {
+            BIT_SET(PORTD,PD6);
+        }
+    }
+    if (LED3_Off_Timer) {
+        LED3_Off_Timer--;
+        if (LED3_Off_Timer == 0) {
+            BIT_SET(PORTD,PD7);
+        }
+    }
+    if (RS485_Error_Timer) {
+        RS485_Error_Timer--;
+    }
+}
+
+/****************************************************************************
+* DESCRIPTION: Turn on the LED, and set the off timer to turn it off
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+static void RS485_LED1_On(void)
+{
+    BIT_CLEAR(PORTD,PD6);
+    LED1_Off_Timer = 20;
+}
+
+/****************************************************************************
+* DESCRIPTION: Turn on the LED, and set the off timer to turn it off
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+static void RS485_LED3_On(void)
+{
+    BIT_CLEAR(PORTD,PD7);
+    LED3_Off_Timer = 20;
+}
+
+/****************************************************************************
+* DESCRIPTION: Send some data and wait until it is sent
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Send_Data(
+    uint8_t * buffer,       /* data to send */
+    uint16_t nbytes)       /* number of bytes of data */
+{
+    RS485_LED3_On();
+    while (nbytes) {
+        while (!BIT_CHECK(UCSR0A,UDRE0)) {
+            /* do nothing - wait until Tx buffer is empty */
+        }
+        UDR0 = *buffer;
+        buffer++;
+        nbytes--;
+    }
+    while (!BIT_CHECK(UCSR0A,UDRE0)) {
+        /* do nothing - wait until Tx buffer is empty */
+    }
+    /* is the frame sent? */
+    while (!BIT_CHECK(UCSR0A,TXC0)) {
+        /* do nothing - wait until the entire frame in the 
+           Transmit Shift Register has been shifted out */
+    }
+    BIT_CLEAR(UCSR0A,TXC0);
+    /* per MSTP spec, sort of */
+    Timer_Silence_Reset();
+}
+
+
+/****************************************************************************
+* DESCRIPTION: Return true if a framing or overrun error is present
+* RETURN:      true if error
+* ALGORITHM:   autobaud - if there are a lot of errors, switch baud rate
+* NOTES:       Clears any error flags.
+*****************************************************************************/
+bool RS485_ReceiveError(void)
+{
+    bool ReceiveError = false;
+    uint8_t dummy_data;
+
+    /* check for framing error */
+    if (BIT_CHECK(UCSR0A,FE0)) {
+        ReceiveError = true;
+    }
+    /* check for overrun error */
+    if (BIT_CHECK(UCSR0A,DOR0)) {
+        ReceiveError = true;
+    }
+    if (ReceiveError) {
+        RS485_LED1_On();
+        /* flush the receive buffer */
+        do {
+            dummy_data = UDR0;
+        } while (BIT_CHECK(UCSR0A,RXC0));
+        /* count errors during autobaud */
+        if (RS485_Error_Count < RS485_ERROR_LIMIT) {
+            RS485_Error_Count++;
+        } else {
+            if (RS485_Autobaud && RS485_Error_Timer) {
+                /* We are in autobaud mode, and there were excessive 
+                   errors while the timer was counting down */
+                RS485_Next_Baud_Rate();
+                RS485_Error_Timer = RS485_ERROR_TIMEOUT;
+                RS485_Error_Count = 0;
+            } else if (RS485_Autobaud) {
+                /* autobaud, but timer expired */
+                RS485_Autobaud = false;
+            }
+        }
+    } else {
+       if (RS485_Autobaud) {
+           if ((RS485_Error_Timer == 0) && (RS485_Error_Count == 0)) {
+               if (RS485_Data_Count > 8) {
+                   /* no errors, timer expired, and we saw data */
+                   RS485_Autobaud = false;
+               } else {
+                   /* no errors, timer expired, and no data*/
+                   RS485_Error_Timer = RS485_ERROR_TIMEOUT;
+               }
+           }
+       }
+
+    }
+    
+    return ReceiveError;
+}
+
+/****************************************************************************
+* DESCRIPTION: Return true if data is available 
+* RETURN:      true if data is available, with the data in the parameter set
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool RS485_DataAvailable(uint8_t *data)
+{
+    bool DataAvailable = false;
+
+    /* check for data */
+    if (BIT_CHECK(UCSR0A,RXC0)) {
+        *data = UDR0;
+        DataAvailable = true;
+        RS485_LED1_On();
+        if (RS485_Data_Count < 0xFF)
+            RS485_Data_Count++;
+    }
+
+    return DataAvailable;
+}
+
+#ifdef TEST_RS485
+int main(void)
+{
+    unsigned i = 0;
+    uint8_t DataRegister;
+
+    RS485_Set_Baud_Rate(38400);
+    RS485_Initialize();
+    /* receive task */
+    for (;;) {
+        if (RS485_ReceiveError()) {
+            fprintf(stderr,"ERROR ");
+        } else if (RS485_DataAvailable(&DataRegister)) {
+            fprintf(stderr,"%02X ",DataRegister);
+        }
+    }
+}
+#endif                          /* TEST_RS485 */
+
