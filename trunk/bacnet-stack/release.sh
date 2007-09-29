@@ -22,6 +22,7 @@ echo "Creating the release files for version $DOTTED_VERSION"
 
 echo "Creating the $PROJECT change log..."
 rm $CHANGELOG
+svn update
 svn log --xml --verbose | xsltproc svn2cl.xsl - > $CHANGELOG
 if [ -z "$CHANGELOG" ]
 then
