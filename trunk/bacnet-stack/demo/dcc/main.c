@@ -162,7 +162,8 @@ int main(int argc, char *argv[])
             "  1=disable\r\n"
             "  2=disable-initiation\r\n"
             "The timeout can be 0 for infinite, or a value in minutes for disable.\r\n"
-            "The optional password is a character string of 1 to 20 characters.\r\n",
+            "The optional password is a character string of 1 to 20 characters.\r\n"
+            "Use BACNET_IFACE environment variable for the interface\r\n",
             filename_remove_path(argv[0]), BACNET_MAX_INSTANCE - 1);
         return 0;
     }
@@ -184,7 +185,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
-    if (!datalink_init(NULL))
+    if (!datalink_init(getenv("BACNET_IFACE")))
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
