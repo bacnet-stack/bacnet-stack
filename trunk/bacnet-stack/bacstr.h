@@ -68,9 +68,9 @@ extern "C" {
 #endif                          /* __cplusplus */
 
     void bitstring_init(BACNET_BIT_STRING * bit_string);
-    void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit,
+    void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number,
         bool value);
-    bool bitstring_bit(BACNET_BIT_STRING * bit_string, uint8_t bit);
+    bool bitstring_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number);
     uint8_t bitstring_bits_used(BACNET_BIT_STRING * bit_string);
 /* returns the number of bytes that a bit string is using */
     int bitstring_bytes_used(BACNET_BIT_STRING * bit_string);
