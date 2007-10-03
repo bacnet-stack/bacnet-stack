@@ -127,6 +127,7 @@ uint8_t RS485_Check_UART_Data(volatile struct mstp_port_struct_t *
             RS485_Comstat.RxTail = 0;
         else
             RS485_Comstat.RxTail++;
+        /* FIXME: disable interrupts around Rx_Bytes */
         RS485_Comstat.Rx_Bytes--;
         /* errors? let the state machine know */
         if (RS485_Comstat.Rx_Bufferoverrun) {
