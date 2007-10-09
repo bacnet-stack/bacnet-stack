@@ -265,3 +265,19 @@ datalink layer. Make server application on one datalink layer and make
 client applications on another datalink layer.
    4. Add external BACnet router or BACnet devices. Run a BACnet
 demo/server on another PC.
+
+Q-16: My Linux computer doesn't use eth0 for for the BACnet connection.
+My Windows computer has more than one network connnection.  How can I
+choose the interface to use for the demo applications?
+
+A-16: Set the environment variable BACNET_IFACE.  For Windows, set
+BACNET_IFACE=169.254.119.240 or whatever the address of the interface
+returned by ipconfig command.  For Linux, use BACNET_IFACE=eth0 or whatever
+the name of the interface returned by the ifconfig command.
+Setting the environment variable under Windows can be done on the command
+line:
+> set BACNET_IFACE=169.254.119.240
+Setting the environment variable under Linux can be done from the command
+line:
+$ BACNET_IFACE=ath0
+$ export BACNET_IFACE
