@@ -18,44 +18,45 @@ DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 BACNET_PORT = ../ports/linux
 BACNET_OBJECT = ../demo/object
 BACNET_HANDLER = ../demo/handler
-BACNET_ROOT = ../.
+BACNET_CORE = ../src
+BACNET_INCLUDE = ../include
 # compiler configuration
-INCLUDES = -I$(BACNET_ROOT) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER) 
+INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER) 
 CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 
 CORE_SRC = \
-	$(BACNET_ROOT)/apdu.c \
-	$(BACNET_ROOT)/npdu.c \
-	$(BACNET_ROOT)/bacdcode.c \
-	$(BACNET_ROOT)/bacint.c \
-	$(BACNET_ROOT)/bacapp.c \
-	$(BACNET_ROOT)/bacprop.c \
-	$(BACNET_ROOT)/bacstr.c \
-	$(BACNET_ROOT)/bactext.c \
-	$(BACNET_ROOT)/datetime.c \
-	$(BACNET_ROOT)/indtext.c \
-	$(BACNET_ROOT)/bigend.c \
-	$(BACNET_ROOT)/arf.c \
-	$(BACNET_ROOT)/awf.c \
-	$(BACNET_ROOT)/cov.c \
-	$(BACNET_ROOT)/dcc.c \
-	$(BACNET_ROOT)/iam.c \
-	$(BACNET_ROOT)/ihave.c \
-	$(BACNET_ROOT)/rd.c \
-	$(BACNET_ROOT)/rp.c \
-	$(BACNET_ROOT)/rpm.c \
-	$(BACNET_ROOT)/timesync.c \
-	$(BACNET_ROOT)/whohas.c \
-	$(BACNET_ROOT)/whois.c \
-	$(BACNET_ROOT)/wp.c \
-	$(BACNET_ROOT)/abort.c \
-	$(BACNET_ROOT)/reject.c \
-	$(BACNET_ROOT)/bacerror.c \
-	$(BACNET_ROOT)/filename.c \
-	$(BACNET_ROOT)/tsm.c \
-	$(BACNET_ROOT)/bacaddr.c \
-	$(BACNET_ROOT)/address.c \
-	$(BACNET_ROOT)/version.c
+	$(BACNET_CORE)/apdu.c \
+	$(BACNET_CORE)/npdu.c \
+	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacint.c \
+	$(BACNET_CORE)/bacapp.c \
+	$(BACNET_CORE)/bacprop.c \
+	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/bactext.c \
+	$(BACNET_CORE)/datetime.c \
+	$(BACNET_CORE)/indtext.c \
+	$(BACNET_CORE)/bigend.c \
+	$(BACNET_CORE)/arf.c \
+	$(BACNET_CORE)/awf.c \
+	$(BACNET_CORE)/cov.c \
+	$(BACNET_CORE)/dcc.c \
+	$(BACNET_CORE)/iam.c \
+	$(BACNET_CORE)/ihave.c \
+	$(BACNET_CORE)/rd.c \
+	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/timesync.c \
+	$(BACNET_CORE)/whohas.c \
+	$(BACNET_CORE)/whois.c \
+	$(BACNET_CORE)/wp.c \
+	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/reject.c \
+	$(BACNET_CORE)/bacerror.c \
+	$(BACNET_CORE)/filename.c \
+	$(BACNET_CORE)/tsm.c \
+	$(BACNET_CORE)/bacaddr.c \
+	$(BACNET_CORE)/address.c \
+	$(BACNET_CORE)/version.c
 
 HANDLER_SRC = \
 	$(BACNET_HANDLER)/txbuf.c \
@@ -104,9 +105,9 @@ PORT_SRC = \
 	$(BACNET_PORT)/arcnet.c \
 	$(BACNET_PORT)/dlmstp.c \
 	$(BACNET_PORT)/rs485.c \
-	$(BACNET_ROOT)/mstp.c \
-	$(BACNET_ROOT)/crc.c \
-	$(BACNET_ROOT)/bip.c
+	$(BACNET_CORE)/mstp.c \
+	$(BACNET_CORE)/crc.c \
+	$(BACNET_CORE)/bip.c
 
 SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC}
 
