@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2007 Steve Karg
+ Copyright (C) 2006 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -34,20 +34,43 @@
 #ifndef BACNET_H
 #define BACNET_H
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-/* core modules of the BACnet stack */
+/* This file is designed to reference the entire BACnet stack library */
+
+/* core files */
 #include "config.h"
 #include "address.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacint.h"
-#include "npdu.h"
 #include "apdu.h"
-#include "iam.h"
-#include "tsm.h"
+#include "bacapp.h"
+#include "bacdcode.h"
+#include "bacdef.h"
+#include "bacenum.h"
+#include "bacerror.h"
+#include "bacstr.h"
+#include "bactext.h"
 #include "datalink.h"
+#include "indtext.h"
+#include "npdu.h"
+#include "reject.h"
+#include "tsm.h"
+
+/* services */
+#include "arf.h"
+#include "awf.h"
+#include "cov.h"
 #include "dcc.h"
+#include "iam.h"
+#include "ihave.h"
+#include "rd.h"
+#include "rp.h"
+#include "rpm.h"
+#include "timesync.h"
+#include "whohas.h"
+#include "whois.h"
+#include "wp.h"
+
+/* required object - note: developer must supply the device.c file
+   since it is not included in the library.  However, the library
+   references the device.c members via the device.h API. */
+#include "device.h"
 
 #endif
