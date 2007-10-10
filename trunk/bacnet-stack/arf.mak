@@ -3,14 +3,13 @@ CC      = gcc
 BASEDIR = .
 # -g for debugging with gdb
 DEFINES = -DBACFILE=1 -DBACDL_BIP=1 -DBIG_ENDIAN=0 -DTEST -DTEST_ATOMIC_READ_FILE 
-INCLUDES = -I. -Idemo/object -Itest 
+INCLUDES = -Iinclude -Idemo/object -Itest 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       bigend.c \
-       arf.c \
+SRCS = src/bacdcode.c \
+       src/bacint.c \
+       src/bacstr.c \
+       src/arf.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
@@ -30,6 +29,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 	
 clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak *.1 *.ini
+	rm -rf ${TARGET} $(OBJS) 
 
 include: .depend

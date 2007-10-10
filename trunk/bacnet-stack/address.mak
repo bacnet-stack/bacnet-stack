@@ -4,10 +4,10 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_ADDRESS -g
+CFLAGS  = -Wall -Iinclude -Itest -DTEST -DTEST_ADDRESS -g
 
-SRCS = address.c \
-	bacaddr.c \
+SRCS = src/address.c \
+	src/bacaddr.c \
 	test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
@@ -27,6 +27,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 	
 clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak *.1 *.ini
+	rm -rf ${TARGET} $(OBJS) 
 
 include: .depend
