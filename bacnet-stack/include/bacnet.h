@@ -37,11 +37,13 @@
 /* This file is designed to reference the entire BACnet stack library */
 
 /* core files */
+#include "version.h"
 #include "config.h"
 #include "address.h"
 #include "apdu.h"
 #include "bacapp.h"
 #include "bacdcode.h"
+#include "bacint.h"
 #include "bacdef.h"
 #include "bacenum.h"
 #include "bacerror.h"
@@ -72,5 +74,22 @@
    since it is not included in the library.  However, the library
    references the device.c members via the device.h API. */
 #include "device.h"
+
+/* demo objects */
+#include "ai.h"
+#include "ao.h"
+#include "av.h"
+#include "bacfile.h"
+#include "bi.h"
+#include "bo.h"
+#include "bv.h"
+#include "lc.h"
+#include "lsp.h"
+#include "mso.h"
+
+/* demo handlers */
+#include "txbuf.h"
+#include "client.h"
+#include "handlers.h"
 
 #endif
