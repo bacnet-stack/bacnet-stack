@@ -1,8 +1,8 @@
-all: readprop writeprop readfile writefile reinit server dcc \
+all: library readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov timesync epics
 	@echo "utilities are in the utils directory"
 
-clean: \
+clean: lib/Makefile\
 	demo/readprop/Makefile \
 	demo/writeprop/Makefile \
 	demo/readfile/Makefile \
@@ -15,6 +15,7 @@ clean: \
 	demo/ucov/Makefile \
 	demo/timesync/Makefile \
 	demo/epics/Makefile
+	( cd lib ; make clean )
 	( cd demo/readprop ; make clean )
 	( cd demo/writeprop ; make clean )
 	( cd demo/readfile ; make clean )
@@ -27,6 +28,9 @@ clean: \
 	( cd demo/ucov ; make clean )
 	( cd demo/timesync ; make clean )
 	( cd demo/epics ; make clean )
+
+library: lib/Makefile
+	( cd lib ; make )
 
 readprop: demo/readprop/Makefile
 	( cd demo/readprop ; make ; cp bacrp ../../utils )
@@ -63,3 +67,4 @@ ucov: demo/ucov/Makefile
 
 whois: demo/whois/Makefile
 	( cd demo/whois ; make ; cp bacwi ../../utils )
+
