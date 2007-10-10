@@ -1,13 +1,14 @@
 #Makefile to build unit tests
 CC      = gcc
 BASEDIR = .
-CFLAGS  = -Wall -I. -Itest -g -DBIG_ENDIAN=0 -DTEST -DTEST_DECODE
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_DECODE
+CFLAGS = -Wall -Iinclude -Itest -g $(DEFINES)
 
 TARGET = bacdcode
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
+SRCS = src/bacdcode.c \
+       src/bacint.c \
+       src/bacstr.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
@@ -25,6 +26,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 	
 clean:
-	rm -rf core ${OBJS} ${TARGET} *.bak
+	rm -rf ${OBJS} ${TARGET} 
 
 include: .depend

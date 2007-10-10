@@ -4,13 +4,13 @@ BASEDIR = .
 #CFLAGS  = -Wall -I.
 # -g for debugging with gdb
 #CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_BACERROR -g
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BACERROR 
+CFLAGS  = -Wall -Iinclude -Itest -g $(DEFINES)
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       bigend.c \
-       bacerror.c \
+SRCS = src/bacdcode.c \
+       src/bacint.c \
+       src/bacstr.c \
+       src/bacerror.c \
        test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
@@ -30,6 +30,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 	
 clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak *.1 *.ini
+	rm -rf ${TARGET} $(OBJS) 
 
 include: .depend
