@@ -25,14 +25,10 @@ BACNET_LIB = $(BACNET_LIB_DIR)\bacnet.lib
 
 # directories
 BACNET_PORT = ..\..\ports\win32
-BACNET_OBJECT = ..\object
-BACNET_HANDLER = ..\handler
-BACNET_ROOT = ..\..
+BACNET_INCLUDE = ..\..\include
 INCLUDES = \ 
-	-I$(BACNET_ROOT) \
+	-I$(BACNET_INCLUDE) \
 	-I$(BACNET_PORT) \
-	-I$(BACNET_OBJECT) \
-	-I$(BACNET_HANDLER) \
 	-I$(BORLAND_DIR)\include
 
 #
