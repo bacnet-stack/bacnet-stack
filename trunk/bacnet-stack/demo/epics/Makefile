@@ -24,9 +24,7 @@ LIBRARIES=-lc,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 CFLAGS = -Wall -g $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
-SRCS = main.c \
-	$(BACNET_ROOT)/key.c \
-	$(BACNET_ROOT)/keylist.c
+SRCS = main.c
 
 OBJS = ${SRCS:.c=.o}
 

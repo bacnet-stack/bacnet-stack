@@ -16,7 +16,8 @@ DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 # Directories
 BACNET_PORT = ../../ports/linux
 BACNET_INCLUDE = ../../include
- BACnet Library
+
+# BACnet Library
 BACNET_LIB_DIR = ../../lib
 BACNET_LIB_NAME = bacnet
 BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
