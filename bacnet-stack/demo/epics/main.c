@@ -58,9 +58,6 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static bool Error_Detected = false;
 static BACNET_ADDRESS Target_Address;
-/* use this parameter to set a special interface:
-   "eth0" on Linux, or dotted IP address on Windows */
-static char *Network_Interface = NULL;
 
 typedef struct BACnet_RP_Service_Data_t {
     bool new_data;
