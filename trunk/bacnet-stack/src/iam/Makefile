@@ -12,7 +12,9 @@ SRCS = ../bacdcode.c \
        ../npdu.c \
        ../apdu.c \
        ../dcc.c \
-       ../iam.c \
+       ../iam_client.c \
+       ../iam_server.c \
+       ../iam_test.c \
        ../../test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
