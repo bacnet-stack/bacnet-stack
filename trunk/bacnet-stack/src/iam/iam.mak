@@ -3,18 +3,17 @@ CC      = gcc
 BASEDIR = .
 # -g for debugging with gdb
 DEFINES = -DBACFILE=1 -DTEST -DBIG_ENDIAN=0 -DTEST_IAM -DBACDL_TEST
-INCLUDES = -I. -Idemo/object -Itest 
+INCLUDES = -I. -I../../include -I../../test 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       bigend.c \
-       npdu.c \
-       apdu.c \
-       dcc.c \
-       iam.c \
-       test/ctest.c
+SRCS = ../bacdcode.c \
+       ../bacint.c \
+       ../bacstr.c \
+       ../npdu.c \
+       ../apdu.c \
+       ../dcc.c \
+       ../iam.c \
+       ../../test/ctest.c
 
 OBJS = ${SRCS:.c=.o}
 

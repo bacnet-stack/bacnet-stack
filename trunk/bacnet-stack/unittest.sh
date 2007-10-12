@@ -99,10 +99,12 @@ make -f demo/object/device.mak
 ./device >> test.log
 make -f demo/object/device.mak clean
 
-make -f iam.mak clean
-make -f iam.mak
-./iam >> test.log
-make -f iam.mak clean
+cd src/iam
+make clean
+make
+./iam >> ../../test.log
+make clean
+cd ../../
 
 make -f ihave.mak clean
 make -f ihave.mak

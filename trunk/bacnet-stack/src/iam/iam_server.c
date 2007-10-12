@@ -41,30 +41,28 @@
 #include "bacdcode.h"
 #include "address.h"
 
-int iam_send(uint8_t * buffer)
+/* encode I-Am service */
+int iam_encode_apdu(uint8_t * apdu,
+    uint32_t device_id,
+    unsigned max_apdu, int segmentation, uint16_t vendor_id)
 {
-    int len = 0;
-    int pdu_len = 0;
-    BACNET_ADDRESS dest;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
+    int len = 0;                /* length of each encoding */
+    int apdu_len = 0;           /* total length of the apdu, return value */
 
-    /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
-        return 0;
+    if (apdu) {
+        apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
+        apdu[1] = SERVICE_UNCONFIRMED_I_AM;     /* service choice */
+        apdu_len = 2;
+        len = encode_tagged_object_id(&apdu[apdu_len],
+            OBJECT_DEVICE, device_id);
+        apdu_len += len;
+        len = encode_tagged_unsigned(&apdu[apdu_len], max_apdu);
+        apdu_len += len;
+        len = encode_tagged_enumerated(&apdu[apdu_len], segmentation);
+        apdu_len += len;
+        len = encode_tagged_unsigned(&apdu[apdu_len], vendor_id);
+        apdu_len += len;
+    }
 
-    /* I-Am is a global broadcast */
-    datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&buffer[0], &dest, NULL, &npdu_data);
-    /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&buffer[pdu_len],
-        Device_Object_Instance_Number(),
-        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
-    pdu_len += len;
-    /* send data */
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
-
-    return bytes_sent;
+    return apdu_len;
 }
