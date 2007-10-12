@@ -367,7 +367,7 @@ int cov_subscribe_decode_service_request(uint8_t * apdu,
         } else
             return -1;
         /* optional parameters - if missing, means cancellation */
-        if (len < apdu_len) {
+        if ((unsigned)len < apdu_len) {
             /* tag 2 - issueConfirmedNotifications - optional */
             if (decode_is_context_tag(&apdu[len], 2)) {
                 data->cancellationRequest = false;
