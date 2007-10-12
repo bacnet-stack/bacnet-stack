@@ -40,7 +40,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/awf.c \
 	$(BACNET_CORE)/cov.c \
 	$(BACNET_CORE)/dcc.c \
-	$(BACNET_CORE)/iam.c \
+	$(BACNET_CORE)/iam/iam.c \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/rp.c \
