@@ -40,6 +40,7 @@
 #include "device.h"
 #include "bacdcode.h"
 #include "address.h"
+#include "iam.h"
 
 int iam_send(uint8_t * buffer)
 {
