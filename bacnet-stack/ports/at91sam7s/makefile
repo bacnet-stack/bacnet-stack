@@ -19,11 +19,11 @@ BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DCRC_USE_TABLE
 #BACNET_FLAGS += -DDLMSTP_TEST
 
-BACNET_ROOT = ../..
+BACNET_CORE = ../../src
 INCLUDES = -I. 
-INCLUDES += -I$(BACNET_ROOT) 
-INCLUDES += -I$(BACNET_ROOT)/demo/handler 
-INCLUDES += -I$(BACNET_ROOT)/demo/object
+INCLUDES += -I$(BACNET_CORE) 
+INCLUDES += -I$(BACNET_CORE)/demo/handler 
+INCLUDES += -I$(BACNET_CORE)/demo/object
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
 CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -Wall -g
@@ -45,7 +45,7 @@ PORTSRC = main.c \
 	blinker.c \
 	rs485.c \
 	dlmstp.c \
-	$(BACNET_ROOT)/crc.c
+	$(BACNET_CORE)/crc.c
 
 DEMOSRC = ai.c \
 	av.c \
@@ -54,29 +54,31 @@ DEMOSRC = ai.c \
 	h_rp.c \
 	h_wp.c \
 	device.c \
-	$(BACNET_ROOT)/demo/handler/txbuf.c \
-	$(BACNET_ROOT)/demo/handler/h_whois.c \
-	$(BACNET_ROOT)/demo/handler/h_rd.c \
-	$(BACNET_ROOT)/demo/handler/h_dcc.c
+	$(BACNET_CORE)/demo/handler/txbuf.c \
+	$(BACNET_CORE)/demo/handler/h_whois.c \
+	$(BACNET_CORE)/demo/handler/h_rd.c \
+	$(BACNET_CORE)/demo/handler/h_dcc.c
 
-CORESRC = $(BACNET_ROOT)/npdu.c \
-	$(BACNET_ROOT)/bacint.c \
-	$(BACNET_ROOT)/apdu.c \
-	$(BACNET_ROOT)/bacdcode.c \
-	$(BACNET_ROOT)/bacaddr.c \
-	$(BACNET_ROOT)/bacstr.c \
-	$(BACNET_ROOT)/abort.c \
-	$(BACNET_ROOT)/bacerror.c \
-	$(BACNET_ROOT)/reject.c \
-	$(BACNET_ROOT)/bacapp.c \
-	$(BACNET_ROOT)/datetime.c \
-	$(BACNET_ROOT)/rp.c \
-	$(BACNET_ROOT)/wp.c \
-	$(BACNET_ROOT)/dcc.c \
-	$(BACNET_ROOT)/rd.c \
-	$(BACNET_ROOT)/whois.c \
-	$(BACNET_ROOT)/iam.c \
-	$(BACNET_ROOT)/version.c
+CORESRC = $(BACNET_CORE)/npdu.c \
+	$(BACNET_CORE)/bacint.c \
+	$(BACNET_CORE)/apdu.c \
+	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacaddr.c \
+	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacerror.c \
+	$(BACNET_CORE)/reject.c \
+	$(BACNET_CORE)/bacapp.c \
+	$(BACNET_CORE)/datetime.c \
+	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/wp.c \
+	$(BACNET_CORE)/dcc.c \
+	$(BACNET_CORE)/rd.c \
+	$(BACNET_CORE)/whois.c \
+	$(BACNET_CORE)/iam/iam_client.c \
+	$(BACNET_CORE)/iam/iam_server.c \
+	$(BACNET_CORE)/iam/iam_send.c \
+	$(BACNET_CORE)/version.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)
 #CSRC = $(PORTSRC)
@@ -107,10 +109,10 @@ $(LIBRARY): $(COREOBJ) Makefile
 #main.o:
 #	$(CC) -c $(CFLAGS) $*.c -o $@
 #
-#$(BACNET_ROOT)/npdu.o:
+#$(BACNET_CORE)/npdu.o:
 #	$(CC) -c $(CFLAGS) $*.c -o $@
 #
-#$(BACNET_ROOT)/apdu.o:
+#$(BACNET_CORE)/apdu.o:
 #	$(CC) -c $(CFLAGS) $*.c -o $@
 
 .c.o:
