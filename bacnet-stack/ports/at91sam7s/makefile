@@ -63,7 +63,9 @@ CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/bacdcode/bacint.c \
 	$(BACNET_CORE)/bacdcode/bacdcode.c \
-	$(BACNET_CORE)/bacdcode/bacstr.c \
+	$(BACNET_CORE)/bacdcode/bitstring.c \
+	$(BACNET_CORE)/bacdcode/octetstring.c \
+	$(BACNET_CORE)/bacdcode/characterstring.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/bacerror.c \
