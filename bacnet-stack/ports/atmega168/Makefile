@@ -36,11 +36,11 @@ DEMOSRC = h_rp.c \
 CORESRC =  \
 	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/npdu.c \
-	$(BACNET_CORE)/bacdcode.c \
-	$(BACNET_CORE)/bacint.c \
+	$(BACNET_CORE)/bacdcode/bacdcode.c \
+	$(BACNET_CORE)/bacdcode/bacint.c \
+	$(BACNET_CORE)/bacdcode/bacstr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacprop.c \
-	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/bactext.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/indtext.c \
