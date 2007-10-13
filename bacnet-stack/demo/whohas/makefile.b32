@@ -95,6 +95,11 @@ clean :
 	del $(OBJS)
 	del $(PRODUCT_EXE)
 	del $(PRODUCT).map
+	del $(PRODUCT).ilc
+	del $(PRODUCT).ild
+	del $(PRODUCT).ilf
+	del $(PRODUCT).ils
+	del $(PRODUCT).tds
 	del $(BCC_CFG)
 
 #
