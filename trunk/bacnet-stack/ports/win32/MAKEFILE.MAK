@@ -25,14 +25,11 @@ BACNET_LIB = $(BACNET_LIB_DIR)\bacnet.lib
 
 # directories
 BACNET_PORT = .
-BACNET_OBJECT = ..\..\demo\object
-BACNET_HANDLER = ..\..\demo\handler
-BACNET_ROOT = ..\..
+BACNET_INCLUDE = ..\..\include
+BACNET_CORE = ..\..\src
 INCLUDES = \ 
-	-I$(BACNET_ROOT) \
+	-I$(BACNET_INCLUDE) \
 	-I$(BACNET_PORT) \
-	-I$(BACNET_OBJECT) \
-	-I$(BACNET_HANDLER) \
 	-I$(BORLAND_DIR)\include
 
 #
@@ -99,6 +96,11 @@ clean :
 	del $(OBJS)
 	del $(PRODUCT_EXE)
 	del $(PRODUCT).map
+	del $(PRODUCT).ilc
+	del $(PRODUCT).ild
+	del $(PRODUCT).ilf
+	del $(PRODUCT).ils
+	del $(PRODUCT).tds
 	del $(BCC_CFG)
 
 #
