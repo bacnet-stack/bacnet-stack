@@ -259,8 +259,8 @@ int rpm_ack_encode_apdu_object_property_error(uint8_t * apdu,
     if (apdu) {
         /* Tag 5: propertyAccessError */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 5);
-        apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_class);
-        apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_code);
+        apdu_len += encode_application_enumerated(&apdu[apdu_len], error_class);
+        apdu_len += encode_application_enumerated(&apdu[apdu_len], error_code);
         apdu_len += encode_closing_tag(&apdu[apdu_len], 5);
     }
 

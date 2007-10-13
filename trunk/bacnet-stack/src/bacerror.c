@@ -50,8 +50,8 @@ int bacerror_encode_apdu(uint8_t * apdu,
         apdu[2] = service;
         apdu_len = 3;
         /* service parameters */
-        apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_class);
-        apdu_len += encode_tagged_enumerated(&apdu[apdu_len], error_code);
+        apdu_len += encode_application_enumerated(&apdu[apdu_len], error_class);
+        apdu_len += encode_application_enumerated(&apdu[apdu_len], error_code);
     }
 
     return apdu_len;

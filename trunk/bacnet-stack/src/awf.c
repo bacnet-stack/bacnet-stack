@@ -53,24 +53,24 @@ int awf_encode_apdu(uint8_t * apdu,
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_ATOMIC_WRITE_FILE;  /* service choice */
         apdu_len = 4;
-        apdu_len += encode_tagged_object_id(&apdu[apdu_len],
+        apdu_len += encode_application_object_id(&apdu[apdu_len],
             data->object_type, data->object_instance);
         switch (data->access) {
         case FILE_STREAM_ACCESS:
             apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
-            apdu_len += encode_tagged_signed(&apdu[apdu_len],
+            apdu_len += encode_application_signed(&apdu[apdu_len],
                 data->type.stream.fileStartPosition);
-            apdu_len += encode_tagged_octet_string(&apdu[apdu_len],
+            apdu_len += encode_application_octet_string(&apdu[apdu_len],
                 &data->fileData);
             apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
             break;
         case FILE_RECORD_ACCESS:
             apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
-            apdu_len += encode_tagged_signed(&apdu[apdu_len],
+            apdu_len += encode_application_signed(&apdu[apdu_len],
                 data->type.record.fileStartRecord);
-            apdu_len += encode_tagged_unsigned(&apdu[apdu_len],
+            apdu_len += encode_application_unsigned(&apdu[apdu_len],
                 data->type.record.returnedRecordCount);
-            apdu_len += encode_tagged_octet_string(&apdu[apdu_len],
+            apdu_len += encode_application_octet_string(&apdu[apdu_len],
                 &data->fileData);
             apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
             break;

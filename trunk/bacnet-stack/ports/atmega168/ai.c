@@ -101,7 +101,7 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
     (void) array_index;
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
+        apdu_len = encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
             object_instance);
         break;
     /* note: Name and Description don't have to be the same.
@@ -110,14 +110,14 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
     case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string,
             Analog_Input_Name(object_instance));
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], 
+        apdu_len = encode_application_enumerated(&apdu[0], 
             OBJECT_ANALOG_INPUT);
         break;
     case PROP_PRESENT_VALUE:
-        apdu_len = encode_tagged_real(&apdu[0], 
+        apdu_len = encode_application_real(&apdu[0], 
             Analog_Input_Present_Value(object_instance));
         break;
     case PROP_STATUS_FLAGS:
@@ -126,16 +126,16 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
         bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
         bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
-        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
+        apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_EVENT_STATE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+        apdu_len = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
-        apdu_len = encode_tagged_boolean(&apdu[0], false);
+        apdu_len = encode_application_boolean(&apdu[0], false);
         break;
     case PROP_UNITS:
-        apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
+        apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;

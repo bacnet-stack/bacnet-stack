@@ -699,26 +699,26 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
     object_index = Load_Control_Instance_To_Index(object_instance);
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_LOAD_CONTROL,
+        apdu_len = encode_application_object_id(&apdu[0], OBJECT_LOAD_CONTROL,
             object_instance);
         break;
     case PROP_OBJECT_NAME:
         characterstring_init_ansi(&char_string,
             Load_Control_Name(object_instance));
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_LOAD_CONTROL);
+        apdu_len = encode_application_enumerated(&apdu[0], OBJECT_LOAD_CONTROL);
         break;
         /* optional property
            case PROP_DESCRIPTION:
            characterstring_init_ansi(&char_string,"optional description");
-           apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+           apdu_len = encode_application_character_string(&apdu[0], &char_string);
            break;
          */
     case PROP_PRESENT_VALUE:
         enumeration = Load_Control_Present_Value(object_instance);
-        apdu_len = encode_tagged_enumerated(&apdu[0], enumeration);
+        apdu_len = encode_application_enumerated(&apdu[0], enumeration);
         break;
     case PROP_STATUS_FLAGS:
         bitstring_init(&bit_string);
@@ -735,10 +735,10 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
         /* OUT_OF_SERVICE - This bit shall always be Logical FALSE (0). */
         bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
-        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
+        apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_EVENT_STATE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+        apdu_len = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_REQUESTED_SHED_LEVEL:
         switch (Requested_Shed_Level[object_index].type) {
@@ -758,26 +758,26 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
         }
         break;
     case PROP_START_TIME:
-        len = encode_tagged_date(&apdu[0], &Start_Time[object_index].date);
+        len = encode_application_date(&apdu[0], &Start_Time[object_index].date);
         apdu_len = len;
-        len = encode_tagged_time(&apdu[apdu_len],
+        len = encode_application_time(&apdu[apdu_len],
             &Start_Time[object_index].time);
         apdu_len += len;
         break;
     case PROP_SHED_DURATION:
-        apdu_len = encode_tagged_unsigned(&apdu[0],
+        apdu_len = encode_application_unsigned(&apdu[0],
             Shed_Duration[object_index]);
         break;
     case PROP_DUTY_WINDOW:
-        apdu_len = encode_tagged_unsigned(&apdu[0],
+        apdu_len = encode_application_unsigned(&apdu[0],
             Duty_Window[object_index]);
         break;
     case PROP_ENABLE:
         state = Load_Control_Enable[object_index];
-        apdu_len = encode_tagged_boolean(&apdu[0], state);
+        apdu_len = encode_application_boolean(&apdu[0], state);
         break;
     case PROP_FULL_DUTY_BASELINE:      /* optional */
-        apdu_len = encode_tagged_real(&apdu[0],
+        apdu_len = encode_application_real(&apdu[0],
             Full_Duty_Baseline[object_index]);
         break;
     case PROP_EXPECTED_SHED_LEVEL:
@@ -817,7 +817,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
     case PROP_SHED_LEVELS:
         /* Array element zero is the number of elements in the array */
         if (array_index == 0)
-            apdu_len = encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
+            apdu_len = encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
@@ -825,7 +825,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
             for (i = 0; i < MAX_SHED_LEVELS; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
                 len =
-                    encode_tagged_unsigned(&apdu[apdu_len],
+                    encode_application_unsigned(&apdu[apdu_len],
                     Shed_Levels[object_index][i]);
                 /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
@@ -839,7 +839,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
             }
         } else {
             if (array_index <= MAX_SHED_LEVELS) {
-                apdu_len = encode_tagged_unsigned(&apdu[0],
+                apdu_len = encode_application_unsigned(&apdu[0],
                     Shed_Levels[object_index][array_index - 1]);
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -851,7 +851,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
     case PROP_SHED_LEVEL_DESCRIPTIONS:
         /* Array element zero is the number of elements in the array */
         if (array_index == 0)
-            apdu_len = encode_tagged_unsigned(&apdu[0], MAX_SHED_LEVELS);
+            apdu_len = encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
@@ -860,7 +860,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
                 /* FIXME: check if we have room before adding it to APDU */
                 characterstring_init_ansi(&char_string,
                     Shed_Level_Descriptions[i]);
-                len = encode_tagged_character_string(&apdu[apdu_len],
+                len = encode_application_character_string(&apdu[apdu_len],
                     &char_string);
                 /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
@@ -876,7 +876,7 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
             if (array_index <= MAX_SHED_LEVELS) {
                 characterstring_init_ansi(&char_string,
                     Shed_Level_Descriptions[array_index - 1]);
-                apdu_len = encode_tagged_character_string(&apdu[0],
+                apdu_len = encode_application_character_string(&apdu[0],
                     &char_string);
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;

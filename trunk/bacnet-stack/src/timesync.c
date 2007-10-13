@@ -50,9 +50,9 @@ int timesync_encode_apdu_service(uint8_t * apdu,
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = service;
         apdu_len = 2;
-        len = encode_tagged_date(&apdu[apdu_len], my_date);
+        len = encode_application_date(&apdu[apdu_len], my_date);
         apdu_len += len;
-        len = encode_tagged_time(&apdu[apdu_len], my_time);
+        len = encode_application_time(&apdu[apdu_len], my_time);
         apdu_len += len;
     }
 

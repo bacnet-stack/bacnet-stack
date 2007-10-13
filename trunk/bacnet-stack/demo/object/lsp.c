@@ -209,22 +209,22 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
         apdu_len =
-            encode_tagged_object_id(&apdu[0], OBJECT_LIFE_SAFETY_POINT,
+            encode_application_object_id(&apdu[0], OBJECT_LIFE_SAFETY_POINT,
             object_instance);
         break;
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string,
             Life_Safety_Point_Name(object_instance));
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
         apdu_len =
-            encode_tagged_enumerated(&apdu[0], OBJECT_LIFE_SAFETY_POINT);
+            encode_application_enumerated(&apdu[0], OBJECT_LIFE_SAFETY_POINT);
         break;
     case PROP_PRESENT_VALUE:
         present_value = Life_Safety_Point_Present_Value(object_instance);
-        apdu_len = encode_tagged_enumerated(&apdu[0], present_value);
+        apdu_len = encode_application_enumerated(&apdu[0], present_value);
         break;
     case PROP_STATUS_FLAGS:
         bitstring_init(&bit_string);
@@ -232,32 +232,32 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
         bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
         bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
-        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
+        apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_EVENT_STATE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+        apdu_len = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
         object_index =
             Life_Safety_Point_Instance_To_Index(object_instance);
         state = Life_Safety_Point_Out_Of_Service[object_index];
-        apdu_len = encode_tagged_boolean(&apdu[0], state);
+        apdu_len = encode_application_boolean(&apdu[0], state);
         break;
     case PROP_RELIABILITY:
         /* see standard for details about this property */
         reliability = RELIABILITY_NO_FAULT_DETECTED;
-        apdu_len = encode_tagged_enumerated(&apdu[0], reliability);
+        apdu_len = encode_application_enumerated(&apdu[0], reliability);
         break;
     case PROP_MODE:
         object_index =
             Life_Safety_Point_Instance_To_Index(object_instance);
         mode = Life_Safety_Point_Mode[object_index];
-        apdu_len = encode_tagged_enumerated(&apdu[0], mode);
+        apdu_len = encode_application_enumerated(&apdu[0], mode);
         break;
     case PROP_ACCEPTED_MODES:
         for (mode = MIN_LIFE_SAFETY_MODE; mode < MAX_LIFE_SAFETY_MODE;
             mode++) {
-            len = encode_tagged_enumerated(&apdu[apdu_len], mode);
+            len = encode_application_enumerated(&apdu[apdu_len], mode);
             apdu_len += len;
         }
         break;
@@ -265,13 +265,13 @@ int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
         object_index =
             Life_Safety_Point_Instance_To_Index(object_instance);
         silenced_state = Life_Safety_Point_Silenced_State[object_index];
-        apdu_len = encode_tagged_enumerated(&apdu[0], silenced_state);
+        apdu_len = encode_application_enumerated(&apdu[0], silenced_state);
         break;
     case PROP_OPERATION_EXPECTED:
         object_index =
             Life_Safety_Point_Instance_To_Index(object_instance);
         operation = Life_Safety_Point_Operation[object_index];
-        apdu_len = encode_tagged_enumerated(&apdu[0], operation);
+        apdu_len = encode_application_enumerated(&apdu[0], operation);
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;

@@ -372,7 +372,7 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
     Lighting_Output_Init();
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_LIGHTING_OUTPUT,
+        apdu_len = encode_application_object_id(&apdu[0], OBJECT_LIGHTING_OUTPUT,
             object_instance);
         break;
     case PROP_OBJECT_NAME:
@@ -381,19 +381,19 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
         /* FIXME: description could be writable and different than object name */
         characterstring_init_ansi(&char_string,
             Lighting_Output_Name(object_instance));
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
         apdu_len =
-            encode_tagged_enumerated(&apdu[0], OBJECT_LIGHTING_OUTPUT);
+            encode_application_enumerated(&apdu[0], OBJECT_LIGHTING_OUTPUT);
         break;
     case PROP_PRESENT_VALUE:
         real_value = Lighting_Output_Present_Value(object_instance);
-        apdu_len = encode_tagged_real(&apdu[0], real_value);
+        apdu_len = encode_application_real(&apdu[0], real_value);
         break;
     case PROP_PROGRESS_VALUE:
         real_value = Lighting_Output_Progress_Value(object_instance);
-        apdu_len = encode_tagged_real(&apdu[0], real_value);
+        apdu_len = encode_application_real(&apdu[0], real_value);
         break;
     case PROP_LIGHTING_COMMAND:
         apdu_len = Lighting_Output_Encode_Lighting_Command(&apdu[0],
@@ -405,24 +405,24 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
         bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
         bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
-        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
+        apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_EVENT_STATE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+        apdu_len = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
         break;
     case PROP_OUT_OF_SERVICE:
         object_index = Lighting_Output_Instance_To_Index(object_instance);
         state = Lighting_Output_Out_Of_Service[object_index];
-        apdu_len = encode_tagged_boolean(&apdu[0], state);
+        apdu_len = encode_application_boolean(&apdu[0], state);
         break;
     case PROP_UNITS:
-        apdu_len = encode_tagged_enumerated(&apdu[0], UNITS_PERCENT);
+        apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
         break;
     case PROP_PRIORITY_ARRAY:
         /* Array element zero is the number of elements in the array */
         if (array_index == 0)
             apdu_len =
-                encode_tagged_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
+                encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         else if (array_index == BACNET_ARRAY_ALL) {
@@ -431,10 +431,10 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
             for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                 /* FIXME: check if we have room before adding it to APDU */
                 if (Lighting_Output_Level[object_index][i] == LIGHTING_LEVEL_NULL)
-                    len = encode_tagged_null(&apdu[apdu_len]);
+                    len = encode_application_null(&apdu[apdu_len]);
                 else {
                     real_value = Lighting_Output_Level[object_index][i];
-                    len = encode_tagged_real(&apdu[apdu_len], real_value);
+                    len = encode_application_real(&apdu[apdu_len], real_value);
                 }
                 /* add it if we have room */
                 if ((apdu_len + len) < MAX_APDU)
@@ -452,11 +452,11 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
             if (array_index <= BACNET_MAX_PRIORITY) {
                 if (Lighting_Output_Level[object_index][array_index - 1] ==
                     LIGHTING_LEVEL_NULL)
-                    apdu_len = encode_tagged_null(&apdu[0]);
+                    apdu_len = encode_application_null(&apdu[0]);
                 else {
                     real_value =
                         Lighting_Output_Level[object_index][array_index - 1];
-                    apdu_len = encode_tagged_real(&apdu[0], real_value);
+                    apdu_len = encode_application_real(&apdu[0], real_value);
                 }
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -468,7 +468,7 @@ int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_RELINQUISH_DEFAULT:
         real_value = LIGHTING_RELINQUISH_DEFAULT;
-        apdu_len = encode_tagged_real(&apdu[0], real_value);
+        apdu_len = encode_application_real(&apdu[0], real_value);
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;
