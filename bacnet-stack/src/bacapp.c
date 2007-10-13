@@ -56,50 +56,50 @@ int bacapp_encode_application_data(uint8_t * apdu,
             apdu_len++;
             break;
         case BACNET_APPLICATION_TAG_BOOLEAN:
-            apdu_len = encode_tagged_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(&apdu[0],
                 value->type.Boolean);
             break;
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            apdu_len = encode_tagged_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(&apdu[0],
                 value->type.Unsigned_Int);
             break;
         case BACNET_APPLICATION_TAG_SIGNED_INT:
-            apdu_len = encode_tagged_signed(&apdu[0],
+            apdu_len = encode_application_signed(&apdu[0],
                 value->type.Signed_Int);
             break;
         case BACNET_APPLICATION_TAG_REAL:
-            apdu_len = encode_tagged_real(&apdu[0], value->type.Real);
+            apdu_len = encode_application_real(&apdu[0], value->type.Real);
             break;
         case BACNET_APPLICATION_TAG_ENUMERATED:
-            apdu_len = encode_tagged_enumerated(&apdu[0],
+            apdu_len = encode_application_enumerated(&apdu[0],
                 value->type.Enumerated);
             break;
         case BACNET_APPLICATION_TAG_DATE:
-            apdu_len = encode_tagged_date(&apdu[0], &value->type.Date);
+            apdu_len = encode_application_date(&apdu[0], &value->type.Date);
             break;
         case BACNET_APPLICATION_TAG_TIME:
-            apdu_len = encode_tagged_time(&apdu[0], &value->type.Time);
+            apdu_len = encode_application_time(&apdu[0], &value->type.Time);
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            apdu_len = encode_tagged_object_id(&apdu[0],
+            apdu_len = encode_application_object_id(&apdu[0],
                 value->type.Object_Id.type,
                 value->type.Object_Id.instance);
             break;
         case BACNET_APPLICATION_TAG_OCTET_STRING:
-            apdu_len = encode_tagged_octet_string(&apdu[0],
+            apdu_len = encode_application_octet_string(&apdu[0],
                 &value->type.Octet_String);
             break;
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-            apdu_len = encode_tagged_character_string(&apdu[0],
+            apdu_len = encode_application_character_string(&apdu[0],
                 &value->type.Character_String);
             break;
         case BACNET_APPLICATION_TAG_BIT_STRING:
-            apdu_len = encode_tagged_bitstring(&apdu[0],
+            apdu_len = encode_application_bitstring(&apdu[0],
                 &value->type.Bit_String);
             break;
         case BACNET_APPLICATION_TAG_DOUBLE:
             /* FIXME: double is not implemented yet.
-               apdu_len = encode_tagged_double(&apdu[0],
+               apdu_len = encode_application_double(&apdu[0],
                value->type.Double);
              */
         default:
@@ -797,7 +797,7 @@ void testBACnetApplicationDataLength(Test * pTest)
     apdu_len = 0;
     len = encode_opening_tag(&apdu[apdu_len], 3);
     apdu_len += len;
-    len = encode_tagged_unsigned(&apdu[apdu_len], 4194303);
+    len = encode_application_unsigned(&apdu[apdu_len], 4194303);
     test_len += len;
     apdu_len += len;
     len = encode_closing_tag(&apdu[apdu_len], 3);
@@ -811,52 +811,52 @@ void testBACnetApplicationDataLength(Test * pTest)
     apdu_len = 0;
     len = encode_opening_tag(&apdu[apdu_len], 3);
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_unsigned(&apdu[apdu_len], 1);
+    len = encode_application_unsigned(&apdu[apdu_len], 1);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_unsigned(&apdu[apdu_len], 42);
+    len = encode_application_unsigned(&apdu[apdu_len], 42);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_unsigned(&apdu[apdu_len], 91);
+    len = encode_application_unsigned(&apdu[apdu_len], 91);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
-    len = encode_tagged_null(&apdu[apdu_len]);
+    len = encode_application_null(&apdu[apdu_len]);
     test_len += len;
     apdu_len += len;
     len = encode_closing_tag(&apdu[apdu_len], 3);
@@ -877,14 +877,14 @@ void testBACnetApplicationDataLength(Test * pTest)
     local_date.month = 4;       /* 1=Jan */
     local_date.day = 1;         /* 1..31 */
     local_date.wday = 6;        /* 1=Monday */
-    len = encode_tagged_date(&apdu[apdu_len], &local_date);
+    len = encode_application_date(&apdu[apdu_len], &local_date);
     test_len += len;
     apdu_len += len;
     local_time.hour = 7;
     local_time.min = 0;
     local_time.sec = 3;
     local_time.hundredths = 1;
-    len = encode_tagged_time(&apdu[apdu_len], &local_time);
+    len = encode_application_time(&apdu[apdu_len], &local_time);
     test_len += len;
     apdu_len += len;
     len = encode_closing_tag(&apdu[apdu_len], 3);

@@ -20,10 +20,10 @@ BACNET_FLAGS += -DCRC_USE_TABLE
 #BACNET_FLAGS += -DDLMSTP_TEST
 
 BACNET_CORE = ../../src
+BACNET_DEMO = ../../demo
+BACNET_INCLUDE = ../../include
 INCLUDES = -I. 
-INCLUDES += -I$(BACNET_CORE) 
-INCLUDES += -I$(BACNET_CORE)/demo/handler 
-INCLUDES += -I$(BACNET_CORE)/demo/object
+INCLUDES += -I$(BACNET_INCLUDE) 
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
 CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -Wall -g
@@ -54,10 +54,10 @@ DEMOSRC = ai.c \
 	h_rp.c \
 	h_wp.c \
 	device.c \
-	$(BACNET_CORE)/demo/handler/txbuf.c \
-	$(BACNET_CORE)/demo/handler/h_whois.c \
-	$(BACNET_CORE)/demo/handler/h_rd.c \
-	$(BACNET_CORE)/demo/handler/h_dcc.c
+	$(BACNET_DEMO)/handler/txbuf.c \
+	$(BACNET_DEMO)/handler/h_whois.c \
+	$(BACNET_DEMO)/handler/h_rd.c \
+	$(BACNET_DEMO)/handler/h_dcc.c
 
 CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/bacint.c \

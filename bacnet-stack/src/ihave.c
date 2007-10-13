@@ -47,15 +47,15 @@ int ihave_encode_apdu(uint8_t * apdu, BACNET_I_HAVE_DATA * data)
         apdu[1] = SERVICE_UNCONFIRMED_I_HAVE;
         apdu_len = 2;
         /* deviceIdentifier */
-        len = encode_tagged_object_id(&apdu[apdu_len],
+        len = encode_application_object_id(&apdu[apdu_len],
             data->device_id.type, data->device_id.instance);
         apdu_len += len;
         /* objectIdentifier */
-        len = encode_tagged_object_id(&apdu[apdu_len],
+        len = encode_application_object_id(&apdu[apdu_len],
             data->object_id.type, data->object_id.instance);
         apdu_len += len;
         /* objectName */
-        len = encode_tagged_character_string(&apdu[apdu_len],
+        len = encode_application_character_string(&apdu[apdu_len],
             &data->object_name);
         apdu_len += len;
     }

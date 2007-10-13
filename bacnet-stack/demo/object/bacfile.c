@@ -193,28 +193,28 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
     (void) array_index;
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0],
+        apdu_len = encode_application_object_id(&apdu[0],
             OBJECT_FILE, object_instance);
         break;
     case PROP_OBJECT_NAME:
         sprintf(text_string, "FILE %d", object_instance);
         characterstring_init_ansi(&char_string, text_string);
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_FILE);
+        apdu_len = encode_application_enumerated(&apdu[0], OBJECT_FILE);
         break;
     case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string,
             bacfile_name(object_instance));
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_FILE_TYPE:
         characterstring_init_ansi(&char_string, "TEXT");
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_FILE_SIZE:
-        apdu_len = encode_tagged_unsigned(&apdu[0],
+        apdu_len = encode_application_unsigned(&apdu[0],
             bacfile_file_size(object_instance));
         break;
     case PROP_MODIFICATION_DATE:
@@ -223,13 +223,13 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
         bdate.month = 4;        /* 1=Jan */
         bdate.day = 1;          /* 1..31 */
         bdate.wday = 6;         /* 1=Monday */
-        apdu_len = encode_tagged_date(&apdu[0], &bdate);
+        apdu_len = encode_application_date(&apdu[0], &bdate);
         /* FIXME: get the actual value */
         btime.hour = 7;
         btime.min = 0;
         btime.sec = 3;
         btime.hundredths = 1;
-        apdu_len += encode_tagged_time(&apdu[apdu_len], &btime);
+        apdu_len += encode_application_time(&apdu[apdu_len], &btime);
         break;
     case PROP_ARCHIVE:
         /* 12.13.8 Archive
@@ -240,14 +240,14 @@ int bacfile_encode_property_apdu(uint8_t * apdu,
            Access Services since the last time the object was archived.
          */
         /* FIXME: get the actual value: note it may be inverse... */
-        apdu_len = encode_tagged_boolean(&apdu[0], true);
+        apdu_len = encode_application_boolean(&apdu[0], true);
         break;
     case PROP_READ_ONLY:
         /* FIXME: get the actual value */
-        apdu_len = encode_tagged_boolean(&apdu[0], true);
+        apdu_len = encode_application_boolean(&apdu[0], true);
         break;
     case PROP_FILE_ACCESS_METHOD:
-        apdu_len = encode_tagged_enumerated(&apdu[0], FILE_STREAM_ACCESS);
+        apdu_len = encode_application_enumerated(&apdu[0], FILE_STREAM_ACCESS);
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;

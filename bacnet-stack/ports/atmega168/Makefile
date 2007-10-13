@@ -15,6 +15,8 @@ SIZE = avr-size
 
 # Source locations
 BACNET_CORE = ../../src
+BACNET_INCLUDE = ../../include
+BACNET_DEMO = ../../demo
 
 CSRC = main.c \
 	timer.c \
@@ -26,10 +28,10 @@ DEMOSRC = h_rp.c \
 	h_wp.c \
 	device.c \
 	ai.c \
-	$(BACNET_CORE)/demo/handler/txbuf.c \
-	$(BACNET_CORE)/demo/handler/h_whois.c \
-	$(BACNET_CORE)/demo/handler/h_rd.c \
-	$(BACNET_CORE)/demo/handler/h_dcc.c
+	$(BACNET_DEMO)/handler/txbuf.c \
+	$(BACNET_DEMO)/handler/h_whois.c \
+	$(BACNET_DEMO)/handler/h_rd.c \
+	$(BACNET_DEMO)/handler/h_dcc.c
 
 CORESRC =  \
 	$(BACNET_CORE)/apdu.c \
@@ -68,7 +70,7 @@ CORESRC =  \
 	$(BACNET_CORE)/version.c
 
 ## Include Directories
-INCLUDES = -I. -I../.. -I../../demo/object -I../../demo/handler
+INCLUDES = -I. -I$(BACNET_INCLUDE)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)

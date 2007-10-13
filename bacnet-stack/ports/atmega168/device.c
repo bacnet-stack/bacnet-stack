@@ -264,59 +264,59 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     /* FIXME: change the hardcoded names to suit your application */
     switch (property) {
     case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_tagged_object_id(&apdu[0], OBJECT_DEVICE,
+        apdu_len = encode_application_object_id(&apdu[0], OBJECT_DEVICE,
             Object_Instance_Number);
         break;
     case PROP_OBJECT_NAME:
         characterstring_init_ansi(&char_string, Object_Name);
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
-        apdu_len = encode_tagged_enumerated(&apdu[0], OBJECT_DEVICE);
+        apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
         break;
     case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string, "BACnet Demo");
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_SYSTEM_STATUS:
         apdu_len =
-            encode_tagged_enumerated(&apdu[0], Device_System_Status());
+            encode_application_enumerated(&apdu[0], Device_System_Status());
         break;
     case PROP_VENDOR_NAME:
         characterstring_init_ansi(&char_string, BACNET_VENDOR_NAME);
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_VENDOR_IDENTIFIER:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0], Device_Vendor_Identifier());
+            encode_application_unsigned(&apdu[0], Device_Vendor_Identifier());
         break;
     case PROP_MODEL_NAME:
         characterstring_init_ansi(&char_string, "GNU Demo");
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_FIRMWARE_REVISION:
         characterstring_init_ansi(&char_string, BACnet_Version);
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_APPLICATION_SOFTWARE_VERSION:
         characterstring_init_ansi(&char_string, "1.0");
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_LOCATION:
         characterstring_init_ansi(&char_string, "USA");
-        apdu_len = encode_tagged_character_string(&apdu[0], &char_string);
+        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_PROTOCOL_VERSION:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0], Device_Protocol_Version());
+            encode_application_unsigned(&apdu[0], Device_Protocol_Version());
         break;
     case PROP_PROTOCOL_REVISION:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0], Device_Protocol_Revision());
+            encode_application_unsigned(&apdu[0], Device_Protocol_Revision());
         break;
         /* BACnet Legacy Support */
     case PROP_PROTOCOL_CONFORMANCE_CLASS:
-        apdu_len = encode_tagged_unsigned(&apdu[0], 1);
+        apdu_len = encode_application_unsigned(&apdu[0], 1);
         break;
     case PROP_PROTOCOL_SERVICES_SUPPORTED:
         /* Note: list of services that are executed, not initiated. */
@@ -326,7 +326,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             bitstring_set_bit(&bit_string, (uint8_t) i,
                 apdu_service_supported(i));
         }
-        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
+        apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
         /* Note: this is the list of objects that can be in this device,
@@ -345,13 +345,13 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
         bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
 #endif
-        apdu_len = encode_tagged_bitstring(&apdu[0], &bit_string);
+        apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
         break;
     case PROP_OBJECT_LIST:
         count = Device_Object_List_Count();
         /* Array element zero is the number of objects in the list */
         if (array_index == 0)
-            apdu_len = encode_tagged_unsigned(&apdu[0], count);
+            apdu_len = encode_application_unsigned(&apdu[0], count);
         /* if no index was specified, then try to encode the entire list */
         /* into one packet.  Note that more than likely you will have */
         /* to return an error if the number of encoded objects exceeds */
@@ -361,7 +361,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
                 if (Device_Object_List_Identifier(i, &object_type,
                         &instance)) {
                     len =
-                        encode_tagged_object_id(&apdu[apdu_len],
+                        encode_application_object_id(&apdu[apdu_len],
                         object_type, instance);
                     apdu_len += len;
                     /* assume next one is the same size as this one */
@@ -384,7 +384,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             if (Device_Object_List_Identifier(array_index, &object_type,
                     &instance))
                 apdu_len =
-                    encode_tagged_object_id(&apdu[0], object_type,
+                    encode_application_object_id(&apdu[0], object_type,
                     instance);
             else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -394,19 +394,19 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         }
         break;
     case PROP_MAX_APDU_LENGTH_ACCEPTED:
-        apdu_len = encode_tagged_unsigned(&apdu[0],
+        apdu_len = encode_application_unsigned(&apdu[0],
             Device_Max_APDU_Length_Accepted());
         break;
     case PROP_SEGMENTATION_SUPPORTED:
-        apdu_len = encode_tagged_enumerated(&apdu[0],
+        apdu_len = encode_application_enumerated(&apdu[0],
             Device_Segmentation_Supported());
         break;
     case PROP_APDU_TIMEOUT:
-        apdu_len = encode_tagged_unsigned(&apdu[0], Device_APDU_Timeout());
+        apdu_len = encode_application_unsigned(&apdu[0], Device_APDU_Timeout());
         break;
     case PROP_NUMBER_OF_APDU_RETRIES:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0],
+            encode_application_unsigned(&apdu[0],
             Device_Number_Of_APDU_Retries());
         break;
     case PROP_DEVICE_ADDRESS_BINDING:
@@ -414,14 +414,14 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_DATABASE_REVISION:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0], Device_Database_Revision());
+            encode_application_unsigned(&apdu[0], Device_Database_Revision());
         break;
     case PROP_MAX_INFO_FRAMES:
         apdu_len =
-            encode_tagged_unsigned(&apdu[0], dlmstp_max_info_frames());
+            encode_application_unsigned(&apdu[0], dlmstp_max_info_frames());
         break;
     case PROP_MAX_MASTER:
-        apdu_len = encode_tagged_unsigned(&apdu[0], dlmstp_max_master());
+        apdu_len = encode_application_unsigned(&apdu[0], dlmstp_max_master());
         break;
     case PROP_LOCAL_TIME:
         /* FIXME: if you support time */
@@ -429,11 +429,11 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         local_time.min = 0;
         local_time.sec = 0;
         local_time.hundredths = 0;
-        apdu_len = encode_tagged_time(&apdu[0], &local_time);
+        apdu_len = encode_application_time(&apdu[0], &local_time);
         break;
     case PROP_UTC_OFFSET:
         /* Note: BACnet Time Zone is inverse of everybody else */
-        apdu_len = encode_tagged_signed(&apdu[0], 5 /* EST */ );
+        apdu_len = encode_application_signed(&apdu[0], 5 /* EST */ );
         break;
     case PROP_LOCAL_DATE:
         /* FIXME: if you support date */
@@ -441,14 +441,14 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         local_date.month = 4;   /* Jan=1..Dec=12 */
         local_date.day = 11;    /* 1..31 */
         local_date.wday = 0;    /* 1=Mon..7=Sun */
-        apdu_len = encode_tagged_date(&apdu[0], &local_date);
+        apdu_len = encode_application_date(&apdu[0], &local_date);
         break;
     case PROP_DAYLIGHT_SAVINGS_STATUS:
         /* FIXME: if you support time/date */
-        apdu_len = encode_tagged_boolean(&apdu[0], false);
+        apdu_len = encode_application_boolean(&apdu[0], false);
         break;
     case 9600:
-        apdu_len = encode_tagged_unsigned(&apdu[0], RS485_Get_Baud_Rate());
+        apdu_len = encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());
         break;
     default:
         *error_class = ERROR_CLASS_PROPERTY;
