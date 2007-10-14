@@ -43,18 +43,6 @@ static uint8_t LED3_Off_Timer;
 
 /* baud rate */
 static uint32_t RS485_Baud = 9600;
-/* autobaud - switch baud on errors if autobaud is true */
-static bool RS485_Autobaud = true;
-/* we saw some data, so we are on an active wire */
-static uint8_t RS485_Data_Count;
-/* count of errors before autobaud switching */
-static uint8_t RS485_Error_Count;
-/* time limit */
-#define RS485_ERROR_TIMEOUT 1000
-/* millisecond timer to limit error window */
-static uint16_t RS485_Error_Timer = RS485_ERROR_TIMEOUT;
-/* number of errors in 1000ms before autobaud switching */
-#define RS485_ERROR_LIMIT 30
 
 /* The minimum time after the end of the stop bit of the final octet of a */
 /* received frame before a node may enable its EIA-485 driver: 40 bit times. */
@@ -153,34 +141,6 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     return valid;
 }
 
-void RS485_Next_Baud_Rate(void)
-{
-    uint32_t baud;
-
-    switch (RS485_Baud) {
-        case 9600:
-            baud = 19200;
-            break;
-        case 19200:
-            baud = 38400;
-            break;
-        case 38400:
-            baud = 57600;
-            break;
-        case 57600:
-            baud = 76800;
-            break;
-        case 76800:
-            baud = 115200;
-            break;
-        case 115200:
-        default:
-            baud = 9600;
-            break;
-    }
-    RS485_Set_Baud_Rate(baud);
-}
-
 /****************************************************************************
 * DESCRIPTION: Waits on the SilenceTimer for 40 bits.
 * RETURN:      none
@@ -240,9 +200,6 @@ void RS485_LED_Timers(void)
         if (LED3_Off_Timer == 0) {
             BIT_SET(PORTD,PD7);
         }
-    }
-    if (RS485_Error_Timer) {
-        RS485_Error_Timer--;
     }
 }
 
@@ -328,34 +285,6 @@ bool RS485_ReceiveError(void)
         do {
             dummy_data = UDR0;
         } while (BIT_CHECK(UCSR0A,RXC0));
-        /* count errors during autobaud */
-        if (RS485_Error_Count < RS485_ERROR_LIMIT) {
-            RS485_Error_Count++;
-        } else {
-            if (RS485_Autobaud && RS485_Error_Timer) {
-                /* We are in autobaud mode, and there were excessive 
-                   errors while the timer was counting down */
-                RS485_Next_Baud_Rate();
-                RS485_Error_Timer = RS485_ERROR_TIMEOUT;
-                RS485_Error_Count = 0;
-            } else if (RS485_Autobaud) {
-                /* autobaud, but timer expired */
-                RS485_Autobaud = false;
-            }
-        }
-    } else {
-       if (RS485_Autobaud) {
-           if ((RS485_Error_Timer == 0) && (RS485_Error_Count == 0)) {
-               if (RS485_Data_Count > 8) {
-                   /* no errors, timer expired, and we saw data */
-                   RS485_Autobaud = false;
-               } else {
-                   /* no errors, timer expired, and no data*/
-                   RS485_Error_Timer = RS485_ERROR_TIMEOUT;
-               }
-           }
-       }
-
     }
     
     return ReceiveError;
@@ -376,8 +305,6 @@ bool RS485_DataAvailable(uint8_t *data)
         *data = UDR0;
         DataAvailable = true;
         RS485_LED1_On();
-        if (RS485_Data_Count < 0xFF)
-            RS485_Data_Count++;
     }
 
     return DataAvailable;

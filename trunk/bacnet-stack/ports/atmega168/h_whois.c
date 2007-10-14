@@ -37,6 +37,8 @@
 #include "client.h"
 #include "txbuf.h"
 
+bool Send_I_Am = true;
+
 void handler_who_is(uint8_t * service_request,
     uint16_t service_len, BACNET_ADDRESS * src)
 {
@@ -56,8 +58,9 @@ void handler_who_is(uint8_t * service_request,
             ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-            iam_send(&Handler_Transmit_Buffer[0]);
+                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit))) {
+            Send_I_Am = true;
+        }
     }
 
     return;

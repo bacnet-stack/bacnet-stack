@@ -22,16 +22,16 @@ CSRC = main.c \
 	timer.c \
 	rs485.c \
 	dlmstp.c \
+	apdu.c \
 	$(BACNET_CORE)/crc.c
 
 DEMOSRC = h_rp.c \
-	h_wp.c \
 	device.c \
 	ai.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
-	$(BACNET_DEMO)/handler/h_whois.c \
-	$(BACNET_DEMO)/handler/h_rd.c \
-	$(BACNET_DEMO)/handler/h_dcc.c
+	$(BACNET_DEMO)/handler/noserv.c \
+	h_whois.c
+#	h_wp.c \
 
 CORESRC =  \
 	$(BACNET_CORE)/apdu.c \
@@ -42,35 +42,36 @@ CORESRC =  \
 	$(BACNET_CORE)/bacdcode/bitstring.c \
 	$(BACNET_CORE)/bacdcode/octetstring.c \
 	$(BACNET_CORE)/bacdcode/characterstring.c \
-	$(BACNET_CORE)/bacapp.c \
-	$(BACNET_CORE)/bacprop.c \
-	$(BACNET_CORE)/bactext.c \
-	$(BACNET_CORE)/datetime.c \
-	$(BACNET_CORE)/indtext.c \
-	$(BACNET_CORE)/bigend.c \
-	$(BACNET_CORE)/arf.c \
-	$(BACNET_CORE)/awf.c \
-	$(BACNET_CORE)/cov.c \
-	$(BACNET_CORE)/dcc.c \
-	$(BACNET_CORE)/iam/iam_client.c \
 	$(BACNET_CORE)/iam/iam_server.c \
 	$(BACNET_CORE)/iam/iam_send.c \
-	$(BACNET_CORE)/ihave.c \
-	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/rp.c \
-	$(BACNET_CORE)/rpm.c \
-	$(BACNET_CORE)/timesync.c \
-	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/wp.c \
+	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
-	$(BACNET_CORE)/filename.c \
-	$(BACNET_CORE)/tsm.c \
-	$(BACNET_CORE)/bacaddr.c \
-	$(BACNET_CORE)/address.c \
 	$(BACNET_CORE)/version.c
+
+#	$(BACNET_CORE)/bacapp.c \
+#	$(BACNET_CORE)/bacprop.c \
+#	$(BACNET_CORE)/bactext.c \
+#	$(BACNET_CORE)/datetime.c \
+#	$(BACNET_CORE)/indtext.c \
+#	$(BACNET_CORE)/bigend.c \
+#	$(BACNET_CORE)/arf.c \
+#	$(BACNET_CORE)/awf.c \
+#	$(BACNET_CORE)/cov.c \
+#	$(BACNET_CORE)/dcc.c \
+#	$(BACNET_CORE)/iam/iam_client.c \
+#	$(BACNET_CORE)/ihave.c \
+#	$(BACNET_CORE)/rd.c \
+#	$(BACNET_CORE)/rpm.c \
+#	$(BACNET_CORE)/timesync.c \
+#	$(BACNET_CORE)/whohas.c \
+#	$(BACNET_CORE)/wp.c \
+#	$(BACNET_CORE)/filename.c \
+#	$(BACNET_CORE)/tsm.c \
+#	$(BACNET_CORE)/address.c \
 
 ## Include Directories
 INCLUDES = -I. -I$(BACNET_INCLUDE)
@@ -116,8 +117,8 @@ HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 ## Objects that must be built in order to link
-#OBJECTS = $(COBJ) $(DEMOOBJ)
-OBJECTS = $(COBJ)
+OBJECTS = $(COBJ) $(DEMOOBJ)
+#OBJECTS = $(COBJ)
 
 ## Build
 TARGET_ELF=$(TARGET).elf
