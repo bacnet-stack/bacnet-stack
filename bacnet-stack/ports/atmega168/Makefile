@@ -44,7 +44,7 @@ CORESRC =  \
 	$(BACNET_CORE)/bacdcode/characterstring.c \
 	$(BACNET_CORE)/iam/iam_server.c \
 	$(BACNET_CORE)/iam/iam_send.c \
-	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/readprop/rp_server.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/abort.c \

@@ -48,7 +48,8 @@ CORE_SRC = \
 	$(BACNET_CORE)/iam/iam_send.c \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/rd.c \
-	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/readprop/rp_server.c \
+	$(BACNET_CORE)/readprop/rp_client.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/timesync.c \
 	$(BACNET_CORE)/whohas.c \
