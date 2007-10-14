@@ -53,19 +53,10 @@ static uint32_t Object_Instance_Number = 12345;
 static char Object_Name[32] = "ATmega Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
-    REINITIALIZED_STATE_IDLE;
-
-void Device_Reinit(void)
-{
-    dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-}
-
 void Device_Init(void)
 {
-    Reinitialize_State = REINITIALIZED_STATE_IDLE;
-    dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+    /* Reinitialize_State = REINITIALIZED_STATE_IDLE; */
+    /* dcc_set_status_duration(COMMUNICATION_ENABLE, 0); */
     /* FIXME: Get the data from the eeprom */
     /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS,
        (char *)&Object_Instance_Number,
@@ -79,6 +70,7 @@ uint32_t Device_Object_Instance_Number(void)
     return Object_Instance_Number;
 }
 
+#if 0
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
     bool status = true;         /* return value */
@@ -96,23 +88,13 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
 
     return status;
 }
+#endif
 
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
     /* BACnet allows for a wildcard instance number */
     return ((Object_Instance_Number == object_id) ||
         (object_id == BACNET_MAX_INSTANCE));
-}
-
-BACNET_DEVICE_STATUS Device_System_Status(void)
-{
-    return System_Status;
-}
-
-void Device_Set_System_Status(BACNET_DEVICE_STATUS status)
-{
-    if (status < MAX_DEVICE_STATUS)
-        System_Status = status;
 }
 
 uint16_t Device_Vendor_Identifier(void)
@@ -280,7 +262,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_SYSTEM_STATUS:
         apdu_len =
-            encode_application_enumerated(&apdu[0], Device_System_Status());
+            encode_application_enumerated(&apdu[0], System_Status);
         break;
     case PROP_VENDOR_NAME:
         characterstring_init_ansi(&char_string, BACNET_VENDOR_NAME);
@@ -460,6 +442,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     return apdu_len;
 }
 
+#if 0
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
 {
@@ -574,3 +557,4 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 
     return status;
 }
+#endif

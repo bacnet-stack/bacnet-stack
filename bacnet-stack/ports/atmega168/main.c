@@ -36,12 +36,13 @@
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
-/* Notice: Fuse Bit Settings
+/* broadcast an I-Am on startup */
+extern bool Send_I_Am;
 
-    
-
- */
-
+/* dummy function */
+bool dcc_communication_enabled(void) {
+    return true;
+}
 
 void init(void)
 {
@@ -143,17 +144,6 @@ void input_switch_read(void)
     }
 }
 
-#if defined(TEST_MSTP)
-void apdu_handler(BACNET_ADDRESS * src,     /* source address */
-        uint8_t * apdu,         /* APDU data */
-        uint16_t pdu_len)      /* for confirmed messages */
-{
-    (void)src;
-    (void)apdu;
-    (void)pdu_len;
-}
-#endif
-
 static uint8_t PDUBuffer[MAX_MPDU];
 int main(void)
 {
@@ -167,11 +157,9 @@ int main(void)
     dlmstp_set_max_info_frames(1);
 #endif
     datalink_init(NULL);
-    /* broadcast an I-Am on startup */
-#if !defined(TEST_MSTP)
-    iam_send(&Handler_Transmit_Buffer[0]);
-#endif
     for (;;) {
+        if (Send_I_Am)
+                iam_send(&Handler_Transmit_Buffer[0]);
         input_switch_read();
         task_milliseconds();
         /* other tasks */
