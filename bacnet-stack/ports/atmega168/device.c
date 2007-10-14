@@ -102,43 +102,6 @@ uint16_t Device_Vendor_Identifier(void)
     return BACNET_VENDOR_ID;
 }
 
-uint8_t Device_Protocol_Version(void)
-{
-    return 1;
-}
-
-uint8_t Device_Protocol_Revision(void)
-{
-    return 5;
-}
-
-/* FIXME: MAX_APDU is defined in config.ini - set it! */
-uint16_t Device_Max_APDU_Length_Accepted(void)
-{
-    return MAX_APDU;
-}
-
-BACNET_SEGMENTATION Device_Segmentation_Supported(void)
-{
-    return SEGMENTATION_NONE;
-}
-
-uint16_t Device_APDU_Timeout(void)
-{
-    return 60000;
-}
-
-
-uint8_t Device_Number_Of_APDU_Retries(void)
-{
-    return 0;
-}
-
-uint8_t Device_Database_Revision(void)
-{
-    return 0;
-}
-
 unsigned Device_Object_List_Count(void)
 {
     unsigned count = 1;         /* at least 1 for device object */
@@ -290,11 +253,11 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_PROTOCOL_VERSION:
         apdu_len =
-            encode_application_unsigned(&apdu[0], Device_Protocol_Version());
+            encode_application_unsigned(&apdu[0], 1);
         break;
     case PROP_PROTOCOL_REVISION:
         apdu_len =
-            encode_application_unsigned(&apdu[0], Device_Protocol_Revision());
+            encode_application_unsigned(&apdu[0], 5);
         break;
         /* BACnet Legacy Support */
     case PROP_PROTOCOL_CONFORMANCE_CLASS:
@@ -376,27 +339,26 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         }
         break;
     case PROP_MAX_APDU_LENGTH_ACCEPTED:
-        apdu_len = encode_application_unsigned(&apdu[0],
-            Device_Max_APDU_Length_Accepted());
+        apdu_len = encode_application_unsigned(&apdu[0], 
+            MAX_APDU);
         break;
     case PROP_SEGMENTATION_SUPPORTED:
         apdu_len = encode_application_enumerated(&apdu[0],
-            Device_Segmentation_Supported());
+            SEGMENTATION_NONE);
         break;
     case PROP_APDU_TIMEOUT:
-        apdu_len = encode_application_unsigned(&apdu[0], Device_APDU_Timeout());
+        apdu_len = encode_application_unsigned(&apdu[0], 60000);
         break;
     case PROP_NUMBER_OF_APDU_RETRIES:
         apdu_len =
-            encode_application_unsigned(&apdu[0],
-            Device_Number_Of_APDU_Retries());
+            encode_application_unsigned(&apdu[0], 0);
         break;
     case PROP_DEVICE_ADDRESS_BINDING:
         /* FIXME: encode the list here, if it exists */
         break;
     case PROP_DATABASE_REVISION:
         apdu_len =
-            encode_application_unsigned(&apdu[0], Device_Database_Revision());
+            encode_application_unsigned(&apdu[0], 0);
         break;
     case PROP_MAX_INFO_FRAMES:
         apdu_len =

@@ -85,7 +85,7 @@ void handler_read_property(uint8_t * service_request,
     switch (data.object_type) {
     case OBJECT_DEVICE:
         /* FIXME: probably need a length limitation sent with encode */
-        if (data.object_instance == Device_Object_Instance_Number()) {
+        if (Device_Valid_Object_Instance_Number(data.object_instance)) {
             len = Device_Encode_Property_APDU(&Temp_Buf[0],
                 data.object_property,
                 data.array_index, &error_class, &error_code);
