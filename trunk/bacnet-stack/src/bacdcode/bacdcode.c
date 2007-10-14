@@ -585,88 +585,6 @@ int encode_context_bitstring(uint8_t * apdu, int tag_number,
     return len;
 }
 
-/* from clause 20.2.6 Encoding of a Real Number Value */
-/* returns the number of apdu bytes consumed */
-int decode_real(uint8_t * apdu, float *real_value)
-{
-    union {
-        uint8_t byte[4];
-        float real_value;
-    } my_data;
-
-    /* NOTE: assumes the compiler stores float as IEEE-754 float */
-#if BIG_ENDIAN
-    my_data.byte[0] = apdu[0];
-    my_data.byte[1] = apdu[1];
-    my_data.byte[2] = apdu[2];
-    my_data.byte[3] = apdu[3];
-#else
-    my_data.byte[0] = apdu[3];
-    my_data.byte[1] = apdu[2];
-    my_data.byte[2] = apdu[1];
-    my_data.byte[3] = apdu[0];
-#endif
-
-    *real_value = my_data.real_value;
-
-    return 4;
-}
-
-/* from clause 20.2.6 Encoding of a Real Number Value */
-/* returns the number of apdu bytes consumed */
-int encode_bacnet_real(float value, uint8_t * apdu)
-{
-    union {
-        uint8_t byte[4];
-        float real_value;
-    } my_data;
-
-    /* NOTE: assumes the compiler stores float as IEEE-754 float */
-    my_data.real_value = value;
-#if BIG_ENDIAN
-    apdu[0] = my_data.byte[0];
-    apdu[1] = my_data.byte[1];
-    apdu[2] = my_data.byte[2];
-    apdu[3] = my_data.byte[3];
-#else
-    apdu[0] = my_data.byte[3];
-    apdu[1] = my_data.byte[2];
-    apdu[2] = my_data.byte[1];
-    apdu[3] = my_data.byte[0];
-#endif
-
-    return 4;
-}
-
-/* from clause 20.2.6 Encoding of a Real Number Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
-int encode_application_real(uint8_t * apdu, float value)
-{
-    int len = 0;
-
-    /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_real(value, &apdu[1]);
-    len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_REAL, false, len);
-
-    return len;
-}
-
-int encode_context_real(uint8_t * apdu, int tag_number, float value)
-{
-    int len = 0;
-
-    /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_real(value, &apdu[1]);
-    /* we only reserved 1 byte for encoding the tag - check the limits */
-    if (tag_number <= 14)
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
-    else
-        len = 0;
-
-    return len;
-}
-
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
 /* returns the number of apdu bytes consumed */
 int decode_object_id(uint8_t * apdu, int *object_type, uint32_t * instance)
@@ -1370,39 +1288,6 @@ void testBACDCodeTags(Test * pTest)
         if (tag_number == 255)
             break;
     }
-
-    return;
-}
-
-void testBACDCodeReal(Test * pTest)
-{
-    uint8_t real_array[4] = { 0 };
-    uint8_t encoded_array[4] = { 0 };
-    float value = 42.123;
-    float decoded_value = 0;
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, apdu_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t long_value = 0;
-
-    encode_bacnet_real(value, &real_array[0]);
-    decode_real(&real_array[0], &decoded_value);
-    ct_test(pTest, decoded_value == value);
-    encode_bacnet_real(value, &encoded_array[0]);
-    ct_test(pTest, memcmp(&real_array, &encoded_array,
-            sizeof(real_array)) == 0);
-
-    /* a real will take up 4 octects plus a one octet tag */
-    apdu_len = encode_application_real(&apdu[0], value);
-    ct_test(pTest, apdu_len == 5);
-    /* len tells us how many octets were used for encoding the value */
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_REAL);
-    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
-    ct_test(pTest, len == 1);
-    ct_test(pTest, long_value == 4);
-    decode_real(&apdu[len], &decoded_value);
-    ct_test(pTest, decoded_value == value);
 
     return;
 }
