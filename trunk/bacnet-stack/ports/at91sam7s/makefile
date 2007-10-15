@@ -27,12 +27,16 @@ INCLUDES += -I$(BACNET_INCLUDE)
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
 CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -Wall -g
+# dead code removal
+CFLAGS += -fdata-sections -ffunction-sections
 LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 #  -Wl,<options> Pass comma-separated <options> on to the linker
 LIBRARIES=-lc,-lgcc,-lm,-L=.,-l$(TARGET)
 LDFLAGS = -nostartfiles -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
+# dead code removal
+LDFLAGS += -Wl,--gc-sections,-static
 CPFLAGS = --output-target=binary
 ODFLAGS	= -x --syms
 
