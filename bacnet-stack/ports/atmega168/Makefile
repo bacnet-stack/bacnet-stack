@@ -97,7 +97,9 @@ BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 #BFLAGS += -DCRC_USE_TABLE
 BFLAGS += -DTEST_MSTP
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
+# dead code removal
+CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char 
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 
 ## Assembly specific flags
@@ -107,6 +109,8 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 
 ## Linker flags
 LDFLAGS = $(COMMON)
+#dead code removal
+LDFLAGS += -Wl,--gc-sections,-static 
 LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
 #LDFLAGS += -Wl,-Map=$(TARGET).map
 

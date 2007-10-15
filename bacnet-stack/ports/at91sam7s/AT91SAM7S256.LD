@@ -1,5 +1,5 @@
 /* ****************************************************************************************************** */
-/*   demo_at91sam7_blink_flash.cmd			LINKER  SCRIPT                                                */
+/*                                          LINKER  SCRIPT                                                */
 /*                                                                                                        */
 /*                                                                                                        */
 /*   The Linker Script defines how the code and data emitted by the GNU C compiler and assembler are  	  */
@@ -8,10 +8,10 @@
 /*   Any symbols defined in the Linker Script are automatically global and available to the rest of the   */
 /*   program.                                                                                             */
 /*                                                                                                        */
-/*   To force the linker to use this LINKER SCRIPT, just add the -T demo_at91sam7_blink_flash.cmd         */
+/*   To force the linker to use this LINKER SCRIPT, just add the -T AT91SAM7S256.LD                       */
 /*   directive to the linker flags in the makefile. For example,                                          */
 /*                                                                                                        */
-/*   			LFLAGS  =  -Map main.map -nostartfiles -T demo_at91sam7_blink_flash.cmd                   */
+/*   			LFLAGS  =  -Map main.map -nostartfiles -T AT91SAM7S256.LD                                 */
 /*                                                                                                        */
 /*                                                                                                        */
 /*   The order that the object files are listed in the makefile determines what .text section is          */
@@ -128,7 +128,7 @@ SECTIONS
 	
 	.text :								/* collect all sections that should go into FLASH after startup  */ 
 	{
-		*(.text)						/* all .text sections (code)  */
+		*(.text*)						/* all .text sections (code)  */
 		*(.rodata)						/* all .rodata sections (constants, strings, etc.)  */
 		*(.rodata*)						/* all .rodata* sections (constants, strings, etc.)  */
 		*(.glue_7)						/* all .glue_7 sections  (no idea what these are) */
@@ -139,14 +139,14 @@ SECTIONS
 	.data :								/* collect all initialized .data sections that go into RAM  */ 
 	{
 		_data = .;						/* create a global symbol marking the start of the .data section  */
-		*(.data)						/* all .data sections  */
+		*(.data*)						/* all .data sections  */
 		_edata = .;						/* define a global symbol marking the end of the .data section  */
 	} >ram AT >flash          			/* put all the above into RAM (but load the LMA initializer copy into FLASH)  */
 
 	.bss :								/* collect all uninitialized .bss sections that go into RAM  */
 	{
 		_bss_start = .;					/* define a global symbol marking the start of the .bss section */
-		*(.bss)							/* all .bss sections  */
+		*(.bss*)							/* all .bss sections  */
 	} >ram								/* put all the above in RAM (it will be cleared in the startup code */
 
 	. = ALIGN(4);						/* advance location counter to the next 32-bit boundary */
