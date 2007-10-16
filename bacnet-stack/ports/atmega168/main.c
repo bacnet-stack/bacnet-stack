@@ -152,23 +152,23 @@ int main(void)
     
     init();
 #if defined(BACDL_MSTP)
-    //RS485_Set_Baud_Rate(38400);
+    RS485_Set_Baud_Rate(38400);
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);
 #endif
     datalink_init(NULL);
     for (;;) {
-        if (Send_I_Am)
+        if (Send_I_Am) {
+                Send_I_Am = false;
                 iam_send(&Handler_Transmit_Buffer[0]);
+        }
         input_switch_read();
         task_milliseconds();
         /* other tasks */
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
         if (pdu_len) {
-#if !defined(TEST_MSTP)
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
-#endif
             NPDU_LED_On();
         }
     }

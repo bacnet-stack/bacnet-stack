@@ -34,12 +34,12 @@
 #include "config.h"
 
 /* Analog Input = Photocell */
-#define MAX_ANALOG_INPUTS 2
+#define MAX_ANALOG_INPUTS 9
 #if (MAX_ANALOG_INPUTS > 9)
     #error Modify the Analog_Input_Name to handle multiple digits 
 #endif
 
-static uint8_t Present_Value[MAX_ANALOG_INPUTS];
+static float Present_Value[MAX_ANALOG_INPUTS];
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
@@ -76,16 +76,6 @@ char *Analog_Input_Name(uint32_t object_instance)
     return NULL;
 }
 
-static float Analog_Input_Present_Value(uint32_t object_instance)
-{
-  float value = 0.0;
-  
-  if (object_instance < MAX_ANALOG_INPUTS)
-    value = Present_Value[object_instance];
-    
-  return value;
-}
-
 /* return apdu length, or -1 on error */
 /* assumption - object has already exists */
 int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
@@ -105,7 +95,8 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
             object_instance);
         break;
     /* note: Name and Description don't have to be the same.
-       You could make Description writable and different */
+       You could make Description writable and different.
+       Note that Object-Name must be unique in this device */
     case PROP_OBJECT_NAME:
     case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string,
@@ -118,7 +109,7 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_PRESENT_VALUE:
         apdu_len = encode_application_real(&apdu[0], 
-            Analog_Input_Present_Value(object_instance));
+            Present_Value[object_instance]);
         break;
     case PROP_STATUS_FLAGS:
         bitstring_init(&bit_string);

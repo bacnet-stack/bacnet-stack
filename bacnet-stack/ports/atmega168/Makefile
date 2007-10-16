@@ -91,7 +91,7 @@ OPTIMIZATION = -Os -mcall-prologues
 
 ## Compile options common for all C compilation units.
 BFLAGS = -DBACDL_MSTP
-BFLAGS += -DMAX_APDU=50
+BFLAGS += -DMAX_APDU=128
 BFLAGS += -DBIG_ENDIAN=0
 BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 #BFLAGS += -DCRC_USE_TABLE

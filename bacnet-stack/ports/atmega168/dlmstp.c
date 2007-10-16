@@ -402,7 +402,8 @@ static void MSTP_Send_Frame(
 {                               /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
-    uint8_t buffer[8]; /* stores the header and data crc */
+    uint8_t buffer[8]; /* stores the header and crc */
+    uint8_t datacrc[2]; /* stores the data crc */
     uint16_t i = 0;         /* used to calculate CRC for data */
 
     /* create the MS/TP header */
@@ -419,10 +420,6 @@ static void MSTP_Send_Frame(
     buffer[6] = data_len % 256;
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
-    RS485_Turnaround_Delay();
-    RS485_Transmitter_Enable(true);
-    RS485_Send_Data(buffer,8);
-    /* send any data */
     if (data_len) {
         /* calculate CRC for any data */
         for (i = 0; i < data_len; i++)
@@ -430,10 +427,17 @@ static void MSTP_Send_Frame(
             crc16 = CRC_Calc_Data(data[i], crc16);
         }
         crc16 = ~crc16;
-        buffer[0] = (crc16 & 0x00FF);
-        buffer[1] = ((crc16 & 0xFF00) >> 8);
+        datacrc[0] = (crc16 & 0x00FF);
+        datacrc[1] = ((crc16 & 0xFF00) >> 8);
+    }
+    /* now transmit the frame */
+    RS485_Turnaround_Delay();
+    RS485_Transmitter_Enable(true);
+    RS485_Send_Data(buffer,8);
+    /* send any data */
+    if (data_len) {
         RS485_Send_Data(data, data_len);
-        RS485_Send_Data(buffer, 2);
+        RS485_Send_Data(datacrc, 2);
     }
     RS485_Transmitter_Enable(false);
 }
