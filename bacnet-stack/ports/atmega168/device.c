@@ -260,6 +260,11 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         /* Note: this is the list of objects that can be in this device,
            not a list of objects that this device can access */
         bitstring_init(&bit_string);
+        /* must have the bit string as big as it can be */
+        for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
+            /* initialize all the object types to not-supported */
+            bitstring_set_bit(&bit_string, (uint8_t) i, false);
+        }
         /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
