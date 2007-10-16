@@ -115,7 +115,7 @@ void Device_Property_Lists(
    properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
-static uint32_t Object_Instance_Number = 0;
+static uint32_t Object_Instance_Number = 260001;
 static char Object_Name[16] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char *Vendor_Name = BACNET_VENDOR_NAME;
