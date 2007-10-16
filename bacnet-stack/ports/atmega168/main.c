@@ -140,6 +140,7 @@ void input_switch_read(void)
 #if defined(BACDL_MSTP)
            dlmstp_set_mac_address(Address_Switch);
 #endif
+           Device_Set_Object_Instance_Number(86000 + Address_Switch);
         }
     }
 }
