@@ -215,9 +215,10 @@ uint16_t bip_receive(BACNET_ADDRESS * src,      /* source address */
     if ((pdu[1] == BVLC_ORIGINAL_UNICAST_NPDU) ||
         (pdu[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
-        if (sin.sin_addr.s_addr == htonl(BIP_Address.s_addr))
+        if ((sin.sin_addr.s_addr == htonl(BIP_Address.s_addr)) &&
+            (sin.sin_port == htonl(BIP_Port))) {
             pdu_len = 0;
-        else {
+        } else {
             /* copy the source address
                FIXME: IPv6? */
             src->mac_len = 6;
