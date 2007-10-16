@@ -70,7 +70,6 @@ uint32_t Device_Object_Instance_Number(void)
     return Object_Instance_Number;
 }
 
-#if 0
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
     bool status = true;         /* return value */
@@ -88,7 +87,6 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
 
     return status;
 }
-#endif
 
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
