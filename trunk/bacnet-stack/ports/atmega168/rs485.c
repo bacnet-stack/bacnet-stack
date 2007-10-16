@@ -272,19 +272,23 @@ bool RS485_ReceiveError(void)
     uint8_t dummy_data;
 
     /* check for framing error */
+    #if 0
     if (BIT_CHECK(UCSR0A,FE0)) {
+        /* FIXME: how do I clear the error flags? */
+        BITMASK_CLEAR(UCSR0A,(_BV(FE0) | _BV(DOR0) | _BV(UPE0)));
         ReceiveError = true;
     }
+    #endif
     /* check for overrun error */
     if (BIT_CHECK(UCSR0A,DOR0)) {
-        ReceiveError = true;
-    }
-    if (ReceiveError) {
-        RS485_LED1_On();
         /* flush the receive buffer */
         do {
             dummy_data = UDR0;
         } while (BIT_CHECK(UCSR0A,RXC0));
+        ReceiveError = true;
+    }
+    if (ReceiveError) {
+        RS485_LED1_On();
     }
     
     return ReceiveError;

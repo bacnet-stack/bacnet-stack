@@ -39,7 +39,7 @@
     #error Modify the Analog_Input_Name to handle multiple digits 
 #endif
 
-static float Present_Value[MAX_ANALOG_INPUTS];
+float Present_Value[MAX_ANALOG_INPUTS];
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
