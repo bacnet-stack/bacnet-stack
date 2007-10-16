@@ -25,7 +25,7 @@ BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT)
 LIBRARIES=-lc,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 CFLAGS = -Wall -g $(INCLUDES) $(DEFINES) -fdata-sections -ffunction-sections
-LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES),--gc-sections,-static
+LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES),--gc-sections
 
 SRCS = main.c
 
