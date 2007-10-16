@@ -49,8 +49,8 @@
    properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
-static uint32_t Object_Instance_Number = 12345;
-static char Object_Name[32] = "ATmega Device";
+static uint32_t Object_Instance_Number = 260001;
+static char Object_Name[32] = "ATmega168 Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
 void Device_Init(void)
@@ -203,8 +203,6 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     int object_type = 0;
     uint32_t instance = 0;
     unsigned count = 0;
-    BACNET_TIME local_time;
-    BACNET_DATE local_date;
 
     /* FIXME: change the hardcoded names to suit your application */
     switch (property) {
@@ -213,15 +211,12 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             Object_Instance_Number);
         break;
     case PROP_OBJECT_NAME:
+    case PROP_DESCRIPTION:
         characterstring_init_ansi(&char_string, Object_Name);
         apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_OBJECT_TYPE:
         apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
-        break;
-    case PROP_DESCRIPTION:
-        characterstring_init_ansi(&char_string, "BACnet Demo");
-        apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
     case PROP_SYSTEM_STATUS:
         apdu_len =
@@ -247,21 +242,11 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         characterstring_init_ansi(&char_string, "1.0");
         apdu_len = encode_application_character_string(&apdu[0], &char_string);
         break;
-    case PROP_LOCATION:
-        characterstring_init_ansi(&char_string, "USA");
-        apdu_len = encode_application_character_string(&apdu[0], &char_string);
-        break;
     case PROP_PROTOCOL_VERSION:
-        apdu_len =
-            encode_application_unsigned(&apdu[0], 1);
+        apdu_len = encode_application_unsigned(&apdu[0], 1);
         break;
     case PROP_PROTOCOL_REVISION:
-        apdu_len =
-            encode_application_unsigned(&apdu[0], 5);
-        break;
-        /* BACnet Legacy Support */
-    case PROP_PROTOCOL_CONFORMANCE_CLASS:
-        apdu_len = encode_application_unsigned(&apdu[0], 1);
+        apdu_len = encode_application_unsigned(&apdu[0], 5);
         break;
     case PROP_PROTOCOL_SERVICES_SUPPORTED:
         /* Note: list of services that are executed, not initiated. */
@@ -277,11 +262,6 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         /* Note: this is the list of objects that can be in this device,
            not a list of objects that this device can access */
         bitstring_init(&bit_string);
-        for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
-            /* FIXME: if ReadProperty used an array of Functions... */
-            /* initialize all the object types to not-supported */
-            bitstring_set_bit(&bit_string, (uint8_t) i, false);
-        }
         /* FIXME: indicate the objects that YOU support */
         bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
         bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
@@ -366,30 +346,6 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         break;
     case PROP_MAX_MASTER:
         apdu_len = encode_application_unsigned(&apdu[0], dlmstp_max_master());
-        break;
-    case PROP_LOCAL_TIME:
-        /* FIXME: if you support time */
-        local_time.hour = 0;
-        local_time.min = 0;
-        local_time.sec = 0;
-        local_time.hundredths = 0;
-        apdu_len = encode_application_time(&apdu[0], &local_time);
-        break;
-    case PROP_UTC_OFFSET:
-        /* Note: BACnet Time Zone is inverse of everybody else */
-        apdu_len = encode_application_signed(&apdu[0], 5 /* EST */ );
-        break;
-    case PROP_LOCAL_DATE:
-        /* FIXME: if you support date */
-        local_date.year = 2006; /* AD */
-        local_date.month = 4;   /* Jan=1..Dec=12 */
-        local_date.day = 11;    /* 1..31 */
-        local_date.wday = 0;    /* 1=Mon..7=Sun */
-        apdu_len = encode_application_date(&apdu[0], &local_date);
-        break;
-    case PROP_DAYLIGHT_SAVINGS_STATUS:
-        /* FIXME: if you support time/date */
-        apdu_len = encode_application_boolean(&apdu[0], false);
         break;
     case 9600:
         apdu_len = encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());

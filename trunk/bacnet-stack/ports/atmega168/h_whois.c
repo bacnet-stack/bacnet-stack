@@ -45,16 +45,18 @@ void handler_who_is(uint8_t * service_request,
     int len = 0;
     int32_t low_limit = 0;
     int32_t high_limit = 0;
+    int32_t target_device;
 
     (void) src;
     len = whois_decode_service_request(service_request,
         service_len, &low_limit, &high_limit);
-    if (len == 0)
-        iam_send(&Handler_Transmit_Buffer[0]);
-    else if (len != -1) {
+    if (len == 0) {
+        Send_I_Am = true;
+    } else if (len != -1) {
         /* is my device id within the limits? */
-        if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
-                (Device_Object_Instance_Number() <= (uint32_t) high_limit))
+        target_device = Device_Object_Instance_Number();
+        if (((target_device >= low_limit) &&
+                (target_device <=  high_limit))
             ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
