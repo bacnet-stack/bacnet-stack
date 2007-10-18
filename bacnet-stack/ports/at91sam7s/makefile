@@ -82,9 +82,7 @@ CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/iam/iam_client.c \
-	$(BACNET_CORE)/iam/iam_server.c \
-	$(BACNET_CORE)/iam/iam_send.c \
+	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/version.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)
