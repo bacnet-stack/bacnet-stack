@@ -100,31 +100,44 @@ int encode_bacnet_real(float value, uint8_t * apdu)
     return 4;
 }
 
-/* from clause 20.2.6 Encoding of a Real Number Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
-int encode_application_real(uint8_t * apdu, float value)
+/* end of decoding_encoding.c */
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include <ctype.h>
+#include "ctest.h"
+
+void testBACreal(Test * pTest)
 {
-    int len = 0;
-
-    /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_real(value, &apdu[1]);
-    len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_REAL, false, len);
-
-    return len;
+    float real_value = 3.14159F, test_real_value = 0.0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0, test_len = 0;
+    
+    len = encode_bacnet_real(real_value, &apdu[0]);
+    ct_test(pTest, len == 4);
+    test_len = decode_real(&apdu[0], &test_real_value);
+    ct_test(pTest, test_len == len);
 }
 
-int encode_context_real(uint8_t * apdu, int tag_number, float value)
+#ifdef TEST_BACNET_REAL
+int main(void)
 {
-    int len = 0;
+    Test *pTest;
+    bool rc;
 
-    /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_real(value, &apdu[1]);
-    /* we only reserved 1 byte for encoding the tag - check the limits */
-    if (tag_number <= 14)
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
-    else
-        len = 0;
+    pTest = ct_create("BACreal", NULL);
+    /* individual tests */
+    rc = ct_addTestFunction(pTest, testBACreal);
+    assert(rc);
 
-    return len;
+    /* configure output */
+    ct_setStream(pTest, stdout);
+    ct_run(pTest);
+    (void) ct_report(pTest);
+    ct_destroy(pTest);
+
+    return 0;
 }
+#endif                          /* TEST_BACNET_REAL */
+#endif                          /* TEST */
+
