@@ -53,14 +53,14 @@ int iam_encode_apdu(uint8_t * apdu,
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_I_AM;     /* service choice */
         apdu_len = 2;
-        len = encode_tagged_object_id(&apdu[apdu_len],
+        len = encode_application_object_id(&apdu[apdu_len],
             OBJECT_DEVICE, device_id);
         apdu_len += len;
-        len = encode_tagged_unsigned(&apdu[apdu_len], max_apdu);
+        len = encode_application_unsigned(&apdu[apdu_len], max_apdu);
         apdu_len += len;
-        len = encode_tagged_enumerated(&apdu[apdu_len], segmentation);
+        len = encode_application_enumerated(&apdu[apdu_len], segmentation);
         apdu_len += len;
-        len = encode_tagged_unsigned(&apdu[apdu_len], vendor_id);
+        len = encode_application_unsigned(&apdu[apdu_len], vendor_id);
         apdu_len += len;
     }
 
