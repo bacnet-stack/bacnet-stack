@@ -1030,7 +1030,7 @@ int encode_context_signed(uint8_t * apdu, int tag_number, int32_t value)
     return len;
 }
 
-* from clause 20.2.6 Encoding of a Real Number Value */
+/* from clause 20.2.6 Encoding of a Real Number Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
 int encode_application_real(uint8_t * apdu, float value)
