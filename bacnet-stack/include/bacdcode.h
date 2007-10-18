@@ -95,8 +95,6 @@ extern "C" {
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-    int decode_real(uint8_t * apdu, float *real_value);
-    int encode_bacnet_real(float value, uint8_t * apdu);
     int encode_application_real(uint8_t * apdu, float value);
     int encode_context_real(uint8_t * apdu, int tag_number, float value);
 
