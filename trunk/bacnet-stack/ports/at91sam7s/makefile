@@ -77,7 +77,7 @@ CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/datetime.c \
-	$(BACNET_CORE)/readprop/rp_server.c \
+	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/wp.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/rd.c \
