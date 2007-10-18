@@ -27,9 +27,9 @@ CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
 CORE_SRC = \
 	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/npdu.c \
-	$(BACNET_CORE)/bacdcode/bacdcode.c \
-	$(BACNET_CORE)/bacdcode/bacint.c \
-	$(BACNET_CORE)/bacdcode/bacreal.c \
+	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacint.c \
+	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacprop.c \
