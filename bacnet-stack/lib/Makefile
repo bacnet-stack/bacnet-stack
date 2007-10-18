@@ -30,9 +30,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/bacdcode/bacdcode.c \
 	$(BACNET_CORE)/bacdcode/bacint.c \
 	$(BACNET_CORE)/bacdcode/bacreal.c \
-	$(BACNET_CORE)/bacdcode/bitstring.c \
-	$(BACNET_CORE)/bacdcode/octetstring.c \
-	$(BACNET_CORE)/bacdcode/characterstring.c \
+	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacprop.c \
 	$(BACNET_CORE)/bactext.c \

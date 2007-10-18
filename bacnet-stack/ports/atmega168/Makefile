@@ -39,9 +39,7 @@ CORESRC =  \
 	$(BACNET_CORE)/bacdcode/bacdcode.c \
 	$(BACNET_CORE)/bacdcode/bacint.c \
 	$(BACNET_CORE)/bacdcode/bacreal.c \
-	$(BACNET_CORE)/bacdcode/bitstring.c \
-	$(BACNET_CORE)/bacdcode/octetstring.c \
-	$(BACNET_CORE)/bacdcode/characterstring.c \
+	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/whois.c \
