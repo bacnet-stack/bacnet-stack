@@ -81,7 +81,11 @@ extern "C" {
     bool bitstring_set_octet(BACNET_BIT_STRING * bit_string, uint8_t index,
         uint8_t octet);
     bool bitstring_set_bits_used(BACNET_BIT_STRING * bit_string,
-        uint8_t bytes_used, uint8_t unused_bits);
+        uint8_t bytes_used, uint8_t unused_bits);   
+    bool bitstring_copy(
+        BACNET_BIT_STRING * dest,
+        BACNET_BIT_STRING * src);
+
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */

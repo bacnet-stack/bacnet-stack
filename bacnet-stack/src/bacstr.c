@@ -155,6 +155,24 @@ uint8_t bitstring_bits_capacity(BACNET_BIT_STRING * bit_string)
         return 0;
 }
 
+bool bitstring_copy(
+    BACNET_BIT_STRING * dest,
+    BACNET_BIT_STRING * src)
+{
+    unsigned i;
+    bool status = false;
+    
+    if (dest && src) {
+        dest->bits_used = src->bits_used;
+        for (i = 0; i < MAX_BITSTRING_BYTES; i++) {
+            dest->value[i] = src->value[i];
+        }
+        status = true;
+    }
+    
+    return status;
+}
+
 #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
@@ -205,6 +223,7 @@ bool characterstring_copy(BACNET_CHARACTER_STRING * dest,
         characterstring_value(src), characterstring_length(src));
 }
 
+/* returns true if the character encoding and string contents are the same */
 bool characterstring_same(BACNET_CHARACTER_STRING * dest,
     BACNET_CHARACTER_STRING * src)
 {

@@ -17,7 +17,9 @@
     #endif
 #endif
 
-/* Define your processor architecture as Big Endian or Little Endian */
+/* Define your processor architecture as 
+   Big Endian (PowerPC,68K,Sparc) or Little Endian (Intel,AVR)
+   ARM and MIPS can be either - what is your setup? */
 #if !defined(BIG_ENDIAN)
     #define BIG_ENDIAN 0
 #endif
@@ -61,6 +63,23 @@
 /* some modules have debugging enabled using PRINT_ENABLED */
 #if !defined(PRINT_ENABLED)
     #define PRINT_ENABLED 0
+#endif
+
+/* BACAPP decodes WriteProperty service requests
+   Choose the datatypes that your application supports */
+#if defined (BACAPP_ALL)
+    #define BACAPP_BOOLEAN
+    #define BACAPP_UNSIGNED
+    #define BACAPP_SIGNED
+    #define BACAPP_REAL
+/* FIXME: not implemented #define BACAPP_DOUBLE */
+    #define BACAPP_OCTET_STRING        
+    #define BACAPP_CHARACTER_STRING        
+    #define BACAPP_BIT_STRING        
+    #define BACAPP_ENUMERATED
+    #define BACAPP_DATE        
+    #define BACAPP_TIME        
+    #define BACAPP_OBJECT_ID        
 #endif
 
 #endif

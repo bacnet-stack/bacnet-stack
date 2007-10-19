@@ -168,73 +168,16 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     switch (wp_data->object_property) {
     case PROP_PRESENT_VALUE:
         if (value.tag == BACNET_APPLICATION_TAG_REAL) {
-            priority = wp_data->priority;
-            /* Command priority 6 is reserved for use by Minimum On/Off
-               algorithm and may not be used for other purposes in any
-               object. */
-            if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                (priority != 6 /* reserved */ ) &&
-                (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
-                object_index =
-                    Analog_Value_Instance_To_Index(wp_data->
-                    object_instance);
-                priority--;
-                Present_Value[object_index] = value.type.Real;
-                /* Note: you could set the physical output here if we
-                   are the highest priority.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
-                   main loop (i.e. check out of service before changing output) */
-                status = true;
-            } else if (priority == 6) {
-                /* Command priority 6 is reserved for use by Minimum On/Off
-                   algorithm and may not be used for other purposes in any
-                   object. */
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            }
-#if 0
-          } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
-            level = ANALOG_LEVEL_NULL;
             object_index =
-                Analog_Value_Instance_To_Index(wp_data->object_instance);
-            priority = wp_data->priority;
-            if (priority && (priority <= BACNET_MAX_PRIORITY)) {
-                priority--;
-                Present_Value[object_index][priority] = level;
-                /* Note: you could set the physical output here to the next
-                   highest priority, or to the relinquish default if no
-                   priorities are set.
-                   However, if Out of Service is TRUE, then don't set the 
-                   physical output.  This comment may apply to the 
-                   main loop (i.e. check out of service before changing output) */
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            }
-#endif
-          } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        break;
-#if 0
-    case PROP_OUT_OF_SERVICE:
-        if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-            object_index =
-                Analog_Value_Instance_To_Index(wp_data->object_instance);
-            Analog_Value_Out_Of_Service[object_index] = value.type.Boolean;
+                Analog_Value_Instance_To_Index(wp_data->
+                object_instance);
+            Present_Value[object_index] = value.type.Real;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }
         break;
-#endif
     default:
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

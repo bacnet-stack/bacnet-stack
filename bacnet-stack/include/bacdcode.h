@@ -40,6 +40,8 @@
 #include "bacdef.h"
 #include "datetime.h"
 #include "bacstr.h"
+#include "bacint.h"
+#include "bacreal.h"
 
 #ifdef __cplusplus
 extern "C" {

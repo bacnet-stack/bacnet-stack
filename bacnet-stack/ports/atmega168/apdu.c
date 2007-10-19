@@ -48,6 +48,9 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
     if (service_supported == SERVICE_SUPPORTED_READ_PROPERTY) {
         status = true;
     }
+    if (service_supported == SERVICE_SUPPORTED_WRITE_PROPERTY) {
+        status = true;
+    }
 
     return status;
 }
@@ -98,6 +101,9 @@ void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
                 &service_choice, &service_request, &service_request_len);
             if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
                 handler_read_property(service_request,
+                    service_request_len, src, &service_data);
+            } else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
+                handler_write_property(service_request,
                     service_request_len, src, &service_data);
             } else {
                 handler_unrecognized_service(service_request,

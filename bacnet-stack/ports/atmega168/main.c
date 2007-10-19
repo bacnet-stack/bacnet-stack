@@ -113,18 +113,13 @@ static void NPDU_LED_On(void)
     NPDU_Timer = 20;
 }
 
-extern float Present_Value[9];
 void task_milliseconds(void)
 {
-    static uint16_t counter = 0;
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
         /* add other millisecond timer tasks here */
         RS485_LED_Timers();
         NDPU_Timers();
-        counter++;
-        Present_Value[0] = counter;
-        Present_Value[1] = counter;
     }
 }
 
