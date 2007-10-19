@@ -43,6 +43,8 @@
 #include "npdu.h"
 #include "bits.h"
 #include "bacaddr.h"
+#include "iam.h"
+#include "txbuf.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions: 
@@ -270,114 +272,26 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
     }
 }
 
-static bool dlmstp_compare_data_expecting_reply(
-    uint8_t *request_pdu,
-    uint16_t request_pdu_len,
-    uint8_t src_address,
-    uint8_t *reply_pdu,
-    uint16_t reply_pdu_len,
-    uint8_t dest_address)
-{
-    uint16_t offset;
-    /* One way to check the message is to compare NPDU 
-       src, dest, along with the APDU type, invoke id.  
-       Seems a bit overkill */
-    struct DER_compare_t {
-        BACNET_NPDU_DATA npdu_data;
-        BACNET_ADDRESS address;
-        uint8_t pdu_type;
-        uint8_t invoke_id;
-        uint8_t service_choice;
-    };
-    struct DER_compare_t request;
-    struct DER_compare_t reply;
+/* I Am from handler */
+extern bool Send_I_Am;
 
-    /* decode the request data */
-    request.address.mac[0] = src_address;
-    request.address.mac_len = 1;
-    offset = npdu_decode(&request_pdu[0], 
-        NULL, &request.address, &request.npdu_data);
-    if (request.npdu_data.network_layer_message) {
-        return false;
-    }
-    request.pdu_type = request_pdu[offset] & 0xF0;
-    if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-        return false;
-    }
-    request.invoke_id = request_pdu[offset+2];
-    /* segmented message? */
-    if (request_pdu[offset] & BIT3)
-        request.service_choice = request_pdu[offset+5];
-    else
-        request.service_choice = request_pdu[offset+3];
-    /* decode the reply data */
-    reply.address.mac[0] = dest_address;
-    reply.address.mac_len = 1;
-    offset = npdu_decode(&reply_pdu[0], 
-        &reply.address, NULL, &reply.npdu_data);
-    if (reply.npdu_data.network_layer_message) {
-        return false;
-    }
-    /* reply could be a lot of things: 
-       confirmed, simple ack, abort, reject, error */
-    reply.pdu_type = reply_pdu[offset] & 0xF0;
-    switch (reply.pdu_type) {
-        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-            reply.invoke_id = reply_pdu[offset+2];
-            /* segmented message? */
-            if (reply_pdu[offset] & BIT3)
-                reply.service_choice = reply_pdu[offset+5];
-            else
-                reply.service_choice = reply_pdu[offset+3];
-            break;
-        case PDU_TYPE_SIMPLE_ACK:
-            reply.invoke_id = reply_pdu[offset+1];
-            reply.service_choice = reply_pdu[offset+2];
-            break;
-        case PDU_TYPE_COMPLEX_ACK:
-            reply.invoke_id = reply_pdu[offset+1];
-            /* segmented message? */
-            if (reply_pdu[offset] & BIT3)
-                reply.service_choice = reply_pdu[offset+4];
-            else
-                reply.service_choice = reply_pdu[offset+2];
-            break;
-        case PDU_TYPE_ERROR:
-            reply.invoke_id = reply_pdu[offset+1];
-            reply.service_choice = reply_pdu[offset+2];
-            break;
-        case PDU_TYPE_REJECT:
-        case PDU_TYPE_ABORT:
-            reply.invoke_id = reply_pdu[offset+1];
-            break;
-        default:
-            return false;
-    }
-    /* these don't have service choice included */
-    if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
-    } else {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
-        if (request.service_choice != reply.service_choice) {
-            return false;
-        }
-    }
-    if (request.npdu_data.protocol_version != reply.npdu_data.protocol_version) {
-        return false;
-    }
-    if (request.npdu_data.priority != reply.npdu_data.priority) {
-        return false;
-    }
-    if (!bacnet_address_same(&request.address, &reply.address)) {
-        return false;
+/* look at any of the unconfirmed message bits and encode if set */
+static uint16_t dlmstp_encode_unconfirmed_frame(void)
+{
+    BACNET_ADDRESS dest;
+    BACNET_NPDU_DATA npdu_data;
+    uint16_t len = 0;
+
+    if (Send_I_Am) {
+        Send_I_Am = false;
+        TransmitPacket = Handler_Transmit_Buffer;
+        len = iam_encode_pdu(
+            &TransmitPacket[0],
+            &dest,
+            &npdu_data);
     }
     
-    return true;
+    return len;
 }
 
 /* MS/TP Frame Format */
@@ -690,7 +604,6 @@ static bool MSTP_Master_Node_FSM(void)
     uint8_t next_next_station = 0;
     /* timeout values */
     uint16_t my_timeout = 10, ns_timeout = 0;
-    bool matched;
     /* transition immediately to the next state */
     bool transition_now = false;
 
@@ -782,49 +695,24 @@ static bool MSTP_Master_Node_FSM(void)
         /* more data frames. These may be BACnet Data frames or */
         /* proprietary frames. */
     case MSTP_MASTER_STATE_USE_TOKEN:
+        /* Note: optimized for minimal server:
+           we only send unconfirmed frames when we get the token */
         /* Note: We could wait for up to Tusage_delay */
-        if (!MSTP_Flag.TransmitPacketPending) {
-            /* NothingToSend */
-            FrameCount = Nmax_info_frames;
-            Master_State = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
-            transition_now = true;
-        } else {
-            uint8_t frame_type;
-            if (MSTP_Flag.TransmitPacketDER) {
-                frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-            } else {
-                frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
-            }
+        TransmitPacketLen = dlmstp_encode_unconfirmed_frame();
+        if (TransmitPacketLen) {
             MSTP_Send_Frame(
-                frame_type,
-                TransmitPacketDest,
+                FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
+                MSTP_BROADCAST_ADDRESS,
                 This_Station,
                 (uint8_t *) & TransmitPacket[0],
                 TransmitPacketLen);
-            MSTP_Flag.TransmitPacketPending = false;
             FrameCount++;
-            switch (frame_type) {
-            case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                /* SendAndWait */
-                if (TransmitPacketDest == MSTP_BROADCAST_ADDRESS)
-                    Master_State =
-                        MSTP_MASTER_STATE_DONE_WITH_TOKEN;
-                else
-                    Master_State =
-                        MSTP_MASTER_STATE_WAIT_FOR_REPLY;
-                break;
-            case FRAME_TYPE_TEST_REQUEST:
-                Master_State = MSTP_MASTER_STATE_WAIT_FOR_REPLY;
-                break;
-            case FRAME_TYPE_TEST_RESPONSE:
-            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
-            default:
-                /* SendNoWait */
-                Master_State =
-                    MSTP_MASTER_STATE_DONE_WITH_TOKEN;
-                break;
-            }
+        } else {
+            /* NothingToSend */
+            FrameCount = Nmax_info_frames;
+            transition_now = true;
         }
+        Master_State = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
         break;
     case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
         /* In the WAIT_FOR_REPLY state, the node waits for  */

@@ -40,6 +40,7 @@
 #include "bits.h"
 #include "bacstr.h"
 #include "bacint.h"
+#include "bacreal.h"
 
 /* NOTE: byte order plays a role in decoding multibyte values */
 /* http://www.unixpapa.com/incnote/byteorder.html */

@@ -78,6 +78,7 @@ void handler_write_property(uint8_t * service_request,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
     } else {
         switch (wp_data.object_type) {
+#if 0
         case OBJECT_DEVICE:
             if (Device_Write_Property(&wp_data, &error_class, &error_code)) {
                 len =
@@ -92,8 +93,7 @@ void handler_write_property(uint8_t * service_request,
                     error_code);
             }
             break;
-#if 0
-            case OBJECT_ANALOG_INPUT:
+        case OBJECT_ANALOG_INPUT:
         case OBJECT_BINARY_INPUT:
             error_class = ERROR_CLASS_PROPERTY;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -117,6 +117,7 @@ void handler_write_property(uint8_t * service_request,
                     error_code);
             }
             break;
+#endif
         case OBJECT_ANALOG_VALUE:
             if (Analog_Value_Write_Property(&wp_data, &error_class,
                     &error_code)) {
@@ -132,8 +133,7 @@ void handler_write_property(uint8_t * service_request,
                     error_code);
             }
             break;
-#endif
-            default:
+        default:
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
