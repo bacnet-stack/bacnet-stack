@@ -43,6 +43,7 @@
 #include "npdu.h"
 #include "bits.h"
 #include "bacaddr.h"
+/* special optimization - I-Am response in this module */
 #include "iam.h"
 #include "txbuf.h"
 
