@@ -38,9 +38,9 @@
 #include "wp.h"
 /* demo objects */
 #include "device.h"
+#include "av.h"
 #if 0
 #include "ai.h"
-#include "av.h"
 #include "bi.h"
 #include "bv.h"
 #endif

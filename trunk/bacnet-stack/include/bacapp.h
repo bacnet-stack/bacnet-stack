@@ -48,18 +48,42 @@ typedef struct BACnet_Application_Data_Value {
     uint8_t tag;                /* application tag data type */
     union {
         /* NULL - not needed as it is encoded in the tag alone */
+#if defined (BACAPP_BOOLEAN)
         bool Boolean;
+#endif
+#if defined (BACAPP_UNSIGNED)
         uint32_t Unsigned_Int;
+#endif
+#if defined (BACAPP_SIGNED)
         int32_t Signed_Int;
+#endif
+#if defined (BACAPP_REAL)
         float Real;
+#endif
+#if defined (BACAPP_DOUBLE)
         double Double;
+#endif
+#if defined (BACAPP_OCTET_STRING)        
         BACNET_OCTET_STRING Octet_String;
+#endif
+#if defined (BACAPP_CHARACTER_STRING)        
         BACNET_CHARACTER_STRING Character_String;
+#endif
+#if defined (BACAPP_BIT_STRING)        
         BACNET_BIT_STRING Bit_String;
+#endif
+#if defined (BACAPP_ENUMERATED)
         int Enumerated;
+#endif
+#if defined (BACAPP_DATE)        
         BACNET_DATE Date;
+#endif
+#if defined (BACAPP_TIME)        
         BACNET_TIME Time;
+#endif
+#if defined (BACAPP_OBJECT_ID)        
         BACNET_OBJECT_ID Object_Id;
+#endif
     } type;
     /* simple linked list if needed */
     struct BACnet_Application_Data_Value *next;

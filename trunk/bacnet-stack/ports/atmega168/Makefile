@@ -27,11 +27,11 @@ CSRC = main.c \
 
 DEMOSRC = h_rp.c \
 	device.c \
-	ai.c \
+	av.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/noserv.c \
-	h_whois.c
-#	h_wp.c \
+	h_whois.c \
+	h_wp.c
 
 CORESRC =  \
 	$(BACNET_CORE)/apdu.c \
@@ -42,14 +42,15 @@ CORESRC =  \
 	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/wp.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
+	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/version.c
 
-#	$(BACNET_CORE)/bacapp.c \
 #	$(BACNET_CORE)/bacprop.c \
 #	$(BACNET_CORE)/bactext.c \
 #	$(BACNET_CORE)/datetime.c \
@@ -65,7 +66,6 @@ CORESRC =  \
 #	$(BACNET_CORE)/rpm.c \
 #	$(BACNET_CORE)/timesync.c \
 #	$(BACNET_CORE)/whohas.c \
-#	$(BACNET_CORE)/wp.c \
 #	$(BACNET_CORE)/filename.c \
 #	$(BACNET_CORE)/tsm.c \
 #	$(BACNET_CORE)/address.c \
@@ -92,7 +92,7 @@ BFLAGS += -DMAX_APDU=128
 BFLAGS += -DBIG_ENDIAN=0
 BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 #BFLAGS += -DCRC_USE_TABLE
-BFLAGS += -DTEST_MSTP
+BFLAGS += -DBACAPP_REAL
 CFLAGS = $(COMMON)
 # dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
