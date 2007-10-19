@@ -72,13 +72,7 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 /* that correlates to the correct instance number */
 unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_ANALOG_VALUES;
-
-    Analog_Value_Init();
-    if (object_instance < MAX_ANALOG_VALUES)
-        index = object_instance;
-
-    return index;
+    return object_instance;
 }
 
 /* note: the object name must be unique within this device */
@@ -151,7 +145,6 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
     return apdu_len;
 }
 
-#if 0
 /* returns true if successful */
 bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
@@ -159,11 +152,9 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
     bool status = false;        /* return value */
     unsigned int object_index = 0;
     unsigned int priority = 0;
-    uint8_t level = ANALOG_LEVEL_NULL;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    Analog_Value_Init();
     if (!Analog_Value_Valid_Instance(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -184,12 +175,11 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                 (priority != 6 /* reserved */ ) &&
                 (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
-                level = (uint8_t) value.type.Real;
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->
                     object_instance);
                 priority--;
-                Present_Value[object_index] = level;
+                Present_Value[object_index] = value.type.Real;
                 /* Note: you could set the physical output here if we
                    are the highest priority.
                    However, if Out of Service is TRUE, then don't set the 
@@ -253,7 +243,6 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 
     return status;
 }
-#endif
 
 #ifdef TEST
 #include <assert.h>
