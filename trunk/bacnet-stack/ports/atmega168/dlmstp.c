@@ -235,7 +235,7 @@ static uint8_t TransmitPacketDest;
 
 bool dlmstp_init(char *ifname)
 {
-    (void)ifname;
+    ifname = ifname;
     /* initialize hardware */
     RS485_Initialize();
     
@@ -397,8 +397,8 @@ static void MSTP_Send_Frame(
     uint8_t frame_type,         /* type of frame to send - see defines */
     uint8_t destination,        /* destination address */
     uint8_t source,             /* source address */
-    uint8_t * data,             /* any data to be sent - may be null */
-    uint16_t data_len)
+    uint8_t * pdu,             /* any data to be sent - may be null */
+    uint16_t pdu_len)
 {                               /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
@@ -415,16 +415,16 @@ static void MSTP_Send_Frame(
     crc8 = CRC_Calc_Header(buffer[3], crc8);
     buffer[4] = source;
     crc8 = CRC_Calc_Header(buffer[4], crc8);
-    buffer[5] = data_len / 256;
+    buffer[5] = pdu_len / 256;
     crc8 = CRC_Calc_Header(buffer[5], crc8);
-    buffer[6] = data_len % 256;
+    buffer[6] = pdu_len % 256;
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
-    if (data_len) {
+    if (pdu_len) {
         /* calculate CRC for any data */
-        for (i = 0; i < data_len; i++)
+        for (i = 0; i < pdu_len; i++)
         {
-            crc16 = CRC_Calc_Data(data[i], crc16);
+            crc16 = CRC_Calc_Data(pdu[i], crc16);
         }
         crc16 = ~crc16;
         datacrc[0] = (crc16 & 0x00FF);
@@ -435,8 +435,8 @@ static void MSTP_Send_Frame(
     RS485_Transmitter_Enable(true);
     RS485_Send_Data(buffer,8);
     /* send any data */
-    if (data_len) {
-        RS485_Send_Data(data, data_len);
+    if (pdu_len) {
+        RS485_Send_Data(pdu, pdu_len);
         RS485_Send_Data(datacrc, 2);
     }
     RS485_Transmitter_Enable(false);
@@ -1125,16 +1125,8 @@ static bool MSTP_Master_Node_FSM(void)
         /* a proprietary frame that expects a reply is received. */
     case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
         /* Note: we could wait for up to Treply_delay */
+		/* Note: the only packets pending are confirmed data requests */
         if (MSTP_Flag.TransmitPacketPending) { 
-            matched = dlmstp_compare_data_expecting_reply(
-                &InputBuffer[0],
-                DataLength,
-                SourceAddress,
-                &TransmitPacket[0],
-                TransmitPacketLen,
-                TransmitPacketDest);
-        }
-        if (MSTP_Flag.TransmitPacketPending && matched) {
             /* Reply */
             /* If a reply is available from the higher layers  */
             /* within Treply_delay after the reception of the  */
@@ -1142,14 +1134,9 @@ static bool MSTP_Master_Node_FSM(void)
             /* (the mechanism used to determine this is a local matter), */
             /* then call MSTP_Send_Frame to transmit the reply frame  */
             /* and enter the IDLE state to wait for the next frame. */
-            uint8_t frame_type;
-            if (MSTP_Flag.TransmitPacketDER) {
-                frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-            } else {
-                frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
-            }
+			/* Note: optimized such that we are never a client */
             MSTP_Send_Frame(
-                frame_type,
+                FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
                 TransmitPacketDest,
                 This_Station,
                 (uint8_t *) & TransmitPacket[0],
@@ -1212,6 +1199,8 @@ uint16_t dlmstp_receive(
 {
     uint16_t pdu_len = 0; /* return value */
 
+	/* dummy - unused parameter */
+	timeout = timeout;
     /* set the input buffer to the same data storage for zero copy */
     if (!InputBuffer) {
         InputBuffer = pdu;
