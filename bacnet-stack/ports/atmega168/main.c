@@ -38,9 +38,6 @@
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
-/* broadcast an I-Am on startup */
-extern bool Send_I_Am;
-
 /* dummy function */
 bool dcc_communication_enabled(void) {
     return true;
@@ -166,10 +163,6 @@ int main(void)
 #endif
     datalink_init(NULL);
     for (;;) {
-        if (Send_I_Am) {
-                Send_I_Am = false;
-                iam_send(&Handler_Transmit_Buffer[0]);
-        }
         input_switch_read();
         task_milliseconds();
         /* other tasks */

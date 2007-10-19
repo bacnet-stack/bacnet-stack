@@ -50,6 +50,11 @@ extern "C" {
         uint32_t * pDevice_id,
         unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id);
 
+    int iam_encode_pdu(
+        uint8_t * buffer, 
+        BACNET_ADDRESS *dest,
+        BACNET_NPDU_DATA *npdu_data);
+    
     int iam_send(uint8_t * buffer);
 
 #ifdef TEST

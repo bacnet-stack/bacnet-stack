@@ -64,6 +64,13 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
     return index;
 }
 
+/* we simply have 0-n object instances. */
+unsigned Analog_Input_Instance_To_Index(uint32_t object_instance)
+{
+    return object_instance;
+}
+
+
 char *Analog_Input_Name(uint32_t object_instance)
 {
     static char text_string[5] = "AI-0";   /* okay for single thread */
@@ -87,6 +94,8 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
     int apdu_len = 0;           /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
+    unsigned object_index;
+
 
     (void) array_index;
     switch (property) {
@@ -108,8 +117,9 @@ int Analog_Input_Encode_Property_APDU(uint8_t * apdu,
             OBJECT_ANALOG_INPUT);
         break;
     case PROP_PRESENT_VALUE:
+        object_index = Analog_Input_Instance_To_Index(object_instance);
         apdu_len = encode_application_real(&apdu[0], 
-            Present_Value[object_instance]);
+            Present_Value[object_index]);
         break;
     case PROP_STATUS_FLAGS:
         bitstring_init(&bit_string);

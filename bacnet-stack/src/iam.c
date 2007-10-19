@@ -135,9 +135,29 @@ int iam_decode_service_request(uint8_t * apdu,
     return apdu_len;
 }
 
-int iam_send(uint8_t * buffer)
+int iam_encode_pdu(uint8_t * buffer, 
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data)
 {
     int len = 0;
+    int pdu_len = 0;
+
+    /* I-Am is a global broadcast */
+    datalink_get_broadcast_address(dest);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
+    /* encode the APDU portion of the packet */
+    len = iam_encode_apdu(&buffer[pdu_len],
+        Device_Object_Instance_Number(),
+        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    pdu_len += len;
+
+    return pdu_len;
+}
+
+int iam_send(uint8_t * buffer)
+{
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -146,17 +166,8 @@ int iam_send(uint8_t * buffer)
     /* if we are forbidden to send, don't send! */
     if (!dcc_communication_enabled())
         return 0;
-
-    /* I-Am is a global broadcast */
-    datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&buffer[0], &dest, NULL, &npdu_data);
-    /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&buffer[pdu_len],
-        Device_Object_Instance_Number(),
-        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
-    pdu_len += len;
+    /* encode the data */
+    pdu_len = iam_encode_pdu(buffer, &dest, &npdu_data);
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
