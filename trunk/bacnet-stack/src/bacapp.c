@@ -243,7 +243,7 @@ int bacapp_decode_application_data(uint8_t * apdu,
     uint32_t len_value_type = 0;
 
     /* FIXME: use max_apdu_len! */
-    (void) max_apdu_len;
+    max_apdu_len = max_apdu_len;
     if (apdu && value && !decode_is_context_specific(apdu)) {
         value->context_specific = false;
         tag_len = decode_tag_number_and_value(&apdu[0],
@@ -456,7 +456,7 @@ int bacapp_decode_context_data(uint8_t * apdu,
     uint32_t len_value_type = 0;
 
     /* FIXME: use max_apdu_len! */
-    (void) max_apdu_len;
+    max_apdu_len = max_apdu_len;
     if (apdu && value && decode_is_context_specific(apdu)) {
         value->context_specific = true;
         tag_len = decode_tag_number_and_value(&apdu[0],

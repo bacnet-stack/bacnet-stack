@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "config.h"
 
 int encode_unsigned16(uint8_t * apdu, uint16_t value)
 {

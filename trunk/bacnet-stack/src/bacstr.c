@@ -48,17 +48,17 @@ void bitstring_init(BACNET_BIT_STRING * bit_string)
     }
 }
 
-void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit,
+void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number,
     bool value)
 {
-    uint8_t byte_number = bit / 8;
+    uint8_t byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
 
     if (byte_number < MAX_BITSTRING_BYTES) {
         /* set max bits used */
-        if (bit_string->bits_used < (bit + 1))
-            bit_string->bits_used = bit + 1;
-        bit_mask = bit_mask << (bit - (byte_number * 8));
+        if (bit_string->bits_used < (bit_number + 1))
+            bit_string->bits_used = bit_number + 1;
+        bit_mask = bit_mask << (bit_number - (byte_number * 8));
         if (value)
             bit_string->value[byte_number] |= bit_mask;
         else
@@ -66,14 +66,14 @@ void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit,
     }
 }
 
-bool bitstring_bit(BACNET_BIT_STRING * bit_string, uint8_t bit)
+bool bitstring_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number)
 {
     bool value = false;
-    uint8_t byte_number = bit / 8;
+    uint8_t byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
 
-    if (bit < (MAX_BITSTRING_BYTES * 8)) {
-        bit_mask = bit_mask << (bit - (byte_number * 8));
+    if (bit_number < (MAX_BITSTRING_BYTES * 8)) {
+        bit_mask = bit_mask << (bit_number - (byte_number * 8));
         if (bit_string->value[byte_number] & bit_mask)
             value = true;
     }
