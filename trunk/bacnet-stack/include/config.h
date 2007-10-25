@@ -12,9 +12,6 @@
 
 /* optional debug info for BACnet/IP datalink layers */
 #if defined(BACDL_BIP)
-    #if !defined(BIP_DEBUG)
-        #define BIP_DEBUG 1
-    #endif
     #if !defined(USE_INADDR)
         #define USE_INADDR 1
     #endif

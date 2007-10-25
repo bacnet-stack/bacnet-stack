@@ -38,6 +38,8 @@
 #include "bip.h"
 #include "net.h"
 
+bool BIP_Debug = false;
+
 static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr,
     int request)
 {
@@ -83,10 +85,10 @@ static void bip_set_interface(char *ifname)
         local_address.s_addr = 0;
     }
     bip_set_addr(local_address.s_addr);
-#if BIP_DEBUG
-    fprintf(stderr, "Interface: %s\n", ifname);
-    fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
-#endif
+    if (BIP_Debug) {
+        fprintf(stderr, "Interface: %s\n", ifname);
+        fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
+    }
     /* setup local broadcast address */
     rv = get_local_address_ioctl(ifname, &broadcast_address,
         SIOCGIFBRDADDR);
@@ -94,13 +96,13 @@ static void bip_set_interface(char *ifname)
         broadcast_address.s_addr = ~0;
     }
     bip_set_broadcast_addr(broadcast_address.s_addr);
-#if BIP_DEBUG
-    fprintf(stderr, "IP Broadcast Address: %s\n",
-        inet_ntoa(broadcast_address));
-    fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
-        bip_get_port(),
-        bip_get_port());
-#endif
+    if (BIP_Debug) {
+        fprintf(stderr, "IP Broadcast Address: %s\n",
+            inet_ntoa(broadcast_address));
+        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
+            bip_get_port(),
+            bip_get_port());
+    }
 }
 
 bool bip_init(char *ifname)
