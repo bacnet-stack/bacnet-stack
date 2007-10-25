@@ -83,7 +83,7 @@ static void bip_set_interface(char *ifname)
         local_address.s_addr = 0;
     }
     bip_set_addr(local_address.s_addr);
-#ifdef BIP_DEBUG
+#if BIP_DEBUG
     fprintf(stderr, "Interface: %s\n", ifname);
     fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
 #endif
@@ -94,7 +94,7 @@ static void bip_set_interface(char *ifname)
         broadcast_address.s_addr = ~0;
     }
     bip_set_broadcast_addr(broadcast_address.s_addr);
-#ifdef BIP_DEBUG
+#if BIP_DEBUG
     fprintf(stderr, "IP Broadcast Address: %s\n",
         inet_ntoa(broadcast_address));
     fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
