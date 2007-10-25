@@ -40,6 +40,7 @@
 #include "bip.h"
 #include "net.h"
 
+bool BIP_Debug = false;
 /* To fill a need, we invent the gethostaddr() function. */
 static long gethostaddr(void)
 {
@@ -51,13 +52,13 @@ static long gethostaddr(void)
 
     if ((host_ent = gethostbyname(host_name)) == NULL)
         return -1;
-#if BIP_DEBUG
-    printf("host: %s at %u.%u.%u.%u\n", host_name,
-                            ((uint8_t*)host_ent->h_addr)[0],
-                            ((uint8_t*)host_ent->h_addr)[1],
-                            ((uint8_t*)host_ent->h_addr)[2],
-                            ((uint8_t*)host_ent->h_addr)[3]);
-#endif
+    if (BIP_Debug) {
+        printf("host: %s at %u.%u.%u.%u\n", host_name,
+            ((uint8_t*)host_ent->h_addr)[0],
+            ((uint8_t*)host_ent->h_addr)[1],
+            ((uint8_t*)host_ent->h_addr)[2],
+            ((uint8_t*)host_ent->h_addr)[3]);
+    }
     /* note: network byte order */
     return *(long *) host_ent->h_addr;
 }
@@ -105,10 +106,10 @@ void bip_set_interface(char *ifname)
     if (bip_get_addr() == 0) {
         bip_set_addr(inet_addr(ifname));
     }
-#if BIP_DEBUG
-    address.s_addr = htonl(bip_get_addr());
-    fprintf(stderr, "Interface: %s\n", ifname);
-#endif
+    if (BIP_Debug) {
+        address.s_addr = htonl(bip_get_addr());
+        fprintf(stderr, "Interface: %s\n", ifname);
+    }
     /* setup local broadcast address */
     if (bip_get_broadcast_addr() == 0) {
         address.s_addr = htonl(bip_get_addr());
@@ -263,21 +264,21 @@ bool bip_init(char *ifname)
         }
         bip_set_addr(address.s_addr);
     }
-#if BIP_DEBUG
-    fprintf(stderr, "IP Address: %s\n", inet_ntoa(address));
-#endif
+    if (BIP_Debug) {
+        fprintf(stderr, "IP Address: %s\n", inet_ntoa(address));
+    }
     /* has broadcast address been set? */
     if (bip_get_broadcast_addr() == 0) {
         set_broadcast_address(address.s_addr);
     }
-#if BIP_DEBUG
-    broadcast_address.s_addr = htonl(bip_get_broadcast_addr());
-    fprintf(stderr, "IP Broadcast Address: %s\n",
-        inet_ntoa(broadcast_address));
-    fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
-        bip_get_port(),
-        bip_get_port());
-#endif
+    if (BIP_Debug) {
+        broadcast_address.s_addr = htonl(bip_get_broadcast_addr());
+        fprintf(stderr, "IP Broadcast Address: %s\n",
+            inet_ntoa(broadcast_address));
+        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
+            bip_get_port(),
+            bip_get_port());
+    }
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     bip_set_socket(sock_fd);

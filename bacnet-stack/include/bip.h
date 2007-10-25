@@ -47,6 +47,8 @@
 
 #define BVLL_TYPE_BACNET_IP (0x81)
 
+extern bool BIP_Debug;
+
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */

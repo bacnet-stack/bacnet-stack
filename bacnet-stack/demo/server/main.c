@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
         Device_Object_Instance_Number(),
         MAX_APDU);
     Init_Service_Handlers();
+    BIP_Debug = true;
     if (!datalink_init(getenv("BACNET_IFACE")))
         return 1;
     atexit(cleanup);
