@@ -51,7 +51,7 @@ static long gethostaddr(void)
 
     if ((host_ent = gethostbyname(host_name)) == NULL)
         return -1;
-#ifdef BIP_DEBUG
+#if BIP_DEBUG
     printf("host: %s at %u.%u.%u.%u\n", host_name,
                             ((uint8_t*)host_ent->h_addr)[0],
                             ((uint8_t*)host_ent->h_addr)[1],
@@ -105,7 +105,7 @@ void bip_set_interface(char *ifname)
     if (bip_get_addr() == 0) {
         bip_set_addr(inet_addr(ifname));
     }
-#ifdef BIP_DEBUG
+#if BIP_DEBUG
     address.s_addr = htonl(bip_get_addr());
     fprintf(stderr, "Interface: %s\n", ifname);
 #endif
@@ -263,14 +263,14 @@ bool bip_init(char *ifname)
         }
         bip_set_addr(address.s_addr);
     }
-#ifdef BIP_DEBUG
+#if BIP_DEBUG
     fprintf(stderr, "IP Address: %s\n", inet_ntoa(address));
 #endif
     /* has broadcast address been set? */
     if (bip_get_broadcast_addr() == 0) {
         set_broadcast_address(address.s_addr);
     }
-#ifdef BIP_DEBUG
+#if BIP_DEBUG
     broadcast_address.s_addr = htonl(bip_get_broadcast_addr());
     fprintf(stderr, "IP Broadcast Address: %s\n",
         inet_ntoa(broadcast_address));
