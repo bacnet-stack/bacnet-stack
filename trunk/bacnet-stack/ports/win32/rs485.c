@@ -36,6 +36,11 @@
 /* The module handles sending data out the RS-485 port */
 /* and handles receiving data from the RS-485 port. */
 /* Customize this file for your specific hardware */
+/* Suggested USB to RS485 devices:
+   B&B Electronics USOPTL4
+   SerialGear USB-COMi-SI-M
+*/
+   
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
