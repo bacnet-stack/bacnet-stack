@@ -272,7 +272,7 @@ int RPM_Encode_Property(uint8_t *apdu,
         len = rpm_ack_encode_apdu_object_property_error(
             &Temp_Buf[0],
             error_class, error_code);
-        len = apdu_copy(&apdu[0], &Temp_Buf[0], offset, len, max_apdu);
+        len = apdu_copy(&apdu[0], &Temp_Buf[0], offset+apdu_len, len, max_apdu);
         if (!len)
             return 0;
     } else if ((offset+apdu_len+1+len+1) < max_apdu) {
