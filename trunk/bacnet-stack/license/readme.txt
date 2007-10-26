@@ -3,9 +3,10 @@ Licenses for the BACnet Stack at SourceForge
 This BACnet protocol stack implementation is specifically 
 designed for the embedded BACnet appliance, using a GPL with 
 exception license (like eCos), which means that any changes 
-to the core code that are distributed get to come back into 
-the core code, but the BACnet library can be linked to 
-proprietary code without it becoming GPL.
+to the core code that are distributed must be made available
+in accordance with section (3) of the GNU General Public License.
+However, the BACnet library can be linked to proprietary code 
+without the proprietary code becoming GPL.
 
 The text of the GPL exception included in each source file 
 is as follows:
