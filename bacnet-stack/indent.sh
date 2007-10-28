@@ -1,6 +1,6 @@
 #!/bin/sh
 # indent uses a local indent.pro file if it exists
-
+# File must be in consistent unix format before indenting
 # exit silently if utility is not installed
 [ -x /usr/bin/indent ] || exit 0
 [ -x /usr/bin/dos2unix ] || exit 0
