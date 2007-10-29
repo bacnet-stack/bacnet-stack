@@ -1,18 +1,17 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -Iinclude -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_ABORT -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_ABORT
 
-SRC_DIR = src
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = $(SRC_DIR)/bacdcode.c \
-       $(SRC_DIR)/bacint.c \
-       $(SRC_DIR)/bacstr.c \
-       $(SRC_DIR)/abort.c \
-       test/ctest.c
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/abort.c \
+	ctest.c
 
 TARGET = abort
 
