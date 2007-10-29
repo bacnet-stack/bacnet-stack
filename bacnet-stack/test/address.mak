@@ -1,14 +1,14 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -Iinclude -Itest -DTEST -DTEST_ADDRESS -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_ADDRESS
 
-SRCS = src/address.c \
-	src/bacaddr.c \
-	test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/address.c \
+	$(SRC_DIR)/bacaddr.c \
+	ctest.c
 
 OBJS = ${SRCS:.c=.o}
 

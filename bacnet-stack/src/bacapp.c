@@ -912,7 +912,6 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
     BACNET_APPLICATION_DATA_VALUE * test_value)
 {
     bool status = false;         /*return value */
-    bool tag
 
     /* does the tag match? */
     if (test_value->tag == value->tag)
@@ -1172,7 +1171,8 @@ void testBACnetApplicationData(Test * pTest)
     status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_NULL,
         NULL, &value);
     ct_test(pTest, status == true);
-    ct_test(pTest, testBACnetApplicationDataValue(&value));
+    status = testBACnetApplicationDataValue(&value);
+    ct_test(pTest, status == true);
 
     status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_BOOLEAN,
         "1", &value);
