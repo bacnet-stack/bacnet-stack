@@ -1,13 +1,15 @@
 #Makefile to build CRC tests
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_CRC -g
-#CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_CRC -DCRC_USE_TABLE -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I. -I../demo/object 
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_CRC
 
-OBJS    = crc.o test/ctest.o
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/crc.c \
+	ctest.c
+
+OBJS = ${SRCS:.c=.o}
 
 TARGET = crc
 
