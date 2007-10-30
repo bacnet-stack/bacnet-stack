@@ -1,20 +1,21 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -Idemo/object -DTEST -DTEST_COV -DBACDL_TEST=1 -DBIG_ENDIAN=0 -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I. -I../demo/object 
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_COV -DBACDL_TEST=1 -DBACAPP_ALL
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       datetime.c \
-       bacapp.c \
-       indtext.c \
-       bactext.c \
-       cov.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/indtext.c \
+	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/cov.c \
+	ctest.c
 
 OBJS = ${SRCS:.c=.o}
 

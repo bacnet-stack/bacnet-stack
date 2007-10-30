@@ -1,14 +1,16 @@
 #Makefile to build unit tests
 CC      = gcc
-BASEDIR = .
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BACINT
-CFLAGS  = -Wall -Iinclude -Itest -g $(DEFINES)
+
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 TARGET = bacint
 
-SRCS = src/bacint.c \
-       src/bacstr.c \
-       test/ctest.c
+SRCS = $(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	ctest.c
 
 OBJS = ${SRCS:.c=.o}
 

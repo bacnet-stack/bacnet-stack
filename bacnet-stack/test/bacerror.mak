@@ -1,17 +1,17 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BACERROR 
-CFLAGS  = -Wall -Iinclude -Itest -g $(DEFINES)
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BACERROR
 
-SRCS = src/bacdcode.c \
-       src/bacint.c \
-       src/bacstr.c \
-       src/bacerror.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/bacerror.c \
+	ctest.c
 
 OBJS = ${SRCS:.c=.o}
 

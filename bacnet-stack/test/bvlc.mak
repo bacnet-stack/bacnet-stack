@@ -1,19 +1,17 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I. -I../ports/linux
 DEFINES = -DBACDL_BIP -DBIG_ENDIAN=0 -DTEST -DTEST_BVLC
-INCLUDES = -Iports/linux -Itest -I.
-CFLAGS  = -Wall $(INCLUDES)  $(DEFINES) -g
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       bigend.c \
-       bvlc.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/bvlc.c \
+	ctest.c
 
 OBJS = ${SRCS:.c=.o}
 
