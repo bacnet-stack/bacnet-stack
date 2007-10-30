@@ -163,7 +163,7 @@ int iam_send(uint8_t * buffer)
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    /* if we are forbidden to send, don't send! */
+    /* are we are forbidden to send? */
     if (!dcc_communication_enabled())
         return 0;
     /* encode the data */

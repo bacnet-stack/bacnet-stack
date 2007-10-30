@@ -4,10 +4,10 @@
 rm test.log
 touch test.log
 
-make -f abort.mak clean
-make -f abort.mak
+make -f test/abort.mak clean
+make -f test/abort.mak
 ./abort >> test.log
-make -f abort.mak clean
+make -f test/abort.mak clean
 
 make -f address.mak clean
 make -f address.mak
@@ -115,6 +115,16 @@ make -f indtext.mak clean
 make -f indtext.mak
 ./indtext >> test.log
 make -f indtext.mak clean
+
+make -f test/key.mak clean
+make -f test/key.mak
+./key >> test.log
+make -f test/key.mak clean
+
+make -f test/keylist.mak clean
+make -f test/keylist.mak
+./keylist >> test.log
+make -f test/keylist.mak clean
 
 make -f demo/object/lc.mak clean
 make -f demo/object/lc.mak
