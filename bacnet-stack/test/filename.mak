@@ -1,13 +1,13 @@
 #Makefile to build filename tests
-CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_FILENAME -g
+CC = gcc
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_FILENAME
 
-SRCS = filename.c \
-	test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/filename.c \
+	ctest.c
 
 OBJS = ${SRCS:.c=.o}
 

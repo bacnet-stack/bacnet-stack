@@ -1,13 +1,13 @@
 #Makefile to build test case
-CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_DATE_TIME -g
+CC = gcc
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_DATE_TIME
 
-SRCS = datetime.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/datetime.c \
+	ctest.c
 
 OBJS = ${SRCS:.c=.o}
 

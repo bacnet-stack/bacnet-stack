@@ -1,38 +1,31 @@
 #Makefile to build unit tests
-CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-CFLAGS  = -Wall -I. -Itest -g -DTEST -DTEST_KEY -DTEST_KEYLIST
+CC = gcc
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_KEYLIST
 
-KEY_SRCS = key.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-KEYLIST_SRCS = keylist.c \
-       test/ctest.c
+SRCS = $(SRC_DIR)/keylist.c \
+	ctest.c
 
-OBJS = ${SRCS:.c=.o}
+TARGET = keylist 
 
-KEY_OBJS  = ${KEY_SRCS:.c=.o}
+OBJS  = ${SRCS:.c=.o}
 
-KEYLIST_OBJS  = ${KEYLIST_SRCS:.c=.o}
+all: ${TARGET}
 
-all: key keylist
- 
-key: ${KEY_OBJS}
-	${CC} -o $@ ${KEY_OBJS} 
-
-keylist: ${KEYLIST_OBJS}
-	${CC} -o $@ ${KEYLIST_OBJS} 
+${TARGET}: ${OBJS}
+	${CC} -o $@ ${OBJS} 
 
 .c.o:
-	${CC} -c ${CFLAGS} $*.c
-	
+	${CC} -c ${CFLAGS} $*.c -o $@
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak *.1
+	rm -rf core ${TARGET} $(OBJS)
 
 include: .depend
