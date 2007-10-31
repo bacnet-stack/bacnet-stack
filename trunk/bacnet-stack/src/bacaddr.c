@@ -56,24 +56,30 @@ void bacnet_address_copy(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
 
 bool bacnet_address_same(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
 {
-    int i = 0;
+    unsigned i;
+    unsigned max_len;
+    bool match = true;          /* return value */
 
-    if (!dest || !src)
-        return false;
     if (dest->mac_len != src->mac_len)
-        return false;
-    for (i = 0; i < dest->mac_len; i++) {
+        match = false;
+    max_len = dest->mac_len;
+    if (max_len > MAX_MAC_LEN)
+        max_len = MAX_MAC_LEN;
+    for (i = 0; i < max_len; i++) {
         if (dest->mac[i] != src->mac[i])
-            return false;
+            match = false;
     }
     if (dest->net != src->net)
-        return false;
+        match = false;
     if (dest->len != src->len)
-        return false;
-    for (i = 0; i < dest->len; i++) {
+        match = false;
+    max_len = dest->len;
+    if (max_len > MAX_MAC_LEN)
+        max_len = MAX_MAC_LEN;
+    for (i = 0; i < max_len; i++) {
         if (dest->adr[i] != src->adr[i])
-            return false;
+            match = false;
     }
 
-    return true;
+    return match;
 }

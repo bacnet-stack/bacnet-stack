@@ -55,6 +55,9 @@ extern "C" {
 
     bool address_get_by_index(unsigned index,
         uint32_t * device_id, unsigned *max_apdu, BACNET_ADDRESS * src);
+    
+    bool address_get_device_id(BACNET_ADDRESS * src, 
+        uint32_t *device_id);
 
     unsigned address_count(void);
 
