@@ -100,7 +100,7 @@ bool address_get_by_device(uint32_t device_id,
     return found;
 }
 
-/* find a the device id from a given MAC address */
+/* find a device id from a given MAC address */
 bool address_get_device_id(BACNET_ADDRESS * src, 
     uint32_t *device_id)
 {
