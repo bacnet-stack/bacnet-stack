@@ -100,6 +100,28 @@ bool address_get_by_device(uint32_t device_id,
     return found;
 }
 
+/* find a the device id from a given MAC address */
+bool address_get_device_id(BACNET_ADDRESS * src, 
+    uint32_t *device_id)
+{
+    unsigned i;
+    bool found = false;         /* return value */
+
+    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
+        if (Address_Cache[i].valid) {
+            if (bacnet_address_same(&Address_Cache[i].address, src)) {
+                if (device_id) {
+                    *device_id = Address_Cache[i].device_id;
+                }
+                found = true;
+                break;
+            }
+        }
+    }
+
+    return found;
+}
+
 void address_add(uint32_t device_id,
     unsigned max_apdu, BACNET_ADDRESS * src)
 {
@@ -233,36 +255,6 @@ unsigned address_count(void)
     return count;
 }
 
-bool address_match(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
-{
-    unsigned i;
-    unsigned max_len;
-    bool match = true;          /* return value */
-
-    if (dest->mac_len != src->mac_len)
-        match = false;
-    max_len = dest->mac_len;
-    if (max_len > MAX_MAC_LEN)
-        max_len = MAX_MAC_LEN;
-    for (i = 0; i < max_len; i++) {
-        if (dest->mac[i] != src->mac[i])
-            match = false;
-    }
-    if (dest->net != src->net)
-        match = false;
-    if (dest->len != src->len)
-        match = false;
-    max_len = dest->len;
-    if (max_len > MAX_MAC_LEN)
-        max_len = MAX_MAC_LEN;
-    for (i = 0; i < max_len; i++) {
-        if (dest->adr[i] != src->adr[i])
-            match = false;
-    }
-
-    return match;
-}
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
@@ -293,6 +285,7 @@ void testAddress(Test * pTest)
     uint32_t test_device_id = 0;
     unsigned test_max_apdu = 0;
 
+    /* create a fake address database */
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         set_address(i, &src);
         device_id = i * 255;
@@ -303,17 +296,21 @@ void testAddress(Test * pTest)
 
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         device_id = i * 255;
+        set_address(i, &src);
+        /* test the lookup by device id */
         ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
                 &test_address));
-        set_address(i, &src);
         ct_test(pTest, test_max_apdu == max_apdu);
-        ct_test(pTest, address_match(&test_address, &src));
+        ct_test(pTest, bacnet_address_same(&test_address, &src));
         ct_test(pTest, address_get_by_index(i, &test_device_id,
                 &test_max_apdu, &test_address));
         ct_test(pTest, test_device_id == device_id);
         ct_test(pTest, test_max_apdu == max_apdu);
-        ct_test(pTest, address_match(&test_address, &src));
+        ct_test(pTest, bacnet_address_same(&test_address, &src));
         ct_test(pTest, address_count() == MAX_ADDRESS_CACHE);
+        /* test the lookup by MAC */
+        ct_test(pTest, address_get_device_id(&src, &test_device_id));
+        ct_test(pTest, test_device_id == device_id);
     }
 
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
