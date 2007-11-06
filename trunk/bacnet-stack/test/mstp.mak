@@ -1,17 +1,22 @@
-#Makefile to build BACnet MS/TP tests
+#Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Iports/linux -Itest -DTEST -DTEST_MSTP -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I. -I../ports/linux
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_MSTP
 
-OBJS    = mstp.o crc.o ringbuf.o test/ctest.o
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+
+SRCS = $(SRC_DIR)/mstp.c \
+	$(SRC_DIR)/crc.c \
+	$(SRC_DIR)/ringbuf.c \
+	ctest.c
 
 TARGET = mstp
 
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 
@@ -23,7 +28,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 	
 clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak *.1 *.ini
+	rm -rf core ${TARGET} $(OBJS)
 
 include: .depend
-

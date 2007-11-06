@@ -15,10 +15,10 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 
 TARGET = abort
 
-OBJS = ${SRCS:.c=.o}
-
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 

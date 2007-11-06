@@ -1,24 +1,24 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_REINITIALIZE_DEVICE -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_REINITIALIZE_DEVICE
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       bigend.c \
-       rd.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-OBJS = ${SRCS:.c=.o}
+SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/rd.c \
+	ctest.c
 
 TARGET = reinitialize_device
 
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 
