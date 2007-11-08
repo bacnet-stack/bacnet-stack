@@ -90,7 +90,7 @@ int Encode_Property_APDU(
             }
             break;
         case OBJECT_ANALOG_OUTPUT:
-            if (!Analog_Output_Valid_Instance(object_instance)) {
+            if (Analog_Output_Valid_Instance(object_instance)) {
                 apdu_len = Analog_Output_Encode_Property_APDU(
                     &apdu[0],
                     object_instance,
