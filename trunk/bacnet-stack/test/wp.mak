@@ -17,7 +17,7 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/wp.c \
 	ctest.c
 
-TARGET = writeproperty
+TARGET = wp
 
 all: ${TARGET}
  

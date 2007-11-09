@@ -13,7 +13,7 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/rp.c \
 	ctest.c
 
-TARGET = readproperty
+TARGET = rp
 
 all: ${TARGET}
  
