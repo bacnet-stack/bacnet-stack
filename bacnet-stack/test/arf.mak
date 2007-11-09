@@ -14,7 +14,7 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 
 OBJS = ${SRCS:.c=.o}
 
-TARGET = atomicreadfile
+TARGET = arf
 
 all: ${TARGET}
  

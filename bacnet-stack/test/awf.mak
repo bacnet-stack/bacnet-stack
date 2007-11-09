@@ -15,7 +15,7 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 
 OBJS = ${SRCS:.c=.o}
 
-TARGET = atomicwritefile
+TARGET = awf
 
 all: ${TARGET}
  

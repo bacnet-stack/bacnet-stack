@@ -13,7 +13,7 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/rd.c \
 	ctest.c
 
-TARGET = reinitialize_device
+TARGET = rd
 
 all: ${TARGET}
  
