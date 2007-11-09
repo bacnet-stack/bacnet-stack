@@ -160,8 +160,8 @@ void testTimeSyncData(Test * pTest,
     apdu_len = len;
     len = timesync_decode_apdu(&apdu[0], apdu_len, &test_date, &test_time);
     ct_test(pTest, len != -1);
-    ct_test(pTest, bacapp_same_time(my_time, &test_time));
-    ct_test(pTest, bacapp_same_date(my_date, &test_date));
+    ct_test(pTest, datetime_compare_time(my_time, &test_time) == 0);
+    ct_test(pTest, datetime_compare_date(my_date, &test_date) == 0);
 
     len = timesync_utc_encode_apdu(&apdu[0], my_date, my_time);
     ct_test(pTest, len != 0);
@@ -170,8 +170,8 @@ void testTimeSyncData(Test * pTest,
         timesync_utc_decode_apdu(&apdu[0], apdu_len, &test_date,
         &test_time);
     ct_test(pTest, len != -1);
-    ct_test(pTest, bacapp_same_time(my_time, &test_time));
-    ct_test(pTest, bacapp_same_date(my_date, &test_date));
+    ct_test(pTest, datetime_compare_time(my_time, &test_time) == 0);
+    ct_test(pTest, datetime_compare_date(my_date, &test_date) == 0);
 }
 
 void testTimeSync(Test * pTest)

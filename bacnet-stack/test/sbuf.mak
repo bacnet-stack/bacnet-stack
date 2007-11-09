@@ -1,20 +1,20 @@
-#Makefile to build ringbuf tests
+#Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DTEST -DTEST_STATIC_BUFFER -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_STATIC_BUFFER
 
-SRCS = sbuf.c \
-	test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-OBJS = ${SRCS:.c=.o}
+SRCS = $(SRC_DIR)/sbuf.c \
+	ctest.c
 
 TARGET = sbuf
 
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 

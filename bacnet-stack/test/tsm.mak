@@ -1,43 +1,46 @@
 #Makefile to build test case
 CC      = gcc
-# -g for debugging with gdb
-DEFINES = -DTSM_ENABLED=1 -DTEST -DTEST_TSM -DBIG_ENDIAN=0 -DBACDL_TEST=1
-INCLUDES = -I. -Idemo/object -Idemo/handler -Itest -Iports/linux
+SRC_DIR = ../src
+DEMO_OBJECT_DIR = ../demo/object
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DBACDL_TEST -DTEST_TSM
+
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = address.c \
-       bacaddr.c \
-       bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       datetime.c \
-       bacapp.c \
-       bactext.c \
-       indtext.c \
-       demo/object/device.c \
-       demo/object/ai.c \
-       demo/object/ao.c \
-       demo/object/av.c \
-       demo/object/bi.c \
-       demo/object/bo.c \
-       demo/object/bv.c \
-       demo/object/lsp.c \
-       demo/object/mso.c \
-       demo/object/lc.c \
-       iam.c \
-       dcc.c \
-       npdu.c \
-       apdu.c \
-       tsm.c \
-       version.c \
-       test/ctest.c
-
-OBJS = ${SRCS:.c=.o}
+SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/bacerror.c \
+	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bacaddr.c \
+	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/indtext.c \
+	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/iam.c \
+	$(SRC_DIR)/dcc.c \
+	$(SRC_DIR)/npdu.c \
+	$(SRC_DIR)/apdu.c \
+	$(SRC_DIR)/version.c \
+	$(SRC_DIR)/tsm.c \
+	$(DEMO_OBJECT_DIR)/device.c \
+	$(DEMO_OBJECT_DIR)/ai.c \
+	$(DEMO_OBJECT_DIR)/ao.c \
+	$(DEMO_OBJECT_DIR)/av.c \
+	$(DEMO_OBJECT_DIR)/bi.c \
+	$(DEMO_OBJECT_DIR)/bo.c \
+	$(DEMO_OBJECT_DIR)/bv.c \
+	$(DEMO_OBJECT_DIR)/lsp.c \
+	$(DEMO_OBJECT_DIR)/mso.c \
+	$(DEMO_OBJECT_DIR)/lc.c \
+	ctest.c
 
 TARGET = tsm
 
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 

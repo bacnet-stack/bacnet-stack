@@ -1,28 +1,29 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_READ_PROPERTY_MULTIPLE -g
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_READ_PROPERTY_MULTIPLE
 
-SRCS = bacdcode.c \
-       bacerror.c \
-       bacapp.c \
-       bactext.c \
-       indtext.c \
-       bacint.c \
-       bacstr.c \
-       datetime.c \
-       rpm.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-OBJS = ${SRCS:.c=.o}
+SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/bacerror.c \
+	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/indtext.c \
+	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/rpm.c \
+	ctest.c
 
 TARGET = rpm
 
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 

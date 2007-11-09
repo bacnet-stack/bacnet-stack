@@ -1,27 +1,28 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-# -g for debugging with gdb
-DEFINES = -DBACFILE=1 -DBACDL_BIP=1 -DBIG_ENDIAN=0 -DTEST -DTEST_WRITE_PROPERTY 
-INCLUDES = -I. -Idemo/object -Itest 
+SRC_DIR = ../src
+INCLUDES = -I../include -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_WRITE_PROPERTY
+
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       datetime.c \
-       bacapp.c \
-       bactext.c \
-       indtext.c \
-       wp.c \
-       test/ctest.c
-
-OBJS = ${SRCS:.c=.o}
+SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/indtext.c \
+	$(SRC_DIR)/wp.c \
+	ctest.c
 
 TARGET = writeproperty
 
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 
