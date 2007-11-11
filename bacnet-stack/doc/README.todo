@@ -17,20 +17,10 @@ M. Add function headers to each module and function with
     doc-tags for some document generator like doxygen, robodoc,
     or Natural Docs.  Wikipedia has a comparison of generators at:
     http://en.wikipedia.org/wiki/Comparison_of_documentation_generators
-N. Convert core code into library.
-   For example, libbacnet.  Includes client and server functionality
-   and only requires a dummy tsm_free_invoke_id function for servers.
-   Create bacnet.h file that includes all the necessary includes.
-   Split core functions into files to make library effecient.
-   For example, rp.c becomes rp_client.c, rp_server.c , rp_test.c;
-   bacint.c becomes bacint_encode.c, bacint_decode.c, bacint_test.c
-O. Change address to store in a file and demos to use file
+N. Add option to address to use file store and demos to use file store
    instead of having to send who-is for each query.
-   Use a config file for interface and interface options.
-   These will make scripting cleaner.
-P. Changed encode_tagged_xx to encode_application_xx in bacdcode.c.
-Q. Convert object methods to use an array of object methods
+   This will make scripting cleaner.
+O. Convert object methods to use an array of object methods
    for ReadProperty and Device object counts, ids, and names.
-R. Convert datalink methods to use function pointers that can be
+P. Convert datalink methods to use function pointers that can be
    overridden in main.c.
-
