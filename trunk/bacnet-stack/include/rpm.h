@@ -61,11 +61,6 @@ extern "C" {
 
     int rpm_encode_apdu_object_end(uint8_t * apdu);
 
-    int rpm_decode_apdu(uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        uint8_t ** service_request, unsigned *service_request_len);
-
 /* decode the object portion of the service request only */
     int rpm_decode_object_id(uint8_t * apdu,
         unsigned apdu_len,
@@ -104,16 +99,18 @@ extern "C" {
     int rpm_ack_decode_object_property(uint8_t * apdu,
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property, int32_t * array_index);
-/* decode the object property value portion of the service request only */
-    int rpm_ack_decode_object_property_value(uint8_t * apdu,
+
+#ifdef TEST
+#include "ctest.h"
+    int rpm_decode_apdu(uint8_t * apdu,
         unsigned apdu_len,
-        uint8_t ** application_data, unsigned *application_data_len);
+        uint8_t * invoke_id,
+        uint8_t ** service_request, unsigned *service_request_len);
+
     int rpm_ack_decode_apdu(uint8_t * apdu, int apdu_len,       /* total length of the apdu */
         uint8_t * invoke_id,
         uint8_t ** service_request, unsigned *service_request_len);
 
-#ifdef TEST
-#include "ctest.h"
     void testReadPropertyMultiple(Test * pTest);
     void testReadPropertyMultipleAck(Test * pTest);
 #endif
