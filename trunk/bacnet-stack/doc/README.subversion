@@ -1,4 +1,13 @@
-Committers need to properly configure their svn client so that 
+To check out the trunk from the subversion repository,
+use "svn co", e.g.
+
+    svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/
+
+    or for the stable releases:
+    
+    svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-4-0/
+
+Committers need to properly configure their svn client so that
 the appropriate subversion properties are set on newly added files. 
 One of the most important properties is the eol-style property 
 that configures OS-specific line-endings for text files.
