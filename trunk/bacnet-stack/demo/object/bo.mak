@@ -1,28 +1,29 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
-#CFLAGS  = -Wall -I.
-# -g for debugging with gdb
-#CFLAGS  = -Wall -I. -g
-CFLAGS  = -Wall -I. -Itest -DBIG_ENDIAN=0 -DTEST -DTEST_BINARY_OUTPUT -g
+SRC_DIR = ../../src
+TEST_DIR = ../../test
+INCLUDES = -I../../include -I$(TEST_DIR) -I.
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_BINARY_OUTPUT
 
-# NOTE: this file is normally called by the unittest.sh from up directory
-SRCS = bacdcode.c \
-       bacint.c \
-       bacstr.c \
-       datetime.c \
-       bacapp.c \
-       bactext.c \
-       indtext.c \
-       demo/object/bo.c \
-       test/ctest.c
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-OBJS = ${SRCS:.c=.o}
+SRCS = bo.c \
+	$(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/indtext.c \
+	$(TEST_DIR)/ctest.c
 
 TARGET = binary_output
 
 all: ${TARGET}
  
+OBJS = ${SRCS:.c=.o}
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS} 
 
@@ -34,6 +35,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 	
 clean:
-	rm -rf core ${TARGET} $(OBJS) *.bak *.1 *.ini
+	rm -rf core ${TARGET} $(OBJS)
 
 include: .depend

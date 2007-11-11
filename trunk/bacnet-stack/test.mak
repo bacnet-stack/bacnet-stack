@@ -202,3 +202,71 @@ wp: logfile test/wp.mak
 	( cd test ; make -f wp.mak )
 	( ./test/wp >> ${LOGFILE} )
 	( cd test ; make -f wp.mak clean )
+
+# Objects
+ai: logfile demo/object/ai.mak
+	( cd demo/object ; make -f ai.mak clean )
+	( cd demo/object ; make -f ai.mak )
+	( ./demo/object/analog_input >> ${LOGFILE} )
+	( cd demo/object ; make -f ai.mak clean )
+
+ao: logfile demo/object/ao.mak
+	( cd demo/object ; make -f ao.mak clean )
+	( cd demo/object ; make -f ao.mak )
+	( ./demo/object/analog_output >> ${LOGFILE} )
+	( cd demo/object ; make -f ao.mak clean )
+
+av: logfile demo/object/av.mak
+	( cd demo/object ; make -f av.mak clean )
+	( cd demo/object ; make -f av.mak )
+	( ./demo/object/analog_value >> ${LOGFILE} )
+	( cd demo/object ; make -f av.mak clean )
+
+bi: logfile demo/object/bi.mak
+	( cd demo/object ; make -f bi.mak clean )
+	( cd demo/object ; make -f bi.mak )
+	( ./demo/object/binary_input >> ${LOGFILE} )
+	( cd demo/object ; make -f bi.mak clean )
+
+bo: logfile demo/object/bo.mak
+	( cd demo/object ; make -f bo.mak clean )
+	( cd demo/object ; make -f bo.mak )
+	( ./demo/object/binar_output >> ${LOGFILE} )
+	( cd demo/object ; make -f bo.mak clean )
+
+bv: logfile demo/object/bv.mak
+	( cd demo/object ; make -f bv.mak clean )
+	( cd demo/object ; make -f bv.mak )
+	( ./demo/object/binary_value >> ${LOGFILE} )
+	( cd demo/object ; make -f bv.mak clean )
+
+device: logfile demo/object/device.mak
+	( cd demo/object ; make -f device.mak clean )
+	( cd demo/object ; make -f device.mak )
+	( ./demo/object/device >> ${LOGFILE} )
+	( cd demo/object ; make -f device.mak clean )
+
+lc: logfile demo/object/lc.mak
+	( cd demo/object ; make -f lc.mak clean )
+	( cd demo/object ; make -f lc.mak )
+	( ./demo/object/load_control >> ${LOGFILE} )
+	( cd demo/object ; make -f lc.mak clean )
+
+lo: logfile demo/object/lo.mak
+	( cd demo/object ; make -f lo.mak clean )
+	( cd demo/object ; make -f lo.mak )
+	( ./demo/object/lighting_output >> ${LOGFILE} )
+	( cd demo/object ; make -f lo.mak clean )
+
+lsp: logfile demo/object/lsp.mak
+	( cd demo/object ; make -f lsp.mak clean )
+	( cd demo/object ; make -f lsp.mak )
+	( ./demo/object/life_safety_point >> ${LOGFILE} )
+	( cd demo/object ; make -f lsp.mak clean )
+
+mso: logfile demo/object/mso.mak
+	( cd demo/object ; make -f mso.mak clean )
+	( cd demo/object ; make -f mso.mak )
+	( ./demo/object/multistate_output >> ${LOGFILE} )
+	( cd demo/object ; make -f mso.mak clean )
+
