@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="epics\bacepics.cbp" active="1" />
+		<Project filename="..\lib\bacnet.cbp" />
+		<Project filename="server\bacserv.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>
