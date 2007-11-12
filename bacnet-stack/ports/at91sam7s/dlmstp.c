@@ -357,16 +357,12 @@ static bool dlmstp_compare_data_expecting_reply(
         default:
             return false;
     }
-    /* these don't have service choice included */
-    if ((reply.pdu_type == PDU_TYPE_REJECT) ||
-        (reply.pdu_type == PDU_TYPE_ABORT)) {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
-    } else {
-        if (request.invoke_id != reply.invoke_id) {
-            return false;
-        }
+    if (request.invoke_id != reply.invoke_id) {
+        return false;
+    }
+    /* these services don't have service choice included */
+    if ((reply.pdu_type != PDU_TYPE_REJECT) &&
+        (reply.pdu_type != PDU_TYPE_ABORT)) {
         if (request.service_choice != reply.service_choice) {
             return false;
         }
