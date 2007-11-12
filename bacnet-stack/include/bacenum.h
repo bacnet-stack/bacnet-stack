@@ -1238,4 +1238,16 @@ typedef enum BACnetLightingOperation {
    BACNET_LIGHTS_RELINQUISH = 14
 } BACNET_LIGHTING_OPERATION;
 
+/* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
+/* 0=Monday-6=Sunday */
+typedef enum BACnetDaysOfWeek {
+    BACNET_DAYS_OF_WEEK_MONDAY = 0,
+    BACNET_DAYS_OF_WEEK_TUESDAY = 1,
+    BACNET_DAYS_OF_WEEK_WEDNESDAY = 2,
+    BACNET_DAYS_OF_WEEK_THURSDAY = 3,
+    BACNET_DAYS_OF_WEEK_FRIDAY = 4,
+    BACNET_DAYS_OF_WEEK_SATURDAY = 5,
+    BACNET_DAYS_OF_WEEK_SUNDAY = 6    
+} BACNET_DAYS_OF_WEEK;
+
 #endif                          /* end of BACENUM_H */
