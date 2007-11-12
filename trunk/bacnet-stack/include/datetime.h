@@ -37,7 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef enum {
+typedef enum BACnet_Weekday {
     BACNET_WEEKDAY_MONDAY = 1,
     BACNET_WEEKDAY_TUESDAY = 2,
     BACNET_WEEKDAY_WEDNESDAY = 3,
