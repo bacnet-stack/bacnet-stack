@@ -616,8 +616,6 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t * mstp_port)
         /* receives the token */
         mstp_port->TokenCount = Npoll;
         mstp_port->SoleMaster = false;
-        mstp_port->ReceivedValidFrame = false;
-        mstp_port->ReceivedInvalidFrame = false;
         mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
         transition_now = true;
         break;
