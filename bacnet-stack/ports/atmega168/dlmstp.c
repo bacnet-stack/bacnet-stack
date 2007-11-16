@@ -622,8 +622,6 @@ static bool MSTP_Master_Node_FSM(void)
         /* receives the token */
         TokenCount = Npoll;
         MSTP_Flag.SoleMaster = false;
-        MSTP_Flag.ReceivedValidFrame = false;
-        MSTP_Flag.ReceivedInvalidFrame = false;
         Master_State = MSTP_MASTER_STATE_IDLE;
         transition_now = true;
         break;
