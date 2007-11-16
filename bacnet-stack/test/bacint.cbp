@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\bacint.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Debug\bacint" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -22,7 +22,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\bacint.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Release\bacint" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -37,16 +37,22 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-DTEST" />
+			<Add option="-DTEST_BACINT" />
+			<Add directory="." />
+			<Add directory="..\include" />
 		</Compiler>
-		<Unit filename="bacint.c">
+		<Unit filename="..\src\bacint.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="test\ctest.c">
+		<Unit filename="ctest.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="test\ctest.h" />
+		<Unit filename="ctest.h" />
 		<Extensions>
 			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
