@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="bacepics" />
+		<Option title="BACnet EPICS Demo" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -34,7 +34,7 @@
 			<Add option="-DBACDL_BIP" />
 			<Add option="-DPRINT_ENABLED=1" />
 			<Add directory="." />
-			<Add directory="..\.." />
+			<Add directory="..\..\include" />
 			<Add directory="..\handler" />
 			<Add directory="..\object" />
 			<Add directory="..\..\ports\win32" />

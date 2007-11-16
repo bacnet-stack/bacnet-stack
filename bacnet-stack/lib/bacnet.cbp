@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="bacnet" />
+		<Option title="BACnet Library" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -36,7 +36,8 @@
 			<Add option="-Wall" />
 			<Add option="-DBACDL_BIP" />
 			<Add option="-DPRINT_ENABLED=1" />
-			<Add directory=".." />
+			<Add option="-DBACAPP_ALL" />
+			<Add directory="..\include" />
 			<Add directory="..\demo\handler" />
 			<Add directory="..\demo\object" />
 			<Add directory="..\ports\win32" />
@@ -44,83 +45,6 @@
 		<Linker>
 			<Add library="ws2_32" />
 		</Linker>
-		<Unit filename="..\abort.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\abort.h" />
-		<Unit filename="..\address.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\address.h" />
-		<Unit filename="..\apdu.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\apdu.h" />
-		<Unit filename="..\arf.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\arf.h" />
-		<Unit filename="..\awf.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\awf.h" />
-		<Unit filename="..\bacaddr.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bacaddr.h" />
-		<Unit filename="..\bacapp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bacapp.h" />
-		<Unit filename="..\bacdcode.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bacdcode.h" />
-		<Unit filename="..\bacdef.h" />
-		<Unit filename="..\bacenum.h" />
-		<Unit filename="..\bacerror.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bacerror.h" />
-		<Unit filename="..\bacint.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bacint.h" />
-		<Unit filename="..\bacprop.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bacprop.h" />
-		<Unit filename="..\bacstr.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bacstr.h" />
-		<Unit filename="..\bactext.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bactext.h" />
-		<Unit filename="..\bip.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\bip.h" />
-		<Unit filename="..\bits.h" />
-		<Unit filename="..\config.h" />
-		<Unit filename="..\cov.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\cov.h" />
-		<Unit filename="..\crc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\crc.h" />
-		<Unit filename="..\datalink.h" />
-		<Unit filename="..\datetime.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\datetime.h" />
-		<Unit filename="..\dcc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\dcc.h" />
 		<Unit filename="..\demo\handler\client.h" />
 		<Unit filename="..\demo\handler\h_arf.c">
 			<Option compilerVar="CC" />
@@ -248,81 +172,158 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\object\mso.h" />
-		<Unit filename="..\dlmstp.h" />
-		<Unit filename="..\ethernet.h" />
-		<Unit filename="..\filename.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\filename.h" />
-		<Unit filename="..\iam.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\iam.h" />
-		<Unit filename="..\ihave.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\ihave.h" />
-		<Unit filename="..\indtext.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\indtext.h" />
+		<Unit filename="..\include\abort.h" />
+		<Unit filename="..\include\address.h" />
+		<Unit filename="..\include\apdu.h" />
+		<Unit filename="..\include\arf.h" />
+		<Unit filename="..\include\awf.h" />
+		<Unit filename="..\include\bacaddr.h" />
+		<Unit filename="..\include\bacapp.h" />
+		<Unit filename="..\include\bacdcode.h" />
+		<Unit filename="..\include\bacdef.h" />
+		<Unit filename="..\include\bacenum.h" />
+		<Unit filename="..\include\bacerror.h" />
+		<Unit filename="..\include\bacint.h" />
+		<Unit filename="..\include\bacprop.h" />
+		<Unit filename="..\include\bacstr.h" />
+		<Unit filename="..\include\bactext.h" />
+		<Unit filename="..\include\bip.h" />
+		<Unit filename="..\include\bits.h" />
+		<Unit filename="..\include\config.h" />
+		<Unit filename="..\include\cov.h" />
+		<Unit filename="..\include\crc.h" />
+		<Unit filename="..\include\datalink.h" />
+		<Unit filename="..\include\datetime.h" />
+		<Unit filename="..\include\dcc.h" />
+		<Unit filename="..\include\dlmstp.h" />
+		<Unit filename="..\include\ethernet.h" />
+		<Unit filename="..\include\filename.h" />
+		<Unit filename="..\include\iam.h" />
+		<Unit filename="..\include\ihave.h" />
+		<Unit filename="..\include\indtext.h" />
+		<Unit filename="..\include\mstp.h" />
+		<Unit filename="..\include\npdu.h" />
+		<Unit filename="..\include\rd.h" />
+		<Unit filename="..\include\reject.h" />
+		<Unit filename="..\include\rp.h" />
+		<Unit filename="..\include\rpm.h" />
+		<Unit filename="..\include\timesync.h" />
+		<Unit filename="..\include\tsm.h" />
+		<Unit filename="..\include\version.h" />
+		<Unit filename="..\include\whohas.h" />
+		<Unit filename="..\include\whois.h" />
+		<Unit filename="..\include\wp.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\mstp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\mstp.h" />
-		<Unit filename="..\npdu.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\npdu.h" />
 		<Unit filename="..\ports\win32\bip-init.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\ports\win32\dlmstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\rd.c">
+		<Unit filename="..\src\abort.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\rd.h" />
-		<Unit filename="..\reject.c">
+		<Unit filename="..\src\address.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\reject.h" />
-		<Unit filename="..\rp.c">
+		<Unit filename="..\src\apdu.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\rp.h" />
-		<Unit filename="..\rpm.c">
+		<Unit filename="..\src\arf.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\rpm.h" />
-		<Unit filename="..\timesync.c">
+		<Unit filename="..\src\awf.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\timesync.h" />
-		<Unit filename="..\tsm.c">
+		<Unit filename="..\src\bacaddr.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\tsm.h" />
-		<Unit filename="..\version.c">
+		<Unit filename="..\src\bacapp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\version.h" />
-		<Unit filename="..\whohas.c">
+		<Unit filename="..\src\bacdcode.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\whohas.h" />
-		<Unit filename="..\whois.c">
+		<Unit filename="..\src\bacerror.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\whois.h" />
-		<Unit filename="..\wp.c">
+		<Unit filename="..\src\bacint.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\wp.h" />
+		<Unit filename="..\src\bacprop.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\bacstr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\bactext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\bip.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\cov.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\crc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\datetime.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\dcc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\filename.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\iam.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\ihave.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\indtext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\mstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\npdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\rd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\reject.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\rp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\rpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\timesync.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\tsm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\version.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\whohas.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\whois.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\wp.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />
