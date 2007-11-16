@@ -42,12 +42,6 @@
 #include "bacint.h"
 #include "bacreal.h"
 
-/* NOTE: byte order plays a role in decoding multibyte values */
-/* http://www.unixpapa.com/incnote/byteorder.html */
-#ifndef BIG_ENDIAN
-  #error Define BIG_ENDIAN=0 or BIG_ENDIAN=1 for BACnet Stack in compiler settings
-#endif
-
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
    B'001'      2 segments accepted.
