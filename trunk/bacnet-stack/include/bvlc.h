@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "npdu.h"
 
 #ifdef __cplusplus
 extern "C" {
