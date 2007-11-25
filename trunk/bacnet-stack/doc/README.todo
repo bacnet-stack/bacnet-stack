@@ -3,7 +3,7 @@ Here are some things to do:
 
 A. Finish demo/epics/main.c - EPICS demo. Use object property lists.
 B. Finish demo/object/lo.c - Lighting Output object demo
-C. Complete bvlc.c and use it instead of or in compliment to bip.c
+C. Finish bvlc.c and use it instead of or in compliment to bip.c
 D. Complete client demo for ReadPropertyMultiple from rpm.c
 E. Add HTTP demo like bacnet4linux
 F. Add subscribe COV support in server demo.
@@ -17,10 +17,11 @@ M. Add function headers to each module and function with
     doc-tags for some document generator like doxygen, robodoc,
     or Natural Docs.  Wikipedia has a comparison of generators at:
     http://en.wikipedia.org/wiki/Comparison_of_documentation_generators
-N. Add option to address to use file store and demos to use file store
+N. Add option to address module that use file store address cache
    instead of having to send who-is for each query.
-   This will make scripting cleaner.
+   This will make scripting cleaner/effecient.
 O. Convert object methods to use an array of object methods
    for ReadProperty and Device object counts, ids, and names.
 P. Convert datalink methods to use function pointers that can be
    overridden in main.c.
+Q. Create BACnet router code that uses more than one datalink.

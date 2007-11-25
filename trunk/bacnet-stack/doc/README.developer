@@ -70,11 +70,14 @@ example object files in the BACnet stack include:
 
     * demo/object/ai.c - analog input object demo
     * demo/object/ao.c - analog output object demo
+    * demo/object/av.c - analog value object demo
     * demo/object/bacfile.c - File object demo
     * demo/object/device.c - device object demo
     * demo/object/bi.c - binary input object demo
     * demo/object/bo.c - binary output object demo
-    * demo/object/lsp.c - life safety point demo
+    * demo/object/bv.c - binary value object demo
+    * demo/object/lsp.c - life safety point object demo
+    * demo/object/lc.c - load control object demo
 
 The BACnet stack includes a number of core files that handle the service packets
 that come in from the datalink layer. The core files include:
@@ -82,17 +85,19 @@ that come in from the datalink layer. The core files include:
     * apdu.c - handles dispatching the services to the proper handlers
     * bacdcode.c - primitive BACnet datatype encoding and decoding
     * bacstr.c - BACnet string encoding and decoding
-    * bigend.c - determines if CPU is bigendian
-    * datalink.c - generic API for all datalink layers
+    * bacint.c - BACnet integer encoding and decoding
+    * bacreal.c - BACnet REAL encoding and decoding
     * npdu.c - handles dispatching of the network message to the apdu
-dispatcher. It would be where routing is handled if the stack supported more
-than one physical layer.
+        dispatcher. It would be where routing is handled if the
+        stack supported more than one physical layer.
 
-The DataLink Layer controls orderly access to the physical medium. The following
-files are used for the datalink handling in this BACnet stack:
+The DataLink Layer controls orderly access to the physical medium.
+The framework is listed in the header file, and the code is nornally
+located in the ports/x/ directory. The following files are used for
+the datalink handling in this BACnet stack:
 
     * bip.c - BACnet/IP functionality - depends on bip_init.c in port/xx
-    * dllmstp.h - MS/TP datalink layer (see also dlmstp.c,mstp.c,crc.c)
+    * dlmstp.h - MS/TP datalink layer (see also dlmstp.c,mstp.c,crc.c)
     * arcnet.h - ARCNET datalink layer functionality API
     * ethernet.h - BACnet Ethernet datalink layer functionality API
 

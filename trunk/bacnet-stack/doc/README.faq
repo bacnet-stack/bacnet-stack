@@ -232,6 +232,9 @@ PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED
 (especially in bacdcode.c)
               * Compile and Link. If the linker fails, then that
 function was needed.
+              * Some compilers and linkers have garbage collection
+              for unused code/functions. GCC has this feature:
+              http://gcc.gnu.org/ml/gcc-help/2003-08/msg00128.html
 
 Q-15: I have downloaded the BACnet stack but can't get demo/server to
 work. I am using a single computer. In one console window I run
