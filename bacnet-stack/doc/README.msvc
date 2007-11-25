@@ -47,7 +47,7 @@ its datalink layer. In Visual C++, add a Preprocessor Definition by:
 3. Select the "C/C++" tab (3rd Tab)
 4. Select the Category: General
 5. You can see the "Preprocessor Definitions:" box
-6. Type BACDL_BIP=1 in that edit box (using a comma if necessary)
+6. Type BACDL_BIP in that edit box (using a comma if necessary)
 7. Press OK
 8. Compile the entire project again...
 
@@ -71,6 +71,6 @@ In Visual C++, add a Preprocessor Definition by:
 3. Select the "C/C++" tab (3rd Tab)
 4. Select the Category: General
 5. You can see the "Preprocessor Definitions:" box
-6. Type TSM_ENABLED=1 in that edit box (using a comma if necessary)
+6. Type MAX_TSM_TRANSACTIONS=0 in that edit box (using a comma if necessary)
 7. Press OK
 8. Compile the entire project again...
