@@ -40,41 +40,41 @@
 			<Add option="-DPRINT_ENABLED=1" />
 			<Add option="-DCRC_USE_TABLE" />
 			<Add directory="." />
-			<Add directory="..\..\..\bacnet-stack" />
+			<Add directory="..\..\include" />
 			<Add directory="..\..\demo\handler" />
 			<Add directory="..\..\demo\object" />
 		</Compiler>
-		<Unit filename="..\..\bacaddr.c">
+		<Unit filename="..\..\src\bacaddr.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bacaddr.h" />
-		<Unit filename="..\..\bacdef.h" />
-		<Unit filename="..\..\bacint.c">
+		<Unit filename="..\..\include\bacaddr.h" />
+		<Unit filename="..\..\include\bacdef.h" />
+		<Unit filename="..\..\src\bacint.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\bacint.h" />
-		<Unit filename="..\..\crc.c">
+		<Unit filename="..\..\include\bacint.h" />
+		<Unit filename="..\..\src\crc.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\crc.h" />
-		<Unit filename="..\..\datalink.h" />
-		<Unit filename="..\..\dlmstp.h" />
-		<Unit filename="..\..\indtext.c">
+		<Unit filename="..\..\include\crc.h" />
+		<Unit filename="..\..\include\datalink.h" />
+		<Unit filename="..\..\include\dlmstp.h" />
+		<Unit filename="..\..\src\indtext.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\indtext.h" />
-		<Unit filename="..\..\mstp.c">
+		<Unit filename="..\..\include\indtext.h" />
+		<Unit filename="..\..\src\mstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\mstp.h" />
-		<Unit filename="..\..\mstptext.c">
+		<Unit filename="..\..\include\mstp.h" />
+		<Unit filename="..\..\src\mstptext.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\mstptext.h" />
-		<Unit filename="..\..\npdu.c">
+		<Unit filename="..\..\include\mstptext.h" />
+		<Unit filename="..\..\src\npdu.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\npdu.h" />
+		<Unit filename="..\..\include\npdu.h" />
 		<Unit filename="dlmstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
