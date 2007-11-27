@@ -213,15 +213,16 @@
 		<Unit filename="..\include\whohas.h" />
 		<Unit filename="..\include\whois.h" />
 		<Unit filename="..\include\wp.h" />
-		<Unit filename="main.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\ports\win32\bip-init.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\ports\win32\dlmstp.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\ports\win32\net.h" />
+		<Unit filename="..\ports\win32\rs485.h" />
+		<Unit filename="..\ports\win32\stdbool.h" />
+		<Unit filename="..\ports\win32\stdint.h" />
 		<Unit filename="..\src\abort.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -253,6 +254,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\bacprop.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\bacreal.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\bacstr.c">

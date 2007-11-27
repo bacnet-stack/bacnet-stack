@@ -2,12 +2,13 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="BACnet EPICS Demo" />
+		<Option title="bacnet" />
+		<Option makefile="makefile" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\bacepics" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Debug\bacnet" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -16,7 +17,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\bacepics" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Release\bacnet" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -36,14 +37,22 @@
 			<Add option="-DBACAPP_ALL" />
 			<Add directory="." />
 			<Add directory="..\..\include" />
-			<Add directory="..\handler" />
-			<Add directory="..\object" />
-			<Add directory="..\..\ports\win32" />
+			<Add directory="..\..\demo\handler" />
+			<Add directory="..\..\demo\object" />
 		</Compiler>
 		<Linker>
 			<Add library="..\..\lib\libbacnet.a" />
 			<Add library="ws2_32" />
 		</Linker>
+		<Unit filename="..\..\include\bacaddr.h" />
+		<Unit filename="..\..\include\bacdef.h" />
+		<Unit filename="..\..\include\bacint.h" />
+		<Unit filename="..\..\include\crc.h" />
+		<Unit filename="..\..\include\datalink.h" />
+		<Unit filename="..\..\include\indtext.h" />
+		<Unit filename="..\..\include\mstp.h" />
+		<Unit filename="..\..\include\mstptext.h" />
+		<Unit filename="..\..\include\npdu.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
