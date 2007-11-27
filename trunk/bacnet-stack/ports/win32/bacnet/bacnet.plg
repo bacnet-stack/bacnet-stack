@@ -6,60 +6,15 @@
 --------------------Configuration: bacnet - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP632.tmp" with contents
+Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP72.tmp" with contents
 [
-/nologo /MLd /W3 /Gm /GX /ZI /Od /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D BACDL_BIP=1 /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"C:\code\bacnet-stack\abort.c"
-"C:\code\bacnet-stack\address.c"
-"C:\code\bacnet-stack\demo\object\ai.c"
-"C:\code\bacnet-stack\demo\object\ao.c"
-"C:\code\bacnet-stack\apdu.c"
-"C:\code\bacnet-stack\arf.c"
-"C:\code\bacnet-stack\demo\object\av.c"
-"C:\code\bacnet-stack\bacapp.c"
-"C:\code\bacnet-stack\bacdcode.c"
-"C:\code\bacnet-stack\bacerror.c"
-"C:\code\bacnet-stack\demo\object\bacfile.c"
-"C:\code\bacnet-stack\bacstr.c"
-"C:\code\bacnet-stack\bactext.c"
-"C:\code\bacnet-stack\demo\object\bi.c"
-"C:\code\bacnet-stack\bigend.c"
-"C:\code\bacnet-stack\ports\win32\bip-init.c"
-"C:\code\bacnet-stack\bip.c"
-"C:\code\bacnet-stack\demo\object\bo.c"
-"C:\code\bacnet-stack\demo\object\bv.c"
-"C:\code\bacnet-stack\crc.c"
-"C:\code\bacnet-stack\datetime.c"
-"C:\code\bacnet-stack\dcc.c"
-"C:\code\bacnet-stack\demo\object\device.c"
-"C:\code\bacnet-stack\demo\handler\h_arf.c"
-"C:\code\bacnet-stack\demo\handler\h_arf_a.c"
-"C:\code\bacnet-stack\demo\handler\h_iam.c"
-"C:\code\bacnet-stack\demo\handler\h_rp.c"
-"C:\code\bacnet-stack\demo\handler\h_rp_a.c"
-"C:\code\bacnet-stack\demo\handler\h_whois.c"
-"C:\code\bacnet-stack\demo\handler\h_wp.c"
-"C:\code\bacnet-stack\iam.c"
-"C:\code\bacnet-stack\indtext.c"
-"C:\code\bacnet-stack\demo\object\lc.c"
-"C:\code\bacnet-stack\demo\object\lsp.c"
-"C:\code\bacnet-stack\ports\win32\main.c"
-"C:\code\bacnet-stack\demo\object\mso.c"
-"C:\code\bacnet-stack\demo\handler\noserv.c"
-"C:\code\bacnet-stack\npdu.c"
-"C:\code\bacnet-stack\reject.c"
-"C:\code\bacnet-stack\ringbuf.c"
-"C:\code\bacnet-stack\rp.c"
-"C:\code\bacnet-stack\demo\handler\s_rp.c"
-"C:\code\bacnet-stack\demo\handler\s_whois.c"
-"C:\code\bacnet-stack\demo\handler\s_wp.c"
-"C:\code\bacnet-stack\tsm.c"
-"C:\code\bacnet-stack\demo\handler\txbuf.c"
-"C:\code\bacnet-stack\whois.c"
-"C:\code\bacnet-stack\wp.c"
+/nologo /MLd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\code\bacnet-stack\src\bacreal.c"
+"C:\code\bacnet-stack\src\bacaddr.c"
+"C:\code\bacnet-stack\src\bacint.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP632.tmp" 
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP633.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP72.tmp" 
+Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP73.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
 ".\Debug\abort.obj"
@@ -100,6 +55,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\mso.obj"
 ".\Debug\noserv.obj"
 ".\Debug\npdu.obj"
+".\Debug\version.obj"
 ".\Debug\reject.obj"
 ".\Debug\ringbuf.obj"
 ".\Debug\rp.obj"
@@ -110,65 +66,19 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\txbuf.obj"
 ".\Debug\whois.obj"
 ".\Debug\wp.obj"
+".\Debug\bacreal.obj"
+".\Debug\bacaddr.obj"
+".\Debug\bacint.obj"
 ]
-Creating command line "link.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP633.tmp"
+Creating command line "link.exe @C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP73.tmp"
 <h3>Output Window</h3>
 Compiling...
-abort.c
-address.c
-ai.c
-ao.c
-apdu.c
-arf.c
-av.c
-bacapp.c
-bacdcode.c
-bacerror.c
-bacfile.c
-bacstr.c
-bactext.c
-bi.c
-bigend.c
-bip-init.c
-bip.c
-bo.c
-bv.c
-crc.c
-Generating Code...
-Compiling...
-datetime.c
-dcc.c
-device.c
-h_arf.c
-h_arf_a.c
-h_iam.c
-h_rp.c
-h_rp_a.c
-h_whois.c
-h_wp.c
-iam.c
-indtext.c
-lc.c
-lsp.c
-main.c
-mso.c
-noserv.c
-npdu.c
-reject.c
-ringbuf.c
-Generating Code...
-Compiling...
-rp.c
-s_rp.c
-s_whois.c
-s_wp.c
-tsm.c
-txbuf.c
-whois.c
-wp.c
+bacreal.c
+bacaddr.c
+bacint.c
 Generating Code...
 Linking...
-Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP635.tmp" with contents
+Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP75.tmp" with contents
 [
 /nologo /o"Debug/bacnet.bsc" 
 ".\Debug\abort.sbr"
@@ -209,6 +119,7 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP635.tmp" with conten
 ".\Debug\mso.sbr"
 ".\Debug\noserv.sbr"
 ".\Debug\npdu.sbr"
+".\Debug\version.sbr"
 ".\Debug\reject.sbr"
 ".\Debug\ringbuf.sbr"
 ".\Debug\rp.sbr"
@@ -218,8 +129,11 @@ Creating temporary file "C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP635.tmp" with conten
 ".\Debug\tsm.sbr"
 ".\Debug\txbuf.sbr"
 ".\Debug\whois.sbr"
-".\Debug\wp.sbr"]
-Creating command line "bscmake.exe @C:\DOCUME~1\stk01\LOCALS~1\Temp\RSP635.tmp"
+".\Debug\wp.sbr"
+".\Debug\bacreal.sbr"
+".\Debug\bacaddr.sbr"
+".\Debug\bacint.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP75.tmp"
 Creating browse info file...
 <h3>Output Window</h3>
 
