@@ -25,3 +25,4 @@ O. Convert object methods to use an array of object methods
 P. Convert datalink methods to use function pointers that can be
    overridden in main.c.
 Q. Create BACnet router code that uses more than one datalink.
+R. splint the code.  Make intelligent fixes.
