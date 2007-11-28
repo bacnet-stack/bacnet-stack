@@ -116,9 +116,7 @@ void apdu_set_unrecognized_service_handler_handler(confirmed_function
 /* Unconfirmed Function Handlers */
 /* If they are not set, they are not handled */
 static unconfirmed_function
-    Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE] = {
-    NULL
-};
+    Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE];
 
 void apdu_set_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE
     service_choice, unconfirmed_function pFunction)
