@@ -61,7 +61,7 @@ int abort_decode_service_request(uint8_t * apdu,
 {
     int len = 0;
 
-    if (apdu_len) {
+    if (apdu_len > 0) {
         if (invoke_id)
             *invoke_id = apdu[0];
         if (abort_reason)
@@ -86,7 +86,7 @@ int abort_decode_apdu(uint8_t * apdu,
     if (!apdu)
         return -1;
     /* optional checking - most likely was already done prior to this call */
-    if (apdu_len) {
+    if (apdu_len > 0) {
         if ((apdu[0] & 0xF0) != PDU_TYPE_ABORT)
             return -1;
         if (apdu[0] & 1)
