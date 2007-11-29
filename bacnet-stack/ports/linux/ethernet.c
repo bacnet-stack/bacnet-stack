@@ -112,14 +112,14 @@ static int ethernet_bind(
     /* Attempt to open the socket for 802.2 ethernet frames */
     if ((sock_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_802_2))) < 0) {
         /* Error occured */
-        fprintf(stderr,
-            "ethernet: Error opening socket: %s\n", strerror(errno));
+        fprintf(stderr, "ethernet: Error opening socket: %s\n",
+            strerror(errno));
         fprintf(stderr,
             "You might need to add the following to modules.conf\n"
             "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
-            "Also, add af_packet to /etc/modules.\n"
-            "Then follow it by:\n" "# modprobe af_packet\n");
+            "Also, add af_packet to /etc/modules.\n" "Then follow it by:\n"
+            "# modprobe af_packet\n");
         exit(-1);
     }
     /* Bind the socket to an address */
@@ -132,14 +132,14 @@ static int ethernet_bind(
     /* Attempt to bind the socket to the interface */
     if (bind(sock_fd, eth_addr, sizeof(struct sockaddr)) != 0) {
         /* Bind problem, close socket and return */
-        fprintf(stderr,
-            "ethernet: Unable to bind 802.2 socket : %s\n", strerror(errno));
+        fprintf(stderr, "ethernet: Unable to bind 802.2 socket : %s\n",
+            strerror(errno));
         fprintf(stderr,
             "You might need to add the following to modules.conf\n"
             "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
-            "Also, add af_packet to /etc/modules.\n"
-            "Then follow it by:\n" "# modprobe af_packet\n");
+            "Also, add af_packet to /etc/modules.\n" "Then follow it by:\n"
+            "# modprobe af_packet\n");
         /* Close the socket */
         close(sock_fd);
         exit(-1);
@@ -248,8 +248,8 @@ int ethernet_send_pdu(
 
     /* Send the packet */
     bytes =
-        sendto(eth802_sockfd, &mtu, mtu_len, 0,
-        (struct sockaddr *) &eth_addr, sizeof(struct sockaddr));
+        sendto(eth802_sockfd, &mtu, mtu_len, 0, (struct sockaddr *) &eth_addr,
+        sizeof(struct sockaddr));
     /* did it get sent? */
     if (bytes < 0)
         fprintf(stderr, "ethernet: Error sending packet: %s\n",
@@ -303,8 +303,7 @@ uint16_t ethernet_receive(
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
         if (errno != EAGAIN)
-            fprintf(stderr,
-                "ethernet: Read error in receiving packet: %s\n",
+            fprintf(stderr, "ethernet: Read error in receiving packet: %s\n",
                 strerror(errno));
         return 0;
     }

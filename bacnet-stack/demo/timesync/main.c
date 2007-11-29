@@ -96,8 +96,8 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the reply (request) coming in */
-    apdu_set_unconfirmed_handler
-        (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+        handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
         handler_timesync);
     /* handle any errors coming back */
@@ -127,17 +127,11 @@ int main(
         printf("Usage: %s date time [device-instance]\r\n"
             "Send BACnet TimeSynchronization request to all devices.\r\n"
             "date format: year/month/day:dayofweek (e.g. 2006/4/1:6)\r\n"
-            "year: AD, such as 2006\r\n"
-            "month: 1=January, 12=December\r\n"
-            "day: 1-31\r\n"
-            "dayofweek: 1=Monday, 7=Sunday\r\n"
-            "\r\n"
+            "year: AD, such as 2006\r\n" "month: 1=January, 12=December\r\n"
+            "day: 1-31\r\n" "dayofweek: 1=Monday, 7=Sunday\r\n" "\r\n"
             "time format: hour:minute:second.hundredths (e.g. 23:59:59.12)\r\n"
-            "hour: 0-23\r\n"
-            "minute: 0-59\r\n"
-            "second: 0-59\r\n"
-            "hundredths: 0-99\r\n"
-            "\r\n"
+            "hour: 0-23\r\n" "minute: 0-59\r\n" "second: 0-59\r\n"
+            "hundredths: 0-99\r\n" "\r\n"
             "Optional device-instance sends a unicast time sync.\r\n",
             filename_remove_path(argv[0]));
         return 0;

@@ -55,24 +55,30 @@ int awf_encode_apdu(
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_ATOMIC_WRITE_FILE;  /* service choice */
         apdu_len = 4;
-        apdu_len += encode_application_object_id(&apdu[apdu_len],
-            data->object_type, data->object_instance);
+        apdu_len +=
+            encode_application_object_id(&apdu[apdu_len], data->object_type,
+            data->object_instance);
         switch (data->access) {
             case FILE_STREAM_ACCESS:
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
-                apdu_len += encode_application_signed(&apdu[apdu_len],
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len],
                     data->type.stream.fileStartPosition);
-                apdu_len += encode_application_octet_string(&apdu[apdu_len],
+                apdu_len +=
+                    encode_application_octet_string(&apdu[apdu_len],
                     &data->fileData);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
                 break;
             case FILE_RECORD_ACCESS:
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
-                apdu_len += encode_application_signed(&apdu[apdu_len],
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len],
                     data->type.record.fileStartRecord);
-                apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                apdu_len +=
+                    encode_application_unsigned(&apdu[apdu_len],
                     data->type.record.returnedRecordCount);
-                apdu_len += encode_application_octet_string(&apdu[apdu_len],
+                apdu_len +=
+                    encode_application_octet_string(&apdu[apdu_len],
                     &data->fileData);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
                 break;
@@ -112,21 +118,24 @@ int awf_decode_service_request(
             /* a tag number of 2 is not extended so only one octet */
             len++;
             /* fileStartPosition */
-            tag_len = decode_tag_number_and_value(&apdu[len],
-                &tag_number, &len_value_type);
+            tag_len =
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
                 return -1;
             len += decode_signed(&apdu[len], len_value_type, &signed_value);
             data->type.stream.fileStartPosition = signed_value;
             /* fileData */
-            tag_len = decode_tag_number_and_value(&apdu[len],
-                &tag_number, &len_value_type);
+            tag_len =
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
                 return -1;
-            len += decode_octet_string(&apdu[len],
-                len_value_type, &data->fileData);
+            len +=
+                decode_octet_string(&apdu[len], len_value_type,
+                &data->fileData);
             if (!decode_is_closing_tag_number(&apdu[len], 0))
                 return -1;
             /* a tag number is not extended so only one octet */
@@ -136,30 +145,34 @@ int awf_decode_service_request(
             /* a tag number is not extended so only one octet */
             len++;
             /* fileStartRecord */
-            tag_len = decode_tag_number_and_value(&apdu[len],
-                &tag_number, &len_value_type);
+            tag_len =
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
                 return -1;
             len += decode_signed(&apdu[len], len_value_type, &signed_value);
             data->type.record.fileStartRecord = signed_value;
             /* returnedRecordCount */
-            tag_len = decode_tag_number_and_value(&apdu[len],
-                &tag_number, &len_value_type);
+            tag_len =
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
                 return -1;
-            len += decode_unsigned(&apdu[len], len_value_type,
-                &unsigned_value);
+            len +=
+                decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
             data->type.record.returnedRecordCount = unsigned_value;
             /* fileData */
-            tag_len = decode_tag_number_and_value(&apdu[len],
-                &tag_number, &len_value_type);
+            tag_len =
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
                 return -1;
-            len += decode_octet_string(&apdu[len],
-                len_value_type, &data->fileData);
+            len +=
+                decode_octet_string(&apdu[len], len_value_type,
+                &data->fileData);
             if (!decode_is_closing_tag_number(&apdu[len], 1))
                 return -1;
             /* a tag number is not extended so only one octet */
@@ -192,8 +205,8 @@ int awf_decode_apdu(
     offset = 4;
 
     if (apdu_len > offset) {
-        len = awf_decode_service_request(&apdu[offset],
-            apdu_len - offset, data);
+        len =
+            awf_decode_service_request(&apdu[offset], apdu_len - offset, data);
     }
 
     return len;
@@ -213,11 +226,13 @@ int awf_ack_encode_apdu(
         apdu_len = 3;
         switch (data->access) {
             case FILE_STREAM_ACCESS:
-                apdu_len += encode_context_signed(&apdu[apdu_len], 0,
+                apdu_len +=
+                    encode_context_signed(&apdu[apdu_len], 0,
                     data->type.stream.fileStartPosition);
                 break;
             case FILE_RECORD_ACCESS:
-                apdu_len += encode_context_signed(&apdu[apdu_len], 1,
+                apdu_len +=
+                    encode_context_signed(&apdu[apdu_len], 1,
                     data->type.record.fileStartRecord);
                 break;
             default:
@@ -245,12 +260,14 @@ int awf_ack_decode_service_request(
             &len_value_type);
         if (tag_number == 0) {
             data->access = FILE_STREAM_ACCESS;
-            len += decode_signed(&apdu[len],
-                len_value_type, &data->type.stream.fileStartPosition);
+            len +=
+                decode_signed(&apdu[len], len_value_type,
+                &data->type.stream.fileStartPosition);
         } else if (tag_number == 1) {
             data->access = FILE_RECORD_ACCESS;
-            len += decode_signed(&apdu[len],
-                len_value_type, &data->type.record.fileStartRecord);
+            len +=
+                decode_signed(&apdu[len], len_value_type,
+                &data->type.record.fileStartRecord);
         } else
             return -1;
     }
@@ -278,8 +295,8 @@ int awf_ack_decode_apdu(
     offset = 3;
 
     if (apdu_len > offset) {
-        len = awf_decode_service_request(&apdu[offset],
-            apdu_len - offset, data);
+        len =
+            awf_decode_service_request(&apdu[offset], apdu_len - offset, data);
     }
 
     return len;
@@ -311,15 +328,19 @@ void testAtomicWriteFileAccess(
     ct_test(pTest, test_data.object_instance == data->object_instance);
     ct_test(pTest, test_data.access == data->access);
     if (test_data.access == FILE_STREAM_ACCESS) {
-        ct_test(pTest, test_data.type.stream.fileStartPosition ==
+        ct_test(pTest,
+            test_data.type.stream.fileStartPosition ==
             data->type.stream.fileStartPosition);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
-        ct_test(pTest, test_data.type.record.fileStartRecord ==
+        ct_test(pTest,
+            test_data.type.record.fileStartRecord ==
             data->type.record.fileStartRecord);
-        ct_test(pTest, test_data.type.record.returnedRecordCount ==
+        ct_test(pTest,
+            test_data.type.record.returnedRecordCount ==
             data->type.record.returnedRecordCount);
     }
-    ct_test(pTest, octetstring_length(&test_data.fileData) ==
+    ct_test(pTest,
+        octetstring_length(&test_data.fileData) ==
         octetstring_length(&data->fileData));
     ct_test(pTest, memcmp(octetstring_value(&test_data.fileData),
             octetstring_value(&data->fileData),
@@ -336,8 +357,8 @@ void testAtomicWriteFile(
     data.object_instance = 1;
     data.access = FILE_STREAM_ACCESS;
     data.type.stream.fileStartPosition = 0;
-    octetstring_init(&data.fileData,
-        test_octet_string, sizeof(test_octet_string));
+    octetstring_init(&data.fileData, test_octet_string,
+        sizeof(test_octet_string));
     testAtomicWriteFileAccess(pTest, &data);
 
     data.object_type = OBJECT_FILE;
@@ -345,8 +366,8 @@ void testAtomicWriteFile(
     data.access = FILE_RECORD_ACCESS;
     data.type.record.fileStartRecord = 1;
     data.type.record.returnedRecordCount = 2;
-    octetstring_init(&data.fileData,
-        test_octet_string, sizeof(test_octet_string));
+    octetstring_init(&data.fileData, test_octet_string,
+        sizeof(test_octet_string));
     testAtomicWriteFileAccess(pTest, &data);
 
     return;
@@ -371,10 +392,12 @@ void testAtomicWriteFileAckAccess(
     ct_test(pTest, len != -1);
     ct_test(pTest, test_data.access == data->access);
     if (test_data.access == FILE_STREAM_ACCESS) {
-        ct_test(pTest, test_data.type.stream.fileStartPosition ==
+        ct_test(pTest,
+            test_data.type.stream.fileStartPosition ==
             data->type.stream.fileStartPosition);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
-        ct_test(pTest, test_data.type.record.fileStartRecord ==
+        ct_test(pTest,
+            test_data.type.record.fileStartRecord ==
             data->type.record.fileStartRecord);
     }
 }

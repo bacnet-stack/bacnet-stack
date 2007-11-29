@@ -47,8 +47,9 @@ void handler_who_is(
     int32_t high_limit = 0;
 
     (void) src;
-    len = whois_decode_service_request(service_request,
-        service_len, &low_limit, &high_limit);
+    len =
+        whois_decode_service_request(service_request, service_len, &low_limit,
+        &high_limit);
     if (len == 0)
         iam_send(&Handler_Transmit_Buffer[0]);
     else if (len != -1) {

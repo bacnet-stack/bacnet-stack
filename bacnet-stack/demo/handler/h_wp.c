@@ -68,15 +68,17 @@ void handler_write_property(
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
-        &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
 #if PRINT_ENABLED
     fprintf(stderr, "WP: Received Request!\n");
 #endif
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Segmented message.  Sending Abort!\n");
 #endif
@@ -86,15 +88,15 @@ void handler_write_property(
 #if PRINT_ENABLED
     if (len > 0)
         fprintf(stderr, "WP: type=%u instance=%u property=%u index=%d\n",
-            wp_data.object_type,
-            wp_data.object_instance,
+            wp_data.object_type, wp_data.object_instance,
             wp_data.object_property, wp_data.array_index);
     else
         fprintf(stderr, "WP: Unable to decode Request!\n");
 #endif
     /* bad decoding or something we didn't understand - send an abort */
     if (len <= 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Bad Encoding. Sending Abort!\n");
@@ -113,8 +115,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Error for Device!\n");
 #endif
@@ -144,8 +146,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Write Access Error for BO!\n");
 #endif
@@ -163,8 +165,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Write Access Error for BV!\n");
 #endif
@@ -182,8 +184,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Write Access Error for AO!\n");
 #endif
@@ -201,8 +203,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Write Access Error for AV!\n");
 #endif
@@ -220,8 +222,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Write Access Error for LSP!\n");
 #endif
@@ -239,8 +241,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr,
                     "WP: Sending Write Access Error for Load Control!\n");
@@ -260,8 +262,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Write Access Error for MSO!\n");
 #endif
@@ -279,8 +281,8 @@ void handler_write_property(
             } else {
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "WP: Sending Write Access Error for File!\n");
 #endif
@@ -299,8 +301,9 @@ void handler_write_property(
     }
   WP_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "WP: Failed to send PDU (%s)!\n", strerror(errno));

@@ -132,8 +132,7 @@ static void AtomicReadFileAckHandler(
                 octets_written = fwrite(octetstring_value(&data.fileData), 1,   /* unit to write in bytes - in our case, an octet is one byte */
                     octetstring_length(&data.fileData), pFile);
                 if (octets_written != octetstring_length(&data.fileData))
-                    fprintf(stderr,
-                        "Unable to write data to file \"%s\".\n",
+                    fprintf(stderr, "Unable to write data to file \"%s\".\n",
                         Local_File_Name);
                 else
                     printf("\r%u bytes",
@@ -161,8 +160,9 @@ static void LocalIAmHandler(
 
     (void) src;
     (void) service_len;
-    len = iam_decode_service_request(service_request,
-        &device_id, &max_apdu, &segmentation, &vendor_id);
+    len =
+        iam_decode_service_request(service_request, &device_id, &max_apdu,
+        &segmentation, &vendor_id);
     if (len != -1) {
         address_add(device_id, max_apdu, src);
     } else
@@ -242,8 +242,8 @@ int main(
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (Device_APDU_Timeout() / 1000) *
-        Device_Number_Of_APDU_Retries();
+    timeout_seconds =
+        (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */
@@ -264,8 +264,9 @@ int main(
         if (End_Of_File_Detected || Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
-        found = address_bind_request(Target_Device_Object_Instance,
-            &max_apdu, &Target_Address);
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
         if (found) {
             /* calculate the smaller of our APDU size or theirs
                and remove the overhead of the APDU (about 16 octets max).
@@ -292,8 +293,7 @@ int main(
                 /* we'll read the file in chunks
                    less than max_apdu to keep unsegmented */
                 invoke_id =
-                    Send_Atomic_Read_File_Stream
-                    (Target_Device_Object_Instance,
+                    Send_Atomic_Read_File_Stream(Target_Device_Object_Instance,
                     Target_File_Object_Instance, fileStartPosition,
                     requestedOctetCount);
                 Current_Invoke_ID = invoke_id;

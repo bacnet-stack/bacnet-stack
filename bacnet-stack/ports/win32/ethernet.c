@@ -155,8 +155,8 @@ bool ethernet_init(
      */
     /* Retrieve the device list */
     if (pcap_findalldevs(&pcap_all_if, pcap_errbuf) == -1) {
-        sprintf(msgBuf,
-            "ethernet.c: error in pcap_findalldevs: %s\n", pcap_errbuf);
+        sprintf(msgBuf, "ethernet.c: error in pcap_findalldevs: %s\n",
+            pcap_errbuf);
         LogError(msgBuf);
         return false;
     }
@@ -167,8 +167,8 @@ bool ethernet_init(
     }
     pcap_freealldevs(pcap_all_if);      /* we don't need it anymore */
     if (dev == NULL) {
-        sprintf(msgBuf,
-            "ethernet.c: specified interface not found: %s\n", if_name);
+        sprintf(msgBuf, "ethernet.c: specified interface not found: %s\n",
+            if_name);
         LogError(msgBuf);
         return false;
     }
@@ -180,8 +180,8 @@ bool ethernet_init(
     lpAdapter = PacketOpenAdapter(if_name);
     if (lpAdapter == NULL) {
         ethernet_cleanup();
-        sprintf(msgBuf,
-            "ethernet.c: error in PacketOpenAdapter(\"%s\")\n", if_name);
+        sprintf(msgBuf, "ethernet.c: error in PacketOpenAdapter(\"%s\")\n",
+            if_name);
         LogError(msgBuf);
         return false;
     }
@@ -284,8 +284,7 @@ int ethernet_send(
     if (pcap_sendpacket(pcap_eth802_fp, mtu, mtu_len) != 0) {
         /* did it get sent? */
         char msgBuf[200];
-        sprintf(msgBuf,
-            "ethernet.c: error sending packet: %s\n",
+        sprintf(msgBuf, "ethernet.c: error sending packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
         LogError(msgBuf);
         return -5;
@@ -342,8 +341,7 @@ uint16_t ethernet_receive(
     res = pcap_next_ex(pcap_eth802_fp, &header, &pkt_data);
     if (res < 0) {
         char msgBuf[200];
-        sprintf(msgBuf,
-            "ethernet.c: error in receiving packet: %s\n",
+        sprintf(msgBuf, "ethernet.c: error in receiving packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
         return 0;
     } else if (res == 0)
@@ -445,8 +443,8 @@ void ethernet_debug_address(
     }
     /* if */
     if (dest) {
-        sprintf(msgBuf,
-            "Address:\n  MAC Length=%d\n  MAC Address=", dest->mac_len);
+        sprintf(msgBuf, "Address:\n  MAC Length=%d\n  MAC Address=",
+            dest->mac_len);
         LogInfo(msgBuf);
         for (i = 0; i < MAX_MAC_LEN; i++) {
             sprintf(msgBuf, "%02X ", (unsigned) dest->mac[i]);

@@ -60,8 +60,9 @@ void handler_timesync(
 
     (void) src;
     (void) service_len;
-    len = timesync_decode_service_request(service_request,
-        service_len, &bdate, &btime);
+    len =
+        timesync_decode_service_request(service_request, service_len, &bdate,
+        &btime);
 #if PRINT_ENABLED
     fprintf(stderr, "Received TimeSyncronization Request\r\n");
     show_bacnet_date_time(&bdate, &btime);
@@ -82,8 +83,9 @@ void handler_timesync_utc(
 
     (void) src;
     (void) service_len;
-    len = timesync_decode_service_request(service_request,
-        service_len, &bdate, &btime);
+    len =
+        timesync_decode_service_request(service_request, service_len, &bdate,
+        &btime);
 #if PRINT_ENABLED
     fprintf(stderr, "Received TimeSyncronization Request\r\n");
     show_bacnet_date_time(&bdate, &btime);

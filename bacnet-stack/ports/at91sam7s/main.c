@@ -155,8 +155,7 @@ static void bacnet_init(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler
-        (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 #endif
 }

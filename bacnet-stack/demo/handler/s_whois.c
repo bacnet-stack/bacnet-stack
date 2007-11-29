@@ -61,14 +61,16 @@ void Send_WhoIs(
     datalink_get_broadcast_address(&dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-        NULL, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
     /* encode the APDU portion of the packet */
-    len = whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-        low_limit, high_limit);
+    len =
+        whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len], low_limit,
+        high_limit);
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",

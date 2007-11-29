@@ -312,7 +312,8 @@ int Multistate_Output_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_NUMBER_OF_STATES:
-            apdu_len = encode_application_unsigned(&apdu[apdu_len],
+            apdu_len =
+                encode_application_unsigned(&apdu[apdu_len],
                 MULTISTATE_NUMBER_OF_STATES);
             break;
 
@@ -346,7 +347,8 @@ bool Multistate_Output_Write_Property(
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
@@ -451,14 +453,14 @@ void testMultistateOutput(
     BACNET_ERROR_CODE error_code;
 
 
-    len = Multistate_Output_Encode_Property_APDU(&apdu[0],
-        instance,
+    len =
+        Multistate_Output_Encode_Property_APDU(&apdu[0], instance,
         PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len],
-        (int *) &decoded_type, &decoded_instance);
+    len =
+        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == OBJECT_MULTI_STATE_OUTPUT);
     ct_test(pTest, decoded_instance == instance);
 

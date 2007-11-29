@@ -117,8 +117,9 @@ static void LocalIAmHandler(
 
     (void) src;
     (void) service_len;
-    len = iam_decode_service_request(service_request,
-        &device_id, &max_apdu, &segmentation, &vendor_id);
+    len =
+        iam_decode_service_request(service_request, &device_id, &max_apdu,
+        &segmentation, &vendor_id);
     if (len != -1) {
         address_add(device_id, max_apdu, src);
     } else
@@ -198,8 +199,8 @@ int main(
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (Device_APDU_Timeout() / 1000) *
-        Device_Number_Of_APDU_Retries();
+    timeout_seconds =
+        (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */
@@ -222,8 +223,9 @@ int main(
             break;
         }
         /* wait until the device is bound, or timeout and quit */
-        found = address_bind_request(Target_Device_Object_Instance,
-            &max_apdu, &Target_Address);
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
         if (found) {
             /* calculate the smaller of our APDU size or theirs
                and remove the overhead of the APDU (varies depending on size).
@@ -252,7 +254,8 @@ int main(
                 pFile = fopen(Local_File_Name, "rb");
                 if (pFile) {
                     (void) fseek(pFile, fileStartPosition, SEEK_SET);
-                    len = fread(octetstring_value(&fileData), 1,
+                    len =
+                        fread(octetstring_value(&fileData), 1,
                         requestedOctetCount, pFile);
                     if (len < requestedOctetCount)
                         End_Of_File_Detected = true;

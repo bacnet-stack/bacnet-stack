@@ -144,8 +144,9 @@ int Lighting_Output_Decode_Lighting_Command(
         /* Tag 0: operation */
         if (!decode_is_context_tag(&apdu[apdu_len], 0))
             return -1;
-        len = decode_tag_number_and_value(&apdu[apdu_len],
-            &tag_number, &len_value_type);
+        len =
+            decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
+            &len_value_type);
         apdu_len += len;
         len =
             decode_enumerated(&apdu[apdu_len], len_value_type,
@@ -153,8 +154,9 @@ int Lighting_Output_Decode_Lighting_Command(
         apdu_len += len;
         /* Tag 1: level - OPTIONAL */
         if (decode_is_context_tag(&apdu[apdu_len], 1)) {
-            len = decode_tag_number_and_value(&apdu[apdu_len],
-                &tag_number, &len_value_type);
+            len =
+                decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
+                &len_value_type);
             apdu_len += len;
             len = decode_real(&apdu[apdu_len], &real_value);
             apdu_len += len;
@@ -412,7 +414,8 @@ int Lighting_Output_Encode_Property_APDU(
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_LIGHTING_COMMAND:
-            apdu_len = Lighting_Output_Encode_Lighting_Command(&apdu[0],
+            apdu_len =
+                Lighting_Output_Encode_Lighting_Command(&apdu[0],
                 &Lighting_Command[object_instance]);
             break;
         case PROP_STATUS_FLAGS:
@@ -521,7 +524,8 @@ bool Lighting_Output_Write_Property(
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
@@ -615,14 +619,14 @@ void testLightingOutput(
     BACNET_ERROR_CODE error_code;
 
 
-    len = Lighting_Output_Encode_Property_APDU(&apdu[0],
-        instance,
+    len =
+        Lighting_Output_Encode_Property_APDU(&apdu[0], instance,
         PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len],
-        (int *) &decoded_type, &decoded_instance);
+    len =
+        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == OBJECT_LIGHTING_OUTPUT);
     ct_test(pTest, decoded_instance == instance);
 

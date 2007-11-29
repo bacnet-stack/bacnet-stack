@@ -198,8 +198,9 @@ static unsigned RPM_Object_Property_Count(
     unsigned count = 0; /* return value */
 
     if (special_property == PROP_ALL) {
-        count = pPropertyList->Required.count +
-            pPropertyList->Optional.count + pPropertyList->Proprietary.count;
+        count =
+            pPropertyList->Required.count + pPropertyList->Optional.count +
+            pPropertyList->Proprietary.count;
     } else if (special_property == PROP_REQUIRED) {
         count = pPropertyList->Required.count;
     } else if (special_property == PROP_OPTIONAL) {
@@ -246,19 +247,20 @@ int RPM_Encode_Property(
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
-    len = rpm_ack_encode_apdu_object_property(&Temp_Buf[0],
-        object_property, array_index);
+    len =
+        rpm_ack_encode_apdu_object_property(&Temp_Buf[0], object_property,
+        array_index);
     len = apdu_copy(&apdu[0], &Temp_Buf[0], offset, len, max_apdu);
     if (!len)
         return 0;
     apdu_len += len;
-    len = Encode_Property_APDU(&Temp_Buf[0],
-        object_type,
-        object_instance,
+    len =
+        Encode_Property_APDU(&Temp_Buf[0], object_type, object_instance,
         object_property, array_index, &error_class, &error_code);
     if (len < 0) {
         /* error was returned - encode that for the response */
-        len = rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
+        len =
+            rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
             error_class, error_code);
         len =
             apdu_copy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len,
@@ -304,12 +306,14 @@ void handler_read_property_multiple(
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    npdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0],
-        src, &my_address, &npdu_data);
+    npdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
     if (service_data->segmented_message) {
-        apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        apdu_len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         printf("RPM: Segmented message. Sending Abort!\r\n");
 #endif
@@ -317,16 +321,19 @@ void handler_read_property_multiple(
     }
     /* decode apdu request & encode apdu reply
        encode complex ack, invoke id, service choice */
-    apdu_len = rpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
+    apdu_len =
+        rpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
         service_data->invoke_id);
     do {
-        len = rpm_decode_object_id(&service_request[decode_len],
+        len =
+            rpm_decode_object_id(&service_request[decode_len],
             service_len - decode_len, &object_type, &object_instance);
         /* end of object? */
         if (len > 0) {
             decode_len += len;
         } else {
-            len = rpm_decode_object_end(&service_request[decode_len],
+            len =
+                rpm_decode_object_end(&service_request[decode_len],
                 service_len - decode_len);
             if (len == 1) {
                 decode_len++;
@@ -351,12 +358,15 @@ void handler_read_property_multiple(
             }
             break;
         }
-        len = rpm_ack_encode_apdu_object_begin(&Temp_Buf[0],
-            object_type, object_instance);
-        copy_len = apdu_copy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
+        len =
+            rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], object_type,
+            object_instance);
+        copy_len =
+            apdu_copy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
             apdu_len, len, sizeof(Handler_Transmit_Buffer));
         if (!copy_len) {
-            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+            apdu_len =
+                abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                 service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
             goto RPM_ABORT;
@@ -365,13 +375,15 @@ void handler_read_property_multiple(
         }
         /* do each property of this object of the RPM request */
         do {
-            len = rpm_decode_object_property(&service_request[decode_len],
+            len =
+                rpm_decode_object_property(&service_request[decode_len],
                 service_len - decode_len, &object_property, &array_index);
             /* end of property list? */
             if (len > 0) {
                 decode_len += len;
             } else {
-                len = rpm_decode_object_end(&service_request[decode_len],
+                len =
+                    rpm_decode_object_end(&service_request[decode_len],
                     service_len - decode_len);
                 if (len == 1) {
                     decode_len++;
@@ -409,16 +421,18 @@ void handler_read_property_multiple(
 
                 special_object_property = object_property;
                 RPM_Property_List(object_type, &property_list);
-                property_count = RPM_Object_Property_Count(&property_list,
+                property_count =
+                    RPM_Object_Property_Count(&property_list,
                     special_object_property);
                 for (index = 0; index < property_count; index++) {
-                    object_property = RPM_Object_Property(&property_list,
+                    object_property =
+                        RPM_Object_Property(&property_list,
                         special_object_property, index);
-                    len = RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                        npdu_len + apdu_len,
-                        sizeof(Handler_Transmit_Buffer),
-                        object_type,
-                        object_instance, object_property, array_index);
+                    len =
+                        RPM_Encode_Property(&Handler_Transmit_Buffer[0],
+                        npdu_len + apdu_len, sizeof(Handler_Transmit_Buffer),
+                        object_type, object_instance, object_property,
+                        array_index);
                     if (len > 0) {
                         apdu_len += len;
                     } else {
@@ -431,11 +445,11 @@ void handler_read_property_multiple(
                 }
             } else {
                 /* handle an individual property */
-                len = RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                    npdu_len + apdu_len,
-                    sizeof(Handler_Transmit_Buffer),
-                    object_type,
-                    object_instance, object_property, array_index);
+                len =
+                    RPM_Encode_Property(&Handler_Transmit_Buffer[0],
+                    npdu_len + apdu_len, sizeof(Handler_Transmit_Buffer),
+                    object_type, object_instance, object_property,
+                    array_index);
                 if (len > 0) {
                     apdu_len += len;
                 } else {
@@ -453,6 +467,7 @@ void handler_read_property_multiple(
     } while (1);
   RPM_ABORT:
     pdu_len = apdu_len + npdu_len;
-    bytes_sent = datalink_send_pdu(src,
-        &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 }

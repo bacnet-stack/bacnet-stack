@@ -103,8 +103,8 @@ static void bip_set_interface(
     if (BIP_Debug) {
         fprintf(stderr, "IP Broadcast Address: %s\n",
             inet_ntoa(broadcast_address));
-        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
-            bip_get_port(), bip_get_port());
+        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", bip_get_port(),
+            bip_get_port());
     }
 }
 
@@ -128,16 +128,18 @@ bool bip_init(
     /* Allow us to use the same socket for sending and receiving */
     /* This makes sure that the src port is correct when sending */
     sockopt = 1;
-    status = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR,
-        &sockopt, sizeof(sockopt));
+    status =
+        setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt,
+        sizeof(sockopt));
     if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
         return status;
     }
     /* allow us to send a broadcast */
-    status = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST,
-        &sockopt, sizeof(sockopt));
+    status =
+        setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST, &sockopt,
+        sizeof(sockopt));
     if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
@@ -148,8 +150,8 @@ bool bip_init(
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(bip_get_port());
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
-    status = bind(sock_fd,
-        (const struct sockaddr *) &sin, sizeof(struct sockaddr));
+    status =
+        bind(sock_fd, (const struct sockaddr *) &sin, sizeof(struct sockaddr));
     if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);

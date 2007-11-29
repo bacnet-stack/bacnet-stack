@@ -49,15 +49,18 @@ int ihave_encode_apdu(
         apdu[1] = SERVICE_UNCONFIRMED_I_HAVE;
         apdu_len = 2;
         /* deviceIdentifier */
-        len = encode_application_object_id(&apdu[apdu_len],
-            data->device_id.type, data->device_id.instance);
+        len =
+            encode_application_object_id(&apdu[apdu_len], data->device_id.type,
+            data->device_id.instance);
         apdu_len += len;
         /* objectIdentifier */
-        len = encode_application_object_id(&apdu[apdu_len],
-            data->object_id.type, data->object_id.instance);
+        len =
+            encode_application_object_id(&apdu[apdu_len], data->object_id.type,
+            data->object_id.instance);
         apdu_len += len;
         /* objectName */
-        len = encode_application_character_string(&apdu[apdu_len],
+        len =
+            encode_application_character_string(&apdu[apdu_len],
             &data->object_name);
         apdu_len += len;
     }
@@ -81,7 +84,8 @@ int ihave_decode_service_request(
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len += decode_object_id(&apdu[len], &decoded_type,
+            len +=
+                decode_object_id(&apdu[len], &decoded_type,
                 &data->device_id.instance);
             data->device_id.type = decoded_type;
         } else
@@ -90,7 +94,8 @@ int ihave_decode_service_request(
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len += decode_object_id(&apdu[len], &decoded_type,
+            len +=
+                decode_object_id(&apdu[len], &decoded_type,
                 &data->object_id.instance);
             data->object_id.type = decoded_type;
         } else
@@ -99,7 +104,8 @@ int ihave_decode_service_request(
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-            len += decode_character_string(&apdu[len], len_value,
+            len +=
+                decode_character_string(&apdu[len], len_value,
                 &data->object_name);
         } else
             return -1;

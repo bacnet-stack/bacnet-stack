@@ -105,8 +105,8 @@ static void Read_Properties(
                 next_device = true;
             else {
                 status = Send_Read_Property_Request(device_id,  /* destination device */
-                    OBJECT_DEVICE,
-                    device_id, object_props[property], BACNET_ARRAY_ALL);
+                    OBJECT_DEVICE, device_id, object_props[property],
+                    BACNET_ARRAY_ALL);
                 if (status)
                     property++;
             }
@@ -137,8 +137,9 @@ static void LocalIAmHandler(
 
     (void) src;
     (void) service_len;
-    len = iam_decode_service_request(service_request,
-        &device_id, &max_apdu, &segmentation, &vendor_id);
+    len =
+        iam_decode_service_request(service_request, &device_id, &max_apdu,
+        &segmentation, &vendor_id);
     fprintf(stderr, "Received I-Am Request");
     if (len != -1) {
         fprintf(stderr, " from %u!\n", device_id);

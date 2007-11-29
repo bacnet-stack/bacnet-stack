@@ -72,78 +72,88 @@ int Encode_Property_APDU(
     switch (object_type) {
         case OBJECT_DEVICE:
             if (Device_Valid_Object_Instance_Number(object_instance)) {
-                apdu_len = Device_Encode_Property_APDU(&apdu[0],
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Device_Encode_Property_APDU(&apdu[0], property,
+                    array_index, error_class, error_code);
             }
             break;
         case OBJECT_ANALOG_INPUT:
             if (Analog_Input_Valid_Instance(object_instance)) {
-                apdu_len = Analog_Input_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Analog_Input_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_ANALOG_OUTPUT:
             if (Analog_Output_Valid_Instance(object_instance)) {
-                apdu_len = Analog_Output_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Analog_Output_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_ANALOG_VALUE:
             if (Analog_Value_Valid_Instance(object_instance)) {
-                apdu_len = Analog_Value_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Analog_Value_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_BINARY_INPUT:
             if (Binary_Input_Valid_Instance(object_instance)) {
-                apdu_len = Binary_Input_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Binary_Input_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_BINARY_OUTPUT:
             if (Binary_Output_Valid_Instance(object_instance)) {
-                apdu_len = Binary_Output_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Binary_Output_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_BINARY_VALUE:
             if (Binary_Value_Valid_Instance(object_instance)) {
-                apdu_len = Binary_Value_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Binary_Value_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_LIFE_SAFETY_POINT:
             if (Life_Safety_Point_Valid_Instance(object_instance)) {
-                apdu_len = Life_Safety_Point_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Life_Safety_Point_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_LOAD_CONTROL:
             if (Load_Control_Valid_Instance(object_instance)) {
-                apdu_len = Load_Control_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Load_Control_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
         case OBJECT_MULTI_STATE_OUTPUT:
             if (Multistate_Output_Valid_Instance(object_instance)) {
-                apdu_len = Multistate_Output_Encode_Property_APDU(&apdu[0],
-                    object_instance,
-                    property, array_index, error_class, error_code);
+                apdu_len =
+                    Multistate_Output_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
             }
             break;
 #if defined(BACFILE)
         case OBJECT_FILE:
             if (bacfile_valid_instance(object_instance)) {
-                apdu_len = bacfile_encode_property_apdu(&apdu[0],
-                    object_instance,
+                apdu_len =
+                    bacfile_encode_property_apdu(&apdu[0], object_instance,
                     property, array_index, error_class, error_code);
             }
             break;
@@ -176,13 +186,15 @@ void handler_read_property(
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
-        &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         fprintf(stderr, "RP: Segmented message.  Sending Abort!\n");
 #endif
@@ -196,7 +208,8 @@ void handler_read_property(
 #endif
     if (len < 0) {
         /* bad decoding - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "RP: Bad Encoding.  Sending Abort!\n");
@@ -206,10 +219,10 @@ void handler_read_property(
 
     /* assume that there is an error */
     error = true;
-    len = Encode_Property_APDU(&Temp_Buf[0],
-        data.object_type,
-        data.object_instance,
-        data.object_property, data.array_index, &error_class, &error_code);
+    len =
+        Encode_Property_APDU(&Temp_Buf[0], data.object_type,
+        data.object_instance, data.object_property, data.array_index,
+        &error_class, &error_code);
     if (len >= 0) {
         /* encode the APDU portion of the packet */
         data.application_data = &Temp_Buf[0];
@@ -226,16 +239,18 @@ void handler_read_property(
     if (error) {
         if (len == -2) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            len =
+                abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Reply too big to fit into APDU!\n");
 #endif
         } else {
-            len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
+            len =
+                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+                error_class, error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Error!\n");
 #endif
@@ -243,8 +258,9 @@ void handler_read_property(
     }
   RP_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

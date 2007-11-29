@@ -74,16 +74,18 @@ int bacerror_decode_error_class_and_code(
 
     if (apdu_len) {
         /* error class */
-        len += decode_tag_number_and_value(&apdu[len],
-            &tag_number, &len_value_type);
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number,
+            &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
             return 0;
         len += decode_enumerated(&apdu[len], len_value_type, &decoded_value);
         if (error_class)
             *error_class = (BACNET_ERROR_CLASS) decoded_value;
         /* error code */
-        len += decode_tag_number_and_value(&apdu[len],
-            &tag_number, &len_value_type);
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number,
+            &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
             return 0;
         len += decode_enumerated(&apdu[len], len_value_type, &decoded_value);
@@ -111,8 +113,9 @@ int bacerror_decode_service_request(
         if (service)
             *service = (BACNET_CONFIRMED_SERVICE) apdu[1];
         /* decode the application class and code */
-        len = bacerror_decode_error_class_and_code(&apdu[2],
-            apdu_len - 2, error_class, error_code);
+        len =
+            bacerror_decode_error_class_and_code(&apdu[2], apdu_len - 2,
+            error_class, error_code);
     }
 
     return len;
@@ -141,8 +144,9 @@ int bacerror_decode_apdu(
         if (apdu[0] != PDU_TYPE_ERROR)
             return -1;
         if (apdu_len > 1) {
-            len = bacerror_decode_service_request(&apdu[1],
-                apdu_len - 1, invoke_id, service, error_class, error_code);
+            len =
+                bacerror_decode_service_request(&apdu[1], apdu_len - 1,
+                invoke_id, service, error_class, error_code);
         }
     }
 
@@ -164,14 +168,15 @@ void testBACError(
     BACNET_ERROR_CLASS test_error_class = 0;
     BACNET_ERROR_CODE test_error_code = 0;
 
-    len = bacerror_encode_apdu(&apdu[0],
-        invoke_id, service, error_class, error_code);
+    len =
+        bacerror_encode_apdu(&apdu[0], invoke_id, service, error_class,
+        error_code);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    len = bacerror_decode_apdu(&apdu[0],
-        apdu_len,
-        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
+    len =
+        bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+        &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_service == service);
@@ -180,37 +185,37 @@ void testBACError(
 
     /* change type to get negative response */
     apdu[0] = PDU_TYPE_ABORT;
-    len = bacerror_decode_apdu(&apdu[0],
-        apdu_len,
-        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
+    len =
+        bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+        &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len == -1);
 
     /* test NULL APDU */
-    len = bacerror_decode_apdu(NULL,
-        apdu_len,
-        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
+    len =
+        bacerror_decode_apdu(NULL, apdu_len, &test_invoke_id, &test_service,
+        &test_error_class, &test_error_code);
     ct_test(pTest, len == -1);
 
     /* force a zero length */
-    len = bacerror_decode_apdu(&apdu[0],
-        0,
-        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
+    len =
+        bacerror_decode_apdu(&apdu[0], 0, &test_invoke_id, &test_service,
+        &test_error_class, &test_error_code);
     ct_test(pTest, len == 0);
 
 
     /* check them all...   */
     for (service = 0; service < MAX_BACNET_CONFIRMED_SERVICE; service++) {
-        for (error_class = 0;
-            error_class < MAX_BACNET_ERROR_CLASS; error_class++) {
-            for (error_code = 0;
-                error_code < MAX_BACNET_ERROR_CODE; error_code++) {
-                len = bacerror_encode_apdu(&apdu[0],
-                    invoke_id, service, error_class, error_code);
+        for (error_class = 0; error_class < MAX_BACNET_ERROR_CLASS;
+            error_class++) {
+            for (error_code = 0; error_code < MAX_BACNET_ERROR_CODE;
+                error_code++) {
+                len =
+                    bacerror_encode_apdu(&apdu[0], invoke_id, service,
+                    error_class, error_code);
                 apdu_len = len;
                 ct_test(pTest, len != 0);
-                len = bacerror_decode_apdu(&apdu[0],
-                    apdu_len,
-                    &test_invoke_id,
+                len =
+                    bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
                     &test_service, &test_error_class, &test_error_code);
                 ct_test(pTest, len != -1);
                 ct_test(pTest, test_invoke_id == invoke_id);
@@ -225,13 +230,14 @@ void testBACError(
     service = 255;
     error_class = LAST_PROPRIETARY_ERROR_CLASS;
     error_code = LAST_PROPRIETARY_ERROR_CODE;
-    len = bacerror_encode_apdu(&apdu[0],
-        invoke_id, service, error_class, error_code);
+    len =
+        bacerror_encode_apdu(&apdu[0], invoke_id, service, error_class,
+        error_code);
     apdu_len = len;
     ct_test(pTest, len != 0);
-    len = bacerror_decode_apdu(&apdu[0],
-        apdu_len,
-        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
+    len =
+        bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+        &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_service == service);

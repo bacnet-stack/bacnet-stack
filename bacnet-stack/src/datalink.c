@@ -43,8 +43,8 @@ int (
     uint8_t * pdu,
     unsigned pdu_len);
 
-uint16_t(*datalink_receive) (BACNET_ADDRESS * src,
-    uint8_t * pdu, uint16_t max_pdu, unsigned timeout);
+uint16_t(*datalink_receive) (BACNET_ADDRESS * src, uint8_t * pdu,
+    uint16_t max_pdu, unsigned timeout);
 
 void (
     *datalink_cleanup) (

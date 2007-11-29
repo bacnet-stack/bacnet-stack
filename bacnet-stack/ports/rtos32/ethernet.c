@@ -78,8 +78,8 @@ bool ethernet_init(
         fprintf(stderr, "ethernet: failed to bind to socket!\r\n");
     Ethernet_Address.sa_family = AF_INET;
     memset(Ethernet_Address.sa_data, 0, sizeof(Ethernet_Address.sa_data));
-    if (bind(Ethernet_Socket,
-            &Ethernet_Address, sizeof(Ethernet_Address)) == SOCKET_ERROR)
+    if (bind(Ethernet_Socket, &Ethernet_Address,
+            sizeof(Ethernet_Address)) == SOCKET_ERROR)
         fprintf(stderr, "ethernet: failed to bind to socket!\r\n");
     /*setsockopt(Ethernet_Socket,SOL_SOCKET,SO_802_2,(char *)&value,sizeof(value));     */
 
@@ -227,8 +227,7 @@ uint16_t ethernet_receive(
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
         if (errno != EAGAIN)
-            fprintf(stderr,
-                "ethernet: Read error in receiving packet: %s\n",
+            fprintf(stderr, "ethernet: Read error in receiving packet: %s\n",
                 strerror(errno));
         return 0;
     }

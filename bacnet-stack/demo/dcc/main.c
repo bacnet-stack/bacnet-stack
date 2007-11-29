@@ -72,8 +72,7 @@ static void MyErrorHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name(error_class),
+    printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
     Error_Detected = true;
 }
@@ -129,8 +128,7 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler
-        (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* handle the ack coming back */
     apdu_set_confirmed_simple_ack_handler
@@ -162,11 +160,8 @@ int main(
         /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s device-instance state timeout [password]\r\n"
             "Send BACnet DeviceCommunicationControl service to device.\r\n"
-            "\r\n"
-            "The device-instance can be 0 to %d.\r\n"
-            "Possible state values:\r\n"
-            "  0=enable\r\n"
-            "  1=disable\r\n"
+            "\r\n" "The device-instance can be 0 to %d.\r\n"
+            "Possible state values:\r\n" "  0=enable\r\n" "  1=disable\r\n"
             "  2=disable-initiation\r\n"
             "The timeout can be 0 for infinite, or a value in minutes for disable.\r\n"
             "The optional password is a character string of 1 to 20 characters.\r\n"
@@ -196,8 +191,8 @@ int main(
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (Device_APDU_Timeout() / 1000) *
-        Device_Number_Of_APDU_Retries();
+    timeout_seconds =
+        (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */
@@ -218,8 +213,9 @@ int main(
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
-        found = address_bind_request(Target_Device_Object_Instance,
-            &max_apdu, &Target_Address);
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =

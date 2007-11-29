@@ -71,7 +71,8 @@ static void PrintReadPropertyData(
         /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_application_data(application_data,
+            len =
+                bacapp_decode_application_data(application_data,
                 (uint8_t) application_data_len, &value);
             if (first_value && (len < application_data_len)) {
                 first_value = false;

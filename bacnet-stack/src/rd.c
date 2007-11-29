@@ -58,8 +58,8 @@ int rd_encode_apdu(
         /* optional password */
         if (password) {
             /* FIXME: must be at least 1 character, limited to 20 characters */
-            len = encode_context_character_string(&apdu[apdu_len], 1,
-                password);
+            len =
+                encode_context_character_string(&apdu[apdu_len], 1, password);
             apdu_len += len;
         }
     }
@@ -84,8 +84,9 @@ int rd_decode_service_request(
         /* Tag 0: reinitializedStateOfDevice */
         if (!decode_is_context_tag(&apdu[len], 0))
             return -1;
-        len += decode_tag_number_and_value(&apdu[len],
-            &tag_number, &len_value_type);
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number,
+            &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (state)
             *state = (BACNET_REINITIALIZED_STATE) value;
@@ -93,8 +94,9 @@ int rd_decode_service_request(
         if (len < apdu_len) {
             if (!decode_is_context_tag(&apdu[len], 1))
                 return -1;
-            len += decode_tag_number_and_value(&apdu[len],
-                &tag_number, &len_value_type);
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             len +=
                 decode_character_string(&apdu[len], len_value_type, password);
         }
@@ -130,8 +132,9 @@ int rd_decode_apdu(
     offset = 4;
 
     if (apdu_len > offset) {
-        len = rd_decode_service_request(&apdu[offset],
-            apdu_len - offset, state, password);
+        len =
+            rd_decode_service_request(&apdu[offset], apdu_len - offset, state,
+            password);
     }
 
     return len;
@@ -156,8 +159,9 @@ void test_ReinitializeDevice(
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    len = rd_decode_apdu(&apdu[0],
-        apdu_len, &test_invoke_id, &test_state, &test_password);
+    len =
+        rd_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_state,
+        &test_password);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_state == state);

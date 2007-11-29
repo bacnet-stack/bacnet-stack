@@ -121,14 +121,11 @@ int main(
         /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s <object-type object-instance | object-name>\r\n"
             "Send BACnet WhoHas request to devices, and wait for responses.\r\n"
-            "\r\n"
-            "Use either:\r\n"
-            "The object-type can be 0 to %d.\r\n"
-            "The object-instance can be 0 to %d.\r\n"
-            "or:\r\n"
+            "\r\n" "Use either:\r\n" "The object-type can be 0 to %d.\r\n"
+            "The object-instance can be 0 to %d.\r\n" "or:\r\n"
             "The object-name can be any string of characters.\r\n",
-            filename_remove_path(argv[0]),
-            MAX_BACNET_OBJECT_TYPE - 1, BACNET_MAX_INSTANCE);
+            filename_remove_path(argv[0]), MAX_BACNET_OBJECT_TYPE - 1,
+            BACNET_MAX_INSTANCE);
         return 0;
     }
     /* decode the command line parameters */
@@ -138,8 +135,7 @@ int main(
         Target_Object_Type = strtol(argv[1], NULL, 0);
         Target_Object_Instance = strtol(argv[2], NULL, 0);
         if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-            fprintf(stderr,
-                "object-instance=%u - it must be less than %u\r\n",
+            fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
                 Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
             return 1;
         }

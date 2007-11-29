@@ -178,7 +178,8 @@ int dcc_decode_service_request(
     if (apdu_len) {
         /* Tag 0: timeDuration --optional-- */
         if (decode_is_context_tag(&apdu[len], 0)) {
-            len += decode_tag_number_and_value(&apdu[len], &tag_number,
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             len += decode_unsigned(&apdu[len], len_value_type, &value32);
             if (timeDuration)
@@ -188,8 +189,9 @@ int dcc_decode_service_request(
         /* Tag 1: enable_disable */
         if (!decode_is_context_tag(&apdu[len], 1))
             return -1;
-        len += decode_tag_number_and_value(&apdu[len],
-            &tag_number, &len_value_type);
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number,
+            &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (enable_disable)
             *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE) value;
@@ -197,8 +199,9 @@ int dcc_decode_service_request(
         if (len < apdu_len) {
             if (!decode_is_context_tag(&apdu[len], 2))
                 return -1;
-            len += decode_tag_number_and_value(&apdu[len],
-                &tag_number, &len_value_type);
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             len +=
                 decode_character_string(&apdu[len], len_value_type, password);
         } else if (password)
@@ -236,8 +239,9 @@ int dcc_decode_apdu(
     offset = 4;
 
     if (apdu_len > offset) {
-        len = dcc_decode_service_request(&apdu[offset],
-            apdu_len - offset, timeDuration, enable_disable, password);
+        len =
+            dcc_decode_service_request(&apdu[offset], apdu_len - offset,
+            timeDuration, enable_disable, password);
     }
 
     return len;
@@ -258,14 +262,14 @@ void test_DeviceCommunicationControlData(
     BACNET_COMMUNICATION_ENABLE_DISABLE test_enable_disable;
     BACNET_CHARACTER_STRING test_password;
 
-    len = dcc_encode_apdu(&apdu[0],
-        invoke_id, timeDuration, enable_disable, password);
+    len =
+        dcc_encode_apdu(&apdu[0], invoke_id, timeDuration, enable_disable,
+        password);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    len = dcc_decode_apdu(&apdu[0],
-        apdu_len,
-        &test_invoke_id,
+    len =
+        dcc_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
         &test_timeDuration, &test_enable_disable, &test_password);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
@@ -285,13 +289,13 @@ void test_DeviceCommunicationControl(
     timeDuration = 0;
     enable_disable = COMMUNICATION_DISABLE_INITIATION;
     characterstring_init_ansi(&password, "John 3:16");
-    test_DeviceCommunicationControlData(pTest,
-        invoke_id, timeDuration, enable_disable, &password);
+    test_DeviceCommunicationControlData(pTest, invoke_id, timeDuration,
+        enable_disable, &password);
 
     timeDuration = 12345;
     enable_disable = COMMUNICATION_DISABLE;
-    test_DeviceCommunicationControlData(pTest,
-        invoke_id, timeDuration, enable_disable, NULL);
+    test_DeviceCommunicationControlData(pTest, invoke_id, timeDuration,
+        enable_disable, NULL);
 
     return;
 }

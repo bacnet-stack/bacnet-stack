@@ -190,8 +190,9 @@ static void RS485_Configure_Status(
 void RS485_Initialize(
     void)
 {
-    RS485_Handle = CreateFile(RS485_Port_Name,
-        GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
+    RS485_Handle =
+        CreateFile(RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0,
+        OPEN_EXISTING,
         /*FILE_FLAG_OVERLAPPED */ 0,
         0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {

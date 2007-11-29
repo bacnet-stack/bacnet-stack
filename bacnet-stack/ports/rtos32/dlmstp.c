@@ -98,11 +98,10 @@ int dlmstp_send_pdu(
         }
         memmove(&PDU_Buffer[mtu_len], pdu, pdu_len);
         mtu_len += pdu_len;
-        bytes_sent = MSTP_Create_Frame(
-            (uint8_t *) & MSTP_Port.TxBuffer[0],
-            sizeof(MSTP_Port.TxBuffer),
-            MSTP_Port.TxFrameType,
-            destination, MSTP_Port.This_Station, &PDU_Buffer[0], mtu_len);
+        bytes_sent =
+            MSTP_Create_Frame((uint8_t *) & MSTP_Port.TxBuffer[0],
+            sizeof(MSTP_Port.TxBuffer), MSTP_Port.TxFrameType, destination,
+            MSTP_Port.This_Station, &PDU_Buffer[0], mtu_len);
         MSTP_Port.TxLength = bytes_sent;
         MSTP_Port.TxReady = true;
     }

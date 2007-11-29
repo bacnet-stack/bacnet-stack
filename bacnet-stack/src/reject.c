@@ -94,8 +94,9 @@ int reject_decode_apdu(
         if (apdu[0] != PDU_TYPE_REJECT)
             return -1;
         if (apdu_len > 1) {
-            len = reject_decode_service_request(&apdu[1],
-                apdu_len - 1, invoke_id, reject_reason);
+            len =
+                reject_decode_service_request(&apdu[1], apdu_len - 1,
+                invoke_id, reject_reason);
         }
     }
 
@@ -117,26 +118,29 @@ void testReject(
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    len = reject_decode_apdu(&apdu[0],
-        apdu_len, &test_invoke_id, &test_reject_reason);
+    len =
+        reject_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+        &test_reject_reason);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_reject_reason == reject_reason);
 
     /* change type to get negative response */
     apdu[0] = PDU_TYPE_ABORT;
-    len = reject_decode_apdu(&apdu[0],
-        apdu_len, &test_invoke_id, &test_reject_reason);
+    len =
+        reject_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+        &test_reject_reason);
     ct_test(pTest, len == -1);
 
     /* test NULL APDU */
-    len = reject_decode_apdu(NULL,
-        apdu_len, &test_invoke_id, &test_reject_reason);
+    len =
+        reject_decode_apdu(NULL, apdu_len, &test_invoke_id,
+        &test_reject_reason);
     ct_test(pTest, len == -1);
 
     /* force a zero length */
-    len = reject_decode_apdu(&apdu[0],
-        0, &test_invoke_id, &test_reject_reason);
+    len =
+        reject_decode_apdu(&apdu[0], 0, &test_invoke_id, &test_reject_reason);
     ct_test(pTest, len == 0);
 
 
@@ -146,8 +150,9 @@ void testReject(
             len = reject_encode_apdu(&apdu[0], invoke_id, reject_reason);
             apdu_len = len;
             ct_test(pTest, len != 0);
-            len = reject_decode_apdu(&apdu[0],
-                apdu_len, &test_invoke_id, &test_reject_reason);
+            len =
+                reject_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+                &test_reject_reason);
             ct_test(pTest, len != -1);
             ct_test(pTest, test_invoke_id == invoke_id);
             ct_test(pTest, test_reject_reason == reject_reason);

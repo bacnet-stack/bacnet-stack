@@ -139,11 +139,10 @@ int dlmstp_send_pdu(
         if ((8 /* header len */  + pdu_len) > MAX_MPDU) {
             return -4;
         }
-        bytes_sent = MSTP_Create_Frame(
-            (uint8_t *) & MSTP_Port.TxBuffer[0],
-            sizeof(MSTP_Port.TxBuffer),
-            MSTP_Port.TxFrameType,
-            destination, MSTP_Port.This_Station, pdu, pdu_len);
+        bytes_sent =
+            MSTP_Create_Frame((uint8_t *) & MSTP_Port.TxBuffer[0],
+            sizeof(MSTP_Port.TxBuffer), MSTP_Port.TxFrameType, destination,
+            MSTP_Port.This_Station, pdu, pdu_len);
         MSTP_Port.TxLength = bytes_sent;
         MSTP_Port.TxReady = true;
         MSTP_Packets++;
@@ -180,8 +179,8 @@ void dlmstp_task(
     if (Receive_Buffer.ready && !MSTP_Port.TxReady) {
         if (Receive_Buffer.pdu_len) {
             MSTP_Packets++;
-            npdu_handler(&Receive_Buffer.address,
-                &Receive_Buffer.pdu[0], Receive_Buffer.pdu_len);
+            npdu_handler(&Receive_Buffer.address, &Receive_Buffer.pdu[0],
+                Receive_Buffer.pdu_len);
         }
         Receive_Buffer.ready = false;
     }

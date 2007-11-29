@@ -174,8 +174,8 @@ static void NetInitialize(
     }
 #else
     /* Set the IP address and interface */
-    printf("Using static IP address %i.%i.%i.%i\n", TargetIP[0],
-        TargetIP[1], TargetIP[2], TargetIP[3]);
+    printf("Using static IP address %i.%i.%i.%i\n", TargetIP[0], TargetIP[1],
+        TargetIP[2], TargetIP[3]);
     Result = xn_set_ip(interface, TargetIP, NetMask);
     /* define default gateway and DNS server */
     xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1, interface, RT_INF);
@@ -271,8 +271,8 @@ bool bip_init(
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(bip_get_port());
     memset(&(sin.sin_zero), '\0', 8);
-    rv = bind(sock_fd,
-        (const struct sockaddr *) &sin, sizeof(struct sockaddr));
+    rv = bind(sock_fd, (const struct sockaddr *) &sin,
+        sizeof(struct sockaddr));
     if (rv < 0) {
         close(sock_fd);
         bip_set_socket(-1);

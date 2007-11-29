@@ -78,55 +78,38 @@ int main(
     if (argc < 7) {
         /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s pid device-id object-type object-instance "
-            "time property tag value [priority] [index]\r\n"
-            "\r\n"
-            "pid:\r\n"
-            "Process Identifier for this broadcast.\r\n"
-            "\r\n"
+            "time property tag value [priority] [index]\r\n" "\r\n" "pid:\r\n"
+            "Process Identifier for this broadcast.\r\n" "\r\n"
             "device-id:\r\n"
-            "The Initiating BACnet Device Object Instance number.\r\n"
-            "\r\n"
+            "The Initiating BACnet Device Object Instance number.\r\n" "\r\n"
             "object-type:\r\n"
             "The monitored object type is the integer value of the\r\n"
             "enumeration BACNET_OBJECT_TYPE in bacenum.h.  For example,\r\n"
             "if you were monitoring Analog Output 2, the object-type\r\n"
-            "would be 1.\r\n"
-            "\r\n"
-            "object-instance:\r\n"
-            "The monitored object instance number.\r\n"
-            "\r\n"
-            "time:\r\n"
+            "would be 1.\r\n" "\r\n" "object-instance:\r\n"
+            "The monitored object instance number.\r\n" "\r\n" "time:\r\n"
             "The subscription time remaining is conveyed in seconds.\r\n"
-            "\r\n"
-            "property:\r\n"
+            "\r\n" "property:\r\n"
             "The property is an integer value of the enumeration \r\n"
             "BACNET_PROPERTY_ID in bacenum.h. For example, if you were\r\n"
             "monitoring the Present Value property, you would use 85\r\n"
-            "as the property.\r\n"
-            "\r\n"
-            "tag:\r\n"
+            "as the property.\r\n" "\r\n" "tag:\r\n"
             "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \r\n"
             "in bacenum.h.  It is the data type of the value that you are\r\n"
             "monitoring.  For example, if you were monitoring a REAL value, you would \r\n"
-            "use a tag of 4."
-            "\r\n"
-            "value:\r\n"
+            "use a tag of 4." "\r\n" "value:\r\n"
             "The value is an ASCII representation of some type of data that you\r\n"
             "are monitoring.  It is encoded using the tag information provided.  For\r\n"
             "example, if you were writing a REAL value of 100.0, you would use \r\n"
-            "100.0 as the value.\r\n"
-            "\r\n"
-            "[priority]:\r\n"
+            "100.0 as the value.\r\n" "\r\n" "[priority]:\r\n"
             "This optional parameter is used for reporting the priority of the\r\n"
             "value. If no priority is given, none is sent, and the BACnet \r\n"
             "standard requires that the value is reported at the lowest \r\n"
             "priority (16) if the object property supports priorities.\r\n"
-            "\r\n"
-            "[index]\r\n"
+            "\r\n" "[index]\r\n"
             "This optional integer parameter is the index number of an array.\r\n"
             "If the property is an array, individual elements can be reported.\r\n"
-            "\r\n"
-            "Here is a brief overview of BACnet property and tags:\r\n"
+            "\r\n" "Here is a brief overview of BACnet property and tags:\r\n"
             "Certain properties are expected to be written with certain \r\n"
             "application tags, so you probably need to know which ones to use\r\n"
             "with each property of each object.  It is almost safe to say that\r\n"
@@ -136,9 +119,7 @@ int main(
             "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler for\r\n"
             "the demo to use this kind of table - but I also wanted to be able\r\n"
             "to do negative testing by passing the wrong tag and have the server\r\n"
-            "return a reject message.\r\n"
-            "\r\n"
-            "Example:\r\n"
+            "return a reject message.\r\n" "\r\n" "Example:\r\n"
             "If you want generate an unconfirmed COV,\r\n"
             "you could send the following command:\r\n"
             "%s 1 2 3 4 5 85 4 100.0\r\n"
@@ -191,12 +172,13 @@ int main(
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {
-        fprintf(stderr, "tag=%u - it must be less than %u\r\n",
-            tag, MAX_BACNET_APPLICATION_TAG);
+        fprintf(stderr, "tag=%u - it must be less than %u\r\n", tag,
+            MAX_BACNET_APPLICATION_TAG);
         return 1;
     }
-    status = bacapp_parse_application_data(tag,
-        value_string, &cov_data.listOfValues.value);
+    status =
+        bacapp_parse_application_data(tag, value_string,
+        &cov_data.listOfValues.value);
     if (!status) {
         /* FIXME: show the expected entry format for the tag */
         fprintf(stderr, "unable to parse the tag value\r\n");

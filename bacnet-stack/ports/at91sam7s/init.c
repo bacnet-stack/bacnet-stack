@@ -77,8 +77,9 @@ void LowLevelInit(
     //
     // OUT = 0 (not used)
     // result: AT91C_CKGR_PLLR = 0x00000000480A0E   (PLL Register) 
-    pPMC->PMC_PLLR = ((AT91C_CKGR_DIV & 14) |
-        (AT91C_CKGR_PLLCOUNT & (10 << 8)) | (AT91C_CKGR_MUL & (72 << 16)));
+    pPMC->PMC_PLLR =
+        ((AT91C_CKGR_DIV & 14) | (AT91C_CKGR_PLLCOUNT & (10 << 8)) |
+        (AT91C_CKGR_MUL & (72 << 16)));
 
     // Wait the startup time (until PMC Status register LOCK bit is set)
     while (!(pPMC->PMC_SR & AT91C_PMC_LOCK));

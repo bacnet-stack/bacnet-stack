@@ -304,9 +304,8 @@ void apdu_handler(
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
                 len = apdu_decode_confirmed_service_request(&apdu[0],   /* APDU data */
-                    apdu_len,
-                    &service_data,
-                    &service_choice, &service_request, &service_request_len);
+                    apdu_len, &service_data, &service_choice, &service_request,
+                    &service_request_len);
                 /* When network communications are completely disabled,
                    only DeviceCommunicationControl and ReinitializeDevice APDUs
                    shall be processed and no messages shall be initiated. */
@@ -437,8 +436,7 @@ void apdu_handler(
                 len += decode_enumerated(&apdu[len], len_value, &error_code);
                 if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
                     if (Error_Function[service_choice])
-                        Error_Function[service_choice] (src,
-                            invoke_id,
+                        Error_Function[service_choice] (src, invoke_id,
                             (BACNET_ERROR_CLASS) error_class,
                             (BACNET_ERROR_CODE) error_code);
                 }

@@ -122,13 +122,13 @@ int Analog_Input_Encode_Property_APDU(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(&apdu[0],
-                OBJECT_ANALOG_INPUT);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);
             break;
         case PROP_PRESENT_VALUE:
             object_index = Analog_Input_Instance_To_Index(object_instance);
-            apdu_len = encode_application_real(&apdu[0],
-                Present_Value[object_index]);
+            apdu_len =
+                encode_application_real(&apdu[0], Present_Value[object_index]);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);

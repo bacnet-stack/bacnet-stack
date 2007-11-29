@@ -6,7 +6,7 @@
 [ -x /usr/bin/dos2unix ] || exit 0
 
 INDENTRC=".indent.pro"
-if [ ! -x ${INDENTRC} ] 
+if [ ! -e ${INDENTRC} ] 
 then
   echo No ${INDENTRC} file found. Creating ${INDENTRC} file.
   echo "-kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79 -nhnl" > ${INDENTRC}
