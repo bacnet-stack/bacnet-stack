@@ -3,7 +3,7 @@ different compilers; here are some rules for writing code that will work
 on multiple platforms.
 
 Regarding tabs, indenting, and code style, we run: 
-$ indent -kr -nut -nlp -ip4 -cli4 filename.c
+$ indent -kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79 filename.c
 on the code prior to releasing it.  This ensures a standard look and feel
 to the code regardless of the authors preferred style.  You may certainly
 adjust the code to your preferred style using an indent tool.  We use the
@@ -218,5 +218,5 @@ implementations.  The platform independent API is declared in the
 header file, and the dependent routine is placed in a ports directory.
  
 Reference: The cross platform aspect of this coding standard is based
-on the developer coding standard for Ethereal and has been modified
-by Steve Karg for this project.  Thank you, Ethereal!
+on the developer coding standard for Ethereal/Wireshark and has been 
+modified by Steve Karg for this project.  Thank you, Ethereal/Wireshark!
