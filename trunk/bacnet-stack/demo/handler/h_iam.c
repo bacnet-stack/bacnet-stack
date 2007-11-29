@@ -44,8 +44,9 @@ void handler_i_am_add(
     uint16_t vendor_id = 0;
 
     (void) service_len;
-    len = iam_decode_service_request(service_request,
-        &device_id, &max_apdu, &segmentation, &vendor_id);
+    len =
+        iam_decode_service_request(service_request, &device_id, &max_apdu,
+        &segmentation, &vendor_id);
 #if PRINT_ENABLED
     fprintf(stderr, "Received I-Am Request");
 #endif
@@ -75,8 +76,9 @@ void handler_i_am_bind(
     uint16_t vendor_id = 0;
 
     (void) service_len;
-    len = iam_decode_service_request(service_request,
-        &device_id, &max_apdu, &segmentation, &vendor_id);
+    len =
+        iam_decode_service_request(service_request, &device_id, &max_apdu,
+        &segmentation, &vendor_id);
     /* only add address if requested to bind */
     address_add_binding(device_id, max_apdu, src);
 

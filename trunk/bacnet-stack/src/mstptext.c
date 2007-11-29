@@ -53,6 +53,6 @@ static INDTEXT_DATA mstp_frame_type_text[] = {
 const char *mstptext_frame_type(
     int index)
 {
-    return indtext_by_index_split_default(mstp_frame_type_text,
-        index, FRAME_TYPE_PROPRIETARY_MIN, "UNKNOWN", "PROPRIETARY");
+    return indtext_by_index_split_default(mstp_frame_type_text, index,
+        FRAME_TYPE_PROPRIETARY_MIN, "UNKNOWN", "PROPRIETARY");
 }

@@ -124,8 +124,8 @@ static int arcnet_bind(
             "You might need to add the following to modules.conf\n"
             "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
-            "Also, add af_packet to /etc/modules.\n"
-            "Then follow it by:\n" "# modprobe af_packet\n");
+            "Also, add af_packet to /etc/modules.\n" "Then follow it by:\n"
+            "# modprobe af_packet\n");
         exit(-1);
     }
 
@@ -144,14 +144,14 @@ static int arcnet_bind(
         if (bind(sock_fd, &ARCNET_Socket_Address,
                 sizeof(ARCNET_Socket_Address)) != 0) {
             /* Bind problem, close socket and return */
-            fprintf(stderr,
-                "arcnet: Unable to bind socket : %s\n", strerror(errno));
+            fprintf(stderr, "arcnet: Unable to bind socket : %s\n",
+                strerror(errno));
             fprintf(stderr,
                 "You might need to add the following to modules.conf\n"
                 "(or in /etc/modutils/alias on Debian with update-modules):\n"
                 "alias net-pf-17 af_packet\n"
-                "Also, add af_packet to /etc/modules.\n"
-                "Then follow it by:\n" "# modprobe af_packet\n");
+                "Also, add af_packet to /etc/modules.\n" "Then follow it by:\n"
+                "# modprobe af_packet\n");
             /* Close the socket */
             close(sock_fd);
             exit(-1);
@@ -170,8 +170,8 @@ static int arcnet_bind(
     /* Strcpy the interface name into the address */
     strncpy(ARCNET_Socket_Address.sa_data, interface_name,
         sizeof(ARCNET_Socket_Address.sa_data) - 1);
-    fprintf(stderr, "arcnet: MAC=%02Xh iface=\"%s\"\n",
-        ARCNET_MAC_Address, ARCNET_Socket_Address.sa_data);
+    fprintf(stderr, "arcnet: MAC=%02Xh iface=\"%s\"\n", ARCNET_MAC_Address,
+        ARCNET_Socket_Address.sa_data);
 
     atexit(arcnet_cleanup);
 
@@ -295,8 +295,7 @@ uint16_t arcnet_receive(
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
         if (errno != EAGAIN)
-            fprintf(stderr,
-                "ethernet: Read error in receiving packet: %s\n",
+            fprintf(stderr, "ethernet: Read error in receiving packet: %s\n",
                 strerror(errno));
         return 0;
     }

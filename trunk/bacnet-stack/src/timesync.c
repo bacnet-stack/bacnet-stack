@@ -133,8 +133,9 @@ int timesync_decode_apdu_service(
         return -1;
     /* optional limits - must be used as a pair */
     if (apdu_len > 2) {
-        len = timesync_decode_service_request(&apdu[2], apdu_len - 2,
-            my_date, my_time);
+        len =
+            timesync_decode_service_request(&apdu[2], apdu_len - 2, my_date,
+            my_time);
     }
 
     return len;
@@ -147,8 +148,8 @@ int timesync_utc_decode_apdu(
     BACNET_TIME * my_time)
 {
     return timesync_decode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        apdu_len, my_date, my_time);
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, apdu_len, my_date,
+        my_time);
 }
 
 int timesync_decode_apdu(

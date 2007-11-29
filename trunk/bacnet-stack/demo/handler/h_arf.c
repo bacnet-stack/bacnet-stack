@@ -117,12 +117,14 @@ void handler_atomic_read_file(
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
-        &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         fprintf(stderr, "ARF: Segmented Message. Sending Abort!\n");
 #endif
@@ -131,7 +133,8 @@ void handler_atomic_read_file(
     len = arf_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
     if (len < 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "Bad Encoding. Sending Abort!\n");
@@ -151,8 +154,8 @@ void handler_atomic_read_file(
                         data.type.stream.requestedOctetCount);
 #endif
                     len =
-                        arf_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
+                        arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id, &data);
                 } else {
                     error = true;
                     error_class = ERROR_CLASS_OBJECT;
@@ -185,13 +188,14 @@ void handler_atomic_read_file(
     if (error) {
         len =
             bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            SERVICE_CONFIRMED_ATOMIC_READ_FILE, error_class, error_code);
+            service_data->invoke_id, SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+            error_class, error_code);
     }
   ARF_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0) {
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

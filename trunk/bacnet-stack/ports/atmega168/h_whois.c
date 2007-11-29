@@ -50,8 +50,9 @@ void handler_who_is(
     int32_t target_device;
 
     (void) src;
-    len = whois_decode_service_request(service_request,
-        service_len, &low_limit, &high_limit);
+    len =
+        whois_decode_service_request(service_request, service_len, &low_limit,
+        &high_limit);
     if (len == 0) {
         Send_I_Am = true;
     } else if (len != -1) {

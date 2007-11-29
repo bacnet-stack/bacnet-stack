@@ -74,15 +74,17 @@ uint8_t Send_Read_Property_Request(
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-            &my_address, &npdu_data);
+        pdu_len =
+            npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+            &npdu_data);
         /* encode the APDU portion of the packet */
         data.object_type = object_type;
         data.object_instance = object_instance;
         data.object_property = object_property;
         data.array_index = array_index;
-        len = rp_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            invoke_id, &data);
+        len =
+            rp_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
+            &data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
@@ -97,15 +99,15 @@ uint8_t Send_Read_Property_Request(
                 &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
-                fprintf(stderr,
-                    "Failed to Send ReadProperty Request (%s)!\n",
+                fprintf(stderr, "Failed to Send ReadProperty Request (%s)!\n",
                     strerror(errno));
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr, "Failed to Send ReadProperty Request "
+            fprintf(stderr,
+                "Failed to Send ReadProperty Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif
         }

@@ -177,8 +177,7 @@ uint16_t dlmstp_receive(
         /* was immediately available for reading. */
         if (errno != EAGAIN) {
 #if PRINT_ENABLED
-            fprintf(stderr,
-                "mstp: Read error in Receive_Client packet: %s\n",
+            fprintf(stderr, "mstp: Read error in Receive_Client packet: %s\n",
                 strerror(errno));
 #endif
         }
@@ -320,8 +319,8 @@ int dlmstp_get_transmit_packet(
     max = Transmit_Client_SockFD;
 
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = read(Transmit_Client_SockFD,
-            packet, sizeof(DLMSTP_PACKET));
+        received_bytes =
+            read(Transmit_Client_SockFD, packet, sizeof(DLMSTP_PACKET));
     } else {
         return 0;
     }
@@ -333,8 +332,7 @@ int dlmstp_get_transmit_packet(
         /* was immediately available for reading. */
         if (errno != EAGAIN) {
 #if PRINT_ENABLED
-            fprintf(stderr,
-                "mstp: Read error in Transmit_Client packet: %s\n",
+            fprintf(stderr, "mstp: Read error in Transmit_Client packet: %s\n",
                 strerror(errno));
 #endif
         }
@@ -369,9 +367,8 @@ uint16_t MSTP_Get_Send(
     }
     /* convert the PDU into the MSTP Frame */
     pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
-        mstp_port->OutputBufferSize,
-        packet.frame_type,
-        destination, mstp_port->This_Station, &packet.pdu[0], packet.pdu_len);
+        mstp_port->OutputBufferSize, packet.frame_type, destination,
+        mstp_port->This_Station, &packet.pdu[0], packet.pdu_len);
 
     return pdu_len;
 }
@@ -401,8 +398,9 @@ bool dlmstp_compare_data_expecting_reply(
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(&request_pdu[0],
-        NULL, &request.address, &request.npdu_data);
+    offset =
+        npdu_decode(&request_pdu[0], NULL, &request.address,
+        &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -418,8 +416,8 @@ bool dlmstp_compare_data_expecting_reply(
         request.service_choice = request_pdu[offset + 3];
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
-    offset = npdu_decode(&reply_pdu[0],
-        &reply.address, NULL, &reply.npdu_data);
+    offset =
+        npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -508,25 +506,23 @@ uint16_t MSTP_Get_Reply(
         return 0;
     }
     /* is this the reply to the DER? */
-    matched = dlmstp_compare_data_expecting_reply(&mstp_port->InputBuffer[0],
-        mstp_port->DataLength,
-        mstp_port->SourceAddress,
-        &Transmit_Packet.pdu[0],
-        Transmit_Packet.pdu_len, &Transmit_Packet.address);
+    matched =
+        dlmstp_compare_data_expecting_reply(&mstp_port->InputBuffer[0],
+        mstp_port->DataLength, mstp_port->SourceAddress,
+        &Transmit_Packet.pdu[0], Transmit_Packet.pdu_len,
+        &Transmit_Packet.address);
     if (matched) {
         /* convert the PDU into the MSTP Frame */
         pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],        /* <-- loading this */
-            mstp_port->OutputBufferSize,
-            Transmit_Packet.frame_type,
-            destination,
-            mstp_port->This_Station,
-            &Transmit_Packet.pdu[0], Transmit_Packet.pdu_len);
+            mstp_port->OutputBufferSize, Transmit_Packet.frame_type,
+            destination, mstp_port->This_Station, &Transmit_Packet.pdu[0],
+            Transmit_Packet.pdu_len);
         /* not used here, but setting it anyway */
         Transmit_Packet.ready = false;
     } else {
         /* put it back into the queue */
-        (void) write(Transmit_Server_SockFD,
-            &Transmit_Packet, sizeof(Transmit_Packet));
+        (void) write(Transmit_Server_SockFD, &Transmit_Packet,
+            sizeof(Transmit_Packet));
     }
 
     return pdu_len;
@@ -842,8 +838,7 @@ int main(
     /* forever task */
     for (;;) {
 #if (defined(MSTP_TEST_REQUEST) && MSTP_TEST_REQUEST)
-        MSTP_Create_And_Send_Frame(&MSTP_Port,
-            FRAME_TYPE_TEST_REQUEST,
+        MSTP_Create_And_Send_Frame(&MSTP_Port, FRAME_TYPE_TEST_REQUEST,
             MSTP_Port.SourceAddress, MSTP_Port.This_Station, NULL, 0);
         nanosleep(&timeOut, &remains);
 #endif

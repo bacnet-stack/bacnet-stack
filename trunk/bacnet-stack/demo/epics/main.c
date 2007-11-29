@@ -79,8 +79,7 @@ static void MyErrorHandler(
     (void) src;
     (void) invoke_id;
 #if 1
-    printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name(error_class),
+    printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
 #else
     (void) error_class;
@@ -151,7 +150,8 @@ void PrintReadPropertyData(
         application_data_len = data->application_data_len;
         /* value? loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_application_data(application_data,
+            len =
+                bacapp_decode_application_data(application_data,
                 (uint8_t) application_data_len, &value);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
@@ -233,8 +233,8 @@ static uint8_t Read_Properties(
 
     if (pRequired[index] != -1) {
         printf("    %s: ", bactext_property_name(pRequired[index]));
-        invoke_id = Send_Read_Property_Request(device_instance,
-            OBJECT_DEVICE,
+        invoke_id =
+            Send_Read_Property_Request(device_instance, OBJECT_DEVICE,
             device_instance, pRequired[index], BACNET_ARRAY_ALL);
         if (invoke_id) {
             index++;
@@ -282,8 +282,8 @@ int main(
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (Device_APDU_Timeout() / 1000) *
-        Device_Number_Of_APDU_Retries();
+    timeout_seconds =
+        (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     printf("List of Objects in test device:\r\n");
@@ -305,8 +305,9 @@ int main(
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         }
         /* wait until the device is bound, or timeout and quit */
-        found = address_bind_request(Target_Device_Object_Instance,
-            &max_apdu, &Target_Address);
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
         if (found) {
             /* invoke ID is set to zero when it is not in use */
             if (invoke_id == 0) {

@@ -214,8 +214,7 @@ static char *winsock_error_code_text(
         case WSAEDISCON:
             return "Disconnect.";
         case WSAHOST_NOT_FOUND:
-            return "Host not found. "
-                "This message indicates that the key "
+            return "Host not found. " "This message indicates that the key "
                 "(name, address, and so on) was not found.";
         case WSATRY_AGAIN:
             return "Nonauthoritative host not found. "
@@ -251,8 +250,8 @@ bool bip_init(
     /*Result = WSAStartup(MAKEWORD(2,2), &wd); */
     if (Result != 0) {
         Code = WSAGetLastError();
-        printf("TCP/IP stack initialization failed\n"
-            " error code: %i %s\n", Code, winsock_error_code_text(Code));
+        printf("TCP/IP stack initialization failed\n" " error code: %i %s\n",
+            Code, winsock_error_code_text(Code));
         exit(1);
     }
     atexit(cleanup);
@@ -265,8 +264,8 @@ bool bip_init(
         address.s_addr = gethostaddr();
         if (address.s_addr == (unsigned) -1) {
             Code = WSAGetLastError();
-            printf("Get host address failed\n"
-                " error code: %i %s\n", Code, winsock_error_code_text(Code));
+            printf("Get host address failed\n" " error code: %i %s\n", Code,
+                winsock_error_code_text(Code));
             exit(1);
         }
         bip_set_addr(address.s_addr);
@@ -282,8 +281,8 @@ bool bip_init(
         broadcast_address.s_addr = htonl(bip_get_broadcast_addr());
         fprintf(stderr, "IP Broadcast Address: %s\n",
             inet_ntoa(broadcast_address));
-        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
-            bip_get_port(), bip_get_port());
+        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", bip_get_port(),
+            bip_get_port());
     }
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -294,8 +293,8 @@ bool bip_init(
     }
     /* Allow us to use the same socket for sending and receiving */
     /* This makes sure that the src port is correct when sending */
-    rv = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR,
-        (char *) &value, sizeof(value));
+    rv = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &value,
+        sizeof(value));
     if (rv < 0) {
         fprintf(stderr, "bip: failed to set REUSEADDR socket option.\n");
         close(sock_fd);
@@ -303,8 +302,8 @@ bool bip_init(
         return false;
     }
     /* allow us to send a broadcast */
-    rv = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST,
-        (char *) &value, sizeof(value));
+    rv = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST, (char *) &value,
+        sizeof(value));
     if (rv < 0) {
         fprintf(stderr, "bip: failed to set BROADCAST socket option.\n");
         close(sock_fd);
@@ -315,8 +314,8 @@ bool bip_init(
     /* probably only for Apple... */
     /* rebind a port that is already in use.
        Note: all users of the port must specify this flag */
-    rv = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEPORT,
-        (char *) &value, sizeof(value));
+    rv = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEPORT, (char *) &value,
+        sizeof(value));
     if (rv < 0) {
         fprintf(stderr, "bip: failed to set REUSEPORT socket option.\n");
         close(sock_fd);
@@ -347,8 +346,8 @@ bool bip_init(
 #endif
     sin.sin_port = htons(bip_get_port());
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
-    rv = bind(sock_fd,
-        (const struct sockaddr *) &sin, sizeof(struct sockaddr));
+    rv = bind(sock_fd, (const struct sockaddr *) &sin,
+        sizeof(struct sockaddr));
     if (rv < 0) {
         fprintf(stderr, "bip: failed to bind to %s port %hd\n",
             inet_ntoa(sin.sin_addr), bip_get_port());

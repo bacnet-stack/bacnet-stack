@@ -122,11 +122,12 @@ int Analog_Input_Encode_Property_APDU(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(&apdu[0],
-                OBJECT_ANALOG_INPUT);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_real(&apdu[0],
+            apdu_len =
+                encode_application_real(&apdu[0],
                 Analog_Input_Present_Value(object_instance));
             break;
         case PROP_STATUS_FLAGS:
@@ -177,14 +178,14 @@ void testAnalogInput(
 
 
     /* FIXME: we should do a lot more testing here... */
-    len = Analog_Input_Encode_Property_APDU(&apdu[0],
-        instance,
+    len =
+        Analog_Input_Encode_Property_APDU(&apdu[0], instance,
         PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len >= 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len],
-        (int *) &decoded_type, &decoded_instance);
+    len =
+        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == OBJECT_ANALOG_INPUT);
     ct_test(pTest, decoded_instance == instance);
 

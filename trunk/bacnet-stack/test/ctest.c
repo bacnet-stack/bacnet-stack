@@ -103,8 +103,7 @@ long ct_report(
 {
     assert(pTest);
     if (pTest->pStream) {
-        fprintf(pTest->pStream,
-            "Test \"%s\":\n\tPassed: %ld\n\tFailed: %ld\n",
+        fprintf(pTest->pStream, "Test \"%s\":\n\tPassed: %ld\n\tFailed: %ld\n",
             pTest->name, pTest->nPass, pTest->nFail);
     }
     return pTest->nFail;
@@ -141,8 +140,8 @@ void ct_do_fail(
     assert(pTest);
     ++pTest->nFail;
     if (pTest->pStream) {
-        fprintf(pTest->pStream,
-            "%s failure: (%s), %s (line %ld)\n", pTest->name, str, file, line);
+        fprintf(pTest->pStream, "%s failure: (%s), %s (line %ld)\n",
+            pTest->name, str, file, line);
     }
 }
 

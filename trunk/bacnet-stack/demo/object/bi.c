@@ -256,14 +256,14 @@ void testBinaryInput(
 
 
     /* FIXME: we should do a lot more testing here... */
-    len = Binary_Input_Encode_Property_APDU(&apdu[0],
-        instance,
+    len =
+        Binary_Input_Encode_Property_APDU(&apdu[0], instance,
         PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len >= 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len],
-        (int *) &decoded_type, &decoded_instance);
+    len =
+        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == OBJECT_BINARY_INPUT);
     ct_test(pTest, decoded_instance == instance);
 

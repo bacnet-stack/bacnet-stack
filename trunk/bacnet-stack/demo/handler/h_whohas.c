@@ -62,11 +62,12 @@ void handler_who_has(
             if (data.object_name) {
                 /* valid name in my device? */
                 object_name = characterstring_value(&data.object.name);
-                found = Device_Valid_Object_Name(object_name,
-                    &object_type, &object_instance);
+                found =
+                    Device_Valid_Object_Name(object_name, &object_type,
+                    &object_instance);
                 if (found)
-                    Send_I_Have(Device_Object_Instance_Number(),
-                        object_type, object_instance, object_name);
+                    Send_I_Have(Device_Object_Instance_Number(), object_type,
+                        object_instance, object_name);
             } else {
                 /* valid object in my device? */
                 object_name =

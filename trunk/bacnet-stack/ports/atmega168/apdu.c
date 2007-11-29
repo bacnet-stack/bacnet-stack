@@ -103,12 +103,11 @@ void apdu_handler(
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
                 len = apdu_decode_confirmed_service_request(&apdu[0],   /* APDU data */
-                    apdu_len,
-                    &service_data,
-                    &service_choice, &service_request, &service_request_len);
+                    apdu_len, &service_data, &service_choice, &service_request,
+                    &service_request_len);
                 if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
-                    handler_read_property(service_request,
-                        service_request_len, src, &service_data);
+                    handler_read_property(service_request, service_request_len,
+                        src, &service_data);
                 }
 #if 0
                 else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {

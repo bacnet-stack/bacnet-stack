@@ -56,8 +56,9 @@ int iam_encode_apdu(
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_I_AM;     /* service choice */
         apdu_len = 2;
-        len = encode_application_object_id(&apdu[apdu_len],
-            OBJECT_DEVICE, device_id);
+        len =
+            encode_application_object_id(&apdu[apdu_len], OBJECT_DEVICE,
+            device_id);
         apdu_len += len;
         len = encode_application_unsigned(&apdu[apdu_len], max_apdu);
         apdu_len += len;
@@ -150,8 +151,8 @@ int iam_encode_pdu(
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
     /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&buffer[pdu_len],
-        Device_Object_Instance_Number(),
+    len =
+        iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len += len;
 
@@ -199,8 +200,9 @@ int iam_decode_apdu(
         return -1;
     if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
         return -1;
-    apdu_len = iam_decode_service_request(&apdu[2],
-        pDevice_id, pMax_apdu, pSegmentation, pVendor_id);
+    apdu_len =
+        iam_decode_service_request(&apdu[2], pDevice_id, pMax_apdu,
+        pSegmentation, pVendor_id);
 
     return apdu_len;
 }
@@ -219,12 +221,14 @@ void testIAm(
     int test_segmentation = 0;
     uint16_t test_vendor_id = 0;
 
-    len = iam_encode_apdu(&apdu[0],
-        device_id, max_apdu, segmentation, vendor_id);
+    len =
+        iam_encode_apdu(&apdu[0], device_id, max_apdu, segmentation,
+        vendor_id);
     ct_test(pTest, len != 0);
 
-    len = iam_decode_apdu(&apdu[0],
-        &test_device_id, &test_max_apdu, &test_segmentation, &test_vendor_id);
+    len =
+        iam_decode_apdu(&apdu[0], &test_device_id, &test_max_apdu,
+        &test_segmentation, &test_vendor_id);
 
     ct_test(pTest, len != -1);
     ct_test(pTest, test_device_id == device_id);

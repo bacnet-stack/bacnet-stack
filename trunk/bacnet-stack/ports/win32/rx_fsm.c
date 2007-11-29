@@ -129,20 +129,16 @@ static void print_received_packet(
     /* Data CRC: (present only if Length is non-zero) two octets, */
     /*           least significant octet first */
     /* (pad): (optional) at most one octet of padding: X'FF' */
-    fprintf(stderr,
-        "55 FF %02X %02X %02X %02X %02X %02X ",
-        mstp_port->FrameType,
-        mstp_port->DestinationAddress,
-        mstp_port->SourceAddress,
-        HI_BYTE(mstp_port->DataLength),
+    fprintf(stderr, "55 FF %02X %02X %02X %02X %02X %02X ",
+        mstp_port->FrameType, mstp_port->DestinationAddress,
+        mstp_port->SourceAddress, HI_BYTE(mstp_port->DataLength),
         LO_BYTE(mstp_port->DataLength), mstp_port->HeaderCRCActual);
     if (mstp_port->DataLength) {
         for (i = 0; i < mstp_port->DataLength; i++) {
             fprintf(stderr, "%02X ", mstp_port->InputBuffer[i]);
         }
-        fprintf(stderr,
-            "%02X %02X ",
-            mstp_port->DataCRCActualMSB, mstp_port->DataCRCActualLSB);
+        fprintf(stderr, "%02X %02X ", mstp_port->DataCRCActualMSB,
+            mstp_port->DataCRCActualLSB);
     }
     fprintf(stderr, "%s", mstptext_frame_type(mstp_port->FrameType));
     fprintf(stderr, "\n");

@@ -59,19 +59,19 @@ void Send_TimeSync(
     datalink_get_broadcast_address(&dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-        NULL, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
     /* encode the APDU portion of the packet */
-    len = timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-        bdate, btime);
+    len =
+        timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
     pdu_len += len;
     /* send it out the datalink */
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Failed to Send Time-Synchronization Request (%s)!\n",
+        fprintf(stderr, "Failed to Send Time-Synchronization Request (%s)!\n",
             strerror(errno));
 #endif
 }
@@ -91,10 +91,11 @@ void Send_TimeSyncUTC(
     /* we could use unicast or broadcast */
     datalink_get_broadcast_address(&dest);
     /* encode the APDU portion of the packet */
-    pdu_len = timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0],
-        bdate, btime);
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    pdu_len =
+        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0], bdate, btime);
+    bytes_sent =
+        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,

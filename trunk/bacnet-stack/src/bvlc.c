@@ -253,9 +253,10 @@ int bvlc_encode_read_bdt_ack(
                 pdu_len = 0;
                 break;
             }
-            len = bvlc_encode_address_entry(&pdu[pdu_len],
-                &BBMD_Table[i].dest_address,
-                BBMD_Table[i].dest_port, &BBMD_Table[i].broadcast_mask);
+            len =
+                bvlc_encode_address_entry(&pdu[pdu_len],
+                &BBMD_Table[i].dest_address, BBMD_Table[i].dest_port,
+                &BBMD_Table[i].broadcast_mask);
             pdu_len += len;
         }
     }
@@ -375,7 +376,8 @@ int bvlc_encode_read_fdt_ack(
                 pdu_len = 0;
                 break;
             }
-            len = bvlc_encode_bip_address(&pdu[pdu_len],
+            len =
+                bvlc_encode_bip_address(&pdu[pdu_len],
                 &FD_Table[i].dest_address, FD_Table[i].dest_port);
             pdu_len += len;
             encode_unsigned16(&pdu[pdu_len], FD_Table[i].time_to_live);
@@ -656,8 +658,8 @@ void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
             bip_dest.sin_addr.s_addr =
-                htonl(((~BBMD_Table[i].broadcast_mask.s_addr) |
-                    BBMD_Table[i].dest_address.s_addr));
+                htonl(((~BBMD_Table[i].broadcast_mask.s_addr) | BBMD_Table[i].
+                    dest_address.s_addr));
             bip_dest.sin_port = htons(BBMD_Table[i].dest_port);
             /* don't send to my broadcast address and same port */
             if ((bip_dest.sin_addr.s_addr == htonl(bip_get_broadcast_addr()))
@@ -843,9 +845,9 @@ uint16_t bvlc_receive(
     max = bip_socket();
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = recvfrom(bip_socket(),
-            (char *) &npdu[0],
-            max_npdu, 0, (struct sockaddr *) &sin, &sin_len);
+        received_bytes =
+            recvfrom(bip_socket(), (char *) &npdu[0], max_npdu, 0,
+            (struct sockaddr *) &sin, &sin_len);
     } else {
         return 0;
     }
@@ -1110,7 +1112,8 @@ int bvlc_send_pdu(
     mtu_len += pdu_len;
 
     /* Send the packet */
-    bytes_sent = sendto(bip_socket(), (char *) mtu, mtu_len, 0,
+    bytes_sent =
+        sendto(bip_socket(), (char *) mtu, mtu_len, 0,
         (struct sockaddr *) &bvlc_dest, sizeof(struct sockaddr));
 
     return bytes_sent;

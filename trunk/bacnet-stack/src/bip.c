@@ -163,7 +163,8 @@ int bip_send_pdu(
     mtu_len += pdu_len;
 
     /* Send the packet */
-    bytes_sent = sendto(BIP_Socket, (char *) mtu, mtu_len, 0,
+    bytes_sent =
+        sendto(BIP_Socket, (char *) mtu, mtu_len, 0,
         (struct sockaddr *) &bip_dest, sizeof(struct sockaddr));
 
     return bytes_sent;
@@ -206,8 +207,9 @@ uint16_t bip_receive(
     max = BIP_Socket;
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
-        received_bytes = recvfrom(BIP_Socket,
-            (char *) &pdu[0], max_pdu, 0, (struct sockaddr *) &sin, &sin_len);
+        received_bytes =
+            recvfrom(BIP_Socket, (char *) &pdu[0], max_pdu, 0,
+            (struct sockaddr *) &sin, &sin_len);
     else
         return 0;
 

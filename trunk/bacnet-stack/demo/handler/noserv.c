@@ -52,15 +52,18 @@ void handler_unrecognized_service(
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
-        &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
     /* encode the APDU portion of the packet */
-    len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+    len =
+        reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         service_data->invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
     pdu_len += len;
     /* send the data */
-    bytes_sent = datalink_send_pdu(src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent > 0)
         fprintf(stderr, "Sent Reject!\n");

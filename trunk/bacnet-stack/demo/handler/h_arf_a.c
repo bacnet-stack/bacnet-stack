@@ -73,8 +73,8 @@ void handler_atomic_read_file_ack(
             if (pFilename) {
                 pFile = fopen(pFilename, "rb");
                 if (pFile) {
-                    (void) fseek(pFile,
-                        data.type.stream.fileStartPosition, SEEK_SET);
+                    (void) fseek(pFile, data.type.stream.fileStartPosition,
+                        SEEK_SET);
                     if (fwrite(octetstring_value(&data.fileData),
                             octetstring_length(&data.fileData), 1,
                             pFile) != 1) {

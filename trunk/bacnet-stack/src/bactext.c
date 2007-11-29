@@ -78,8 +78,8 @@ INDTEXT_DATA bacnet_confirmed_service_names[] = {
 const char *bactext_confirmed_service_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_confirmed_service_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_confirmed_service_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
@@ -110,8 +110,8 @@ INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
 const char *bactext_unconfirmed_service_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_unconfirmed_service_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_unconfirmed_service_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_application_tag_names[] = {
@@ -153,8 +153,8 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
 const char *bactext_application_tag_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_application_tag_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_application_tag_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_object_type_names[] = {
@@ -229,8 +229,8 @@ INDTEXT_DATA bacnet_object_type_names[] = {
 const char *bactext_object_type_name(
     int index)
 {
-    return indtext_by_index_split_default(bacnet_object_type_names,
-        index, 128, ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_object_type_names, index, 128,
+        ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bacnet_property_names[] = {
@@ -692,8 +692,8 @@ INDTEXT_DATA bacnet_property_names[] = {
 const char *bactext_property_name(
     int index)
 {
-    return indtext_by_index_split_default(bacnet_property_names,
-        index, 512, ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_property_names, index, 512,
+        ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
 unsigned bactext_property_id(
@@ -1099,8 +1099,8 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
 const char *bactext_engineering_unit_name(
     int index)
 {
-    return indtext_by_index_split_default(bacnet_engineering_unit_names,
-        index, 256, ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_engineering_unit_names, index,
+        256, ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bacnet_reject_reason_names[] = {
@@ -1131,10 +1131,9 @@ INDTEXT_DATA bacnet_reject_reason_names[] = {
 const char *bactext_reject_reason_name(
     int index)
 {
-    return indtext_by_index_split_default(bacnet_reject_reason_names,
-        index,
-        FIRST_PROPRIETARY_REJECT_REASON,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_reject_reason_names, index,
+        FIRST_PROPRIETARY_REJECT_REASON, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bacnet_abort_reason_names[] = {
@@ -1155,10 +1154,9 @@ INDTEXT_DATA bacnet_abort_reason_names[] = {
 const char *bactext_abort_reason_name(
     int index)
 {
-    return indtext_by_index_split_default(bacnet_abort_reason_names,
-        index,
-        FIRST_PROPRIETARY_ABORT_REASON,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_abort_reason_names, index,
+        FIRST_PROPRIETARY_ABORT_REASON, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bacnet_error_class_names[] = {
@@ -1182,10 +1180,9 @@ INDTEXT_DATA bacnet_error_class_names[] = {
 const char *bactext_error_class_name(
     int index)
 {
-    return indtext_by_index_split_default(bacnet_error_class_names,
-        index,
-        FIRST_PROPRIETARY_ERROR_CLASS,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_error_class_names, index,
+        FIRST_PROPRIETARY_ERROR_CLASS, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bacnet_error_code_names[] = {
@@ -1307,10 +1304,9 @@ INDTEXT_DATA bacnet_error_code_names[] = {
 const char *bactext_error_code_name(
     int index)
 {
-    return indtext_by_index_split_default(bacnet_error_code_names,
-        index,
-        FIRST_PROPRIETARY_ERROR_CLASS,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_error_code_names, index,
+        FIRST_PROPRIETARY_ERROR_CLASS, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 INDTEXT_DATA bacnet_month_names[] = {
@@ -1346,8 +1342,8 @@ INDTEXT_DATA bacnet_month_names[] = {
 const char *bactext_month_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_month_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_month_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_week_of_month_names[] = {
@@ -1371,8 +1367,8 @@ INDTEXT_DATA bacnet_week_of_month_names[] = {
 const char *bactext_week_of_month_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_week_of_month_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_week_of_month_names, index,
+        ASHRAE_Reserved_String);
 }
 
 /* note: different than DaysOfWeek bit string where 0=monday */
@@ -1399,8 +1395,8 @@ INDTEXT_DATA bacnet_day_of_week_names[] = {
 const char *bactext_day_of_week_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_day_of_week_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_day_of_week_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_event_state_names[] = {
@@ -1420,8 +1416,8 @@ INDTEXT_DATA bacnet_event_state_names[] = {
 const char *bactext_event_state_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_event_state_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_event_state_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_binary_present_value_names[] = {
@@ -1435,8 +1431,8 @@ INDTEXT_DATA bacnet_binary_present_value_names[] = {
 const char *bactext_binary_present_value_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_binary_present_value_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_binary_present_value_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_reliability_names[] = {
@@ -1468,8 +1464,8 @@ INDTEXT_DATA bacnet_reliability_names[] = {
 const char *bactext_reliability_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_reliability_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_reliability_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_device_status_names[] = {
@@ -1489,8 +1485,8 @@ INDTEXT_DATA bacnet_device_status_names[] = {
 const char *bactext_device_status_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_device_status_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_device_status_names, index,
+        ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_segmentation_names[] = {
@@ -1508,6 +1504,6 @@ INDTEXT_DATA bacnet_segmentation_names[] = {
 const char *bactext_segmentation_name(
     int index)
 {
-    return indtext_by_index_default(bacnet_segmentation_names,
-        index, ASHRAE_Reserved_String);
+    return indtext_by_index_default(bacnet_segmentation_names, index,
+        ASHRAE_Reserved_String);
 }

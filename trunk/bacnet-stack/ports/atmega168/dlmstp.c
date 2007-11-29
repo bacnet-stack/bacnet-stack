@@ -697,8 +697,7 @@ static bool MSTP_Master_Node_FSM(
             TransmitPacketLen = dlmstp_encode_unconfirmed_frame();
             if (TransmitPacketLen) {
                 MSTP_Send_Frame(FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
-                    MSTP_BROADCAST_ADDRESS,
-                    This_Station,
+                    MSTP_BROADCAST_ADDRESS, This_Station,
                     (uint8_t *) & TransmitPacket[0], TransmitPacketLen);
                 FrameCount++;
             } else {
@@ -798,8 +797,8 @@ static bool MSTP_Master_Node_FSM(
                     /* address at which a new master node may be found in that case. */
                     TokenCount++;
                     /* transmit a Token frame to NS */
-                    MSTP_Send_Frame(FRAME_TYPE_TOKEN,
-                        Next_Station, This_Station, NULL, 0);
+                    MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                        This_Station, NULL, 0);
                     RetryCount = 0;
                     EventCount = 0;
                     Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
@@ -821,8 +820,8 @@ static bool MSTP_Master_Node_FSM(
                     /* ResetMaintenancePFM */
                     Poll_Station = This_Station;
                     /* transmit a Token frame to NS */
-                    MSTP_Send_Frame(FRAME_TYPE_TOKEN,
-                        Next_Station, This_Station, NULL, 0);
+                    MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                        This_Station, NULL, 0);
                     RetryCount = 0;
                     TokenCount = 1;     /* changed in Errata SSPC-135-2004 */
                     EventCount = 0;
@@ -831,8 +830,8 @@ static bool MSTP_Master_Node_FSM(
             } else {
                 /* SendMaintenancePFM */
                 Poll_Station = next_poll_station;
-                MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER,
-                    Poll_Station, This_Station, NULL, 0);
+                MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
+                    This_Station, NULL, 0);
                 RetryCount = 0;
                 Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
             }
@@ -853,8 +852,8 @@ static bool MSTP_Master_Node_FSM(
                     /* RetrySendToken */
                     RetryCount++;
                     /* Transmit a Token frame to NS */
-                    MSTP_Send_Frame(FRAME_TYPE_TOKEN,
-                        Next_Station, This_Station, NULL, 0);
+                    MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                        This_Station, NULL, 0);
                     EventCount = 0;
                     /* re-enter the current state to listen for NS  */
                     /* to begin using the token. */
@@ -863,8 +862,8 @@ static bool MSTP_Master_Node_FSM(
                     /* Assume that NS has failed.  */
                     Poll_Station = next_next_station;
                     /* Transmit a Poll For Master frame to PS. */
-                    MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER,
-                        Poll_Station, This_Station, NULL, 0);
+                    MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
+                        This_Station, NULL, 0);
                     /* no known successor node */
                     Next_Station = This_Station;
                     RetryCount = 0;
@@ -897,8 +896,8 @@ static bool MSTP_Master_Node_FSM(
                     /* on the network and is empowered to create a token.  */
                     Poll_Station = next_this_station;
                     /* Transmit a Poll For Master frame to PS. */
-                    MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER,
-                        Poll_Station, This_Station, NULL, 0);
+                    MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
+                        This_Station, NULL, 0);
                     /* indicate that the next station is unknown */
                     Next_Station = This_Station;
                     RetryCount = 0;
@@ -921,8 +920,8 @@ static bool MSTP_Master_Node_FSM(
                     Next_Station = SourceAddress;
                     EventCount = 0;
                     /* Transmit a Token frame to NS */
-                    MSTP_Send_Frame(FRAME_TYPE_TOKEN,
-                        Next_Station, This_Station, NULL, 0);
+                    MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                        This_Station, NULL, 0);
                     Poll_Station = This_Station;
                     TokenCount = 0;
                     RetryCount = 0;
@@ -954,8 +953,8 @@ static bool MSTP_Master_Node_FSM(
                         /* poll for a master at address PS.  */
                         EventCount = 0;
                         /* transmit a Token frame to NS */
-                        MSTP_Send_Frame(FRAME_TYPE_TOKEN,
-                            Next_Station, This_Station, NULL, 0);
+                        MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                            This_Station, NULL, 0);
                         RetryCount = 0;
                         Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
                     } else {
@@ -996,8 +995,7 @@ static bool MSTP_Master_Node_FSM(
                 /* and enter the IDLE state to wait for the next frame. */
                 /* Note: optimized such that we are never a client */
                 MSTP_Send_Frame(FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
-                    TransmitPacketDest,
-                    This_Station,
+                    TransmitPacketDest, This_Station,
                     (uint8_t *) & TransmitPacket[0], TransmitPacketLen);
                 MSTP_Flag.TransmitPacketPending = false;
                 Master_State = MSTP_MASTER_STATE_IDLE;
@@ -1011,8 +1009,8 @@ static bool MSTP_Master_Node_FSM(
                 /* Any reply shall wait until this node receives the token. */
                 /* Call MSTP_Send_Frame to transmit a Reply Postponed frame, */
                 /* and enter the IDLE state. */
-                MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED,
-                    SourceAddress, This_Station, NULL, 0);
+                MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED, SourceAddress,
+                    This_Station, NULL, 0);
                 Master_State = MSTP_MASTER_STATE_IDLE;
             }
             /* clear our flag we were holding for comparison */

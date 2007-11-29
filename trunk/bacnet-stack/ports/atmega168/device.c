@@ -217,7 +217,8 @@ int Device_Encode_Property_APDU(
     /* FIXME: change the hardcoded names to suit your application */
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0], OBJECT_DEVICE,
+            apdu_len =
+                encode_application_object_id(&apdu[0], OBJECT_DEVICE,
                 Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
@@ -342,8 +343,8 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_unsigned(&apdu[0], MAX_APDU);
             break;
         case PROP_SEGMENTATION_SUPPORTED:
-            apdu_len = encode_application_enumerated(&apdu[0],
-                SEGMENTATION_NONE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], SEGMENTATION_NONE);
             break;
         case PROP_APDU_TIMEOUT:
             apdu_len = encode_application_unsigned(&apdu[0], 60000);
@@ -396,7 +397,8 @@ bool Device_Write_Property(
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
@@ -404,8 +406,8 @@ bool Device_Write_Property(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {

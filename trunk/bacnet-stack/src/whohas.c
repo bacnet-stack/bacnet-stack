@@ -57,17 +57,18 @@ int whohas_encode_apdu(
             && (data->high_limit <= BACNET_MAX_INSTANCE)) {
             len = encode_context_unsigned(&apdu[apdu_len], 0, data->low_limit);
             apdu_len += len;
-            len = encode_context_unsigned(&apdu[apdu_len],
-                1, data->high_limit);
+            len =
+                encode_context_unsigned(&apdu[apdu_len], 1, data->high_limit);
             apdu_len += len;
         }
         if (data->object_name) {
-            len = encode_context_character_string(&apdu[apdu_len],
-                3, &data->object.name);
+            len =
+                encode_context_character_string(&apdu[apdu_len], 3,
+                &data->object.name);
             apdu_len += len;
         } else {
-            len = encode_context_object_id(&apdu[apdu_len],
-                2,
+            len =
+                encode_context_object_id(&apdu[apdu_len], 2,
                 data->object.identifier.type,
                 data->object.identifier.instance);
             apdu_len += len;
@@ -186,9 +187,10 @@ void testWhoHasData(
     ct_test(pTest, test_data.object_name == data->object_name);
     /* Object ID */
     if (data->object_name == false) {
-        ct_test(pTest, test_data.object.identifier.type ==
-            data->object.identifier.type);
-        ct_test(pTest, test_data.object.identifier.instance ==
+        ct_test(pTest,
+            test_data.object.identifier.type == data->object.identifier.type);
+        ct_test(pTest,
+            test_data.object.identifier.instance ==
             data->object.identifier.instance);
     }
     /* Object Name */
@@ -210,11 +212,9 @@ void testWhoHas(
     data.object.identifier.instance = 1;
     testWhoHasData(pTest, &data);
 
-    for (data.low_limit = 0;
-        data.low_limit <= BACNET_MAX_INSTANCE;
+    for (data.low_limit = 0; data.low_limit <= BACNET_MAX_INSTANCE;
         data.low_limit += (BACNET_MAX_INSTANCE / 4)) {
-        for (data.high_limit = 0;
-            data.high_limit <= BACNET_MAX_INSTANCE;
+        for (data.high_limit = 0; data.high_limit <= BACNET_MAX_INSTANCE;
             data.high_limit += (BACNET_MAX_INSTANCE / 4)) {
             data.object_name = false;
             for (data.object.identifier.type = OBJECT_ANALOG_INPUT;

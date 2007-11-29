@@ -83,8 +83,9 @@ uint8_t Send_Atomic_Write_File_Stream(
                 npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
                 &my_address, &npdu_data);
             /* encode the APDU portion of the packet */
-            len = awf_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                invoke_id, &data);
+            len =
+                awf_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
+                &data);
             pdu_len += len;
             /* will the APDU fit the target device?
                note: if there is a bottleneck router in between
@@ -107,7 +108,8 @@ uint8_t Send_Atomic_Write_File_Stream(
                 tsm_free_invoke_id(invoke_id);
                 invoke_id = 0;
 #if PRINT_ENABLED
-                fprintf(stderr, "Failed to Send AtomicWriteFile Request "
+                fprintf(stderr,
+                    "Failed to Send AtomicWriteFile Request "
                     "(payload [%d] exceeds destination maximum APDU [%u])!\n",
                     pdu_len, max_apdu);
 #endif
@@ -116,7 +118,8 @@ uint8_t Send_Atomic_Write_File_Stream(
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr, "Failed to Send AtomicWriteFile Request "
+            fprintf(stderr,
+                "Failed to Send AtomicWriteFile Request "
                 "(payload [%d] exceeds octet string capacity)!\n", pdu_len);
 #endif
         }

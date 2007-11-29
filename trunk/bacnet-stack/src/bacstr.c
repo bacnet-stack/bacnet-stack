@@ -229,16 +229,15 @@ bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING * char_string,
     char *value)
 {
-    return characterstring_init(char_string,
-        CHARACTER_ANSI_X34, value, value ? strlen(value) : 0);
+    return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
+        value ? strlen(value) : 0);
 }
 
 bool characterstring_copy(
     BACNET_CHARACTER_STRING * dest,
     BACNET_CHARACTER_STRING * src)
 {
-    return characterstring_init(dest,
-        characterstring_encoding(src),
+    return characterstring_init(dest, characterstring_encoding(src),
         characterstring_value(src), characterstring_length(src));
 }
 
@@ -429,8 +428,8 @@ bool octetstring_copy(
     BACNET_OCTET_STRING * dest,
     BACNET_OCTET_STRING * src)
 {
-    return octetstring_init(dest,
-        octetstring_value(src), octetstring_length(src));
+    return octetstring_init(dest, octetstring_value(src),
+        octetstring_length(src));
 }
 
 /* returns false if the string exceeds capacity */
@@ -568,9 +567,9 @@ void testCharacterString(
     ct_test(pTest,
         characterstring_encoding(&bacnet_string) == CHARACTER_ANSI_X34);
     /* bounds check */
-    status = characterstring_init(&bacnet_string,
-        CHARACTER_ANSI_X34,
-        NULL, characterstring_capacity(&bacnet_string) + 1);
+    status =
+        characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL,
+        characterstring_capacity(&bacnet_string) + 1);
     ct_test(pTest, status == false);
     status =
         characterstring_truncate(&bacnet_string,
@@ -582,8 +581,9 @@ void testCharacterString(
     ct_test(pTest, status == true);
 
     test_length = strlen(test_value);
-    status = characterstring_init(&bacnet_string,
-        CHARACTER_ANSI_X34, &test_value[0], test_length);
+    status =
+        characterstring_init(&bacnet_string, CHARACTER_ANSI_X34,
+        &test_value[0], test_length);
     ct_test(pTest, status == true);
     value = characterstring_value(&bacnet_string);
     length = characterstring_length(&bacnet_string);
@@ -592,8 +592,9 @@ void testCharacterString(
         ct_test(pTest, value[i] == test_value[i]);
     }
     test_length = strlen(test_append_value);
-    status = characterstring_append(&bacnet_string,
-        &test_append_value[0], test_length);
+    status =
+        characterstring_append(&bacnet_string, &test_append_value[0],
+        test_length);
     strcat(test_append_string, test_value);
     strcat(test_append_string, test_append_value);
     test_length = strlen(test_append_string);
@@ -628,10 +629,12 @@ void testOctetString(
         ct_test(pTest, value[i] == 0);
     }
     /* bounds check */
-    status = octetstring_init(&bacnet_string, NULL,
+    status =
+        octetstring_init(&bacnet_string, NULL,
         octetstring_capacity(&bacnet_string) + 1);
     ct_test(pTest, status == false);
-    status = octetstring_init(&bacnet_string, NULL,
+    status =
+        octetstring_init(&bacnet_string, NULL,
         octetstring_capacity(&bacnet_string));
     ct_test(pTest, status == true);
     status =
@@ -654,8 +657,8 @@ void testOctetString(
     }
 
     test_length = strlen((char *) test_append_value);
-    status = octetstring_append(&bacnet_string,
-        &test_append_value[0], test_length);
+    status =
+        octetstring_append(&bacnet_string, &test_append_value[0], test_length);
     strcat((char *) test_append_string, (char *) test_value);
     strcat((char *) test_append_string, (char *) test_append_value);
     test_length = strlen((char *) test_append_string);

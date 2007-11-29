@@ -59,8 +59,7 @@ void address_remove_device(
     unsigned i;
 
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if ((Address_Cache[i].valid ||
-                Address_Cache[i].bind_request) &&
+        if ((Address_Cache[i].valid || Address_Cache[i].bind_request) &&
             (Address_Cache[i].device_id == device_id)) {
             Address_Cache[i].valid = false;
             break;
@@ -320,8 +319,8 @@ void testAddress(
                 &test_address));
         ct_test(pTest, test_max_apdu == max_apdu);
         ct_test(pTest, bacnet_address_same(&test_address, &src));
-        ct_test(pTest, address_get_by_index(i, &test_device_id,
-                &test_max_apdu, &test_address));
+        ct_test(pTest, address_get_by_index(i, &test_device_id, &test_max_apdu,
+                &test_address));
         ct_test(pTest, test_device_id == device_id);
         ct_test(pTest, test_max_apdu == max_apdu);
         ct_test(pTest, bacnet_address_same(&test_address, &src));

@@ -198,8 +198,9 @@ int bacfile_encode_property_apdu(
     (void) array_index;
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0],
-                OBJECT_FILE, object_instance);
+            apdu_len =
+                encode_application_object_id(&apdu[0], OBJECT_FILE,
+                object_instance);
             break;
         case PROP_OBJECT_NAME:
             sprintf(text_string, "FILE %d", object_instance);
@@ -222,7 +223,8 @@ int bacfile_encode_property_apdu(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FILE_SIZE:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len =
+                encode_application_unsigned(&apdu[0],
                 bacfile_file_size(object_instance));
             break;
         case PROP_MODIFICATION_DATE:
@@ -285,7 +287,8 @@ bool bacfile_write_property(
     }
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
@@ -371,18 +374,19 @@ uint32_t bacfile_instance_from_tsm(
     uint32_t object_instance = BACNET_MAX_INSTANCE + 1; /* return value */
     bool found = false;
 
-    found = tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
+    found =
+        tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
         &apdu_len);
     if (found) {
-        if (!npdu_data.network_layer_message
-            && npdu_data.data_expecting_reply
+        if (!npdu_data.network_layer_message && npdu_data.data_expecting_reply
             && (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
             len =
-                apdu_decode_confirmed_service_request(&apdu[0],
-                apdu_len, &service_data, &service_choice,
-                &service_request, &service_request_len);
+                apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
+                &service_data, &service_choice, &service_request,
+                &service_request_len);
             if (service_choice == SERVICE_CONFIRMED_ATOMIC_READ_FILE) {
-                len = arf_decode_service_request(service_request,
+                len =
+                    arf_decode_service_request(service_request,
                     service_request_len, &data);
                 if (len > 0) {
                     if (data.object_type == OBJECT_FILE)
@@ -410,7 +414,8 @@ bool bacfile_read_data(
         pFile = fopen(pFilename, "rb");
         if (pFile) {
             (void) fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            len = fread(octetstring_value(&data->fileData), 1,
+            len =
+                fread(octetstring_value(&data->fileData), 1,
                 data->type.stream.requestedOctetCount, pFile);
             if (len < data->type.stream.requestedOctetCount)
                 data->endOfFile = true;

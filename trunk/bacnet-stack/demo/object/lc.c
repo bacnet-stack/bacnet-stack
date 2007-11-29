@@ -314,12 +314,10 @@ struct tm {
 
     timer = time(NULL);
     tblock = localtime(&timer);
-    datetime_set_values(bdatetime,
-        (uint16_t) tblock->tm_year,
-        (uint8_t) tblock->tm_mon,
-        (uint8_t) tblock->tm_mday,
-        (uint8_t) tblock->tm_hour,
-        (uint8_t) tblock->tm_min, (uint8_t) tblock->tm_sec, 0);
+    datetime_set_values(bdatetime, (uint16_t) tblock->tm_year,
+        (uint8_t) tblock->tm_mon, (uint8_t) tblock->tm_mday,
+        (uint8_t) tblock->tm_hour, (uint8_t) tblock->tm_min,
+        (uint8_t) tblock->tm_sec, 0);
 }
 
 /* convert the shed level request into an Analog Output Present_Value */
@@ -758,16 +756,19 @@ int Load_Control_Encode_Property_APDU(
         case PROP_REQUESTED_SHED_LEVEL:
             switch (Requested_Shed_Level[object_index].type) {
                 case BACNET_SHED_TYPE_PERCENT:
-                    apdu_len = encode_context_unsigned(&apdu[0], 0,
+                    apdu_len =
+                        encode_context_unsigned(&apdu[0], 0,
                         Requested_Shed_Level[object_index].value.percent);
                     break;
                 case BACNET_SHED_TYPE_AMOUNT:
-                    apdu_len = encode_context_real(&apdu[0], 2,
+                    apdu_len =
+                        encode_context_real(&apdu[0], 2,
                         Requested_Shed_Level[object_index].value.amount);
                     break;
                 case BACNET_SHED_TYPE_LEVEL:
                 default:
-                    apdu_len = encode_context_unsigned(&apdu[0], 1,
+                    apdu_len =
+                        encode_context_unsigned(&apdu[0], 1,
                         Requested_Shed_Level[object_index].value.level);
                     break;
             }
@@ -777,16 +778,19 @@ int Load_Control_Encode_Property_APDU(
                 encode_application_date(&apdu[0],
                 &Start_Time[object_index].date);
             apdu_len = len;
-            len = encode_application_time(&apdu[apdu_len],
+            len =
+                encode_application_time(&apdu[apdu_len],
                 &Start_Time[object_index].time);
             apdu_len += len;
             break;
         case PROP_SHED_DURATION:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len =
+                encode_application_unsigned(&apdu[0],
                 Shed_Duration[object_index]);
             break;
         case PROP_DUTY_WINDOW:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len =
+                encode_application_unsigned(&apdu[0],
                 Duty_Window[object_index]);
             break;
         case PROP_ENABLE:
@@ -794,22 +798,26 @@ int Load_Control_Encode_Property_APDU(
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_FULL_DUTY_BASELINE:  /* optional */
-            apdu_len = encode_application_real(&apdu[0],
+            apdu_len =
+                encode_application_real(&apdu[0],
                 Full_Duty_Baseline[object_index]);
             break;
         case PROP_EXPECTED_SHED_LEVEL:
             switch (Expected_Shed_Level[object_index].type) {
                 case BACNET_SHED_TYPE_PERCENT:
-                    apdu_len = encode_context_unsigned(&apdu[0], 0,
+                    apdu_len =
+                        encode_context_unsigned(&apdu[0], 0,
                         Expected_Shed_Level[object_index].value.percent);
                     break;
                 case BACNET_SHED_TYPE_AMOUNT:
-                    apdu_len = encode_context_real(&apdu[0], 2,
+                    apdu_len =
+                        encode_context_real(&apdu[0], 2,
                         Expected_Shed_Level[object_index].value.amount);
                     break;
                 case BACNET_SHED_TYPE_LEVEL:
                 default:
-                    apdu_len = encode_context_unsigned(&apdu[0], 1,
+                    apdu_len =
+                        encode_context_unsigned(&apdu[0], 1,
                         Expected_Shed_Level[object_index].value.level);
                     break;
             }
@@ -817,16 +825,19 @@ int Load_Control_Encode_Property_APDU(
         case PROP_ACTUAL_SHED_LEVEL:
             switch (Actual_Shed_Level[object_index].type) {
                 case BACNET_SHED_TYPE_PERCENT:
-                    apdu_len = encode_context_unsigned(&apdu[0], 0,
+                    apdu_len =
+                        encode_context_unsigned(&apdu[0], 0,
                         Actual_Shed_Level[object_index].value.percent);
                     break;
                 case BACNET_SHED_TYPE_AMOUNT:
-                    apdu_len = encode_context_real(&apdu[0], 2,
+                    apdu_len =
+                        encode_context_real(&apdu[0], 2,
                         Actual_Shed_Level[object_index].value.amount);
                     break;
                 case BACNET_SHED_TYPE_LEVEL:
                 default:
-                    apdu_len = encode_context_unsigned(&apdu[0], 1,
+                    apdu_len =
+                        encode_context_unsigned(&apdu[0], 1,
                         Actual_Shed_Level[object_index].value.level);
                     break;
             }
@@ -857,7 +868,8 @@ int Load_Control_Encode_Property_APDU(
                 }
             } else {
                 if (array_index <= MAX_SHED_LEVELS) {
-                    apdu_len = encode_application_unsigned(&apdu[0],
+                    apdu_len =
+                        encode_application_unsigned(&apdu[0],
                         Shed_Levels[object_index][array_index - 1]);
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -879,7 +891,8 @@ int Load_Control_Encode_Property_APDU(
                     /* FIXME: check if we have room before adding it to APDU */
                     characterstring_init_ansi(&char_string,
                         Shed_Level_Descriptions[i]);
-                    len = encode_application_character_string(&apdu[apdu_len],
+                    len =
+                        encode_application_character_string(&apdu[apdu_len],
                         &char_string);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU)
@@ -895,7 +908,8 @@ int Load_Control_Encode_Property_APDU(
                 if (array_index <= MAX_SHED_LEVELS) {
                     characterstring_init_ansi(&char_string,
                         Shed_Level_Descriptions[array_index - 1]);
-                    apdu_len = encode_application_character_string(&apdu[0],
+                    apdu_len =
+                        encode_application_character_string(&apdu[0],
                         &char_string);
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -932,16 +946,18 @@ bool Load_Control_Write_Property(
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
     object_index = Load_Control_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_REQUESTED_SHED_LEVEL:
-            len = bacapp_decode_context_data(wp_data->application_data,
-                wp_data->application_data_len,
-                &value, PROP_REQUESTED_SHED_LEVEL);
+            len =
+                bacapp_decode_context_data(wp_data->application_data,
+                wp_data->application_data_len, &value,
+                PROP_REQUESTED_SHED_LEVEL);
             if (value.context_tag == 0) {
                 /* percent - Unsigned */
                 Requested_Shed_Level[object_index].type =
@@ -974,8 +990,8 @@ bool Load_Control_Write_Property(
             break;
         case PROP_START_TIME:
             if (value.tag == BACNET_APPLICATION_TAG_DATE) {
-                memcpy(&Start_Time[object_index].date,
-                    &value.type.Date, sizeof(value.type.Date));
+                memcpy(&Start_Time[object_index].date, &value.type.Date,
+                    sizeof(value.type.Date));
                 Start_Time_Property_Written[object_index] = true;
                 status = true;
             } else {
@@ -988,8 +1004,8 @@ bool Load_Control_Write_Property(
                 bacapp_decode_application_data(wp_data->application_data + len,
                 wp_data->application_data_len - len, &value);
             if (len && value.tag == BACNET_APPLICATION_TAG_TIME) {
-                memcpy(&Start_Time[object_index].time,
-                    &value.type.Time, sizeof(value.type.Time));
+                memcpy(&Start_Time[object_index].time, &value.type.Time,
+                    sizeof(value.type.Time));
                 status = true;
             } else {
                 status = false;
@@ -1455,14 +1471,14 @@ void testLoadControl(
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
 
-    len = Load_Control_Encode_Property_APDU(&apdu[0],
-        instance,
+    len =
+        Load_Control_Encode_Property_APDU(&apdu[0], instance,
         PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len],
-        (int *) &decoded_type, &decoded_instance);
+    len =
+        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == OBJECT_LOAD_CONTROL);
     ct_test(pTest, decoded_instance == instance);
 

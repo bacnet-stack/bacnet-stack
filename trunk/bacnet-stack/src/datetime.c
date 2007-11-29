@@ -354,10 +354,12 @@ void datetime_add_minutes(
     uint32_t days = 0;
 
     /* convert bdatetime to seconds and days */
-    bdatetime_minutes = seconds_since_midnight(bdatetime->time.hour,
-        bdatetime->time.min, bdatetime->time.sec) / 60;
-    bdatetime_days = days_since_epoch(bdatetime->date.year,
-        bdatetime->date.month, bdatetime->date.day);
+    bdatetime_minutes =
+        seconds_since_midnight(bdatetime->time.hour, bdatetime->time.min,
+        bdatetime->time.sec) / 60;
+    bdatetime_days =
+        days_since_epoch(bdatetime->date.year, bdatetime->date.month,
+        bdatetime->date.day);
 
     /* add */
     days = minutes / (24 * 60);
@@ -370,10 +372,11 @@ void datetime_add_minutes(
     /* convert bdatetime from seconds and days */
     seconds_since_midnight_into_hms(bdatetime_minutes * 60,
         &bdatetime->time.hour, &bdatetime->time.min, &bdatetime->time.sec);
-    days_since_epoch_into_ymd(bdatetime_days,
-        &bdatetime->date.year, &bdatetime->date.month, &bdatetime->date.day);
-    bdatetime->date.wday = day_of_week(bdatetime->date.year,
-        bdatetime->date.month, bdatetime->date.day);
+    days_since_epoch_into_ymd(bdatetime_days, &bdatetime->date.year,
+        &bdatetime->date.month, &bdatetime->date.day);
+    bdatetime->date.wday =
+        day_of_week(bdatetime->date.year, bdatetime->date.month,
+        bdatetime->date.day);
 }
 
 bool datetime_wildcard(
@@ -383,12 +386,9 @@ bool datetime_wildcard(
 
     if (bdatetime) {
         if ((bdatetime->date.year == (1900 + 0xFF)) &&
-            (bdatetime->date.month == 0xFF) &&
-            (bdatetime->date.day == 0xFF) &&
-            (bdatetime->date.wday == 0xFF) &&
-            (bdatetime->time.hour == 0xFF) &&
-            (bdatetime->time.min == 0xFF) &&
-            (bdatetime->time.sec == 0xFF) &&
+            (bdatetime->date.month == 0xFF) && (bdatetime->date.day == 0xFF) &&
+            (bdatetime->date.wday == 0xFF) && (bdatetime->time.hour == 0xFF) &&
+            (bdatetime->time.min == 0xFF) && (bdatetime->time.sec == 0xFF) &&
             (bdatetime->time.hundredths == 0xFF)) {
             wildcard_present = true;
         }
@@ -494,8 +494,8 @@ void testBACnetDateTimeSeconds(
         for (minute = 0; minute < 60; minute += 3) {
             for (second = 0; second < 60; second += 17) {
                 seconds = seconds_since_midnight(hour, minute, second);
-                seconds_since_midnight_into_hms(seconds,
-                    &test_hour, &test_minute, &test_second);
+                seconds_since_midnight_into_hms(seconds, &test_hour,
+                    &test_minute, &test_second);
                 test_seconds =
                     seconds_since_midnight(test_hour, test_minute,
                     test_second);
@@ -705,8 +705,8 @@ void testDateEpoch(
         for (month = 1; month <= 12; month++) {
             for (day = 1; day <= month_days(year, month); day++) {
                 days = days_since_epoch(year, month, day);
-                days_since_epoch_into_ymd(days,
-                    &test_year, &test_month, &test_day);
+                days_since_epoch_into_ymd(days, &test_year, &test_month,
+                    &test_day);
                 ct_test(pTest, year == test_year);
                 ct_test(pTest, month == test_month);
                 ct_test(pTest, day == test_day);

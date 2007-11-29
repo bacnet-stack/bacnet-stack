@@ -190,8 +190,8 @@ int main(
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (Device_APDU_Timeout() / 1000) *
-        Device_Number_Of_APDU_Retries();
+    timeout_seconds =
+        (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */
@@ -212,15 +212,15 @@ int main(
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
-        found = address_bind_request(Target_Device_Object_Instance,
-            &max_apdu, &Target_Address);
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =
-                    Send_Read_Property_Request
-                    (Target_Device_Object_Instance, Target_Object_Type,
-                    Target_Object_Instance, Target_Object_Property,
-                    Target_Object_Index);
+                    Send_Read_Property_Request(Target_Device_Object_Instance,
+                    Target_Object_Type, Target_Object_Instance,
+                    Target_Object_Property, Target_Object_Index);
             } else if (tsm_invoke_id_free(invoke_id))
                 break;
             else if (tsm_invoke_id_failed(invoke_id)) {

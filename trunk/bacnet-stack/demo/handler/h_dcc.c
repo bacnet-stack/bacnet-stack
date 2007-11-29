@@ -58,56 +58,65 @@ void handler_device_communication_control(
     /* encode the NPDU portion of the reply packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src,
-        &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
 #if PRINT_ENABLED
     fprintf(stderr, "DeviceCommunicationControl!\n");
 #endif
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
-            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
-        fprintf(stderr, "DeviceCommunicationControl: "
+        fprintf(stderr,
+            "DeviceCommunicationControl: "
             "Sending Abort - segmented message.\n");
 #endif
         goto DCC_ABORT;
     }
     /* decode the service request only */
-    len = dcc_decode_service_request(service_request,
-        service_len, &timeDuration, &state, &password);
+    len =
+        dcc_decode_service_request(service_request, service_len, &timeDuration,
+        &state, &password);
 #if PRINT_ENABLED
     if (len > 0)
-        fprintf(stderr, "DeviceCommunicationControl: "
-            "timeout=%u state=%u password=%s\n",
-            (unsigned) timeDuration,
-            (unsigned) state, characterstring_value(&password));
+        fprintf(stderr,
+            "DeviceCommunicationControl: " "timeout=%u state=%u password=%s\n",
+            (unsigned) timeDuration, (unsigned) state,
+            characterstring_value(&password));
 #endif
     /* bad decoding or something we didn't understand - send an abort */
     if (len < 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
-        fprintf(stderr, "DeviceCommunicationControl: "
+        fprintf(stderr,
+            "DeviceCommunicationControl: "
             "Sending Abort - could not decode.\n");
 #endif
         goto DCC_ABORT;
     }
     if (state >= MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
-        len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        len =
+            reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
 #if PRINT_ENABLED
-        fprintf(stderr, "DeviceCommunicationControl: "
+        fprintf(stderr,
+            "DeviceCommunicationControl: "
             "Sending Reject - undefined enumeration\n");
 #endif
     } else {
         if (characterstring_ansi_same(&password, My_Password)) {
-            len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+            len =
+                encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL);
 #if PRINT_ENABLED
-            fprintf(stderr, "DeviceCommunicationControl: "
-                "Sending Simple Ack!\n");
+            fprintf(stderr,
+                "DeviceCommunicationControl: " "Sending Simple Ack!\n");
 #endif
             dcc_set_status_duration(state, timeDuration);
         } else {
@@ -125,12 +134,14 @@ void handler_device_communication_control(
     }
   DCC_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "DeviceCommunicationControl: "
-            "Failed to send PDU (%s)!\n", strerror(errno));
+        fprintf(stderr,
+            "DeviceCommunicationControl: " "Failed to send PDU (%s)!\n",
+            strerror(errno));
 #endif
 
     return;

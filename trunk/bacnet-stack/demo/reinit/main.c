@@ -70,8 +70,7 @@ static void MyErrorHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name(error_class),
+    printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
     Error_Detected = true;
 }
@@ -155,17 +154,11 @@ int main(
     if (argc < 3) {
         /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s device-instance state [password]\r\n"
-            "Send BACnet ReinitializeDevice service to device.\r\n"
-            "\r\n"
+            "Send BACnet ReinitializeDevice service to device.\r\n" "\r\n"
             "The device-instance can be 0 to %d.\r\n"
-            "Possible state values:\r\n"
-            "  0=coldstart\r\n"
-            "  1=warmstart\r\n"
-            "  2=startbackup\r\n"
-            "  3=endbackup\r\n"
-            "  4=startrestore\r\n"
-            "  5=endrestore\r\n"
-            "  6=abortrestore\r\n"
+            "Possible state values:\r\n" "  0=coldstart\r\n"
+            "  1=warmstart\r\n" "  2=startbackup\r\n" "  3=endbackup\r\n"
+            "  4=startrestore\r\n" "  5=endrestore\r\n" "  6=abortrestore\r\n"
             "The optional password is a character string of 1 to 20 characters.\r\n",
             filename_remove_path(argv[0]), BACNET_MAX_INSTANCE - 1);
         return 0;
@@ -191,8 +184,8 @@ int main(
         return 1;
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (Device_APDU_Timeout() / 1000) *
-        Device_Number_Of_APDU_Retries();
+    timeout_seconds =
+        (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */
@@ -213,8 +206,9 @@ int main(
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
-        found = address_bind_request(Target_Device_Object_Instance,
-            &max_apdu, &Target_Address);
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =
