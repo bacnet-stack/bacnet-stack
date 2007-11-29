@@ -34,7 +34,8 @@
 #include <stdio.h>
 #include <string.h>
 
-char *filename_remove_path(const char *filename_in)
+char *filename_remove_path(
+    const char *filename_in)
 {
     char *filename_out = NULL;
 
@@ -57,7 +58,8 @@ char *filename_remove_path(const char *filename_in)
 
 #include "ctest.h"
 
-void testFilename(Test * pTest)
+void testFilename(
+    Test * pTest)
 {
     char *data1 = "c:\\Joshua\\run";
     char *data2 = "/home/Anna/run";
@@ -78,7 +80,8 @@ void testFilename(Test * pTest)
 }
 
 #ifdef TEST_FILENAME
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -97,5 +100,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_FILENAME */
-#endif                          /* TEST */
+#endif /* TEST_FILENAME */
+#endif /* TEST */

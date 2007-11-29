@@ -71,10 +71,10 @@ struct BACnet_Device_Address {
     /* DNET,DLEN,DADR or SNET,SLEN,SADR */
     /* the following are used if the device is behind a router */
     /* net = 0 indicates local */
-    uint16_t net;               /* BACnet network number */
+    uint16_t net;       /* BACnet network number */
     /* LEN = 0 denotes broadcast MAC ADR and ADR field is absent */
     /* LEN > 0 specifies length of ADR field */
-    uint8_t len;                    /* length of MAC address */
+    uint8_t len;        /* length of MAC address */
     uint8_t adr[MAX_MAC_LEN];   /* hwaddr (MAC) address */
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;

@@ -37,11 +37,13 @@
 #include "bacdef.h"
 
 /* encode I-Am service  - use -1 for limit if you want unlimited */
-int whois_encode_apdu(uint8_t * apdu,
-    int32_t low_limit, int32_t high_limit)
+int whois_encode_apdu(
+    uint8_t * apdu,
+    int32_t low_limit,
+    int32_t high_limit)
 {
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
@@ -61,8 +63,11 @@ int whois_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int whois_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit)
+int whois_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    int32_t * pLow_limit,
+    int32_t * pHigh_limit)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -72,8 +77,7 @@ int whois_decode_service_request(uint8_t * apdu,
     /* optional limits - must be used as a pair */
     if (apdu_len) {
         len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value);
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number != 0)
             return -1;
         len += decode_unsigned(&apdu[len], len_value, &decoded_value);
@@ -82,8 +86,7 @@ int whois_decode_service_request(uint8_t * apdu,
                 *pLow_limit = decoded_value;
         }
         len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value);
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number != 1)
             return -1;
         len += decode_unsigned(&apdu[len], len_value, &decoded_value);
@@ -101,8 +104,11 @@ int whois_decode_service_request(uint8_t * apdu,
 #include <string.h>
 #include "ctest.h"
 
-int whois_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit)
+int whois_decode_apdu(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    int32_t * pLow_limit,
+    int32_t * pHigh_limit)
 {
     int len = 0;
 
@@ -122,7 +128,8 @@ int whois_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-void testWhoIs(Test * pTest)
+void testWhoIs(
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -161,7 +168,8 @@ void testWhoIs(Test * pTest)
 }
 
 #ifdef TEST_WHOIS
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -178,5 +186,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_WHOIS */
-#endif                          /* TEST */
+#endif /* TEST_WHOIS */
+#endif /* TEST */

@@ -40,12 +40,16 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue);
-    uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue);
+    uint8_t CRC_Calc_Header(
+        uint8_t dataValue,
+        uint8_t crcValue);
+    uint16_t CRC_Calc_Data(
+        uint8_t dataValue,
+        uint16_t crcValue);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

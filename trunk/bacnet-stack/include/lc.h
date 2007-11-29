@@ -33,34 +33,44 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
     void Load_Control_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
-    void Load_Control_State_Machine_Handler(void);
+    void Load_Control_State_Machine_Handler(
+        void);
 
-    bool Load_Control_Valid_Instance(uint32_t object_instance);
-    unsigned Load_Control_Count(void);
-    uint32_t Load_Control_Index_To_Instance(unsigned index);
-    char *Load_Control_Name(uint32_t object_instance);
+    bool Load_Control_Valid_Instance(
+        uint32_t object_instance);
+    unsigned Load_Control_Count(
+        void);
+    uint32_t Load_Control_Index_To_Instance(
+        unsigned index);
+    char *Load_Control_Name(
+        uint32_t object_instance);
 
-    int Load_Control_Encode_Property_APDU(uint8_t * apdu,
+    int Load_Control_Encode_Property_APDU(
+        uint8_t * apdu,
         uint32_t object_instance,
         BACNET_PROPERTY_ID property,
         int32_t array_index,
-        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
-    bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
+    bool Load_Control_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
 #ifdef TEST
 #include "ctest.h"
-    void testLoadControl(Test * pTest);
+    void testLoadControl(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

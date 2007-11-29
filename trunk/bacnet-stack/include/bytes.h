@@ -67,4 +67,4 @@
 
 
 
-#endif                          /* end of header file */
+#endif /* end of header file */

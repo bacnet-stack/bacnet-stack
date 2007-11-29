@@ -32,19 +32,21 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>             /* for standard integer types uint8_t etc. */
-#include <stdbool.h>            /* for the standard bool type. */
+#include <stdint.h>     /* for standard integer types uint8_t etc. */
+#include <stdbool.h>    /* for the standard bool type. */
 #include "bacdcode.h"
 #include "bip.h"
 #include "net.h"
 
 bool BIP_Debug = false;
 
-static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr,
+static int get_local_ifr_ioctl(
+    char *ifname,
+    struct ifreq *ifr,
     int request)
 {
     int fd;
-    int rv;                     /* return value */
+    int rv;     /* return value */
 
     strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name));
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -56,12 +58,14 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr,
     return rv;
 }
 
-static int get_local_address_ioctl(char *ifname,
-    struct in_addr *addr, int request)
+static int get_local_address_ioctl(
+    char *ifname,
+    struct in_addr *addr,
+    int request)
 {
     struct ifreq ifr = { {{0}} };
     struct sockaddr_in *tcpip_address;
-    int rv;                     /* return value */
+    int rv;     /* return value */
 
     rv = get_local_ifr_ioctl(ifname, &ifr, request);
     if (rv >= 0) {
@@ -73,7 +77,8 @@ static int get_local_address_ioctl(char *ifname,
 }
 
 /* on Linux, ifname is eth0, ath0, arc0, and others. */
-static void bip_set_interface(char *ifname)
+static void bip_set_interface(
+    char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
@@ -90,8 +95,7 @@ static void bip_set_interface(char *ifname)
         fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
     }
     /* setup local broadcast address */
-    rv = get_local_address_ioctl(ifname, &broadcast_address,
-        SIOCGIFBRDADDR);
+    rv = get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
     if (rv < 0) {
         broadcast_address.s_addr = ~0;
     }
@@ -100,14 +104,14 @@ static void bip_set_interface(char *ifname)
         fprintf(stderr, "IP Broadcast Address: %s\n",
             inet_ntoa(broadcast_address));
         fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
-            bip_get_port(),
-            bip_get_port());
+            bip_get_port(), bip_get_port());
     }
 }
 
-bool bip_init(char *ifname)
+bool bip_init(
+    char *ifname)
 {
-    int status = 0;             /* return from socket lib calls */
+    int status = 0;     /* return from socket lib calls */
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;

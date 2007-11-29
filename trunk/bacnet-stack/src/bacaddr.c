@@ -37,7 +37,9 @@
 #include "config.h"
 #include "bacdef.h"
 
-void bacnet_address_copy(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
+void bacnet_address_copy(
+    BACNET_ADDRESS * dest,
+    BACNET_ADDRESS * src)
 {
     int i = 0;
 
@@ -54,11 +56,13 @@ void bacnet_address_copy(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
     }
 }
 
-bool bacnet_address_same(BACNET_ADDRESS * dest, BACNET_ADDRESS * src)
+bool bacnet_address_same(
+    BACNET_ADDRESS * dest,
+    BACNET_ADDRESS * src)
 {
     unsigned i;
     unsigned max_len;
-    bool match = true;          /* return value */
+    bool match = true;  /* return value */
 
     if (dest->mac_len != src->mac_len)
         match = false;

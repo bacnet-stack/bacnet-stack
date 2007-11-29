@@ -97,7 +97,8 @@ static BACNET_SERVICES_SUPPORTED
 /* If they are not set, they are handled by a reject message */
 static confirmed_function Confirmed_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
-void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice,
+void apdu_set_confirmed_handler(
+    BACNET_CONFIRMED_SERVICE service_choice,
     confirmed_function pFunction)
 {
     if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
@@ -107,8 +108,8 @@ void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice,
 /* Allow the APDU handler to automatically reject */
 static confirmed_function Unrecognized_Service_Handler;
 
-void apdu_set_unrecognized_service_handler_handler(confirmed_function
-    pFunction)
+void apdu_set_unrecognized_service_handler_handler(
+    confirmed_function pFunction)
 {
     Unrecognized_Service_Handler = pFunction;
 }
@@ -118,14 +119,16 @@ void apdu_set_unrecognized_service_handler_handler(confirmed_function
 static unconfirmed_function
     Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE];
 
-void apdu_set_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE
-    service_choice, unconfirmed_function pFunction)
+void apdu_set_unconfirmed_handler(
+    BACNET_UNCONFIRMED_SERVICE service_choice,
+    unconfirmed_function pFunction)
 {
     if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE)
         Unconfirmed_Function[service_choice] = pFunction;
 }
 
-bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
+bool apdu_service_supported(
+    BACNET_SERVICES_SUPPORTED service_supported)
 {
     int i = 0;
     bool status = false;
@@ -159,70 +162,73 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
 /* Confirmed ACK Function Handlers */
 static void *Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
-void apdu_set_confirmed_simple_ack_handler(BACNET_CONFIRMED_SERVICE
-    service_choice, confirmed_simple_ack_function pFunction)
+void apdu_set_confirmed_simple_ack_handler(
+    BACNET_CONFIRMED_SERVICE service_choice,
+    confirmed_simple_ack_function pFunction)
 {
     switch (service_choice) {
-    case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
-    case SERVICE_CONFIRMED_COV_NOTIFICATION:
-    case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
-    case SERVICE_CONFIRMED_SUBSCRIBE_COV:
-    case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
-    case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
-        /* Object Access Services */
-    case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
-    case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
-    case SERVICE_CONFIRMED_DELETE_OBJECT:
-    case SERVICE_CONFIRMED_WRITE_PROPERTY:
-    case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
-        /* Remote Device Management Services */
-    case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
-    case SERVICE_CONFIRMED_TEXT_MESSAGE:
-    case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
-        /* Virtual Terminal Services */
-    case SERVICE_CONFIRMED_VT_CLOSE:
-        /* Security Services */
-    case SERVICE_CONFIRMED_REQUEST_KEY:
-        Confirmed_ACK_Function[service_choice] = (void *) pFunction;
-        break;
-    default:
-        break;
+        case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
+        case SERVICE_CONFIRMED_COV_NOTIFICATION:
+        case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
+        case SERVICE_CONFIRMED_SUBSCRIBE_COV:
+        case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
+        case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
+            /* Object Access Services */
+        case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
+        case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
+        case SERVICE_CONFIRMED_DELETE_OBJECT:
+        case SERVICE_CONFIRMED_WRITE_PROPERTY:
+        case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
+            /* Remote Device Management Services */
+        case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+        case SERVICE_CONFIRMED_TEXT_MESSAGE:
+        case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+            /* Virtual Terminal Services */
+        case SERVICE_CONFIRMED_VT_CLOSE:
+            /* Security Services */
+        case SERVICE_CONFIRMED_REQUEST_KEY:
+            Confirmed_ACK_Function[service_choice] = (void *) pFunction;
+            break;
+        default:
+            break;
     }
 }
 
-void apdu_set_confirmed_ack_handler(BACNET_CONFIRMED_SERVICE
-    service_choice, confirmed_ack_function pFunction)
+void apdu_set_confirmed_ack_handler(
+    BACNET_CONFIRMED_SERVICE service_choice,
+    confirmed_ack_function pFunction)
 {
     switch (service_choice) {
-    case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
-    case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
-    case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
-        /* File Access Services */
-    case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
-    case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
-        /* Object Access Services */
-    case SERVICE_CONFIRMED_CREATE_OBJECT:
-    case SERVICE_CONFIRMED_READ_PROPERTY:
-    case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
-    case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
-    case SERVICE_CONFIRMED_READ_RANGE:
-        /* Remote Device Management Services */
-    case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
-        /* Virtual Terminal Services */
-    case SERVICE_CONFIRMED_VT_OPEN:
-    case SERVICE_CONFIRMED_VT_DATA:
-        /* Security Services */
-    case SERVICE_CONFIRMED_AUTHENTICATE:
-        Confirmed_ACK_Function[service_choice] = (void *) pFunction;
-        break;
-    default:
-        break;
+        case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
+        case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
+        case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
+            /* File Access Services */
+        case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
+        case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
+            /* Object Access Services */
+        case SERVICE_CONFIRMED_CREATE_OBJECT:
+        case SERVICE_CONFIRMED_READ_PROPERTY:
+        case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
+        case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
+        case SERVICE_CONFIRMED_READ_RANGE:
+            /* Remote Device Management Services */
+        case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
+            /* Virtual Terminal Services */
+        case SERVICE_CONFIRMED_VT_OPEN:
+        case SERVICE_CONFIRMED_VT_DATA:
+            /* Security Services */
+        case SERVICE_CONFIRMED_AUTHENTICATE:
+            Confirmed_ACK_Function[service_choice] = (void *) pFunction;
+            break;
+        default:
+            break;
     }
 }
 
 static error_function Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
-void apdu_set_error_handler(BACNET_CONFIRMED_SERVICE service_choice,
+void apdu_set_error_handler(
+    BACNET_CONFIRMED_SERVICE service_choice,
     error_function pFunction)
 {
     if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
@@ -231,25 +237,29 @@ void apdu_set_error_handler(BACNET_CONFIRMED_SERVICE service_choice,
 
 static abort_function Abort_Function;
 
-void apdu_set_abort_handler(abort_function pFunction)
+void apdu_set_abort_handler(
+    abort_function pFunction)
 {
     Abort_Function = pFunction;
 }
 
 static reject_function Reject_Function;
 
-void apdu_set_reject_handler(reject_function pFunction)
+void apdu_set_reject_handler(
+    reject_function pFunction)
 {
     Reject_Function = pFunction;
 }
 
-uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  /* APDU data */
+uint16_t apdu_decode_confirmed_service_request(
+    uint8_t * apdu,     /* APDU data */
     uint16_t apdu_len,
     BACNET_CONFIRMED_SERVICE_DATA * service_data,
     uint8_t * service_choice,
-    uint8_t ** service_request, uint16_t * service_request_len)
+    uint8_t ** service_request,
+    uint16_t * service_request_len)
 {
-    uint16_t len = 0;           /* counts where we are in PDU */
+    uint16_t len = 0;   /* counts where we are in PDU */
 
     service_data->segmented_message = (apdu[0] & BIT3) ? true : false;
     service_data->more_follows = (apdu[0] & BIT2) ? true : false;
@@ -270,7 +280,9 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  /* APDU data */
     return len;
 }
 
-void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
+void apdu_handler(
+    BACNET_ADDRESS * src,
+    uint8_t * apdu,     /* APDU data */
     uint16_t apdu_len)
 {
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
@@ -279,7 +291,7 @@ void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    uint16_t len = 0;           /* counts where we are in PDU */
+    uint16_t len = 0;   /* counts where we are in PDU */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     int error_code = 0;
@@ -290,165 +302,165 @@ void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
     if (apdu) {
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
-        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-            len = apdu_decode_confirmed_service_request(&apdu[0],       /* APDU data */
-                apdu_len,
-                &service_data,
-                &service_choice, &service_request, &service_request_len);
-            /* When network communications are completely disabled,
-               only DeviceCommunicationControl and ReinitializeDevice APDUs
-               shall be processed and no messages shall be initiated. */
-            if (dcc_communication_disabled() &&
-                ((service_choice !=
-                        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL)
-                    && (service_choice !=
-                        SERVICE_CONFIRMED_REINITIALIZE_DEVICE)))
+            case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
+                len = apdu_decode_confirmed_service_request(&apdu[0],   /* APDU data */
+                    apdu_len,
+                    &service_data,
+                    &service_choice, &service_request, &service_request_len);
+                /* When network communications are completely disabled,
+                   only DeviceCommunicationControl and ReinitializeDevice APDUs
+                   shall be processed and no messages shall be initiated. */
+                if (dcc_communication_disabled() &&
+                    ((service_choice !=
+                            SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL)
+                        && (service_choice !=
+                            SERVICE_CONFIRMED_REINITIALIZE_DEVICE)))
+                    break;
+                if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
+                    (Confirmed_Function[service_choice]))
+                    Confirmed_Function[service_choice] (service_request,
+                        service_request_len, src, &service_data);
+                else if (Unrecognized_Service_Handler)
+                    Unrecognized_Service_Handler(service_request,
+                        service_request_len, src, &service_data);
                 break;
-            if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
-                (Confirmed_Function[service_choice]))
-                Confirmed_Function[service_choice] (service_request,
-                    service_request_len, src, &service_data);
-            else if (Unrecognized_Service_Handler)
-                Unrecognized_Service_Handler(service_request,
-                    service_request_len, src, &service_data);
-            break;
-        case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
-            if (dcc_communication_disabled())
-                break;
-            service_choice = apdu[1];
-            service_request = &apdu[2];
-            service_request_len = apdu_len - 2;
-            if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) {
-                if (Unconfirmed_Function[service_choice])
-                    Unconfirmed_Function[service_choice] (service_request,
-                        service_request_len, src);
-            }
-            break;
-        case PDU_TYPE_SIMPLE_ACK:
-            invoke_id = apdu[1];
-            service_choice = apdu[2];
-            switch (service_choice) {
-            case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
-            case SERVICE_CONFIRMED_COV_NOTIFICATION:
-            case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
-            case SERVICE_CONFIRMED_SUBSCRIBE_COV:
-            case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
-            case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
-                /* Object Access Services */
-            case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
-            case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
-            case SERVICE_CONFIRMED_DELETE_OBJECT:
-            case SERVICE_CONFIRMED_WRITE_PROPERTY:
-            case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
-                /* Remote Device Management Services */
-            case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
-            case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
-            case SERVICE_CONFIRMED_TEXT_MESSAGE:
-                /* Virtual Terminal Services */
-            case SERVICE_CONFIRMED_VT_CLOSE:
-                /* Security Services */
-            case SERVICE_CONFIRMED_REQUEST_KEY:
-                if (Confirmed_ACK_Function[service_choice]) {
-                    ((confirmed_simple_ack_function)
-                        Confirmed_ACK_Function[service_choice]) (src,
-                        invoke_id);
+            case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
+                if (dcc_communication_disabled())
+                    break;
+                service_choice = apdu[1];
+                service_request = &apdu[2];
+                service_request_len = apdu_len - 2;
+                if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) {
+                    if (Unconfirmed_Function[service_choice])
+                        Unconfirmed_Function[service_choice] (service_request,
+                            service_request_len, src);
                 }
+                break;
+            case PDU_TYPE_SIMPLE_ACK:
+                invoke_id = apdu[1];
+                service_choice = apdu[2];
+                switch (service_choice) {
+                    case SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM:
+                    case SERVICE_CONFIRMED_COV_NOTIFICATION:
+                    case SERVICE_CONFIRMED_EVENT_NOTIFICATION:
+                    case SERVICE_CONFIRMED_SUBSCRIBE_COV:
+                    case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY:
+                    case SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION:
+                        /* Object Access Services */
+                    case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
+                    case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
+                    case SERVICE_CONFIRMED_DELETE_OBJECT:
+                    case SERVICE_CONFIRMED_WRITE_PROPERTY:
+                    case SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE:
+                        /* Remote Device Management Services */
+                    case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+                    case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+                    case SERVICE_CONFIRMED_TEXT_MESSAGE:
+                        /* Virtual Terminal Services */
+                    case SERVICE_CONFIRMED_VT_CLOSE:
+                        /* Security Services */
+                    case SERVICE_CONFIRMED_REQUEST_KEY:
+                        if (Confirmed_ACK_Function[service_choice]) {
+                            ((confirmed_simple_ack_function)
+                                Confirmed_ACK_Function[service_choice]) (src,
+                                invoke_id);
+                        }
+                        tsm_free_invoke_id(invoke_id);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case PDU_TYPE_COMPLEX_ACK:
+                service_ack_data.segmented_message =
+                    (apdu[0] & BIT3) ? true : false;
+                service_ack_data.more_follows =
+                    (apdu[0] & BIT2) ? true : false;
+                invoke_id = service_ack_data.invoke_id = apdu[1];
+                len = 2;
+                if (service_ack_data.segmented_message) {
+                    service_ack_data.sequence_number = apdu[len++];
+                    service_ack_data.proposed_window_number = apdu[len++];
+                }
+                service_choice = apdu[len++];
+                service_request = &apdu[len];
+                service_request_len = apdu_len - len;
+                switch (service_choice) {
+                    case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
+                    case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
+                    case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
+                        /* File Access Services */
+                    case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
+                    case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
+                        /* Object Access Services */
+                    case SERVICE_CONFIRMED_CREATE_OBJECT:
+                    case SERVICE_CONFIRMED_READ_PROPERTY:
+                    case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
+                    case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
+                    case SERVICE_CONFIRMED_READ_RANGE:
+                    case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
+                        /* Virtual Terminal Services */
+                    case SERVICE_CONFIRMED_VT_OPEN:
+                    case SERVICE_CONFIRMED_VT_DATA:
+                        /* Security Services */
+                    case SERVICE_CONFIRMED_AUTHENTICATE:
+                        if (Confirmed_ACK_Function[service_choice]) {
+                            ((confirmed_ack_function)
+                                Confirmed_ACK_Function[service_choice])
+                                (service_request, service_request_len, src,
+                                &service_ack_data);
+                        }
+                        tsm_free_invoke_id(invoke_id);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case PDU_TYPE_SEGMENT_ACK:
+                /* FIXME: what about a denial of service attack here?
+                   we could check src to see if that matched the tsm */
+                tsm_free_invoke_id(invoke_id);
+                break;
+            case PDU_TYPE_ERROR:
+                invoke_id = apdu[1];
+                service_choice = apdu[2];
+                len = 3;
+                len +=
+                    decode_tag_number_and_value(&apdu[len], &tag_number,
+                    &len_value);
+                /* FIXME: we could validate that the tag is enumerated... */
+                len += decode_enumerated(&apdu[len], len_value, &error_class);
+                len +=
+                    decode_tag_number_and_value(&apdu[len], &tag_number,
+                    &len_value);
+                /* FIXME: we could validate that the tag is enumerated... */
+                len += decode_enumerated(&apdu[len], len_value, &error_code);
+                if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+                    if (Error_Function[service_choice])
+                        Error_Function[service_choice] (src,
+                            invoke_id,
+                            (BACNET_ERROR_CLASS) error_class,
+                            (BACNET_ERROR_CODE) error_code);
+                }
+                tsm_free_invoke_id(invoke_id);
+                break;
+            case PDU_TYPE_REJECT:
+                invoke_id = apdu[1];
+                reason = apdu[2];
+                if (Reject_Function)
+                    Reject_Function(src, invoke_id, reason);
+                tsm_free_invoke_id(invoke_id);
+                break;
+            case PDU_TYPE_ABORT:
+                server = apdu[0] & 0x01;
+                invoke_id = apdu[1];
+                reason = apdu[2];
+                if (Abort_Function)
+                    Abort_Function(src, invoke_id, reason, server);
                 tsm_free_invoke_id(invoke_id);
                 break;
             default:
                 break;
-            }
-            break;
-        case PDU_TYPE_COMPLEX_ACK:
-            service_ack_data.segmented_message =
-                (apdu[0] & BIT3) ? true : false;
-            service_ack_data.more_follows =
-                (apdu[0] & BIT2) ? true : false;
-            invoke_id = service_ack_data.invoke_id = apdu[1];
-            len = 2;
-            if (service_ack_data.segmented_message) {
-                service_ack_data.sequence_number = apdu[len++];
-                service_ack_data.proposed_window_number = apdu[len++];
-            }
-            service_choice = apdu[len++];
-            service_request = &apdu[len];
-            service_request_len = apdu_len - len;
-            switch (service_choice) {
-            case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
-            case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
-            case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
-                /* File Access Services */
-            case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
-            case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
-                /* Object Access Services */
-            case SERVICE_CONFIRMED_CREATE_OBJECT:
-            case SERVICE_CONFIRMED_READ_PROPERTY:
-            case SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL:
-            case SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE:
-            case SERVICE_CONFIRMED_READ_RANGE:
-            case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
-                /* Virtual Terminal Services */
-            case SERVICE_CONFIRMED_VT_OPEN:
-            case SERVICE_CONFIRMED_VT_DATA:
-                /* Security Services */
-            case SERVICE_CONFIRMED_AUTHENTICATE:
-                if (Confirmed_ACK_Function[service_choice]) {
-                    ((confirmed_ack_function)
-                        Confirmed_ACK_Function[service_choice])
-                        (service_request, service_request_len, src,
-                        &service_ack_data);
-                }
-                tsm_free_invoke_id(invoke_id);
-                break;
-            default:
-                break;
-            }
-            break;
-        case PDU_TYPE_SEGMENT_ACK:
-            /* FIXME: what about a denial of service attack here?
-               we could check src to see if that matched the tsm */
-            tsm_free_invoke_id(invoke_id);
-            break;
-        case PDU_TYPE_ERROR:
-            invoke_id = apdu[1];
-            service_choice = apdu[2];
-            len = 3;
-            len +=
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value);
-            /* FIXME: we could validate that the tag is enumerated... */
-            len += decode_enumerated(&apdu[len], len_value, &error_class);
-            len +=
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value);
-            /* FIXME: we could validate that the tag is enumerated... */
-            len += decode_enumerated(&apdu[len], len_value, &error_code);
-            if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
-                if (Error_Function[service_choice])
-                    Error_Function[service_choice] (src,
-                        invoke_id,
-                        (BACNET_ERROR_CLASS)error_class,
-                        (BACNET_ERROR_CODE)error_code);
-            }
-            tsm_free_invoke_id(invoke_id);
-            break;
-        case PDU_TYPE_REJECT:
-            invoke_id = apdu[1];
-            reason = apdu[2];
-            if (Reject_Function)
-                Reject_Function(src, invoke_id, reason);
-            tsm_free_invoke_id(invoke_id);
-            break;
-        case PDU_TYPE_ABORT:
-            server = apdu[0] & 0x01;
-            invoke_id = apdu[1];
-            reason = apdu[2];
-            if (Abort_Function)
-                Abort_Function(src, invoke_id, reason, server);
-            tsm_free_invoke_id(invoke_id);
-            break;
-        default:
-            break;
         }
     }
     return;

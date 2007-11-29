@@ -42,8 +42,10 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-uint8_t Send_Reinitialize_Device_Request(uint32_t device_id,
-    BACNET_REINITIALIZED_STATE state, char *password)
+uint8_t Send_Reinitialize_Device_Request(
+    uint32_t device_id,
+    BACNET_REINITIALIZED_STATE state,
+    char *password)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;

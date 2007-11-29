@@ -41,9 +41,11 @@
 static char *Password = "Jesus";
 static BACNET_CHARACTER_STRING My_Password;
 
-void handler_reinitialize_device(uint8_t * service_request,
+void handler_reinitialize_device(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     BACNET_REINITIALIZED_STATE state;
     BACNET_CHARACTER_STRING their_password;
@@ -70,7 +72,7 @@ void handler_reinitialize_device(uint8_t * service_request,
             "ReinitializeDevice: Sending Abort - segmented message.\n");
 #endif
         goto RD_ABORT;
-    }    
+    }
     /* decode the service request only */
     len = rd_decode_service_request(service_request,
         service_len, &state, &their_password);
@@ -124,7 +126,7 @@ void handler_reinitialize_device(uint8_t * service_request,
 #endif
         }
     }
-RD_ABORT:
+  RD_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

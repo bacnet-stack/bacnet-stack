@@ -34,11 +34,12 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>             /* for strlen */
+#include <string.h>     /* for strlen */
 #include "bacstr.h"
 #include "bits.h"
 
-void bitstring_init(BACNET_BIT_STRING * bit_string)
+void bitstring_init(
+    BACNET_BIT_STRING * bit_string)
 {
     int i;
 
@@ -48,7 +49,9 @@ void bitstring_init(BACNET_BIT_STRING * bit_string)
     }
 }
 
-void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number,
+void bitstring_set_bit(
+    BACNET_BIT_STRING * bit_string,
+    uint8_t bit_number,
     bool value)
 {
     uint8_t byte_number = bit_number / 8;
@@ -66,7 +69,9 @@ void bitstring_set_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number,
     }
 }
 
-bool bitstring_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number)
+bool bitstring_bit(
+    BACNET_BIT_STRING * bit_string,
+    uint8_t bit_number)
 {
     bool value = false;
     uint8_t byte_number = bit_number / 8;
@@ -81,15 +86,17 @@ bool bitstring_bit(BACNET_BIT_STRING * bit_string, uint8_t bit_number)
     return value;
 }
 
-uint8_t bitstring_bits_used(BACNET_BIT_STRING * bit_string)
+uint8_t bitstring_bits_used(
+    BACNET_BIT_STRING * bit_string)
 {
     return bit_string->bits_used;
 }
 
 /* returns the number of bytes that a bit string is using */
-int bitstring_bytes_used(BACNET_BIT_STRING * bit_string)
+int bitstring_bytes_used(
+    BACNET_BIT_STRING * bit_string)
 {
-    int len = 0;                /* return value */
+    int len = 0;        /* return value */
     uint8_t used_bytes = 0;
     uint8_t last_bit = 0;
 
@@ -104,7 +111,9 @@ int bitstring_bytes_used(BACNET_BIT_STRING * bit_string)
     return len;
 }
 
-uint8_t bitstring_octet(BACNET_BIT_STRING * bit_string, uint8_t index)
+uint8_t bitstring_octet(
+    BACNET_BIT_STRING * bit_string,
+    uint8_t index)
 {
     uint8_t octet = 0;
 
@@ -117,8 +126,10 @@ uint8_t bitstring_octet(BACNET_BIT_STRING * bit_string, uint8_t index)
     return octet;
 }
 
-bool bitstring_set_octet(BACNET_BIT_STRING * bit_string,
-    uint8_t index, uint8_t octet)
+bool bitstring_set_octet(
+    BACNET_BIT_STRING * bit_string,
+    uint8_t index,
+    uint8_t octet)
 {
     bool status = false;
 
@@ -132,8 +143,10 @@ bool bitstring_set_octet(BACNET_BIT_STRING * bit_string,
     return status;
 }
 
-bool bitstring_set_bits_used(BACNET_BIT_STRING * bit_string,
-    uint8_t bytes_used, uint8_t unused_bits)
+bool bitstring_set_bits_used(
+    BACNET_BIT_STRING * bit_string,
+    uint8_t bytes_used,
+    uint8_t unused_bits)
 {
     bool status = false;
 
@@ -147,7 +160,8 @@ bool bitstring_set_bits_used(BACNET_BIT_STRING * bit_string,
     return status;
 }
 
-uint8_t bitstring_bits_capacity(BACNET_BIT_STRING * bit_string)
+uint8_t bitstring_bits_capacity(
+    BACNET_BIT_STRING * bit_string)
 {
     if (bit_string)
         return (sizeof(bit_string->value) * 8);
@@ -161,7 +175,7 @@ bool bitstring_copy(
 {
     unsigned i;
     bool status = false;
-    
+
     if (dest && src) {
         dest->bits_used = src->bits_used;
         for (i = 0; i < MAX_BITSTRING_BYTES; i++) {
@@ -169,18 +183,21 @@ bool bitstring_copy(
         }
         status = true;
     }
-    
+
     return status;
 }
 
 #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
-bool characterstring_init(BACNET_CHARACTER_STRING * char_string,
-    uint8_t encoding, char *value, size_t length)
+bool characterstring_init(
+    BACNET_CHARACTER_STRING * char_string,
+    uint8_t encoding,
+    char *value,
+    size_t length)
 {
     bool status = false;        /* return value */
-    size_t i;                   /* counter */
+    size_t i;   /* counter */
 
     if (char_string) {
         char_string->length = 0;
@@ -208,14 +225,16 @@ bool characterstring_init(BACNET_CHARACTER_STRING * char_string,
     return status;
 }
 
-bool characterstring_init_ansi(BACNET_CHARACTER_STRING * char_string,
+bool characterstring_init_ansi(
+    BACNET_CHARACTER_STRING * char_string,
     char *value)
 {
     return characterstring_init(char_string,
         CHARACTER_ANSI_X34, value, value ? strlen(value) : 0);
 }
 
-bool characterstring_copy(BACNET_CHARACTER_STRING * dest,
+bool characterstring_copy(
+    BACNET_CHARACTER_STRING * dest,
     BACNET_CHARACTER_STRING * src)
 {
     return characterstring_init(dest,
@@ -224,15 +243,15 @@ bool characterstring_copy(BACNET_CHARACTER_STRING * dest,
 }
 
 /* returns true if the character encoding and string contents are the same */
-bool characterstring_same(BACNET_CHARACTER_STRING * dest,
+bool characterstring_same(
+    BACNET_CHARACTER_STRING * dest,
     BACNET_CHARACTER_STRING * src)
 {
-    size_t i;                   /* counter */
+    size_t i;   /* counter */
     bool same_status = false;
 
     if (src && dest) {
-        if ((src->length == dest->length) &&
-            (src->encoding == dest->encoding)) {
+        if ((src->length == dest->length) && (src->encoding == dest->encoding)) {
             same_status = true;
             for (i = 0; i < src->length; i++) {
                 if (src->value[i] != dest->value[i]) {
@@ -252,10 +271,11 @@ bool characterstring_same(BACNET_CHARACTER_STRING * dest,
     return same_status;
 }
 
-bool characterstring_ansi_same(BACNET_CHARACTER_STRING * dest,
+bool characterstring_ansi_same(
+    BACNET_CHARACTER_STRING * dest,
     const char *src)
 {
-    size_t i;                   /* counter */
+    size_t i;   /* counter */
     bool same_status = false;
 
     if (src && dest) {
@@ -283,10 +303,12 @@ bool characterstring_ansi_same(BACNET_CHARACTER_STRING * dest,
 }
 
 /* returns false if the string exceeds capacity */
-bool characterstring_append(BACNET_CHARACTER_STRING * char_string,
-    char *value, size_t length)
+bool characterstring_append(
+    BACNET_CHARACTER_STRING * char_string,
+    char *value,
+    size_t length)
 {
-    size_t i;                   /* counter */
+    size_t i;   /* counter */
     bool status = false;        /* return value */
 
     if (char_string) {
@@ -305,7 +327,8 @@ bool characterstring_append(BACNET_CHARACTER_STRING * char_string,
 /* This function sets a new length without changing the value.
    If length exceeds capacity, no modification happens and
    function returns false.  */
-bool characterstring_truncate(BACNET_CHARACTER_STRING * char_string,
+bool characterstring_truncate(
+    BACNET_CHARACTER_STRING * char_string,
     size_t length)
 {
     bool status = false;        /* return value */
@@ -321,7 +344,8 @@ bool characterstring_truncate(BACNET_CHARACTER_STRING * char_string,
 }
 
 /* Returns the value. */
-char *characterstring_value(BACNET_CHARACTER_STRING * char_string)
+char *characterstring_value(
+    BACNET_CHARACTER_STRING * char_string)
 {
     char *value = NULL;
 
@@ -333,7 +357,8 @@ char *characterstring_value(BACNET_CHARACTER_STRING * char_string)
 }
 
 /* returns the length. */
-size_t characterstring_length(BACNET_CHARACTER_STRING * char_string)
+size_t characterstring_length(
+    BACNET_CHARACTER_STRING * char_string)
 {
     size_t length = 0;
 
@@ -345,7 +370,8 @@ size_t characterstring_length(BACNET_CHARACTER_STRING * char_string)
     return length;
 }
 
-size_t characterstring_capacity(BACNET_CHARACTER_STRING * char_string)
+size_t characterstring_capacity(
+    BACNET_CHARACTER_STRING * char_string)
 {
     size_t length = 0;
 
@@ -357,7 +383,8 @@ size_t characterstring_capacity(BACNET_CHARACTER_STRING * char_string)
 }
 
 /* returns the encoding. */
-uint8_t characterstring_encoding(BACNET_CHARACTER_STRING * char_string)
+uint8_t characterstring_encoding(
+    BACNET_CHARACTER_STRING * char_string)
 {
     uint8_t encoding = 0;
 
@@ -370,11 +397,13 @@ uint8_t characterstring_encoding(BACNET_CHARACTER_STRING * char_string)
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
-bool octetstring_init(BACNET_OCTET_STRING * octet_string,
-    uint8_t * value, size_t length)
+bool octetstring_init(
+    BACNET_OCTET_STRING * octet_string,
+    uint8_t * value,
+    size_t length)
 {
     bool status = false;        /* return value */
-    size_t i;                   /* counter */
+    size_t i;   /* counter */
 
     if (octet_string) {
         octet_string->length = 0;
@@ -396,7 +425,8 @@ bool octetstring_init(BACNET_OCTET_STRING * octet_string,
     return status;
 }
 
-bool octetstring_copy(BACNET_OCTET_STRING * dest,
+bool octetstring_copy(
+    BACNET_OCTET_STRING * dest,
     BACNET_OCTET_STRING * src)
 {
     return octetstring_init(dest,
@@ -404,10 +434,12 @@ bool octetstring_copy(BACNET_OCTET_STRING * dest,
 }
 
 /* returns false if the string exceeds capacity */
-bool octetstring_append(BACNET_OCTET_STRING * octet_string,
-    uint8_t * value, size_t length)
+bool octetstring_append(
+    BACNET_OCTET_STRING * octet_string,
+    uint8_t * value,
+    size_t length)
 {
-    size_t i;                   /* counter */
+    size_t i;   /* counter */
     bool status = false;        /* return value */
 
     if (octet_string) {
@@ -426,7 +458,8 @@ bool octetstring_append(BACNET_OCTET_STRING * octet_string,
 /* This function sets a new length without changing the value.
    If length exceeds capacity, no modification happens and
    function returns false.  */
-bool octetstring_truncate(BACNET_OCTET_STRING * octet_string,
+bool octetstring_truncate(
+    BACNET_OCTET_STRING * octet_string,
     size_t length)
 {
     bool status = false;        /* return value */
@@ -442,7 +475,8 @@ bool octetstring_truncate(BACNET_OCTET_STRING * octet_string,
 }
 
 /* returns the length.  Returns the value in parameter. */
-uint8_t *octetstring_value(BACNET_OCTET_STRING * octet_string)
+uint8_t *octetstring_value(
+    BACNET_OCTET_STRING * octet_string)
 {
     uint8_t *value = NULL;
 
@@ -454,7 +488,8 @@ uint8_t *octetstring_value(BACNET_OCTET_STRING * octet_string)
 }
 
 /* returns the length. */
-size_t octetstring_length(BACNET_OCTET_STRING * octet_string)
+size_t octetstring_length(
+    BACNET_OCTET_STRING * octet_string)
 {
     size_t length = 0;
 
@@ -467,7 +502,8 @@ size_t octetstring_length(BACNET_OCTET_STRING * octet_string)
 }
 
 /* returns the length. */
-size_t octetstring_capacity(BACNET_OCTET_STRING * octet_string)
+size_t octetstring_capacity(
+    BACNET_OCTET_STRING * octet_string)
 {
     size_t length = 0;
 
@@ -484,7 +520,8 @@ size_t octetstring_capacity(BACNET_OCTET_STRING * octet_string)
 #include <string.h>
 #include "ctest.h"
 
-void testBitString(Test * pTest)
+void testBitString(
+    Test * pTest)
 {
     uint8_t bit = 0;
     BACNET_BIT_STRING bit_string;
@@ -511,7 +548,8 @@ void testBitString(Test * pTest)
     }
 }
 
-void testCharacterString(Test * pTest)
+void testCharacterString(
+    Test * pTest)
 {
     BACNET_CHARACTER_STRING bacnet_string;
     char *value = "Joshua,Mary,Anna,Christopher";
@@ -524,8 +562,7 @@ void testCharacterString(Test * pTest)
     size_t i = 0;
 
     /* verify initialization */
-    status =
-        characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
+    status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
     ct_test(pTest, status == true);
     ct_test(pTest, characterstring_length(&bacnet_string) == 0);
     ct_test(pTest,
@@ -569,7 +606,8 @@ void testCharacterString(Test * pTest)
     }
 }
 
-void testOctetString(Test * pTest)
+void testOctetString(
+    Test * pTest)
 {
     BACNET_OCTET_STRING bacnet_string;
     uint8_t *value = NULL;
@@ -631,7 +669,8 @@ void testOctetString(Test * pTest)
 }
 
 #ifdef TEST_BACSTR
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -652,5 +691,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_BACSTR */
-#endif                          /* TEST */
+#endif /* TEST_BACSTR */
+#endif /* TEST */

@@ -51,31 +51,50 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    const char *bactext_confirmed_service_name(int index);
-    const char *bactext_unconfirmed_service_name(int index);
-    const char *bactext_application_tag_name(int index);
-    const char *bactext_object_type_name(int index);
-    const char *bactext_property_name(int index);
-    const char *bactext_engineering_unit_name(int index);
-    const char *bactext_reject_reason_name(int index);
-    const char *bactext_abort_reason_name(int index);
-    const char *bactext_error_class_name(int index);
-    const char *bactext_error_code_name(int index);
-    unsigned bactext_property_id(const char *name);
-    const char *bactext_month_name(int index);
-    const char *bactext_week_of_month_name(int index);
-    const char *bactext_day_of_week_name(int index);
-    const char *bactext_event_state_name(int index);
-    const char *bactext_binary_present_value_name(int index);
-    const char *bactext_reliability_name(int index);
-    const char *bactext_device_status_name(int index);
-    const char *bactext_segmentation_name(int index);
+    const char *bactext_confirmed_service_name(
+        int index);
+    const char *bactext_unconfirmed_service_name(
+        int index);
+    const char *bactext_application_tag_name(
+        int index);
+    const char *bactext_object_type_name(
+        int index);
+    const char *bactext_property_name(
+        int index);
+    const char *bactext_engineering_unit_name(
+        int index);
+    const char *bactext_reject_reason_name(
+        int index);
+    const char *bactext_abort_reason_name(
+        int index);
+    const char *bactext_error_class_name(
+        int index);
+    const char *bactext_error_code_name(
+        int index);
+    unsigned bactext_property_id(
+        const char *name);
+    const char *bactext_month_name(
+        int index);
+    const char *bactext_week_of_month_name(
+        int index);
+    const char *bactext_day_of_week_name(
+        int index);
+    const char *bactext_event_state_name(
+        int index);
+    const char *bactext_binary_present_value_name(
+        int index);
+    const char *bactext_reliability_name(
+        int index);
+    const char *bactext_device_status_name(
+        int index);
+    const char *bactext_segmentation_name(
+        int index);
 
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
-#endif                          /* BACTEXT_PRINT_ENABLED */
+#endif /* __cplusplus */
+#endif /* BACTEXT_PRINT_ENABLED */
 #endif

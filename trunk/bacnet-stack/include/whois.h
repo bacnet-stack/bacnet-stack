@@ -39,23 +39,32 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
 /* encode service  - use -1 for limit if you want unlimited */
-    int whois_encode_apdu(uint8_t * apdu,
-        int32_t low_limit, int32_t high_limit);
+    int whois_encode_apdu(
+        uint8_t * apdu,
+        int32_t low_limit,
+        int32_t high_limit);
 
-    int whois_decode_service_request(uint8_t * apdu,
-        unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit);
+    int whois_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        int32_t * pLow_limit,
+        int32_t * pHigh_limit);
 
 #ifdef TEST
-    int whois_decode_apdu(uint8_t * apdu,
-        unsigned apdu_len, int32_t * pLow_limit, int32_t * pHigh_limit);
+    int whois_decode_apdu(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        int32_t * pLow_limit,
+        int32_t * pHigh_limit);
 
-    void testWhoIs(Test * pTest);
+    void testWhoIs(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

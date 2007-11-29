@@ -39,8 +39,10 @@
 #define strcasecmp stricmp
 #endif
 
-bool indtext_by_string(INDTEXT_DATA * data_list,
-    const char *search_name, unsigned *found_index)
+bool indtext_by_string(
+    INDTEXT_DATA * data_list,
+    const char *search_name,
+    unsigned *found_index)
 {
     bool found = false;
     unsigned index = 0;
@@ -63,8 +65,10 @@ bool indtext_by_string(INDTEXT_DATA * data_list,
 }
 
 /* case insensitive version */
-bool indtext_by_istring(INDTEXT_DATA * data_list,
-    const char *search_name, unsigned *found_index)
+bool indtext_by_istring(
+    INDTEXT_DATA * data_list,
+    const char *search_name,
+    unsigned *found_index)
 {
     bool found = false;
     unsigned index = 0;
@@ -86,8 +90,10 @@ bool indtext_by_istring(INDTEXT_DATA * data_list,
     return found;
 }
 
-unsigned indtext_by_string_default(INDTEXT_DATA * data_list,
-    const char *search_name, unsigned default_index)
+unsigned indtext_by_string_default(
+    INDTEXT_DATA * data_list,
+    const char *search_name,
+    unsigned default_index)
 {
     unsigned index = 0;
 
@@ -97,8 +103,10 @@ unsigned indtext_by_string_default(INDTEXT_DATA * data_list,
     return index;
 }
 
-unsigned indtext_by_istring_default(INDTEXT_DATA * data_list,
-    const char *search_name, unsigned default_index)
+unsigned indtext_by_istring_default(
+    INDTEXT_DATA * data_list,
+    const char *search_name,
+    unsigned default_index)
 {
     unsigned index = 0;
 
@@ -108,8 +116,10 @@ unsigned indtext_by_istring_default(INDTEXT_DATA * data_list,
     return index;
 }
 
-const char *indtext_by_index_default(INDTEXT_DATA * data_list,
-    unsigned index, const char *default_string)
+const char *indtext_by_index_default(
+    INDTEXT_DATA * data_list,
+    unsigned index,
+    const char *default_string)
 {
     const char *pString = NULL;
 
@@ -126,10 +136,12 @@ const char *indtext_by_index_default(INDTEXT_DATA * data_list,
     return pString ? pString : default_string;
 }
 
-const char *indtext_by_index_split_default(INDTEXT_DATA * data_list,
+const char *indtext_by_index_split_default(
+    INDTEXT_DATA * data_list,
     int index,
     int split_index,
-    const char *before_split_default_name, const char *default_name)
+    const char *before_split_default_name,
+    const char *default_name)
 {
     if (index < split_index)
         return indtext_by_index_default(data_list, index,
@@ -139,14 +151,17 @@ const char *indtext_by_index_split_default(INDTEXT_DATA * data_list,
 };
 
 
-const char *indtext_by_index(INDTEXT_DATA * data_list, unsigned index)
+const char *indtext_by_index(
+    INDTEXT_DATA * data_list,
+    unsigned index)
 {
     return indtext_by_index_default(data_list, index, NULL);
 }
 
-unsigned indtext_count(INDTEXT_DATA * data_list)
+unsigned indtext_count(
+    INDTEXT_DATA * data_list)
 {
-    unsigned count = 0;         /* return value */
+    unsigned count = 0; /* return value */
 
     if (data_list) {
         while (data_list->pString) {
@@ -170,9 +185,10 @@ static INDTEXT_DATA data_list[] = {
     {0, NULL}
 };
 
-void testIndexText(Test * pTest)
+void testIndexText(
+    Test * pTest)
 {
-    unsigned i;                 /*counter */
+    unsigned i; /*counter */
     const char *pString;
     unsigned index;
     bool valid;
@@ -206,7 +222,8 @@ void testIndexText(Test * pTest)
 #endif
 
 #ifdef TEST_INDEX_TEXT
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -225,4 +242,4 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_INDEX_TEXT */
+#endif /* TEST_INDEX_TEXT */

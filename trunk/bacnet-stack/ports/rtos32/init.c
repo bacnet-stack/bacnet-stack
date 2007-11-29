@@ -27,7 +27,8 @@
 #include <rtkernel.h>
 #include <windows.h>
 
-extern void RTEmuInit(void);
+extern void RTEmuInit(
+    void);
 
 #ifdef _MSC_VER
 #define VOIDEXPORT _declspec(dllexport) void __cdecl
@@ -36,11 +37,11 @@ extern void RTEmuInit(void);
 #endif
 
 /* DISK SYSTEM */
-#ifdef DOC                      /* include DiskOnChip driver */
+#ifdef DOC      /* include DiskOnChip driver */
 #include <rtfiles.h>
 #define RTF_MAX_FILES 16        /* support for more open files (default is 8) */
 #define RTF_BUFFERS_IN_BSS      /* we do not need file I/O before the run-time */
-#include <rtfdata.c>            /* system is initialized */
+#include <rtfdata.c>    /* system is initialized */
 
   /*#define READ_HEAD_BUFFER_SIZE 2048+4 */
 
@@ -89,8 +90,7 @@ RTFileSystem Console = { RT_FS_CONSOLE, 0, 0, &RTConsoleFileSystem };
 RTFileSystem LPTFiles = { RT_FS_LPT_DEVICE, 0, 0, &RTLPTFileSystem };
 
 /* logical drive Z: can be used to access the RAM drive */
-RTFileSystem RAMFiles =
-    { RT_FS_FILE, 1 << ('Z' - 'A'), 0, &RTRAMFileSystem };
+RTFileSystem RAMFiles = { RT_FS_FILE, 1 << ('Z' - 'A'), 0, &RTRAMFileSystem };
 
 /* logical drive A: through D: are reserved for FAT */
 RTFileSystem FATFiles =
@@ -106,12 +106,13 @@ RTFileSystem *RTFileSystemList[] = {
 #endif
 
 /*-----------------------------------*/
-VOIDEXPORT Init(void)
+VOIDEXPORT Init(
+    void)
 {
     (void) RTSetFlags(RT_MM_VIRTUAL, 1);        /* this is the better method */
     (void) RTCMOSExtendHeap();  /* get as much memory as we can */
     RTCMOSSetSystemTime();      /* get the right date and time */
-    RTEmuInit();                /* set up floating point emulation */
+    RTEmuInit();        /* set up floating point emulation */
     /* pizza - RTHaltCPL3 appears to cause problems with file handling */
     /*RTIdleHandler = (void RTTAPI *)RTHaltCPL3;  // low power when idle */
     /* not needed with pre-emptive */

@@ -40,7 +40,7 @@
    B&B Electronics USOPTL4
    SerialGear USB-COMi-SI-M
 */
-   
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -88,41 +88,44 @@ static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Set_Interface(char *ifname)
+void RS485_Set_Interface(
+    char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
     RS485_Port_Name = ifname;
 }
 
-static void RS485_Print_Error(void)
+static void RS485_Print_Error(
+    void)
 {
-    char * szExtended = "";      /* error string translated from error code */
+    char *szExtended = "";      /* error string translated from error code */
     DWORD dwExtSize;
     DWORD dwErr;
 
     dwErr = GetLastError();
-    fprintf(stderr,"Error %lu:\r\n", dwErr);
+    fprintf(stderr, "Error %lu:\r\n", dwErr);
     /* Get error string from system */
-    dwExtSize = FormatMessage(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | 80 ,
-        NULL, dwErr,
-        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-        (LPTSTR) szExtended, 0, NULL);
-    fprintf(stderr,"%s\r\n", szExtended);
+    dwExtSize =
+        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 80, NULL, dwErr,
+        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPTSTR) szExtended, 0,
+        NULL);
+    fprintf(stderr, "%s\r\n", szExtended);
 
     return;
 }
 
-static void RS485_Configure_Status(void)
+static void RS485_Configure_Status(
+    void)
 {
-    DCB dcb = {0};
+    DCB dcb = { 0 };
     COMMTIMEOUTS ctNew;
 
 
     dcb.DCBlength = sizeof(dcb);
     /* get current DCB settings */
     if (!GetCommState(RS485_Handle, &dcb)) {
-        fprintf(stderr,"Unable to get status from %s\n", RS485_Port_Name);
+        fprintf(stderr, "Unable to get status from %s\n", RS485_Port_Name);
         RS485_Print_Error();
         exit(1);
     }
@@ -130,49 +133,49 @@ static void RS485_Configure_Status(void)
     /* update DCB rate, byte size, parity, and stop bits size */
     dcb.BaudRate = RS485_Baud;
     dcb.ByteSize = RS485_ByteSize;
-    dcb.Parity   = RS485_Parity;
+    dcb.Parity = RS485_Parity;
     dcb.StopBits = RS485_StopBits;
 
     /* update flow control settings */
-    dcb.fDtrControl     = RS485_DTRControl;
-    dcb.fRtsControl     = RS485_RTSControl;
+    dcb.fDtrControl = RS485_DTRControl;
+    dcb.fRtsControl = RS485_RTSControl;
     /*
-    dcb.fOutxCtsFlow    = CTSOUTFLOW(TTYInfo);
-    dcb.fOutxDsrFlow    = DSROUTFLOW(TTYInfo);
-    dcb.fDsrSensitivity = DSRINFLOW(TTYInfo);
-    dcb.fOutX           = XONXOFFOUTFLOW(TTYInfo);
-    dcb.fInX            = XONXOFFINFLOW(TTYInfo);
-    dcb.fTXContinueOnXoff = TXAFTERXOFFSENT(TTYInfo);
-    dcb.XonChar         = XONCHAR(TTYInfo);
-    dcb.XoffChar        = XOFFCHAR(TTYInfo);
-    dcb.XonLim          = XONLIMIT(TTYInfo);
-    dcb.XoffLim         = XOFFLIMIT(TTYInfo);
-    // DCB settings not in the user's control
-    dcb.fParity = TRUE;
-    */
+       dcb.fOutxCtsFlow    = CTSOUTFLOW(TTYInfo);
+       dcb.fOutxDsrFlow    = DSROUTFLOW(TTYInfo);
+       dcb.fDsrSensitivity = DSRINFLOW(TTYInfo);
+       dcb.fOutX           = XONXOFFOUTFLOW(TTYInfo);
+       dcb.fInX            = XONXOFFINFLOW(TTYInfo);
+       dcb.fTXContinueOnXoff = TXAFTERXOFFSENT(TTYInfo);
+       dcb.XonChar         = XONCHAR(TTYInfo);
+       dcb.XoffChar        = XOFFCHAR(TTYInfo);
+       dcb.XonLim          = XONLIMIT(TTYInfo);
+       dcb.XoffLim         = XOFFLIMIT(TTYInfo);
+       // DCB settings not in the user's control
+       dcb.fParity = TRUE;
+     */
     if (!SetCommState(RS485_Handle, &dcb)) {
-        fprintf(stderr,"Unable to set status on %s\n", RS485_Port_Name);
+        fprintf(stderr, "Unable to set status on %s\n", RS485_Port_Name);
         RS485_Print_Error();
     }
     /* configure the COM port timeout values */
-    ctNew.ReadIntervalTimeout         = MAXDWORD;
-    ctNew.ReadTotalTimeoutMultiplier  = MAXDWORD;
-    ctNew.ReadTotalTimeoutConstant    = 1000;
+    ctNew.ReadIntervalTimeout = MAXDWORD;
+    ctNew.ReadTotalTimeoutMultiplier = MAXDWORD;
+    ctNew.ReadTotalTimeoutConstant = 1000;
     ctNew.WriteTotalTimeoutMultiplier = 0;
-    ctNew.WriteTotalTimeoutConstant   = 0;
+    ctNew.WriteTotalTimeoutConstant = 0;
     if (!SetCommTimeouts(RS485_Handle, &ctNew)) {
         RS485_Print_Error();
     }
     /* Get rid of any stray characters */
     if (!PurgeComm(RS485_Handle, PURGE_TXABORT | PURGE_RXABORT)) {
-        fprintf(stderr,"Unable to purge %s\n", RS485_Port_Name);
+        fprintf(stderr, "Unable to purge %s\n", RS485_Port_Name);
         RS485_Print_Error();
     }
     /* Set the Comm buffer size */
     SetupComm(RS485_Handle, MAX_MPDU, MAX_MPDU);
     /* raise DTR */
     if (!EscapeCommFunction(RS485_Handle, SETDTR)) {
-        fprintf(stderr,"Unable to set DTR on %s\n", RS485_Port_Name);
+        fprintf(stderr, "Unable to set DTR on %s\n", RS485_Port_Name);
         RS485_Print_Error();
     }
 }
@@ -184,22 +187,19 @@ static void RS485_Configure_Status(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Initialize(void)
+void RS485_Initialize(
+    void)
 {
-    RS485_Handle = CreateFile(
-        RS485_Port_Name,
-        GENERIC_READ | GENERIC_WRITE,
-        0,
-        0,
-        OPEN_EXISTING,
-        /*FILE_FLAG_OVERLAPPED*/0,
+    RS485_Handle = CreateFile(RS485_Port_Name,
+        GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
+        /*FILE_FLAG_OVERLAPPED */ 0,
         0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
-        fprintf(stderr,"Unable to open %s\n", RS485_Port_Name);
+        fprintf(stderr, "Unable to open %s\n", RS485_Port_Name);
         RS485_Print_Error();
         exit(1);
     }
-    if (!GetCommTimeouts( RS485_Handle, &RS485_Timeouts)) {
+    if (!GetCommTimeouts(RS485_Handle, &RS485_Timeouts)) {
         RS485_Print_Error();
     }
     RS485_Configure_Status();
@@ -207,13 +207,14 @@ void RS485_Initialize(void)
     return;
 }
 
-void RS485_Cleanup(void)
+void RS485_Cleanup(
+    void)
 {
     if (!EscapeCommFunction(RS485_Handle, CLRDTR)) {
         RS485_Print_Error();
     }
 
-    if (!SetCommTimeouts(RS485_Handle,  &RS485_Timeouts)) {
+    if (!SetCommTimeouts(RS485_Handle, &RS485_Timeouts)) {
         RS485_Print_Error();
     }
 
@@ -226,15 +227,21 @@ void RS485_Cleanup(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(void)
+uint32_t RS485_Get_Baud_Rate(
+    void)
 {
     switch (RS485_Baud) {
-        case CBR_19200: return 19200;
-        case CBR_38400: return 38400;
-        case CBR_57600: return 57600;
-        case CBR_115200: return 115200;
+        case CBR_19200:
+            return 19200;
+        case CBR_38400:
+            return 38400;
+        case CBR_57600:
+            return 57600;
+        case CBR_115200:
+            return 115200;
         default:
-        case CBR_9600: return 9600;
+        case CBR_9600:
+            return 9600;
     }
 }
 
@@ -244,29 +251,30 @@ uint32_t RS485_Get_Baud_Rate(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Set_Baud_Rate(uint32_t baud)
+bool RS485_Set_Baud_Rate(
+    uint32_t baud)
 {
     bool valid = true;
 
     switch (baud) {
-    case 9600:
-        RS485_Baud = CBR_9600;
-        break;
-    case 19200:
-        RS485_Baud = CBR_19200;
-        break;
-    case 38400:
-        RS485_Baud = CBR_38400;
-        break;
-    case 57600:
-        RS485_Baud = CBR_57600;
-        break;
-    case 115200:
-        RS485_Baud = CBR_115200;
-        break;
-    default:
-        valid = false;
-        break;
+        case 9600:
+            RS485_Baud = CBR_9600;
+            break;
+        case 19200:
+            RS485_Baud = CBR_19200;
+            break;
+        case 38400:
+            RS485_Baud = CBR_38400;
+            break;
+        case 57600:
+            RS485_Baud = CBR_57600;
+            break;
+        case 115200:
+            RS485_Baud = CBR_115200;
+            break;
+        default:
+            valid = false;
+            break;
     }
 
     if (valid) {
@@ -278,11 +286,11 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t * buffer,  /* frame to send (up to 501 bytes of data) */
-    uint16_t nbytes)   /* number of bytes of data (up to 501) */
-{
-    DWORD dwWritten  = 0;
+    volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
+    uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
+    uint16_t nbytes)
+{       /* number of bytes of data (up to 501) */
+    DWORD dwWritten = 0;
 
     if (mstp_port) {
         uint32_t baud;
@@ -310,7 +318,8 @@ void RS485_Send_Frame(
 }
 
 /* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(
+    volatile struct mstp_port_struct_t *mstp_port)
 {
     char lpBuf[1];
     DWORD dwRead = 0;
@@ -322,7 +331,7 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
     else if (mstp_port->DataAvailable == false) {
         /* check for data */
         if (!ReadFile(RS485_Handle, lpBuf, sizeof(lpBuf), &dwRead, NULL)) {
-            if (GetLastError() != ERROR_IO_PENDING)	{
+            if (GetLastError() != ERROR_IO_PENDING) {
                 mstp_port->ReceiveError = TRUE;
             }
         } else {
@@ -335,10 +344,11 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
 }
 
 #ifdef TEST_RS485
-static void test_transmit_task(void *pArg)
+static void test_transmit_task(
+    void *pArg)
 {
     char *TxBuf = "BACnet MS/TP";
-    size_t len = strlen(TxBuf)+1;
+    size_t len = strlen(TxBuf) + 1;
 
     while (TRUE) {
         Sleep(1000);
@@ -346,7 +356,8 @@ static void test_transmit_task(void *pArg)
     }
 }
 
-int main(void)
+int main(
+    void)
 {
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
@@ -357,13 +368,13 @@ int main(void)
     RS485_Set_Interface("COM4");
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
-    #if 0
+#if 0
     /* create a task for synchronous transmit */
-    hThread = _beginthread(test_transmit_task,4096,&arg_value);
+    hThread = _beginthread(test_transmit_task, 4096, &arg_value);
     if (hThread == 0) {
         fprintf(stderr, "Failed to start transmit task\n");
     }
-    #endif
+#endif
     /* receive task */
     for (;;) {
         if (!ReadFile(RS485_Handle, lpBuf, sizeof(lpBuf), &dwRead, NULL)) {
@@ -374,12 +385,11 @@ int main(void)
             /* print any characters received */
             if (dwRead) {
                 for (i = 0; i < dwRead; i++) {
-                    fprintf(stderr,"%02X ",lpBuf[i]);
+                    fprintf(stderr, "%02X ", lpBuf[i]);
                 }
             }
             dwRead = 0;
         }
     }
 }
-#endif                          /* TEST_ABORT */
-
+#endif /* TEST_ABORT */

@@ -53,7 +53,8 @@ static struct Address_Cache_Entry {
     BACNET_ADDRESS address;
 } Address_Cache[MAX_ADDRESS_CACHE];
 
-void address_remove_device(uint32_t device_id)
+void address_remove_device(
+    uint32_t device_id)
 {
     unsigned i;
 
@@ -69,7 +70,8 @@ void address_remove_device(uint32_t device_id)
     return;
 }
 
-void address_init(void)
+void address_init(
+    void)
 {
     unsigned i;
 
@@ -81,11 +83,13 @@ void address_init(void)
     return;
 }
 
-bool address_get_by_device(uint32_t device_id,
-    unsigned *max_apdu, BACNET_ADDRESS * src)
+bool address_get_by_device(
+    uint32_t device_id,
+    unsigned *max_apdu,
+    BACNET_ADDRESS * src)
 {
     unsigned i;
-    bool found = false;         /* return value */
+    bool found = false; /* return value */
 
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (Address_Cache[i].valid &&
@@ -101,11 +105,12 @@ bool address_get_by_device(uint32_t device_id,
 }
 
 /* find a device id from a given MAC address */
-bool address_get_device_id(BACNET_ADDRESS * src, 
-    uint32_t *device_id)
+bool address_get_device_id(
+    BACNET_ADDRESS * src,
+    uint32_t * device_id)
 {
     unsigned i;
-    bool found = false;         /* return value */
+    bool found = false; /* return value */
 
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (Address_Cache[i].valid) {
@@ -122,11 +127,13 @@ bool address_get_device_id(BACNET_ADDRESS * src,
     return found;
 }
 
-void address_add(uint32_t device_id,
-    unsigned max_apdu, BACNET_ADDRESS * src)
+void address_add(
+    uint32_t device_id,
+    unsigned max_apdu,
+    BACNET_ADDRESS * src)
 {
     unsigned i;
-    bool found = false;         /* return value */
+    bool found = false; /* return value */
 
     /* existing device - update address */
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
@@ -156,11 +163,13 @@ void address_add(uint32_t device_id,
 
 /* returns true if device is already bound */
 /* also returns the address and max apdu if already bound */
-bool address_bind_request(uint32_t device_id,
-    unsigned *max_apdu, BACNET_ADDRESS * src)
+bool address_bind_request(
+    uint32_t device_id,
+    unsigned *max_apdu,
+    BACNET_ADDRESS * src)
 {
     unsigned i;
-    bool found = false;         /* return value */
+    bool found = false; /* return value */
 
     /* existing device - update address */
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
@@ -192,11 +201,13 @@ bool address_bind_request(uint32_t device_id,
     return found;
 }
 
-void address_add_binding(uint32_t device_id,
-    unsigned max_apdu, BACNET_ADDRESS * src)
+void address_add_binding(
+    uint32_t device_id,
+    unsigned max_apdu,
+    BACNET_ADDRESS * src)
 {
     unsigned i;
-    bool found = false;         /* return value */
+    bool found = false; /* return value */
 
     /* existing device - update address */
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
@@ -225,10 +236,13 @@ void address_add_binding(uint32_t device_id,
     return;
 }
 
-bool address_get_by_index(unsigned index,
-    uint32_t * device_id, unsigned *max_apdu, BACNET_ADDRESS * src)
+bool address_get_by_index(
+    unsigned index,
+    uint32_t * device_id,
+    unsigned *max_apdu,
+    BACNET_ADDRESS * src)
 {
-    bool found = false;         /* return value */
+    bool found = false; /* return value */
 
     if (index < MAX_ADDRESS_CACHE) {
         if (Address_Cache[index].valid) {
@@ -242,10 +256,11 @@ bool address_get_by_index(unsigned index,
     return found;
 }
 
-unsigned address_count(void)
+unsigned address_count(
+    void)
 {
     unsigned i;
-    unsigned count = 0;         /* return value */
+    unsigned count = 0; /* return value */
 
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (Address_Cache[i].valid)
@@ -260,7 +275,9 @@ unsigned address_count(void)
 #include <string.h>
 #include "ctest.h"
 
-static void set_address(unsigned index, BACNET_ADDRESS * dest)
+static void set_address(
+    unsigned index,
+    BACNET_ADDRESS * dest)
 {
     unsigned i;
 
@@ -275,7 +292,8 @@ static void set_address(unsigned index, BACNET_ADDRESS * dest)
     }
 }
 
-void testAddress(Test * pTest)
+void testAddress(
+    Test * pTest)
 {
     unsigned i, count;
     BACNET_ADDRESS src;
@@ -324,7 +342,8 @@ void testAddress(Test * pTest)
 }
 
 #ifdef TEST_ADDRESS
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -341,5 +360,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_ADDRESS */
-#endif                          /* TEST */
+#endif /* TEST_ADDRESS */
+#endif /* TEST */

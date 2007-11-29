@@ -47,9 +47,11 @@
 /* that someone can read from us.  It is common to */
 /* use the description as the file name. */
 #if defined(BACFILE)
-void handler_atomic_read_file_ack(uint8_t * service_request,
+void handler_atomic_read_file_ack(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
     int len = 0;
     BACNET_ATOMIC_READ_FILE_DATA data;
@@ -60,8 +62,7 @@ void handler_atomic_read_file_ack(uint8_t * service_request,
     (void) src;
     /* get the file instance from the tsm data before freeing it */
     instance = bacfile_instance_from_tsm(service_data->invoke_id);
-    len = arf_ack_decode_service_request(service_request,
-        service_len, &data);
+    len = arf_ack_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
     fprintf(stderr, "Received Read-File Ack!\n");
 #endif

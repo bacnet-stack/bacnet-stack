@@ -44,12 +44,15 @@
 #include "txbuf.h"
 
 /* returns the invoke ID for confirmed request, or zero on failure */
-uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
+uint8_t Send_Write_Property_Request_Data(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
     uint8_t * application_data,
-    int application_data_len, uint8_t priority, int32_t array_index)
+    int application_data_len,
+    uint8_t priority,
+    int32_t array_index)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -95,8 +98,7 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
            max_apdu in the address binding table. */
         if ((unsigned) pdu_len < max_apdu) {
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0],
-                (uint16_t) pdu_len);
+                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t) pdu_len);
             bytes_sent =
                 datalink_send_pdu(&dest, &npdu_data,
                 &Handler_Transmit_Buffer[0], pdu_len);
@@ -119,12 +121,14 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
     return invoke_id;
 }
 
-uint8_t Send_Write_Property_Request(uint32_t device_id,
+uint8_t Send_Write_Property_Request(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
     BACNET_APPLICATION_DATA_VALUE * object_value,
-    uint8_t priority, int32_t array_index)
+    uint8_t priority,
+    int32_t array_index)
 {
     uint8_t application_data[MAX_APDU] = { 0 };
     int apdu_len = 0, len = 0;
@@ -133,11 +137,11 @@ uint8_t Send_Write_Property_Request(uint32_t device_id,
 #if PRINT_ENABLED_DEBUG
         fprintf(stderr, "WriteProperty service: "
             "%s tag=%d\n",
-            (object_value->context_specific?"context":"application"), 
-            (int)(object_value->context_specific?object_value->context_tag:object_value->tag) );
+            (object_value->context_specific ? "context" : "application"),
+            (int) (object_value->context_specific ? object_value->
+                context_tag : object_value->tag));
 #endif
-        len = bacapp_encode_data(&application_data[apdu_len],
-            object_value);
+        len = bacapp_encode_data(&application_data[apdu_len], object_value);
         if ((len + apdu_len) < MAX_APDU) {
             apdu_len += len;
         } else {

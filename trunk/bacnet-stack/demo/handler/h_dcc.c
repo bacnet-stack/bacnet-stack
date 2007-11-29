@@ -40,9 +40,11 @@
 
 static char *My_Password = "filister";
 
-void handler_device_communication_control(uint8_t * service_request,
+void handler_device_communication_control(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     uint16_t timeDuration = 0;
     BACNET_COMMUNICATION_ENABLE_DISABLE state = COMMUNICATION_ENABLE;
@@ -70,7 +72,7 @@ void handler_device_communication_control(uint8_t * service_request,
             "Sending Abort - segmented message.\n");
 #endif
         goto DCC_ABORT;
-    }    
+    }
     /* decode the service request only */
     len = dcc_decode_service_request(service_request,
         service_len, &timeDuration, &state, &password);
@@ -121,7 +123,7 @@ void handler_device_communication_control(uint8_t * service_request,
 #endif
         }
     }
-DCC_ABORT:
+  DCC_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

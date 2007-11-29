@@ -44,9 +44,11 @@
 #include "txbuf.h"
 
 /* find a specific device, or use -1 for limit if you want unlimited */
-void Send_I_Have(uint32_t device_id,
+void Send_I_Have(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance, char *object_name)
+    uint32_t object_instance,
+    char *object_name)
 {
     int len = 0;
     int pdu_len = 0;

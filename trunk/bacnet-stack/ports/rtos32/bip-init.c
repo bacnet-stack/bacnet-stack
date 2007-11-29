@@ -32,15 +32,16 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>             /* for standard integer types uint8_t etc. */
-#include <stdbool.h>            /* for the standard bool type. */
+#include <stdint.h>     /* for standard integer types uint8_t etc. */
+#include <stdbool.h>    /* for the standard bool type. */
 #include "bacdcode.h"
 #include "bip.h"
 
 static int interface = SOCKET_ERROR;    /* SOCKET_ERROR means no open interface */
 
 /*-----------------------------------*/
-static void Error(const char *Msg)
+static void Error(
+    const char *Msg)
 {
     int Code = WSAGetLastError();
 #ifdef HOST
@@ -53,7 +54,8 @@ static void Error(const char *Msg)
 
 #ifndef HOST
 /*-----------------------------------*/
-void InterfaceCleanup(void)
+void InterfaceCleanup(
+    void)
 {
     if (interface != SOCKET_ERROR) {
         xn_interface_close(interface);
@@ -64,7 +66,8 @@ void InterfaceCleanup(void)
     }
 }
 
-static void NetInitialize(void)
+static void NetInitialize(
+    void)
 /* initialize the TCP/IP stack */
 {
     int Result;
@@ -78,7 +81,7 @@ static void NetInitialize(void)
     RTURegisterCallback(USBAX772);
     RTURegisterCallback(USBKeyboard);   /* support USB keyboards */
     FindUSBControllers();       /* install USB host controllers */
-    Sleep(2000);                /* give the USB stack time to enumerate devices */
+    Sleep(2000);        /* give the USB stack time to enumerate devices */
 #endif
 
 #ifdef DHCP
@@ -129,16 +132,16 @@ static void NetInitialize(void)
 
 #if DEVICE_ID == PRISM_PCMCIA_DEVICE || DEVICE_ID == PRISM_DEVICE
     xn_wlan_setup(interface,    /* iface_no: value returned by xn_interface_open_config() */
-        "network name",         /* SSID    : network name set in the access point */
-        "station name",         /* Name    : name of this node */
-        0,                      /* Channel : 0 for access points, 1..14 for ad-hoc */
-        0,                      /* KeyIndex: 0 .. 3 */
-        "12345",                /* WEP Key : key to use (5 or 13 bytes) */
-        0);                     /* Flags   : see manual and Wlanapi.h for details */
-    Sleep(1000);                /* wireless devices need a little time before they can be used */
-#endif                          /* WLAN device */
+        "network name", /* SSID    : network name set in the access point */
+        "station name", /* Name    : name of this node */
+        0,      /* Channel : 0 for access points, 1..14 for ad-hoc */
+        0,      /* KeyIndex: 0 .. 3 */
+        "12345",        /* WEP Key : key to use (5 or 13 bytes) */
+        0);     /* Flags   : see manual and Wlanapi.h for details */
+    Sleep(1000);        /* wireless devices need a little time before they can be used */
+#endif /* WLAN device */
 
-#if defined(AUTO_IP)            /* use xn_autoip() to get an IP address */
+#if defined(AUTO_IP)    /* use xn_autoip() to get an IP address */
     Result = xn_autoip(interface, MinIP, MaxIP, NetMask, TargetIP);
     if (Result == SOCKET_ERROR)
         Error("xn_autoip failed");
@@ -146,11 +149,10 @@ static void NetInitialize(void)
         printf("Auto-assigned IP address %i.%i.%i.%i\n", TargetIP[0],
             TargetIP[1], TargetIP[2], TargetIP[3]);
         /* define default gateway and DNS server */
-        xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1, interface,
-            RT_INF);
+        xn_rt_add(RT_DEFAULT, ip_ffaddr, DefaultGateway, 1, interface, RT_INF);
         xn_set_server_list((DWORD *) DNSServer, 1);
     }
-#elif defined(DHCP)             /* use DHCP */
+#elif defined(DHCP)     /* use DHCP */
     {
         DHCP_param param[] = { {SUBNET_MASK, 1}
         , {DNS_OP, 1}
@@ -180,7 +182,7 @@ static void NetInitialize(void)
     xn_set_server_list((DWORD *) DNSServer, 1);
 #endif
 
-#else                           /* HOST defined, run on Windows */
+#else /* HOST defined, run on Windows */
 
     WSADATA wd;
     Result = WSAStartup(0x0101, &wd);
@@ -198,7 +200,8 @@ static void NetInitialize(void)
 * ALGORITHM:    none
 * NOTES:        none
 ******************************************************************/
-static void RTIP_To_Network_Address(BYTE * octet_address,
+static void RTIP_To_Network_Address(
+    BYTE * octet_address,
     struct in_addr *addr)
 {
     uint32_t ip_address = 0;    /* for decoding the subnet mask */
@@ -209,7 +212,8 @@ static void RTIP_To_Network_Address(BYTE * octet_address,
     return;
 }
 
-static void set_broadcast_address(uint32_t net_address)
+static void set_broadcast_address(
+    uint32_t net_address)
 {
     long broadcast_address = 0;
     long mask = 0;
@@ -238,15 +242,16 @@ static void set_broadcast_address(uint32_t net_address)
 #endif
 }
 
-bool bip_init(char *ifname)
+bool bip_init(
+    char *ifname)
 {
-    int rv = 0;                 /* return from socket lib calls */
+    int rv = 0; /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
     int value = 1;
     int sock_fd = -1;
     struct in_addr my_addr;
 
-    (void)ifname;
+    (void) ifname;
 
     NetInitialize();
 

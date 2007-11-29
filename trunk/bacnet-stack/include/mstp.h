@@ -194,14 +194,18 @@ struct mstp_port_struct_t {
     /* denote intervals between N-1 and N */
     /* Note: done here as functions - put into timer task or ISR
        so that you can be atomic on 8 bit microcontrollers */
-    uint16_t (*SilenceTimer)(void);
-    void (*SilenceTimerReset)(void);
+             uint16_t(
+        *SilenceTimer) (
+        void);
+    void (
+        *SilenceTimerReset) (
+        void);
 
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */
     /* Machine when a Data Expecting Reply Answer activity is completed. */
     /* note: we always send a reply postponed since a message other than
-    the reply may be in the transmit queue */
+       the reply may be in the transmit queue */
     /*    uint16_t ReplyPostponedTimer; */
 
     /* Used to store the Source Address of a received frame. */
@@ -256,32 +260,36 @@ struct mstp_port_struct_t {
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port);
-    void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t
+    void MSTP_Init(
+        volatile struct mstp_port_struct_t *mstp_port);
+    void MSTP_Receive_Frame_FSM(
+        volatile struct mstp_port_struct_t
         *mstp_port);
-    bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t
+    bool MSTP_Master_Node_FSM(
+        volatile struct mstp_port_struct_t
         *mstp_port);
 
     /* returns true if line is active */
-    bool MSTP_Line_Active(volatile struct mstp_port_struct_t *mstp_port);
+    bool MSTP_Line_Active(
+        volatile struct mstp_port_struct_t *mstp_port);
 
     uint16_t MSTP_Create_Frame(
-        uint8_t * buffer,        /* where frame is loaded */
+        uint8_t * buffer,       /* where frame is loaded */
         uint16_t buffer_len,    /* amount of space available */
         uint8_t frame_type,     /* type of frame to send - see defines */
         uint8_t destination,    /* destination address */
-        uint8_t source,         /* source address */
-        uint8_t * data,         /* any data to be sent - may be null */
+        uint8_t source, /* source address */
+        uint8_t * data, /* any data to be sent - may be null */
         uint16_t data_len);     /* number of bytes of data (up to 501) */
 
     void MSTP_Create_And_Send_Frame(
         volatile struct mstp_port_struct_t *mstp_port,  /* port to send from */
-        uint8_t frame_type,         /* type of frame to send - see defines */
-        uint8_t destination,        /* destination address */
-        uint8_t source,             /* source address */
-        uint8_t * data,             /* any data to be sent - may be null */
+        uint8_t frame_type,     /* type of frame to send - see defines */
+        uint8_t destination,    /* destination address */
+        uint8_t source, /* source address */
+        uint8_t * data, /* any data to be sent - may be null */
         uint16_t data_len);
 
     /* functions used by the MS/TP state machine to put or get data */
@@ -293,15 +301,15 @@ extern "C" {
     /* Return: amount of PDU data */
     uint16_t MSTP_Get_Send(
         volatile struct mstp_port_struct_t *mstp_port,
-        unsigned timeout); /* milliseconds to wait for a packet */
+        unsigned timeout);      /* milliseconds to wait for a packet */
     /* for the MS/TP state machine to use for getting the reply for
        Data-Expecting-Reply Frame */
     /* Return: amount of PDU data */
     uint16_t MSTP_Get_Reply(
         volatile struct mstp_port_struct_t *mstp_port,
-        unsigned timeout); /* milliseconds to wait for a packet */
+        unsigned timeout);      /* milliseconds to wait for a packet */
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

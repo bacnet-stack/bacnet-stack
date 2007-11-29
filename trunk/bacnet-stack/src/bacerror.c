@@ -37,12 +37,14 @@
 #include "bacdef.h"
 
 /* encode service */
-int bacerror_encode_apdu(uint8_t * apdu,
+int bacerror_encode_apdu(
+    uint8_t * apdu,
     uint8_t invoke_id,
     BACNET_CONFIRMED_SERVICE service,
-    BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_ERROR;
@@ -50,7 +52,8 @@ int bacerror_encode_apdu(uint8_t * apdu,
         apdu[2] = service;
         apdu_len = 3;
         /* service parameters */
-        apdu_len += encode_application_enumerated(&apdu[apdu_len], error_class);
+        apdu_len +=
+            encode_application_enumerated(&apdu[apdu_len], error_class);
         apdu_len += encode_application_enumerated(&apdu[apdu_len], error_code);
     }
 
@@ -58,9 +61,11 @@ int bacerror_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the application class and code */
-int bacerror_decode_error_class_and_code(uint8_t * apdu,
+int bacerror_decode_error_class_and_code(
+    uint8_t * apdu,
     unsigned apdu_len,
-    BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -73,30 +78,30 @@ int bacerror_decode_error_class_and_code(uint8_t * apdu,
             &tag_number, &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
             return 0;
-        len +=
-            decode_enumerated(&apdu[len], len_value_type, &decoded_value);
+        len += decode_enumerated(&apdu[len], len_value_type, &decoded_value);
         if (error_class)
-            *error_class = (BACNET_ERROR_CLASS)decoded_value;
+            *error_class = (BACNET_ERROR_CLASS) decoded_value;
         /* error code */
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
             return 0;
-        len +=
-            decode_enumerated(&apdu[len], len_value_type, &decoded_value);
+        len += decode_enumerated(&apdu[len], len_value_type, &decoded_value);
         if (error_code)
-            *error_code = (BACNET_ERROR_CODE)decoded_value;
+            *error_code = (BACNET_ERROR_CODE) decoded_value;
     }
 
     return len;
 }
 
 /* decode the service request only */
-int bacerror_decode_service_request(uint8_t * apdu,
+int bacerror_decode_service_request(
+    uint8_t * apdu,
     unsigned apdu_len,
     uint8_t * invoke_id,
     BACNET_CONFIRMED_SERVICE * service,
-    BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     int len = 0;
 
@@ -104,7 +109,7 @@ int bacerror_decode_service_request(uint8_t * apdu,
         if (invoke_id)
             *invoke_id = apdu[0];
         if (service)
-            *service = (BACNET_CONFIRMED_SERVICE)apdu[1];
+            *service = (BACNET_CONFIRMED_SERVICE) apdu[1];
         /* decode the application class and code */
         len = bacerror_decode_error_class_and_code(&apdu[2],
             apdu_len - 2, error_class, error_code);
@@ -119,11 +124,13 @@ int bacerror_decode_service_request(uint8_t * apdu,
 #include "ctest.h"
 
 /* decode the whole APDU - mainly used for unit testing */
-int bacerror_decode_apdu(uint8_t * apdu,
+int bacerror_decode_apdu(
+    uint8_t * apdu,
     unsigned apdu_len,
     uint8_t * invoke_id,
     BACNET_CONFIRMED_SERVICE * service,
-    BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     int len = 0;
 
@@ -142,7 +149,8 @@ int bacerror_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-void testBACError(Test * pTest)
+void testBACError(
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -163,8 +171,7 @@ void testBACError(Test * pTest)
 
     len = bacerror_decode_apdu(&apdu[0],
         apdu_len,
-        &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_service == service);
@@ -175,22 +182,19 @@ void testBACError(Test * pTest)
     apdu[0] = PDU_TYPE_ABORT;
     len = bacerror_decode_apdu(&apdu[0],
         apdu_len,
-        &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len == -1);
 
     /* test NULL APDU */
     len = bacerror_decode_apdu(NULL,
         apdu_len,
-        &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len == -1);
 
     /* force a zero length */
     len = bacerror_decode_apdu(&apdu[0],
         0,
-        &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len == 0);
 
 
@@ -227,8 +231,7 @@ void testBACError(Test * pTest)
     ct_test(pTest, len != 0);
     len = bacerror_decode_apdu(&apdu[0],
         apdu_len,
-        &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+        &test_invoke_id, &test_service, &test_error_class, &test_error_code);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_service == service);
@@ -238,7 +241,8 @@ void testBACError(Test * pTest)
 }
 
 #ifdef TEST_BACERROR
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -255,5 +259,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_ERROR */
-#endif                          /* TEST */
+#endif /* TEST_ERROR */
+#endif /* TEST */

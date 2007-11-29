@@ -41,10 +41,12 @@
 /* Atomic Read File */
 
 /* encode service */
-int arf_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data)
+int arf_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_ATOMIC_READ_FILE_DATA * data)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -56,24 +58,24 @@ int arf_encode_apdu(uint8_t * apdu,
         apdu_len += encode_application_object_id(&apdu[apdu_len],
             data->object_type, data->object_instance);
         switch (data->access) {
-        case FILE_STREAM_ACCESS:
-            apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
-            apdu_len += encode_application_signed(&apdu[apdu_len],
-                data->type.stream.fileStartPosition);
-            apdu_len += encode_application_unsigned(&apdu[apdu_len],
-                data->type.stream.requestedOctetCount);
-            apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
-            break;
-        case FILE_RECORD_ACCESS:
-            apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
-            apdu_len += encode_application_signed(&apdu[apdu_len],
-                data->type.record.fileStartRecord);
-            apdu_len += encode_application_unsigned(&apdu[apdu_len],
-                data->type.record.RecordCount);
-            apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
-            break;
-        default:
-            break;
+            case FILE_STREAM_ACCESS:
+                apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
+                apdu_len += encode_application_signed(&apdu[apdu_len],
+                    data->type.stream.fileStartPosition);
+                apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    data->type.stream.requestedOctetCount);
+                apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
+                break;
+            case FILE_RECORD_ACCESS:
+                apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
+                apdu_len += encode_application_signed(&apdu[apdu_len],
+                    data->type.record.fileStartRecord);
+                apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    data->type.record.RecordCount);
+                apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
+                break;
+            default:
+                break;
         }
     }
 
@@ -81,14 +83,16 @@ int arf_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int arf_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA * data)
+int arf_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     int len = 0;
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int type = 0;               /* for decoding */
+    int type = 0;       /* for decoding */
 
     /* check for value pointers */
     if (apdu_len && data) {
@@ -154,9 +158,11 @@ int arf_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-int arf_decode_apdu(uint8_t * apdu,
+int arf_decode_apdu(
+    uint8_t * apdu,
     unsigned apdu_len,
-    uint8_t * invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data)
+    uint8_t * invoke_id,
+    BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     int len = 0;
     unsigned offset = 0;
@@ -181,10 +187,12 @@ int arf_decode_apdu(uint8_t * apdu,
 }
 
 /* encode service */
-int arf_ack_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data)
+int arf_ack_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_ATOMIC_READ_FILE_DATA * data)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK;
@@ -195,26 +203,26 @@ int arf_ack_encode_apdu(uint8_t * apdu,
         apdu_len +=
             encode_application_boolean(&apdu[apdu_len], data->endOfFile);
         switch (data->access) {
-        case FILE_STREAM_ACCESS:
-            apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
-            apdu_len += encode_application_signed(&apdu[apdu_len],
-                data->type.stream.fileStartPosition);
-            apdu_len += encode_application_octet_string(&apdu[apdu_len],
-                &data->fileData);
-            apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
-            break;
-        case FILE_RECORD_ACCESS:
-            apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
-            apdu_len += encode_application_signed(&apdu[apdu_len],
-                data->type.record.fileStartRecord);
-            apdu_len += encode_application_unsigned(&apdu[apdu_len],
-                data->type.record.RecordCount);
-            apdu_len += encode_application_octet_string(&apdu[apdu_len],
-                &data->fileData);
-            apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
-            break;
-        default:
-            break;
+            case FILE_STREAM_ACCESS:
+                apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
+                apdu_len += encode_application_signed(&apdu[apdu_len],
+                    data->type.stream.fileStartPosition);
+                apdu_len += encode_application_octet_string(&apdu[apdu_len],
+                    &data->fileData);
+                apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
+                break;
+            case FILE_RECORD_ACCESS:
+                apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
+                apdu_len += encode_application_signed(&apdu[apdu_len],
+                    data->type.record.fileStartRecord);
+                apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    data->type.record.RecordCount);
+                apdu_len += encode_application_octet_string(&apdu[apdu_len],
+                    &data->fileData);
+                apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
+                break;
+            default:
+                break;
         }
     }
 
@@ -222,8 +230,10 @@ int arf_ack_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int arf_ack_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA * data)
+int arf_ack_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     int len = 0;
     int tag_len = 0;
@@ -301,9 +311,11 @@ int arf_ack_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-int arf_ack_decode_apdu(uint8_t * apdu,
+int arf_ack_decode_apdu(
+    uint8_t * apdu,
     unsigned apdu_len,
-    uint8_t * invoke_id, BACNET_ATOMIC_READ_FILE_DATA * data)
+    uint8_t * invoke_id,
+    BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     int len = 0;
     unsigned offset = 0;
@@ -332,7 +344,8 @@ int arf_ack_decode_apdu(uint8_t * apdu,
 #include <string.h>
 #include "ctest.h"
 
-void testAtomicReadFileAckAccess(Test * pTest,
+void testAtomicReadFileAckAccess(
+    Test * pTest,
     BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     BACNET_ATOMIC_READ_FILE_DATA test_data = { 0 };
@@ -346,8 +359,7 @@ void testAtomicReadFileAckAccess(Test * pTest,
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    len = arf_ack_decode_apdu(&apdu[0],
-        apdu_len, &test_invoke_id, &test_data);
+    len = arf_ack_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_data.endOfFile == data->endOfFile);
     ct_test(pTest, test_data.access == data->access);
@@ -367,7 +379,8 @@ void testAtomicReadFileAckAccess(Test * pTest,
             octetstring_length(&test_data.fileData)) == 0);
 }
 
-void testAtomicReadFileAck(Test * pTest)
+void testAtomicReadFileAck(
+    Test * pTest)
 {
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint8_t test_octet_string[32] = "Joshua-Mary-Anna-Christopher";
@@ -391,7 +404,8 @@ void testAtomicReadFileAck(Test * pTest)
     return;
 }
 
-void testAtomicReadFileAccess(Test * pTest,
+void testAtomicReadFileAccess(
+    Test * pTest,
     BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     BACNET_ATOMIC_READ_FILE_DATA test_data = { 0 };
@@ -423,7 +437,8 @@ void testAtomicReadFileAccess(Test * pTest,
     }
 }
 
-void testAtomicReadFile(Test * pTest)
+void testAtomicReadFile(
+    Test * pTest)
 {
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
 
@@ -445,12 +460,14 @@ void testAtomicReadFile(Test * pTest)
 }
 
 #ifdef TEST_ATOMIC_READ_FILE
-uint16_t Device_Max_APDU_Length_Accepted(void)
+uint16_t Device_Max_APDU_Length_Accepted(
+    void)
 {
     return MAX_APDU;
 }
 
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -469,5 +486,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_xxx */
-#endif                          /* TEST */
+#endif /* TEST_xxx */
+#endif /* TEST */

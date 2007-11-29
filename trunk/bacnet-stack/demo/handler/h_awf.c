@@ -40,7 +40,7 @@
 /* demo objects */
 #include "device.h"
 #if defined(BACFILE)
-    #include "bacfile.h"
+#include "bacfile.h"
 #endif
 
 /*
@@ -73,9 +73,11 @@ standard.
 */
 
 #if defined(BACFILE)
-void handler_atomic_write_file(uint8_t * service_request,
+void handler_atomic_write_file(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     BACNET_ATOMIC_WRITE_FILE_DATA data;
     int len = 0;
@@ -113,7 +115,7 @@ void handler_atomic_write_file(uint8_t * service_request,
         fprintf(stderr, "Bad Encoding. Sending Abort!\n");
 #endif
         goto AWF_ABORT;
-    } 
+    }
     if (data.object_type == OBJECT_FILE) {
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
@@ -126,7 +128,7 @@ void handler_atomic_write_file(uint8_t * service_request,
 #endif
                 len =
                     awf_ack_encode_apdu(&Handler_Transmit_Buffer
-                        [pdu_len], service_data->invoke_id, &data);
+                    [pdu_len], service_data->invoke_id, &data);
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
@@ -151,7 +153,7 @@ void handler_atomic_write_file(uint8_t * service_request,
             service_data->invoke_id,
             SERVICE_CONFIRMED_ATOMIC_READ_FILE, error_class, error_code);
     }
-AWF_ABORT:
+  AWF_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

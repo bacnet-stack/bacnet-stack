@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>               /* for time */
+#include <time.h>       /* for time */
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
@@ -59,35 +59,38 @@ static char *Target_Object_Name = NULL;
 
 static bool Error_Detected = false;
 
-void MyAbortHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t abort_reason, bool server)
+void MyAbortHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t abort_reason,
+    bool server)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
     (void) server;
-    printf("BACnet Abort: %s\r\n",
-        bactext_abort_reason_name(abort_reason));
+    printf("BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t reject_reason)
+void MyRejectHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("BACnet Reject: %s\r\n",
-        bactext_reject_reason_name(reject_reason));
+    printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is 
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -96,14 +99,15 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the reply (request) coming back */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_HAVE,
-        handler_i_have);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_HAVE, handler_i_have);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
@@ -157,8 +161,7 @@ int main(int argc, char *argv[])
     if (argc < 3)
         Send_WhoHas_Name(-1, -1, Target_Object_Name);
     else
-        Send_WhoHas_Object(-1, -1,
-            Target_Object_Type, Target_Object_Instance);
+        Send_WhoHas_Object(-1, -1, Target_Object_Type, Target_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */

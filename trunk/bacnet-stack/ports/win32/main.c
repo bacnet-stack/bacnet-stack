@@ -29,7 +29,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <conio.h>              /* for kbhit and getch */
+#include <conio.h>      /* for kbhit and getch */
 #include "iam.h"
 #include "address.h"
 #include "config.h"
@@ -49,7 +49,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static bool Who_Is_Request = true;
 bool I_Am_Request = true;
 
-static void Read_Properties(void)
+static void Read_Properties(
+    void)
 {
     uint32_t device_id = 0;
     bool status = false;
@@ -123,8 +124,10 @@ static void Read_Properties(void)
     return;
 }
 
-static void LocalIAmHandler(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+static void LocalIAmHandler(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     uint32_t device_id = 0;
@@ -146,13 +149,12 @@ static void LocalIAmHandler(uint8_t * service_request,
     return;
 }
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
-        LocalIAmHandler);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, LocalIAmHandler);
 
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
@@ -168,9 +170,11 @@ static void Init_Service_Handlers(void)
         handler_read_property_ack);
 }
 
-static void print_address(char *name, BACNET_ADDRESS * dest)
-{                               /* destination address */
-    int i = 0;                  /* counter */
+static void print_address(
+    char *name,
+    BACNET_ADDRESS * dest)
+{       /* destination address */
+    int i = 0;  /* counter */
 
     if (dest) {
         printf("%s: ", name);
@@ -181,7 +185,8 @@ static void print_address(char *name, BACNET_ADDRESS * dest)
     }
 }
 
-static void print_address_cache(void)
+static void print_address_cache(
+    void)
 {
     int i, j;
     BACNET_ADDRESS address;
@@ -202,7 +207,9 @@ static void print_address_cache(void)
     }
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;

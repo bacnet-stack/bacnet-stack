@@ -33,33 +33,41 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
     void Multistate_Output_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
-    bool Multistate_Output_Valid_Instance(uint32_t object_instance);
-    unsigned Multistate_Output_Count(void);
-    uint32_t Multistate_Output_Index_To_Instance(unsigned index);
-    char *Multistate_Output_Name(uint32_t object_instance);
+    bool Multistate_Output_Valid_Instance(
+        uint32_t object_instance);
+    unsigned Multistate_Output_Count(
+        void);
+    uint32_t Multistate_Output_Index_To_Instance(
+        unsigned index);
+    char *Multistate_Output_Name(
+        uint32_t object_instance);
 
-    int Multistate_Output_Encode_Property_APDU(uint8_t * apdu,
+    int Multistate_Output_Encode_Property_APDU(
+        uint8_t * apdu,
         uint32_t object_instance,
         BACNET_PROPERTY_ID property,
         int32_t array_index,
-        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
-    bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *
-        wp_data, BACNET_ERROR_CLASS * error_class,
+    bool Multistate_Output_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
 #ifdef TEST
 #include "ctest.h"
-    void testMultistateOutput(Test * pTest);
+    void testMultistateOutput(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

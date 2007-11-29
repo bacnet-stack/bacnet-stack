@@ -48,9 +48,11 @@
 /* too big to reside on stack frame for PIC */
 static BACNET_WRITE_PROPERTY_DATA wp_data;
 
-void handler_write_property(uint8_t * service_request,
+void handler_write_property(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -61,8 +63,7 @@ void handler_write_property(uint8_t * service_request,
     BACNET_ADDRESS my_address;
 
     /* decode the service request only */
-    len = wp_decode_service_request(service_request,
-        service_len, &wp_data);
+    len = wp_decode_service_request(service_request, service_len, &wp_data);
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
@@ -79,66 +80,66 @@ void handler_write_property(uint8_t * service_request,
     } else {
         switch (wp_data.object_type) {
 #if 0
-        case OBJECT_DEVICE:
-            if (Device_Write_Property(&wp_data, &error_class, &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-            } else {
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_ANALOG_INPUT:
-        case OBJECT_BINARY_INPUT:
-            error_class = ERROR_CLASS_PROPERTY;
-            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-                error_class, error_code);
-            break;
-        case OBJECT_BINARY_VALUE:
-            if (Binary_Value_Write_Property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-            } else {
+            case OBJECT_DEVICE:
+                if (Device_Write_Property(&wp_data, &error_class, &error_code)) {
+                    len =
+                        encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id,
+                        SERVICE_CONFIRMED_WRITE_PROPERTY);
+                } else {
+                    len =
+                        bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id,
+                        SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                        error_code);
+                }
+                break;
+            case OBJECT_ANALOG_INPUT:
+            case OBJECT_BINARY_INPUT:
+                error_class = ERROR_CLASS_PROPERTY;
+                error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-            }
-            break;
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
+                break;
+            case OBJECT_BINARY_VALUE:
+                if (Binary_Value_Write_Property(&wp_data, &error_class,
+                        &error_code)) {
+                    len =
+                        encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id,
+                        SERVICE_CONFIRMED_WRITE_PROPERTY);
+                } else {
+                    len =
+                        bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id,
+                        SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                        error_code);
+                }
+                break;
 #endif
-        case OBJECT_ANALOG_VALUE:
-            if (Analog_Value_Write_Property(&wp_data, &error_class,
-                    &error_code)) {
-                len =
-                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY);
-            } else {
+            case OBJECT_ANALOG_VALUE:
+                if (Analog_Value_Write_Property(&wp_data, &error_class,
+                        &error_code)) {
+                    len =
+                        encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id,
+                        SERVICE_CONFIRMED_WRITE_PROPERTY);
+                } else {
+                    len =
+                        bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id,
+                        SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
+                        error_code);
+                }
+                break;
+            default:
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                    error_code);
-            }
-            break;
-        default:
-            len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-                error_class, error_code);
-            break;
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
+                break;
         }
     }
     pdu_len += len;

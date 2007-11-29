@@ -42,7 +42,8 @@
 #include "txbuf.h"
 
 /* for debugging... */
-static void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA * data)
+static void PrintReadPropertyData(
+    BACNET_READ_PROPERTY_DATA * data)
 {
     BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
     int len = 0;
@@ -95,17 +96,18 @@ static void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA * data)
     }
 }
 
-void handler_read_property_ack(uint8_t * service_request,
+void handler_read_property_ack(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
     int len = 0;
     BACNET_READ_PROPERTY_DATA data;
 
     (void) src;
     (void) service_data;        /* we could use these... */
-    len = rp_ack_decode_service_request(service_request,
-        service_len, &data);
+    len = rp_ack_decode_service_request(service_request, service_len, &data);
 #if 0
     fprintf(stderr, "Received Read-Property Ack!\n");
 #endif

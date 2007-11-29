@@ -41,12 +41,16 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    void bacnet_address_copy(BACNET_ADDRESS * dest, BACNET_ADDRESS * src);
-    bool bacnet_address_same(BACNET_ADDRESS * dest, BACNET_ADDRESS * src);
+    void bacnet_address_copy(
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src);
+    bool bacnet_address_same(
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

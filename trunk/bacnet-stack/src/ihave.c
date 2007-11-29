@@ -37,10 +37,12 @@
 #include "bacdef.h"
 #include "ihave.h"
 
-int ihave_encode_apdu(uint8_t * apdu, BACNET_I_HAVE_DATA * data)
+int ihave_encode_apdu(
+    uint8_t * apdu,
+    BACNET_I_HAVE_DATA * data)
 {
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
@@ -64,8 +66,10 @@ int ihave_encode_apdu(uint8_t * apdu, BACNET_I_HAVE_DATA * data)
 }
 
 /* decode the service request only */
-int ihave_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_I_HAVE_DATA * data)
+int ihave_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_I_HAVE_DATA * data)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -75,8 +79,7 @@ int ihave_decode_service_request(uint8_t * apdu,
     if (apdu_len && data) {
         /* deviceIdentifier */
         len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value);
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
             len += decode_object_id(&apdu[len], &decoded_type,
                 &data->device_id.instance);
@@ -85,8 +88,7 @@ int ihave_decode_service_request(uint8_t * apdu,
             return -1;
         /* objectIdentifier */
         len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value);
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
             len += decode_object_id(&apdu[len], &decoded_type,
                 &data->object_id.instance);
@@ -95,8 +97,7 @@ int ihave_decode_service_request(uint8_t * apdu,
             return -1;
         /* objectName */
         len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value);
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             len += decode_character_string(&apdu[len], len_value,
                 &data->object_name);
@@ -108,8 +109,10 @@ int ihave_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-int ihave_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, BACNET_I_HAVE_DATA * data)
+int ihave_decode_apdu(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_I_HAVE_DATA * data)
 {
     int len = 0;
 
@@ -130,7 +133,9 @@ int ihave_decode_apdu(uint8_t * apdu,
 #include <string.h>
 #include "ctest.h"
 
-void testIHaveData(Test * pTest, BACNET_I_HAVE_DATA * data)
+void testIHaveData(
+    Test * pTest,
+    BACNET_I_HAVE_DATA * data)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -144,16 +149,15 @@ void testIHaveData(Test * pTest, BACNET_I_HAVE_DATA * data)
     len = ihave_decode_apdu(&apdu[0], apdu_len, &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_data.device_id.type == data->device_id.type);
-    ct_test(pTest, test_data.device_id.instance ==
-        data->device_id.instance);
+    ct_test(pTest, test_data.device_id.instance == data->device_id.instance);
     ct_test(pTest, test_data.object_id.type == data->object_id.type);
-    ct_test(pTest, test_data.object_id.instance ==
-        data->object_id.instance);
+    ct_test(pTest, test_data.object_id.instance == data->object_id.instance);
     ct_test(pTest, characterstring_same(&test_data.object_name,
             &data->object_name));
 }
 
-void testIHave(Test * pTest)
+void testIHave(
+    Test * pTest)
 {
     BACNET_I_HAVE_DATA data;
 
@@ -175,7 +179,8 @@ void testIHave(Test * pTest)
 }
 
 #ifdef TEST_I_HAVE
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -192,5 +197,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_WHOIS */
-#endif                          /* TEST */
+#endif /* TEST_WHOIS */
+#endif /* TEST */

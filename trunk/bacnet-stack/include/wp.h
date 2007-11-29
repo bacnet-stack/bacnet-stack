@@ -50,32 +50,40 @@ typedef struct BACnet_Write_Property_Data {
     int32_t array_index;        /* use BACNET_ARRAY_ALL when not setting */
     uint8_t application_data[MAX_APDU];
     int application_data_len;
-    uint8_t priority;           /* use BACNET_NO_PRIORITY if no priority */
+    uint8_t priority;   /* use BACNET_NO_PRIORITY if no priority */
 } BACNET_WRITE_PROPERTY_DATA;
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
 /* encode service */
-    int wp_encode_apdu(uint8_t * apdu,
-        uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA * wp_data);
+    int wp_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 /* decode the service request only */
-    int wp_decode_service_request(uint8_t * apdu,
-        unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA * wp_data);
+    int wp_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST
 #include "ctest.h"
-    int wp_decode_apdu(uint8_t * apdu,
+    int wp_decode_apdu(
+        uint8_t * apdu,
         unsigned apdu_len,
-        uint8_t * invoke_id, BACNET_WRITE_PROPERTY_DATA * wp_data);
+        uint8_t * invoke_id,
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-    void test_ReadProperty(Test * pTest);
-    void test_ReadPropertyAck(Test * pTest);
+    void test_ReadProperty(
+        Test * pTest);
+    void test_ReadPropertyAck(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

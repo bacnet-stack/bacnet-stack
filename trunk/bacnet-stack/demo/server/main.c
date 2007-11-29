@@ -55,13 +55,12 @@
 /* buffers used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS,
-        handler_who_has);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -83,8 +82,7 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
     apdu_set_unconfirmed_handler
-        (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        handler_timesync_utc);
+        (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
         handler_timesync);
     /* handle communication so we can shutup when asked */
@@ -93,12 +91,15 @@ static void Init_Service_Handlers(void)
         handler_device_communication_control);
 }
 
-static void cleanup(void)
+static void cleanup(
+    void)
 {
     datalink_cleanup();
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
@@ -147,9 +148,7 @@ int main(int argc, char *argv[])
         "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n"
         "Max APDU: %d\n",
-        BACnet_Version,
-        Device_Object_Instance_Number(),
-        MAX_APDU);
+        BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     Init_Service_Handlers();
     BIP_Debug = true;
     if (!datalink_init(getenv("BACNET_IFACE")))

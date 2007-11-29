@@ -42,7 +42,9 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime)
+void Send_TimeSync(
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
 {
     int len = 0;
     int pdu_len = 0;
@@ -74,7 +76,9 @@ void Send_TimeSync(BACNET_DATE * bdate, BACNET_TIME * btime)
 #endif
 }
 
-void Send_TimeSyncUTC(BACNET_DATE * bdate, BACNET_TIME * btime)
+void Send_TimeSyncUTC(
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;

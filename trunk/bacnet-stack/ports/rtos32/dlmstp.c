@@ -42,9 +42,10 @@ static uint8_t PDU_Buffer[MAX_MPDU];
 /* local MS/TP port data */
 static volatile struct mstp_port_struct_t MSTP_Port;
 
-void dlmstp_init(char *ifname)
+void dlmstp_init(
+    char *ifname)
 {
-    (void)ifname;
+    (void) ifname;
     /* initialize buffer */
     Receive_Buffer.ready = false;
     Receive_Buffer.pdu_len = 0;
@@ -53,17 +54,19 @@ void dlmstp_init(char *ifname)
     MSTP_Init(&MSTP_Port, MSTP_Port.This_Station);
 }
 
-void dlmstp_cleanup(void)
+void dlmstp_cleanup(
+    void)
 {
     /* nothing to do for static buffers */
 }
 
 /* returns number of bytes sent on success, zero on failure */
-int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
+int dlmstp_send_pdu(
+    BACNET_ADDRESS * dest,      /* destination address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
-    uint8_t * pdu,              /* any data to be sent - may be null */
+    uint8_t * pdu,      /* any data to be sent - may be null */
     unsigned pdu_len)
-{                               /* number of bytes of data */
+{       /* number of bytes of data */
     int bytes_sent = 0;
     uint8_t frame_type = 0;
     uint8_t destination = 0;    /* destination address */
@@ -74,8 +77,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         if (npdu_data->confirmed_message)
             MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
         else
-            MSTP_Port.TxFrameType =
-                FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+            MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
 
         /* load destination MAC address */
         if (dest && dest->mac_len == 1) {
@@ -109,16 +111,18 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
 }
 
 /* called about once a millisecond */
-void dlmstp_millisecond_timer(void)
+void dlmstp_millisecond_timer(
+    void)
 {
     MSTP_Millisecond_Timer(&MSTP_Port);
 }
 
 /* returns the number of octets in the PDU, or zero on failure */
 /* This function is expecting to be polled. */
-uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
-    uint8_t * pdu,              /* PDU data */
-    uint16_t max_pdu,           /* amount of space available in the PDU  */
+uint16_t dlmstp_receive(
+    BACNET_ADDRESS * src,       /* source address */
+    uint8_t * pdu,      /* PDU data */
+    uint16_t max_pdu,   /* amount of space available in the PDU  */
     unsigned timeout)
 {
     uint16_t pdu_len = 0;
@@ -137,8 +141,7 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
     }
     /* see if there is a packet available */
     if (Receive_Buffer.ready) {
-        memmove(src, &Receive_Buffer.address,
-            sizeof(Receive_Buffer.address));
+        memmove(src, &Receive_Buffer.address, sizeof(Receive_Buffer.address));
         pdu_len = Receive_Buffer.pdu_len;
         memmove(&pdu[0], &Receive_Buffer.pdu[0], max_pdu);
         Receive_Buffer.ready = false;
@@ -147,7 +150,9 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
     return pdu_len;
 }
 
-void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
+void dlmstp_fill_bacnet_address(
+    BACNET_ADDRESS * src,
+    uint8_t mstp_address)
 {
     int i = 0;
 
@@ -171,8 +176,9 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
-    uint8_t * pdu,              /* PDU data */
+uint16_t dlmstp_put_receive(
+    uint8_t src,        /* source MS/TP address */
+    uint8_t * pdu,      /* PDU data */
     uint16_t pdu_len)
 {
     if (Receive_Buffer.ready) {
@@ -191,7 +197,8 @@ uint16_t dlmstp_put_receive(uint8_t src,        /* source MS/TP address */
     return pdu_len;
 }
 
-void dlmstp_set_my_address(uint8_t mac_address)
+void dlmstp_set_my_address(
+    uint8_t mac_address)
 {
     /* FIXME: Master Nodes can only have address 1-127 */
     MSTP_Port.This_Station = mac_address;
@@ -206,14 +213,16 @@ void dlmstp_set_my_address(uint8_t mac_address)
 /* nodes. This may be used to allocate more or less of the available link */
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
-void dlmstp_set_max_info_frames(unsigned max_info_frames)
+void dlmstp_set_max_info_frames(
+    unsigned max_info_frames)
 {
     MSTP_Port.Nmax_info_frames = max_info_frames;
 
     return;
 }
 
-unsigned dlmstp_max_info_frames(void)
+unsigned dlmstp_max_info_frames(
+    void)
 {
     return MSTP_Port.Nmax_info_frames;
 }
@@ -223,21 +232,24 @@ unsigned dlmstp_max_info_frames(void)
 /* allowable address for master nodes. The value of Max_Master shall be */
 /* less than or equal to 127. If Max_Master is not writable in a node, */
 /* its value shall be 127. */
-void dlmstp_set_max_master(uint8_t max_master)
+void dlmstp_set_max_master(
+    uint8_t max_master)
 {
     MSTP_Port.Nmax_master = max_master;
 
     return;
 }
 
-uint8_t dlmstp_max_master(void)
+uint8_t dlmstp_max_master(
+    void)
 {
     return MSTP_Port.Nmax_master;
 }
 
-void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
+void dlmstp_get_my_address(
+    BACNET_ADDRESS * my_address)
 {
-    int i = 0;                  /* counter */
+    int i = 0;  /* counter */
 
     my_address->mac_len = 1;
     my_address->mac[0] = MSTP_Port.This_Station;
@@ -250,15 +262,16 @@ void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
-{                               /* destination address */
-    int i = 0;                  /* counter */
+void dlmstp_get_broadcast_address(
+    BACNET_ADDRESS * dest)
+{       /* destination address */
+    int i = 0;  /* counter */
 
     if (dest) {
         dest->mac_len = 1;
         dest->mac[0] = MSTP_BROADCAST_ADDRESS;
         dest->net = BACNET_BROADCAST_NETWORK;
-        dest->len = 0;          /* len=0 denotes broadcast address  */
+        dest->len = 0;  /* len=0 denotes broadcast address  */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }

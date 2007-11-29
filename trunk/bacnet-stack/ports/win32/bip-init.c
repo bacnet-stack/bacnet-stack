@@ -34,15 +34,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>             /* for standard integer types uint8_t etc. */
-#include <stdbool.h>            /* for the standard bool type. */
+#include <stdint.h>     /* for standard integer types uint8_t etc. */
+#include <stdbool.h>    /* for the standard bool type. */
 #include "bacdcode.h"
 #include "bip.h"
 #include "net.h"
 
 bool BIP_Debug = false;
 /* To fill a need, we invent the gethostaddr() function. */
-static long gethostaddr(void)
+static long gethostaddr(
+    void)
 {
     struct hostent *host_ent;
     char host_name[255];
@@ -54,16 +55,17 @@ static long gethostaddr(void)
         return -1;
     if (BIP_Debug) {
         printf("host: %s at %u.%u.%u.%u\n", host_name,
-            ((uint8_t*)host_ent->h_addr)[0],
-            ((uint8_t*)host_ent->h_addr)[1],
-            ((uint8_t*)host_ent->h_addr)[2],
-            ((uint8_t*)host_ent->h_addr)[3]);
+            ((uint8_t *) host_ent->h_addr)[0],
+            ((uint8_t *) host_ent->h_addr)[1],
+            ((uint8_t *) host_ent->h_addr)[2],
+            ((uint8_t *) host_ent->h_addr)[3]);
     }
     /* note: network byte order */
     return *(long *) host_ent->h_addr;
 }
 
-static void set_broadcast_address(uint32_t net_address)
+static void set_broadcast_address(
+    uint32_t net_address)
 {
 #if USE_INADDR
     /*   Note: sometimes INADDR_BROADCAST does not let me get
@@ -91,14 +93,16 @@ static void set_broadcast_address(uint32_t net_address)
 #endif
 }
 
-static void cleanup(void)
+static void cleanup(
+    void)
 {
     WSACleanup();
 }
 
 
 /* on Windows, ifname is the dotted ip address of the interface */
-void bip_set_interface(char *ifname)
+void bip_set_interface(
+    char *ifname)
 {
     struct in_addr address;
 
@@ -117,7 +121,8 @@ void bip_set_interface(char *ifname)
     }
 }
 
-static char *winsock_error_code_text(int code)
+static char *winsock_error_code_text(
+    int code)
 {
     switch (code) {
         case WSAEACCES:
@@ -135,7 +140,8 @@ static char *winsock_error_code_text(int code)
         case WSAEWOULDBLOCK:
             return "Operation would block.";
         case WSAEINPROGRESS:
-            return "Operation now in progress. This error is returned if any Windows Sockets API function is called while a blocking function is in progress.";
+            return
+                "Operation now in progress. This error is returned if any Windows Sockets API function is called while a blocking function is in progress.";
         case WSAENOTSOCK:
             return "Socket operation on nonsocket.";
         case WSAEDESTADDRREQ:
@@ -161,7 +167,8 @@ static char *winsock_error_code_text(int code)
         case WSAEADDRNOTAVAIL:
             return "Cannot assign requested address.";
         case WSAENETDOWN:
-            return "Network is down. This error may be reported at any time if the Windows Sockets implementation detects an underlying failure.";
+            return
+                "Network is down. This error may be reported at any time if the Windows Sockets implementation detects an underlying failure.";
         case WSAENETUNREACH:
             return "Network is unreachable.";
         case WSAENETRESET:
@@ -194,41 +201,43 @@ static char *winsock_error_code_text(int code)
             return "No route to host.";
         case WSASYSNOTREADY:
             return "Returned by WSAStartup(), "
-            "indicating that the network subsystem is unusable.";
+                "indicating that the network subsystem is unusable.";
         case WSAVERNOTSUPPORTED:
             return "Returned by WSAStartup(), "
-            "indicating that the Windows Sockets DLL cannot support "
-            "this application.";
+                "indicating that the Windows Sockets DLL cannot support "
+                "this application.";
         case WSANOTINITIALISED:
             return "Winsock not initialized. "
-            "This message is returned by any function except WSAStartup(), "
-            "indicating that a successful WSAStartup() has not yet "
-            "been performed.";
+                "This message is returned by any function except WSAStartup(), "
+                "indicating that a successful WSAStartup() has not yet "
+                "been performed.";
         case WSAEDISCON:
             return "Disconnect.";
         case WSAHOST_NOT_FOUND:
             return "Host not found. "
-            "This message indicates that the key "
-            "(name, address, and so on) was not found.";
+                "This message indicates that the key "
+                "(name, address, and so on) was not found.";
         case WSATRY_AGAIN:
             return "Nonauthoritative host not found. "
-            "This error may suggest that the name service itself "
-            "is not functioning.";
+                "This error may suggest that the name service itself "
+                "is not functioning.";
         case WSANO_RECOVERY:
             return "Nonrecoverable error. "
-            "This error may suggest that the name service itself "
-            "is not functioning.";
+                "This error may suggest that the name service itself "
+                "is not functioning.";
         case WSANO_DATA:
             return "Valid name, no data record of requested type. "
-            "This error indicates that the key "
-            "(name, address, and so on) was not found.";
-        default: return "unknown";
+                "This error indicates that the key "
+                "(name, address, and so on) was not found.";
+        default:
+            return "unknown";
     }
 }
 
-bool bip_init(char *ifname)
+bool bip_init(
+    char *ifname)
 {
-    int rv = 0;                 /* return from socket lib calls */
+    int rv = 0; /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
     int value = 1;
     int sock_fd = -1;
@@ -243,8 +252,7 @@ bool bip_init(char *ifname)
     if (Result != 0) {
         Code = WSAGetLastError();
         printf("TCP/IP stack initialization failed\n"
-            " error code: %i %s\n",
-            Code, winsock_error_code_text(Code));
+            " error code: %i %s\n", Code, winsock_error_code_text(Code));
         exit(1);
     }
     atexit(cleanup);
@@ -258,8 +266,7 @@ bool bip_init(char *ifname)
         if (address.s_addr == (unsigned) -1) {
             Code = WSAGetLastError();
             printf("Get host address failed\n"
-                " error code: %i %s\n",
-                Code, winsock_error_code_text(Code));
+                " error code: %i %s\n", Code, winsock_error_code_text(Code));
             exit(1);
         }
         bip_set_addr(address.s_addr);
@@ -276,8 +283,7 @@ bool bip_init(char *ifname)
         fprintf(stderr, "IP Broadcast Address: %s\n",
             inet_ntoa(broadcast_address));
         fprintf(stderr, "UDP Port: 0x%04X [%hu]\n",
-            bip_get_port(),
-            bip_get_port());
+            bip_get_port(), bip_get_port());
     }
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

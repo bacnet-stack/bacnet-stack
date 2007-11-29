@@ -38,11 +38,13 @@
 #include "rp.h"
 
 /* encode service */
-int rp_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -68,14 +70,16 @@ int rp_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int rp_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     unsigned len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int type = 0;               /* for decoding */
-    int property = 0;           /* for decoding */
+    int type = 0;       /* for decoding */
+    int property = 0;   /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for value pointers */
@@ -84,14 +88,14 @@ int rp_decode_service_request(uint8_t * apdu,
         if (!decode_is_context_tag(&apdu[len++], 0))
             return -1;
         len += decode_object_id(&apdu[len], &type, &rpdata->object_instance);
-        rpdata->object_type = (BACNET_OBJECT_TYPE)type;
+        rpdata->object_type = (BACNET_OBJECT_TYPE) type;
         /* Tag 1: Property ID */
         len += decode_tag_number_and_value(&apdu[len],
             &tag_number, &len_value_type);
         if (tag_number != 1)
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &property);
-        rpdata->object_property = (BACNET_PROPERTY_ID)property;
+        rpdata->object_property = (BACNET_PROPERTY_ID) property;
         /* Tag 2: Optional Array Index */
         if (len < apdu_len) {
             len += decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -109,11 +113,13 @@ int rp_decode_service_request(uint8_t * apdu,
     return (int) len;
 }
 
-int rp_ack_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_ack_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
@@ -141,13 +147,15 @@ int rp_ack_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len, /* total length of the apdu */
+int rp_ack_decode_service_request(
+    uint8_t * apdu,
+    int apdu_len,       /* total length of the apdu */
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int tag_len = 0;            /* length of tag decode */
-    int len = 0;                /* total length of decodes */
+    int tag_len = 0;    /* length of tag decode */
+    int len = 0;        /* total length of decodes */
     int object = 0, property = 0;       /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
@@ -157,14 +165,14 @@ int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len, /* total length 
         return -1;
     len = 1;
     len += decode_object_id(&apdu[len], &object, &rpdata->object_instance);
-    rpdata->object_type = (BACNET_OBJECT_TYPE)object;
+    rpdata->object_type = (BACNET_OBJECT_TYPE) object;
     /* Tag 1: Property ID */
     len += decode_tag_number_and_value(&apdu[len],
         &tag_number, &len_value_type);
     if (tag_number != 1)
         return -1;
     len += decode_enumerated(&apdu[len], len_value_type, &property);
-    rpdata->object_property = (BACNET_PROPERTY_ID)property;
+    rpdata->object_property = (BACNET_PROPERTY_ID) property;
     /* Tag 2: Optional Array Index */
     tag_len = decode_tag_number_and_value(&apdu[len],
         &tag_number, &len_value_type);
@@ -192,9 +200,11 @@ int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len, /* total length 
 #include <string.h>
 #include "ctest.h"
 
-int rp_decode_apdu(uint8_t * apdu,
+int rp_decode_apdu(
+    uint8_t * apdu,
     unsigned apdu_len,
-    uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * rpdata)
+    uint8_t * invoke_id,
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     unsigned offset = 0;
@@ -218,8 +228,11 @@ int rp_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,    /* total length of the apdu */
-    uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_ack_decode_apdu(
+    uint8_t * apdu,
+    int apdu_len,       /* total length of the apdu */
+    uint8_t * invoke_id,
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     int offset = 0;
@@ -241,7 +254,8 @@ int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,    /* total length of the a
     return len;
 }
 
-void testReadPropertyAck(Test * pTest)
+void testReadPropertyAck(
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     uint8_t apdu2[480] = { 0 };
@@ -289,7 +303,8 @@ void testReadPropertyAck(Test * pTest)
     ct_test(pTest, object_instance == rpdata.object_instance);
 }
 
-void testReadProperty(Test * pTest)
+void testReadProperty(
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -318,7 +333,8 @@ void testReadProperty(Test * pTest)
 }
 
 #ifdef TEST_READ_PROPERTY
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -337,5 +353,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_READ_PROPERTY */
-#endif                          /* TEST */
+#endif /* TEST_READ_PROPERTY */
+#endif /* TEST */

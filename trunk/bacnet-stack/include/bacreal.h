@@ -40,20 +40,23 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    int decode_real(uint8_t * apdu, float *real_value);
-    int encode_bacnet_real(float value, uint8_t * apdu);
+    int decode_real(
+        uint8_t * apdu,
+        float *real_value);
+    int encode_bacnet_real(
+        float value,
+        uint8_t * apdu);
 
 #ifdef TEST
 #include "ctest.h"
 
-    void testBACreal(Test * pTest);
+    void testBACreal(
+        Test * pTest);
 #endif
-    
+
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
-
+#endif /* __cplusplus */
 #endif
-

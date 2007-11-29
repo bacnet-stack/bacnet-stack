@@ -42,12 +42,15 @@
 #include "address.h"
 
 /* encode I-Am service */
-int iam_encode_apdu(uint8_t * apdu,
+int iam_encode_apdu(
+    uint8_t * apdu,
     uint32_t device_id,
-    unsigned max_apdu, int segmentation, uint16_t vendor_id)
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id)
 {
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
@@ -67,12 +70,15 @@ int iam_encode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-int iam_decode_service_request(uint8_t * apdu,
+int iam_decode_service_request(
+    uint8_t * apdu,
     uint32_t * pDevice_id,
-    unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id)
+    unsigned *pMax_apdu,
+    int *pSegmentation,
+    uint16_t * pVendor_id)
 {
     int len = 0;
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
     int object_type = 0;        /* should be a Device Object */
     uint32_t object_instance = 0;
     uint8_t tag_number = 0;
@@ -82,13 +88,11 @@ int iam_decode_service_request(uint8_t * apdu,
 
     /* OBJECT ID - object id */
     len =
-        decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
-        &len_value);
+        decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
     if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
         return -1;
-    len =
-        decode_object_id(&apdu[apdu_len], &object_type, &object_instance);
+    len = decode_object_id(&apdu[apdu_len], &object_type, &object_instance);
     apdu_len += len;
     if (object_type != OBJECT_DEVICE)
         return -1;
@@ -96,8 +100,7 @@ int iam_decode_service_request(uint8_t * apdu,
         *pDevice_id = object_instance;
     /* MAX APDU - unsigned */
     len =
-        decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
-        &len_value);
+        decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
         return -1;
@@ -107,8 +110,7 @@ int iam_decode_service_request(uint8_t * apdu,
         *pMax_apdu = decoded_value;
     /* Segmentation - enumerated */
     len =
-        decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
-        &len_value);
+        decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
     if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
         return -1;
@@ -120,8 +122,7 @@ int iam_decode_service_request(uint8_t * apdu,
         *pSegmentation = decoded_integer;
     /* Vendor ID - unsigned16 */
     len =
-        decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
-        &len_value);
+        decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
         return -1;
@@ -135,9 +136,10 @@ int iam_decode_service_request(uint8_t * apdu,
     return apdu_len;
 }
 
-int iam_encode_pdu(uint8_t * buffer, 
-    BACNET_ADDRESS *dest,
-    BACNET_NPDU_DATA *npdu_data)
+int iam_encode_pdu(
+    uint8_t * buffer,
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -156,7 +158,8 @@ int iam_encode_pdu(uint8_t * buffer,
     return pdu_len;
 }
 
-int iam_send(uint8_t * buffer)
+int iam_send(
+    uint8_t * buffer)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -179,11 +182,14 @@ int iam_send(uint8_t * buffer)
 #include <string.h>
 #include "ctest.h"
 
-int iam_decode_apdu(uint8_t * apdu,
+int iam_decode_apdu(
+    uint8_t * apdu,
     uint32_t * pDevice_id,
-    unsigned *pMax_apdu, int *pSegmentation, uint16_t * pVendor_id)
+    unsigned *pMax_apdu,
+    int *pSegmentation,
+    uint16_t * pVendor_id)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     /* valid data? */
     if (!apdu)
@@ -199,7 +205,8 @@ int iam_decode_apdu(uint8_t * apdu,
     return apdu_len;
 }
 
-void testIAm(Test * pTest)
+void testIAm(
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -217,8 +224,7 @@ void testIAm(Test * pTest)
     ct_test(pTest, len != 0);
 
     len = iam_decode_apdu(&apdu[0],
-        &test_device_id,
-        &test_max_apdu, &test_segmentation, &test_vendor_id);
+        &test_device_id, &test_max_apdu, &test_segmentation, &test_vendor_id);
 
     ct_test(pTest, len != -1);
     ct_test(pTest, test_device_id == device_id);
@@ -229,8 +235,11 @@ void testIAm(Test * pTest)
 
 #ifdef TEST_IAM
 /* dummy function stubs */
-int datalink_send_pdu(BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data, uint8_t * pdu, unsigned pdu_len)
+int datalink_send_pdu(
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data,
+    uint8_t * pdu,
+    unsigned pdu_len)
 {
     (void) dest;
     (void) npdu_data;
@@ -240,23 +249,28 @@ int datalink_send_pdu(BACNET_ADDRESS * dest,
     return 0;
 }
 
-void datalink_get_broadcast_address(BACNET_ADDRESS * dest)
-{                               /* destination address */
+void datalink_get_broadcast_address(
+    BACNET_ADDRESS * dest)
+{       /* destination address */
     (void) dest;
 }
 
-uint16_t Device_Vendor_Identifier(void)
+uint16_t Device_Vendor_Identifier(
+    void)
 {
     return 0;
 }
 
-uint32_t Device_Object_Instance_Number(void)
+uint32_t Device_Object_Instance_Number(
+    void)
 {
     return 0;
 }
 
-void address_add_binding(uint32_t device_id,
-    unsigned max_apdu, BACNET_ADDRESS * src)
+void address_add_binding(
+    uint32_t device_id,
+    unsigned max_apdu,
+    BACNET_ADDRESS * src)
 {
     (void) device_id;
     (void) max_apdu;
@@ -264,14 +278,16 @@ void address_add_binding(uint32_t device_id,
 }
 
 /* dummy for apdu dependency */
-void tsm_free_invoke_id(uint8_t invokeID)
+void tsm_free_invoke_id(
+    uint8_t invokeID)
 {
     /* dummy stub for testing */
     (void) invokeID;
 }
 
 
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -288,5 +304,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_IAM */
-#endif                          /* TEST */
+#endif /* TEST_IAM */
+#endif /* TEST */

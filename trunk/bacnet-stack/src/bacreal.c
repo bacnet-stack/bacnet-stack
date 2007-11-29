@@ -44,12 +44,14 @@
 /* NOTE: byte order plays a role in decoding multibyte values */
 /* http://www.unixpapa.com/incnote/byteorder.html */
 #ifndef BIG_ENDIAN
-  #error Define BIG_ENDIAN=0 or BIG_ENDIAN=1 for BACnet Stack in compiler settings
+#error Define BIG_ENDIAN=0 or BIG_ENDIAN=1 for BACnet Stack in compiler settings
 #endif
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
-int decode_real(uint8_t * apdu, float *real_value)
+int decode_real(
+    uint8_t * apdu,
+    float *real_value)
 {
     union {
         uint8_t byte[4];
@@ -76,7 +78,9 @@ int decode_real(uint8_t * apdu, float *real_value)
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_real(float value, uint8_t * apdu)
+int encode_bacnet_real(
+    float value,
+    uint8_t * apdu)
 {
     union {
         uint8_t byte[4];
@@ -107,12 +111,13 @@ int encode_bacnet_real(float value, uint8_t * apdu)
 #include <ctype.h>
 #include "ctest.h"
 
-void testBACreal(Test * pTest)
+void testBACreal(
+    Test * pTest)
 {
     float real_value = 3.14159F, test_real_value = 0.0;
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
-    
+
     len = encode_bacnet_real(real_value, &apdu[0]);
     ct_test(pTest, len == 4);
     test_len = decode_real(&apdu[0], &test_real_value);
@@ -120,7 +125,8 @@ void testBACreal(Test * pTest)
 }
 
 #ifdef TEST_BACNET_REAL
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -138,6 +144,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_BACNET_REAL */
-#endif                          /* TEST */
-
+#endif /* TEST_BACNET_REAL */
+#endif /* TEST */

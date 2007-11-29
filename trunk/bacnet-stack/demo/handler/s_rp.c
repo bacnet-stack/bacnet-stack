@@ -44,10 +44,12 @@
 #include "txbuf.h"
 
 /* returns invoke id of 0 if device is not bound or no tsm available */
-uint8_t Send_Read_Property_Request(uint32_t device_id,  /* destination device */
+uint8_t Send_Read_Property_Request(
+    uint32_t device_id, /* destination device */
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    BACNET_PROPERTY_ID object_property, int32_t array_index)
+    BACNET_PROPERTY_ID object_property,
+    int32_t array_index)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -89,8 +91,7 @@ uint8_t Send_Read_Property_Request(uint32_t device_id,  /* destination device */
            max_apdu in the address binding table. */
         if ((unsigned) pdu_len < max_apdu) {
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0],
-                (uint16_t) pdu_len);
+                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t) pdu_len);
             bytes_sent =
                 datalink_send_pdu(&dest, &npdu_data,
                 &Handler_Transmit_Buffer[0], pdu_len);

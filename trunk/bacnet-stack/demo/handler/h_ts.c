@@ -32,7 +32,9 @@
 #include "timesync.h"
 
 #if PRINT_ENABLED
-static void show_bacnet_date_time(BACNET_DATE * bdate, BACNET_TIME * btime)
+static void show_bacnet_date_time(
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
 {
     /* show the date received */
     fprintf(stderr, "%u", (unsigned) bdate->year);
@@ -47,8 +49,10 @@ static void show_bacnet_date_time(BACNET_DATE * bdate, BACNET_TIME * btime)
 }
 #endif
 
-void handler_timesync(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void handler_timesync(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     BACNET_DATE bdate;
@@ -67,8 +71,10 @@ void handler_timesync(uint8_t * service_request,
     return;
 }
 
-void handler_timesync_utc(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void handler_timesync_utc(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     BACNET_DATE bdate;
@@ -86,4 +92,3 @@ void handler_timesync_utc(uint8_t * service_request,
 
     return;
 }
-

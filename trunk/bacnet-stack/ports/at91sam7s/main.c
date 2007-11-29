@@ -48,9 +48,12 @@
 //  *******************************************************
 //   FIXME: use header files?     External References
 //  *******************************************************
-extern    void LowLevelInit(void);
-extern    unsigned enableIRQ(void);
-extern    unsigned enableFIQ(void);
+extern void LowLevelInit(
+    void);
+extern unsigned enableIRQ(
+    void);
+extern unsigned enableFIQ(
+    void);
 
 //  *******************************************************
 //  FIXME: use header files?      Global Variables
@@ -64,7 +67,8 @@ static unsigned long LED_Timer_3 = 0;
 static unsigned long LED_Timer_4 = 1000;
 static unsigned long DCC_Timer = 1000;
 
-static void millisecond_timer(void)
+static void millisecond_timer(
+    void)
 {
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
@@ -87,11 +91,12 @@ static void millisecond_timer(void)
     /* note: MS/TP silence timer is updated in ISR */
 }
 
-static void init(void)
+static void init(
+    void)
 {
     /* Initialize the Parallel I/O Controller A Peripheral Clock */
-    volatile AT91PS_PMC    pPMC = AT91C_BASE_PMC;
-    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_PIOA);
+    volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
+    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_PIOA);
 
     // Set up the LEDs (PA0 - PA3)
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
@@ -112,23 +117,23 @@ static void init(void)
     volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
     // Disable FIQ interrupt in
     // AIC Interrupt Disable Command Register
-    pAIC->AIC_IDCR = (1<<AT91C_ID_FIQ);
+    pAIC->AIC_IDCR = (1 << AT91C_ID_FIQ);
     // Set the interrupt source type in
     // AIC Source Mode Register[0]
-    pAIC->AIC_SMR[AT91C_ID_FIQ] =
-        (AT91C_AIC_SRCTYPE_INT_EDGE_TRIGGERED);
+    pAIC->AIC_SMR[AT91C_ID_FIQ] = (AT91C_AIC_SRCTYPE_INT_EDGE_TRIGGERED);
     // Clear the FIQ interrupt in
     // AIC Interrupt Clear Command Register
-    pAIC->AIC_ICCR = (1<<AT91C_ID_FIQ);
+    pAIC->AIC_ICCR = (1 << AT91C_ID_FIQ);
     // Remove disable FIQ interrupt in
     // AIC Interrupt Disable Command Register
-    pAIC->AIC_IDCR = (0<<AT91C_ID_FIQ);
+    pAIC->AIC_IDCR = (0 << AT91C_ID_FIQ);
     // Enable the FIQ interrupt in
     // AIC Interrupt Enable Command Register
-    pAIC->AIC_IECR = (1<<AT91C_ID_FIQ);
+    pAIC->AIC_IECR = (1 << AT91C_ID_FIQ);
 }
 
-static void bacnet_init(void)
+static void bacnet_init(
+    void)
 {
 #if defined(BACDL_MSTP)
     RS485_Set_Baud_Rate(38400);
@@ -140,8 +145,7 @@ static void bacnet_init(void)
     Device_Set_Object_Instance_Number(22222);
 #ifndef DLMSTP_TEST
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
@@ -157,14 +161,16 @@ static void bacnet_init(void)
 #endif
 }
 
-int    main (void) {
-    unsigned long    IdleCount = 0; // idle loop blink counter
+int main(
+    void)
+{
+    unsigned long IdleCount = 0;        // idle loop blink counter
     bool LED1_Off_Enabled = true;
     bool LED2_Off_Enabled = true;
     bool LED3_Off_Enabled = true;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
-    uint8_t pdu[MAX_MPDU]; /* PDU data */
+    uint8_t pdu[MAX_MPDU];      /* PDU data */
     // Set up the LEDs (PA0 - PA3)
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
 
@@ -177,9 +183,9 @@ int    main (void) {
     // enable interrupts
     enableIRQ();
     enableFIQ();
-     /* broadcast an I-Am on startup */
+    /* broadcast an I-Am on startup */
     iam_send(&Handler_Transmit_Buffer[0]);
-   // endless blink loop
+    // endless blink loop
     while (1) {
         millisecond_timer();
         if (!DCC_Timer) {
@@ -187,8 +193,7 @@ int    main (void) {
             DCC_Timer = 1000;
         }
         /* USART Tx turns the LED on, we turn it off */
-        if  (((pPIO->PIO_ODSR & LED1) == LED1) && (LED1_Off_Enabled))
-        {
+        if (((pPIO->PIO_ODSR & LED1) == LED1) && (LED1_Off_Enabled)) {
             LED1_Off_Enabled = false;
             /* wait */
             LED_Timer_1 = 20;
@@ -199,8 +204,7 @@ int    main (void) {
             LED1_Off_Enabled = true;
         }
         /* USART Rx turns the LED on, we turn it off */
-        if  (((pPIO->PIO_ODSR & LED2) == LED2) && (LED2_Off_Enabled))
-        {
+        if (((pPIO->PIO_ODSR & LED2) == LED2) && (LED2_Off_Enabled)) {
             LED2_Off_Enabled = false;
             /* wait */
             LED_Timer_2 = 20;
@@ -211,8 +215,7 @@ int    main (void) {
             LED2_Off_Enabled = true;
         }
         /* switch or NPDU turns on the LED, we turn it off */
-        if  (((pPIO->PIO_ODSR & LED3) == LED3) && (LED3_Off_Enabled))
-        {
+        if (((pPIO->PIO_ODSR & LED3) == LED3) && (LED3_Off_Enabled)) {
             LED3_Off_Enabled = false;
             /* wait */
             LED_Timer_3 = 500;
@@ -224,7 +227,7 @@ int    main (void) {
         }
         /* Blink LED every second */
         if (!LED_Timer_4) {
-            if  ((pPIO->PIO_ODSR & LED4) == LED4) {
+            if ((pPIO->PIO_ODSR & LED4) == LED4) {
                 /* turn on */
                 pPIO->PIO_CODR = LED4;
             } else {

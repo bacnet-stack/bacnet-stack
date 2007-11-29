@@ -39,8 +39,10 @@
 
 bool Send_I_Am = true;
 
-void handler_who_is(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void handler_who_is(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     int32_t low_limit = 0;
@@ -55,8 +57,7 @@ void handler_who_is(uint8_t * service_request,
     } else if (len != -1) {
         /* is my device id within the limits? */
         target_device = Device_Object_Instance_Number();
-        if (((target_device >= low_limit) &&
-                (target_device <=  high_limit))
+        if (((target_device >= low_limit) && (target_device <= high_limit))
             ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&

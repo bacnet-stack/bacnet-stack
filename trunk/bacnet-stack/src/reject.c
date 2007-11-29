@@ -37,10 +37,12 @@
 #include "bacdef.h"
 
 /* encode service */
-int reject_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, uint8_t reject_reason)
+int reject_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    uint8_t reject_reason)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_REJECT;
@@ -53,8 +55,11 @@ int reject_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int reject_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, uint8_t * invoke_id, uint8_t * reject_reason)
+int reject_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id,
+    uint8_t * reject_reason)
 {
     int len = 0;
 
@@ -74,8 +79,11 @@ int reject_decode_service_request(uint8_t * apdu,
 #include "ctest.h"
 
 /* decode the whole APDU - mainly used for unit testing */
-int reject_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, uint8_t * invoke_id, uint8_t * reject_reason)
+int reject_decode_apdu(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id,
+    uint8_t * reject_reason)
 {
     int len = 0;
 
@@ -94,7 +102,8 @@ int reject_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-void testReject(Test * pTest)
+void testReject(
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -147,7 +156,8 @@ void testReject(Test * pTest)
 }
 
 #ifdef TEST_REJECT
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -164,5 +174,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_REJECT */
-#endif                          /* TEST */
+#endif /* TEST_REJECT */
+#endif /* TEST */

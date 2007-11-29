@@ -41,10 +41,12 @@
 /* Atomic Write File */
 
 /* encode service */
-int awf_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, BACNET_ATOMIC_WRITE_FILE_DATA * data)
+int awf_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -56,26 +58,26 @@ int awf_encode_apdu(uint8_t * apdu,
         apdu_len += encode_application_object_id(&apdu[apdu_len],
             data->object_type, data->object_instance);
         switch (data->access) {
-        case FILE_STREAM_ACCESS:
-            apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
-            apdu_len += encode_application_signed(&apdu[apdu_len],
-                data->type.stream.fileStartPosition);
-            apdu_len += encode_application_octet_string(&apdu[apdu_len],
-                &data->fileData);
-            apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
-            break;
-        case FILE_RECORD_ACCESS:
-            apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
-            apdu_len += encode_application_signed(&apdu[apdu_len],
-                data->type.record.fileStartRecord);
-            apdu_len += encode_application_unsigned(&apdu[apdu_len],
-                data->type.record.returnedRecordCount);
-            apdu_len += encode_application_octet_string(&apdu[apdu_len],
-                &data->fileData);
-            apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
-            break;
-        default:
-            break;
+            case FILE_STREAM_ACCESS:
+                apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
+                apdu_len += encode_application_signed(&apdu[apdu_len],
+                    data->type.stream.fileStartPosition);
+                apdu_len += encode_application_octet_string(&apdu[apdu_len],
+                    &data->fileData);
+                apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
+                break;
+            case FILE_RECORD_ACCESS:
+                apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
+                apdu_len += encode_application_signed(&apdu[apdu_len],
+                    data->type.record.fileStartRecord);
+                apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    data->type.record.returnedRecordCount);
+                apdu_len += encode_application_octet_string(&apdu[apdu_len],
+                    &data->fileData);
+                apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
+                break;
+            default:
+                break;
         }
     }
 
@@ -83,8 +85,10 @@ int awf_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int awf_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_ATOMIC_WRITE_FILE_DATA * data)
+int awf_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     int len = 0;
     int tag_len = 0;
@@ -92,7 +96,7 @@ int awf_decode_service_request(uint8_t * apdu,
     uint32_t len_value_type = 0;
     int32_t signed_value = 0;
     uint32_t unsigned_value = 0;
-    int type = 0;               /* for decoding */
+    int type = 0;       /* for decoding */
 
     /* check for value pointers */
     if (apdu_len && data) {
@@ -113,7 +117,7 @@ int awf_decode_service_request(uint8_t * apdu,
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
                 return -1;
-            len += decode_signed(&apdu[len], len_value_type, &signed_value); 
+            len += decode_signed(&apdu[len], len_value_type, &signed_value);
             data->type.stream.fileStartPosition = signed_value;
             /* fileData */
             tag_len = decode_tag_number_and_value(&apdu[len],
@@ -145,7 +149,7 @@ int awf_decode_service_request(uint8_t * apdu,
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
                 return -1;
-            len += decode_unsigned(&apdu[len], len_value_type, 
+            len += decode_unsigned(&apdu[len], len_value_type,
                 &unsigned_value);
             data->type.record.returnedRecordCount = unsigned_value;
             /* fileData */
@@ -167,9 +171,11 @@ int awf_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-int awf_decode_apdu(uint8_t * apdu,
+int awf_decode_apdu(
+    uint8_t * apdu,
     unsigned apdu_len,
-    uint8_t * invoke_id, BACNET_ATOMIC_WRITE_FILE_DATA * data)
+    uint8_t * invoke_id,
+    BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     int len = 0;
     unsigned offset = 0;
@@ -193,10 +199,12 @@ int awf_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-int awf_ack_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, BACNET_ATOMIC_WRITE_FILE_DATA * data)
+int awf_ack_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK;
@@ -204,16 +212,16 @@ int awf_ack_encode_apdu(uint8_t * apdu,
         apdu[2] = SERVICE_CONFIRMED_ATOMIC_WRITE_FILE;  /* service choice */
         apdu_len = 3;
         switch (data->access) {
-        case FILE_STREAM_ACCESS:
-            apdu_len += encode_context_signed(&apdu[apdu_len], 0,
-                data->type.stream.fileStartPosition);
-            break;
-        case FILE_RECORD_ACCESS:
-            apdu_len += encode_context_signed(&apdu[apdu_len], 1,
-                data->type.record.fileStartRecord);
-            break;
-        default:
-            break;
+            case FILE_STREAM_ACCESS:
+                apdu_len += encode_context_signed(&apdu[apdu_len], 0,
+                    data->type.stream.fileStartPosition);
+                break;
+            case FILE_RECORD_ACCESS:
+                apdu_len += encode_context_signed(&apdu[apdu_len], 1,
+                    data->type.record.fileStartRecord);
+                break;
+            default:
+                break;
         }
     }
 
@@ -221,8 +229,10 @@ int awf_ack_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int awf_ack_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_ATOMIC_WRITE_FILE_DATA * data)
+int awf_ack_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -248,9 +258,11 @@ int awf_ack_decode_service_request(uint8_t * apdu,
     return len;
 }
 
-int awf_ack_decode_apdu(uint8_t * apdu,
+int awf_ack_decode_apdu(
+    uint8_t * apdu,
     unsigned apdu_len,
-    uint8_t * invoke_id, BACNET_ATOMIC_WRITE_FILE_DATA * data)
+    uint8_t * invoke_id,
+    BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     int len = 0;
     unsigned offset = 0;
@@ -278,7 +290,8 @@ int awf_ack_decode_apdu(uint8_t * apdu,
 #include <string.h>
 #include "ctest.h"
 
-void testAtomicWriteFileAccess(Test * pTest,
+void testAtomicWriteFileAccess(
+    Test * pTest,
     BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     BACNET_ATOMIC_WRITE_FILE_DATA test_data = { 0 };
@@ -313,7 +326,8 @@ void testAtomicWriteFileAccess(Test * pTest,
             octetstring_length(&test_data.fileData)) == 0);
 }
 
-void testAtomicWriteFile(Test * pTest)
+void testAtomicWriteFile(
+    Test * pTest)
 {
     BACNET_ATOMIC_WRITE_FILE_DATA data = { 0 };
     uint8_t test_octet_string[32] = "Joshua-Mary-Anna-Christopher";
@@ -338,7 +352,8 @@ void testAtomicWriteFile(Test * pTest)
     return;
 }
 
-void testAtomicWriteFileAckAccess(Test * pTest,
+void testAtomicWriteFileAckAccess(
+    Test * pTest,
     BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     BACNET_ATOMIC_WRITE_FILE_DATA test_data = { 0 };
@@ -364,7 +379,8 @@ void testAtomicWriteFileAckAccess(Test * pTest,
     }
 }
 
-void testAtomicWriteFileAck(Test * pTest)
+void testAtomicWriteFileAck(
+    Test * pTest)
 {
     BACNET_ATOMIC_WRITE_FILE_DATA data = { 0 };
 
@@ -380,12 +396,14 @@ void testAtomicWriteFileAck(Test * pTest)
 }
 
 #ifdef TEST_ATOMIC_WRITE_FILE
-uint16_t Device_Max_APDU_Length_Accepted(void)
+uint16_t Device_Max_APDU_Length_Accepted(
+    void)
 {
     return MAX_APDU;
 }
 
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -404,5 +422,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_WRITE_PROPERTY */
-#endif                          /* TEST */
+#endif /* TEST_WRITE_PROPERTY */
+#endif /* TEST */

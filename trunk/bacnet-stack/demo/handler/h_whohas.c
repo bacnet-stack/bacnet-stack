@@ -35,8 +35,10 @@
 #include "device.h"
 #include "client.h"
 
-void handler_who_has(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void handler_who_has(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     BACNET_WHO_HAS_DATA data;
@@ -47,15 +49,12 @@ void handler_who_has(uint8_t * service_request,
     bool found = false;
 
     (void) src;
-    len = whohas_decode_service_request(service_request,
-        service_len, &data);
+    len = whohas_decode_service_request(service_request, service_len, &data);
     if (len > 0) {
         if ((data.low_limit == -1) || (data.high_limit == -1))
             directed_to_me = true;
-        else if ((Device_Object_Instance_Number() >=
-                (uint32_t) data.low_limit)
-            && (Device_Object_Instance_Number() <=
-                (uint32_t) data.high_limit))
+        else if ((Device_Object_Instance_Number() >= (uint32_t) data.low_limit)
+            && (Device_Object_Instance_Number() <= (uint32_t) data.high_limit))
             directed_to_me = true;
         if (directed_to_me) {
             /* do we have such an object?  If so, send an I-Have.

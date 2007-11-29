@@ -45,9 +45,11 @@
 /* too big to reside on stack frame for PIC */
 static BACNET_WRITE_PROPERTY_DATA wp_data;
 
-void handler_write_property(uint8_t * service_request,
+void handler_write_property(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -69,104 +71,94 @@ void handler_write_property(uint8_t * service_request,
         goto WP_ABORT;
     }
     /* decode the service request only */
-    len = wp_decode_service_request(service_request,
-        service_len, &wp_data);
+    len = wp_decode_service_request(service_request, service_len, &wp_data);
     /* bad decoding or something we didn't understand - send an abort */
     if (len <= 0) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER, true);
         goto WP_ABORT;
-    } 
-    switch (wp_data.object_type) {
-    case OBJECT_DEVICE:
-        if (Device_Write_Property(&wp_data, &error_class, &error_code)) {
-            len =
-                encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "Sending Write Property Simple Ack for Device!\n");
-#endif
-        } else {
-            len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                error_code);
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "Sending Write Property Error for Device!\n");
-#endif
-        }
-        break;
-    case OBJECT_ANALOG_INPUT:
-    case OBJECT_BINARY_INPUT:
-        error_class = ERROR_CLASS_PROPERTY;
-        error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        len =
-            bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-            error_class, error_code);
-#if PRINT_ENABLED
-        fprintf(stderr, "Sending Write Access Error!\n");
-#endif
-        break;
-    case OBJECT_BINARY_VALUE:
-        if (Binary_Value_Write_Property(&wp_data, &error_class,
-                &error_code)) {
-            len =
-                encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "Sending Write Property Simple Ack for BV!\n");
-#endif
-        } else {
-            len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                error_code);
-#if PRINT_ENABLED
-            fprintf(stderr, "Sending Write Access Error for BV!\n");
-#endif
-        }
-        break;
-    case OBJECT_ANALOG_VALUE:
-        if (Analog_Value_Write_Property(&wp_data, &error_class,
-                &error_code)) {
-            len =
-                encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_WRITE_PROPERTY);
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "Sending Write Property Simple Ack for AV!\n");
-#endif
-        } else {
-            len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                error_code);
-#if PRINT_ENABLED
-            fprintf(stderr, "Sending Write Access Error for AV!\n");
-#endif
-        }
-        break;
-    default:
-        len =
-            bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-            error_class, error_code);
-#if PRINT_ENABLED
-        fprintf(stderr, "Sending Unknown Object Error!\n");
-#endif
-        break;
     }
-WP_ABORT:
+    switch (wp_data.object_type) {
+        case OBJECT_DEVICE:
+            if (Device_Write_Property(&wp_data, &error_class, &error_code)) {
+                len =
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+#if PRINT_ENABLED
+                fprintf(stderr,
+                    "Sending Write Property Simple Ack for Device!\n");
+#endif
+            } else {
+                len =
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+#if PRINT_ENABLED
+                fprintf(stderr, "Sending Write Property Error for Device!\n");
+#endif
+            }
+            break;
+        case OBJECT_ANALOG_INPUT:
+        case OBJECT_BINARY_INPUT:
+            error_class = ERROR_CLASS_PROPERTY;
+            error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            len =
+                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                error_class, error_code);
+#if PRINT_ENABLED
+            fprintf(stderr, "Sending Write Access Error!\n");
+#endif
+            break;
+        case OBJECT_BINARY_VALUE:
+            if (Binary_Value_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                len =
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+#if PRINT_ENABLED
+                fprintf(stderr, "Sending Write Property Simple Ack for BV!\n");
+#endif
+            } else {
+                len =
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+#if PRINT_ENABLED
+                fprintf(stderr, "Sending Write Access Error for BV!\n");
+#endif
+            }
+            break;
+        case OBJECT_ANALOG_VALUE:
+            if (Analog_Value_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                len =
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+#if PRINT_ENABLED
+                fprintf(stderr, "Sending Write Property Simple Ack for AV!\n");
+#endif
+            } else {
+                len =
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_WRITE_PROPERTY, error_class, error_code);
+#if PRINT_ENABLED
+                fprintf(stderr, "Sending Write Access Error for AV!\n");
+#endif
+            }
+            break;
+        default:
+            len =
+                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                error_class, error_code);
+#if PRINT_ENABLED
+            fprintf(stderr, "Sending Unknown Object Error!\n");
+#endif
+            break;
+    }
+  WP_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

@@ -28,10 +28,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>               /* for time */
+#include <time.h>       /* for time */
 #include <string.h>
 #include <errno.h>
-#include <ctype.h>              /* toupper */
+#include <ctype.h>      /* toupper */
 #include "bactext.h"
 #include "iam.h"
 #include "arf.h"
@@ -71,9 +71,11 @@ static uint8_t Target_Object_Property_Priority = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS * src,
+static void MyErrorHandler(
+    BACNET_ADDRESS * src,
     uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
@@ -84,32 +86,36 @@ static void MyErrorHandler(BACNET_ADDRESS * src,
     Error_Detected = true;
 }
 
-void MyAbortHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t abort_reason, bool server)
+void MyAbortHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t abort_reason,
+    bool server)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
     (void) server;
     printf("\r\nBACnet Abort!\r\n");
-    printf("Abort Reason: %s\r\n",
-        bactext_abort_reason_name(abort_reason));
+    printf("Abort Reason: %s\r\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t reject_reason)
+void MyRejectHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
     printf("\r\nBACnet Reject!\r\n");
-    printf("Reject Reason: %s\r\n",
-        bactext_reject_reason_name(reject_reason));
+    printf("Reject Reason: %s\r\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
-void MyWritePropertySimpleAckHandler(BACNET_ADDRESS * src,
+void MyWritePropertySimpleAckHandler(
+    BACNET_ADDRESS * src,
     uint8_t invoke_id)
 {
     (void) src;
@@ -117,15 +123,14 @@ void MyWritePropertySimpleAckHandler(BACNET_ADDRESS * src,
     printf("\r\nWriteProperty Acknowledged!\r\n");
 }
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is 
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
-        handler_i_am_bind);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -137,13 +142,14 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
         MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        MyErrorHandler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_WRITE_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
@@ -234,8 +240,7 @@ int main(int argc, char *argv[])
                 "%s 123 1 0 85 4 100\r\n"
                 "You could also send a relinquish command:\r\n"
                 "%s 123 1 0 85 0 0\r\n",
-                filename_remove_path(argv[0]),
-                filename_remove_path(argv[0]));
+                filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         }
         return 0;
     }
@@ -317,8 +322,7 @@ int main(int argc, char *argv[])
     timeout_seconds = (Device_APDU_Timeout() / 1000) *
         Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
-    Send_WhoIs(Target_Device_Object_Instance,
-        Target_Device_Object_Instance);
+    Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
@@ -333,8 +337,7 @@ int main(int argc, char *argv[])
         }
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds(((current_seconds -
-                        last_seconds) * 1000));
+            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */

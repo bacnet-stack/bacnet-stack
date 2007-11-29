@@ -56,23 +56,27 @@ static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-static uint16_t Timer_Silence(void)
+static uint16_t Timer_Silence(
+    void)
 {
     return SilenceTime;
 }
-static void Timer_Silence_Reset(void)
+static void Timer_Silence_Reset(
+    void)
 {
     SilenceTime = 0;
 }
 
-static void dlmstp_millisecond_timer(void)
+static void dlmstp_millisecond_timer(
+    void)
 {
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
 
-void *milliseconds_task(void *pArg)
+void *milliseconds_task(
+    void *pArg)
 {
-    (void)pArg;
+    (void) pArg;
     for (;;) {
         Sleep(1);
         dlmstp_millisecond_timer();
@@ -85,28 +89,28 @@ void *milliseconds_task(void *pArg)
 uint16_t MSTP_Put_Receive(
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    (void)mstp_port;
-    
+    (void) mstp_port;
+
     return 0;
 }
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port,
-    unsigned timeout) /* milliseconds to wait for a packet */
-{
-    (void)mstp_port;
-    (void)timeout;
+    volatile struct mstp_port_struct_t * mstp_port,
+    unsigned timeout)
+{       /* milliseconds to wait for a packet */
+    (void) mstp_port;
+    (void) timeout;
     return 0;
 }
 
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port,
-    unsigned timeout) /* milliseconds to wait for a packet */
-{
-    (void)mstp_port;
-    (void)timeout;
+    volatile struct mstp_port_struct_t * mstp_port,
+    unsigned timeout)
+{       /* milliseconds to wait for a packet */
+    (void) mstp_port;
+    (void) timeout;
     return 0;
 }
 
@@ -131,27 +135,25 @@ static void print_received_packet(
         mstp_port->DestinationAddress,
         mstp_port->SourceAddress,
         HI_BYTE(mstp_port->DataLength),
-        LO_BYTE(mstp_port->DataLength),
-        mstp_port->HeaderCRCActual);
+        LO_BYTE(mstp_port->DataLength), mstp_port->HeaderCRCActual);
     if (mstp_port->DataLength) {
         for (i = 0; i < mstp_port->DataLength; i++) {
-            fprintf(stderr,"%02X ",
-                    mstp_port->InputBuffer[i]);
+            fprintf(stderr, "%02X ", mstp_port->InputBuffer[i]);
         }
         fprintf(stderr,
-                "%02X %02X ",
-                mstp_port->DataCRCActualMSB,
-                mstp_port->DataCRCActualLSB);
+            "%02X %02X ",
+            mstp_port->DataCRCActualMSB, mstp_port->DataCRCActualLSB);
     }
-    fprintf(stderr,"%s",
-        mstptext_frame_type(mstp_port->FrameType));
-    fprintf(stderr,"\n");
+    fprintf(stderr, "%s", mstptext_frame_type(mstp_port->FrameType));
+    fprintf(stderr, "\n");
 }
 
 static char *Network_Interface = NULL;
 
 /* simple test to packetize the data and print it */
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
     int rc = 0;
@@ -168,7 +170,7 @@ int main(int argc, char *argv[])
     if (argc > 2) {
         my_mac = strtol(argv[2], NULL, 0);
         if (my_mac > 127)
-           my_mac = 127;
+            my_mac = 127;
     }
     /* initialize our interface */
     RS485_Set_Interface(Network_Interface);
@@ -186,7 +188,7 @@ int main(int argc, char *argv[])
     MSTP_Init(&MSTP_Port);
     mstp_port->Lurking = true;
     /* start our MilliSec task */
-    hThread = _beginthread(milliseconds_task,4096,&arg_value);
+    hThread = _beginthread(milliseconds_task, 4096, &arg_value);
     if (hThread == 0) {
         fprintf(stderr, "Failed to start timer task\n");
     }
@@ -207,4 +209,3 @@ int main(int argc, char *argv[])
 
     //return 0;
 }
-

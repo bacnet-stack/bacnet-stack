@@ -38,74 +38,90 @@
 #include <stdbool.h>
 #include "config.h"
 
-int encode_unsigned16(uint8_t * apdu, uint16_t value)
+int encode_unsigned16(
+    uint8_t * apdu,
+    uint16_t value)
 {
-    apdu[0] = (uint8_t)((value & 0xff00) >> 8);
-    apdu[1] = (uint8_t)(value & 0x00ff);
+    apdu[0] = (uint8_t) ((value & 0xff00) >> 8);
+    apdu[1] = (uint8_t) (value & 0x00ff);
 
     return 2;
 }
 
-int decode_unsigned16(uint8_t * apdu, uint16_t * value)
+int decode_unsigned16(
+    uint8_t * apdu,
+    uint16_t * value)
 {
     if (value) {
-        *value = (uint16_t)((((uint16_t)apdu[0]) << 8) & 0xff00);
-        *value |= ((uint16_t)(((uint16_t)apdu[1]) & 0x00ff));
+        *value = (uint16_t) ((((uint16_t) apdu[0]) << 8) & 0xff00);
+        *value |= ((uint16_t) (((uint16_t) apdu[1]) & 0x00ff));
     }
 
     return 2;
 }
 
-int encode_unsigned24(uint8_t * apdu, uint32_t value)
+int encode_unsigned24(
+    uint8_t * apdu,
+    uint32_t value)
 {
-    apdu[0] = (uint8_t)((value & 0xff0000) >> 16);
-    apdu[1] = (uint8_t)((value & 0x00ff00) >> 8);
-    apdu[2] = (uint8_t)(value & 0x0000ff);
+    apdu[0] = (uint8_t) ((value & 0xff0000) >> 16);
+    apdu[1] = (uint8_t) ((value & 0x00ff00) >> 8);
+    apdu[2] = (uint8_t) (value & 0x0000ff);
 
     return 3;
 }
 
-int decode_unsigned24(uint8_t * apdu, uint32_t * value)
+int decode_unsigned24(
+    uint8_t * apdu,
+    uint32_t * value)
 {
     if (value) {
-        *value = ((uint32_t)((((uint32_t)apdu[0]) << 16) & 0x00ff0000));
-        *value |= (uint32_t)((((uint32_t)apdu[1]) << 8) & 0x0000ff00);
-        *value |= ((uint32_t)(((uint32_t)apdu[2]) & 0x000000ff));
+        *value = ((uint32_t) ((((uint32_t) apdu[0]) << 16) & 0x00ff0000));
+        *value |= (uint32_t) ((((uint32_t) apdu[1]) << 8) & 0x0000ff00);
+        *value |= ((uint32_t) (((uint32_t) apdu[2]) & 0x000000ff));
     }
 
     return 3;
 }
 
-int encode_unsigned32(uint8_t * apdu, uint32_t value)
+int encode_unsigned32(
+    uint8_t * apdu,
+    uint32_t value)
 {
-    apdu[0] = (uint8_t)((value & 0xff000000) >> 24);
-    apdu[1] = (uint8_t)((value & 0x00ff0000) >> 16);
-    apdu[2] = (uint8_t)((value & 0x0000ff00) >> 8);
-    apdu[3] = (uint8_t)(value & 0x000000ff);
+    apdu[0] = (uint8_t) ((value & 0xff000000) >> 24);
+    apdu[1] = (uint8_t) ((value & 0x00ff0000) >> 16);
+    apdu[2] = (uint8_t) ((value & 0x0000ff00) >> 8);
+    apdu[3] = (uint8_t) (value & 0x000000ff);
 
     return 4;
 }
 
-int decode_unsigned32(uint8_t * apdu, uint32_t * value)
+int decode_unsigned32(
+    uint8_t * apdu,
+    uint32_t * value)
 {
     if (value) {
-        *value = ((uint32_t)((((uint32_t)apdu[0]) << 24) & 0xff000000));
-        *value |= ((uint32_t)((((uint32_t)apdu[1]) << 16) & 0x00ff0000));
-        *value |= ((uint32_t)((((uint32_t)apdu[2]) << 8) & 0x0000ff00));
-        *value |= ((uint32_t)(((uint32_t)apdu[3]) & 0x000000ff));
+        *value = ((uint32_t) ((((uint32_t) apdu[0]) << 24) & 0xff000000));
+        *value |= ((uint32_t) ((((uint32_t) apdu[1]) << 16) & 0x00ff0000));
+        *value |= ((uint32_t) ((((uint32_t) apdu[2]) << 8) & 0x0000ff00));
+        *value |= ((uint32_t) (((uint32_t) apdu[3]) & 0x000000ff));
     }
 
     return 4;
 }
 
-int encode_signed8(uint8_t * apdu, int8_t value)
+int encode_signed8(
+    uint8_t * apdu,
+    int8_t value)
 {
-    apdu[0] = (uint8_t)value;
+    apdu[0] = (uint8_t) value;
 
     return 1;
 }
 
-int decode_signed8(uint8_t * apdu, int32_t * value)
+int decode_signed8(
+    uint8_t * apdu,
+    int32_t * value)
 {
     if (value) {
         /* negative - bit 7 is set */
@@ -113,21 +129,25 @@ int decode_signed8(uint8_t * apdu, int32_t * value)
             *value = 0xFFFFFF00;
         else
             *value = 0;
-        *value |= ((int32_t)(((int32_t)apdu[0]) & 0x000000ff));
+        *value |= ((int32_t) (((int32_t) apdu[0]) & 0x000000ff));
     }
 
     return 1;
 }
 
-int encode_signed16(uint8_t * apdu, int16_t value)
+int encode_signed16(
+    uint8_t * apdu,
+    int16_t value)
 {
-    apdu[0] = (uint8_t)((value & 0xff00) >> 8);
-    apdu[1] = (uint8_t)(value & 0x00ff);
+    apdu[0] = (uint8_t) ((value & 0xff00) >> 8);
+    apdu[1] = (uint8_t) (value & 0x00ff);
 
     return 2;
 }
 
-int decode_signed16(uint8_t * apdu, int32_t * value)
+int decode_signed16(
+    uint8_t * apdu,
+    int32_t * value)
 {
     if (value) {
         /* negative - bit 7 is set */
@@ -135,23 +155,27 @@ int decode_signed16(uint8_t * apdu, int32_t * value)
             *value = 0xFFFF0000;
         else
             *value = 0;
-        *value |= ((int32_t)((((int32_t)apdu[0]) << 8) & 0x0000ff00));
-        *value |= ((int32_t)(((int32_t)apdu[1]) & 0x000000ff));
+        *value |= ((int32_t) ((((int32_t) apdu[0]) << 8) & 0x0000ff00));
+        *value |= ((int32_t) (((int32_t) apdu[1]) & 0x000000ff));
     }
 
     return 2;
 }
 
-int encode_signed24(uint8_t * apdu, int32_t value)
+int encode_signed24(
+    uint8_t * apdu,
+    int32_t value)
 {
-    apdu[0] = (uint8_t)((value & 0xff0000) >> 16);
-    apdu[1] = (uint8_t)((value & 0x00ff00) >> 8);
-    apdu[2] = (uint8_t)(value & 0x0000ff);
+    apdu[0] = (uint8_t) ((value & 0xff0000) >> 16);
+    apdu[1] = (uint8_t) ((value & 0x00ff00) >> 8);
+    apdu[2] = (uint8_t) (value & 0x0000ff);
 
     return 3;
 }
 
-int decode_signed24(uint8_t * apdu, int32_t * value)
+int decode_signed24(
+    uint8_t * apdu,
+    int32_t * value)
 {
     if (value) {
         /* negative - bit 7 is set */
@@ -159,31 +183,35 @@ int decode_signed24(uint8_t * apdu, int32_t * value)
             *value = 0xFF000000;
         else
             *value = 0;
-        *value |= ((int32_t)((((int32_t)apdu[0]) << 16) & 0x00ff0000));
-        *value |= ((int32_t)((((int32_t)apdu[1]) <<  8) & 0x0000ff00));
-        *value |= ((int32_t)(((int32_t)apdu[2]) & 0x000000ff));
+        *value |= ((int32_t) ((((int32_t) apdu[0]) << 16) & 0x00ff0000));
+        *value |= ((int32_t) ((((int32_t) apdu[1]) << 8) & 0x0000ff00));
+        *value |= ((int32_t) (((int32_t) apdu[2]) & 0x000000ff));
     }
 
     return 3;
 }
 
-int encode_signed32(uint8_t * apdu, int32_t value)
+int encode_signed32(
+    uint8_t * apdu,
+    int32_t value)
 {
-    apdu[0] = (uint8_t)((value & 0xff000000) >> 24);
-    apdu[1] = (uint8_t)((value & 0x00ff0000) >> 16);
-    apdu[2] = (uint8_t)((value & 0x0000ff00) >> 8);
-    apdu[3] = (uint8_t)(value & 0x000000ff);
+    apdu[0] = (uint8_t) ((value & 0xff000000) >> 24);
+    apdu[1] = (uint8_t) ((value & 0x00ff0000) >> 16);
+    apdu[2] = (uint8_t) ((value & 0x0000ff00) >> 8);
+    apdu[3] = (uint8_t) (value & 0x000000ff);
 
     return 4;
 }
 
-int decode_signed32(uint8_t * apdu, int32_t * value)
+int decode_signed32(
+    uint8_t * apdu,
+    int32_t * value)
 {
     if (value) {
-        *value = ((int32_t)((((int32_t)apdu[0]) << 24) & 0xff000000));
-        *value |= ((int32_t)((((int32_t)apdu[1]) << 16) & 0x00ff0000));
-        *value |= ((int32_t)((((int32_t)apdu[2]) << 8) & 0x0000ff00));
-        *value |= ((int32_t)(((int32_t)apdu[3]) & 0x000000ff));
+        *value = ((int32_t) ((((int32_t) apdu[0]) << 24) & 0xff000000));
+        *value |= ((int32_t) ((((int32_t) apdu[1]) << 16) & 0x00ff0000));
+        *value |= ((int32_t) ((((int32_t) apdu[2]) << 8) & 0x0000ff00));
+        *value |= ((int32_t) (((int32_t) apdu[3]) & 0x000000ff));
     }
 
     return 4;
@@ -196,13 +224,14 @@ int decode_signed32(uint8_t * apdu, int32_t * value)
 #include <ctype.h>
 #include "ctest.h"
 
-void testBACnetUnsigned16(Test * pTest)
+void testBACnetUnsigned16(
+    Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
     uint16_t value = 0, test_value = 0;
     int len = 0;
 
-    for (value = 0; ; value++) {
+    for (value = 0;; value++) {
         len = encode_unsigned16(&apdu[0], value);
         ct_test(pTest, len == 2);
         len = decode_unsigned16(&apdu[0], &test_value);
@@ -212,13 +241,14 @@ void testBACnetUnsigned16(Test * pTest)
     }
 }
 
-void testBACnetUnsigned24(Test * pTest)
+void testBACnetUnsigned24(
+    Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
     uint32_t value = 0, test_value = 0;
     int len = 0;
 
-    for (value = 0; ; value+=0xf) {
+    for (value = 0;; value += 0xf) {
         len = encode_unsigned24(&apdu[0], value);
         ct_test(pTest, len == 3);
         len = decode_unsigned24(&apdu[0], &test_value);
@@ -228,13 +258,14 @@ void testBACnetUnsigned24(Test * pTest)
     }
 }
 
-void testBACnetUnsigned32(Test * pTest)
+void testBACnetUnsigned32(
+    Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
     uint32_t value = 0, test_value = 0;
     int len = 0;
 
-    for (value = 0; ; value+=0xff) {
+    for (value = 0;; value += 0xff) {
         len = encode_unsigned32(&apdu[0], value);
         ct_test(pTest, len == 4);
         len = decode_unsigned32(&apdu[0], &test_value);
@@ -244,13 +275,14 @@ void testBACnetUnsigned32(Test * pTest)
     }
 }
 
-void testBACnetSigned8(Test * pTest)
+void testBACnetSigned8(
+    Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
     int len = 0;
 
-    for (value = -127; ; value++) {
+    for (value = -127;; value++) {
         len = encode_signed8(&apdu[0], value);
         ct_test(pTest, len == 1);
         len = decode_signed8(&apdu[0], &test_value);
@@ -260,13 +292,14 @@ void testBACnetSigned8(Test * pTest)
     }
 }
 
-void testBACnetSigned16(Test * pTest)
+void testBACnetSigned16(
+    Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
     int len = 0;
 
-    for (value = -32767; ; value++) {
+    for (value = -32767;; value++) {
         len = encode_signed16(&apdu[0], value);
         ct_test(pTest, len == 2);
         len = decode_signed16(&apdu[0], &test_value);
@@ -276,13 +309,14 @@ void testBACnetSigned16(Test * pTest)
     }
 }
 
-void testBACnetSigned24(Test * pTest)
+void testBACnetSigned24(
+    Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
     int len = 0;
 
-    for (value = -8388607; value <= 8388607; value+=15) {
+    for (value = -8388607; value <= 8388607; value += 15) {
         len = encode_signed24(&apdu[0], value);
         ct_test(pTest, len == 3);
         len = decode_signed24(&apdu[0], &test_value);
@@ -290,19 +324,20 @@ void testBACnetSigned24(Test * pTest)
     }
 }
 
-void testBACnetSigned32(Test * pTest)
+void testBACnetSigned32(
+    Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
     int len = 0;
 
-    for (value = -2147483647; value < 0; value+=127) {
+    for (value = -2147483647; value < 0; value += 127) {
         len = encode_signed32(&apdu[0], value);
         ct_test(pTest, len == 4);
         len = decode_signed32(&apdu[0], &test_value);
         ct_test(pTest, value == test_value);
     }
-    for (value = 2147483647; value > 0; value-=127) {
+    for (value = 2147483647; value > 0; value -= 127) {
         len = encode_signed32(&apdu[0], value);
         ct_test(pTest, len == 4);
         len = decode_signed32(&apdu[0], &test_value);
@@ -311,7 +346,8 @@ void testBACnetSigned32(Test * pTest)
 }
 
 #ifdef TEST_BACINT
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -340,5 +376,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_BACINT */
-#endif                          /* TEST */
+#endif /* TEST_BACINT */
+#endif /* TEST */

@@ -40,10 +40,11 @@
 #include <stddef.h>
 #include "sbuf.h"
 
-void sbuf_init(STATIC_BUFFER * b,       /* static buffer structure */
-    char *data,                 /* actual size, in bytes, of the data block or array of data */
+void sbuf_init(
+    STATIC_BUFFER * b,  /* static buffer structure */
+    char *data, /* actual size, in bytes, of the data block or array of data */
     unsigned size)
-{                               /* number of bytes used */
+{       /* number of bytes used */
     if (b) {
         b->data = data;
         b->size = size;
@@ -54,32 +55,37 @@ void sbuf_init(STATIC_BUFFER * b,       /* static buffer structure */
 }
 
 /* returns true if count==0, false if count > 0 */
-bool sbuf_empty(STATIC_BUFFER const *b)
+bool sbuf_empty(
+    STATIC_BUFFER const *b)
 {
     return (b ? (b->count == 0) : false);
 }
 
-char *sbuf_data(STATIC_BUFFER const *b)
+char *sbuf_data(
+    STATIC_BUFFER const *b)
 {
     return (b ? b->data : NULL);
 }
 
-unsigned sbuf_size(STATIC_BUFFER * b)
+unsigned sbuf_size(
+    STATIC_BUFFER * b)
 {
     return (b ? b->size : 0);
 }
 
-unsigned sbuf_count(STATIC_BUFFER * b)
+unsigned sbuf_count(
+    STATIC_BUFFER * b)
 {
     return (b ? b->count : 0);
 }
 
 /* returns true if successful, false if not enough room to append data */
-bool sbuf_put(STATIC_BUFFER * b,        /* static buffer structure */
-    unsigned offset,            /* where to start */
-    char *data,                 /* number of bytes used */
+bool sbuf_put(
+    STATIC_BUFFER * b,  /* static buffer structure */
+    unsigned offset,    /* where to start */
+    char *data, /* number of bytes used */
     unsigned data_size)
-{                               /* how many to add */
+{       /* how many to add */
     bool status = false;        /* return value */
 
     if (b && b->data) {
@@ -99,10 +105,11 @@ bool sbuf_put(STATIC_BUFFER * b,        /* static buffer structure */
 }
 
 /* returns true if successful, false if not enough room to append data */
-bool sbuf_append(STATIC_BUFFER * b,     /* static buffer structure */
-    char *data,                 /* number of bytes used */
+bool sbuf_append(
+    STATIC_BUFFER * b,  /* static buffer structure */
+    char *data, /* number of bytes used */
     unsigned data_size)
-{                               /* how many to add */
+{       /* how many to add */
     unsigned count = 0;
 
     if (b)
@@ -112,9 +119,10 @@ bool sbuf_append(STATIC_BUFFER * b,     /* static buffer structure */
 }
 
 /* returns true if successful, false if not enough room to append data */
-bool sbuf_truncate(STATIC_BUFFER * b,   /* static buffer structure */
+bool sbuf_truncate(
+    STATIC_BUFFER * b,  /* static buffer structure */
     unsigned count)
-{                               /* total number of bytes in use */
+{       /* total number of bytes in use */
     bool status = false;        /* return value */
 
     if (b) {
@@ -133,7 +141,8 @@ bool sbuf_truncate(STATIC_BUFFER * b,   /* static buffer structure */
 
 #include "ctest.h"
 
-void testStaticBuffer(Test * pTest)
+void testStaticBuffer(
+    Test * pTest)
 {
     STATIC_BUFFER sbuffer;
     char *data1 = "Joshua";
@@ -186,7 +195,8 @@ void testStaticBuffer(Test * pTest)
 }
 
 #ifdef TEST_STATIC_BUFFER
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -205,5 +215,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_STATIC_BUFFER */
-#endif                          /* TEST */
+#endif /* TEST_STATIC_BUFFER */
+#endif /* TEST */
