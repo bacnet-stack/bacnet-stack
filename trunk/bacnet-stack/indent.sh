@@ -5,9 +5,11 @@
 [ -x /usr/bin/indent ] || exit 0
 [ -x /usr/bin/dos2unix ] || exit 0
 
-if [ ! -x .indent.pro ] 
+INDENTRC=".indent.pro"
+if [ ! -x ${INDENTRC} ] 
 then
-  echo "-kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79" > .indent.pro
+  echo No ${INDENTRC} file found. Creating ${INDENTRC} file.
+  echo "-kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79 -nhnl" > ${INDENTRC}
 fi
 
 directory=${1-`pwd`}
