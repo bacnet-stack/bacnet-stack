@@ -7,7 +7,7 @@
 
 if [ ! -x .indent.pro ] 
 then
-  echo "-kr -nut -nlp -ip4 -cli4" > .indent.pro
+  echo "-kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79" > .indent.pro
 fi
 
 directory=${1-`pwd`}
