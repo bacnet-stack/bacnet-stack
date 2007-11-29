@@ -287,11 +287,15 @@ int cov_notify_decode_service_request(
 
 /*
 12.11.38Active_COV_Subscriptions
-The Active_COV_Subscriptions property is a List of BACnetCOVSubscription, each of which consists of a Recipient, a
-Monitored Property Reference, an Issue Confirmed Notifications flag, a Time Remaining value and an optional COV
-Increment. This property provides a network-visible indication of those COV subscriptions that are active at any given time.
-Whenever a COV Subscription is created with the SubscribeCOV or SubscribeCOVProperty service, a new entry is added to
-the Active_COV_Subscriptions list. Similarly, whenever a COV Subscription is terminated, the corresponding entry shall be
+The Active_COV_Subscriptions property is a List of BACnetCOVSubscription,
+each of which consists of a Recipient, a Monitored Property Reference,
+an Issue Confirmed Notifications flag, a Time Remaining value and an
+optional COV Increment. This property provides a network-visible indication
+of those COV subscriptions that are active at any given time.
+Whenever a COV Subscription is created with the SubscribeCOV or
+SubscribeCOVProperty service, a new entry is added to
+the Active_COV_Subscriptions list. Similarly, whenever a COV Subscription
+is terminated, the corresponding entry shall be
 removed from the Active_COV_Subscriptions list.
 */
 /*
