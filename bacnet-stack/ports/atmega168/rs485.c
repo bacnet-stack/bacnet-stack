@@ -70,10 +70,11 @@ static uint32_t RS485_Baud = 9600;
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Initialize(void)
+void RS485_Initialize(
+    void)
 {
     /* enable Transmit and Receive */
-    UCSR0B = _BV(TXEN0) | _BV(RXEN0); 
+    UCSR0B = _BV(TXEN0) | _BV(RXEN0);
 
     /* Set USART Control and Status Register n C */
     /* Asynchronous USART 8-bit data, No parity, 1 stop */
@@ -84,16 +85,16 @@ void RS485_Initialize(void)
     /* Clock Polarity: UCPOLn = 0 when asynchronous mode is used. */
     UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
     /* Clear Power Reduction USART0 */
-    BIT_CLEAR(PRR,PRUSART0);
+    BIT_CLEAR(PRR, PRUSART0);
     /* Use port PD2 for RTS - enable and disable of Transceiver Tx/Rx */
     /* Set port bit as Output - initially receiving */
-    BIT_CLEAR(PORTD,PD2);
-    BIT_SET(DDRD,DDD2);
+    BIT_CLEAR(PORTD, PD2);
+    BIT_SET(DDRD, DDD2);
     /* Configure Transmit and Receive LEDs - initially off */
-    BIT_SET(PORTD,PD6);
-    BIT_SET(PORTD,PD7);
-    BIT_SET(DDRD,DDD6);
-    BIT_SET(DDRD,DDD7);
+    BIT_SET(PORTD, PD6);
+    BIT_SET(PORTD, PD7);
+    BIT_SET(DDRD, DDD6);
+    BIT_SET(DDRD, DDD7);
 
     return;
 }
@@ -104,7 +105,8 @@ void RS485_Initialize(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(void)
+uint32_t RS485_Get_Baud_Rate(
+    void)
 {
     return RS485_Baud;
 }
@@ -115,7 +117,8 @@ uint32_t RS485_Get_Baud_Rate(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Set_Baud_Rate(uint32_t baud)
+bool RS485_Set_Baud_Rate(
+    uint32_t baud)
 {
     bool valid = true;
 
@@ -128,7 +131,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         case 115200:
             RS485_Baud = baud;
             /* 2x speed mode */
-            BIT_SET(UCSR0A,U2X0);
+            BIT_SET(UCSR0A, U2X0);
             /* configure baud rate */
             UBRR0 = (F_CPU / (8UL * RS485_Baud)) - 1;
             /* FIXME: store the baud rate */
@@ -147,14 +150,15 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Turnaround_Delay(void)
+void RS485_Turnaround_Delay(
+    void)
 {
     uint16_t turnaround_time;
-    
+
     /* delay after reception before trasmitting - per MS/TP spec */
     /* wait a minimum  40 bit times since reception */
     /* at least 1 ms for errors: rounding, clock tick */
-    turnaround_time = 1 + ((Tturnaround*1000UL)/RS485_Baud);
+    turnaround_time = 1 + ((Tturnaround * 1000UL) / RS485_Baud);
     while (Timer_Silence() < turnaround_time) {
         /* do nothing - wait for timer to increment */
     };
@@ -166,18 +170,19 @@ void RS485_Turnaround_Delay(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Transmitter_Enable(bool enable)
+void RS485_Transmitter_Enable(
+    bool enable)
 {
     if (enable) {
-        BIT_SET(PORTD,PD2);
+        BIT_SET(PORTD, PD2);
     } else {
-        #if Tpostdrive1
-        _delay_us(Tpostdrive1/RS485_Baud);
-        #endif
-        #if Tpostdrive2
-        _delay_us(Tpostdrive2/RS485_Baud);
-        #endif
-        BIT_CLEAR(PORTD,PD2);
+#if Tpostdrive1
+        _delay_us(Tpostdrive1 / RS485_Baud);
+#endif
+#if Tpostdrive2
+        _delay_us(Tpostdrive2 / RS485_Baud);
+#endif
+        BIT_CLEAR(PORTD, PD2);
     }
 }
 
@@ -187,18 +192,19 @@ void RS485_Transmitter_Enable(bool enable)
 * ALGORITHM:   none
 * NOTES:       expected to be called once a millisecond
 *****************************************************************************/
-void RS485_LED_Timers(void)
+void RS485_LED_Timers(
+    void)
 {
     if (LED1_Off_Timer) {
         LED1_Off_Timer--;
         if (LED1_Off_Timer == 0) {
-            BIT_SET(PORTD,PD6);
+            BIT_SET(PORTD, PD6);
         }
     }
     if (LED3_Off_Timer) {
         LED3_Off_Timer--;
         if (LED3_Off_Timer == 0) {
-            BIT_SET(PORTD,PD7);
+            BIT_SET(PORTD, PD7);
         }
     }
 }
@@ -209,9 +215,10 @@ void RS485_LED_Timers(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static void RS485_LED1_On(void)
+static void RS485_LED1_On(
+    void)
 {
-    BIT_CLEAR(PORTD,PD6);
+    BIT_CLEAR(PORTD, PD6);
     LED1_Off_Timer = 20;
 }
 
@@ -221,9 +228,10 @@ static void RS485_LED1_On(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static void RS485_LED3_On(void)
+static void RS485_LED3_On(
+    void)
 {
-    BIT_CLEAR(PORTD,PD7);
+    BIT_CLEAR(PORTD, PD7);
     LED3_Off_Timer = 20;
 }
 
@@ -234,27 +242,27 @@ static void RS485_LED3_On(void)
 * NOTES:       none
 *****************************************************************************/
 void RS485_Send_Data(
-    uint8_t * buffer,       /* data to send */
-    uint16_t nbytes)       /* number of bytes of data */
-{
+    uint8_t * buffer,   /* data to send */
+    uint16_t nbytes)
+{       /* number of bytes of data */
     RS485_LED3_On();
     while (nbytes) {
-        while (!BIT_CHECK(UCSR0A,UDRE0)) {
+        while (!BIT_CHECK(UCSR0A, UDRE0)) {
             /* do nothing - wait until Tx buffer is empty */
         }
         UDR0 = *buffer;
         buffer++;
         nbytes--;
     }
-    while (!BIT_CHECK(UCSR0A,UDRE0)) {
+    while (!BIT_CHECK(UCSR0A, UDRE0)) {
         /* do nothing - wait until Tx buffer is empty */
     }
     /* is the frame sent? */
-    while (!BIT_CHECK(UCSR0A,TXC0)) {
+    while (!BIT_CHECK(UCSR0A, TXC0)) {
         /* do nothing - wait until the entire frame in the 
            Transmit Shift Register has been shifted out */
     }
-    BIT_CLEAR(UCSR0A,TXC0);
+    BIT_CLEAR(UCSR0A, TXC0);
     /* per MSTP spec, sort of */
     Timer_Silence_Reset();
 }
@@ -266,31 +274,32 @@ void RS485_Send_Data(
 * ALGORITHM:   autobaud - if there are a lot of errors, switch baud rate
 * NOTES:       Clears any error flags.
 *****************************************************************************/
-bool RS485_ReceiveError(void)
+bool RS485_ReceiveError(
+    void)
 {
     bool ReceiveError = false;
     uint8_t dummy_data;
 
     /* check for framing error */
-    #if 0
-    if (BIT_CHECK(UCSR0A,FE0)) {
+#if 0
+    if (BIT_CHECK(UCSR0A, FE0)) {
         /* FIXME: how do I clear the error flags? */
-        BITMASK_CLEAR(UCSR0A,(_BV(FE0) | _BV(DOR0) | _BV(UPE0)));
+        BITMASK_CLEAR(UCSR0A, (_BV(FE0) | _BV(DOR0) | _BV(UPE0)));
         ReceiveError = true;
     }
-    #endif
+#endif
     /* check for overrun error */
-    if (BIT_CHECK(UCSR0A,DOR0)) {
+    if (BIT_CHECK(UCSR0A, DOR0)) {
         /* flush the receive buffer */
         do {
             dummy_data = UDR0;
-        } while (BIT_CHECK(UCSR0A,RXC0));
+        } while (BIT_CHECK(UCSR0A, RXC0));
         ReceiveError = true;
     }
     if (ReceiveError) {
         RS485_LED1_On();
     }
-    
+
     return ReceiveError;
 }
 
@@ -300,12 +309,13 @@ bool RS485_ReceiveError(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_DataAvailable(uint8_t *data)
+bool RS485_DataAvailable(
+    uint8_t * data)
 {
     bool DataAvailable = false;
 
     /* check for data */
-    if (BIT_CHECK(UCSR0A,RXC0)) {
+    if (BIT_CHECK(UCSR0A, RXC0)) {
         *data = UDR0;
         DataAvailable = true;
         RS485_LED1_On();
@@ -315,7 +325,8 @@ bool RS485_DataAvailable(uint8_t *data)
 }
 
 #ifdef TEST_RS485
-int main(void)
+int main(
+    void)
 {
     unsigned i = 0;
     uint8_t DataRegister;
@@ -325,11 +336,10 @@ int main(void)
     /* receive task */
     for (;;) {
         if (RS485_ReceiveError()) {
-            fprintf(stderr,"ERROR ");
+            fprintf(stderr, "ERROR ");
         } else if (RS485_DataAvailable(&DataRegister)) {
-            fprintf(stderr,"%02X ",DataRegister);
+            fprintf(stderr, "%02X ", DataRegister);
         }
     }
 }
-#endif                          /* TEST_RS485 */
-
+#endif /* TEST_RS485 */

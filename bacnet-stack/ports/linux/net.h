@@ -80,7 +80,7 @@
 #include <net/route.h>
 #include <net/if.h>
 #include <net/if_arp.h>
-#include <features.h>           /* for the glibc version number */
+#include <features.h>   /* for the glibc version number */
 #if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
 #include <netpacket/packet.h>
 #include <net/ethernet.h>       /* the L2 protocols */

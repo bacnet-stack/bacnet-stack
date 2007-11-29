@@ -39,11 +39,14 @@
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
 /* dummy function */
-bool dcc_communication_enabled(void) {
+bool dcc_communication_enabled(
+    void)
+{
     return true;
 }
 
-void init(void)
+void init(
+    void)
 {
     /* Initialize the Clock Prescaler for ATmega48/88/168 */
     /* The default CLKPSx bits are factory set to 0011 */
@@ -51,17 +54,17 @@ void init(void)
     CLKPR = _BV(CLKPCE);
     /* CLKPS3 CLKPS2 CLKPS1 CLKPS0 Clock Division Factor
        ------ ------ ------ ------ ---------------------
-          0      0      0      0             1
-          0      0      0      1             2
-          0      0      1      0             4
-          0      0      1      1             8
-          0      1      0      0            16
-          0      1      0      1            32
-          0      1      1      0            64
-          0      1      1      1           128
-          1      0      0      0           256
-          1      x      x      x      Reserved
-    */
+       0      0      0      0             1
+       0      0      0      1             2
+       0      0      1      0             4
+       0      0      1      1             8
+       0      1      0      0            16
+       0      1      0      1            32
+       0      1      1      0            64
+       0      1      1      1           128
+       1      0      0      0           256
+       1      x      x      x      Reserved
+     */
     /* Set the CLKPS3..0 bits to Prescaler of 1 */
     CLKPR = 0;
     /* Initialize I/O ports */
@@ -75,7 +78,7 @@ void init(void)
     PORTD = 0;
 
     /* Configure the watchdog timer - Disabled for testing */
-    BIT_CLEAR(MCUSR,WDRF);
+    BIT_CLEAR(MCUSR, WDRF);
     WDTCSR = 0;
 
     /* Configure USART */
@@ -85,11 +88,11 @@ void init(void)
     Timer_Initialize();
 
     /* Set the LED ports OFF */
-    BIT_SET(PORTD,PD4);
-    BIT_SET(PORTD,PD5);
+    BIT_SET(PORTD, PD4);
+    BIT_SET(PORTD, PD5);
     /* Configure the LED ports as outputs */
-    BIT_SET(DDRD,DDD4);
-    BIT_SET(DDRD,DDD5);
+    BIT_SET(DDRD, DDD4);
+    BIT_SET(DDRD, DDD5);
 
     /* Enable global interrupts */
     sei();
@@ -97,23 +100,26 @@ void init(void)
 
 static uint8_t NPDU_Timer;
 
-static void NDPU_Timers(void)
+static void NDPU_Timers(
+    void)
 {
     if (NPDU_Timer) {
         NPDU_Timer--;
         if (NPDU_Timer == 0) {
-            BIT_SET(PORTD,PD5);
+            BIT_SET(PORTD, PD5);
         }
     }
 }
 
-static void NPDU_LED_On(void)
+static void NPDU_LED_On(
+    void)
 {
-    BIT_CLEAR(PORTD,PD5);
+    BIT_CLEAR(PORTD, PD5);
     NPDU_Timer = 20;
 }
 
-void task_milliseconds(void)
+void task_milliseconds(
+    void)
 {
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
@@ -125,31 +131,33 @@ void task_milliseconds(void)
 
 static uint8_t Address_Switch;
 
-void input_switch_read(void)
+void input_switch_read(
+    void)
 {
     uint8_t value;
     static uint8_t old_value = 0;
 
-    value = BITMASK_CHECK(PINC,0x0F) | (BITMASK_CHECK(PINB,0x07)<<4);
+    value = BITMASK_CHECK(PINC, 0x0F) | (BITMASK_CHECK(PINB, 0x07) << 4);
     if (value != old_value) {
         old_value = value;
     } else {
         if (old_value != Address_Switch) {
-           Address_Switch = old_value;
+            Address_Switch = old_value;
 #if defined(BACDL_MSTP)
-           dlmstp_set_mac_address(Address_Switch);
+            dlmstp_set_mac_address(Address_Switch);
 #endif
-           Device_Set_Object_Instance_Number(86000 + Address_Switch);
+            Device_Set_Object_Instance_Number(86000 + Address_Switch);
         }
     }
 }
 
 static uint8_t PDUBuffer[MAX_MPDU];
-int main(void)
+int main(
+    void)
 {
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
-    
+
     init();
 #if defined(BACDL_MSTP)
     RS485_Set_Baud_Rate(38400);

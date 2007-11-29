@@ -42,7 +42,8 @@
 #include "ctest.h"
 
 /* test the encode and decode macros */
-void testKeys(Test * pTest)
+void testKeys(
+    Test * pTest)
 {
     int type, id;
     int decoded_type, decoded_id;
@@ -62,7 +63,8 @@ void testKeys(Test * pTest)
 }
 
 /* test the encode and decode macros */
-void testKeySample(Test * pTest)
+void testKeySample(
+    Test * pTest)
 {
     int type, id;
     int type_list[] = { 0, 1, KEY_TYPE_MAX / 2, KEY_TYPE_MAX - 1, -1 };
@@ -92,7 +94,8 @@ void testKeySample(Test * pTest)
 }
 
 #ifdef TEST_KEY
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -112,5 +115,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* LOCAL_TEST */
+#endif /* LOCAL_TEST */
 #endif

@@ -69,16 +69,16 @@
 #elif defined(BACDL_BIP)
 #include "bip.h"
 #ifdef BBMD_ENABLED
-    #include "bvlc.h"
+#include "bvlc.h"
 #endif
 
 #define datalink_init bip_init
 #ifdef BBMD_ENABLED
-    #define datalink_send_pdu bvlc_send_pdu
-    #define datalink_receive bvlc_receive
+#define datalink_send_pdu bvlc_send_pdu
+#define datalink_receive bvlc_receive
 #else
-    #define datalink_send_pdu bip_send_pdu
-    #define datalink_receive bip_receive
+#define datalink_send_pdu bip_send_pdu
+#define datalink_receive bip_receive
 #endif
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
@@ -87,14 +87,24 @@
 #else
 #include "npdu.h"
 
-extern int datalink_send_pdu(BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data, uint8_t * pdu, unsigned pdu_len);
-extern uint16_t datalink_receive(BACNET_ADDRESS * src,
-    uint8_t * pdu, uint16_t max_pdu, unsigned timeout);
-extern void datalink_cleanup(void);
-extern void datalink_get_broadcast_address(BACNET_ADDRESS * dest);
-extern void datalink_get_my_address(BACNET_ADDRESS * my_address);
-extern void datalink_set_interface(char *ifname);
+extern int datalink_send_pdu(
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data,
+    uint8_t * pdu,
+    unsigned pdu_len);
+extern uint16_t datalink_receive(
+    BACNET_ADDRESS * src,
+    uint8_t * pdu,
+    uint16_t max_pdu,
+    unsigned timeout);
+extern void datalink_cleanup(
+    void);
+extern void datalink_get_broadcast_address(
+    BACNET_ADDRESS * dest);
+extern void datalink_get_my_address(
+    BACNET_ADDRESS * my_address);
+extern void datalink_set_interface(
+    char *ifname);
 
 #endif
 

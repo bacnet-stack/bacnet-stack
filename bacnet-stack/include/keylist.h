@@ -42,52 +42,71 @@
 
 /* list data and datatype */
 struct Keylist_Node {
-    KEY key;                    /* unique number that is sorted in the list */
-    void *data;                 /* pointer to some data that is stored */
+    KEY key;    /* unique number that is sorted in the list */
+    void *data; /* pointer to some data that is stored */
 };
 
 typedef struct Keylist {
     struct Keylist_Node **array;        /* array of nodes */
-    int count;                  /* number of nodes in this list - more effecient than loop */
-    int size;                   /* number of available nodes on this list - can grow or shrink */
+    int count;  /* number of nodes in this list - more effecient than loop */
+    int size;   /* number of available nodes on this list - can grow or shrink */
 } KEYLIST_TYPE;
 typedef KEYLIST_TYPE *OS_Keylist;
 
 /* returns head of the list or NULL on failure. */
-OS_Keylist Keylist_Create(void);
+OS_Keylist Keylist_Create(
+    void);
 
 /* delete specified list */
 /* note: you should pop all the nodes off the list first. */
-void Keylist_Delete(OS_Keylist list);
+void Keylist_Delete(
+    OS_Keylist list);
 
 /* inserts a node into its sorted position */
 /* returns the index where it was added */
-int Keylist_Data_Add(OS_Keylist list, KEY key, void *data);
+int Keylist_Data_Add(
+    OS_Keylist list,
+    KEY key,
+    void *data);
 
 /* deletes a node specified by its key */
 /* returns the data from the node */
-void *Keylist_Data_Delete(OS_Keylist list, KEY key);
+void *Keylist_Data_Delete(
+    OS_Keylist list,
+    KEY key);
 
 /* deletes a node specified by its index */
 /* returns the data from the node */
-void *Keylist_Data_Delete_By_Index(OS_Keylist list, int index);
+void *Keylist_Data_Delete_By_Index(
+    OS_Keylist list,
+    int index);
 
 /* returns the data from last node, and removes it from the list */
-void *Keylist_Data_Pop(OS_Keylist list);
+void *Keylist_Data_Pop(
+    OS_Keylist list);
 
 /* returns the data from the node specified by key */
-void *Keylist_Data(OS_Keylist list, KEY key);
+void *Keylist_Data(
+    OS_Keylist list,
+    KEY key);
 
 /* returns the data specified by key */
-void *Keylist_Data_Index(OS_Keylist list, int index);
+void *Keylist_Data_Index(
+    OS_Keylist list,
+    int index);
 
 /* return the key at the given index */
-KEY Keylist_Key(OS_Keylist list, int index);
+KEY Keylist_Key(
+    OS_Keylist list,
+    int index);
 
 /* returns the next empty key from the list */
-KEY Keylist_Next_Empty_Key(OS_Keylist list, KEY key);
+KEY Keylist_Next_Empty_Key(
+    OS_Keylist list,
+    KEY key);
 
 /* returns the number of items in the list */
-int Keylist_Count(OS_Keylist list);
+int Keylist_Count(
+    OS_Keylist list);
 
 #endif

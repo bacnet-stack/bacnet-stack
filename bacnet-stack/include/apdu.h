@@ -60,7 +60,7 @@ typedef struct _confirmed_service_ack_data {
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
 /* generic unconfirmed function handler */
 /* Suitable to handle the following services: */
@@ -68,8 +68,11 @@ extern "C" {
 /* Unconfirmed_Event_Notification, Unconfirmed_Private_Transfer, */
 /* Unconfirmed_Text_Message, Time_Synchronization, Who_Has, */
 /* UTC_Time_Synchronization */
-    typedef void (*unconfirmed_function) (uint8_t * service_request,
-        uint16_t len, BACNET_ADDRESS * src);
+    typedef void (
+        *unconfirmed_function) (
+        uint8_t * service_request,
+        uint16_t len,
+        BACNET_ADDRESS * src);
 
 /* generic confirmed function handler */
 /* Suitable to handle the following services: */
@@ -87,72 +90,98 @@ extern "C" {
 /* Confirmed_Text_Message, Reinitialize_Device, */
 /* VT_Open, VT_Close, VT_Data_Handler, */
 /* Authenticate, Request_Key */
-    typedef void (*confirmed_function) (uint8_t * service_request,
+    typedef void (
+        *confirmed_function) (
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
 /* generic confirmed simple ack function handler */
-    typedef void (*confirmed_simple_ack_function) (BACNET_ADDRESS * src,
+    typedef void (
+        *confirmed_simple_ack_function) (
+        BACNET_ADDRESS * src,
         uint8_t invoke_id);
 
 /* generic confirmed ack function handler */
-    typedef void (*confirmed_ack_function) (uint8_t * service_request,
+    typedef void (
+        *confirmed_ack_function) (
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
 /* generic error reply function */
-    typedef void (*error_function) (BACNET_ADDRESS * src,
+    typedef void (
+        *error_function) (
+        BACNET_ADDRESS * src,
         uint8_t invoke_id,
-        BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code);
+        BACNET_ERROR_CLASS error_class,
+        BACNET_ERROR_CODE error_code);
 
 /* generic abort reply function */
-    typedef void (*abort_function) (BACNET_ADDRESS * src,
-        uint8_t invoke_id, uint8_t abort_reason, bool server);
+    typedef void (
+        *abort_function) (
+        BACNET_ADDRESS * src,
+        uint8_t invoke_id,
+        uint8_t abort_reason,
+        bool server);
 
 /* generic reject reply function */
-    typedef void (*reject_function) (BACNET_ADDRESS * src,
-        uint8_t invoke_id, uint8_t reject_reason);
+    typedef void (
+        *reject_function) (
+        BACNET_ADDRESS * src,
+        uint8_t invoke_id,
+        uint8_t reject_reason);
 
-    void apdu_set_confirmed_ack_handler(BACNET_CONFIRMED_SERVICE
-        service_choice, confirmed_ack_function pFunction);
+    void apdu_set_confirmed_ack_handler(
+        BACNET_CONFIRMED_SERVICE service_choice,
+        confirmed_ack_function pFunction);
 
-    void apdu_set_confirmed_simple_ack_handler(BACNET_CONFIRMED_SERVICE
-        service_choice, confirmed_simple_ack_function pFunction);
+    void apdu_set_confirmed_simple_ack_handler(
+        BACNET_CONFIRMED_SERVICE service_choice,
+        confirmed_simple_ack_function pFunction);
 
 /* configure reject for confirmed services that are not supported */
-    void apdu_set_unrecognized_service_handler_handler(confirmed_function
-        pFunction);
+    void apdu_set_unrecognized_service_handler_handler(
+        confirmed_function pFunction);
 
-    void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE
-        service_choice, confirmed_function pFunction);
+    void apdu_set_confirmed_handler(
+        BACNET_CONFIRMED_SERVICE service_choice,
+        confirmed_function pFunction);
 
-    void apdu_set_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE
-        service_choice, unconfirmed_function pFunction);
+    void apdu_set_unconfirmed_handler(
+        BACNET_UNCONFIRMED_SERVICE service_choice,
+        unconfirmed_function pFunction);
 
 /* returns true if the service is supported by a handler */
-    bool apdu_service_supported(BACNET_SERVICES_SUPPORTED
-        service_supported);
+    bool apdu_service_supported(
+        BACNET_SERVICES_SUPPORTED service_supported);
 
-    void apdu_set_error_handler(BACNET_CONFIRMED_SERVICE service_choice,
+    void apdu_set_error_handler(
+        BACNET_CONFIRMED_SERVICE service_choice,
         error_function pFunction);
 
-    void apdu_set_abort_handler(abort_function pFunction);
+    void apdu_set_abort_handler(
+        abort_function pFunction);
 
-    void apdu_set_reject_handler(reject_function pFunction);
+    void apdu_set_reject_handler(
+        reject_function pFunction);
 
-    uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,      /* APDU data */
+    uint16_t apdu_decode_confirmed_service_request(
+        uint8_t * apdu, /* APDU data */
         uint16_t apdu_len,
         BACNET_CONFIRMED_SERVICE_DATA * service_data,
         uint8_t * service_choice,
-        uint8_t ** service_request, uint16_t * service_request_len);
+        uint8_t ** service_request,
+        uint16_t * service_request_len);
 
-    void apdu_handler(BACNET_ADDRESS * src,     /* source address */
-        uint8_t * apdu,         /* APDU data */
+    void apdu_handler(
+        BACNET_ADDRESS * src,   /* source address */
+        uint8_t * apdu, /* APDU data */
         uint16_t pdu_len);      /* for confirmed messages */
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

@@ -41,17 +41,20 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    void RS485_Initialize(void);
+    void RS485_Initialize(
+        void);
 
-    void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,        /* port specific data */
+    void RS485_Send_Frame(
+        volatile struct mstp_port_struct_t *mstp_port,  /* port specific data */
         uint8_t * buffer,       /* frame to send (up to 501 bytes of data) */
         uint16_t nbytes);       /* number of bytes of data (up to 501) */
 
-    void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port);  /* port specific data */
+    void RS485_Check_UART_Data(
+        volatile struct mstp_port_struct_t *mstp_port); /* port specific data */
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

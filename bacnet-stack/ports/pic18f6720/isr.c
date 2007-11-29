@@ -31,30 +31,42 @@
 /* from main.c */
 extern volatile uint8_t Milliseconds;
 
-void InterruptHandlerHigh(void);
-void InterruptHandlerLow(void);
-void Interrupt_Timer2(void);
-void Interrupt_Timer3(void);
-void Interrupt_Timer4(void);
-void Interrupt_USART_Rx(void);
-void Interrupt_USART_Tx(void);
-void Interrupt_CCP2(void);
-void INT0_Interrupt(void);
+void InterruptHandlerHigh(
+    void);
+void InterruptHandlerLow(
+    void);
+void Interrupt_Timer2(
+    void);
+void Interrupt_Timer3(
+    void);
+void Interrupt_Timer4(
+    void);
+void Interrupt_USART_Rx(
+    void);
+void Interrupt_USART_Tx(
+    void);
+void Interrupt_CCP2(
+    void);
+void INT0_Interrupt(
+    void);
 
 #pragma code InterruptVectorHigh = 0x08
-void InterruptVectorHigh(void)
+void InterruptVectorHigh(
+    void)
 {
     /* jump to interrupt routine */
 _asm goto InterruptHandlerHigh _endasm}
 #pragma code
 #pragma code InterruptVectorLow = 0x18
-void InterruptVectorLow(void)
+void InterruptVectorLow(
+    void)
 {
     /* jump to interrupt routine */
 _asm goto InterruptHandlerLow _endasm}
 #pragma code
 #pragma interrupt InterruptHandlerHigh
-void InterruptHandlerHigh(void)
+void InterruptHandlerHigh(
+    void)
 {
 #if 0
     /* check for USART Rx int */
@@ -84,7 +96,8 @@ void InterruptHandlerHigh(void)
 #pragma interruptlow InterruptHandlerLow save = PROD, section(".tmpdata"), TABLAT, TBLPTR, section \
     ("MATH_DATA")
 
-void InterruptHandlerLow(void)
+void InterruptHandlerLow(
+    void)
 {
     /* check for timer2 int */
     if ((PIR1bits.TMR2IF) && (PIE1bits.TMR2IE)) {
@@ -168,23 +181,27 @@ void InterruptHandlerLow(void)
 */
 }
 
-void Interrupt_Timer2(void)
+void Interrupt_Timer2(
+    void)
 {
 }
 
-void Interrupt_Timer3(void)
+void Interrupt_Timer3(
+    void)
 {
 }
 
 /* Timer4 is set to go off every 1ms. This is our system tick */
-void Interrupt_Timer4(void)
+void Interrupt_Timer4(
+    void)
 {
     /* Milisecond is our system tick */
     if (Milliseconds < 0xFF)
         ++Milliseconds;
 }
 
-void Interrupt_CCP2(void)
+void Interrupt_CCP2(
+    void)
 {
 
 }

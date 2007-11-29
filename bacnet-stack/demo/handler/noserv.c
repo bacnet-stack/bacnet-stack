@@ -34,9 +34,11 @@
 #include "npdu.h"
 #include "reject.h"
 
-void handler_unrecognized_service(uint8_t * service_request,
+void handler_unrecognized_service(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     int len = 0;
     int pdu_len = 0;

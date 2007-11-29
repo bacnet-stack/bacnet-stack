@@ -39,12 +39,14 @@
 #include "timesync.h"
 
 /* encode service */
-int timesync_encode_apdu_service(uint8_t * apdu,
+int timesync_encode_apdu_service(
+    uint8_t * apdu,
     BACNET_UNCONFIRMED_SERVICE service,
-    BACNET_DATE * my_date, BACNET_TIME * my_time)
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu && my_date && my_time) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
@@ -59,23 +61,30 @@ int timesync_encode_apdu_service(uint8_t * apdu,
     return apdu_len;
 }
 
-int timesync_utc_encode_apdu(uint8_t * apdu,
-    BACNET_DATE * my_date, BACNET_TIME * my_time)
+int timesync_utc_encode_apdu(
+    uint8_t * apdu,
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
     return timesync_encode_apdu_service(apdu,
         SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, my_date, my_time);
 }
 
-int timesync_encode_apdu(uint8_t * apdu,
-    BACNET_DATE * my_date, BACNET_TIME * my_time)
+int timesync_encode_apdu(
+    uint8_t * apdu,
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
     return timesync_encode_apdu_service(apdu,
         SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, my_date, my_time);
 }
 
 /* decode the service request only */
-int timesync_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_DATE * my_date, BACNET_TIME * my_time)
+int timesync_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -84,16 +93,14 @@ int timesync_decode_service_request(uint8_t * apdu,
     if (apdu_len && my_date && my_time) {
         /* date */
         len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value);
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_DATE) {
             len += decode_date(&apdu[len], my_date);
         } else
             return -1;
         /* time */
         len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value);
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_TIME) {
             len += decode_bacnet_time(&apdu[len], my_time);
         } else
@@ -108,9 +115,12 @@ int timesync_decode_service_request(uint8_t * apdu,
 #include <string.h>
 #include "ctest.h"
 
-int timesync_decode_apdu_service(uint8_t * apdu,
+int timesync_decode_apdu_service(
+    uint8_t * apdu,
     BACNET_UNCONFIRMED_SERVICE service,
-    unsigned apdu_len, BACNET_DATE * my_date, BACNET_TIME * my_time)
+    unsigned apdu_len,
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
     int len = 0;
 
@@ -130,24 +140,31 @@ int timesync_decode_apdu_service(uint8_t * apdu,
     return len;
 }
 
-int timesync_utc_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, BACNET_DATE * my_date, BACNET_TIME * my_time)
+int timesync_utc_decode_apdu(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
     return timesync_decode_apdu_service(apdu,
         SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
         apdu_len, my_date, my_time);
 }
 
-int timesync_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, BACNET_DATE * my_date, BACNET_TIME * my_time)
+int timesync_decode_apdu(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
     return timesync_decode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        apdu_len, my_date, my_time);
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, apdu_len, my_date, my_time);
 }
 
-void testTimeSyncData(Test * pTest,
-    BACNET_DATE * my_date, BACNET_TIME * my_time)
+void testTimeSyncData(
+    Test * pTest,
+    BACNET_DATE * my_date,
+    BACNET_TIME * my_time)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -166,23 +183,22 @@ void testTimeSyncData(Test * pTest,
     len = timesync_utc_encode_apdu(&apdu[0], my_date, my_time);
     ct_test(pTest, len != 0);
     apdu_len = len;
-    len =
-        timesync_utc_decode_apdu(&apdu[0], apdu_len, &test_date,
-        &test_time);
+    len = timesync_utc_decode_apdu(&apdu[0], apdu_len, &test_date, &test_time);
     ct_test(pTest, len != -1);
     ct_test(pTest, datetime_compare_time(my_time, &test_time) == 0);
     ct_test(pTest, datetime_compare_date(my_date, &test_date) == 0);
 }
 
-void testTimeSync(Test * pTest)
+void testTimeSync(
+    Test * pTest)
 {
     BACNET_DATE bdate;
     BACNET_TIME btime;
 
-    bdate.year = 2006;          /* AD */
-    bdate.month = 4;            /* 1=Jan */
-    bdate.day = 11;             /* 1..31 */
-    bdate.wday = 1;             /* 1=Monday */
+    bdate.year = 2006;  /* AD */
+    bdate.month = 4;    /* 1=Jan */
+    bdate.day = 11;     /* 1..31 */
+    bdate.wday = 1;     /* 1=Monday */
 
     btime.hour = 7;
     btime.min = 0;
@@ -193,7 +209,8 @@ void testTimeSync(Test * pTest)
 }
 
 #ifdef TEST_TIMESYNC
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -210,5 +227,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_WHOIS */
-#endif                          /* TEST */
+#endif /* TEST_WHOIS */
+#endif /* TEST */

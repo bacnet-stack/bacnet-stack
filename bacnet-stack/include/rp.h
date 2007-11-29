@@ -48,37 +48,52 @@ typedef struct BACnet_Read_Property_Data {
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
 /* encode service */
-    int rp_encode_apdu(uint8_t * apdu,
-        uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * rpdata);
+    int rp_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
 /* decode the service request only */
-    int rp_decode_service_request(uint8_t * apdu,
-        unsigned apdu_len, BACNET_READ_PROPERTY_DATA * rpdata);
+    int rp_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
-    int rp_ack_encode_apdu(uint8_t * apdu,
-        uint8_t invoke_id, BACNET_READ_PROPERTY_DATA * rpdata);
+    int rp_ack_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
-    int rp_ack_decode_service_request(uint8_t * apdu, int apdu_len,     /* total length of the apdu */
+    int rp_ack_decode_service_request(
+        uint8_t * apdu,
+        int apdu_len,   /* total length of the apdu */
         BACNET_READ_PROPERTY_DATA * rpdata);
 
 
 #ifdef TEST
 #include "ctest.h"
-    int rp_decode_apdu(uint8_t * apdu,
+    int rp_decode_apdu(
+        uint8_t * apdu,
         unsigned apdu_len,
-        uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * rpdata);
+        uint8_t * invoke_id,
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
-    int rp_ack_decode_apdu(uint8_t * apdu, int apdu_len,        /* total length of the apdu */
-        uint8_t * invoke_id, BACNET_READ_PROPERTY_DATA * rpdata);
+    int rp_ack_decode_apdu(
+        uint8_t * apdu,
+        int apdu_len,   /* total length of the apdu */
+        uint8_t * invoke_id,
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
-    void test_ReadProperty(Test * pTest);
-    void test_ReadPropertyAck(Test * pTest);
+    void test_ReadProperty(
+        Test * pTest);
+    void test_ReadPropertyAck(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

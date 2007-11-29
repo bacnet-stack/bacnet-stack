@@ -33,33 +33,41 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
     void Life_Safety_Point_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
-    bool Life_Safety_Point_Valid_Instance(uint32_t object_instance);
-    unsigned Life_Safety_Point_Count(void);
-    uint32_t Life_Safety_Point_Index_To_Instance(unsigned index);
-    char *Life_Safety_Point_Name(uint32_t object_instance);
+    bool Life_Safety_Point_Valid_Instance(
+        uint32_t object_instance);
+    unsigned Life_Safety_Point_Count(
+        void);
+    uint32_t Life_Safety_Point_Index_To_Instance(
+        unsigned index);
+    char *Life_Safety_Point_Name(
+        uint32_t object_instance);
 
-    int Life_Safety_Point_Encode_Property_APDU(uint8_t * apdu,
+    int Life_Safety_Point_Encode_Property_APDU(
+        uint8_t * apdu,
         uint32_t object_instance,
         BACNET_PROPERTY_ID property,
         int32_t array_index,
-        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
-    bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *
-        wp_data, BACNET_ERROR_CLASS * error_class,
+    bool Life_Safety_Point_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
 #ifdef TEST
 #include "ctest.h"
-    void testLifeSafetyPoint(Test * pTest);
+    void testLifeSafetyPoint(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

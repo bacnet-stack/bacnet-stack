@@ -58,23 +58,27 @@ static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-static uint16_t Timer_Silence(void)
+static uint16_t Timer_Silence(
+    void)
 {
     return SilenceTime;
 }
-static void Timer_Silence_Reset(void)
+static void Timer_Silence_Reset(
+    void)
 {
     SilenceTime = 0;
 }
 
-static void dlmstp_millisecond_timer(void)
+static void dlmstp_millisecond_timer(
+    void)
 {
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
-    
-void *milliseconds_task(void *pArg)
+
+void *milliseconds_task(
+    void *pArg)
 {
-    struct timespec timeOut,remains;
+    struct timespec timeOut, remains;
 
     timeOut.tv_sec = 0;
     timeOut.tv_nsec = 10000000; /* 1 milliseconds */
@@ -89,35 +93,36 @@ void *milliseconds_task(void *pArg)
 
 /* functions used by the MS/TP state machine to put or get data */
 uint16_t MSTP_Put_Receive(
-    volatile struct mstp_port_struct_t *mstp_port)
+    volatile struct mstp_port_struct_t * mstp_port)
 {
-    (void)mstp_port;
-    
+    (void) mstp_port;
+
     return 0;
 }
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port,
-    unsigned timeout) /* milliseconds to wait for a packet */
-{
-    (void)mstp_port;
-    (void)timeout;
+    volatile struct mstp_port_struct_t * mstp_port,
+    unsigned timeout)
+{       /* milliseconds to wait for a packet */
+    (void) mstp_port;
+    (void) timeout;
     return 0;
 }
 
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port,
-    unsigned timeout) /* milliseconds to wait for a packet */
-{
-    (void)mstp_port;
-    (void)timeout;
+    volatile struct mstp_port_struct_t * mstp_port,
+    unsigned timeout)
+{       /* milliseconds to wait for a packet */
+    (void) mstp_port;
+    (void) timeout;
     return 0;
 }
 
 /* returns a delta timestamp */
-int timestamp_ms(void)
+int timestamp_ms(
+    void)
 {
     struct timeval tv;
     int delta_ticks = 0;
@@ -125,7 +130,7 @@ int timestamp_ms(void)
     static long last_ticks = 0;
     int rv = 0;
 
-    rv = gettimeofday(&tv,NULL);
+    rv = gettimeofday(&tv, NULL);
     if (rv == -1)
         ticks = 0;
     else
@@ -144,7 +149,7 @@ static void print_received_packet(
     int timestamp = 0;
 
     timestamp = timestamp_ms();
-    fprintf(stderr,"%03d ",timestamp);
+    fprintf(stderr, "%03d ", timestamp);
     /* Preamble: two octet preamble: X`55', X`FF' */
     /* Frame Type: one octet */
     /* Destination Address: one octet address */
@@ -161,25 +166,23 @@ static void print_received_packet(
         mstp_port->DestinationAddress,
         mstp_port->SourceAddress,
         HI_BYTE(mstp_port->DataLength),
-        LO_BYTE(mstp_port->DataLength),
-        mstp_port->HeaderCRCActual);
+        LO_BYTE(mstp_port->DataLength), mstp_port->HeaderCRCActual);
     if (mstp_port->DataLength) {
         for (i = 0; i < mstp_port->DataLength; i++) {
-            fprintf(stderr,"%02X ",
-                    mstp_port->InputBuffer[i]);
+            fprintf(stderr, "%02X ", mstp_port->InputBuffer[i]);
         }
         fprintf(stderr,
-                "%02X %02X ",
-                mstp_port->DataCRCActualMSB,
-                mstp_port->DataCRCActualLSB);
+            "%02X %02X ",
+            mstp_port->DataCRCActualMSB, mstp_port->DataCRCActualLSB);
     }
-    fprintf(stderr,"%s",
-        mstptext_frame_type(mstp_port->FrameType));
-    fprintf(stderr,"\n");
+    fprintf(stderr, "%s", mstptext_frame_type(mstp_port->FrameType));
+    fprintf(stderr, "\n");
 }
 
 /* simple test to packetize the data and print it */
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
     int rc = 0;
@@ -195,7 +198,7 @@ int main(int argc, char *argv[])
     if (argc > 2) {
         my_mac = strtol(argv[2], NULL, 0);
         if (my_mac > 127)
-           my_mac = 127;
+            my_mac = 127;
     }
     RS485_Set_Baud_Rate(38400);
     RS485_Initialize();
@@ -229,4 +232,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-

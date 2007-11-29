@@ -16,4 +16,4 @@ typedef signed long int32_t;    /* 4 bytes -2147483647 to 2147483647 */
 /* typedef signed long long   int64_t; */
 /* typedef unsigned long long uint64_t; */
 
-#endif                          /* STDINT_H */
+#endif /* STDINT_H */

@@ -279,12 +279,12 @@ typedef enum {
     PROP_RAMP_RATE = 241,
     PROP_STEP_INCREMENT = 242,
     PROP_SYSTEM_FAILURE_VALUE = 243
-    /* The special property identifiers all, optional, and required  */
-    /* are reserved for use in the ReadPropertyConditional and */
-    /* ReadPropertyMultiple services or services not defined in this standard. */
-    /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 512-4194303 may be used by others subject to the  */
-    /* procedures and constraints described in Clause 23.  */
+        /* The special property identifiers all, optional, and required  */
+        /* are reserved for use in the ReadPropertyConditional and */
+        /* ReadPropertyMultiple services or services not defined in this standard. */
+        /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 512-4194303 may be used by others subject to the  */
+        /* procedures and constraints described in Clause 23.  */
 } BACNET_PROPERTY_ID;
 #define MAX_BACNET_PROPERTY_ID 4194303
 
@@ -294,11 +294,11 @@ typedef enum {
 } BACNET_ACTION;
 
 typedef enum {
-    MIN_BINARY_PV = 0,          /* for validating incoming values */
+    MIN_BINARY_PV = 0,  /* for validating incoming values */
     BINARY_INACTIVE = 0,
     BINARY_ACTIVE = 1,
-    MAX_BINARY_PV = 1,          /* for validating incoming values */
-    BINARY_NULL = 2             /* our homemade way of storing this info */
+    MAX_BINARY_PV = 1,  /* for validating incoming values */
+    BINARY_NULL = 2     /* our homemade way of storing this info */
 } BACNET_BINARY_PV;
 
 typedef enum {
@@ -538,10 +538,10 @@ typedef enum {
     UNITS_SQUARE_METERS_PER_NEWTON = 185,
     UNITS_WATTS_PER_METER_PER_DEGREE_KELVIN = 189,
     UNITS_WATTS_PER_SQUARE_METER_DEGREE_KELVIN = 141
-    /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
-    /* Enumerated values 256-65535 may be used by others subject to */
-    /* the procedures and constraints described in Clause 23. */
-    /* The last enumeration used in this version is 189. */
+        /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
+        /* Enumerated values 256-65535 may be used by others subject to */
+        /* the procedures and constraints described in Clause 23. */
+        /* The last enumeration used in this version is 189. */
 } BACNET_ENGINEERING_UNITS;
 
 typedef enum {
@@ -573,9 +573,9 @@ typedef enum {
     PROGRAM_ERROR_INTERNAL = 2,
     PROGRAM_ERROR_PROGRAM = 3,
     PROGRAM_ERROR_OTHER = 4
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 64-65535 may be used by others subject to  */
-    /* the procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* the procedures and constraints described in Clause 23. */
 } BACNET_PROGRAM_ERROR;
 
 typedef enum {
@@ -592,9 +592,9 @@ typedef enum {
     RELIABILITY_CONFIGURATION_ERROR = 10,
     RELIABILITY_COMMUNICATION_FAILURE = 12,
     RELIABILITY_TRIPPED = 13
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 64-65535 may be used by others subject to  */
-    /* the procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* the procedures and constraints described in Clause 23. */
 } BACNET_RELIABILITY;
 
 typedef enum {
@@ -610,13 +610,13 @@ typedef enum {
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
     EVENT_UNSIGNED_RANGE = 11
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 64-65535 may be used by others subject to  */
-    /* the procedures and constraints described in Clause 23.  */
-    /* It is expected that these enumerated values will correspond to  */
-    /* the use of the complex-event-type CHOICE [6] of the  */
-    /* BACnetNotificationParameters production. */
-    /* The last enumeration used in this version is 11. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 64-65535 may be used by others subject to  */
+        /* the procedures and constraints described in Clause 23.  */
+        /* It is expected that these enumerated values will correspond to  */
+        /* the use of the complex-event-type CHOICE [6] of the  */
+        /* BACnetNotificationParameters production. */
+        /* The last enumeration used in this version is 11. */
 } BACNET_EVENT_TYPE;
 
 typedef enum {
@@ -643,9 +643,9 @@ typedef enum {
     LIFE_SAFETY_MODE_AUTOMATIC_RELEASE_DISABLED = 13,
     LIFE_SAFETY_MODE_DEFAULT = 14,
     MAX_LIFE_SAFETY_MODE = 14
-    /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 256-65535 may be used by others subject to  */
-    /* procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 256-65535 may be used by others subject to  */
+        /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_MODE;
 
 typedef enum {
@@ -691,9 +691,9 @@ typedef enum {
     LIFE_SAFETY_STATE_SUPERVISORY = 22,
     LIFE_SAFETY_STATE_TEST_SUPERVISORY = 23,
     MAX_LIFE_SAFETY_STATE = 0
-    /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 256-65535 may be used by others subject to  */
-    /* procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 256-65535 may be used by others subject to  */
+        /* procedures and constraints described in Clause 23. */
 } BACNET_LIFE_SAFETY_STATE;
 
 typedef enum {
@@ -1035,8 +1035,8 @@ typedef enum {
     NETWORK_MESSAGE_INITIALIZE_ROUTING_TABLE_ACK = 7,
     NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK = 8,
     NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK = 9,
-        /* X'0A' to X'7F': Reserved for use by ASHRAE, */
-        /* X'80' to X'FF': Available for vendor proprietary messages */
+    /* X'0A' to X'7F': Reserved for use by ASHRAE, */
+    /* X'80' to X'FF': Available for vendor proprietary messages */
     NETWORK_MESSAGE_INVALID = 0x100
 } BACNET_NETWORK_MESSAGE_TYPE;
 
@@ -1221,21 +1221,21 @@ typedef enum BACnetShedState {
 } BACNET_SHED_STATE;
 
 typedef enum BACnetLightingOperation {
-   BACNET_LIGHTS_STOP = 0,
-   BACNET_LIGHTS_FADE_TO = 1,
-   BACNET_LIGHTS_FADE_TO_OVER = 2,
-   BACNET_LIGHTS_RAMP_TO = 3,
-   BACNET_LIGHTS_RAMP_TO_AT_RATE = 4,
-   BACNET_LIGHTS_RAMP_UP = 5,
-   BACNET_LIGHTS_RAMP_UP_AT_RATE = 6,
-   BACNET_LIGHTS_RAMP_DOWN = 7,
-   BACNET_LIGHTS_RAMP_DOWN_AT_RATE = 8,
-   BACNET_LIGHTS_STEP_UP = 9,
-   BACNET_LIGHTS_STEP_DOWN = 10,
-   BACNET_LIGHTS_STEP_UP_BY = 11,
-   BACNET_LIGHTS_STEP_DOWN_BY = 12,
-   BACNET_LIGHTS_GOTO_LEVEL = 13,
-   BACNET_LIGHTS_RELINQUISH = 14
+    BACNET_LIGHTS_STOP = 0,
+    BACNET_LIGHTS_FADE_TO = 1,
+    BACNET_LIGHTS_FADE_TO_OVER = 2,
+    BACNET_LIGHTS_RAMP_TO = 3,
+    BACNET_LIGHTS_RAMP_TO_AT_RATE = 4,
+    BACNET_LIGHTS_RAMP_UP = 5,
+    BACNET_LIGHTS_RAMP_UP_AT_RATE = 6,
+    BACNET_LIGHTS_RAMP_DOWN = 7,
+    BACNET_LIGHTS_RAMP_DOWN_AT_RATE = 8,
+    BACNET_LIGHTS_STEP_UP = 9,
+    BACNET_LIGHTS_STEP_DOWN = 10,
+    BACNET_LIGHTS_STEP_UP_BY = 11,
+    BACNET_LIGHTS_STEP_DOWN_BY = 12,
+    BACNET_LIGHTS_GOTO_LEVEL = 13,
+    BACNET_LIGHTS_RELINQUISH = 14
 } BACNET_LIGHTING_OPERATION;
 
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
@@ -1247,7 +1247,7 @@ typedef enum BACnetDaysOfWeek {
     BACNET_DAYS_OF_WEEK_THURSDAY = 3,
     BACNET_DAYS_OF_WEEK_FRIDAY = 4,
     BACNET_DAYS_OF_WEEK_SATURDAY = 5,
-    BACNET_DAYS_OF_WEEK_SUNDAY = 6    
+    BACNET_DAYS_OF_WEEK_SUNDAY = 6
 } BACNET_DAYS_OF_WEEK;
 
-#endif                          /* end of BACENUM_H */
+#endif /* end of BACENUM_H */

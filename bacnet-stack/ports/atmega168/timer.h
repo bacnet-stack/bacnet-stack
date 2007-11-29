@@ -29,14 +29,16 @@ extern volatile uint8_t Timer_Milliseconds;
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-void Timer_Initialize(void);
-uint16_t Timer_Silence(void);
-void Timer_Silence_Reset(void);
+    void Timer_Initialize(
+        void);
+    uint16_t Timer_Silence(
+        void);
+    void Timer_Silence_Reset(
+        void);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
-
+#endif /* __cplusplus */
 #endif

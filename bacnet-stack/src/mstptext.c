@@ -12,10 +12,10 @@ static INDTEXT_DATA mstp_receive_state_text[] = {
     {0, NULL}
 };
 
-const char *mstptext_receive_state(int index)
+const char *mstptext_receive_state(
+    int index)
 {
-    return indtext_by_index_default(mstp_receive_state_text,
-        index, "unknown");
+    return indtext_by_index_default(mstp_receive_state_text, index, "unknown");
 }
 
 static INDTEXT_DATA mstp_master_state_text[] = {
@@ -31,10 +31,10 @@ static INDTEXT_DATA mstp_master_state_text[] = {
     {0, NULL}
 };
 
-const char *mstptext_master_state(int index)
+const char *mstptext_master_state(
+    int index)
 {
-    return indtext_by_index_default(mstp_master_state_text,
-        index, "unknown");
+    return indtext_by_index_default(mstp_master_state_text, index, "unknown");
 }
 
 static INDTEXT_DATA mstp_frame_type_text[] = {
@@ -44,15 +44,15 @@ static INDTEXT_DATA mstp_frame_type_text[] = {
     {FRAME_TYPE_TEST_REQUEST, "TEST_REQUEST"},
     {FRAME_TYPE_TEST_RESPONSE, "TEST_RESPONSE"},
     {FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY, "BACNET_DATA_EXPECTING_REPLY"},
-    {FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY, "BACNET_DATA_NOT_EXPECTING_REPLY"},
+    {FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
+            "BACNET_DATA_NOT_EXPECTING_REPLY"},
     {FRAME_TYPE_REPLY_POSTPONED, "REPLY_POSTPONED"},
     {0, NULL}
 };
 
-const char *mstptext_frame_type(int index)
+const char *mstptext_frame_type(
+    int index)
 {
     return indtext_by_index_split_default(mstp_frame_type_text,
-        index,
-        FRAME_TYPE_PROPRIETARY_MIN,
-        "UNKNOWN", "PROPRIETARY");
+        index, FRAME_TYPE_PROPRIETARY_MIN, "UNKNOWN", "PROPRIETARY");
 }

@@ -39,22 +39,31 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    int reject_encode_apdu(uint8_t * apdu,
-        uint8_t invoke_id, uint8_t reject_reason);
+    int reject_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        uint8_t reject_reason);
 
-    int reject_decode_service_request(uint8_t * apdu,
-        unsigned apdu_len, uint8_t * invoke_id, uint8_t * reject_reason);
+    int reject_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        uint8_t * invoke_id,
+        uint8_t * reject_reason);
 
 #ifdef TEST
-    int reject_decode_apdu(uint8_t * apdu,
-        unsigned apdu_len, uint8_t * invoke_id, uint8_t * reject_reason);
+    int reject_decode_apdu(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        uint8_t * invoke_id,
+        uint8_t * reject_reason);
 
-    void testReject(Test * pTest);
+    void testReject(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

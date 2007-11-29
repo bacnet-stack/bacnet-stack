@@ -42,9 +42,12 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-uint8_t Send_Device_Communication_Control_Request(uint32_t device_id, uint16_t timeDuration,    /* 0=optional */
-    BACNET_COMMUNICATION_ENABLE_DISABLE state, char *password)
-{                               /* NULL=optional */
+uint8_t Send_Device_Communication_Control_Request(
+    uint32_t device_id,
+    uint16_t timeDuration,      /* 0=optional */
+    BACNET_COMMUNICATION_ENABLE_DISABLE state,
+    char *password)
+{       /* NULL=optional */
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
     unsigned max_apdu = 0;

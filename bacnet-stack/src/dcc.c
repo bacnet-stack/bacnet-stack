@@ -46,12 +46,14 @@ static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable =
     COMMUNICATION_ENABLE;
 /* password is optionally supported */
 
-BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void)
+BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(
+    void)
 {
     return DCC_Enable_Disable;
 }
 
-bool dcc_communication_enabled(void)
+bool dcc_communication_enabled(
+    void)
 {
     return (DCC_Enable_Disable == COMMUNICATION_ENABLE);
 }
@@ -59,7 +61,8 @@ bool dcc_communication_enabled(void)
 /* When network communications are completely disabled,
    only DeviceCommunicationControl and ReinitializeDevice APDUs
    shall be processed and no messages shall be initiated.*/
-bool dcc_communication_disabled(void)
+bool dcc_communication_disabled(
+    void)
 {
     return (DCC_Enable_Disable == COMMUNICATION_DISABLE);
 }
@@ -73,19 +76,22 @@ bool dcc_communication_disabled(void)
    for any Who-Is request that is received if and only if
    the Who-Is request does not contain an address range or
    the device is included in the address range. */
-bool dcc_communication_initiation_disabled(void)
+bool dcc_communication_initiation_disabled(
+    void)
 {
     return (DCC_Enable_Disable == COMMUNICATION_DISABLE_INITIATION);
 }
 
-uint32_t dcc_duration_seconds(void)
+uint32_t dcc_duration_seconds(
+    void)
 {
     return DCC_Time_Duration_Seconds;
 }
 
 /* called every second or so.  If more than one second,
   then seconds should be the number of seconds to tick away */
-void dcc_timer_seconds(uint32_t seconds)
+void dcc_timer_seconds(
+    uint32_t seconds)
 {
     if (DCC_Time_Duration_Seconds) {
         if (DCC_Time_Duration_Seconds > seconds)
@@ -98,7 +104,8 @@ void dcc_timer_seconds(uint32_t seconds)
     }
 }
 
-bool dcc_set_status_duration(BACNET_COMMUNICATION_ENABLE_DISABLE status,
+bool dcc_set_status_duration(
+    BACNET_COMMUNICATION_ENABLE_DISABLE status,
     uint16_t minutes)
 {
     bool valid = false;
@@ -117,12 +124,15 @@ bool dcc_set_status_duration(BACNET_COMMUNICATION_ENABLE_DISABLE status,
 }
 
 /* encode service */
-int dcc_encode_apdu(uint8_t * apdu, uint8_t invoke_id, uint16_t timeDuration,   /* 0=optional */
+int dcc_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    uint16_t timeDuration,      /* 0=optional */
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
     BACNET_CHARACTER_STRING * password)
-{                               /* NULL=optional */
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+{       /* NULL=optional */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -132,20 +142,17 @@ int dcc_encode_apdu(uint8_t * apdu, uint8_t invoke_id, uint16_t timeDuration,   
         apdu_len = 4;
         /* optional timeDuration */
         if (timeDuration) {
-            len =
-                encode_context_unsigned(&apdu[apdu_len], 0, timeDuration);
+            len = encode_context_unsigned(&apdu[apdu_len], 0, timeDuration);
             apdu_len += len;
         }
         /* enable disable */
-        len =
-            encode_context_enumerated(&apdu[apdu_len], 1, enable_disable);
+        len = encode_context_enumerated(&apdu[apdu_len], 1, enable_disable);
         apdu_len += len;
         /* optional password */
         if (password) {
             /* FIXME: must be at least 1 character, limited to 20 characters */
             len =
-                encode_context_character_string(&apdu[apdu_len], 2,
-                password);
+                encode_context_character_string(&apdu[apdu_len], 2, password);
             apdu_len += len;
         }
     }
@@ -154,7 +161,8 @@ int dcc_encode_apdu(uint8_t * apdu, uint8_t invoke_id, uint16_t timeDuration,   
 }
 
 /* decode the service request only */
-int dcc_decode_service_request(uint8_t * apdu,
+int dcc_decode_service_request(
+    uint8_t * apdu,
     unsigned apdu_len,
     uint16_t * timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
@@ -184,7 +192,7 @@ int dcc_decode_service_request(uint8_t * apdu,
             &tag_number, &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (enable_disable)
-            *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE)value;
+            *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE) value;
         /* Tag 2: password --optional-- */
         if (len < apdu_len) {
             if (!decode_is_context_tag(&apdu[len], 2))
@@ -192,8 +200,7 @@ int dcc_decode_service_request(uint8_t * apdu,
             len += decode_tag_number_and_value(&apdu[len],
                 &tag_number, &len_value_type);
             len +=
-                decode_character_string(&apdu[len], len_value_type,
-                password);
+                decode_character_string(&apdu[len], len_value_type, password);
         } else if (password)
             characterstring_init_ansi(password, NULL);
     }
@@ -206,7 +213,8 @@ int dcc_decode_service_request(uint8_t * apdu,
 #include <string.h>
 #include "ctest.h"
 
-int dcc_decode_apdu(uint8_t * apdu,
+int dcc_decode_apdu(
+    uint8_t * apdu,
     unsigned apdu_len,
     uint8_t * invoke_id,
     uint16_t * timeDuration,
@@ -235,7 +243,8 @@ int dcc_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-void test_DeviceCommunicationControlData(Test * pTest,
+void test_DeviceCommunicationControlData(
+    Test * pTest,
     uint8_t invoke_id,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
@@ -265,7 +274,8 @@ void test_DeviceCommunicationControlData(Test * pTest,
     ct_test(pTest, characterstring_same(&test_password, password));
 }
 
-void test_DeviceCommunicationControl(Test * pTest)
+void test_DeviceCommunicationControl(
+    Test * pTest)
 {
     uint8_t invoke_id = 128;
     uint16_t timeDuration = 0;
@@ -287,7 +297,8 @@ void test_DeviceCommunicationControl(Test * pTest)
 }
 
 #ifdef TEST_DEVICE_COMMUNICATION_CONTROL
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -304,5 +315,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_DEVICE_COMMUNICATION_CONTROL */
-#endif                          /* TEST */
+#endif /* TEST_DEVICE_COMMUNICATION_CONTROL */
+#endif /* TEST */

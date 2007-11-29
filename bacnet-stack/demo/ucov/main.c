@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>               /* for time */
+#include <time.h>       /* for time */
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
@@ -49,15 +49,14 @@
 #include "client.h"
 #include "txbuf.h"
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is 
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
-        handler_i_am_bind);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -67,7 +66,9 @@ static void Init_Service_Handlers(void)
         handler_read_property);
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     char *value_string = NULL;
     bool status = false;
@@ -162,8 +163,7 @@ int main(int argc, char *argv[])
         cov_data.listOfValues.priority = BACNET_NO_PRIORITY;
     /* optional index */
     if (argc > 10)
-        cov_data.listOfValues.propertyArrayIndex =
-            strtol(argv[10], NULL, 0);
+        cov_data.listOfValues.propertyArrayIndex = strtol(argv[10], NULL, 0);
     else
         cov_data.listOfValues.propertyArrayIndex = BACNET_ARRAY_ALL;
 

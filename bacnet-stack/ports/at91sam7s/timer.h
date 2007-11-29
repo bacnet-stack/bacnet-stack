@@ -32,13 +32,16 @@ extern volatile unsigned long Timer_Milliseconds;
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    void TimerInit(void);
-    int Timer_Silence(void);
-    void Timer_Silence_Reset(void);
+    void TimerInit(
+        void);
+    int Timer_Silence(
+        void);
+    void Timer_Silence_Reset(
+        void);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

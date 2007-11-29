@@ -42,9 +42,11 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
+uint8_t Send_Atomic_Write_File_Stream(
+    uint32_t device_id,
     uint32_t file_instance,
-    int fileStartPosition, BACNET_OCTET_STRING * fileData)
+    int fileStartPosition,
+    BACNET_OCTET_STRING * fileData)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -76,8 +78,7 @@ uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
         if (status) {
             /* encode the NPDU portion of the packet */
             datalink_get_my_address(&my_address);
-            npdu_encode_npdu_data(&npdu_data, true,
-                MESSAGE_PRIORITY_NORMAL);
+            npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
             pdu_len =
                 npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
                 &my_address, &npdu_data);
@@ -116,8 +117,7 @@ uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
             invoke_id = 0;
 #if PRINT_ENABLED
             fprintf(stderr, "Failed to Send AtomicWriteFile Request "
-                "(payload [%d] exceeds octet string capacity)!\n",
-                pdu_len);
+                "(payload [%d] exceeds octet string capacity)!\n", pdu_len);
 #endif
         }
     }

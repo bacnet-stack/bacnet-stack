@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>               /* for time */
+#include <time.h>       /* for time */
 
 #define PRINT_ENABLED 1
 
@@ -66,51 +66,57 @@ static int32_t Target_Object_Index = BACNET_ARRAY_ALL;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS * src,
+static void MyErrorHandler(
+    BACNET_ADDRESS * src,
     uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
     printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name((int)error_class),
-        bactext_error_code_name((int)error_code));
+        bactext_error_class_name((int) error_class),
+        bactext_error_code_name((int) error_code));
     Error_Detected = true;
 }
 
-void MyAbortHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t abort_reason, bool server)
+void MyAbortHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t abort_reason,
+    bool server)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
     (void) server;
     printf("BACnet Abort: %s\r\n",
-        bactext_abort_reason_name((int)abort_reason));
+        bactext_abort_reason_name((int) abort_reason));
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t reject_reason)
+void MyRejectHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
     printf("BACnet Reject: %s\r\n",
-        bactext_reject_reason_name((int)reject_reason));
+        bactext_reject_reason_name((int) reject_reason));
     Error_Detected = true;
 }
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
-        handler_i_am_bind);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -122,13 +128,14 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property_ack);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        MyErrorHandler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
@@ -186,8 +193,7 @@ int main(int argc, char *argv[])
     timeout_seconds = (Device_APDU_Timeout() / 1000) *
         Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
-    Send_WhoIs(Target_Device_Object_Instance,
-        Target_Device_Object_Instance);
+    Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
@@ -202,8 +208,7 @@ int main(int argc, char *argv[])
         }
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds(((current_seconds -
-                        last_seconds) * 1000));
+            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */

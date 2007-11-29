@@ -32,8 +32,10 @@
 #include "iam.h"
 #include "address.h"
 
-void handler_i_am_add(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void handler_i_am_add(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     uint32_t device_id = 0;
@@ -61,8 +63,10 @@ void handler_i_am_add(uint8_t * service_request,
     return;
 }
 
-void handler_i_am_bind(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void handler_i_am_bind(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     uint32_t device_id = 0;

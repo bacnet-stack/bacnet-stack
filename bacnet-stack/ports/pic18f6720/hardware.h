@@ -132,8 +132,8 @@ typedef union {
         uint8_t Program:1;
         uint8_t Run:1;
 
-         uint8_t:1;
-         uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
         uint8_t Input1:1;
         uint8_t Input2:1;
         uint8_t Input3:1;
@@ -141,35 +141,35 @@ typedef union {
         uint8_t Input5:1;
         uint8_t Input6:1;
 
-         uint8_t:1;
-         uint8_t:1;
-         uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
         uint8_t Input7:1;
-         uint8_t:1;
-         uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
         uint8_t Input8:1;
         uint8_t Photocell:1;
 
-         uint8_t:1;
-         uint8_t:1;
-         uint8_t:1;
-         uint8_t:1;
-         uint8_t:1;
-         uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
         uint8_t Remote:1;
         uint8_t Relay8:1;
 
-         uint8_t:1;
-         uint8_t:1;
-         uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
         uint8_t Relay7:1;
         uint8_t Relay6:1;
         uint8_t Relay5:1;
         uint8_t Relay4:1;
         uint8_t Relay3:1;
 
-         uint8_t:1;
-         uint8_t:1;
+                uint8_t:1;
+                uint8_t:1;
         uint8_t Relay2:1;
         uint8_t Relay1:1;
         uint8_t Holiday:1;
@@ -268,4 +268,4 @@ extern volatile LED_REGS Blink;
 extern uint8_t Piezo_Timer;
 extern volatile bool DataPortLocked;
 
-#endif                          /* HARDWARE_H */
+#endif /* HARDWARE_H */

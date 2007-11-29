@@ -37,10 +37,13 @@
 #include "bacdef.h"
 
 /* encode service */
-int abort_encode_apdu(uint8_t * apdu,
-    uint8_t invoke_id, uint8_t abort_reason, bool server)
+int abort_encode_apdu(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    uint8_t abort_reason,
+    bool server)
 {
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         if (server)
@@ -56,8 +59,11 @@ int abort_encode_apdu(uint8_t * apdu,
 }
 
 /* decode the service request only */
-int abort_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason)
+int abort_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id,
+    uint8_t * abort_reason)
 {
     int len = 0;
 
@@ -77,8 +83,11 @@ int abort_decode_service_request(uint8_t * apdu,
 #include "ctest.h"
 
 /* decode the whole APDU - mainly used for unit testing */
-int abort_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, uint8_t * invoke_id, uint8_t * abort_reason,
+int abort_decode_apdu(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    uint8_t * invoke_id,
+    uint8_t * abort_reason,
     bool * server)
 {
     int len = 0;
@@ -102,8 +111,11 @@ int abort_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-void testAbortAPDU(Test * pTest,
-    uint8_t invoke_id, uint8_t abort_reason, bool server)
+void testAbortAPDU(
+    Test * pTest,
+    uint8_t invoke_id,
+    uint8_t abort_reason,
+    bool server)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -126,7 +138,8 @@ void testAbortAPDU(Test * pTest,
 }
 
 
-void testAbort(Test * pTest)
+void testAbort(
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -174,7 +187,8 @@ void testAbort(Test * pTest)
 }
 
 #ifdef TEST_ABORT
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -191,5 +205,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_ABORT */
-#endif                          /* TEST */
+#endif /* TEST_ABORT */
+#endif /* TEST */

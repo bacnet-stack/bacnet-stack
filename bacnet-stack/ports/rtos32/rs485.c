@@ -57,10 +57,13 @@ static FineTime RS485_Debug_Transmit_Timer;
 #endif
 
 #if PRINT_ENABLED_RS485
-void RS485_Print_Frame(int port, FineTime timer, uint8_t * buffer,      /* frame to send (up to 501 bytes of data) */
+void RS485_Print_Frame(
+    int port,
+    FineTime timer,
+    uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 {
-    uint16_t i;                 /* byte counter */
+    uint16_t i; /* byte counter */
     unsigned long duration;     /* measures the time from last output to this one */
     unsigned long seconds;
     unsigned long milliseconds;
@@ -79,33 +82,36 @@ void RS485_Print_Frame(int port, FineTime timer, uint8_t * buffer,      /* frame
 }
 #endif
 
-static void RS485_Standard_Port_Settings(long port, long *pIRQ,
+static void RS485_Standard_Port_Settings(
+    long port,
+    long *pIRQ,
     long *pBase)
 {
     switch (port) {
-    case COM1:
-        *pBase = (long) 0x3F8;
-        *pIRQ = 4L;
-        break;
-    case COM2:
-        *pBase = (long) 0x2F8;
-        *pIRQ = 3L;
-        break;
-    case COM3:
-        *pBase = (long) 0x3E8;
-        *pIRQ = 4L;
-        break;
-    case COM4:
-        *pBase = (long) 0x2E8;
-        *pIRQ = 3L;
-        break;
-    default:
-        break;
+        case COM1:
+            *pBase = (long) 0x3F8;
+            *pIRQ = 4L;
+            break;
+        case COM2:
+            *pBase = (long) 0x2F8;
+            *pIRQ = 3L;
+            break;
+        case COM3:
+            *pBase = (long) 0x3E8;
+            *pIRQ = 4L;
+            break;
+        case COM4:
+            *pBase = (long) 0x2E8;
+            *pIRQ = 3L;
+            break;
+        default:
+            break;
     }
 }
 
-static int TestCOMPort(int Base)
-{                               /* base address of UART */
+static int TestCOMPort(
+    int Base)
+{       /* base address of UART */
     int i;
 
     for (i = 0; i < 256; i++) {
@@ -117,11 +123,12 @@ static int TestCOMPort(int Base)
     return TRUE;
 }
 
-static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
-    long baud,                  /* baud rate */
-    unsigned base,              /* io base address */
+static RS485_Open_Port(
+    int port,   /* COM port number - COM1 = 0 */
+    long baud,  /* baud rate */
+    unsigned base,      /* io base address */
     int irq)
-{                               /* hardware IRQ number */
+{       /* hardware IRQ number */
     if (!TestCOMPort(base))
         return;
 
@@ -148,21 +155,22 @@ static RS485_Open_Port(int port,        /* COM port number - COM1 = 0 */
     return;
 }
 
-void RS485_Initialize(void)
+void RS485_Initialize(
+    void)
 {
 #if PRINT_ENABLED_RS485
     MarkTime(&RS485_Debug_Transmit_Timer);
 #endif
-    RS485_Standard_Port_Settings(RS485_Port, &RS485_IRQ_Number,
-        &RS485_Base);
+    RS485_Standard_Port_Settings(RS485_Port, &RS485_IRQ_Number, &RS485_Base);
     RS485_Open_Port(RS485_Port, RS485_Baud, RS485_Base, RS485_IRQ_Number);
 }
 
-void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port specific data */
-    uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
+void RS485_Send_Frame(
+    volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
+    uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
-{                               /* number of bytes of data (up to 501) */
-    bool status = true;         /* return value */
+{       /* number of bytes of data (up to 501) */
+    bool status = true; /* return value */
 
     RS485_TRANSMIT_ENABLE(RS485_Port);
     SendBlock(RS485_Port, (char *) buffer, nbytes);
@@ -184,8 +192,9 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
     return;
 }
 
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
-{                               /* port specific data */
+void RS485_Check_UART_Data(
+    volatile struct mstp_port_struct_t *mstp_port)
+{       /* port specific data */
     COMData com_data = 0;       /* byte from COM driver */
     unsigned timeout = 1;       /* milliseconds to wait for a character */
     static Duration ticks = 0;  /* duration to wait for data */

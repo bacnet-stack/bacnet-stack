@@ -44,7 +44,9 @@
 #include "txbuf.h"
 
 /* find a specific device, or use -1 for limit if you want unlimited */
-void Send_WhoIs(int32_t low_limit, int32_t high_limit)
+void Send_WhoIs(
+    int32_t low_limit,
+    int32_t high_limit)
 {
     int len = 0;
     int pdu_len = 0;

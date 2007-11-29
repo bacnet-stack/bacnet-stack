@@ -33,37 +33,50 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    bool Analog_Output_Valid_Instance(uint32_t object_instance);
-    unsigned Lighting_Output_Count(void);
-    uint32_t Lighting_Output_Index_To_Instance(unsigned index);
-    char *Lighting_Output_Name(uint32_t object_instance);
-    float Lighting_Output_Present_Value(uint32_t object_instance);
-    unsigned Lighting_Output_Present_Value_Priority(uint32_t
-        object_instance);
-    bool Lighting_Output_Present_Value_Set(uint32_t object_instance,
-        float value, unsigned priority);
-    bool Lighting_Output_Present_Value_Relinquish(uint32_t object_instance,
+    bool Analog_Output_Valid_Instance(
+        uint32_t object_instance);
+    unsigned Lighting_Output_Count(
+        void);
+    uint32_t Lighting_Output_Index_To_Instance(
+        unsigned index);
+    char *Lighting_Output_Name(
+        uint32_t object_instance);
+    float Lighting_Output_Present_Value(
+        uint32_t object_instance);
+    unsigned Lighting_Output_Present_Value_Priority(
+        uint32_t object_instance);
+    bool Lighting_Output_Present_Value_Set(
+        uint32_t object_instance,
+        float value,
+        unsigned priority);
+    bool Lighting_Output_Present_Value_Relinquish(
+        uint32_t object_instance,
         int priority);
 
 
-	/* ReadProperty service support */
-    int Lighting_Output_Encode_Property_APDU(uint8_t * apdu,
+    /* ReadProperty service support */
+    int Lighting_Output_Encode_Property_APDU(
+        uint8_t * apdu,
         uint32_t object_instance,
         BACNET_PROPERTY_ID property,
         int32_t array_index,
-        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
-	/* WriteProperty service support */
-    bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code);
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
+    /* WriteProperty service support */
+    bool Lighting_Output_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
 #ifdef TEST
 #include "ctest.h"
-    void testLightingOutput(Test * pTest);
+    void testLightingOutput(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

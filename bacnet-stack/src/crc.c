@@ -38,8 +38,7 @@
 
 #if defined(CRC_USE_TABLE)
 /* note: table is created using unit test below */
-static const uint8_t HeaderCRC[256] =
-{
+static const uint8_t HeaderCRC[256] = {
     0x00, 0xfe, 0xff, 0x01, 0xfd, 0x03, 0x02, 0xfc,
     0xf9, 0x07, 0x06, 0xf8, 0x04, 0xfa, 0xfb, 0x05,
     0xf1, 0x0f, 0x0e, 0xf0, 0x0c, 0xf2, 0xf3, 0x0d,
@@ -74,14 +73,15 @@ static const uint8_t HeaderCRC[256] =
     0xa9, 0x57, 0x56, 0xa8, 0x54, 0xaa, 0xab, 0x55
 };
 
-uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue)
+uint8_t CRC_Calc_Header(
+    uint8_t dataValue,
+    uint8_t crcValue)
 {
     return HeaderCRC[crcValue ^ dataValue];
 }
 
 /* note: table is created using unit test below */
-static const uint16_t DataCRC[256] =
-{
+static const uint16_t DataCRC[256] = {
     0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
     0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
     0x1081, 0x0108, 0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e,
@@ -116,7 +116,9 @@ static const uint16_t DataCRC[256] =
     0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
 };
 
-uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
+uint16_t CRC_Calc_Data(
+    uint8_t dataValue,
+    uint16_t crcValue)
 {
     return ((crcValue >> 8) ^ DataCRC[(crcValue & 0x00FF) ^ dataValue]);
 
@@ -127,7 +129,9 @@ uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
 /* */
 /*  The ^ operator means exclusive OR. */
 /* Note: This function is copied directly from the BACnet standard. */
-uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue)
+uint8_t CRC_Calc_Header(
+    uint8_t dataValue,
+    uint8_t crcValue)
 {
     uint16_t crc;
 
@@ -147,7 +151,9 @@ uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue)
 /* */
 /*  The ^ operator means exclusive OR. */
 /* Note: This function is copied directly from the BACnet standard. */
-uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
+uint16_t CRC_Calc_Data(
+    uint8_t dataValue,
+    uint16_t crcValue)
 {
     uint16_t crcLow;
 
@@ -167,10 +173,11 @@ uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
 #include "bytes.h"
 
 /* test from Annex G 1.0 of BACnet Standard */
-void testCRC8(Test * pTest)
+void testCRC8(
+    Test * pTest)
 {
-    uint8_t crc = 0xff;         /* accumulates the crc value */
-    uint8_t frame_crc;          /* appended to the end of the frame */
+    uint8_t crc = 0xff; /* accumulates the crc value */
+    uint8_t frame_crc;  /* appended to the end of the frame */
 
     crc = CRC_Calc_Header(0x00, crc);
     ct_test(pTest, crc == 0x55);
@@ -192,7 +199,8 @@ void testCRC8(Test * pTest)
 }
 
 /* test from Annex G 2.0 of BACnet Standard */
-void testCRC16(Test * pTest)
+void testCRC16(
+    Test * pTest)
 {
     uint16_t crc = 0xffff;
     uint16_t data_crc;
@@ -213,19 +221,20 @@ void testCRC16(Test * pTest)
     ct_test(pTest, crc == 0xF0B8);
 }
 
-void testCRC8CreateTable(Test *pTest)
+void testCRC8CreateTable(
+    Test * pTest)
 {
-    uint8_t crc = 0xff;         /* accumulates the crc value */
+    uint8_t crc = 0xff; /* accumulates the crc value */
     int i;
 
-    (void)pTest;
+    (void) pTest;
     printf("static const uint8_t HeaderCRC[256] =\n");
     printf("{\n");
     printf("    ");
     for (i = 0; i < 256; i++) {
         crc = CRC_Calc_Header(i, 0);
         printf("0x%02x, ", crc);
-        if (!((i+1)%8)) {
+        if (!((i + 1) % 8)) {
             printf("\n");
             if (i != 255) {
                 printf("    ");
@@ -235,19 +244,20 @@ void testCRC8CreateTable(Test *pTest)
     printf("};\n");
 }
 
-void testCRC16CreateTable(Test *pTest)
+void testCRC16CreateTable(
+    Test * pTest)
 {
     uint16_t crc;
     int i;
 
-    (void)pTest;
+    (void) pTest;
     printf("static const uint16_t DataCRC[256] =\n");
     printf("{\n");
     printf("    ");
     for (i = 0; i < 256; i++) {
         crc = CRC_Calc_Data(i, 0);
         printf("0x%04x, ", crc);
-        if (!((i+1)%8)) {
+        if (!((i + 1) % 8)) {
             printf("\n");
             if (i != 255) {
                 printf("    ");
@@ -260,7 +270,8 @@ void testCRC16CreateTable(Test *pTest)
 #endif
 
 #ifdef TEST_CRC
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;

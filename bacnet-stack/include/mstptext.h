@@ -37,14 +37,16 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-const char *mstptext_receive_state(int index);
-const char *mstptext_master_state(int index);
-const char *mstptext_frame_type(int index);
+    const char *mstptext_receive_state(
+        int index);
+    const char *mstptext_master_state(
+        int index);
+    const char *mstptext_frame_type(
+        int index);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
-
+#endif /* __cplusplus */
 #endif

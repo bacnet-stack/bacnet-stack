@@ -25,7 +25,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>             /* for memmove */
+#include <string.h>     /* for memmove */
 #include <p18F6720.h>
 #include <stdlib.h>
 #include <string.h>
@@ -87,16 +87,16 @@
 #else
 #pragma config WDT = ON, WDTPS = 128
 #pragma config DEBUG = OFF
-#endif                          /* USE_ICD */
+#endif /* USE_ICD */
 
 volatile uint8_t Milliseconds = 0;
 volatile uint8_t Zero_Cross_Timeout = 0;
 
-static void BACnet_Service_Handlers_Init(void)
+static void BACnet_Service_Handlers_Init(
+    void)
 {
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
@@ -107,8 +107,7 @@ static void BACnet_Service_Handlers_Init(void)
         handler_write_property);
 #if 0
     apdu_set_unconfirmed_handler
-        (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        handler_timesync_utc);
+        (SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
         handler_timesync);
 #endif
@@ -118,7 +117,8 @@ static void BACnet_Service_Handlers_Init(void)
         handler_device_communication_control);
 }
 
-void Reinitialize(void)
+void Reinitialize(
+    void)
 {
     uint8_t i;
     char name = 0;
@@ -126,30 +126,32 @@ void Reinitialize(void)
     _asm reset _endasm return;
 }
 
-void Global_Int(enum INT_STATE state)
+void Global_Int(
+    enum INT_STATE state)
 {
     static uint8_t intstate = 0;
 
     switch (state) {
-    case INT_DISABLED:
-        intstate >>= 2;
-        intstate |= (INTCON & 0xC0);
-        break;
-    case INT_ENABLED:
-        INTCONbits.GIE = 1;
-        INTCONbits.PEIE = 1;
-        intstate <<= 2;
-        break;
-    case INT_RESTORE:
-        INTCON |= (intstate & 0xC0);
-        intstate <<= 2;
-        break;
-    default:
-        break;
+        case INT_DISABLED:
+            intstate >>= 2;
+            intstate |= (INTCON & 0xC0);
+            break;
+        case INT_ENABLED:
+            INTCONbits.GIE = 1;
+            INTCONbits.PEIE = 1;
+            intstate <<= 2;
+            break;
+        case INT_RESTORE:
+            INTCON |= (intstate & 0xC0);
+            intstate <<= 2;
+            break;
+        default:
+            break;
     }
 }
 
-void Hardware_Initialize(void)
+void Hardware_Initialize(
+    void)
 {
     /* PORTA.0 Input - Photocell PORTA.1 Output - LED Row6 PORTA.2 Output
      * - LED Row5 PORTA.3 Output - LED Row4 PORTA.4 Input - Square Wave
@@ -247,7 +249,8 @@ void Hardware_Initialize(void)
     Global_Int(INT_ENABLED);
 }
 
-void Initialize_Variables(void)
+void Initialize_Variables(
+    void)
 {
     /* Check to see if we need to initialize our eeproms */
     ENABLE_TIMER4_INT();
@@ -259,7 +262,8 @@ void Initialize_Variables(void)
     Milliseconds = 0;
 }
 
-void MainTasks(void)
+void MainTasks(
+    void)
 {
     static uint16_t millisecond_counter = 0;
     /* Handle our millisecond counters */
@@ -274,7 +278,8 @@ void MainTasks(void)
     }
 }
 
-void main(void)
+void main(
+    void)
 {
     RCONbits.NOT_POR = 1;
     RCONbits.NOT_RI = 1;

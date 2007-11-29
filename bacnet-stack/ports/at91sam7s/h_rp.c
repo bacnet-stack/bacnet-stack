@@ -62,52 +62,39 @@ int Encode_Property_APDU(
     *error_class = ERROR_CLASS_OBJECT;
     *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     /* handle each object type */
-    switch(object_type) {
+    switch (object_type) {
         case OBJECT_DEVICE:
             if (Device_Valid_Object_Instance_Number(object_instance)) {
-                apdu_len = Device_Encode_Property_APDU(
-                    &apdu[0],
-                    property,
-                    array_index,
-                    error_class, error_code);
+                apdu_len = Device_Encode_Property_APDU(&apdu[0],
+                    property, array_index, error_class, error_code);
             }
             break;
         case OBJECT_ANALOG_INPUT:
             if (Analog_Input_Valid_Instance(object_instance)) {
-                apdu_len = Analog_Input_Encode_Property_APDU(
-                    &apdu[0],
+                apdu_len = Analog_Input_Encode_Property_APDU(&apdu[0],
                     object_instance,
-                    property,
-                    array_index,
-                    error_class, error_code);
+                    property, array_index, error_class, error_code);
             }
             break;
         case OBJECT_ANALOG_VALUE:
             if (Analog_Value_Valid_Instance(object_instance)) {
                 apdu_len = Analog_Value_Encode_Property_APDU(&Temp_Buf[0],
                     object_instance,
-                    property,
-                    array_index,
-                    error_class, error_code);
+                    property, array_index, error_class, error_code);
             }
             break;
         case OBJECT_BINARY_INPUT:
             if (Binary_Input_Valid_Instance(object_instance)) {
-                apdu_len = Binary_Input_Encode_Property_APDU(
-                    &apdu[0],
+                apdu_len = Binary_Input_Encode_Property_APDU(&apdu[0],
                     object_instance,
-                    property,
-                    array_index,
-                    error_class, error_code);
+                    property, array_index, error_class, error_code);
             }
             break;
         case OBJECT_BINARY_VALUE:
             if (Binary_Value_Valid_Instance(object_instance)) {
                 apdu_len = Binary_Value_Encode_Property_APDU(&Temp_Buf[0],
                     object_instance,
-                    property,
-                    array_index,
-                    error_class, error_code);
+                    property, array_index, error_class, error_code);
             }
             break;
         default:
@@ -119,9 +106,11 @@ int Encode_Property_APDU(
     return apdu_len;
 }
 
-void handler_read_property(uint8_t * service_request,
+void handler_read_property(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     BACNET_READ_PROPERTY_DATA data;
     int len = 0;
@@ -154,13 +143,10 @@ void handler_read_property(uint8_t * service_request,
     }
     /* most cases will be error */
     error = true;
-    len = Encode_Property_APDU(
-        &Temp_Buf[0],
+    len = Encode_Property_APDU(&Temp_Buf[0],
         data.object_type,
         data.object_instance,
-        data.object_property,
-        data.array_index,
-        &error_class, &error_code);
+        data.object_property, data.array_index, &error_class, &error_code);
     if (len >= 0) {
         /* encode the APDU portion of the packet */
         data.application_data = &Temp_Buf[0];
@@ -183,7 +169,7 @@ void handler_read_property(uint8_t * service_request,
             service_data->invoke_id,
             SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
     }
-RP_ABORT:
+  RP_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

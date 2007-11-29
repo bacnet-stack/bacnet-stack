@@ -43,8 +43,10 @@
 #include "txbuf.h"
 
 /* find a specific device, or use -1 for limit if you want unlimited */
-void Send_WhoHas_Name(int32_t low_limit,
-    int32_t high_limit, char *object_name)
+void Send_WhoHas_Name(
+    int32_t low_limit,
+    int32_t high_limit,
+    char *object_name)
 {
     int len = 0;
     int pdu_len = 0;
@@ -80,9 +82,11 @@ void Send_WhoHas_Name(int32_t low_limit,
 }
 
 /* find a specific device, or use -1 for limit if you want unlimited */
-void Send_WhoHas_Object(int32_t low_limit,
+void Send_WhoHas_Object(
+    int32_t low_limit,
     int32_t high_limit,
-    BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
 {
     int len = 0;
     int pdu_len = 0;

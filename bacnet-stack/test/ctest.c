@@ -9,7 +9,9 @@
 /* Number of tests to hold incrementally */
 enum { CHUNK = 10 };
 
-Test *ct_create(const char *name, void (*init) (Test *))
+Test *ct_create(
+    const char *name,
+    void (*init) (Test *))
 {
     int backOutLevel = 0;
     Test *pTest = malloc(sizeof(Test));
@@ -36,12 +38,12 @@ Test *ct_create(const char *name, void (*init) (Test *))
     /* Back-out allocations if memory failed: */
     if (backOutLevel) {
         switch (backOutLevel) {
-        case 2:
-            free(pTest->pTestFuns);
-            pTest->pTestFuns = NULL;
-        case 1:
-            free(pTest);
-            pTest = NULL;
+            case 2:
+                free(pTest->pTestFuns);
+                pTest->pTestFuns = NULL;
+            case 1:
+                free(pTest);
+                pTest = NULL;
         }
     } else if (init) {
         assert(pTest);
@@ -50,7 +52,8 @@ Test *ct_create(const char *name, void (*init) (Test *))
     return pTest;
 }
 
-void ct_destroy(Test * pTest)
+void ct_destroy(
+    Test * pTest)
 {
     assert(pTest);
     assert(pTest->pTestFuns);
@@ -62,7 +65,9 @@ void ct_destroy(Test * pTest)
     free(pTest);
 }
 
-bool ct_addTestFunction(Test * pTest, TestFunc tfun)
+bool ct_addTestFunction(
+    Test * pTest,
+    TestFunc tfun)
 {
     assert(pTest);
     assert(pTest->pTestFuns);
@@ -80,17 +85,21 @@ bool ct_addTestFunction(Test * pTest, TestFunc tfun)
     return true;
 }
 
-void ct_setStream(Test * pTest, FILE * pStream)
+void ct_setStream(
+    Test * pTest,
+    FILE * pStream)
 {
     pTest->pStream = pStream;
 }
 
-FILE *ct_getStream(Test * pTest)
+FILE *ct_getStream(
+    Test * pTest)
 {
     return pTest->pStream;
 }
 
-long ct_report(Test * pTest)
+long ct_report(
+    Test * pTest)
 {
     assert(pTest);
     if (pTest->pStream) {
@@ -102,14 +111,19 @@ long ct_report(Test * pTest)
 }
 
 
-void ct_succeed(Test * pTest)
+void ct_succeed(
+    Test * pTest)
 {
     assert(pTest);
     ++pTest->nPass;
 }
 
-void ct_do_test(Test * pTest, const char *str,
-    bool cond, const char *file, long line)
+void ct_do_test(
+    Test * pTest,
+    const char *str,
+    bool cond,
+    const char *file,
+    long line)
 {
     assert(pTest);
     if (!cond)
@@ -118,30 +132,36 @@ void ct_do_test(Test * pTest, const char *str,
         ct_succeed(pTest);
 }
 
-void ct_do_fail(Test * pTest, const char *str, const char *file, long line)
+void ct_do_fail(
+    Test * pTest,
+    const char *str,
+    const char *file,
+    long line)
 {
     assert(pTest);
     ++pTest->nFail;
     if (pTest->pStream) {
         fprintf(pTest->pStream,
-            "%s failure: (%s), %s (line %ld)\n",
-            pTest->name, str, file, line);
+            "%s failure: (%s), %s (line %ld)\n", pTest->name, str, file, line);
     }
 }
 
-long ct_getNumPassed(Test * pTest)
+long ct_getNumPassed(
+    Test * pTest)
 {
     assert(pTest);
     return pTest->nPass;
 }
 
-long ct_getNumFailed(Test * pTest)
+long ct_getNumFailed(
+    Test * pTest)
 {
     assert(pTest);
     return pTest->nFail;
 }
 
-long ct_run(Test * pTest)
+long ct_run(
+    Test * pTest)
 {
     size_t testNum;
     assert(pTest);
@@ -150,19 +170,22 @@ long ct_run(Test * pTest)
     return pTest->nFail;
 }
 
-void ct_reset(Test * pTest)
+void ct_reset(
+    Test * pTest)
 {
     assert(pTest);
     pTest->nFail = pTest->nPass = 0;
 }
 
-const char *ct_getName(Test * pTest)
+const char *ct_getName(
+    Test * pTest)
 {
     assert(pTest);
     return (pTest->name);
 }
 
-long ct_getNumTests(Test * pTest)
+long ct_getNumTests(
+    Test * pTest)
 {
     assert(pTest);
     return pTest->nTests;

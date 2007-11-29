@@ -48,34 +48,45 @@ typedef struct bacnet_npdu_data_t {
     BACNET_MESSAGE_PRIORITY priority;
     /* optional network message info */
     BACNET_NETWORK_MESSAGE_TYPE network_message_type;   /* optional */
-    uint16_t vendor_id;         /* optional, if net message type is > 0x80 */
+    uint16_t vendor_id; /* optional, if net message type is > 0x80 */
     uint8_t hop_count;
 } BACNET_NPDU_DATA;
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    uint8_t npdu_encode_max_seg_max_apdu(int max_segs, int max_apdu);
+    uint8_t npdu_encode_max_seg_max_apdu(
+        int max_segs,
+        int max_apdu);
 
-    int npdu_encode_pdu(uint8_t * npdu,
+    int npdu_encode_pdu(
+        uint8_t * npdu,
         BACNET_ADDRESS * dest,
-        BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data);
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data);
 
-    void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu,
-        bool data_expecting_reply, BACNET_MESSAGE_PRIORITY priority);
+    void npdu_encode_npdu_data(
+        BACNET_NPDU_DATA * npdu,
+        bool data_expecting_reply,
+        BACNET_MESSAGE_PRIORITY priority);
 
-    void npdu_copy_data(BACNET_NPDU_DATA * dest, BACNET_NPDU_DATA * src);
+    void npdu_copy_data(
+        BACNET_NPDU_DATA * dest,
+        BACNET_NPDU_DATA * src);
 
-    int npdu_decode(uint8_t * npdu,
+    int npdu_decode(
+        uint8_t * npdu,
         BACNET_ADDRESS * dest,
-        BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data);
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data);
 
-    void npdu_handler(BACNET_ADDRESS * src,     /* source address */
-        uint8_t * pdu,          /* PDU data */
+    void npdu_handler(
+        BACNET_ADDRESS * src,   /* source address */
+        uint8_t * pdu,  /* PDU data */
         uint16_t pdu_len);      /* length PDU  */
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

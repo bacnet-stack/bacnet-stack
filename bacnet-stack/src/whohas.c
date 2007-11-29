@@ -39,10 +39,12 @@
 
 /* encode service  - use -1 for limit for unlimited */
 
-int whohas_encode_apdu(uint8_t * apdu, BACNET_WHO_HAS_DATA * data)
+int whohas_encode_apdu(
+    uint8_t * apdu,
+    BACNET_WHO_HAS_DATA * data)
 {
-    int len = 0;                /* length of each encoding */
-    int apdu_len = 0;           /* total length of the apdu, return value */
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
@@ -53,9 +55,7 @@ int whohas_encode_apdu(uint8_t * apdu, BACNET_WHO_HAS_DATA * data)
             && (data->low_limit <= BACNET_MAX_INSTANCE)
             && (data->high_limit >= 0)
             && (data->high_limit <= BACNET_MAX_INSTANCE)) {
-            len =
-                encode_context_unsigned(&apdu[apdu_len], 0,
-                data->low_limit);
+            len = encode_context_unsigned(&apdu[apdu_len], 0, data->low_limit);
             apdu_len += len;
             len = encode_context_unsigned(&apdu[apdu_len],
                 1, data->high_limit);
@@ -78,8 +78,10 @@ int whohas_encode_apdu(uint8_t * apdu, BACNET_WHO_HAS_DATA * data)
 }
 
 /* decode the service request only */
-int whohas_decode_service_request(uint8_t * apdu,
-    unsigned apdu_len, BACNET_WHO_HAS_DATA * data)
+int whohas_decode_service_request(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_WHO_HAS_DATA * data)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -142,8 +144,10 @@ int whohas_decode_service_request(uint8_t * apdu,
 #include <string.h>
 #include "ctest.h"
 
-int whohas_decode_apdu(uint8_t * apdu,
-    unsigned apdu_len, BACNET_WHO_HAS_DATA * data)
+int whohas_decode_apdu(
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_WHO_HAS_DATA * data)
 {
     int len = 0;
 
@@ -162,7 +166,9 @@ int whohas_decode_apdu(uint8_t * apdu,
     return len;
 }
 
-void testWhoHasData(Test * pTest, BACNET_WHO_HAS_DATA * data)
+void testWhoHasData(
+    Test * pTest,
+    BACNET_WHO_HAS_DATA * data)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -192,7 +198,8 @@ void testWhoHasData(Test * pTest, BACNET_WHO_HAS_DATA * data)
     }
 }
 
-void testWhoHas(Test * pTest)
+void testWhoHas(
+    Test * pTest)
 {
     BACNET_WHO_HAS_DATA data;
 
@@ -227,7 +234,8 @@ void testWhoHas(Test * pTest)
 }
 
 #ifdef TEST_WHOHAS
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -244,5 +252,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_WHOIS */
-#endif                          /* TEST */
+#endif /* TEST_WHOIS */
+#endif /* TEST */

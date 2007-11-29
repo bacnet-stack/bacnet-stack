@@ -28,7 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <conio.h>              /* for kbhit */
+#include <conio.h>      /* for kbhit */
 #include "config.h"
 #include "bacdef.h"
 #include "npdu.h"
@@ -45,23 +45,23 @@
 #define _USER32_
 #define _KERNEL32_
 #include <windows.h>
-#include <rttarget.h>           /* for RTCMOSSetSystemTime */
-#include <rtfiles.h>            /* file system */
-#include <rtfsys.h>             /* file system */
+#include <rttarget.h>   /* for RTCMOSSetSystemTime */
+#include <rtfiles.h>    /* file system */
+#include <rtfsys.h>     /* file system */
 #include <Rttbios.h>
 #endif
-#include <rtcom.h>              /* serial port driver */
-#include <itimer.h>             /* time measurement & timer interrupt rate control */
-#include <rtkeybrd.h>           /* interrupt handler for the keyboard */
+#include <rtcom.h>      /* serial port driver */
+#include <itimer.h>     /* time measurement & timer interrupt rate control */
+#include <rtkeybrd.h>   /* interrupt handler for the keyboard */
 
 /* buffers used for transmit and receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -73,10 +73,11 @@ static void Init_Service_Handlers(void)
         handler_write_property);
 }
 
-void millisecond_task(void)
+void millisecond_task(
+    void)
 {
-    Time ticks = 0;             /* task cycle */
-    int i = 0;                  /* loop counter */
+    Time ticks = 0;     /* task cycle */
+    int i = 0;  /* loop counter */
 
     ticks = RTKGetTime() + MilliSecsToTicks(1);
     while (TRUE) {
@@ -86,11 +87,12 @@ void millisecond_task(void)
     }
 }
 
-void RTOS_Initialize(void)
+void RTOS_Initialize(
+    void)
 {
     /* allow OS to setup IRQ 1 by using a dummy call */
     (void) kbhit();
-    RTKernelInit(5);            /* get the kernel going */
+    RTKernelInit(5);    /* get the kernel going */
     RTKeybrdInit();
     /*(void)CPUMoniInit(); /* not needed - just monitor idle task */ */
         RTComInit();
@@ -128,7 +130,9 @@ void RTOS_Initialize(void)
     RTKCreateTask(millisecond_task, 16, 1024 * 8, "millisec task");
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;

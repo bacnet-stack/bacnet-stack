@@ -41,7 +41,8 @@
 #include "bacenum.h"
 #include "handlers.h"
 
-bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
+bool apdu_service_supported(
+    BACNET_SERVICES_SUPPORTED service_supported)
 {
     bool status = false;
 
@@ -57,13 +58,15 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
     return status;
 }
 
-uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  /* APDU data */
+uint16_t apdu_decode_confirmed_service_request(
+    uint8_t * apdu,     /* APDU data */
     uint16_t apdu_len,
     BACNET_CONFIRMED_SERVICE_DATA * service_data,
     uint8_t * service_choice,
-    uint8_t ** service_request, uint16_t * service_request_len)
+    uint8_t ** service_request,
+    uint16_t * service_request_len)
 {
-    uint16_t len = 0;           /* counts where we are in PDU */
+    uint16_t len = 0;   /* counts where we are in PDU */
 
     service_data->segmented_message = (apdu[0] & BIT3) ? true : false;
     service_data->more_follows = (apdu[0] & BIT2) ? true : false;
@@ -84,55 +87,56 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t * apdu,  /* APDU data */
     return len;
 }
 
-void apdu_handler(BACNET_ADDRESS * src, uint8_t * apdu, /* APDU data */
+void apdu_handler(
+    BACNET_ADDRESS * src,
+    uint8_t * apdu,     /* APDU data */
     uint16_t apdu_len)
 {
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    uint16_t len = 0;           /* counts where we are in PDU */
+    uint16_t len = 0;   /* counts where we are in PDU */
 
     if (apdu) {
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
-        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-            len = apdu_decode_confirmed_service_request(&apdu[0],       /* APDU data */
-                apdu_len,
-                &service_data,
-                &service_choice, &service_request, &service_request_len);
-            if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
-                handler_read_property(service_request,
-                    service_request_len, src, &service_data);
-            }
-#if 0            
-            else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
-                handler_write_property(service_request,
-                    service_request_len, src, &service_data);
-            } 
+            case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
+                len = apdu_decode_confirmed_service_request(&apdu[0],   /* APDU data */
+                    apdu_len,
+                    &service_data,
+                    &service_choice, &service_request, &service_request_len);
+                if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
+                    handler_read_property(service_request,
+                        service_request_len, src, &service_data);
+                }
+#if 0
+                else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
+                    handler_write_property(service_request,
+                        service_request_len, src, &service_data);
+                }
 #endif
-            else {
-                handler_unrecognized_service(service_request,
-                    service_request_len, src, &service_data);
-            }
-            break;
-        case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
-            service_choice = apdu[1];
-            service_request = &apdu[2];
-            service_request_len = apdu_len - 2;
-            if (service_choice == SERVICE_UNCONFIRMED_WHO_IS) {
-                handler_who_is(service_request,
-                        service_request_len, src);
-            }
-            break;
-        case PDU_TYPE_SIMPLE_ACK:
-        case PDU_TYPE_COMPLEX_ACK:
-        case PDU_TYPE_SEGMENT_ACK:
-        case PDU_TYPE_ERROR:
-        case PDU_TYPE_REJECT:
-        case PDU_TYPE_ABORT:
-        default:
-            break;
+                else {
+                    handler_unrecognized_service(service_request,
+                        service_request_len, src, &service_data);
+                }
+                break;
+            case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
+                service_choice = apdu[1];
+                service_request = &apdu[2];
+                service_request_len = apdu_len - 2;
+                if (service_choice == SERVICE_UNCONFIRMED_WHO_IS) {
+                    handler_who_is(service_request, service_request_len, src);
+                }
+                break;
+            case PDU_TYPE_SIMPLE_ACK:
+            case PDU_TYPE_COMPLEX_ACK:
+            case PDU_TYPE_SEGMENT_ACK:
+            case PDU_TYPE_ERROR:
+            case PDU_TYPE_REJECT:
+            case PDU_TYPE_ABORT:
+            default:
+                break;
         }
     }
     return;

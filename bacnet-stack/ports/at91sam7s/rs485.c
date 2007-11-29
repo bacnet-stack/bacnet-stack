@@ -62,52 +62,51 @@ static int RS485_Baud = 38400;
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Initialize(void)
+void RS485_Initialize(
+    void)
 {
     /* Enable the USART0 clock in the Power Management Controller */
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
-    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_US0);
+    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_US0);
 
     /* Disable and clear USART0 interrupt
        in AIC Interrupt Disable Command Register */
     volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
-    pAIC->AIC_IDCR = (1<<AT91C_ID_US0);
-    pAIC->AIC_ICCR = (1<<AT91C_ID_US0);
-   
+    pAIC->AIC_IDCR = (1 << AT91C_ID_US0);
+    pAIC->AIC_ICCR = (1 << AT91C_ID_US0);
+
     /* enable the peripheral by disabling the pin in the PIO controller */
     *AT91C_PIOA_PDR = AT91C_PA5_RXD0 | AT91C_PA6_TXD0 | AT91C_PA7_RTS0;
 
-    RS485_Interface->US_CR =
-        AT91C_US_RSTRX |          /* Reset Receiver      */
-        AT91C_US_RSTTX |          /* Reset Transmitter   */
-        AT91C_US_RSTSTA |          /* Clear status register */
-        AT91C_US_RXDIS |          /* Receiver Disable    */
-        AT91C_US_TXDIS;           /* Transmitter Disable */
+    RS485_Interface->US_CR = AT91C_US_RSTRX |   /* Reset Receiver      */
+        AT91C_US_RSTTX |        /* Reset Transmitter   */
+        AT91C_US_RSTSTA |       /* Clear status register */
+        AT91C_US_RXDIS |        /* Receiver Disable    */
+        AT91C_US_TXDIS; /* Transmitter Disable */
 
-    RS485_Interface->US_MR =
-        AT91C_US_USMODE_RS485  |  /* RS-485 Mode - RTS auto assert */
-        AT91C_US_CLKS_CLOCK    |  /* Clock = MCK */
-        AT91C_US_CHRL_8_BITS   |  /* 8-bit Data  */
-        AT91C_US_PAR_NONE      |  /* No Parity   */
-        AT91C_US_NBSTOP_1_BIT;    /* 1 Stop Bit  */
+    RS485_Interface->US_MR = AT91C_US_USMODE_RS485 |    /* RS-485 Mode - RTS auto assert */
+        AT91C_US_CLKS_CLOCK |   /* Clock = MCK */
+        AT91C_US_CHRL_8_BITS |  /* 8-bit Data  */
+        AT91C_US_PAR_NONE |     /* No Parity   */
+        AT91C_US_NBSTOP_1_BIT;  /* 1 Stop Bit  */
 
     /* set the Time Guard to release RTS after x bit times */
     RS485_Interface->US_TTGR = 1;
-    
+
     /* Receiver Time-out disabled */
     RS485_Interface->US_RTOR = 0;
 
     /* baud rate */
-    RS485_Interface->US_BRGR = MCK/16/RS485_Baud;
+    RS485_Interface->US_BRGR = MCK / 16 / RS485_Baud;
 
-    RS485_Interface->US_CR =
-        AT91C_US_RXEN  |          /* Receiver Enable     */
-        AT91C_US_TXEN;            /* Transmitter Enable  */
-        
+    RS485_Interface->US_CR = AT91C_US_RXEN |    /* Receiver Enable     */
+        AT91C_US_TXEN;  /* Transmitter Enable  */
+
     return;
 }
 
-void RS485_Cleanup(void)
+void RS485_Cleanup(
+    void)
 {
 
 }
@@ -118,7 +117,8 @@ void RS485_Cleanup(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(void)
+uint32_t RS485_Get_Baud_Rate(
+    void)
 {
     return RS485_Baud;
 }
@@ -129,7 +129,8 @@ uint32_t RS485_Get_Baud_Rate(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Set_Baud_Rate(uint32_t baud)
+bool RS485_Set_Baud_Rate(
+    uint32_t baud)
 {
     bool valid = true;
 
@@ -141,7 +142,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         case 76800:
         case 115200:
             RS485_Baud = baud;
-            RS485_Interface->US_BRGR = MCK/16/baud;
+            RS485_Interface->US_BRGR = MCK / 16 / baud;
             /* FIXME: store the baud rate */
             break;
         default:
@@ -158,14 +159,15 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Turnaround_Delay(void)
+void RS485_Turnaround_Delay(
+    void)
 {
     uint16_t turnaround_time;
-    
+
     /* delay after reception before trasmitting - per MS/TP spec */
     /* wait a minimum  40 bit times since reception */
     /* at least 1 ms for errors: rounding, clock tick */
-    turnaround_time = 1 + ((Tturnaround*1000UL)/RS485_Baud);
+    turnaround_time = 1 + ((Tturnaround * 1000UL) / RS485_Baud);
     while (Timer_Silence() < turnaround_time) {
         /* do nothing - wait for timer to increment */
     };
@@ -177,9 +179,10 @@ void RS485_Turnaround_Delay(void)
 * ALGORITHM:   none
 * NOTES:       The Atmel ARM7 has an automatic enable/disable in RS485 mode.
 *****************************************************************************/
-void RS485_Transmitter_Enable(bool enable)
+void RS485_Transmitter_Enable(
+    bool enable)
 {
-    (void)enable;
+    (void) enable;
 }
 
 /****************************************************************************
@@ -189,9 +192,9 @@ void RS485_Transmitter_Enable(bool enable)
 * NOTES:       none
 *****************************************************************************/
 void RS485_Send_Data(
-    uint8_t * buffer,       /* data to send */
-    uint16_t nbytes)       /* number of bytes of data */
-{
+    uint8_t * buffer,   /* data to send */
+    uint16_t nbytes)
+{       /* number of bytes of data */
     /* LED on send */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
     /* LED ON */
@@ -218,7 +221,8 @@ void RS485_Send_Data(
 * ALGORITHM:   none
 * NOTES:       Clears any error flags.
 *****************************************************************************/
-bool RS485_ReceiveError(void)
+bool RS485_ReceiveError(
+    void)
 {
     bool ReceiveError = false;
     /* LED on send */
@@ -242,25 +246,27 @@ bool RS485_ReceiveError(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_DataAvailable(uint8_t *DataRegister)
+bool RS485_DataAvailable(
+    uint8_t * DataRegister)
 {
     bool DataAvailable = false;
     /* LED on send */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
-    
-    if ( RS485_Interface->US_CSR & AT91C_US_RXRDY) {
+
+    if (RS485_Interface->US_CSR & AT91C_US_RXRDY) {
         /* data is available */
         *DataRegister = RS485_Interface->US_RHR;
         DataAvailable = true;
         /* LED ON */
         pPIO->PIO_CODR = LED2;
     }
-    
+
     return DataAvailable;
 }
 
 #ifdef TEST_RS485
-int main(void)
+int main(
+    void)
 {
     unsigned i = 0;
     uint8_t DataRegister;
@@ -270,11 +276,10 @@ int main(void)
     /* receive task */
     for (;;) {
         if (RS485_ReceiveError()) {
-            fprintf(stderr,"ERROR ");
+            fprintf(stderr, "ERROR ");
         } else if (RS485_DataAvailable(&DataRegister)) {
-            fprintf(stderr,"%02X ",DataRegister);
+            fprintf(stderr, "%02X ", DataRegister);
         }
     }
 }
-#endif 
-
+#endif

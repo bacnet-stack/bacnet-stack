@@ -31,17 +31,17 @@
 /* #define AUTO_IP    // use xn_autoip() to get an IP address */
 /* #define DHCP       // if you enable this, you must also link library dhcpc.lib */
 
-#if defined(AUTO_IP)            /* use xn_autoip() to get an IP address */
+#if defined(AUTO_IP)    /* use xn_autoip() to get an IP address */
 static BYTE TargetIP[] = { 0, 0, 0, 0 };        /* will be filled at run-time */
 static BYTE NetMask[] = { 255, 255, 255, 0 };
 static BYTE MinIP[] = { 192, 168, 0, 128 };
 static BYTE MaxIP[] = { 192, 168, 0, 255 };
 static BYTE DefaultGateway[] = { 192, 168, 0, 1 };      /* set to zero if not available or required */
 static BYTE DNSServer[] = { 192, 168, 0, 1 };   /* ditto */
-#elif defined(DHCP)             /* use DHCP */
+#elif defined(DHCP)     /* use DHCP */
 #include <dhcpcapi.h>
 static BYTE TargetIP[] = { 0, 0, 0, 0 };        /* will be filled at run-time */
-#else                           /* static IP address assignment (default) */
+#else /* static IP address assignment (default) */
 static BYTE TargetIP[] = { 192, 168, 0, 50 };
 static BYTE NetMask[] = { 255, 255, 255, 0 };
 static BYTE DefaultGateway[] = { 192, 168, 0, 1 };      /* set to zero if not available or required */
@@ -59,8 +59,8 @@ static BYTE DNSServer[] = { 192, 168, 0, 1 };   /* ditto */
 /* PCI devices if you do not have a BIOS */
 
 #define ED_IO_ADD     0x300     /* I/O address of the device */
-#define ED_IRQ        5         /* IRQ         of the device */
-#define ED_MEM_ADD    0         /* Memory Window (only some devices) */
+#define ED_IRQ        5 /* IRQ         of the device */
+#define ED_MEM_ADD    0 /* Memory Window (only some devices) */
 
 /* Define function to pull in the required driver */
 
@@ -87,17 +87,17 @@ static BYTE DNSServer[] = { 192, 168, 0, 1 };   /* ditto */
 #elif DEVICE_ID == RHINE_DEVICE
 #define BIND_DRIVER   xn_bind_rhine
 #elif DEVICE_ID == AX172_DEVICE
-#include <rtusb.h>              /* must also link Rtusb.lib and UsbInit.cpp */
+#include <rtusb.h>      /* must also link Rtusb.lib and UsbInit.cpp */
 #define BIND_DRIVER   xn_bind_ax172
 #elif DEVICE_ID == AX772_DEVICE
-#include <rtusb.h>              /* must also link Rtusb.lib and UsbInit.cpp */
+#include <rtusb.h>      /* must also link Rtusb.lib and UsbInit.cpp */
 #define BIND_DRIVER   xn_bind_ax772
 #elif DEVICE_ID == PRISM_DEVICE
-#include <wlanapi.h>            /* must also link Wlan.lib */
+#include <wlanapi.h>    /* must also link Wlan.lib */
 #define BIND_DRIVER   xn_bind_prism
 #elif DEVICE_ID == PRISM_PCMCIA_DEVICE
 #include <rtpcmcia.h>
-#include <wlanapi.h>            /* must also link Wlan.lib */
+#include <wlanapi.h>    /* must also link Wlan.lib */
 #define BIND_DRIVER   xn_bind_prism_pcmcia
 #else
 #error Invalid DEVICE_ID value

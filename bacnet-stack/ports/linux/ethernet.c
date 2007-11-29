@@ -32,8 +32,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>             /* for standard integer types uint8_t etc. */
-#include <stdbool.h>            /* for the standard bool type. */
+#include <stdint.h>     /* for standard integer types uint8_t etc. */
+#include <stdbool.h>    /* for the standard bool type. */
 
 #include "net.h"
 #include "bacdef.h"
@@ -52,12 +52,14 @@ uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0 };
 static int eth802_sockfd = -1;  /* 802.2 file handle */
 static struct sockaddr eth_addr = { 0 };        /* used for binding 802.2 */
 
-bool ethernet_valid(void)
+bool ethernet_valid(
+    void)
 {
     return (eth802_sockfd >= 0);
 }
 
-void ethernet_cleanup(void)
+void ethernet_cleanup(
+    void)
 {
     if (ethernet_valid())
         close(eth802_sockfd);
@@ -75,7 +77,8 @@ void ethernet_cleanup(void)
  to EAGAIN (or EWOULDBLOCK).
  Thanks to Bjorn Reese for this code.
 ----------------------------------------------------------------------*/
-int setNonblocking(int fd)
+int setNonblocking(
+    int fd)
 {
     int flags;
 
@@ -85,9 +88,11 @@ int setNonblocking(int fd)
 }
 
 /* opens an 802.2 socket to receive and send packets */
-static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
+static int ethernet_bind(
+    struct sockaddr *eth_addr,
+    char *interface_name)
 {
-    int sock_fd = -1;           /* return value */
+    int sock_fd = -1;   /* return value */
     int uid = 0;
 
     fprintf(stderr, "ethernet: opening \"%s\"\n", interface_name);
@@ -122,15 +127,13 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
     /* Clear the memory before copying */
     memset(eth_addr->sa_data, '\0', sizeof(eth_addr->sa_data));
     /* Strcpy the interface name into the address */
-    strncpy(eth_addr->sa_data, interface_name,
-        sizeof(eth_addr->sa_data) - 1);
+    strncpy(eth_addr->sa_data, interface_name, sizeof(eth_addr->sa_data) - 1);
     fprintf(stderr, "ethernet: binding \"%s\"\n", eth_addr->sa_data);
     /* Attempt to bind the socket to the interface */
     if (bind(sock_fd, eth_addr, sizeof(struct sockaddr)) != 0) {
         /* Bind problem, close socket and return */
         fprintf(stderr,
-            "ethernet: Unable to bind 802.2 socket : %s\n",
-            strerror(errno));
+            "ethernet: Unable to bind 802.2 socket : %s\n", strerror(errno));
         fprintf(stderr,
             "You might need to add the following to modules.conf\n"
             "(or in /etc/modutils/alias on Debian with update-modules):\n"
@@ -148,11 +151,13 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
 }
 
 /* function to find the local ethernet MAC address */
-static int get_local_hwaddr(const char *ifname, unsigned char *mac)
+static int get_local_hwaddr(
+    const char *ifname,
+    unsigned char *mac)
 {
     struct ifreq ifr;
     int fd;
-    int rv;                     /* return value - error value from df or ioctl call */
+    int rv;     /* return value - error value from df or ioctl call */
 
     /* determine the local MAC address */
     strcpy(ifr.ifr_name, ifname);
@@ -161,14 +166,15 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
         rv = fd;
     else {
         rv = ioctl(fd, SIOCGIFHWADDR, &ifr);
-        if (rv >= 0)            /* worked okay */
+        if (rv >= 0)    /* worked okay */
             memcpy(mac, ifr.ifr_hwaddr.sa_data, IFHWADDRLEN);
     }
 
     return rv;
 }
 
-bool ethernet_init(char *interface_name)
+bool ethernet_init(
+    char *interface_name)
 {
     if (interface_name) {
         get_local_hwaddr(interface_name, Ethernet_MAC_Address);
@@ -183,12 +189,13 @@ bool ethernet_init(char *interface_name)
 
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */
-int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+int ethernet_send_pdu(
+    BACNET_ADDRESS * dest,      /* destination address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
-    uint8_t * pdu,              /* any data to be sent - may be null */
+    uint8_t * pdu,      /* any data to be sent - may be null */
     unsigned pdu_len)
-{                               /* number of bytes of data */
-    int i = 0;                  /* counter */
+{       /* number of bytes of data */
+    int i = 0;  /* counter */
     int bytes = 0;
     BACNET_ADDRESS src = { 0 }; /* source address for npdu */
     uint8_t mtu[MAX_MPDU] = { 0 };      /* our buffer */
@@ -226,9 +233,9 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
         return -3;
     }
     /* Logical PDU portion */
-    mtu[14] = 0x82;             /* DSAP for BACnet */
-    mtu[15] = 0x82;             /* SSAP for BACnet */
-    mtu[16] = 0x03;             /* Control byte in header */
+    mtu[14] = 0x82;     /* DSAP for BACnet */
+    mtu[15] = 0x82;     /* SSAP for BACnet */
+    mtu[16] = 0x03;     /* Control byte in header */
     mtu_len = 17;
     if ((mtu_len + pdu_len) > MAX_MPDU) {
         fprintf(stderr, "ethernet: PDU is too big to send!\n");
@@ -253,11 +260,12 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
 
 /* receives an 802.2 framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
-uint16_t ethernet_receive(BACNET_ADDRESS * src, /* source address */
-    uint8_t * pdu,              /* PDU data */
-    uint16_t max_pdu,           /* amount of space available in the PDU  */
+uint16_t ethernet_receive(
+    BACNET_ADDRESS * src,       /* source address */
+    uint8_t * pdu,      /* PDU data */
+    uint16_t max_pdu,   /* amount of space available in the PDU  */
     unsigned timeout)
-{                               /* number of milliseconds to wait for a packet */
+{       /* number of milliseconds to wait for a packet */
     int received_bytes;
     uint8_t buf[MAX_MPDU] = { 0 };      /* data */
     uint16_t pdu_len = 0;       /* return value */
@@ -334,7 +342,8 @@ uint16_t ethernet_receive(BACNET_ADDRESS * src, /* source address */
     return pdu_len;
 }
 
-void ethernet_set_my_address(BACNET_ADDRESS * my_address)
+void ethernet_set_my_address(
+    BACNET_ADDRESS * my_address)
 {
     int i = 0;
 
@@ -345,7 +354,8 @@ void ethernet_set_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void ethernet_get_my_address(BACNET_ADDRESS * my_address)
+void ethernet_get_my_address(
+    BACNET_ADDRESS * my_address)
 {
     int i = 0;
 
@@ -363,9 +373,10 @@ void ethernet_get_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void ethernet_get_broadcast_address(BACNET_ADDRESS * dest)
-{                               /* destination address */
-    int i = 0;                  /* counter */
+void ethernet_get_broadcast_address(
+    BACNET_ADDRESS * dest)
+{       /* destination address */
+    int i = 0;  /* counter */
 
     if (dest) {
         for (i = 0; i < 6; i++) {
@@ -373,7 +384,7 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS * dest)
         }
         dest->mac_len = 6;
         dest->net = BACNET_BROADCAST_NETWORK;
-        dest->len = 0; /* always zero when DNET is broadcast */
+        dest->len = 0;  /* always zero when DNET is broadcast */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }
@@ -382,9 +393,11 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
-void ethernet_debug_address(const char *info, BACNET_ADDRESS * dest)
+void ethernet_debug_address(
+    const char *info,
+    BACNET_ADDRESS * dest)
 {
-    int i = 0;                  /* counter */
+    int i = 0;  /* counter */
 
     if (info)
         fprintf(stderr, "%s", info);

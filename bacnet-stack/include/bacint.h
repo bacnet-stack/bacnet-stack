@@ -40,29 +40,55 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
     /* unsigned value encoding and decoding */
-    int encode_unsigned16(uint8_t * apdu, uint16_t value);
-    int decode_unsigned16(uint8_t * apdu, uint16_t * value);
-    int encode_unsigned24(uint8_t * apdu, uint32_t value);
-    int decode_unsigned24(uint8_t * apdu, uint32_t * value);
-    int encode_unsigned32(uint8_t * apdu, uint32_t value);
-    int decode_unsigned32(uint8_t * apdu, uint32_t * value);
+    int encode_unsigned16(
+        uint8_t * apdu,
+        uint16_t value);
+    int decode_unsigned16(
+        uint8_t * apdu,
+        uint16_t * value);
+    int encode_unsigned24(
+        uint8_t * apdu,
+        uint32_t value);
+    int decode_unsigned24(
+        uint8_t * apdu,
+        uint32_t * value);
+    int encode_unsigned32(
+        uint8_t * apdu,
+        uint32_t value);
+    int decode_unsigned32(
+        uint8_t * apdu,
+        uint32_t * value);
 
     /* signed value encoding and decoding */
-    int encode_signed8(uint8_t * apdu, int8_t value);
-    int decode_signed8(uint8_t * apdu, int32_t * value);
-    int encode_signed16(uint8_t * apdu, int16_t value);
-    int decode_signed16(uint8_t * apdu, int32_t * value);
-    int encode_signed24(uint8_t * apdu, int32_t value);
-    int decode_signed24(uint8_t * apdu, int32_t * value);
-    int encode_signed32(uint8_t * apdu, int32_t value);
-    int decode_signed32(uint8_t * apdu, int32_t * value);
-    
+    int encode_signed8(
+        uint8_t * apdu,
+        int8_t value);
+    int decode_signed8(
+        uint8_t * apdu,
+        int32_t * value);
+    int encode_signed16(
+        uint8_t * apdu,
+        int16_t value);
+    int decode_signed16(
+        uint8_t * apdu,
+        int32_t * value);
+    int encode_signed24(
+        uint8_t * apdu,
+        int32_t value);
+    int decode_signed24(
+        uint8_t * apdu,
+        int32_t * value);
+    int encode_signed32(
+        uint8_t * apdu,
+        int32_t value);
+    int decode_signed32(
+        uint8_t * apdu,
+        int32_t * value);
+
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
-
+#endif /* __cplusplus */
 #endif
-

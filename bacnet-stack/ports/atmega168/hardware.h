@@ -26,7 +26,7 @@
 #define HARDWARE_H
 
 /* The processor clock frequency */
-#define F_CPU (7372800)       
+#define F_CPU (7372800)
 
 #include <avr/io.h>
 #include <avr/interrupt.h>

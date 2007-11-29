@@ -43,21 +43,21 @@
 #ifdef __cplusplus
 extern "C" {
 
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
     uint16_t bvlc_receive(
         BACNET_ADDRESS * src,   /* returns the source address */
-        uint8_t * npdu,         /* returns the NPDU */
+        uint8_t * npdu, /* returns the NPDU */
         uint16_t max_npdu,      /* amount of space available in the NPDU  */
-        unsigned timeout);     /* number of milliseconds to wait for a packet */
+        unsigned timeout);      /* number of milliseconds to wait for a packet */
 
-    int bvlc_send_pdu(BACNET_ADDRESS * dest, /* destination address */
-        BACNET_NPDU_DATA * npdu_data,       /* network information */
-        uint8_t * pdu,              /* any data to be sent - may be null */
+    int bvlc_send_pdu(
+        BACNET_ADDRESS * dest,  /* destination address */
+        BACNET_NPDU_DATA * npdu_data,   /* network information */
+        uint8_t * pdu,  /* any data to be sent - may be null */
         unsigned pdu_len);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
-#endif                          /* */
-
+#endif /* __cplusplus */
+#endif /* */

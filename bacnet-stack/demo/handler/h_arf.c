@@ -40,7 +40,7 @@
 #include "ai.h"
 #include "ao.h"
 #if defined(BACFILE)
-    #include "bacfile.h"
+#include "bacfile.h"
 #endif
 
 /*
@@ -95,9 +95,11 @@ shall be TRUE, otherwise FALSE.
 */
 
 #if defined(BACFILE)
-void handler_atomic_read_file(uint8_t * service_request,
+void handler_atomic_read_file(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     BACNET_ATOMIC_READ_FILE_DATA data;
     int len = 0;
@@ -125,7 +127,7 @@ void handler_atomic_read_file(uint8_t * service_request,
         fprintf(stderr, "ARF: Segmented Message. Sending Abort!\n");
 #endif
         goto ARF_ABORT;
-    } 
+    }
     len = arf_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
     if (len < 0) {
@@ -186,7 +188,7 @@ void handler_atomic_read_file(uint8_t * service_request,
             service_data->invoke_id,
             SERVICE_CONFIRMED_ATOMIC_READ_FILE, error_class, error_code);
     }
-ARF_ABORT:
+  ARF_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(src, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);

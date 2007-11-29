@@ -29,13 +29,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>             /* for memcpy */
+#include <string.h>     /* for memcpy */
 #include <time.h>
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "datetime.h"
 #include "bacenum.h"
-#include "config.h"             /* the custom stuff */
+#include "config.h"     /* the custom stuff */
 #include "lc.h"
 #include "ao.h"
 #include "wp.h"
@@ -138,8 +138,7 @@ static float Shed_Level_Values[MAX_SHED_LEVELS] = {
 static bool Load_Control_Initialized = false;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Load_Control_Properties_Required[] =
-{
+static const int Load_Control_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -158,15 +157,13 @@ static const int Load_Control_Properties_Required[] =
     -1
 };
 
-static const int Load_Control_Properties_Optional[] =
-{
+static const int Load_Control_Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_FULL_DUTY_BASELINE,
     -1
 };
 
-static const int Load_Control_Properties_Proprietary[] =
-{
+static const int Load_Control_Properties_Proprietary[] = {
     -1
 };
 
@@ -185,7 +182,8 @@ void Load_Control_Property_Lists(
     return;
 }
 
-void Load_Control_Init(void)
+void Load_Control_Init(
+    void)
 {
     unsigned i, j;
 
@@ -221,7 +219,8 @@ void Load_Control_Init(void)
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Load_Control_Valid_Instance(uint32_t object_instance)
+bool Load_Control_Valid_Instance(
+    uint32_t object_instance)
 {
     Load_Control_Init();
     if (object_instance < MAX_LOAD_CONTROLS)
@@ -232,7 +231,8 @@ bool Load_Control_Valid_Instance(uint32_t object_instance)
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Load_Control_Count(void)
+unsigned Load_Control_Count(
+    void)
 {
     Load_Control_Init();
     return MAX_LOAD_CONTROLS;
@@ -241,7 +241,8 @@ unsigned Load_Control_Count(void)
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Load_Control_Index_To_Instance(unsigned index)
+uint32_t Load_Control_Index_To_Instance(
+    unsigned index)
 {
     Load_Control_Init();
     return index;
@@ -250,7 +251,8 @@ uint32_t Load_Control_Index_To_Instance(unsigned index)
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Load_Control_Instance_To_Index(uint32_t object_instance)
+unsigned Load_Control_Instance_To_Index(
+    uint32_t object_instance)
 {
     unsigned index = MAX_LOAD_CONTROLS;
 
@@ -261,8 +263,8 @@ unsigned Load_Control_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-static BACNET_SHED_STATE Load_Control_Present_Value(uint32_t
-    object_instance)
+static BACNET_SHED_STATE Load_Control_Present_Value(
+    uint32_t object_instance)
 {
     BACNET_SHED_STATE value = BACNET_SHED_INACTIVE;
     unsigned index = 0;
@@ -277,7 +279,8 @@ static BACNET_SHED_STATE Load_Control_Present_Value(uint32_t
 }
 
 /* note: the object name must be unique within this device */
-char *Load_Control_Name(uint32_t object_instance)
+char *Load_Control_Name(
+    uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
 
@@ -289,7 +292,8 @@ char *Load_Control_Name(uint32_t object_instance)
     return NULL;
 }
 
-static void Update_Current_Time(BACNET_DATE_TIME * bdatetime)
+static void Update_Current_Time(
+    BACNET_DATE_TIME * bdatetime)
 {
     time_t timer;
     struct tm *tblock;
@@ -319,80 +323,84 @@ struct tm {
 }
 
 /* convert the shed level request into an Analog Output Present_Value */
-static float Requested_Shed_Level_Value(int object_index)
+static float Requested_Shed_Level_Value(
+    int object_index)
 {
     unsigned shed_level_index = 0;
     unsigned i = 0;
     float requested_level = 0.0;
 
     switch (Requested_Shed_Level[object_index].type) {
-    case BACNET_SHED_TYPE_PERCENT:
-        requested_level =
-            (float) Requested_Shed_Level[object_index].value.percent;
-        break;
-    case BACNET_SHED_TYPE_AMOUNT:
-        /* Assumptions: wattage is linear with analog output level */
-        requested_level =
-            Full_Duty_Baseline[object_index] -
-            Requested_Shed_Level[object_index].value.amount;
-        requested_level /= Full_Duty_Baseline[object_index];
-        requested_level *= 100.0;
-        break;
-    case BACNET_SHED_TYPE_LEVEL:
-    default:
-        for (i = 0; i < MAX_SHED_LEVELS; i++) {
-            if (Shed_Levels[object_index][i] <=
-                Requested_Shed_Level[object_index].value.level)
-                shed_level_index = i;
-        }
-        requested_level = Shed_Level_Values[shed_level_index];
-        break;
+        case BACNET_SHED_TYPE_PERCENT:
+            requested_level =
+                (float) Requested_Shed_Level[object_index].value.percent;
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            /* Assumptions: wattage is linear with analog output level */
+            requested_level =
+                Full_Duty_Baseline[object_index] -
+                Requested_Shed_Level[object_index].value.amount;
+            requested_level /= Full_Duty_Baseline[object_index];
+            requested_level *= 100.0;
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+        default:
+            for (i = 0; i < MAX_SHED_LEVELS; i++) {
+                if (Shed_Levels[object_index][i] <=
+                    Requested_Shed_Level[object_index].value.level)
+                    shed_level_index = i;
+            }
+            requested_level = Shed_Level_Values[shed_level_index];
+            break;
     }
 
     return requested_level;
 }
 
-static void Shed_Level_Copy(BACNET_SHED_LEVEL * dest,
+static void Shed_Level_Copy(
+    BACNET_SHED_LEVEL * dest,
     BACNET_SHED_LEVEL * src)
 {
     if (dest && src) {
         dest->type = src->type;
         switch (src->type) {
-        case BACNET_SHED_TYPE_PERCENT:
-            dest->value.percent = src->value.percent;
-            break;
-        case BACNET_SHED_TYPE_AMOUNT:
-            dest->value.amount = src->value.amount;
-            break;
-        case BACNET_SHED_TYPE_LEVEL:
-        default:
-            dest->value.level = src->value.level;
-            break;
+            case BACNET_SHED_TYPE_PERCENT:
+                dest->value.percent = src->value.percent;
+                break;
+            case BACNET_SHED_TYPE_AMOUNT:
+                dest->value.amount = src->value.amount;
+                break;
+            case BACNET_SHED_TYPE_LEVEL:
+            default:
+                dest->value.level = src->value.level;
+                break;
         }
     }
 }
 
-static void Shed_Level_Default_Set(BACNET_SHED_LEVEL * dest,
+static void Shed_Level_Default_Set(
+    BACNET_SHED_LEVEL * dest,
     BACNET_SHED_LEVEL_TYPE type)
 {
     if (dest) {
         dest->type = type;
         switch (type) {
-        case BACNET_SHED_TYPE_PERCENT:
-            dest->value.percent = 100;
-            break;
-        case BACNET_SHED_TYPE_AMOUNT:
-            dest->value.amount = 0.0;
-            break;
-        case BACNET_SHED_TYPE_LEVEL:
-        default:
-            dest->value.level = 0;
-            break;
+            case BACNET_SHED_TYPE_PERCENT:
+                dest->value.percent = 100;
+                break;
+            case BACNET_SHED_TYPE_AMOUNT:
+                dest->value.amount = 0.0;
+                break;
+            case BACNET_SHED_TYPE_LEVEL:
+            default:
+                dest->value.level = 0;
+                break;
         }
     }
 }
 
-static bool Able_To_Meet_Shed_Request(int object_index)
+static bool Able_To_Meet_Shed_Request(
+    int object_index)
 {
     float level = 0.0;
     float requested_level = 0.0;
@@ -427,7 +435,8 @@ static LOAD_CONTROL_STATE Load_Control_State[MAX_LOAD_CONTROLS];
 static LOAD_CONTROL_STATE Load_Control_State_Previously[MAX_LOAD_CONTROLS];
 
 #if PRINT_ENABLED_DEBUG
-static void Print_Load_Control_State(int object_index)
+static void Print_Load_Control_State(
+    int object_index)
 {
     char *Load_Control_State_Text[MAX_LOAD_CONTROLS] = {
         "SHED_INACTIVE",
@@ -445,10 +454,11 @@ static void Print_Load_Control_State(int object_index)
 }
 #endif
 
-void Load_Control_State_Machine(int object_index)
+void Load_Control_State_Machine(
+    int object_index)
 {
-    unsigned i = 0;             /* loop counter */
-    int diff = 0;               /* used for datetime comparison */
+    unsigned i = 0;     /* loop counter */
+    int diff = 0;       /* used for datetime comparison */
 
     /* is the state machine enabled? */
     if (!Load_Control_Enable[object_index]) {
@@ -457,82 +467,129 @@ void Load_Control_State_Machine(int object_index)
     }
 
     switch (Load_Control_State[object_index]) {
-    case SHED_REQUEST_PENDING:
-        if (Load_Control_Request_Written[object_index]) {
-            Load_Control_Request_Written[object_index] = false;
-            /* request to cancel using default values? */
-            switch (Requested_Shed_Level[object_index].type) {
-            case BACNET_SHED_TYPE_PERCENT:
-                if (Requested_Shed_Level[object_index].value.percent ==
-                    DEFAULT_VALUE_PERCENT)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            case BACNET_SHED_TYPE_AMOUNT:
-                if (Requested_Shed_Level[object_index].value.amount ==
-                    DEFAULT_VALUE_AMOUNT)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            case BACNET_SHED_TYPE_LEVEL:
-            default:
-                if (Requested_Shed_Level[object_index].value.level ==
-                    DEFAULT_VALUE_LEVEL)
-                    Load_Control_State[object_index] = SHED_INACTIVE;
-                break;
-            }
-            if (Load_Control_State[object_index] == SHED_INACTIVE) {
+        case SHED_REQUEST_PENDING:
+            if (Load_Control_Request_Written[object_index]) {
+                Load_Control_Request_Written[object_index] = false;
+                /* request to cancel using default values? */
+                switch (Requested_Shed_Level[object_index].type) {
+                    case BACNET_SHED_TYPE_PERCENT:
+                        if (Requested_Shed_Level[object_index].value.percent ==
+                            DEFAULT_VALUE_PERCENT)
+                            Load_Control_State[object_index] = SHED_INACTIVE;
+                        break;
+                    case BACNET_SHED_TYPE_AMOUNT:
+                        if (Requested_Shed_Level[object_index].value.amount ==
+                            DEFAULT_VALUE_AMOUNT)
+                            Load_Control_State[object_index] = SHED_INACTIVE;
+                        break;
+                    case BACNET_SHED_TYPE_LEVEL:
+                    default:
+                        if (Requested_Shed_Level[object_index].value.level ==
+                            DEFAULT_VALUE_LEVEL)
+                            Load_Control_State[object_index] = SHED_INACTIVE;
+                        break;
+                }
+                if (Load_Control_State[object_index] == SHED_INACTIVE) {
 #if PRINT_ENABLED_DEBUG
-                printf("Load Control[%d]:Requested Shed Level=Default\n",
-                    object_index);
+                    printf("Load Control[%d]:Requested Shed Level=Default\n",
+                        object_index);
 #endif
-                break;
+                    break;
+                }
             }
-        }
-        /* clear the flag for Start time if it is written */
-        if (Start_Time_Property_Written[object_index]) {
-            Start_Time_Property_Written[object_index] = false;
-            /* request to cancel using wildcards in start time? */
-            if (datetime_wildcard(&Start_Time[object_index])) {
+            /* clear the flag for Start time if it is written */
+            if (Start_Time_Property_Written[object_index]) {
+                Start_Time_Property_Written[object_index] = false;
+                /* request to cancel using wildcards in start time? */
+                if (datetime_wildcard(&Start_Time[object_index])) {
+                    Load_Control_State[object_index] = SHED_INACTIVE;
+#if PRINT_ENABLED_DEBUG
+                    printf("Load Control[%d]:Start Time=Wildcard\n",
+                        object_index);
+#endif
+                    break;
+                }
+            }
+            /* cancel because current time is after start time + duration? */
+            datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
+            datetime_add_minutes(&End_Time[object_index],
+                Shed_Duration[object_index]);
+            diff = datetime_compare(&End_Time[object_index], &Current_Time);
+            if (diff < 0) {
+                /* CancelShed */
+                /* FIXME: stop shedding! i.e. relinquish */
+#if PRINT_ENABLED_DEBUG
+                printf("Load Control[%d]:Current Time"
+                    " is after Start Time + Duration\n", object_index);
+#endif
                 Load_Control_State[object_index] = SHED_INACTIVE;
-#if PRINT_ENABLED_DEBUG
-                printf("Load Control[%d]:Start Time=Wildcard\n",
-                    object_index);
-#endif
                 break;
             }
-        }
-        /* cancel because current time is after start time + duration? */
-        datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
-        datetime_add_minutes(&End_Time[object_index],
-            Shed_Duration[object_index]);
-        diff = datetime_compare(&End_Time[object_index], &Current_Time);
-        if (diff < 0) {
-            /* CancelShed */
-            /* FIXME: stop shedding! i.e. relinquish */
+            diff = datetime_compare(&Current_Time, &Start_Time[object_index]);
+            if (diff < 0) {
+                /* current time prior to start time */
+                /* ReconfigurePending */
+                Shed_Level_Copy(&Expected_Shed_Level[object_index],
+                    &Requested_Shed_Level[object_index]);
+                Shed_Level_Default_Set(&Actual_Shed_Level[object_index],
+                    Requested_Shed_Level[object_index].type);
+            } else if (diff > 0) {
+                /* current time after to start time */
 #if PRINT_ENABLED_DEBUG
-            printf("Load Control[%d]:Current Time"
-                " is after Start Time + Duration\n",
-                object_index);
+                printf("Load Control[%d]:Current Time"
+                    " is after Start Time\n", object_index);
 #endif
-            Load_Control_State[object_index] = SHED_INACTIVE;
+                /* AbleToMeetShed */
+                if (Able_To_Meet_Shed_Request(object_index)) {
+                    Shed_Level_Copy(&Expected_Shed_Level[object_index],
+                        &Requested_Shed_Level[object_index]);
+                    Analog_Output_Present_Value_Set(object_index,
+                        Requested_Shed_Level_Value(object_index), 4);
+                    Shed_Level_Copy(&Actual_Shed_Level[object_index],
+                        &Requested_Shed_Level[object_index]);
+                    Load_Control_State[object_index] = SHED_COMPLIANT;
+                } else {
+                    /* CannotMeetShed */
+                    Shed_Level_Default_Set(&Expected_Shed_Level[object_index],
+                        Requested_Shed_Level[object_index].type);
+                    Shed_Level_Default_Set(&Actual_Shed_Level[object_index],
+                        Requested_Shed_Level[object_index].type);
+                    Load_Control_State[object_index] = SHED_NON_COMPLIANT;
+                }
+            }
             break;
-        }
-        diff = datetime_compare(&Current_Time, &Start_Time[object_index]);
-        if (diff < 0) {
-            /* current time prior to start time */
-            /* ReconfigurePending */
-            Shed_Level_Copy(&Expected_Shed_Level[object_index],
-                &Requested_Shed_Level[object_index]);
-            Shed_Level_Default_Set(&Actual_Shed_Level[object_index],
-                Requested_Shed_Level[object_index].type);
-        } else if (diff > 0) {
-            /* current time after to start time */
+        case SHED_NON_COMPLIANT:
+            datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
+            datetime_add_minutes(&End_Time[object_index],
+                Shed_Duration[object_index]);
+            diff = datetime_compare(&End_Time[object_index], &Current_Time);
+            if (diff < 0) {
+                /* FinishedUnsuccessfulShed */
 #if PRINT_ENABLED_DEBUG
-            printf("Load Control[%d]:Current Time"
-                " is after Start Time\n",
-                object_index);
+                printf
+                    ("Load Control[%d]:Current Time is after Start Time + Duration\n",
+                    object_index);
 #endif
-            /* AbleToMeetShed */
+                Load_Control_State[object_index] = SHED_INACTIVE;
+                break;
+            }
+            if (Load_Control_Request_Written[object_index] ||
+                Start_Time_Property_Written[object_index]) {
+                /* UnsuccessfulShedReconfigured */
+#if PRINT_ENABLED_DEBUG
+                printf("Load Control[%d]:Control Property written\n",
+                    object_index);
+#endif
+                /* The Written flags will cleared in the next state */
+                Load_Control_State[object_index] = SHED_REQUEST_PENDING;
+                break;
+            }
             if (Able_To_Meet_Shed_Request(object_index)) {
+                /* CanNowComplyWithShed */
+#if PRINT_ENABLED_DEBUG
+                printf("Load Control[%d]:Able to meet Shed Request\n",
+                    object_index);
+#endif
                 Shed_Level_Copy(&Expected_Shed_Level[object_index],
                     &Requested_Shed_Level[object_index]);
                 Analog_Output_Present_Value_Set(object_index,
@@ -540,119 +597,71 @@ void Load_Control_State_Machine(int object_index)
                 Shed_Level_Copy(&Actual_Shed_Level[object_index],
                     &Requested_Shed_Level[object_index]);
                 Load_Control_State[object_index] = SHED_COMPLIANT;
-            } else {
-                /* CannotMeetShed */
+            }
+            break;
+        case SHED_COMPLIANT:
+            datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
+            datetime_add_minutes(&End_Time[object_index],
+                Shed_Duration[object_index]);
+            diff = datetime_compare(&End_Time[object_index], &Current_Time);
+            if (diff < 0) {
+                /* FinishedSuccessfulShed */
+#if PRINT_ENABLED_DEBUG
+                printf
+                    ("Load Control[%d]:Current Time is after Start Time + Duration\n",
+                    object_index);
+#endif
+                datetime_wildcard_set(&Start_Time[i]);
+                Analog_Output_Present_Value_Relinquish(object_index, 4);
+                Load_Control_State[object_index] = SHED_INACTIVE;
+                break;
+            }
+            if (Load_Control_Request_Written[object_index] ||
+                Start_Time_Property_Written[object_index]) {
+                /* UnsuccessfulShedReconfigured */
+#if PRINT_ENABLED_DEBUG
+                printf("Load Control[%d]:Control Property written\n",
+                    object_index);
+#endif
+                /* The Written flags will cleared in the next state */
+                Load_Control_State[object_index] = SHED_REQUEST_PENDING;
+                break;
+            }
+            if (!Able_To_Meet_Shed_Request(object_index)) {
+                /* CanNoLongerComplyWithShed */
+#if PRINT_ENABLED_DEBUG
+                printf("Load Control[%d]:Not able to meet Shed Request\n",
+                    object_index);
+#endif
                 Shed_Level_Default_Set(&Expected_Shed_Level[object_index],
                     Requested_Shed_Level[object_index].type);
                 Shed_Level_Default_Set(&Actual_Shed_Level[object_index],
                     Requested_Shed_Level[object_index].type);
                 Load_Control_State[object_index] = SHED_NON_COMPLIANT;
             }
-        }
-        break;
-    case SHED_NON_COMPLIANT:
-        datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
-        datetime_add_minutes(&End_Time[object_index],
-            Shed_Duration[object_index]);
-        diff = datetime_compare(&End_Time[object_index], &Current_Time);
-        if (diff < 0) {
-            /* FinishedUnsuccessfulShed */
-#if PRINT_ENABLED_DEBUG
-            printf
-                ("Load Control[%d]:Current Time is after Start Time + Duration\n",
-                object_index);
-#endif
-            Load_Control_State[object_index] = SHED_INACTIVE;
             break;
-        }
-        if (Load_Control_Request_Written[object_index] ||
-            Start_Time_Property_Written[object_index]) {
-            /* UnsuccessfulShedReconfigured */
+        case SHED_INACTIVE:
+        default:
+            if (Start_Time_Property_Written[object_index]) {
 #if PRINT_ENABLED_DEBUG
-            printf("Load Control[%d]:Control Property written\n",
-                object_index);
+                printf("Load Control[%d]:Start Time written\n", object_index);
 #endif
-            /* The Written flags will cleared in the next state */
-            Load_Control_State[object_index] = SHED_REQUEST_PENDING;
+                /* The Written flag will cleared in the next state */
+                Shed_Level_Copy(&Expected_Shed_Level[object_index],
+                    &Requested_Shed_Level[object_index]);
+                Shed_Level_Default_Set(&Actual_Shed_Level[object_index],
+                    Requested_Shed_Level[object_index].type);
+                Load_Control_State[object_index] = SHED_REQUEST_PENDING;
+            }
             break;
-        }
-        if (Able_To_Meet_Shed_Request(object_index)) {
-            /* CanNowComplyWithShed */
-#if PRINT_ENABLED_DEBUG
-            printf("Load Control[%d]:Able to meet Shed Request\n",
-                object_index);
-#endif
-            Shed_Level_Copy(&Expected_Shed_Level[object_index],
-                &Requested_Shed_Level[object_index]);
-            Analog_Output_Present_Value_Set(object_index,
-                Requested_Shed_Level_Value(object_index), 4);
-            Shed_Level_Copy(&Actual_Shed_Level[object_index],
-                &Requested_Shed_Level[object_index]);
-            Load_Control_State[object_index] = SHED_COMPLIANT;
-        }
-        break;
-    case SHED_COMPLIANT:
-        datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
-        datetime_add_minutes(&End_Time[object_index],
-            Shed_Duration[object_index]);
-        diff = datetime_compare(&End_Time[object_index], &Current_Time);
-        if (diff < 0) {
-            /* FinishedSuccessfulShed */
-#if PRINT_ENABLED_DEBUG
-            printf
-                ("Load Control[%d]:Current Time is after Start Time + Duration\n",
-                object_index);
-#endif
-            datetime_wildcard_set(&Start_Time[i]);
-            Analog_Output_Present_Value_Relinquish(object_index, 4);
-            Load_Control_State[object_index] = SHED_INACTIVE;
-            break;
-        }
-        if (Load_Control_Request_Written[object_index] ||
-            Start_Time_Property_Written[object_index]) {
-            /* UnsuccessfulShedReconfigured */
-#if PRINT_ENABLED_DEBUG
-            printf("Load Control[%d]:Control Property written\n",
-                object_index);
-#endif
-            /* The Written flags will cleared in the next state */
-            Load_Control_State[object_index] = SHED_REQUEST_PENDING;
-            break;
-        }
-        if (!Able_To_Meet_Shed_Request(object_index)) {
-            /* CanNoLongerComplyWithShed */
-#if PRINT_ENABLED_DEBUG
-            printf("Load Control[%d]:Not able to meet Shed Request\n",
-                object_index);
-#endif
-            Shed_Level_Default_Set(&Expected_Shed_Level[object_index],
-                Requested_Shed_Level[object_index].type);
-            Shed_Level_Default_Set(&Actual_Shed_Level[object_index],
-                Requested_Shed_Level[object_index].type);
-            Load_Control_State[object_index] = SHED_NON_COMPLIANT;
-        }
-        break;
-    case SHED_INACTIVE:
-    default:
-        if (Start_Time_Property_Written[object_index]) {
-#if PRINT_ENABLED_DEBUG
-            printf("Load Control[%d]:Start Time written\n", object_index);
-#endif
-            /* The Written flag will cleared in the next state */
-            Shed_Level_Copy(&Expected_Shed_Level[object_index],
-                &Requested_Shed_Level[object_index]);
-            Shed_Level_Default_Set(&Actual_Shed_Level[object_index],
-                Requested_Shed_Level[object_index].type);
-            Load_Control_State[object_index] = SHED_REQUEST_PENDING;
-        }
-        break;
     }
 
     return;
 }
 
 /* call every second or so */
-void Load_Control_State_Machine_Handler(void)
+void Load_Control_State_Machine_Handler(
+    void)
 {
     unsigned i = 0;
     static bool initialized = false;
@@ -680,14 +689,16 @@ void Load_Control_State_Machine_Handler(void)
 }
 
 /* return apdu len, or -1 on error */
-int Load_Control_Encode_Property_APDU(uint8_t * apdu,
+int Load_Control_Encode_Property_APDU(
+    uint8_t * apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
-    BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     int len = 0;
-    int apdu_len = 0;           /* return value */
+    int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     int enumeration = 0;
@@ -698,206 +709,216 @@ int Load_Control_Encode_Property_APDU(uint8_t * apdu,
     Load_Control_Init();
     object_index = Load_Control_Instance_To_Index(object_instance);
     switch (property) {
-    case PROP_OBJECT_IDENTIFIER:
-        apdu_len = encode_application_object_id(&apdu[0], OBJECT_LOAD_CONTROL,
-            object_instance);
-        break;
-    case PROP_OBJECT_NAME:
-        characterstring_init_ansi(&char_string,
-            Load_Control_Name(object_instance));
-        apdu_len = encode_application_character_string(&apdu[0], &char_string);
-        break;
-    case PROP_OBJECT_TYPE:
-        apdu_len = encode_application_enumerated(&apdu[0], OBJECT_LOAD_CONTROL);
-        break;
-        /* optional property
-           case PROP_DESCRIPTION:
-           characterstring_init_ansi(&char_string,"optional description");
-           apdu_len = encode_application_character_string(&apdu[0], &char_string);
-           break;
-         */
-    case PROP_PRESENT_VALUE:
-        enumeration = Load_Control_Present_Value(object_instance);
-        apdu_len = encode_application_enumerated(&apdu[0], enumeration);
-        break;
-    case PROP_STATUS_FLAGS:
-        bitstring_init(&bit_string);
-        /* IN_ALARM - Logical FALSE (0) if the Event_State property
-           has a value of NORMAL, otherwise logical TRUE (1). */
-        bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-        /* FAULT - Logical      TRUE (1) if the Reliability property is
-           present and does not have a value of NO_FAULT_DETECTED,
-           otherwise logical FALSE (0). */
-        bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
-        /* OVERRIDDEN - Logical TRUE (1) if the point has been
-           overridden by some mechanism local to the BACnet Device,
-           otherwise logical FALSE (0). */
-        bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-        /* OUT_OF_SERVICE - This bit shall always be Logical FALSE (0). */
-        bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
-        apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
-        break;
-    case PROP_EVENT_STATE:
-        apdu_len = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
-        break;
-    case PROP_REQUESTED_SHED_LEVEL:
-        switch (Requested_Shed_Level[object_index].type) {
-        case BACNET_SHED_TYPE_PERCENT:
-            apdu_len = encode_context_unsigned(&apdu[0], 0,
-                Requested_Shed_Level[object_index].value.percent);
+        case PROP_OBJECT_IDENTIFIER:
+            apdu_len =
+                encode_application_object_id(&apdu[0], OBJECT_LOAD_CONTROL,
+                object_instance);
             break;
-        case BACNET_SHED_TYPE_AMOUNT:
-            apdu_len = encode_context_real(&apdu[0], 2,
-                Requested_Shed_Level[object_index].value.amount);
+        case PROP_OBJECT_NAME:
+            characterstring_init_ansi(&char_string,
+                Load_Control_Name(object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
-        case BACNET_SHED_TYPE_LEVEL:
-        default:
-            apdu_len = encode_context_unsigned(&apdu[0], 1,
-                Requested_Shed_Level[object_index].value.level);
+        case PROP_OBJECT_TYPE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_LOAD_CONTROL);
             break;
-        }
-        break;
-    case PROP_START_TIME:
-        len = encode_application_date(&apdu[0], &Start_Time[object_index].date);
-        apdu_len = len;
-        len = encode_application_time(&apdu[apdu_len],
-            &Start_Time[object_index].time);
-        apdu_len += len;
-        break;
-    case PROP_SHED_DURATION:
-        apdu_len = encode_application_unsigned(&apdu[0],
-            Shed_Duration[object_index]);
-        break;
-    case PROP_DUTY_WINDOW:
-        apdu_len = encode_application_unsigned(&apdu[0],
-            Duty_Window[object_index]);
-        break;
-    case PROP_ENABLE:
-        state = Load_Control_Enable[object_index];
-        apdu_len = encode_application_boolean(&apdu[0], state);
-        break;
-    case PROP_FULL_DUTY_BASELINE:      /* optional */
-        apdu_len = encode_application_real(&apdu[0],
-            Full_Duty_Baseline[object_index]);
-        break;
-    case PROP_EXPECTED_SHED_LEVEL:
-        switch (Expected_Shed_Level[object_index].type) {
-        case BACNET_SHED_TYPE_PERCENT:
-            apdu_len = encode_context_unsigned(&apdu[0], 0,
-                Expected_Shed_Level[object_index].value.percent);
+            /* optional property
+               case PROP_DESCRIPTION:
+               characterstring_init_ansi(&char_string,"optional description");
+               apdu_len = encode_application_character_string(&apdu[0], &char_string);
+               break;
+             */
+        case PROP_PRESENT_VALUE:
+            enumeration = Load_Control_Present_Value(object_instance);
+            apdu_len = encode_application_enumerated(&apdu[0], enumeration);
             break;
-        case BACNET_SHED_TYPE_AMOUNT:
-            apdu_len = encode_context_real(&apdu[0], 2,
-                Expected_Shed_Level[object_index].value.amount);
+        case PROP_STATUS_FLAGS:
+            bitstring_init(&bit_string);
+            /* IN_ALARM - Logical FALSE (0) if the Event_State property
+               has a value of NORMAL, otherwise logical TRUE (1). */
+            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
+            /* FAULT - Logical      TRUE (1) if the Reliability property is
+               present and does not have a value of NO_FAULT_DETECTED,
+               otherwise logical FALSE (0). */
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
+            /* OVERRIDDEN - Logical TRUE (1) if the point has been
+               overridden by some mechanism local to the BACnet Device,
+               otherwise logical FALSE (0). */
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
+            /* OUT_OF_SERVICE - This bit shall always be Logical FALSE (0). */
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+            apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
-        case BACNET_SHED_TYPE_LEVEL:
-        default:
-            apdu_len = encode_context_unsigned(&apdu[0], 1,
-                Expected_Shed_Level[object_index].value.level);
+        case PROP_EVENT_STATE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
-        }
-        break;
-    case PROP_ACTUAL_SHED_LEVEL:
-        switch (Actual_Shed_Level[object_index].type) {
-        case BACNET_SHED_TYPE_PERCENT:
-            apdu_len = encode_context_unsigned(&apdu[0], 0,
-                Actual_Shed_Level[object_index].value.percent);
-            break;
-        case BACNET_SHED_TYPE_AMOUNT:
-            apdu_len = encode_context_real(&apdu[0], 2,
-                Actual_Shed_Level[object_index].value.amount);
-            break;
-        case BACNET_SHED_TYPE_LEVEL:
-        default:
-            apdu_len = encode_context_unsigned(&apdu[0], 1,
-                Actual_Shed_Level[object_index].value.level);
-            break;
-        }
-        break;
-    case PROP_SHED_LEVELS:
-        /* Array element zero is the number of elements in the array */
-        if (array_index == 0)
-            apdu_len = encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
-        /* if no index was specified, then try to encode the entire list */
-        /* into one packet. */
-        else if (array_index == BACNET_ARRAY_ALL) {
-            apdu_len = 0;
-            for (i = 0; i < MAX_SHED_LEVELS; i++) {
-                /* FIXME: check if we have room before adding it to APDU */
-                len =
-                    encode_application_unsigned(&apdu[apdu_len],
-                    Shed_Levels[object_index][i]);
-                /* add it if we have room */
-                if ((apdu_len + len) < MAX_APDU)
-                    apdu_len += len;
-                else {
-                    *error_class = ERROR_CLASS_SERVICES;
-                    *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                    apdu_len = -1;
+        case PROP_REQUESTED_SHED_LEVEL:
+            switch (Requested_Shed_Level[object_index].type) {
+                case BACNET_SHED_TYPE_PERCENT:
+                    apdu_len = encode_context_unsigned(&apdu[0], 0,
+                        Requested_Shed_Level[object_index].value.percent);
                     break;
+                case BACNET_SHED_TYPE_AMOUNT:
+                    apdu_len = encode_context_real(&apdu[0], 2,
+                        Requested_Shed_Level[object_index].value.amount);
+                    break;
+                case BACNET_SHED_TYPE_LEVEL:
+                default:
+                    apdu_len = encode_context_unsigned(&apdu[0], 1,
+                        Requested_Shed_Level[object_index].value.level);
+                    break;
+            }
+            break;
+        case PROP_START_TIME:
+            len =
+                encode_application_date(&apdu[0],
+                &Start_Time[object_index].date);
+            apdu_len = len;
+            len = encode_application_time(&apdu[apdu_len],
+                &Start_Time[object_index].time);
+            apdu_len += len;
+            break;
+        case PROP_SHED_DURATION:
+            apdu_len = encode_application_unsigned(&apdu[0],
+                Shed_Duration[object_index]);
+            break;
+        case PROP_DUTY_WINDOW:
+            apdu_len = encode_application_unsigned(&apdu[0],
+                Duty_Window[object_index]);
+            break;
+        case PROP_ENABLE:
+            state = Load_Control_Enable[object_index];
+            apdu_len = encode_application_boolean(&apdu[0], state);
+            break;
+        case PROP_FULL_DUTY_BASELINE:  /* optional */
+            apdu_len = encode_application_real(&apdu[0],
+                Full_Duty_Baseline[object_index]);
+            break;
+        case PROP_EXPECTED_SHED_LEVEL:
+            switch (Expected_Shed_Level[object_index].type) {
+                case BACNET_SHED_TYPE_PERCENT:
+                    apdu_len = encode_context_unsigned(&apdu[0], 0,
+                        Expected_Shed_Level[object_index].value.percent);
+                    break;
+                case BACNET_SHED_TYPE_AMOUNT:
+                    apdu_len = encode_context_real(&apdu[0], 2,
+                        Expected_Shed_Level[object_index].value.amount);
+                    break;
+                case BACNET_SHED_TYPE_LEVEL:
+                default:
+                    apdu_len = encode_context_unsigned(&apdu[0], 1,
+                        Expected_Shed_Level[object_index].value.level);
+                    break;
+            }
+            break;
+        case PROP_ACTUAL_SHED_LEVEL:
+            switch (Actual_Shed_Level[object_index].type) {
+                case BACNET_SHED_TYPE_PERCENT:
+                    apdu_len = encode_context_unsigned(&apdu[0], 0,
+                        Actual_Shed_Level[object_index].value.percent);
+                    break;
+                case BACNET_SHED_TYPE_AMOUNT:
+                    apdu_len = encode_context_real(&apdu[0], 2,
+                        Actual_Shed_Level[object_index].value.amount);
+                    break;
+                case BACNET_SHED_TYPE_LEVEL:
+                default:
+                    apdu_len = encode_context_unsigned(&apdu[0], 1,
+                        Actual_Shed_Level[object_index].value.level);
+                    break;
+            }
+            break;
+        case PROP_SHED_LEVELS:
+            /* Array element zero is the number of elements in the array */
+            if (array_index == 0)
+                apdu_len =
+                    encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
+            /* if no index was specified, then try to encode the entire list */
+            /* into one packet. */
+            else if (array_index == BACNET_ARRAY_ALL) {
+                apdu_len = 0;
+                for (i = 0; i < MAX_SHED_LEVELS; i++) {
+                    /* FIXME: check if we have room before adding it to APDU */
+                    len =
+                        encode_application_unsigned(&apdu[apdu_len],
+                        Shed_Levels[object_index][i]);
+                    /* add it if we have room */
+                    if ((apdu_len + len) < MAX_APDU)
+                        apdu_len += len;
+                    else {
+                        *error_class = ERROR_CLASS_SERVICES;
+                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                        apdu_len = -1;
+                        break;
+                    }
+                }
+            } else {
+                if (array_index <= MAX_SHED_LEVELS) {
+                    apdu_len = encode_application_unsigned(&apdu[0],
+                        Shed_Levels[object_index][array_index - 1]);
+                } else {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                    apdu_len = -1;
                 }
             }
-        } else {
-            if (array_index <= MAX_SHED_LEVELS) {
-                apdu_len = encode_application_unsigned(&apdu[0],
-                    Shed_Levels[object_index][array_index - 1]);
+            break;
+        case PROP_SHED_LEVEL_DESCRIPTIONS:
+            /* Array element zero is the number of elements in the array */
+            if (array_index == 0)
+                apdu_len =
+                    encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
+            /* if no index was specified, then try to encode the entire list */
+            /* into one packet. */
+            else if (array_index == BACNET_ARRAY_ALL) {
+                apdu_len = 0;
+                for (i = 0; i < MAX_SHED_LEVELS; i++) {
+                    /* FIXME: check if we have room before adding it to APDU */
+                    characterstring_init_ansi(&char_string,
+                        Shed_Level_Descriptions[i]);
+                    len = encode_application_character_string(&apdu[apdu_len],
+                        &char_string);
+                    /* add it if we have room */
+                    if ((apdu_len + len) < MAX_APDU)
+                        apdu_len += len;
+                    else {
+                        *error_class = ERROR_CLASS_SERVICES;
+                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                        apdu_len = -1;
+                        break;
+                    }
+                }
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                apdu_len = -1;
-            }
-        }
-        break;
-    case PROP_SHED_LEVEL_DESCRIPTIONS:
-        /* Array element zero is the number of elements in the array */
-        if (array_index == 0)
-            apdu_len = encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
-        /* if no index was specified, then try to encode the entire list */
-        /* into one packet. */
-        else if (array_index == BACNET_ARRAY_ALL) {
-            apdu_len = 0;
-            for (i = 0; i < MAX_SHED_LEVELS; i++) {
-                /* FIXME: check if we have room before adding it to APDU */
-                characterstring_init_ansi(&char_string,
-                    Shed_Level_Descriptions[i]);
-                len = encode_application_character_string(&apdu[apdu_len],
-                    &char_string);
-                /* add it if we have room */
-                if ((apdu_len + len) < MAX_APDU)
-                    apdu_len += len;
-                else {
-                    *error_class = ERROR_CLASS_SERVICES;
-                    *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                if (array_index <= MAX_SHED_LEVELS) {
+                    characterstring_init_ansi(&char_string,
+                        Shed_Level_Descriptions[array_index - 1]);
+                    apdu_len = encode_application_character_string(&apdu[0],
+                        &char_string);
+                } else {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                     apdu_len = -1;
-                    break;
                 }
             }
-        } else {
-            if (array_index <= MAX_SHED_LEVELS) {
-                characterstring_init_ansi(&char_string,
-                    Shed_Level_Descriptions[array_index - 1]);
-                apdu_len = encode_application_character_string(&apdu[0],
-                    &char_string);
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                apdu_len = -1;
-            }
-        }
-        break;
-    default:
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-        apdu_len = -1;
-        break;
+            break;
+        default:
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            apdu_len = -1;
+            break;
     }
 
     return apdu_len;
 }
 
 /* returns true if successful */
-bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class, BACNET_ERROR_CODE * error_code)
+bool Load_Control_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA * wp_data,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
@@ -915,121 +936,120 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
-    object_index =
-        Load_Control_Instance_To_Index(wp_data->object_instance);
+    object_index = Load_Control_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
-    case PROP_REQUESTED_SHED_LEVEL:
-        len = bacapp_decode_context_data(wp_data->application_data,
-            wp_data->application_data_len,
-            &value, PROP_REQUESTED_SHED_LEVEL);
-        if (value.context_tag == 0) {
-            /* percent - Unsigned */
-            Requested_Shed_Level[object_index].type =
-                BACNET_SHED_TYPE_PERCENT;
-            Requested_Shed_Level[object_index].value.percent =
-                value.type.Unsigned_Int;
-            status = true;
-        } else if (value.context_tag == 1) {
-            /* level - Unsigned */
-            Requested_Shed_Level[object_index].type =
-                BACNET_SHED_TYPE_LEVEL;
-            Requested_Shed_Level[object_index].value.level =
-                value.type.Unsigned_Int;
-            status = true;
-        } else if (value.context_tag == 2) {
-            /* amount - REAL */
-            Requested_Shed_Level[object_index].type =
-                BACNET_SHED_TYPE_AMOUNT;
-            Requested_Shed_Level[object_index].value.amount =
-                value.type.Real;
-            status = true;
-        } else {
-            /* error! */
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        if (status) {
-            Load_Control_Request_Written[object_index] = true;
-        }
-        break;
-    case PROP_START_TIME:
-        if (value.tag == BACNET_APPLICATION_TAG_DATE) {
-            memcpy(&Start_Time[object_index].date,
-                &value.type.Date, sizeof(value.type.Date));
-            Start_Time_Property_Written[object_index] = true;
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        if (!status)
-            break;
-        len =
-            bacapp_decode_application_data(wp_data->application_data + len,
-            wp_data->application_data_len - len, &value);
-        if (len && value.tag == BACNET_APPLICATION_TAG_TIME) {
-            memcpy(&Start_Time[object_index].time,
-                &value.type.Time, sizeof(value.type.Time));
-            status = true;
-        } else {
-            status = false;
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        break;
-    case PROP_SHED_DURATION:
-        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-            Shed_Duration[object_index] = value.type.Unsigned_Int;
-            Load_Control_Request_Written[object_index] = true;
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        break;
-    case PROP_DUTY_WINDOW:
-        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-            Duty_Window[object_index] = value.type.Unsigned_Int;
-            Load_Control_Request_Written[object_index] = true;
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        break;
-    case PROP_SHED_LEVELS:
-        if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-            /* re-write the size of the array? */
-            if (wp_data->array_index == 0) {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
-                /* FIXME: write entire array */
-                status = true;
-            } else if (wp_data->array_index <= MAX_SHED_LEVELS) {
-                Shed_Levels[object_index][wp_data->array_index - 1] =
+        case PROP_REQUESTED_SHED_LEVEL:
+            len = bacapp_decode_context_data(wp_data->application_data,
+                wp_data->application_data_len,
+                &value, PROP_REQUESTED_SHED_LEVEL);
+            if (value.context_tag == 0) {
+                /* percent - Unsigned */
+                Requested_Shed_Level[object_index].type =
+                    BACNET_SHED_TYPE_PERCENT;
+                Requested_Shed_Level[object_index].value.percent =
                     value.type.Unsigned_Int;
                 status = true;
+            } else if (value.context_tag == 1) {
+                /* level - Unsigned */
+                Requested_Shed_Level[object_index].type =
+                    BACNET_SHED_TYPE_LEVEL;
+                Requested_Shed_Level[object_index].value.level =
+                    value.type.Unsigned_Int;
+                status = true;
+            } else if (value.context_tag == 2) {
+                /* amount - REAL */
+                Requested_Shed_Level[object_index].type =
+                    BACNET_SHED_TYPE_AMOUNT;
+                Requested_Shed_Level[object_index].value.amount =
+                    value.type.Real;
+                status = true;
             } else {
+                /* error! */
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
-        } else {
+            if (status) {
+                Load_Control_Request_Written[object_index] = true;
+            }
+            break;
+        case PROP_START_TIME:
+            if (value.tag == BACNET_APPLICATION_TAG_DATE) {
+                memcpy(&Start_Time[object_index].date,
+                    &value.type.Date, sizeof(value.type.Date));
+                Start_Time_Property_Written[object_index] = true;
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            if (!status)
+                break;
+            len =
+                bacapp_decode_application_data(wp_data->application_data + len,
+                wp_data->application_data_len - len, &value);
+            if (len && value.tag == BACNET_APPLICATION_TAG_TIME) {
+                memcpy(&Start_Time[object_index].time,
+                    &value.type.Time, sizeof(value.type.Time));
+                status = true;
+            } else {
+                status = false;
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_SHED_DURATION:
+            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                Shed_Duration[object_index] = value.type.Unsigned_Int;
+                Load_Control_Request_Written[object_index] = true;
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_DUTY_WINDOW:
+            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                Duty_Window[object_index] = value.type.Unsigned_Int;
+                Load_Control_Request_Written[object_index] = true;
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_SHED_LEVELS:
+            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                /* re-write the size of the array? */
+                if (wp_data->array_index == 0) {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
+                    /* FIXME: write entire array */
+                    status = true;
+                } else if (wp_data->array_index <= MAX_SHED_LEVELS) {
+                    Shed_Levels[object_index][wp_data->array_index - 1] =
+                        value.type.Unsigned_Int;
+                    status = true;
+                } else {
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_ENABLE:
+            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                Load_Control_Enable[object_index] = value.type.Boolean;
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        default:
             *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        break;
-    case PROP_ENABLE:
-        if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-            Load_Control_Enable[object_index] = value.type.Boolean;
-            status = true;
-        } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        break;
-    default:
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-        break;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
     }
 
     return status;
@@ -1041,8 +1061,10 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 #include "ctest.h"
 
 #if 0
-static void Load_Control_WriteProperty_Request_Shed_Percent(Test * pTest,
-    int instance, unsigned percent)
+static void Load_Control_WriteProperty_Request_Shed_Percent(
+    Test * pTest,
+    int instance,
+    unsigned percent)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -1062,14 +1084,15 @@ static void Load_Control_WriteProperty_Request_Shed_Percent(Test * pTest,
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 #endif
 
-static void Load_Control_WriteProperty_Request_Shed_Level(Test * pTest,
-    int instance, unsigned level)
+static void Load_Control_WriteProperty_Request_Shed_Level(
+    Test * pTest,
+    int instance,
+    unsigned level)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -1089,14 +1112,15 @@ static void Load_Control_WriteProperty_Request_Shed_Level(Test * pTest,
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 
 #if 0
-static void Load_Control_WriteProperty_Request_Shed_Amount(Test * pTest,
-    int instance, float amount)
+static void Load_Control_WriteProperty_Request_Shed_Amount(
+    Test * pTest,
+    int instance,
+    float amount)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -1116,13 +1140,14 @@ static void Load_Control_WriteProperty_Request_Shed_Amount(Test * pTest,
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 #endif
 
-static void Load_Control_WriteProperty_Enable(Test * pTest, int instance,
+static void Load_Control_WriteProperty_Enable(
+    Test * pTest,
+    int instance,
     bool enable)
 {
     bool status = false;
@@ -1144,13 +1169,14 @@ static void Load_Control_WriteProperty_Enable(Test * pTest, int instance,
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 
-static void Load_Control_WriteProperty_Shed_Duration(Test * pTest,
-    int instance, unsigned duration)
+static void Load_Control_WriteProperty_Shed_Duration(
+    Test * pTest,
+    int instance,
+    unsigned duration)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -1170,13 +1196,14 @@ static void Load_Control_WriteProperty_Shed_Duration(Test * pTest,
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 
-static void Load_Control_WriteProperty_Duty_Window(Test * pTest,
-    int instance, unsigned duration)
+static void Load_Control_WriteProperty_Duty_Window(
+    Test * pTest,
+    int instance,
+    unsigned duration)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -1196,12 +1223,12 @@ static void Load_Control_WriteProperty_Duty_Window(Test * pTest,
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 
-static void Load_Control_WriteProperty_Start_Time_Wildcards(Test * pTest,
+static void Load_Control_WriteProperty_Start_Time_Wildcards(
+    Test * pTest,
     int instance)
 {
     int len = 0;
@@ -1230,14 +1257,20 @@ static void Load_Control_WriteProperty_Start_Time_Wildcards(Test * pTest,
         bacapp_encode_data(&wp_data.application_data[len], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
     wp_data.application_data_len += len;
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 
-static void Load_Control_WriteProperty_Start_Time(Test * pTest, int instance,
-        uint16_t year, uint8_t month, uint8_t day,
-        uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths)
+static void Load_Control_WriteProperty_Start_Time(
+    Test * pTest,
+    int instance,
+    uint16_t year,
+    uint8_t month,
+    uint8_t day,
+    uint8_t hour,
+    uint8_t minute,
+    uint8_t seconds,
+    uint8_t hundredths)
 {
     int len = 0;
     bool status = false;
@@ -1265,12 +1298,12 @@ static void Load_Control_WriteProperty_Start_Time(Test * pTest, int instance,
         bacapp_encode_data(&wp_data.application_data[len], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
     wp_data.application_data_len += len;
-    status = Load_Control_Write_Property(&wp_data,
-        &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
     ct_test(pTest, status == true);
 }
 
-void testLoadControlStateMachine(Test * pTest)
+void testLoadControlStateMachine(
+    Test * pTest)
 {
     unsigned i = 0, j = 0;
     uint8_t level = 0;
@@ -1296,9 +1329,9 @@ void testLoadControlStateMachine(Test * pTest)
     /* CancelShed - Requested_Shed_Level equal to default value */
     Load_Control_Init();
     Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 0);
-    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007,2,27,15,0,0,0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
     Load_Control_WriteProperty_Shed_Duration(pTest, 0, 5);
-    datetime_set_values(&Current_Time, 2007,2,27,15,0,0,0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 15, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
@@ -1309,8 +1342,8 @@ void testLoadControlStateMachine(Test * pTest)
     Load_Control_WriteProperty_Enable(pTest, 0, true);
     Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
     Load_Control_WriteProperty_Shed_Duration(pTest, 0, 5);
-    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007,2,27,15,0,0,0);
-    datetime_set_values(&Current_Time, 2007,2,28,15,0,0,0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 28, 15, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
@@ -1321,8 +1354,8 @@ void testLoadControlStateMachine(Test * pTest)
     Load_Control_WriteProperty_Enable(pTest, 0, true);
     Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
     Load_Control_WriteProperty_Shed_Duration(pTest, 0, 5);
-    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007,2,27,15,0,0,0);
-    datetime_set_values(&Current_Time, 2007,2,27,5,0,0,0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
@@ -1336,7 +1369,7 @@ void testLoadControlStateMachine(Test * pTest)
     Load_Control_WriteProperty_Duty_Window(pTest, 0, 60);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
-    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007,2,27,15,0,0,1);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 1);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
@@ -1349,21 +1382,21 @@ void testLoadControlStateMachine(Test * pTest)
     Load_Control_WriteProperty_Enable(pTest, 0, true);
     Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
     Load_Control_WriteProperty_Shed_Duration(pTest, 0, 120);
-    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007,2,27,15,0,0,0);
-    datetime_set_values(&Current_Time, 2007,2,27,5,0,0,0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     /* set to lowest value so we cannot meet the shed level */
-    datetime_set_values(&Current_Time, 2007,2,27,16,0,0,0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
     Analog_Output_Present_Value_Set(0, 0, 16);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_NON_COMPLIANT);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_NON_COMPLIANT);
     /* FinishedUnsuccessfulShed */
-    datetime_set_values(&Current_Time, 2007,2,27,23,0,0,0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_INACTIVE);
 
@@ -1372,44 +1405,45 @@ void testLoadControlStateMachine(Test * pTest)
     Load_Control_WriteProperty_Enable(pTest, 0, true);
     Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
     Load_Control_WriteProperty_Shed_Duration(pTest, 0, 120);
-    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007,2,27,15,0,0,0);
-    datetime_set_values(&Current_Time, 2007,2,27,5,0,0,0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     /* set to lowest value so we cannot meet the shed level */
-    datetime_set_values(&Current_Time, 2007,2,27,16,0,0,0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
     Analog_Output_Present_Value_Set(0, 0, 16);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_NON_COMPLIANT);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_NON_COMPLIANT);
     /* FinishedUnsuccessfulShed */
-    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007,2,27,16,0,0,0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 16, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_REQUEST_PENDING);
-    datetime_set_values(&Current_Time, 2007,2,27,16,0,1,0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 1, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_NON_COMPLIANT);
     /* CanNowComplyWithShed */
     Analog_Output_Present_Value_Set(0, 100, 16);
-    datetime_set_values(&Current_Time, 2007,2,27,16,0,2,0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 2, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_COMPLIANT);
     level = Analog_Output_Present_Value(0);
     ct_test(pTest, level == 90);
     /* FinishedSuccessfulShed */
-    datetime_set_values(&Current_Time, 2007,2,27,23,0,0,0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
     Load_Control_State_Machine(0);
     ct_test(pTest, Load_Control_State[0] == SHED_INACTIVE);
     level = Analog_Output_Present_Value(0);
     ct_test(pTest, level == 100);
 }
 
-void testLoadControl(Test * pTest)
+void testLoadControl(
+    Test * pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -1423,8 +1457,7 @@ void testLoadControl(Test * pTest)
 
     len = Load_Control_Encode_Property_APDU(&apdu[0],
         instance,
-        PROP_OBJECT_IDENTIFIER,
-        BACNET_ARRAY_ALL, &error_class, &error_code);
+        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
@@ -1437,7 +1470,8 @@ void testLoadControl(Test * pTest)
 }
 
 #ifdef TEST_LOAD_CONTROL
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -1456,5 +1490,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_LOAD_CONTROL */
-#endif                          /* TEST */
+#endif /* TEST_LOAD_CONTROL */
+#endif /* TEST */

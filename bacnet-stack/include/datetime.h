@@ -49,10 +49,10 @@ typedef enum BACnet_Weekday {
 
 /* date */
 typedef struct BACnet_Date {
-    uint16_t year;              /* AD */
-    uint8_t month;              /* 1=Jan */
-    uint8_t day;                /* 1..31 */
-    uint8_t wday;               /* 1=Monday-7=Sunday */
+    uint16_t year;      /* AD */
+    uint8_t month;      /* 1=Jan */
+    uint8_t day;        /* 1..31 */
+    uint8_t wday;       /* 1=Monday-7=Sunday */
 } BACNET_DATE;
 
 /* time */
@@ -70,45 +70,75 @@ typedef struct BACnet_DateTime {
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
     /* utility initialization functions */
-    void datetime_set_date(BACNET_DATE * bdate,
-        uint16_t year, uint8_t month, uint8_t day);
-    void datetime_set_time(BACNET_TIME * btime,
-        uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
-    void datetime_set(BACNET_DATE_TIME * bdatetime,
-        BACNET_DATE * bdate, BACNET_TIME * btime);
-    void datetime_set_values(BACNET_DATE_TIME * bdatetime,
-        uint16_t year, uint8_t month, uint8_t day,
-        uint8_t hour, uint8_t minute, uint8_t seconds, uint8_t hundredths);
+    void datetime_set_date(
+        BACNET_DATE * bdate,
+        uint16_t year,
+        uint8_t month,
+        uint8_t day);
+    void datetime_set_time(
+        BACNET_TIME * btime,
+        uint8_t hour,
+        uint8_t minute,
+        uint8_t seconds,
+        uint8_t hundredths);
+    void datetime_set(
+        BACNET_DATE_TIME * bdatetime,
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
+    void datetime_set_values(
+        BACNET_DATE_TIME * bdatetime,
+        uint16_t year,
+        uint8_t month,
+        uint8_t day,
+        uint8_t hour,
+        uint8_t minute,
+        uint8_t seconds,
+        uint8_t hundredths);
 
     /* utility comparison functions:
        if the date/times are the same, return is 0
        if date1 is before date2, returns negative
        if date1 is after date2, returns positive */
-    int datetime_compare_date(BACNET_DATE * date1, BACNET_DATE * date2);
-    int datetime_compare_time(BACNET_TIME * time1, BACNET_TIME * time2);
-    int datetime_compare(BACNET_DATE_TIME * datetime1,
+    int datetime_compare_date(
+        BACNET_DATE * date1,
+        BACNET_DATE * date2);
+    int datetime_compare_time(
+        BACNET_TIME * time1,
+        BACNET_TIME * time2);
+    int datetime_compare(
+        BACNET_DATE_TIME * datetime1,
         BACNET_DATE_TIME * datetime2);
 
     /* utility copy functions */
-    void datetime_copy_date(BACNET_DATE * date1, BACNET_DATE * date2);
-    void datetime_copy_time(BACNET_TIME * time1, BACNET_TIME * time2);
-    void datetime_copy(BACNET_DATE_TIME * datetime1,
+    void datetime_copy_date(
+        BACNET_DATE * date1,
+        BACNET_DATE * date2);
+    void datetime_copy_time(
+        BACNET_TIME * time1,
+        BACNET_TIME * time2);
+    void datetime_copy(
+        BACNET_DATE_TIME * datetime1,
         BACNET_DATE_TIME * datetime2);
 
     /* utility add function */
-    void datetime_add_minutes(BACNET_DATE_TIME * bdatetime,
+    void datetime_add_minutes(
+        BACNET_DATE_TIME * bdatetime,
         uint32_t minutes);
 
     /* date and time wildcards */
-    bool datetime_wildcard(BACNET_DATE_TIME * bdatetime);
-    void datetime_wildcard_set(BACNET_DATE_TIME * bdatetime);
-    void datetime_date_wildcard_set(BACNET_DATE * bdate);
-    void datetime_time_wildcard_set(BACNET_TIME * btime);
+    bool datetime_wildcard(
+        BACNET_DATE_TIME * bdatetime);
+    void datetime_wildcard_set(
+        BACNET_DATE_TIME * bdatetime);
+    void datetime_date_wildcard_set(
+        BACNET_DATE * bdate);
+    void datetime_time_wildcard_set(
+        BACNET_TIME * btime);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
-#endif                          /* DATE_TIME_H */
+#endif /* __cplusplus */
+#endif /* DATE_TIME_H */

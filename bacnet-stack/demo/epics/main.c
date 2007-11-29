@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>               /* for time */
+#include <time.h>       /* for time */
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
@@ -69,56 +69,62 @@ static BACNET_RP_SERVICE_DATA Read_Property_Data;
 /* FIXME: keep the object list in here */
 /* static OS_Keylist Object_List; */
 
-static void MyErrorHandler(BACNET_ADDRESS * src,
+static void MyErrorHandler(
+    BACNET_ADDRESS * src,
     uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    #if 1
+#if 1
     printf("BACnet Error: %s: %s\r\n",
         bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
-    #else
+#else
     (void) error_class;
     (void) error_code;
-    #endif
+#endif
     Error_Detected = true;
 }
 
-void MyAbortHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t abort_reason, bool server)
+void MyAbortHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t abort_reason,
+    bool server)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
     (void) server;
-    #if 1
-    printf("BACnet Abort: %s\r\n",
-        bactext_abort_reason_name(abort_reason));
-    #else
+#if 1
+    printf("BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
+#else
     (void) abort_reason;
-    #endif
+#endif
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS * src,
-    uint8_t invoke_id, uint8_t reject_reason)
+void MyRejectHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    #if 1
-    printf("BACnet Reject: %s\r\n",
-        bactext_reject_reason_name(reject_reason));
-    #else
+#if 1
+    printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
+#else
     (void) reject_reason;
-    #endif
+#endif
     Error_Detected = true;
 }
 
-void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA * data)
+void PrintReadPropertyData(
+    BACNET_READ_PROPERTY_DATA * data)
 {
     BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
     int len = 0;
@@ -170,16 +176,17 @@ void PrintReadPropertyData(BACNET_READ_PROPERTY_DATA * data)
     }
 }
 
-void MyReadPropertyAckHandler(uint8_t * service_request,
+void MyReadPropertyAckHandler(
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
     int len = 0;
     BACNET_READ_PROPERTY_DATA data;
 
     (void) src;
-    len = rp_ack_decode_service_request(service_request,
-        service_len, &data);
+    len = rp_ack_decode_service_request(service_request, service_len, &data);
     if (len > 0) {
         memmove(&Read_Property_Data.service_data, service_data, sizeof(data));
         memmove(&Read_Property_Data.data, &data, sizeof(data));
@@ -187,15 +194,14 @@ void MyReadPropertyAckHandler(uint8_t * service_request,
     }
 }
 
-static void Init_Service_Handlers(void)
+static void Init_Service_Handlers(
+    void)
 {
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM,
-        handler_i_am_bind);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -207,13 +213,13 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         MyReadPropertyAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        MyErrorHandler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static uint8_t Read_Properties(uint32_t device_instance)
+static uint8_t Read_Properties(
+    uint32_t device_instance)
 {
     uint8_t invoke_id = 0;
     static unsigned index = 0;
@@ -226,12 +232,10 @@ static uint8_t Read_Properties(uint32_t device_instance)
     }
 
     if (pRequired[index] != -1) {
-        printf("    %s: ",bactext_property_name(pRequired[index]));
+        printf("    %s: ", bactext_property_name(pRequired[index]));
         invoke_id = Send_Read_Property_Request(device_instance,
             OBJECT_DEVICE,
-            device_instance,
-            pRequired[index],
-            BACNET_ARRAY_ALL);
+            device_instance, pRequired[index], BACNET_ARRAY_ALL);
         if (invoke_id) {
             index++;
         }
@@ -240,7 +244,9 @@ static uint8_t Read_Properties(uint32_t device_instance)
     return invoke_id;
 }
 
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
@@ -257,9 +263,7 @@ int main(int argc, char *argv[])
 
     /* print help if not enough arguments */
     if (argc < 2) {
-        printf
-            ("%s device-instance\r\n",
-            filename_remove_path(argv[0]));
+        printf("%s device-instance\r\n", filename_remove_path(argv[0]));
         return 0;
     }
 
@@ -267,7 +271,7 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE+1);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     /* setup my info */
@@ -281,8 +285,7 @@ int main(int argc, char *argv[])
     timeout_seconds = (Device_APDU_Timeout() / 1000) *
         Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
-    Send_WhoIs(Target_Device_Object_Instance,
-        Target_Device_Object_Instance);
+    Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     printf("List of Objects in test device:\r\n");
     printf("{\r\n");
     /* loop forever */
@@ -299,8 +302,7 @@ int main(int argc, char *argv[])
         }
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
-            tsm_timer_milliseconds(((current_seconds -
-                        last_seconds) * 1000));
+            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         }
         /* wait until the device is bound, or timeout and quit */
         found = address_bind_request(Target_Device_Object_Instance,
@@ -308,7 +310,7 @@ int main(int argc, char *argv[])
         if (found) {
             /* invoke ID is set to zero when it is not in use */
             if (invoke_id == 0) {
-                invoke_id =  Read_Properties(Target_Device_Object_Instance);
+                invoke_id = Read_Properties(Target_Device_Object_Instance);
                 if (invoke_id == 0) {
                     break;
                 }
@@ -321,8 +323,7 @@ int main(int argc, char *argv[])
                 }
             } else if (tsm_invoke_id_free(invoke_id)) {
                 invoke_id = 0;
-            }
-            else if (tsm_invoke_id_failed(invoke_id)) {
+            } else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(invoke_id);
                 invoke_id = 0;

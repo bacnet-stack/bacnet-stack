@@ -76,7 +76,8 @@ static struct termios RS485_oldtio;
 * ALGORITHM:   none
 * NOTES:       none
 *********************************************************************/
-void RS485_Set_Interface(char *ifname)
+void RS485_Set_Interface(
+    char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
     RS485_Port_Name = ifname;
@@ -88,15 +89,21 @@ void RS485_Set_Interface(char *ifname)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(void)
+uint32_t RS485_Get_Baud_Rate(
+    void)
 {
     switch (RS485_Baud) {
-        case B19200: return 19200;
-        case B38400: return 38400;
-        case B57600: return 57600;
-        case B115200: return 115200;
+        case B19200:
+            return 19200;
+        case B38400:
+            return 38400;
+        case B57600:
+            return 57600;
+        case B115200:
+            return 115200;
         default:
-            case B9600: return 9600;
+        case B9600:
+            return 9600;
     }
 }
 
@@ -106,7 +113,8 @@ uint32_t RS485_Get_Baud_Rate(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Set_Baud_Rate(uint32_t baud)
+bool RS485_Set_Baud_Rate(
+    uint32_t baud)
 {
     bool valid = true;
 
@@ -140,10 +148,10 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t * buffer, /* frame to send (up to 501 bytes of data) */
-    uint16_t nbytes) /* number of bytes of data (up to 501) */
-{
+    struct mstp_port_struct_t *mstp_port,       /* port specific data */
+    uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
+    uint16_t nbytes)
+{       /* number of bytes of data (up to 501) */
     uint8_t turnaround_time;
     uint32_t baud;
     ssize_t written = 0;
@@ -163,12 +171,12 @@ void RS485_Send_Frame(
         };
     }
     /*
-    On  success,  the  number of bytes written are returned (zero indicates
-    nothing was written).  On error, -1  is  returned,  and  errno  is  set
-    appropriately.   If  count  is zero and the file descriptor refers to a
-    regular file, 0 will be returned without causing any other effect.  For
-    a special file, the results are not portable.
-    */
+       On  success,  the  number of bytes written are returned (zero indicates
+       nothing was written).  On error, -1  is  returned,  and  errno  is  set
+       appropriately.   If  count  is zero and the file descriptor refers to a
+       regular file, 0 will be returned without causing any other effect.  For
+       a special file, the results are not portable.
+     */
     written = write(RS485_Handle, buffer, nbytes);
 
     /* per MSTP spec, sort of */
@@ -180,18 +188,19 @@ void RS485_Send_Frame(
 }
 
 /* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(
+    struct mstp_port_struct_t *mstp_port)
 {
     uint8_t buf[1];
     int count;
-    
+
     if (mstp_port->ReceiveError == true) {
         /* wait for state machine to clear this */
     }
     /* wait for state machine to read from the DataRegister */
     else if (mstp_port->DataAvailable == false) {
         /* check for data */
-        count = read(RS485_Handle,buf,sizeof(buf));
+        count = read(RS485_Handle, buf, sizeof(buf));
         /* if error, */
         /* ReceiveError = TRUE; */
         /* return; */
@@ -203,23 +212,24 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     }
 }
 
-void RS485_Cleanup(void)
+void RS485_Cleanup(
+    void)
 {
     /* restore the old port settings */
-    tcsetattr(RS485_Handle,TCSANOW,&RS485_oldtio);
+    tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
     close(RS485_Handle);
 }
 
 
-void RS485_Initialize(void)
+void RS485_Initialize(
+    void)
 {
     struct termios newtio;
 
     /*
-        Open device for reading and writing.
-    */
-    RS485_Handle = open(RS485_Port_Name,
-        O_RDWR | O_NOCTTY | O_NDELAY );
+       Open device for reading and writing.
+     */
+    RS485_Handle = open(RS485_Port_Name, O_RDWR | O_NOCTTY | O_NDELAY);
     if (RS485_Handle < 0) {
         perror(RS485_Port_Name);
         exit(-1);
@@ -232,17 +242,17 @@ void RS485_Initialize(void)
     fcntl(RS485_Handle, F_SETFL, 0);
 #endif
     /* save current serial port settings */
-    tcgetattr(RS485_Handle,&RS485_oldtio);
+    tcgetattr(RS485_Handle, &RS485_oldtio);
     /* clear struct for new port settings */
     bzero(&newtio, sizeof(newtio));
     /*
-        BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
-        CRTSCTS : output hardware flow control (only used if the cable has
-        all necessary lines. See sect. 7 of Serial-HOWTO)
-        CS8     : 8n1 (8bit,no parity,1 stopbit)
-        CLOCAL  : local connection, no modem contol
-        CREAD   : enable receiving characters
-    */
+       BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
+       CRTSCTS : output hardware flow control (only used if the cable has
+       all necessary lines. See sect. 7 of Serial-HOWTO)
+       CS8     : 8n1 (8bit,no parity,1 stopbit)
+       CLOCAL  : local connection, no modem contol
+       CREAD   : enable receiving characters
+     */
     newtio.c_cflag = RS485_Baud | CS8 | CLOCAL | CREAD;
     /* Raw input */
     newtio.c_iflag = 0;
@@ -251,18 +261,20 @@ void RS485_Initialize(void)
     /* no processing */
     newtio.c_lflag = 0;
     /* activate the settings for the port after flushing I/O */
-    tcsetattr(RS485_Handle,TCSAFLUSH,&newtio);
+    tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
     /* destructor */
     atexit(RS485_Cleanup);
 }
 
 #ifdef TEST_RS485
 #include <string.h>
-int main(int argc, char *argv[])
+int main(
+    int argc,
+    char *argv[])
 {
     uint8_t buf[8];
-    char *wbuf = {"BACnet!"};
-    size_t wlen = strlen(wbuf)+1;
+    char *wbuf = { "BACnet!" };
+    size_t wlen = strlen(wbuf) + 1;
     unsigned i = 0;
     size_t written = 0;
     int rlen;
@@ -276,11 +288,11 @@ int main(int argc, char *argv[])
 
     for (;;) {
         written = write(RS485_Handle, wbuf, wlen);
-        rlen = read(RS485_Handle,buf,sizeof(buf));
+        rlen = read(RS485_Handle, buf, sizeof(buf));
         /* print any characters received */
         if (rlen > 0) {
             for (i = 0; i < rlen; i++) {
-                fprintf(stderr,"%02X ",buf[i]);
+                fprintf(stderr, "%02X ", buf[i]);
             }
         }
     }

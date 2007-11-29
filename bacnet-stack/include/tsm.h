@@ -92,31 +92,43 @@ typedef struct BACnet_TSM_Data {
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    bool tsm_transaction_available(void);
-    uint8_t tsm_transaction_idle_count(void);
-    void tsm_timer_milliseconds(uint16_t milliseconds);
+    bool tsm_transaction_available(
+        void);
+    uint8_t tsm_transaction_idle_count(
+        void);
+    void tsm_timer_milliseconds(
+        uint16_t milliseconds);
 /* free the invoke ID when the reply comes back */
-    void tsm_free_invoke_id(uint8_t invokeID);
+    void tsm_free_invoke_id(
+        uint8_t invokeID);
 /* use these in tandem */
-    uint8_t tsm_next_free_invokeID(void);
+    uint8_t tsm_next_free_invokeID(
+        void);
 /* returns the same invoke ID that was given */
-    void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
-        BACNET_ADDRESS * dest, BACNET_NPDU_DATA * ndpu_data,
-        uint8_t * apdu, uint16_t apdu_len);
+    void tsm_set_confirmed_unsegmented_transaction(
+        uint8_t invokeID,
+        BACNET_ADDRESS * dest,
+        BACNET_NPDU_DATA * ndpu_data,
+        uint8_t * apdu,
+        uint16_t apdu_len);
 /* returns true if transaction is found */
-    bool tsm_get_transaction_pdu(uint8_t invokeID,
-        BACNET_ADDRESS * dest, BACNET_NPDU_DATA * ndpu_data,
-        uint8_t * apdu, uint16_t * apdu_len);
+    bool tsm_get_transaction_pdu(
+        uint8_t invokeID,
+        BACNET_ADDRESS * dest,
+        BACNET_NPDU_DATA * ndpu_data,
+        uint8_t * apdu,
+        uint16_t * apdu_len);
 
-    bool tsm_invoke_id_free(uint8_t invokeID);
-    bool tsm_invoke_id_failed(uint8_t invokeID);
+    bool tsm_invoke_id_free(
+        uint8_t invokeID);
+    bool tsm_invoke_id_failed(
+        uint8_t invokeID);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 /* define out any functions necessary for compile */
 #endif
-
 #endif

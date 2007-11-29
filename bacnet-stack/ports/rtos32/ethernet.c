@@ -23,10 +23,10 @@
 *
 *********************************************************************/
 
-#include <stdint.h>             /* for standard integer types uint8_t etc. */
-#include <stdbool.h>            /* for the standard bool type. */
-#include <stdio.h>              /* for the standard bool type. */
-#include <stdlib.h>             /* for the standard bool type. */
+#include <stdint.h>     /* for standard integer types uint8_t etc. */
+#include <stdbool.h>    /* for the standard bool type. */
+#include <stdio.h>      /* for the standard bool type. */
+#include <stdlib.h>     /* for the standard bool type. */
 #include <rttarget.h>
 #include <rtk32.h>
 #include <clock.h>
@@ -49,12 +49,14 @@ static SOCKET Ethernet_Socket = -1;
 /* used for binding 802.2 */
 static struct sockaddr Ethernet_Address = { 0 };
 
-bool ethernet_valid(void)
+bool ethernet_valid(
+    void)
 {
     return (Ethernet_Socket != -1);
 }
 
-void ethernet_cleanup(void)
+void ethernet_cleanup(
+    void)
 {
     if (ethernet_valid())
         closesocket(Ethernet_Socket);
@@ -63,7 +65,8 @@ void ethernet_cleanup(void)
     return;
 }
 
-bool ethernet_init(char *interface_name)
+bool ethernet_init(
+    char *interface_name)
 {
     int value = 1;
 
@@ -85,12 +88,13 @@ bool ethernet_init(char *interface_name)
 
 /* function to send a packet out the 802.2 socket */
 /* returns bytes sent on success, negative number on failure */
-int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
+int ethernet_send(
+    BACNET_ADDRESS * dest,      /* destination address */
     BACNET_ADDRESS * src,       /* source address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
-    uint8_t * pdu,              /* any data to be sent - may be null */
+    uint8_t * pdu,      /* any data to be sent - may be null */
     unsigned pdu_len)
-{                               /* number of bytes of data */
+{       /* number of bytes of data */
     int bytes = 0;
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
@@ -128,8 +132,7 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
         return -4;
     }
     /* packet length */
-    mtu_len += encode_unsigned16(&mtu[12],
-        3 /*DSAP,SSAP,LLC */  + pdu_len);
+    mtu_len += encode_unsigned16(&mtu[12], 3 /*DSAP,SSAP,LLC */  + pdu_len);
     /* Logical PDU portion */
     mtu[mtu_len++] = 0x82;      /* DSAP for BACnet */
     mtu[mtu_len++] = 0x82;      /* SSAP for BACnet */
@@ -156,12 +159,13 @@ int ethernet_send(BACNET_ADDRESS * dest,        /* destination address */
 
 /* function to send a packet out the 802.2 socket */
 /* returns bytes sent on success, negative number on failure */
-int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
+int ethernet_send_pdu(
+    BACNET_ADDRESS * dest,      /* destination address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
-    uint8_t * pdu,              /* any data to be sent - may be null */
+    uint8_t * pdu,      /* any data to be sent - may be null */
     unsigned pdu_len)
-{                               /* number of bytes of data */
-    int i = 0;                  /* counter */
+{       /* number of bytes of data */
+    int i = 0;  /* counter */
     BACNET_ADDRESS src = { 0 }; /* source address */
 
     for (i = 0; i < 6; i++) {
@@ -173,18 +177,19 @@ int ethernet_send_pdu(BACNET_ADDRESS * dest,    /* destination address */
     /* function to send a packet out the 802.2 socket */
     /* returns 1 on success, 0 on failure */
     return ethernet_send(dest,  /* destination address */
-        &src,                   /* source address */
-        npdu_data, pdu,         /* any data to be sent - may be null */
-        pdu_len);               /* number of bytes of data */
+        &src,   /* source address */
+        npdu_data, pdu, /* any data to be sent - may be null */
+        pdu_len);       /* number of bytes of data */
 }
 
 /* receives an 802.2 framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
-uint16_t ethernet_receive(BACNET_ADDRESS * src, /* source address */
-    uint8_t * pdu,              /* PDU data */
-    uint16_t max_pdu,           /* amount of space available in the PDU  */
+uint16_t ethernet_receive(
+    BACNET_ADDRESS * src,       /* source address */
+    uint8_t * pdu,      /* PDU data */
+    uint16_t max_pdu,   /* amount of space available in the PDU  */
     unsigned timeout)
-{                               /* number of milliseconds to wait for a packet */
+{       /* number of milliseconds to wait for a packet */
     int received_bytes;
     uint8_t buf[MAX_MPDU] = { 0 };      /* data */
     uint16_t pdu_len = 0;       /* return value */
@@ -212,8 +217,7 @@ uint16_t ethernet_receive(BACNET_ADDRESS * src, /* source address */
     max = Ethernet_Socket;
 
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
-        received_bytes =
-            recv(Ethernet_Socket, (char *) &buf[0], MAX_MPDU, 0);
+        received_bytes = recv(Ethernet_Socket, (char *) &buf[0], MAX_MPDU, 0);
     else
         return 0;
 
@@ -262,7 +266,8 @@ uint16_t ethernet_receive(BACNET_ADDRESS * src, /* source address */
     return pdu_len;
 }
 
-void ethernet_get_my_address(BACNET_ADDRESS * my_address)
+void ethernet_get_my_address(
+    BACNET_ADDRESS * my_address)
 {
     int i = 0;
 
@@ -280,7 +285,8 @@ void ethernet_get_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void ethernet_set_my_address(BACNET_ADDRESS * my_address)
+void ethernet_set_my_address(
+    BACNET_ADDRESS * my_address)
 {
     int i = 0;
 
@@ -291,9 +297,10 @@ void ethernet_set_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void ethernet_get_broadcast_address(BACNET_ADDRESS * dest)
-{                               /* destination address */
-    int i = 0;                  /* counter */
+void ethernet_get_broadcast_address(
+    BACNET_ADDRESS * dest)
+{       /* destination address */
+    int i = 0;  /* counter */
 
     if (dest) {
         for (i = 0; i < 6; i++) {
@@ -301,7 +308,7 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS * dest)
         }
         dest->mac_len = 6;
         dest->net = BACNET_BROADCAST_NETWORK;
-        dest->len = 0;          /* denotes broadcast address  */
+        dest->len = 0;  /* denotes broadcast address  */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }
@@ -310,9 +317,11 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
-void ethernet_debug_address(const char *info, BACNET_ADDRESS * dest)
+void ethernet_debug_address(
+    const char *info,
+    BACNET_ADDRESS * dest)
 {
-    int i = 0;                  /* counter */
+    int i = 0;  /* counter */
 
     if (info)
         fprintf(stderr, "%s", info);

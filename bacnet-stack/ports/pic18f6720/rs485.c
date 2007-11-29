@@ -57,11 +57,12 @@ volatile uint8_t RS485_Tx_Buffer[MAX_MPDU];
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port specific data */
-    uint8_t * buffer,           /* frame to send (up to 501 bytes of data) */
+void RS485_Send_Frame(
+    volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
+    uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
-{                               /* number of bytes of data (up to 501) */
-    uint16_t i = 0;             /* loop counter */
+{       /* number of bytes of data (up to 501) */
+    uint16_t i = 0;     /* loop counter */
     uint8_t turnaround_time;
 
     if (!buffer)
@@ -117,8 +118,8 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t RS485_Check_UART_Data(volatile struct mstp_port_struct_t *
-    mstp_port)
+uint8_t RS485_Check_UART_Data(
+    volatile struct mstp_port_struct_t * mstp_port)
 {
     /* check for data */
     if (RS485_Comstat.Rx_Bytes) {
@@ -151,7 +152,8 @@ uint8_t RS485_Check_UART_Data(volatile struct mstp_port_struct_t *
 
   NOTES:  none
  *************************************************************************** */
-void RS485_Interrupt_Rx(void)
+void RS485_Interrupt_Rx(
+    void)
 {
     char dummy;
 
@@ -184,7 +186,8 @@ void RS485_Interrupt_Rx(void)
 
   NOTES:  none
  *************************************************************************** */
-void RS485_Interrupt_Tx(void)
+void RS485_Interrupt_Tx(
+    void)
 {
     if (RS485_Comstat.Tx_Bytes) {
         /* Get the data byte */
@@ -214,7 +217,8 @@ void RS485_Interrupt_Tx(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(void)
+uint32_t RS485_Get_Baud_Rate(
+    void)
 {
     return RS485_Baud_Rate;
 }
@@ -225,22 +229,23 @@ uint32_t RS485_Get_Baud_Rate(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Set_Baud_Rate(uint32_t baud)
+bool RS485_Set_Baud_Rate(
+    uint32_t baud)
 {
     bool valid = true;
 
     switch (baud) {
-    case 9600:
-    case 19200:
-    case 38400:
-    case 57600:
-    case 76800:
-    case 115200:
-        RS485_Baud_Rate = baud;
-        break;
-    default:
-        valid = false;
-        break;
+        case 9600:
+        case 19200:
+        case 38400:
+        case 57600:
+        case 76800:
+        case 115200:
+            RS485_Baud_Rate = baud;
+            break;
+        default:
+            valid = false;
+            break;
     }
 
     if (valid) {
@@ -262,7 +267,8 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Initialize_Port(void)
+void RS485_Initialize_Port(
+    void)
 {
 
     /* Reset USART registers to POR state */
@@ -292,35 +298,35 @@ void RS485_Initialize_Port(void)
        1250000    0
      */
     switch (RS485_Baud_Rate) {
-    case 19200:
-        SPBRG2 = 64;
-        TXSTA2bits.BRGH = 1;
-        break;
-    case 38400:
-        SPBRG2 = 32;
-        TXSTA2bits.BRGH = 1;
-        break;
-    case 57600:
-        SPBRG2 = 21;
-        TXSTA2bits.BRGH = 1;
-        break;
-    case 76800:
-        SPBRG2 = 3;
-        TXSTA2bits.BRGH = 0;
-        break;
-    case 115200:
-        SPBRG2 = 10;
-        TXSTA2bits.BRGH = 1;
-        break;
-    case 9600:
-        SPBRG2 = 129;
-        TXSTA2bits.BRGH = 1;
-        break;
-    default:
-        SPBRG2 = 129;
-        TXSTA2bits.BRGH = 1;
-        RS485_Set_Baud_Rate(9600);
-        break;
+        case 19200:
+            SPBRG2 = 64;
+            TXSTA2bits.BRGH = 1;
+            break;
+        case 38400:
+            SPBRG2 = 32;
+            TXSTA2bits.BRGH = 1;
+            break;
+        case 57600:
+            SPBRG2 = 21;
+            TXSTA2bits.BRGH = 1;
+            break;
+        case 76800:
+            SPBRG2 = 3;
+            TXSTA2bits.BRGH = 0;
+            break;
+        case 115200:
+            SPBRG2 = 10;
+            TXSTA2bits.BRGH = 1;
+            break;
+        case 9600:
+            SPBRG2 = 129;
+            TXSTA2bits.BRGH = 1;
+            break;
+        default:
+            SPBRG2 = 129;
+            TXSTA2bits.BRGH = 1;
+            RS485_Set_Baud_Rate(9600);
+            break;
     }
     /* select async mode */
     TXSTA2bits.SYNC = 0;
@@ -341,14 +347,16 @@ void RS485_Initialize_Port(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Disable_Port(void)
+void RS485_Disable_Port(
+    void)
 {
-    RCSTA2 &= 0x4F;             /* Disable the receiver */
+    RCSTA2 &= 0x4F;     /* Disable the receiver */
     TXSTA2bits.TXEN = 0;        /* and transmitter */
-    PIE3 &= 0xCF;               /* Disable both interrupts */
+    PIE3 &= 0xCF;       /* Disable both interrupts */
 }
 
-void RS485_Reinit(void)
+void RS485_Reinit(
+    void)
 {
     RS485_Set_Baud_Rate(38400);
 }
@@ -359,7 +367,8 @@ void RS485_Reinit(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void RS485_Initialize(void)
+void RS485_Initialize(
+    void)
 {
     /* Init the Rs485 buffers */
     RS485_Comstat.RxHead = 0;

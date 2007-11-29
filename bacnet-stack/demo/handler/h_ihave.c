@@ -32,16 +32,17 @@
 #include "bactext.h"
 #include "ihave.h"
 
-void handler_i_have(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void handler_i_have(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     int len = 0;
     BACNET_I_HAVE_DATA data;
 
     (void) service_len;
     (void) src;
-    len = ihave_decode_service_request(service_request,
-        service_len, &data);
+    len = ihave_decode_service_request(service_request, service_len, &data);
     if (len != -1) {
 #if PRINT_ENABLED
         fprintf(stderr, "I-Have: %s %d from %s %u!\r\n",

@@ -45,7 +45,7 @@ struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
     bool context_specific;      /* true if context specific data */
     uint8_t context_tag;        /* only used for context specific data */
-    uint8_t tag;                /* application tag data type */
+    uint8_t tag;        /* application tag data type */
     union {
         /* NULL - not needed as it is encoded in the tag alone */
 #if defined (BACAPP_BOOLEAN)
@@ -63,25 +63,25 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_DOUBLE)
         double Double;
 #endif
-#if defined (BACAPP_OCTET_STRING)        
+#if defined (BACAPP_OCTET_STRING)
         BACNET_OCTET_STRING Octet_String;
 #endif
-#if defined (BACAPP_CHARACTER_STRING)        
+#if defined (BACAPP_CHARACTER_STRING)
         BACNET_CHARACTER_STRING Character_String;
 #endif
-#if defined (BACAPP_BIT_STRING)        
+#if defined (BACAPP_BIT_STRING)
         BACNET_BIT_STRING Bit_String;
 #endif
 #if defined (BACAPP_ENUMERATED)
         int Enumerated;
 #endif
-#if defined (BACAPP_DATE)        
+#if defined (BACAPP_DATE)
         BACNET_DATE Date;
 #endif
-#if defined (BACAPP_TIME)        
+#if defined (BACAPP_TIME)
         BACNET_TIME Time;
 #endif
-#if defined (BACAPP_OBJECT_ID)        
+#if defined (BACAPP_OBJECT_ID)
         BACNET_OBJECT_ID Object_Id;
 #endif
     } type;
@@ -91,38 +91,51 @@ typedef struct BACnet_Application_Data_Value {
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
-    int bacapp_encode_data(uint8_t * apdu,
+#endif /* __cplusplus */
+    int bacapp_encode_data(
+        uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
 
-    int bacapp_decode_application_data(uint8_t * apdu,
-        int max_apdu_len, BACNET_APPLICATION_DATA_VALUE * value);
-
-    int bacapp_encode_application_data(uint8_t * apdu,
+    int bacapp_decode_application_data(
+        uint8_t * apdu,
+        int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value);
 
-    int bacapp_decode_context_data(uint8_t * apdu,
-        int max_apdu_len, BACNET_APPLICATION_DATA_VALUE * value,
-        BACNET_PROPERTY_ID property);
+    int bacapp_encode_application_data(
+        uint8_t * apdu,
+        BACNET_APPLICATION_DATA_VALUE * value);
 
-    int bacapp_encode_context_data(uint8_t * apdu,
+    int bacapp_decode_context_data(
+        uint8_t * apdu,
+        int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
-    int bacapp_encode_context_data_value(uint8_t * apdu,
-        uint8_t context_tag_number, BACNET_APPLICATION_DATA_VALUE * value);
+    int bacapp_encode_context_data(
+        uint8_t * apdu,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_PROPERTY_ID property);
 
-    BACNET_APPLICATION_TAG bacapp_context_tag_type(BACNET_PROPERTY_ID
-        property, uint8_t tag_number);
+    int bacapp_encode_context_data_value(
+        uint8_t * apdu,
+        uint8_t context_tag_number,
+        BACNET_APPLICATION_DATA_VALUE * value);
 
-    bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE * dest_value,
+    BACNET_APPLICATION_TAG bacapp_context_tag_type(
+        BACNET_PROPERTY_ID property,
+        uint8_t tag_number);
+
+    bool bacapp_copy(
+        BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
 
     /* returns the length of data between an opening tag and a closing tag.
        Expects that the first octet contain the opening tag.
        Include a value property identifier for context specific data
        such as the value received in a WriteProperty request */
-    int bacapp_data_len(uint8_t * apdu, int max_apdu_len,
+    int bacapp_data_len(
+        uint8_t * apdu,
+        int max_apdu_len,
         BACNET_PROPERTY_ID property);
 
 #if PRINT_ENABLED
@@ -134,9 +147,12 @@ extern "C" {
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
-    bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
-        const char *argv, BACNET_APPLICATION_DATA_VALUE * value);
-    bool bacapp_print_value(FILE * stream,
+    bool bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG tag_number,
+        const char *argv,
+        BACNET_APPLICATION_DATA_VALUE * value);
+    bool bacapp_print_value(
+        FILE * stream,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 #else
@@ -147,14 +163,17 @@ extern "C" {
 #ifdef TEST
 #include "ctest.h"
 #include "datetime.h"
-    bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE * value,
+    bool bacapp_same_value(
+        BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
 
-    void testBACnetApplicationDataLength(Test * pTest);
-    void testBACnetApplicationData(Test * pTest);
+    void testBACnetApplicationDataLength(
+        Test * pTest);
+    void testBACnetApplicationData(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif

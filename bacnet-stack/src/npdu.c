@@ -41,7 +41,9 @@
 #include "npdu.h"
 #include "apdu.h"
 
-void npdu_copy_data(BACNET_NPDU_DATA * dest, BACNET_NPDU_DATA * src)
+void npdu_copy_data(
+    BACNET_NPDU_DATA * dest,
+    BACNET_NPDU_DATA * src)
 {
     if (dest && src) {
         dest->protocol_version = src->protocol_version;
@@ -94,12 +96,14 @@ ABORT.request                  Yes          No         Yes        No
 ABORT.indication               Yes         Yes         Yes        No
 */
 
-int npdu_encode_pdu(uint8_t * npdu,
+int npdu_encode_pdu(
+    uint8_t * npdu,
     BACNET_ADDRESS * dest,
-    BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data)
+    BACNET_ADDRESS * src,
+    BACNET_NPDU_DATA * npdu_data)
 {
-    int len = 0;                /* return value - number of octets loaded in this function */
-    int i = 0;                  /* counter  */
+    int len = 0;        /* return value - number of octets loaded in this function */
+    int i = 0;  /* counter  */
 
 
     if (npdu && npdu_data) {
@@ -221,26 +225,30 @@ described in 6.2.2.
 whether (TRUE) or not (FALSE) a reply service primitive
 is expected for the service being issued.
 */
-void npdu_encode_npdu_data(BACNET_NPDU_DATA * npdu_data,
-    bool data_expecting_reply, BACNET_MESSAGE_PRIORITY priority)
+void npdu_encode_npdu_data(
+    BACNET_NPDU_DATA * npdu_data,
+    bool data_expecting_reply,
+    BACNET_MESSAGE_PRIORITY priority)
 {
     if (npdu_data) {
         npdu_data->data_expecting_reply = data_expecting_reply;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
         npdu_data->network_layer_message = false;       /* false if APDU */
-        npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;    /* optional */
+        npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;      /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
         npdu_data->hop_count = 0;
     }
 }
 
-int npdu_decode(uint8_t * npdu,
+int npdu_decode(
+    uint8_t * npdu,
     BACNET_ADDRESS * dest,
-    BACNET_ADDRESS * src, BACNET_NPDU_DATA * npdu_data)
+    BACNET_ADDRESS * src,
+    BACNET_NPDU_DATA * npdu_data)
 {
-    int len = 0;                /* return value - number of octets loaded in this function */
-    int i = 0;                  /* counter */
+    int len = 0;        /* return value - number of octets loaded in this function */
+    int i = 0;  /* counter */
     uint16_t src_net = 0;
     uint16_t dest_net = 0;
     uint8_t address_len = 0;
@@ -271,7 +279,7 @@ int npdu_decode(uint8_t * npdu,
         /* B'10' = Critical Equipment message */
         /* B'01' = Urgent message */
         /* B'00' = Normal message */
-        npdu_data->priority = (BACNET_MESSAGE_PRIORITY)(npdu[1] & 0x03);
+        npdu_data->priority = (BACNET_MESSAGE_PRIORITY) (npdu[1] & 0x03);
         /* set the offset to where the optional stuff starts */
         len = 2;
         /*Bit 5: Destination specifier where: */
@@ -342,14 +350,14 @@ int npdu_decode(uint8_t * npdu,
         /* Indicates that the NSDU conveys a network layer message. */
         /* Message Type field is present. */
         if (npdu_data->network_layer_message) {
-            npdu_data->network_message_type = (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
+            npdu_data->network_message_type =
+                (BACNET_NETWORK_MESSAGE_TYPE) npdu[len++];
             /* Message Type field contains a value in the range 0x80 - 0xFF, */
             /* then a Vendor ID field shall be present */
             if (npdu_data->network_message_type >= 0x80)
-                len +=
-                    decode_unsigned16(&npdu[len], &npdu_data->vendor_id);
+                len += decode_unsigned16(&npdu[len], &npdu_data->vendor_id);
         } else {
-          /* FIXME: another value for this? */
+            /* FIXME: another value for this? */
             npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;
         }
     }
@@ -357,10 +365,11 @@ int npdu_decode(uint8_t * npdu,
     return len;
 }
 
-void npdu_handler(BACNET_ADDRESS * src, /* source address */
-    uint8_t * pdu,              /* PDU data */
+void npdu_handler(
+    BACNET_ADDRESS * src,       /* source address */
+    uint8_t * pdu,      /* PDU data */
     uint16_t pdu_len)
-{                               /* length PDU  */
+{       /* length PDU  */
     int apdu_offset = 0;
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
@@ -384,7 +393,8 @@ void npdu_handler(BACNET_ADDRESS * src, /* source address */
 #include <string.h>
 #include "ctest.h"
 
-void testNPDU2(Test * pTest)
+void testNPDU2(
+    Test * pTest)
 {
     uint8_t pdu[480] = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -395,7 +405,7 @@ void testNPDU2(Test * pTest)
     bool data_expecting_reply = true;
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
-    int i = 0;                  /* counter */
+    int i = 0;  /* counter */
     int npdu_len = 0;
     bool network_layer_message = false; /* false if APDU */
     BACNET_NETWORK_MESSAGE_TYPE network_message_type = 0;       /* optional */
@@ -428,11 +438,9 @@ void testNPDU2(Test * pTest)
     npdu_len = npdu_decode(&pdu[0], &npdu_dest, &npdu_src, &npdu_data);
     ct_test(pTest, npdu_len != 0);
     ct_test(pTest, npdu_data.data_expecting_reply == data_expecting_reply);
-    ct_test(pTest,
-        npdu_data.network_layer_message == network_layer_message);
+    ct_test(pTest, npdu_data.network_layer_message == network_layer_message);
     if (npdu_data.network_layer_message) {
-        ct_test(pTest,
-            npdu_data.network_message_type == network_message_type);
+        ct_test(pTest, npdu_data.network_message_type == network_message_type);
     }
     ct_test(pTest, npdu_data.vendor_id == vendor_id);
     ct_test(pTest, npdu_data.priority == priority);
@@ -450,7 +458,8 @@ void testNPDU2(Test * pTest)
     }
 }
 
-void testNPDU1(Test * pTest)
+void testNPDU1(
+    Test * pTest)
 {
     uint8_t pdu[480] = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -461,7 +470,7 @@ void testNPDU1(Test * pTest)
     bool data_expecting_reply = false;
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
-    int i = 0;                  /* counter */
+    int i = 0;  /* counter */
     int npdu_len = 0;
     bool network_layer_message = false; /* false if APDU */
     BACNET_NETWORK_MESSAGE_TYPE network_message_type = 0;       /* optional */
@@ -495,11 +504,9 @@ void testNPDU1(Test * pTest)
     npdu_len = npdu_decode(&pdu[0], &npdu_dest, &npdu_src, &npdu_data);
     ct_test(pTest, npdu_len != 0);
     ct_test(pTest, npdu_data.data_expecting_reply == data_expecting_reply);
-    ct_test(pTest,
-        npdu_data.network_layer_message == network_layer_message);
+    ct_test(pTest, npdu_data.network_layer_message == network_layer_message);
     if (npdu_data.network_layer_message) {
-        ct_test(pTest,
-            npdu_data.network_message_type == network_message_type);
+        ct_test(pTest, npdu_data.network_message_type == network_message_type);
     }
     ct_test(pTest, npdu_data.vendor_id == vendor_id);
     ct_test(pTest, npdu_data.priority == priority);
@@ -509,20 +516,24 @@ void testNPDU1(Test * pTest)
 
 #ifdef TEST_NPDU
 /* dummy stub for testing */
-void tsm_free_invoke_id(uint8_t invokeID)
+void tsm_free_invoke_id(
+    uint8_t invokeID)
 {
     (void) invokeID;
 }
 
-void iam_handler(uint8_t * service_request,
-    uint16_t service_len, BACNET_ADDRESS * src)
+void iam_handler(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
 {
     (void) service_request;
     (void) service_len;
     (void) src;
 }
 
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;
@@ -541,5 +552,5 @@ int main(void)
 
     return 0;
 }
-#endif                          /* TEST_NPDU */
-#endif                          /* TEST */
+#endif /* TEST_NPDU */
+#endif /* TEST */

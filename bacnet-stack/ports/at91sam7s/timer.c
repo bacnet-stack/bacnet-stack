@@ -50,7 +50,9 @@ volatile unsigned long Timer_Milliseconds;
 /* MS/TP Silence Timer */
 static volatile int SilenceTime;
 
-static void Timer0_Setup(int milliseconds) {
+static void Timer0_Setup(
+    int milliseconds)
+{
     //        TC Block Control Register TC_BCR    (read/write)
     //
     //    |------------------------------------------------------------------|------|
@@ -214,7 +216,7 @@ static void Timer0_Setup(int milliseconds) {
     //
     //    TIMER_CLOCK5 = (MCK / 1024) / 1000
     //                 = 48054841 / 1024 / 1000 =  46.928
-    pTC->TC_RC = ((MCK/1024/1000)+1)*milliseconds;
+    pTC->TC_RC = ((MCK / 1024 / 1000) + 1) * milliseconds;
 
     //        TC Interrupt Enable Register  TC_IER    (write-only)
     //
@@ -297,9 +299,11 @@ static void Timer0_Setup(int milliseconds) {
 //  Modified by Steve Karg
 //    simplified and changed to a millisecond count-up timer
 //  *****************************************************************************
-static void Timer0IrqHandler (void) {
+static void Timer0IrqHandler(
+    void)
+{
 
-    volatile AT91PS_TC pTC = AT91C_BASE_TC0; // pointer to timer channel 0 register structure
+    volatile AT91PS_TC pTC = AT91C_BASE_TC0;    // pointer to timer channel 0 register structure
     unsigned int dummy; // temporary
 
     // read TC0 Status Register to clear interrupt
@@ -310,12 +314,14 @@ static void Timer0IrqHandler (void) {
         SilenceTime++;
 }
 
-int Timer_Silence(void)
+int Timer_Silence(
+    void)
 {
     return SilenceTime;
 }
 
-void Timer_Silence_Reset(void)
+void Timer_Silence_Reset(
+    void)
 {
     SilenceTime = 0;
 }
@@ -330,33 +336,33 @@ void Timer_Silence_Reset(void)
 //    Moved timer startup code from main
 //    modified the peripheral clock init
 //  *****************************************************************************
-void TimerInit(void) 
+void TimerInit(
+    void)
 {
     // enable the Timer0 peripheral clock
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
-    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1<<AT91C_ID_TC0);
+    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_TC0);
     // Set up the AIC  registers for Timer 0
-    volatile AT91PS_AIC    pAIC = AT91C_BASE_AIC;
+    volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
     // Disable timer 0 interrupt
     // in AIC Interrupt Disable Command Register
-    pAIC->AIC_IDCR = (1<<AT91C_ID_TC0);
+    pAIC->AIC_IDCR = (1 << AT91C_ID_TC0);
     // Set the TC0 IRQ handler address in
     // AIC Source Vector Register[12]
-    pAIC->AIC_SVR[AT91C_ID_TC0] =
-        (unsigned int)Timer0IrqHandler;
+    pAIC->AIC_SVR[AT91C_ID_TC0] = (unsigned int) Timer0IrqHandler;
     // Set the interrupt source type and priority
     // in AIC Source Mode Register[12]
     pAIC->AIC_SMR[AT91C_ID_TC0] =
-        (AT91C_AIC_SRCTYPE_INT_LEVEL_SENSITIVE | 0x4 );
+        (AT91C_AIC_SRCTYPE_INT_LEVEL_SENSITIVE | 0x4);
     // Clear the TC0 interrupt
     // in AIC Interrupt Clear Command Register
-    pAIC->AIC_ICCR = (1<<AT91C_ID_TC0);
+    pAIC->AIC_ICCR = (1 << AT91C_ID_TC0);
     // Remove disable timer 0 interrupt
     // in AIC Interrupt Disable Command Reg
-    pAIC->AIC_IDCR = (0<<AT91C_ID_TC0);
+    pAIC->AIC_IDCR = (0 << AT91C_ID_TC0);
     // Enable the TC0 interrupt
     // in AIC Interrupt Enable Command Register
-    pAIC->AIC_IECR = (1<<AT91C_ID_TC0);
+    pAIC->AIC_IECR = (1 << AT91C_ID_TC0);
     // Setup timer0 to generate a 1 msec periodic interrupt
     Timer0_Setup(1);
 }

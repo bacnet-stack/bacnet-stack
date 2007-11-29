@@ -34,72 +34,96 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 
-    void handler_unrecognized_service(uint8_t * service_request,
+    void handler_unrecognized_service(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * dest,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-    void handler_who_is(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src);
+    void handler_who_is(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
 
-    void handler_who_has(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src);
+    void handler_who_has(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
 
-    void handler_i_am_add(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src);
+    void handler_i_am_add(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
 
-    void handler_i_am_bind(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src);
+    void handler_i_am_bind(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
 
-    void handler_read_property(uint8_t * service_request,
+    void handler_read_property(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-    void handler_read_property_ack(uint8_t * service_request,
+    void handler_read_property_ack(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
-    void handler_write_property(uint8_t * service_request,
+    void handler_write_property(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-    void handler_atomic_read_file(uint8_t * service_request,
+    void handler_atomic_read_file(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-    void handler_atomic_read_file_ack(uint8_t * service_request,
+    void handler_atomic_read_file_ack(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
-    void handler_atomic_write_file(uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src, BACNET_CONFIRMED_SERVICE_DATA * service_data);
-
-    void handler_reinitialize_device(uint8_t * service_request,
+    void handler_atomic_write_file(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-    void handler_device_communication_control(uint8_t * service_request,
+    void handler_reinitialize_device(
+        uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-    void handler_i_have(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src);
+    void handler_device_communication_control(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-    void handler_timesync(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src);
+    void handler_i_have(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
 
-    void handler_timesync_utc(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src);
+    void handler_timesync(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
+
+    void handler_timesync_utc(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
 
     void handler_read_property_multiple(
         uint8_t * service_request,
@@ -108,7 +132,7 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     /* Encodes the property APDU and returns the length,
-    or sets the error, and returns -1 */
+       or sets the error, and returns -1 */
     /* resides in h_rp.c */
     int Encode_Property_APDU(
         uint8_t * apdu,
@@ -123,5 +147,5 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif /* __cplusplus */
 #endif
