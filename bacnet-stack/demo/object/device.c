@@ -874,6 +874,8 @@ int Device_Encode_Property_APDU(
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
 #endif
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
