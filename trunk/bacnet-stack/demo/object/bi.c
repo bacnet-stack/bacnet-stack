@@ -31,11 +31,15 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
+#include "wp.h"
 #include "config.h"     /* the custom stuff */
 
 #define MAX_BINARY_INPUTS 5
 
+/* stores the current value */
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
+/* out of service decouples physical input from Present_Value */
+static bool Out_Of_Service[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Input_Properties_Required[] = {
@@ -150,6 +154,46 @@ static BACNET_BINARY_PV Binary_Input_Present_Value(
     return value;
 }
 
+static bool Binary_Input_Out_Of_Service(
+    uint32_t object_instance)
+{
+    bool value = false;
+    unsigned index = 0;
+
+    Binary_Input_Init();
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS)
+        value = Out_Of_Service[index];
+
+    return value;
+}
+
+static void Binary_Input_Present_Value_Set(
+    uint32_t object_instance, BACNET_BINARY_PV value)
+{
+    unsigned index = 0;
+
+    Binary_Input_Init();
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS)
+        Present_Value[index] = value;
+
+    return;
+}
+
+static void Binary_Input_Out_Of_Service_Set(
+    uint32_t object_instance, bool value)
+{
+    unsigned index = 0;
+
+    Binary_Input_Init();
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS)
+        Out_Of_Service[index] = value;
+
+    return;
+}
+
 char *Binary_Input_Name(
     uint32_t object_instance)
 {
@@ -178,7 +222,6 @@ int Binary_Input_Encode_Property_APDU(
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_POLARITY polarity = POLARITY_NORMAL;
-
 
     (void) array_index;
     Binary_Input_Init();
@@ -221,7 +264,8 @@ int Binary_Input_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0], false);
+            apdu_len = encode_application_boolean(&apdu[0],
+                Binary_Input_Out_Of_Service(object_instance));
             break;
         case PROP_POLARITY:
             apdu_len = encode_application_enumerated(&apdu[0], polarity);
@@ -234,6 +278,66 @@ int Binary_Input_Encode_Property_APDU(
     }
 
     return apdu_len;
+}
+
+/* returns true if successful */
+bool Binary_Input_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA * wp_data,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
+{
+    bool status = false;        /* return value */
+    int len = 0;
+    BACNET_APPLICATION_DATA_VALUE value;
+
+    Binary_Input_Init();
+    if (!Binary_Input_Valid_Instance(wp_data->object_instance)) {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
+    /* decode the some of the request */
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
+    /* FIXME: len < application_data_len: more data? */
+    /* FIXME: len == 0: unable to decode? */
+    switch (wp_data->object_property) {
+        case PROP_PRESENT_VALUE:
+            if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+                if ((value.type.Enumerated >= MIN_BINARY_PV) &&
+                    (value.type.Enumerated <= MAX_BINARY_PV)) {
+                    Binary_Input_Present_Value_Set(
+                        wp_data->object_instance,
+                        (BACNET_BINARY_PV) value.type.Enumerated);
+                    status = true;
+                } else {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_OUT_OF_SERVICE:
+            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                Binary_Input_Out_Of_Service_Set(
+                    wp_data->object_instance,
+                    value.type.Boolean);
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        default:
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+    }
+
+    return status;
 }
 
 #ifdef TEST

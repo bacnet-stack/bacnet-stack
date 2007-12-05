@@ -122,8 +122,26 @@ void handler_write_property(
 #endif
             }
             break;
-        case OBJECT_ANALOG_INPUT:
         case OBJECT_BINARY_INPUT:
+            if (Binary_Input_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                len =
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+#if PRINT_ENABLED
+                fprintf(stderr, "WP: Sending Simple Ack for BI!\n");
+#endif
+            } else {
+                len =
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
+#if PRINT_ENABLED
+                fprintf(stderr, "WP: Sending Write Access Error for BI!\n");
+#endif
+            }
+            break;
+        case OBJECT_ANALOG_INPUT:
             error_class = ERROR_CLASS_PROPERTY;
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             len =
