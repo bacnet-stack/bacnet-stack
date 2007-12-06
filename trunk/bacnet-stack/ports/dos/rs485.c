@@ -35,10 +35,11 @@
 #include "timer.h"
 
 /* This file has been customized for use with DOS */
-#include "hardware.h"
+#include <dos.h>
+#include "serial.h"
 
 /* UART */
-static volatile AT91S_USART *RS485_Interface = AT91C_BASE_US0;
+static char RS485_Port = '2';
 /* baud rate */
 static int RS485_Baud = 38400;
 
@@ -64,42 +65,10 @@ static int RS485_Baud = 38400;
 void RS485_Initialize(
     void)
 {
-    /* Enable the USART0 clock in the Power Management Controller */
-    volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
-    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_US0);
-
-    /* Disable and clear USART0 interrupt
-       in AIC Interrupt Disable Command Register */
-    volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
-    pAIC->AIC_IDCR = (1 << AT91C_ID_US0);
-    pAIC->AIC_ICCR = (1 << AT91C_ID_US0);
-
-    /* enable the peripheral by disabling the pin in the PIO controller */
-    *AT91C_PIOA_PDR = AT91C_PA5_RXD0 | AT91C_PA6_TXD0 | AT91C_PA7_RTS0;
-
-    RS485_Interface->US_CR = AT91C_US_RSTRX |   /* Reset Receiver      */
-        AT91C_US_RSTTX |        /* Reset Transmitter   */
-        AT91C_US_RSTSTA |       /* Clear status register */
-        AT91C_US_RXDIS |        /* Receiver Disable    */
-        AT91C_US_TXDIS; /* Transmitter Disable */
-
-    RS485_Interface->US_MR = AT91C_US_USMODE_RS485 |    /* RS-485 Mode - RTS auto assert */
-        AT91C_US_CLKS_CLOCK |   /* Clock = MCK */
-        AT91C_US_CHRL_8_BITS |  /* 8-bit Data  */
-        AT91C_US_PAR_NONE |     /* No Parity   */
-        AT91C_US_NBSTOP_1_BIT;  /* 1 Stop Bit  */
-
-    /* set the Time Guard to release RTS after x bit times */
-    RS485_Interface->US_TTGR = 1;
-
-    /* Receiver Time-out disabled */
-    RS485_Interface->US_RTOR = 0;
-
     /* baud rate */
-    RS485_Interface->US_BRGR = MCK / 16 / RS485_Baud;
-
-    RS485_Interface->US_CR = AT91C_US_RXEN |    /* Receiver Enable     */
-        AT91C_US_TXEN;  /* Transmitter Enable  */
+    OpenComPort(RS485_Port);
+    /* FIXME: change to numeric parameters */
+    InitComPort ( "38400", '8', 'N', '1' );
 
     return;
 }
@@ -141,8 +110,7 @@ bool RS485_Set_Baud_Rate(
         case 76800:
         case 115200:
             RS485_Baud = baud;
-            RS485_Interface->US_BRGR = MCK / 16 / baud;
-            /* FIXME: store the baud rate */
+	    /* FIXME: store the baud rate */
             break;
         default:
             valid = false;
@@ -176,7 +144,7 @@ void RS485_Turnaround_Delay(
 * DESCRIPTION: Enable or disable the transmitter
 * RETURN:      none
 * ALGORITHM:   none
-* NOTES:       The Atmel ARM7 has an automatic enable/disable in RS485 mode.
+* NOTES:       none
 *****************************************************************************/
 void RS485_Transmitter_Enable(
     bool enable)
@@ -194,19 +162,8 @@ void RS485_Send_Data(
     uint8_t * buffer,   /* data to send */
     uint16_t nbytes)
 {       /* number of bytes of data */
-    /* LED on send */
-    volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
-    /* LED ON */
-    pPIO->PIO_CODR = LED1;
     /* send all the bytes */
-    while (nbytes) {
-        while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
-            /* do nothing - wait until Tx buffer is empty */
-        }
-        RS485_Interface->US_THR = *buffer;
-        buffer++;
-        nbytes--;
-    }
+    ComSendData(buffer, nbytes);
     while (!(RS485_Interface->US_CSR & AT91C_US_TXRDY)) {
         /* do nothing - wait until Tx buffer is empty */
     }

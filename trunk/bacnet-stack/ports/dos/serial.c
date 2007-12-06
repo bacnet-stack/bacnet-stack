@@ -43,6 +43,37 @@ void (INTERRUPT FAR *oldvector_serial )();
 int  ComBase;                        /* Comm port address */
 int  IrqNum;                         /* Comm interrupt request */
 
+void CloseComPort ( void )
+{
+      int status;
+
+      /* restore UART to previous state */
+
+      outp ( ComBase + INT_EN, (unsigned char) 0 );
+      outp ( ComBase + MODEM_CNTRL, 
+            (unsigned char) old_comm_params.modem );
+      status = inp ( ComBase + LINE_CNTRL );
+      outp ( ComBase + LINE_CNTRL, 
+            (unsigned char) status | 0x80 );
+      outp ( ComBase + BAUD_LSB, 
+            (unsigned char) old_comm_params.baud_lsb );
+      outp ( ComBase + BAUD_MSB, 
+            (unsigned char) old_comm_params.baud_msb );
+      outp ( ComBase + LINE_CNTRL, 
+            (unsigned char) old_comm_params.line );
+      outp ( 0x21, (unsigned char) old_comm_params.int_cntrl );
+
+      /* restore old interrupt handler */
+
+      setvect ( IrqNum + 8, oldvector_serial );
+
+      /* free input and output queues */
+
+      free ( Serial_In_Queue );
+      free ( Serial_Out_Queue );
+      return;
+}
+
 int OpenComPort ( char Port )        /* install int. handler */
 {
       unsigned status;
@@ -105,53 +136,25 @@ int OpenComPort ( char Port )        /* install int. handler */
 
       outp ( 0x21, (unsigned char) old_comm_params.int_cntrl & 
             (unsigned char) status );
+            
+      atexit(CloseComPort);
+      
       return retval;
-}
-
-void CloseComPort ( void )
-{
-      int status;
-
-      /* restore UART to previous state */
-
-      outp ( ComBase + INT_EN, (unsigned char) 0 );
-      outp ( ComBase + MODEM_CNTRL, 
-            (unsigned char) old_comm_params.modem );
-      status = inp ( ComBase + LINE_CNTRL );
-      outp ( ComBase + LINE_CNTRL, 
-            (unsigned char) status | 0x80 );
-      outp ( ComBase + BAUD_LSB, 
-            (unsigned char) old_comm_params.baud_lsb );
-      outp ( ComBase + BAUD_MSB, 
-            (unsigned char) old_comm_params.baud_msb );
-      outp ( ComBase + LINE_CNTRL, 
-            (unsigned char) old_comm_params.line );
-      outp ( 0x21, (unsigned char) old_comm_params.int_cntrl );
-
-      /* restore old interrupt handler */
-
-      setvect ( IrqNum + 8, oldvector_serial );
-
-      /* free input and output queues */
-
-      free ( Serial_In_Queue );
-      free ( Serial_Out_Queue );
-      return;
 }
 
 void InitComPort ( char Baud[], char Databits, 
                    char Parity, char Stopbits )
 {
       int status;
-      long baudrate;
       unsigned divisor;
+      long baudrate;
 
       /* set baud rate */
 
       status = inp ( ComBase + LINE_CNTRL );
       outp ( ComBase + LINE_CNTRL, 
             (unsigned char) status | 0x80 );
-      baudrate = atol ( Baud );
+      baudrate = atol(Baud);
       if ( baudrate == 0)
             baudrate = 2400L;
       divisor = (unsigned) ( 115200L / baudrate);
@@ -256,6 +259,24 @@ int ComSendString ( char *string )
       pointer = string;
 
       while ( *pointer)
+      {
+            retval = en_queue ( Serial_Out_Queue, *pointer );
+            pointer++;
+      }
+      if ( 0x0 == (comm_status.modem & 0x40))
+            RaiseDtr ();
+      outp ( ComBase + INT_EN, RX_INT | TBE_INT | ERR_INT | RS_INT );
+      return retval;
+}
+
+int ComSendData ( char *buffer, unsigned buffer_length )
+{
+      int retval;
+      char *pointer;
+      pointer = buffer;
+      unsigned i;
+
+      for (i = 0; i < buffer_length; i++)
       {
             retval = en_queue ( Serial_Out_Queue, *pointer );
             pointer++;

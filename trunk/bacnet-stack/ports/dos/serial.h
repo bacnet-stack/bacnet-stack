@@ -98,6 +98,7 @@ int   ComRecChar ( void );               /* Fetch character from rcv buf*/
 
 int   ComSendChar ( char character );    /* Put char into xmit buffer   */
 int   ComSendString ( char *string );
+int   ComSendData ( char *buffer, unsigned buffer_length );
 int   ComStatus ( void );                /* Fetch comm status           */
 void  INTERRUPT FAR serial ( void );     /* interrupt handler           */
 
