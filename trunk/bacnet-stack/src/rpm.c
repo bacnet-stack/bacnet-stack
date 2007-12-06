@@ -50,7 +50,7 @@ int rpm_encode_apdu_init(
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE;     /* service choice */
+        apdu[3] = SERVICE_CONFIRMED_READ_PROP_MULTIPLE;     /* service choice */
         apdu_len = 4;
     }
 
@@ -209,7 +209,7 @@ int rpm_ack_encode_apdu_init(
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id;    /* original invoke id from request */
-        apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE;     /* service choice */
+        apdu[2] = SERVICE_CONFIRMED_READ_PROP_MULTIPLE;     /* service choice */
         apdu_len = 3;
     }
 
@@ -415,7 +415,7 @@ int rpm_ack_decode_apdu(
     if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
         return -1;
     *invoke_id = apdu[1];
-    if (apdu[2] != SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE)
+    if (apdu[2] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE)
         return -1;
     offset = 3;
     if (apdu_len > offset) {
@@ -444,7 +444,7 @@ int rpm_decode_apdu(
         return -1;
     /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE)
+    if (apdu[3] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE)
         return -1;
     offset = 4;
 

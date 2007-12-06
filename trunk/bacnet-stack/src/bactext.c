@@ -53,11 +53,11 @@ INDTEXT_DATA bacnet_confirmed_service_names[] = {
     {SERVICE_CONFIRMED_CREATE_OBJECT, "Create-Object"},
     {SERVICE_CONFIRMED_DELETE_OBJECT, "Delete-Object"},
     {SERVICE_CONFIRMED_READ_PROPERTY, "Read-Property"},
-    {SERVICE_CONFIRMED_READ_PROPERTY_CONDITIONAL,
+    {SERVICE_CONFIRMED_READ_PROP_CONDITIONAL,
         "Read-Property-Conditional"},
-    {SERVICE_CONFIRMED_READ_PROPERTY_MULTIPLE, "Read-Property-Multiple"},
+    {SERVICE_CONFIRMED_READ_PROP_MULTIPLE, "Read-Property-Multiple"},
     {SERVICE_CONFIRMED_WRITE_PROPERTY, "Write-Property"},
-    {SERVICE_CONFIRMED_WRITE_PROPERTY_MULTIPLE, "Write-Property-Multiple"},
+    {SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, "Write-Property-Multiple"},
     {SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         "Device-Communication-Control"},
     {SERVICE_CONFIRMED_PRIVATE_TRANSFER, "Private-Transfer"},
@@ -979,10 +979,10 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
     ,
     {UNITS_LITERS_PER_HOUR, "liters-per-hour"}
     ,
-    {UNITS_KILOWATT_HOURS_PER_SQUARE_METER,
+    {UNITS_KW_HOURS_PER_SQUARE_METER,
         "kilowatt-hours-per-square-meter"}
     ,
-    {UNITS_KILOWATT_HOURS_PER_SQUARE_FOOT, "kilowatt-hours-per-square-foot"}
+    {UNITS_KW_HOURS_PER_SQUARE_FOOT, "kilowatt-hours-per-square-foot"}
     ,
     {UNITS_MEGAJOULES_PER_SQUARE_METER, "megajoules-per-square-meter"}
     ,
