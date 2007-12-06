@@ -104,7 +104,7 @@ void Life_Safety_Point_Init(
             Life_Safety_Point_Mode[i] = LIFE_SAFETY_MODE_DEFAULT;
             Life_Safety_Point_State[i] = LIFE_SAFETY_STATE_QUIET;
             Life_Safety_Point_Silenced_State[i] = SILENCED_STATE_UNSILENCED;
-            Life_Safety_Point_Operation[i] = LIFE_SAFETY_OPERATION_NONE;
+            Life_Safety_Point_Operation[i] = LIFE_SAFETY_OP_NONE;
         }
     }
 
@@ -202,7 +202,7 @@ int Life_Safety_Point_Encode_Property_APDU(
     BACNET_LIFE_SAFETY_STATE present_value = LIFE_SAFETY_STATE_QUIET;
     BACNET_LIFE_SAFETY_MODE mode = LIFE_SAFETY_MODE_DEFAULT;
     BACNET_SILENCED_STATE silenced_state = SILENCED_STATE_UNSILENCED;
-    BACNET_LIFE_SAFETY_OPERATION operation = LIFE_SAFETY_OPERATION_NONE;
+    BACNET_LIFE_SAFETY_OPERATION operation = LIFE_SAFETY_OP_NONE;
     unsigned object_index = 0;
     bool state = false;
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
