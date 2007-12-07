@@ -169,7 +169,8 @@ static bool Binary_Input_Out_Of_Service(
 }
 
 static void Binary_Input_Present_Value_Set(
-    uint32_t object_instance, BACNET_BINARY_PV value)
+    uint32_t object_instance,
+    BACNET_BINARY_PV value)
 {
     unsigned index = 0;
 
@@ -182,7 +183,8 @@ static void Binary_Input_Present_Value_Set(
 }
 
 static void Binary_Input_Out_Of_Service_Set(
-    uint32_t object_instance, bool value)
+    uint32_t object_instance,
+    bool value)
 {
     unsigned index = 0;
 
@@ -264,7 +266,8 @@ int Binary_Input_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len =
+                encode_application_boolean(&apdu[0],
                 Binary_Input_Out_Of_Service(object_instance));
             break;
         case PROP_POLARITY:
@@ -307,8 +310,7 @@ bool Binary_Input_Write_Property(
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                 if ((value.type.Enumerated >= MIN_BINARY_PV) &&
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
-                    Binary_Input_Present_Value_Set(
-                        wp_data->object_instance,
+                    Binary_Input_Present_Value_Set(wp_data->object_instance,
                         (BACNET_BINARY_PV) value.type.Enumerated);
                     status = true;
                 } else {
@@ -322,8 +324,7 @@ bool Binary_Input_Write_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                Binary_Input_Out_Of_Service_Set(
-                    wp_data->object_instance,
+                Binary_Input_Out_Of_Service_Set(wp_data->object_instance,
                     value.type.Boolean);
                 status = true;
             } else {

@@ -25,26 +25,26 @@
 #ifndef EXTKWORD__H
 #define EXTKWORD__H
 
-#include <limits.h>                       /* For INT_MAX, LONG_MAX      */
+#include <limits.h>     /* For INT_MAX, LONG_MAX      */
 
 /*
 **  Watcom defines __FLAT__ for 32-bit environments and so will we
 */
 
 #if !defined(__FLAT__) && !defined(__WATCOMC__) && !defined(_MSC_VER)
- #if defined(__GNUC__)
-  #define __FLAT__ 1
- #elif defined (_WIN32) || defined(WIN32) || defined(__NT__)
-  #define __FLAT__ 1
- #elif defined(__INTSIZE)
-  #if (4 == __INTSIZE)
-   #define __FLAT__ 1
-  #endif
- #elif (defined(__ZTC__) && !defined(__SC__)) || defined(__TURBOC__)
-  #if ((INT_MAX != SHRT_MAX) && (SHRT_MAX == 32767))
-   #define __FLAT__ 1
-  #endif
- #endif
+#if defined(__GNUC__)
+#define __FLAT__ 1
+#elif defined (_WIN32) || defined(WIN32) || defined(__NT__)
+#define __FLAT__ 1
+#elif defined(__INTSIZE)
+#if (4 == __INTSIZE)
+#define __FLAT__ 1
+#endif
+#elif (defined(__ZTC__) && !defined(__SC__)) || defined(__TURBOC__)
+#if ((INT_MAX != SHRT_MAX) && (SHRT_MAX == 32767))
+#define __FLAT__ 1
+#endif
+#endif
 #endif
 
 /*
@@ -52,80 +52,80 @@
 */
 
 #if defined(__unix__)
- #if !defined(FAR)
-  #define FAR
- #endif
- #if !defined(NEAR)
-  #define NEAR
- #endif
- #if !defined(HUGE)
-  #define HUGE
- #endif
- #if !defined(PASCAL)
-  #define PASCAL
- #endif
- #if !defined(CDECL)
-  #define CDECL
- #endif
- #if !defined(INTERRUPT)
-  #define INTERRUPT
- #endif
-#elif defined(__OS2__)      /* EBB: not sure this works for OS/2 1.x */
- #include <os2def.h>
- #define INTERRUPT
- #ifndef HUGE
-  #define HUGE
- #endif
+#if !defined(FAR)
+#define FAR
+#endif
+#if !defined(NEAR)
+#define NEAR
+#endif
+#if !defined(HUGE)
+#define HUGE
+#endif
+#if !defined(PASCAL)
+#define PASCAL
+#endif
+#if !defined(CDECL)
+#define CDECL
+#endif
+#if !defined(INTERRUPT)
+#define INTERRUPT
+#endif
+#elif defined(__OS2__)  /* EBB: not sure this works for OS/2 1.x */
+#include <os2def.h>
+#define INTERRUPT
+#ifndef HUGE
+#define HUGE
+#endif
 #elif defined(_WIN32) || defined(WIN32) || defined(__NT__)
- #define WIN32_LEAN_AND_MEAN
- #define NOGDI
- #define NOSERVICE
- #undef INC_OLE1
- #undef INC_OLE2
- #include <windows.h>
- #define INTERRUPT
- #ifndef HUGE
-  #define HUGE
- #endif
+#define WIN32_LEAN_AND_MEAN
+#define NOGDI
+#define NOSERVICE
+#undef INC_OLE1
+#undef INC_OLE2
+#include <windows.h>
+#define INTERRUPT
+#ifndef HUGE
+#define HUGE
+#endif
 #else /* ! Win 32 or OS/2 */
- #if (defined(__POWERC) || (defined(__TURBOC__) && !defined(__BORLANDC__)) \
+#if (defined(__POWERC) || (defined(__TURBOC__) && !defined(__BORLANDC__)) \
        || (defined(__ZTC__) && !defined(__SC__))) && !defined(__FLAT__)
-  #define FAR far
-  #define NEAR near
-  #define PASCAL pascal
-  #define CDECL cdecl
-  #if (defined(__ZTC__) && !defined(__SC__)) || (defined(__SC__) && \
+#define FAR far
+#define NEAR near
+#define PASCAL pascal
+#define CDECL cdecl
+#if (defined(__ZTC__) && !defined(__SC__)) || (defined(__SC__) && \
         (__SC__ < 0x700))
-   #ifndef HUGE
-    #define HUGE far
-   #endif
-   #define INTERRUPT
-  #else
-   #ifndef HUGE
-    #define HUGE huge
-   #endif
-   #define INTERRUPT interrupt
-  #endif
- #else
-  #if (defined(__MSDOS__) || defined(MSDOS)) && !defined(__FLAT__)
-   #define FAR _far
-   #define NEAR _near
-   #ifndef HUGE
-    #define HUGE _huge
-   #endif
-   #define PASCAL _pascal
-   #define CDECL _cdecl
-   #define INTERRUPT _interrupt
-  #else
-   #define FAR
-   #define NEAR
-   #ifndef HUGE
-    #define HUGE
-   #endif
-   #define PASCAL
-   #define CDECL
-  #endif
- #endif
+#ifndef HUGE
+#define HUGE far
+#endif
+#define INTERRUPT
+#else
+#ifndef HUGE
+#define HUGE huge
+#endif
+#define INTERRUPT interrupt
+#endif
+#else
+#if (defined(__MSDOS__) || defined(MSDOS)) && !defined(__FLAT__)
+#define FAR _far
+#define NEAR _near
+#ifndef HUGE
+#define HUGE _huge
+#endif
+#define PASCAL _pascal
+#define CDECL _cdecl
+#define INTERRUPT _interrupt
+#else
+#define FAR
+#define NEAR
+#ifndef HUGE
+#define HUGE
+#endif
+#define PASCAL
+#define CDECL
+#endif
+#endif
 #endif
 
 #endif /* EXTKWORD__H */

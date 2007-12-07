@@ -21,20 +21,24 @@
 
 /* Needed by Serial.C */
 
-typedef struct
-{ int   size;
-  int   head;
-  int   tail;
-  int   avail;
-  char *buffer;
+typedef struct {
+    int size;
+    int head;
+    int tail;
+    int avail;
+    char *buffer;
 } QUEUE;
 
 #define queue_empty(queue) (queue)->head == (queue)->tail
 #define queue_avail(queue) (queue)->avail
 
-QUEUE *alloc_queue( int size);
-int   en_queue( QUEUE *queue_ptr, char data);
-int   de_queue( QUEUE *queue_ptr);
+QUEUE *alloc_queue(
+    int size);
+int en_queue(
+    QUEUE * queue_ptr,
+    char data);
+int de_queue(
+    QUEUE * queue_ptr);
 
 /* End of Queue.H */
 

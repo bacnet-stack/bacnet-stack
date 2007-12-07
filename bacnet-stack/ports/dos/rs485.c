@@ -68,7 +68,7 @@ void RS485_Initialize(
     /* baud rate */
     OpenComPort(RS485_Port);
     /* FIXME: change to numeric parameters */
-    InitComPort ( "38400", '8', 'N', '1' );
+    InitComPort("38400", '8', 'N', '1');
 
     return;
 }
@@ -110,7 +110,7 @@ bool RS485_Set_Baud_Rate(
         case 76800:
         case 115200:
             RS485_Baud = baud;
-	    /* FIXME: store the baud rate */
+            /* FIXME: store the baud rate */
             break;
         default:
             valid = false;

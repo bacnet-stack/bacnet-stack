@@ -10,13 +10,13 @@
 #include "extkword.h"
 
 #if defined(__WATCOMC__)
- #include <i86.h>
+#include <i86.h>
 #elif !defined(__PACIFIC__)
- #include <dos.h>
+#include <dos.h>
 #endif
 
 #if !defined(MK_FP)
-    #define MK_FP(seg,off) \
+#define MK_FP(seg,off) \
       ((void FAR *)(((unsigned long)(seg) << 16)|(unsigned)(off)))
 #endif
 
