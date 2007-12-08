@@ -67,7 +67,8 @@
 
 /* BACAPP decodes WriteProperty service requests
    Choose the datatypes that your application supports */
-#if !(defined(BACAPP_NULL) || \
+#if !(defined(BACAPP_ALL) || \
+    defined(BACAPP_NULL) || \
     defined(BACAPP_BOOLEAN) || \
     defined(BACAPP_UNSIGNED) || \
     defined(BACAPP_SIGNED) || \
