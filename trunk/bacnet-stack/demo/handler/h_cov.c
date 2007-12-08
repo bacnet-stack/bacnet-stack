@@ -50,15 +50,14 @@
 #include "bacfile.h"
 #endif
 
+/* note: This COV service only monitors the properties
+   of an object that have been specified in the standard.  */
 typedef struct BACnet_COV_Subscription {
     bool valid;
     uint32_t subscriberProcessIdentifier;
     BACNET_OBJECT_ID monitoredObjectIdentifier;
     bool issueConfirmedNotifications;   /* optional */
-    unsigned lifetime;  /* optional */
-    BACNET_PROPERTY_REFERENCE monitoredProperty;
-    bool covIncrementPresent;   /* true if present */
-    float covIncrement; /* optional */
+    uint32_t lifetime;  /* optional */
 } BACNET_COV_SUBSCRIPTION;
 
 #define MAX_COV_SUBCRIPTIONS 32
@@ -77,22 +76,80 @@ void handler_cov_init(
         COV_Subscriptions[index].monitoredObjectIdentifier.instance = 0;
         COV_Subscriptions[index].issueConfirmedNotifications = false;
         COV_Subscriptions[index].lifetime = 0;
-        COV_Subscriptions[index].monitoredProperty.propertyIdentifier =
-            PROP_ALL;
-        COV_Subscriptions[index].monitoredProperty.propertyArrayIndex = -1;
-        COV_Subscriptions[index].covIncrementPresent = false;
-        COV_Subscriptions[index].covIncrement = 0;
     }
 }
 
+static bool cov_list_subscribe(
+    BACNET_ADDRESS * src,
+    BACNET_SUBSCRIBE_COV_DATA *cov_data)
+{
+    bool existing_entry = false;
+    int index;
+    int first_invalid_index = -1;
+    bool found = true;
+    
+    /* existing? - match Object ID and Process ID */
+    for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+        if ((COV_Subscriptions[index].valid) &&
+            (COV_Subscriptions[index].monitoredObjectIdentifier.type ==
+            cov_data->monitoredObjectIdentifier.type) &&
+            (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
+            cov_data->monitoredObjectIdentifier.instance) &&
+            (COV_Subscriptions[index].subscriberProcessIdentifier ==
+            cov_data->subscriberProcessIdentifier)) {
+            existing_entry = true;
+            if (cov_data->cancellationRequest) {
+                COV_Subscriptions[index].valid = false;
+            } else {
+                COV_Subscriptions[index].issueConfirmedNotifications =
+                    cov_data->issueConfirmedNotifications;
+                COV_Subscriptions[index].lifetime =
+                    cov_data->lifetime;
+            }
+            /* FIXME: update SRC address */
+            break;
+        } else {
+            if (first_invalid_index < 0) {
+                first_invalid_index = index;
+            }
+        }
+    }
+    if (!existing_entry && (first_invalid_index >= 0) &&
+        (!cov_data->cancellationRequest)) {
+        index = first_invalid_index;
+        found = true;
+        if (!cov_data->cancellationRequest) {
+            COV_Subscriptions[index].valid = true;
+        }
+        COV_Subscriptions[index].monitoredObjectIdentifier.type =
+            cov_data->monitoredObjectIdentifier.type;
+        COV_Subscriptions[index].monitoredObjectIdentifier.instance =
+            cov_data->monitoredObjectIdentifier.instance;
+        COV_Subscriptions[index].subscriberProcessIdentifier =
+            cov_data->subscriberProcessIdentifier;
+        COV_Subscriptions[index].issueConfirmedNotifications =
+            cov_data->issueConfirmedNotifications;
+        COV_Subscriptions[index].lifetime =
+            cov_data->lifetime;
+        /* FIXME: add SRC address */
+    } else {
+        found = false;
+    }
+
+    return found;
+}
+
+/* note: worst case tasking: MS/TP with the ability to send only
+   one notification per task cycle */
 void handler_cov_task(
-    void)
+    uint32_t elapsed_milliseconds)
 {
     /* handle timeouts */
     /* handle COV notifications */
 }
 
 static bool cov_subscribe(
+    BACNET_ADDRESS * src,
     BACNET_SUBSCRIBE_COV_DATA * cov_data,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code)
@@ -102,8 +159,10 @@ static bool cov_subscribe(
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
             status = true;
+            status = cov_list_subscribe(src,cov_data);
             break;
         default:
+            /* FIXME: what is the ERROR? */
             break;
     }
 
@@ -160,7 +219,7 @@ void handler_cov_subscribe(
 #endif
         goto COV_ABORT;
     }
-    success = cov_subscribe(&cov_data, &error_class, &error_code);
+    success = cov_subscribe(src, &cov_data, &error_class, &error_code);
     if (success) {
         len =
             encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],

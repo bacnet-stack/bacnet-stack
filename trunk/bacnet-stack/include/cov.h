@@ -41,7 +41,7 @@
 struct BACnet_Property_Value;
 typedef struct BACnet_Property_Value {
     BACNET_PROPERTY_ID propertyIdentifier;
-    unsigned propertyArrayIndex;
+    uint32_t propertyArrayIndex;
     BACNET_APPLICATION_DATA_VALUE value;
     uint8_t priority;
     /* simple linked list */
@@ -52,7 +52,7 @@ typedef struct BACnet_COV_Data {
     uint32_t subscriberProcessIdentifier;
     uint32_t initiatingDeviceIdentifier;
     BACNET_OBJECT_ID monitoredObjectIdentifier;
-    unsigned timeRemaining;
+    uint32_t timeRemaining;
     /* simple linked list of values */
     BACNET_PROPERTY_VALUE listOfValues;
 } BACNET_COV_DATA;
@@ -67,7 +67,7 @@ typedef struct BACnet_Subscribe_COV_Data {
     BACNET_OBJECT_ID monitoredObjectIdentifier;
     bool cancellationRequest;   /* true if this is a cancellation request */
     bool issueConfirmedNotifications;   /* optional */
-    unsigned lifetime;  /* optional */
+    uint32_t lifetime;  /* optional */
     BACNET_PROPERTY_REFERENCE monitoredProperty;
     bool covIncrementPresent;   /* true if present */
     float covIncrement; /* optional */
