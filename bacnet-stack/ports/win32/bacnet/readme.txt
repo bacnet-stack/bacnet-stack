@@ -111,3 +111,21 @@ In Visual C++, add a Preprocessor Definition by:
 6. Type TSM_ENABLED=1 in that edit box (using a comma if necessary)
 7. Press OK
 8. Compile the entire project again...
+
+Q. error LNK2001: unresolved external symbol __beginthread
+A. Visual C++ needs to have the multithreaded library when compiled
+with MS/TP datalink enabled (BACDL_MSTP instead of BACDL_BIP):
+1. Select "Project" menu
+2. Select "Settings..."
+3. Select the "C/C++" tab (3rd Tab)
+4. Select the Category: Code Generation
+5. Select the Multithreaded from the "Use runtime library" box options
+
+Q. warning C4013: '_beginthreadex' undefined; assuming extern returning int
+A. Visual C++ needs to have the multithreaded library when compiled
+with MS/TP datalink enabled (BACDL_MSTP instead of BACDL_BIP):
+1. Select "Project" menu
+2. Select "Settings..."
+3. Select the "C/C++" tab (3rd Tab)
+4. Select the Category: Code Generation
+5. Select the Multithreaded from the "Use runtime library" box options
