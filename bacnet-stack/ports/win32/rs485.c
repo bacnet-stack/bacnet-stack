@@ -132,9 +132,9 @@ static void RS485_Configure_Status(
 
     /* update DCB rate, byte size, parity, and stop bits size */
     dcb.BaudRate = RS485_Baud;
-    dcb.ByteSize = RS485_ByteSize;
-    dcb.Parity = RS485_Parity;
-    dcb.StopBits = RS485_StopBits;
+    dcb.ByteSize = (unsigned char)RS485_ByteSize;
+    dcb.Parity = (unsigned char)RS485_Parity;
+    dcb.StopBits = (unsigned char)RS485_StopBits;
 
     /* update flow control settings */
     dcb.fDtrControl = RS485_DTRControl;

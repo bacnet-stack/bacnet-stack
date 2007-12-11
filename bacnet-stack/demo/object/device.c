@@ -994,7 +994,7 @@ bool Device_Write_Property(
         case PROP_MAX_INFO_FRAMES:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames(value.type.Unsigned_Int);
+                    dlmstp_set_max_info_frames((uint8_t)value.type.Unsigned_Int);
                     status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -1009,7 +1009,7 @@ bool Device_Write_Property(
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 if ((value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= 127)) {
-                    dlmstp_set_max_master(value.type.Unsigned_Int);
+                    dlmstp_set_max_master((uint8_t)value.type.Unsigned_Int);
                     status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
