@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "NDEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D BACAPP_PRINT_ENABLED=1 /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /D "BACDL_BIP" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /FR /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /D "BACDL_BIP" /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -193,6 +193,10 @@ SOURCE=..\..\..\demo\object\device.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\dlmstp.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\demo\handler\h_arf.c
 # End Source File
 # Begin Source File
@@ -253,6 +257,10 @@ SOURCE=..\..\..\demo\object\mso.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\mstp.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\demo\handler\noserv.c
 # End Source File
 # Begin Source File
@@ -270,6 +278,10 @@ SOURCE=..\..\..\src\ringbuf.c
 # Begin Source File
 
 SOURCE=..\..\..\src\rp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\rs485.c
 # End Source File
 # Begin Source File
 
