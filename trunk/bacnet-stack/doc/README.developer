@@ -76,33 +76,46 @@ example object files in the BACnet stack include:
     * demo/object/bi.c - binary input object demo
     * demo/object/bo.c - binary output object demo
     * demo/object/bv.c - binary value object demo
-    * demo/object/lsp.c - life safety point object demo
     * demo/object/lc.c - load control object demo
+    * demo/object/lsp.c - life safety point object demo
+    * demo/object/mso.c - multi-step output object demo
 
-The BACnet stack includes a number of core files that handle the service packets
-that come in from the datalink layer. The core files include:
+The BACnet stack includes a number of core files that handle the service 
+packets that come in from the datalink layer. The core files include:
 
     * apdu.c - handles dispatching the services to the proper handlers
     * bacdcode.c - primitive BACnet datatype encoding and decoding
-    * bacstr.c - BACnet string encoding and decoding
-    * bacint.c - BACnet integer encoding and decoding
-    * bacreal.c - BACnet REAL encoding and decoding
-    * npdu.c - handles dispatching of the network message to the apdu
-        dispatcher. It would be where routing is handled if the
-        stack supported more than one physical layer.
+    * bacint.c - primitive BACnet integer datatype encoding and decoding
+    * bacreal.c - primitive BACnet REAL datatype encoding and decoding
+    * bacstr.c - primative BACnet string datatype encoding and decoding
+    * npdu.c - handles dispatching of the network message to the apdu 
+            dispatcher. It would be where routing is handled if the 
+            stack supported more than one physical layer.
 
-The DataLink Layer controls orderly access to the physical medium.
-The framework is listed in the header file, and the code is nornally
-located in the ports/x/ directory. The following files are used for
-the datalink handling in this BACnet stack:
+The DataLink Layer controls orderly access to the physical medium. 
+The stack currently supports one datalink layer at a time, and uses a 
+macro defined in config.h or your makefile/project to choose the macro 
+functions defined in datalink.h. The following files are used for the 
+datalink handling in this BACnet stack, and may have to be developed for 
+your particular hardware:
 
     * bip.c - BACnet/IP functionality - depends on bip_init.c in port/xx
-    * dlmstp.h - MS/TP datalink layer (see also dlmstp.c,mstp.c,crc.c)
-    * arcnet.h - ARCNET datalink layer functionality API
-    * ethernet.h - BACnet Ethernet datalink layer functionality API
+    * dllmstp.c - MS/TP datalink layer, also in port/xx
+    * mstp.c - MS/TP master and receive state machine
+    * crc.c - computes CRC checksum for MS/TP
+    * ringbuf.c - MS/TP ring buffer used for testing
+    * arcnet.c - ARCNET datalink layer functionality, in port/xx
+    * ethernet.c - BACnet Ethernet datalink layer functionality, in port/xx
 
-There are several demonstration applications in the demo directory, along with
-several demonstation objects and handlers. All the demos accept command line
-options and have been tested under Win32 and Linux. There is a makefile in the
-respective demo directory for Linux and for Borland C++ compilers, and a master
-makefile at the root level (Makefile=Linux, makefile.b32=Borland).
+There are a dozen demonstration applications in the demo directory, 
+along with many demonstation objects and handlers. All the demos accept 
+command line options and have been tested under Win32 and Linux. 
+There is a makefile in the respective demo directory for Linux and 
+for Borland C++ compilers, and a master makefile at the root level 
+(Makefile=Linux, makefile.b32=Borland).
+
+The simplest demonstration is to run demo/server/bacserv on one PC (or 
+virtual PC), and run the other client demonstration applications one 
+at time on another PC (or virtual PC). Monitor the network communcations 
+using Wireshark protocol analyzer, or test the BACnet server using 
+BACnet Visual Test Shell VTS3.
