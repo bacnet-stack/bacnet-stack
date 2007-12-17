@@ -76,7 +76,9 @@ static void PrintReadPropertyData(
                 (uint8_t) application_data_len, &value);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
+#if PRINT_ENABLED
                 fprintf(stdout, "{");
+#endif
                 print_brace = true;
             }
             bacapp_print_value(stdout, &value, data->object_property);
@@ -85,15 +87,19 @@ static void PrintReadPropertyData(
                     application_data += len;
                     application_data_len -= len;
                     /* there's more! */
+#if PRINT_ENABLED
                     fprintf(stdout, ",");
+#endif
                 } else
                     break;
             } else
                 break;
         }
+#if PRINT_ENABLED
         if (print_brace)
             fprintf(stdout, "}");
         fprintf(stdout, "\r\n");
+#endif
     }
 }
 
