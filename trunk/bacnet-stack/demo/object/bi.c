@@ -40,6 +40,8 @@
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 /* out of service decouples physical input from Present_Value */
 static bool Out_Of_Service[MAX_BINARY_INPUTS];
+/* Change of Value flag */
+static bool Change_Of_Value[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Input_Properties_Required[] = {
@@ -168,6 +170,19 @@ static bool Binary_Input_Out_Of_Service(
     return value;
 }
 
+bool Binary_Input_Change_Of_Value(
+    uint32_t object_instance) 
+{
+    bool status = false;
+    
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS) {
+        status = Change_Of_Value[index];
+    }
+            
+    return status;
+}
+
 static void Binary_Input_Present_Value_Set(
     uint32_t object_instance,
     BACNET_BINARY_PV value)
@@ -176,8 +191,12 @@ static void Binary_Input_Present_Value_Set(
 
     Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS)
+    if (index < MAX_BINARY_INPUTS) {
+        if (Present_Value[index] != value) {
+            Change_Of_Value[index] = true;
+        }
         Present_Value[index] = value;
+    }
 
     return;
 }
@@ -191,6 +210,9 @@ static void Binary_Input_Out_Of_Service_Set(
     Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS)
+        if (Out_Of_Service[index] != value) {
+            Change_Of_Value[index] = true;
+        }
         Out_Of_Service[index] = value;
 
     return;
@@ -257,7 +279,11 @@ int Binary_Input_Encode_Property_APDU(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+            if (Binary_Input_Out_Of_Service(object_instance)) {
+                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, true);
+            } else {
+                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+            }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:

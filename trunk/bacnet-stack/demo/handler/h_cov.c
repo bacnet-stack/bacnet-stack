@@ -31,6 +31,7 @@
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bacaddr.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
@@ -54,6 +55,7 @@
    of an object that have been specified in the standard.  */
 typedef struct BACnet_COV_Subscription {
     bool valid;
+    BACNET_ADDRESS dest;
     uint32_t subscriberProcessIdentifier;
     BACNET_OBJECT_ID monitoredObjectIdentifier;
     bool issueConfirmedNotifications;   /* optional */
@@ -70,6 +72,7 @@ void handler_cov_init(
 
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         COV_Subscriptions[index].valid = false;
+        COV_Subscriptions[index].dest.mac_len = 0;
         COV_Subscriptions[index].subscriberProcessIdentifier = 0;
         COV_Subscriptions[index].monitoredObjectIdentifier.type =
             OBJECT_ANALOG_INPUT;
@@ -101,12 +104,12 @@ static bool cov_list_subscribe(
             if (cov_data->cancellationRequest) {
                 COV_Subscriptions[index].valid = false;
             } else {
+                bacnet_address_copy(&COV_Subscriptions[index].dest, src);
                 COV_Subscriptions[index].issueConfirmedNotifications =
                     cov_data->issueConfirmedNotifications;
                 COV_Subscriptions[index].lifetime =
                     cov_data->lifetime;
             }
-            /* FIXME: update SRC address */
             break;
         } else {
             if (first_invalid_index < 0) {
@@ -118,9 +121,8 @@ static bool cov_list_subscribe(
         (!cov_data->cancellationRequest)) {
         index = first_invalid_index;
         found = true;
-        if (!cov_data->cancellationRequest) {
-            COV_Subscriptions[index].valid = true;
-        }
+        COV_Subscriptions[index].valid = true;
+        bacnet_address_copy(&COV_Subscriptions[index].dest, src);
         COV_Subscriptions[index].monitoredObjectIdentifier.type =
             cov_data->monitoredObjectIdentifier.type;
         COV_Subscriptions[index].monitoredObjectIdentifier.instance =
@@ -131,7 +133,6 @@ static bool cov_list_subscribe(
             cov_data->issueConfirmedNotifications;
         COV_Subscriptions[index].lifetime =
             cov_data->lifetime;
-        /* FIXME: add SRC address */
     } else {
         found = false;
     }
@@ -144,8 +145,38 @@ static bool cov_list_subscribe(
 void handler_cov_task(
     uint32_t elapsed_milliseconds)
 {
-    /* handle timeouts */
-    /* handle COV notifications */
+    int index;
+    int lifetime_milliseconds;
+    BACNET_OBJECT_ID object_id;
+
+    
+    /* existing? - match Object ID and Process ID */
+    for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+        if (COV_Subscriptions[index].valid) {
+            /* handle timeouts */
+            lifetime_milliseconds = COV_Subscriptions[index].lifetime;
+            if (lifetime_milliseconds >= elapsed_milliseconds) {
+                COV_Subscriptions[index].lifetime -= elapsed_milliseconds;
+            } else {
+                COV_Subscriptions[index].lifetime = 0;
+            }
+            if (COV_Subscriptions[index].lifetime == 0) {
+                COV_Subscriptions[index].valid = false;
+            }
+            /* handle COV notifications */
+            object_id.type = COV_Subscriptions[index].monitoredObjectIdentifier.type;
+            object_id.instance = COV_Subscriptions[index].monitoredObjectIdentifier.instance;
+            switch (object_id.type) {
+                case OBJECT_BINARY_INPUT:
+                    if (Binary_Input_Change_Of_Value(object_id.instance)) {
+                        /* FIXME: send confirmed or unconfirmed request */
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 }
 
 static bool cov_subscribe(
