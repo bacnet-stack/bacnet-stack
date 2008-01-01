@@ -109,16 +109,32 @@ static void print_address_cache(
     uint32_t device_id = 0;
     unsigned max_apdu = 0;
 
-    fprintf(stderr, "Device\tMAC\tMaxAPDU\tNet\n");
+    printf("%-7s %-14s %-4s %-5s %-14s\n",
+        "Device","MAC","APDU","SNET","SADR");
+    printf("------- -------------- ---- ----- --------------\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
-            fprintf(stderr, "%u\t", device_id);
-            for (j = 0; j < address.mac_len; j++) {
-                fprintf(stderr, "%02X", address.mac[j]);
+            printf("%7u ", device_id);
+            for (j = 0; j < 7; j++) {
+                if (j < address.mac_len) {
+                    printf("%02X", address.mac[j]);
+                } else {
+                    printf("  ");
+                }
             }
-            fprintf(stderr, "\t");
-            fprintf(stderr, "%hu\t", max_apdu);
-            fprintf(stderr, "%hu\n", address.net);
+            printf(" %4hu ", max_apdu);
+            printf("%5hu ", address.net);
+            if (address.net) {
+                for (j = 0; j < 7; j++) {
+                    if (j < address.len) {
+                        printf("%02X", address.adr[j]);
+                    } else {
+                        printf("  ");
+                    }
+                    printf(" ");
+                }
+            }
+            printf("\n");
         }
     }
 }

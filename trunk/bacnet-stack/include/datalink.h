@@ -87,7 +87,10 @@
 #else
 #include "npdu.h"
 
-extern int datalink_send_pdu(
+#define MAX_HEADER (8)
+#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+
+ int datalink_send_pdu(
     BACNET_ADDRESS * dest,
     BACNET_NPDU_DATA * npdu_data,
     uint8_t * pdu,
@@ -105,7 +108,8 @@ extern void datalink_get_my_address(
     BACNET_ADDRESS * my_address);
 extern void datalink_set_interface(
     char *ifname);
-
+extern void datalink_set(
+    char *datalink_string);
 #endif
 
 #endif
