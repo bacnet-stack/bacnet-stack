@@ -174,6 +174,7 @@ bool Binary_Input_Change_Of_Value(
     uint32_t object_instance) 
 {
     bool status = false;
+    unsigned index;
     
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
