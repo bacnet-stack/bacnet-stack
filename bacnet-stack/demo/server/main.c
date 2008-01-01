@@ -110,6 +110,13 @@ int main(
     /* allow the device ID to be set */
     if (argc > 1)
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
+#if defined(BACDL_ALL)
+    pEnv = getenv("BACNET_DATALINK");
+    if (pEnv) {
+        datalink_set(pEnv));
+    } else {
+        datalink_set("bip");
+#endif
 #if defined(BACDL_BIP)
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
