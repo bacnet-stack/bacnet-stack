@@ -107,6 +107,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 ## Linker flags
 LDFLAGS = $(COMMON)
 #dead code removal
+#LDFLAGS += -Wl,-nostartfiles,-nostdlib
 LDFLAGS += -Wl,--gc-sections,-static 
 LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
 #LDFLAGS += -Wl,-Map=$(TARGET).map
