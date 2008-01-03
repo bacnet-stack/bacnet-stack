@@ -55,11 +55,8 @@ extern unsigned enableIRQ(
 extern unsigned enableFIQ(
     void);
 
-//  *******************************************************
-//  FIXME: use header files?      Global Variables
-//  *******************************************************
-unsigned int FiqCount = 0;
-
+/* used by crt.s file */
+unsigned FiqCount = 0;
 
 static unsigned long LED_Timer_1 = 0;
 static unsigned long LED_Timer_2 = 0;
@@ -67,7 +64,7 @@ static unsigned long LED_Timer_3 = 0;
 static unsigned long LED_Timer_4 = 1000;
 static unsigned long DCC_Timer = 1000;
 
-static void millisecond_timer(
+static inline void millisecond_timer(
     void)
 {
     while (Timer_Milliseconds) {
@@ -91,7 +88,7 @@ static void millisecond_timer(
     /* note: MS/TP silence timer is updated in ISR */
 }
 
-static void init(
+static inline void init(
     void)
 {
     /* Initialize the Parallel I/O Controller A Peripheral Clock */
@@ -132,18 +129,19 @@ static void init(
     pAIC->AIC_IECR = (1 << AT91C_ID_FIQ);
 }
 
-static void bacnet_init(
+static inline void bacnet_init(
     void)
 {
 #if defined(BACDL_MSTP)
+    uint8_t MAC_Address = 0x55;
+
     RS485_Set_Baud_Rate(38400);
-    dlmstp_set_mac_address(55);
+    dlmstp_set_mac_address(MAC_Address);
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);
     dlmstp_init(NULL);
 #endif
     Device_Set_Object_Instance_Number(22222);
-#ifndef DLMSTP_TEST
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
@@ -157,9 +155,9 @@ static void bacnet_init(
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
-#endif
 }
 
+static uint8_t Receive_PDU[MAX_MPDU];      /* PDU data */
 int main(
     void)
 {
@@ -169,7 +167,6 @@ int main(
     bool LED3_Off_Enabled = true;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
-    uint8_t pdu[MAX_MPDU];      /* PDU data */
     // Set up the LEDs (PA0 - PA3)
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
 
@@ -239,12 +236,11 @@ int main(
         // count # of times through the idle loop
         IdleCount++;
         /* BACnet handling */
-        pdu_len = datalink_receive(&src, &pdu[0], MAX_MPDU, 0);
+        pdu_len = datalink_receive(&src, 
+            &Receive_PDU[0], sizeof(Receive_PDU), 0);
         if (pdu_len) {
             pPIO->PIO_CODR = LED3;
-#ifndef DLMSTP_TEST
-            npdu_handler(&src, &pdu[0], pdu_len);
-#endif
+            npdu_handler(&src, &Receive_PDU[0], pdu_len);
         }
     }
 }
