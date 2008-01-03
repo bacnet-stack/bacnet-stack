@@ -165,7 +165,6 @@ bool Analog_Value_Write_Property(
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
-    unsigned int priority = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
