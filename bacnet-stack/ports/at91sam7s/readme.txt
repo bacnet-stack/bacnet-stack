@@ -22,7 +22,9 @@ The dlmstp is the datalink layer for MS/TP over RS-485.
 
 I used the makefile from the command line on Windows, and 
 then used the SAM-BA to send the resulting .bin file to the 
-board using a J-Link.
+board using a J-Link.  To debug the code from flash, run the 
+J-Link GDB Server and then:
+> arm-elf-gdb bacnet.elf
 
 I got the crt.s, at91sam7s256.ld, blinker.c, init.c, isr.c, and
 timer.c from James P Lynch.  I created the rs485.c based on the 

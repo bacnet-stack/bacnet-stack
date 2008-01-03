@@ -326,7 +326,6 @@ void Timer_Silence_Reset(
     SilenceTime = 0;
 }
 
-
 //  *****************************************************************************
 //
 //     Timer 0 Initialization
