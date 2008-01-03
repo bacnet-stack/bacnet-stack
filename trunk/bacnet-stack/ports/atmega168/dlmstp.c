@@ -49,7 +49,6 @@
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions: 
-    APDU size of 50 or 128 (255 or less)
     Only one MS/TP datalink layer
 */
 #include "hardware.h"
@@ -147,7 +146,7 @@ static uint8_t FrameType;
    and microcontroller architectures have limits as to places to
    hold contiguous memory. */
 static uint8_t *InputBuffer;
-static uint8_t InputBufferSize;
+static uint16_t InputBufferSize;
 /* Used to store the Source Address of a received frame. */
 static uint8_t SourceAddress;
 /* "This Station," the MAC address of this node. TS is generally read from a */
