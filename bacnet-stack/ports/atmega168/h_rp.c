@@ -45,8 +45,6 @@
 #include "bv.h"
 #endif
 
-static uint8_t Temp_Buf[MAX_APDU] = { 0 };
-
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Encode_Property_APDU(
@@ -97,6 +95,7 @@ void handler_read_property(
 {
     BACNET_READ_PROPERTY_DATA data;
     int len = 0;
+    int ack_len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
@@ -126,18 +125,19 @@ void handler_read_property(
     } else {
         /* most cases will be error */
         error = true;
-        len =
-            Encode_Property_APDU(&Temp_Buf[0], data.object_type,
+        ack_len = rp_ack_encode_apdu_init(
+            &Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, &data);
+        /* FIXME: add buffer len as passed into function or use smart buffer */
+        len = Encode_Property_APDU(
+            &Handler_Transmit_Buffer[pdu_len + ack_len], data.object_type,
             data.object_instance, data.object_property, data.array_index,
             &error_class, &error_code);
         if (len >= 0) {
-            /* encode the APDU portion of the packet */
-            data.application_data = &Temp_Buf[0];
-            data.application_data_len = len;
-            /* FIXME: probably need a length limitation sent with encode */
-            len =
-                rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, &data);
+            pdu_len = pdu_len + len + ack_len;
+            len = rp_ack_encode_apdu_object_property_end(
+                &Handler_Transmit_Buffer[pdu_len]);
+            pdu_len += len;
             error = false;
         }
     }

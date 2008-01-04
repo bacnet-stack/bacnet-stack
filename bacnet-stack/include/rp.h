@@ -62,6 +62,16 @@ extern "C" {
         unsigned apdu_len,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    /* method to encode the ack without extra buffer */
+    int rp_ack_encode_apdu_init(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_READ_PROPERTY_DATA * rpdata);
+
+    int rp_ack_encode_apdu_object_property_end(
+        uint8_t * apdu);
+    
+    /* method to encode the ack using extra buffer */
     int rp_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
