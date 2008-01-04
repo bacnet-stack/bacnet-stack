@@ -118,6 +118,52 @@ int rp_decode_service_request(
     return (int) len;
 }
 
+/* alternate method to encode the ack without extra buffer */
+int rp_ack_encode_apdu_init(
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_READ_PROPERTY_DATA * rpdata)
+{
+    int len = 0;        /* length of each encoding */
+    int apdu_len = 0;   /* total length of the apdu, return value */
+
+    if (apdu) {
+        apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
+        apdu[1] = invoke_id;    /* original invoke id from request */
+        apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
+        apdu_len = 3;
+        /* service ack follows */
+        apdu_len +=
+            encode_context_object_id(&apdu[apdu_len], 0, 
+            rpdata->object_type, rpdata->object_instance);
+        apdu_len +=
+            encode_context_enumerated(&apdu[apdu_len], 1,
+            rpdata->object_property);
+        /* context 2 array index is optional */
+        if (rpdata->array_index != BACNET_ARRAY_ALL) {
+            apdu_len +=
+                encode_context_unsigned(&apdu[apdu_len], 2,
+                rpdata->array_index);
+        }
+        apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
+    }
+
+    return apdu_len;
+}
+
+/* note: encode the application tagged data yourself */
+int rp_ack_encode_apdu_object_property_end(
+    uint8_t * apdu)
+{
+    int apdu_len = 0;   /* total length of the apdu, return value */
+
+    if (apdu) {
+        apdu_len = encode_closing_tag(&apdu[0], 3);
+    }
+
+    return apdu_len;
+}
+
 int rp_ack_encode_apdu(
     uint8_t * apdu,
     uint8_t invoke_id,
