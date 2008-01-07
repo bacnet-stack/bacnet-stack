@@ -270,7 +270,7 @@ int Device_Encode_Property_APDU(
             for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
                 /* automatic lookup based on handlers set */
                 bitstring_set_bit(&bit_string, (uint8_t) i,
-                    apdu_service_supported(i));
+                    apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
