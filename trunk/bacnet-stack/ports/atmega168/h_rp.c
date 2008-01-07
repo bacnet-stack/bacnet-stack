@@ -96,6 +96,7 @@ void handler_read_property(
     BACNET_READ_PROPERTY_DATA data;
     int len = 0;
     int ack_len = 0;
+    int property_len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
@@ -129,15 +130,14 @@ void handler_read_property(
             &Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, &data);
         /* FIXME: add buffer len as passed into function or use smart buffer */
-        len = Encode_Property_APDU(
+        property_len = Encode_Property_APDU(
             &Handler_Transmit_Buffer[pdu_len + ack_len], data.object_type,
             data.object_instance, data.object_property, data.array_index,
             &error_class, &error_code);
         if (len >= 0) {
-            pdu_len = pdu_len + len + ack_len;
             len = rp_ack_encode_apdu_object_property_end(
-                &Handler_Transmit_Buffer[pdu_len]);
-            pdu_len += len;
+                &Handler_Transmit_Buffer[pdu_len + property_len + ack_len]);
+            len +=  ack_len + property_len;
             error = false;
         }
     }
