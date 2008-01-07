@@ -133,19 +133,23 @@ int rp_ack_encode_apdu_init(
         apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
         apdu_len = 3;
         /* service ack follows */
-        apdu_len +=
-            encode_context_object_id(&apdu[apdu_len], 0, 
+        len =
+            encode_context_object_id(&apdu[apdu_len], 0,
             rpdata->object_type, rpdata->object_instance);
-        apdu_len +=
+        apdu_len += len;
+        len =
             encode_context_enumerated(&apdu[apdu_len], 1,
             rpdata->object_property);
+        apdu_len += len;
         /* context 2 array index is optional */
         if (rpdata->array_index != BACNET_ARRAY_ALL) {
-            apdu_len +=
+            len =
                 encode_context_unsigned(&apdu[apdu_len], 2,
                 rpdata->array_index);
+            apdu_len += len;
         }
-        apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
+        len = encode_opening_tag(&apdu[apdu_len], 3);
+        apdu_len += len;
     }
 
     return apdu_len;
