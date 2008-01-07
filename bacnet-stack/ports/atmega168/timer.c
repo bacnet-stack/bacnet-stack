@@ -22,7 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-
+#include <stdint.h>
 #include "hardware.h"
 
 /* This module is a 1 millisecond timer */
@@ -46,7 +46,7 @@ void Timer_Initialize(
 {
     /* Normal Operation */
     TCCR1A = 0;
-    /* CSn2 CSn1 CSn0 Description  
+    /* CSn2 CSn1 CSn0 Description
        ---- ---- ---- -----------
        0    0    0  No Clock Source
        0    0    1  No prescaling
@@ -71,7 +71,12 @@ void Timer_Initialize(
 /* Timer interupt */
 /* note: Global interupts must be enabled - sei() */
 /* Timer Overflowed!  Increment the time. */
+#if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
+#pragma vector=TIMER0_OVF_vect
+__interrupt void myTIMER0_OVF_vect()
+#else
 ISR(TIMER0_OVF_vect)
+#endif
 {
     /* Set the counter for the next interrupt */
     TCNT0 = TIMER_COUNT;
@@ -91,7 +96,7 @@ uint16_t Timer_Silence(
     uint8_t sreg;
 
     sreg = SREG;
-    cli();
+    __disable_interrupt();
     timer = SilenceTime;
     SREG = sreg;
 
@@ -105,7 +110,7 @@ void Timer_Silence_Reset(
     uint8_t sreg;
 
     sreg = SREG;
-    cli();
+    __disable_interrupt();
     SilenceTime = 0;
     SREG = sreg;
 }

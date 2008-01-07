@@ -95,7 +95,7 @@ static inline void init(
     BIT_SET(DDRD, DDD5);
 
     /* Enable global interrupts */
-    sei();
+    __enable_interrupt();
 }
 
 static uint8_t NPDU_Timer;
@@ -137,7 +137,8 @@ static inline void input_switch_read(
     uint8_t value;
     static uint8_t old_value = 0;
 
-    value = BITMASK_CHECK(PINC, 0x0F) | (BITMASK_CHECK(PINB, 0x07) << 4);
+    value = BITMASK_CHECK(PINC, 0x0F);
+    value |= (BITMASK_CHECK(PINB, 0x07) << 4);
     if (value != old_value) {
         old_value = value;
     } else {
@@ -176,6 +177,4 @@ int main(
             NPDU_LED_On();
         }
     }
-
-    return 0;
 }

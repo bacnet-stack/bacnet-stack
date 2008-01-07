@@ -30,12 +30,76 @@ C:\code\bacnet-stack\ports\atmega168> make clean all
 I also used the bacnet.aps project file in AVR Studio to 
 make the project and simulate it.
 
-Note that the bacnet stack is currently layed out as encapsulating 
-modules that include both client and server functionality for each service.
-The nice thing about the all in one modules that it permits easy unit 
-testing. The bad thing is that it puts all the unused code into the build.  
-Therefore, until the code is split into separate modules, 
-the unused sections must be commented out (use #if 0, #endif).  
+Compiler settings for IAR Embedded Workbench (FIXME: makefile?):
+General Options
+---------------
+Target
+ Processor configuration: --cpu=m168. ATmega168
+ Memory Model: Small
+ System configuration: Configure system using dialogs (not in .XCL file)
+Output
+ Executable
+ Output Directories: Debug\Exe, Debug\Obj, Debug\List
+Library Configuration
+ Library: CLIB
+Library Options
+ Printf formatter: Small
+ Scanf formatter: Medium
+Heap Configuration
+ CLIB heap size: 0x10
+System
+ CSTACK: 0x20 (0x60?)
+ RSTACK: 16 (32?)
+ Initialize unused interrupt vectors with RETI instructions (enabled)
+ Enable bit defnitions in I/O-Include files. (enabled)
+MISRA C
+ not enabled
+
+C/C++ Compiler
+--------------
+Language
+ Language: C
+ Require prototypes (not enabled)
+ Allow IAR extensions
+ Plain 'char' is Signed
+ Enable multibyte support (not enabled)
+Code
+ Memory utilization:
+  Place aggregate initializers in flash memory (enabled)
+  Force generation of all global and static variables (not enabled)
+ Register utilization:
+  Number of registers to lock for global variables: 0
+  Use ICCA90 1.x calling convention (not enabled)
+Optimizations
+ Size: High (Maximum optimization)
+ Number of cross-call passes: Unlimited
+ Always do cross call optimization (not enabled)
+Output
+ Module type: Override default (not enabled)
+ Object module name (not enabled)
+ Generate debug information (enabled)
+ No error messages in output files (not enabled)
+List
+ Output list file (not enabled)
+ Output assembler file (enabled)
+Preprocessor
+ Ignore standard include paths (not enabled)
+ Include paths: 
+  $PROJ_DIR$
+  $PROJ_DIR$\..\..\include
+ Preinclude file: (none)
+ Defined symbols: 
+  BACDL_MSTP
+  MAX_APDU=128
+  BIG_ENDIAN=0
+  MAX_TSM_TRANSACTIONS=0
+  BACAPP_REAL
+Diagnostics 
+ (not enabled)
+MISRA C
+ (not enabled)
+Extra Options
+ Use command line options (not enabled)
 
 Hopefully you find it useful!
 
