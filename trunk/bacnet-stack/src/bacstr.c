@@ -59,13 +59,15 @@ void bitstring_set_bit(
 
     if (byte_number < MAX_BITSTRING_BYTES) {
         /* set max bits used */
-        if (bit_string->bits_used < (bit_number + 1))
+        if (bit_string->bits_used < (bit_number + 1)) {
             bit_string->bits_used = bit_number + 1;
+        }
         bit_mask = bit_mask << (bit_number - (byte_number * 8));
-        if (value)
+        if (value) {
             bit_string->value[byte_number] |= bit_mask;
-        else
+        } else {
             bit_string->value[byte_number] &= (~(bit_mask));
+        }
     }
 }
 
@@ -79,8 +81,9 @@ bool bitstring_bit(
 
     if (bit_number < (MAX_BITSTRING_BYTES * 8)) {
         bit_mask = bit_mask << (bit_number - (byte_number * 8));
-        if (bit_string->value[byte_number] & bit_mask)
+        if (bit_string->value[byte_number] & bit_mask) {
             value = true;
+        }
     }
 
     return value;
@@ -113,13 +116,13 @@ int bitstring_bytes_used(
 
 uint8_t bitstring_octet(
     BACNET_BIT_STRING * bit_string,
-    uint8_t index)
+    uint8_t octet_index)
 {
     uint8_t octet = 0;
 
     if (bit_string) {
-        if (index < MAX_BITSTRING_BYTES) {
-            octet = bit_string->value[index];
+        if (octet_index < MAX_BITSTRING_BYTES) {
+            octet = bit_string->value[octet_index];
         }
     }
 
@@ -163,10 +166,11 @@ bool bitstring_set_bits_used(
 uint8_t bitstring_bits_capacity(
     BACNET_BIT_STRING * bit_string)
 {
-    if (bit_string)
+    if (bit_string) {
         return (sizeof(bit_string->value) * 8);
-    else
+    } else {
         return 0;
+    }
 }
 
 bool bitstring_copy(
@@ -193,7 +197,7 @@ bool bitstring_copy(
 bool characterstring_init(
     BACNET_CHARACTER_STRING * char_string,
     uint8_t encoding,
-    char *value,
+    const char *value,
     size_t length)
 {
     bool status = false;        /* return value */
@@ -210,8 +214,9 @@ bool characterstring_init(
                     if (i < length) {
                         char_string->value[char_string->length] = value[i];
                         char_string->length++;
-                    } else
+                    } else {
                         char_string->value[i] = 0;
+                    }
                 }
             } else {
                 for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
@@ -227,7 +232,7 @@ bool characterstring_init(
 
 bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING * char_string,
-    char *value)
+    const char *value)
 {
     return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
         value ? strlen(value) : 0);
@@ -252,19 +257,20 @@ bool characterstring_same(
     if (src && dest) {
         if ((src->length == dest->length) && (src->encoding == dest->encoding)) {
             same_status = true;
-            for (i = 0; i < src->length; i++) {
+            for (i = 0; (i < src->length) && same_status; i++) {
                 if (src->value[i] != dest->value[i]) {
                     same_status = false;
-                    break;
                 }
             }
         }
     } else if (src) {
-        if (src->length == 0)
+        if (src->length == 0) {
             same_status = true;
+        }
     } else if (dest) {
-        if (dest->length == 0)
+        if (dest->length == 0) {
             same_status = true;
+        }
     }
 
     return same_status;
@@ -281,21 +287,22 @@ bool characterstring_ansi_same(
         if ((dest->length == strlen(src)) &&
             (dest->encoding == CHARACTER_ANSI_X34)) {
             same_status = true;
-            for (i = 0; i < dest->length; i++) {
+            for (i = 0; (i < dest->length) && same_status; i++) {
                 if (src[i] != dest->value[i]) {
                     same_status = false;
-                    break;
                 }
             }
         }
     }
     /* NULL matches an empty string in our world */
     else if (src) {
-        if (strlen(src) == 0)
+        if (strlen(src) == 0) {
             same_status = true;
+        }
     } else if (dest) {
-        if (dest->length == 0)
+        if (dest->length == 0) {
             same_status = true;
+        }
     }
 
     return same_status;
@@ -304,7 +311,7 @@ bool characterstring_ansi_same(
 /* returns false if the string exceeds capacity */
 bool characterstring_append(
     BACNET_CHARACTER_STRING * char_string,
-    char *value,
+    const char *value,
     size_t length)
 {
     size_t i;   /* counter */

@@ -105,12 +105,12 @@ extern "C" {
     bool characterstring_init(
         BACNET_CHARACTER_STRING * char_string,
         uint8_t encoding,
-        char *value,
+        const char *value,
         size_t length);
 /* used for ANSI C-Strings */
     bool characterstring_init_ansi(
         BACNET_CHARACTER_STRING * char_string,
-        char *value);
+        const char *value);
     bool characterstring_copy(
         BACNET_CHARACTER_STRING * dest,
         BACNET_CHARACTER_STRING * src);
@@ -124,7 +124,7 @@ extern "C" {
 /* returns false if the string exceeds capacity */
     bool characterstring_append(
         BACNET_CHARACTER_STRING * char_string,
-        char *value,
+        const char *value,
         size_t length);
 /* This function sets a new length without changing the value.
    If length exceeds capacity, no modification happens and
