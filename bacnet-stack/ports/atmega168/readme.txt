@@ -101,6 +101,19 @@ MISRA C
 Extra Options
  Use command line options (not enabled)
 
-Hopefully you find it useful!
+Note:  The BACnet Stack at Sourceforge source code has to be built 
+with lots of different compilers. The IAR compiler has particularly 
+strong (pedantic) source checking and generates several warnings when 
+compiling the source code.  Unfortunately not all warnings can be 
+fixed by modifying the source code. Some warnings have therefore been 
+disabled in the project file.
+  Compiler Diagnostics:
+  (Pe550) I initilize all local variables as a best practice.
+  Linker Diagnostics:
+  (w31) The supplied standard libraries expect char parameters to 
+  be unsigned (in functions such as strncpy(), etc.). It may 
+  be possible to recompile the libraries with signed plain char's.
 
-Steve Karg
+Hopefully you find this code useful!
+
+Steve Karg <skarg@users.sourceforge.net>
