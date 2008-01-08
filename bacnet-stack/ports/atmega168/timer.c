@@ -73,7 +73,8 @@ void Timer_Initialize(
 /* Timer Overflowed!  Increment the time. */
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
 #pragma vector=TIMER0_OVF_vect
-__interrupt void myTIMER0_OVF_vect()
+__interrupt void myTIMER0_OVF_vect(
+    )
 #else
 ISR(TIMER0_OVF_vect)
 #endif

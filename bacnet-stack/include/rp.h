@@ -70,7 +70,7 @@ extern "C" {
 
     int rp_ack_encode_apdu_object_property_end(
         uint8_t * apdu);
-    
+
     /* method to encode the ack using extra buffer */
     int rp_ack_encode_apdu(
         uint8_t * apdu,

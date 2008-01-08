@@ -32,23 +32,23 @@
 extern "C" {
 #endif /* __cplusplus */
 
-unsigned disableIRQ(
-    void);
+    unsigned disableIRQ(
+        void);
 
-unsigned restoreIRQ(
-    unsigned oldCPSR);
+    unsigned restoreIRQ(
+        unsigned oldCPSR);
 
-unsigned enableIRQ(
-    void);
+    unsigned enableIRQ(
+        void);
 
-unsigned disableFIQ(
-    void);
+    unsigned disableFIQ(
+        void);
 
-unsigned restoreFIQ(
-    unsigned oldCPSR);
+    unsigned restoreFIQ(
+        unsigned oldCPSR);
 
-unsigned enableFIQ(
-    void);
+    unsigned enableFIQ(
+        void);
 
 #ifdef __cplusplus
 }

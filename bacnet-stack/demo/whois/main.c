@@ -109,8 +109,8 @@ static void print_address_cache(
     uint32_t device_id = 0;
     unsigned max_apdu = 0;
 
-    printf("%-7s %-14s %-4s %-5s %-14s\n",
-        "Device","MAC","APDU","SNET","SADR");
+    printf("%-7s %-14s %-4s %-5s %-14s\n", "Device", "MAC", "APDU", "SNET",
+        "SADR");
     printf("------- -------------- ---- ----- --------------\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (address_get_by_index(i, &device_id, &max_apdu, &address)) {

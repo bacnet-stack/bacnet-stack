@@ -171,16 +171,16 @@ static bool Binary_Input_Out_Of_Service(
 }
 
 bool Binary_Input_Change_Of_Value(
-    uint32_t object_instance) 
+    uint32_t object_instance)
 {
     bool status = false;
     unsigned index;
-    
+
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         status = Change_Of_Value[index];
     }
-            
+
     return status;
 }
 
@@ -214,7 +214,7 @@ static void Binary_Input_Out_Of_Service_Set(
         if (Out_Of_Service[index] != value) {
             Change_Of_Value[index] = true;
         }
-        Out_Of_Service[index] = value;
+    Out_Of_Service[index] = value;
 
     return;
 }
@@ -281,9 +281,11 @@ int Binary_Input_Encode_Property_APDU(
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             if (Binary_Input_Out_Of_Service(object_instance)) {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, true);
+                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+                    true);
             } else {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+                    false);
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
