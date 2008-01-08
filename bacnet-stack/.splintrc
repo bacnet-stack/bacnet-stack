@@ -1,10 +1,1 @@
--Iinclude 
--Idemo/handler 
--Idemo/object 
--Iports/linux
--castfcnptr 
--fullinitblock 
--weak 
-+posixlib
--skipposixheaders
-
+-Iinclude -Idemo/handler -Idemo/object -Iports/linux -castfcnptr -fullinitblock -weak +posixlib
