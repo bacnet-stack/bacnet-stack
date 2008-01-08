@@ -157,7 +157,7 @@ static inline void bacnet_init(
         handler_device_communication_control);
 }
 
-static uint8_t Receive_PDU[MAX_MPDU];      /* PDU data */
+static uint8_t Receive_PDU[MAX_MPDU];   /* PDU data */
 int main(
     void)
 {
@@ -236,8 +236,8 @@ int main(
         /* count # of times through the idle loop */
         IdleCount++;
         /* BACnet handling */
-        pdu_len = datalink_receive(&src, 
-            &Receive_PDU[0], sizeof(Receive_PDU), 0);
+        pdu_len =
+            datalink_receive(&src, &Receive_PDU[0], sizeof(Receive_PDU), 0);
         if (pdu_len) {
             pPIO->PIO_CODR = LED3;
             npdu_handler(&src, &Receive_PDU[0], pdu_len);

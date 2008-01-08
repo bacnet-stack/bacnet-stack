@@ -118,69 +118,69 @@ int main(
         datalink_set("bip");
 #endif
 #if defined(BACDL_BIP)
-    pEnv = getenv("BACNET_IP_PORT");
-    if (pEnv) {
-        bip_set_port(strtol(pEnv, NULL, 0));
-    } else {
-        bip_set_port(0xBAC0);
-    }
+        pEnv = getenv("BACNET_IP_PORT");
+        if (pEnv) {
+            bip_set_port(strtol(pEnv, NULL, 0));
+        } else {
+            bip_set_port(0xBAC0);
+        }
 #elif defined(BACDL_MSTP)
-    pEnv = getenv("BACNET_MAX_INFO_FRAMES");
-    if (pEnv) {
-        dlmstp_set_max_info_frames(strtol(pEnv, NULL, 0));
-    } else {
-        dlmstp_set_max_info_frames(1);
-    }
-    pEnv = getenv("BACNET_MAX_MASTER");
-    if (pEnv) {
-        dlmstp_set_max_master(strtol(pEnv, NULL, 0));
-    } else {
-        dlmstp_set_max_master(127);
-    }
-    pEnv = getenv("BACNET_MSTP_BAUD");
-    if (pEnv) {
-        RS485_Set_Baud_Rate(strtol(pEnv, NULL, 0));
-    } else {
-        RS485_Set_Baud_Rate(38400);
-    }
-    pEnv = getenv("BACNET_MSTP_MAC");
-    if (pEnv) {
-        dlmstp_set_mac_address(strtol(pEnv, NULL, 0));
-    } else {
-        dlmstp_set_mac_address(127);
-    }
+        pEnv = getenv("BACNET_MAX_INFO_FRAMES");
+        if (pEnv) {
+            dlmstp_set_max_info_frames(strtol(pEnv, NULL, 0));
+        } else {
+            dlmstp_set_max_info_frames(1);
+        }
+        pEnv = getenv("BACNET_MAX_MASTER");
+        if (pEnv) {
+            dlmstp_set_max_master(strtol(pEnv, NULL, 0));
+        } else {
+            dlmstp_set_max_master(127);
+        }
+        pEnv = getenv("BACNET_MSTP_BAUD");
+        if (pEnv) {
+            RS485_Set_Baud_Rate(strtol(pEnv, NULL, 0));
+        } else {
+            RS485_Set_Baud_Rate(38400);
+        }
+        pEnv = getenv("BACNET_MSTP_MAC");
+        if (pEnv) {
+            dlmstp_set_mac_address(strtol(pEnv, NULL, 0));
+        } else {
+            dlmstp_set_mac_address(127);
+        }
 #endif
-    printf("BACnet Server Demo\n" "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
-        Device_Object_Instance_Number(), MAX_APDU);
-    Init_Service_Handlers();
-    BIP_Debug = true;
-    if (!datalink_init(getenv("BACNET_IFACE")))
-        return 1;
-    atexit(cleanup);
-    /* configure the timeout values */
-    last_seconds = time(NULL);
-    /* broadcast an I-Am on startup */
-    iam_send(&Handler_Transmit_Buffer[0]);
-    /* loop forever */
-    for (;;) {
-        /* input */
-        current_seconds = time(NULL);
+        printf("BACnet Server Demo\n" "BACnet Stack Version %s\n"
+            "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
+            Device_Object_Instance_Number(), MAX_APDU);
+        Init_Service_Handlers();
+        BIP_Debug = true;
+        if (!datalink_init(getenv("BACNET_IFACE")))
+            return 1;
+        atexit(cleanup);
+        /* configure the timeout values */
+        last_seconds = time(NULL);
+        /* broadcast an I-Am on startup */
+        iam_send(&Handler_Transmit_Buffer[0]);
+        /* loop forever */
+        for (;;) {
+            /* input */
+            current_seconds = time(NULL);
 
-        /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+            /* returns 0 bytes on timeout */
+            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
-        /* process */
-        if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            /* process */
+            if (pdu_len) {
+                npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            }
+            /* at least one second has passed */
+            if (current_seconds != last_seconds) {
+                dcc_timer_seconds(current_seconds - last_seconds);
+                Load_Control_State_Machine_Handler();
+            }
+            /* output */
+
+            /* blink LEDs, Turn on or off outputs, etc */
         }
-        /* at least one second has passed */
-        if (current_seconds != last_seconds) {
-            dcc_timer_seconds(current_seconds - last_seconds);
-            Load_Control_State_Machine_Handler();
-        }
-        /* output */
-
-        /* blink LEDs, Turn on or off outputs, etc */
     }
-}

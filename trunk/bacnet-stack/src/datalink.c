@@ -63,28 +63,28 @@ void (
 void datalink_set(
     char *datalink_string)
 {
-    if (strcasecmp("bip",datalink_string) == 0) {
+    if (strcasecmp("bip", datalink_string) == 0) {
         datalink_init = bip_init;
         datalink_send_pdu = bip_send_pdu;
         datalink_receive = bip_receive;
         datalink_cleanup = bip_cleanup;
         datalink_get_broadcast_address = bip_get_broadcast_address;
         datalink_get_my_address = bip_get_my_address;
-    } else if (strcasecmp("ethernet",datalink_string) == 0) {
+    } else if (strcasecmp("ethernet", datalink_string) == 0) {
         datalink_init = ethernet_init;
         datalink_send_pdu = ethernet_send_pdu;
         datalink_receive = ethernet_receive;
         datalink_cleanup = ethernet_cleanup;
         datalink_get_broadcast_address = ethernet_get_broadcast_address;
         datalink_get_my_address = ethernet_get_my_address;
-    } else if (strcasecmp("arcnet",datalink_string) == 0) {
+    } else if (strcasecmp("arcnet", datalink_string) == 0) {
         datalink_init = arcnet_init;
         datalink_send_pdu = arcnet_send_pdu;
         datalink_receive = arcnet_receive;
         datalink_cleanup = arcnet_cleanup;
         datalink_get_broadcast_address = arcnet_get_broadcast_address;
         datalink_get_my_address = arcnet_get_my_address;
-    } else if (strcasecmp("mstp",datalink_string) == 0) {
+    } else if (strcasecmp("mstp", datalink_string) == 0) {
         datalink_init = dlmstp_init;
         datalink_send_pdu = dlmstp_send_pdu;
         datalink_receive = dlmstp_receive;
@@ -94,4 +94,3 @@ void datalink_set(
     }
 }
 #endif
-

@@ -90,7 +90,7 @@
 #define MAX_HEADER (8)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
- int datalink_send_pdu(
+int datalink_send_pdu(
     BACNET_ADDRESS * dest,
     BACNET_NPDU_DATA * npdu_data,
     uint8_t * pdu,

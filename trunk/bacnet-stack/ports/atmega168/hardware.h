@@ -27,15 +27,15 @@
 
 #if !defined(F_CPU)
     /* The processor clock frequency */
-    #define F_CPU (7372800)
+#define F_CPU (7372800)
 #endif
 
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
-    #include <iom168.h>
+#include <iom168.h>
 #else
-    #if !defined(__AVR_ATmega168__)
-    #error Firmware is configured for ATmega168 only (-mmcu=atmega168)
-    #endif
+#if !defined(__AVR_ATmega168__)
+#error Firmware is configured for ATmega168 only (-mmcu=atmega168)
+#endif
 #endif
 #include "iar2gcc.h"
 #include "avr035.h"

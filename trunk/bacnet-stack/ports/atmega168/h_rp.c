@@ -126,18 +126,19 @@ void handler_read_property(
     } else {
         /* most cases will be error */
         error = true;
-        ack_len = rp_ack_encode_apdu_init(
-            &Handler_Transmit_Buffer[pdu_len],
+        ack_len =
+            rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, &data);
         /* FIXME: add buffer len as passed into function or use smart buffer */
-        property_len = Encode_Property_APDU(
-            &Handler_Transmit_Buffer[pdu_len + ack_len], data.object_type,
-            data.object_instance, data.object_property, data.array_index,
-            &error_class, &error_code);
+        property_len =
+            Encode_Property_APDU(&Handler_Transmit_Buffer[pdu_len + ack_len],
+            data.object_type, data.object_instance, data.object_property,
+            data.array_index, &error_class, &error_code);
         if (len >= 0) {
-            len = rp_ack_encode_apdu_object_property_end(
-                &Handler_Transmit_Buffer[pdu_len + property_len + ack_len]);
-            len +=  ack_len + property_len;
+            len =
+                rp_ack_encode_apdu_object_property_end(&Handler_Transmit_Buffer
+                [pdu_len + property_len + ack_len]);
+            len += ack_len + property_len;
             error = false;
         }
     }

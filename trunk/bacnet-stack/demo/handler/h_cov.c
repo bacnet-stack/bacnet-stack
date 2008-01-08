@@ -84,22 +84,22 @@ void handler_cov_init(
 
 static bool cov_list_subscribe(
     BACNET_ADDRESS * src,
-    BACNET_SUBSCRIBE_COV_DATA *cov_data)
+    BACNET_SUBSCRIBE_COV_DATA * cov_data)
 {
     bool existing_entry = false;
     int index;
     int first_invalid_index = -1;
     bool found = true;
-    
+
     /* existing? - match Object ID and Process ID */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if ((COV_Subscriptions[index].valid) &&
             (COV_Subscriptions[index].monitoredObjectIdentifier.type ==
-            cov_data->monitoredObjectIdentifier.type) &&
+                cov_data->monitoredObjectIdentifier.type) &&
             (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
-            cov_data->monitoredObjectIdentifier.instance) &&
+                cov_data->monitoredObjectIdentifier.instance) &&
             (COV_Subscriptions[index].subscriberProcessIdentifier ==
-            cov_data->subscriberProcessIdentifier)) {
+                cov_data->subscriberProcessIdentifier)) {
             existing_entry = true;
             if (cov_data->cancellationRequest) {
                 COV_Subscriptions[index].valid = false;
@@ -107,8 +107,7 @@ static bool cov_list_subscribe(
                 bacnet_address_copy(&COV_Subscriptions[index].dest, src);
                 COV_Subscriptions[index].issueConfirmedNotifications =
                     cov_data->issueConfirmedNotifications;
-                COV_Subscriptions[index].lifetime =
-                    cov_data->lifetime;
+                COV_Subscriptions[index].lifetime = cov_data->lifetime;
             }
             break;
         } else {
@@ -131,8 +130,7 @@ static bool cov_list_subscribe(
             cov_data->subscriberProcessIdentifier;
         COV_Subscriptions[index].issueConfirmedNotifications =
             cov_data->issueConfirmedNotifications;
-        COV_Subscriptions[index].lifetime =
-            cov_data->lifetime;
+        COV_Subscriptions[index].lifetime = cov_data->lifetime;
     } else {
         found = false;
     }
@@ -149,7 +147,7 @@ void handler_cov_task(
     int lifetime_milliseconds;
     BACNET_OBJECT_ID object_id;
 
-    
+
     /* existing? - match Object ID and Process ID */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].valid) {
@@ -164,8 +162,10 @@ void handler_cov_task(
                 COV_Subscriptions[index].valid = false;
             }
             /* handle COV notifications */
-            object_id.type = COV_Subscriptions[index].monitoredObjectIdentifier.type;
-            object_id.instance = COV_Subscriptions[index].monitoredObjectIdentifier.instance;
+            object_id.type =
+                COV_Subscriptions[index].monitoredObjectIdentifier.type;
+            object_id.instance =
+                COV_Subscriptions[index].monitoredObjectIdentifier.instance;
             switch (object_id.type) {
                 case OBJECT_BINARY_INPUT:
                     if (Binary_Input_Change_Of_Value(object_id.instance)) {
@@ -190,7 +190,7 @@ static bool cov_subscribe(
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
             status = true;
-            status = cov_list_subscribe(src,cov_data);
+            status = cov_list_subscribe(src, cov_data);
             break;
         default:
             /* FIXME: what is the ERROR? */
