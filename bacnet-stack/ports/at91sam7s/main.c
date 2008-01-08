@@ -45,9 +45,9 @@
 #include "iam.h"
 #include "txbuf.h"
 
-//  *******************************************************
-//   FIXME: use header files?     External References
-//  *******************************************************
+/*  ******************************************************* */
+/*   FIXME: use header files?     External References */
+/*  ******************************************************* */
 extern void LowLevelInit(
     void);
 extern unsigned enableIRQ(
@@ -95,37 +95,37 @@ static inline void init(
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_PIOA);
 
-    // Set up the LEDs (PA0 - PA3)
+    /* Set up the LEDs (PA0 - PA3) */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
-    // PIO Enable Register
-    // allow PIO to control pins P0 - P3 and pin 19
+    /* PIO Enable Register */
+    /* allow PIO to control pins P0 - P3 and pin 19 */
     pPIO->PIO_PER = LED_MASK | SW1_MASK;
-    // PIO Output Enable Register
-    // sets pins P0 - P3 to outputs
+    /* PIO Output Enable Register */
+    /* sets pins P0 - P3 to outputs */
     pPIO->PIO_OER = LED_MASK;
-    // PIO Set Output Data Register
-    // turns off the four LEDs
+    /* PIO Set Output Data Register */
+    /* turns off the four LEDs */
     pPIO->PIO_SODR = LED_MASK;
 
-    // Select PA19 (pushbutton) to be FIQ function (Peripheral B)
+    /* Select PA19 (pushbutton) to be FIQ function (Peripheral B) */
     pPIO->PIO_BSR = SW1_MASK;
 
-    // Set up the AIC registers for FIQ (pushbutton SW1)
+    /* Set up the AIC registers for FIQ (pushbutton SW1) */
     volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
-    // Disable FIQ interrupt in
-    // AIC Interrupt Disable Command Register
+    /* Disable FIQ interrupt in */
+    /* AIC Interrupt Disable Command Register */
     pAIC->AIC_IDCR = (1 << AT91C_ID_FIQ);
-    // Set the interrupt source type in
-    // AIC Source Mode Register[0]
+    /* Set the interrupt source type in */
+    /* AIC Source Mode Register[0] */
     pAIC->AIC_SMR[AT91C_ID_FIQ] = (AT91C_AIC_SRCTYPE_INT_EDGE_TRIGGERED);
-    // Clear the FIQ interrupt in
-    // AIC Interrupt Clear Command Register
+    /* Clear the FIQ interrupt in */
+    /* AIC Interrupt Clear Command Register */
     pAIC->AIC_ICCR = (1 << AT91C_ID_FIQ);
-    // Remove disable FIQ interrupt in
-    // AIC Interrupt Disable Command Register
+    /* Remove disable FIQ interrupt in */
+    /* AIC Interrupt Disable Command Register */
     pAIC->AIC_IDCR = (0 << AT91C_ID_FIQ);
-    // Enable the FIQ interrupt in
-    // AIC Interrupt Enable Command Register
+    /* Enable the FIQ interrupt in */
+    /* AIC Interrupt Enable Command Register */
     pAIC->AIC_IECR = (1 << AT91C_ID_FIQ);
 }
 
@@ -161,27 +161,27 @@ static uint8_t Receive_PDU[MAX_MPDU];      /* PDU data */
 int main(
     void)
 {
-    unsigned long IdleCount = 0;        // idle loop blink counter
+    unsigned long IdleCount = 0;        /* idle loop blink counter */
     bool LED1_Off_Enabled = true;
     bool LED2_Off_Enabled = true;
     bool LED3_Off_Enabled = true;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
-    // Set up the LEDs (PA0 - PA3)
+    /* Set up the LEDs (PA0 - PA3) */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
 
-    // Initialize the Atmel AT91SAM7S256
-    // (watchdog, PLL clock, default interrupts, etc.)
+    /* Initialize the Atmel AT91SAM7S256 */
+    /* (watchdog, PLL clock, default interrupts, etc.) */
     LowLevelInit();
     TimerInit();
     init();
     bacnet_init();
-    // enable interrupts
+    /* enable interrupts */
     enableIRQ();
     enableFIQ();
     /* broadcast an I-Am on startup */
     iam_send(&Handler_Transmit_Buffer[0]);
-    // endless blink loop
+    /* endless blink loop */
     while (1) {
         millisecond_timer();
         if (!DCC_Timer) {
@@ -233,7 +233,7 @@ int main(
             /* wait */
             LED_Timer_4 = 1000;
         }
-        // count # of times through the idle loop
+        /* count # of times through the idle loop */
         IdleCount++;
         /* BACnet handling */
         pdu_len = datalink_receive(&src, 

@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-//#include "mstp.h"
+/*#include "mstp.h" */
 
 /* This file has been customized for use with ATMEGA168 */
 #include "hardware.h"
