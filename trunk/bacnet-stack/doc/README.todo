@@ -28,3 +28,4 @@ Q. Create BACnet router code that uses more than one datalink.
 R. splint the code.  Make intelligent fixes.
 S. Fix src/mstp.c so that indent can parse it correctly.
 T. Add "inline" to static functions that are only used once.
+U. Modify code to compile with MISRA C rules.
