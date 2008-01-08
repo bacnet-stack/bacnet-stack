@@ -141,11 +141,11 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     ,
     {BACNET_APPLICATION_TAG_OBJECT_ID, "Object ID"}
     ,
-    {BACNET_APPLICATION_TAG_RESERVED1, "Reserved 1"}
+    {BACNET_APPLICATION_TAG_RESERVE1, "Reserved 1"}
     ,
-    {BACNET_APPLICATION_TAG_RESERVED2, "Reserved 2"}
+    {BACNET_APPLICATION_TAG_RESERVE2, "Reserved 2"}
     ,
-    {BACNET_APPLICATION_TAG_RESERVED3, "Reserved 3"}
+    {BACNET_APPLICATION_TAG_RESERVE3, "Reserved 3"}
     ,
     {0, NULL}
 };
