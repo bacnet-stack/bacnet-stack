@@ -82,7 +82,7 @@ void *milliseconds_task(
         dlmstp_millisecond_timer();
     }
 
-    //return NULL;
+    /*return NULL; */
 }
 
 /* functions used by the MS/TP state machine to put or get data */
@@ -203,5 +203,5 @@ int main(
         }
     }
 
-    //return 0;
+    /*return 0; */
 }

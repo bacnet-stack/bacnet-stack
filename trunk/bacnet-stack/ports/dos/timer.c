@@ -33,8 +33,8 @@ static volatile int SilenceTime;
 /* counts ticks */
 volatile unsigned long Timer_Milliseconds;
 
-#define RTC_CMD_ADDR	0x70    // RTC internal register offset goes here
-#define RTC_DAT_ADDR	0x71    // RTC internal register R/W access here
+#define RTC_CMD_ADDR	0x70    /* RTC internal register offset goes here */
+#define RTC_DAT_ADDR	0x71    /* RTC internal register R/W access here */
 
 static uint8_t RTC_RS_Convert(
     uint16_t hertz)
@@ -139,8 +139,8 @@ static void interrupt Timer_Interrupt_Handler(
     }
 
     /* clear interrupt */
-    outportb(RTC_CMD_ADDR, 0x0C);       // select RTC register C
-    temp_reg = inportb(RTC_DAT_ADDR);   // read   RTC register C
+    outportb(RTC_CMD_ADDR, 0x0C);       /* select RTC register C */
+    temp_reg = inportb(RTC_DAT_ADDR);   /* read   RTC register C */
     /* signal end of interrupt to slave PIC */
     outportb(0xA0, 0x20);
     /* signal end of interrupt to master PIC */
