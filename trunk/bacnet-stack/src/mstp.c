@@ -68,6 +68,33 @@
 #define PRINT_ENABLED_MASTER 0
 #endif
 
+#if PRINT_ENABLED
+#define PRINT_DEBUG(x) \
+    fprintf(stderr,x)
+#define PRINT_DEBUG1(fmt,v1) \
+    fprintf(stderr,fmt,v1)
+#define PRINT_DEBUG2(fmt,v1,v2) \
+    fprintf(stderr,fmt,v1,v2)
+#define PRINT_DEBUG3(fmt,v1,v2,v3) \
+    fprintf(stderr,fmt,v1,v2,v3)
+#define PRINT_DEBUG4(fmt,v1,v2,v3,v4) \
+    fprintf(stderr,fmt,v1,v2,v3,v4)
+#define PRINT_DEBUG5(fmt,v1,v2,v3,v4,v5) \
+    fprintf(stderr,fmt,v1,v2,v3,v4,v5)
+#define PRINT_DEBUG6(fmt,v1,v2,v3,v4,v5,v6) \
+    fprintf(stderr,fmt,v1,v2,v3,v4,v5,v6)
+#define PRINT_DEBUG7(fmt,v1,v2,v3,v4,v5,v6,v7) \
+    fprintf(stderr,fmt,v1,v2,v3,v4,v5,v6,v7)
+#else
+#define PRINT_DEBUG(x)
+#define PRINT_DEBUG1(fmt,v1)
+#define PRINT_DEBUG2(fmt,v1,v2)
+#define PRINT_DEBUG3(fmt,v1,v2,v3)
+#define PRINT_DEBUG4(fmt,v1,v2,v3,v4)
+#define PRINT_DEBUG5(fmt,v1,v2,v3,v4,v5)
+#define PRINT_DEBUG6(fmt,v1,v2,v3,v4,v5,v6)
+#endif
+
 /* MS/TP Frame Format */
 /* All frames are of the following format: */
 /* */
@@ -1358,16 +1385,25 @@ mstp_port->ReceivedValidFrame = false; break; default:
         ct_test(pTest, mstp_port.ReceivedValidFrame == false);
         ct_test(pTest, mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE);
         /* Data */
-        mstp_port.ReceivedInvalidFrame = false; mstp_port.ReceivedValidFrame = false; memset(data, 0, sizeof(data)); len = MSTP_Create_Frame(buffer, sizeof(buffer), FRAME_TYPE_PROPRIETARY_MIN, my_mac,        /* destination */
-            my_mac,     /* source */
-            data,       /* data */
-            sizeof(data));      /* data size */
-        ct_test(pTest, len > 0); Load_Input_Buffer(buffer, len);
-        RS485_Check_UART_Data(&mstp_port); MSTP_Receive_Frame_FSM(&mstp_port);
+        mstp_port.ReceivedInvalidFrame = false; 
+        mstp_port.ReceivedValidFrame = false; 
+        memset(data, 0, sizeof(data)); 
+        len = MSTP_Create_Frame(buffer, 
+            sizeof(buffer), 
+            FRAME_TYPE_PROPRIETARY_MIN, 
+            my_mac,
+            my_mac,
+            data,
+            sizeof(data));
+        ct_test(pTest, len > 0); 
+        Load_Input_Buffer(buffer, len);
+        RS485_Check_UART_Data(&mstp_port); 
+        MSTP_Receive_Frame_FSM(&mstp_port);
         while (mstp_port.receive_state != MSTP_RECEIVE_STATE_IDLE) {
-        RS485_Check_UART_Data(&mstp_port);
-            MSTP_Receive_Frame_FSM(&mstp_port);}
-    ct_test(pTest, mstp_port.DataLength == sizeof(data));
+            RS485_Check_UART_Data(&mstp_port);
+            MSTP_Receive_Frame_FSM(&mstp_port);
+        }
+        ct_test(pTest, mstp_port.DataLength == sizeof(data));
         ct_test(pTest, mstp_port.ReceivedInvalidFrame == false);
         ct_test(pTest, mstp_port.ReceivedValidFrame == true);
         ct_test(pTest, mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE);
