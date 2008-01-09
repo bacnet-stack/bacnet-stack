@@ -45,7 +45,7 @@ bool dcc_communication_enabled(
     return true;
 }
 
-static inline void init(
+static void init(
     void)
 {
     /* Initialize the Clock Prescaler for ATmega48/88/168 */
@@ -100,7 +100,7 @@ static inline void init(
 
 static uint8_t NPDU_Timer;
 
-static inline void NDPU_Timers(
+static void NDPU_Timers(
     void)
 {
     if (NPDU_Timer) {
@@ -111,14 +111,14 @@ static inline void NDPU_Timers(
     }
 }
 
-static inline void NPDU_LED_On(
+static void NPDU_LED_On(
     void)
 {
     BIT_CLEAR(PORTD, PD5);
     NPDU_Timer = 20;
 }
 
-static inline void task_milliseconds(
+static void task_milliseconds(
     void)
 {
     while (Timer_Milliseconds) {
@@ -131,7 +131,7 @@ static inline void task_milliseconds(
 
 static uint8_t Address_Switch;
 
-static inline void input_switch_read(
+static void input_switch_read(
     void)
 {
     uint8_t value;
