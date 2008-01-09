@@ -21,8 +21,9 @@ BACNET_HANDLER = ../demo/handler
 BACNET_CORE = ../src
 BACNET_INCLUDE = ../include
 # compiler configuration
+#STANDARDS = -std=c99
 INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER) 
-CFLAGS  = -Wall -g $(INCLUDES) $(DEFINES)
+CFLAGS  = -Wall -g $(STANDARDS) $(INCLUDES) $(DEFINES)
 
 CORE_SRC = \
 	$(BACNET_CORE)/apdu.c \
