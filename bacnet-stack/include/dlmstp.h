@@ -42,7 +42,8 @@
 #include "npdu.h"
 
 /* defines specific to MS/TP */
-#define MAX_HEADER (2+1+1+1+2+1)
+/* preamble+type+dest+src+len+crc8+crc16 */
+#define MAX_HEADER (2+1+1+1+2+1+2)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
 typedef struct dlmstp_packet {
