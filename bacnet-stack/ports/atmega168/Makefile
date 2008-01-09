@@ -82,9 +82,14 @@ LIBRARY = lib$(TARGET).a
 
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
+
+OPTIMIZE_FLAGS = -mcall-prologues 
+#OPTIMIZE_FLAGS += -finline-functions
+OPTIMEZE_FLAGS += -finline-functions-called-once
 #OPTIMIZATION = -O0
 #OPTIMIZATION = -Os
-OPTIMIZATION = -Os -mcall-prologues
+OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
+#OPTIMIZATION = -O3 $(OPTIMIZE_FLAGS)
 
 ## Compile options common for all C compilation units.
 BFLAGS = -DBACDL_MSTP
