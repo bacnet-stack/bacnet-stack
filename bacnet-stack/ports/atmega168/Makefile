@@ -85,7 +85,7 @@ COMMON = -mmcu=$(MCU)
 
 OPTIMIZE_FLAGS = -mcall-prologues 
 #OPTIMIZE_FLAGS += -finline-functions
-OPTIMEZE_FLAGS += -finline-functions-called-once
+OPTIMIZE_FLAGS += -finline-functions-called-once
 #OPTIMIZATION = -O0
 #OPTIMIZATION = -Os
 OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
