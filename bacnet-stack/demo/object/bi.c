@@ -32,6 +32,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "wp.h"
+#include "cov.h"
 #include "config.h"     /* the custom stuff */
 
 #define MAX_BINARY_INPUTS 5
@@ -70,12 +71,15 @@ void Binary_Input_Property_Lists(
     const int **pOptional,
     const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Binary_Input_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Binary_Input_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Binary_Input_Properties_Proprietary;
+    }
 
     return;
 }
@@ -86,8 +90,9 @@ void Binary_Input_Property_Lists(
 bool Binary_Input_Valid_Instance(
     uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_INPUTS)
+    if (object_instance < MAX_BINARY_INPUTS) {
         return true;
+    }
 
     return false;
 }
@@ -136,8 +141,9 @@ unsigned Binary_Input_Instance_To_Index(
     unsigned index = MAX_BINARY_INPUTS;
 
     Binary_Input_Init();
-    if (object_instance < MAX_BINARY_INPUTS)
+    if (object_instance < MAX_BINARY_INPUTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -150,8 +156,9 @@ static BACNET_BINARY_PV Binary_Input_Present_Value(
 
     Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS)
+    if (index < MAX_BINARY_INPUTS) {
         value = Present_Value[index];
+    }
 
     return value;
 }
@@ -164,8 +171,9 @@ static bool Binary_Input_Out_Of_Service(
 
     Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS)
+    if (index < MAX_BINARY_INPUTS) {
         value = Out_Of_Service[index];
+    }
 
     return value;
 }
@@ -182,6 +190,58 @@ bool Binary_Input_Change_Of_Value(
     }
 
     return status;
+}
+
+void Binary_Input_Change_Of_Value_Clear(
+    uint32_t object_instance)
+{
+    unsigned index;
+
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS) {
+        Change_Of_Value[index] = false;
+    }
+
+    return;
+}
+
+bool Binary_Input_Encode_Value_List(
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE *value_list)
+{
+    value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+    value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+    value_list->value.context_specific = false;
+    value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value_list->value.type.Enumerated =
+        Binary_Input_Present_Value(object_instance);
+    value_list->priority = BACNET_NO_PRIORITY;
+
+    value_list = value_list->next;
+
+    value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+    value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+    value_list->value.context_specific = false;
+    value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+    bitstring_init(&value_list->value.type.Bit_String);
+    bitstring_set_bit(&value_list->value.type.Bit_String,
+        STATUS_FLAG_IN_ALARM, false);
+    bitstring_set_bit(&value_list->value.type.Bit_String,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&value_list->value.type.Bit_String,
+        STATUS_FLAG_OVERRIDDEN, false);
+    if (Binary_Input_Out_Of_Service(object_instance)) {
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OUT_OF_SERVICE,
+            true);
+    } else {
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OUT_OF_SERVICE,
+            false);
+    }
+    value_list->priority = BACNET_NO_PRIORITY;
+
+    return true;
 }
 
 static void Binary_Input_Present_Value_Set(
@@ -210,10 +270,11 @@ static void Binary_Input_Out_Of_Service_Set(
 
     Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS)
+    if (index < MAX_BINARY_INPUTS) {
         if (Out_Of_Service[index] != value) {
             Change_Of_Value[index] = true;
         }
+    }
     Out_Of_Service[index] = value;
 
     return;

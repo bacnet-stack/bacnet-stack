@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2007-2008 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -36,6 +36,7 @@
 #include "npdu.h"
 #include "abort.h"
 #include "cov.h"
+#include "tsm.h"
 /* demo objects */
 #include "device.h"
 #include "ai.h"
@@ -138,6 +139,88 @@ static bool cov_list_subscribe(
     return found;
 }
 
+static bool cov_send_request(
+    BACNET_COV_SUBSCRIPTION * cov_subscription)
+{
+    int len = 0;
+    int pdu_len = 0;
+    BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS my_address;
+    int bytes_sent = 0;
+    uint8_t invoke_id = 0;
+    bool status = false; /* return value */
+    BACNET_COV_DATA cov_data;
+    BACNET_PROPERTY_VALUE value_list[2];
+
+    datalink_get_my_address(&my_address);
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0],
+        &cov_subscription->dest,
+        &my_address,
+        &npdu_data);
+    /* load the COV data structure for outgoing message */
+    cov_data.subscriberProcessIdentifier =
+        cov_subscription->subscriberProcessIdentifier;
+    cov_data.initiatingDeviceIdentifier =
+        Device_Object_Instance_Number();
+    cov_data.monitoredObjectIdentifier.type =
+        cov_subscription->monitoredObjectIdentifier.type;
+    cov_data.monitoredObjectIdentifier.instance =
+        cov_subscription->monitoredObjectIdentifier.instance;
+    cov_data.timeRemaining =
+        cov_subscription->lifetime;
+    /* encode the value list */
+    value_list[0].next = &value_list[1];
+    value_list[1].next = NULL;
+    switch (cov_subscription->monitoredObjectIdentifier.type) {
+        case OBJECT_BINARY_INPUT:
+            Binary_Input_Encode_Value_List(
+                cov_subscription->monitoredObjectIdentifier.instance,
+                &value_list[0]);
+            break;
+        default:
+            goto COV_FAILED;
+    }
+    if (cov_subscription->issueConfirmedNotifications) {
+        invoke_id = tsm_next_free_invokeID();
+        if (invoke_id) {
+            len = ccov_notify_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len],
+                invoke_id,
+                &cov_data);
+        } else {
+            goto COV_FAILED;
+        }
+    } else {
+        len = ucov_notify_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len],
+            &cov_data);
+    }
+    pdu_len += len;
+    if (cov_subscription->issueConfirmedNotifications) {
+        tsm_set_confirmed_unsegmented_transaction(
+            invoke_id,
+            &cov_subscription->dest,
+            &npdu_data,
+            &Handler_Transmit_Buffer[0],
+            (uint16_t) pdu_len);
+    }
+    bytes_sent = datalink_send_pdu(
+        &cov_subscription->dest,
+        &npdu_data,
+        &Handler_Transmit_Buffer[0],
+        pdu_len);
+    if (bytes_sent > 0) {
+        status = true;
+    }
+
+COV_FAILED:
+
+    return status;
+}
+
 /* note: worst case tasking: MS/TP with the ability to send only
    one notification per task cycle */
 void handler_cov_task(
@@ -146,6 +229,7 @@ void handler_cov_task(
     int index;
     int lifetime_milliseconds;
     BACNET_OBJECT_ID object_id;
+    bool status = false;
 
 
     /* existing? - match Object ID and Process ID */
@@ -169,7 +253,11 @@ void handler_cov_task(
             switch (object_id.type) {
                 case OBJECT_BINARY_INPUT:
                     if (Binary_Input_Change_Of_Value(object_id.instance)) {
-                        /* FIXME: send confirmed or unconfirmed request */
+                        status = cov_send_request(&COV_Subscriptions[index]);
+                        if (status) {
+                            Binary_Input_Change_Of_Value_Clear(
+                                object_id.instance);
+                        }
                     }
                     break;
                 default:

@@ -47,6 +47,8 @@ extern "C" {
         uint32_t object_instance);
     bool Binary_Input_Change_Of_Value(
         uint32_t object_instance);
+    void Binary_Input_Change_Of_Value_Clear(
+        uint32_t object_instance);
     int Binary_Input_Encode_Property_APDU(
         uint8_t * apdu,
         uint32_t object_instance,
