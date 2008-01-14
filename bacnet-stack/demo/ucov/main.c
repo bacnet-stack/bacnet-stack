@@ -73,6 +73,7 @@ int main(
     char *value_string = NULL;
     bool status = false;
     BACNET_COV_DATA cov_data;
+    BACNET_PROPERTY_VALUE value_list;
     uint8_t tag;
 
     if (argc < 7) {
@@ -134,19 +135,21 @@ int main(
     cov_data.monitoredObjectIdentifier.type = strtol(argv[3], NULL, 0);
     cov_data.monitoredObjectIdentifier.instance = strtol(argv[4], NULL, 0);
     cov_data.timeRemaining = strtol(argv[5], NULL, 0);
-    cov_data.listOfValues.propertyIdentifier = strtol(argv[6], NULL, 0);
+    cov_data.listOfValues = &value_list;
+    value_list.next = NULL;
+    value_list.propertyIdentifier = strtol(argv[6], NULL, 0);
     tag = strtol(argv[7], NULL, 0);
     value_string = argv[8];
     /* optional priority */
     if (argc > 9)
-        cov_data.listOfValues.priority = strtol(argv[9], NULL, 0);
+        value_list.priority = strtol(argv[9], NULL, 0);
     else
-        cov_data.listOfValues.priority = BACNET_NO_PRIORITY;
+        value_list.priority = BACNET_NO_PRIORITY;
     /* optional index */
     if (argc > 10)
-        cov_data.listOfValues.propertyArrayIndex = strtol(argv[10], NULL, 0);
+        value_list.propertyArrayIndex = strtol(argv[10], NULL, 0);
     else
-        cov_data.listOfValues.propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list.propertyArrayIndex = BACNET_ARRAY_ALL;
 
     if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
@@ -165,9 +168,9 @@ int main(
             BACNET_MAX_INSTANCE + 1);
         return 1;
     }
-    if (cov_data.listOfValues.propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
+    if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
         fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            cov_data.listOfValues.propertyIdentifier,
+            cov_data.listOfValues->propertyIdentifier,
             MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
@@ -178,7 +181,7 @@ int main(
     }
     status =
         bacapp_parse_application_data(tag, value_string,
-        &cov_data.listOfValues.value);
+        &cov_data.listOfValues->value);
     if (!status) {
         /* FIXME: show the expected entry format for the tag */
         fprintf(stderr, "unable to parse the tag value\r\n");
@@ -189,8 +192,6 @@ int main(
     Init_Service_Handlers();
     if (!datalink_init(getenv("BACNET_IFACE")))
         return 1;
-    /* only one value in our value list */
-    cov_data.listOfValues.next = NULL;
     ucov_notify_send(&Handler_Transmit_Buffer[0], &cov_data);
 
     return 0;
