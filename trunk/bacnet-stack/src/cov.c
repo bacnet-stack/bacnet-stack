@@ -84,7 +84,7 @@ static int notify_encode_adpu(
         /* FIXME: for small implementations, we might try a partial
            approach like the rpm.c where the values are encoded with
            a separate function */
-        value = &data->listOfValues;
+        value = data->listOfValues;
         while (value != NULL) {
             /* tag 0 - propertyIdentifier */
             len =
@@ -228,7 +228,7 @@ int cov_notify_decode_service_request(
         /* a tag number of 4 is not extended so only one octet */
         len++;
         /* the first value includes a pointer to the next value, etc */
-        value = &data->listOfValues;
+        value = data->listOfValues;
         while (value != NULL) {
             /* tag 0 - propertyIdentifier */
             if (decode_is_context_tag(&apdu[len], 0)) {

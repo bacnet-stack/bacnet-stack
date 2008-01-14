@@ -181,6 +181,7 @@ int main(
             /* at least one second has passed */
             elapsed_seconds = current_seconds - last_seconds;
             if (elapsed_seconds) {
+                last_seconds = current_seconds;
                 dcc_timer_seconds(elapsed_seconds);
                 Load_Control_State_Machine_Handler();
                 elapsed_milliseconds = elapsed_seconds * 1000;

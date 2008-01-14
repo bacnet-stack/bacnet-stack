@@ -54,7 +54,7 @@ typedef struct BACnet_COV_Data {
     BACNET_OBJECT_ID monitoredObjectIdentifier;
     uint32_t timeRemaining; /* seconds */
     /* simple linked list of values */
-    BACNET_PROPERTY_VALUE listOfValues;
+    BACNET_PROPERTY_VALUE *listOfValues;
 } BACNET_COV_DATA;
 
 typedef struct BACnet_Property_Reference {

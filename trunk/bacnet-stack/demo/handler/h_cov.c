@@ -61,6 +61,7 @@ typedef struct BACnet_COV_Subscription {
     BACNET_OBJECT_ID monitoredObjectIdentifier;
     bool issueConfirmedNotifications;   /* optional */
     uint32_t lifetime;  /* optional */
+    bool send_requested;
 } BACNET_COV_SUBSCRIPTION;
 
 #define MAX_COV_SUBCRIPTIONS 32
@@ -80,18 +81,24 @@ void handler_cov_init(
         COV_Subscriptions[index].monitoredObjectIdentifier.instance = 0;
         COV_Subscriptions[index].issueConfirmedNotifications = false;
         COV_Subscriptions[index].lifetime = 0;
+        COV_Subscriptions[index].send_requested = false;
     }
 }
 
 static bool cov_list_subscribe(
     BACNET_ADDRESS * src,
-    BACNET_SUBSCRIBE_COV_DATA * cov_data)
+    BACNET_SUBSCRIBE_COV_DATA * cov_data,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     bool existing_entry = false;
     int index;
     int first_invalid_index = -1;
     bool found = true;
 
+    /* unable to subscribe - resources? */
+    /* unable to cancel subscription - other? */
+    
     /* existing? - match Object ID and Process ID */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if ((COV_Subscriptions[index].valid) &&
@@ -109,6 +116,7 @@ static bool cov_list_subscribe(
                 COV_Subscriptions[index].issueConfirmedNotifications =
                     cov_data->issueConfirmedNotifications;
                 COV_Subscriptions[index].lifetime = cov_data->lifetime;
+                COV_Subscriptions[index].send_requested = true;
             }
             break;
         } else {
@@ -132,7 +140,17 @@ static bool cov_list_subscribe(
         COV_Subscriptions[index].issueConfirmedNotifications =
             cov_data->issueConfirmedNotifications;
         COV_Subscriptions[index].lifetime = cov_data->lifetime;
+        COV_Subscriptions[index].send_requested = true;
     } else {
+        if (first_invalid_index < 0) {
+            /* Out of resources */
+            *error_class = ERROR_CLASS_RESOURCES;
+            *error_code = ERROR_CODE_OTHER;
+        } else {
+            /* Unable to cancel request of unsubscribed object */
+            *error_class = ERROR_CLASS_OBJECT;
+            *error_code = ERROR_CODE_OTHER;
+        }
         found = false;
     }
 
@@ -152,6 +170,9 @@ static bool cov_send_request(
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list[2];
 
+#if PRINT_ENABLED
+    fprintf(stderr, "COVnotification: requested\n");
+#endif
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
@@ -172,6 +193,7 @@ static bool cov_send_request(
     cov_data.timeRemaining =
         cov_subscription->lifetime;
     /* encode the value list */
+    cov_data.listOfValues = &value_list[0];
     value_list[0].next = &value_list[1];
     value_list[1].next = NULL;
     switch (cov_subscription->monitoredObjectIdentifier.type) {
@@ -239,6 +261,11 @@ void handler_cov_task(
             lifetime_seconds = COV_Subscriptions[index].lifetime;
             if (lifetime_seconds >= elapsed_seconds) {
                 COV_Subscriptions[index].lifetime -= elapsed_seconds;
+#if PRINT_ENABLED
+                fprintf(stderr,"COVtask: subscription[%d].lifetime=%d\n",
+                    index,
+                    COV_Subscriptions[index].lifetime);
+#endif
             } else {
                 COV_Subscriptions[index].lifetime = 0;
             }
@@ -253,15 +280,17 @@ void handler_cov_task(
             switch (object_id.type) {
                 case OBJECT_BINARY_INPUT:
                     if (Binary_Input_Change_Of_Value(object_id.instance)) {
-                        status = cov_send_request(&COV_Subscriptions[index]);
-                        if (status) {
-                            Binary_Input_Change_Of_Value_Clear(
-                                object_id.instance);
-                        }
+                        COV_Subscriptions[index].send_requested = true;
+                        Binary_Input_Change_Of_Value_Clear(
+                            object_id.instance);
                     }
                     break;
                 default:
                     break;
+            }
+            if (COV_Subscriptions[index].send_requested) { 
+                status = cov_send_request(&COV_Subscriptions[index]);
+                COV_Subscriptions[index].send_requested = false;
             }
         }
     }
@@ -278,10 +307,12 @@ static bool cov_subscribe(
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
             status = true;
-            status = cov_list_subscribe(src, cov_data);
+            status = cov_list_subscribe(src, cov_data, 
+                error_class, error_code);
             break;
         default:
-            /* FIXME: what is the ERROR? */
+            *error_class = ERROR_CLASS_OBJECT;
+            *error_code = ERROR_CODE_UNKNOWN_OBJECT;
             break;
     }
 
