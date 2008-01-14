@@ -149,7 +149,7 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
     void handler_cov_task(
-        uint32_t elapsed_milliseconds);
+        uint32_t elapsed_seconds);
 
 #ifdef __cplusplus
 }
