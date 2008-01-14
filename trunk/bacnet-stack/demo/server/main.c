@@ -85,6 +85,8 @@ static void Init_Service_Handlers(
         handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
         handler_timesync);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
+        handler_cov_subscribe);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
@@ -105,6 +107,7 @@ int main(
     unsigned timeout = 100;     /* milliseconds */
     time_t last_seconds = 0;
     time_t current_seconds = 0;
+    uint32_t elapsed_milliseconds = 0;
     char *pEnv = NULL;
 
     /* allow the device ID to be set */
@@ -178,6 +181,9 @@ int main(
             if (current_seconds != last_seconds) {
                 dcc_timer_seconds(current_seconds - last_seconds);
                 Load_Control_State_Machine_Handler();
+                elapsed_milliseconds = (current_seconds - last_seconds) * 1000;
+                handler_cov_task(elapsed_milliseconds);
+                tsm_timer_milliseconds(elapsed_milliseconds);
             }
             /* output */
 

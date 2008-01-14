@@ -143,7 +143,13 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
-
+    void handler_cov_subscribe(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+    void handler_cov_task(
+        uint32_t elapsed_milliseconds);
 
 #ifdef __cplusplus
 }
