@@ -107,6 +107,7 @@ int main(
     unsigned timeout = 100;     /* milliseconds */
     time_t last_seconds = 0;
     time_t current_seconds = 0;
+    uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
     char *pEnv = NULL;
 
@@ -178,11 +179,12 @@ int main(
                 npdu_handler(&src, &Rx_Buf[0], pdu_len);
             }
             /* at least one second has passed */
-            if (current_seconds != last_seconds) {
-                dcc_timer_seconds(current_seconds - last_seconds);
+            elapsed_seconds = current_seconds - last_seconds;
+            if (elapsed_seconds) {
+                dcc_timer_seconds(elapsed_seconds);
                 Load_Control_State_Machine_Handler();
-                elapsed_milliseconds = (current_seconds - last_seconds) * 1000;
-                handler_cov_task(elapsed_milliseconds);
+                elapsed_milliseconds = elapsed_seconds * 1000;
+                handler_cov_task(elapsed_seconds);
                 tsm_timer_milliseconds(elapsed_milliseconds);
             }
             /* output */

@@ -224,10 +224,10 @@ COV_FAILED:
 /* note: worst case tasking: MS/TP with the ability to send only
    one notification per task cycle */
 void handler_cov_task(
-    uint32_t elapsed_milliseconds)
+    uint32_t elapsed_seconds)
 {
     int index;
-    int lifetime_milliseconds;
+    int lifetime_seconds;
     BACNET_OBJECT_ID object_id;
     bool status = false;
 
@@ -236,9 +236,9 @@ void handler_cov_task(
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].valid) {
             /* handle timeouts */
-            lifetime_milliseconds = COV_Subscriptions[index].lifetime;
-            if (lifetime_milliseconds >= elapsed_milliseconds) {
-                COV_Subscriptions[index].lifetime -= elapsed_milliseconds;
+            lifetime_seconds = COV_Subscriptions[index].lifetime;
+            if (lifetime_seconds >= elapsed_seconds) {
+                COV_Subscriptions[index].lifetime -= elapsed_seconds;
             } else {
                 COV_Subscriptions[index].lifetime = 0;
             }
