@@ -141,13 +141,13 @@ static bool cov_list_subscribe(
             cov_data->issueConfirmedNotifications;
         COV_Subscriptions[index].lifetime = cov_data->lifetime;
         COV_Subscriptions[index].send_requested = true;
-    } else {
+    } else if (!existing_entry) {
         if (first_invalid_index < 0) {
             /* Out of resources */
             *error_class = ERROR_CLASS_RESOURCES;
             *error_code = ERROR_CODE_OTHER;
         } else {
-            /* Unable to cancel request of unsubscribed object */
+            /* Unable to cancel request - valid object not subscribed */
             *error_class = ERROR_CLASS_OBJECT;
             *error_code = ERROR_CODE_OTHER;
         }
