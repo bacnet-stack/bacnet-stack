@@ -44,6 +44,7 @@
 #include "wp.h" /* write property handling */
 #include "version.h"
 #include "device.h"     /* me */
+#include "handlers.h"
 #include "datalink.h"
 #if defined(BACFILE)
 #include "bacfile.h"    /* object list dependency */
@@ -875,6 +876,9 @@ int Device_Encode_Property_APDU(
             break;
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            /* FIXME: the real max apdu should be passed into function */
+            apdu_len = handler_cov_encode_subscriptions(
+                &apdu[0], MAX_APDU);
             break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
