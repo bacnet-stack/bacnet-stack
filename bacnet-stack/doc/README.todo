@@ -29,3 +29,4 @@ R. splint the code.  Make intelligent fixes.
 S. Fix src/mstp.c so that indent can parse it correctly.
 T. Add "inline" to static functions that are only used once.
 U. Modify code to compile with MISRA C rules.
+V. Change OBJECT_ID to only be 32 bits, and add macro handlers.
