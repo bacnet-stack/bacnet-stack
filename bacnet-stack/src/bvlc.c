@@ -200,7 +200,7 @@ int bvlc_encode_read_bdt(
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
-        pdu[1] = BVLC_READ_BROADCAST_DISTRIBUTION_TABLE;
+        pdu[1] = BVLC_READ_BROADCAST_DIST_TABLE;
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
@@ -219,7 +219,7 @@ int bvlc_encode_read_bdt_ack_init(
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
-        pdu[1] = BVLC_READ_BROADCAST_DISTRIBUTION_TABLE_ACK;
+        pdu[1] = BVLC_READ_BROADCAST_DIST_TABLE_ACK;
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
@@ -898,7 +898,7 @@ uint16_t bvlc_receive(
                     BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK);
             }
             break;
-        case BVLC_READ_BROADCAST_DISTRIBUTION_TABLE:
+        case BVLC_READ_BROADCAST_DIST_TABLE:
             /* Upon receipt of a BVLL Read-Broadcast-Distribution-Table
                message, a BBMD shall load the contents of its BDT into a BVLL
                Read-Broadcast-Distribution-Table-Ack message and send it to the
@@ -911,7 +911,7 @@ uint16_t bvlc_receive(
                     BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK);
             }
             break;
-        case BVLC_READ_BROADCAST_DISTRIBUTION_TABLE_ACK:
+        case BVLC_READ_BROADCAST_DIST_TABLE_ACK:
             /* FIXME: complete the code for client side read */
             break;
         case BVLC_FORWARDED_NPDU:
@@ -934,14 +934,31 @@ uint16_t bvlc_receive(
                broadcast address. The method by which a BBMD determines whether
                or not other BACnet devices are present is a local matter. */
             /*  if this was received via Broadcast, don't broadcast it */
-
             /* FIXME:  how do I know if I received a unicast or broadcast? */
+            npdu_len -= 6;      /* FIXME: very ugly */
             if (!bvlc_broadcast_address_same(&sin)) {
                 dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
-                dest.sin_port == htons(bip_get_port());
+                dest.sin_port = htons(bip_get_port());
                 bvlc_send_mpdu(&dest, &npdu[4], npdu_len);
             }
             bvlc_fdt_forward_npdu(&sin, &npdu[4], npdu_len);
+            /* Extract the "real" source from the BVLC header */
+            for (i = 0; i < 6; i++) {
+                src->mac[i] = npdu[4 + i];
+            }
+            src->mac_len = 6;
+            src->net = 0;
+            src->len = 0;
+            if (npdu_len < max_npdu) {
+                /* shift the buffer to return a valid PDU */
+                for (i = 0; i < npdu_len; i++) {
+                    npdu[i] = npdu[10 + i];
+                }
+            } else {
+                /* ignore packets that are too large */
+                /* clients should check my max-apdu first */
+                npdu_len = 0;
+            }
             break;
         case BVLC_REGISTER_FOREIGN_DEVICE:
             /* Upon receipt of a BVLL Register-Foreign-Device message, a BBMD
@@ -1020,7 +1037,7 @@ uint16_t bvlc_receive(
                 if (npdu_len < max_npdu) {
                     /* shift the buffer to return a valid PDU */
                     for (i = 0; i < npdu_len; i++) {
-                        npdu[i] = npdu[i + 4];
+                        npdu[i] = npdu[4 + i];
                     }
                 } else {
                     /* ignore packets that are too large */
@@ -1047,7 +1064,7 @@ uint16_t bvlc_receive(
             if (npdu_len < max_npdu) {
                 /* shift the buffer to return a valid PDU */
                 for (i = 0; i < npdu_len; i++) {
-                    npdu[i] = npdu[i + 4];
+                    npdu[i] = npdu[4 + i];
                 }
                 /* if BDT or FDT entries exist, Forward the NPDU */
                 bvlc_bdt_forward_npdu(&sin, &npdu[0], npdu_len);
@@ -1076,7 +1093,9 @@ int bvlc_send_pdu(
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
-    uint32_t raw_address = 0;
+    /* addr and port in host format */
+    struct in_addr address;
+    uint16_t port = 0;
 
     /* bip datalink doesn't need to know the npdu data */
     (void) npdu_data;
@@ -1088,21 +1107,20 @@ int bvlc_send_pdu(
     bvlc_dest.sin_family = AF_INET;
     if (dest->net == BACNET_BROADCAST_NETWORK) {
         /* broadcast */
-        bvlc_dest.sin_addr.s_addr = bip_get_broadcast_addr();
-        bvlc_dest.sin_port = bip_get_port();
-        memset(&(bvlc_dest.sin_zero), '\0', 8);
+        address.s_addr = bip_get_broadcast_addr();
+        port = bip_get_port();
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     } else if (dest->mac_len == 6) {
         /* valid unicast */
-        (void) decode_unsigned32(&dest->mac[0], &raw_address);
-        bvlc_dest.sin_addr.s_addr = raw_address;
-        (void) decode_unsigned16(&dest->mac[4], &(bvlc_dest.sin_port));
-        memset(&(bvlc_dest.sin_zero), '\0', 8);
+        bvlc_decode_bip_address(&dest->mac[0], &address, &port);
         mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
     } else {
         /* invalid address */
         return -1;
     }
+    bvlc_dest.sin_addr.s_addr = htonl(address.s_addr);
+    bvlc_dest.sin_port = htons(port);
+    memset(&(bvlc_dest.sin_zero), '\0', 8);
 
     mtu_len = 2;
     mtu_len +=
