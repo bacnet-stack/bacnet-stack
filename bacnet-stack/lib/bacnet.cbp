@@ -281,6 +281,9 @@
 		<Unit filename="..\src\bip.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\src\bvlc.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\cov.c">
 			<Option compilerVar="CC" />
 		</Unit>
