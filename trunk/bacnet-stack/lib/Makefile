@@ -110,6 +110,7 @@ PORT_SRC = \
 	$(BACNET_PORT)/rs485.c \
 	$(BACNET_CORE)/mstp.c \
 	$(BACNET_CORE)/crc.c \
+	$(BACNET_CORE)/bvlc.c \
 	$(BACNET_CORE)/bip.c
 
 SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC}
