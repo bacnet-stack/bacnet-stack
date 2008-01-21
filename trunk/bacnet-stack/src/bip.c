@@ -231,6 +231,9 @@ uint16_t bip_receive(
         if ((sin.sin_addr.s_addr == htonl(BIP_Address.s_addr)) &&
             (sin.sin_port == htonl(BIP_Port))) {
             pdu_len = 0;
+#if PRINT_ENABLED
+            fprintf(stderr,"BIP: src is me. Discarded!\n");
+#endif
         } else {
             /* copy the source address
                FIXME: IPv6? */
@@ -244,16 +247,33 @@ uint16_t bip_receive(
             /* subtract off the BVLC header */
             pdu_len -= 4;
             if (pdu_len < max_pdu) {
+#if 0
+                fprintf(stderr,"BIP: NPDU[%hu]:",pdu_len);
+#endif
                 /* shift the buffer to return a valid PDU */
                 for (i = 0; i < pdu_len; i++) {
-                    pdu[i] = pdu[i + 4];
+                    pdu[i] = pdu[4 + i];
+#if 0
+                    fprintf(stderr,"%02X ",pdu[i]);
+#endif
                 }
+#if 0
+                fprintf(stderr,"\n");
+#endif
             }
             /* ignore packets that are too large */
             /* clients should check my max-apdu first */
-            else
+            else {
                 pdu_len = 0;
+#if PRINT_ENABLED
+            fprintf(stderr,"BIP: PDU too large. Discarded!.\n");
+#endif
+            }
         }
+    } else {
+#if PRINT_ENABLED
+        fprintf(stderr,"BIP: BVLC discarded!\n");
+#endif
     }
 
     return pdu_len;
