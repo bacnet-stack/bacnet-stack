@@ -8,15 +8,15 @@
    see datalink.h for possible defines. */
 #if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_TEST) || defined(BACDL_ALL))
 #define BACDL_BIP
-#if !defined(BBMD_ENABLED)
-#define BBMD_ENABLED 1
-#endif
 #endif
 
 /* optional debug info for BACnet/IP datalink layers */
 #if (defined(BACDL_BIP) || defined(BACDL_ALL))
 #if !defined(USE_INADDR)
 #define USE_INADDR 1
+#endif
+#if !defined(BBMD_ENABLED)
+#define BBMD_ENABLED 1
 #endif
 #endif
 
