@@ -157,7 +157,6 @@ int main(
     bool found = false;
 
     if (argc < 3) {
-        /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s device-instance state timeout [password]\r\n"
             "Send BACnet DeviceCommunicationControl service to device.\r\n"
             "\r\n" "The device-instance can be 0 to %d.\r\n"

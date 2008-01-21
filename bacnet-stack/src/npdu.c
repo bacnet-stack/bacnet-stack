@@ -41,6 +41,10 @@
 #include "npdu.h"
 #include "apdu.h"
 
+#if PRINT_ENABLED
+#include <stdio.h>
+#endif
+
 void npdu_copy_data(
     BACNET_NPDU_DATA * dest,
     BACNET_NPDU_DATA * src)
@@ -377,6 +381,9 @@ void npdu_handler(
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         /*FIXME: network layer message received!  Handle it! */
+#if PRINT_ENABLED
+        fprintf(stderr,"NPDU: Network Layer Message discarded!\n");
+#endif
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         /* only handle the version that we know how to handle */
         if (npdu_data.protocol_version == BACNET_PROTOCOL_VERSION)
