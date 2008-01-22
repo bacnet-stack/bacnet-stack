@@ -45,6 +45,18 @@ extern "C" {
 
 #endif /* __cplusplus */
 
+#if BBMD_ENABLED
+    void bvlc_maintenance_timer(
+        unsigned seconds);
+#else
+#define bvlc_maintenance_timer(x)
+#endif
+    /* registers with a bbmd as a foreign device */
+    void bvlc_register_with_bbmd(
+        long bbmd_address, /* in network byte order */
+        uint16_t bbmd_port,
+        uint16_t time_to_live_seconds);
+
     uint16_t bvlc_receive(
         BACNET_ADDRESS * src,   /* returns the source address */
         uint8_t * npdu, /* returns the NPDU */

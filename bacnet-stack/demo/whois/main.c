@@ -84,7 +84,7 @@ void MyRejectHandler(
 static void Init_Service_Handlers(
     void)
 {
-    /* we need to handle who-is 
+    /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement
@@ -146,10 +146,17 @@ int main(
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
+    time_t total_seconds = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
+    char *pEnv = NULL;
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    long bbmd_port = 0xBAC0;
+    long bbmd_address = 0;
+    long bbmd_timetolive_seconds = 60000;
+#endif
 
     if (argc < 2) {
         printf
@@ -189,8 +196,47 @@ int main(
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
-    if (!datalink_init(getenv("BACNET_IFACE")))
+#if defined(BACDL_BIP)
+    pEnv = getenv("BACNET_IP_PORT");
+    if (pEnv) {
+        bip_set_port(strtol(pEnv, NULL, 0));
+    } else {
+        bip_set_port(0xBAC0);
+    }
+#endif
+    if (!datalink_init(getenv("BACNET_IFACE"))) {
         return 1;
+    }
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    pEnv = getenv("BACNET_BBMD_PORT");
+    if (pEnv) {
+        bbmd_port = strtol(pEnv, NULL, 0);
+        if (bbmd_port > 0xFFFF) {
+            bbmd_port = 0xBAC0;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
+    if (pEnv) {
+        bbmd_timetolive_seconds = strtol(pEnv, NULL, 0);
+        if (bbmd_timetolive_seconds > 0xFFFF) {
+            bbmd_timetolive_seconds = 0xFFFF;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD_ADDRESS");
+    if (pEnv) {
+        bbmd_address = bip_getaddrbyname(pEnv);
+        if (bbmd_address) {
+            struct in_addr addr;
+            addr.s_addr = bbmd_address;
+            printf("WhoIs: Registering with BBMD at %s:%ld\n",
+                inet_ntoa(addr),bbmd_port);
+            bvlc_register_with_bbmd(
+                bbmd_address,
+                bbmd_port,
+                bbmd_timetolive_seconds);
+        }
+    }
+#endif
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = Device_APDU_Timeout() / 1000;
@@ -209,8 +255,12 @@ int main(
         if (Error_Detected)
             break;
         /* increment timer - exit if timed out */
-        elapsed_seconds += (current_seconds - last_seconds);
-        if (elapsed_seconds > timeout_seconds)
+        elapsed_seconds = current_seconds - last_seconds;
+        if (elapsed_seconds) {
+            bvlc_maintenance_timer(elapsed_seconds);
+        }
+        total_seconds += elapsed_seconds;
+        if (total_seconds > timeout_seconds)
             break;
         /* keep track of time for next check */
         last_seconds = current_seconds;
