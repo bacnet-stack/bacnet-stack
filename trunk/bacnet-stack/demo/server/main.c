@@ -119,7 +119,8 @@ int main(
     if (pEnv) {
         datalink_set(pEnv));
     } else {
-        datalink_set("bip");
+        datalink_set(NULL);
+    }
 #endif
 #if defined(BACDL_BIP)
         pEnv = getenv("BACNET_IP_PORT");
@@ -183,6 +184,7 @@ int main(
             if (elapsed_seconds) {
                 last_seconds = current_seconds;
                 dcc_timer_seconds(elapsed_seconds);
+                bvlc_maintenance_timer(elapsed_seconds);
                 Load_Control_State_Machine_Handler();
                 elapsed_milliseconds = elapsed_seconds * 1000;
                 handler_cov_task(elapsed_seconds);

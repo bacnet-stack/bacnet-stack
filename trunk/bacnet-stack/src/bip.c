@@ -119,6 +119,24 @@ uint16_t bip_get_port(
     return BIP_Port;
 }
 
+static int bip_decode_bip_address(
+    uint8_t * pdu,      /* buffer to extract encoded address */
+    struct in_addr *address,    /* in host format */
+    uint16_t * port)
+{
+    int len = 0;
+    uint32_t raw_address = 0;
+
+    if (pdu) {
+        (void) decode_unsigned32(&pdu[0], &raw_address);
+        address->s_addr = raw_address;
+        (void) decode_unsigned16(&pdu[4], port);
+        len = 6;
+    }
+
+    return len;
+}
+
 /* function to send a packet out the BACnet/IP socket (Annex J) */
 /* returns number of bytes sent on success, negative number on failure */
 int bip_send_pdu(
@@ -131,6 +149,10 @@ int bip_send_pdu(
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
+    /* addr and port in host format */
+    struct in_addr address;
+    uint16_t port = 0;
+
 
     (void) npdu_data;
     /* assumes that the driver has already been initialized */
@@ -141,22 +163,19 @@ int bip_send_pdu(
     bip_dest.sin_family = AF_INET;
     if (dest->net == BACNET_BROADCAST_NETWORK) {
         /* broadcast */
-        bip_dest.sin_addr.s_addr = htonl(BIP_Broadcast_Address.s_addr);
-        bip_dest.sin_port = htons(BIP_Port);
-        memset(&(bip_dest.sin_zero), '\0', 8);
+        address.s_addr = BIP_Broadcast_Address.s_addr;
+        port = BIP_Port;
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     } else if (dest->mac_len == 6) {
-        /* valid unicast */
-        (void) decode_unsigned32(&dest->mac[0],
-            (uint32_t *) & (bip_dest.sin_addr.s_addr));
-        (void) decode_unsigned16(&dest->mac[4], &(bip_dest.sin_port));
-        memset(&(bip_dest.sin_zero), '\0', 8);
+        bip_decode_bip_address(&dest->mac[0], &address, &port);
         mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
     } else {
         /* invalid address */
         return -1;
     }
-
+    bip_dest.sin_addr.s_addr = htonl(address.s_addr);
+    bip_dest.sin_port = htons(port);
+    memset(&(bip_dest.sin_zero), '\0', 8);
     mtu_len = 2;
     mtu_len +=
         encode_unsigned16(&mtu[mtu_len],
@@ -237,11 +256,10 @@ uint16_t bip_receive(
             fprintf(stderr,"BIP: src is me. Discarded!\n");
 #endif
         } else {
-            /* copy the source address
-               FIXME: IPv6? */
+            /* copy the source address - into host format */
             src->mac_len = 6;
-            (void) encode_unsigned32(&src->mac[0], sin.sin_addr.s_addr);
-            (void) encode_unsigned16(&src->mac[4], sin.sin_port);
+            (void) encode_unsigned32(&src->mac[0], htonl(sin.sin_addr.s_addr));
+            (void) encode_unsigned16(&src->mac[4], htons(sin.sin_port));
             /* FIXME: check destination address */
             /* see if it is broadcast or for us */
             /* decode the length of the PDU - length is inclusive of BVLC */

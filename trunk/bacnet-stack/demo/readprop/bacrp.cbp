@@ -14,9 +14,6 @@
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
-				<Linker>
-					<Add library="ws2_32" />
-				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin\Release\bacrp" prefix_auto="1" extension_auto="1" />
@@ -43,6 +40,7 @@
 		</Compiler>
 		<Linker>
 			<Add library="..\..\lib\libbacnet.a" />
+			<Add library="ws2_32" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />

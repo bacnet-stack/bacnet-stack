@@ -110,6 +110,14 @@ extern "C" {
     uint32_t bip_get_broadcast_addr(
         void);
 
+    /* gets an IP address by name, where name can be a
+       string that is an IP address in dotted form, or
+       a name that is a domain name
+       returns 0 if not found, or
+       an IP address in network byte order */
+    long bip_getaddrbyname(const char *host_name);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

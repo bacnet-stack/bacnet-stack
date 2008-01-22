@@ -68,9 +68,7 @@
 
 #elif defined(BACDL_BIP)
 #include "bip.h"
-#ifdef BBMD_ENABLED
 #include "bvlc.h"
-#endif
 
 #define datalink_init bip_init
 #ifdef BBMD_ENABLED
