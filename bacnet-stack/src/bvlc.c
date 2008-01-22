@@ -760,10 +760,18 @@ void bvlc_register_with_bbmd(
 
     dest.sin_addr.s_addr = bbmd_address;
     dest.sin_port = htons(bbmd_port);
+    /* In order for their broadcasts to get here,
+       we need to register our address with the remote BBMD using
+       Write Broadcast Distribution Table, or
+       register with the BBMD as a Foreign Device */
     mtu_len = bvlc_encode_register_foreign_device(
         &mtu[0],
         time_to_live_seconds);
     bvlc_send_mpdu(&dest, &mtu[0], mtu_len);
+    /* In order for our broadcasts to get there,
+       we have to put this BBMD into my BBMD table
+       or register it as a foreign device in my FDT. */
+    bvlc_register_foreign_device(&dest, time_to_live_seconds);
 }
 
 void bvlc_send_result(
