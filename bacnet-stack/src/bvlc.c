@@ -964,7 +964,7 @@ uint16_t bvlc_receive(
             bvlc_decode_bip_address(&npdu[4],
                 &original_sin.sin_addr,
                 &original_sin.sin_port);
-            npdu_len =- 6;
+            npdu_len -= 6;
             /*  Broadcast it if this was received via unicast */
             if (bvlc_address_same(&sin)) {
                 dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
