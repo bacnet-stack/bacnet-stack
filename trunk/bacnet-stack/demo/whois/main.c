@@ -228,8 +228,8 @@ int main(
         if (bbmd_address) {
             struct in_addr addr;
             addr.s_addr = bbmd_address;
-            printf("WhoIs: Registering with BBMD at %s:%ld\n",
-                inet_ntoa(addr),bbmd_port);
+            printf("WhoIs: Registering with BBMD at %s:%ld for %ld seconds\n",
+                inet_ntoa(addr),bbmd_port, bbmd_timetolive_seconds);
             bvlc_register_with_bbmd(
                 bbmd_address,
                 bbmd_port,
