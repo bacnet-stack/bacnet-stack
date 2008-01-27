@@ -15,14 +15,14 @@ PRODUCT = rx_fsm
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-DEFINES = -DBACDL_MSTP
+DEFINES = -DBACDL_MSTP -DBACAPP_ALL -DPRINT_ENABLED=1 -DPRINT_ENABLED_RECEIVE_DATA=1
 
 SRCS = rs485.c \
 	rx_fsm.c \
-	..\..\mstp.c \
-	..\..\mstptext.c \
-	..\..\indtext.c \
-	..\..\crc.c
+	..\..\src\mstp.c \
+	..\..\src\mstptext.c \
+	..\..\src\indtext.c \
+	..\..\src\crc.c
 
 OBJS = $(SRCS:.c=.obj)
 
@@ -38,7 +38,7 @@ TLIB = $(BORLAND_DIR)\bin\tlib
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-BACNET_INCL = ..\..\;..\..\demo\handler\;..\..\demo\object\;.
+BACNET_INCL = ..\..\include;.
 INCL_DIRS = -I$(BORLAND_DIR)\include;$(BACNET_INCL)
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)

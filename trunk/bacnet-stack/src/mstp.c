@@ -56,43 +56,20 @@
 #include "mstptext.h"
 #endif
 
-/* debug print statements */
-#if PRINT_ENABLED
+#if !defined(PRINT_ENABLED_RECEIVE)
 #define PRINT_ENABLED_RECEIVE 0
-#define PRINT_ENABLED_RECEIVE_DATA 0
-#define PRINT_ENABLED_RECEIVE_ERRORS 1
-#define PRINT_ENABLED_MASTER 0
-#else
-#define PRINT_ENABLED_RECEIVE 0
-#define PRINT_ENABLED_RECEIVE_DATA 0
-#define PRINT_ENABLED_MASTER 0
 #endif
 
-#if PRINT_ENABLED
-#define PRINT_DEBUG(x) \
-    fprintf(stderr,x)
-#define PRINT_DEBUG1(fmt,v1) \
-    fprintf(stderr,fmt,v1)
-#define PRINT_DEBUG2(fmt,v1,v2) \
-    fprintf(stderr,fmt,v1,v2)
-#define PRINT_DEBUG3(fmt,v1,v2,v3) \
-    fprintf(stderr,fmt,v1,v2,v3)
-#define PRINT_DEBUG4(fmt,v1,v2,v3,v4) \
-    fprintf(stderr,fmt,v1,v2,v3,v4)
-#define PRINT_DEBUG5(fmt,v1,v2,v3,v4,v5) \
-    fprintf(stderr,fmt,v1,v2,v3,v4,v5)
-#define PRINT_DEBUG6(fmt,v1,v2,v3,v4,v5,v6) \
-    fprintf(stderr,fmt,v1,v2,v3,v4,v5,v6)
-#define PRINT_DEBUG7(fmt,v1,v2,v3,v4,v5,v6,v7) \
-    fprintf(stderr,fmt,v1,v2,v3,v4,v5,v6,v7)
-#else
-#define PRINT_DEBUG(x)
-#define PRINT_DEBUG1(fmt,v1)
-#define PRINT_DEBUG2(fmt,v1,v2)
-#define PRINT_DEBUG3(fmt,v1,v2,v3)
-#define PRINT_DEBUG4(fmt,v1,v2,v3,v4)
-#define PRINT_DEBUG5(fmt,v1,v2,v3,v4,v5)
-#define PRINT_DEBUG6(fmt,v1,v2,v3,v4,v5,v6)
+#if !defined(PRINT_ENABLED_RECEIVE_DATA)
+#define PRINT_ENABLED_RECEIVE_DATA 0
+#endif
+
+#if !defined(PRINT_ENABLED_RECEIVE_ERRORS)
+#define PRINT_ENABLED_RECEIVE_ERRORS 0
+#endif
+
+#if !defined(PRINT_ENABLED_MASTER)
+#define PRINT_ENABLED_MASTER 0
 #endif
 
 /* MS/TP Frame Format */

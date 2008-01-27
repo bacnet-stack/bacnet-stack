@@ -155,7 +155,8 @@ int main(
     int rc = 0;
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
-    int my_mac = 127;
+    long my_mac = 127;
+    long my_baud = 38400;
 
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
@@ -164,13 +165,16 @@ int main(
         Network_Interface = argv[1];
     }
     if (argc > 2) {
-        my_mac = strtol(argv[2], NULL, 0);
+        my_baud = strtol(argv[2], NULL, 0);
+    }
+    if (argc > 3) {
+        my_mac = strtol(argv[3], NULL, 0);
         if (my_mac > 127)
             my_mac = 127;
     }
     /* initialize our interface */
     RS485_Set_Interface(Network_Interface);
-    RS485_Set_Baud_Rate(38400);
+    RS485_Set_Baud_Rate(my_baud);
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
