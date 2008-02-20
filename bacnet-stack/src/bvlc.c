@@ -35,6 +35,7 @@
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
 #include <time.h>       /* for the standard bool type. */
+#include "bacenum.h"
 #include "bacdcode.h"
 #include "bacint.h"
 #include "bvlc.h"
@@ -89,6 +90,7 @@ BACNET_BVLC_RESULT BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
    remote BBMD address/port here in network byte order */
 static struct sockaddr_in Remote_BBMD;
 
+#if defined(BBMD_ENABLED) && BBMD_ENABLED
 void bvlc_maintenance_timer(
     unsigned seconds)
 {
@@ -109,6 +111,7 @@ void bvlc_maintenance_timer(
         }
     }
 }
+#endif
 
 /* Addressing within B/IP Networks
    In the case of B/IP networks, six octets consisting of the four-octet
