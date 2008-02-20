@@ -38,13 +38,15 @@
 #include "npdu.h"
 #include "apdu.h"
 #include "device.h"
-#include "net.h"
 #include "datalink.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
 #include "client.h"
 #include "txbuf.h"
+#if defined(BACDL_MSTP)
+#include "rs485.h"
+#endif
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -297,7 +299,9 @@ int main(
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {
+#if defined(BACDL_BIP) && BBMD_ENABLED
             bvlc_maintenance_timer(elapsed_seconds);
+#endif
         }
         total_seconds += elapsed_seconds;
         if (total_seconds > timeout_seconds)
