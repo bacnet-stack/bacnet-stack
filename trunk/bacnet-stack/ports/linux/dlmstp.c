@@ -149,7 +149,7 @@ uint16_t dlmstp_receive(
     int max = 0;
 
     /* Make sure the socket is open */
-    if (Receive_Client_SockFD <= 0)
+    if (Receive_Client_SockFD < 0)
         return 0;
 
     if (timeout >= 1000) {
@@ -303,7 +303,7 @@ int dlmstp_get_transmit_packet(
     int max = 0;
 
     /* Make sure the socket is open */
-    if (Transmit_Client_SockFD <= 0)
+    if (Transmit_Client_SockFD < 0)
         return 0;
 
     if (timeout >= 1000) {
@@ -672,6 +672,7 @@ static int create_named_server_socket(
     }
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &sock, sizeof(sock));
     /* Bind a name to the socket. */
+    bzero((char *)&name, sizeof(name));
     name.sun_family = AF_LOCAL;
     strncpy(name.sun_path, filename, sizeof(name.sun_path));
     /* The size of the address is
@@ -710,6 +711,8 @@ static int connect_named_server_socket(
 #endif
         exit(EXIT_FAILURE);
     }
+    bzero((char *)&name, sizeof(name));
+    name.sun_family = AF_LOCAL;
     strncpy(name.sun_path, filename, sizeof(name.sun_path));
     /* The size of the address is
        the offset of the start of the filename,
