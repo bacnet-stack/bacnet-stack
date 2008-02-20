@@ -123,6 +123,7 @@ static void Init_DataLink(void)
     } else {
         bip_set_port(0xBAC0);
     }
+    BIP_Debug = true;
 #elif defined(BACDL_MSTP)
     pEnv = getenv("BACNET_MAX_INFO_FRAMES");
     if (pEnv) {
@@ -203,7 +204,6 @@ int main(
             "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
             Device_Object_Instance_Number(), MAX_APDU);
         Init_Service_Handlers();
-        BIP_Debug = true;
         Init_DataLink();
         atexit(cleanup);
         /* configure the timeout values */
@@ -227,7 +227,9 @@ int main(
             if (elapsed_seconds) {
                 last_seconds = current_seconds;
                 dcc_timer_seconds(elapsed_seconds);
+#if defined(BACDL_BIP) && BBMD_ENABLED
                 bvlc_maintenance_timer(elapsed_seconds);
+#endif
                 Load_Control_State_Machine_Handler();
                 elapsed_milliseconds = elapsed_seconds * 1000;
                 handler_cov_task(elapsed_seconds);
