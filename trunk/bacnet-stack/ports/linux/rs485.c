@@ -226,6 +226,7 @@ void RS485_Initialize(
 {
     struct termios newtio;
 
+    printf("RS485: Initializing %s", RS485_Port_Name);
     /*
        Open device for reading and writing.
      */
@@ -264,6 +265,7 @@ void RS485_Initialize(
     tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
     /* destructor */
     atexit(RS485_Cleanup);
+    printf("=success!\n");
 }
 
 #ifdef TEST_RS485
