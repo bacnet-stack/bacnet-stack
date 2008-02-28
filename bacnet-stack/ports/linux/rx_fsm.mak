@@ -1,17 +1,18 @@
 #Makefile to build test case
 CC      = gcc
-BASEDIR = .
+SRCDIR = ../../src
+INCDIR = ../../include
 # -g for debugging with gdb
 DEFINES = -DBIG_ENDIAN=0 -DBACDL_MSTP=1
-INCLUDES = -I. -I../../ 
+INCLUDES = -I. -I$(INCDIR)
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = rs485.c \
 	rx_fsm.c \
-	../../mstp.c \
-	../../mstptext.c \
-	../../indtext.c \
-	../../crc.c
+	$(SRCDIR)/mstp.c \
+	$(SRCDIR)/mstptext.c \
+	$(SRCDIR)/indtext.c \
+	$(SRCDIR)/crc.c
 
 OBJS = ${SRCS:.c=.o}
 
