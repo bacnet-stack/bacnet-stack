@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "config.h"
 #include "bacaddr.h"
 #include "address.h"
@@ -69,6 +70,80 @@ void address_remove_device(
     return;
 }
 
+/* File format:
+DeviceID MAC SNET SADR MAX-APDU
+4194303 05 0 0 50
+55555 C0:A8:00:18:BA:C0 26001 19 50
+note: useful for MS/TP Slave static binding
+*/
+static const char *Address_Cache_Filename = "address_cache";
+
+void address_file_init(
+    const char *pFilename)
+{
+    FILE *pFile = NULL; /* stream pointer */
+    char line[256] = {""}; /* holds line from file */
+    long device_id = 0;
+    int snet = 0;
+    int max_apdu = 0;
+    unsigned mac[6];
+    int count = 0;
+    char mac_string[80], sadr_string[80];
+    BACNET_ADDRESS src;
+    int index = 0;
+
+    pFile = fopen(pFilename,"r");
+    if (pFile) {
+        while (fgets(line, sizeof(line), pFile) != NULL) {
+            /* ignore comments */
+            if (line[0] != ';') {
+                if (sscanf(line,
+                    "%ld %s %d %s %d",
+                    &device_id,
+                    &mac_string[0],
+                    &snet,
+                    &sadr_string[0],
+                    &max_apdu) == 5) {
+                    count = sscanf(mac_string,"%x:%x:%x:%x:%x:%x",
+                        &mac[0],
+                        &mac[1],
+                        &mac[2],
+                        &mac[3],
+                        &mac[4],
+                        &mac[5]);
+                    src.mac_len = count;
+                    for (index = 0; index < MAX_MAC_LEN; index++) {
+                        src.mac[index] = mac[index];
+                    }
+                    src.net = snet;
+                    if (snet) {
+                        count = sscanf(sadr_string,"%x:%x:%x:%x:%x:%x",
+                            &mac[0],
+                            &mac[1],
+                            &mac[2],
+                            &mac[3],
+                            &mac[4],
+                            &mac[5]);
+                        src.len = count;
+                        for (index = 0; index < MAX_MAC_LEN; index++) {
+                            src.adr[index] = mac[index];
+                        }
+                    } else {
+                        src.len = 0;
+                        for (index = 0; index < MAX_MAC_LEN; index++) {
+                            src.adr[index] = 0;
+                        }
+                    }
+                    address_add(device_id, max_apdu, &src);
+                }
+            }
+        }
+        fclose(pFile);
+    }
+
+    return;
+}
+
 void address_init(
     void)
 {
@@ -78,6 +153,7 @@ void address_init(
         Address_Cache[i].valid = false;
         Address_Cache[i].bind_request = false;
     }
+    address_file_init(Address_Cache_Filename);
 
     return;
 }
@@ -291,6 +367,88 @@ static void set_address(
     }
 }
 
+static void set_file_address(
+    const char *pFilename,
+    uint32_t device_id,
+    BACNET_ADDRESS * dest,
+    uint16_t max_apdu)
+{
+    unsigned i;
+    FILE * pFile = NULL;
+
+    pFile = fopen(pFilename,"w");
+
+    if (pFile) {
+        fprintf(pFile, "%lu ", (long unsigned int)device_id);
+        for (i = 0; i < dest->mac_len; i++) {
+            fprintf(pFile, "%02x", dest->mac[i]);
+            if ((i+1) < dest->mac_len) {
+                fprintf(pFile, ":");
+            }
+        }
+        fprintf(pFile, " %hu ", dest->net);
+        if (dest->net) {
+            for (i = 0; i < dest->len; i++) {
+                fprintf(pFile, "%02x", dest->adr[i]);
+                if ((i+1) < dest->len) {
+                    fprintf(pFile, ":");
+                }
+            }
+        } else {
+            fprintf(pFile, "0");
+        }
+        fprintf(pFile, " %hu\n", max_apdu);
+        fclose(pFile);
+    }
+}
+
+void testAddressFile(
+    Test * pTest)
+{
+    BACNET_ADDRESS src = {0};
+    uint32_t device_id = 0;
+    unsigned max_apdu = 480;
+    BACNET_ADDRESS test_address;
+    unsigned test_max_apdu = 0;
+
+    /* create a fake address */
+    device_id = 55555;
+    src.mac_len = 1;
+    src.mac[0] = 25;
+    src.net = 0;
+    src.adr[0] = 0;
+    max_apdu = 50;
+    set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
+
+    address_file_init(Address_Cache_Filename);
+    ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
+                &test_address));
+    ct_test(pTest, test_max_apdu == max_apdu);
+    ct_test(pTest, bacnet_address_same(&test_address, &src));
+
+    /* create a fake address */
+    device_id = 55555;
+    src.mac_len = 6;
+    src.mac[0] = 0xC0;
+    src.mac[1] = 0xA8;
+    src.mac[2] = 0x00;
+    src.mac[3] = 0x18;
+    src.mac[4] = 0xBA;
+    src.mac[5] = 0xC0;
+    src.net = 26001;
+    src.len = 1;
+    src.adr[0] = 25;
+    max_apdu = 50;
+    set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
+
+    address_file_init(Address_Cache_Filename);
+    ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
+                &test_address));
+    ct_test(pTest, test_max_apdu == max_apdu);
+    ct_test(pTest, bacnet_address_same(&test_address, &src));
+
+}
+
 void testAddress(
     Test * pTest)
 {
@@ -351,6 +509,9 @@ int main(
     /* individual tests */
     rc = ct_addTestFunction(pTest, testAddress);
     assert(rc);
+    rc = ct_addTestFunction(pTest, testAddressFile);
+    assert(rc);
+
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
