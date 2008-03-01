@@ -59,6 +59,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/tsm.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/address.c \
+	$(BACNET_CORE)/addrfile.c \
 	$(BACNET_CORE)/version.c
 
 HANDLER_SRC = \

@@ -278,6 +278,7 @@ int main(
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
+    address_init();
     Init_DataLink();
     /* configure the timeout values */
     last_seconds = time(NULL);

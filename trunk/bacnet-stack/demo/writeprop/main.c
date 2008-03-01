@@ -395,7 +395,14 @@ int main(
     timeout_seconds =
         (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
-    Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
+    found =
+        address_bind_request(Target_Device_Object_Instance, &max_apdu,
+        &Target_Address);
+    if (!found) {
+        Send_WhoIs(
+            Target_Device_Object_Instance, 
+            Target_Device_Object_Instance);
+    }
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
