@@ -404,39 +404,6 @@ void Keylist_Delete(
 
 #include "ctest.h"
 
-/* test the encode and decode macros */
-void testKeySample(
-    Test * pTest)
-{
-    int type, id;
-    int type_list[] =
-        { 0, 1, KEY_TYPE_MAX / 2, KEY_TYPE_MAX - 2, KEY_TYPE_MAX - 1, -1 };
-    int id_list[] =
-        { 0, 1, KEY_ID_MAX / 2, KEY_ID_MAX - 2, KEY_ID_MAX - 1, -1 };
-    int type_index = 0;
-    int id_index = 0;
-    int decoded_type, decoded_id;
-    KEY key;
-
-    while (type_list[type_index] != -1) {
-        while (id_list[id_index] != -1) {
-            type = type_list[type_index];
-            id = id_list[id_index];
-            key = KEY_ENCODE(type, id);
-            decoded_type = KEY_DECODE_TYPE(key);
-            decoded_id = KEY_DECODE_ID(key);
-            ct_test(pTest, decoded_type == type);
-            ct_test(pTest, decoded_id == id);
-
-            id_index++;
-        }
-        id_index = 0;
-        type_index++;
-    }
-
-    return;
-}
-
 /* test the FIFO */
 void testKeyListFIFO(
     Test * pTest)
@@ -728,8 +695,6 @@ int main(
     rc = ct_addTestFunction(pTest, testKeyListFILO);
     assert(rc);
     rc = ct_addTestFunction(pTest, testKeyListDataKey);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, testKeySample);
     assert(rc);
     rc = ct_addTestFunction(pTest, testKeyListDataIndex);
     assert(rc);

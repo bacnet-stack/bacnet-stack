@@ -54,17 +54,29 @@
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
-/* global variables used in this file */
+/* target information converted from command line */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
-static bool Error_Detected = false;
 static BACNET_ADDRESS Target_Address;
-
+/* any errors are picked up in main loop */
+static bool Error_Detected = false;
+/* any valid data returned is put here */
 typedef struct BACnet_RP_Service_Data_t {
     bool new_data;
     BACNET_CONFIRMED_SERVICE_ACK_DATA service_data;
     BACNET_READ_PROPERTY_DATA data;
 } BACNET_RP_SERVICE_DATA;
 static BACNET_RP_SERVICE_DATA Read_Property_Data;
+/* We get the length of the object list,
+   and then get the objects one at a time */
+static uint32_t Object_List_Length = 0;
+static uint32_t Object_List_Index = 0;
+/* object that we are currently printing */
+static OS_Keylist Object_List;
+static BACNET_OBJECT_ID Object_List_Element;
+
+#if !defined(PRINT_ERRORS)
+#define PRINT_ERRORS 1
+#endif
 
 /* FIXME: keep the object list in here */
 /* static OS_Keylist Object_List; */
@@ -78,7 +90,7 @@ static void MyErrorHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-#if 1
+#if PRINT_ERRORS
     printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
 #else
@@ -98,7 +110,7 @@ void MyAbortHandler(
     (void) src;
     (void) invoke_id;
     (void) server;
-#if 1
+#if PRINT_ERRORS
     printf("BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
 #else
     (void) abort_reason;
@@ -114,7 +126,7 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-#if 1
+#if PRINT_ERRORS
     printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
 #else
     (void) reject_reason;
@@ -131,6 +143,7 @@ void PrintReadPropertyData(
     int application_data_len;
     bool first_value = true;
     bool print_brace = false;
+    KEY object_list_element;
 
     if (data) {
 #if 0
@@ -158,7 +171,35 @@ void PrintReadPropertyData(
                 fprintf(stdout, "{");
                 print_brace = true;
             }
-            bacapp_print_value(stdout, &value, data->object_property);
+            /* Grab the value of the Device Object List length - don't print it! */
+            if (data->object_property == PROP_OBJECT_LIST) {
+                if ((data->array_index == 0) &&
+                    (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+                    Object_List_Length = value.type.Unsigned_Int;
+                    fprintf(stdout, "{");
+                } else {
+                    if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
+                        /* FIXME: store the object list so we can interrogate
+                           each object. */
+                        object_list_element =
+                            KEY_ENCODE(value.type.Object_Id.type,
+                            value.type.Object_Id.instance);
+
+                    }
+                    bacapp_print_value(stdout, &value, data->object_property);
+                    if (Object_List_Index <= Object_List_Length) {
+                        fprintf(stdout, ",");
+                        if (!(Object_List_Index%4)) {
+                            fprintf(stdout, "\r\n        ");
+                        }
+                    } else {
+                        fprintf(stdout, "}");
+                        fprintf(stdout, "\r\n");
+                    }
+                }
+            } else {
+                bacapp_print_value(stdout, &value, data->object_property);
+            }
             if (len) {
                 if (len < application_data_len) {
                     application_data += len;
@@ -172,7 +213,9 @@ void PrintReadPropertyData(
         }
         if (print_brace)
             fprintf(stdout, "}");
-        fprintf(stdout, "\r\n");
+        if (data->object_property != PROP_OBJECT_LIST) {
+            fprintf(stdout, "\r\n");
+        }
     }
 }
 
@@ -232,12 +275,35 @@ static uint8_t Read_Properties(
     }
 
     if (pRequired[index] != -1) {
-        printf("    %s: ", bactext_property_name(pRequired[index]));
-        invoke_id =
-            Send_Read_Property_Request(device_instance, OBJECT_DEVICE,
-            device_instance, pRequired[index], BACNET_ARRAY_ALL);
-        if (invoke_id) {
-            index++;
+        if (pRequired[index] == PROP_OBJECT_LIST) {
+            if (Object_List_Length == 0) {
+                printf("    %s: ", bactext_property_name(pRequired[index]));
+                invoke_id =
+                    Send_Read_Property_Request(device_instance, OBJECT_DEVICE,
+                    device_instance, PROP_OBJECT_LIST, 0);
+                if (invoke_id) {
+                    Object_List_Index = 1;
+                }
+            } else {
+                invoke_id =
+                    Send_Read_Property_Request(device_instance, OBJECT_DEVICE,
+                    device_instance, PROP_OBJECT_LIST, Object_List_Index);
+                if (invoke_id) {
+                    Object_List_Index++;
+                    if (Object_List_Index > Object_List_Length) {
+                        /* go on to next property */
+                        index++;
+                    }
+                }
+            }
+        } else {
+            printf("    %s: ", bactext_property_name(pRequired[index]));
+            invoke_id =
+                Send_Read_Property_Request(device_instance, OBJECT_DEVICE,
+                    device_instance, pRequired[index], BACNET_ARRAY_ALL);
+            if (invoke_id) {
+                index++;
+            }
         }
     }
 
@@ -261,7 +327,7 @@ static void Init_DataLink(void)
         datalink_set(NULL);
     }
 #endif
-    
+
 #if defined(BACDL_BIP)
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
@@ -362,6 +428,7 @@ int main(
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+    Object_List = Keylist_Create();
     address_init();
     Init_Service_Handlers();
     Init_DataLink();

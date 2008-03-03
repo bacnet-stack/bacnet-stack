@@ -12,6 +12,7 @@ BACNET_DEFINES = -DBACFILE=1 -DPRINT_ENABLED=1 -DBACAPP_ALL
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
 # Directories
+BACNET_SOURCE = ../../src
 BACNET_PORT = ../../ports/linux
 BACNET_INCLUDE = ../../include
 # BACnet Library
@@ -24,7 +25,9 @@ LIBRARIES=-lc,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 CFLAGS = -Wall -g $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
-SRCS = main.c
+SRCS = main.c \
+	$(BACNET_SOURCE)/keylist.c \
+	$(BACNET_SOURCE)/key.c
 
 OBJS = ${SRCS:.c=.o}
 

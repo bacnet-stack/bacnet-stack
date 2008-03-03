@@ -24,6 +24,7 @@ BACNET_LIB_DIR = ..\..\lib
 BACNET_LIB = $(BACNET_LIB_DIR)\bacnet.lib
 
 # directories
+BACNET_SOURCE = ..\..\src
 BACNET_PORT = ..\..\ports\win32
 BACNET_INCLUDE = ..\..\include
 INCLUDES = \ 
@@ -37,7 +38,9 @@ BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACAPP_ALL
 BACDL_DEFINE=-DBACDL_BIP=1
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
-SRCS = main.c
+SRCS = main.c \
+    $(BACNET_SOURCE)\keylist.c \
+    $(BACNET_SOURCE)\key.c
 
 OBJS = $(SRCS:.c=.obj)
 
