@@ -29,6 +29,8 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 
+#include <windows.h>
+#include <Iphlpapi.h>
 #include <winsock2.h>
 
 #define close closesocket

@@ -10,7 +10,7 @@
 #define BACDL_BIP
 #endif
 
-/* optional debug info for BACnet/IP datalink layers */
+/* optional configuration for BACnet/IP datalink layers */
 #if (defined(BACDL_BIP) || defined(BACDL_ALL))
 #if !defined(USE_INADDR)
 #define USE_INADDR 1
