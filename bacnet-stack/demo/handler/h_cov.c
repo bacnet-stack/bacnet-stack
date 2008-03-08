@@ -103,6 +103,8 @@ static int cov_encode_subscription(
     int apdu_len = 0;
     BACNET_OCTET_STRING octet_string;
 
+    /* FIXME: unused parameter */
+    max_apdu = max_apdu;
     /* Recipient [0] BACnetRecipientProcess - opening */
     len = encode_opening_tag(&apdu[apdu_len], 0);
     apdu_len += len;
@@ -385,7 +387,7 @@ void handler_cov_task(
     uint32_t elapsed_seconds)
 {
     int index;
-    int lifetime_seconds;
+    uint32_t lifetime_seconds;
     BACNET_OBJECT_ID object_id;
     bool status = false;
 

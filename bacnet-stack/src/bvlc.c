@@ -92,7 +92,7 @@ static struct sockaddr_in Remote_BBMD;
 
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 void bvlc_maintenance_timer(
-    unsigned seconds)
+    time_t seconds)
 {
     unsigned i = 0;
 
@@ -711,6 +711,9 @@ void bvlc_broadcast_forward_npdu(
     int mtu_len = 0;
     struct sockaddr_in bvlc_dest;
 
+    /* FIXME: unused parameter */
+    sin = sin;
+    /* load the buffer for transmit */
     mtu[0] = BVLL_TYPE_BACNET_IP;
     mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     bvlc_dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
@@ -841,7 +844,7 @@ uint16_t bvlc_receive(
     int function_type = 0;
     int received_bytes = 0;
     uint16_t result_code = 0;
-    unsigned i = 0;
+    uint16_t i = 0;
     bool status = false;
     uint16_t time_to_live = 0;
 
