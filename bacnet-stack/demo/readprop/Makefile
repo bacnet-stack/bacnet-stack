@@ -13,15 +13,22 @@ BACNET_DEFINES = -DBACFILE=1 -DPRINT_ENABLED=1 -DBACAPP_ALL
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
 # Directories
-BACNET_PORT = ../../ports/linux
+BACNET_PORT = linux
+BACNET_PORT_DIR = ../../ports/${BACNET_PORT}
 BACNET_INCLUDE = ../../include
 # BACnet Library
 BACNET_LIB_DIR = ../../lib
 BACNET_LIB_NAME = bacnet
 BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 # Compiler Setup
-INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT)
+INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR)
+ifeq (${BACNET_PORT},linux)
+PFLAGS = -pthread
 LIBRARIES=-lc,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+endif
+ifeq (${BACNET_PORT},win32)
+LIBRARIES=-lws2_32,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+endif
 CFLAGS = -Wall -g $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
@@ -33,7 +40,7 @@ all: ${BACNET_LIB_TARGET} Makefile ${TARGET}
 	size ${TARGET}
 
 ${TARGET}: ${OBJS} Makefile
-	${CC} -pthread  ${OBJS} ${LFLAGS} -o $@
+	${CC} ${PFLAGS}  ${OBJS} ${LFLAGS} -o $@
 
 lib: ${BACNET_LIB_TARGET}
 

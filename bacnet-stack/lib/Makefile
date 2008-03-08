@@ -16,14 +16,16 @@ BACNET_DEFINES=-DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
 BACDL_DEFINE=-DBACDL_BIP=1
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 # directories
-BACNET_PORT = ../ports/linux
+BACNET_PORT = linux
+BACNET_PORT_DIR = ../ports/${BACNET_PORT}
+
 BACNET_OBJECT = ../demo/object
 BACNET_HANDLER = ../demo/handler
 BACNET_CORE = ../src
 BACNET_INCLUDE = ../include
 # compiler configuration
 #STANDARDS = -std=c99
-INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER) 
+INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER) 
 CFLAGS  = -Wall -g $(STANDARDS) $(INCLUDES) $(DEFINES)
 
 CORE_SRC = \
@@ -103,16 +105,49 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/mso.c \
 	$(BACNET_OBJECT)/bacfile.c
 
-PORT_SRC = \
-	$(BACNET_PORT)/bip-init.c \
-	$(BACNET_PORT)/ethernet.c \
-	$(BACNET_PORT)/arcnet.c \
-	$(BACNET_PORT)/dlmstp.c \
-	$(BACNET_PORT)/rs485.c \
+PORT_ARCNET_SRC = \
+	$(BACNET_PORT_DIR)/arcnet.c
+
+PORT_MSTP_SRC = \
+	$(BACNET_PORT_DIR)/dlmstp.c \
+	$(BACNET_PORT_DIR)/rs485.c \
 	$(BACNET_CORE)/mstp.c \
 	$(BACNET_CORE)/crc.c \
+
+PORT_ETHERNET_SRC = \
+	$(BACNET_PORT_DIR)/ethernet.c
+
+PORT_BIP_SRC = \
+	$(BACNET_PORT_DIR)/bip-init.c \
 	$(BACNET_CORE)/bvlc.c \
 	$(BACNET_CORE)/bip.c
+
+PORT_ALL_SRC = \
+	$(BACNET_PORT_DIR)/arcnet.c \
+	$(BACNET_PORT_DIR)/dlmstp.c \
+	$(BACNET_PORT_DIR)/rs485.c \
+	$(BACNET_CORE)/mstp.c \
+	$(BACNET_CORE)/crc.c \
+	$(BACNET_PORT_DIR)/ethernet.c \
+	$(BACNET_PORT_DIR)/bip-init.c \
+	$(BACNET_CORE)/bvlc.c \
+	$(BACNET_CORE)/bip.c
+
+ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
+PORT_SRC = ${PORT_BIP_SRC}
+endif
+ifdef BACDL_MSTP
+PORT_SRC = ${PORT_MSTP_SRC}
+endif
+ifdef BACDL_ARCNET
+PORT_SRC = ${PORT_ARCNET_SRC}
+endif
+ifdef BACDL_ETHERNET
+PORT_SRC = ${PORT_ETHERNET_SRC}
+endif
+ifdef BACDL_ALL
+PORT_SRC = ${PORT_ALL_SRC}
+endif
 
 SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC}
 

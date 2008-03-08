@@ -12,7 +12,8 @@ BACNET_DEFINES = -DBACFILE=1 -DPRINT_ENABLED=1 -DBACAPP_ALL
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
 # Directories
-BACNET_PORT = ../../ports/linux
+BACNET_PORT = linux
+BACNET_PORT_DIR = ../../ports/${BACNET_PORT}
 BACNET_INCLUDE = ../../include
 # BACnet Library
 BACNET_LIB_DIR = ../../lib
