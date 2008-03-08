@@ -206,7 +206,7 @@ uint16_t bip_receive(
     struct timeval select_timeout;
     struct sockaddr_in sin = { -1 };
     socklen_t sin_len = sizeof(sin);
-    unsigned i = 0;
+    uint16_t i = 0;
 
     /* Make sure the socket is open */
     if (BIP_Socket < 0)
@@ -250,7 +250,7 @@ uint16_t bip_receive(
         (pdu[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
         if ((sin.sin_addr.s_addr == htonl(BIP_Address.s_addr)) &&
-            (sin.sin_port == htonl(BIP_Port))) {
+            (sin.sin_port == htons(BIP_Port))) {
             pdu_len = 0;
 #if PRINT_ENABLED
             fprintf(stderr,"BIP: src is me. Discarded!\n");

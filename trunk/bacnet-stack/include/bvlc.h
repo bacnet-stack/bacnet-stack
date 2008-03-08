@@ -47,7 +47,7 @@ extern "C" {
 
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
     void bvlc_maintenance_timer(
-        unsigned seconds);
+        time_t seconds);
 #else
 #define bvlc_maintenance_timer(x)
 #endif
