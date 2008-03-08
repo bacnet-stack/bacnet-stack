@@ -1,6 +1,7 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
  Copyright (C) 2005 Steve Karg
+ Contributions by Thomas Neumann in 2008.
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -37,6 +38,7 @@
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
 #include "bacdcode.h"
+#include "config.h"
 #include "bip.h"
 #include "net.h"
 
@@ -80,15 +82,61 @@ static long gethostaddr(
     return *(long *) host_ent->h_addr;
 }
 
-static void set_broadcast_address(
-    uint32_t net_address)
+#if !defined(USE_INADDR) && !defined(USE_CLASSADDR)
+static uint32_t getIpMaskForIpAddress( uint32_t ipAddress )
+{
+    /* Allocate information for up to 16 NICs */
+    IP_ADAPTER_INFO AdapterInfo[16]; 
+    /* Save memory size of buffer */
+    DWORD dwBufLen = sizeof(AdapterInfo); 
+    uint32_t ipMask = INADDR_BROADCAST;
+    
+    PIP_ADAPTER_INFO pAdapterInfo;
+    
+    /* GetAdapterInfo:
+     [out] buffer to receive data
+     [in] size of receive data buffer */
+    DWORD dwStatus = GetAdaptersInfo(  
+            AdapterInfo,               
+            &dwBufLen);                
+    if( dwStatus == ERROR_SUCCESS ) { 
+        /* Verify return value is valid, no buffer overflow
+           Contains pointer to current adapter info */
+        pAdapterInfo = AdapterInfo;    
+                                       
+        do {
+            IP_ADDR_STRING*  pIpAddressInfo = &pAdapterInfo->IpAddressList; 
+            do { 
+                unsigned long adapterAddress = inet_addr(pIpAddressInfo->IpAddress.String);
+                unsigned long adapterMask = inet_addr(pIpAddressInfo->IpMask.String);
+                if( adapterAddress == ipAddress ) { 
+                    ipMask = adapterMask; 
+                    break;
+                }
+                pIpAddressInfo = pIpAddressInfo->Next;
+            }
+            while(pIpAddressInfo);
+            if( ipMask != 0L ) {
+                break;
+            }
+            /* Progress through linked list */
+            pAdapterInfo = pAdapterInfo->Next;
+            /* Terminate on last adapter */            
+        } while(pAdapterInfo);
+    }
+    
+    return ipMask;
+}
+#endif
+
+static void set_broadcast_address(uint32_t net_address)
 {
 #if USE_INADDR
     /*   Note: sometimes INADDR_BROADCAST does not let me get
        any unicast messages.  Not sure why... */
     (void) net_address;
     bip_set_broadcast_addr(INADDR_BROADCAST);
-#else
+#elif USE_CLASSADDR
     long broadcast_address = 0;
 
     if (IN_CLASSA(ntohl(net_address)))
@@ -104,7 +152,16 @@ static void set_broadcast_address(
         broadcast_address =
             (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
     else
-        broadcast_address = INADDR_BROADCAST;
+        broadcast_address = INADDR_BROADCAST; 
+    bip_set_broadcast_addr(htonl(broadcast_address));
+#else
+    long broadcast_address = 0;
+    long mask = 0;
+
+    mask = getIpMaskForIpAddress( net_address );
+    
+    broadcast_address = (ntohl(net_address) & ~mask) | mask;
+   
     bip_set_broadcast_addr(htonl(broadcast_address));
 #endif
 }
