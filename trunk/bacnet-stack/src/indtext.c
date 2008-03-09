@@ -163,7 +163,7 @@ const char *indtext_by_index_split_default(
             before_split_default_name);
     else
         return indtext_by_index_default(data_list, index, default_name);
-};
+}
 
 
 const char *indtext_by_index(
