@@ -819,7 +819,9 @@ bool MSTP_Master_Node_FSM(
                             MSTP_Create_And_Send_Frame(mstp_port,
                                 FRAME_TYPE_TEST_RESPONSE,
                                 mstp_port->SourceAddress,
-                                mstp_port->This_Station, NULL, 0);
+                                mstp_port->This_Station,
+                                (uint8_t *) & mstp_port->InputBuffer[0],
+                                mstp_port->DataLength);
                             break;
                         case FRAME_TYPE_TEST_RESPONSE:
                         default:
