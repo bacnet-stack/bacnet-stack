@@ -824,7 +824,7 @@ void testUCOVNotifyData(
     ct_test(pTest, len > 0);
     apdu_len = len;
 
-    test_data.listOfValues.next = NULL;
+    test_data.listOfValues = NULL;
     len = ucov_notify_decode_apdu(&apdu[0], apdu_len, &test_data);
     ct_test(pTest, len != -1);
     testCOVNotifyData(pTest, data, &test_data);
@@ -845,7 +845,7 @@ void testCCOVNotifyData(
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    test_data.listOfValues.next = NULL;
+    test_data.listOfValues = NULL;
     len =
         ccov_notify_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
         &test_data);
@@ -859,7 +859,7 @@ void testCOVNotify(
 {
     uint8_t invoke_id = 12;
     BACNET_COV_DATA data;
-    /* BACNET_PROPERTY_VALUE value2; */
+    BACNET_PROPERTY_VALUE value_list[2];
 
     data.subscriberProcessIdentifier = 1;
     data.initiatingDeviceIdentifier = 123;
@@ -867,12 +867,13 @@ void testCOVNotify(
     data.monitoredObjectIdentifier.instance = 321;
     data.timeRemaining = 456;
 
-    data.listOfValues.propertyIdentifier = PROP_PRESENT_VALUE;
-    data.listOfValues.propertyArrayIndex = BACNET_ARRAY_ALL;
+    data.listOfValues = &value_list[0];
+    value_list[0].propertyIdentifier = PROP_PRESENT_VALUE;
+    value_list[0].propertyArrayIndex = BACNET_ARRAY_ALL;
     bacapp_parse_application_data(BACNET_APPLICATION_TAG_REAL, "21.0",
-        &data.listOfValues.value);
-    data.listOfValues.priority = 0;
-    data.listOfValues.next = NULL;
+        &value_list[0].value);
+    value_list[0].priority = 0;
+    value_list[0].next = NULL;
 
     testUCOVNotifyData(pTest, &data);
     testCCOVNotifyData(pTest, invoke_id, &data);
