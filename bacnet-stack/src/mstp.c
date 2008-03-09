@@ -632,7 +632,7 @@ MSTP_Put_Receive(mstp_port); break; case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                     mstp_port->master_state =
                         MSTP_MASTER_STATE_ANSWER_DATA_REQUEST;}
 break; case FRAME_TYPE_TEST_REQUEST:
-MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TEST_RESPONSE, mstp_port->SourceAddress, mstp_port->This_Station, NULL, 0); break; case FRAME_TYPE_TEST_RESPONSE:
+MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TEST_RESPONSE, mstp_port->SourceAddress, mstp_port->This_Station, mstp_port->InputBuffer, mstp_port->DataLength); break; case FRAME_TYPE_TEST_RESPONSE:
 default:
                 break;}
             }
