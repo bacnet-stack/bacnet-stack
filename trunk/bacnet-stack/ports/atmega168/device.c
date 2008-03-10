@@ -50,7 +50,7 @@
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 260001;
-static char Object_Name[32] = "ATmega168 Device";
+static char Object_Name[20] = "My Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
 void Device_Init(
