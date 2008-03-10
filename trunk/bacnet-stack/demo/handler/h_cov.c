@@ -116,24 +116,20 @@ static int cov_encode_subscription(
     apdu_len += len;
     /* network-number Unsigned16, */
     /* -- A value of 0 indicates the local network */
-    len = encode_application_unsigned(
-        &apdu[apdu_len],
+    len =
+        encode_application_unsigned(&apdu[apdu_len],
         cov_subscription->dest.net);
     apdu_len += len;
     /* mac-address OCTET STRING */
     /* -- A string of length 0 indicates a broadcast */
     if (cov_subscription->dest.net) {
-        octetstring_init(&octet_string,
-            &cov_subscription->dest.adr[0],
+        octetstring_init(&octet_string, &cov_subscription->dest.adr[0],
             cov_subscription->dest.len);
     } else {
-        octetstring_init(&octet_string,
-            &cov_subscription->dest.mac[0],
+        octetstring_init(&octet_string, &cov_subscription->dest.mac[0],
             cov_subscription->dest.mac_len);
     }
-    len = encode_application_octet_string(
-        &apdu[apdu_len],
-        &octet_string);
+    len = encode_application_octet_string(&apdu[apdu_len], &octet_string);
     apdu_len += len;
     /* CHOICE - address [1] BACnetAddress - closing */
     len = encode_closing_tag(&apdu[apdu_len], 1);
@@ -142,38 +138,37 @@ static int cov_encode_subscription(
     len = encode_closing_tag(&apdu[apdu_len], 0);
     apdu_len += len;
     /* processIdentifier [1] Unsigned32 */
-    len = encode_context_unsigned(&apdu[apdu_len],1,
+    len =
+        encode_context_unsigned(&apdu[apdu_len], 1,
         cov_subscription->subscriberProcessIdentifier);
     apdu_len += len;
     /* Recipient [0] BACnetRecipientProcess - closing */
     len = encode_closing_tag(&apdu[apdu_len], 0);
     apdu_len += len;
-    /*  MonitoredPropertyReference [1] BACnetObjectPropertyReference,*/
+    /*  MonitoredPropertyReference [1] BACnetObjectPropertyReference, */
     len = encode_opening_tag(&apdu[apdu_len], 1);
     apdu_len += len;
     /* objectIdentifier [0] */
-    len = encode_context_object_id(
-        &apdu[apdu_len],0,
+    len =
+        encode_context_object_id(&apdu[apdu_len], 0,
         cov_subscription->monitoredObjectIdentifier.type,
         cov_subscription->monitoredObjectIdentifier.instance);
     apdu_len += len;
     /* propertyIdentifier [1] */
     /* FIXME: we are monitoring 2 properties! How to encode? */
-    len = encode_context_enumerated(
-        &apdu[apdu_len],1,
-        PROP_PRESENT_VALUE);
+    len = encode_context_enumerated(&apdu[apdu_len], 1, PROP_PRESENT_VALUE);
     apdu_len += len;
     /* MonitoredPropertyReference [1] - closing */
     len = encode_closing_tag(&apdu[apdu_len], 1);
     apdu_len += len;
     /* IssueConfirmedNotifications [2] BOOLEAN, */
-    len = encode_context_boolean(
-        &apdu[apdu_len],2,
+    len =
+        encode_context_boolean(&apdu[apdu_len], 2,
         cov_subscription->issueConfirmedNotifications);
     apdu_len += len;
     /* TimeRemaining [3] Unsigned, */
-    len = encode_context_unsigned(
-        &apdu[apdu_len],3,
+    len =
+        encode_context_unsigned(&apdu[apdu_len], 3,
         cov_subscription->lifetime);
     apdu_len += len;
 
@@ -181,7 +176,8 @@ static int cov_encode_subscription(
 }
 
 int handler_cov_encode_subscriptions(
-    uint8_t * apdu, int max_apdu)
+    uint8_t * apdu,
+    int max_apdu)
 {
     int len = 0;
     int apdu_len = 0;
@@ -190,10 +186,9 @@ int handler_cov_encode_subscriptions(
     if (apdu) {
         for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
             if (COV_Subscriptions[index].valid) {
-                len = cov_encode_subscription(
-                    &apdu[apdu_len],
-                    max_apdu - apdu_len,
-                    &COV_Subscriptions[index]);
+                len =
+                    cov_encode_subscription(&apdu[apdu_len],
+                    max_apdu - apdu_len, &COV_Subscriptions[index]);
                 apdu_len += len;
                 if (apdu_len > max_apdu) {
                     return -2;
@@ -304,7 +299,7 @@ static bool cov_send_request(
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
     uint8_t invoke_id = 0;
-    bool status = false; /* return value */
+    bool status = false;        /* return value */
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list[2];
 
@@ -314,31 +309,25 @@ static bool cov_send_request(
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(
-        &Handler_Transmit_Buffer[0],
-        &cov_subscription->dest,
-        &my_address,
-        &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &cov_subscription->dest,
+        &my_address, &npdu_data);
     /* load the COV data structure for outgoing message */
     cov_data.subscriberProcessIdentifier =
         cov_subscription->subscriberProcessIdentifier;
-    cov_data.initiatingDeviceIdentifier =
-        Device_Object_Instance_Number();
+    cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
     cov_data.monitoredObjectIdentifier.type =
         cov_subscription->monitoredObjectIdentifier.type;
     cov_data.monitoredObjectIdentifier.instance =
         cov_subscription->monitoredObjectIdentifier.instance;
-    cov_data.timeRemaining =
-        cov_subscription->lifetime;
+    cov_data.timeRemaining = cov_subscription->lifetime;
     /* encode the value list */
     cov_data.listOfValues = &value_list[0];
     value_list[0].next = &value_list[1];
     value_list[1].next = NULL;
     switch (cov_subscription->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            Binary_Input_Encode_Value_List(
-                cov_subscription->monitoredObjectIdentifier.instance,
-                &value_list[0]);
+            Binary_Input_Encode_Value_List(cov_subscription->
+                monitoredObjectIdentifier.instance, &value_list[0]);
             break;
         default:
             goto COV_FAILED;
@@ -346,37 +335,31 @@ static bool cov_send_request(
     if (cov_subscription->issueConfirmedNotifications) {
         invoke_id = tsm_next_free_invokeID();
         if (invoke_id) {
-            len = ccov_notify_encode_apdu(
-                &Handler_Transmit_Buffer[pdu_len],
-                invoke_id,
-                &cov_data);
+            len =
+                ccov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                invoke_id, &cov_data);
         } else {
             goto COV_FAILED;
         }
     } else {
-        len = ucov_notify_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len],
+        len =
+            ucov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             &cov_data);
     }
     pdu_len += len;
     if (cov_subscription->issueConfirmedNotifications) {
-        tsm_set_confirmed_unsegmented_transaction(
-            invoke_id,
-            &cov_subscription->dest,
-            &npdu_data,
-            &Handler_Transmit_Buffer[0],
+        tsm_set_confirmed_unsegmented_transaction(invoke_id,
+            &cov_subscription->dest, &npdu_data, &Handler_Transmit_Buffer[0],
             (uint16_t) pdu_len);
     }
-    bytes_sent = datalink_send_pdu(
-        &cov_subscription->dest,
-        &npdu_data,
-        &Handler_Transmit_Buffer[0],
-        pdu_len);
+    bytes_sent =
+        datalink_send_pdu(&cov_subscription->dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent > 0) {
         status = true;
     }
 
-COV_FAILED:
+  COV_FAILED:
 
     return status;
 }
@@ -400,9 +383,8 @@ void handler_cov_task(
             if (lifetime_seconds >= elapsed_seconds) {
                 COV_Subscriptions[index].lifetime -= elapsed_seconds;
 #if 0
-                fprintf(stderr,"COVtask: subscription[%d].lifetime=%d\n",
-                    index,
-                    COV_Subscriptions[index].lifetime);
+                fprintf(stderr, "COVtask: subscription[%d].lifetime=%d\n",
+                    index, COV_Subscriptions[index].lifetime);
 #endif
             } else {
                 COV_Subscriptions[index].lifetime = 0;
@@ -419,8 +401,7 @@ void handler_cov_task(
                 case OBJECT_BINARY_INPUT:
                     if (Binary_Input_Change_Of_Value(object_id.instance)) {
                         COV_Subscriptions[index].send_requested = true;
-                        Binary_Input_Change_Of_Value_Clear(
-                            object_id.instance);
+                        Binary_Input_Change_Of_Value_Clear(object_id.instance);
                     }
                     break;
                 default:
@@ -445,8 +426,8 @@ static bool cov_subscribe(
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
             status = true;
-            status = cov_list_subscribe(src, cov_data,
-                error_class, error_code);
+            status =
+                cov_list_subscribe(src, cov_data, error_class, error_code);
             break;
         default:
             *error_class = ERROR_CLASS_OBJECT;

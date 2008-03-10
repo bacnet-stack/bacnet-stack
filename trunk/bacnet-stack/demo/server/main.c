@@ -98,7 +98,8 @@ static void cleanup(
     datalink_cleanup();
 }
 
-static void Init_DataLink(void)
+static void Init_DataLink(
+    void)
 {
     char *pEnv = NULL;
 #if defined(BACDL_BIP) && BBMD_ENABLED
@@ -115,7 +116,7 @@ static void Init_DataLink(void)
         datalink_set(NULL);
     }
 #endif
-    
+
 #if defined(BACDL_BIP)
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
@@ -175,21 +176,17 @@ static void Init_DataLink(void)
             struct in_addr addr;
             addr.s_addr = bbmd_address;
             printf("WhoIs: Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr),bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(
-                bbmd_address,
-                bbmd_port,
+                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
         }
     }
 #endif
 }
 
-int main(
-    int argc,
-    char *argv[])
-{
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
+int main(int argc, char *argv[]) {
+    BACNET_ADDRESS src = {
+    0}; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     time_t last_seconds = 0;
@@ -200,43 +197,43 @@ int main(
     /* allow the device ID to be set */
     if (argc > 1)
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
-        printf("BACnet Server Demo\n" "BACnet Stack Version %s\n"
-            "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
-            Device_Object_Instance_Number(), MAX_APDU);
-        Init_Service_Handlers();
-        Init_DataLink();
-        atexit(cleanup);
-        /* configure the timeout values */
-        last_seconds = time(NULL);
-        /* broadcast an I-Am on startup */
-        iam_send(&Handler_Transmit_Buffer[0]);
-        /* loop forever */
-        for (;;) {
-            /* input */
-            current_seconds = time(NULL);
+    printf("BACnet Server Demo\n" "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
+        Device_Object_Instance_Number(), MAX_APDU);
+    Init_Service_Handlers();
+    Init_DataLink();
+    atexit(cleanup);
+    /* configure the timeout values */
+    last_seconds = time(NULL);
+    /* broadcast an I-Am on startup */
+    iam_send(&Handler_Transmit_Buffer[0]);
+    /* loop forever */
+    for (;;) {
+        /* input */
+        current_seconds = time(NULL);
 
-            /* returns 0 bytes on timeout */
-            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        /* returns 0 bytes on timeout */
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
-            /* process */
-            if (pdu_len) {
-                npdu_handler(&src, &Rx_Buf[0], pdu_len);
-            }
-            /* at least one second has passed */
-            elapsed_seconds = current_seconds - last_seconds;
-            if (elapsed_seconds) {
-                last_seconds = current_seconds;
-                dcc_timer_seconds(elapsed_seconds);
-#if defined(BACDL_BIP) && BBMD_ENABLED
-                bvlc_maintenance_timer(elapsed_seconds);
-#endif
-                Load_Control_State_Machine_Handler();
-                elapsed_milliseconds = elapsed_seconds * 1000;
-                handler_cov_task(elapsed_seconds);
-                tsm_timer_milliseconds(elapsed_milliseconds);
-            }
-            /* output */
-
-            /* blink LEDs, Turn on or off outputs, etc */
+        /* process */
+        if (pdu_len) {
+            npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
+        /* at least one second has passed */
+        elapsed_seconds = current_seconds - last_seconds;
+        if (elapsed_seconds) {
+            last_seconds = current_seconds;
+            dcc_timer_seconds(elapsed_seconds);
+#if defined(BACDL_BIP) && BBMD_ENABLED
+            bvlc_maintenance_timer(elapsed_seconds);
+#endif
+            Load_Control_State_Machine_Handler();
+            elapsed_milliseconds = elapsed_seconds * 1000;
+            handler_cov_task(elapsed_seconds);
+            tsm_timer_milliseconds(elapsed_milliseconds);
+        }
+        /* output */
+
+        /* blink LEDs, Turn on or off outputs, etc */
     }
+}

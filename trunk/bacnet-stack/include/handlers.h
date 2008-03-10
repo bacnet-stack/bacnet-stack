@@ -151,8 +151,9 @@ extern "C" {
     void handler_cov_task(
         uint32_t elapsed_seconds);
     int handler_cov_encode_subscriptions(
-        uint8_t * apdu, int max_apdu);
-        
+        uint8_t * apdu,
+        int max_apdu);
+
 
 #ifdef __cplusplus
 }

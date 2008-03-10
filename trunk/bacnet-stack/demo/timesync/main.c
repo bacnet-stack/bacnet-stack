@@ -105,7 +105,8 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void Init_DataLink(void)
+static void Init_DataLink(
+    void)
 {
     char *pEnv = NULL;
 #if defined(BACDL_BIP) && BBMD_ENABLED
@@ -122,7 +123,7 @@ static void Init_DataLink(void)
         datalink_set(NULL);
     }
 #endif
-    
+
 #if defined(BACDL_BIP)
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
@@ -181,21 +182,17 @@ static void Init_DataLink(void)
             struct in_addr addr;
             addr.s_addr = bbmd_address;
             printf("WhoIs: Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr),bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(
-                bbmd_address,
-                bbmd_port,
+                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
         }
     }
 #endif
 }
 
-int main(
-    int argc,
-    char *argv[])
-{
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
+int main(int argc, char *argv[]) {
+    BACNET_ADDRESS src = {
+    0}; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     time_t elapsed_seconds = 0;

@@ -672,7 +672,7 @@ static int create_named_server_socket(
     }
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &sock, sizeof(sock));
     /* Bind a name to the socket. */
-    bzero((char *)&name, sizeof(name));
+    bzero((char *) &name, sizeof(name));
     name.sun_family = AF_LOCAL;
     strncpy(name.sun_path, filename, sizeof(name.sun_path));
     /* The size of the address is
@@ -711,7 +711,7 @@ static int connect_named_server_socket(
 #endif
         exit(EXIT_FAILURE);
     }
-    bzero((char *)&name, sizeof(name));
+    bzero((char *) &name, sizeof(name));
     name.sun_family = AF_LOCAL;
     strncpy(name.sun_path, filename, sizeof(name.sun_path));
     /* The size of the address is

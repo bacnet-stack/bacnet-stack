@@ -66,7 +66,8 @@ static void Init_Service_Handlers(
         handler_read_property);
 }
 
-static void Init_DataLink(void)
+static void Init_DataLink(
+    void)
 {
     char *pEnv = NULL;
 #if defined(BACDL_BIP) && BBMD_ENABLED
@@ -83,7 +84,7 @@ static void Init_DataLink(void)
         datalink_set(NULL);
     }
 #endif
-    
+
 #if defined(BACDL_BIP)
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
@@ -142,27 +143,22 @@ static void Init_DataLink(void)
             struct in_addr addr;
             addr.s_addr = bbmd_address;
             printf("WhoIs: Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr),bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(
-                bbmd_address,
-                bbmd_port,
+                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
         }
     }
 #endif
 }
 
-int main(
-    int argc,
-    char *argv[])
-{
+int main(int argc, char *argv[]) {
     char *value_string = NULL;
     bool status = false;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
     uint8_t tag;
 
-    if (argc < 7) {
+    if      (argc < 7) {
         /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s pid device-id object-type object-instance "
             "time property tag value [priority] [index]\r\n" "\r\n" "pid:\r\n"
@@ -215,8 +211,8 @@ int main(
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         return 0;
     }
-    /* decode the command line parameters */
-    cov_data.subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
+    /* decode the command line parameters */ cov_data.
+        subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
     cov_data.initiatingDeviceIdentifier = strtol(argv[2], NULL, 0);
     cov_data.monitoredObjectIdentifier.type = strtol(argv[3], NULL, 0);
     cov_data.monitoredObjectIdentifier.instance = strtol(argv[4], NULL, 0);

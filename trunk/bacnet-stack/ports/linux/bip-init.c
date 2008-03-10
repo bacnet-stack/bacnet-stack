@@ -45,7 +45,8 @@ bool BIP_Debug = false;
    a name that is a domain name
    returns 0 if not found, or
    an IP address in network byte order */
-long bip_getaddrbyname(const char *host_name)
+long bip_getaddrbyname(
+    const char *host_name)
 {
     struct hostent *host_ent;
 

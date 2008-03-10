@@ -457,7 +457,8 @@ static void MSTP_Receive_Frame_FSM(
 
     switch (Receive_State) {
         case MSTP_RECEIVE_STATE_IDLE:
-            /* In the IDLE state, the node waits for the beginning of a frame. */
+            /* In the IDLE state, the node waits 
+               for the beginning of a frame. */
             if (RS485_ReceiveError()) {
                 /* EatAnError */
                 Timer_Silence_Reset();
@@ -507,10 +508,12 @@ static void MSTP_Receive_Frame_FSM(
             }
             break;
         case MSTP_RECEIVE_STATE_HEADER:
-            /* In the HEADER state, the node waits for the fixed message header. */
+            /* In the HEADER state, the node waits 
+               for the fixed message header. */
             if (Timer_Silence() > Tframe_abort) {
                 /* Timeout */
-                /* indicate that an error has occurred during the reception of a frame */
+                /* indicate that an error has occurred 
+                   during the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of a frame. */
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
@@ -518,7 +521,8 @@ static void MSTP_Receive_Frame_FSM(
                 /* Error */
                 Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
-                /* indicate that an error has occurred during the reception of a frame */
+                /* indicate that an error has occurred 
+                   during the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of a frame. */
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
@@ -606,10 +610,12 @@ static void MSTP_Receive_Frame_FSM(
             }
             break;
         case MSTP_RECEIVE_STATE_DATA:
-            /* In the DATA state, the node waits for the data portion of a frame. */
+            /* In the DATA state, the node waits 
+               for the data portion of a frame. */
             if (Timer_Silence() > Tframe_abort) {
                 /* Timeout */
-                /* indicate that an error has occurred during the reception of a frame */
+                /* indicate that an error has occurred 
+                   during the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of the next frame. */
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
@@ -671,9 +677,9 @@ static bool MSTP_Master_Node_FSM(
     /* When this counter reaches the value Nmax_info_frames, the node must */
     /* pass the token. */
     static uint8_t FrameCount;
-    /* "Next Station," the MAC address of the node to which This Station passes */
-    /* the token. If the Next_Station is unknown, Next_Station shall be equal to */
-    /* This_Station. */
+    /* "Next Station," the MAC address of the node to which This Station 
+       passes the token. If the Next_Station is unknown, Next_Station shall 
+       be equal to This_Station. */
     static uint8_t Next_Station;
     /* "Poll Station," the MAC address of the node to which This Station last */
     /* sent a Poll For Master. This is used during token maintenance. */
@@ -681,10 +687,10 @@ static bool MSTP_Master_Node_FSM(
     /* A counter of transmission retries used for Token and Poll For Master */
     /* transmission. */
     static unsigned RetryCount;
-    /* The number of tokens received by this node. When this counter reaches the */
-    /* value Npoll, the node polls the address range between TS and NS for */
-    /* additional master nodes. TokenCount is set to zero at the end of the */
-    /* polling process. */
+    /* The number of tokens received by this node. When this counter reaches */
+    /* the value Npoll, the node polls the address range between TS and NS */
+    /* for additional master nodes. TokenCount is set to zero at the end of */
+    /* the polling process. */
     static unsigned TokenCount;
     /* next-x-station calculations */
     uint8_t next_poll_station = 0;
@@ -749,7 +755,7 @@ static bool MSTP_Master_Node_FSM(
                         MSTP_Flag.ReceivePacketPending = true;
                         break;
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                        /* indicate successful reception to the higher layers  */
+                        /* indicate successful reception to higher layers */
                         MSTP_Flag.ReceivePacketPending = true;
                         /* broadcast DER just remains IDLE */
                         if (DestinationAddress != MSTP_BROADCAST_ADDRESS) {
@@ -759,8 +765,8 @@ static bool MSTP_Master_Node_FSM(
                         break;
                     case FRAME_TYPE_TEST_REQUEST:
                         MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE,
-                            SourceAddress, This_Station,
-                            &InputBuffer[0], DataLength);
+                            SourceAddress, This_Station, &InputBuffer[0],
+                            DataLength);
                         break;
                     case FRAME_TYPE_TEST_RESPONSE:
                     default:
@@ -823,8 +829,10 @@ static bool MSTP_Master_Node_FSM(
                 FrameCount = Nmax_info_frames;
                 Master_State = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                 /* Any retry of the data frame shall await the next entry */
-                /* to the USE_TOKEN state. (Because of the length of the timeout,  */
-                /* this transition will cause the token to be passed regardless */
+                /* to the USE_TOKEN state. */
+                /* (Because of the length of the timeout,  */
+                /* this transition will cause the token to be */
+                /* passed regardless */
                 /* of the initial value of FrameCount.) */
                 transition_now = true;
             } else {
@@ -848,8 +856,10 @@ static bool MSTP_Master_Node_FSM(
                                 break;
                             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                                 /* ReceivedReply */
-                                /* or a proprietary type that indicates a reply */
-                                /* indicate successful reception to the higher layers */
+                                /* or a proprietary type that indicates
+                                   a reply */
+                                /* indicate successful reception to 
+                                   the higher layers */
                                 MSTP_Flag.ReceivePacketPending = true;
                                 Master_State =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
@@ -891,7 +901,8 @@ static bool MSTP_Master_Node_FSM(
                     (Next_Station != next_this_station)) {
                     /* SoleMaster */
                     /* there are no other known master nodes to */
-                    /* which the token may be sent (true master-slave operation).  */
+                    /* which the token may be sent 
+                       (true master-slave operation).  */
                     FrameCount = 0;
                     TokenCount++;
                     Master_State = MSTP_MASTER_STATE_USE_TOKEN;
@@ -899,9 +910,12 @@ static bool MSTP_Master_Node_FSM(
                 } else {
                     /* SendToken */
                     /* Npoll changed in Errata SSPC-135-2004 */
-                    /* The comparison of NS and TS+1 eliminates the Poll For Master  */
-                    /* if there are no addresses between TS and NS, since there is no  */
-                    /* address at which a new master node may be found in that case. */
+                    /* The comparison of NS and TS+1 
+                       eliminates the Poll For Master
+                       if there are no addresses between 
+                       TS and NS, since there is no 
+                       address at which a new master node 
+                       may be found in that case. */
                     TokenCount++;
                     /* transmit a Token frame to NS */
                     MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
@@ -949,7 +963,8 @@ static bool MSTP_Master_Node_FSM(
             if (Timer_Silence() <= Tusage_timeout) {
                 if (EventCount > Nmin_octets) {
                     /* SawTokenUser */
-                    /* Assume that a frame has been sent by the new token user.  */
+                    /* Assume that a frame has been sent by 
+                       the new token user.  */
                     /* Enter the IDLE state to process the frame. */
                     Master_State = MSTP_MASTER_STATE_IDLE;
                     transition_now = true;
@@ -981,17 +996,19 @@ static bool MSTP_Master_Node_FSM(
                 }
             }
             break;
-            /* The NO_TOKEN state is entered if Timer_Silence() becomes greater  */
-            /* than Tno_token, indicating that there has been no network activity */
-            /* for that period of time. The timeout is continued to determine  */
-            /* whether or not this node may create a token. */
+            /* The NO_TOKEN state is entered if Timer_Silence() 
+               becomes greater than Tno_token, indicating that 
+               there has been no network activity for that period 
+               of time. The timeout is continued to determine  
+               whether or not this node may create a token. */
         case MSTP_MASTER_STATE_NO_TOKEN:
             my_timeout = Tno_token + (Tslot * This_Station);
             if (Timer_Silence() < my_timeout) {
                 if (EventCount > Nmin_octets) {
                     /* SawFrame */
                     /* Some other node exists at a lower address.  */
-                    /* Enter the IDLE state to receive and process the incoming frame. */
+                    /* Enter the IDLE state to receive and 
+                       process the incoming frame. */
                     Master_State = MSTP_MASTER_STATE_IDLE;
                     transition_now = true;
                 }
@@ -1010,7 +1027,8 @@ static bool MSTP_Master_Node_FSM(
                     RetryCount = 0;
                     TokenCount = 0;
                     /* EventCount = 0; removed Addendum 135-2004d-8 */
-                    /* enter the POLL_FOR_MASTER state to find a new successor to TS. */
+                    /* enter the POLL_FOR_MASTER state 
+                       to find a new successor to TS. */
                     Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
                 }
             }
@@ -1075,7 +1093,8 @@ static bool MSTP_Master_Node_FSM(
                             /* Re-enter the current state. */
                         } else {
                             /* DeclareSoleMaster */
-                            /* to indicate that this station is the only master */
+                            /* to indicate that this station 
+                               is the only master */
                             MSTP_Flag.SoleMaster = true;
                             FrameCount = 0;
                             Master_State = MSTP_MASTER_STATE_USE_TOKEN;

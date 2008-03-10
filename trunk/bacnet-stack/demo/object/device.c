@@ -877,8 +877,7 @@ int Device_Encode_Property_APDU(
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: the real max apdu should be passed into function */
-            apdu_len = handler_cov_encode_subscriptions(
-                &apdu[0], MAX_APDU);
+            apdu_len = handler_cov_encode_subscriptions(&apdu[0], MAX_APDU);
             break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;

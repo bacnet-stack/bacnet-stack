@@ -53,7 +53,7 @@ extern "C" {
         uint32_t object_instance);
     bool Binary_Input_Encode_Value_List(
         uint32_t object_instance,
-        BACNET_PROPERTY_VALUE *value_list);
+        BACNET_PROPERTY_VALUE * value_list);
 
     int Binary_Input_Encode_Property_APDU(
         uint8_t * apdu,
