@@ -49,7 +49,8 @@ bool BIP_Debug = false;
    a name that is a domain name
    returns 0 if not found, or
    an IP address in network byte order */
-long bip_getaddrbyname(const char *host_name)
+long bip_getaddrbyname(
+    const char *host_name)
 {
     struct hostent *host_ent;
 
@@ -85,53 +86,56 @@ static long gethostaddr(
 #if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
  (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
 /* returns the subnet mask in network byte order */
-static uint32_t getIpMaskForIpAddress( uint32_t ipAddress )
+static uint32_t getIpMaskForIpAddress(
+    uint32_t ipAddress)
 {
     /* Allocate information for up to 16 NICs */
-    IP_ADAPTER_INFO AdapterInfo[16]; 
+    IP_ADAPTER_INFO AdapterInfo[16];
     /* Save memory size of buffer */
-    DWORD dwBufLen = sizeof(AdapterInfo); 
+    DWORD dwBufLen = sizeof(AdapterInfo);
     uint32_t ipMask = INADDR_BROADCAST;
-    
+
     PIP_ADAPTER_INFO pAdapterInfo;
-    
+
     /* GetAdapterInfo:
-     [out] buffer to receive data
-     [in] size of receive data buffer */
-    DWORD dwStatus = GetAdaptersInfo(  
-            AdapterInfo,               
-            &dwBufLen);                
-    if( dwStatus == ERROR_SUCCESS ) { 
+       [out] buffer to receive data
+       [in] size of receive data buffer */
+    DWORD dwStatus = GetAdaptersInfo(AdapterInfo,
+        &dwBufLen);
+    if (dwStatus == ERROR_SUCCESS) {
         /* Verify return value is valid, no buffer overflow
            Contains pointer to current adapter info */
-        pAdapterInfo = AdapterInfo;    
-                                       
+        pAdapterInfo = AdapterInfo;
+
         do {
-            IP_ADDR_STRING*  pIpAddressInfo = &pAdapterInfo->IpAddressList; 
-            do { 
-                unsigned long adapterAddress = inet_addr(pIpAddressInfo->IpAddress.String);
-                unsigned long adapterMask = inet_addr(pIpAddressInfo->IpMask.String);
-                if( adapterAddress == ipAddress ) { 
-                    ipMask = adapterMask; 
+            IP_ADDR_STRING *pIpAddressInfo = &pAdapterInfo->IpAddressList;
+            do {
+                unsigned long adapterAddress =
+                    inet_addr(pIpAddressInfo->IpAddress.String);
+                unsigned long adapterMask =
+                    inet_addr(pIpAddressInfo->IpMask.String);
+                if (adapterAddress == ipAddress) {
+                    ipMask = adapterMask;
                     break;
                 }
                 pIpAddressInfo = pIpAddressInfo->Next;
             }
-            while(pIpAddressInfo);
-            if( ipMask != 0L ) {
+            while (pIpAddressInfo);
+            if (ipMask != 0L) {
                 break;
             }
             /* Progress through linked list */
             pAdapterInfo = pAdapterInfo->Next;
-            /* Terminate on last adapter */            
-        } while(pAdapterInfo);
+            /* Terminate on last adapter */
+        } while (pAdapterInfo);
     }
-    
+
     return ipMask;
 }
 #endif
 
-static void set_broadcast_address(uint32_t net_address)
+static void set_broadcast_address(
+    uint32_t net_address)
 {
 #if defined(USE_INADDR) && USE_INADDR
     /*   Note: sometimes INADDR_BROADCAST does not let me get
@@ -154,20 +158,20 @@ static void set_broadcast_address(uint32_t net_address)
         broadcast_address =
             (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
     else
-        broadcast_address = INADDR_BROADCAST; 
+        broadcast_address = INADDR_BROADCAST;
     bip_set_broadcast_addr(htonl(broadcast_address));
 #else
     /* these are network byte order variables */
     long broadcast_address = 0;
     long net_mask = 0;
 
-    net_mask = getIpMaskForIpAddress( net_address );
+    net_mask = getIpMaskForIpAddress(net_address);
     if (BIP_Debug) {
         struct in_addr address;
         address.s_addr = net_mask;
         printf("IP Mask: %s\n", inet_ntoa(address));
     }
-    broadcast_address = (net_address & net_mask) | (~net_mask);   
+    broadcast_address = (net_address & net_mask) | (~net_mask);
     bip_set_broadcast_addr(broadcast_address);
 #endif
 }

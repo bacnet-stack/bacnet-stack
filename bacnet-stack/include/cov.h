@@ -52,7 +52,7 @@ typedef struct BACnet_COV_Data {
     uint32_t subscriberProcessIdentifier;
     uint32_t initiatingDeviceIdentifier;
     BACNET_OBJECT_ID monitoredObjectIdentifier;
-    uint32_t timeRemaining; /* seconds */
+    uint32_t timeRemaining;     /* seconds */
     /* simple linked list of values */
     BACNET_PROPERTY_VALUE *listOfValues;
 } BACNET_COV_DATA;

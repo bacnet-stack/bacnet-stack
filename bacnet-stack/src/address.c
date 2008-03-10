@@ -82,7 +82,7 @@ void address_file_init(
     const char *pFilename)
 {
     FILE *pFile = NULL; /* stream pointer */
-    char line[256] = {""}; /* holds line from file */
+    char line[256] = { "" };    /* holds line from file */
     long device_id = 0;
     int snet = 0;
     int max_apdu = 0;
@@ -92,38 +92,25 @@ void address_file_init(
     BACNET_ADDRESS src;
     int index = 0;
 
-    pFile = fopen(pFilename,"r");
+    pFile = fopen(pFilename, "r");
     if (pFile) {
         while (fgets(line, sizeof(line), pFile) != NULL) {
             /* ignore comments */
             if (line[0] != ';') {
-                if (sscanf(line,
-                    "%ld %s %d %s %d",
-                    &device_id,
-                    &mac_string[0],
-                    &snet,
-                    &sadr_string[0],
-                    &max_apdu) == 5) {
-                    count = sscanf(mac_string,"%x:%x:%x:%x:%x:%x",
-                        &mac[0],
-                        &mac[1],
-                        &mac[2],
-                        &mac[3],
-                        &mac[4],
-                        &mac[5]);
+                if (sscanf(line, "%ld %s %d %s %d", &device_id, &mac_string[0],
+                        &snet, &sadr_string[0], &max_apdu) == 5) {
+                    count =
+                        sscanf(mac_string, "%x:%x:%x:%x:%x:%x", &mac[0],
+                        &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                     src.mac_len = count;
                     for (index = 0; index < MAX_MAC_LEN; index++) {
                         src.mac[index] = mac[index];
                     }
                     src.net = snet;
                     if (snet) {
-                        count = sscanf(sadr_string,"%x:%x:%x:%x:%x:%x",
-                            &mac[0],
-                            &mac[1],
-                            &mac[2],
-                            &mac[3],
-                            &mac[4],
-                            &mac[5]);
+                        count =
+                            sscanf(sadr_string, "%x:%x:%x:%x:%x:%x", &mac[0],
+                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                         src.len = count;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
                             src.adr[index] = mac[index];
@@ -374,15 +361,15 @@ static void set_file_address(
     uint16_t max_apdu)
 {
     unsigned i;
-    FILE * pFile = NULL;
+    FILE *pFile = NULL;
 
-    pFile = fopen(pFilename,"w");
+    pFile = fopen(pFilename, "w");
 
     if (pFile) {
-        fprintf(pFile, "%lu ", (long unsigned int)device_id);
+        fprintf(pFile, "%lu ", (long unsigned int) device_id);
         for (i = 0; i < dest->mac_len; i++) {
             fprintf(pFile, "%02x", dest->mac[i]);
-            if ((i+1) < dest->mac_len) {
+            if ((i + 1) < dest->mac_len) {
                 fprintf(pFile, ":");
             }
         }
@@ -390,7 +377,7 @@ static void set_file_address(
         if (dest->net) {
             for (i = 0; i < dest->len; i++) {
                 fprintf(pFile, "%02x", dest->adr[i]);
-                if ((i+1) < dest->len) {
+                if ((i + 1) < dest->len) {
                     fprintf(pFile, ":");
                 }
             }
@@ -405,7 +392,7 @@ static void set_file_address(
 void testAddressFile(
     Test * pTest)
 {
-    BACNET_ADDRESS src = {0};
+    BACNET_ADDRESS src = { 0 };
     uint32_t device_id = 0;
     unsigned max_apdu = 480;
     BACNET_ADDRESS test_address;
@@ -422,7 +409,7 @@ void testAddressFile(
 
     address_file_init(Address_Cache_Filename);
     ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
-                &test_address));
+            &test_address));
     ct_test(pTest, test_max_apdu == max_apdu);
     ct_test(pTest, bacnet_address_same(&test_address, &src));
 
@@ -443,7 +430,7 @@ void testAddressFile(
 
     address_file_init(Address_Cache_Filename);
     ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
-                &test_address));
+            &test_address));
     ct_test(pTest, test_max_apdu == max_apdu);
     ct_test(pTest, bacnet_address_same(&test_address, &src));
 

@@ -673,8 +673,8 @@ static bool MSTP_Master_Node_FSM(
                         break;
                     case FRAME_TYPE_TEST_REQUEST:
                         MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE,
-                            SourceAddress, This_Station,
-                            &InputBuffer[0], DataLength);
+                            SourceAddress, This_Station, &InputBuffer[0],
+                            DataLength);
                         break;
                     case FRAME_TYPE_TEST_RESPONSE:
                     default:

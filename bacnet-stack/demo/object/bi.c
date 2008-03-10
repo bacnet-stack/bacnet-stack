@@ -207,7 +207,7 @@ void Binary_Input_Change_Of_Value_Clear(
 
 bool Binary_Input_Encode_Value_List(
     uint32_t object_instance,
-    BACNET_PROPERTY_VALUE *value_list)
+    BACNET_PROPERTY_VALUE * value_list)
 {
     value_list->propertyIdentifier = PROP_PRESENT_VALUE;
     value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
@@ -224,20 +224,18 @@ bool Binary_Input_Encode_Value_List(
     value_list->value.context_specific = false;
     value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
     bitstring_init(&value_list->value.type.Bit_String);
-    bitstring_set_bit(&value_list->value.type.Bit_String,
-        STATUS_FLAG_IN_ALARM, false);
-    bitstring_set_bit(&value_list->value.type.Bit_String,
-        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM,
+        false);
+    bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_FAULT,
+        false);
     bitstring_set_bit(&value_list->value.type.Bit_String,
         STATUS_FLAG_OVERRIDDEN, false);
     if (Binary_Input_Out_Of_Service(object_instance)) {
         bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE,
-            true);
+            STATUS_FLAG_OUT_OF_SERVICE, true);
     } else {
         bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE,
-            false);
+            STATUS_FLAG_OUT_OF_SERVICE, false);
     }
     value_list->priority = BACNET_NO_PRIORITY;
 

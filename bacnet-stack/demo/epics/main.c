@@ -189,7 +189,7 @@ void PrintReadPropertyData(
                     bacapp_print_value(stdout, &value, data->object_property);
                     if (Object_List_Index <= Object_List_Length) {
                         fprintf(stdout, ",");
-                        if (!(Object_List_Index%4)) {
+                        if (!(Object_List_Index % 4)) {
                             fprintf(stdout, "\r\n        ");
                         }
                     } else {
@@ -300,7 +300,7 @@ static uint8_t Read_Properties(
             printf("    %s: ", bactext_property_name(pRequired[index]));
             invoke_id =
                 Send_Read_Property_Request(device_instance, OBJECT_DEVICE,
-                    device_instance, pRequired[index], BACNET_ARRAY_ALL);
+                device_instance, pRequired[index], BACNET_ARRAY_ALL);
             if (invoke_id) {
                 index++;
             }
@@ -310,7 +310,8 @@ static uint8_t Read_Properties(
     return invoke_id;
 }
 
-static void Init_DataLink(void)
+static void Init_DataLink(
+    void)
 {
     char *pEnv = NULL;
 #if defined(BACDL_BIP) && BBMD_ENABLED
@@ -386,21 +387,17 @@ static void Init_DataLink(void)
             struct in_addr addr;
             addr.s_addr = bbmd_address;
             printf("WhoIs: Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr),bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(
-                bbmd_address,
-                bbmd_port,
+                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
         }
     }
 #endif
 }
 
-int main(
-    int argc,
-    char *argv[])
-{
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
+int main(int argc, char *argv[]) {
+    BACNET_ADDRESS src = {
+    0}; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
@@ -437,13 +434,11 @@ int main(
     timeout_seconds =
         (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
     /* try to bind with the device */
-    found = address_bind_request(
-        Target_Device_Object_Instance, 
-        &max_apdu,
+    found =
+        address_bind_request(Target_Device_Object_Instance, &max_apdu,
         &Target_Address);
     if (!found) {
-        Send_WhoIs(
-            Target_Device_Object_Instance, 
+        Send_WhoIs(Target_Device_Object_Instance,
             Target_Device_Object_Instance);
     }
     printf("List of Objects in test device:\r\n");
