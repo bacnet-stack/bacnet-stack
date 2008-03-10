@@ -82,7 +82,9 @@ static long gethostaddr(
     return *(long *) host_ent->h_addr;
 }
 
-#if !defined(USE_INADDR) && !defined(USE_CLASSADDR)
+#if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
+ (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
+/* returns the subnet mask in network byte order */
 static uint32_t getIpMaskForIpAddress( uint32_t ipAddress )
 {
     /* Allocate information for up to 16 NICs */
@@ -131,12 +133,12 @@ static uint32_t getIpMaskForIpAddress( uint32_t ipAddress )
 
 static void set_broadcast_address(uint32_t net_address)
 {
-#if USE_INADDR
+#if defined(USE_INADDR) && USE_INADDR
     /*   Note: sometimes INADDR_BROADCAST does not let me get
        any unicast messages.  Not sure why... */
-    (void) net_address;
+    net_address = net_address;
     bip_set_broadcast_addr(INADDR_BROADCAST);
-#elif USE_CLASSADDR
+#elif defined(USE_CLASSADDR) && USE_CLASSADDR
     long broadcast_address = 0;
 
     if (IN_CLASSA(ntohl(net_address)))
@@ -155,14 +157,18 @@ static void set_broadcast_address(uint32_t net_address)
         broadcast_address = INADDR_BROADCAST; 
     bip_set_broadcast_addr(htonl(broadcast_address));
 #else
+    /* these are network byte order variables */
     long broadcast_address = 0;
-    long mask = 0;
+    long net_mask = 0;
 
-    mask = getIpMaskForIpAddress( net_address );
-    
-    broadcast_address = (ntohl(net_address) & ~mask) | mask;
-   
-    bip_set_broadcast_addr(htonl(broadcast_address));
+    net_mask = getIpMaskForIpAddress( net_address );
+    if (BIP_Debug) {
+        struct in_addr address;
+        address.s_addr = net_mask;
+        printf("IP Mask: %s\n", inet_ntoa(address));
+    }
+    broadcast_address = (net_address & net_mask) | (~net_mask);   
+    bip_set_broadcast_addr(broadcast_address);
 #endif
 }
 
@@ -398,7 +404,7 @@ bool bip_init(
 #endif
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
-#if USE_INADDR
+#if defined(USE_INADDR) && USE_INADDR
     /* by setting sin.sin_addr.s_addr to INADDR_ANY,
        I am telling the IP stack to automatically fill
        in the IP address of the machine the process
