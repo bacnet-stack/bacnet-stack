@@ -24,23 +24,29 @@ BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR)
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
+TARGET_BIN = ${TARGET}
 LIBRARIES=-lc,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 endif
 ifeq (${BACNET_PORT},win32)
-LIBRARIES=-lws2_32,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+TARGET_BIN = ${TARGET}.exe
+LIBRARY1=-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY2=-lws2_32,-lgcc,-lm,-liphlpapi
+LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif
-CFLAGS = -Wall -g $(INCLUDES) $(DEFINES)
+DEBUGGING = -g
+OPTIMIZATION = -O0
+CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
 SRCS = main.c
 
 OBJS = ${SRCS:.c=.o}
 
-all: ${BACNET_LIB_TARGET} Makefile ${TARGET}
-	size ${TARGET}
+all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
+	size ${TARGET_BIN}
 
-${TARGET}: ${OBJS} Makefile
-	${CC} ${PFLAGS}  ${OBJS} ${LFLAGS} -o $@
+${TARGET_BIN}: ${OBJS} Makefile
+	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 
 lib: ${BACNET_LIB_TARGET}
 
@@ -55,6 +61,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
 clean:
-	rm -f core ${TARGET} ${OBJS} ${BACNET_LIB_TARGET}
+	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET}
 
 include: .depend
