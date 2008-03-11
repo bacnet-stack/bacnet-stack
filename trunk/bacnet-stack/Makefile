@@ -33,38 +33,38 @@ library: lib/Makefile
 	( cd lib ; make )
 
 readprop: demo/readprop/Makefile
-	( cd demo/readprop ; make ; cp bacrp ../../utils )
+	( cd demo/readprop ; make ; cp bacrp ../../bin )
 
 writeprop: demo/writeprop/Makefile
-	( cd demo/writeprop ; make ; cp bacwp ../../utils )
+	( cd demo/writeprop ; make ; cp bacwp ../../bin )
 
 readfile: demo/readfile/Makefile
-	( cd demo/readfile ; make ; cp bacarf ../../utils )
+	( cd demo/readfile ; make ; cp bacarf ../../bin )
 
 writefile: demo/writefile/Makefile
-	( cd demo/writefile ; make ; cp bacawf ../../utils )
+	( cd demo/writefile ; make ; cp bacawf ../../bin )
 
 reinit: demo/reinit/Makefile
-	( cd demo/reinit ; make ; cp bacrd ../../utils )
+	( cd demo/reinit ; make ; cp bacrd ../../bin )
 
 server: demo/server/Makefile
-	( cd demo/server ; make ; cp bacserv ../../utils )
+	( cd demo/server ; make ; cp bacserv ../../bin )
 
 dcc: demo/dcc/Makefile
-	( cd demo/dcc ; make ; cp bacdcc ../../utils )
+	( cd demo/dcc ; make ; cp bacdcc ../../bin )
 
 whohas: demo/whohas/Makefile
-	( cd demo/whohas ; make ; cp bacwh ../../utils )
+	( cd demo/whohas ; make ; cp bacwh ../../bin )
 
 timesync: demo/timesync/Makefile
-	( cd demo/timesync ; make ; cp bacts ../../utils )
+	( cd demo/timesync ; make ; cp bacts ../../bin )
 
 epics: demo/epics/Makefile
-	( cd demo/epics ; make ; cp bacepics ../../utils )
+	( cd demo/epics ; make ; cp bacepics ../../bin )
 
 ucov: demo/ucov/Makefile
-	( cd demo/ucov ; make ; cp bacucov ../../utils )
+	( cd demo/ucov ; make ; cp bacucov ../../bin )
 
 whois: demo/whois/Makefile
-	( cd demo/whois ; make ; cp bacwi ../../utils )
+	( cd demo/whois ; make ; cp bacwi ../../bin )
 
