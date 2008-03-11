@@ -13,7 +13,7 @@ MAKE=$(BORLAND_DIR)\bin\make.exe
 all: library \
 	readprop writeprop readfile writefile server dcc reinit \
 	whois whohas timesync ucov epics
-	@echo "demo utilities are in utils directory"
+	@echo "demo utilities are in the bin directory"
 
 clean: lib\makefile.b32 \
 	demo/readprop/makefile.b32 \

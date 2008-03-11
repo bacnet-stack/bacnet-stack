@@ -2,12 +2,22 @@ FAQ - Frequently Asked Questions about the BACnet Stack
 
 Q-1: Do you know the typical footprint of the stack (MS/TP use)?
 
-A-1: It fits on a PIC18F6720 (128K bytes flash 3840 bytes RAM) and
+A-1a: It fits on a PIC18F6720 (128K bytes flash 3840 bytes RAM) and
 there is lots of room for the application. In one device with 8 Binary
 Value objects, 8 Binary Input objects, 1 Analog Input object, and
 supporting ReadProperty, WriteProperty, DeviceCommunicationControl,
 TimeSync, ReinitializeDevice, Who-Is, I-Am services, the BACnet stack
 used about 32K words of the code space.
+
+A-1b: It fits on a ATmega168 (16K bytes flash, 1024 bytes RAM). In one
+device with 9 Analog Value objects supporting ReadProperty, Who-Is,
+I-Am services, and 128 byte Maximum APDU. Using the Win-AVR (GCC-AVR)
+compiler, the AVR Memory Usage:
+Program: 16350 bytes (99.8% Full)
+Data: 630 bytes (61.5% Full)
+Using the IAR compiler, the AVR Memory Usage:
+10 055 bytes of CODE memory (+ 36 range fill )
+553 bytes of DATA memory (+ 24 absolute )
 
 Q-2: The homepage used to say that the MS/TP code does not work. Still
 true?
@@ -15,9 +25,9 @@ true?
 A-2: MS/TP works correctly as of the 0.2.6 release. I spent a several
 days correcting it while working on the RTOS-32 port, and then a full
 day fine-tuning it while working on the PIC18F6720 that I used at the
-BACnet International plugfest. The only issue at the plugfest was that
-our unit didn't work at 76800, and that was probably due to me setting
-the UART on the PIC incorrectly.
+2006 BACnet International Plugfest. I also successfully used MS/TP
+with the 0.4.0 release at the 2007 BACnet International Plugfest on an
+Atmel AVR ATmega168.
 
 Q-3: Does the stack have some specific requirements regarding the
 hardware (e.g. non-volatile memory, 32-bit CPU, ...)?
@@ -33,34 +43,27 @@ stdbool.h. Most of the APDU size returns are int.
 Q-4: Does the stack have some specific requirements regarding OS? What
 OS features are used (threads, timers, semaphors, events, mutexes...)?
 
-A-4: No, I did not use any OS features (except for the port/rtos32/
-which uses some tasks). Since my target was embedded, I kept every
-thing single-threaded (but multithread safe except where noted) to
-keep it easy to follow and easy to implement in a microcontroller just
-running a main() loop. I expect that when I finish the port to
-RTOS-32, I will have some OS specific stuff, but that will end up in
-the ports/rtos32/ directory.
-
-I started to port the MS/TP state machine to RTOS-32 and it is
-currently a single task (other than a timer task). However, it really
-needs to have some queues and become multithreaded for effeciency.
-Since the 0.2.6 release, I moved the MS/TP files (mstp.c, mstp.h,
-dlmstp.c, dlmstp.h, rs485.c, rs485.h) into the ports/ directory so
-that the code can be modified to suit the port.
+A-4: No, I did not use any OS features (except for the the ports to
+specific OS's: port/rtos32/, port/win32/ and port/linux/ which uses
+some tasks or threads for the MS/TP datalink layer or sockets for the
+BACnet/IP layers). Since my target was embedded, I kept every thing
+single-threaded (but multithread safe except where noted) to keep it
+easy to follow and easy to implement in a microcontroller just running
+a main() loop.
 
 Q-5: What is the difference between the two datalink layers BACnet/IP
 and BACnet Ethernet? In BACnet/IP, is the MAC address needed?
 
-A-5: The BACnet/IP uses the BACnet Virtual Link Control (BVLC) for
-networking using UDP/IP. The IPv4 address (x.x.x.x) and the port
-number (0xBAC0) is stored as the MAC address. IPv6 would store more
-bytes, and devices should be able to store them. See Annex J or bip.c
+A-5: The BACnet/IP datalink layer uses the BACnet Virtual Link Control
+(BVLC) for networking using UDP/IP. The IPv4 address (x.x.x.x) and the
+port number (0xBAC0) is stored as the MAC address. IPv6 will utilize a
+virtual MAC address which will be the Device ID. See Annex J or bip.c
 in the BACnet stack.
 
 BACnet Ethernet uses the Ethernet MAC address, and communicates using
 the IEEE 802.2/802.3 (see ANSI/ASHRAE 135-2004-7 Data Link/Physical
-Layers: ISO 8802-3 ("Ethernet") LAN). See ethernet.c in the BACnet
-stack.
+Layers: ISO 8802-3 ("Ethernet") LAN). See ethernet.c in the
+port/linux/ directory of the BACnet stack.
 
 Q-6: What do I need to do to learn about BACnet? Can this project
 help?
@@ -117,13 +120,13 @@ the file. For each object type:
 
        1. #include the header file for the object
        2. Device_Object_List_Count() needs to include a call to a
-count function from the object type.
+          count function from the object type.
        3. Device_Object_List_Identifier() needs to include some code
-to get the object instance for each object.
+          to get the object instance for each object.
        4. Device_Valid_Object_Id() needs to get the object name for
-each object.
+          each object.
        5. PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED needs to set a bit for
-each object type supported.
+          each object type supported.
 
 Additionally, for each service that interacts with objects, you will
 need to include handling for that object. See demo/handler/h_rp.c to
@@ -226,15 +229,16 @@ This limits you to a single MS/TP datalink.
               * Change the number of objects that you have.
               * Only a Device object is required.
               * Update the Device object
-PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED
+                PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED
        4. Remove unused function calls by:
               * #if 0 and #endif around the unused functions
-(especially in bacdcode.c)
+                (especially in bacdcode.c)
               * Compile and Link. If the linker fails, then that
-function was needed.
-              * Some compilers and linkers have garbage collection
-              for unused code/functions. GCC has this feature:
-              http://gcc.gnu.org/ml/gcc-help/2003-08/msg00128.html
+                function was needed.
+              * Some compilers, like GCC, have garbage collection for
+unused functions and code. If enabled, the linker will eliminate the
+unused functions and code. Use the GCC compiler and linker directive
+to enable this feature.
 
 Q-15: I have downloaded the BACnet stack but can't get demo/server to
 work. I am using a single computer. In one console window I run
@@ -252,35 +256,49 @@ the client application is unable to receive broadcast messages on port
 The correct solution is to use BVLC (BACnet Virtual Link Control)
 where the client applications use BACnet Foreign Device Registration,
 and some application (probably the server) runs a BBMD (BACnet
-Broadcast Management Device). Unfortunately, I don't have bvlc.c
-complete at this time, so that won't work for you today.
+Broadcast Management Device).
 
 You can do one of the following:
 
    1. Use QEMU or Bochs or VMWare or some other virtual machine to
 simulate another computer, and run server or client on a virtual
 computer.
-   2. Finish the bvlc.c code. Add BBMD support in the demo/server
-example. Add Foreign device registration in all the client examples
-when they are built with BACDL_BIP enabled.
+   2. Use the BACnet/IP BACnet Virtual Link Control (BVLC) features.
+The client demo applications are configured to use environment
+variables to establish a BBMD connection as a foreign device. Set the
+BACNET_BBMD_PORT and BACNET_BBMD_ADDRESS of the BBMD. Note that the
+demo/server application is configured as a BBMD.
    3. Write npdu router code to route from BACnet/IP to another
 datalink layer. Make server application on one datalink layer and make
 client applications on another datalink layer.
    4. Add external BACnet router or BACnet devices. Run a BACnet
 demo/server on another PC.
 
-Q-16: My Linux computer doesn't use eth0 for for the BACnet connection.
-My Windows computer has more than one network connnection.  How can I
-choose the interface to use for the demo applications?
+Q-16: My Linux computer doesn't use eth0 for for the BACnet
+connection. My Windows computer has more than one network connnection.
+How can I choose the interface to use for the demo applications?
 
-A-16: Set the environment variable BACNET_IFACE.  For Windows, set
+A-16: Set the environment variable BACNET_IFACE. For Windows, set
 BACNET_IFACE=169.254.119.240 or whatever the address of the interface
-returned by ipconfig command.  For Linux, use BACNET_IFACE=eth0 or whatever
-the name of the interface returned by the ifconfig command.
-Setting the environment variable under Windows can be done on the command
-line:
+returned by ipconfig command. For Linux, use BACNET_IFACE=eth0 or
+whatever the name of the interface returned by the ifconfig command.
+Setting the environment variable under Windows can be done on the
+command line:
+
 > set BACNET_IFACE=169.254.119.240
-Setting the environment variable under Linux can be done from the command
-line:
+
+Setting the environment variable under Linux can be done from the
+command line:
+
 $ BACNET_IFACE=ath0
 $ export BACNET_IFACE
+
+Q-16: I need to communicate with an MS/TP Slave Node. Can I configure
+the demo applications to use a static address binding?
+
+A-16: Yes, static address binding is supported as of 0.4.3. Use a file
+called address_cache (which is defined in src/address.c). The file
+format is record based as follows:
+;DeviceID MAC SNET SADR MAX-APDU
+4194302 05 0 0 50
+55555 C0:A8:00:18:BA:C0 26001 19 50

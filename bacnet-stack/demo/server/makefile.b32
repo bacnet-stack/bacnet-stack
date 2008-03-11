@@ -72,7 +72,7 @@ all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE)
 	del $(BCC_CFG)
 
 install: $(PRODUCT_EXE)
-	copy $(PRODUCT_EXE) ..\..\utils\$(PRODUCT_EXE)
+	copy $(PRODUCT_EXE) ..\..\bin\$(PRODUCT_EXE)
     
 $(BACNET_LIB):
 	cd $(BACNET_LIB_DIR)

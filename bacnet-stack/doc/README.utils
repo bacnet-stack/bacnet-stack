@@ -1,6 +1,6 @@
 There are a dozen or so demo applications that are built
 with the default makefiles.  These demo applications are
-copied to the utils/ directory.  They can be used in 
+copied to the bin/ directory.  They can be used in 
 scripts and batch files to test BACnet devices or query
 information on the BACnet network, as well as simulate
 a BACnet device.
@@ -45,3 +45,4 @@ AC:10:56:06:BA:C0=MAC address (router address) in hex
 26001=DNET network number in decimal
 19=DADR MAC address in hex.  Use colon to separate multibyte address.
 50=Max APDU
+
