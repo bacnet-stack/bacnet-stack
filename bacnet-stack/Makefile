@@ -1,6 +1,6 @@
 all: library readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov timesync epics
-	@echo "utilities are in the utils directory"
+	@echo "utilities are in the bin directory"
 
 clean: lib/Makefile\
 	demo/readprop/Makefile \
