@@ -49,33 +49,31 @@
    or sets the error, and returns -1 */
 int Encode_Property_APDU(
     uint8_t * apdu,
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
+    BACNET_READ_PROPERTY_DATA *rp_data,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code)
 {
     int apdu_len = -1;
 
-    /* initialize the default return values */
-    *error_class = ERROR_CLASS_OBJECT;
-    *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     /* handle each object type */
-    switch (object_type) {
+    switch (rp_data->object_type) {
         case OBJECT_DEVICE:
-            if (Device_Valid_Object_Instance_Number(object_instance)) {
+            if (Device_Valid_Object_Instance_Number(rp_data->object_instance)) {
                 apdu_len =
-                    Device_Encode_Property_APDU(&apdu[0], property,
-                    array_index, error_class, error_code);
+                    Device_Encode_Property_APDU(&apdu[0],
+                        rp_data->object_property,
+                        rp_data->array_index, 
+                        error_class, error_code);
             }
             break;
         case OBJECT_ANALOG_VALUE:
-            if (Analog_Value_Valid_Instance(object_instance)) {
+            if (Analog_Value_Valid_Instance(rp_data->object_instance)) {
                 apdu_len =
                     Analog_Value_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
+                        rp_data->object_instance,
+                        rp_data->object_property,
+                        rp_data->array_index, 
+                        error_class, error_code);
             }
             break;
         default:
@@ -99,51 +97,48 @@ void handler_read_property(
     int property_len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    bool error = false;
     int bytes_sent = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
 
-    len = rp_decode_service_request(service_request, service_len, &data);
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
         &npdu_data);
-    if (len < 0) {
-        /* bad decoding - send an abort */
-        len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
-    } else if (service_data->segmented_message) {
+    if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len =
             abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
             true);
-    } else {
-        /* most cases will be error */
-        error = true;
-        ack_len =
-            rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, &data);
-        /* FIXME: add buffer len as passed into function or use smart buffer */
-        property_len =
-            Encode_Property_APDU(&Handler_Transmit_Buffer[pdu_len + ack_len],
-            data.object_type, data.object_instance, data.object_property,
-            data.array_index, &error_class, &error_code);
-        if (len >= 0) {
-            len =
-                rp_ack_encode_apdu_object_property_end(&Handler_Transmit_Buffer
-                [pdu_len + property_len + ack_len]);
-            len += ack_len + property_len;
-            error = false;
-        }
+        goto RP_ABORT;
+    } 
+    len = rp_decode_service_request(service_request, service_len, &data);
+    if (len < 0) {
+        /* bad decoding - send an abort */
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        goto RP_ABORT;
     }
-    if (error) {
-        switch (len) {
+    /* most cases will be error */
+    ack_len =
+        rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
+        service_data->invoke_id, &data);
+    /* FIXME: add buffer len as passed into function or use smart buffer */
+    property_len =
+        Encode_Property_APDU(&Handler_Transmit_Buffer[pdu_len + ack_len],
+            &data, &error_class, &error_code);
+    if (property_len >= 0) {
+        len =
+            rp_ack_encode_apdu_object_property_end(&Handler_Transmit_Buffer
+            [pdu_len + property_len + ack_len]);
+        len += ack_len + property_len;
+    } else {
+        switch (property_len) {
                 /* BACnet APDU too small to fit data, so proper response is Abort */
             case -2:
                 len =
@@ -151,7 +146,6 @@ void handler_read_property(
                     service_data->invoke_id,
                     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
                 break;
-            case -1:
             default:
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -160,6 +154,7 @@ void handler_read_property(
                 break;
         }
     }
+RP_ABORT:
     pdu_len += len;
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],

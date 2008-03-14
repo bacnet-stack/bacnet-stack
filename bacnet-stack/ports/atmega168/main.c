@@ -34,9 +34,18 @@
 #include "iam.h"
 #include "device.h"
 
+const char *BACnet_Version = "1.0";
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
+   
+#define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
+#define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)
+#define LED_NPDU_OFF() BIT_SET(PORTD, PD5)
+
+#define LED_GREEN_INIT() BIT_SET(DDRD, DDD4)
+#define LED_GREEN_ON() BIT_CLEAR(PORTD, PD4)
+#define LED_GREEN_OFF() BIT_SET(PORTD, PD4)
 
 /* dummy function */
 bool dcc_communication_enabled(
@@ -81,41 +90,22 @@ static void init(
     BIT_CLEAR(MCUSR, WDRF);
     WDTCSR = 0;
 
-    /* Configure USART */
+    /* Configure Specialized Hardware */
     RS485_Initialize();
+    
+    /* configure one LED for NPDU indication */
+    /* default: off, output */
+    LED_NPDU_OFF();
+    LED_NPDU_INIT();
+    /* Configure Software active LED */
+    LED_GREEN_INIT();
+    LED_GREEN_ON();
 
     /* Configure Timer0 for millisecond timer */
     Timer_Initialize();
 
-    /* Set the LED ports OFF */
-    BIT_SET(PORTD, PD4);
-    BIT_SET(PORTD, PD5);
-    /* Configure the LED ports as outputs */
-    BIT_SET(DDRD, DDD4);
-    BIT_SET(DDRD, DDD5);
-
     /* Enable global interrupts */
     __enable_interrupt();
-}
-
-static uint8_t NPDU_Timer;
-
-static void NDPU_Timers(
-    void)
-{
-    if (NPDU_Timer) {
-        NPDU_Timer--;
-        if (NPDU_Timer == 0) {
-            BIT_SET(PORTD, PD5);
-        }
-    }
-}
-
-static void NPDU_LED_On(
-    void)
-{
-    BIT_CLEAR(PORTD, PD5);
-    NPDU_Timer = 20;
 }
 
 static void task_milliseconds(
@@ -125,7 +115,6 @@ static void task_milliseconds(
         Timer_Milliseconds--;
         /* add other millisecond timer tasks here */
         RS485_LED_Timers();
-        NDPU_Timers();
     }
 }
 
@@ -152,6 +141,13 @@ static void input_switch_read(
     }
 }
 
+static void Analog_Value_Task(void)
+{
+	extern float AV_Present_Value[MAX_ANALOG_VALUES];
+
+    AV_Present_Value[0] = 3.14159F;
+}
+
 static uint8_t PDUBuffer[MAX_MPDU];
 int main(
     void)
@@ -169,12 +165,14 @@ int main(
     for (;;) {
         input_switch_read();
         task_milliseconds();
+		Analog_Value_Task();
         /* other tasks */
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
         if (pdu_len) {
+            LED_NPDU_ON();
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
-            NPDU_LED_On();
+            LED_NPDU_OFF();
         }
     }
 }

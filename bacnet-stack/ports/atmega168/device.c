@@ -222,7 +222,6 @@ int Device_Encode_Property_APDU(
                 Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, Object_Name);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -249,7 +248,7 @@ int Device_Encode_Property_APDU(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, BACnet_Version);
+            characterstring_init_ansi(&char_string, BACNET_VERSION_TEXT);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -304,24 +303,16 @@ int Device_Encode_Property_APDU(
             /* your maximum APDU size. */
             else if (array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= count; i++) {
-                    if (Device_Object_List_Identifier(i, &object_type,
-                            &instance)) {
-                        len =
-                            encode_application_object_id(&apdu[apdu_len],
-                            object_type, instance);
-                        apdu_len += len;
-                        /* assume next one is the same size as this one */
-                        /* can we all fit into the APDU? */
-                        if ((apdu_len + len) >= MAX_APDU) {
-                            *error_class = ERROR_CLASS_SERVICES;
-                            *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                            apdu_len = -1;
-                            break;
-                        }
-                    } else {
-                        /* error: internal error? */
+                    Device_Object_List_Identifier(i, &object_type, &instance);
+                    len =
+                        encode_application_object_id(&apdu[apdu_len],
+                        object_type, instance);
+                    apdu_len += len;
+                    /* assume next one is the same size as this one */
+                    /* can we all fit into the APDU? */
+                    if ((apdu_len + len) >= MAX_APDU) {
                         *error_class = ERROR_CLASS_SERVICES;
-                        *error_code = ERROR_CODE_OTHER;
+                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
                         apdu_len = -1;
                         break;
                     }
@@ -367,10 +358,12 @@ int Device_Encode_Property_APDU(
             apdu_len =
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
+#if 0
         case 9600:
             apdu_len =
                 encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());
             break;
+#endif
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
