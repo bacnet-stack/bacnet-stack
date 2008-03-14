@@ -48,9 +48,9 @@ CORESRC =  \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
-	$(BACNET_CORE)/bacapp.c \
-	$(BACNET_CORE)/version.c
+	$(BACNET_CORE)/bacapp.c
 
+#	$(BACNET_CORE)/version.c
 #	$(BACNET_CORE)/bacprop.c \
 #	$(BACNET_CORE)/bactext.c \
 #	$(BACNET_CORE)/datetime.c \
@@ -98,6 +98,7 @@ BFLAGS += -DBIG_ENDIAN=0
 BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 #BFLAGS += -DCRC_USE_TABLE
 BFLAGS += -DBACAPP_REAL
+BFLAGS += -DMAX_ANALOG_VALUES=10
 CFLAGS = $(COMMON)
 # dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
@@ -162,7 +163,6 @@ size: ${TARGET_ELF}
 ## Clean target
 .PHONY: clean
 clean:
-	touch Makefile
 	-rm -rf $(OBJECTS) $(TARGET_ELF) dep/*
 	-rm -rf $(LIBRARY) $(COREOBJ) $(LIBRARY:.a=.lst)
 	-rm -rf $(TARGET).hex $(TARGET).eep $(TARGET).lst $(TARGET).map

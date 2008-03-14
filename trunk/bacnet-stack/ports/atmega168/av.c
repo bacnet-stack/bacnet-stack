@@ -34,12 +34,11 @@
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
 
-#define MAX_ANALOG_VALUES 9
-#if (MAX_ANALOG_VALUES > 9)
+#if (MAX_ANALOG_VALUES > 10)
 #error Modify the Analog_Value_Name to handle multiple digits
 #endif
 
-float Present_Value[MAX_ANALOG_VALUES];
+float AV_Present_Value[MAX_ANALOG_VALUES];
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
@@ -83,14 +82,11 @@ unsigned Analog_Value_Instance_To_Index(
 char *Analog_Value_Name(
     uint32_t object_instance)
 {
-    static char text_string[5] = "AV-0";        /* okay for single thread */
+    static char text_string[5] = "AV-";        /* okay for single thread */
 
-    if (object_instance < MAX_ANALOG_VALUES) {
-        text_string[3] = '0' + (uint8_t) object_instance;
-        return text_string;
-    }
+    text_string[3] = '0' + (uint8_t) object_instance;
 
-    return NULL;
+    return text_string;
 }
 
 /* return apdu len, or -1 on error */
@@ -114,7 +110,6 @@ int Analog_Value_Encode_Property_APDU(
                 object_instance);
             break;
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
                 Analog_Value_Name(object_instance));
             apdu_len =
@@ -127,7 +122,7 @@ int Analog_Value_Encode_Property_APDU(
         case PROP_PRESENT_VALUE:
             object_index = Analog_Value_Instance_To_Index(object_instance);
             apdu_len =
-                encode_application_real(&apdu[0], Present_Value[object_index]);
+                encode_application_real(&apdu[0], AV_Present_Value[object_index]);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -184,7 +179,7 @@ bool Analog_Value_Write_Property(
             if (value.tag == BACNET_APPLICATION_TAG_REAL) {
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->object_instance);
-                Present_Value[object_index] = value.type.Real;
+                AV_Present_Value[object_index] = value.type.Real;
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
