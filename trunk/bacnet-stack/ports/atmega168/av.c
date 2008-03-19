@@ -33,6 +33,7 @@
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "av.h"
 
 #if (MAX_ANALOG_VALUES > 10)
 #error Modify the Analog_Value_Name to handle multiple digits

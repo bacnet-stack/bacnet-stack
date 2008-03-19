@@ -34,25 +34,26 @@
 #ifndef IAR2GCC_H
 #define IAR2GCC_H
 
+#if !defined(F_CPU)
+#define F_CPU (7372800)
+#endif
+
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
 #include <inavr.h>
 #include <ioavr.h>
 #define _BV(bit_num) (1 << (bit_num))
-#define _delay_us(x) \
 
 /* inline function */
-static inline void delay_us(
+static inline void _delay_us(
     uint8_t microseconds)
 {
     do {
-        __delay_cycles(F_CPU / 1000000);
+        __delay_cycles(F_CPU / 1000000UL);
     } while (microseconds--);
 }
 
 #else
-#if !defined(F_CPU)
-#define F_CPU (7372800)
-#endif
+/* GCC */
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>

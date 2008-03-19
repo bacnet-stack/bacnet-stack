@@ -33,6 +33,7 @@
 #include "txbuf.h"
 #include "iam.h"
 #include "device.h"
+#include "av.h"
 
 const char *BACnet_Version = "1.0";
 
