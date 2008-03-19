@@ -3,7 +3,7 @@ LOGFILE = test.log
 all: abort address arf awf bacapp bacdcode bacerror bacint \
 	bacstr cov crc datetime dcc filename iam ihave \
 	indtext keylist key mstp npdu rd reject ringbuf rp \
-	rpm sbuf timesync tsm whohas whois wp
+	rpm sbuf timesync whohas whois wp
 
 clean:
 	rm ${LOGFILE}
@@ -178,12 +178,6 @@ timesync: logfile test/timesync.mak
 	( cd test ; make -f timesync.mak )
 	( ./test/timesync >> ${LOGFILE} )
 	( cd test ; make -f timesync.mak clean )
-
-tsm: logfile test/tsm.mak
-	( cd test ; make -f tsm.mak clean )
-	( cd test ; make -f tsm.mak )
-	( ./test/tsm >> ${LOGFILE} )
-	( cd test ; make -f tsm.mak clean )
 
 whohas: logfile test/whohas.mak
 	( cd test ; make -f whohas.mak clean )
