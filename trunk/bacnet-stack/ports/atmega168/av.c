@@ -83,7 +83,7 @@ unsigned Analog_Value_Instance_To_Index(
 char *Analog_Value_Name(
     uint32_t object_instance)
 {
-    static char text_string[5] = "AV-";        /* okay for single thread */
+    static char text_string[5] = "AV-"; /* okay for single thread */
 
     text_string[3] = '0' + (uint8_t) object_instance;
 
@@ -123,7 +123,8 @@ int Analog_Value_Encode_Property_APDU(
         case PROP_PRESENT_VALUE:
             object_index = Analog_Value_Instance_To_Index(object_instance);
             apdu_len =
-                encode_application_real(&apdu[0], AV_Present_Value[object_index]);
+                encode_application_real(&apdu[0],
+                AV_Present_Value[object_index]);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
