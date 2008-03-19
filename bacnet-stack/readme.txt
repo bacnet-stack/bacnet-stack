@@ -1,5 +1,4 @@
 BACnet open source protocol stack for embedded systems
-Version 0.0.2
 
 Welcome to the wonderful world of BACnet and true device interoperability!
 
@@ -57,50 +56,34 @@ They were tested on a Linux PC.
 
 The BACnet stack was functionally tested using VTS (Visual Test Shell), another
 project hosted on SourceForge, as well as various controllers and workstations.
-Using the Makefile in the project root directory, a sample application is
-created that runs under Linux. It uses the BACnet Ethernet physical layer for
-communication. It requires root priveleges to run the 802.2 Ethernet interface.
+Using the Makefile in the project root directory, a dozen sample applications
+are created that run under Windows or Linux. They use the BACnet/IP datalink
+layer for communication by default, but could be compiled to use BACnet 
+Ethernet, ARCNET, or MS/TP.
 
 $ make clean all
-$ sudo ./bacnet
 
-The BACnet stack currently supports the following services marked 
-with an X, and hopefully will support the rest of the services listed 
-in the future.
-                                 Initiate  Execute
-                                 --------  -------
-Who Is                                        X
-I Am                                X
-Read Property                                 X
-Read Property Multiple 
-Write Property
-Write Property Multiple 
-Device Communication Control   
-ReinitializeDevice 
-Time Synchronization 
-UTC Time Synchronization 
-Atomic Read File 
-Atomic Write File 
-Subscribe COV 
-Confirmed COV Notification 
-Unconfirmed COV Notification
-Get Alarm Summary 
-Get Event Information 
-Acknowledge Alarm 
-Confirmed Event Notification 
-Unconfirmed Event Notification 
-Who Has 
-I Have
+The BACnet stack can be compiled by a variety of compilers.  The most common
+free compiler is GCC (MinGW under Windows).  The makefiles use GCC by
+default.  Other makefiles are written for the Borland C++ 5.5 compiler, and
+projects are included for Microsoft Visual Studio and Code::Blocks.
 
-The BACnet stack currently implements a Device Object, and handles most of the
-Read Property inquiries for the required Device Object properties. The stack
-handles Who-Is inquiries with an I-Am, and handles reject messages for services
-not currently supported.
+The demo applications are all client applications that provide one main BACnet
+service, except the one server application.  Each application will accept 
+command line parameters, and prints the output to stdout or stderr.  The client
+applications are command line based and can be used in scripts or for 
+troubleshooting.  The demo applications make use of environment variables to 
+setup the network options.  See each individual demo for the options.
+
+There are also projects in the ports/ directory for ARM7, AVR, RTOS-32, 
+and PIC.  Each of those projects has a demo application for specific hardware.
+In the case of the ARM7 and AVR, the makefile works with GCC or IAR compilers.
 
 If you want to help this project, join the developers mailing list at:
 http://lists.sourceforge.net/mailman/listinfo/bacnet-developers
 
-I hope that you get your BACnet Device working!
+I hope that you get your BACnet Device working!  If not, join us on the 
+mailing list and we can help.
 
 Steve Karg
 skarg@users.sourceforge.net
