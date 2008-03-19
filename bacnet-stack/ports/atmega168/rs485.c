@@ -56,13 +56,6 @@ static uint32_t RS485_Baud = 9600;
 #define Tturnaround  (40UL)
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
 
-/* The maximum time after the end of the stop bit of the final */
-/* octet of a transmitted frame before a node must disable its */
-/* EIA-485 driver: 15 bit times. */
-/* NOTE: AVR lib delay_us limit is 768us; limit is 7bits/9600bps=729us */
-#define Tpostdrive1 (7UL)
-#define Tpostdrive2 (7UL)
-
 /****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
 *              receive mode.
@@ -176,12 +169,6 @@ void RS485_Transmitter_Enable(
     if (enable) {
         BIT_SET(PORTD, PD2);
     } else {
-#if Tpostdrive1
-        _delay_us(Tpostdrive1 / RS485_Baud);
-#endif
-#if Tpostdrive2
-        _delay_us(Tpostdrive2 / RS485_Baud);
-#endif
         BIT_CLEAR(PORTD, PD2);
     }
 }
@@ -254,15 +241,13 @@ void RS485_Send_Data(
         buffer++;
         nbytes--;
     }
-    while (!BIT_CHECK(UCSR0A, UDRE0)) {
-        /* do nothing - wait until Tx buffer is empty */
-    }
-    /* is the frame sent? */
+    /* Clear the Transmit Complete flag by writing a one to it. */
+    BIT_SET(UCSR0A, TXC0);
+    /* was the frame sent? */
     while (!BIT_CHECK(UCSR0A, TXC0)) {
-        /* do nothing - wait until the entire frame in the 
+        /* do nothing - wait until the entire frame in the
            Transmit Shift Register has been shifted out */
     }
-    BIT_CLEAR(UCSR0A, TXC0);
     /* per MSTP spec, sort of */
     Timer_Silence_Reset();
 }
@@ -304,7 +289,7 @@ bool RS485_ReceiveError(
 }
 
 /****************************************************************************
-* DESCRIPTION: Return true if data is available 
+* DESCRIPTION: Return true if data is available
 * RETURN:      true if data is available, with the data in the parameter set
 * ALGORITHM:   none
 * NOTES:       none

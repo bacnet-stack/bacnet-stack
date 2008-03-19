@@ -27,7 +27,7 @@
 
 #if !defined(F_CPU)
     /* The processor clock frequency */
-#define F_CPU (7372800)
+#define F_CPU 7372800UL
 #endif
 
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)

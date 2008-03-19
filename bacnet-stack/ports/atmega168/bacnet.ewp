@@ -10,9 +10,9 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>5</archiveVersion>
       <data>
-        <version>6</version>
+        <version>7</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -63,7 +63,7 @@
         </option>
         <option>
           <name>SCCStackSize</name>
-          <state>0x20</state>
+          <state>0xff</state>
         </option>
         <option>
           <name>SCExtCStack</name>
@@ -71,7 +71,7 @@
         </option>
         <option>
           <name>SCRStackSize</name>
-          <state>16</state>
+          <state>32</state>
         </option>
         <option>
           <name>SCExtRStack</name>
@@ -127,8 +127,8 @@
         </option>
         <option>
           <name>New Variant Processor</name>
-          <version>15</version>
-          <state>41</state>
+          <version>24</version>
+          <state>45</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
@@ -145,11 +145,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec-sf-n.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec-sf-n.r90</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.r90</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -207,13 +207,17 @@
           <name>LCsHeapConfigText</name>
           <state>1</state>
         </option>
+        <option>
+          <name>GGNoMULInstruction</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCAVR</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>12</version>
+        <version>13</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -468,13 +472,17 @@
           <name>CCRadioModuleTypeSlave</name>
           <state>1</state>
         </option>
+        <option>
+          <name>OCCAdditionalCommandLineOptionsSlave</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>AAVR</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>9</version>
+        <version>10</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -650,18 +658,6 @@
           <name>AsmOutputFile</name>
           <state>$FILE_BNAME$.r90</state>
         </option>
-        <option>
-          <name>AOverrideModuleTypeDefault</name>
-          <state>0</state>
-        </option>
-        <option>
-          <name>ARadioModuleType</name>
-          <state>0</state>
-        </option>
-        <option>
-          <name>ARadioModuleTypeSlave</name>
-          <state>1</state>
-        </option>
       </data>
     </settings>
     <settings>
@@ -707,7 +703,7 @@
         </option>
         <option>
           <name>FormatVariant</name>
-          <version>7</version>
+          <version>8</version>
           <state>2</state>
         </option>
         <option>
@@ -856,7 +852,7 @@
         </option>
         <option>
           <name>DebugInformation</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>RuntimeControl</name>
@@ -868,7 +864,7 @@
         </option>
         <option>
           <name>AllowExtraOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GenerateExtraOutput</name>
@@ -889,7 +885,7 @@
         </option>
         <option>
           <name>ExtraFormatVariant</name>
-          <version>7</version>
+          <version>8</version>
           <state>2</state>
         </option>
         <option>
@@ -985,9 +981,9 @@
     <debug>0</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>5</archiveVersion>
       <data>
-        <version>6</version>
+        <version>7</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1102,7 +1098,7 @@
         </option>
         <option>
           <name>New Variant Processor</name>
-          <version>15</version>
+          <version>24</version>
           <state>0</state>
         </option>
         <option>
@@ -1178,13 +1174,17 @@
           <name>LCsHeapConfigText</name>
           <state>1</state>
         </option>
+        <option>
+          <name>GGNoMULInstruction</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCAVR</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>12</version>
+        <version>13</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1434,13 +1434,17 @@
           <name>CCRadioModuleTypeSlave</name>
           <state>1</state>
         </option>
+        <option>
+          <name>OCCAdditionalCommandLineOptionsSlave</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>AAVR</name>
-      <archiveVersion>3</archiveVersion>
+      <archiveVersion>4</archiveVersion>
       <data>
-        <version>9</version>
+        <version>10</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1616,18 +1620,6 @@
           <name>AsmOutputFile</name>
           <state></state>
         </option>
-        <option>
-          <name>AOverrideModuleTypeDefault</name>
-          <state>0</state>
-        </option>
-        <option>
-          <name>ARadioModuleType</name>
-          <state>0</state>
-        </option>
-        <option>
-          <name>ARadioModuleTypeSlave</name>
-          <state>1</state>
-        </option>
       </data>
     </settings>
     <settings>
@@ -1673,7 +1665,7 @@
         </option>
         <option>
           <name>FormatVariant</name>
-          <version>7</version>
+          <version>8</version>
           <state>2</state>
         </option>
         <option>
@@ -1857,7 +1849,7 @@
         </option>
         <option>
           <name>ExtraFormatVariant</name>
-          <version>7</version>
+          <version>8</version>
           <state>2</state>
         </option>
         <option>
@@ -2025,9 +2017,6 @@
   </file>
   <file>
     <name>$PROJ_DIR$\..\..\demo\handler\txbuf.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\version.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\..\..\src\whois.c</name>
