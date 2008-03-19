@@ -49,7 +49,7 @@
    or sets the error, and returns -1 */
 int Encode_Property_APDU(
     uint8_t * apdu,
-    BACNET_READ_PROPERTY_DATA *rp_data,
+    BACNET_READ_PROPERTY_DATA * rp_data,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code)
 {
@@ -61,19 +61,16 @@ int Encode_Property_APDU(
             if (Device_Valid_Object_Instance_Number(rp_data->object_instance)) {
                 apdu_len =
                     Device_Encode_Property_APDU(&apdu[0],
-                        rp_data->object_property,
-                        rp_data->array_index, 
-                        error_class, error_code);
+                    rp_data->object_property, rp_data->array_index,
+                    error_class, error_code);
             }
             break;
         case OBJECT_ANALOG_VALUE:
             if (Analog_Value_Valid_Instance(rp_data->object_instance)) {
                 apdu_len =
                     Analog_Value_Encode_Property_APDU(&apdu[0],
-                        rp_data->object_instance,
-                        rp_data->object_property,
-                        rp_data->array_index, 
-                        error_class, error_code);
+                    rp_data->object_instance, rp_data->object_property,
+                    rp_data->array_index, error_class, error_code);
             }
             break;
         default:
@@ -115,7 +112,7 @@ void handler_read_property(
             service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
             true);
         goto RP_ABORT;
-    } 
+    }
     len = rp_decode_service_request(service_request, service_len, &data);
     if (len < 0) {
         /* bad decoding - send an abort */
@@ -131,7 +128,7 @@ void handler_read_property(
     /* FIXME: add buffer len as passed into function or use smart buffer */
     property_len =
         Encode_Property_APDU(&Handler_Transmit_Buffer[pdu_len + ack_len],
-            &data, &error_class, &error_code);
+        &data, &error_class, &error_code);
     if (property_len >= 0) {
         len =
             rp_ack_encode_apdu_object_property_end(&Handler_Transmit_Buffer
@@ -154,7 +151,7 @@ void handler_read_property(
                 break;
         }
     }
-RP_ABORT:
+  RP_ABORT:
     pdu_len += len;
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],

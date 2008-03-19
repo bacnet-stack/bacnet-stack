@@ -39,7 +39,7 @@ const char *BACnet_Version = "1.0";
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
-   
+
 #define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
 #define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)
 #define LED_NPDU_OFF() BIT_SET(PORTD, PD5)
@@ -93,7 +93,7 @@ static void init(
 
     /* Configure Specialized Hardware */
     RS485_Initialize();
-    
+
     /* configure one LED for NPDU indication */
     /* default: off, output */
     LED_NPDU_OFF();
@@ -142,9 +142,10 @@ static void input_switch_read(
     }
 }
 
-static void Analog_Value_Task(void)
+static void Analog_Value_Task(
+    void)
 {
-	extern float AV_Present_Value[MAX_ANALOG_VALUES];
+    extern float AV_Present_Value[MAX_ANALOG_VALUES];
 
     AV_Present_Value[0] = 3.14159F;
 }
@@ -166,7 +167,7 @@ int main(
     for (;;) {
         input_switch_read();
         task_milliseconds();
-		Analog_Value_Task();
+        Analog_Value_Task();
         /* other tasks */
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
