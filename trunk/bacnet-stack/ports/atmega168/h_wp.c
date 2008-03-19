@@ -82,7 +82,6 @@ void handler_write_property(
             true);
     } else {
         switch (wp_data.object_type) {
-#if 0
             case OBJECT_DEVICE:
                 if (Device_Write_Property(&wp_data, &error_class, &error_code)) {
                     len =
@@ -97,6 +96,7 @@ void handler_write_property(
                         error_code);
                 }
                 break;
+#if 0
             case OBJECT_ANALOG_INPUT:
             case OBJECT_BINARY_INPUT:
                 error_class = ERROR_CLASS_PROPERTY;

@@ -40,14 +40,6 @@ const char *BACnet_Version = "1.0";
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
-#define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
-#define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)
-#define LED_NPDU_OFF() BIT_SET(PORTD, PD5)
-
-#define LED_GREEN_INIT() BIT_SET(DDRD, DDD4)
-#define LED_GREEN_ON() BIT_CLEAR(PORTD, PD4)
-#define LED_GREEN_OFF() BIT_SET(PORTD, PD4)
-
 /* dummy function */
 bool dcc_communication_enabled(
     void)
@@ -98,9 +90,9 @@ static void init(
     /* default: off, output */
     LED_NPDU_OFF();
     LED_NPDU_INIT();
-    /* Configure Software active LED */
+    /* Configure Software LED */
     LED_GREEN_INIT();
-    LED_GREEN_ON();
+    LED_GREEN_OFF();
 
     /* Configure Timer0 for millisecond timer */
     Timer_Initialize();
@@ -142,14 +134,6 @@ static void input_switch_read(
     }
 }
 
-static void Analog_Value_Task(
-    void)
-{
-    extern float AV_Present_Value[MAX_ANALOG_VALUES];
-
-    AV_Present_Value[0] = 3.14159F;
-}
-
 static uint8_t PDUBuffer[MAX_MPDU];
 int main(
     void)
@@ -167,7 +151,6 @@ int main(
     for (;;) {
         input_switch_read();
         task_milliseconds();
-        Analog_Value_Task();
         /* other tasks */
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);

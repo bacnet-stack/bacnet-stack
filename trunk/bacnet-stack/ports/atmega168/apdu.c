@@ -49,7 +49,7 @@ bool apdu_service_supported(
     if (service_supported == SERVICE_SUPPORTED_READ_PROPERTY) {
         status = true;
     }
-#if 0
+#ifdef WRITE_PROPERTY
     if (service_supported == SERVICE_SUPPORTED_WRITE_PROPERTY) {
         status = true;
     }
@@ -109,7 +109,7 @@ void apdu_handler(
                     handler_read_property(service_request, service_request_len,
                         src, &service_data);
                 }
-#if 0
+#ifdef WRITE_PROPERTY
                 else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
                     handler_write_property(service_request,
                         service_request_len, src, &service_data);

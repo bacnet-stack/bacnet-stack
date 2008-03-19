@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "hardware.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -182,6 +183,11 @@ bool Analog_Value_Write_Property(
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->object_instance);
                 AV_Present_Value[object_index] = value.type.Real;
+                if ((AV_Present_Value[0] < 1.0) && (AV_Present_Value[0] > -1.0)) {
+                    LED_GREEN_OFF();
+                } else {
+                    LED_GREEN_ON();
+                }
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;

@@ -40,4 +40,12 @@
 #include "iar2gcc.h"
 #include "avr035.h"
 
+#define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
+#define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)
+#define LED_NPDU_OFF() BIT_SET(PORTD, PD5)
+
+#define LED_GREEN_INIT() BIT_SET(DDRD, DDD4)
+#define LED_GREEN_ON() BIT_CLEAR(PORTD, PD4)
+#define LED_GREEN_OFF() BIT_SET(PORTD, PD4)
+
 #endif
