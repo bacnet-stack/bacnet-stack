@@ -246,6 +246,25 @@ bool characterstring_copy(
         characterstring_value(src), characterstring_length(src));
 }
 
+bool characterstring_ansi_copy(
+    char * dest,
+    size_t dest_max_len,
+    BACNET_CHARACTER_STRING * src)
+{
+    size_t i;   /* counter */
+
+    if (dest && src && 
+        (src->encoding == CHARACTER_ANSI_X34) &&
+        (src->length < dest_max_len)) {
+        for (i = 0; i < src->length; i++) {
+            dest[i] = src->value[i];
+        }
+        return true;
+    }
+
+    return false;
+}
+
 /* returns true if the character encoding and string contents are the same */
 bool characterstring_same(
     BACNET_CHARACTER_STRING * dest,

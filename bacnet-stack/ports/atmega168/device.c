@@ -358,12 +358,10 @@ int Device_Encode_Property_APDU(
             apdu_len =
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
-#if 0
         case 9600:
             apdu_len =
                 encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());
             break;
-#endif
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -374,7 +372,6 @@ int Device_Encode_Property_APDU(
     return apdu_len;
 }
 
-#if 0
 bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class,
@@ -444,19 +441,15 @@ bool Device_Write_Property(
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
                 uint8_t encoding;
-                size_t len;
 
                 encoding =
                     characterstring_encoding(&value.type.Character_String);
-                len = characterstring_length(&value.type.Character_String);
                 if (encoding == CHARACTER_ANSI_X34) {
-                    if (len <= 20) {
-                        /* FIXME: set the name */
-                        /* Display_Set_Name(
-                           characterstring_value(&value.type.Character_String)); */
-                        /* FIXME:  All the object names in a device must be unique.
-                           Disallow setting the Device Object Name to any objects in
-                           the device. */
+                    if (characterstring_ansi_copy(
+                            &Object_Name[0],
+                            sizeof(Object_Name),
+                            &value.type.Character_String)) {
+                        status = true;
                     } else {
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -492,4 +485,3 @@ bool Device_Write_Property(
 
     return status;
 }
-#endif

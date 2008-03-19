@@ -114,6 +114,10 @@ extern "C" {
     bool characterstring_copy(
         BACNET_CHARACTER_STRING * dest,
         BACNET_CHARACTER_STRING * src);
+    bool characterstring_ansi_copy(
+        char * dest,
+        size_t dest_max_len,
+        BACNET_CHARACTER_STRING * src);
 /* returns true if the strings are the same length, encoding, value */
     bool characterstring_same(
         BACNET_CHARACTER_STRING * dest,
