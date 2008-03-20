@@ -243,6 +243,10 @@
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>BACAPP_REAL</state>
+          <state>BACAPP_UNSIGNED</state>
+          <state>BACAPP_ENUMERATED</state>
+          <state>BACAPP_CHARACTER_STRING</state>
+          <state>BACAPP_OBJECT_ID</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1965,6 +1969,9 @@
     <name>$PROJ_DIR$\..\..\src\bacstr.c</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\bv.c</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\..\..\src\crc.c</name>
   </file>
   <file>
@@ -1978,6 +1985,9 @@
   </file>
   <file>
     <name>$PROJ_DIR$\h_whois.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\h_wp.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\hardware.h</name>

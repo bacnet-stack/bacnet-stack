@@ -39,11 +39,7 @@
 /* demo objects */
 #include "device.h"
 #include "av.h"
-#if 0
-#include "ai.h"
-#include "bi.h"
 #include "bv.h"
-#endif
 
 /* too big to reside on stack frame for PIC */
 static BACNET_WRITE_PROPERTY_DATA wp_data;
@@ -96,18 +92,8 @@ void handler_write_property(
                         error_code);
                 }
                 break;
-#if 0
-            case OBJECT_ANALOG_INPUT:
-            case OBJECT_BINARY_INPUT:
-                error_class = ERROR_CLASS_PROPERTY;
-                error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                len =
-                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-                    error_class, error_code);
-                break;
-            case OBJECT_BINARY_VALUE:
-                if (Binary_Value_Write_Property(&wp_data, &error_class,
+            case OBJECT_ANALOG_VALUE:
+                if (Analog_Value_Write_Property(&wp_data, &error_class,
                         &error_code)) {
                     len =
                         encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
@@ -121,9 +107,8 @@ void handler_write_property(
                         error_code);
                 }
                 break;
-#endif
-            case OBJECT_ANALOG_VALUE:
-                if (Analog_Value_Write_Property(&wp_data, &error_class,
+            case OBJECT_BINARY_VALUE:
+                if (Binary_Value_Write_Property(&wp_data, &error_class,
                         &error_code)) {
                     len =
                         encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],

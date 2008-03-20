@@ -39,11 +39,7 @@
 /* demo objects */
 #include "device.h"
 #include "av.h"
-#if 0
-#include "ai.h"
-#include "bi.h"
 #include "bv.h"
-#endif
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
@@ -69,6 +65,14 @@ int Encode_Property_APDU(
             if (Analog_Value_Valid_Instance(rp_data->object_instance)) {
                 apdu_len =
                     Analog_Value_Encode_Property_APDU(&apdu[0],
+                    rp_data->object_instance, rp_data->object_property,
+                    rp_data->array_index, error_class, error_code);
+            }
+            break;
+        case OBJECT_BINARY_VALUE:
+            if (Binary_Value_Valid_Instance(rp_data->object_instance)) {
+                apdu_len =
+                    Binary_Value_Encode_Property_APDU(&apdu[0],
                     rp_data->object_instance, rp_data->object_property,
                     rp_data->array_index, error_class, error_code);
             }

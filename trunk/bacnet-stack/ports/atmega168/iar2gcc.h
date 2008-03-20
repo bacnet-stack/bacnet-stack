@@ -38,6 +38,7 @@
 #define F_CPU (7372800)
 #endif
 
+/* IAR */
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
 #include <inavr.h>
 #include <ioavr.h>
@@ -57,6 +58,7 @@ static inline void _delay_us(
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <avr/eeprom.h>
 
 typedef struct {
     unsigned char bit0:1;

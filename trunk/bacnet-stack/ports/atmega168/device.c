@@ -37,13 +37,8 @@
 /* objects */
 #include "device.h"
 #include "av.h"
-#if 0
-#include "ai.h"
-#include "bi.h"
 #include "bv.h"
 #include "wp.h"
-#include "dcc.h"
-#endif
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.
@@ -111,12 +106,8 @@ unsigned Device_Object_List_Count(
     unsigned count = 1; /* at least 1 for device object */
 
     /* FIXME: add objects as needed */
-#if 0
-    count += Analog_Input_Count();
-    count += Binary_Input_Count();
-    count += Binary_Value_Count();
-#endif
     count += Analog_Value_Count();
+    count += Binary_Value_Count();
 
     return count;
 }
@@ -143,15 +134,14 @@ bool Device_Object_List_Identifier(
     /* 1 for the device object */
     object_count = 1;
     /* FIXME: add objects as needed */
-    /* analog input objects */
-#if 0
+    /* analog value objects */
     if (!status) {
         /* array index starts at 1, and 1 for the device object */
         object_index -= object_count;
-        object_count = Analog_Input_Count();
+        object_count = Analog_Value_Count();
         if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_INPUT;
-            *instance = Analog_Input_Index_To_Instance(object_index);
+            *object_type = OBJECT_ANALOG_VALUE;
+            *instance = Analog_Value_Index_To_Instance(object_index);
             status = true;
         }
     }
@@ -166,33 +156,6 @@ bool Device_Object_List_Identifier(
             status = true;
         }
     }
-#endif
-    /* analog value objects */
-    if (!status) {
-        /* array index starts at 1, and 1 for the device object */
-        object_index -= object_count;
-        object_count = Analog_Value_Count();
-        if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_VALUE;
-            *instance = Analog_Value_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-#if 0
-    /* binary input objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Binary_Input_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_BINARY_INPUT;
-            *instance = Binary_Input_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-#endif
 
     return status;
 }
@@ -285,11 +248,7 @@ int Device_Encode_Property_APDU(
             /* FIXME: indicate the objects that YOU support */
             bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
             bitstring_set_bit(&bit_string, OBJECT_ANALOG_VALUE, true);
-#if 0
-            bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
             bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
-            bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
-#endif
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OBJECT_LIST:
