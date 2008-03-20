@@ -31,6 +31,11 @@
 #include "bacerror.h"
 #include "wp.h"
 
+#ifndef MAX_BINARY_VALUES
+#define MAX_BINARY_VALUES 10
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

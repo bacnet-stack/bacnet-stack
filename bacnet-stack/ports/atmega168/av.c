@@ -183,11 +183,6 @@ bool Analog_Value_Write_Property(
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->object_instance);
                 AV_Present_Value[object_index] = value.type.Real;
-                if ((AV_Present_Value[0] < 1.0) && (AV_Present_Value[0] > -1.0)) {
-                    LED_GREEN_OFF();
-                } else {
-                    LED_GREEN_ON();
-                }
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -220,7 +215,6 @@ void testAnalog_Value(
     uint32_t instance = 123;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
-
 
     len =
         Analog_Value_Encode_Property_APDU(&apdu[0], instance,

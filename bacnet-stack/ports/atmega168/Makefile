@@ -18,6 +18,7 @@ BACNET_CORE = ../../src
 BACNET_INCLUDE = ../../include
 BACNET_DEMO = ../../demo
 
+# local files for this project
 CSRC = main.c \
 	timer.c \
 	rs485.c \
@@ -25,14 +26,17 @@ CSRC = main.c \
 	apdu.c \
 	$(BACNET_CORE)/crc.c
 
+# common demo files needed
 DEMOSRC = h_rp.c \
 	device.c \
 	av.c \
+	bv.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/noserv.c \
 	h_whois.c \
 	h_wp.c
 
+# core BACnet stack files
 CORESRC =  \
 	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/npdu.c \
@@ -100,9 +104,11 @@ BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 BFLAGS += -DBACAPP_REAL
 BFLAGS += -DBACAPP_OBJECT_ID
 BFLAGS += -DBACAPP_UNSIGNED
+BFLAGS += -DBACAPP_ENUMERATED
 BFLAGS += -DBACAPP_CHARACTER_STRING
 BFLAGS += -DWRITE_PROPERTY
 BFLAGS += -DMAX_ANALOG_VALUES=10
+BFLAGS += -DMAX_BINARY_VALUES=10
 CFLAGS = $(COMMON)
 # dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
