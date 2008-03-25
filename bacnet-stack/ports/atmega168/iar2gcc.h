@@ -42,6 +42,7 @@
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
 #include <inavr.h>
 #include <ioavr.h>
+/* BitValue is used alot in GCC examples */
 #define _BV(bit_num) (1 << (bit_num))
 
 /* inline function */
@@ -52,13 +53,11 @@ static inline void _delay_us(
         __delay_cycles(F_CPU / 1000000UL);
     } while (microseconds--);
 }
+#endif
 
-#else
-/* GCC */
+/* Input/Output Registers */
+#if defined(__GNUC__)
 #include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#include <avr/eeprom.h>
 
 typedef struct {
     unsigned char bit0:1;
@@ -182,18 +181,46 @@ typedef struct {
 #define GPIOR2_Bit6 GPIO_BITREG(GPIOR2,6)
 #define GPIOR2_Bit7 GPIO_BITREG(GPIOR2,7)
 
-    /* FIXME: intrinsic routines: map to assembler for size/speed */
-#define __multiply_unsigned(x,y) ((x)*(y))
+#endif
 
-
-    /* memory location */
-#define __eeprom __attribute__((section (".eeprom")))
-#define __flash  __attribute__((progmem))
-    /* __root means to not optimize or strip */
-#define __root
+/* Global Interrupts */
+#if defined(__GNUC__)
 #define __enable_interrupt() sei()
 #define __disable_interrupt() cli()
+#endif
 
+/* Interrupts */
+#if defined(__ICCAVR__)
+#define PRAGMA(x) _Pragma( #x )
+#define ISR(vec) PRAGMA( vector=vec ) __interrupt void handler_##vec(void)
+#endif
+#if defined(__GNUC__)
+#include <avr/interrupt.h>
+#endif
+
+/* Flash */
+#if defined(__ICCAVR__)
+#define FLASH_DECLARE(x) __flash x
+#endif
+#if defined(__GNUC__)
+#define FLASH_DECLARE(x) x __attribute__((__progmem__))
+#endif
+
+/* EEPROM */
+#if defined(__ICCAVR__)
+#define EEPROM_DECLARE(x) __eeprom x
+#endif
+#if defined(__GNUC__)
+#include <avr/eeprom.h>
+#define EEPROM_DECLARE(x) x __attribute__((section (".eeprom")))
+#endif
+
+/* IAR intrinsic routines */
+#if defined(__GNUC__)
+    /* FIXME: intrinsic routines: map to assembler for size/speed */
+    #define __multiply_unsigned(x,y) ((x)*(y))
+    /* FIXME: __root means to not optimize or strip */
+    #define __root
 #endif
 
 #endif

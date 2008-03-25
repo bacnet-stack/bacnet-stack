@@ -71,13 +71,7 @@ void Timer_Initialize(
 /* Timer interupt */
 /* note: Global interupts must be enabled - sei() */
 /* Timer Overflowed!  Increment the time. */
-#if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
-#pragma vector=TIMER0_OVF_vect
-__interrupt void myTIMER0_OVF_vect(
-    )
-#else
 ISR(TIMER0_OVF_vect)
-#endif
 {
     /* Set the counter for the next interrupt */
     TCNT0 = TIMER_COUNT;
