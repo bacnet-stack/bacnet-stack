@@ -63,7 +63,7 @@
         </option>
         <option>
           <name>SCCStackSize</name>
-          <state>0xff</state>
+          <state>0x200</state>
         </option>
         <option>
           <name>SCExtCStack</name>
@@ -239,7 +239,7 @@
         <option>
           <name>CCDefines</name>
           <state>BACDL_MSTP</state>
-          <state>MAX_APDU=128</state>
+          <state>MAX_APDU=50</state>
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>BACAPP_REAL</state>
@@ -247,6 +247,7 @@
           <state>BACAPP_ENUMERATED</state>
           <state>BACAPP_CHARACTER_STRING</state>
           <state>BACAPP_OBJECT_ID</state>
+          <state>WRITE_PROPERTY</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1954,6 +1955,9 @@
     <name>$PROJ_DIR$\avr035.h</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\..\..\src\bacapp.c</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\..\..\src\bacdcode.c</name>
   </file>
   <file>
@@ -2030,6 +2034,9 @@
   </file>
   <file>
     <name>$PROJ_DIR$\..\..\src\whois.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\..\..\src\wp.c</name>
   </file>
 </project>
 

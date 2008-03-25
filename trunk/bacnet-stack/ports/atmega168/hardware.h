@@ -43,6 +43,9 @@
 #define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
 #define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)
 #define LED_NPDU_OFF() BIT_SET(PORTD, PD5)
+/* #define LED_NPDU PORTD_Bit5 */
+/* #define LED_NPDU_OFF() {LED_NPDU = false;} */
+/* #define LED_NPDU_ON() {LED_NPDU = true;} */
 
 #define LED_GREEN_INIT() BIT_SET(DDRD, DDD4)
 #define LED_GREEN_ON() BIT_CLEAR(PORTD, PD4)

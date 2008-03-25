@@ -237,17 +237,18 @@ void RS485_Send_Data(
         while (!BIT_CHECK(UCSR0A, UDRE0)) {
             /* do nothing - wait until Tx buffer is empty */
         }
+        /* Send the data byte */
         UDR0 = *buffer;
         buffer++;
         nbytes--;
     }
-    /* Clear the Transmit Complete flag by writing a one to it. */
-    BIT_SET(UCSR0A, TXC0);
     /* was the frame sent? */
     while (!BIT_CHECK(UCSR0A, TXC0)) {
         /* do nothing - wait until the entire frame in the
            Transmit Shift Register has been shifted out */
     }
+    /* Clear the Transmit Complete flag by writing a one to it. */
+    BIT_SET(UCSR0A, TXC0);
     /* per MSTP spec, sort of */
     Timer_Silence_Reset();
 }
