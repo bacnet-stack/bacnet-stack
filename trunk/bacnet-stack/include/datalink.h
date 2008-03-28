@@ -71,7 +71,7 @@
 #include "bvlc.h"
 
 #define datalink_init bip_init
-#ifdef BBMD_ENABLED
+#if defined(BBMD_ENABLED) && BBMD_ENABLED
 #define datalink_send_pdu bvlc_send_pdu
 #define datalink_receive bvlc_receive
 #else
