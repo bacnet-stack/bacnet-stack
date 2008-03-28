@@ -139,7 +139,6 @@ static void input_switch_read(
 }
 
 /* stack checking */
-#if STACK_CHECK_ENABLED
 #if defined(__GNUC__)
 extern uint8_t _end;
 extern uint8_t __stack;
@@ -171,28 +170,6 @@ void StackPaint(void)
                     "    breq .loop"::);
 #endif
 }
-
-static uint16_t StackCount(void)
-{
-    const uint8_t *p = &_end;
-    uint16_t       c = 0;
-
-    while(*p == STACK_CANARY && p <= &__stack)
-    {
-        p++;
-        c++;
-    }
-
-    return c;
-}
-
-static void Analog_Value_Task(void)
-{
-    extern float AV_Present_Value[MAX_ANALOG_VALUES];
-    
-    AV_Present_Value[0] = (float)StackCount();
-}
-#endif
 #endif
 
 static uint8_t PDUBuffer[MAX_MPDU];
@@ -216,9 +193,6 @@ int main(
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
         if (pdu_len) {
-#if STACK_CHECK_ENABLED
-            Analog_Value_Task();
-#endif
             LED_NPDU_ON();
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
             LED_NPDU_OFF();
