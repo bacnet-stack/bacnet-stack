@@ -2,10 +2,12 @@ This port was done with the Atmel ATmega168 using two tools:
 1. The WinAVR compiler avr-gcc (GCC) 4.1.2 (WinAVR 20070525)
 and tools from <http://winavr.sourceforge.net/>, hints and 
 sample code from <http://www.avrfreaks.net/> and 
-<http://savannah.gnu.org/projects/avr-libc/>
+<http://savannah.gnu.org/projects/avr-libc/>.
 "avr-binutils, avr-gcc, and avr-libc form the heart of the 
 Free Software toolchain for the Atmel AVR microcontrollers."
 2. AVR Studio from Atmel <http://atmel.com/>
+
+Alternatively, the project also builds using IAR Embedded Workbench AVR.
 
 The hardware is expected to utilize the signals as defined
 in the spreadsheet hardware.ods (OpenOffice.org calc).
@@ -27,8 +29,17 @@ server. dlmstp is the datalink layer for MS/TP over RS-485.
 I used the makefile from the command line on Windows:
 C:\code\bacnet-stack\ports\atmega168> make clean all
 
+CStack check for GCC is included in the device object as property 512.  
+The compile shows 648 bytes of RAM used, and the ATmega168 has 1024 bytes
+of RAM, leaving 376 for the CStack.  Property 512 index 0 returns 376 from
+a ReadProperty request.  My understanding is that the remaining unallocated
+RAM is used for the CStack.  Keep this in mind when developing.  
+After some ReadProperty and WriteProperty requests, the CStack shows 
+159 CStack bytes free, meaning that 216 bytes of CStack are used.  
+Note that the value 0xC5 (197) was used to paint the CStack. 
+
 I also used the bacnet.aps project file in AVR Studio to 
-make the project and simulate it.
+make the project and simulate it, but have not kept it updated (FIXME).
 
 Compiler settings for IAR Embedded Workbench (FIXME: makefile?):
 General Options
@@ -48,8 +59,8 @@ Library Options
 Heap Configuration
  CLIB heap size: 0x10
 System
- CSTACK: 0x20 (0x60?)
- RSTACK: 16 (32?)
+ CSTACK: 0x200
+ RSTACK: 32
  Initialize unused interrupt vectors with RETI instructions (enabled)
  Enable bit defnitions in I/O-Include files. (enabled)
 MISRA C
@@ -90,10 +101,15 @@ Preprocessor
  Preinclude file: (none)
  Defined symbols: 
   BACDL_MSTP
-  MAX_APDU=128
+  MAX_APDU=50
   BIG_ENDIAN=0
   MAX_TSM_TRANSACTIONS=0
   BACAPP_REAL
+  BACAPP_UNSIGNED
+  BACAPP_ENUMERATED
+  BACAPP_CHARACTER_STRING
+  BACAPP_OBJECT_ID
+  WRITE_PROPERTY
 Diagnostics 
  (not enabled)
 MISRA C
@@ -113,6 +129,16 @@ disabled in the project file.
   (w31) The supplied standard libraries expect char parameters to 
   be unsigned (in functions such as strncpy(), etc.). It may 
   be possible to recompile the libraries with signed plain char's.
+
+The BACnet Capabilities include WhoIs, I-Am, ReadProperty, and 
+WriteProperty support.  The BACnet objects include a Device object,
+10 Binary Value objects, and 10 Analog Value objects.  An LED is 
+controlled by Binary Value object instance 0.  All required object
+properties can be retrieved using ReadProperty.  The Present_Value
+property of the Analog Value and Binary Value objects can be 
+written using WriteProperty.  The Object_Identifier, Object_Name, 
+Max_Info_Frames, Max_Master, and baud rate (property 9600) of the 
+Device object can be written using WriteProperty.
 
 Hopefully you find this code useful!
 
