@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2004 Steve Karg
+ Copyright (C) 2004-2008 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -104,6 +104,79 @@ int encode_bacnet_real(
     return 4;
 }
 
+/* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
+/* returns the number of apdu bytes consumed */
+int decode_double(
+    uint8_t * apdu,
+    double *double_value)
+{
+    union {
+        uint8_t byte[8];
+        double double_value;
+    } my_data;
+
+    /* NOTE: assumes the compiler stores float as IEEE-754 float */
+#if BIG_ENDIAN
+    my_data.byte[0] = apdu[0];
+    my_data.byte[1] = apdu[1];
+    my_data.byte[2] = apdu[2];
+    my_data.byte[3] = apdu[3];
+    my_data.byte[4] = apdu[4];
+    my_data.byte[5] = apdu[5];
+    my_data.byte[6] = apdu[6];
+    my_data.byte[7] = apdu[7];
+#else
+    my_data.byte[0] = apdu[7];
+    my_data.byte[1] = apdu[6];
+    my_data.byte[2] = apdu[5];
+    my_data.byte[3] = apdu[4];
+    my_data.byte[4] = apdu[3];
+    my_data.byte[5] = apdu[2];
+    my_data.byte[6] = apdu[1];
+    my_data.byte[7] = apdu[0];
+#endif
+
+    *double_value = my_data.double_value;
+
+    return 8;
+}
+
+/* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
+/* returns the number of apdu bytes consumed */
+int encode_bacnet_double(
+    double value,
+    uint8_t * apdu)
+{
+    union {
+        uint8_t byte[8];
+        double double_value;
+    } my_data;
+
+    /* NOTE: assumes the compiler stores float as IEEE-754 float */
+    my_data.double_value = value;
+#if BIG_ENDIAN
+    apdu[0] = my_data.byte[0];
+    apdu[1] = my_data.byte[1];
+    apdu[2] = my_data.byte[2];
+    apdu[3] = my_data.byte[3];
+    apdu[4] = my_data.byte[4];
+    apdu[5] = my_data.byte[5];
+    apdu[6] = my_data.byte[6];
+    apdu[7] = my_data.byte[7];
+#else
+    apdu[0] = my_data.byte[7];
+    apdu[1] = my_data.byte[6];
+    apdu[2] = my_data.byte[5];
+    apdu[3] = my_data.byte[4];
+    apdu[4] = my_data.byte[3];
+    apdu[5] = my_data.byte[2];
+    apdu[6] = my_data.byte[1];
+    apdu[7] = my_data.byte[0];
+#endif
+
+    return 8;
+}
+
 /* end of decoding_encoding.c */
 #ifdef TEST
 #include <assert.h>
@@ -122,6 +195,21 @@ void testBACreal(
     ct_test(pTest, len == 4);
     test_len = decode_real(&apdu[0], &test_real_value);
     ct_test(pTest, test_len == len);
+    ct_test(pTest, test_real_value == real_value);
+}
+
+void testBACdouble(
+    Test * pTest)
+{
+    double double_value = 3.1415927, test_double_value = 0.0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0, test_len = 0;
+
+    len = encode_bacnet_double(double_value, &apdu[0]);
+    ct_test(pTest, len == 8);
+    test_len = decode_double(&apdu[0], &test_double_value);
+    ct_test(pTest, test_len == len);
+    ct_test(pTest, test_double_value == double_value);
 }
 
 #ifdef TEST_BACNET_REAL
@@ -134,6 +222,8 @@ int main(
     pTest = ct_create("BACreal", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testBACreal);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testBACdouble);
     assert(rc);
 
     /* configure output */
