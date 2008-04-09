@@ -1181,6 +1181,41 @@ int encode_context_real(
     return len;
 }
 
+/* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
+/* and 20.2.1 General Rules for Encoding BACnet Tags */
+/* returns the number of apdu bytes consumed */
+int encode_application_double(
+    uint8_t * apdu,
+    float value)
+{
+    int len = 0;
+
+    /* assumes that the tag only consumes 1 octet */
+    len = encode_bacnet_double(value, &apdu[1]);
+    len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_DOUBLE, false, len);
+
+    return len;
+}
+
+int encode_context_double(
+    uint8_t * apdu,
+    int tag_number,
+    float value)
+{
+    int len = 0;
+
+    /* assumes that the tag only consumes 1 octet */
+    len = encode_bacnet_double(value, &apdu[1]);
+    /* we only reserved 1 byte for encoding the tag - check the limits */
+    if (tag_number <= 14) {
+        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, len);
+    } else {
+        len = 0;
+    }
+
+    return len;
+}
+
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -1520,8 +1555,8 @@ void testBACDCodeReal(
 {
     uint8_t real_array[4] = { 0 };
     uint8_t encoded_array[4] = { 0 };
-    float value = 42.123;
-    float decoded_value = 0;
+    float value = 42.123F;
+    float decoded_value = 0F;
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, apdu_len = 0;
     uint8_t tag_number = 0;
@@ -1543,6 +1578,40 @@ void testBACDCodeReal(
     ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
     ct_test(pTest, len == 1);
     ct_test(pTest, long_value == 4);
+    decode_real(&apdu[len], &decoded_value);
+    ct_test(pTest, decoded_value == value);
+
+    return;
+}
+
+void testBACDCodeDouble(
+    Test * pTest)
+{
+    uint8_t double_array[8] = { 0 };
+    uint8_t encoded_array[8] = { 0 };
+    double value = 42.123;
+    double decoded_value = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0, apdu_len = 0;
+    uint8_t tag_number = 0;
+    uint32_t long_value = 0;
+
+    encode_bacnet_double(value, &double_array[0]);
+    decode_double(&double_array[0], &decoded_value);
+    ct_test(pTest, decoded_value == value);
+    encode_bacnet_double(value, &encoded_array[0]);
+    ct_test(pTest, memcmp(&double_array, &encoded_array,
+            sizeof(double_array)) == 0);
+
+    /* a real will take up 4 octects plus a one octet tag */
+    apdu_len = encode_application_double(&apdu[0], value);
+    ct_test(pTest, apdu_len == 9);
+    /* len tells us how many octets were used for encoding the value */
+    len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
+    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_DOUBLE);
+    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+    ct_test(pTest, len == 1);
+    ct_test(pTest, long_value == 8);
     decode_real(&apdu[len], &decoded_value);
     ct_test(pTest, decoded_value == value);
 
