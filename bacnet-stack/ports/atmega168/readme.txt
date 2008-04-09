@@ -140,6 +140,16 @@ written using WriteProperty.  The Object_Identifier, Object_Name,
 Max_Info_Frames, Max_Master, and baud rate (property 9600) of the 
 Device object can be written using WriteProperty.
 
+With full optimization, the statistics on the demo are:
+
+IAR Atmel AVR C/C++ Compiler V5.10A/W32
+12 732 bytes of CODE memory (+ 36 range fill )
+955 bytes of DATA memory (+ 24 absolute ) (includes CStack=0×200)
+
+avr-gcc (GCC) 4.2.2 (WinAVR 20071221rc1)
+Program:   15790 bytes (96.4% Full)
+Data:        414 bytes (40.4% Full) (does not include CStack=0×262)
+
 Hopefully you find this code useful!
 
 Steve Karg <skarg@users.sourceforge.net>
