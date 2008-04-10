@@ -129,3 +129,18 @@ with MS/TP datalink enabled (BACDL_MSTP instead of BACDL_BIP):
 3. Select the "C/C++" tab (3rd Tab)
 4. Select the Category: Code Generation
 5. Select the Multithreaded from the "Use runtime library" box options
+
+Q. error LNK2019: Verweis auf nicht aufgelöstes externes Symbol 
+   "_GetAdaptersInfo@8" in Funktion "_getIpMaskForIpAddress". 
+A. There is the Iphlpapi.lib library missing from the VC++ project 
+   (for the GetAdaptersInfo error) that you need to add: 
+   http://msdn2.microsoft.com/en-us/library/aa916102.aspx
+   Note that Iphlpapi.lib/.h is not included with Visual C++ 6.0;
+   you would need to download the platform SDK to get it.
+1. Select "Project" menu
+2. Select "Settings..."
+3. Select the "Link" tab (4th Tab)
+4. You can see "Object/library modules:" edit box
+5. Type Iphlpapi.lib in that edit box
+6. Press OK
+7. Compile the entire project again...

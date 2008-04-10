@@ -6,9 +6,9 @@
 --------------------Configuration: bacnet - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP35.tmp" with contents
+Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP34.tmp" with contents
 [
-/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /D "BACDL_BIP" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D "BACDL_BIP" /D USE_INADDR=1 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
 "C:\code\bacnet-stack\src\abort.c"
 "C:\code\bacnet-stack\src\address.c"
 "C:\code\bacnet-stack\demo\object\ai.c"
@@ -16,34 +16,29 @@ Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP35.tmp" with conte
 "C:\code\bacnet-stack\src\apdu.c"
 "C:\code\bacnet-stack\src\arf.c"
 "C:\code\bacnet-stack\demo\object\av.c"
-"C:\code\bacnet-stack\src\bacaddr.c"
 "C:\code\bacnet-stack\src\bacapp.c"
 "C:\code\bacnet-stack\src\bacdcode.c"
 "C:\code\bacnet-stack\src\bacerror.c"
 "C:\code\bacnet-stack\demo\object\bacfile.c"
-"C:\code\bacnet-stack\src\bacint.c"
 "C:\code\bacnet-stack\src\bacreal.c"
-"C:\code\bacnet-stack\src\bacstr.c"
-"C:\code\bacnet-stack\src\bactext.c"
 "C:\code\bacnet-stack\demo\object\bi.c"
-"C:\code\bacnet-stack\src\bigend.c"
 "C:\code\bacnet-stack\ports\win32\bip-init.c"
 "C:\code\bacnet-stack\src\bip.c"
 "C:\code\bacnet-stack\demo\object\bo.c"
 "C:\code\bacnet-stack\demo\object\bv.c"
-"C:\code\bacnet-stack\src\crc.c"
-"C:\code\bacnet-stack\src\datetime.c"
+"C:\code\bacnet-stack\src\bvlc.c"
+"C:\code\bacnet-stack\src\cov.c"
 "C:\code\bacnet-stack\src\dcc.c"
 "C:\code\bacnet-stack\demo\object\device.c"
 "C:\code\bacnet-stack\demo\handler\h_arf.c"
 "C:\code\bacnet-stack\demo\handler\h_arf_a.c"
+"C:\code\bacnet-stack\demo\handler\h_cov.c"
 "C:\code\bacnet-stack\demo\handler\h_iam.c"
 "C:\code\bacnet-stack\demo\handler\h_rp.c"
 "C:\code\bacnet-stack\demo\handler\h_rp_a.c"
 "C:\code\bacnet-stack\demo\handler\h_whois.c"
 "C:\code\bacnet-stack\demo\handler\h_wp.c"
 "C:\code\bacnet-stack\src\iam.c"
-"C:\code\bacnet-stack\src\indtext.c"
 "C:\code\bacnet-stack\demo\object\lc.c"
 "C:\code\bacnet-stack\demo\object\lsp.c"
 "C:\code\bacnet-stack\ports\win32\main.c"
@@ -51,22 +46,16 @@ Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP35.tmp" with conte
 "C:\code\bacnet-stack\demo\handler\noserv.c"
 "C:\code\bacnet-stack\src\npdu.c"
 "C:\code\bacnet-stack\src\reject.c"
-"C:\code\bacnet-stack\src\ringbuf.c"
 "C:\code\bacnet-stack\src\rp.c"
 "C:\code\bacnet-stack\demo\handler\s_rp.c"
 "C:\code\bacnet-stack\demo\handler\s_whois.c"
 "C:\code\bacnet-stack\demo\handler\s_wp.c"
 "C:\code\bacnet-stack\src\tsm.c"
-"C:\code\bacnet-stack\demo\handler\txbuf.c"
-"C:\code\bacnet-stack\src\version.c"
 "C:\code\bacnet-stack\src\whois.c"
 "C:\code\bacnet-stack\src\wp.c"
-"C:\code\bacnet-stack\src\mstp.c"
-"C:\code\bacnet-stack\ports\win32\dlmstp.c"
-"C:\code\bacnet-stack\ports\win32\rs485.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP35.tmp" 
-Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP36.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP34.tmp" 
+Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP35.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
 ".\Debug\abort.obj"
@@ -91,12 +80,16 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\bip.obj"
 ".\Debug\bo.obj"
 ".\Debug\bv.obj"
+".\Debug\bvlc.obj"
+".\Debug\cov.obj"
 ".\Debug\crc.obj"
 ".\Debug\datetime.obj"
 ".\Debug\dcc.obj"
 ".\Debug\device.obj"
+".\Debug\dlmstp.obj"
 ".\Debug\h_arf.obj"
 ".\Debug\h_arf_a.obj"
+".\Debug\h_cov.obj"
 ".\Debug\h_iam.obj"
 ".\Debug\h_rp.obj"
 ".\Debug\h_rp_a.obj"
@@ -108,11 +101,13 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\lsp.obj"
 ".\Debug\main.obj"
 ".\Debug\mso.obj"
+".\Debug\mstp.obj"
 ".\Debug\noserv.obj"
 ".\Debug\npdu.obj"
 ".\Debug\reject.obj"
 ".\Debug\ringbuf.obj"
 ".\Debug\rp.obj"
+".\Debug\rs485.obj"
 ".\Debug\s_rp.obj"
 ".\Debug\s_whois.obj"
 ".\Debug\s_wp.obj"
@@ -121,11 +116,8 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\version.obj"
 ".\Debug\whois.obj"
 ".\Debug\wp.obj"
-".\Debug\mstp.obj"
-".\Debug\dlmstp.obj"
-".\Debug\rs485.obj"
 ]
-Creating command line "link.exe @C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP36.tmp"
+Creating command line "link.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP35.tmp"
 <h3>Output Window</h3>
 Compiling...
 abort.c
@@ -135,64 +127,50 @@ ao.c
 apdu.c
 arf.c
 av.c
-bacaddr.c
 bacapp.c
 bacdcode.c
 bacerror.c
 bacfile.c
-bacint.c
 bacreal.c
-bacstr.c
-bactext.c
 bi.c
-bigend.c
 bip-init.c
 bip.c
-Generating Code...
-Compiling...
 bo.c
 bv.c
-crc.c
-datetime.c
+bvlc.c
+cov.c
 dcc.c
+Generating Code...
+Compiling...
 device.c
 h_arf.c
 h_arf_a.c
+h_cov.c
 h_iam.c
 h_rp.c
 h_rp_a.c
 h_whois.c
 h_wp.c
 iam.c
-indtext.c
 lc.c
 lsp.c
 main.c
 mso.c
 noserv.c
-Generating Code...
-Compiling...
 npdu.c
 reject.c
-ringbuf.c
 rp.c
 s_rp.c
 s_whois.c
+Generating Code...
+Compiling...
 s_wp.c
 tsm.c
-txbuf.c
-version.c
 whois.c
 wp.c
-mstp.c
-dlmstp.c
-rs485.c
 Generating Code...
-c:\code\bacnet-stack\ports\win32\dlmstp.c(448) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\src\mstp.c(656) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\src\mstp.c(944) : warning C4761: integral size mismatch in argument; conversion supplied
 Linking...
-Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP38.tmp" with contents
+Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP36.tmp" with contents
 [
 /nologo /o"Debug/bacnet.bsc" 
 ".\Debug\abort.sbr"
@@ -217,12 +195,16 @@ Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP38.tmp" with conte
 ".\Debug\bip.sbr"
 ".\Debug\bo.sbr"
 ".\Debug\bv.sbr"
+".\Debug\bvlc.sbr"
+".\Debug\cov.sbr"
 ".\Debug\crc.sbr"
 ".\Debug\datetime.sbr"
 ".\Debug\dcc.sbr"
 ".\Debug\device.sbr"
+".\Debug\dlmstp.sbr"
 ".\Debug\h_arf.sbr"
 ".\Debug\h_arf_a.sbr"
+".\Debug\h_cov.sbr"
 ".\Debug\h_iam.sbr"
 ".\Debug\h_rp.sbr"
 ".\Debug\h_rp_a.sbr"
@@ -234,11 +216,13 @@ Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP38.tmp" with conte
 ".\Debug\lsp.sbr"
 ".\Debug\main.sbr"
 ".\Debug\mso.sbr"
+".\Debug\mstp.sbr"
 ".\Debug\noserv.sbr"
 ".\Debug\npdu.sbr"
 ".\Debug\reject.sbr"
 ".\Debug\ringbuf.sbr"
 ".\Debug\rp.sbr"
+".\Debug\rs485.sbr"
 ".\Debug\s_rp.sbr"
 ".\Debug\s_whois.sbr"
 ".\Debug\s_wp.sbr"
@@ -246,18 +230,15 @@ Creating temporary file "C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP38.tmp" with conte
 ".\Debug\txbuf.sbr"
 ".\Debug\version.sbr"
 ".\Debug\whois.sbr"
-".\Debug\wp.sbr"
-".\Debug\mstp.sbr"
-".\Debug\dlmstp.sbr"
-".\Debug\rs485.sbr"]
-Creating command line "bscmake.exe @C:\DOCUME~1\cbkargs\LOCALS~1\Temp\RSP38.tmp"
+".\Debug\wp.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP36.tmp"
 Creating browse info file...
 <h3>Output Window</h3>
 
 
 
 <h3>Results</h3>
-bacnet.exe - 0 error(s), 3 warning(s)
+bacnet.exe - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>

@@ -48,11 +48,19 @@ extern "C" {
     int encode_bacnet_real(
         float value,
         uint8_t * apdu);
+    int decode_double(
+        uint8_t * apdu,
+        double *real_value);
+    int encode_bacnet_double(
+        double value,
+        uint8_t * apdu);
 
 #ifdef TEST
 #include "ctest.h"
 
     void testBACreal(
+        Test * pTest);
+    void testBACdouble(
         Test * pTest);
 #endif
 

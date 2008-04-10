@@ -180,7 +180,7 @@ int bvlc_encode_bvlc_result(
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
         encode_unsigned16(&pdu[2], 6);
-        encode_unsigned16(&pdu[4], result_code);
+        encode_unsigned16(&pdu[4], (uint16_t)result_code);
     }
 
     return 6;
@@ -191,6 +191,7 @@ int bvlc_encode_write_bdt_init(
     unsigned entries)
 {
     int len = 0;
+	uint16_t BVLC_length = 0;
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
@@ -198,7 +199,8 @@ int bvlc_encode_write_bdt_init(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        encode_unsigned16(&pdu[2], 4 + entries * 10);
+		BVLC_length = 4 + (entries * 10);
+        encode_unsigned16(&pdu[2], BVLC_length);
         len = 4;
     }
 
@@ -228,6 +230,7 @@ int bvlc_encode_read_bdt_ack_init(
     unsigned entries)
 {
     int len = 0;
+	uint16_t BVLC_length = 0;
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
@@ -235,7 +238,8 @@ int bvlc_encode_read_bdt_ack_init(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        encode_unsigned16(&pdu[2], 4 + entries * 10);
+        BVLC_length = 4 + (entries * 10);
+        encode_unsigned16(&pdu[2], BVLC_length);
         len = 4;
     }
 
@@ -294,7 +298,7 @@ int bvlc_encode_forwarded_npdu(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        encode_unsigned16(&pdu[2], 4 + 6 + npdu_length);
+        encode_unsigned16(&pdu[2], (uint16_t)(4 + 6 + npdu_length));
         len = 4;
         address.s_addr = ntohl(sin->sin_addr.s_addr);
         port = ntohs(sin->sin_port);
@@ -351,6 +355,7 @@ int bvlc_encode_read_fdt_ack_init(
     unsigned entries)
 {
     int len = 0;
+	uint16_t BVLC_length = 0;
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
@@ -358,7 +363,8 @@ int bvlc_encode_read_fdt_ack_init(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        encode_unsigned16(&pdu[2], 4 + entries * 10);
+		BVLC_length = 4 + (entries * 10);
+        encode_unsigned16(&pdu[2], BVLC_length);
         len = 4;
     }
 
@@ -394,7 +400,7 @@ int bvlc_encode_read_fdt_ack(
             pdu_len += len;
             encode_unsigned16(&pdu[pdu_len], FD_Table[i].time_to_live);
             pdu_len += len;
-            encode_unsigned16(&pdu[pdu_len], FD_Table[i].seconds_remaining);
+            encode_unsigned16(&pdu[pdu_len], (uint16_t)FD_Table[i].seconds_remaining);
             pdu_len += len;
         }
     }
@@ -432,6 +438,7 @@ int bvlc_encode_distribute_broadcast_to_network(
 {
     int len = 0;        /* return value */
     unsigned i; /* for loop counter */
+	uint16_t BVLC_length = 0;
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
@@ -439,7 +446,8 @@ int bvlc_encode_distribute_broadcast_to_network(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        len = encode_unsigned16(&pdu[2], 4 + npdu_length) + 2;
+		BVLC_length = 4 + npdu_length;
+        len = encode_unsigned16(&pdu[2], BVLC_length) + 2;
         for (i = 0; i < npdu_length; i++) {
             pdu[len] = npdu[i];
             len++;
@@ -456,6 +464,7 @@ int bvlc_encode_original_unicast_npdu(
 {
     int len = 0;        /* return value */
     unsigned i = 0;     /* loop counter */
+	uint16_t BVLC_length = 0;
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
@@ -463,7 +472,8 @@ int bvlc_encode_original_unicast_npdu(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        len = encode_unsigned16(&pdu[2], 4 + npdu_length) + 2;
+		BVLC_length = 4 + npdu_length;
+        len = encode_unsigned16(&pdu[2], BVLC_length) + 2;
         for (i = 0; i < npdu_length; i++) {
             pdu[len] = npdu[i];
             len++;
@@ -480,6 +490,7 @@ int bvlc_encode_original_broadcast_npdu(
 {
     int len = 0;        /* return value */
     unsigned i = 0;     /* loop counter */
+	uint16_t BVLC_length = 0;
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
@@ -487,7 +498,8 @@ int bvlc_encode_original_broadcast_npdu(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        len = encode_unsigned16(&pdu[2], 4 + npdu_length) + 2;
+		BVLC_length = 4 + npdu_length;
+        len = encode_unsigned16(&pdu[2], BVLC_length) + 2;
         for (i = 0; i < npdu_length; i++) {
             pdu[len] = npdu[i];
             len++;
@@ -666,7 +678,7 @@ void bvlc_bdt_forward_npdu(
     uint16_t npdu_length)
 {       /* length of the NPDU  */
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
     int bytes_sent = 0;
     unsigned i = 0;     /* loop counter */
     struct sockaddr_in bip_dest;
@@ -706,8 +718,9 @@ void bvlc_broadcast_forward_npdu(
     uint16_t npdu_len)
 {       /* size of the NPDU  */
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
     struct sockaddr_in bvlc_dest;
+	uint16_t BVLC_length = 0;
 
     /* FIXME: unused parameter */
     sin = sin;
@@ -716,10 +729,9 @@ void bvlc_broadcast_forward_npdu(
     mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     bvlc_dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
     bvlc_dest.sin_port = htons(bip_get_port());
+	BVLC_length = npdu_len + 4 /*inclusive */;
     mtu_len = 2;
-    mtu_len +=
-        encode_unsigned16(&mtu[mtu_len],
-        (uint16_t) (npdu_len + 4 /*inclusive */ ));
+    mtu_len += encode_unsigned16(&mtu[mtu_len], BVLC_length);
     memcpy(&mtu[mtu_len], npdu, npdu_len);
     mtu_len += npdu_len;
     bvlc_send_mpdu(&bvlc_dest, mtu, mtu_len);
@@ -731,7 +743,7 @@ void bvlc_fdt_forward_npdu(
     uint16_t max_npdu)
 {       /* amount of space available in the NPDU  */
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
     int bytes_sent = 0;
     unsigned i = 0;     /* loop counter */
     struct sockaddr_in bvlc_dest;
@@ -755,7 +767,7 @@ void bvlc_register_with_bbmd(
     uint16_t time_to_live_seconds)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
 
     Remote_BBMD.sin_addr.s_addr = bbmd_address;
     Remote_BBMD.sin_port = htons(bbmd_port);
@@ -773,7 +785,7 @@ void bvlc_send_result(
     BACNET_BVLC_RESULT result_code)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
 
     mtu_len = bvlc_encode_bvlc_result(&mtu[0], result_code);
     bvlc_send_mpdu(dest, mtu, mtu_len);
@@ -785,7 +797,7 @@ int bvlc_send_bdt(
     struct sockaddr_in *dest)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
 
     mtu_len = bvlc_encode_read_bdt_ack(&mtu[0], sizeof(mtu));
     if (mtu_len) {
@@ -799,7 +811,7 @@ int bvlc_send_fdt(
     struct sockaddr_in *dest)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
 
     mtu_len = bvlc_encode_read_fdt_ack(&mtu[0], sizeof(mtu));
     if (mtu_len) {
@@ -1110,10 +1122,11 @@ int bvlc_send_pdu(
 {       /* number of bytes of data */
     struct sockaddr_in bvlc_dest;
     uint8_t mtu[MAX_MPDU] = { 0 };
-    int mtu_len = 0;
+    uint16_t mtu_len = 0;
     /* addr and port in host format */
     struct in_addr address;
     uint16_t port = 0;
+    uint16_t BVLC_length = 0;
 
     /* bip datalink doesn't need to know the npdu data */
     (void) npdu_data;
@@ -1139,10 +1152,9 @@ int bvlc_send_pdu(
     }
     bvlc_dest.sin_addr.s_addr = htonl(address.s_addr);
     bvlc_dest.sin_port = htons(port);
+	BVLC_length = pdu_len + 4 /*inclusive */;
     mtu_len = 2;
-    mtu_len +=
-        encode_unsigned16(&mtu[mtu_len],
-        (uint16_t) (pdu_len + 4 /*inclusive */ ));
+    mtu_len += encode_unsigned16(&mtu[mtu_len], BVLC_length);
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
     return bvlc_send_mpdu(&bvlc_dest, mtu, mtu_len);

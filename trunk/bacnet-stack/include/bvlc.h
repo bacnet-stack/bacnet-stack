@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <time.h>
 #include "bacdef.h"
 #include "npdu.h"
 
