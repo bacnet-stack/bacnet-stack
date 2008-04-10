@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /D "BACDL_BIP" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\.." /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D "BACDL_BIP" /D USE_INADDR=1 /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /D "BACDL_BIP" /FR /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D "BACDL_BIP" /D USE_INADDR=1 /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -177,6 +177,14 @@ SOURCE=..\..\..\demo\object\bv.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\bvlc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\cov.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\crc.c
 # End Source File
 # Begin Source File
@@ -202,6 +210,10 @@ SOURCE=..\..\..\demo\handler\h_arf.c
 # Begin Source File
 
 SOURCE=..\..\..\demo\handler\h_arf_a.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\h_cov.c
 # End Source File
 # Begin Source File
 
@@ -394,6 +406,10 @@ SOURCE=..\..\..\demo\object\bo.h
 # Begin Source File
 
 SOURCE=..\..\..\demo\object\bv.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\bvlc.h
 # End Source File
 # Begin Source File
 

@@ -30,7 +30,10 @@
 #define STRICT 1
 
 #include <windows.h>
+#if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
+ (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
 #include <Iphlpapi.h>
+#endif
 #include <winsock2.h>
 
 #define close closesocket
