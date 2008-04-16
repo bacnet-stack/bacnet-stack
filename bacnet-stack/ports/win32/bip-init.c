@@ -94,7 +94,8 @@ static uint32_t getIpMaskForIpAddress(
     /* Save memory size of buffer */
     DWORD dwBufLen = sizeof(AdapterInfo);
     uint32_t ipMask = INADDR_BROADCAST;
-
+    bool found = false;
+ 
     PIP_ADAPTER_INFO pAdapterInfo;
 
     /* GetAdapterInfo:
@@ -116,18 +117,14 @@ static uint32_t getIpMaskForIpAddress(
                     inet_addr(pIpAddressInfo->IpMask.String);
                 if (adapterAddress == ipAddress) {
                     ipMask = adapterMask;
-                    break;
+                    found = true;
                 }
                 pIpAddressInfo = pIpAddressInfo->Next;
-            }
-            while (pIpAddressInfo);
-            if (ipMask != 0L) {
-                break;
-            }
+            } while (pIpAddressInfo && !found);
             /* Progress through linked list */
             pAdapterInfo = pAdapterInfo->Next;
             /* Terminate on last adapter */
-        } while (pAdapterInfo);
+        } while (pAdapterInfo && !found);
     }
 
     return ipMask;
