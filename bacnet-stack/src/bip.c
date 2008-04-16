@@ -290,6 +290,35 @@ uint16_t bip_receive(
 #endif
             }
         }
+    } else if (pdu[1] == BVLC_FORWARDED_NPDU) {
+        (void) decode_unsigned32(&pdu[4], (uint32_t *)&sin.sin_addr.s_addr);
+        (void) decode_unsigned16(&pdu[8], &sin.sin_port);
+        if ((sin.sin_addr.s_addr == htonl(BIP_Address.s_addr)) &&
+            (sin.sin_port == htons(BIP_Port))) {
+            /* ignore messages from me */
+            pdu_len = 0;
+        } else {
+            /* copy the real source address - into host format */
+            src->mac_len = 6;
+            (void) encode_unsigned32(&src->mac[0], htonl(sin.sin_addr.s_addr));
+            (void) encode_unsigned16(&src->mac[4], htons(sin.sin_port));
+            /* FIXME: check destination address */
+            /* see if it is broadcast or for us */
+            /* decode the length of the PDU - length is inclusive of BVLC */
+            (void) decode_unsigned16(&pdu[2], &pdu_len);
+            /* subtract off the BVLC header */
+            pdu_len -= 10;
+            if (pdu_len < max_pdu) {
+                /* shift the buffer to return a valid PDU */
+                for (i = 0; i < pdu_len; i++) {
+                    pdu[i] = pdu[4 + 6 + i];
+                }
+            } else {
+                /* ignore packets that are too large */
+                /* clients should check my max-apdu first */
+                pdu_len = 0;
+            }
+        }
     } else {
 #if PRINT_ENABLED
         fprintf(stderr, "BIP: BVLC discarded!\n");
