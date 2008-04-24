@@ -291,7 +291,7 @@ uint16_t bip_receive(
             }
         }
     } else if (pdu[1] == BVLC_FORWARDED_NPDU) {
-        (void) decode_unsigned32(&pdu[4], (uint32_t *)&sin.sin_addr.s_addr);
+        (void) decode_unsigned32(&pdu[4], (uint32_t *) & sin.sin_addr.s_addr);
         (void) decode_unsigned16(&pdu[8], &sin.sin_port);
         if ((sin.sin_addr.s_addr == htonl(BIP_Address.s_addr)) &&
             (sin.sin_port == htons(BIP_Port))) {

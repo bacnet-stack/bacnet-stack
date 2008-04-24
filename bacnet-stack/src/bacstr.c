@@ -247,14 +247,13 @@ bool characterstring_copy(
 }
 
 bool characterstring_ansi_copy(
-    char * dest,
+    char *dest,
     size_t dest_max_len,
     BACNET_CHARACTER_STRING * src)
 {
     size_t i;   /* counter */
 
-    if (dest && src && 
-        (src->encoding == CHARACTER_ANSI_X34) &&
+    if (dest && src && (src->encoding == CHARACTER_ANSI_X34) &&
         (src->length < dest_max_len)) {
         for (i = 0; i < src->length; i++) {
             dest[i] = src->value[i];
