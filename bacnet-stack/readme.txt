@@ -77,7 +77,8 @@ setup the network options.  See each individual demo for the options.
 
 There are also projects in the ports/ directory for ARM7, AVR, RTOS-32, 
 and PIC.  Each of those projects has a demo application for specific hardware.
-In the case of the ARM7 and AVR, the makefile works with GCC or IAR compilers.
+In the case of the ARM7 and AVR, the makefile works with GCC compilers and
+there are project files for IAR Embedded Workbench.
 
 If you want to help this project, join the developers mailing list at:
 http://lists.sourceforge.net/mailman/listinfo/bacnet-developers
