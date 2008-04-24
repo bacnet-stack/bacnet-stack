@@ -218,9 +218,9 @@ typedef struct {
 /* IAR intrinsic routines */
 #if defined(__GNUC__)
     /* FIXME: intrinsic routines: map to assembler for size/speed */
-    #define __multiply_unsigned(x,y) ((x)*(y))
+#define __multiply_unsigned(x,y) ((x)*(y))
     /* FIXME: __root means to not optimize or strip */
-    #define __root
+#define __root
 #endif
 
 #endif

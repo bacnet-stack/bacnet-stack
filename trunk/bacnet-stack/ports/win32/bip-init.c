@@ -95,7 +95,7 @@ static uint32_t getIpMaskForIpAddress(
     DWORD dwBufLen = sizeof(AdapterInfo);
     uint32_t ipMask = INADDR_BROADCAST;
     bool found = false;
- 
+
     PIP_ADAPTER_INFO pAdapterInfo;
 
     /* GetAdapterInfo:

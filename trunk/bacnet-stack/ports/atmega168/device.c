@@ -338,8 +338,7 @@ int Device_Encode_Property_APDU(
                 /* to return an error if the number of encoded objects exceeds */
                 /* your maximum APDU size. */
                 for (i = 1; i <= count; i++) {
-                    len =
-                        encode_application_unsigned(&apdu[0], *(&_end+i));
+                    len = encode_application_unsigned(&apdu[0], *(&_end + i));
                     apdu_len += len;
                     /* assume next one is the same size as this one */
                     /* can we all fit into the APDU? */
@@ -351,7 +350,9 @@ int Device_Encode_Property_APDU(
                     }
                 }
             } else if (array_index <= count) {
-                apdu_len = encode_application_unsigned(&apdu[0], *(&_end+array_index));
+                apdu_len =
+                    encode_application_unsigned(&apdu[0],
+                    *(&_end + array_index));
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -445,8 +446,7 @@ bool Device_Write_Property(
                 encoding =
                     characterstring_encoding(&value.type.Character_String);
                 if (encoding == CHARACTER_ANSI_X34) {
-                    if (characterstring_ansi_copy(
-                            &Object_Name[0],
+                    if (characterstring_ansi_copy(&Object_Name[0],
                             sizeof(Object_Name),
                             &value.type.Character_String)) {
                         status = true;

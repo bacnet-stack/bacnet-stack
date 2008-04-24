@@ -94,7 +94,7 @@ static BACNET_BINARY_PV Binary_Value_Present_Value(
 char *Binary_Value_Name(
     uint32_t object_instance)
 {
-    static char text_string[5] = "BV-0";       /* okay for single thread */
+    static char text_string[5] = "BV-0";        /* okay for single thread */
 
     if (object_instance < MAX_BINARY_VALUES) {
         text_string[3] = '0' + (uint8_t) object_instance;
@@ -203,7 +203,8 @@ bool Binary_Value_Write_Property(
                         Binary_Value_Instance_To_Index(wp_data->
                         object_instance);
                     /* NOTE: this Binary value has no priority array */
-                    Present_Value[object_index] = (BACNET_BINARY_PV)value.type.Enumerated;
+                    Present_Value[object_index] =
+                        (BACNET_BINARY_PV) value.type.Enumerated;
                     /* Note: you could set the physical output here if we
                        are the highest priority.
                        However, if Out of Service is TRUE, then don't set the
