@@ -1,0 +1,10 @@
+BACnet Stack @ SourceForge.net
+Build using Code Blocks
+
+Q1: GNU GCC Compiler, undefined reference to closesocket
+
+A1: Under Project->Build Options->Linker settings, 
+add "ws2_32" to Link Libraries.
+
+
+
