@@ -55,6 +55,7 @@
 		<Linker>
 			<Add library="..\..\lib\libbacnet.a" />
 			<Add library="ws2_32" />
+			<Add library="iphlpapi" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
