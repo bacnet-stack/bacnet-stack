@@ -44,6 +44,7 @@
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
+			<Add library="iphlpapi" />
 		</Linker>
 		<Unit filename="..\demo\handler\h_arf.c">
 			<Option compilerVar="CC" />
@@ -306,6 +307,12 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\indtext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\key.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\keylist.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\mstp.c">
