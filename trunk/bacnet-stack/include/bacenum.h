@@ -709,7 +709,7 @@ typedef enum {
 typedef enum {
     MAINTENANCE_NONE = 0,
     MAINTENANCE_PERIODIC_TEST = 1,
-    AINTENANCE_NEED_SERVICE_OPERATIONAL = 2,
+    MAINTENANCE_NEED_SERVICE_OPERATIONAL = 2,
     MAINTENANCE_NEED_SERVICE_INOPERATIVE = 3
         /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
         /* Enumerated values 256-65535 may be used by others subject to  */
