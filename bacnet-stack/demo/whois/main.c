@@ -239,11 +239,33 @@ int main(int argc, char *argv[]) {
 
     if (argc < 2) {
         printf
-            ("Usage: %s device-instance | device-instance-min device-instance-max\r\n"
-            "Send BACnet WhoIs request to devices, and wait for responses.\r\n"
-            "\r\n" "The device-instance can be 0 to %d, or -1 for ALL.\r\n"
-            "The device-instance can also be specified as a range.\r\n",
-            filename_remove_path(argv[0]), BACNET_MAX_INSTANCE);
+            ("Usage: %s device-instance | "
+            "device-instance-min device-instance-max\r\n",
+            filename_remove_path(argv[0]));
+        return 0;
+    }
+    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+        printf(
+            "Send BACnet WhoIs service request to a device or\r\n"
+            "multiple devices, and wait for responses.  Displays\r\n"
+            "any devices found and their network information.\r\n"
+            "\r\ndevice-instance:\r\n"
+            "BACnet Device Object Instance number that you are trying to\r\n"
+            "send a Who-Is service request.  The value should be in\r\n"
+            "the range of 0 to 4194303.  A range of values can also be\r\n"
+            "specified by using a minimum value and a maximum value.\r\n"
+            "\r\nExample:\r\n"
+            "To send a WhoIs request to Device 123\r\n"
+            "use the following command:\r\n"
+            "%s 123\r\n"
+            "To send a WhoIs request to Devices from 1000 to 9000:\r\n"
+            "%s 1000 9000\r\n"
+            "To send a WhoIs request to all devices\r\n"
+            "use the following command:\r\n"
+            "%s -1\r\n",
+            filename_remove_path(argv[0]),
+            filename_remove_path(argv[0]),
+            filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
