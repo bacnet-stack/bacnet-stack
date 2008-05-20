@@ -1,4 +1,5 @@
-BACnet open source protocol stack for embedded systems
+BACnet open source protocol stack for embedded systems, Linux, and Windows
+http://bacnet.sourceforge.net/
 
 Welcome to the wonderful world of BACnet and true device interoperability!
 
@@ -61,12 +62,16 @@ are created that run under Windows or Linux. They use the BACnet/IP datalink
 layer for communication by default, but could be compiled to use BACnet 
 Ethernet, ARCNET, or MS/TP.
 
+Linux/Unix
 $ make clean all
+
+Windows
+c:\> build.bat
 
 The BACnet stack can be compiled by a variety of compilers.  The most common
 free compiler is GCC (MinGW under Windows).  The makefiles use GCC by
-default.  Other makefiles are written for the Borland C++ 5.5 compiler, and
-projects are included for Microsoft Visual Studio and Code::Blocks.
+default.  Makefile.b32 are written for the Borland C++ 5.5 compiler, and
+projects are also included for Microsoft Visual Studio and Code::Blocks.
 
 The demo applications are all client applications that provide one main BACnet
 service, except the one server application.  Each application will accept 
@@ -80,11 +85,22 @@ and PIC.  Each of those projects has a demo application for specific hardware.
 In the case of the ARM7 and AVR, the makefile works with GCC compilers and
 there are project files for IAR Embedded Workbench.
 
-If you want to help this project, join the developers mailing list at:
+Project Documentation
+---------------------
+
+The project documentation is in the doc/ directory.  Similar documents are
+on the project website at <http://bacnet.sourceforge.net/>.
+
+Project Mailing List
+--------------------
+
+If you want to help this project, or have a problem getting it to work for
+your device, or have a BACnet question, join the developers mailing list at:
 http://lists.sourceforge.net/mailman/listinfo/bacnet-developers
 
 I hope that you get your BACnet Device working!  If not, join us on the 
 mailing list and we can help.
 
 Steve Karg
+Birmingham, Alabama USA
 skarg@users.sourceforge.net
