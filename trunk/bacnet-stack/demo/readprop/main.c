@@ -1,5 +1,4 @@
-/**************************************************************************
-*
+/*************************************************************************
 * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
@@ -232,9 +231,46 @@ int main(int argc, char *argv[]) {
     bool found = false;
 
     if (argc < 5) {
-        printf
-            ("%s device-instance object-type object-instance property [index]\r\n",
+        printf(
+            "Usage: %s device-instance object-type object-instance "
+            "property [index]\r\n",
             filename_remove_path(argv[0]));
+        if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+            printf("device-instance:\r\n"
+                "BACnet Device Object Instance number that you are\r\n"
+                "trying to communicate to.  This number will be used\r\n"
+                "to try and bind with the device using Who-Is and\r\n"
+                "I-Am services.  For example, if you were reading\r\n"
+                "Device Object 123, the device-instance would be 123.\r\n"
+                "\r\nobject-type:\r\n"
+                "The object type is the integer value of the enumeration\r\n"
+                "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\r\n"
+                "that you are reading.  For example if you were\r\n"
+                "reading Analog Output 2, the object-type would be 1.\r\n"
+                "\r\nobject-instance:\r\n"
+                "This is the object instance number of the object that\r\n"
+                "you are reading.  For example, if you were reading\r\n"
+                "Analog Output 2, the object-instance would be 2.\r\n"
+                "\r\nproperty:\r\n"
+                "The property is an integer value of the enumeration\r\n"
+                "BACNET_PROPERTY_ID in bacenum.h.  It is the property\r\n"
+                "you are reading.  For example, if you were reading the\r\n"
+                "Present Value property, use 85 as the property.\r\n"
+                "\r\nindex:\r\n"
+                "This integer parameter is the index number of an array.\r\n"
+                "If the property is an array, individual elements can\r\n"
+                "be read.  If this parameter is missing and the property\r\n"
+                "is an array, the entire array will be read.\r\n"
+                "\r\nExample:\r\n"
+                "If you want read the Present-Value of Analog Output 101\r\n"
+                "in Device 123, you could send the following command:\r\n"
+                "%s 123 1 101 85\r\n"
+                "If you want read the Priority-Array of Analog Output 101\r\n"
+                "in Device 123, you could send the following command:\r\n"
+                "%s 123 1 101 87\r\n",
+                filename_remove_path(argv[0]),
+                filename_remove_path(argv[0]));
+        }
         return 0;
     }
     /* decode the command line parameters */
@@ -260,7 +296,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+        fprintf(stderr, "property=%u - it must be less than %u\r\n",
             Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }

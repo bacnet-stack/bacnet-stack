@@ -130,15 +130,22 @@
   another project hosted on SourceForge, as well as various BACnet controllers, 
   BACnet workstations, and through BACnet routers.<p>
 
-  <p>Using a master Makefile in the project root directory, a dozen or so
+<h2>Demo BACnet Applications</h2>
+  <p>Using a master Makefile in the project root directory, a dozen 
   demo applications can be created that run under Linux or Win32.
   Linux supports BACnet Ethernet, BACnet/IP, or ARCNET data link layer
   for communication, and BACnet/IP is supported under Win32.  BACnet Ethernet 
   can also be used under Win32 with the <a href="http://www.winpcap.org/">WinPcap library</a>.
   Root priveleges are required to run the Ethernet or ARCNET interfaces
-  on Linux, but not needed to run BACnet/IP. 
+  on Linux, but are not needed to run BACnet/IP. 
   MS/TP support under Windows or Linux using a USB to RS-485 device is a
   work in progress. </p>
+
+  <p>The demo application accept command line arguments. 
+  To specify an array index of ALL, use "-1". 
+  To make a priority optional, use "0".  
+  The applications also use environment variables to set 
+  datalink layer preferences.</p>
 
   <code>
   $ make clean all<br>
@@ -149,7 +156,7 @@
   bacrp device-instance object-type object-instance property [index]<br>
   <br>
   $ demo/writeprop/bacwp<br>
-  bacwp device-instance object-type object-instance property tag value [priority] [index]<br>
+  bacwp device-instance object-type object-instance property priority index tag value [tag value...]<br>
   <br>
   $ demo/readfile/bacarf<br>
   bacarf device-instance file-instance local-name<br>
@@ -185,10 +192,18 @@
   <br>
   </code>
 
-  <p>The demos can be compiled under Win32 using <a href="http://www.borland.com/bcppbuilder/freecompiler/">Borland C++</a> or
-  <a href="http://msdn.microsoft.com/visualc/vctoolkit2003/">Microsoft Visual C++</a>, both of which
-  are free (as in beer) command line compilers. Be sure to pick up the free
-  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a> (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>, <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>), as well as the free turbo debugger.  It is also possible to create Win32 projects using the free <a href="http://msdn.microsoft.com/vstudio/express/">Visual Studio Express Edition</a> after downloading the platform development kit for your operating system.  You can also use <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a> which comes with Code::Blocks.  I frequently use <a href="http://codeblocks.org/">Code::Blocks</a> for compiling the unit tests using the MinGW compiler and created some Code::Block projects for some of the demos. I have also used <a href="http://codeblocks.org/">Code::Blocks</a> with the Borland C++ compiler and it successfully compiles and runs the code.</p>
+  <p>The demos can be compiled under Win32 using <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a>, 
+  <a href="http://www.borland.com/bcppbuilder/freecompiler/">Borland C++</a>, or
+  <a href="http://msdn.microsoft.com/visualc/vctoolkit2003/">Microsoft Visual C++</a>, which
+  are free command line compilers. Be sure to pick up the free
+  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a> 
+  (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>, <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>), as well as the free turbo debugger.  It is also possible to create Win32 projects using the free <a href="http://msdn.microsoft.com/vstudio/express/">Visual Studio Express Edition</a> after downloading the platform development kit for your operating system.  
+  You can also use <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a> which comes with Code::Blocks.  
+  I frequently use <a href="http://codeblocks.org/">Code::Blocks</a> for 
+  compiling the unit tests using the MinGW compiler and 
+  created some Code::Block projects for some of the demos. 
+  I have also used <a href="http://codeblocks.org/">Code::Blocks</a> with 
+  the Borland C++ compiler and it successfully compiles and runs the code.</p>
 
   <p>There is a Makefile in the ports/rtos32 directory, and a sample 
   application that runs under <a href="http://www.on-time.com/">RTOS-32</a>. 
@@ -211,14 +226,12 @@
   The datalink layer uses BACnet MS/TP
   and the example uses several different objects and services.</p>
 
-  <!--
   <p>There is a project in the ports/atmega168 directory, and a sample 
   server application that can be built using
   <a href="http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/AVR_GCC_Tool_Collection">GCC-AVR</a> or 
   <a href="http://winavr.sourceforge.net/">WinAVR</a> for Atmel AVR series of microcontrollers.
   The datalink layer uses BACnet MS/TP
   and the example uses several different objects and services.</p>
-  -->
 
   <TABLE border="1" width="100%" cellpadding="1" cellspacing="0"
     summary="BACnet services supported matrix">
@@ -419,11 +432,11 @@
 
   <h2>BACnet Objects</h2>
   
-  <p>The BACnet stack currently implements a Device Object, and 
+  <p>The BACnet stack currently implements an example Device Object, and 
   handles all of the ReadProperty inquiries for the required
   Device Object properties. The stack handles Who-Is inquiries 
   with an I-Am, WhoHas with I-Have, and handles reject messages for
-  services not currently supported.  There is built in handling for
+  services not currently supported.  There is built-in handling for
   DeviceCommunicationControl.</p>
 
   <p>The example handlers interact with example objects, including
@@ -450,8 +463,9 @@
   the <a href="http://sourceforge.net/projects/bacnet/">BACnet Source Forge Project Page</a></p>
 
   <p>There is documentation that <a href="http://sourceforge.net/docman/display_doc.php?docid=33182&group_id=117598">describes the mechanisms in the BACnet Stack</a>.
-  I wrote up some <a href="http://sourceforge.net/docman/display_doc.php?docid=35583&group_id=117598">answers to some frequently asked questions</a>.  Of course, 
-  there are a handful of text files in the doc directory of the project.</p>  
+  I wrote up some <a href="http://sourceforge.net/docman/display_doc.php?docid=35583&group_id=117598">answers to some frequently asked questions</a>.  
+Of course, there are a handful of text files in the doc directory of 
+the project.</p>  
   
   <p><a
     href="http://sourceforge.net/project/showfiles.php?group_id=117598&package_id=140172">BACnet
@@ -471,7 +485,7 @@
     <blockquote>
     <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/</code><br />
     or for the stable releases:<br />
-    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-3-3/</code>
+    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-4-4/</code>
     </blockquote>
 
 <h2>BACnet Developer Resources</h2>
@@ -531,6 +545,6 @@ access layer. BACnetSim is a fork of bacnet-stack-0.0.1</p>
     <b>BACnet<sup>&reg;</sup></b> are registered trademarks of the American
     Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.,
     1791 Tullie Circle NE, Atlanta, GA 30329.</font> </p>
-  <p>Website updated 27-Jan-2008 by <a href="http://kargs.net/">Steve Karg</a>.</p>
+  <p>Website updated 17-May-2008 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
 </BODY>
 </HTML>

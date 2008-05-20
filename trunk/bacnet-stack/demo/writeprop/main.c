@@ -304,12 +304,15 @@ int main(int argc, char *argv[]) {
                 "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler for\r\n"
                 "the demo to use this kind of table - but I also wanted to be able\r\n"
                 "to do negative testing by passing the wrong tag and have the server\r\n"
-                "return a reject message.\r\n" "\r\n" "Example:\r\n"
-                "If you want send a 100 to the Present-Value in the Analog Output\r\n"
-                "at priority 16, you could send the following command:\r\n"
-                "%s 123 1 0 85 4 100\r\n"
-                "You could also send a relinquish command:\r\n"
-                "%s 123 1 0 85 0 0\r\n", filename_remove_path(argv[0]),
+                "return a reject message.\r\n"
+                "\r\nExample:\r\n"
+                "If you want send a value of 100 to the Present-Value in\r\n"
+                "Analog Output 0 of Device 123 at priority 16,\r\n"
+                "send the following command:\r\n"
+                "%s 123 1 0 85 16 -1 4 100\r\n"
+                "To send a relinquish command to the same object:\r\n"
+                "%s 123 1 0 85 16 -1 0 0\r\n",
+                filename_remove_path(argv[0]),
                 filename_remove_path(argv[0]));
         }
         return 0;
