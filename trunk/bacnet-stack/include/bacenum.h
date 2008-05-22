@@ -270,6 +270,16 @@ typedef enum {
     PROP_LIGHTING_COMMAND = 224,
     PROP_LIGHTING_COMMAND_PRIORITY = 225,
     /* enumerations 226-235 are used in Addendum f to ANSI/ASHRAE 135-2004 */
+    PROP_DOOR_ALARM_STATE = 226,
+    PROP_DOOR_EXTENDED_PULSE_TIME = 227,
+    PROP_DOOR_MEMBERS = 228,
+    PROP_DOOR_OPEN_TOO_LONG_TIME = 229,
+    PROP_DOOR_PULSE_TIME = 230,
+    PROP_DOOR_STATUS = 231,
+    PROP_DOOR_UNLOCK_DELAY_TIME = 232,
+    PROP_LOCK_STATUS = 233,
+    PROP_MASKED_ALARM_VALUES = 234,
+    PROP_SECURED_STATUS = 235,
     /* enumerations 236-243 are used in Addendum i to ANSI/ASHRAE 135-2004 */
     PROP_OFF_DELAY = 236,
     PROP_ON_DELAY = 237,
@@ -278,14 +288,102 @@ typedef enum {
     PROP_PROGRESS_VALUE = 240,
     PROP_RAMP_RATE = 241,
     PROP_STEP_INCREMENT = 242,
-    PROP_SYSTEM_FAILURE_VALUE = 243
-        /* The special property identifiers all, optional, and required  */
-        /* are reserved for use in the ReadPropertyConditional and */
-        /* ReadPropertyMultiple services or services not defined in this standard. */
-        /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 512-4194303 may be used by others subject to the  */
-        /* procedures and constraints described in Clause 23.  */
+    PROP_SYSTEM_FAILURE_VALUE = 243,
+    /* enumerations 244-311 are used in Addendum j to ANSI/ASHRAE 135-2004 */
+    PROP_ABSENTEE_LIMIT = 244,
+    PROP_ACCESS_ALARM_EVENTS = 245,
+    PROP_ACCESS_DOORS = 246,
+    PROP_ACCESS_EVENT = 247,
+    PROP_ACCESS_EVENT_AUTHENTICATION_FACTOR = 248,
+    PROP_ACCESS_EVENT_CREDENTIAL = 249,
+    PROP_ACCESS_EVENT_TIME = 250,
+    PROP_ACCESS_RULES = 251,
+    PROP_ACCESS_RULES_ENABLE = 252,
+    PROP_ACCESS_TRANSACTION_EVENTS = 253,
+    PROP_ACCOMPANIED = 254,
+    PROP_ACTIVATION_TIME = 255,
+    PROP_ACTIVE_AUTHENTICATION_POLICY = 256,
+    PROP_ASSIGNED_ACCESS_RIGHTS = 257,
+    PROP_AUTHENTICATION_FACTOR_INPUT_LIST = 258,
+    PROP_AUTHENTICATION_FACTORS = 259,
+    PROP_AUTHENTICATION_POLICY_LIST = 260,
+    PROP_AUTHENTICATION_POLICY_NAMES = 261,
+    PROP_AUTHORIZATION_MODE = 262,
+    PROP_BELONGS_TO = 263,
+    PROP_CREDENTIAL_DISABLE = 264,
+    PROP_CREDENTIAL_STATUS = 265,
+    PROP_CREDENTIALS = 266,
+    PROP_CREDENTIALS_IN_ZONE = 267,
+    PROP_DAYS_REMAINING = 268,
+    PROP_ENTRY_POINTS = 269,
+    PROP_EXIT_POINTS = 270,
+    PROP_EXPIRY_TIME = 271,
+    PROP_EXTENDED_TIME_ENABLE = 272,
+    PROP_FAILED_ATTEMPT_EVENTS = 273,
+    PROP_FAILED_ATTEMPTS = 274,
+    PROP_FAILED_ATTEMPTS_TIME = 275,
+    PROP_FORMAT_CLASS_SUPPORTED = 276,
+    PROP_FORMAT_TYPE = 277,
+    PROP_LAST_ACCESS_EVENT = 278,
+    PROP_LAST_ACCESS_POINT = 279,
+    PROP_LAST_CREDENTIAL_ADDED = 280,
+    PROP_LAST_CREDENTIAL_ADDED_TIME = 281,
+    PROP_LAST_CREDENTIAL_REMOVED = 282,
+    PROP_LAST_CREDENTIAL_REMOVED_TIME = 283,
+    PROP_LAST_USE_TIME = 284,
+    PROP_LOCKDOWN = 285,
+    PROP_LOCKDOWN_RELINQUISH_TIME = 286,
+    PROP_MASTER_EXEMPTION = 287,
+    PROP_MAX_FAILED_ATTEMPTS = 288,
+    PROP_MEMBERS = 289,
+    PROP_MUSTER_POINT = 290,
+    PROP_NUMBER_OF_AUTHENTICATION_POLICIES = 291,
+    PROP_OCCUPANCY_COUNT = 293,
+    PROP_OCCUPANCY_COUNT_ENABLE = 294,
+    PROP_OCCUPANCY_COUNT_EXEMPTION = 295,
+    PROP_OCCUPANCY_LOWER_THRESHOLD = 296,
+    PROP_OCCUPANCY_LOWER_THRESHOLD_ENFORCED = 297,
+    PROP_OCCUPANCY_STATE = 298,
+    PROP_OCCUPANCY_UPPER_LIMIT = 299,
+    PROP_OCCUPANCY_UPPER_LIMIT_ENFORCED = 300,
+    PROP_PASSBACK_EXEMPTION = 301,
+    PROP_PASSBACK_MODE = 302,
+    PROP_PASSBACK_TIMEOUT = 303,
+    PROP_POSITIVE_ACCESS_RULES = 304,
+    PROP_READ_STATUS = 305,
+    PROP_REASON_FOR_DISABLE = 306,
+    PROP_THREAT_AUTHORITY = 307,
+    PROP_THREAT_LEVEL = 308,
+    PROP_TRACE_FLAG = 309,
+    PROP_TRANSACTION_NOTIFICATION_CLASS = 310,
+    PROP_USER_EXTERNAL_IDENTIFIER = 311,
+    /* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
+    PROP_CHARACTER_SET = 312,
+    PROP_CHARACTER_SET = 313,
+    /* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
+    PROP_BACKUP_AND_RESTORE_STATE = 314,
+    PROP_BACKUP_PREPARATION_TIME = 315,
+    PROP_RESTORE_PREPARATION_TIME = 316,
+    /* enumerations 317-323 are used in Addendum j to ANSI/ASHRAE 135-2004 */
+    PROP_USER_INFORMATION_REFERENCE = 317,
+    PROP_USER_NAME = 318,
+    PROP_USER_TYPE = 319,
+    PROP_USES_REMAINING = 320,
+    PROP_VENDOR_FORMAT_IDENTIFIER = 321,
+    PROP_ZONE_FROM = 322,
+    PROP_ZONE_TO = 323,
+    /* enumerations 324-325 are used in Addendum i to ANSI/ASHRAE 135-2004 */
+    PROP_BINARY_ACTIVE_VALUE = 324,
+    PROP_BINARY_ACTIVE_VALUE = 325
+    /* The special property identifiers all, optional, and required  */
+    /* are reserved for use in the ReadPropertyConditional and */
+    /* ReadPropertyMultiple services or services not defined in this standard. */
+    /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 512-4194303 may be used by others subject to the  */
+    /* procedures and constraints described in Clause 23.  */
 } BACNET_PROPERTY_ID;
+/* do the MAX as define rather than enumeration for devices
+   and compilers that want to use smaller datatype for enum */
 #define MAX_BACNET_PROPERTY_ID 4194303
 
 typedef enum {
@@ -753,12 +851,21 @@ typedef enum {
     OBJECT_TREND_LOG_MULTIPLE = 27,
     OBJECT_LOAD_CONTROL = 28,
     OBJECT_STRUCTURED_VIEW = 29,
-    /* what is object type 30? */
+    OBJECT_ACCESS_DOOR = 30,
     OBJECT_LIGHTING_OUTPUT = 31,
+    OBJECT_ACCESS_CREDENTIAL = 32,
+    OBJECT_ACCESS_POINT = 33,
+    OBJECT_ACCESS_RIGHTS = 34,
+    OBJECT_ACCESS_USER = 35,
+    OBJECT_ACCESS_ZONE = 36,
+    OBJECT_AUTHENTICATION_FACTOR_INPUT = 37,
+    
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
-    MAX_ASHRAE_OBJECT_TYPE = 32,        /* used for bit string loop */
+    
+    /* used for bit string loop */
+    MAX_ASHRAE_OBJECT_TYPE = 38,        
     MAX_BACNET_OBJECT_TYPE = 1023
 } BACNET_OBJECT_TYPE;
 
