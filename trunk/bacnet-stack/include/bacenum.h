@@ -359,7 +359,7 @@ typedef enum {
     PROP_USER_EXTERNAL_IDENTIFIER = 311,
     /* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
     PROP_CHARACTER_SET = 312,
-    PROP_CHARACTER_SET = 313,
+    PROP_STRICT_CHARACTER_MODE = 313,
     /* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
     PROP_BACKUP_AND_RESTORE_STATE = 314,
     PROP_BACKUP_PREPARATION_TIME = 315,
@@ -374,7 +374,7 @@ typedef enum {
     PROP_ZONE_TO = 323,
     /* enumerations 324-325 are used in Addendum i to ANSI/ASHRAE 135-2004 */
     PROP_BINARY_ACTIVE_VALUE = 324,
-    PROP_BINARY_ACTIVE_VALUE = 325
+    PROP_BINARY_INACTIVE_VALUE = 325
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
