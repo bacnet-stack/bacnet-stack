@@ -436,13 +436,15 @@ int main(int argc, char *argv[]) {
             else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(invoke_id);
-                /* try again or abort? */
+                Error_Detected = true;
+               /* try again or abort? */
                 break;
             }
         } else {
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
+                Error_Detected = true;
                 printf("\rError: APDU Timeout!\r\n");
                 break;
             }
@@ -450,6 +452,6 @@ int main(int argc, char *argv[]) {
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
-
+    if(Error_Detected) return 1;
     return 0;
 }
