@@ -40,6 +40,8 @@
 #include "bits.h"
 #include "npdu.h"
 #include "apdu.h"
+#define DEBUG_ENABLED 0
+#include "debug.h"
 
 #if PRINT_ENABLED
 #include <stdio.h>
@@ -216,16 +218,16 @@ ABORT.request          Yes No  Yes No
 ABORT.indication       Yes Yes Yes No
 
 Where:
-'destination_address' (DA): the address of the device(s) intended 
+'destination_address' (DA): the address of the device(s) intended
 to receive the service primitive. Its format (device name,
-network address, etc.) is a local matter. This address may 
+network address, etc.) is a local matter. This address may
 also be a multicast, local broadcast or global broadcast type.
-'source_address' (SA): the address of the device from which 
+'source_address' (SA): the address of the device from which
 the service primitive was received. Its format (device name,
 network address, etc.) is a local matter.
-'network_priority' (NP): a four-level network priority parameter 
+'network_priority' (NP): a four-level network priority parameter
 described in 6.2.2.
-'data_expecting_reply' (DER): a Boolean parameter that indicates 
+'data_expecting_reply' (DER): a Boolean parameter that indicates
 whether (TRUE) or not (FALSE) a reply service primitive
 is expected for the service being issued.
 */
@@ -381,17 +383,22 @@ void npdu_handler(
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         /*FIXME: network layer message received!  Handle it! */
-#if PRINT_ENABLED
-        fprintf(stderr, "NPDU: Network Layer Message discarded!\n");
-#endif
+        debug_printf("NPDU: Network Layer Message discarded!\n");
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
-            (dest.net == 0)) {
+            ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK))) {
             /* only handle the version that we know how to handle */
             /* and we are not a router, so ignore messages with
                routing information cause they are not for us */
             apdu_handler(src, &pdu[apdu_offset],
                 (uint16_t) (pdu_len - apdu_offset));
+        } else {
+            if (dest.net) {
+                debug_printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
+            } else {
+                debug_printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n", 
+                    npdu_data.protocol_version);
+            }
         }
     }
 
