@@ -34,12 +34,14 @@
 
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include <time.h>       /* for the standard bool type. */
+#include <time.h>
 #include "bacenum.h"
 #include "bacdcode.h"
 #include "bacint.h"
 #include "bvlc.h"
 #include "bip.h"
+#define DEBUG_ENABLED 0
+#include "debug.h"
 
 /* Handle the BACnet Virtual Link Control (BVLC), which includes:
    BACnet Broadcast Management Device,
@@ -89,7 +91,7 @@ BACNET_BVLC_RESULT BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
 /* if we are a foreign device, store the
    remote BBMD address/port here in network byte order */
 static struct sockaddr_in Remote_BBMD;
-
+    
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 void bvlc_maintenance_timer(
     time_t seconds)
@@ -674,7 +676,7 @@ int bvlc_send_mpdu(
 }
 
 void bvlc_bdt_forward_npdu(
-    struct sockaddr_in *sin,    /* the source address */
+    struct sockaddr_in *sin,    /* source address in network order */
     uint8_t * npdu,     /* the NPDU */
     uint16_t npdu_length)
 {       /* length of the NPDU  */
@@ -707,13 +709,14 @@ void bvlc_bdt_forward_npdu(
                 continue;
             }
             bytes_sent = bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
+            debug_printf("BVLC: BDT Sent Forwarded NPDU [len=%d]\n", bytes_sent);
         }
     }
 
     return;
 }
 
-void bvlc_broadcast_forward_npdu(
+void bvlc_distribute_broadcast(
     struct sockaddr_in *sin,    /* the source address */
     uint8_t * npdu,     /* returns the NPDU */
     uint16_t npdu_len)
@@ -736,10 +739,12 @@ void bvlc_broadcast_forward_npdu(
     memcpy(&mtu[mtu_len], npdu, npdu_len);
     mtu_len += npdu_len;
     bvlc_send_mpdu(&bvlc_dest, mtu, mtu_len);
+    debug_printf("BVLC: Distributed Broadcast [local network]\n");
 }
 
-void bvlc_fdt_forward_npdu(
-    struct sockaddr_in *sin,    /* the source address */
+/* distribute it to everyone but the source */
+void bvlc_fdt_distrbute_broadcast(
+    struct sockaddr_in *sin,    /* source address in network order */
     uint8_t * npdu,     /* returns the NPDU */
     uint16_t max_npdu)
 {       /* amount of space available in the NPDU  */
@@ -747,15 +752,51 @@ void bvlc_fdt_forward_npdu(
     uint16_t mtu_len = 0;
     int bytes_sent = 0;
     unsigned i = 0;     /* loop counter */
-    struct sockaddr_in bvlc_dest;
+    struct sockaddr_in bip_dest;
 
     mtu_len = bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, max_npdu);
     /* loop through the FDT and send one to each entry */
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid && FD_Table[i].seconds_remaining) {
-            bvlc_dest.sin_addr.s_addr = htonl(FD_Table[i].dest_address.s_addr);
-            bvlc_dest.sin_port = htons(FD_Table[i].dest_port);
-            bytes_sent = bvlc_send_mpdu(&bvlc_dest, mtu, mtu_len);
+            bip_dest.sin_addr.s_addr = htonl(FD_Table[i].dest_address.s_addr);
+            bip_dest.sin_port = htons(FD_Table[i].dest_port);
+            /* don't send to src ip address and same port */
+            if ((bip_dest.sin_addr.s_addr == sin->sin_addr.s_addr) &&
+                (bip_dest.sin_port == sin->sin_port)) {
+                continue;
+            }
+            bytes_sent = bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
+            debug_printf("BVLC: FDT Distribute Broadcast [len=%d]\n", bytes_sent);
+        }
+    }
+
+    return;
+}
+
+void bvlc_fdt_forward_npdu(
+    struct sockaddr_in *sin,    /* source address in network order */
+    uint8_t * npdu,     /* returns the NPDU */
+    uint16_t max_npdu)
+{       /* amount of space available in the NPDU  */
+    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint16_t mtu_len = 0;
+    int bytes_sent = 0;
+    unsigned i = 0;     /* loop counter */
+    struct sockaddr_in bip_dest;
+
+    mtu_len = bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, max_npdu);
+    /* loop through the FDT and send one to each entry */
+    for (i = 0; i < MAX_FD_ENTRIES; i++) {
+        if (FD_Table[i].valid && FD_Table[i].seconds_remaining) {
+            bip_dest.sin_addr.s_addr = htonl(FD_Table[i].dest_address.s_addr);
+            bip_dest.sin_port = htons(FD_Table[i].dest_port);
+            /* don't send to my ip address and same port */
+            if ((bip_dest.sin_addr.s_addr == htonl(bip_get_addr())) &&
+                (bip_dest.sin_port == htons(bip_get_port()))) {
+                continue;
+            }
+            bytes_sent = bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
+            debug_printf("BVLC: FDT Sent Forwarded NPDU [len=%d]\n", bytes_sent);
         }
     }
 
@@ -914,6 +955,9 @@ uint16_t bvlc_receive(
             /* FIXME: clients may need this result */
             (void) decode_unsigned16(&npdu[4], &result_code);
             BVLC_Result_Code = result_code;
+            debug_printf("BVLC: Result Code=%d\n",BVLC_Result_Code);
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
             /* Upon receipt of a BVLL Write-Broadcast-Distribution-Table
@@ -931,6 +975,8 @@ uint16_t bvlc_receive(
                 bvlc_send_result(&sin,
                     BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK);
             }
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_READ_BROADCAST_DIST_TABLE:
             /* Upon receipt of a BVLL Read-Broadcast-Distribution-Table
@@ -944,9 +990,13 @@ uint16_t bvlc_receive(
                 bvlc_send_result(&sin,
                     BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK);
             }
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_READ_BROADCAST_DIST_TABLE_ACK:
             /* FIXME: complete the code for client side read */
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_FORWARDED_NPDU:
             /* Upon receipt of a BVLL Forwarded-NPDU message, a BBMD shall
@@ -992,6 +1042,7 @@ uint16_t bvlc_receive(
                 /* clients should check my max-apdu first */
                 npdu_len = 0;
             }
+            debug_printf("BVLC: Forwarded NPDU Received [len=%u].\n",npdu_len);        
             break;
         case BVLC_REGISTER_FOREIGN_DEVICE:
             /* Upon receipt of a BVLL Register-Foreign-Device message, a BBMD
@@ -1006,10 +1057,14 @@ uint16_t bvlc_receive(
             (void) decode_unsigned16(&npdu[4], &time_to_live);
             if (bvlc_register_foreign_device(&sin, time_to_live)) {
                 bvlc_send_result(&sin, BVLC_RESULT_SUCCESSFUL_COMPLETION);
+                debug_printf("BVLC: Registered a Foreign Device.\n");        
             } else {
                 bvlc_send_result(&sin,
                     BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK);
+                debug_printf("BVLC: Failed to Register a Foreign Device.\n");        
             }
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_READ_FOREIGN_DEVICE_TABLE:
             /* Upon receipt of a BVLL Read-Foreign-Device-Table message, a
@@ -1023,9 +1078,13 @@ uint16_t bvlc_receive(
                 bvlc_send_result(&sin,
                     BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
             }
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_READ_FOREIGN_DEVICE_TABLE_ACK:
             /* FIXME: complete the code for client side read */
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY:
             /* Upon receipt of a BVLL Delete-Foreign-Device-Table-Entry
@@ -1042,8 +1101,11 @@ uint16_t bvlc_receive(
                 bvlc_send_result(&sin,
                     BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK);
             }
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:
+            debug_printf("BVLC: Received Distribute Broadcast to Network.\n");        
             /* Upon receipt of a BVLL Distribute-Broadcast-To-Network message
                from a foreign device, the receiving BBMD shall transmit a
                BVLL Forwarded-NPDU message on its local IP subnet using the
@@ -1056,10 +1118,14 @@ uint16_t bvlc_receive(
                it shall return a BVLC-Result message to the foreign device
                with a result code of X'0060' indicating that the forwarding
                attempt was unsuccessful */
-            bvlc_broadcast_forward_npdu(&sin, &npdu[4], npdu_len);
-            bvlc_fdt_forward_npdu(&sin, &npdu[4], npdu_len);
+            bvlc_distribute_broadcast(&sin, &npdu[4], npdu_len);
+            bvlc_bdt_forward_npdu(&sin, &npdu[4], npdu_len);
+            bvlc_fdt_distrbute_broadcast(&sin, &npdu[4], npdu_len);
+            /* not an NPDU */
+            npdu_len = 0;        
             break;
         case BVLC_ORIGINAL_UNICAST_NPDU:
+            debug_printf("BVLC: Original Unicast NPDU.\n");        
             /* ignore messages from me */
             if ((sin.sin_addr.s_addr == htonl(bip_get_addr())) &&
                 (sin.sin_port == htons(bip_get_port()))) {
@@ -1079,6 +1145,7 @@ uint16_t bvlc_receive(
             }
             break;
         case BVLC_ORIGINAL_BROADCAST_NPDU:
+            debug_printf("BVLC: Original Broadcast NPDU.\n");        
             /* Upon receipt of a BVLL Original-Broadcast-NPDU message,
                a BBMD shall construct a BVLL Forwarded-NPDU message and
                send it to each IP subnet in its BDT with the exception
