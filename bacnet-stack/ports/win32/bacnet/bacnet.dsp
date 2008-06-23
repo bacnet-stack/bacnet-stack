@@ -157,10 +157,6 @@ SOURCE=..\..\..\demo\object\bi.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\src\bigend.c
-# End Source File
-# Begin Source File
-
 SOURCE="..\bip-init.c"
 # End Source File
 # Begin Source File
@@ -190,6 +186,10 @@ SOURCE=..\..\..\src\crc.c
 # Begin Source File
 
 SOURCE=..\..\..\src\datetime.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\debug.c
 # End Source File
 # Begin Source File
 
@@ -430,6 +430,10 @@ SOURCE=..\..\..\include\datalink.h
 # Begin Source File
 
 SOURCE=..\..\..\include\datetime.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\debug.h
 # End Source File
 # Begin Source File
 
