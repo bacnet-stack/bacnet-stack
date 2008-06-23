@@ -698,7 +698,7 @@ static bool MSTP_Master_Node_FSM(
     uint8_t next_next_station = 0;
     /* timeout values */
     uint16_t my_timeout = 10, ns_timeout = 0;
-    bool matched;
+    bool matched = false;
     /* transition immediately to the next state */
     bool transition_now = false;
 
