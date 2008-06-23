@@ -42,6 +42,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/bactext.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/indtext.c \
+	$(BACNET_CORE)/debug.c \
 	$(BACNET_CORE)/bigend.c \
 	$(BACNET_CORE)/arf.c \
 	$(BACNET_CORE)/awf.c \

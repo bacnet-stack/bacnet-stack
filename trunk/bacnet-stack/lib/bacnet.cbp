@@ -297,6 +297,9 @@
 		<Unit filename="..\src\dcc.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\src\debug.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\filename.c">
 			<Option compilerVar="CC" />
 		</Unit>

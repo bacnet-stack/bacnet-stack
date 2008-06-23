@@ -53,6 +53,7 @@ CORESRC = ../../npdu.c \
 	../../reject.c \
 	../../bacapp.c \
 	../../datetime.c \
+	../../debug.c \
 	../../rp.c \
 	../../wp.c \
 	../../dcc.c \
