@@ -234,24 +234,25 @@ static bool cov_list_subscribe(
 
     /* existing? - match Object ID and Process ID */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
-        if ((COV_Subscriptions[index].valid) &&
-            (COV_Subscriptions[index].monitoredObjectIdentifier.type ==
+        if (COV_Subscriptions[index].valid) {
+            if ((COV_Subscriptions[index].monitoredObjectIdentifier.type ==
                 cov_data->monitoredObjectIdentifier.type) &&
-            (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
-                cov_data->monitoredObjectIdentifier.instance) &&
-            (COV_Subscriptions[index].subscriberProcessIdentifier ==
-                cov_data->subscriberProcessIdentifier)) {
-            existing_entry = true;
-            if (cov_data->cancellationRequest) {
-                COV_Subscriptions[index].valid = false;
-            } else {
-                bacnet_address_copy(&COV_Subscriptions[index].dest, src);
-                COV_Subscriptions[index].issueConfirmedNotifications =
-                    cov_data->issueConfirmedNotifications;
-                COV_Subscriptions[index].lifetime = cov_data->lifetime;
-                COV_Subscriptions[index].send_requested = true;
+                (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
+                    cov_data->monitoredObjectIdentifier.instance) &&
+                (COV_Subscriptions[index].subscriberProcessIdentifier ==
+                    cov_data->subscriberProcessIdentifier)) {
+                existing_entry = true;
+                if (cov_data->cancellationRequest) {
+                    COV_Subscriptions[index].valid = false;
+                } else {
+                    bacnet_address_copy(&COV_Subscriptions[index].dest, src);
+                    COV_Subscriptions[index].issueConfirmedNotifications =
+                        cov_data->issueConfirmedNotifications;
+                    COV_Subscriptions[index].lifetime = cov_data->lifetime;
+                    COV_Subscriptions[index].send_requested = true;
+                }
+                break;
             }
-            break;
         } else {
             if (first_invalid_index < 0) {
                 first_invalid_index = index;
