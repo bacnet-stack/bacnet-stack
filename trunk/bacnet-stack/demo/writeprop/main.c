@@ -61,7 +61,7 @@ static BACNET_OBJECT_TYPE Target_Object_Type = OBJECT_ANALOG_INPUT;
 static BACNET_PROPERTY_ID Target_Object_Property = PROP_ACKED_TRANSITIONS;
 /* array index value or BACNET_ARRAY_ALL */
 static int32_t Target_Object_Property_Index = BACNET_ARRAY_ALL;
-#define MAX_PROPERTY_VALUES 16
+#define MAX_PROPERTY_VALUES 64
 static BACNET_APPLICATION_DATA_VALUE
     Target_Object_Property_Value[MAX_PROPERTY_VALUES];
 
@@ -360,12 +360,17 @@ int main(int argc, char *argv[]) {
             Target_Object_Property_Value[i].context_specific = false;
         }
         property_tag = strtol(argv[tag_value_arg], NULL, 0);
+        args_remaining--;
+        if (args_remaining <= 0) {
+            fprintf(stderr, "Error: not enough tag-value pairs\r\n");
+            return 1;
+        }
         value_string = argv[tag_value_arg + 1];
-        args_remaining -= 2;
+        args_remaining--;
         /* printf("tag[%d]=%u value[%d]=%s\r\n",
            i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(stderr, "tag=%u - it must be less than %u\r\n",
+            fprintf(stderr, "Error: tag=%u - it must be less than %u\r\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
@@ -374,7 +379,7 @@ int main(int argc, char *argv[]) {
             &Target_Object_Property_Value[i]);
         if (!status) {
             /* FIXME: show the expected entry format for the tag */
-            fprintf(stderr, "unable to parse the tag value\r\n");
+            fprintf(stderr, "Error: unable to parse the tag value\r\n");
             return 1;
         }
         Target_Object_Property_Value[i].next = NULL;
@@ -382,8 +387,14 @@ int main(int argc, char *argv[]) {
             Target_Object_Property_Value[i - 1].next =
                 &Target_Object_Property_Value[i];
         }
-        if (args_remaining <= 0)
+        if (args_remaining <= 0) {
             break;
+        }
+    }
+    if (args_remaining > 0) {
+        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n", 
+            MAX_PROPERTY_VALUES);
+        return 1;
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
