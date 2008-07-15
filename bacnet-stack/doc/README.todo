@@ -6,10 +6,10 @@ B. Finish demo/object/lo.c - Lighting Output object demo
 C. Finish bvlc.c and use it instead of or in compliment to bip.c
 D. Complete client demo for ReadPropertyMultiple from rpm.c
 E. Add HTTP demo like bacnet4linux
-F. Add subscribe COV support in server demo.
+F. Add SubscribeCOVProperty support in server demo.
 G. Add hooks to increment Database_Revision property
-H. Add BBMD and FD support to server example for BACnet/IP.
-I. Add Foreign Device registration options to client examples.
+H. --- done.
+I. --- done.
 J. Change bip.c to not use extra buffer (shift data)
 K. Add Visual Studio 2005 makefiles or projects for demos.
 L. Add Code::Blocks projects for demos.
@@ -31,3 +31,5 @@ T. Add "inline" to static functions that are only used once.
 U. Modify code to compile with MISRA C rules.
 V. Change OBJECT_ID to only be 32 bits, and add macro handlers.
 W. Add #ifdef for all MAX_ defines so they can be overridden.
+X. Change WhoIs demo to list all I-Am's received such that duplicate
+   IDs with different MAC addresses can be detected.
