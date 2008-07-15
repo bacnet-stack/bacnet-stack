@@ -38,14 +38,26 @@
 #include <stdlib.h>             /* Standard Library */
 #include <stdarg.h>
 
-void debug_printf(char *fmt, ...)
+void debug_printf(const char * format, ...)
 {
     va_list ap;
 
-    va_start(ap, fmt);
-    vfprintf(stdout, fmt, ap);
+    va_start(ap, format);
+    vfprintf(stdout, format, ap);
     va_end(ap);
     fflush(stdout);
+
+    return;
+}
+
+void debug_fprintf(FILE * stream, const char * format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    vfprintf(stream, format, ap);
+    va_end(ap);
+    fflush(stream);
 
     return;
 }
