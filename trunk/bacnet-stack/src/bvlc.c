@@ -40,7 +40,10 @@
 #include "bacint.h"
 #include "bvlc.h"
 #include "bip.h"
-#define DEBUG_ENABLED 0
+
+#ifndef DEBUG_ENABLED
+#define DEBUG_ENABLED 1
+#endif
 #include "debug.h"
 
 /* Handle the BACnet Virtual Link Control (BVLC), which includes:
@@ -876,6 +879,30 @@ static bool bvlc_address_same(
     return same;
 }
 
+static bool bvlc_bdt_unicast(
+    struct sockaddr_in *sin)
+{       /* network order address */
+    bool unicast = false;
+    unsigned i = 0;     /* loop counter */
+
+    for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+        if (BBMD_Table[i].valid) {
+            /* find the source address in the table */
+            if (BBMD_Table[i].dest_address.s_addr ==
+                htonl(sin->sin_addr.s_addr)) {
+                /* unicast mask? */
+                if (BBMD_Table[i].broadcast_mask.s_addr == 0xFFFFFFFFL) {
+                    unicast = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    return unicast;
+}
+
+
 /* returns:
     Number of bytes received, or 0 if none or timeout. */
 uint16_t bvlc_receive(
@@ -1021,8 +1048,8 @@ uint16_t bvlc_receive(
             bvlc_decode_bip_address(&npdu[4], &original_sin.sin_addr,
                 &original_sin.sin_port);
             npdu_len -= 6;
-            /*  Broadcast it if this was received via unicast */
-            if (bvlc_address_same(&sin)) {
+            /*  Broadcast locally if received via unicast from a BDT member */
+            if (bvlc_bdt_unicast(&sin)) {
                 dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
                 dest.sin_port = htons(bip_get_port());
                 bvlc_send_mpdu(&dest, &npdu[4 + 6], npdu_len);
@@ -1031,6 +1058,9 @@ uint16_t bvlc_receive(
             /* use the original addr from the BVLC for src */
             dest.sin_addr.s_addr = htonl(original_sin.sin_addr.s_addr);
             dest.sin_port = htons(original_sin.sin_port);
+            debug_printf("BVLC: Forwarded NPDU Address=%s Port=0x%04X.\n",
+                inet_ntoa(dest.sin_addr),
+                ntohs(dest.sin_port));
             bvlc_internet_to_bacnet_address(src, &dest);
             if (npdu_len < max_npdu) {
                 /* shift the buffer to return a valid PDU */
@@ -1042,7 +1072,6 @@ uint16_t bvlc_receive(
                 /* clients should check my max-apdu first */
                 npdu_len = 0;
             }
-            debug_printf("BVLC: Forwarded NPDU Received [len=%u].\n",npdu_len);        
             break;
         case BVLC_REGISTER_FOREIGN_DEVICE:
             /* Upon receipt of a BVLL Register-Foreign-Device message, a BBMD
