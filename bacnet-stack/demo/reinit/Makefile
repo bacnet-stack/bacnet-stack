@@ -47,7 +47,7 @@ OBJS = ${SRCS:.c=.o}
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 	size ${TARGET_BIN}
 
-${TARGET_BIN}: ${OBJS} Makefile
+${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 
 lib: ${BACNET_LIB_TARGET}
