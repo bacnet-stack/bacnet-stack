@@ -49,15 +49,3 @@ void debug_printf(const char * format, ...)
 
     return;
 }
-
-void debug_fprintf(FILE * stream, const char * format, ...)
-{
-    va_list ap;
-
-    va_start(ap, format);
-    vfprintf(stream, format, ap);
-    va_end(ap);
-    fflush(stream);
-
-    return;
-}
