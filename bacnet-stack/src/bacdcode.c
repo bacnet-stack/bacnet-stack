@@ -1556,7 +1556,7 @@ void testBACDCodeReal(
     uint8_t real_array[4] = { 0 };
     uint8_t encoded_array[4] = { 0 };
     float value = 42.123F;
-    float decoded_value = 0F;
+    float decoded_value = 0.0F;
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, apdu_len = 0;
     uint8_t tag_number = 0;
@@ -1590,7 +1590,7 @@ void testBACDCodeDouble(
     uint8_t double_array[8] = { 0 };
     uint8_t encoded_array[8] = { 0 };
     double value = 42.123;
-    double decoded_value = 0;
+    double decoded_value = 0.0;
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, apdu_len = 0;
     uint8_t tag_number = 0;
@@ -1612,7 +1612,7 @@ void testBACDCodeDouble(
     ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
     ct_test(pTest, len == 1);
     ct_test(pTest, long_value == 8);
-    decode_real(&apdu[len], &decoded_value);
+    decode_double(&apdu[len], &decoded_value);
     ct_test(pTest, decoded_value == value);
 
     return;
