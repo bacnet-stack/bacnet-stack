@@ -396,7 +396,7 @@ void npdu_handler(
             if (dest.net) {
                 debug_printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
             } else {
-                debug_printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n", 
+                debug_printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n",
                     npdu_data.protocol_version);
             }
         }

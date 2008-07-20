@@ -236,7 +236,7 @@ static bool cov_list_subscribe(
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].valid) {
             if ((COV_Subscriptions[index].monitoredObjectIdentifier.type ==
-                cov_data->monitoredObjectIdentifier.type) &&
+                    cov_data->monitoredObjectIdentifier.type) &&
                 (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
                     cov_data->monitoredObjectIdentifier.instance) &&
                 (COV_Subscriptions[index].subscriberProcessIdentifier ==

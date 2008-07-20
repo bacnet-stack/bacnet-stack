@@ -375,12 +375,12 @@ typedef enum {
     /* enumerations 324-325 are used in Addendum i to ANSI/ASHRAE 135-2004 */
     PROP_BINARY_ACTIVE_VALUE = 324,
     PROP_BINARY_INACTIVE_VALUE = 325
-    /* The special property identifiers all, optional, and required  */
-    /* are reserved for use in the ReadPropertyConditional and */
-    /* ReadPropertyMultiple services or services not defined in this standard. */
-    /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 512-4194303 may be used by others subject to the  */
-    /* procedures and constraints described in Clause 23.  */
+        /* The special property identifiers all, optional, and required  */
+        /* are reserved for use in the ReadPropertyConditional and */
+        /* ReadPropertyMultiple services or services not defined in this standard. */
+        /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 512-4194303 may be used by others subject to the  */
+        /* procedures and constraints described in Clause 23.  */
 } BACNET_PROPERTY_ID;
 /* do the MAX as define rather than enumeration for devices
    and compilers that want to use smaller datatype for enum */
@@ -897,13 +897,13 @@ typedef enum {
     OBJECT_ACCESS_USER = 35,
     OBJECT_ACCESS_ZONE = 36,
     OBJECT_AUTHENTICATION_FACTOR_INPUT = 37,
-    
+
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
-    
+
     /* used for bit string loop */
-    MAX_ASHRAE_OBJECT_TYPE = 38,        
+    MAX_ASHRAE_OBJECT_TYPE = 38,
     MAX_BACNET_OBJECT_TYPE = 1023
 } BACNET_OBJECT_TYPE;
 
@@ -1328,7 +1328,7 @@ typedef enum {
     ERROR_CODE_ABORT_BUFFER_OVERFLOW = 51,
     ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE = 52,
     ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK = 53,
-    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED   = 54,
+    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED = 54,
     ERROR_CODE_ABORT_PROPRIETARY = 55,
     ERROR_CODE_ABORT_OTHER = 56,
     ERROR_CODE_INVALID_TAG = 57,

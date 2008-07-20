@@ -142,7 +142,8 @@ static void Init_DataLink(
         if (bbmd_address) {
             struct in_addr addr;
             addr.s_addr = bbmd_address;
-            printf("UnconfirmedCOV: Registering with BBMD at %s:%ld for %ld seconds\n",
+            printf
+                ("UnconfirmedCOV: Registering with BBMD at %s:%ld for %ld seconds\n",
                 inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
             bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
@@ -211,8 +212,8 @@ int main(int argc, char *argv[]) {
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         return 0;
     }
-    /* decode the command line parameters */ cov_data.
-        subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
+    /* decode the command line parameters */
+    cov_data.subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
     cov_data.initiatingDeviceIdentifier = strtol(argv[2], NULL, 0);
     cov_data.monitoredObjectIdentifier.type = strtol(argv[3], NULL, 0);
     cov_data.monitoredObjectIdentifier.instance = strtol(argv[4], NULL, 0);

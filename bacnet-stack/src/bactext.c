@@ -638,137 +638,272 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_VALUE_CHANGE_TIME, "value-change-time"}
     ,
-    {PROP_ALIGN_INTERVALS,"align-intervals"},
-    {PROP_GROUP_MEMBER_NAMES,"group-member-names"},
-    {PROP_INTERVAL_OFFSET,"interval-offset"},
-    {PROP_LAST_RESTART_REASON,"last-restart-reason"},
-    {PROP_LOGGING_TYPE,"logging-type"},
-    {PROP_MEMBER_STATUS_FLAGS,"member-status-flags"},
-    {PROP_NOTIFICATION_PERIOD,"notification-period"},
-    {PROP_REQUESTED_UPDATE_INTERVAL,"requested-update-interval"},
-    {PROP_RESTART_NOTIFICATION_RECIPIENTS,"restart-notification-recipients"},
-    {PROP_TIME_OF_DEVICE_RESTART,"time-of-device-restart"},
-    {PROP_TIME_SYNCHRONIZATION_INTERVAL,"time-synchronization-interval"},
-    {PROP_TRIGGER,"trigger"},
-    {PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,"utc-time-synchronization-recipients"},
-    {PROP_NODE_SUBTYPE,"node-subtype"},
-    {PROP_NODE_TYPE,"node-type"},
-    {PROP_STRUCTURED_OBJECT_LIST,"structured-object-list"},
-    {PROP_SUBORDINATE_ANNOTATIONS,"subordinate-annotations"},
-    {PROP_SUBORDINATE_LIST,"subordinate-list"},
-    {PROP_ACTUAL_SHED_LEVEL,"actual-shed-level"},
-    {PROP_DUTY_WINDOW,"duty-window"},
-    {PROP_EXPECTED_SHED_LEVEL,"expected-shed-level"},
-    {PROP_FULL_DUTY_BASELINE,"full-duty-baseline"},
-    {PROP_BLINK_PRIORITY_THRESHOLD,"blink-priority-threshold"},
-    {PROP_BLINK_TIME,"blink-time"},
-    {PROP_REQUESTED_SHED_LEVEL,"requested-shed-level"},
-    {PROP_SHED_DURATION,"shed-duration"},
-    {PROP_SHED_LEVEL_DESCRIPTIONS,"shed-level-descriptions"},
-    {PROP_SHED_LEVELS,"shed-levels"},
-    {PROP_STATE_DESCRIPTION,"state-description"},
-    {PROP_FADE_TIME,"fade-time"},
-    {PROP_LIGHTING_COMMAND,"lighting-command"},
-    {PROP_LIGHTING_COMMAND_PRIORITY,"lighting-command-priority"},
-    {PROP_DOOR_ALARM_STATE,"door-alarm-state"},
-    {PROP_DOOR_EXTENDED_PULSE_TIME,"door-extended-pulse-time"},
-    {PROP_DOOR_MEMBERS,"door-members"},
-    {PROP_DOOR_OPEN_TOO_LONG_TIME,"door-open-too-long-time"},
-    {PROP_DOOR_PULSE_TIME,"door-pulse-time"},
-    {PROP_DOOR_STATUS,"door-status"},
-    {PROP_DOOR_UNLOCK_DELAY_TIME,"door-unlock-delay-time"},
-    {PROP_LOCK_STATUS,"lock-status"},
-    {PROP_MASKED_ALARM_VALUES,"masked-alarm-values"},
-    {PROP_SECURED_STATUS,"secured-status"},
-    {PROP_OFF_DELAY,"off-delay"},
-    {PROP_ON_DELAY,"on-delay"},
-    {PROP_POWER,"power"},
-    {PROP_POWER_ON_VALUE,"power-on-value"},
-    {PROP_PROGRESS_VALUE,"progress-value"},
-    {PROP_RAMP_RATE,"ramp-rate"},
-    {PROP_STEP_INCREMENT,"step-increment"},
-    {PROP_SYSTEM_FAILURE_VALUE,"system-failure-value"},
-    {PROP_ABSENTEE_LIMIT,"absentee-limit"},
-    {PROP_ACCESS_ALARM_EVENTS,"access-alarm-events"},
-    {PROP_ACCESS_DOORS,"access-doors"},
-    {PROP_ACCESS_EVENT,"access-event"},
-    {PROP_ACCESS_EVENT_AUTHENTICATION_FACTOR,"access-event-authentication-factor"},
-    {PROP_ACCESS_EVENT_CREDENTIAL,"access-event-credential"},
-    {PROP_ACCESS_EVENT_TIME,"access-event-time"},
-    {PROP_ACCESS_RULES,"access-rules"},
-    {PROP_ACCESS_RULES_ENABLE,"access-rules-enable"},
-    {PROP_ACCESS_TRANSACTION_EVENTS,"access-transaction-events"},
-    {PROP_ACCOMPANIED,"accompanied"},
-    {PROP_ACTIVATION_TIME,"activation-time"},
-    {PROP_ACTIVE_AUTHENTICATION_POLICY,"active-authentication-policy"},
-    {PROP_ASSIGNED_ACCESS_RIGHTS,"assigned-access-rights"},
-    {PROP_AUTHENTICATION_FACTOR_INPUT_LIST,"authentication-factor-input-list"},
-    {PROP_AUTHENTICATION_FACTORS,"authentication-factors"},
-    {PROP_AUTHENTICATION_POLICY_LIST,"authentication-policy-list"},
-    {PROP_AUTHENTICATION_POLICY_NAMES,"authentication-policy-names"},
-    {PROP_AUTHORIZATION_MODE,"authorization-mode"},
-    {PROP_BELONGS_TO,"belongs-to"},
-    {PROP_CREDENTIAL_DISABLE,"credential-disable"},
-    {PROP_CREDENTIAL_STATUS,"credential-status"},
-    {PROP_CREDENTIALS,"credentials"},
-    {PROP_CREDENTIALS_IN_ZONE,"credentials-in-zone"},
-    {PROP_DAYS_REMAINING,"days-remaining"},
-    {PROP_ENTRY_POINTS,"entry-points"},
-    {PROP_EXIT_POINTS,"exit-points"},
-    {PROP_EXPIRY_TIME,"expiry-time"},
-    {PROP_EXTENDED_TIME_ENABLE,"extended-time-enable"},
-    {PROP_FAILED_ATTEMPT_EVENTS,"failed-attempt-events"},
-    {PROP_FAILED_ATTEMPTS,"failed-attempts"},
-    {PROP_FAILED_ATTEMPTS_TIME,"failed-attempts-time"},
-    {PROP_FORMAT_CLASS_SUPPORTED,"format-class-supported"},
-    {PROP_FORMAT_TYPE,"format-type"},
-    {PROP_LAST_ACCESS_EVENT,"last-access-event"},
-    {PROP_LAST_ACCESS_POINT,"last-access-point"},
-    {PROP_LAST_CREDENTIAL_ADDED,"last-credential-added"},
-    {PROP_LAST_CREDENTIAL_ADDED_TIME,"last-credential-added-time"},
-    {PROP_LAST_CREDENTIAL_REMOVED,"last-credential-removed"},
-    {PROP_LAST_CREDENTIAL_REMOVED_TIME,"last-credential-removed-time"},
-    {PROP_LAST_USE_TIME,"last-use-time"},
-    {PROP_LOCKDOWN,"lockdown"},
-    {PROP_LOCKDOWN_RELINQUISH_TIME,"lockdown-relinquish-time"},
-    {PROP_MASTER_EXEMPTION,"master-exemption"},
-    {PROP_MAX_FAILED_ATTEMPTS,"max-failed-attempts"},
-    {PROP_MEMBERS,"members"},
-    {PROP_MASTER_POINT,"muster-point"},
-    {PROP_NUMBER_OF_AUTHENTICATION_POLICIES,"number-of-authentication-policies"},
-    {PROP_OCCUPANCY_COUNT,"occupancy-count"},
-    {PROP_OCCUPANCY_COUNT_ENABLE,"occupancy-count-enable"},
-    {PROP_OCCUPANCY_COUNT_EXEMPTION,"occupancy-count-exemption"},
-    {PROP_OCCUPANCY_LOWER_THRESHOLD,"occupancy-lower-threshold"},
-    {PROP_OCCUPANCY_LOWER_THRESHOLD_ENFORCED,"occupancy-lower-threshold-enforced"},
-    {PROP_OCCUPANCY_STATE,"occupancy-state"},
-    {PROP_OCCUPANCY_UPPER_LIMIT,"occupancy-upper-limit"},
-    {PROP_OCCUPANCY_UPPER_LIMIT_ENFORCED,"occupancy-upper-limit-enforced"},
-    {PROP_PASSBACK_EXEMPTION,"passback-exemption"},
-    {PROP_PASSBACK_MODE,"passback-mode"},
-    {PROP_PASSBACK_TIMEOUT,"passback-timeout"},
-    {PROP_POSITIVE_ACCESS_RULES,"positive-access-rules"},
-    {PROP_READ_STATUS,"read-status"},
-    {PROP_REASON_FOR_DISABLE,"reason-for-disable"},
-    {PROP_THREAT_AUTHORITY,"threat-authority"},
-    {PROP_THREAT_LEVEL,"threat-level"},
-    {PROP_TRACE_FLAG,"trace-flag"},
-    {PROP_TRANSACTION_NOTIFICATION_CLASS,"transaction-notification-class"},
-    {PROP_USER_EXTERNAL_IDENTIFIER,"user-external-identifier"},
-    {PROP_CHARACTER_SET,"character-set"},
-    {PROP_STRICT_CHARACTER_MODE,"strict-character-mode"},
-    {PROP_BACKUP_AND_RESTORE_STATE,"backup-and-restore-state"},
-    {PROP_BACKUP_PREPARATION_TIME,"backup-preparation-time"},
-    {PROP_RESTORE_PREPARATION_TIME,"restore-preparation-time"},
-    {PROP_USER_INFORMATION_REFERENCE,"user-information-reference"},
-    {PROP_USER_NAME,"user-name"},
-    {PROP_USER_TYPE,"user-type"},
-    {PROP_USES_REMAINING,"uses-remaining"},
-    {PROP_VENDOR_FORMAT_IDENTIFIER,"vendor-format-identifier"},
-    {PROP_ZONE_FROM,"zone-from"},
-    {PROP_ZONE_TO,"zone-to"},
-    {PROP_BINARY_ACTIVE_VALUE,"binary-active-value"},
-    {PROP_BINARY_INACTIVE_VALUE,"binary-inactive-value"},
+    {PROP_ALIGN_INTERVALS, "align-intervals"}
+    ,
+    {PROP_GROUP_MEMBER_NAMES, "group-member-names"}
+    ,
+    {PROP_INTERVAL_OFFSET, "interval-offset"}
+    ,
+    {PROP_LAST_RESTART_REASON, "last-restart-reason"}
+    ,
+    {PROP_LOGGING_TYPE, "logging-type"}
+    ,
+    {PROP_MEMBER_STATUS_FLAGS, "member-status-flags"}
+    ,
+    {PROP_NOTIFICATION_PERIOD, "notification-period"}
+    ,
+    {PROP_REQUESTED_UPDATE_INTERVAL, "requested-update-interval"}
+    ,
+    {PROP_RESTART_NOTIFICATION_RECIPIENTS, "restart-notification-recipients"}
+    ,
+    {PROP_TIME_OF_DEVICE_RESTART, "time-of-device-restart"}
+    ,
+    {PROP_TIME_SYNCHRONIZATION_INTERVAL, "time-synchronization-interval"}
+    ,
+    {PROP_TRIGGER, "trigger"}
+    ,
+    {PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
+            "utc-time-synchronization-recipients"}
+    ,
+    {PROP_NODE_SUBTYPE, "node-subtype"}
+    ,
+    {PROP_NODE_TYPE, "node-type"}
+    ,
+    {PROP_STRUCTURED_OBJECT_LIST, "structured-object-list"}
+    ,
+    {PROP_SUBORDINATE_ANNOTATIONS, "subordinate-annotations"}
+    ,
+    {PROP_SUBORDINATE_LIST, "subordinate-list"}
+    ,
+    {PROP_ACTUAL_SHED_LEVEL, "actual-shed-level"}
+    ,
+    {PROP_DUTY_WINDOW, "duty-window"}
+    ,
+    {PROP_EXPECTED_SHED_LEVEL, "expected-shed-level"}
+    ,
+    {PROP_FULL_DUTY_BASELINE, "full-duty-baseline"}
+    ,
+    {PROP_BLINK_PRIORITY_THRESHOLD, "blink-priority-threshold"}
+    ,
+    {PROP_BLINK_TIME, "blink-time"}
+    ,
+    {PROP_REQUESTED_SHED_LEVEL, "requested-shed-level"}
+    ,
+    {PROP_SHED_DURATION, "shed-duration"}
+    ,
+    {PROP_SHED_LEVEL_DESCRIPTIONS, "shed-level-descriptions"}
+    ,
+    {PROP_SHED_LEVELS, "shed-levels"}
+    ,
+    {PROP_STATE_DESCRIPTION, "state-description"}
+    ,
+    {PROP_FADE_TIME, "fade-time"}
+    ,
+    {PROP_LIGHTING_COMMAND, "lighting-command"}
+    ,
+    {PROP_LIGHTING_COMMAND_PRIORITY, "lighting-command-priority"}
+    ,
+    {PROP_DOOR_ALARM_STATE, "door-alarm-state"}
+    ,
+    {PROP_DOOR_EXTENDED_PULSE_TIME, "door-extended-pulse-time"}
+    ,
+    {PROP_DOOR_MEMBERS, "door-members"}
+    ,
+    {PROP_DOOR_OPEN_TOO_LONG_TIME, "door-open-too-long-time"}
+    ,
+    {PROP_DOOR_PULSE_TIME, "door-pulse-time"}
+    ,
+    {PROP_DOOR_STATUS, "door-status"}
+    ,
+    {PROP_DOOR_UNLOCK_DELAY_TIME, "door-unlock-delay-time"}
+    ,
+    {PROP_LOCK_STATUS, "lock-status"}
+    ,
+    {PROP_MASKED_ALARM_VALUES, "masked-alarm-values"}
+    ,
+    {PROP_SECURED_STATUS, "secured-status"}
+    ,
+    {PROP_OFF_DELAY, "off-delay"}
+    ,
+    {PROP_ON_DELAY, "on-delay"}
+    ,
+    {PROP_POWER, "power"}
+    ,
+    {PROP_POWER_ON_VALUE, "power-on-value"}
+    ,
+    {PROP_PROGRESS_VALUE, "progress-value"}
+    ,
+    {PROP_RAMP_RATE, "ramp-rate"}
+    ,
+    {PROP_STEP_INCREMENT, "step-increment"}
+    ,
+    {PROP_SYSTEM_FAILURE_VALUE, "system-failure-value"}
+    ,
+    {PROP_ABSENTEE_LIMIT, "absentee-limit"}
+    ,
+    {PROP_ACCESS_ALARM_EVENTS, "access-alarm-events"}
+    ,
+    {PROP_ACCESS_DOORS, "access-doors"}
+    ,
+    {PROP_ACCESS_EVENT, "access-event"}
+    ,
+    {PROP_ACCESS_EVENT_AUTHENTICATION_FACTOR,
+            "access-event-authentication-factor"}
+    ,
+    {PROP_ACCESS_EVENT_CREDENTIAL, "access-event-credential"}
+    ,
+    {PROP_ACCESS_EVENT_TIME, "access-event-time"}
+    ,
+    {PROP_ACCESS_RULES, "access-rules"}
+    ,
+    {PROP_ACCESS_RULES_ENABLE, "access-rules-enable"}
+    ,
+    {PROP_ACCESS_TRANSACTION_EVENTS, "access-transaction-events"}
+    ,
+    {PROP_ACCOMPANIED, "accompanied"}
+    ,
+    {PROP_ACTIVATION_TIME, "activation-time"}
+    ,
+    {PROP_ACTIVE_AUTHENTICATION_POLICY, "active-authentication-policy"}
+    ,
+    {PROP_ASSIGNED_ACCESS_RIGHTS, "assigned-access-rights"}
+    ,
+    {PROP_AUTHENTICATION_FACTOR_INPUT_LIST, "authentication-factor-input-list"}
+    ,
+    {PROP_AUTHENTICATION_FACTORS, "authentication-factors"}
+    ,
+    {PROP_AUTHENTICATION_POLICY_LIST, "authentication-policy-list"}
+    ,
+    {PROP_AUTHENTICATION_POLICY_NAMES, "authentication-policy-names"}
+    ,
+    {PROP_AUTHORIZATION_MODE, "authorization-mode"}
+    ,
+    {PROP_BELONGS_TO, "belongs-to"}
+    ,
+    {PROP_CREDENTIAL_DISABLE, "credential-disable"}
+    ,
+    {PROP_CREDENTIAL_STATUS, "credential-status"}
+    ,
+    {PROP_CREDENTIALS, "credentials"}
+    ,
+    {PROP_CREDENTIALS_IN_ZONE, "credentials-in-zone"}
+    ,
+    {PROP_DAYS_REMAINING, "days-remaining"}
+    ,
+    {PROP_ENTRY_POINTS, "entry-points"}
+    ,
+    {PROP_EXIT_POINTS, "exit-points"}
+    ,
+    {PROP_EXPIRY_TIME, "expiry-time"}
+    ,
+    {PROP_EXTENDED_TIME_ENABLE, "extended-time-enable"}
+    ,
+    {PROP_FAILED_ATTEMPT_EVENTS, "failed-attempt-events"}
+    ,
+    {PROP_FAILED_ATTEMPTS, "failed-attempts"}
+    ,
+    {PROP_FAILED_ATTEMPTS_TIME, "failed-attempts-time"}
+    ,
+    {PROP_FORMAT_CLASS_SUPPORTED, "format-class-supported"}
+    ,
+    {PROP_FORMAT_TYPE, "format-type"}
+    ,
+    {PROP_LAST_ACCESS_EVENT, "last-access-event"}
+    ,
+    {PROP_LAST_ACCESS_POINT, "last-access-point"}
+    ,
+    {PROP_LAST_CREDENTIAL_ADDED, "last-credential-added"}
+    ,
+    {PROP_LAST_CREDENTIAL_ADDED_TIME, "last-credential-added-time"}
+    ,
+    {PROP_LAST_CREDENTIAL_REMOVED, "last-credential-removed"}
+    ,
+    {PROP_LAST_CREDENTIAL_REMOVED_TIME, "last-credential-removed-time"}
+    ,
+    {PROP_LAST_USE_TIME, "last-use-time"}
+    ,
+    {PROP_LOCKDOWN, "lockdown"}
+    ,
+    {PROP_LOCKDOWN_RELINQUISH_TIME, "lockdown-relinquish-time"}
+    ,
+    {PROP_MASTER_EXEMPTION, "master-exemption"}
+    ,
+    {PROP_MAX_FAILED_ATTEMPTS, "max-failed-attempts"}
+    ,
+    {PROP_MEMBERS, "members"}
+    ,
+    {PROP_MASTER_POINT, "muster-point"}
+    ,
+    {PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
+            "number-of-authentication-policies"}
+    ,
+    {PROP_OCCUPANCY_COUNT, "occupancy-count"}
+    ,
+    {PROP_OCCUPANCY_COUNT_ENABLE, "occupancy-count-enable"}
+    ,
+    {PROP_OCCUPANCY_COUNT_EXEMPTION, "occupancy-count-exemption"}
+    ,
+    {PROP_OCCUPANCY_LOWER_THRESHOLD, "occupancy-lower-threshold"}
+    ,
+    {PROP_OCCUPANCY_LOWER_THRESHOLD_ENFORCED,
+            "occupancy-lower-threshold-enforced"}
+    ,
+    {PROP_OCCUPANCY_STATE, "occupancy-state"}
+    ,
+    {PROP_OCCUPANCY_UPPER_LIMIT, "occupancy-upper-limit"}
+    ,
+    {PROP_OCCUPANCY_UPPER_LIMIT_ENFORCED, "occupancy-upper-limit-enforced"}
+    ,
+    {PROP_PASSBACK_EXEMPTION, "passback-exemption"}
+    ,
+    {PROP_PASSBACK_MODE, "passback-mode"}
+    ,
+    {PROP_PASSBACK_TIMEOUT, "passback-timeout"}
+    ,
+    {PROP_POSITIVE_ACCESS_RULES, "positive-access-rules"}
+    ,
+    {PROP_READ_STATUS, "read-status"}
+    ,
+    {PROP_REASON_FOR_DISABLE, "reason-for-disable"}
+    ,
+    {PROP_THREAT_AUTHORITY, "threat-authority"}
+    ,
+    {PROP_THREAT_LEVEL, "threat-level"}
+    ,
+    {PROP_TRACE_FLAG, "trace-flag"}
+    ,
+    {PROP_TRANSACTION_NOTIFICATION_CLASS, "transaction-notification-class"}
+    ,
+    {PROP_USER_EXTERNAL_IDENTIFIER, "user-external-identifier"}
+    ,
+    {PROP_CHARACTER_SET, "character-set"}
+    ,
+    {PROP_STRICT_CHARACTER_MODE, "strict-character-mode"}
+    ,
+    {PROP_BACKUP_AND_RESTORE_STATE, "backup-and-restore-state"}
+    ,
+    {PROP_BACKUP_PREPARATION_TIME, "backup-preparation-time"}
+    ,
+    {PROP_RESTORE_PREPARATION_TIME, "restore-preparation-time"}
+    ,
+    {PROP_USER_INFORMATION_REFERENCE, "user-information-reference"}
+    ,
+    {PROP_USER_NAME, "user-name"}
+    ,
+    {PROP_USER_TYPE, "user-type"}
+    ,
+    {PROP_USES_REMAINING, "uses-remaining"}
+    ,
+    {PROP_VENDOR_FORMAT_IDENTIFIER, "vendor-format-identifier"}
+    ,
+    {PROP_ZONE_FROM, "zone-from"}
+    ,
+    {PROP_ZONE_TO, "zone-to"}
+    ,
+    {PROP_BINARY_ACTIVE_VALUE, "binary-active-value"}
+    ,
+    {PROP_BINARY_INACTIVE_VALUE, "binary-inactive-value"}
+    ,
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the
@@ -1384,39 +1519,79 @@ INDTEXT_DATA bacnet_error_code_names[] = {
     ,
     {ERROR_CODE_NOT_COV_PROPERTY, "not-cov-property"}
     ,
-    {ERROR_CODE_ABORT_BUFFER_OVERFLOW, "abort-buffer-overflow"},
-    {ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE, "abort-invalid-apdu-in-this-state"},
-    {ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK, "abort-preempted-by-higher-priority-task"},
-    {ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED, "abort-segmentation-not-supported"},
-    {ERROR_CODE_ABORT_PROPRIETARY, "abort-proprietary"},
-    {ERROR_CODE_ABORT_OTHER, "abort-other"},
-    {ERROR_CODE_INVALID_TAG, "invalid-tag"},
-    {ERROR_CODE_NETWORK_DOWN, "network-down"},
-    {ERROR_CODE_REJECT_BUFFER_OVERFLOW, "reject-buffer-overflow"},
-    {ERROR_CODE_REJECT_INCONSISTENT_PARAMETERS, "reject-inconsistent-parameters"},
-    {ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE, "reject-invalid-parameter-data-type"},
-    {ERROR_CODE_REJECT_INVALID_TAG, "reject-invalid-tag"},
-    {ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER, "reject-missing-required-parameter"},
-    {ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE, "reject-parameter-out-of-range"},
-    {ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS, "reject-too-many-arguments"},
-    {ERROR_CODE_REJECT_UNDEFINED_ENUMERATION, "reject-undefined-enumeration"},
-    {ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE, "reject-unrecognized-service"},
-    {ERROR_CODE_REJECT_PROPRIETARY, "reject-proprietary"},
-    {ERROR_CODE_REJECT_OTHER, "reject-other"},
-    {ERROR_CODE_UNKNOWN_DEVICE, "unknown-device"},
-    {ERROR_CODE_UNKNOWN_ROUTE, "unknown-route"},
-    {ERROR_CODE_VALUE_NOT_INITIALIZED, "value-not-initialized"},
-    {ERROR_CODE_INVALID_EVENT_STATE, "invalid-event-state"},
-    {ERROR_CODE_NO_ALARM_CONFIGURED, "no-alarm-configured"},
-    {ERROR_CODE_LOG_BUFFER_FULL, "log-buffer-full"},
-    {ERROR_CODE_LOGGED_VALUE_PURGED, "logged-value-purged"},
-    {ERROR_CODE_NO_PROPERTY_SPECIFIED, "no-property-specified"},
-    {ERROR_CODE_NOT_CONFIGURED_FOR_TRIGGERED_LOGGING, "not-configured-for-triggered-logging"},
-    {ERROR_CODE_UNKNOWN_SUBSCRIPTION, "unknown-subscription"},
-    {ERROR_CODE_PARAMETER_OUT_OF_RANGE, "parameter-out-of-range"},
-    {ERROR_CODE_UNKNOWN_FILE_SIZE, "unknown-file-size"},
-    {ERROR_CODE_BUSY, "busy"},
-    {ERROR_CODE_COMMUNICATION_DISABLED, "communication-disabled"},
+    {ERROR_CODE_ABORT_BUFFER_OVERFLOW, "abort-buffer-overflow"}
+    ,
+    {ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE,
+            "abort-invalid-apdu-in-this-state"}
+    ,
+    {ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK,
+            "abort-preempted-by-higher-priority-task"}
+    ,
+    {ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED,
+            "abort-segmentation-not-supported"}
+    ,
+    {ERROR_CODE_ABORT_PROPRIETARY, "abort-proprietary"}
+    ,
+    {ERROR_CODE_ABORT_OTHER, "abort-other"}
+    ,
+    {ERROR_CODE_INVALID_TAG, "invalid-tag"}
+    ,
+    {ERROR_CODE_NETWORK_DOWN, "network-down"}
+    ,
+    {ERROR_CODE_REJECT_BUFFER_OVERFLOW, "reject-buffer-overflow"}
+    ,
+    {ERROR_CODE_REJECT_INCONSISTENT_PARAMETERS,
+            "reject-inconsistent-parameters"}
+    ,
+    {ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE,
+            "reject-invalid-parameter-data-type"}
+    ,
+    {ERROR_CODE_REJECT_INVALID_TAG, "reject-invalid-tag"}
+    ,
+    {ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER,
+            "reject-missing-required-parameter"}
+    ,
+    {ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE, "reject-parameter-out-of-range"}
+    ,
+    {ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS, "reject-too-many-arguments"}
+    ,
+    {ERROR_CODE_REJECT_UNDEFINED_ENUMERATION, "reject-undefined-enumeration"}
+    ,
+    {ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE, "reject-unrecognized-service"}
+    ,
+    {ERROR_CODE_REJECT_PROPRIETARY, "reject-proprietary"}
+    ,
+    {ERROR_CODE_REJECT_OTHER, "reject-other"}
+    ,
+    {ERROR_CODE_UNKNOWN_DEVICE, "unknown-device"}
+    ,
+    {ERROR_CODE_UNKNOWN_ROUTE, "unknown-route"}
+    ,
+    {ERROR_CODE_VALUE_NOT_INITIALIZED, "value-not-initialized"}
+    ,
+    {ERROR_CODE_INVALID_EVENT_STATE, "invalid-event-state"}
+    ,
+    {ERROR_CODE_NO_ALARM_CONFIGURED, "no-alarm-configured"}
+    ,
+    {ERROR_CODE_LOG_BUFFER_FULL, "log-buffer-full"}
+    ,
+    {ERROR_CODE_LOGGED_VALUE_PURGED, "logged-value-purged"}
+    ,
+    {ERROR_CODE_NO_PROPERTY_SPECIFIED, "no-property-specified"}
+    ,
+    {ERROR_CODE_NOT_CONFIGURED_FOR_TRIGGERED_LOGGING,
+            "not-configured-for-triggered-logging"}
+    ,
+    {ERROR_CODE_UNKNOWN_SUBSCRIPTION, "unknown-subscription"}
+    ,
+    {ERROR_CODE_PARAMETER_OUT_OF_RANGE, "parameter-out-of-range"}
+    ,
+    {ERROR_CODE_UNKNOWN_FILE_SIZE, "unknown-file-size"}
+    ,
+    {ERROR_CODE_BUSY, "busy"}
+    ,
+    {ERROR_CODE_COMMUNICATION_DISABLED, "communication-disabled"}
+    ,
     {0, NULL}
 };
 
