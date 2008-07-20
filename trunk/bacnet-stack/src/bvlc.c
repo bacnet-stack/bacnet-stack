@@ -571,7 +571,7 @@ static bool bvlc_create_bdt(
 }
 
 static bool bvlc_register_foreign_device(
-    struct sockaddr_in * sin,   /* source address in network order */
+    struct sockaddr_in *sin,    /* source address in network order */
     uint16_t time_to_live)
 {       /* time in seconds */
     unsigned i = 0;
@@ -687,8 +687,7 @@ static void bvlc_bdt_forward_npdu(
             }
             bytes_sent = bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
             debug_printf("BVLC: BDT Sent Forwarded-NPDU to %s:%04X\n",
-                inet_ntoa(bip_dest.sin_addr),
-                ntohs(bip_dest.sin_port));
+                inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
     }
 
@@ -706,8 +705,7 @@ static void bvlc_forward_npdu(
     uint16_t mtu_len = 0;
     struct sockaddr_in bip_dest = { 0 };
 
-    mtu_len = bvlc_encode_forwarded_npdu(&mtu[0],
-        sin, npdu, npdu_length);
+    mtu_len = bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
     bip_dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
     bip_dest.sin_port = htons(bip_get_port());
     bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
@@ -738,13 +736,12 @@ static void bvlc_fdt_forward_npdu(
             }
             /* don't send to src ip address and same port */
             if ((bip_dest.sin_addr.s_addr == sin->sin_addr.s_addr) &&
-                 (bip_dest.sin_port == sin->sin_port)) {
+                (bip_dest.sin_port == sin->sin_port)) {
                 continue;
             }
             bytes_sent = bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
             debug_printf("BVLC: FDT Sent Forwarded-NPDU to %s:%04X\n",
-                inet_ntoa(bip_dest.sin_addr),
-                ntohs(bip_dest.sin_port));
+                inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
     }
 
@@ -823,12 +820,10 @@ static bool bvlc_bdt_member_mask_is_unicast(
         if (BBMD_Table[i].valid) {
             /* find the source address in the table */
             if ((BBMD_Table[i].dest_address.s_addr ==
-                htonl(sin->sin_addr.s_addr)) &&
-                (BBMD_Table[i].dest_port ==
-                htons(sin->sin_port))) {
+                    htonl(sin->sin_addr.s_addr)) &&
+                (BBMD_Table[i].dest_port == htons(sin->sin_port))) {
                 /* unicast mask? */
-                if (BBMD_Table[i].broadcast_mask.s_addr ==
-                    0xFFFFFFFFL) {
+                if (BBMD_Table[i].broadcast_mask.s_addr == 0xFFFFFFFFL) {
                     unicast = true;
                     break;
                 }
@@ -918,9 +913,9 @@ uint16_t bvlc_receive(
             /* FIXME: clients may need this result */
             (void) decode_unsigned16(&npdu[4], &result_code);
             BVLC_Result_Code = result_code;
-            debug_printf("BVLC: Result Code=%d\n",BVLC_Result_Code);
+            debug_printf("BVLC: Result Code=%d\n", BVLC_Result_Code);
             /* not an NPDU */
-            npdu_len = 0;        
+            npdu_len = 0;
             break;
         case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
             debug_printf("BVLC: Received Write-BDT.\n");
@@ -962,7 +957,7 @@ uint16_t bvlc_receive(
             debug_printf("BVLC: Received Read-BDT-Ack.\n");
             /* FIXME: complete the code for client side read */
             /* not an NPDU */
-            npdu_len = 0;        
+            npdu_len = 0;
             break;
         case BVLC_FORWARDED_NPDU:
             /* Upon receipt of a BVLL Forwarded-NPDU message, a BBMD shall
@@ -998,8 +993,7 @@ uint16_t bvlc_receive(
             dest.sin_port = htons(original_sin.sin_port);
             bvlc_fdt_forward_npdu(&dest, &npdu[4 + 6], npdu_len);
             debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
-                inet_ntoa(dest.sin_addr),
-                ntohs(dest.sin_port));
+                inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
             bvlc_internet_to_bacnet_address(src, &dest);
             if (npdu_len < max_npdu) {
                 /* shift the buffer to return a valid PDU */
@@ -1025,7 +1019,7 @@ uint16_t bvlc_receive(
             (void) decode_unsigned16(&npdu[4], &time_to_live);
             if (bvlc_register_foreign_device(&sin, time_to_live)) {
                 bvlc_send_result(&sin, BVLC_RESULT_SUCCESSFUL_COMPLETION);
-                debug_printf("BVLC: Registered a Foreign Device.\n");        
+                debug_printf("BVLC: Registered a Foreign Device.\n");
             } else {
                 bvlc_send_result(&sin,
                     BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK);
@@ -1076,9 +1070,9 @@ uint16_t bvlc_receive(
             npdu_len = 0;
             break;
         case BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:
-            debug_printf("BVLC: Received Distribute-Broadcast-to-Network from %s:%04X.\n",
-                inet_ntoa(sin.sin_addr),
-                ntohs(sin.sin_port));
+            debug_printf
+                ("BVLC: Received Distribute-Broadcast-to-Network from %s:%04X.\n",
+                inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
             /* Upon receipt of a BVLL Distribute-Broadcast-To-Network message
                from a foreign device, the receiving BBMD shall transmit a
                BVLL Forwarded-NPDU message on its local IP subnet using the

@@ -34,11 +34,13 @@
 
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include <stdio.h>              /* Standard I/O */
-#include <stdlib.h>             /* Standard Library */
+#include <stdio.h>      /* Standard I/O */
+#include <stdlib.h>     /* Standard Library */
 #include <stdarg.h>
 
-void debug_printf(const char * format, ...)
+void debug_printf(
+    const char *format,
+    ...)
 {
     va_list ap;
 

@@ -223,7 +223,8 @@ static void Init_DataLink(
         if (bbmd_address) {
             struct in_addr addr;
             addr.s_addr = bbmd_address;
-            printf("WriteProperty: Registering with BBMD at %s:%ld for %ld seconds\n",
+            printf
+                ("WriteProperty: Registering with BBMD at %s:%ld for %ld seconds\n",
                 inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
             bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
@@ -304,15 +305,13 @@ int main(int argc, char *argv[]) {
                 "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler for\r\n"
                 "the demo to use this kind of table - but I also wanted to be able\r\n"
                 "to do negative testing by passing the wrong tag and have the server\r\n"
-                "return a reject message.\r\n"
-                "\r\nExample:\r\n"
+                "return a reject message.\r\n" "\r\nExample:\r\n"
                 "If you want send a value of 100 to the Present-Value in\r\n"
                 "Analog Output 0 of Device 123 at priority 16,\r\n"
                 "send the following command:\r\n"
                 "%s 123 1 0 85 16 -1 4 100\r\n"
                 "To send a relinquish command to the same object:\r\n"
-                "%s 123 1 0 85 16 -1 0 0\r\n",
-                filename_remove_path(argv[0]),
+                "%s 123 1 0 85 16 -1 0 0\r\n", filename_remove_path(argv[0]),
                 filename_remove_path(argv[0]));
         }
         return 0;
@@ -392,7 +391,7 @@ int main(int argc, char *argv[]) {
         }
     }
     if (args_remaining > 0) {
-        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n", 
+        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n",
             MAX_PROPERTY_VALUES);
         return 1;
     }
@@ -448,7 +447,7 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(invoke_id);
                 Error_Detected = true;
-               /* try again or abort? */
+                /* try again or abort? */
                 break;
             }
         } else {
@@ -463,6 +462,7 @@ int main(int argc, char *argv[]) {
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
-    if(Error_Detected) return 1;
+    if (Error_Detected)
+        return 1;
     return 0;
 }

@@ -208,7 +208,8 @@ static void Init_DataLink(
         if (bbmd_address) {
             struct in_addr addr;
             addr.s_addr = bbmd_address;
-            printf("ReadProperty: Registering with BBMD at %s:%ld for %ld seconds\n",
+            printf
+                ("ReadProperty: Registering with BBMD at %s:%ld for %ld seconds\n",
                 inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
             bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
@@ -231,10 +232,8 @@ int main(int argc, char *argv[]) {
     bool found = false;
 
     if (argc < 5) {
-        printf(
-            "Usage: %s device-instance object-type object-instance "
-            "property [index]\r\n",
-            filename_remove_path(argv[0]));
+        printf("Usage: %s device-instance object-type object-instance "
+            "property [index]\r\n", filename_remove_path(argv[0]));
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf("device-instance:\r\n"
                 "BACnet Device Object Instance number that you are\r\n"
@@ -267,8 +266,7 @@ int main(int argc, char *argv[]) {
                 "%s 123 1 101 85\r\n"
                 "If you want read the Priority-Array of Analog Output 101\r\n"
                 "in Device 123, you could send the following command:\r\n"
-                "%s 123 1 101 87\r\n",
-                filename_remove_path(argv[0]),
+                "%s 123 1 101 87\r\n", filename_remove_path(argv[0]),
                 filename_remove_path(argv[0]));
         }
         return 0;
@@ -351,7 +349,7 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(invoke_id);
                 Error_Detected = true;
-               /* try again or abort? */
+                /* try again or abort? */
                 break;
             }
         } else {
@@ -360,13 +358,14 @@ int main(int argc, char *argv[]) {
             if (elapsed_seconds > timeout_seconds) {
                 printf("\rError: APDU Timeout!\r\n");
                 Error_Detected = true;
-               break;
+                break;
             }
         }
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
 
-    if(Error_Detected) return 1;
+    if (Error_Detected)
+        return 1;
     return 0;
 }

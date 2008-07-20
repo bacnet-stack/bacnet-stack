@@ -40,9 +40,15 @@
 #include "bacdef.h"
 
 #if DEBUG_ENABLED
-void debug_printf(const char * format, ...);
+void debug_printf(
+    const char *format,
+    ...);
 #else
-static void debug_printf(const char * format, ...) {}
+static void debug_printf(
+    const char *format,
+    ...)
+{
+}
 #endif
 
 #endif
