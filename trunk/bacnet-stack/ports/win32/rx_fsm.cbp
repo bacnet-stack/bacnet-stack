@@ -3,11 +3,12 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="rx_fsm" />
+		<Option makefile="makefile" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\rx_fsm.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Debug\rx_fsm" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -18,7 +19,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\rx_fsm.exe" prefix_auto="1" extension_auto="1" />
+				<Option output="bin\Release\rx_fsm" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -33,28 +34,17 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DBIG_ENDIAN=0" />
 			<Add option="-DBACDL_MSTP=1" />
+			<Add option="-DBACAPP_ALL" />
+			<Add option="-DPRINT_ENABLED=1" />
 			<Add directory="." />
-			<Add directory="..\..\..\bacnet-stack" />
+			<Add directory="..\..\include" />
 		</Compiler>
-		<Unit filename="..\..\crc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\crc.h" />
-		<Unit filename="..\..\indtext.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\indtext.h" />
-		<Unit filename="..\..\mstp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\mstp.h" />
-		<Unit filename="..\..\mstptext.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\..\mstptext.h" />
-		<Unit filename="mstp.h" />
+		<Unit filename="..\..\include\crc.h" />
+		<Unit filename="..\..\include\debug.h" />
+		<Unit filename="..\..\include\indtext.h" />
+		<Unit filename="..\..\include\mstp.h" />
+		<Unit filename="..\..\include\mstptext.h" />
 		<Unit filename="rs485.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -63,9 +53,25 @@
 		</Unit>
 		<Unit filename="stdbool.h" />
 		<Unit filename="stdint.h" />
+		<Unit filename="..\..\src\crc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\debug.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\indtext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\mstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\mstptext.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
