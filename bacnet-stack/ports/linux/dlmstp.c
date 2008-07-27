@@ -116,6 +116,9 @@ int dlmstp_send_pdu(
     mqd_t rc = 0;
 
     if (pdu_len) {
+#if PRINT_ENABLED
+        fprintf(stderr, "MS/TP: sending packet\n");
+#endif
         if (npdu_data->data_expecting_reply) {
             packet.frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
         } else {
@@ -146,6 +149,7 @@ uint16_t dlmstp_receive(
     struct timespec queue_timeout = {0};
     time_t epoch_time = 0;
     unsigned msg_prio = 0;
+    char buffer[sizeof(struct dlmstp_packet)+1];
 
     if (NPDU_Receive_Queue == -1) {
         return 0;
@@ -166,8 +170,8 @@ uint16_t dlmstp_receive(
 
     received_bytes = mq_timedreceive(
         NPDU_Receive_Queue,
-        (char *)&packet,
-        sizeof(packet),
+        buffer,
+        sizeof(buffer),
         &msg_prio,
         &queue_timeout);
 
@@ -176,9 +180,9 @@ uint16_t dlmstp_receive(
         /* EAGAIN Non-blocking I/O has been selected  */
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
-        if (errno != EAGAIN) {
+        if ((errno != EAGAIN) && (errno != ETIMEDOUT)) {
 #if PRINT_ENABLED
-            fprintf(stderr, "mstp: NPDU Receive: %s\n",
+            fprintf(stderr, "MS/TP: NPDU Receive: %s\n",
                 strerror(errno));
 #endif
         } 
@@ -189,12 +193,12 @@ uint16_t dlmstp_receive(
         return 0;
 
     /* copy the buffer into the PDU */
+    memmove(&packet,buffer,sizeof(packet));
     pdu_len = packet.pdu_len;
     memmove(&pdu[0], &packet.pdu[0], pdu_len);
     memmove(src, &packet.address, sizeof(packet.address));
     /* not used in this scheme */
     packet.ready = true;
-
 
     return pdu_len;
 }
@@ -280,6 +284,9 @@ uint16_t MSTP_Put_Receive(
     if (pdu_len > sizeof(packet.pdu))
         pdu_len = sizeof(packet.pdu);
     if (pdu_len) {
+#if PRINT_ENABLED
+        fprintf(stderr,"MSTP: packet from FSM.\n");
+#endif
         MSTP_Packets++;
         memmove(&packet.pdu[0], (void *) &mstp_port->InputBuffer[0], pdu_len);
         dlmstp_fill_bacnet_address(&packet.address, mstp_port->SourceAddress);
@@ -302,6 +309,7 @@ int dlmstp_get_transmit_packet(
     struct timespec queue_timeout = {0};
     time_t epoch_time = 0;
     unsigned msg_prio = 0;
+    char buffer[sizeof(struct dlmstp_packet)+1];
 
     /* Make sure the socket is open */
     if (NPDU_Transmit_Queue == -1)
@@ -321,8 +329,8 @@ int dlmstp_get_transmit_packet(
 
     received_bytes = mq_timedreceive(
         NPDU_Transmit_Queue,
-        (char *)&packet,
-        sizeof(packet),
+        buffer,
+        sizeof(buffer),
         &msg_prio,
         &queue_timeout);
 
@@ -331,14 +339,15 @@ int dlmstp_get_transmit_packet(
         /* EAGAIN Non-blocking I/O has been selected  */
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
-        if (errno != EAGAIN) {
+        if ((errno != EAGAIN) && (errno != ETIMEDOUT)) {
 #if PRINT_ENABLED
-            fprintf(stderr, "mstp: Read error in Transmit_Client packet: %s\n",
+            fprintf(stderr, "MS/TP: Read error in Transmit_Client packet: %s\n",
                 strerror(errno));
 #endif
         }
         return 0;
     }
+    memmove(packet,buffer,sizeof(packet));
 
     return (received_bytes);
 }
@@ -366,6 +375,9 @@ uint16_t MSTP_Get_Send(
     if ((MAX_HEADER + packet.pdu_len) > MAX_MPDU) {
         return 0;
     }
+#if PRINT_ENABLED
+    fprintf(stderr,"MS/TP: sending packet to FSM.\n");
+#endif
     /* convert the PDU into the MSTP Frame */
     pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
         mstp_port->OutputBufferSize, packet.frame_type, destination,
@@ -513,6 +525,9 @@ uint16_t MSTP_Get_Reply(
         &packet.pdu[0], packet.pdu_len,
         &packet.address);
     if (matched) {
+#if PRINT_ENABLED
+        fprintf(stderr,"MSTP: sending packet to FSM.\n");
+#endif
         /* convert the PDU into the MSTP Frame */
         pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
             mstp_port->OutputBufferSize, packet.frame_type,
@@ -673,15 +688,29 @@ bool dlmstp_init(
     struct mq_attr mqattr;
 
     mqattr.mq_flags   = 0;
-    mqattr.mq_maxmsg  = 100;
+    mqattr.mq_maxmsg  = 5;
     mqattr.mq_msgsize = sizeof(struct dlmstp_packet);
     /* create a queue for the NDPU data between MS/TP threads */
-    snprintf(mqname, sizeof(mqname), "/BACnet-MSTP-Rx-%d", getpid());
+    snprintf(mqname, sizeof(mqname), "/MSTP_Rx_%d", getpid());
     NPDU_Transmit_Queue = mq_open(mqname,
-        O_RDWR | O_CREAT | O_EXCL, 0600, &mqattr);
-    snprintf(mqname, sizeof(mqname), "/BACnet-MSTP-Rx-%d", getpid());
+        O_RDWR | O_CREAT, 0600, &mqattr);
+    if (NPDU_Transmit_Queue == -1) {
+#if PRINT_ENABLED
+        fprintf(stderr, "MS/TP: Create NPDU Transmit Queue %s: %s\n",
+            mqname,
+            strerror(errno));
+#endif
+    }
+    snprintf(mqname, sizeof(mqname), "/MSTP_Tx_%d", getpid());
     NPDU_Receive_Queue = mq_open(mqname,
-        O_RDWR | O_CREAT | O_EXCL, 0600, &mqattr);
+        O_RDWR | O_CREAT, 0600, &mqattr);
+    if (NPDU_Receive_Queue == -1) {
+#if PRINT_ENABLED
+        fprintf(stderr, "MS/TP: Create NPDU Receive Queue %s: %s\n",
+            mqname,
+            strerror(errno));
+#endif
+    }
 
     /* initialize hardware */
     if (ifname) {
@@ -715,6 +744,7 @@ bool dlmstp_init(
 #endif
 #if PRINT_ENABLED
     fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
+    fprintf(stderr, "MS/TP baud: %u\n", RS485_Get_Baud_Rate());
     fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
     fprintf(stderr, "MS/TP Max_Info_Frames: %u\n", MSTP_Port.Nmax_info_frames);
 #endif
@@ -764,7 +794,10 @@ int main(
 #endif
         bytes_received = dlmstp_receive(&src, &pdu[0], sizeof(pdu), 10000);
         if (bytes_received) {
+#if PRINT_ENABLED
             fprintf(stderr, "Received NPDU!\n");
+#endif
+
         }
     }
     return 0;
