@@ -34,6 +34,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <mqueue.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -50,11 +51,9 @@
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
-/* Sockets are used for NPDU queues */
-static int Receive_Client_SockFD = -1;
-static int Transmit_Client_SockFD = -1;
-static int Receive_Server_SockFD = -1;
-static int Transmit_Server_SockFD = -1;
+/* Posix queues are used for NPDU queues */
+static mqd_t NPDU_Receive_Queue = -1;
+static mqd_t NPDU_Transmit_Queue = -1;
 /* local MS/TP port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -114,7 +113,7 @@ int dlmstp_send_pdu(
 {       /* number of bytes of data */
     DLMSTP_PACKET packet;
     int bytes_sent = 0;
-    ssize_t rc = 0;
+    mqd_t rc = 0;
 
     if (pdu_len) {
         if (npdu_data->data_expecting_reply) {
@@ -125,7 +124,7 @@ int dlmstp_send_pdu(
         packet.pdu_len = pdu_len;
         memmove(&packet.pdu[0], &pdu[0], pdu_len);
         memmove(&packet.address, dest, sizeof(packet.address));
-        rc = write(Transmit_Server_SockFD, &packet, sizeof(packet));
+        rc = mq_send(NPDU_Transmit_Queue, (const char *)&packet, sizeof(packet), 0);
         if (rc > 0)
             bytes_sent = rc;
     }
@@ -142,45 +141,47 @@ uint16_t dlmstp_receive(
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
-    int received_bytes = 0;
+    mqd_t received_bytes = 0;
     DLMSTP_PACKET packet;
-    struct timeval select_timeout;
-    fd_set read_fds;
-    int max = 0;
+    struct timespec queue_timeout = {0};
+    time_t epoch_time = 0;
+    unsigned msg_prio = 0;
 
-    /* Make sure the socket is open */
-    if (Receive_Client_SockFD < 0)
+    if (NPDU_Receive_Queue == -1) {
         return 0;
+    }
 
+    /* configure queue timeout */
     if (timeout >= 1000) {
-        select_timeout.tv_sec = timeout / 1000;
-        select_timeout.tv_usec =
-            1000 * (timeout - select_timeout.tv_sec * 1000);
+        queue_timeout.tv_sec = timeout / 1000;
+        queue_timeout.tv_nsec =
+            1000000L * (timeout - queue_timeout.tv_sec * 1000);
     } else {
-        select_timeout.tv_sec = 0;
-        select_timeout.tv_usec = 1000 * timeout;
+        queue_timeout.tv_sec = 0;
+        queue_timeout.tv_nsec = 1000000L * timeout;
     }
-    FD_ZERO(&read_fds);
-    FD_SET(Receive_Client_SockFD, &read_fds);
-    max = Receive_Client_SockFD;
+    /* get current time */
+    epoch_time = time(NULL);
+    queue_timeout.tv_sec += epoch_time;   
 
-    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = read(Receive_Client_SockFD, &packet, sizeof(packet));
-    } else {
-        return 0;
-    }
+    received_bytes = mq_timedreceive(
+        NPDU_Receive_Queue,
+        (char *)&packet,
+        sizeof(packet),
+        &msg_prio,
+        &queue_timeout);
 
     /* See if there is a problem */
-    if (received_bytes < 0) {
+    if (received_bytes == -1) {
         /* EAGAIN Non-blocking I/O has been selected  */
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
         if (errno != EAGAIN) {
 #if PRINT_ENABLED
-            fprintf(stderr, "mstp: Read error in Receive_Client packet: %s\n",
+            fprintf(stderr, "mstp: NPDU Receive: %s\n",
                 strerror(errno));
 #endif
-        }
+        } 
         return 0;
     }
 
@@ -285,7 +286,7 @@ uint16_t MSTP_Put_Receive(
         packet.pdu_len = pdu_len;
         /* ready is not used in this scheme */
         packet.ready = true;
-        write(Receive_Server_SockFD, &packet, sizeof(packet));
+        mq_send(NPDU_Receive_Queue, (const char *)&packet, sizeof(packet), 0);
     }
 
     return pdu_len;
@@ -298,35 +299,35 @@ int dlmstp_get_transmit_packet(
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     int received_bytes = 0;     /* return value */
-    struct timeval select_timeout;
-    fd_set read_fds;
-    int max = 0;
+    struct timespec queue_timeout = {0};
+    time_t epoch_time = 0;
+    unsigned msg_prio = 0;
 
     /* Make sure the socket is open */
-    if (Transmit_Client_SockFD < 0)
+    if (NPDU_Transmit_Queue == -1)
         return 0;
 
     if (timeout >= 1000) {
-        select_timeout.tv_sec = timeout / 1000;
-        select_timeout.tv_usec =
-            1000 * (timeout - select_timeout.tv_sec * 1000);
+        queue_timeout.tv_sec = timeout / 1000;
+        queue_timeout.tv_nsec =
+            1000000L * (timeout - queue_timeout.tv_sec * 1000);
     } else {
-        select_timeout.tv_sec = 0;
-        select_timeout.tv_usec = 1000 * timeout;
+        queue_timeout.tv_sec = 0;
+        queue_timeout.tv_nsec = 1000000L * timeout;
     }
-    FD_ZERO(&read_fds);
-    FD_SET(Transmit_Client_SockFD, &read_fds);
-    max = Transmit_Client_SockFD;
+    /* get current time */
+    epoch_time = time(NULL);
+    queue_timeout.tv_sec += epoch_time;   
 
-    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes =
-            read(Transmit_Client_SockFD, packet, sizeof(DLMSTP_PACKET));
-    } else {
-        return 0;
-    }
+    received_bytes = mq_timedreceive(
+        NPDU_Transmit_Queue,
+        (char *)&packet,
+        sizeof(packet),
+        &msg_prio,
+        &queue_timeout);
 
     /* See if there is a problem */
-    if (received_bytes < 0) {
+    if (received_bytes == -1) {
         /* EAGAIN Non-blocking I/O has been selected  */
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
@@ -488,41 +489,40 @@ uint16_t MSTP_Get_Reply(
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     int received_bytes = 0;
-    DLMSTP_PACKET Transmit_Packet;
+    DLMSTP_PACKET packet;
     uint16_t pdu_len = 0;       /* return value */
     uint8_t destination = 0;    /* destination address */
     bool matched = false;
 
-    received_bytes = dlmstp_get_transmit_packet(&Transmit_Packet, timeout);
+    received_bytes = dlmstp_get_transmit_packet(&packet, timeout);
     if (received_bytes <= 0)
         return 0;
     /* load destination MAC address */
-    if (Transmit_Packet.address.mac_len == 1) {
-        destination = Transmit_Packet.address.mac[0];
+    if (packet.address.mac_len == 1) {
+        destination = packet.address.mac[0];
     } else {
         return 0;
     }
-    if ((MAX_HEADER + Transmit_Packet.pdu_len) > MAX_MPDU) {
+    if ((MAX_HEADER + packet.pdu_len) > MAX_MPDU) {
         return 0;
     }
     /* is this the reply to the DER? */
     matched =
         dlmstp_compare_data_expecting_reply(&mstp_port->InputBuffer[0],
         mstp_port->DataLength, mstp_port->SourceAddress,
-        &Transmit_Packet.pdu[0], Transmit_Packet.pdu_len,
-        &Transmit_Packet.address);
+        &packet.pdu[0], packet.pdu_len,
+        &packet.address);
     if (matched) {
         /* convert the PDU into the MSTP Frame */
-        pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],        /* <-- loading this */
-            mstp_port->OutputBufferSize, Transmit_Packet.frame_type,
-            destination, mstp_port->This_Station, &Transmit_Packet.pdu[0],
-            Transmit_Packet.pdu_len);
+        pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
+            mstp_port->OutputBufferSize, packet.frame_type,
+            destination, mstp_port->This_Station, &packet.pdu[0],
+            packet.pdu_len);
         /* not used here, but setting it anyway */
-        Transmit_Packet.ready = false;
+        packet.ready = false;
     } else {
         /* put it back into the queue */
-        (void) write(Transmit_Server_SockFD, &Transmit_Packet,
-            sizeof(Transmit_Packet));
+        (void)mq_send(NPDU_Transmit_Queue, (char *)&packet, sizeof(packet), 1);
     }
 
     return pdu_len;
@@ -655,94 +655,11 @@ uint32_t dlmstp_baud_rate(
     return RS485_Get_Baud_Rate();
 }
 
-static int create_named_server_socket(
-    const char *filename)
-{
-    struct sockaddr_un name;
-    int sock;
-    size_t size;
-
-    /* Create the socket. */
-    sock = socket(PF_LOCAL, SOCK_DGRAM, 0);
-    if (sock < 0) {
-#if PRINT_ENABLED
-        perror("socket");
-#endif
-        exit(EXIT_FAILURE);
-    }
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &sock, sizeof(sock));
-    /* Bind a name to the socket. */
-    bzero((char *) &name, sizeof(name));
-    name.sun_family = AF_LOCAL;
-    strncpy(name.sun_path, filename, sizeof(name.sun_path));
-    /* The size of the address is
-       the offset of the start of the filename,
-       plus its length,
-       plus one for the terminating null byte.
-       Alternatively you can just do:
-       size = SUN_LEN (&name);
-     */
-    size = (offsetof(struct sockaddr_un,
-            sun_path)
-        + strlen    (name.sun_path) + 1);
-    if (bind(sock, (struct sockaddr *) &name, size) < 0) {
-#if PRINT_ENABLED
-        perror("bind");
-#endif
-        exit(EXIT_FAILURE);
-    }
-
-    return sock;
-}
-
-/* used by the client */
-static int connect_named_server_socket(
-    const char *filename)
-{
-    struct sockaddr_un name;
-    int sock;
-    size_t size;
-
-    /* Create the socket. */
-    sock = socket(PF_LOCAL, SOCK_DGRAM, 0);
-    if (sock < 0) {
-#if PRINT_ENABLED
-        perror("socket");
-#endif
-        exit(EXIT_FAILURE);
-    }
-    bzero((char *) &name, sizeof(name));
-    name.sun_family = AF_LOCAL;
-    strncpy(name.sun_path, filename, sizeof(name.sun_path));
-    /* The size of the address is
-       the offset of the start of the filename,
-       plus its length,
-       plus one for the terminating null byte.
-       Alternatively you can just do:
-       size = SUN_LEN (&name);
-     */
-    size = (offsetof(struct sockaddr_un,
-            sun_path)
-        + strlen    (name.sun_path) + 1);
-
-    if (connect(sock, (struct sockaddr *) &name, size) < 0) {
-#if PRINT_ENABLED
-        perror("client: can't connect to socket");
-#endif
-        exit(EXIT_FAILURE);
-    }
-
-    return sock;
-}
-
-static char *dlmstp_transmit_socket_name = "/tmp/BACnet_MSTP_Tx";
-static char *dlmstp_receive_socket_name = "/tmp/BACnet_MSTP_Rx";
-
 void dlmstp_cleanup(
     void)
 {
-    remove(dlmstp_transmit_socket_name);
-    remove(dlmstp_receive_socket_name);
+    mq_close(NPDU_Transmit_Queue);
+    mq_close(NPDU_Receive_Queue);
     RS485_Cleanup();
     /* nothing to do for static buffers */
 }
@@ -752,19 +669,19 @@ bool dlmstp_init(
 {
     int rc = 0;
     pthread_t hThread;
+    char mqname[32];
+    struct mq_attr mqattr;
 
-    remove(dlmstp_transmit_socket_name);
-    remove(dlmstp_receive_socket_name);
-    /* create a socket for queuing the NDPU data between MS/TP */
-    Transmit_Server_SockFD =
-        create_named_server_socket(dlmstp_transmit_socket_name);
-    Transmit_Client_SockFD =
-        connect_named_server_socket(dlmstp_transmit_socket_name);
-    /* creates sockets for Receiving data */
-    Receive_Server_SockFD =
-        create_named_server_socket(dlmstp_receive_socket_name);
-    Receive_Client_SockFD =
-        connect_named_server_socket(dlmstp_receive_socket_name);
+    mqattr.mq_flags   = 0;
+    mqattr.mq_maxmsg  = 100;
+    mqattr.mq_msgsize = sizeof(struct dlmstp_packet);
+    /* create a queue for the NDPU data between MS/TP threads */
+    snprintf(mqname, sizeof(mqname), "/BACnet-MSTP-Rx-%d", getpid());
+    NPDU_Transmit_Queue = mq_open(mqname,
+        O_RDWR | O_CREAT | O_EXCL, 0600, &mqattr);
+    snprintf(mqname, sizeof(mqname), "/BACnet-MSTP-Rx-%d", getpid());
+    NPDU_Receive_Queue = mq_open(mqname,
+        O_RDWR | O_CREAT | O_EXCL, 0600, &mqattr);
 
     /* initialize hardware */
     if (ifname) {
