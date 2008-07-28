@@ -50,6 +50,25 @@
 #include "mstptext.h"
 #include "crc.h"
 
+/* file format for libpcap/winpcap */
+/* from http://wiki.wireshark.org/Development/LibpcapFileFormat */
+typedef struct pcap_hdr_s {
+        uint32_t magic_number;   /* magic number */
+        uint16_t version_major;  /* major version number */
+        uint16_t version_minor;  /* minor version number */
+        int32_t  thiszone;       /* GMT to local correction */
+        uint32_t sigfigs;        /* accuracy of timestamps */
+        uint32_t snaplen;        /* max length of captured packets, in octets */
+        uint32_t network;        /* data link type */
+} pcap_hdr_t;
+
+typedef struct pcaprec_hdr_s {
+        uint32_t ts_sec;         /* timestamp seconds */
+        uint32_t ts_usec;        /* timestamp microseconds */
+        uint32_t incl_len;       /* number of octets of packet saved in file */
+        uint32_t orig_len;       /* actual length of packet */
+} pcaprec_hdr_t;
+
 /* local port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
 static uint8_t RxBuffer[MAX_MPDU];
@@ -144,6 +163,98 @@ static void print_received_packet(
     fprintf(stderr, "\n");
 }
 
+static const char *Capture_Filename = "mstp.cap";
+
+/* write packet to file in libpcap format */
+static void write_global_header(void)
+{
+    FILE *pFile = NULL; /* stream pointer */
+    uint32_t magic_number = 0xa1b2c3d4; /* magic number */
+    uint16_t version_major = 2; /* major version number */
+    uint16_t version_minor = 4; /* minor version number */
+    int32_t thiszone = 0; /* GMT to local correction */
+    uint32_t sigfigs = 0; /* accuracy of timestamps */
+    uint32_t snaplen = 65535; /* max length of captured packets, in octets */
+    uint32_t network = 165;  /* data link type */
+
+    pFile = fopen(Capture_Filename, "wb");
+    if (pFile) {
+        fwrite(&magic_number,sizeof(magic_number),1,pFile);
+        fwrite(&version_major,sizeof(version_major),1,pFile);
+        fwrite(&version_minor,sizeof(version_minor),1,pFile);
+        fwrite(&thiszone,sizeof(thiszone),1,pFile);
+        fwrite(&sigfigs,sizeof(sigfigs),1,pFile);
+        fwrite(&snaplen,sizeof(snaplen),1,pFile);
+        fwrite(&network,sizeof(network),1,pFile);
+        fclose(pFile);
+    } else {
+        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
+            Capture_Filename, strerror(errno));
+    }
+}
+
+/* returns a delta timestamp */
+static uint32_t timestamp_ms(
+    void)
+{
+    DWORD ticks = 0, delta_ticks = 0;
+    static DWORD last_ticks = 0;
+
+    ticks = GetTickCount();
+    delta_ticks =
+        (ticks >= last_ticks ? ticks - last_ticks : MAXDWORD - last_ticks);
+    last_ticks = ticks;
+
+    return delta_ticks;
+}
+
+static void write_received_packet(
+    volatile struct mstp_port_struct_t *mstp_port)
+{
+    FILE *pFile = NULL; /* stream pointer */
+    unsigned i;
+    uint32_t ts_sec;         /* timestamp seconds */
+    uint32_t ts_usec;        /* timestamp microseconds */
+    uint32_t incl_len;       /* number of octets of packet saved in file */
+    uint32_t orig_len;       /* actual length of packet */
+    uint8_t header[8] = {0x55,0xFF};
+    uint32_t milliseconds;
+
+    milliseconds = timestamp_ms();
+    pFile = fopen(Capture_Filename, "ab");
+    if (pFile) {
+        ts_sec = milliseconds/1000;
+        ts_usec = milliseconds - (ts_sec * 1000);
+        fwrite(&ts_sec,sizeof(ts_sec),1,pFile);
+        fwrite(&ts_usec,sizeof(ts_usec),1,pFile);
+        if (mstp_port->DataLength) {
+            incl_len = orig_len = 8 + mstp_port->DataLength + 2;
+        } else {
+            incl_len = orig_len = 8;
+        }
+        fwrite(&incl_len,sizeof(incl_len),1,pFile);
+        fwrite(&orig_len,sizeof(orig_len),1,pFile);
+        header[0] = 0x55;
+        header[1] = 0xFF;
+        header[2] = mstp_port->FrameType;
+        header[3] = mstp_port->DestinationAddress;
+        header[4] = mstp_port->SourceAddress;
+        header[5] = HI_BYTE(mstp_port->DataLength);
+        header[6] = LO_BYTE(mstp_port->DataLength);
+        header[7] = mstp_port->HeaderCRCActual;
+        fwrite(header,sizeof(header),1,pFile);
+        if (mstp_port->DataLength) {
+            fwrite(mstp_port->InputBuffer,mstp_port->DataLength,1,pFile);
+            fwrite(&(mstp_port->DataCRCActualMSB),1,1,pFile);
+            fwrite(&(mstp_port->DataCRCActualLSB),1,1,pFile);
+        }
+        fclose(pFile);
+    } else {
+        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
+            Capture_Filename, strerror(errno));
+    }
+}
+
 static char *Network_Interface = NULL;
 
 /* simple test to packetize the data and print it */
@@ -193,6 +304,7 @@ int main(
         fprintf(stderr, "Failed to start timer task\n");
     }
     /* run forever */
+    write_global_header();
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
         MSTP_Receive_Frame_FSM(mstp_port);
@@ -200,10 +312,12 @@ int main(
         if (mstp_port->ReceivedValidFrame) {
             mstp_port->ReceivedValidFrame = false;
             print_received_packet(mstp_port);
+            write_received_packet(mstp_port);
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
             print_received_packet(mstp_port);
+            write_received_packet(mstp_port);
         }
     }
 
