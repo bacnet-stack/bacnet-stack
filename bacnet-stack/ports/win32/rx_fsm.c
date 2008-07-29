@@ -37,6 +37,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
+#include <time.h>
 
 /* Windows includes */
 #define WIN32_LEAN_AND_MEAN
@@ -133,6 +135,7 @@ uint16_t MSTP_Get_Reply(
     return 0;
 }
 
+#if 0
 static void print_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
@@ -162,13 +165,41 @@ static void print_received_packet(
     fprintf(stderr, "%s", mstptext_frame_type(mstp_port->FrameType));
     fprintf(stderr, "\n");
 }
+#endif
+
+/* returns a delta timestamp */
+void timestamp(
+    uint32_t *ts_sec,         /* timestamp seconds since epoch (Unix) */
+    uint32_t *ts_usec)        /* timestamp microseconds (unix) */
+{
+    DWORD ticks = 0;
+    static DWORD initial_ticks = 0;
+    static time_t initial_seconds = 0;
+    time_t seconds = 0;
+    time_t milliseconds = 0;
+    time_t elapsed_ticks = 0;
+
+    if (initial_seconds == 0) {
+        initial_seconds = time(NULL);
+        initial_ticks = GetTickCount();
+    }
+    ticks = GetTickCount();
+    /* how much total time has passed? */
+    elapsed_ticks =  ticks - initial_ticks;
+    seconds = elapsed_ticks / 1000;
+    milliseconds = elapsed_ticks - (seconds * 1000);
+    *ts_sec = initial_seconds + seconds;
+    *ts_usec = milliseconds * 1000;
+
+    return;
+}
 
 static const char *Capture_Filename = "mstp.cap";
+static FILE *pFile = NULL; /* stream pointer */
 
 /* write packet to file in libpcap format */
 static void write_global_header(void)
 {
-    FILE *pFile = NULL; /* stream pointer */
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
     uint16_t version_minor = 4; /* minor version number */
@@ -177,6 +208,7 @@ static void write_global_header(void)
     uint32_t snaplen = 65535; /* max length of captured packets, in octets */
     uint32_t network = 165;  /* data link type */
 
+    /* create a new file. */
     pFile = fopen(Capture_Filename, "wb");
     if (pFile) {
         fwrite(&magic_number,sizeof(magic_number),1,pFile);
@@ -186,45 +218,23 @@ static void write_global_header(void)
         fwrite(&sigfigs,sizeof(sigfigs),1,pFile);
         fwrite(&snaplen,sizeof(snaplen),1,pFile);
         fwrite(&network,sizeof(network),1,pFile);
-        fclose(pFile);
     } else {
         fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
             Capture_Filename, strerror(errno));
     }
 }
 
-/* returns a delta timestamp */
-static uint32_t timestamp_ms(
-    void)
-{
-    DWORD ticks = 0, delta_ticks = 0;
-    static DWORD last_ticks = 0;
-
-    ticks = GetTickCount();
-    delta_ticks =
-        (ticks >= last_ticks ? ticks - last_ticks : MAXDWORD - last_ticks);
-    last_ticks = ticks;
-
-    return delta_ticks;
-}
-
 static void write_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    FILE *pFile = NULL; /* stream pointer */
-    unsigned i;
     uint32_t ts_sec;         /* timestamp seconds */
     uint32_t ts_usec;        /* timestamp microseconds */
     uint32_t incl_len;       /* number of octets of packet saved in file */
     uint32_t orig_len;       /* actual length of packet */
-    uint8_t header[8] = {0x55,0xFF};
-    uint32_t milliseconds;
+    uint8_t header[8]; /* MS/TP header */
 
-    milliseconds = timestamp_ms();
-    pFile = fopen(Capture_Filename, "ab");
     if (pFile) {
-        ts_sec = milliseconds/1000;
-        ts_usec = milliseconds - (ts_sec * 1000);
+        timestamp(&ts_sec, &ts_usec);
         fwrite(&ts_sec,sizeof(ts_sec),1,pFile);
         fwrite(&ts_usec,sizeof(ts_usec),1,pFile);
         if (mstp_port->DataLength) {
@@ -248,7 +258,6 @@ static void write_received_packet(
             fwrite(&(mstp_port->DataCRCActualMSB),1,1,pFile);
             fwrite(&(mstp_port->DataCRCActualLSB),1,1,pFile);
         }
-        fclose(pFile);
     } else {
         fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
             Capture_Filename, strerror(errno));
@@ -256,6 +265,15 @@ static void write_received_packet(
 }
 
 static char *Network_Interface = NULL;
+
+static void cleanup(void)
+{
+    if (pFile) {
+        fflush(pFile); /* stream pointer */
+        fclose(pFile); /* stream pointer */
+    }
+    pFile = NULL;
+}
 
 /* simple test to packetize the data and print it */
 int main(
@@ -303,20 +321,27 @@ int main(
     if (hThread == 0) {
         fprintf(stderr, "Failed to start timer task\n");
     }
-    /* run forever */
+    atexit(cleanup);
     write_global_header();
+    (void) SetThreadPriority(GetCurrentThread(),
+        THREAD_PRIORITY_TIME_CRITICAL);
+    /* run forever */
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
             mstp_port->ReceivedValidFrame = false;
+#if 0
             print_received_packet(mstp_port);
+#endif
             write_received_packet(mstp_port);
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
+#if 0
             print_received_packet(mstp_port);
+#endif
             write_received_packet(mstp_port);
         }
     }
