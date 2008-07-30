@@ -35,6 +35,7 @@
 #include <iphlpapi.h>
 #endif
 #include <winsock2.h>
+#include <sys/timeb.h>
 
 #define close closesocket
 
