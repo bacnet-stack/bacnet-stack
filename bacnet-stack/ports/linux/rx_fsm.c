@@ -37,12 +37,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 /* Linux includes */
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <signal.h>             /* signal handling functions */
 
 /* local includes */
 #include "bytes.h"
@@ -142,6 +145,89 @@ int timestamp_ms(
     return delta_ticks;
 }
 
+static const char *Capture_Filename = "mstp.cap";
+static FILE *pFile = NULL; /* stream pointer */
+
+/* write packet to file in libpcap format */
+static void write_global_header(void)
+{
+    uint32_t magic_number = 0xa1b2c3d4; /* magic number */
+    uint16_t version_major = 2; /* major version number */
+    uint16_t version_minor = 4; /* minor version number */
+    int32_t thiszone = 0; /* GMT to local correction */
+    uint32_t sigfigs = 0; /* accuracy of timestamps */
+    uint32_t snaplen = 65535; /* max length of captured packets, in octets */
+    uint32_t network = 165;  /* data link type - BACNET_MS_TP */
+
+    /* create a new file. */
+    pFile = fopen(Capture_Filename, "wb");
+    if (pFile) {
+        fwrite(&magic_number,sizeof(magic_number),1,pFile);
+        fwrite(&version_major,sizeof(version_major),1,pFile);
+        fwrite(&version_minor,sizeof(version_minor),1,pFile);
+        fwrite(&thiszone,sizeof(thiszone),1,pFile);
+        fwrite(&sigfigs,sizeof(sigfigs),1,pFile);
+        fwrite(&snaplen,sizeof(snaplen),1,pFile);
+        fwrite(&network,sizeof(network),1,pFile);
+    } else {
+        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
+            Capture_Filename, strerror(errno));
+    }
+}
+
+static void write_received_packet(
+    volatile struct mstp_port_struct_t *mstp_port)
+{
+    uint32_t ts_sec;         /* timestamp seconds */
+    uint32_t ts_usec;        /* timestamp microseconds */
+    uint32_t incl_len;       /* number of octets of packet saved in file */
+    uint32_t orig_len;       /* actual length of packet */
+    uint8_t header[8]; /* MS/TP header */
+    struct timeval tv;
+
+    if (pFile) {
+        gettimeofday(&tv, NULL);
+        ts_sec = tv.tv_sec;
+        ts_usec = tv.tv_usec;
+        fwrite(&ts_sec,sizeof(ts_sec),1,pFile);
+        fwrite(&ts_usec,sizeof(ts_usec),1,pFile);
+        if (mstp_port->DataLength) {
+            incl_len = orig_len = 8 + mstp_port->DataLength + 2;
+        } else {
+            incl_len = orig_len = 8;
+        }
+        fwrite(&incl_len,sizeof(incl_len),1,pFile);
+        fwrite(&orig_len,sizeof(orig_len),1,pFile);
+        header[0] = 0x55;
+        header[1] = 0xFF;
+        header[2] = mstp_port->FrameType;
+        header[3] = mstp_port->DestinationAddress;
+        header[4] = mstp_port->SourceAddress;
+        header[5] = HI_BYTE(mstp_port->DataLength);
+        header[6] = LO_BYTE(mstp_port->DataLength);
+        header[7] = mstp_port->HeaderCRCActual;
+        fwrite(header,sizeof(header),1,pFile);
+        if (mstp_port->DataLength) {
+            fwrite(mstp_port->InputBuffer,mstp_port->DataLength,1,pFile);
+            fwrite(&(mstp_port->DataCRCActualMSB),1,1,pFile);
+            fwrite(&(mstp_port->DataCRCActualLSB),1,1,pFile);
+        }
+    } else {
+        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
+            Capture_Filename, strerror(errno));
+    }
+}
+
+static void cleanup(void)
+{
+    if (pFile) {
+        fflush(pFile); /* stream pointer */
+        fclose(pFile); /* stream pointer */
+    }
+    pFile = NULL;
+}
+
+#if 0
 static void print_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
@@ -173,6 +259,22 @@ static void print_received_packet(
     }
     fprintf(stderr, "%s", mstptext_frame_type(mstp_port->FrameType));
     fprintf(stderr, "\n");
+}
+#endif
+
+static void sig_int(int signo)
+{
+    (void)signo;
+
+    cleanup();
+    exit(0);
+}
+
+void signal_init(void)
+{
+    signal(SIGINT, sig_int);
+    signal(SIGHUP, sig_int);
+    signal(SIGTERM, sig_int);
 }
 
 /* simple test to packetize the data and print it */
@@ -215,6 +317,9 @@ int main(
     mstp_port->Lurking = true;
     /* start our MilliSec task */
     rc = pthread_create(&hThread, NULL, milliseconds_task, NULL);
+    atexit(cleanup);
+    write_global_header();
+    fflush(pFile); /* stream pointer */
     /* run forever */
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
@@ -222,11 +327,19 @@ int main(
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
             mstp_port->ReceivedValidFrame = false;
+#if 0
             print_received_packet(mstp_port);
+#endif
+            write_received_packet(mstp_port);
+            fflush(pFile); /* stream pointer */
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
+#if 0
             print_received_packet(mstp_port);
+#endif
+            write_received_packet(mstp_port);
+            fflush(pFile); /* stream pointer */
         }
     }
 
