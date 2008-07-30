@@ -170,7 +170,7 @@ static void write_global_header(void)
         fprintf(stdout,"mstpcap: saving capture to %s\n",
             Capture_Filename);
     } else {
-        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
+        fprintf(stderr,"mstpcap: failed to open %s: %s\n",
             Capture_Filename, strerror(errno));
     }
 }
@@ -209,11 +209,11 @@ static void write_received_packet(
         fwrite(header,sizeof(header),1,pFile);
         if (mstp_port->DataLength) {
             fwrite(mstp_port->InputBuffer,mstp_port->DataLength,1,pFile);
-            fwrite(&(mstp_port->DataCRCActualMSB),1,1,pFile);
-            fwrite(&(mstp_port->DataCRCActualLSB),1,1,pFile);
+            fwrite((char *)&mstp_port->DataCRCActualMSB,1,1,pFile);
+            fwrite((char *)&mstp_port->DataCRCActualLSB,1,1,pFile);
         }
     } else {
-        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
+        fprintf(stderr,"mstpcap: failed to open %s: %s\n",
             Capture_Filename, strerror(errno));
     }
 }
@@ -252,6 +252,7 @@ int main(
     volatile struct mstp_port_struct_t *mstp_port;
     int my_mac = 127;
     long my_baud = 38400;
+    uint32_t packet_count = 0;
 #if defined(_WIN32)
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
@@ -287,6 +288,8 @@ int main(
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
     mstp_port->Lurking = true;
+    fprintf(stdout,"mstpcap: Using %s for capture at %lu bps.\n", 
+        RS485_Interface(), RS485_Get_Baud_Rate());
 #if defined(_WIN32)
     hThread = _beginthread(milliseconds_task, 4096, &arg_value);
     if (hThread == 0) {
@@ -309,10 +312,15 @@ int main(
         if (mstp_port->ReceivedValidFrame) {
             mstp_port->ReceivedValidFrame = false;
             write_received_packet(mstp_port);
+            packet_count++;
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
             write_received_packet(mstp_port);
+            packet_count++;
+        }
+        if (!(packet_count % 100)) {
+            fprintf(stdout,"\r%hu packets",packet_count);
         }
     }
 
