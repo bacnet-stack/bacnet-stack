@@ -80,7 +80,20 @@ void RS485_Set_Interface(
     char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
-    RS485_Port_Name = ifname;
+    if (ifname) {
+        RS485_Port_Name = ifname;
+    }
+}
+
+/*********************************************************************
+* DESCRIPTION: Returns the interface name
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*********************************************************************/
+const char *RS485_Interface(void)
+{
+    return RS485_Port_Name;
 }
 
 /****************************************************************************
