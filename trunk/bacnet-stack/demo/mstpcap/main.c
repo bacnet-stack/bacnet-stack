@@ -71,18 +71,6 @@ static void dlmstp_millisecond_timer(
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
 
-#if defined(_WIN32)
-void *milliseconds_task(
-    void *pArg)
-{
-    for (;;) {
-        Sleep(1);
-        dlmstp_millisecond_timer();
-    }
-
-    return NULL;
-}
-#else
 void *milliseconds_task(
     void *pArg)
 {
@@ -90,7 +78,7 @@ void *milliseconds_task(
 
     timeOut.tv_sec = 0;
     timeOut.tv_nsec = 10000000; /* 1 milliseconds */
-    
+
     for (;;) {
         nanosleep(&timeOut, &remains);
         dlmstp_millisecond_timer();
@@ -98,20 +86,6 @@ void *milliseconds_task(
 
     return NULL;
 }
-#endif
-
-#if defined(_WIN32)
-int gettimeofday(struct timeval *tp, void *tzp)
-{
-    struct _timeb timebuffer;
-    
-    _ftime(&timebuffer);
-    tp->tv_sec = timebuffer.time;
-    tp->tv_usec = timebuffer.millitm * 1000;
-    
-    return 0;
-}
-#endif
 
 /* functions used by the MS/TP state machine to put or get data */
 uint16_t MSTP_Put_Receive(
@@ -250,7 +224,6 @@ int main(
     char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
-    int my_mac = 127;
     long my_baud = 38400;
     uint32_t packet_count = 0;
 #if defined(_WIN32)
@@ -283,8 +256,8 @@ int main(
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
     mstp_port->Lurking = true;
-    fprintf(stdout,"mstpcap: Using %s for capture at %lu bps.\n", 
-        RS485_Interface(), RS485_Get_Baud_Rate());
+    fprintf(stdout,"mstpcap: Using %s for capture at %ld bps.\n",
+        RS485_Interface(), (long)RS485_Get_Baud_Rate());
 #if defined(_WIN32)
     hThread = _beginthread(milliseconds_task, 4096, &arg_value);
     if (hThread == 0) {
