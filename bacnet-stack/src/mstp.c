@@ -68,25 +68,41 @@
 #if defined(PRINT_ENABLED_RECEIVE)
 #define printf_receive debug_printf
 #else
-#define printf_receive (void)
+static inline void printf_receive(
+    const char *format,
+    ...)
+{
+}
 #endif
 
 #if defined(PRINT_ENABLED_RECEIVE_DATA)
 #define printf_receive_data debug_printf
 #else
-#define printf_receive_data (void)
+static inline void printf_receive_data(
+    const char *format,
+    ...)
+{
+}
 #endif
 
 #if defined(PRINT_ENABLED_RECEIVE_ERRORS)
 #define printf_receive_error debug_printf
 #else
-#define printf_receive_error (void)
+static inline void printf_receive_error(
+    const char *format,
+    ...)
+{
+}
 #endif
 
 #if defined(PRINT_ENABLED_MASTER)
 #define printf_master debug_printf
 #else
-#define printf_master (void)
+static inline void printf_master(
+    const char *format,
+    ...)
+{
+}
 #endif
 
 /* MS/TP Frame Format */
@@ -120,7 +136,7 @@
 /* not to exceed 100 milliseconds.) */
 /* At 9600 baud, 60 bit times would be about 6.25 milliseconds */
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
-#define Tframe_abort 30
+#define Tframe_abort 95
 
 /* The maximum idle time a sending node may allow to elapse between octets */
 /* of a frame the node is transmitting: 20 bit times. */
@@ -256,13 +272,7 @@ void MSTP_Receive_Frame_FSM(
             }
             else
             if (mstp_port->DataAvailable == true) {
-#if (defined(_WIN32) && defined(TEST_DLMSTP))
-            extern uint32_t timestamp_ms(void);
-            printf_receive_data("MSTP Rx %03u: %02X ", (unsigned) timestamp_ms(),
-                mstp_port->DataRegister);
-#else
             printf_receive_data("MSTP Rx: %02X ", mstp_port->DataRegister);
-#endif
             /* Preamble1 */
             if (mstp_port->DataRegister == 0x55) {
                 /* receive the remainder of the frame. */

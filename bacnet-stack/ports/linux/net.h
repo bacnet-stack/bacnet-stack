@@ -70,10 +70,8 @@
 # include	<sys/sockio.h>
 #endif
 
-#ifdef	HAVE_PTHREAD_H
-# include	<pthread.h>
-#endif
-
+#include <pthread.h>
+#include <semaphore.h>
 
 #define ENUMS
 #include <sys/socket.h>
