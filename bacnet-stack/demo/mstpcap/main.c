@@ -270,18 +270,13 @@ int main(
     if (argc > 2) {
         my_baud = strtol(argv[2], NULL, 0);
     }
-    if (argc > 3) {
-        my_mac = strtol(argv[3], NULL, 0);
-        if (my_mac > 127)
-            my_mac = 127;
-    }
     RS485_Set_Baud_Rate(my_baud);
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = my_mac;
+    MSTP_Port.This_Station = 127;
     MSTP_Port.Nmax_info_frames = 1;
     MSTP_Port.Nmax_master = 127;
     MSTP_Port.SilenceTimer = Timer_Silence;
