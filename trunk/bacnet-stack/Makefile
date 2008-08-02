@@ -1,5 +1,5 @@
 all: library readprop writeprop readfile writefile reinit server dcc \
-	whohas whois ucov timesync epics
+	whohas whois ucov timesync epics mstpcap
 	@echo "utilities are in the bin directory"
 
 clean: lib/Makefile\
@@ -14,7 +14,8 @@ clean: lib/Makefile\
 	demo/whois/Makefile \
 	demo/ucov/Makefile \
 	demo/timesync/Makefile \
-	demo/epics/Makefile
+	demo/epics/Makefile \
+	demo/mstpcap/Makefile
 	( cd lib ; make clean )
 	( cd demo/readprop ; make clean )
 	( cd demo/writeprop ; make clean )
@@ -28,6 +29,7 @@ clean: lib/Makefile\
 	( cd demo/ucov ; make clean )
 	( cd demo/timesync ; make clean )
 	( cd demo/epics ; make clean )
+	( cd demo/mstpcap ; make clean )
 
 library: lib/Makefile
 	( cd lib ; make )
@@ -67,4 +69,7 @@ ucov: demo/ucov/Makefile
 
 whois: demo/whois/Makefile
 	( cd demo/whois ; make ; cp bacwi ../../bin )
+
+mstpcap: demo/mstpcap/Makefile
+	( cd demo/mstpcap ; make clean all; cp mstpcap ../../bin )
 
