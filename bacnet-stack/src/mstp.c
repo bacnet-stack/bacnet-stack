@@ -61,7 +61,7 @@
 #if PRINT_ENABLED
 #undef PRINT_ENABLED_RECEIVE
 #undef PRINT_ENABLED_RECEIVE_DATA
-#undef PRINT_ENABLED_RECEIVE_ERRORS
+#define PRINT_ENABLED_RECEIVE_ERRORS
 #undef PRINT_ENABLED_MASTER
 #endif
 
@@ -464,7 +464,7 @@ void MSTP_Receive_Frame_FSM(
             if (mstp_port->SilenceTimer() > Tframe_abort) {
                 /* indicate that an error has occurred during the reception of a frame */
                 mstp_port->ReceivedInvalidFrame = true;
-                printf_receive_error("MSTP: Rx Data: SilenceTimer %d > %d\n",
+                printf_receive_error("MSTP: Rx Data: SilenceTimer %dms > %dms\n",
                     mstp_port->SilenceTimer(), Tframe_abort);
             /* wait for the start of the next frame. */
             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;}

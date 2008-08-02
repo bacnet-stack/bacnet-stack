@@ -69,15 +69,16 @@ static inline int sem_timedwait(sem_t *sem,
     const struct timespec *abs_timeout)
 {
     struct timeval tp;
+    DWORD wait_status = 0;
     DWORD dwMilliseconds = (abs_timeout->tv_sec * 1000) +
         (abs_timeout->tv_nsec / 1000);
 
     gettimeofday(&tp,NULL);
     if (abs_timeout->tv_sec >= tp.tv_sec) {
         dwMilliseconds = (abs_timeout->tv_sec - tp.tv_sec) * 1000;
-        if (abs_timeout->tv_usec >= tp.tv_usec) {
+        if (abs_timeout->tv_nsec >= (tp.tv_usec*1000)) {
             dwMilliseconds +=
-                ((abs_timeout->tv_usec - tp.tv_usec) / 1000);
+                ((abs_timeout->tv_nsec - (tp.tv_usec*1000)) / (1000*1000));
         }
     } else {
         dwMilliseconds = 0;
@@ -90,7 +91,7 @@ static inline int sem_timedwait(sem_t *sem,
     return -1;
 }
 
-static inline int sem_init(sem_t *sem, int pshared, unsigned int value);
+static inline int sem_init(sem_t *sem, int pshared, unsigned int value)
 {
     (void)pshared;
     *sem = CreateSemaphore(
@@ -111,6 +112,8 @@ static inline int nanosleep(const struct timespec *rqtp, struct timespec *rmtp)
         (rqtp->tv_nsec / 1000);
 
     Sleep(dwMilliseconds);
+    
+    return 0;
 }
 
 #endif

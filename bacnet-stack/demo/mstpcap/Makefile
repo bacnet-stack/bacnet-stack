@@ -37,6 +37,7 @@ SRCS = main.c \
 	${BACNET_PORT_DIR}/rs485.c \
 	${BACNET_SOURCE_DIR}/mstp.c \
 	${BACNET_SOURCE_DIR}/mstptext.c \
+	${BACNET_SOURCE_DIR}/debug.c \
 	${BACNET_SOURCE_DIR}/indtext.c \
 	${BACNET_SOURCE_DIR}/crc.c
 
