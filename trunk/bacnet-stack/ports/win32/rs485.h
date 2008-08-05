@@ -45,7 +45,8 @@ extern "C" {
 
     void RS485_Set_Interface(
         char *ifname);
-    const char * RS485_Interface(void);
+    const char *RS485_Interface(
+        void);
 
     void RS485_Initialize(
         void);
