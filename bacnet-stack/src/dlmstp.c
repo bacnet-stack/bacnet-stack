@@ -135,18 +135,18 @@ uint16_t dlmstp_receive(
     (void) max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
-    gettimeofday(&tp,NULL);
+    gettimeofday(&tp, NULL);
     if (timeout < 1000) {
         tp.tv_nsec += timeout * 1000;
-        while (tp.tv_nsec > (1000*1000)) {
+        while (tp.tv_nsec > (1000 * 1000)) {
             tp.tv_sec++;
-            tp.tv_nsec-= (1000*1000);
+            tp.tv_nsec -= (1000 * 1000);
         }
     } else {
         tp.tv_sec += timeout / 1000;
         tp.tv_nsec += timeout - (tp.tv_sec * 1000);
     }
-    if (!sem_timedwait(&Receive_Packet_Flag,tp)) {
+    if (!sem_timedwait(&Receive_Packet_Flag, tp)) {
         if (Receive_Packet.ready) {
             if (Receive_Packet.pdu_len) {
                 MSTP_Packets++;
@@ -621,8 +621,7 @@ bool dlmstp_init(
     rv = sem_init(&Receive_Packet_Flag, 0, 0);
     Receive_Packet_Flag = CreateSemaphore(NULL, 0, 1, "dlmstpReceivePacket");
     if (rv) {
-        fprintf(stderr,
-            "MS/TP Interface: %s\n cannot allocate semaphore.",
+        fprintf(stderr, "MS/TP Interface: %s\n cannot allocate semaphore.",
             ifname);
         exit(1);
     }

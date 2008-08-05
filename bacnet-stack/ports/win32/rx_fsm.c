@@ -55,20 +55,20 @@
 /* file format for libpcap/winpcap */
 /* from http://wiki.wireshark.org/Development/LibpcapFileFormat */
 typedef struct pcap_hdr_s {
-        uint32_t magic_number;   /* magic number */
-        uint16_t version_major;  /* major version number */
-        uint16_t version_minor;  /* minor version number */
-        int32_t  thiszone;       /* GMT to local correction */
-        uint32_t sigfigs;        /* accuracy of timestamps */
-        uint32_t snaplen;        /* max length of captured packets, in octets */
-        uint32_t network;        /* data link type */
+    uint32_t magic_number;      /* magic number */
+    uint16_t version_major;     /* major version number */
+    uint16_t version_minor;     /* minor version number */
+    int32_t thiszone;   /* GMT to local correction */
+    uint32_t sigfigs;   /* accuracy of timestamps */
+    uint32_t snaplen;   /* max length of captured packets, in octets */
+    uint32_t network;   /* data link type */
 } pcap_hdr_t;
 
 typedef struct pcaprec_hdr_s {
-        uint32_t ts_sec;         /* timestamp seconds */
-        uint32_t ts_usec;        /* timestamp microseconds */
-        uint32_t incl_len;       /* number of octets of packet saved in file */
-        uint32_t orig_len;       /* actual length of packet */
+    uint32_t ts_sec;    /* timestamp seconds */
+    uint32_t ts_usec;   /* timestamp microseconds */
+    uint32_t incl_len;  /* number of octets of packet saved in file */
+    uint32_t orig_len;  /* actual length of packet */
 } pcaprec_hdr_t;
 
 /* local port data - shared with RS-485 */
@@ -169,9 +169,9 @@ static void print_received_packet(
 
 /* returns a delta timestamp */
 void timestamp(
-    uint32_t *ts_sec,         /* timestamp seconds since epoch (Unix) */
-    uint32_t *ts_usec)        /* timestamp microseconds (unix) */
-{
+    uint32_t * ts_sec,  /* timestamp seconds since epoch (Unix) */
+    uint32_t * ts_usec)
+{       /* timestamp microseconds (unix) */
     DWORD ticks = 0;
     static DWORD initial_ticks = 0;
     static time_t initial_seconds = 0;
@@ -185,7 +185,7 @@ void timestamp(
     }
     ticks = GetTickCount();
     /* how much total time has passed? */
-    elapsed_ticks =  ticks - initial_ticks;
+    elapsed_ticks = ticks - initial_ticks;
     seconds = elapsed_ticks / 1000;
     milliseconds = elapsed_ticks - (seconds * 1000);
     *ts_sec = initial_seconds + seconds;
@@ -195,55 +195,56 @@ void timestamp(
 }
 
 static const char *Capture_Filename = "mstp.cap";
-static FILE *pFile = NULL; /* stream pointer */
+static FILE *pFile = NULL;      /* stream pointer */
 
 /* write packet to file in libpcap format */
-static void write_global_header(void)
+static void write_global_header(
+    void)
 {
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
     uint16_t version_minor = 4; /* minor version number */
-    int32_t thiszone = 0; /* GMT to local correction */
-    uint32_t sigfigs = 0; /* accuracy of timestamps */
-    uint32_t snaplen = 65535; /* max length of captured packets, in octets */
-    uint32_t network = 165;  /* data link type */
+    int32_t thiszone = 0;       /* GMT to local correction */
+    uint32_t sigfigs = 0;       /* accuracy of timestamps */
+    uint32_t snaplen = 65535;   /* max length of captured packets, in octets */
+    uint32_t network = 165;     /* data link type */
 
     /* create a new file. */
     pFile = fopen(Capture_Filename, "wb");
     if (pFile) {
-        fwrite(&magic_number,sizeof(magic_number),1,pFile);
-        fwrite(&version_major,sizeof(version_major),1,pFile);
-        fwrite(&version_minor,sizeof(version_minor),1,pFile);
-        fwrite(&thiszone,sizeof(thiszone),1,pFile);
-        fwrite(&sigfigs,sizeof(sigfigs),1,pFile);
-        fwrite(&snaplen,sizeof(snaplen),1,pFile);
-        fwrite(&network,sizeof(network),1,pFile);
+        fwrite(&magic_number, sizeof(magic_number), 1, pFile);
+        fwrite(&version_major, sizeof(version_major), 1, pFile);
+        fwrite(&version_minor, sizeof(version_minor), 1, pFile);
+        fwrite(&thiszone, sizeof(thiszone), 1, pFile);
+        fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
+        fwrite(&snaplen, sizeof(snaplen), 1, pFile);
+        fwrite(&network, sizeof(network), 1, pFile);
     } else {
-        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
-            Capture_Filename, strerror(errno));
+        fprintf(stderr, "rx_fsm: failed to open %s: %s\n", Capture_Filename,
+            strerror(errno));
     }
 }
 
 static void write_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    uint32_t ts_sec;         /* timestamp seconds */
-    uint32_t ts_usec;        /* timestamp microseconds */
-    uint32_t incl_len;       /* number of octets of packet saved in file */
-    uint32_t orig_len;       /* actual length of packet */
-    uint8_t header[8]; /* MS/TP header */
+    uint32_t ts_sec;    /* timestamp seconds */
+    uint32_t ts_usec;   /* timestamp microseconds */
+    uint32_t incl_len;  /* number of octets of packet saved in file */
+    uint32_t orig_len;  /* actual length of packet */
+    uint8_t header[8];  /* MS/TP header */
 
     if (pFile) {
         timestamp(&ts_sec, &ts_usec);
-        fwrite(&ts_sec,sizeof(ts_sec),1,pFile);
-        fwrite(&ts_usec,sizeof(ts_usec),1,pFile);
+        fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
+        fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (mstp_port->DataLength) {
             incl_len = orig_len = 8 + mstp_port->DataLength + 2;
         } else {
             incl_len = orig_len = 8;
         }
-        fwrite(&incl_len,sizeof(incl_len),1,pFile);
-        fwrite(&orig_len,sizeof(orig_len),1,pFile);
+        fwrite(&incl_len, sizeof(incl_len), 1, pFile);
+        fwrite(&orig_len, sizeof(orig_len), 1, pFile);
         header[0] = 0x55;
         header[1] = 0xFF;
         header[2] = mstp_port->FrameType;
@@ -252,25 +253,26 @@ static void write_received_packet(
         header[5] = HI_BYTE(mstp_port->DataLength);
         header[6] = LO_BYTE(mstp_port->DataLength);
         header[7] = mstp_port->HeaderCRCActual;
-        fwrite(header,sizeof(header),1,pFile);
+        fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
-            fwrite(mstp_port->InputBuffer,mstp_port->DataLength,1,pFile);
-            fwrite(&(mstp_port->DataCRCActualMSB),1,1,pFile);
-            fwrite(&(mstp_port->DataCRCActualLSB),1,1,pFile);
+            fwrite(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
+            fwrite(&(mstp_port->DataCRCActualMSB), 1, 1, pFile);
+            fwrite(&(mstp_port->DataCRCActualLSB), 1, 1, pFile);
         }
     } else {
-        fprintf(stderr,"rx_fsm: failed to open %s: %s\n",
-            Capture_Filename, strerror(errno));
+        fprintf(stderr, "rx_fsm: failed to open %s: %s\n", Capture_Filename,
+            strerror(errno));
     }
 }
 
 static char *Network_Interface = NULL;
 
-static void cleanup(void)
+static void cleanup(
+    void)
 {
     if (pFile) {
-        fflush(pFile); /* stream pointer */
-        fclose(pFile); /* stream pointer */
+        fflush(pFile);  /* stream pointer */
+        fclose(pFile);  /* stream pointer */
     }
     pFile = NULL;
 }

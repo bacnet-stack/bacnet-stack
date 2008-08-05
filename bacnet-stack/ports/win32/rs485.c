@@ -97,7 +97,8 @@ void RS485_Set_Interface(
     }
 }
 
-const char *RS485_Interface(void)
+const char *RS485_Interface(
+    void)
 {
     return RS485_Port_Name;
 }

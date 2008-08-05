@@ -117,61 +117,61 @@ uint16_t MSTP_Get_Reply(
 }
 
 static const char *Capture_Filename = "mstp.cap";
-static FILE *pFile = NULL; /* stream pointer */
+static FILE *pFile = NULL;      /* stream pointer */
 
 /* write packet to file in libpcap format */
-static void write_global_header(void)
+static void write_global_header(
+    void)
 {
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
     uint16_t version_minor = 4; /* minor version number */
-    int32_t thiszone = 0; /* GMT to local correction */
-    uint32_t sigfigs = 0; /* accuracy of timestamps */
-    uint32_t snaplen = 65535; /* max length of captured packets, in octets */
-    uint32_t network = 165;  /* data link type - BACNET_MS_TP */
+    int32_t thiszone = 0;       /* GMT to local correction */
+    uint32_t sigfigs = 0;       /* accuracy of timestamps */
+    uint32_t snaplen = 65535;   /* max length of captured packets, in octets */
+    uint32_t network = 165;     /* data link type - BACNET_MS_TP */
 
     /* create a new file. */
     pFile = fopen(Capture_Filename, "wb");
     if (pFile) {
-        fwrite(&magic_number,sizeof(magic_number),1,pFile);
-        fwrite(&version_major,sizeof(version_major),1,pFile);
-        fwrite(&version_minor,sizeof(version_minor),1,pFile);
-        fwrite(&thiszone,sizeof(thiszone),1,pFile);
-        fwrite(&sigfigs,sizeof(sigfigs),1,pFile);
-        fwrite(&snaplen,sizeof(snaplen),1,pFile);
-        fwrite(&network,sizeof(network),1,pFile);
+        fwrite(&magic_number, sizeof(magic_number), 1, pFile);
+        fwrite(&version_major, sizeof(version_major), 1, pFile);
+        fwrite(&version_minor, sizeof(version_minor), 1, pFile);
+        fwrite(&thiszone, sizeof(thiszone), 1, pFile);
+        fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
+        fwrite(&snaplen, sizeof(snaplen), 1, pFile);
+        fwrite(&network, sizeof(network), 1, pFile);
         fflush(pFile);
-        fprintf(stdout,"mstpcap: saving capture to %s\n",
-            Capture_Filename);
+        fprintf(stdout, "mstpcap: saving capture to %s\n", Capture_Filename);
     } else {
-        fprintf(stderr,"mstpcap: failed to open %s: %s\n",
-            Capture_Filename, strerror(errno));
+        fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
+            strerror(errno));
     }
 }
 
 static void write_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    uint32_t ts_sec;         /* timestamp seconds */
-    uint32_t ts_usec;        /* timestamp microseconds */
-    uint32_t incl_len;       /* number of octets of packet saved in file */
-    uint32_t orig_len;       /* actual length of packet */
-    uint8_t header[8]; /* MS/TP header */
+    uint32_t ts_sec;    /* timestamp seconds */
+    uint32_t ts_usec;   /* timestamp microseconds */
+    uint32_t incl_len;  /* number of octets of packet saved in file */
+    uint32_t orig_len;  /* actual length of packet */
+    uint8_t header[8];  /* MS/TP header */
     struct timeval tv;
 
     if (pFile) {
         gettimeofday(&tv, NULL);
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
-        fwrite(&ts_sec,sizeof(ts_sec),1,pFile);
-        fwrite(&ts_usec,sizeof(ts_usec),1,pFile);
+        fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
+        fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (mstp_port->DataLength) {
             incl_len = orig_len = 8 + mstp_port->DataLength + 2;
         } else {
             incl_len = orig_len = 8;
         }
-        fwrite(&incl_len,sizeof(incl_len),1,pFile);
-        fwrite(&orig_len,sizeof(orig_len),1,pFile);
+        fwrite(&incl_len, sizeof(incl_len), 1, pFile);
+        fwrite(&orig_len, sizeof(orig_len), 1, pFile);
         header[0] = 0x55;
         header[1] = 0xFF;
         header[2] = mstp_port->FrameType;
@@ -180,37 +180,40 @@ static void write_received_packet(
         header[5] = HI_BYTE(mstp_port->DataLength);
         header[6] = LO_BYTE(mstp_port->DataLength);
         header[7] = mstp_port->HeaderCRCActual;
-        fwrite(header,sizeof(header),1,pFile);
+        fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
-            fwrite(mstp_port->InputBuffer,mstp_port->DataLength,1,pFile);
-            fwrite((char *)&mstp_port->DataCRCActualMSB,1,1,pFile);
-            fwrite((char *)&mstp_port->DataCRCActualLSB,1,1,pFile);
+            fwrite(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
+            fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
+            fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
         }
     } else {
-        fprintf(stderr,"mstpcap: failed to open %s: %s\n",
-            Capture_Filename, strerror(errno));
+        fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
+            strerror(errno));
     }
 }
 
-static void cleanup(void)
+static void cleanup(
+    void)
 {
     if (pFile) {
-        fflush(pFile); /* stream pointer */
-        fclose(pFile); /* stream pointer */
+        fflush(pFile);  /* stream pointer */
+        fclose(pFile);  /* stream pointer */
     }
     pFile = NULL;
 }
 
 #if (!defined(_WIN32))
-static void sig_int(int signo)
+static void sig_int(
+    int signo)
 {
-    (void)signo;
+    (void) signo;
 
     cleanup();
     exit(0);
 }
 
-void signal_init(void)
+void signal_init(
+    void)
 {
     signal(SIGINT, sig_int);
     signal(SIGHUP, sig_int);
@@ -256,8 +259,8 @@ int main(
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
     mstp_port->Lurking = true;
-    fprintf(stdout,"mstpcap: Using %s for capture at %ld bps.\n",
-        RS485_Interface(), (long)RS485_Get_Baud_Rate());
+    fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
+        RS485_Interface(), (long) RS485_Get_Baud_Rate());
 #if defined(_WIN32)
     hThread = _beginthread(milliseconds_task, 4096, &arg_value);
     if (hThread == 0) {
@@ -288,7 +291,7 @@ int main(
             packet_count++;
         }
         if (!(packet_count % 100)) {
-            fprintf(stdout,"\r%hu packets",packet_count);
+            fprintf(stdout, "\r%hu packets", packet_count);
         }
     }
 

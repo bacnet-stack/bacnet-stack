@@ -49,11 +49,13 @@ typedef HANDLE sem_t;
 
 struct timespec {
     time_t tv_sec;      /* Seconds */
-    long   tv_nsec;     /* Nanoseconds [0 .. 999999999] */
+    long tv_nsec;       /* Nanoseconds [0 .. 999999999] */
 };
 
 
-static inline int gettimeofday(struct timeval *tp, void *tzp)
+static inline int gettimeofday(
+    struct timeval *tp,
+    void *tzp)
 {
     struct _timeb timebuffer;
 
@@ -65,20 +67,21 @@ static inline int gettimeofday(struct timeval *tp, void *tzp)
 }
 
 /* FIXME: not a complete implementation of the posix function */
-static inline int sem_timedwait(sem_t *sem,
+static inline int sem_timedwait(
+    sem_t * sem,
     const struct timespec *abs_timeout)
 {
     struct timeval tp;
     DWORD wait_status = 0;
-    DWORD dwMilliseconds = (abs_timeout->tv_sec * 1000) +
-        (abs_timeout->tv_nsec / 1000);
+    DWORD dwMilliseconds =
+        (abs_timeout->tv_sec * 1000) + (abs_timeout->tv_nsec / 1000);
 
-    gettimeofday(&tp,NULL);
+    gettimeofday(&tp, NULL);
     if (abs_timeout->tv_sec >= tp.tv_sec) {
         dwMilliseconds = (abs_timeout->tv_sec - tp.tv_sec) * 1000;
-        if (abs_timeout->tv_nsec >= (tp.tv_usec*1000)) {
+        if (abs_timeout->tv_nsec >= (tp.tv_usec * 1000)) {
             dwMilliseconds +=
-                ((abs_timeout->tv_nsec - (tp.tv_usec*1000)) / (1000*1000));
+                ((abs_timeout->tv_nsec - (tp.tv_usec * 1000)) / (1000 * 1000));
         }
     } else {
         dwMilliseconds = 0;
@@ -91,14 +94,16 @@ static inline int sem_timedwait(sem_t *sem,
     return -1;
 }
 
-static inline int sem_init(sem_t *sem, int pshared, unsigned int value)
+static inline int sem_init(
+    sem_t * sem,
+    int pshared,
+    unsigned int value)
 {
-    (void)pshared;
-    *sem = CreateSemaphore(
-        NULL/*lpSecurityDescriptor*/,
-        value /* lInitialCount */,
-        1 /* lMaximumCount */,
-        NULL /* lpName */);
+    (void) pshared;
+    *sem = CreateSemaphore(NULL /*lpSecurityDescriptor */ ,
+        value /* lInitialCount */ ,
+        1 /* lMaximumCount */ ,
+        NULL /* lpName */ );
     if ((*sem) == NULL) {
         return -1;
     }
@@ -106,13 +111,14 @@ static inline int sem_init(sem_t *sem, int pshared, unsigned int value)
     return 0;
 }
 
-static inline int nanosleep(const struct timespec *rqtp, struct timespec *rmtp)
+static inline int nanosleep(
+    const struct timespec *rqtp,
+    struct timespec *rmtp)
 {
-    DWORD dwMilliseconds = (rqtp->tv_sec * 1000) +
-        (rqtp->tv_nsec / 1000);
+    DWORD dwMilliseconds = (rqtp->tv_sec * 1000) + (rqtp->tv_nsec / 1000);
 
     Sleep(dwMilliseconds);
-    
+
     return 0;
 }
 

@@ -663,7 +663,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_TRIGGER, "trigger"}
     ,
     {PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
-            "utc-time-synchronization-recipients"}
+        "utc-time-synchronization-recipients"}
     ,
     {PROP_NODE_SUBTYPE, "node-subtype"}
     ,
@@ -748,7 +748,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_ACCESS_EVENT, "access-event"}
     ,
     {PROP_ACCESS_EVENT_AUTHENTICATION_FACTOR,
-            "access-event-authentication-factor"}
+        "access-event-authentication-factor"}
     ,
     {PROP_ACCESS_EVENT_CREDENTIAL, "access-event-credential"}
     ,
@@ -835,7 +835,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_MASTER_POINT, "muster-point"}
     ,
     {PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
-            "number-of-authentication-policies"}
+        "number-of-authentication-policies"}
     ,
     {PROP_OCCUPANCY_COUNT, "occupancy-count"}
     ,
@@ -846,7 +846,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_OCCUPANCY_LOWER_THRESHOLD, "occupancy-lower-threshold"}
     ,
     {PROP_OCCUPANCY_LOWER_THRESHOLD_ENFORCED,
-            "occupancy-lower-threshold-enforced"}
+        "occupancy-lower-threshold-enforced"}
     ,
     {PROP_OCCUPANCY_STATE, "occupancy-state"}
     ,
@@ -1522,13 +1522,13 @@ INDTEXT_DATA bacnet_error_code_names[] = {
     {ERROR_CODE_ABORT_BUFFER_OVERFLOW, "abort-buffer-overflow"}
     ,
     {ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE,
-            "abort-invalid-apdu-in-this-state"}
+        "abort-invalid-apdu-in-this-state"}
     ,
     {ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK,
-            "abort-preempted-by-higher-priority-task"}
+        "abort-preempted-by-higher-priority-task"}
     ,
     {ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED,
-            "abort-segmentation-not-supported"}
+        "abort-segmentation-not-supported"}
     ,
     {ERROR_CODE_ABORT_PROPRIETARY, "abort-proprietary"}
     ,
@@ -1541,15 +1541,15 @@ INDTEXT_DATA bacnet_error_code_names[] = {
     {ERROR_CODE_REJECT_BUFFER_OVERFLOW, "reject-buffer-overflow"}
     ,
     {ERROR_CODE_REJECT_INCONSISTENT_PARAMETERS,
-            "reject-inconsistent-parameters"}
+        "reject-inconsistent-parameters"}
     ,
     {ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE,
-            "reject-invalid-parameter-data-type"}
+        "reject-invalid-parameter-data-type"}
     ,
     {ERROR_CODE_REJECT_INVALID_TAG, "reject-invalid-tag"}
     ,
     {ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER,
-            "reject-missing-required-parameter"}
+        "reject-missing-required-parameter"}
     ,
     {ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE, "reject-parameter-out-of-range"}
     ,
@@ -1580,7 +1580,7 @@ INDTEXT_DATA bacnet_error_code_names[] = {
     {ERROR_CODE_NO_PROPERTY_SPECIFIED, "no-property-specified"}
     ,
     {ERROR_CODE_NOT_CONFIGURED_FOR_TRIGGERED_LOGGING,
-            "not-configured-for-triggered-logging"}
+        "not-configured-for-triggered-logging"}
     ,
     {ERROR_CODE_UNKNOWN_SUBSCRIPTION, "unknown-subscription"}
     ,
