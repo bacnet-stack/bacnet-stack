@@ -113,8 +113,8 @@ PORT_ARCNET_SRC = \
 	$(BACNET_PORT_DIR)/arcnet.c
 
 PORT_MSTP_SRC = \
-	$(BACNET_PORT_DIR)/dlmstp.c \
 	$(BACNET_PORT_DIR)/rs485.c \
+	$(BACNET_PORT_DIR)/dlmstp.c \
 	$(BACNET_CORE)/mstp.c \
 	$(BACNET_CORE)/mstptext.c \
 	$(BACNET_CORE)/crc.c \
