@@ -48,6 +48,7 @@ static void debug_printf(
     const char *format,
     ...)
 {
+    format=format;
 }
 #endif
 
