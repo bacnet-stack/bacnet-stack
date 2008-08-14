@@ -273,6 +273,10 @@ SOURCE=..\..\..\src\mstp.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\mstptext.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\demo\handler\noserv.c
 # End Source File
 # Begin Source File
@@ -458,6 +462,10 @@ SOURCE=..\..\..\demo\object\mso.h
 # Begin Source File
 
 SOURCE=..\..\..\include\mstp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\mstptext.h
 # End Source File
 # Begin Source File
 

@@ -38,6 +38,7 @@
 
 #include <stdint.h>
 #include "mstp.h"
+#include "net.h"
 
 #ifdef __cplusplus
 extern "C" {

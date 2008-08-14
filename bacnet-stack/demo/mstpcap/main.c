@@ -54,6 +54,38 @@ static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
+
+#if defined (_WIN32)
+struct timespec {
+    time_t tv_sec;      /* Seconds */
+    long tv_nsec;       /* Nanoseconds [0 .. 999999999] */
+};
+
+static int gettimeofday(
+    struct timeval *tp,
+    void *tzp)
+{
+    struct _timeb timebuffer;
+
+    _ftime(&timebuffer);
+    tp->tv_sec = timebuffer.time;
+    tp->tv_usec = timebuffer.millitm * 1000;
+
+    return 0;
+}
+
+static int nanosleep(
+    const struct timespec *rqtp,
+    struct timespec *rmtp)
+{
+    DWORD dwMilliseconds = (rqtp->tv_sec * 1000) + (rqtp->tv_nsec / 1000);
+
+    Sleep(dwMilliseconds);
+
+    return 0;
+}
+#endif
+
 static uint16_t Timer_Silence(
     void)
 {
