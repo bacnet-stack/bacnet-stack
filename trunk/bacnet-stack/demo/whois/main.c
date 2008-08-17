@@ -294,7 +294,7 @@ int main(int argc, char *argv[]) {
     Init_DataLink();
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = Device_APDU_Timeout() / 1000;
+    timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
     Send_WhoIs(Target_Object_Instance_Min, Target_Object_Instance_Max);
     /* loop forever */

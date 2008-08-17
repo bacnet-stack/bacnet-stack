@@ -37,7 +37,6 @@
 #include "bacdef.h"
 #include "bacapp.h"
 #include "cov.h"
-#include "device.h"
 #include "datalink.h"
 #include "npdu.h"
 
@@ -132,11 +131,10 @@ int ccov_notify_encode_apdu(
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
-    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_COV_NOTIFICATION;
         apdu_len = 4;
@@ -314,11 +312,10 @@ int cov_subscribe_encode_adpu(
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
-    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_SUBSCRIBE_COV;
         apdu_len = 4;
@@ -444,11 +441,10 @@ int cov_subscribe_property_encode_adpu(
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
-    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY;
         apdu_len = 4;
@@ -641,7 +637,7 @@ int ccov_notify_decode_apdu(
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -2;
-    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_COV_NOTIFICATION)
         return -3;
@@ -697,7 +693,7 @@ int cov_subscribe_decode_apdu(
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -2;
-    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV)
         return -3;
@@ -727,7 +723,7 @@ int cov_subscribe_property_decode_apdu(
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -2;
-    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY)
         return -3;
@@ -784,12 +780,6 @@ void datalink_get_broadcast_address(
 }
 
 /* dummy function stubs */
-uint16_t Device_Max_APDU_Length_Accepted(
-    void)
-{
-    return MAX_APDU;
-}
-
 void testCOVNotifyData(
     Test * pTest,
     BACNET_COV_DATA * data,

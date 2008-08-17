@@ -88,7 +88,7 @@ void MyRejectHandler(
 static void Init_Service_Handlers(
     void)
 {
-    /* we need to handle who-is 
+    /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement
@@ -234,7 +234,7 @@ int main(int argc, char *argv[]) {
     Init_DataLink();
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = Device_APDU_Timeout() / 1000;
+    timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
     if (argc < 3)
         Send_WhoHas_Name(-1, -1, Target_Object_Name);

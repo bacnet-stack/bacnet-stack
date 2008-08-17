@@ -126,7 +126,7 @@ void MyWritePropertySimpleAckHandler(
 static void Init_Service_Handlers(
     void)
 {
-    /* we need to handle who-is 
+    /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* handle i-am to support binding to other devices */
@@ -403,7 +403,7 @@ int main(int argc, char *argv[]) {
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds =
-        (Device_APDU_Timeout() / 1000) * Device_Number_Of_APDU_Retries();
+        (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,

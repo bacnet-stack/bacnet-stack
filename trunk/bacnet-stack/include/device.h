@@ -105,20 +105,8 @@ extern "C" {
         void);
     uint8_t Device_Protocol_Revision(
         void);
-    uint16_t Device_Max_APDU_Length_Accepted(
-        void);
     BACNET_SEGMENTATION Device_Segmentation_Supported(
         void);
-
-    uint16_t Device_APDU_Timeout(
-        void);
-    void Device_Set_APDU_Timeout(
-        uint16_t timeout);
-
-    uint8_t Device_Number_Of_APDU_Retries(
-        void);
-    void Device_Set_Number_Of_APDU_Retries(
-        uint8_t retries);
 
     uint8_t Device_Database_Revision(
         void);

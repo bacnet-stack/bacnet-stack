@@ -43,6 +43,11 @@
 #include "dcc.h"
 #include "iam.h"
 
+/* APDU Timeout in Milliseconds */
+static uint16_t Timeout_Milliseconds = 3000;
+/* Number of APDU Retries */
+static uint8_t Number_Of_Retries = 3;
+
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
     confirmed_service_supported[MAX_BACNET_CONFIRMED_SERVICE] = {
@@ -278,6 +283,26 @@ uint16_t apdu_decode_confirmed_service_request(
     *service_request_len = apdu_len - len;
 
     return len;
+}
+
+uint16_t apdu_timeout(void)
+{
+    return Timeout_Milliseconds;
+}
+
+void apdu_timeout_set(uint16_t milliseconds)
+{
+    Timeout_Milliseconds = milliseconds;
+}
+
+uint8_t apdu_retries(void)
+{
+    return Number_Of_Retries;
+}
+
+void apdu_retries_set(uint8_t value)
+{
+    Number_Of_Retries = value;
 }
 
 void apdu_handler(

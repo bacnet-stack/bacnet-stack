@@ -42,7 +42,6 @@
 #include "bacenum.h"
 #include "tsm.h"
 #include "config.h"
-#include "device.h"
 #include "datalink.h"
 #include "handlers.h"
 #include "address.h"
@@ -151,7 +150,7 @@ uint8_t tsm_next_free_invokeID(
                 if (index != MAX_TSM_TRANSACTIONS) {
                     TSM_List[index].InvokeID = invokeID = current_invokeID;
                     TSM_List[index].state = TSM_STATE_IDLE;
-                    TSM_List[index].RequestTimer = Device_APDU_Timeout();
+                    TSM_List[index].RequestTimer = apdu_timeout();
                     /* update for the next call or check */
                     current_invokeID++;
                     /* skip zero - we treat that internally as invalid or no free */
@@ -189,9 +188,9 @@ void tsm_set_confirmed_unsegmented_transaction(
         if (index < MAX_TSM_TRANSACTIONS) {
             /* assign the transaction */
             TSM_List[index].state = TSM_STATE_AWAIT_CONFIRMATION;
-            TSM_List[index].RetryCount = Device_Number_Of_APDU_Retries();
+            TSM_List[index].RetryCount = apdu_retries();
             /* start the timer */
-            TSM_List[index].RequestTimer = Device_APDU_Timeout();
+            TSM_List[index].RequestTimer = apdu_timeout();
             /* copy the data */
             for (j = 0; j < apdu_len; j++) {
                 TSM_List[index].apdu[j] = apdu[j];
@@ -254,7 +253,7 @@ void tsm_timer_milliseconds(
             /* timeout.  retry? */
             if (TSM_List[i].RequestTimer == 0) {
                 TSM_List[i].RetryCount--;
-                TSM_List[i].RequestTimer = Device_APDU_Timeout();
+                TSM_List[i].RequestTimer = apdu_timeout();
                 if (TSM_List[i].RetryCount) {
                     bytes_sent =
                         datalink_send_pdu(&TSM_List[i].dest,
