@@ -93,6 +93,7 @@ static int ethernet_bind(
     char *interface_name)
 {
     int sock_fd = -1;   /* return value */
+    int sockopt = 0;
     int uid = 0;
 
     fprintf(stderr, "ethernet: opening \"%s\"\n", interface_name);
@@ -108,6 +109,8 @@ static int ethernet_bind(
     /* modules.conf (or in modutils/alias on Debian with update-modules) */
     /* alias net-pf-17 af_packet */
     /* Then follow it by: # modprobe af_packet */
+    /* Note: PF_INET/SOCK_PACKET has been replaced with
+        PF_PACKET/(SOCK_PACKET, SOCK_DGRAM, SOCK_RAW).*/
 
     /* Attempt to open the socket for 802.2 ethernet frames */
     if ((sock_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_802_2))) < 0) {
@@ -122,6 +125,15 @@ static int ethernet_bind(
             "# modprobe af_packet\n");
         exit(-1);
     }
+#if 0    
+    /* It is very advisable to do a IP_HDRINCL call, to make sure
+       that the kernel knows the header is included in the data,
+       and doesn't insert its own header into the packet before our data */
+    if (setsockopt (sock_fd, IPPROTO_IP, IP_HDRINCL, &sockopt,
+        sizeof(sockopt)) < 0) {
+        printf ("Warning: Cannot set HDRINCL!\n");
+    }
+#endif
     /* Bind the socket to an address */
     eth_addr->sa_family = PF_INET;
     /* Clear the memory before copying */
@@ -185,6 +197,25 @@ bool ethernet_init(
     }
 
     return ethernet_valid();
+}
+
+int ethernet_send(
+    uint8_t * mtu,
+    int mtu_len)
+{
+    int bytes = 0;
+
+    /* Send the packet */
+    bytes =
+        sendto(eth802_sockfd, &mtu, mtu_len, 0, (struct sockaddr *) &eth_addr,
+        sizeof(struct sockaddr));
+    /* did it get sent? */
+    if (bytes < 0)
+        fprintf(stderr, "ethernet: Error sending packet: %s\n",
+            strerror(errno));
+
+    return bytes;
+
 }
 
 /* function to send a packet out the 802.2 socket */
