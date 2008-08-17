@@ -35,7 +35,6 @@
 #include "bacenum.h"
 #include "bacdcode.h"
 #include "bacdef.h"
-#include "device.h"
 #include "awf.h"
 
 /* Atomic Write File */
@@ -50,8 +49,7 @@ int awf_encode_apdu(
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] =
-            encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted());
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_ATOMIC_WRITE_FILE;  /* service choice */
         apdu_len = 4;
@@ -198,7 +196,7 @@ int awf_decode_apdu(
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -1;
-    /*  apdu[1] = encode_max_segs_max_apdu(0, Device_Max_APDU_Length_Accepted()); */
+    /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE)
         return -1;
@@ -419,12 +417,6 @@ void testAtomicWriteFileAck(
 }
 
 #ifdef TEST_ATOMIC_WRITE_FILE
-uint16_t Device_Max_APDU_Length_Accepted(
-    void)
-{
-    return MAX_APDU;
-}
-
 int main(
     void)
 {

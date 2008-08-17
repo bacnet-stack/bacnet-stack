@@ -137,30 +137,10 @@ uint8_t Device_Protocol_Revision(
     return 5;
 }
 
-/* FIXME: MAX_APDU is defined in config.ini - set it! */
-uint16_t Device_Max_APDU_Length_Accepted(
-    void)
-{
-    return MAX_APDU;
-}
-
 BACNET_SEGMENTATION Device_Segmentation_Supported(
     void)
 {
     return SEGMENTATION_NONE;
-}
-
-uint16_t Device_APDU_Timeout(
-    void)
-{
-    return 60000;
-}
-
-
-uint8_t Device_Number_Of_APDU_Retries(
-    void)
-{
-    return 0;
 }
 
 uint8_t Device_Database_Revision(
@@ -418,8 +398,7 @@ int Device_Encode_Property_APDU(
             break;
         case PROP_MAX_APDU_LENGTH_ACCEPTED:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                Device_Max_APDU_Length_Accepted());
+                encode_application_unsigned(&apdu[0], MAX_APDU);
             break;
         case PROP_SEGMENTATION_SUPPORTED:
             apdu_len =
@@ -428,12 +407,12 @@ int Device_Encode_Property_APDU(
             break;
         case PROP_APDU_TIMEOUT:
             apdu_len =
-                encode_application_unsigned(&apdu[0], Device_APDU_Timeout());
+                encode_application_unsigned(&apdu[0], apdu_timeout());
             break;
         case PROP_NUMBER_OF_APDU_RETRIES:
             apdu_len =
                 encode_application_unsigned(&apdu[0],
-                Device_Number_Of_APDU_Retries());
+                apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
             /* FIXME: encode the list here, if it exists */

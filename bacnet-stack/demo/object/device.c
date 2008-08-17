@@ -127,7 +127,6 @@ static char Description[16] = "server";
 /* Protocol_Services_Supported - dynamically generated */
 /* Protocol_Object_Types_Supported - in RP encoding */
 /* Object_List - dynamically generated */
-/* static uint16_t Max_APDU_Length_Accepted = MAX_APDU; - constant */
 /* static BACNET_SEGMENTATION Segmentation_Supported = SEGMENTATION_NONE; */
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
@@ -137,9 +136,6 @@ BACNET_DATE Local_Date; /* rely on OS, if there is one */
 /* BACnet UTC is inverse of standard offset - i.e. relative to local */
 static int UTC_Offset = 5;
 static bool Daylight_Savings_Status = false;    /* rely on OS */
-/* APDU_Segment_Timeout */
-static uint16_t APDU_Timeout = 3000;
-static uint8_t Number_Of_APDU_Retries = 3;
 /* List_Of_Session_Keys */
 /* Time_Synchronization_Recipients */
 /* Max_Master - rely on MS/TP subsystem, if there is one */
@@ -341,41 +337,10 @@ uint8_t Device_Protocol_Revision(
     return BACNET_PROTOCOL_REVISION;
 }
 
-uint16_t Device_Max_APDU_Length_Accepted(
-    void)
-{
-    return MAX_APDU;
-}
-
 BACNET_SEGMENTATION Device_Segmentation_Supported(
     void)
 {
     return SEGMENTATION_NONE;
-}
-
-uint16_t Device_APDU_Timeout(
-    void)
-{
-    return APDU_Timeout;
-}
-
-/* in milliseconds */
-void Device_Set_APDU_Timeout(
-    uint16_t timeout)
-{
-    APDU_Timeout = timeout;
-}
-
-uint8_t Device_Number_Of_APDU_Retries(
-    void)
-{
-    return Number_Of_APDU_Retries;
-}
-
-void Device_Set_Number_Of_APDU_Retries(
-    uint8_t retries)
-{
-    Number_Of_APDU_Retries = retries;
 }
 
 uint8_t Device_Database_Revision(
@@ -842,8 +807,7 @@ int Device_Encode_Property_APDU(
             break;
         case PROP_MAX_APDU_LENGTH_ACCEPTED:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                Device_Max_APDU_Length_Accepted());
+                encode_application_unsigned(&apdu[0],MAX_APDU);
             break;
         case PROP_SEGMENTATION_SUPPORTED:
             apdu_len =
@@ -851,11 +815,11 @@ int Device_Encode_Property_APDU(
                 Device_Segmentation_Supported());
             break;
         case PROP_APDU_TIMEOUT:
-            apdu_len = encode_application_unsigned(&apdu[0], APDU_Timeout);
+            apdu_len = encode_application_unsigned(&apdu[0], apdu_timeout());
             break;
         case PROP_NUMBER_OF_APDU_RETRIES:
             apdu_len =
-                encode_application_unsigned(&apdu[0], Number_Of_APDU_Retries);
+                encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
             /* FIXME: encode the list here, if it exists */
@@ -930,7 +894,7 @@ bool Device_Write_Property(
         case PROP_NUMBER_OF_APDU_RETRIES:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 /* FIXME: bounds check? */
-                Device_Set_Number_Of_APDU_Retries((uint8_t) value.type.
+                apdu_retries_set((uint8_t) value.type.
                     Unsigned_Int);
                 status = true;
             } else {
@@ -941,7 +905,7 @@ bool Device_Write_Property(
         case PROP_APDU_TIMEOUT:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 /* FIXME: bounds check? */
-                Device_Set_APDU_Timeout((uint16_t) value.type.Unsigned_Int);
+                apdu_timeout_set((uint16_t) value.type.Unsigned_Int);
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
