@@ -1,5 +1,5 @@
 @echo off
-echo Build with MinGW <http://mingw.sourceforge.net/>
+echo Build with MinGW mingw.sourceforge.net
 make BACNET_PORT=win32 OPTIMIZATION=-Os DEBUGGING= clean all
 rem Build for MinGW debug
 rem make BACNET_PORT=win32 clean all
