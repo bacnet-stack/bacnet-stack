@@ -94,6 +94,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_ts.c \
 	$(BACNET_HANDLER)/s_whohas.c \
 	$(BACNET_HANDLER)/s_whois.c  \
+	$(BACNET_HANDLER)/s_whoisrt.c  \
 	$(BACNET_HANDLER)/s_wp.c
 
 OBJECT_SRC = \

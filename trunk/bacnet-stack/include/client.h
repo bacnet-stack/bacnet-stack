@@ -108,6 +108,8 @@ extern "C" {
         int fileStartPosition,
         BACNET_OCTET_STRING * fileData);
 
+    void Send_WhoIsRouterToNetwork(
+        int dnet);
 
 #ifdef __cplusplus
 }
