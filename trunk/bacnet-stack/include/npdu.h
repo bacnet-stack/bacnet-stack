@@ -52,6 +52,16 @@ typedef struct bacnet_npdu_data_t {
     uint8_t hop_count;
 } BACNET_NPDU_DATA;
 
+/* Port Info structure used by Routers */
+struct router_port_t;
+typedef struct router_port_t {
+    uint16_t dnet;
+    uint8_t id;
+    uint8_t info[256]; /* size could be 1-255 */
+    uint8_t info_len;
+    struct router_port_t *next; /* linked list */
+} BACNET_ROUTER_PORT;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

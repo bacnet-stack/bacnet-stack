@@ -182,7 +182,7 @@ int npdu_encode_pdu(
         /* destined for a remote network, i.e., if DNET is present. */
         /* This is a one-octet field that is initialized to a value of 0xff. */
         if (dest && dest->net) {
-            npdu[len] = 0xFF;
+            npdu[len] = npdu_data->hop_count;
             len++;
         }
         if (npdu_data->network_layer_message) {
@@ -243,7 +243,7 @@ void npdu_encode_npdu_data(
         npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;      /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
-        npdu_data->hop_count = 0;
+        npdu_data->hop_count = 255;
     }
 }
 
@@ -349,10 +349,11 @@ int npdu_decode(
         /* The Hop Count field shall be present only if the message is */
         /* destined for a remote network, i.e., if DNET is present. */
         /* This is a one-octet field that is initialized to a value of 0xff. */
-        if (dest_net)
+        if (dest_net) {
             npdu_data->hop_count = npdu[len++];
-        else
+        } else {
             npdu_data->hop_count = 0;
+        }
         /* Indicates that the NSDU conveys a network layer message. */
         /* Message Type field is present. */
         if (npdu_data->network_layer_message) {
