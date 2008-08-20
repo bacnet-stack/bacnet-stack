@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -100,44 +100,6 @@ static void Init_Service_Handlers(
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
-}
-
-static void print_address_cache(
-    void)
-{
-    int i, j;
-    BACNET_ADDRESS address;
-    uint32_t device_id = 0;
-    unsigned max_apdu = 0;
-
-    printf("%-7s %-14s %-4s %-5s %-14s\n", "Device", "MAC", "APDU", "SNET",
-        "SADR");
-    printf("------- -------------- ---- ----- --------------\n");
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
-            printf("%7u ", device_id);
-            for (j = 0; j < 7; j++) {
-                if (j < address.mac_len) {
-                    printf("%02X", address.mac[j]);
-                } else {
-                    printf("  ");
-                }
-            }
-            printf(" %4hu ", max_apdu);
-            printf("%5hu ", address.net);
-            if (address.net) {
-                for (j = 0; j < 7; j++) {
-                    if (j < address.len) {
-                        printf("%02X", address.adr[j]);
-                    } else {
-                        printf("  ");
-                    }
-                    printf(" ");
-                }
-            }
-            printf("\n");
-        }
-    }
 }
 
 static void Init_DataLink(
@@ -274,7 +236,7 @@ int main(int argc, char *argv[]) {
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_WhoIsRouterToNetwork(Target_Router_Network);
+    Send_Who_Is_Router_To_Network(Target_Router_Network);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
@@ -300,7 +262,6 @@ int main(int argc, char *argv[]) {
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
-    print_address_cache();
 
     return 0;
 }

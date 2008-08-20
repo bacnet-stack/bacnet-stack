@@ -41,8 +41,24 @@
 #include "handlers.h"
 #include "txbuf.h"
 
-/* find a specific device, or use -1 for limit if you want unlimited */
-void Send_WhoIsRouterToNetwork(
+static void npdu_encode_npdu_network(
+    BACNET_NPDU_DATA * npdu_data,
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+    BACNET_MESSAGE_PRIORITY priority)
+{
+    if (npdu_data) {
+        npdu_data->data_expecting_reply = false;
+        npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
+        npdu_data->network_layer_message = true;       /* false if APDU */
+        npdu_data->network_message_type = network_message_type;      /* optional */
+        npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
+        npdu_data->priority = priority;
+        npdu_data->hop_count = 255;
+    }
+}
+
+/* find a specific router, or use -1 for limit if you want unlimited */
+void Send_Who_Is_Router_To_Network(
     int dnet)
 {
     int len = 0;
@@ -51,14 +67,9 @@ void Send_WhoIsRouterToNetwork(
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    /* encode the NPDU portion of the packet */
-    npdu_data.data_expecting_reply = false;
-    npdu_data.protocol_version = BACNET_PROTOCOL_VERSION;
-    npdu_data.network_layer_message = true; /* false if APDU */
-    npdu_data.network_message_type = NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK;      
-    npdu_data.vendor_id = 0;       /* optional, if net message type is > 0x80 */
-    npdu_data.priority = MESSAGE_PRIORITY_NORMAL;
-    npdu_data.hop_count = 0;
+    npdu_encode_npdu_network(&npdu_data,
+        NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK,
+        MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
     /* encode the optional DNET portion of the packet */
@@ -66,14 +77,14 @@ void Send_WhoIsRouterToNetwork(
         len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], dnet);
         pdu_len += len;
 #if PRINT_ENABLED
-        fprintf(stderr, "Send Who-Is-Router-To-Network Request to %u\n",dnet);
+        fprintf(stderr, "Send Who-Is-Router-To-Network message to %u\n",dnet);
 #endif
     } else {
 #if PRINT_ENABLED
-        fprintf(stderr, "Send Who-Is-Router-To-Network Request\n");
+        fprintf(stderr, "Send Who-Is-Router-To-Network message\n");
 #endif
     }
-    /* Who-Is-Router-To-Network is a global broadcast */
+    /* Who-Is-Router-To-Network may be unicast or broadcast */
     datalink_get_broadcast_address(&dest);
     bytes_sent =
         datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
@@ -81,6 +92,130 @@ void Send_WhoIsRouterToNetwork(
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Is-Router-To-Network Request (%s)!\n",
+            strerror(errno));
+#endif
+}
+
+/* pDNET_list: list of networks for which I am a router, 
+   terminated with -1 */
+void Send_I_Am_Router_To_Network(
+  const int *pDNET_list)
+{
+    int len = 0;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+    uint16_t dnet = 0;
+
+    npdu_encode_npdu_network(&npdu_data,
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
+        MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
+    /* encode the optional DNET list portion of the packet */
+#if PRINT_ENABLED
+    fprintf(stderr, "Send I-Am-Router-To-Network message to:\n");
+#endif
+    while ((*pDNET_list) != -1) {
+        dnet = (*pDNET_list);
+        len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], dnet);
+        pdu_len += len;
+        pDNET_list++;
+#if PRINT_ENABLED
+        fprintf(stderr, "%u\n",dnet);
+#endif
+    }
+    /* I-Am-Router-To-Network shall always be transmitted with 
+       a broadcast MAC address. */
+    datalink_get_broadcast_address(&dest);
+    bytes_sent =
+        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to send I-Am-Router-To-Network message (%s)!\n",
+            strerror(errno));
+#endif
+}
+
+/* */
+void Send_Initialize_Routing_Table(
+  BACNET_ROUTER_PORT *router_port_list)
+{
+    int len = 0;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+    uint8_t number_of_ports = 0;
+    BACNET_ROUTER_PORT *router_port;
+    unsigned i = 0; /* counter */
+
+    npdu_encode_npdu_network(&npdu_data,
+        NETWORK_MESSAGE_INIT_RT_TABLE,
+        MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
+    /* encode the optional port_info list portion of the packet */
+    router_port = router_port_list;
+    while (router_port) {
+        number_of_ports++;
+        router_port = router_port->next;
+    }
+    Handler_Transmit_Buffer[pdu_len++] = number_of_ports;
+    if (number_of_ports) {
+        router_port = router_port_list;
+        while (router_port) {
+            len = encode_unsigned16(
+                &Handler_Transmit_Buffer[pdu_len], 
+                router_port->dnet);
+            pdu_len += len;
+            Handler_Transmit_Buffer[pdu_len++] = router_port->id;
+            Handler_Transmit_Buffer[pdu_len++] = router_port->info_len;
+            for (i = 0; i < router_port->info_len; i++) {
+                Handler_Transmit_Buffer[pdu_len++] = router_port->info[i];
+            }
+            router_port = router_port->next;
+        }
+    }
+    /* Init Routing Table shall always be transmitted with 
+       a broadcast MAC address. */
+    datalink_get_broadcast_address(&dest);
+    bytes_sent =
+        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to send Initialize-Routing-Table message (%s)!\n",
+            strerror(errno));
+#endif
+}
+
+/* */
+void Send_Initialize_Routing_Table_Ack(
+  const int *port_info)
+{
+    int len = 0;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+    uint16_t dnet = 0;
+
+    npdu_encode_npdu_network(&npdu_data,
+        NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
+        MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
+    /* encode the optional DNET list portion of the packet */
+    datalink_get_broadcast_address(&dest);
+    bytes_sent =
+        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send I-Am-Router-To-Network message (%s)!\n",
             strerror(errno));
 #endif
 }
