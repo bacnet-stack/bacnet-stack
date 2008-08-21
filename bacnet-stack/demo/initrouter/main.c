@@ -51,10 +51,6 @@
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
-/* global variables used in this file */
-static int32_t Target_Router_Network = 0;
-static BACNET_ADDRESS Target_Router_Address;
-
 static bool Error_Detected = false;
 
 void MyAbortHandler(
@@ -190,7 +186,9 @@ static void Init_DataLink(
 
 static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
 {
+    long device_id = 0;
     int dnet = 0;
+    int max_apdu = 0;
     unsigned mac[6];
     int count = 0;
     int index = 0;
@@ -229,9 +227,9 @@ static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
             fprintf(stderr,"A non-zero DNET requires a DADR.\r\n");
         }
     } else {
-        dst->len = 0;
+        src.len = 0;
         for (index = 0; index < MAX_MAC_LEN; index++) {
-            dst->adr[index] = 0;
+            src.adr[index] = 0;
         }
     }
 }
@@ -248,23 +246,19 @@ int main(int argc, char *argv[]) {
     time_t timeout_seconds = 0;
 
     if (argc < 2) {
-        printf("Usage: %s DNET [MAC]\r\n",
+        printf("Usage: %s number-of-ports\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("Send BACnet Who-Is-Router-To-Network message to a network.\r\n"
-            "\r\n"
-            "DNET:\r\n"
+        printf("Send BACnet Initialize-Routing-Table message to a network\r\n"
+            "and wait for responses.  Displays their network information.\r\n"
+            "\r\nDNET:\r\n"
             "BACnet destination network number 0-65534\r\n"
-            "MAC:\r\n"
-            "Optional MAC address of router for unicast message\r\n"
-            "Format: xx[:xx:xx:xx:xx:xx] [dnet xx[:xx:xx:xx:xx:xx]]\r\n"
-            "Use hexidecimal MAC addresses.\r\n"
-            "\r\n" 
             "To send a Who-Is-Router-To-Network request to DNET 86:\r\n"
             "%s 86\r\n" 
-            "To send a Who-Is-Router-To-Network request to all devices:\r\n"
+            "To send a Who-Is-Router-To-Network request to all devices\r\n"
+            "use the following command:\r\n" 
             "%s -1\r\n",
             filename_remove_path(argv[0]), 
             filename_remove_path(argv[0]));
@@ -280,11 +274,6 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
-    if (argc > 2) {
-        address_parse(&Target_Router_Address, argc-2, &argv[2]);
-    } else {
-        datalink_get_broadcast_address(&Target_Router_Address);
-    }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
@@ -294,9 +283,7 @@ int main(int argc, char *argv[]) {
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_Who_Is_Router_To_Network(
-        &Target_Router_Address, 
-        Target_Router_Network);
+    Send_Who_Is_Router_To_Network(Target_Router_Network);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */

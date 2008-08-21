@@ -109,7 +109,17 @@ extern "C" {
         BACNET_OCTET_STRING * fileData);
 
     void Send_Who_Is_Router_To_Network(
+        BACNET_ADDRESS *dst,
         int dnet);
+    void Send_I_Am_Router_To_Network(
+      const int DNET_list[]);
+    void Send_Initialize_Routing_Table(
+      BACNET_ROUTER_PORT *router_port_list);
+    void Send_Initialize_Routing_Table_Ack(
+      BACNET_ROUTER_PORT *router_port_list);
+      
+      
+        
         
 #ifdef __cplusplus
 }
