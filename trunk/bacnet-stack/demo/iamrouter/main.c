@@ -52,8 +52,8 @@
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
-static int32_t Target_Router_Network = 0;
-static BACNET_ADDRESS Target_Router_Address;
+#define MAX_ROUTER_DNETS 64
+static int Target_Router_Networks[MAX_ROUTER_DNETS] = { -1 };
 
 static bool Error_Detected = false;
 
@@ -188,140 +188,56 @@ static void Init_DataLink(
 #endif
 }
 
-static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
-{
-    int dnet = 0;
-    unsigned mac[6];
-    int count = 0;
-    int index = 0;
-    
-    if (argc > 0) {
-        count =
-            sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0],
-            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-        dst->mac_len = count;
-        for (index = 0; index < MAX_MAC_LEN; index++) {
-            if (index < count) {
-                dst->mac[index] = mac[index];
-            } else {
-                dst->mac[index] = 0;
-            }
-        }
-    }
-    if (argc > 1) {
-        count = sscanf(argv[1], "%d", &dnet);
-        dst->net = dnet;
-    }
-    if (dnet) {
-        if (argc > 2) {
-            count = 
-                sscanf(argv[2], "%x:%x:%x:%x:%x:%x", &mac[0],
-                &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-            dst->len = count;
-            for (index = 0; index < MAX_MAC_LEN; index++) {
-                if (index < count) {
-                    dst->adr[index] = mac[index];
-                } else {
-                    dst->adr[index] = 0;
-                }
-            }
-        } else {
-            fprintf(stderr,"A non-zero DNET requires a DADR.\r\n");
-        }
-    } else {
-        dst->len = 0;
-        for (index = 0; index < MAX_MAC_LEN; index++) {
-            dst->adr[index] = 0;
-        }
-    }
-}
-
 int main(int argc, char *argv[]) {
-    BACNET_ADDRESS src = {
-    0}; /* address where message came from */
-    uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
-    time_t total_seconds = 0;
-    time_t elapsed_seconds = 0;
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    time_t timeout_seconds = 0;
+    unsigned arg_count = 0;
 
     if (argc < 2) {
-        printf("Usage: %s DNET [MAC]\r\n",
+        printf("Usage: %s DNET [DNET] [DNET] [...]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("Send BACnet Who-Is-Router-To-Network message to a network.\r\n"
-            "\r\n"
-            "DNET:\r\n"
+        printf("Send BACnet I-Am-Router-To-Network message for \r\n"
+            "one or more networks.\r\n"
+            "\r\nDNET:\r\n"
             "BACnet destination network number 0-65534\r\n"
-            "MAC:\r\n"
-            "Optional MAC address of router for unicast message\r\n"
-            "Format: xx[:xx:xx:xx:xx:xx] [dnet xx[:xx:xx:xx:xx:xx]]\r\n"
-            "Use hexidecimal MAC addresses.\r\n"
-            "\r\n" 
-            "To send a Who-Is-Router-To-Network request to DNET 86:\r\n"
+            "To send a I-Am-Router-To-Network message for DNET 86:\r\n"
             "%s 86\r\n" 
-            "To send a Who-Is-Router-To-Network request to all devices:\r\n"
-            "%s -1\r\n",
+            "To send a I-Am-Router-To-Network message for multiple DNETs\r\n"
+            "use the following command:\r\n" 
+            "%s 86 42 24 14\r\n",
             filename_remove_path(argv[0]), 
             filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
     if (argc > 1) {
-        Target_Router_Network = strtol(argv[1], NULL, 0);
-        if (Target_Router_Network >= 65535) {
-            fprintf(stderr,
-                "DNET=%u - it must be less than %u\r\n",
-                Target_Router_Network, 65535);
-            return 1;
+        for (arg_count = 1; arg_count < argc; arg_count++) {
+            if (arg_count > MAX_ROUTER_DNETS) {
+                fprintf(stderr,
+                    "Limited to %u DNETS.  Sorry!\r\n",
+                    MAX_ROUTER_DNETS);
+                break;
+            }
+            Target_Router_Networks[arg_count-1] = strtol(argv[arg_count], NULL, 0);
+            /* mark the end of list */
+            Target_Router_Networks[arg_count] = -1;
+            /* invalid DNET? */
+            if (Target_Router_Networks[arg_count-1] >= 65535) {
+                fprintf(stderr,
+                    "DNET=%u - it must be less than %u\r\n",
+                    Target_Router_Networks[arg_count-1], 65535);
+                return 1;
+            }
         }
-    }
-    if (argc > 2) {
-        address_parse(&Target_Router_Address, argc-2, &argv[2]);
-    } else {
-        datalink_get_broadcast_address(&Target_Router_Address);
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     address_init();
     Init_DataLink();
-    /* configure the timeout values */
-    last_seconds = time(NULL);
-    timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_Who_Is_Router_To_Network(
-        &Target_Router_Address, 
-        Target_Router_Network);
-    /* loop forever */
-    for (;;) {
-        /* increment timer - exit if timed out */
-        current_seconds = time(NULL);
-        /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-        /* process */
-        if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
-        }
-        if (Error_Detected)
-            break;
-        /* increment timer - exit if timed out */
-        elapsed_seconds = current_seconds - last_seconds;
-        if (elapsed_seconds) {
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
-#endif
-        }
-        total_seconds += elapsed_seconds;
-        if (total_seconds > timeout_seconds)
-            break;
-        /* keep track of time for next check */
-        last_seconds = current_seconds;
-    }
-
+    Send_I_Am_Router_To_Network(Target_Router_Networks);
+    
     return 0;
 }
