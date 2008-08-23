@@ -50,6 +50,7 @@
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+
 /* target address */
 static BACNET_ADDRESS Target_Router_Address;
 static BACNET_ROUTER_PORT *Target_Router_Port_List;
@@ -187,27 +188,27 @@ static void Init_DataLink(
 #endif
 }
 
-static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
-{
+static void address_parse(BACNET_ADDRESS * dst,
+    int argc, char *argv[]) {
     unsigned mac[6];
     unsigned port;
     int count = 0;
     int index = 0;
-    
-    if (argc > 0) {
+
+    if  (argc > 0) {
         count =
-            sscanf(argv[0], "%u.%u.%u.%u:%u", &mac[0],
-            &mac[1], &mac[2], &mac[3], &port);
+            sscanf(argv[0], "%u.%u.%u.%u:%u", &mac[0], &mac[1], &mac[2],
+            &mac[3], &port);
         if (count == 5) {
             dst->mac_len = 6;
             for (index = 0; index < 4; index++) {
                 dst->mac[index] = mac[index];
-            }
-            encode_unsigned16(&dst->mac[4], port);            
+            } encode_unsigned16(&dst->mac[4],
+                port);
         } else {
             count =
-                sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0],
-                &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+                sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
+                &mac[3], &mac[4], &mac[5]);
             dst->mac_len = count;
             for (index = 0; index < MAX_MAC_LEN; index++) {
                 if (index < count) {
@@ -232,29 +233,30 @@ int main(int argc, char *argv[]) {
             filename_remove_path(argv[0]));
         return 0;
     }
-    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+    if   ((
+            argc > 1) && (
+            strcmp(argv[1],
+                "--help") == 0)) {
         printf("Send BACnet Initialize-Routing-Table message to a network\r\n"
             "and wait for responses.  Displays their network information.\r\n"
-            "\r\n"
-            "address:\r\n"
+            "\r\n" "address:\r\n"
             "MAC address in xx:xx:xx:xx:xx:xx format or IP x.x.x.x:port\r\n"
             "number-of-ports:\r\n"
             "Number of ports to update along with port-info data\r\n"
             "To query the complete routing table, use 0.\r\n"
             "To query using Initialize-Routing-Table message to 192.168.0.18:\r\n"
-            "%s 192.168.0.18:47808 0\r\n",
-            filename_remove_path(argv[0]));
+            "%s 192.168.0.18:47808 0\r\n", filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
-    address_parse(&Target_Router_Address, argc-1, &argv[1]);
+    address_parse(&Target_Router_Address, argc - 1, &argv[1]);
     if (argc > 2) {
         /* FIXME: add port info parse */
         /* BACNET_ROUTER_PORT *router_port_list 
-        Target_Router_Port_List
-        ports_parse(&router_port[0], argc-2, &argv[2]);
-        Target_Router_Port_List = router_port[0];
-        */
+           Target_Router_Port_List
+           ports_parse(&router_port[0], argc-2, &argv[2]);
+           Target_Router_Port_List = router_port[0];
+         */
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
@@ -262,8 +264,7 @@ int main(int argc, char *argv[]) {
     address_init();
     Init_DataLink();
     /* send the request */
-    Send_Initialize_Routing_Table(
-        &Target_Router_Address,
+    Send_Initialize_Routing_Table(&Target_Router_Address,
         Target_Router_Port_List);
 
     return 0;

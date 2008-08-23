@@ -397,8 +397,7 @@ int Device_Encode_Property_APDU(
             }
             break;
         case PROP_MAX_APDU_LENGTH_ACCEPTED:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], MAX_APDU);
+            apdu_len = encode_application_unsigned(&apdu[0], MAX_APDU);
             break;
         case PROP_SEGMENTATION_SUPPORTED:
             apdu_len =
@@ -406,13 +405,10 @@ int Device_Encode_Property_APDU(
                 Device_Segmentation_Supported());
             break;
         case PROP_APDU_TIMEOUT:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], apdu_timeout());
+            apdu_len = encode_application_unsigned(&apdu[0], apdu_timeout());
             break;
         case PROP_NUMBER_OF_APDU_RETRIES:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                apdu_retries());
+            apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
             /* FIXME: encode the list here, if it exists */

@@ -57,7 +57,7 @@ struct router_port_t;
 typedef struct router_port_t {
     uint16_t dnet;
     uint8_t id;
-    uint8_t info[256]; /* size could be 1-255 */
+    uint8_t info[256];  /* size could be 1-255 */
     uint8_t info_len;
     struct router_port_t *next; /* linked list */
 } BACNET_ROUTER_PORT;

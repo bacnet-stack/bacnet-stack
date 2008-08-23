@@ -49,8 +49,7 @@ int arf_encode_apdu(
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] =
-            encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;   /* service choice */
         apdu_len = 4;

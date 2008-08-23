@@ -282,8 +282,7 @@ int main(int argc, char *argv[]) {
     Init_DataLink();
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds =
-        (apdu_timeout() / 1000) * apdu_retries();
+    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
     Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
     /* loop forever */

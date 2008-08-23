@@ -110,7 +110,7 @@ static int ethernet_bind(
     /* alias net-pf-17 af_packet */
     /* Then follow it by: # modprobe af_packet */
     /* Note: PF_INET/SOCK_PACKET has been replaced with
-        PF_PACKET/(SOCK_PACKET, SOCK_DGRAM, SOCK_RAW).*/
+       PF_PACKET/(SOCK_PACKET, SOCK_DGRAM, SOCK_RAW). */
 
     /* Attempt to open the socket for 802.2 ethernet frames */
     if ((sock_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_802_2))) < 0) {
@@ -125,13 +125,13 @@ static int ethernet_bind(
             "# modprobe af_packet\n");
         exit(-1);
     }
-#if 0    
+#if 0
     /* It is very advisable to do a IP_HDRINCL call, to make sure
        that the kernel knows the header is included in the data,
        and doesn't insert its own header into the packet before our data */
-    if (setsockopt (sock_fd, IPPROTO_IP, IP_HDRINCL, &sockopt,
-        sizeof(sockopt)) < 0) {
-        printf ("Warning: Cannot set HDRINCL!\n");
+    if (setsockopt(sock_fd, IPPROTO_IP, IP_HDRINCL, &sockopt,
+            sizeof(sockopt)) < 0) {
+        printf("Warning: Cannot set HDRINCL!\n");
     }
 #endif
     /* Bind the socket to an address */

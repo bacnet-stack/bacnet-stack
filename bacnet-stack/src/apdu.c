@@ -285,22 +285,26 @@ uint16_t apdu_decode_confirmed_service_request(
     return len;
 }
 
-uint16_t apdu_timeout(void)
+uint16_t apdu_timeout(
+    void)
 {
     return Timeout_Milliseconds;
 }
 
-void apdu_timeout_set(uint16_t milliseconds)
+void apdu_timeout_set(
+    uint16_t milliseconds)
 {
     Timeout_Milliseconds = milliseconds;
 }
 
-uint8_t apdu_retries(void)
+uint8_t apdu_retries(
+    void)
 {
     return Number_Of_Retries;
 }
 
-void apdu_retries_set(uint8_t value)
+void apdu_retries_set(
+    uint8_t value)
 {
     Number_Of_Retries = value;
 }

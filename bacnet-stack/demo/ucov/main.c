@@ -212,8 +212,8 @@ int main(int argc, char *argv[]) {
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         return 0;
     }
-    /* decode the command line parameters */ cov_data.
-        subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
+    /* decode the command line parameters */
+    cov_data.subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
     cov_data.initiatingDeviceIdentifier = strtol(argv[2], NULL, 0);
     cov_data.monitoredObjectIdentifier.type = strtol(argv[3], NULL, 0);
     cov_data.monitoredObjectIdentifier.instance = strtol(argv[4], NULL, 0);

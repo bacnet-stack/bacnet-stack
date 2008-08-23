@@ -188,17 +188,17 @@ static void Init_DataLink(
 #endif
 }
 
-static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
-{
+static void address_parse(BACNET_ADDRESS * dst,
+    int argc, char *argv[]) {
     int dnet = 0;
     unsigned mac[6];
     int count = 0;
     int index = 0;
-    
-    if (argc > 0) {
+
+    if  (argc > 0) {
         count =
-            sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0],
-            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+            sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
+            &mac[3], &mac[4], &mac[5]);
         dst->mac_len = count;
         for (index = 0; index < MAX_MAC_LEN; index++) {
             if (index < count) {
@@ -214,9 +214,9 @@ static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
     }
     if (dnet) {
         if (argc > 2) {
-            count = 
-                sscanf(argv[2], "%x:%x:%x:%x:%x:%x", &mac[0],
-                &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+            count =
+                sscanf(argv[2], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
+                &mac[3], &mac[4], &mac[5]);
             dst->len = count;
             for (index = 0; index < MAX_MAC_LEN; index++) {
                 if (index < count) {
@@ -226,7 +226,7 @@ static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
                 }
             }
         } else {
-            fprintf(stderr,"A non-zero DNET requires a DADR.\r\n");
+            fprintf(stderr, "A non-zero DNET requires a DADR.\r\n");
         }
     } else {
         dst->len = 0;
@@ -248,25 +248,19 @@ int main(int argc, char *argv[]) {
     time_t timeout_seconds = 0;
 
     if (argc < 2) {
-        printf("Usage: %s DNET [MAC]\r\n",
-            filename_remove_path(argv[0]));
+        printf("Usage: %s DNET [MAC]\r\n", filename_remove_path(argv[0]));
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("Send BACnet Who-Is-Router-To-Network message to a network.\r\n"
-            "\r\n"
-            "DNET:\r\n"
-            "BACnet destination network number 0-65534\r\n"
-            "MAC:\r\n"
-            "Optional MAC address of router for unicast message\r\n"
+            "\r\n" "DNET:\r\n" "BACnet destination network number 0-65534\r\n"
+            "MAC:\r\n" "Optional MAC address of router for unicast message\r\n"
             "Format: xx[:xx:xx:xx:xx:xx] [dnet xx[:xx:xx:xx:xx:xx]]\r\n"
-            "Use hexidecimal MAC addresses.\r\n"
-            "\r\n" 
+            "Use hexidecimal MAC addresses.\r\n" "\r\n"
             "To send a Who-Is-Router-To-Network request to DNET 86:\r\n"
-            "%s 86\r\n" 
+            "%s 86\r\n"
             "To send a Who-Is-Router-To-Network request to all devices:\r\n"
-            "%s -1\r\n",
-            filename_remove_path(argv[0]), 
+            "%s -1\r\n", filename_remove_path(argv[0]),
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -274,14 +268,13 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         Target_Router_Network = strtol(argv[1], NULL, 0);
         if (Target_Router_Network >= 65535) {
-            fprintf(stderr,
-                "DNET=%u - it must be less than %u\r\n",
+            fprintf(stderr, "DNET=%u - it must be less than %u\r\n",
                 Target_Router_Network, 65535);
             return 1;
         }
     }
     if (argc > 2) {
-        address_parse(&Target_Router_Address, argc-2, &argv[2]);
+        address_parse(&Target_Router_Address, argc - 2, &argv[2]);
     } else {
         datalink_get_broadcast_address(&Target_Router_Address);
     }
@@ -294,8 +287,7 @@ int main(int argc, char *argv[]) {
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_Who_Is_Router_To_Network(
-        &Target_Router_Address, 
+    Send_Who_Is_Router_To_Network(&Target_Router_Address,
         Target_Router_Network);
     /* loop forever */
     for (;;) {

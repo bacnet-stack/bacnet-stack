@@ -49,8 +49,8 @@ static void npdu_encode_npdu_network(
     if (npdu_data) {
         npdu_data->data_expecting_reply = false;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
-        npdu_data->network_layer_message = true;       /* false if APDU */
-        npdu_data->network_message_type = network_message_type;      /* optional */
+        npdu_data->network_layer_message = true;        /* false if APDU */
+        npdu_data->network_message_type = network_message_type; /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
         npdu_data->hop_count = 255;
@@ -59,7 +59,7 @@ static void npdu_encode_npdu_network(
 
 /* find a specific router, or use -1 for limit if you want unlimited */
 void Send_Who_Is_Router_To_Network(
-    BACNET_ADDRESS *dst,
+    BACNET_ADDRESS * dst,
     int dnet)
 {
     int len = 0;
@@ -68,8 +68,7 @@ void Send_Who_Is_Router_To_Network(
     BACNET_NPDU_DATA npdu_data;
 
     npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK,
-        MESSAGE_PRIORITY_NORMAL);
+        NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, MESSAGE_PRIORITY_NORMAL);
     /* fixme: should dnet/dlen/dadr be set in NPDU?  */
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
@@ -78,7 +77,7 @@ void Send_Who_Is_Router_To_Network(
         len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], dnet);
         pdu_len += len;
 #if PRINT_ENABLED
-        fprintf(stderr, "Send Who-Is-Router-To-Network message to %u\n",dnet);
+        fprintf(stderr, "Send Who-Is-Router-To-Network message to %u\n", dnet);
 #endif
     } else {
 #if PRINT_ENABLED
@@ -90,15 +89,16 @@ void Send_Who_Is_Router_To_Network(
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Who-Is-Router-To-Network Request (%s)!\n",
+        fprintf(stderr,
+            "Failed to Send Who-Is-Router-To-Network Request (%s)!\n",
             strerror(errno));
 #endif
 }
- 
+
 /* pDNET_list: list of networks for which I am a router, 
    terminated with -1 */
 void Send_I_Am_Router_To_Network(
-  const int DNET_list[])
+    const int DNET_list[])
 {
     int len = 0;
     int pdu_len = 0;
@@ -109,8 +109,7 @@ void Send_I_Am_Router_To_Network(
     unsigned index = 0;
 
     npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
-        MESSAGE_PRIORITY_NORMAL);
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
     /* encode the optional DNET list portion of the packet */
@@ -123,7 +122,7 @@ void Send_I_Am_Router_To_Network(
         pdu_len += len;
         index++;
 #if PRINT_ENABLED
-        fprintf(stderr, "%u\n",dnet);
+        fprintf(stderr, "%u\n", dnet);
 #endif
     }
     /* I-Am-Router-To-Network shall always be transmitted with 
@@ -134,15 +133,16 @@ void Send_I_Am_Router_To_Network(
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to send I-Am-Router-To-Network message (%s)!\n",
+        fprintf(stderr,
+            "Failed to send I-Am-Router-To-Network message (%s)!\n",
             strerror(errno));
 #endif
 }
 
 /* */
 void Send_Initialize_Routing_Table(
-    BACNET_ADDRESS *dst,
-    BACNET_ROUTER_PORT *router_port_list)
+    BACNET_ADDRESS * dst,
+    BACNET_ROUTER_PORT * router_port_list)
 {
     int len = 0;
     int pdu_len = 0;
@@ -150,10 +150,9 @@ void Send_Initialize_Routing_Table(
     BACNET_NPDU_DATA npdu_data;
     uint8_t number_of_ports = 0;
     BACNET_ROUTER_PORT *router_port;
-    unsigned i = 0; /* counter */
+    unsigned i = 0;     /* counter */
 
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_INIT_RT_TABLE,
+    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE,
         MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
@@ -167,8 +166,8 @@ void Send_Initialize_Routing_Table(
     if (number_of_ports) {
         router_port = router_port_list;
         while (router_port) {
-            len = encode_unsigned16(
-                &Handler_Transmit_Buffer[pdu_len], 
+            len =
+                encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
                 router_port->dnet);
             pdu_len += len;
             Handler_Transmit_Buffer[pdu_len++] = router_port->id;
@@ -180,29 +179,29 @@ void Send_Initialize_Routing_Table(
         }
     }
 #if PRINT_ENABLED
-        fprintf(stderr, "Send Initialize-Routing-Table message\n");
+    fprintf(stderr, "Send Initialize-Routing-Table message\n");
 #endif
     bytes_sent =
         datalink_send_pdu(dst, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to send Initialize-Routing-Table message (%s)!\n",
+        fprintf(stderr,
+            "Failed to send Initialize-Routing-Table message (%s)!\n",
             strerror(errno));
 #endif
 }
 
 /* */
 void Send_Initialize_Routing_Table_Ack(
-  BACNET_ROUTER_PORT *router_port_list)
+    BACNET_ROUTER_PORT * router_port_list)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
+    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
         MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
@@ -213,7 +212,8 @@ void Send_Initialize_Routing_Table_Ack(
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Initialize-Routing-Table-Ack message (%s)!\n",
+        fprintf(stderr,
+            "Failed to Send Initialize-Routing-Table-Ack message (%s)!\n",
             strerror(errno));
 #endif
 }

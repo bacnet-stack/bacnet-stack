@@ -176,10 +176,14 @@ extern "C" {
         uint8_t ** service_request,
         uint16_t * service_request_len);
 
-    uint16_t apdu_timeout(void);
-    void apdu_timeout_set(uint16_t value);
-    uint8_t apdu_retries(void);
-    void apdu_retries_set(uint8_t value);
+    uint16_t apdu_timeout(
+        void);
+    void apdu_timeout_set(
+        uint16_t value);
+    uint8_t apdu_retries(
+        void);
+    void apdu_retries_set(
+        uint8_t value);
 
     void apdu_handler(
         BACNET_ADDRESS * src,   /* source address */

@@ -75,7 +75,9 @@ void dlmstp_millisecond_timer(
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
 
-void get_abstime(struct timespec *abstime, unsigned long milliseconds)
+void get_abstime(
+    struct timespec *abstime,
+    unsigned long milliseconds)
 {
     struct timeval tp;
     unsigned long seconds;
@@ -86,8 +88,8 @@ void get_abstime(struct timespec *abstime, unsigned long milliseconds)
     abstime->tv_nsec = tp.tv_usec * 1000;
     seconds = milliseconds / 1000;
     abstime->tv_sec += seconds;
-    abstime->tv_nsec += ((milliseconds - (seconds * 1000))*(1000*1000));
-    seconds =  abstime->tv_nsec / (1000*1000*1000);
+    abstime->tv_nsec += ((milliseconds - (seconds * 1000)) * (1000 * 1000));
+    seconds = abstime->tv_nsec / (1000 * 1000 * 1000);
     abstime->tv_sec += seconds;
 }
 
@@ -152,10 +154,8 @@ uint16_t dlmstp_receive(
     (void) max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
-    get_abstime(&abstime,timeout);
-    rv = pthread_cond_timedwait(
-        &Receive_Packet_Flag,
-        &Receive_Packet_Mutex,
+    get_abstime(&abstime, timeout);
+    rv = pthread_cond_timedwait(&Receive_Packet_Flag, &Receive_Packet_Mutex,
         &abstime);
     if (rv == 0) {
         if (Receive_Packet.ready) {
@@ -227,8 +227,8 @@ static void *dlmstp_master_fsm_task(
         if (milliseconds) {
             get_abstime(&abstime, milliseconds);
             /* we want an OS effecient way to wait for a frame */
-            pthread_cond_timedwait(&Received_Frame_Flag,
-                &Received_Frame_Mutex, &abstime);
+            pthread_cond_timedwait(&Received_Frame_Flag, &Received_Frame_Mutex,
+                &abstime);
         }
         MSTP_Master_Node_FSM(&MSTP_Port);
     }
@@ -622,26 +622,28 @@ bool dlmstp_init(
     Receive_Packet.pdu_len = 0;
     rv = pthread_cond_init(&Receive_Packet_Flag, NULL);
     if (rv == -1) {
-        fprintf(stderr, "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
+        fprintf(stderr,
+            "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
             ifname);
         exit(1);
     }
     rv = pthread_cond_init(&Received_Frame_Flag, NULL);
     if (rv == -1) {
-        fprintf(stderr, "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
+        fprintf(stderr,
+            "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
             ifname);
         exit(1);
     }
     rv = pthread_mutex_init(&Receive_Packet_Mutex, NULL);
     if (rv == -1) {
-        fprintf(stderr, "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n",
-            ifname);
+        fprintf(stderr,
+            "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n", ifname);
         exit(1);
     }
     rv = pthread_mutex_init(&Received_Frame_Mutex, NULL);
     if (rv == -1) {
-        fprintf(stderr, "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n",
-            ifname);
+        fprintf(stderr,
+            "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n", ifname);
         exit(1);
     }
     /* initialize hardware */
