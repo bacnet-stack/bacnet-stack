@@ -74,4 +74,7 @@ fi
 rm -rf $ARCHIVE_NAME
 
 echo "Complete!"
-echo "FTP the files to upload.sourceforge.net/incoming"
+echo "WebDAV the files to https://frs.sourceforge.net/s/sk/skarg/upload"
+echo "Use the command line FTP-like client cadaver"
+echo "or go to https://frs.sourceforge.net/webupload"
+
