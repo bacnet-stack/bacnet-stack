@@ -191,42 +191,41 @@ static void Init_DataLink(
 int main(int argc, char *argv[]) {
     unsigned arg_count = 0;
 
-    if (argc < 2) {
+    if       (argc < 2) {
         printf("Usage: %s DNET [DNET] [DNET] [...]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
-    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+    if   ((
+            argc > 1) && (
+            strcmp(argv[1],
+                "--help") == 0)) {
         printf("Send BACnet I-Am-Router-To-Network message for \r\n"
-            "one or more networks.\r\n"
-            "\r\nDNET:\r\n"
+            "one or more networks.\r\n" "\r\nDNET:\r\n"
             "BACnet destination network number 0-65534\r\n"
             "To send a I-Am-Router-To-Network message for DNET 86:\r\n"
-            "%s 86\r\n" 
+            "%s 86\r\n"
             "To send a I-Am-Router-To-Network message for multiple DNETs\r\n"
-            "use the following command:\r\n" 
-            "%s 86 42 24 14\r\n",
-            filename_remove_path(argv[0]), 
-            filename_remove_path(argv[0]));
+            "use the following command:\r\n" "%s 86 42 24 14\r\n",
+            filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
     if (argc > 1) {
         for (arg_count = 1; arg_count < argc; arg_count++) {
             if (arg_count > MAX_ROUTER_DNETS) {
-                fprintf(stderr,
-                    "Limited to %u DNETS.  Sorry!\r\n",
+                fprintf(stderr, "Limited to %u DNETS.  Sorry!\r\n",
                     MAX_ROUTER_DNETS);
                 break;
             }
-            Target_Router_Networks[arg_count-1] = strtol(argv[arg_count], NULL, 0);
+            Target_Router_Networks[arg_count - 1] =
+                strtol(argv[arg_count], NULL, 0);
             /* mark the end of list */
             Target_Router_Networks[arg_count] = -1;
             /* invalid DNET? */
-            if (Target_Router_Networks[arg_count-1] >= 65535) {
-                fprintf(stderr,
-                    "DNET=%u - it must be less than %u\r\n",
-                    Target_Router_Networks[arg_count-1], 65535);
+            if (Target_Router_Networks[arg_count - 1] >= 65535) {
+                fprintf(stderr, "DNET=%u - it must be less than %u\r\n",
+                    Target_Router_Networks[arg_count - 1], 65535);
                 return 1;
             }
         }
@@ -238,6 +237,6 @@ int main(int argc, char *argv[]) {
     Init_DataLink();
     /* send the request */
     Send_I_Am_Router_To_Network(Target_Router_Networks);
-    
+
     return 0;
 }

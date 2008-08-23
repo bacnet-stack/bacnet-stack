@@ -110,19 +110,19 @@ extern "C" {
         BACNET_OCTET_STRING * fileData);
 
     void Send_Who_Is_Router_To_Network(
-        BACNET_ADDRESS *dst,
+        BACNET_ADDRESS * dst,
         int dnet);
     void Send_I_Am_Router_To_Network(
-      const int DNET_list[]);
+        const int DNET_list[]);
     void Send_Initialize_Routing_Table(
-        BACNET_ADDRESS *dst,
-        BACNET_ROUTER_PORT *router_port_list);
+        BACNET_ADDRESS * dst,
+        BACNET_ROUTER_PORT * router_port_list);
     void Send_Initialize_Routing_Table_Ack(
-      BACNET_ROUTER_PORT *router_port_list);
-      
-      
-        
-        
+        BACNET_ROUTER_PORT * router_port_list);
+
+
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

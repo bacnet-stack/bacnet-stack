@@ -117,12 +117,13 @@ uint16_t MSTP_Get_Reply(
     return 0;
 }
 
-static int network_init(const char *name, int protocol)
+static int network_init(
+    const char *name,
+    int protocol)
 {
     /* check to see if we are being run as root */
     if (getuid() != 0) {
-        fprintf(stderr,
-            "Requires root priveleges.\n");
+        fprintf(stderr, "Requires root priveleges.\n");
         return -1;
     }
 
@@ -162,9 +163,9 @@ static void snap_received_packet(
     volatile struct mstp_port_struct_t *mstp_port,
     int sockfd)
 {
-    uint16_t mtu_len = 0;  /* number of octets of packet saved in file */
-    unsigned i = 0; /* counter */
-    static uint8_t mtu[1500] = {0};
+    uint16_t mtu_len = 0;       /* number of octets of packet saved in file */
+    unsigned i = 0;     /* counter */
+    static uint8_t mtu[1500] = { 0 };
 
     mtu[0] = 0;
     mtu[1] = 0;
@@ -177,7 +178,7 @@ static void snap_received_packet(
     mtu[8] = 0;
     mtu[9] = 0;
     mtu[10] = 0;
-    mtu[11]= mstp_port->SourceAddress;
+    mtu[11] = mstp_port->SourceAddress;
     /* length - 12, 13 */
     mtu[14] = 0xaa;     /* DSAP for SNAP */
     mtu[15] = 0xaa;     /* SSAP for SNAP */
@@ -199,15 +200,15 @@ static void snap_received_packet(
     mtu_len = 31;
     if (mstp_port->DataLength) {
         for (i = 0; i < mstp_port->DataLength; i++) {
-            mtu[31+i] = mstp_port->InputBuffer[i];
+            mtu[31 + i] = mstp_port->InputBuffer[i];
         }
-        mtu[31+mstp_port->DataLength] = mstp_port->DataCRCActualMSB;
-        mtu[31+mstp_port->DataLength+1] = mstp_port->DataCRCActualLSB;
-        mtu_len += (mstp_port->DataLength+2);
+        mtu[31 + mstp_port->DataLength] = mstp_port->DataCRCActualMSB;
+        mtu[31 + mstp_port->DataLength + 1] = mstp_port->DataCRCActualLSB;
+        mtu_len += (mstp_port->DataLength + 2);
     }
     /* Ethernet length is data only - not address or length bytes */
-    encode_unsigned16(&mtu[12], mtu_len-14);
-    write(sockfd,&mtu[0], mtu_len);
+    encode_unsigned16(&mtu[12], mtu_len - 14);
+    write(sockfd, &mtu[0], mtu_len);
 }
 
 
