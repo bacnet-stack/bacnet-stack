@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include "bacdef.h"
 #include "apdu.h"
+#include "npdu.h"
 #include "bacapp.h"
 #include "bacenum.h"
 
@@ -114,7 +115,8 @@ extern "C" {
     void Send_I_Am_Router_To_Network(
       const int DNET_list[]);
     void Send_Initialize_Routing_Table(
-      BACNET_ROUTER_PORT *router_port_list);
+        BACNET_ADDRESS *dst,
+        BACNET_ROUTER_PORT *router_port_list);
     void Send_Initialize_Routing_Table_Ack(
       BACNET_ROUTER_PORT *router_port_list);
       

@@ -141,11 +141,11 @@ void Send_I_Am_Router_To_Network(
 
 /* */
 void Send_Initialize_Routing_Table(
-  BACNET_ROUTER_PORT *router_port_list)
+    BACNET_ADDRESS *dst,
+    BACNET_ROUTER_PORT *router_port_list)
 {
     int len = 0;
     int pdu_len = 0;
-    BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     uint8_t number_of_ports = 0;
@@ -179,11 +179,11 @@ void Send_Initialize_Routing_Table(
             router_port = router_port->next;
         }
     }
-    /* Init Routing Table shall always be transmitted with 
-       a broadcast MAC address. */
-    datalink_get_broadcast_address(&dest);
+#if PRINT_ENABLED
+        fprintf(stderr, "Send Initialize-Routing-Table message\n");
+#endif
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        datalink_send_pdu(dst, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
