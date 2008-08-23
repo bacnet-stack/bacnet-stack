@@ -37,7 +37,7 @@
 char *filename_remove_path(
     const char *filename_in)
 {
-    char *filename_out = NULL;
+    char *filename_out = filename_in;
 
     /* allow the device ID to be set */
     if (filename_in) {
@@ -65,6 +65,7 @@ void testFilename(
     char *data2 = "/home/Anna/run";
     char *data3 = "c:\\Program Files\\Christopher\\run.exe";
     char *data4 = "//Mary/data/run";
+    char *data5 = "bin\\run";
     char *filename = NULL;
 
     filename = filename_remove_path(data1);
@@ -74,6 +75,8 @@ void testFilename(
     filename = filename_remove_path(data3);
     ct_test(pTest, strcmp("run.exe", filename) == 0);
     filename = filename_remove_path(data4);
+    ct_test(pTest, strcmp("run", filename) == 0);
+    filename = filename_remove_path(data5);
     ct_test(pTest, strcmp("run", filename) == 0);
 
     return;
