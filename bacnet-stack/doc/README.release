@@ -38,8 +38,9 @@ tar and gzip the clean directory from one directory up.
 $ tar -cvvzf bacnet-stack-0.0.0.tgz bacnet-stack/ 
 
 Put the new release up on SourceForge
-Connect to ftp://upload.sourceforge.net/ as anonymous
-Upload the tarball to the incoming directory.
+Connect to the Web upload page. 
+Use your SourceForge.net username and password to authenticate. 
+Upload the tarball.
 
 Go to http://sourceforge.net/projects/bacnet/
   Admin -> File Releases
