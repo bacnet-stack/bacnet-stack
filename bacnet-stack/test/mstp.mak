@@ -7,6 +7,8 @@ DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_MSTP
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = $(SRC_DIR)/mstp.c \
+	$(SRC_DIR)/mstptext.c \
+	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/crc.c \
 	$(SRC_DIR)/ringbuf.c \
 	ctest.c
