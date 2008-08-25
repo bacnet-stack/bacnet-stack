@@ -38,7 +38,7 @@
 #include <sys/timeb.h>
 #include <process.h>
 
-#ifdef __MSC_VER
+#ifdef _MSC_VER
 #define inline __inline
 #endif
 
