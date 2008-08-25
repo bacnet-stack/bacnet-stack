@@ -189,11 +189,11 @@ SOURCE=..\..\..\src\datetime.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\src\debug.c
+SOURCE=..\..\..\src\dcc.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\src\dcc.c
+SOURCE=..\..\..\src\debug.c
 # End Source File
 # Begin Source File
 
@@ -466,6 +466,10 @@ SOURCE=..\..\..\include\mstp.h
 # Begin Source File
 
 SOURCE=..\..\..\include\mstptext.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\net.h
 # End Source File
 # Begin Source File
 
