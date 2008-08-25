@@ -4,7 +4,7 @@
 /* C99 Boolean types for compilers without C99 support */
 
 #ifndef __cplusplus
-typedef int _Bool;
+typedef char _Bool;
 #ifndef bool
 #define bool _Bool
 #endif
