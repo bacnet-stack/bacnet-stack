@@ -39,6 +39,10 @@
 #include <stdio.h>
 #include "bacdef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #if DEBUG_ENABLED
 void debug_printf(
     const char *format,
@@ -51,5 +55,9 @@ static void debug_printf(
     format = format;
 }
 #endif
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
