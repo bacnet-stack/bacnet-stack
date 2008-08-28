@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\.." /I ".." /I "..\object" /I "..\handler" /D "NDEBUG" /D "BACDL_BIP" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=0 /D BIG_ENDIAN=0 /D BACDL_BIP=1 /D PRINT_ENABLED=1 /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\include" /I "..\..\win32" /D "NDEBUG" /D "BACDL_BIP" /D TSM_ENABLED=0 /D BACDL_BIP=1 /D USE_INADDR=1 /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\.." /I ".." /I "..\object" /I "..\handler" /I "..\..\ports\win32" /D "_DEBUG" /D BACDL_BIP=1 /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D TSM_ENABLED=1 /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D USE_INADDR=0 /FR /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\ports\win32" /I "..\..\include" /I "..\..\win32" /D "_DEBUG" /D TSM_ENABLED=1 /D USE_INADDR=0 /D BACDL_BIP=1 /D USE_INADDR=1 /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -89,11 +89,11 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\abort.c
+SOURCE=..\..\src\abort.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\address.c
+SOURCE=..\..\src\address.c
 # End Source File
 # Begin Source File
 
@@ -105,11 +105,11 @@ SOURCE=..\object\ao.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\apdu.c
+SOURCE=..\..\src\apdu.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\arf.c
+SOURCE=..\..\src\arf.c
 # End Source File
 # Begin Source File
 
@@ -117,15 +117,19 @@ SOURCE=..\object\av.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacapp.c
+SOURCE=..\..\src\bacaddr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacdcode.c
+SOURCE=..\..\src\bacapp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacerror.c
+SOURCE=..\..\src\bacdcode.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\bacerror.c
 # End Source File
 # Begin Source File
 
@@ -133,11 +137,19 @@ SOURCE=..\object\bacfile.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacstr.c
+SOURCE=..\..\src\bacint.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bactext.c
+SOURCE=..\..\src\bacreal.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\bacstr.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\bactext.c
 # End Source File
 # Begin Source File
 
@@ -145,15 +157,11 @@ SOURCE=..\object\bi.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bigend.c
-# End Source File
-# Begin Source File
-
 SOURCE="..\..\ports\win32\bip-init.c"
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bip.c
+SOURCE=..\..\src\bip.c
 # End Source File
 # Begin Source File
 
@@ -165,19 +173,31 @@ SOURCE=..\object\bv.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\crc.c
+SOURCE=..\..\src\bvlc.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\datetime.c
+SOURCE=..\..\src\cov.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\dcc.c
+SOURCE=..\..\src\crc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\datetime.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\dcc.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\object\device.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\filename.c
 # End Source File
 # Begin Source File
 
@@ -186,6 +206,10 @@ SOURCE=..\handler\h_arf.c
 # Begin Source File
 
 SOURCE=..\handler\h_arf_a.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\handler\h_cov.c
 # End Source File
 # Begin Source File
 
@@ -209,11 +233,11 @@ SOURCE=..\handler\h_wp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\iam.c
+SOURCE=..\..\src\iam.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\indtext.c
+SOURCE=..\..\src\indtext.c
 # End Source File
 # Begin Source File
 
@@ -245,19 +269,19 @@ SOURCE=..\handler\noserv.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\npdu.c
+SOURCE=..\..\src\npdu.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\reject.c
+SOURCE=..\..\src\reject.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\ringbuf.c
+SOURCE=..\..\src\ringbuf.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\rp.c
+SOURCE=..\..\src\rp.c
 # End Source File
 # Begin Source File
 
@@ -273,7 +297,7 @@ SOURCE=..\handler\s_wp.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\tsm.c
+SOURCE=..\..\src\tsm.c
 # End Source File
 # Begin Source File
 
@@ -281,11 +305,15 @@ SOURCE=..\handler\txbuf.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\whois.c
+SOURCE=..\..\src\version.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\wp.c
+SOURCE=..\..\src\whois.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\wp.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -293,11 +321,11 @@ SOURCE=..\..\wp.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\..\abort.h
+SOURCE=..\..\include\abort.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\address.h
+SOURCE=..\..\include\address.h
 # End Source File
 # Begin Source File
 
@@ -309,31 +337,31 @@ SOURCE=..\object\ao.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\apdu.h
+SOURCE=..\..\include\apdu.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\arcnet.h
+SOURCE=..\..\include\arcnet.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacapp.h
+SOURCE=..\..\include\bacapp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacdcode.h
+SOURCE=..\..\include\bacdcode.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacdef.h
+SOURCE=..\..\include\bacdef.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacenum.h
+SOURCE=..\..\include\bacenum.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacerror.h
+SOURCE=..\..\include\bacerror.h
 # End Source File
 # Begin Source File
 
@@ -341,23 +369,23 @@ SOURCE=..\object\bacfile.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bacstr.h
+SOURCE=..\..\include\bacstr.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bactext.h
+SOURCE=..\..\include\bactext.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bigend.h
+SOURCE=..\..\include\bigend.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bip.h
+SOURCE=..\..\include\bip.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bits.h
+SOURCE=..\..\include\bits.h
 # End Source File
 # Begin Source File
 
@@ -369,35 +397,7 @@ SOURCE=..\object\bv.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\bytes.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\config.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\crc.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\datalink.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\datetime.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\object\device.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\ethernet.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\handler\handlers.h
+SOURCE=..\..\include\bytes.h
 # End Source File
 # Begin Source File
 
@@ -405,7 +405,35 @@ SOURCE=..\handler\client.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\iam.h
+SOURCE=..\..\include\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\crc.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\datalink.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\datetime.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\object\device.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\ethernet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\handler\handlers.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\iam.h
 # End Source File
 # Begin Source File
 
@@ -413,27 +441,27 @@ SOURCE=..\object\mso.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\mstp.h
+SOURCE=..\..\include\mstp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\npdu.h
+SOURCE=..\..\include\npdu.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\reject.h
+SOURCE=..\..\include\reject.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\ringbuf.h
+SOURCE=..\..\include\ringbuf.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\rp.h
+SOURCE=..\..\include\rp.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\rs485.h
+SOURCE=..\..\include\rs485.h
 # End Source File
 # Begin Source File
 
@@ -445,15 +473,15 @@ SOURCE=..\stdint.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\tsm.h
+SOURCE=..\..\include\tsm.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\whois.h
+SOURCE=..\..\include\whois.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\wp.h
+SOURCE=..\..\include\wp.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
