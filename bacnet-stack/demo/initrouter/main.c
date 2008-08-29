@@ -229,7 +229,7 @@ static void address_parse(BACNET_ADDRESS * dst,
 int main(int argc, char *argv[]) {
 
     if (argc < 2) {
-        printf("Usage: %s address number-of-ports [DNET ID Len Info]\r\n",
+        printf("Usage: %s address [DNET ID Len Info]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -239,13 +239,20 @@ int main(int argc, char *argv[]) {
                 "--help") == 0)) {
         printf("Send BACnet Initialize-Routing-Table message to a network\r\n"
             "and wait for responses.  Displays their network information.\r\n"
-            "\r\n" "address:\r\n"
+            "\r\n" 
+            "address:\r\n"
             "MAC address in xx:xx:xx:xx:xx:xx format or IP x.x.x.x:port\r\n"
-            "number-of-ports:\r\n"
-            "Number of ports to update along with port-info data\r\n"
-            "To query the complete routing table, use 0.\r\n"
+            "DNET ID Len Info:\r\n"
+            "Port-info data:\r\n"
+            "   DNET:\r\n"
+            "   Destination network number 0-65534\r\n"
+            "   ID:\r\n"
+            "   Port Identifier number 0-255\r\n"
+            "   Info:\r\n"
+            "   Octet string of data, up to 255 octets\r\n"
+            "To query the complete routing table, do not include any port-info.\r\n"
             "To query using Initialize-Routing-Table message to 192.168.0.18:\r\n"
-            "%s 192.168.0.18:47808 0\r\n", filename_remove_path(argv[0]));
+            "%s 192.168.0.18:47808\r\n", filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
