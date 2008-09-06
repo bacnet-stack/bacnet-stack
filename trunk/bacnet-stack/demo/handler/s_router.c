@@ -98,7 +98,7 @@ void Send_Who_Is_Router_To_Network(
 #endif
 }
 
-/* pDNET_list: list of networks for which I am a router, 
+/* pDNET_list: list of networks for which I am a router,
    terminated with -1 */
 void Send_I_Am_Router_To_Network(
     const int DNET_list[])
@@ -112,7 +112,7 @@ void Send_I_Am_Router_To_Network(
     unsigned index = 0;
 
     npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, 
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
         false,
         MESSAGE_PRIORITY_NORMAL);
     pdu_len =
@@ -130,7 +130,7 @@ void Send_I_Am_Router_To_Network(
         fprintf(stderr, "%u\n", dnet);
 #endif
     }
-    /* I-Am-Router-To-Network shall always be transmitted with 
+    /* I-Am-Router-To-Network shall always be transmitted with
        a broadcast MAC address. */
     datalink_get_broadcast_address(&dest);
     bytes_sent =
@@ -157,7 +157,7 @@ void Send_Initialize_Routing_Table(
     BACNET_ROUTER_PORT *router_port;
     unsigned i = 0;     /* counter */
 
-    npdu_encode_npdu_network(&npdu_data, 
+    npdu_encode_npdu_network(&npdu_data,
         NETWORK_MESSAGE_INIT_RT_TABLE,
         true,
         MESSAGE_PRIORITY_NORMAL);
@@ -208,7 +208,7 @@ void Send_Initialize_Routing_Table_Ack(
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    npdu_encode_npdu_network(&npdu_data, 
+    npdu_encode_npdu_network(&npdu_data,
         NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
         false,
         MESSAGE_PRIORITY_NORMAL);
