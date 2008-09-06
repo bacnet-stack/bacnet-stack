@@ -117,7 +117,7 @@ static void print_address_cache(
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
             printf("%7u ", device_id);
-            for (j = 0; j < 7; j++) {
+            for (j = 0; j < MAX_MAC_LEN; j++) {
                 if (j < address.mac_len) {
                     printf("%02X", address.mac[j]);
                 } else {
@@ -127,7 +127,7 @@ static void print_address_cache(
             printf(" %4hu ", max_apdu);
             printf("%5hu ", address.net);
             if (address.net) {
-                for (j = 0; j < 7; j++) {
+                for (j = 0; j < MAX_MAC_LEN; j++) {
                     if (j < address.len) {
                         printf("%02X", address.adr[j]);
                     } else {

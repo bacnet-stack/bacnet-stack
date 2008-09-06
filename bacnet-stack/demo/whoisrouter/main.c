@@ -40,6 +40,7 @@
 #include "device.h"
 #include "datalink.h"
 /* some demo stuff needed */
+#include "debug.h"
 #include "filename.h"
 #include "handlers.h"
 #include "client.h"
@@ -81,6 +82,51 @@ void MyRejectHandler(
     (void) invoke_id;
     printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
+}
+
+void router_handler(
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t * npdu,      /* PDU data */
+    uint16_t npdu_len)
+{
+    uint16_t npdu_offset = 0;
+    uint16_t dnet = 0;
+    uint16_t len = 0;
+    uint16_t j = 0;
+
+    switch (npdu_data->network_message_type) {
+        case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
+            printf("I-Am Router to Network from ");
+            for (j = 0; j < MAX_MAC_LEN; j++) {
+                if (j < src->mac_len) {
+                    printf("%02X", src->mac[j]);
+                }
+            }
+            printf("\nNetworks: ");
+            while (npdu_len) {
+                len = decode_unsigned16(&npdu[npdu_offset], &dnet);
+                printf("%hu",dnet);
+                npdu_len -= len;
+                if (npdu_len) {
+                    printf(", ");
+                }
+            }
+            printf("\n");
+            break;
+        case NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK:
+        case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
+        case NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK:
+        case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
+        case NETWORK_MESSAGE_INIT_RT_TABLE:
+        case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
+        case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
+        case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
+        default:
+            break;
+    }
 }
 
 static void Init_Service_Handlers(
