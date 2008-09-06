@@ -83,6 +83,92 @@ void MyRejectHandler(
     Error_Detected = true;
 }
 
+void router_handler(
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t * npdu,      /* PDU data */
+    uint16_t npdu_len)
+{
+    uint16_t npdu_offset = 0;
+    uint16_t dnet = 0;
+    uint16_t len = 0;
+    uint16_t j = 0;
+    unsigned port_mappings = 0;
+    unsigned port_id = 0;
+    unsigned port_info_len = 0;
+
+    switch (npdu_data->network_message_type) {
+        case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_INIT_RT_TABLE:
+            break;
+        case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
+            printf("Initialize-Routing-Table-Ack from ");
+            for (j = 0; j < MAX_MAC_LEN; j++) {
+                if (j < src->mac_len) {
+                    printf("%02X", src->mac[j]);
+                }
+            }
+            port_mappings = npdu[0];
+            printf("\nPort Mappings: %u\n",port_mappings);
+            npdu_offset = 1;
+            npdu_len--;
+            while (npdu_len) {
+                len = decode_unsigned16(&npdu[npdu_offset], &dnet);
+                printf("DNET=%hu, ",dnet);
+                npdu_offset += len;
+                npdu_len -= len;
+                if (!npdu_len) {
+                    break;
+                }
+                port_id = npdu[npdu_offset];
+                printf("Port ID=%u, ",port_id);
+                npdu_offset++;
+                npdu_len--;
+                if (!npdu_len) {
+                    break;
+                }
+                port_info_len = npdu[npdu_offset];
+                printf("Port Info Length=%u, ",port_info_len);
+                npdu_offset++;
+                npdu_len--;
+                printf("Port Info=\"");
+                for (j = 0; j < 255; j++) {
+                    if (!npdu_len) {
+                        break;
+                    }
+                    if (j < port_info_len) {
+                        printf("%02X",npdu[npdu_offset]);
+                        npdu_offset++;
+                        npdu_len--;
+                    }
+                }
+                printf("\"");
+                if (npdu_len) {
+                    printf("\n");
+                }
+            }
+            printf("\n");
+            break;
+        case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
+            break;
+        case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
+            break;
+        default:
+            break;
+    }
+}
+
 static void Init_Service_Handlers(
     void)
 {
@@ -227,6 +313,15 @@ static void address_parse(BACNET_ADDRESS * dst,
 }
 
 int main(int argc, char *argv[]) {
+    BACNET_ADDRESS src = {
+    0}; /* address where message came from */
+    uint16_t pdu_len = 0;
+    unsigned timeout = 100;     /* milliseconds */
+    time_t total_seconds = 0;
+    time_t elapsed_seconds = 0;
+    time_t last_seconds = 0;
+    time_t current_seconds = 0;
+    time_t timeout_seconds = 0;
 
     if (argc < 2) {
         printf("Usage: %s address [DNET ID Len Info]\r\n",
@@ -239,7 +334,7 @@ int main(int argc, char *argv[]) {
                 "--help") == 0)) {
         printf("Send BACnet Initialize-Routing-Table message to a network\r\n"
             "and wait for responses.  Displays their network information.\r\n"
-            "\r\n" 
+            "\r\n"
             "address:\r\n"
             "MAC address in xx:xx:xx:xx:xx:xx format or IP x.x.x.x:port\r\n"
             "DNET ID Len Info:\r\n"
@@ -259,7 +354,7 @@ int main(int argc, char *argv[]) {
     address_parse(&Target_Router_Address, argc - 1, &argv[1]);
     if (argc > 2) {
         /* FIXME: add port info parse */
-        /* BACNET_ROUTER_PORT *router_port_list 
+        /* BACNET_ROUTER_PORT *router_port_list
            Target_Router_Port_List
            ports_parse(&router_port[0], argc-2, &argv[2]);
            Target_Router_Port_List = router_port[0];
@@ -270,9 +365,37 @@ int main(int argc, char *argv[]) {
     Init_Service_Handlers();
     address_init();
     Init_DataLink();
+    /* configure the timeout values */
+    last_seconds = time(NULL);
+    timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
     Send_Initialize_Routing_Table(&Target_Router_Address,
         Target_Router_Port_List);
+    /* loop forever */
+    for (;;) {
+        /* increment timer - exit if timed out */
+        current_seconds = time(NULL);
+        /* returns 0 bytes on timeout */
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        /* process */
+        if (pdu_len) {
+            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+        }
+        if (Error_Detected)
+            break;
+        /* increment timer - exit if timed out */
+        elapsed_seconds = current_seconds - last_seconds;
+        if (elapsed_seconds) {
+#if defined(BACDL_BIP) && BBMD_ENABLED
+            bvlc_maintenance_timer(elapsed_seconds);
+#endif
+        }
+        total_seconds += elapsed_seconds;
+        if (total_seconds > timeout_seconds)
+            break;
+        /* keep track of time for next check */
+        last_seconds = current_seconds;
+    }
 
     return 0;
 }
