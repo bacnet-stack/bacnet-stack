@@ -28,11 +28,11 @@ BACNET_OBJECT = ..\demo\object
 BACNET_HANDLER = ..\demo\handler
 BACNET_CORE = ..\src
 BACNET_INCLUDE = ..\include
-INCLUDES = \ 
+INCLUDES = \
 	-I$(BACNET_INCLUDE) \
 	-I$(BACNET_PORT) \
 	-I$(BACNET_OBJECT) \
-	-I$(BACNET_HANDLER) 
+	-I$(BACNET_HANDLER)
 
 CORE1_SRC = $(BACNET_CORE)\apdu.c \
 	$(BACNET_CORE)\npdu.c \
@@ -68,11 +68,12 @@ CORE2_SRC = $(BACNET_CORE)\arf.c \
 	$(BACNET_CORE)\timesync.c \
 	$(BACNET_CORE)\whohas.c \
 	$(BACNET_CORE)\whois.c \
-	$(BACNET_CORE)\wp.c 
+	$(BACNET_CORE)\wp.c
 
 HANDLER_SRC = $(BACNET_HANDLER)\txbuf.c \
 	$(BACNET_HANDLER)\noserv.c \
 	$(BACNET_HANDLER)\h_whois.c \
+	$(BACNET_HANDLER)\h_npdu.c \
 	$(BACNET_HANDLER)\h_iam.c  \
 	$(BACNET_HANDLER)\h_rp.c \
 	$(BACNET_HANDLER)\h_rp_a.c \
