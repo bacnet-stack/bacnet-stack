@@ -38,7 +38,7 @@ OPTIMIZATION = -O0
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
-SRCS = main.c npdu.c
+SRCS = main.c h_npdu.c
 
 OBJS = ${SRCS:.c=.o}
 

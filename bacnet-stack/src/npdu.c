@@ -372,40 +372,6 @@ int npdu_decode(
     return len;
 }
 
-void npdu_handler(
-    BACNET_ADDRESS * src,       /* source address */
-    uint8_t * pdu,      /* PDU data */
-    uint16_t pdu_len)
-{       /* length PDU  */
-    int apdu_offset = 0;
-    BACNET_ADDRESS dest = { 0 };
-    BACNET_NPDU_DATA npdu_data = { 0 };
-
-    apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
-    if (npdu_data.network_layer_message) {
-        /*FIXME: network layer message received!  Handle it! */
-        debug_printf("NPDU: Network Layer Message discarded!\n");
-    } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
-        if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
-            ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK))) {
-            /* only handle the version that we know how to handle */
-            /* and we are not a router, so ignore messages with
-               routing information cause they are not for us */
-            apdu_handler(src, &pdu[apdu_offset],
-                (uint16_t) (pdu_len - apdu_offset));
-        } else {
-            if (dest.net) {
-                debug_printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
-            } else {
-                debug_printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n",
-                    npdu_data.protocol_version);
-            }
-        }
-    }
-
-    return;
-}
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
