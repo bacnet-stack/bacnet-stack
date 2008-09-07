@@ -13,7 +13,7 @@
   <P><a href="http://sourceforge.net/projects/bacnet/">This BACnet protocol stack library</a>
   provides a BACnet application layer, network layer and media access (MAC)
   layer communications services.  It is an open source, royalty-free library
-  for an embedded system, Windows, Linux, or other operating system.  Example 
+  for an embedded system, Windows, Linux, or other operating system.  Example
   BACnet client and server applications are included.</p>
 
   <P>BACnet - A Data Communication Protocol for Building
@@ -40,9 +40,9 @@
     Win32, used for Visually testing a BACnet implementation.  It also includes
     a detailed network sniffer for BACnet messages, and the ability  to send
     any BACnet services.  The source code is in the public domain. </li>
-    <li><a href="http://www.wireshark.org/">Wireshark</a> - an open source, 
-    cross platform protocol analyzer with BACnet support.  The detailed BACnet 
-    support began in version 0.10.11 released on May 4, 2005 when Wireshark 
+    <li><a href="http://www.wireshark.org/">Wireshark</a> - an open source,
+    cross platform protocol analyzer with BACnet support.  The detailed BACnet
+    support began in version 0.10.11 released on May 4, 2005 when Wireshark
     was known as Ethereal.</li>
     <li><a href="http://bacnet4linux.sourceforge.net/">BACnet4Linux</a> - an
     LGPL BACnet application that requires Linux as the OS.</li>
@@ -77,13 +77,13 @@
   <p>Our BACnet protocol stack implementation is specifically designed for the
   embedded BACnet appliance, using a GPL with exception license (like <a
     href="http://ecos.sourceware.org/">eCos</a>),
-  which means that any changes to the core code that are distributed are 
+  which means that any changes to the core code that are distributed are
   made available, but the BACnet library can be linked to
-  proprietary code without it becoming licensed under the GPL. 
-  See the <a href="http://ecos.sourceware.org/license-overview.html">eCos license overview</a> for 
-  easy to read details about this exception to the GPL. 
-  The license does <i>not</i> require users to release the source code of any 
-  <i>applications</i> that are developed with this BACnet stack - only portions of 
+  proprietary code without it becoming licensed under the GPL.
+  See the <a href="http://ecos.sourceware.org/license-overview.html">eCos license overview</a> for
+  easy to read details about this exception to the GPL.
+  The license does <i>not</i> require users to release the source code of any
+  <i>applications</i> that are developed with this BACnet stack - only portions of
   the BACnet stack that have been modified.  Note that those files in this
   BACnet stack that are expected to be modified are licensed using the
   <a href="http://en.wikipedia.org/wiki/MIT_License">MIT License</a>.<p>
@@ -125,30 +125,68 @@
   unittest.sh script, or using individual .mak files. They were tested under
   <a href="http://www.debian.org/">Debian GNU/Linux</a> and <a href="http://www.ubuntu.com/">Ubuntu Linux</a>.</p>
 
-  <p>The BACnet stack was functionally tested 
+  <p>The BACnet stack was functionally tested
   using <a href="http://vts.sourceforge.net/">VTS (Visual Test Shell)</a>,
-  another project hosted on SourceForge, as well as various BACnet controllers, 
+  another project hosted on SourceForge, as well as various BACnet controllers,
   BACnet workstations, and through BACnet routers.<p>
 
 <h2>Demo BACnet Applications</h2>
-  <p>Using a master Makefile in the project root directory, a dozen 
+  <p>Using a master Makefile in the project root directory, a dozen
   demo applications can be created that run under Linux or Win32.
   Linux supports BACnet Ethernet, BACnet/IP, or ARCNET data link layer
-  for communication, and BACnet/IP is supported under Win32.  BACnet Ethernet 
+  for communication, and BACnet/IP is supported under Win32.  BACnet Ethernet
   can also be used under Win32 with the <a href="http://www.winpcap.org/">WinPcap library</a>.
   Root priveleges are required to run the Ethernet or ARCNET interfaces
-  on Linux, but are not needed to run BACnet/IP. 
+  on Linux, but are not needed to run BACnet/IP.
   MS/TP support under Windows or Linux using a USB to RS-485 device is a
   work in progress. </p>
 
-  <p>The demo application accept command line arguments. 
-  To specify an array index of ALL, use "-1". 
-  To make a priority optional, use "0".  
-  The applications also use environment variables to set 
-  datalink layer preferences.</p>
-
+  <p>To build all the demo applications under linux using the
+  BACnet/IP datalink layer, use the familiar make command:</p>
   <code>
   $ make clean all<br>
+  </code>
+  <p>You can also modify the Makefile variabiles from the command line to build
+  with the BACnet MS/TP datalink layer, for example:</p>
+  <code>
+  $ make BACDL_DEFINE=-DBACDL_MSTP=1 clean all<br>
+  </code>
+
+  <p>To build all the demo applications under Windows with the
+  BACnet/IP datalink layer and utilizing the
+  <a href="http://www.mingw.org/">MinGW tools</a>,
+  use the <code>build.bat</code> file provided in the root directory.
+  Note that you may have to
+  copy the <code>mingw-make.exe</code> to <code>make.exe</code>
+  to enable the compile.</p>
+  <code>
+  $ build.bat<br>
+  <code>
+
+  <p>To build all the demo applications under Windows with the
+  BACnet/IP datalink layer and utilizing the
+  <a href=http://www.borland.com/>Borland tools</a>, use the
+  <code>borland.bat</code> file provided in the root directory.</p>
+  <code>
+  $ borland.bat<br>
+  <code>
+
+  <p>To build all the demo applications under Windows using the
+  BACnet/IP datalink layer utilizing the
+  <a href="http://codeblocks.org/">Code::Blocks</a> tools, use the
+  <code>BACnetDemo.workspace</code> file provided in the
+  <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/demo">demo</a>
+  directory.</p>
+
+
+  <p>The demo application accept command line arguments.
+  To specify an array index of ALL, use "-1".
+  To make a priority optional, use "0".
+  The applications also use environment variables to set
+  datalink layer preferences.
+  Use <code>--help</code> on the command line to see more options.</p>
+
+  <code>
   $ demo/server/bacsrv 123<br>
   BACnet Server Demo - Device #123<br>
   <br>
@@ -192,43 +230,64 @@
   <br>
   </code>
 
-  <p>The demos can be compiled under Win32 using <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a>, 
+  <p>The demos can be compiled under Win32 using <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a>,
   <a href="http://www.borland.com/bcppbuilder/freecompiler/">Borland C++</a>, or
   <a href="http://msdn.microsoft.com/visualc/vctoolkit2003/">Microsoft Visual C++</a>, which
   are free command line compilers. Be sure to pick up the free
-  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a> 
-  (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>, <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>), as well as the free turbo debugger.  It is also possible to create Win32 projects using the free <a href="http://msdn.microsoft.com/vstudio/express/">Visual Studio Express Edition</a> after downloading the platform development kit for your operating system.  
-  You can also use <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a> which comes with Code::Blocks.  
-  I frequently use <a href="http://codeblocks.org/">Code::Blocks</a> for 
-  compiling the unit tests using the MinGW compiler and 
-  created some Code::Block projects for some of the demos. 
-  I have also used <a href="http://codeblocks.org/">Code::Blocks</a> with 
+  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a>
+  (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>,
+  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>),
+  as well as the free turbo debugger.
+  It is also possible to create Win32 projects using the
+  free <a href="http://msdn.microsoft.com/vstudio/express/">Visual Studio Express Edition</a> after
+  downloading the platform development kit for your operating system.
+  You can also use <a href="http://www.mingw.org/">MinGW - Minimalist GNU for Windows</a> which comes with Code::Blocks.
+  I frequently use <a href="http://codeblocks.org/">Code::Blocks</a> for
+  compiling the unit tests using the MinGW compiler and
+  created some Code::Block projects for some of the demos.
+  I have also used <a href="http://codeblocks.org/">Code::Blocks</a> with
   the Borland C++ compiler and it successfully compiles and runs the code.</p>
 
-  <p>There is a Makefile in the ports/rtos32 directory, and a sample 
-  application that runs under <a href="http://www.on-time.com/">RTOS-32</a>. 
+  <p>To build the demo applications under Linux, such as
+  <a href=http://ubuntu.com/>Ubuntu</a>, you may need to install
+  some build tools.</p>
+  <code>
+  $ sudo apt-get install build-essential subversion-tools
+  </code>
+
+<h2>Example BACnet Server Ported to Various Architectures</h2>
+  <p>There is a Makefile in the
+  <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/rtos32">ports/rtos32</a>
+  directory, and a sample application that runs
+  under <a href="http://www.on-time.com/">RTOS-32</a>.
   It currently uses the BACnet/IP data link layer for communication, and also
   has an MS/TP datalink layer sample application.
   It compiles using <a href="http://borland.com/">Borland C++</a>.</p>
 
-  <p>There is a project in the ports/pic18f6720 directory, and a sample 
+  <p>There is a project in the
+  <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/pic18f6720">ports/pic18f6720</a>
+  directory, and a sample
   application that can be built using <a href="http://microchip.com">MP-Lab</a>
   and the Microchip compiler MCC18.  The datalink layer uses BACnet MS/TP
   and the example uses several different objects and services.</p>
 
-  <p>There is a project in the ports/at91sam7s directory for the AT91SAM7S-EK 
+  <p>There is a project in the
+  <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/at91sam7s">ports/at91sam7s</a>
+  directory for the AT91SAM7S-EK
   demo board.   There is a server application that can be built using
-  the GNU ARM tools, such as 
-  <a href="http://www.codesourcery.com/gnu_toolchains/arm">GNU Toolchain for ARM</a>,  
-  <a href="http://www.gnuarm.com/">GNU ARM</a>, 
-  <a href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/">WinARM</a>, 
+  the GNU ARM tools, such as
+  <a href="http://www.codesourcery.com/gnu_toolchains/arm">GNU Toolchain for ARM</a>,
+  <a href="http://www.gnuarm.com/">GNU ARM</a>,
+  <a href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/">WinARM</a>,
   and <a href="http://www.yagarto.de/">YAGARTO</a> toolchains on the Windows platform.
   The datalink layer uses BACnet MS/TP
   and the example uses several different objects and services.</p>
 
-  <p>There is a project in the ports/atmega168 directory, and a sample 
+  <p>There is a project in the
+  <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/atmega168">ports/atmega168</a>
+  directory, and a sample
   server application that can be built using
-  <a href="http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/AVR_GCC_Tool_Collection">GCC-AVR</a> or 
+  <a href="http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/AVR_GCC_Tool_Collection">GCC-AVR</a> or
   <a href="http://winavr.sourceforge.net/">WinAVR</a> for Atmel AVR series of microcontrollers.
   The datalink layer uses BACnet MS/TP
   and the example uses several different objects and services.</p>
@@ -431,18 +490,18 @@
   </TABLE>
 
   <h2>BACnet Objects</h2>
-  
-  <p>The BACnet stack currently implements an example Device Object, and 
+
+  <p>The BACnet stack currently implements an example Device Object, and
   handles all of the ReadProperty inquiries for the required
-  Device Object properties. The stack handles Who-Is inquiries 
+  Device Object properties. The stack handles Who-Is inquiries
   with an I-Am, WhoHas with I-Have, and handles reject messages for
   services not currently supported.  There is built-in handling for
   DeviceCommunicationControl.</p>
 
   <p>The example handlers interact with example objects, including
-  Analog Input, Analog Output, Analog Value, Binary Input, 
+  Analog Input, Analog Output, Analog Value, Binary Input,
   Binary Output, Binary Value, Load Control, Life Safety Point,
-  and Multi-state Output objects.  
+  and Multi-state Output objects.
   The objects can be accessed using WriteProperty,
   ReadProperty, or Who-Has services.  Adding other BACnet objects
   is only a matter of setting up ReadProperty, WriteProperty, or
@@ -459,22 +518,22 @@
   If you are trying to implement a BACnet device or service using this project,
   you are welcome to join the same <a href="http://lists.sourceforge.net/mailman/listinfo/bacnet-developers">developers mailing list</a> as well.</p>
 
-  <p>More details about the project can be found on 
+  <p>More details about the project can be found on
   the <a href="http://sourceforge.net/projects/bacnet/">BACnet Source Forge Project Page</a></p>
 
   <p>There is documentation that <a href="http://sourceforge.net/docman/display_doc.php?docid=33182&group_id=117598">describes the mechanisms in the BACnet Stack</a>.
-  I wrote up some <a href="http://sourceforge.net/docman/display_doc.php?docid=35583&group_id=117598">answers to some frequently asked questions</a>.  
-Of course, there are a handful of text files in the doc directory of 
-the project.</p>  
-  
+  I wrote up some <a href="http://sourceforge.net/docman/display_doc.php?docid=35583&group_id=117598">answers to some frequently asked questions</a>.
+Of course, there are a handful of text files in the doc directory of
+the project.</p>
+
   <p><a
     href="http://sourceforge.net/project/showfiles.php?group_id=117598&package_id=140172">BACnet
     Stack released files download</a></p>
-    
-  <p>You can get the latest BACnet protocol stack source code using 
-  the <a href="http://subversion.tigris.org/">Subversion</a> version control system. 
-  The main development branch is 
-  at: <a href="https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/">https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/</a>.  This 
+
+  <p>You can get the latest BACnet protocol stack source code using
+  the <a href="http://subversion.tigris.org/">Subversion</a> version control system.
+  The main development branch is
+  at: <a href="https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/">https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/</a>.  This
   has the absolute latest code and features. Anyone doing development on the BACnet protocol stack
   should be using this branch. The stable releases are
   at: <a href="https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/">https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/</a>.  This
@@ -485,7 +544,7 @@ the project.</p>
     <blockquote>
     <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/</code><br />
     or for the stable releases:<br />
-    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-4-4/</code>
+    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-4-7/</code>
     </blockquote>
 
 <h2>BACnet Developer Resources</h2>
@@ -497,25 +556,25 @@ There are a number of resources that can help you develop a BACnet product or pr
     Win32, used for Visually testing a BACnet implementation.  It also includes
     a detailed network sniffer for BACnet messages, and the ability  to send
     any BACnet services.  The source code is in the public domain. </li>
-    <li><a href="http://www.wireshark.org/">Wireshark</a> - an open source, 
-    cross platform protocol analyzer with BACnet support.  The detailed BACnet 
-    support in began in version 0.10.11 released on May 4, 2005 when Wireshark 
+    <li><a href="http://www.wireshark.org/">Wireshark</a> - an open source,
+    cross platform protocol analyzer with BACnet support.  The detailed BACnet
+    support in began in version 0.10.11 released on May 4, 2005 when Wireshark
     was known as Ethereal.</li>
-    <li><a href="http://www.ubuntu.com/">Ubuntu Linux</a> or 
-    <a href="http://www.debian.org/">Debian Linux</a> - my 
-    development platforms of choice.  
+    <li><a href="http://www.ubuntu.com/">Ubuntu Linux</a> or
+    <a href="http://www.debian.org/">Debian Linux</a> - my
+    development platforms of choice.
     Linux makes a great development platform
     because all the necessary development tools are included.</li>
     <li><a href="http://www.codeblocks.org/">Code::Blocks</a> - a free cross-platform
     open source C/C++ IDE. Includes the MinGW compiler for Win32.</li>
     <li>Win32 development can use <a href="http://www.borland.com/bcppbuilder/freecompiler/">Borland C++</a> or
-  <a href="http://msdn.microsoft.com/visualc/vctoolkit2003/">Microsoft Visual C++</a>, 
+  <a href="http://msdn.microsoft.com/visualc/vctoolkit2003/">Microsoft Visual C++</a>,
   both of which are free (as in beer) command line compilers. Be sure to pick up the free
-  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a> 
-  (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>, 
-  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>), 
-  as well as the free turbo debugger.</li>  
-</ul>    
+  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/#freecompiler55">patches (service packs) for the Borland C++ compiler</a>
+  (<a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp1.zip">SP1</a>,
+  <a href="http://info.borland.com/devsupport/bcppbuilder/patches/bcc55/bcc55sp2.exe">SP2</a>),
+  as well as the free turbo debugger.</li>
+</ul>
 
 <p><a href="http://www.bacnet.org/Developer/index.html">BACnet Developer Help</a></p>
 
@@ -527,12 +586,12 @@ There are a number of resources that can help you develop a BACnet product or pr
 can get a little recognition for your hard work!</p>
 
 <p><a href="http://sensors.scinterface.com/">SCInterface&trade; = Sensor Control Interface</a> - middleware
- platform for managing legacy and modern-day sensors through a centralized 
+ platform for managing legacy and modern-day sensors through a centralized
  interface</p>
 
-<p><a href="http://sourceforge.net/projects/bacnet-sim/">BACnetSim</a> - a 
-portable implementation of the BACnet data communication protocol. 
-BACnetSim is meant for embedded devices and use MS/TP as the media 
+<p><a href="http://sourceforge.net/projects/bacnet-sim/">BACnetSim</a> - a
+portable implementation of the BACnet data communication protocol.
+BACnetSim is meant for embedded devices and use MS/TP as the media
 access layer. BACnetSim is a fork of bacnet-stack-0.0.1</p>
 
 <hr>
@@ -545,6 +604,6 @@ access layer. BACnetSim is a fork of bacnet-stack-0.0.1</p>
     <b>BACnet<sup>&reg;</sup></b> are registered trademarks of the American
     Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.,
     1791 Tullie Circle NE, Atlanta, GA 30329.</font> </p>
-  <p>Website updated 17-May-2008 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
+  <p>Website updated 6-Sept-2008 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
 </BODY>
 </HTML>
