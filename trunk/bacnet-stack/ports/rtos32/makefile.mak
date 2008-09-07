@@ -37,6 +37,7 @@ SRCS = main.c \
        ..\..\mstp.c  \
        ..\..\crc.c  \
        ..\..\demo\handler\h_iam.c  \
+       ..\..\demo\handler\h_npdu.c  \
        ..\..\demo\handler\h_whois.c  \
        ..\..\demo\handler\h_wp.c  \
        ..\..\demo\handler\h_rp.c  \
@@ -178,8 +179,8 @@ install : $(PRODUCT)
 # Compiler configuration file
 bcc32.cfg :
    Copy &&|
-$(CFLAGS) 
--c 
+$(CFLAGS)
+-c
 #-g2    #stop after gN warnings
 -y     #include line numbers in OBJ's
 -v     #include debug info

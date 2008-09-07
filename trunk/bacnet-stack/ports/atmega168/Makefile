@@ -32,6 +32,7 @@ DEMOSRC = h_rp.c \
 	av.c \
 	bv.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
+	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/noserv.c \
 	h_whois.c \
 	h_wp.c
@@ -87,7 +88,7 @@ LIBRARY = lib$(TARGET).a
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
 
-OPTIMIZE_FLAGS = -mcall-prologues 
+OPTIMIZE_FLAGS = -mcall-prologues
 #OPTIMIZE_FLAGS += -finline-functions
 OPTIMIZE_FLAGS += -finline-functions-called-once
 #OPTIMIZATION = -O0
@@ -112,7 +113,7 @@ BFLAGS += -DMAX_BINARY_VALUES=10
 CFLAGS = $(COMMON)
 # dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
-CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char 
+CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 
 ## Assembly specific flags
@@ -124,7 +125,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 LDFLAGS = $(COMMON)
 #dead code removal
 #LDFLAGS += -Wl,-nostartfiles,-nostdlib
-LDFLAGS += -Wl,--gc-sections,-static 
+LDFLAGS += -Wl,--gc-sections,-static
 LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
 #LDFLAGS += -Wl,-Map=$(TARGET).map
 

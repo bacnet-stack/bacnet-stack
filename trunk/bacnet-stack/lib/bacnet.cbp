@@ -88,6 +88,9 @@
 		<Unit filename="..\demo\handler\h_whois.c">
 			<Option compilerVar="CC" />
 		</Unit>
+        <Unit filename="..\demo\handler\h_npdu.c">
+            <Option compilerVar="CC" />
+        </Unit>
 		<Unit filename="..\demo\handler\h_wp.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -42,6 +42,11 @@ extern "C" {
         BACNET_ADDRESS * dest,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
+    void npdu_handler(
+        BACNET_ADDRESS * src,   /* source address */
+        uint8_t * pdu,  /* PDU data */
+        uint16_t pdu_len);      /* length PDU  */
+
     void handler_who_is(
         uint8_t * service_request,
         uint16_t service_len,
