@@ -30,6 +30,7 @@ DEMOSRC = h_rp.c \
 	bv.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/noserv.c \
+	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/h_whois.c \
 	h_wp.c
 
@@ -94,7 +95,7 @@ BFLAGS += -DBACAPP_REAL
 CFLAGS = $(COMMON)
 # dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
-CFLAGS += -Wall $(BFLAGS) $(OPTIMIZATION) 
+CFLAGS += -Wall $(BFLAGS) $(OPTIMIZATION)
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 
 ## Assembly specific flags
@@ -105,7 +106,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 ## Linker flags
 LDFLAGS = $(COMMON)
 #dead code removal
-LDFLAGS += -Wl,--gc-sections,-static 
+LDFLAGS += -Wl,--gc-sections,-static
 LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
 #LDFLAGS += -Wl,-Map=$(TARGET).map
 

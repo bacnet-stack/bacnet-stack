@@ -40,12 +40,6 @@
 #include "bits.h"
 #include "npdu.h"
 #include "apdu.h"
-#define DEBUG_ENABLED 0
-#include "debug.h"
-
-#if PRINT_ENABLED
-#include <stdio.h>
-#endif
 
 void npdu_copy_data(
     BACNET_NPDU_DATA * dest,
