@@ -49,7 +49,7 @@
 bool Ringbuf_Empty(
     RING_BUFFER const *b)
 {
-    return (b->count == 0);
+    return (b ? b->count == 0 : true);
 }
 
 /****************************************************************************
@@ -61,7 +61,10 @@ bool Ringbuf_Empty(
 char *Ringbuf_Get_Front(
     RING_BUFFER const *b)
 {
-    return (b->count ? &(b->data[b->head * b->element_size]) : NULL);
+    if (b) {
+        return (b->count ? &(b->data[b->head * b->element_size]) : NULL);
+    }
+    return NULL;
 }
 
 /****************************************************************************
@@ -75,7 +78,7 @@ char *Ringbuf_Pop_Front(
 {
     char *data = NULL;  /* return value */
 
-    if (b->count) {
+    if (b && b->count) {
         data = &(b->data[b->head * b->element_size]);
         b->head++;
         if (b->head >= b->element_count)
@@ -131,11 +134,13 @@ void Ringbuf_Init(
     unsigned element_size,      /* size of one element in the data block */
     unsigned element_count)
 {       /* number of elements in the data block */
-    b->head = 0;
-    b->count = 0;
-    b->data = data;
-    b->element_size = element_size;
-    b->element_count = element_count;
+    if (b) {
+        b->head = 0;
+        b->count = 0;
+        b->data = data;
+        b->element_size = element_size;
+        b->element_count = element_count;
+    }
 
     return;
 }
