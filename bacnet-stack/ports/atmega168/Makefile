@@ -12,6 +12,7 @@ AR = avr-ar
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
 SIZE = avr-size
+LINT = splint
 
 # Source locations
 BACNET_CORE = ../../src
@@ -24,21 +25,21 @@ CSRC = main.c \
 	rs485.c \
 	dlmstp.c \
 	apdu.c \
-	$(BACNET_CORE)/crc.c
-
-# common demo files needed
-DEMOSRC = h_rp.c \
+	h_rp.c \
 	device.c \
 	av.c \
 	bv.c \
-	$(BACNET_DEMO)/handler/txbuf.c \
-	$(BACNET_DEMO)/handler/h_npdu.c \
-	$(BACNET_DEMO)/handler/noserv.c \
 	h_whois.c \
 	h_wp.c
 
+# common demo files needed
+DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
+	$(BACNET_DEMO)/handler/h_npdu.c \
+	$(BACNET_DEMO)/handler/noserv.c
+
 # core BACnet stack files
 CORESRC =  \
+	$(BACNET_CORE)/crc.c \
 	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -170,6 +171,9 @@ $(LIBRARY): $(COREOBJ) Makefile
 size: ${TARGET_ELF}
 	@echo
 	@${SIZE} -C --mcu=${MCU} ${TARGET_ELF}
+
+lint:
+	$(LINT) $(BFLAGS) $(CSRC) 
 
 ## Clean target
 .PHONY: clean

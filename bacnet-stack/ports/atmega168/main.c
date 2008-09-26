@@ -30,6 +30,7 @@
 #include "rs485.h"
 #include "datalink.h"
 #include "npdu.h"
+#include "handlers.h"
 #include "txbuf.h"
 #include "iam.h"
 #include "device.h"
