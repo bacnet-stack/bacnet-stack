@@ -208,6 +208,92 @@ static void print_address_cache(
     }
 }
 
+static void Init_DataLink(
+    void)
+{
+    char *pEnv = NULL;
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    long bbmd_port = 0xBAC0;
+    long bbmd_address = 0;
+    long bbmd_timetolive_seconds = 60000;
+#endif
+
+#if defined(BACDL_ALL)
+    pEnv = getenv("BACNET_DATALINK");
+    if (pEnv) {
+        datalink_set(pEnv));
+    } else {
+        datalink_set(NULL);
+    }
+#endif
+
+#if defined(BACDL_BIP)
+    pEnv = getenv("BACNET_IP_PORT");
+    if (pEnv) {
+        bip_set_port(strtol(pEnv, NULL, 0));
+    } else {
+        bip_set_port(0xBAC0);
+    }
+    BIP_Debug = true;
+#elif defined(BACDL_MSTP)
+    pEnv = getenv("BACNET_MAX_INFO_FRAMES");
+    if (pEnv) {
+        dlmstp_set_max_info_frames(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_max_info_frames(1);
+    }
+    pEnv = getenv("BACNET_MAX_MASTER");
+    if (pEnv) {
+        dlmstp_set_max_master(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_max_master(127);
+    }
+    pEnv = getenv("BACNET_MSTP_BAUD");
+    if (pEnv) {
+        RS485_Set_Baud_Rate(strtol(pEnv, NULL, 0));
+    } else {
+        RS485_Set_Baud_Rate(38400);
+    }
+    pEnv = getenv("BACNET_MSTP_MAC");
+    if (pEnv) {
+        dlmstp_set_mac_address(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_mac_address(127);
+    }
+#endif
+    if (!datalink_init(getenv("BACNET_IFACE"))) {
+        exit(1);
+    }
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    pEnv = getenv("BACNET_BBMD_PORT");
+    if (pEnv) {
+        bbmd_port = strtol(pEnv, NULL, 0);
+        if (bbmd_port > 0xFFFF) {
+            bbmd_port = 0xBAC0;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
+    if (pEnv) {
+        bbmd_timetolive_seconds = strtol(pEnv, NULL, 0);
+        if (bbmd_timetolive_seconds > 0xFFFF) {
+            bbmd_timetolive_seconds = 0xFFFF;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD_ADDRESS");
+    if (pEnv) {
+        bbmd_address = bip_getaddrbyname(pEnv);
+        if (bbmd_address) {
+            struct in_addr addr;
+            addr.s_addr = bbmd_address;
+            printf("Server: Registering with BBMD at %s:%ld for %ld seconds\n",
+                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, bbmd_port,
+                bbmd_timetolive_seconds);
+        }
+    }
+#endif
+}
+
 int main(
     int argc,
     char *argv[])
@@ -219,16 +305,13 @@ int main(
 
     (void) argc;
     (void) argv;
-    Device_Set_Object_Instance_Number(124);
+    Device_Set_Object_Instance_Number(4194303);
     Init_Service_Handlers();
-    /* init the data link layer */
-    if (!datalink_init(NULL))
-        return 1;
+    Init_DataLink();
     datalink_get_broadcast_address(&broadcast_address);
     print_address("Broadcast", &broadcast_address);
     datalink_get_my_address(&my_address);
     print_address("Address", &my_address);
-
     printf("BACnet stack running...\n");
     /* loop forever */
     for (;;) {
