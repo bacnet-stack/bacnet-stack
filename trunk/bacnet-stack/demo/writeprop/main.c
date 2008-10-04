@@ -80,9 +80,9 @@ static void MyErrorHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("\r\nBACnet Error!\r\n");
-    printf("Error Class: %s\r\n", bactext_error_class_name(error_class));
-    printf("Error Code: %s\r\n", bactext_error_code_name(error_code));
+    printf("BACnet Error: %s: %s\r\n",
+        bactext_error_class_name((int) error_class),
+        bactext_error_code_name((int) error_code));
     Error_Detected = true;
 }
 
@@ -96,8 +96,8 @@ void MyAbortHandler(
     (void) src;
     (void) invoke_id;
     (void) server;
-    printf("\r\nBACnet Abort!\r\n");
-    printf("Abort Reason: %s\r\n", bactext_abort_reason_name(abort_reason));
+    printf("BACnet Abort: %s\r\n",
+        bactext_abort_reason_name((int) abort_reason));
     Error_Detected = true;
 }
 
@@ -109,8 +109,8 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("\r\nBACnet Reject!\r\n");
-    printf("Reject Reason: %s\r\n", bactext_reject_reason_name(reject_reason));
+    printf("BACnet Reject: %s\r\n",
+        bactext_reject_reason_name((int) reject_reason));
     Error_Detected = true;
 }
 
