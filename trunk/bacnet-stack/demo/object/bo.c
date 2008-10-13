@@ -64,6 +64,8 @@ static const int Binary_Output_Properties_Required[] = {
 
 static const int Binary_Output_Properties_Optional[] = {
     PROP_DESCRIPTION,
+    PROP_ACTIVE_TEXT,
+    PROP_INACTIVE_TEXT,
     -1
 };
 
@@ -304,6 +306,16 @@ int Binary_Output_Encode_Property_APDU(
         case PROP_RELINQUISH_DEFAULT:
             present_value = RELINQUISH_DEFAULT;
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
+            break;
+        case PROP_ACTIVE_TEXT:
+            characterstring_init_ansi(&char_string,"on" );
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_INACTIVE_TEXT:
+            characterstring_init_ansi(&char_string,"off" );
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
