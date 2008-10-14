@@ -45,6 +45,11 @@ extern "C" {
     int decode_real(
         uint8_t * apdu,
         float *real_value);
+
+    int decode_context_real(
+        uint8_t * apdu,
+		uint8_t tag_number,
+        float *real_value);
     int encode_bacnet_real(
         float value,
         uint8_t * apdu);

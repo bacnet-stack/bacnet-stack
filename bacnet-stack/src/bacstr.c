@@ -96,10 +96,10 @@ uint8_t bitstring_bits_used(
 }
 
 /* returns the number of bytes that a bit string is using */
-int bitstring_bytes_used(
+uint8_t bitstring_bytes_used(
     BACNET_BIT_STRING * bit_string)
 {
-    int len = 0;        /* return value */
+    uint8_t len = 0;        /* return value */
     uint8_t used_bytes = 0;
     uint8_t last_bit = 0;
 
