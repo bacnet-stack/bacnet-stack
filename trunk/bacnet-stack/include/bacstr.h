@@ -79,7 +79,7 @@ extern "C" {
     uint8_t bitstring_bits_used(
         BACNET_BIT_STRING * bit_string);
 /* returns the number of bytes that a bit string is using */
-    int bitstring_bytes_used(
+    uint8_t bitstring_bytes_used(
         BACNET_BIT_STRING * bit_string);
     uint8_t bitstring_bits_capacity(
         BACNET_BIT_STRING * bit_string);

@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "datetime.h"
+#include "bacdcode.h"
 
 /* BACnet Date */
 /* year = years since 1900 */
@@ -51,6 +52,7 @@
   If all four octets = X'FF', the corresponding
   time or date may be interpreted as "any" or "don't care"
 */
+
 
 static bool is_leap_year(
     uint16_t year)
@@ -73,7 +75,7 @@ static uint8_t month_days(
     if ((month == 2) && is_leap_year(year))
         return 29;
     else if (month >= 1 && month <= 12)
-        return month_days[month];
+        return (uint8_t)month_days[month];
     else
         return 0;
 }
@@ -128,7 +130,7 @@ static void days_since_epoch_into_ymd(
         month++;
     }
 
-    day += ((uint8_t) days);
+    day = (uint8_t) (day + days);
 
     if (pYear)
         *pYear = year;
@@ -148,7 +150,7 @@ static uint8_t day_of_week(
     uint8_t month,
     uint8_t day)
 {
-    return ((uint8_t) (days_since_epoch(year, month, day) % 7) + 1);
+    return (uint8_t) ((days_since_epoch(year, month, day) % 7) + 1);
 }
 
 /* if the date1 is the same as date2, return is 0
@@ -427,6 +429,93 @@ void datetime_wildcard_set(
         datetime_time_wildcard_set(&bdatetime->time);
     }
 }
+
+int bacapp_encode_context_datetime(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    BACNET_DATE_TIME * value)
+{
+	int len = 0;
+	int apdu_len = 0;
+
+
+	if ( apdu && value )
+	{
+		len = encode_opening_tag(&apdu[apdu_len], tag_number);
+		apdu_len += len;
+
+		len = encode_application_date(&apdu[apdu_len], &value->date);
+		apdu_len += len;
+
+		len = encode_application_time(&apdu[apdu_len], &value->time);
+		apdu_len += len;
+
+		len = encode_closing_tag(&apdu[apdu_len], tag_number);
+		apdu_len += len;
+	}
+	return apdu_len;
+}
+
+int bacapp_decode_datetime(
+    uint8_t * apdu,
+    BACNET_DATE_TIME * value)
+{
+	int len = 0;
+	int section_len;
+
+	if ( -1 == ( section_len = decode_application_date(&apdu[len], &value->date) ) )
+	{
+		return -1;
+	}
+	len += section_len;
+
+	if ( -1 == ( section_len = decode_application_time(&apdu[len], &value->time) ) )
+	{
+		return -1;
+	}
+
+	len += section_len;
+	
+	return len;
+}
+
+int bacapp_decode_context_datetime(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    BACNET_DATE_TIME * value)
+{
+	int apdu_len = 0;
+	int len;
+
+	if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
+		apdu_len++;
+	}
+	else
+	{
+		return -1;
+	}
+
+	if ( -1 == (len = bacapp_decode_datetime(&apdu[apdu_len], value)))
+	{
+		return -1;
+	}
+	else
+	{
+		apdu_len += len;
+	}
+
+	if (decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) 
+	{
+		apdu_len++;
+	}
+	else
+	{
+		return -1;
+	}
+	return apdu_len;
+}
+
+
 
 
 #ifdef TEST
@@ -744,6 +833,43 @@ void testBACnetDayOfWeek(
     ct_test(pTest, dow == 3);
 }
 
+void testDatetimeCodec(
+    Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	BACNET_DATE_TIME datetimeIn;
+	BACNET_DATE_TIME datetimeOut;
+	int inLen;
+	int outLen;
+
+	datetimeIn.date.day = 1;
+	datetimeIn.date.month = 2;
+	datetimeIn.date.wday = 3;
+	datetimeIn.date.year = 1904;
+
+	datetimeIn.time.hour = 5;
+	datetimeIn.time.min = 6;
+	datetimeIn.time.sec = 7;
+	datetimeIn.time.hundredths = 8;
+
+	inLen = bacapp_encode_context_datetime(apdu, 10, &datetimeIn);
+	outLen = bacapp_decode_context_datetime(apdu, 10, &datetimeOut);
+
+	ct_test(pTest, inLen == outLen );
+
+	ct_test(pTest, 	datetimeIn.date.day == datetimeOut.date.day);
+	ct_test(pTest, 	datetimeIn.date.month == datetimeOut.date.month);
+	ct_test(pTest, 	datetimeIn.date.wday == datetimeOut.date.wday);
+	ct_test(pTest, 	datetimeIn.date.year == datetimeOut.date.year);
+
+	ct_test(pTest, 	datetimeIn.time.hour == datetimeOut.time.hour);
+	ct_test(pTest, 	datetimeIn.time.min == datetimeOut.time.min);
+	ct_test(pTest, 	datetimeIn.time.sec == datetimeOut.time.sec);
+	ct_test(pTest, 	datetimeIn.time.hundredths == datetimeOut.time.hundredths);
+
+}
+
+
 #ifdef TEST_DATE_TIME
 int main(
     void)
@@ -769,6 +895,8 @@ int main(
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetDateTimeWildcard);
     assert(rc);
+    rc = ct_addTestFunction(pTest, testDatetimeCodec);
+    assert(rc);
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
@@ -777,5 +905,8 @@ int main(
 
     return 0;
 }
+
+
 #endif /* TEST_DATE_TIME */
 #endif /* TEST */
+

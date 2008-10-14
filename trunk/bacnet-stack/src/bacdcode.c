@@ -71,6 +71,24 @@
    B'1110'  reserved by ASHRAE
    B'1111'  reserved by ASHRAE
 */
+
+/* Encoding of BACNET Length/Value/Type tag
+   From clause 20.2.1.3.1
+
+   B'000'   interpreted as Value  = FALSE if application class == BOOLEAN
+   B'001'   interpreted as Value  = TRUE  if application class == BOOLEAN 
+
+   B'000'   interpreted as Length = 0     if application class != BOOLEAN 
+   B'001'   interpreted as Length = 1 
+   B'010'   interpreted as Length = 2 
+   B'011'   interpreted as Length = 3 
+   B'100'   interpreted as Length = 4 
+   B'101'   interpreted as Length > 4
+   B'110'   interpreted as Type   = Opening Tag
+   B'111'   interpreted as Type   = Closing Tag
+*/
+   
+
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */
 /* returns the encoded octet */
@@ -285,7 +303,7 @@ int encode_closing_tag(
 static bool decode_is_extended_tag_number(
     uint8_t * apdu)
 {
-    return ((apdu[0] & 0xF0) == 0xF0);
+    return (bool)((apdu[0] & 0xF0) == 0xF0);
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -293,7 +311,7 @@ static bool decode_is_extended_tag_number(
 static bool decode_is_extended_value(
     uint8_t * apdu)
 {
-    return ((apdu[0] & 0x07) == 5);
+    return (bool)((apdu[0] & 0x07) == 5);
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -301,7 +319,7 @@ static bool decode_is_extended_value(
 bool decode_is_context_specific(
     uint8_t * apdu)
 {
-    return ((apdu[0] & BIT3) == BIT3);
+    return (bool)((apdu[0] & BIT3) == BIT3);
 }
 
 int decode_tag_number(
@@ -319,7 +337,7 @@ int decode_tag_number(
         len++;
     } else {
         if (tag_number) {
-            *tag_number = (apdu[0] >> 4);
+            *tag_number = (uint8_t)(apdu[0] >> 4);
         }
     }
 
@@ -329,7 +347,7 @@ int decode_tag_number(
 bool decode_is_opening_tag(
     uint8_t * apdu)
 {
-    return ((apdu[0] & 0x07) == 6);
+    return (bool)((apdu[0] & 0x07) == 6);
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -337,7 +355,7 @@ bool decode_is_opening_tag(
 bool decode_is_closing_tag(
     uint8_t * apdu)
 {
-    return ((apdu[0] & 0x07) == 7);
+    return (bool)((apdu[0] & 0x07) == 7);
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -398,10 +416,26 @@ bool decode_is_context_tag(
     uint8_t my_tag_number = 0;
     bool context_specific = false;
 
+
     context_specific = decode_is_context_specific(apdu);
     decode_tag_number(apdu, &my_tag_number);
 
-    return (context_specific && (my_tag_number == tag_number));
+    return (bool)(context_specific && (my_tag_number == tag_number));
+}
+
+bool decode_is_context_tag_with_length(
+    uint8_t * apdu,
+    uint8_t tag_number,
+	int     * tag_length)
+{
+    uint8_t my_tag_number = 0;
+    bool context_specific = false;
+
+
+    context_specific = decode_is_context_specific(apdu);
+    *tag_length = decode_tag_number(apdu, &my_tag_number);
+
+    return (bool)(context_specific && (my_tag_number == tag_number));
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -413,10 +447,10 @@ bool decode_is_opening_tag_number(
     uint8_t my_tag_number = 0;
     bool opening_tag = false;
 
-    opening_tag = ((apdu[0] & 0x07) == 6);
+    opening_tag = (bool)((apdu[0] & 0x07) == 6);
     decode_tag_number(apdu, &my_tag_number);
 
-    return (opening_tag && (my_tag_number == tag_number));
+    return (bool)(opening_tag && (my_tag_number == tag_number));
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -428,10 +462,10 @@ bool decode_is_closing_tag_number(
     uint8_t my_tag_number = 0;
     bool closing_tag = false;
 
-    closing_tag = ((apdu[0] & 0x07) == 7);
+    closing_tag = (bool)((apdu[0] & 0x07) == 7);
     decode_tag_number(apdu, &my_tag_number);
 
-    return (closing_tag && (my_tag_number == tag_number));
+    return (bool)(closing_tag && (my_tag_number == tag_number));
 }
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
@@ -456,13 +490,13 @@ int encode_application_boolean(
 /* context tagged is encoded differently */
 int encode_context_boolean(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     bool boolean_value)
 {
     int len = 0;        /* return value */
 
     len = encode_tag(&apdu[0], (uint8_t) tag_number, true, 1);
-    apdu[len] = boolean_value ? 1 : 0;
+    apdu[len] = (bool)(boolean_value ? 1 : 0);
     len++;
 
     return len;
@@ -478,6 +512,29 @@ bool decode_context_boolean(
     }
 
     return boolean_value;
+}
+
+int decode_context_boolean2(
+    uint8_t * apdu,
+    uint8_t tag_number,
+	bool *boolean_value)
+{
+	int len = 0;
+	if (decode_is_context_tag_with_length(&apdu[len], tag_number, &len)) {
+		if (apdu[len]) {
+			*boolean_value = true;
+		}
+		else
+		{
+			*boolean_value = false;
+		}
+		len++;
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
 }
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
@@ -567,7 +624,7 @@ int decode_bitstring(
                 bitstring_set_octet(bit_string, (uint8_t) i,
                     byte_reverse_bits(apdu[len++]));
             }
-            unused_bits = apdu[0] & 0x07;
+            unused_bits = (uint8_t)(apdu[0] & 0x07);
             bitstring_set_bits_used(bit_string, (uint8_t) bytes_used,
                 unused_bits);
         }
@@ -575,6 +632,27 @@ int decode_bitstring(
 
     return len;
 }
+
+int decode_context_bitstring(
+    uint8_t * apdu,
+	uint8_t  tag_number,
+    BACNET_BIT_STRING * bit_string)
+{
+    uint32_t len_value;
+	int len = 0;
+
+	if (decode_is_context_tag(&apdu[len], tag_number)) {
+		len += decode_tag_number_and_value(&apdu[len], &tag_number,
+			&len_value);
+		len += decode_bitstring(&apdu[len], len_value, bit_string);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
+}
+
 
 /* from clause 20.2.10 Encoding of a Bit String Value */
 /* returns the number of apdu bytes consumed */
@@ -593,9 +671,9 @@ int encode_bitstring(
     } else {
         used_bytes = bitstring_bytes_used(bit_string);
         remaining_used_bits =
-            bitstring_bits_used(bit_string) - ((used_bytes - 1) * 8);
+            (uint8_t)(bitstring_bits_used(bit_string) - ((used_bytes - 1) * 8));
         /* number of unused bits in the subsequent final octet */
-        apdu[len++] = 8 - remaining_used_bits;
+        apdu[len++] = (uint8_t)(8 - remaining_used_bits);
         for (i = 0; i < used_bytes; i++) {
             apdu[len++] = byte_reverse_bits(bitstring_octet(bit_string, i));
         }
@@ -650,10 +728,28 @@ int decode_object_id(
     int len = 0;
 
     len = decode_unsigned32(apdu, &value);
-    *object_type = ((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT);
+    *object_type = (uint16_t)(((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
     *instance = (value & BACNET_MAX_INSTANCE);
 
     return len;
+}
+
+int decode_context_object_id(
+    uint8_t  * apdu,
+	uint8_t    tag_number,
+    uint16_t * object_type,
+    uint32_t * instance)
+{
+	int len = 0;
+
+	if (decode_is_context_tag_with_length(&apdu[len], tag_number, &len)) {
+		len += decode_object_id(&apdu[len], object_type, instance);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
 }
 
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
@@ -807,6 +903,34 @@ int decode_octet_string(
     return len;
 }
 
+int decode_context_octet_string(
+    uint8_t * apdu,
+	uint8_t tag_number,
+    BACNET_OCTET_STRING * octet_string)
+{
+    int len = 0;        /* return value */
+    bool status = false;
+    uint32_t len_value = 0;
+
+	if (decode_is_context_tag(&apdu[len], tag_number)) 
+	{
+		len += decode_tag_number_and_value(&apdu[len], &tag_number,
+			&len_value);
+
+	    status = octetstring_init(octet_string, &apdu[len], len_value);
+		
+		if (status) {
+			len += len_value;
+		}
+	}
+	else
+	{
+		len = -1;
+	}
+
+    return len;
+}
+
 /* from clause 20.2.9 Encoding of a Character String Value */
 /* returns the number of apdu bytes consumed */
 int encode_bacnet_character_string(
@@ -889,6 +1013,35 @@ int decode_character_string(
     return len;
 }
 
+int decode_context_character_string(
+    uint8_t * apdu,
+	uint8_t tag_number,
+    BACNET_CHARACTER_STRING * char_string)
+{
+    int len = 0;        /* return value */
+    bool status = false;
+    uint32_t len_value = 0;
+
+	if (decode_is_context_tag(&apdu[len], tag_number)) 
+	{
+		len += decode_tag_number_and_value(&apdu[len], &tag_number,
+			&len_value);
+
+		status =
+			characterstring_init(char_string, apdu[len], (char *) &apdu[len+1],
+			len_value - 1);
+		if (status) {
+			len += len_value;
+		}
+	}
+	else
+	{
+		len = -1;
+	}
+
+    return len;
+}
+
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -922,6 +1075,27 @@ int decode_unsigned(
 
     return len_value;
 }
+
+int decode_context_unsigned(
+    uint8_t * apdu,
+	uint8_t  tag_number,
+    uint32_t * value)
+{
+    uint32_t len_value;
+	int len = 0;
+
+	if (decode_is_context_tag(&apdu[len], tag_number)) {
+		len += decode_tag_number_and_value(&apdu[len], &tag_number,
+			&len_value);
+		len += decode_unsigned(&apdu[len], len_value, value);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
+}
+
 
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -1002,6 +1176,27 @@ int decode_enumerated(
     return len;
 }
 
+int decode_context_enumerated(
+    uint8_t * apdu,
+	uint8_t tag_value,
+    int *value)
+{
+	int len = 0;
+	uint8_t tag_number;
+	uint32_t len_value;
+
+	if (decode_is_context_tag(&apdu[len], tag_value)) {
+		len += decode_tag_number_and_value(&apdu[len], &tag_number,
+			&len_value);
+		len += decode_enumerated(&apdu[len], len_value, value);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
+}
+
 /* from clause 20.2.11 Encoding of an Enumerated Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -1079,6 +1274,26 @@ int decode_signed(
     }
 
     return len_value;
+}
+
+int decode_context_signed(
+    uint8_t * apdu,
+	uint8_t  tag_number,
+    int32_t * value)
+{
+    uint32_t len_value;
+	int len = 0;
+
+	if (decode_is_context_tag(&apdu[len], tag_number)) {
+		len += decode_tag_number_and_value(&apdu[len], &tag_number,
+			&len_value);
+		len += decode_signed(&apdu[len], len_value, value);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
 }
 
 /* from clause 20.2.5 Encoding of a Signed Integer Value */
@@ -1281,6 +1496,45 @@ int decode_bacnet_time(
     return 4;
 }
 
+int decode_application_time(
+    uint8_t * apdu,
+    BACNET_TIME * btime)
+{
+	int len = 0;
+	uint8_t tag_number;
+	decode_tag_number(&apdu[len], &tag_number);
+
+	if ( tag_number == BACNET_APPLICATION_TAG_TIME )
+	{
+		len++;
+		len += decode_bacnet_time(&apdu[len], btime);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
+}
+
+
+int decode_context_bacnet_time(
+    uint8_t * apdu,
+	uint8_t tag_number,
+    BACNET_TIME * btime)
+{
+	int len = 0;
+
+	if (decode_is_context_tag_with_length(&apdu[len], tag_number, &len)) {
+		len += decode_bacnet_time(&apdu[len], btime);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
+}
+
+
 /* BACnet Date */
 /* year = years since 1900 */
 /* month 1=Jan */
@@ -1295,20 +1549,30 @@ int encode_bacnet_date(
     BACNET_DATE * bdate)
 {
     /* allow 2 digit years */
-    if (bdate->year < 1900) {
-        if (bdate->year <= 38) {
-            bdate->year += 2000;
-        } else {
-            bdate->year += 1900;
-        }
+    if (bdate->year >= 1900) {
+	    apdu[0] = (uint8_t)(bdate->year - 1900);
     }
-    apdu[0] = bdate->year - 1900;
+	else if ( bdate->year < 0x100 )
+	{
+	    apdu[0] = (uint8_t)bdate->year;
+
+	}
+	else
+	{
+		/*
+		** Don't try and guess what the user meant here. Just fail
+		*/
+		return -1;
+	}
+
+
     apdu[1] = bdate->month;
     apdu[2] = bdate->day;
     apdu[3] = bdate->wday;
 
     return 4;
 }
+
 
 /* from clause 20.2.12 Encoding of a Date Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -1353,13 +1617,52 @@ int decode_date(
     uint8_t * apdu,
     BACNET_DATE * bdate)
 {
-    bdate->year = apdu[0] + 1900;
+    bdate->year = (uint16_t)(apdu[0] + 1900);
     bdate->month = apdu[1];
     bdate->day = apdu[2];
     bdate->wday = apdu[3];
 
     return 4;
 }
+
+int decode_application_date(
+    uint8_t * apdu,
+    BACNET_DATE * bdate)
+{
+	int len = 0;
+	uint8_t tag_number;
+	decode_tag_number(&apdu[len], &tag_number);
+
+	if ( tag_number == BACNET_APPLICATION_TAG_DATE )
+	{
+		len++;
+		len += decode_date(&apdu[len], bdate);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
+}
+
+int decode_context_date(
+    uint8_t * apdu,
+	uint8_t  tag_number,
+    BACNET_DATE * bdate)
+{
+	int len = 0;
+
+	if (decode_is_context_tag_with_length(&apdu[len], tag_number, &len)) {
+		len += decode_date(&apdu[len], bdate);
+	}
+	else
+	{
+		len = -1;
+	}
+	return len;
+}
+
+
 
 /* returns the number of apdu bytes consumed */
 int encode_simple_ack(
@@ -1990,6 +2293,358 @@ void testBACDCodeBitString(
     }
 }
 
+void testUnsignedContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	/* 32 bit number */
+	uint32_t in  = 0xdeadbeef;
+	uint32_t out;
+
+	outLen2 = decode_context_unsigned(apdu, 9, &out);
+
+	in  = 0xdeadbeef;
+	inLen   = encode_context_unsigned(apdu, 10, in);
+	outLen  = decode_context_unsigned(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+	ct_test(pTest, outLen2 == -1);
+
+	/* 16 bit number */
+	in  = 0xdead;
+	inLen   = encode_context_unsigned(apdu, 10, in);
+	outLen  = decode_context_unsigned(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 8 bit number */
+	in  = 0xde;
+	inLen   = encode_context_unsigned(apdu, 10, in);
+	outLen  = decode_context_unsigned(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 4 bit number */
+	in  = 0xd;
+	inLen   = encode_context_unsigned(apdu, 10, in);
+	outLen  = decode_context_unsigned(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 2 bit number */
+	in  = 0x2;
+	inLen   = encode_context_unsigned(apdu, 10, in);
+	outLen  = decode_context_unsigned(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+}
+
+void testSignedContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	/* 32 bit number */
+	int32_t in  = 0xdeadbeef;
+	int32_t out;
+
+	outLen2 = decode_context_signed(apdu, 9, &out);
+
+	in  = 0xdeadbeef;
+	inLen   = encode_context_signed(apdu, 10, in);
+	outLen  = decode_context_signed(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+	ct_test(pTest, outLen2 == -1);
+
+	/* 16 bit number */
+	in  = 0xdead;
+	inLen   = encode_context_signed(apdu, 10, in);
+	outLen  = decode_context_signed(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 8 bit number */
+	in  = 0xde;
+	inLen   = encode_context_signed(apdu, 10, in);
+	outLen  = decode_context_signed(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 4 bit number */
+	in  = 0xd;
+	inLen   = encode_context_signed(apdu, 10, in);
+	outLen  = decode_context_signed(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 2 bit number */
+	in  = 0x2;
+	inLen   = encode_context_signed(apdu, 10, in);
+	outLen  = decode_context_signed(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+}
+
+void testEnumeratedContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	/* 32 bit number */
+	int32_t in  = 0xdeadbeef;
+	int32_t out;
+
+	outLen2 = decode_context_enumerated(apdu, 9, &out);
+
+	in  = 0xdeadbeef;
+	inLen   = encode_context_enumerated(apdu, 10, in);
+	outLen  = decode_context_enumerated(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+	ct_test(pTest, outLen2 == -1);
+
+	/* 16 bit number */
+	in  = 0xdead;
+	inLen   = encode_context_enumerated(apdu, 10, in);
+	outLen  = decode_context_enumerated(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 8 bit number */
+	in  = 0xde;
+	inLen   = encode_context_enumerated(apdu, 10, in);
+	outLen  = decode_context_enumerated(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 4 bit number */
+	in  = 0xd;
+	inLen   = encode_context_enumerated(apdu, 10, in);
+	outLen  = decode_context_enumerated(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+
+	/* 2 bit number */
+	in  = 0x2;
+	inLen   = encode_context_enumerated(apdu, 10, in);
+	outLen  = decode_context_enumerated(apdu, 10, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+}
+
+void testFloatContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	/* 32 bit number */
+	float in;
+	float out;
+
+
+	in  = 0.1234f;
+	inLen   = encode_context_real(apdu, 10, in);
+	outLen  = decode_context_real(apdu, 10, &out);
+	outLen2 = decode_context_real(apdu, 9, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+	ct_test(pTest, outLen2 == -1);
+
+	in  = 0.0f;
+	inLen   = encode_context_real(apdu, 10, in);
+	outLen  = decode_context_real(apdu, 10, &out);
+	outLen2 = decode_context_real(apdu, 9, &out);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in == out);
+}
+
+void testObjectIDContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	/* 32 bit number */
+	uint16_t in_type;
+	uint32_t in_id;
+
+	uint16_t out_type;
+	uint32_t out_id;
+
+	in_type = 0xde;
+	in_id  = 0xbeef;
+
+	inLen   = encode_context_object_id(apdu, 10, in_type, in_id);
+	outLen  = decode_context_object_id(apdu, 10, &out_type, &out_id);
+	outLen2 = decode_context_object_id(apdu, 9, &out_type, &out_id);
+
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in_type == out_type);
+	ct_test(pTest, in_id == out_id);
+	ct_test(pTest, outLen2 == -1);
+
+}
+
+void testCharacterStringContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	BACNET_CHARACTER_STRING in;
+	BACNET_CHARACTER_STRING out;
+
+	characterstring_init_ansi(&in, "This is a test");
+
+	inLen = encode_context_character_string(apdu, 10, &in);
+	outLen= decode_context_character_string(apdu, 10, &out);
+	outLen2= decode_context_character_string(apdu, 9, &out);
+
+	ct_test(pTest, outLen2 == -1);
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in.length == out.length);
+	ct_test(pTest, in.encoding == out.encoding);
+	ct_test(pTest, strcmp(in.value, out.value) == 0);
+}
+
+void testBitStringContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	BACNET_BIT_STRING in;
+	BACNET_BIT_STRING out;
+
+	bitstring_init(&in);
+	bitstring_set_bit(&in, 1, true);
+	bitstring_set_bit(&in, 3, true);
+	bitstring_set_bit(&in, 6, true);
+	bitstring_set_bit(&in, 10, false);
+	bitstring_set_bit(&in, 11, true);
+	bitstring_set_bit(&in, 12, false);
+
+	inLen = encode_context_bitstring(apdu, 10, &in);
+	outLen= decode_context_bitstring(apdu, 10, &out);
+	outLen2= decode_context_bitstring(apdu, 9, &out);
+
+	ct_test(pTest, outLen2 == -1);
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in.bits_used == out.bits_used);
+	ct_test(pTest, memcmp(in.value, out.value, MAX_BITSTRING_BYTES) == 0);
+
+}
+
+void testOctetStringContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	BACNET_OCTET_STRING in;
+	BACNET_OCTET_STRING out;
+
+	uint8_t initData[] = {0xde,0xad,0xbe,0xef};
+
+	octetstring_init(&in, initData, sizeof(initData));
+
+	inLen = encode_context_octet_string(apdu, 10, &in);
+	outLen= decode_context_octet_string(apdu, 10, &out);
+	outLen2= decode_context_octet_string(apdu, 9, &out);
+
+	ct_test(pTest, outLen2 == -1);
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in.length == out.length);
+	ct_test(pTest, memcmp(in.value, out.value, MAX_APDU - 6) == 0);
+
+}
+
+void testTimeContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	BACNET_TIME in;
+	BACNET_TIME out;
+
+	in.hour = 10;
+	in.hundredths = 20;
+	in.min = 30;
+	in.sec = 40;
+
+	inLen = encode_context_time(apdu, 10, &in);
+	outLen= decode_context_bacnet_time(apdu, 10, &out);
+	outLen2= decode_context_bacnet_time(apdu, 9, &out);
+
+	ct_test(pTest, outLen2 == -1);
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in.hour == out.hour);
+	ct_test(pTest, in.hundredths == out.hundredths);
+	ct_test(pTest, in.min == out.min);
+	ct_test(pTest, in.sec == out.sec);
+}
+
+void testDateContextDecodes(Test * pTest)
+{
+	uint8_t apdu[MAX_APDU];
+	int inLen;
+	int outLen;
+	int outLen2;
+
+	BACNET_DATE in;
+	BACNET_DATE out;
+
+	in.day = 3;
+	in.month = 10;
+	in.wday = 5;
+	in.year = 1945;
+
+	inLen = encode_context_date(apdu, 10, &in);
+	outLen= decode_context_date(apdu, 10, &out);
+	outLen2= decode_context_date(apdu, 9, &out);
+
+	ct_test(pTest, outLen2 == -1);
+	ct_test(pTest, inLen == outLen);
+	ct_test(pTest, in.day == out.day);
+	ct_test(pTest, in.month == out.month);
+	ct_test(pTest, in.wday == out.wday);
+	ct_test(pTest, in.year == out.year);
+}
+
+
 #ifdef TEST_DECODE
 int main(
     void)
@@ -2023,6 +2678,37 @@ int main(
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeBitString);
     assert(rc);
+
+    rc = ct_addTestFunction(pTest, testUnsignedContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, testSignedContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, testEnumeratedContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, testCharacterStringContextDecodes);
+    assert(rc);
+	
+    rc = ct_addTestFunction(pTest, testFloatContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, testObjectIDContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, 	testBitStringContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, testTimeContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, testDateContextDecodes);
+    assert(rc);
+
+    rc = ct_addTestFunction(pTest, testOctetStringContextDecodes);
+    assert(rc);
+
     /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);
