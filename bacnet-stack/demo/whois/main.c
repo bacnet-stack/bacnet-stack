@@ -192,6 +192,7 @@ static void Init_DataLink(
     } else {
         dlmstp_set_mac_address(127);
     }
+    apdu_timeout_set(60000);
 #endif
     if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
