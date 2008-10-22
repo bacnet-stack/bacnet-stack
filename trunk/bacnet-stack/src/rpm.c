@@ -113,7 +113,7 @@ int rpm_decode_object_id(
     uint32_t * object_instance)
 {
     unsigned len = 0;
-    int type = 0;       /* for decoding */
+    uint16_t type = 0;       /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {
@@ -313,7 +313,7 @@ int rpm_ack_decode_object_id(
     uint32_t * object_instance)
 {
     unsigned len = 0;
-    int type = 0;       /* for decoding */
+    uint16_t type = 0;       /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {

@@ -148,7 +148,7 @@ int bacapp_encode_application_data(
     return apdu_len;
 }
 
-/* decode the data and store it into value.  
+/* decode the data and store it into value.
    Return the number of octets consumed. */
 int bacapp_decode_data(
     uint8_t * apdu,
@@ -236,7 +236,7 @@ int bacapp_decode_data(
 #if defined (BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 {
-                    int object_type = 0;
+                    uint16_t object_type = 0;
                     uint32_t instance = 0;
                     len = decode_object_id(&apdu[0], &object_type, &instance);
                     value->type.Object_Id.type = object_type;

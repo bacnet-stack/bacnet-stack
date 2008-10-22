@@ -539,6 +539,28 @@ size_t octetstring_capacity(
     return length;
 }
 
+/* returns true if the same length and contents */
+bool octetstring_value_same(
+    BACNET_OCTET_STRING * octet_string1,
+    BACNET_OCTET_STRING * octet_string2)
+{
+    size_t i = 0; /* loop counter */
+
+    if (octet_string1 && octet_string2) {
+        if ((octet_string1->length == octet_string2->length) &&
+            (octet_string1->length <= sizeof(octet_string1->value))) {
+            for (i = 0; i < octet_string1->length; i++) {
+                if (octet_string1->value[i] != octet_string2->value[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
