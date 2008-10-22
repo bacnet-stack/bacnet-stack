@@ -76,18 +76,18 @@
    From clause 20.2.1.3.1
 
    B'000'   interpreted as Value  = FALSE if application class == BOOLEAN
-   B'001'   interpreted as Value  = TRUE  if application class == BOOLEAN 
+   B'001'   interpreted as Value  = TRUE  if application class == BOOLEAN
 
-   B'000'   interpreted as Length = 0     if application class != BOOLEAN 
-   B'001'   interpreted as Length = 1 
-   B'010'   interpreted as Length = 2 
-   B'011'   interpreted as Length = 3 
-   B'100'   interpreted as Length = 4 
+   B'000'   interpreted as Length = 0     if application class != BOOLEAN
+   B'001'   interpreted as Length = 1
+   B'010'   interpreted as Length = 2
+   B'011'   interpreted as Length = 3
+   B'100'   interpreted as Length = 4
    B'101'   interpreted as Length > 4
    B'110'   interpreted as Type   = Opening Tag
    B'111'   interpreted as Type   = Closing Tag
 */
-   
+
 
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */
@@ -721,7 +721,7 @@ int encode_context_bitstring(
 /* returns the number of apdu bytes consumed */
 int decode_object_id(
     uint8_t * apdu,
-    int *object_type,
+    uint16_t *object_type,
     uint32_t * instance)
 {
     uint32_t value = 0;
@@ -912,13 +912,13 @@ int decode_context_octet_string(
     bool status = false;
     uint32_t len_value = 0;
 
-	if (decode_is_context_tag(&apdu[len], tag_number)) 
+	if (decode_is_context_tag(&apdu[len], tag_number))
 	{
 		len += decode_tag_number_and_value(&apdu[len], &tag_number,
 			&len_value);
 
 	    status = octetstring_init(octet_string, &apdu[len], len_value);
-		
+
 		if (status) {
 			len += len_value;
 		}
@@ -1022,7 +1022,7 @@ int decode_context_character_string(
     bool status = false;
     uint32_t len_value = 0;
 
-	if (decode_is_context_tag(&apdu[len], tag_number)) 
+	if (decode_is_context_tag(&apdu[len], tag_number))
 	{
 		len += decode_tag_number_and_value(&apdu[len], &tag_number,
 			&len_value);
@@ -2203,7 +2203,7 @@ void testBACDCodeObject(
     uint32_t decoded_instance = 0;
 
     encode_bacnet_object_id(&encoded_array[0], type, instance);
-    decode_object_id(&encoded_array[0], (int *) &decoded_type,
+    decode_object_id(&encoded_array[0], (uint16_t *) &decoded_type,
         &decoded_instance);
     ct_test(pTest, decoded_type == type);
     ct_test(pTest, decoded_instance == instance);
@@ -2213,7 +2213,7 @@ void testBACDCodeObject(
     for (type = 0; type < 1024; type++) {
         for (instance = 0; instance <= BACNET_MAX_INSTANCE; instance += 1024) {
             encode_bacnet_object_id(&encoded_array[0], type, instance);
-            decode_object_id(&encoded_array[0], (int *) &decoded_type,
+            decode_object_id(&encoded_array[0], (uint16_t *) &decoded_type,
                 &decoded_instance);
             ct_test(pTest, decoded_type == type);
             ct_test(pTest, decoded_instance == instance);
@@ -2586,8 +2586,7 @@ void testOctetStringContextDecodes(Test * pTest)
 	ct_test(pTest, outLen2 == -1);
 	ct_test(pTest, inLen == outLen);
 	ct_test(pTest, in.length == out.length);
-	ct_test(pTest, memcmp(in.value, out.value, MAX_APDU - 6) == 0);
-
+    ct_test(pTest, octetstring_value_same(&in, &out));
 }
 
 void testTimeContextDecodes(Test * pTest)
@@ -2690,7 +2689,7 @@ int main(
 
     rc = ct_addTestFunction(pTest, testCharacterStringContextDecodes);
     assert(rc);
-	
+
     rc = ct_addTestFunction(pTest, testFloatContextDecodes);
     assert(rc);
 

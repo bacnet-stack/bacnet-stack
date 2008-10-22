@@ -178,6 +178,11 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string);
     size_t octetstring_capacity(
         BACNET_OCTET_STRING * octet_string);
+    /* returns true if the same length and contents */
+    bool octetstring_value_same(
+        BACNET_OCTET_STRING * octet_string1,
+        BACNET_OCTET_STRING * octet_string2);
+
 
 #ifdef __cplusplus
 }
