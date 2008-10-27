@@ -190,6 +190,7 @@ static void write_received_packet(
     uint32_t orig_len;  /* actual length of packet */
     uint8_t header[8];  /* MS/TP header */
     struct timeval tv;
+    size_t max_data;
 
     if (pFile) {
         gettimeofday(&tv, NULL);
@@ -214,7 +215,8 @@ static void write_received_packet(
         header[7] = mstp_port->HeaderCRCActual;
         fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
-            fwrite(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
+            max_data = min(mstp_port->InputBufferSize,mstp_port->DataLength);
+            fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
             fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
             fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
         }

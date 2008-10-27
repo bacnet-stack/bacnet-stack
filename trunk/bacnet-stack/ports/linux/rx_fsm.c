@@ -209,7 +209,8 @@ static void write_received_packet(
         header[7] = mstp_port->HeaderCRCActual;
         fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
-            fwrite(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
+            max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+            fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
             fwrite(&(mstp_port->DataCRCActualMSB), 1, 1, pFile);
             fwrite(&(mstp_port->DataCRCActualLSB), 1, 1, pFile);
         }
@@ -253,7 +254,8 @@ static void print_received_packet(
         mstp_port->SourceAddress, HI_BYTE(mstp_port->DataLength),
         LO_BYTE(mstp_port->DataLength), mstp_port->HeaderCRCActual);
     if (mstp_port->DataLength) {
-        for (i = 0; i < mstp_port->DataLength; i++) {
+        max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+        for (i = 0; i < max_data; i++) {
             fprintf(stderr, "%02X ", mstp_port->InputBuffer[i]);
         }
         fprintf(stderr, "%02X %02X ", mstp_port->DataCRCActualMSB,
