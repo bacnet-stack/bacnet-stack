@@ -156,7 +156,8 @@ static void print_received_packet(
         mstp_port->SourceAddress, HI_BYTE(mstp_port->DataLength),
         LO_BYTE(mstp_port->DataLength), mstp_port->HeaderCRCActual);
     if (mstp_port->DataLength) {
-        for (i = 0; i < mstp_port->DataLength; i++) {
+        max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+        for (i = 0; i < max_data; i++) {
             fprintf(stderr, "%02X ", mstp_port->InputBuffer[i]);
         }
         fprintf(stderr, "%02X %02X ", mstp_port->DataCRCActualMSB,
