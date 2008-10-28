@@ -166,7 +166,7 @@ static void snap_received_packet(
     uint16_t mtu_len = 0;       /* number of octets of packet saved in file */
     unsigned i = 0;     /* counter */
     static uint8_t mtu[1500] = { 0 };
-    size_t max_data = 0;
+    uint16_t max_data = 0;
 
     mtu[0] = 0;
     mtu[1] = 0;
@@ -200,7 +200,7 @@ static void snap_received_packet(
     mtu[30] = mstp_port->HeaderCRCActual;
     mtu_len = 31;
     if (mstp_port->DataLength) {
-        max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+        max_data = min(mstp_port->InputBufferSize,mstp_port->DataLength);
         for (i = 0; i < max_data; i++) {
             mtu[31 + i] = mstp_port->InputBuffer[i];
         }

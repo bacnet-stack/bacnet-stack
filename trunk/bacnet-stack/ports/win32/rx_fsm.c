@@ -240,7 +240,8 @@ static void write_received_packet(
         fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
         fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (mstp_port->DataLength) {
-            incl_len = orig_len = 8 + mstp_port->DataLength + 2;
+            max_data = min(mstp_port->InputBufferSize,mstp_port->DataLength);
+            incl_len = orig_len = 8 + max_data + 2;
         } else {
             incl_len = orig_len = 8;
         }
@@ -256,7 +257,6 @@ static void write_received_packet(
         header[7] = mstp_port->HeaderCRCActual;
         fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
-            fwrite(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
             fwrite(&(mstp_port->DataCRCActualMSB), 1, 1, pFile);
             fwrite(&(mstp_port->DataCRCActualLSB), 1, 1, pFile);
         }
