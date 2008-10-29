@@ -52,6 +52,11 @@
 #include "mstptext.h"
 #include "crc.h"
 
+#ifndef max
+#define max(a,b) (((a) (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 /* file format for libpcap/winpcap */
 /* from http://wiki.wireshark.org/Development/LibpcapFileFormat */
 typedef struct pcap_hdr_s {

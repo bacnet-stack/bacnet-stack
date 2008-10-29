@@ -48,6 +48,11 @@
 #include "mstptext.h"
 #include "bacint.h"
 
+#ifndef max
+#define max(a,b) (((a) (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 /* local port data - shared with RS-485 */
 static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
