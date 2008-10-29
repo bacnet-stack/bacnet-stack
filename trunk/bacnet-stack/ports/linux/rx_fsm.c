@@ -54,6 +54,11 @@
 #include "mstp.h"
 #include "mstptext.h"
 
+#ifndef max
+#define max(a,b) (((a) (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 /* local port data - shared with RS-485 */
 static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -185,6 +190,7 @@ static void write_received_packet(
     uint32_t orig_len;  /* actual length of packet */
     uint8_t header[8];  /* MS/TP header */
     struct timeval tv;
+    size_t max_data = 0;
 
     if (pFile) {
         gettimeofday(&tv, NULL);
@@ -211,8 +217,8 @@ static void write_received_packet(
         fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
             fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
-            fwrite(&(mstp_port->DataCRCActualMSB), 1, 1, pFile);
-            fwrite(&(mstp_port->DataCRCActualLSB), 1, 1, pFile);
+            fwrite((char *)&(mstp_port->DataCRCActualMSB), 1, 1, pFile);
+            fwrite((char *)&(mstp_port->DataCRCActualLSB), 1, 1, pFile);
         }
     } else {
         fprintf(stderr, "rx_fsm: failed to open %s: %s\n", Capture_Filename,
@@ -236,6 +242,7 @@ static void print_received_packet(
 {
     unsigned i = 0;
     int timestamp = 0;
+    size_t max_data = 0;
 
     timestamp = timestamp_ms();
     fprintf(stderr, "%03d ", timestamp);
