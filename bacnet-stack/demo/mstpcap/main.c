@@ -124,6 +124,19 @@ void *milliseconds_task(
     return NULL;
 }
 
+#if defined(_WIN32)
+/*************************************************************************
+* Description: Timer task
+* Returns: none
+* Notes: none
+*************************************************************************/
+static void milliseconds_task_win32(
+    void *pArg)
+{
+    milliseconds_task(pArg);
+}
+#endif
+
 /* functions used by the MS/TP state machine to put or get data */
 uint16_t MSTP_Put_Receive(
     volatile struct mstp_port_struct_t * mstp_port)
@@ -195,7 +208,7 @@ static void write_received_packet(
     uint32_t orig_len;  /* actual length of packet */
     uint8_t header[8];  /* MS/TP header */
     struct timeval tv;
-    size_t max_data;
+    size_t max_data = 0;
 
     if (pFile) {
         gettimeofday(&tv, NULL);
@@ -301,7 +314,7 @@ int main(
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
 #if defined(_WIN32)
-    hThread = _beginthread(milliseconds_task, 4096, &arg_value);
+    hThread = _beginthread(milliseconds_task_win32, 4096, &arg_value);
     if (hThread == 0) {
         fprintf(stderr, "Failed to start timer task\n");
     }
