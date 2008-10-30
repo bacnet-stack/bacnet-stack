@@ -49,6 +49,9 @@ bool apdu_service_supported(
     if (service_supported == SERVICE_SUPPORTED_READ_PROPERTY) {
         status = true;
     }
+    if (service_supported == SERVICE_SUPPORTED_WHO_IS) {
+        status = true;
+    }
 #ifdef WRITE_PROPERTY
     if (service_supported == SERVICE_SUPPORTED_WRITE_PROPERTY) {
         status = true;
