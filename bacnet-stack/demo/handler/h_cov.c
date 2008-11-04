@@ -426,9 +426,14 @@ static bool cov_subscribe(
 
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            status = true;
-            status =
-                cov_list_subscribe(src, cov_data, error_class, error_code);
+            if (Binary_Input_Valid_Instance(
+                cov_data->monitoredObjectIdentifier.instance)) {
+                status =
+                    cov_list_subscribe(src, cov_data, error_class, error_code);
+            } else {
+                *error_class = ERROR_CLASS_OBJECT;
+                *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+            }
             break;
         default:
             *error_class = ERROR_CLASS_OBJECT;
