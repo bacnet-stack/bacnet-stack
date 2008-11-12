@@ -87,7 +87,6 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                /* FIXME: double is not implemented yet. */
                 apdu_len =
                     encode_application_double(&apdu[0], value->type.Double);
                 break;
@@ -326,7 +325,6 @@ int bacapp_encode_context_data_value(
 #endif
 #if defined (BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                /* FIXME: double is not implemented yet. */
                 apdu_len =
                     encode_context_double(&apdu[0], context_tag_number,
                     value->type.Double);

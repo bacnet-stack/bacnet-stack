@@ -1401,7 +1401,7 @@ int encode_context_real(
 /* returns the number of apdu bytes consumed */
 int encode_application_double(
     uint8_t * apdu,
-    float value)
+    double value)
 {
     int len = 0;
 
@@ -1415,7 +1415,7 @@ int encode_application_double(
 int encode_context_double(
     uint8_t * apdu,
     int tag_number,
-    float value)
+    double value)
 {
     int len = 0;
 
