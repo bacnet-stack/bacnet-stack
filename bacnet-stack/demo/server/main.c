@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
     /* configure the timeout values */
     last_seconds = time(NULL);
     /* broadcast an I-Am on startup */
-    iam_send(&Handler_Transmit_Buffer[0]);
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {
         /* input */

@@ -43,6 +43,7 @@ SRCS = main.c \
        ..\..\demo\handler\h_rp.c  \
        ..\..\demo\handler\noserv.c  \
        ..\..\demo\handler\txbuf.c  \
+       ..\..\demo\handler\s_iam.c  \
        ..\..\demo\handler\s_rp.c  \
        ..\..\demo\handler\s_whois.c  \
        ..\..\bacdcode.c \

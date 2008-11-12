@@ -77,6 +77,7 @@
     defined(BACAPP_UNSIGNED) || \
     defined(BACAPP_SIGNED) || \
     defined(BACAPP_REAL) || \
+    defined(BACAPP_DOUBLE) || \
     defined(BACAPP_OCTET_STRING) || \
     defined(BACAPP_CHARACTER_STRING) || \
     defined(BACAPP_BIT_STRING) || \
@@ -93,7 +94,7 @@
 #define BACAPP_UNSIGNED
 #define BACAPP_SIGNED
 #define BACAPP_REAL
-/* FIXME: not implemented #define BACAPP_DOUBLE */
+#define BACAPP_DOUBLE
 #define BACAPP_OCTET_STRING
 #define BACAPP_CHARACTER_STRING
 #define BACAPP_BIT_STRING

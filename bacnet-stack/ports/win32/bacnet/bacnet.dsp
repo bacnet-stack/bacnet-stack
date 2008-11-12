@@ -285,6 +285,10 @@ SOURCE=..\..\..\demo\handler\noserv.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\handler\s_iam.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\npdu.c
 # End Source File
 # Begin Source File

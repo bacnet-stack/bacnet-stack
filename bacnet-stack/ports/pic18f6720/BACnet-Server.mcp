@@ -149,6 +149,8 @@ file_062=mstp.h
 file_063=C:\code\bacnet-stack\datalink.h
 file_064=C:\mcc18\h\p18f6720.h
 file_065=18F6720.lkr
+file_066=C:\code\bacnet-stack\demo\handler\h_npdu.c
+file_067=C:\code\bacnet-stack\demo\handler\s_iam.c
 [SUITE_INFO]
 suite_guid={5B7D72DD-9861-47BD-9F60-2BE967BF8416}
 suite_state=

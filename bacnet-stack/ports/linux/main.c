@@ -279,7 +279,7 @@ int main(
         }
         if (I_Am_Request) {
             I_Am_Request = false;
-            iam_send(&Handler_Transmit_Buffer[0]);
+            Send_I_Am(&Handler_Transmit_Buffer[0]);
         } else if (Who_Is_Request) {
             Who_Is_Request = false;
             Send_WhoIs(-1, -1);
