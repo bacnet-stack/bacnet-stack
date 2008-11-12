@@ -151,6 +151,18 @@ extern "C" {
         int tag_number,
         float value);
 
+/* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
+/* and 20.2.1 General Rules for Encoding BACnet Tags */
+/* returns the number of apdu bytes consumed */
+int encode_application_double(
+    uint8_t * apdu,
+    double value);
+    
+int encode_context_double(
+    uint8_t * apdu,
+    int tag_number,
+    double value);
+    
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
