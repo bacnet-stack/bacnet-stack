@@ -39,6 +39,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* unconfirmed requests */
+    void Send_I_Am(
+        uint8_t * buffer);
+
     void Send_WhoIs(
         int32_t low_limit,
         int32_t high_limit);

@@ -62,7 +62,8 @@ DEMOSRC = ai.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/h_whois.c \
 	$(BACNET_DEMO)/handler/h_rd.c \
-	$(BACNET_DEMO)/handler/h_dcc.c
+	$(BACNET_DEMO)/handler/h_dcc.c \
+	$(BACNET_DEMO)/handler/s_iam.c
 
 CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/apdu.c \

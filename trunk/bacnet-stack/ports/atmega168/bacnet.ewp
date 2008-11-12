@@ -2009,6 +2009,12 @@
     <name>$PROJ_DIR$\..\..\demo\handler\noserv.c</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\..\..\demo\handler\s_iam.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\..\..\demo\handler\h_npdu.c</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\..\..\src\npdu.c</name>
   </file>
   <file>

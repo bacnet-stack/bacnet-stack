@@ -286,7 +286,7 @@ void main(
     Initialize_Variables();
     /* Handle anything that needs to be done on powerup */
     /* Greet the BACnet world! */
-    iam_send(&Handler_Transmit_Buffer[0]);
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* Main loop */
     while (TRUE) {
         RESTART_WDT();

@@ -148,7 +148,7 @@ int main(
     dlmstp_set_my_address(0x05);
 #endif
     datalink_init(NULL);
-    iam_send(&Handler_Transmit_Buffer[0]);
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {
         /* input */

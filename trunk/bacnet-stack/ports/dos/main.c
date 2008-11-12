@@ -94,7 +94,7 @@ int main(
     Timer_Init();
     bacnet_init();
     /* broadcast an I-Am on startup */
-    iam_send(&Handler_Transmit_Buffer[0]);
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
     for (;;) {
         millisecond_timer();
         if (!DCC_Timer) {

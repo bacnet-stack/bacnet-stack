@@ -180,7 +180,7 @@ int main(
     enableIRQ();
     enableFIQ();
     /* broadcast an I-Am on startup */
-    iam_send(&Handler_Transmit_Buffer[0]);
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* endless blink loop */
     while (1) {
         millisecond_timer();
