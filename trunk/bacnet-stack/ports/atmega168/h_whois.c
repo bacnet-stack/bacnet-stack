@@ -37,7 +37,7 @@
 #include "client.h"
 #include "txbuf.h"
 
-bool Send_I_Am = true;
+bool Send_I_Am_Flag = true;
 
 void handler_who_is(
     uint8_t * service_request,
@@ -54,7 +54,7 @@ void handler_who_is(
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
     if (len == 0) {
-        Send_I_Am = true;
+        Send_I_Am_Flag = true;
     } else if (len != -1) {
         /* is my device id within the limits? */
         target_device = Device_Object_Instance_Number();
@@ -63,7 +63,7 @@ void handler_who_is(
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
                 (BACNET_MAX_INSTANCE <= (uint32_t) high_limit))) {
-            Send_I_Am = true;
+            Send_I_Am_Flag = true;
         }
     }
 

@@ -44,7 +44,7 @@
 #include "bits.h"
 #include "bacaddr.h"
 /* special optimization - I-Am response in this module */
-#include "iam.h"
+#include "client.h"
 #include "txbuf.h"
 
 /* This file has been customized for use with small microprocessors */
@@ -277,7 +277,7 @@ void dlmstp_fill_bacnet_address(
 }
 
 /* I Am from handler */
-extern bool Send_I_Am;
+extern bool Send_I_Am_Flag;
 
 /* look at any of the unconfirmed message bits and encode if set */
 static uint16_t dlmstp_encode_unconfirmed_frame(
@@ -287,8 +287,8 @@ static uint16_t dlmstp_encode_unconfirmed_frame(
     BACNET_NPDU_DATA npdu_data;
     uint16_t len = 0;
 
-    if (Send_I_Am) {
-        Send_I_Am = false;
+    if (Send_I_Am_Flag) {
+        Send_I_Am_Flag = false;
         TransmitPacket = Handler_Transmit_Buffer;
         len = iam_encode_pdu(&TransmitPacket[0], &dest, &npdu_data);
     }
