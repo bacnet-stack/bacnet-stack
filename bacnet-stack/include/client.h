@@ -41,6 +41,10 @@ extern "C" {
 /* unconfirmed requests */
     void Send_I_Am(
         uint8_t * buffer);
+    int iam_encode_pdu(
+        uint8_t * buffer,
+        BACNET_ADDRESS * dest,
+        BACNET_NPDU_DATA * npdu_data);
 
     void Send_WhoIs(
         int32_t low_limit,

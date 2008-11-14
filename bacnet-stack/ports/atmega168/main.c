@@ -37,7 +37,7 @@
 #include "av.h"
 
 /* From the WhoIs hander - performed by the DLMSTP module */
-extern bool Send_I_Am;
+extern bool Send_I_Am_Flag;
 /* local version override */
 const char *BACnet_Version = "1.0";
 
@@ -134,7 +134,7 @@ static void input_switch_read(
             dlmstp_set_mac_address(Address_Switch);
 #endif
             Device_Set_Object_Instance_Number(86000 + Address_Switch);
-            Send_I_Am = true;
+            Send_I_Am_Flag = true;
         }
     }
 }
