@@ -31,6 +31,7 @@
 #include "bacdcode.h"
 #include "address.h"
 #include "tsm.h"
+#include "dcc.h"
 #include "npdu.h"
 #include "apdu.h"
 #include "device.h"
@@ -69,9 +70,17 @@ void Send_I_Am(
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
+#if 0
+    /* note: there is discussion in the BACnet committee
+       that we should allow a device to reply with I-Am 
+       so that dynamic binding always work.  If the DCC
+       initiator loses the MAC address and routing info, 
+       they can never re-enable DCC because they can't 
+       find the device with WhoIs/I-Am */
     /* are we are forbidden to send? */
     if (!dcc_communication_enabled())
         return 0;
+#endif
     /* encode the data */
     pdu_len = iam_encode_pdu(buffer, &dest, &npdu_data);
     /* send data */
@@ -82,5 +91,4 @@ void Send_I_Am(
         fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n",
             strerror(errno));
 #endif
-    return bytes_sent;
 }
