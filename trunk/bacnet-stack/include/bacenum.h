@@ -778,7 +778,7 @@ typedef enum {
     LIFE_SAFETY_MODE_DISABLED = 12,
     LIFE_SAFETY_MODE_AUTOMATIC_RELEASE_DISABLED = 13,
     LIFE_SAFETY_MODE_DEFAULT = 14,
-    MAX_LIFE_SAFETY_MODE = 14
+    MAX_LIFE_SAFETY_MODE = 15
         /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
         /* Enumerated values 256-65535 may be used by others subject to  */
         /* procedures and constraints described in Clause 23. */
@@ -826,7 +826,7 @@ typedef enum {
     LIFE_SAFETY_STATE_GENERAL_ALARM = 21,
     LIFE_SAFETY_STATE_SUPERVISORY = 22,
     LIFE_SAFETY_STATE_TEST_SUPERVISORY = 23,
-    MAX_LIFE_SAFETY_STATE = 0
+    MAX_LIFE_SAFETY_STATE = 24
         /* Enumerated values 0-255 are reserved for definition by ASHRAE.  */
         /* Enumerated values 256-65535 may be used by others subject to  */
         /* procedures and constraints described in Clause 23. */
@@ -1358,12 +1358,11 @@ typedef enum {
     ERROR_CODE_UNKNOWN_FILE_SIZE = 81,
     ERROR_CODE_BUSY = 82,
     ERROR_CODE_COMMUNICATION_DISABLED = 83,
-
+    MAX_BACNET_ERROR_CODE = 84,
     /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
     /* Enumerated values 256-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     /* The last enumeration used in this version is 50. */
-    MAX_BACNET_ERROR_CODE = 81,
     FIRST_PROPRIETARY_ERROR_CODE = 256,
     LAST_PROPRIETARY_ERROR_CODE = 65535
 } BACNET_ERROR_CODE;
