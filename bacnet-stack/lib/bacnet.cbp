@@ -67,6 +67,9 @@
 		<Unit filename="..\demo\handler\h_ihave.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\h_npdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\h_rd.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -82,22 +85,19 @@
 		<Unit filename="..\demo\handler\h_ts.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\h_ucov.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\h_whohas.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\h_whois.c">
 			<Option compilerVar="CC" />
 		</Unit>
-        <Unit filename="..\demo\handler\h_npdu.c">
-            <Option compilerVar="CC" />
-        </Unit>
 		<Unit filename="..\demo\handler\h_wp.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\noserv.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\handler\s_iam.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\s_arfs.c">
@@ -236,6 +236,7 @@
 		<Unit filename="..\include\whohas.h" />
 		<Unit filename="..\include\whois.h" />
 		<Unit filename="..\include\wp.h" />
+		<Unit filename="Makefile" />
 		<Unit filename="..\ports\win32\bip-init.c">
 			<Option compilerVar="CC" />
 		</Unit>
