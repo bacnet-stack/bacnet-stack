@@ -27,9 +27,14 @@ ifeq (${BACNET_PORT},win32)
 TARGET_BIN = ${TARGET}.exe
 LIBRARIES=-lws2_32,-lgcc,-lm,-liphlpapi
 endif
-#DEBUGGING = -g
-#OPTIMIZATION = -O0
+#build for release (default) or debug
+DEBUGGING =
 OPTIMIZATION = -Os
+ifeq (${BUILD},debug)
+OPTIMIZATION = -O0
+DEBUGGING = -g
+endif
+# put all the flags together
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES) -fdata-sections -ffunction-sections
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES),--gc-sections
 

@@ -32,8 +32,14 @@ LIBRARY1=-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 LIBRARY2=-lws2_32,-lgcc,-lm,-liphlpapi
 LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif
-DEBUGGING = -g
+#build for release (default) or debug
+DEBUGGING =
+OPTIMIZATION = -Os
+ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
+DEBUGGING = -g
+endif
+# put all the flags together
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 

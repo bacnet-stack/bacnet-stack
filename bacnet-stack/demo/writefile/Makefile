@@ -23,7 +23,7 @@ BACNET_LIB_DIR = ../../lib
 BACNET_LIB_NAME = bacnet
 BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 # Compiler Setup
-INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR) 
+INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR)
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_BIN = ${TARGET}
@@ -35,8 +35,14 @@ LIBRARY1=-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 LIBRARY2=-lws2_32,-lgcc,-lm,-liphlpapi
 LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif
-DEBUGGING = -g
+#build for release (default) or debug
+DEBUGGING =
+OPTIMIZATION = -Os
+ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
+DEBUGGING = -g
+endif
+# put all the flags together
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
