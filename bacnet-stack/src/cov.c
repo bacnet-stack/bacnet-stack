@@ -186,8 +186,9 @@ int cov_notify_decode_service_request(
                 &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             data->subscriberProcessIdentifier = decoded_value;
-        } else
+        } else {
             return -1;
+        }
         /* tag 1 - initiatingDeviceIdentifier */
         if (decode_is_context_tag(&apdu[len], 1)) {
             len +=
@@ -196,10 +197,12 @@ int cov_notify_decode_service_request(
             len +=
                 decode_object_id(&apdu[len], &decoded_type,
                 &data->initiatingDeviceIdentifier);
-            if (decoded_type != OBJECT_DEVICE)
+            if (decoded_type != OBJECT_DEVICE) {
                 return -1;
-        } else
+            }
+        } else {
             return -1;
+        }
         /* tag 2 - monitoredObjectIdentifier */
         if (decode_is_context_tag(&apdu[len], 2)) {
             len +=
@@ -209,8 +212,9 @@ int cov_notify_decode_service_request(
                 decode_object_id(&apdu[len], &decoded_type,
                 &data->monitoredObjectIdentifier.instance);
             data->monitoredObjectIdentifier.type = decoded_type;
-        } else
+        } else {
             return -1;
+        }
         /* tag 3 - timeRemaining */
         if (decode_is_context_tag(&apdu[len], 3)) {
             len +=
@@ -218,11 +222,13 @@ int cov_notify_decode_service_request(
                 &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             data->timeRemaining = decoded_value;
-        } else
+        } else {
             return -1;
+        }
         /* tag 4: opening context tag - listOfValues */
-        if (!decode_is_opening_tag_number(&apdu[len], 4))
+        if (!decode_is_opening_tag_number(&apdu[len], 4)) {
             return -1;
+        }
         /* a tag number of 4 is not extended so only one octet */
         len++;
         /* the first value includes a pointer to the next value, etc */
@@ -235,8 +241,9 @@ int cov_notify_decode_service_request(
                     &len_value);
                 len += decode_enumerated(&apdu[len], len_value, &property);
                 value->propertyIdentifier = property;
-            } else
+            } else {
                 return -1;
+            }
             /* tag 1 - propertyArrayIndex OPTIONAL */
             if (decode_is_context_tag(&apdu[len], 1)) {
                 len +=
@@ -244,11 +251,13 @@ int cov_notify_decode_service_request(
                     &len_value);
                 len += decode_unsigned(&apdu[len], len_value, &decoded_value);
                 value->propertyArrayIndex = decoded_value;
-            } else
+            } else {
                 value->propertyArrayIndex = BACNET_ARRAY_ALL;
+            }
             /* tag 2: opening context tag - value */
-            if (!decode_is_opening_tag_number(&apdu[len], 2))
+            if (!decode_is_opening_tag_number(&apdu[len], 2)) {
                 return -1;
+            }
             /* a tag number of 2 is not extended so only one octet */
             len++;
             len +=
@@ -256,8 +265,9 @@ int cov_notify_decode_service_request(
                 &value->value);
             /* FIXME: check the return value; abort if no valid data? */
             /* FIXME: there might be more than one data element in here! */
-            if (!decode_is_closing_tag_number(&apdu[len], 2))
+            if (!decode_is_closing_tag_number(&apdu[len], 2)) {
                 return -1;
+            }
             /* a tag number of 2 is not extended so only one octet */
             len++;
             /* tag 3 - priority OPTIONAL */
@@ -267,16 +277,19 @@ int cov_notify_decode_service_request(
                     &len_value);
                 len += decode_unsigned(&apdu[len], len_value, &decoded_value);
                 value->priority = decoded_value;
-            } else
+            } else {
                 value->priority = BACNET_NO_PRIORITY;
+            }
             /* end of list? */
-            if (decode_is_closing_tag_number(&apdu[len], 4))
+            if (decode_is_closing_tag_number(&apdu[len], 4)) {
                 break;
+            }
             /* is there another one to decode? */
             value = value->next;
             /* out of room to store more values */
-            if (value == NULL)
+            if (value == NULL) {
                 return -1;
+            }
         }
     }
 
