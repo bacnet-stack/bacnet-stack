@@ -27,8 +27,12 @@ BACNET_INCLUDE = ../include
 # compiler configuration
 #STANDARDS = -std=c99
 INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
+OPTIMIZATION = -Os
+DEBUGGING =
+ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
 DEBUGGING = -g
+endif
 CFLAGS  = -Wall $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
 CORE_SRC = \
@@ -86,6 +90,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_whohas.c  \
 	$(BACNET_HANDLER)/h_ihave.c  \
 	$(BACNET_HANDLER)/h_cov.c  \
+	$(BACNET_HANDLER)/h_ucov.c  \
 	$(BACNET_HANDLER)/s_arfs.c \
 	$(BACNET_HANDLER)/s_awfs.c \
 	$(BACNET_HANDLER)/s_dcc.c \

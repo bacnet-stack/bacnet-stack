@@ -159,6 +159,10 @@ extern "C" {
         uint8_t * apdu,
         int max_apdu);
 
+    void handler_ucov_notification(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
 
 #ifdef __cplusplus
 }
