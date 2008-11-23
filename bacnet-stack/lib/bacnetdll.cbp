@@ -209,9 +209,12 @@
 		<Unit filename="..\src\keylist.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\src\mstp.c">
-			<Option compilerVar="CC" />
-		</Unit>
+        <Unit filename="..\src\memcopy.c">
+            <Option compilerVar="CC" />
+        </Unit>
+        <Unit filename="..\src\mstp.c">
+            <Option compilerVar="CC" />
+        </Unit>
 		<Unit filename="..\src\mstptext.c">
 			<Option compilerVar="CC" />
 		</Unit>

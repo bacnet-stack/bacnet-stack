@@ -38,16 +38,6 @@
 #include <stdbool.h>
 #include "bacapp.h"
 
-struct BACnet_Property_Value;
-typedef struct BACnet_Property_Value {
-    BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t propertyArrayIndex;
-    BACNET_APPLICATION_DATA_VALUE value;
-    uint8_t priority;
-    /* simple linked list */
-    struct BACnet_Property_Value *next;
-} BACNET_PROPERTY_VALUE;
-
 typedef struct BACnet_COV_Data {
     uint32_t subscriberProcessIdentifier;
     uint32_t initiatingDeviceIdentifier;
@@ -56,11 +46,6 @@ typedef struct BACnet_COV_Data {
     /* simple linked list of values */
     BACNET_PROPERTY_VALUE *listOfValues;
 } BACNET_COV_DATA;
-
-typedef struct BACnet_Property_Reference {
-    BACNET_PROPERTY_ID propertyIdentifier;
-    unsigned propertyArrayIndex;        /* optional */
-} BACNET_PROPERTY_REFERENCE;
 
 typedef struct BACnet_Subscribe_COV_Data {
     uint32_t subscriberProcessIdentifier;

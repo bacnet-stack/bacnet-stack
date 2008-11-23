@@ -89,6 +89,25 @@ typedef struct BACnet_Application_Data_Value {
     struct BACnet_Application_Data_Value *next;
 } BACNET_APPLICATION_DATA_VALUE;
 
+struct BACnet_Property_Reference;
+typedef struct BACnet_Property_Reference {
+    BACNET_PROPERTY_ID propertyIdentifier;
+    int32_t propertyArrayIndex; /* optional */
+    BACNET_APPLICATION_DATA_VALUE *value;
+    /* simple linked list */
+    struct BACnet_Property_Reference *next;
+} BACNET_PROPERTY_REFERENCE;
+
+struct BACnet_Property_Value;
+typedef struct BACnet_Property_Value {
+    BACNET_PROPERTY_ID propertyIdentifier;
+    int32_t propertyArrayIndex;
+    BACNET_APPLICATION_DATA_VALUE value;
+    uint8_t priority;
+    /* simple linked list */
+    struct BACnet_Property_Value *next;
+} BACNET_PROPERTY_VALUE;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

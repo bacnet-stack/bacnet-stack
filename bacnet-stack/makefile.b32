@@ -12,11 +12,12 @@ MAKE=$(BORLAND_DIR)\bin\make.exe
 
 all: library \
 	readprop writeprop readfile writefile server dcc reinit \
-	whois whohas timesync ucov epics
+	whois whohas timesync ucov epics readpropm
 	@echo "demo utilities are in the bin directory"
 
 clean: lib\makefile.b32 \
 	demo/readprop/makefile.b32 \
+	demo/readpropm/makefile.b32 \
 	demo/writeprop/makefile.b32 \
 	demo/readfile/makefile.b32 \
 	demo/writefile/makefile.b32 \
@@ -32,6 +33,10 @@ clean: lib\makefile.b32 \
 	$(MAKE) -i -f makefile.b32 clean
 	cd ..
 	cd demo/readprop
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/readpropm
 	$(MAKE) -i -f makefile.b32 clean
 	cd ..
 	cd ..
@@ -87,6 +92,13 @@ library: lib\makefile.b32
 
 readprop: demo/readprop/makefile.b32
 	cd demo/readprop
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+readpropm: demo/readpropm/makefile.b32
+	cd demo/readpropm
 	$(MAKE) -f makefile.b32 all
 	$(MAKE) -f makefile.b32 install
 	cd ..

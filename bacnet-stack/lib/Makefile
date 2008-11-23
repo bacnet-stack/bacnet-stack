@@ -65,6 +65,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
+	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/filename.c \
 	$(BACNET_CORE)/tsm.c \
 	$(BACNET_CORE)/bacaddr.c \
@@ -80,6 +81,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_rp.c \
 	$(BACNET_HANDLER)/h_rp_a.c \
 	$(BACNET_HANDLER)/h_rpm.c \
+	$(BACNET_HANDLER)/h_rpm_a.c \
 	$(BACNET_HANDLER)/h_wp.c  \
 	$(BACNET_HANDLER)/h_arf.c  \
 	$(BACNET_HANDLER)/h_arf_a.c  \
@@ -98,6 +100,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_iam.c  \
 	$(BACNET_HANDLER)/s_rd.c \
 	$(BACNET_HANDLER)/s_rp.c  \
+	$(BACNET_HANDLER)/s_rpm.c  \
 	$(BACNET_HANDLER)/s_ts.c \
 	$(BACNET_HANDLER)/s_whohas.c \
 	$(BACNET_HANDLER)/s_whois.c  \

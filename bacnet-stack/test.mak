@@ -131,6 +131,12 @@ mstp: logfile test/mstp.mak
 	( ./test/mstp >> ${LOGFILE} )
 	( cd test ; make -f mstp.mak clean )
 
+memcopy: logfile test/memcopy.mak
+	( cd test ; make -f memcopy.mak clean )
+	( cd test ; make -f memcopy.mak )
+	( ./test/memcopy >> ${LOGFILE} )
+	( cd test ; make -f memcopy.mak clean )
+
 npdu: logfile test/npdu.mak
 	( cd test ; make -f npdu.mak clean )
 	( cd test ; make -f npdu.mak )
