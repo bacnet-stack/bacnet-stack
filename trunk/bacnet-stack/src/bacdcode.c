@@ -439,7 +439,7 @@ bool decode_is_context_tag_with_length(
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
-/* returns the number of apdu bytes consumed */
+/* returns the true if the tag matches */
 bool decode_is_opening_tag_number(
     uint8_t * apdu,
     uint8_t tag_number)

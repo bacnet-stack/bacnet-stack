@@ -55,32 +55,36 @@ extern "C" {
 
     void sbuf_init(
         STATIC_BUFFER * b,      /* static buffer structure */
-        char *data,     /* actual size, in bytes, of the data block or array of data */
-        unsigned size); /* number of bytes used */
-/* returns true if size==0, false if size > 0 */
+        char *data,     /* data block */
+        unsigned size); /* actual size, in bytes, of the data block or array of data */
+
+    /* returns true if size==0, false if size > 0 */
     bool sbuf_empty(
         STATIC_BUFFER const *b);
+    /* returns the data block, or NULL if not initialized */
     char *sbuf_data(
         STATIC_BUFFER const *b);
+    /* returns the max size of the data block */
     unsigned sbuf_size(
         STATIC_BUFFER * b);
+    /* returns the number of bytes used in the data block */
     unsigned sbuf_count(
         STATIC_BUFFER * b);
-/* returns true if successful, false if not enough room to append data */
+    /* returns true if successful, false if not enough room to append data */
     bool sbuf_put(
         STATIC_BUFFER * b,      /* static buffer structure */
         unsigned offset,        /* where to start */
-        char *data,     /* number of bytes used */
+        char *data,     /* data to add */
         unsigned data_size);    /* how many to add */
-/* returns true if successful, false if not enough room to append data */
+    /* returns true if successful, false if not enough room to append data */
     bool sbuf_append(
         STATIC_BUFFER * b,      /* static buffer structure */
-        char *data,     /* number of bytes used */
-        unsigned data_size);    /* how many to add */
-/* returns true if successful, false if not enough room to append data */
+        char *data,     /* data to append */
+        unsigned data_size);    /* how many to append */
+    /* returns true if successful, false if count is bigger than size */
     bool sbuf_truncate(
         STATIC_BUFFER * b,      /* static buffer structure */
-        unsigned count);        /* total number of bytes in use */
+        unsigned count);        /* new number of bytes used in buffer */
 
 #ifdef __cplusplus
 }

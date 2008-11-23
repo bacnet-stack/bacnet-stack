@@ -136,6 +136,12 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
+    void handler_read_property_multiple_ack(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
+
     /* Encodes the property APDU and returns the length,
        or sets the error, and returns -1 */
     /* resides in h_rp.c */

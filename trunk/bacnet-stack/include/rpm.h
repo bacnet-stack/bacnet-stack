@@ -40,6 +40,16 @@
 #include "bacdef.h"
 #include "bacapp.h"
 
+struct BACnet_Read_Access_Data;
+typedef struct BACnet_Read_Access_Data {
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    /* simple linked list of values */
+    BACNET_PROPERTY_REFERENCE *listOfProperties;
+    struct BACnet_Read_Access_Data *next;
+} BACNET_READ_ACCESS_DATA;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -67,6 +77,12 @@ extern "C" {
 
     int rpm_encode_apdu_object_end(
         uint8_t * apdu);
+
+    int rpm_encode_apdu(
+        uint8_t * apdu,
+        size_t max_apdu,
+        uint8_t invoke_id,
+        BACNET_READ_ACCESS_DATA *read_access_data);
 
 /* decode the object portion of the service request only */
     int rpm_decode_object_id(
@@ -129,7 +145,6 @@ extern "C" {
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
         int32_t * array_index);
-
 #ifdef TEST
 #include "ctest.h"
     int rpm_decode_apdu(

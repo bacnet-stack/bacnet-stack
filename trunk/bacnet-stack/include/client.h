@@ -33,6 +33,7 @@
 #include "npdu.h"
 #include "bacapp.h"
 #include "bacenum.h"
+#include "rpm.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,6 +75,11 @@ extern "C" {
         uint32_t object_instance,
         BACNET_PROPERTY_ID object_property,
         int32_t array_index);
+    uint8_t Send_Read_Property_Multiple_Request(
+        uint8_t * pdu,
+        size_t max_pdu,
+        uint32_t device_id, /* destination device */
+        BACNET_READ_ACCESS_DATA *read_access_data);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Write_Property_Request(

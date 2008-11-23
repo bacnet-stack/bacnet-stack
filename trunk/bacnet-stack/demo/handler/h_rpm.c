@@ -1,7 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-* Inspired by John Stachler <John.Stachler@lennoxind.com> 
+* Inspired by John Stachler <John.Stachler@lennoxind.com>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -30,6 +30,7 @@
 #include <string.h>
 #include "config.h"
 #include "txbuf.h"
+#include "memcopy.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
@@ -210,27 +211,6 @@ static unsigned RPM_Object_Property_Count(
     return count;
 }
 
-/* copy len bytes from src to offset of dest if there is enough space. */
-int apdu_copy(
-    uint8_t * dest,
-    uint8_t * src,
-    int offset,
-    int len,
-    int max)
-{
-    int i;
-    int copy_len = 0;
-
-    if (len <= (max - offset)) {
-        for (i = 0; i < len; i++) {
-            dest[offset + i] = src[i];
-            copy_len++;
-        }
-    }
-
-    return copy_len;
-}
-
 /* Encode the RPM property returning the length of the encoding,
    or 0 if there is no room to fit the encoding.  */
 int RPM_Encode_Property(
@@ -250,9 +230,10 @@ int RPM_Encode_Property(
     len =
         rpm_ack_encode_apdu_object_property(&Temp_Buf[0], object_property,
         array_index);
-    len = apdu_copy(&apdu[0], &Temp_Buf[0], offset, len, max_apdu);
-    if (!len)
+    len = memcopy(&apdu[0], &Temp_Buf[0], offset, len, max_apdu);
+    if (!len) {
         return 0;
+    }
     apdu_len += len;
     len =
         Encode_Property_APDU(&Temp_Buf[0], object_type, object_instance,
@@ -263,10 +244,11 @@ int RPM_Encode_Property(
             rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
             error_class, error_code);
         len =
-            apdu_copy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len,
+            memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len,
             max_apdu);
-        if (!len)
+        if (!len) {
             return 0;
+        }
     } else if ((offset + apdu_len + 1 + len + 1) < max_apdu) {
         /* enough room to fit the property value and tags */
         len =
@@ -339,7 +321,7 @@ void handler_read_property_multiple(
                 decode_len++;
                 len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
                 copy_len =
-                    apdu_copy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
+                    memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
                     apdu_len, len, sizeof(Handler_Transmit_Buffer));
                 if (!copy_len) {
                     apdu_len =
@@ -362,7 +344,7 @@ void handler_read_property_multiple(
             rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], object_type,
             object_instance);
         copy_len =
-            apdu_copy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
+            memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
             apdu_len, len, sizeof(Handler_Transmit_Buffer));
         if (!copy_len) {
             apdu_len =
@@ -389,7 +371,7 @@ void handler_read_property_multiple(
                     decode_len++;
                     len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
                     copy_len =
-                        apdu_copy(&Handler_Transmit_Buffer[npdu_len],
+                        memcopy(&Handler_Transmit_Buffer[npdu_len],
                         &Temp_Buf[0], apdu_len, len,
                         sizeof(Handler_Transmit_Buffer));
                     if (!copy_len) {
