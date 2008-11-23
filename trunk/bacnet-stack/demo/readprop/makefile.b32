@@ -11,7 +11,7 @@ BORLAND_DIR_Not_Defined:
    @echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
-PRODUCT = bacrp
+PRODUCT = bacrpm
 PRODUCT_EXE = $(PRODUCT).exe
 
 # tools
@@ -26,7 +26,7 @@ BACNET_LIB = $(BACNET_LIB_DIR)\bacnet.lib
 # directories
 BACNET_PORT = ..\..\ports\win32
 BACNET_INCLUDE = ..\..\include
-INCLUDES = \ 
+INCLUDES = \
 	-I$(BACNET_INCLUDE) \
 	-I$(BACNET_PORT) \
 	-I$(BORLAND_DIR)\include
@@ -65,7 +65,7 @@ LIBS = $(BACNET_LIB) \
 #
 # This should be the first one in the makefile
 
-all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE) 
+all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE)
 	del $(BCC_CFG)
 
 install: $(PRODUCT_EXE)

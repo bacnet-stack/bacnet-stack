@@ -1,5 +1,5 @@
 /*************************************************************************
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -47,6 +47,7 @@
 #include "datalink.h"
 #include "whois.h"
 /* some demo stuff needed */
+#include "rpm.h"
 #include "filename.h"
 #include "handlers.h"
 #include "client.h"
@@ -57,10 +58,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
-static uint32_t Target_Object_Instance = BACNET_MAX_INSTANCE;
-static BACNET_OBJECT_TYPE Target_Object_Type = OBJECT_ANALOG_INPUT;
-static BACNET_PROPERTY_ID Target_Object_Property = PROP_ACKED_TRANSITIONS;
-static int32_t Target_Object_Index = BACNET_ARRAY_ALL;
+static BACNET_READ_ACCESS_DATA *Read_Access_Data;
 
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
@@ -124,8 +122,8 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the data coming back from confirmed requests */
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property_ack);
+    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+        handler_read_property_multiple_ack);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -218,22 +216,49 @@ static void Init_DataLink(
 #endif
 }
 
+void cleanup(void)
+{
+    BACNET_READ_ACCESS_DATA *rpm_object;
+    BACNET_READ_ACCESS_DATA *old_rpm_object;
+    BACNET_PROPERTY_REFERENCE *rpm_property;
+    BACNET_PROPERTY_REFERENCE *old_rpm_property;
+
+    rpm_object = Read_Access_Data;
+    old_rpm_object = rpm_object;
+    while (rpm_object) {
+        rpm_property = rpm_object->listOfProperties;
+        while (rpm_property) {
+            old_rpm_property = rpm_property;
+            rpm_property = rpm_property->next;
+            free(old_rpm_property);
+        }
+        old_rpm_object = rpm_object;
+        rpm_object = rpm_object->next;
+        free(old_rpm_object);
+    }
+}
+
 int main(int argc, char *argv[]) {
     BACNET_ADDRESS src = {
     0}; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
+    int args_remaining = 0, tag_value_arg = 0, arg_sets = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     uint8_t invoke_id = 0;
     bool found = false;
+    uint8_t buffer[MAX_PDU] = {0};
+    BACNET_READ_ACCESS_DATA *rpm_object;
+    BACNET_PROPERTY_REFERENCE *rpm_property;
+
 
     if (argc < 5) {
         printf("Usage: %s device-instance object-type object-instance "
-            "property [index]\r\n", filename_remove_path(argv[0]));
+            "property index [object-type ...]\r\n", filename_remove_path(argv[0]));
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf("device-instance:\r\n"
                 "BACnet Device Object Instance number that you are\r\n"
@@ -261,44 +286,94 @@ int main(int argc, char *argv[]) {
                 "be read.  If this parameter is missing and the property\r\n"
                 "is an array, the entire array will be read.\r\n"
                 "\r\nExample:\r\n"
-                "If you want read the Present-Value of Analog Output 101\r\n"
-                "in Device 123, you could send the following command:\r\n"
-                "%s 123 1 101 85\r\n"
-                "If you want read the Priority-Array of Analog Output 101\r\n"
-                "in Device 123, you could send the following command:\r\n"
-                "%s 123 1 101 87\r\n", filename_remove_path(argv[0]),
+                "If you want read the ALL property in\r\n"
+                "Device object 123, you would use the following command:\r\n"
+                "%s 123 8 123 8 -1\r\n"
+                "If you want read the OPTIONAL property in\r\n"
+                "Device object 123, you would use the following command:\r\n"
+                "%s 123 8 123 80 -1\r\n"
+                "If you want read the REQUIRED property in\r\n"
+                "Device object 123, you would use the following command:\r\n"
+                "%s 123 8 123 105 -1\r\n",
+                filename_remove_path(argv[0]),
+                filename_remove_path(argv[0]),
                 filename_remove_path(argv[0]));
         }
         return 0;
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    Target_Object_Type = strtol(argv[2], NULL, 0);
-    Target_Object_Instance = strtol(argv[3], NULL, 0);
-    Target_Object_Property = strtol(argv[4], NULL, 0);
-    if (argc > 5)
-        Target_Object_Index = strtol(argv[5], NULL, 0);
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
-        return 1;
+    atexit(cleanup);
+    Read_Access_Data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
+    rpm_object = Read_Access_Data;
+    args_remaining = (argc - 2);
+    arg_sets = 0;
+    while (rpm_object) {
+        tag_value_arg = 2 + (arg_sets * 4);
+        rpm_object->object_type =
+            strtol(argv[tag_value_arg], NULL, 0);
+        tag_value_arg++;
+        args_remaining--;
+        if (args_remaining <= 0) {
+            fprintf(stderr, "Error: not enough object property quads.\r\n");
+            return 1;
+        }
+        if (rpm_object->object_type > MAX_BACNET_OBJECT_TYPE) {
+            fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+                rpm_object->object_type, MAX_BACNET_OBJECT_TYPE + 1);
+            return 1;
+        }
+        rpm_object->object_instance =
+            strtol(argv[tag_value_arg], NULL, 0);
+        tag_value_arg++;
+        args_remaining--;
+        if (args_remaining <= 0) {
+            fprintf(stderr, "Error: not enough object property quads.\r\n");
+            return 1;
+        }
+        if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
+            fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
+                rpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
+            return 1;
+        }
+        rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+        rpm_object->listOfProperties = rpm_property;
+        if (rpm_property) {
+            rpm_property->propertyIdentifier =
+                strtol(argv[tag_value_arg], NULL, 0);
+            /* used up another arg */
+            tag_value_arg++;
+            args_remaining--;
+            if (args_remaining <= 0) {
+                fprintf(stderr, "Error: not enough object property quads.\r\n");
+                return 1;
+            }
+            if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
+                fprintf(stderr, "property=%u - it must be less than %u\r\n",
+                    rpm_property->propertyIdentifier, MAX_BACNET_PROPERTY_ID + 1);
+                return 1;
+            }
+            rpm_property->propertyArrayIndex =
+                strtol(argv[tag_value_arg], NULL, 0);
+            /* note: we are only loading one property for now */
+            rpm_property->next = NULL;
+            /* used up another arg */
+            tag_value_arg++;
+            args_remaining--;
+        }
+        if (args_remaining) {
+            arg_sets++;
+            rpm_object->next = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
+            rpm_object = rpm_object->next;
+        } else {
+            break;
+        }
     }
-    if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-            Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
-        return 1;
-    }
-    if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property=%u - it must be less than %u\r\n",
-            Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
-        return 1;
-    }
-
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
@@ -338,10 +413,11 @@ int main(int argc, char *argv[]) {
             &Target_Address);
         if (found) {
             if (invoke_id == 0) {
-                invoke_id =
-                    Send_Read_Property_Request(Target_Device_Object_Instance,
-                    Target_Object_Type, Target_Object_Instance,
-                    Target_Object_Property, Target_Object_Index);
+                invoke_id = Send_Read_Property_Multiple_Request(
+                    &buffer[0],
+                    sizeof(buffer),
+                    Target_Device_Object_Instance,
+                    Read_Access_Data);
             } else if (tsm_invoke_id_free(invoke_id))
                 break;
             else if (tsm_invoke_id_failed(invoke_id)) {
