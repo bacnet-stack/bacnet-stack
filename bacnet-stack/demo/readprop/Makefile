@@ -2,7 +2,7 @@
 # Compiler to use
 CC = gcc
 # Executable file name
-TARGET = bacrp
+TARGET = bacrpm
 
 # Configure the BACnet Datalink Layer
 #BACDL_DEFINE = -DBACDL_ETHERNET=1
