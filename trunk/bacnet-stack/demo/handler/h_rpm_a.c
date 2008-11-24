@@ -45,11 +45,11 @@
 /* note: initial the linked list of read_access_data */
 static int rpm_ack_decode_service_request(
     uint8_t * apdu,
-    int apdu_len,   /* total length of the apdu */
+    int apdu_len,       /* total length of the apdu */
     BACNET_READ_ACCESS_DATA * read_access_data)
 {
-    int decoded_len = 0; /* return value */
-    int len = 0; /* number of bytes returned from decoding */
+    int decoded_len = 0;        /* return value */
+    int len = 0;        /* number of bytes returned from decoding */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -60,9 +60,8 @@ static int rpm_ack_decode_service_request(
     rpm_object = read_access_data;
     old_rpm_object = rpm_object;
     while (rpm_object && apdu_len) {
-        len = rpm_ack_decode_object_id(
-            apdu, apdu_len,
-            &rpm_object->object_type,
+        len =
+            rpm_ack_decode_object_id(apdu, apdu_len, &rpm_object->object_type,
             &rpm_object->object_instance);
         if (len <= 0) {
             old_rpm_object->next = NULL;
@@ -76,9 +75,8 @@ static int rpm_ack_decode_service_request(
         rpm_object->listOfProperties = rpm_property;
         old_rpm_property = rpm_property;
         while (rpm_property && apdu_len) {
-            len = rpm_ack_decode_object_property(
-                apdu,
-                apdu_len,
+            len =
+                rpm_ack_decode_object_property(apdu, apdu_len,
                 &rpm_property->propertyIdentifier,
                 &rpm_property->propertyArrayIndex);
             if (len <= 0) {
@@ -94,15 +92,13 @@ static int rpm_ack_decode_service_request(
                 apdu_len--;
                 apdu++;
                 /* note: if this is an array, there will be
-                more than one element to decode */
+                   more than one element to decode */
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
                 old_value = value;
                 while (value && (apdu_len > 0)) {
-                    len = bacapp_decode_application_data(
-                        apdu,
-                        apdu_len,
-                        value);
+                    len =
+                        bacapp_decode_application_data(apdu, apdu_len, value);
                     decoded_len += len;
                     apdu_len -= len;
                     apdu += len;
@@ -113,7 +109,8 @@ static int rpm_ack_decode_service_request(
                         break;
                     } else {
                         old_value = value;
-                        value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+                        value =
+                            calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                         old_value->next = value;
                     }
                 }
@@ -174,8 +171,7 @@ static void PrintReadPropertyMultipleData(
             }
 #endif
             while (value) {
-                bacapp_print_value(stdout,
-                    value,
+                bacapp_print_value(stdout, value,
                     listOfProperties->propertyIdentifier);
 #if PRINT_ENABLED
                 if (value->next) {
@@ -205,19 +201,20 @@ void handler_read_property_multiple_ack(
     BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
     int len = 0;
-    BACNET_READ_ACCESS_DATA * rpm_data;
-    BACNET_READ_ACCESS_DATA * old_rpm_data;
+    BACNET_READ_ACCESS_DATA *rpm_data;
+    BACNET_READ_ACCESS_DATA *old_rpm_data;
     BACNET_PROPERTY_REFERENCE *rpm_property;
     BACNET_PROPERTY_REFERENCE *old_rpm_property;
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
     (void) src;
-    (void) service_data; /* we could use these... */
+    (void) service_data;        /* we could use these... */
 
     rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
     if (rpm_data) {
-        len = rpm_ack_decode_service_request(service_request, service_len,
+        len =
+            rpm_ack_decode_service_request(service_request, service_len,
             rpm_data);
     }
 #if 1

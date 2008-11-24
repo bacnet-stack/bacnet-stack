@@ -78,8 +78,8 @@ extern "C" {
     uint8_t Send_Read_Property_Multiple_Request(
         uint8_t * pdu,
         size_t max_pdu,
-        uint32_t device_id, /* destination device */
-        BACNET_READ_ACCESS_DATA *read_access_data);
+        uint32_t device_id,     /* destination device */
+        BACNET_READ_ACCESS_DATA * read_access_data);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Write_Property_Request(

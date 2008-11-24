@@ -381,7 +381,7 @@ bool bip_init(
         bip_set_socket(-1);
         return false;
     }
-    /* Enables transmission and receipt of broadcast messages on the socket.*/
+    /* Enables transmission and receipt of broadcast messages on the socket. */
     rv = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST, (char *) &value,
         sizeof(value));
     if (rv < 0) {

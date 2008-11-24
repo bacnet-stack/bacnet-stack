@@ -244,8 +244,7 @@ int RPM_Encode_Property(
             rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
             error_class, error_code);
         len =
-            memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len,
-            max_apdu);
+            memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len, max_apdu);
         if (!len) {
             return 0;
         }
@@ -344,8 +343,8 @@ void handler_read_property_multiple(
             rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], object_type,
             object_instance);
         copy_len =
-            memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
-            apdu_len, len, sizeof(Handler_Transmit_Buffer));
+            memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0], apdu_len,
+            len, sizeof(Handler_Transmit_Buffer));
         if (!copy_len) {
             apdu_len =
                 abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],

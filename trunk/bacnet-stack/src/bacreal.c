@@ -78,23 +78,22 @@ int decode_real(
 
 int decode_context_real(
     uint8_t * apdu,
-	uint8_t tag_number,
+    uint8_t tag_number,
     float *real_value)
 {
     uint32_t len_value;
-	int len = 0;
+    int len = 0;
 
-	if (decode_is_context_tag(&apdu[len], tag_number)) {
-		len += decode_tag_number_and_value(&apdu[len], &tag_number,
-			&len_value);
-		len += decode_real(&apdu[len], real_value);
-	}
-	else
-	{
-		len = -1;
-	}
-	return len;
+    if (decode_is_context_tag(&apdu[len], tag_number)) {
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_real(&apdu[len], real_value);
+    } else {
+        len = -1;
+    }
+    return len;
 }
+
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
 int encode_bacnet_real(

@@ -86,9 +86,9 @@ static void MyRejectHandler(
 }
 
 static void My_Router_Handler(
-    BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t * npdu,      /* PDU data */
+    BACNET_ADDRESS * src,
+    BACNET_NPDU_DATA * npdu_data,
+    uint8_t * npdu,     /* PDU data */
     uint16_t npdu_len)
 {
     uint16_t npdu_offset = 0;
@@ -122,26 +122,26 @@ static void My_Router_Handler(
                 }
             }
             port_mappings = npdu[0];
-            printf("\nPort Mappings: %u\n",port_mappings);
+            printf("\nPort Mappings: %u\n", port_mappings);
             npdu_offset = 1;
             npdu_len--;
             while (npdu_len) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
-                printf("DNET=%hu, ",dnet);
+                printf("DNET=%hu, ", dnet);
                 npdu_offset += len;
                 npdu_len -= len;
                 if (!npdu_len) {
                     break;
                 }
                 port_id = npdu[npdu_offset];
-                printf("Port ID=%u, ",port_id);
+                printf("Port ID=%u, ", port_id);
                 npdu_offset++;
                 npdu_len--;
                 if (!npdu_len) {
                     break;
                 }
                 port_info_len = npdu[npdu_offset];
-                printf("Port Info Length=%u, ",port_info_len);
+                printf("Port Info Length=%u, ", port_info_len);
                 npdu_offset++;
                 npdu_len--;
                 printf("Port Info=\"");
@@ -150,7 +150,7 @@ static void My_Router_Handler(
                         break;
                     }
                     if (j < port_info_len) {
-                        printf("%02X",npdu[npdu_offset]);
+                        printf("%02X", npdu[npdu_offset]);
                         npdu_offset++;
                         npdu_len--;
                     }
@@ -182,7 +182,7 @@ static void My_NPDU_Handler(
 
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
-        My_Router_Handler(src,&npdu_data,&pdu[apdu_offset],
+        My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
             (uint16_t) (pdu_len - apdu_offset));
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
@@ -325,7 +325,8 @@ static void address_parse(BACNET_ADDRESS * dst,
             dst->mac_len = 6;
             for (index = 0; index < 4; index++) {
                 dst->mac[index] = mac[index];
-            } encode_unsigned16(&dst->mac[4],
+            }
+            encode_unsigned16(&dst->mac[4],
                 port);
         } else {
             count =
@@ -364,22 +365,14 @@ int main(int argc, char *argv[]) {
             filename_remove_path(argv[0]));
         return 0;
     }
-    if   ((
-            argc > 1) && (
-            strcmp(argv[1],
-                "--help") == 0)) {
+    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("Send BACnet Initialize-Routing-Table message to a network\r\n"
             "and wait for responses.  Displays their network information.\r\n"
-            "\r\n"
-            "address:\r\n"
+            "\r\n" "address:\r\n"
             "MAC address in xx:xx:xx:xx:xx:xx format or IP x.x.x.x:port\r\n"
-            "DNET ID Len Info:\r\n"
-            "Port-info data:\r\n"
-            "   DNET:\r\n"
-            "   Destination network number 0-65534\r\n"
-            "   ID:\r\n"
-            "   Port Identifier number 0-255\r\n"
-            "   Info:\r\n"
+            "DNET ID Len Info:\r\n" "Port-info data:\r\n" "   DNET:\r\n"
+            "   Destination network number 0-65534\r\n" "   ID:\r\n"
+            "   Port Identifier number 0-255\r\n" "   Info:\r\n"
             "   Octet string of data, up to 255 octets\r\n"
             "To query the complete routing table, do not include any port-info.\r\n"
             "To query using Initialize-Routing-Table message to 192.168.0.18:\r\n"

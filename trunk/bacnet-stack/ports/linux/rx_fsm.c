@@ -217,8 +217,8 @@ static void write_received_packet(
         fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
             fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
-            fwrite((char *)&(mstp_port->DataCRCActualMSB), 1, 1, pFile);
-            fwrite((char *)&(mstp_port->DataCRCActualLSB), 1, 1, pFile);
+            fwrite((char *) &(mstp_port->DataCRCActualMSB), 1, 1, pFile);
+            fwrite((char *) &(mstp_port->DataCRCActualLSB), 1, 1, pFile);
         }
     } else {
         fprintf(stderr, "rx_fsm: failed to open %s: %s\n", Capture_Filename,

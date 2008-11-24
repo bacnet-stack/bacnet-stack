@@ -44,8 +44,8 @@
 #include "bacdevobjpropref.h"
 
 typedef enum {
-	CHANGE_OF_VALUE_BITS,
-	CHANGE_OF_VALUE_REAL
+    CHANGE_OF_VALUE_BITS,
+    CHANGE_OF_VALUE_REAL
 } CHANGE_OF_VALUE_TYPE;
 
 /*
@@ -53,103 +53,103 @@ typedef enum {
 */
 
 typedef struct BACnet_Event_Notification_Data {
-	uint32_t 					processIdentifier;
-	BACNET_OBJECT_ID 			initiatingObjectIdentifier;
-	BACNET_OBJECT_ID 			eventObjectIdentifier;
-	BACNET_TIMESTAMP			timeStamp;
-	uint32_t					notificationClass;
-	uint8_t						priority;
-	BACNET_EVENT_TYPE			eventType;
-	BACNET_CHARACTER_STRING*	messageText; /* OPTIONAL - Set to NULL if not being used */
-	BACNET_NOTIFY_TYPE			notifyType;
-	bool						ackRequired;
-	BACNET_EVENT_STATE			fromState;
-	BACNET_EVENT_STATE			toState;
-	/*
-	** Each of these structures in the union maps to a particular eventtype
-	** Based on BACnetNotificationParameters
-	*/
+    uint32_t processIdentifier;
+    BACNET_OBJECT_ID initiatingObjectIdentifier;
+    BACNET_OBJECT_ID eventObjectIdentifier;
+    BACNET_TIMESTAMP timeStamp;
+    uint32_t notificationClass;
+    uint8_t priority;
+    BACNET_EVENT_TYPE eventType;
+    BACNET_CHARACTER_STRING *messageText;       /* OPTIONAL - Set to NULL if not being used */
+    BACNET_NOTIFY_TYPE notifyType;
+    bool ackRequired;
+    BACNET_EVENT_STATE fromState;
+    BACNET_EVENT_STATE toState;
+    /*
+     ** Each of these structures in the union maps to a particular eventtype
+     ** Based on BACnetNotificationParameters
+     */
 
-	union {
-		/*
-		** EVENT_CHANGE_OF_BITSTRING
-		*/
-		struct {
-			BACNET_BIT_STRING    	referencedBitString;
-			BACNET_BIT_STRING	 	statusFlags;
-		} changeOfBitstring;
-		/*
-		** EVENT_CHANGE_OF_STATE
-		*/
-		struct {
-			BACNET_PROPERTY_STATE	newState;
-			BACNET_BIT_STRING		statusFlags;
-		} changeOfState;
-		/*
-		** EVENT_CHANGE_OF_VALUE
-		*/
-		struct {
-			union {
-				BACNET_BIT_STRING 	changedBits;
-				float				changeValue;
-			} newValue;
-			CHANGE_OF_VALUE_TYPE    tag;
-			BACNET_BIT_STRING		statusFlags;
-		} changeOfValue;
-		/*
-		** EVENT_COMMAND_FAILURE
-		**
-		** Not Supported!
-		*/
-		/*
-		** EVENT_FLOATING_LIMIT
-		*/
-		struct {
-			float					referenceValue;
-			BACNET_BIT_STRING		statusFlags;
-			float					setPointValue;
-			float					errorLimit;
-		} floatingLimit;
-		/*
-		** EVENT_OUT_OF_RANGE
-		*/
-		struct {
-			float					exceedingValue;
-			BACNET_BIT_STRING		statusFlags;
-			float					deadband;
-			float					exceededLimit;
-		} outOfRange;
-		/*
-		** EVENT_CHANGE_OF_LIFE_SAFETY
-		*/
-		struct {
-			BACNET_LIFE_SAFETY_STATE	 newState;
-			BACNET_LIFE_SAFETY_MODE		 newMode;
-			BACNET_BIT_STRING			 statusFlags;
-			BACNET_LIFE_SAFETY_OPERATION operationExpected;
-		} changeOfLifeSafety;
-		/*
-		** EVENT_EXTENDED
-		**
-		** Not Supported!
-		*/
-		/*
-		** EVENT_BUFFER_READY
-		*/
-		struct {
-			BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE bufferProperty;
-			uint32_t								previousNotification;
-			uint32_t								currentNotification;
-		} bufferReady;
-		/*
-		** EVENT_UNSIGNED_RANGE
-		*/
-		struct {
-			uint32_t				exceedingValue;
-			BACNET_BIT_STRING		statusFlags;
-			uint32_t				exceededLimit;
-		} unsignedRange;
-	} notificationParams;
+    union {
+        /*
+         ** EVENT_CHANGE_OF_BITSTRING
+         */
+        struct {
+            BACNET_BIT_STRING referencedBitString;
+            BACNET_BIT_STRING statusFlags;
+        } changeOfBitstring;
+        /*
+         ** EVENT_CHANGE_OF_STATE
+         */
+        struct {
+            BACNET_PROPERTY_STATE newState;
+            BACNET_BIT_STRING statusFlags;
+        } changeOfState;
+        /*
+         ** EVENT_CHANGE_OF_VALUE
+         */
+        struct {
+            union {
+                BACNET_BIT_STRING changedBits;
+                float changeValue;
+            } newValue;
+            CHANGE_OF_VALUE_TYPE tag;
+            BACNET_BIT_STRING statusFlags;
+        } changeOfValue;
+        /*
+         ** EVENT_COMMAND_FAILURE
+         **
+         ** Not Supported!
+         */
+        /*
+         ** EVENT_FLOATING_LIMIT
+         */
+        struct {
+            float referenceValue;
+            BACNET_BIT_STRING statusFlags;
+            float setPointValue;
+            float errorLimit;
+        } floatingLimit;
+        /*
+         ** EVENT_OUT_OF_RANGE
+         */
+        struct {
+            float exceedingValue;
+            BACNET_BIT_STRING statusFlags;
+            float deadband;
+            float exceededLimit;
+        } outOfRange;
+        /*
+         ** EVENT_CHANGE_OF_LIFE_SAFETY
+         */
+        struct {
+            BACNET_LIFE_SAFETY_STATE newState;
+            BACNET_LIFE_SAFETY_MODE newMode;
+            BACNET_BIT_STRING statusFlags;
+            BACNET_LIFE_SAFETY_OPERATION operationExpected;
+        } changeOfLifeSafety;
+        /*
+         ** EVENT_EXTENDED
+         **
+         ** Not Supported!
+         */
+        /*
+         ** EVENT_BUFFER_READY
+         */
+        struct {
+            BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE bufferProperty;
+            uint32_t previousNotification;
+            uint32_t currentNotification;
+        } bufferReady;
+        /*
+         ** EVENT_UNSIGNED_RANGE
+         */
+        struct {
+            uint32_t exceedingValue;
+            BACNET_BIT_STRING statusFlags;
+            uint32_t exceededLimit;
+        } unsignedRange;
+    } notificationParams;
 } BACNET_EVENT_NOTIFICATION_DATA;
 
 
@@ -162,48 +162,48 @@ extern "C" {
 ** Creates a Confirmed Event Notification APDU
 **
 ****************************************************/
-int cevent_notify_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_EVENT_NOTIFICATION_DATA * data);
+    int cevent_notify_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_EVENT_NOTIFICATION_DATA * data);
 
 /***************************************************
 **
 ** Creates an Unconfirmed Event Notification APDU
 **
 ****************************************************/
-int uevent_notify_encode_apdu(
-    uint8_t * apdu,
-    BACNET_EVENT_NOTIFICATION_DATA * data);
+    int uevent_notify_encode_apdu(
+        uint8_t * apdu,
+        BACNET_EVENT_NOTIFICATION_DATA * data);
 
 /***************************************************
 **
 ** Encodes the service data part of Event Notification
 **
 ****************************************************/
-int event_notify_encode_service_request(
-    uint8_t * apdu,
-    BACNET_EVENT_NOTIFICATION_DATA * data);
+    int event_notify_encode_service_request(
+        uint8_t * apdu,
+        BACNET_EVENT_NOTIFICATION_DATA * data);
 
 /***************************************************
 **
 ** Decodes the service data part of Event Notification
 **
 ****************************************************/
-int event_notify_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_EVENT_NOTIFICATION_DATA * data);
+    int event_notify_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_EVENT_NOTIFICATION_DATA * data);
 
 /***************************************************
 **
 ** Sends an Unconfirmed Event Notifcation to a dest
 **
 ****************************************************/
-int uevent_notify_send(
-    uint8_t * buffer,
-    BACNET_EVENT_NOTIFICATION_DATA * data,
-    BACNET_ADDRESS *dest);
+    int uevent_notify_send(
+        uint8_t * buffer,
+        BACNET_EVENT_NOTIFICATION_DATA * data,
+        BACNET_ADDRESS * dest);
 
 
 #ifdef __cplusplus

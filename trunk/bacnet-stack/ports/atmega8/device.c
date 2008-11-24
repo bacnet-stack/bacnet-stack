@@ -111,7 +111,7 @@ unsigned Device_Object_List_Count(
     /* FIXME: add objects as needed */
     count += Binary_Value_Count();
 #endif
-    
+
     return count;
 }
 
@@ -328,4 +328,3 @@ int Device_Encode_Property_APDU(
 
     return apdu_len;
 }
-

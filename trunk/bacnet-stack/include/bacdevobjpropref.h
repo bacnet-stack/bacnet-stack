@@ -37,10 +37,10 @@
 
 
 typedef struct {
-	BACNET_OBJECT_ID			objectIdentifier;
-	BACNET_PROPERTY_ID			propertyIdentifier;
-	uint32_t					arrayIndex;
-	BACNET_OBJECT_ID			deviceIndentifier;
+    BACNET_OBJECT_ID objectIdentifier;
+    BACNET_PROPERTY_ID propertyIdentifier;
+    uint32_t arrayIndex;
+    BACNET_OBJECT_ID deviceIndentifier;
 } BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE;
 
 
@@ -48,28 +48,25 @@ typedef struct {
 extern "C" {
 #endif /* __cplusplus */
 
-int bacapp_encode_device_obj_property_ref(
-    uint8_t * apdu,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
+    int bacapp_encode_device_obj_property_ref(
+        uint8_t * apdu,
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
-int bacapp_encode_context_device_obj_property_ref(
-    uint8_t * apdu,
-	uint8_t tag_number,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
+    int bacapp_encode_context_device_obj_property_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
-int bacapp_decode_device_obj_property_ref(
-    uint8_t * apdu,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
+    int bacapp_decode_device_obj_property_ref(
+        uint8_t * apdu,
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
-int bacapp_decode_context_device_obj_property_ref(
-    uint8_t * apdu,
-	uint8_t tag_number,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
+    int bacapp_decode_context_device_obj_property_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-
 #endif //_BAC_DEV_PROP_REF_H_
-

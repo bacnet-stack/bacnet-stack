@@ -99,7 +99,7 @@ uint8_t bitstring_bits_used(
 uint8_t bitstring_bytes_used(
     BACNET_BIT_STRING * bit_string)
 {
-    uint8_t len = 0;        /* return value */
+    uint8_t len = 0;    /* return value */
     uint8_t used_bytes = 0;
     uint8_t last_bit = 0;
 
@@ -544,7 +544,7 @@ bool octetstring_value_same(
     BACNET_OCTET_STRING * octet_string1,
     BACNET_OCTET_STRING * octet_string2)
 {
-    size_t i = 0; /* loop counter */
+    size_t i = 0;       /* loop counter */
 
     if (octet_string1 && octet_string2) {
         if ((octet_string1->length == octet_string2->length) &&

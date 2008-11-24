@@ -36,24 +36,24 @@
 /* This file has been customized for use with ATMEGA168 */
 #if defined(__AVR_ATmega168__)
     /* USART defines for RS-485 port */
-    #define UCSRB UCSR0B
-    #define TXEN TXEN0
-    #define RXEN RXEN0
-    #define UCSRC UCSR0C
-    #define UCSZ1 UCSZ01
-    #define UCSZ0 UCSZ00
-    #define UCSRA UCSR0A
-    #define U2X U2X0
-    #define UBRRL UBRR0
-    #define UCSRA UCSR0A
-    #define UDRE UDRE0
-    #define UDR UDR0
-    #define TXC TXC0
-    #define FE FE0
-    #define DOR DOR0
-    #define UPE UPE0
-    #define DOR DOR0
-    #define RXC RXC0
+#define UCSRB UCSR0B
+#define TXEN TXEN0
+#define RXEN RXEN0
+#define UCSRC UCSR0C
+#define UCSZ1 UCSZ01
+#define UCSZ0 UCSZ00
+#define UCSRA UCSR0A
+#define U2X U2X0
+#define UBRRL UBRR0
+#define UCSRA UCSR0A
+#define UDRE UDRE0
+#define UDR UDR0
+#define TXC TXC0
+#define FE FE0
+#define DOR DOR0
+#define UPE UPE0
+#define DOR DOR0
+#define RXC RXC0
 #endif
 
 #include "hardware.h"

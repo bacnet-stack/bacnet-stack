@@ -308,12 +308,12 @@ int Binary_Output_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_ACTIVE_TEXT:
-            characterstring_init_ansi(&char_string,"on" );
+            characterstring_init_ansi(&char_string, "on");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_INACTIVE_TEXT:
-            characterstring_init_ansi(&char_string,"off" );
+            characterstring_init_ansi(&char_string, "off");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

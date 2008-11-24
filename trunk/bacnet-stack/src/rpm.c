@@ -110,13 +110,13 @@ int rpm_encode_apdu(
     uint8_t * apdu,
     size_t max_apdu,
     uint8_t invoke_id,
-    BACNET_READ_ACCESS_DATA *read_access_data)
+    BACNET_READ_ACCESS_DATA * read_access_data)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
-    int len = 0;   /* length of the data */
-    BACNET_READ_ACCESS_DATA *rpm_object; /* current object */
-    uint8_t apdu_temp[16]; /* temp for data before copy */
-    BACNET_PROPERTY_REFERENCE *rpm_property; /* current property */
+    int len = 0;        /* length of the data */
+    BACNET_READ_ACCESS_DATA *rpm_object;        /* current object */
+    uint8_t apdu_temp[16];      /* temp for data before copy */
+    BACNET_PROPERTY_REFERENCE *rpm_property;    /* current property */
 
     len = rpm_encode_apdu_init(&apdu_temp[0], invoke_id);
     len = memcopy(&apdu[0], &apdu_temp[0], apdu_len, len, max_apdu);
@@ -126,9 +126,9 @@ int rpm_encode_apdu(
     apdu_len += len;
     rpm_object = read_access_data;
     while (rpm_object) {
-        len = encode_context_object_id(&apdu_temp[0], 0,
-                rpm_object->object_type,
-                rpm_object->object_instance);
+        len =
+            encode_context_object_id(&apdu_temp[0], 0, rpm_object->object_type,
+            rpm_object->object_instance);
         len = memcopy(&apdu[0], &apdu_temp[0], apdu_len, len, max_apdu);
         if (len == 0) {
             return 0;
@@ -144,7 +144,8 @@ int rpm_encode_apdu(
         rpm_property = rpm_object->listOfProperties;
         while (rpm_property) {
             /* stuff as many properties into it as APDU length will allow */
-            len = encode_context_enumerated(&apdu_temp[0], 0,
+            len =
+                encode_context_enumerated(&apdu_temp[0], 0,
                 rpm_property->propertyIdentifier);
             len = memcopy(&apdu[0], &apdu_temp[0], apdu_len, len, max_apdu);
             if (len == 0) {
@@ -153,9 +154,11 @@ int rpm_encode_apdu(
             apdu_len += len;
             /* optional array index */
             if (rpm_property->propertyArrayIndex != BACNET_ARRAY_ALL) {
-                len = encode_context_unsigned(&apdu_temp[0], 1,
+                len =
+                    encode_context_unsigned(&apdu_temp[0], 1,
                     rpm_property->propertyArrayIndex);
-                len = memcopy(&apdu[0], &apdu_temp[0], apdu_len, len, max_apdu);
+                len =
+                    memcopy(&apdu[0], &apdu_temp[0], apdu_len, len, max_apdu);
                 if (len == 0) {
                     return 0;
                 }
@@ -183,7 +186,7 @@ int rpm_decode_object_id(
     uint32_t * object_instance)
 {
     unsigned len = 0;
-    uint16_t type = 0;       /* for decoding */
+    uint16_t type = 0;  /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {
@@ -383,7 +386,7 @@ int rpm_ack_decode_object_id(
     uint32_t * object_instance)
 {
     unsigned len = 0;
-    uint16_t type = 0;       /* for decoding */
+    uint16_t type = 0;  /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {

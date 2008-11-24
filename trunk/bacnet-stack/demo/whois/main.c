@@ -87,7 +87,7 @@ static void Init_Service_Handlers(
     void)
 {
     /* Note: this applications doesn't need to handle who-is 
-        it is confusing for the user! */
+       it is confusing for the user! */
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler

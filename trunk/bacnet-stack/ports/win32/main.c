@@ -294,14 +294,13 @@ static void Init_DataLink(
 #endif
 }
 
-int main(
-    int argc,
-    char *argv[])
-{
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
+int main(int argc, char *argv[]) {
+    BACNET_ADDRESS src = {
+    0}; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
-    BACNET_ADDRESS my_address, broadcast_address;
+    BACNET_ADDRESS my_address,
+                   broadcast_address;
 
     (void) argc;
     (void) argv;

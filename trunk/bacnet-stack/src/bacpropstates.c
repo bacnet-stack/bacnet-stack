@@ -44,160 +44,163 @@ int bacapp_decode_property_state(
     uint8_t * apdu,
     BACNET_PROPERTY_STATE * value)
 {
-	int len = 0;
-	uint32_t len_value_type;
-	int      section_length;
+    int len = 0;
+    uint32_t len_value_type;
+    int section_length;
 
 
-	section_length =
-		decode_tag_number_and_value(&apdu[len], (uint8_t*)&value->tag,
-		&len_value_type);
-	
-	if ( -1 == section_length )
-	{
-		return -1;
-	}
+    section_length =
+        decode_tag_number_and_value(&apdu[len], (uint8_t *) & value->tag,
+        &len_value_type);
 
-	len += section_length;
-	switch(value->tag)
-	{
-	case BOOLEAN_VALUE:
-		value->state.booleanValue = decode_boolean(len_value_type);
-		break;
+    if (-1 == section_length) {
+        return -1;
+    }
 
-	case BINARY_VALUE:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.binaryValue)))
-		{
-			return -1;
-		}
-		break;
+    len += section_length;
+    switch (value->tag) {
+        case BOOLEAN_VALUE:
+            value->state.booleanValue = decode_boolean(len_value_type);
+            break;
 
-	case EVENT_TYPE:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.eventType)))
-		{
-			return -1;
-		}
-		break;
+        case BINARY_VALUE:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.binaryValue))) {
+                return -1;
+            }
+            break;
 
-	case POLARITY:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.polarity)))
-		{
-			return -1;
-		}
-		break;
+        case EVENT_TYPE:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.eventType))) {
+                return -1;
+            }
+            break;
 
-	case PROGRAM_CHANGE:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.programChange)))
-		{
-			return -1;
-		}
-		break;
+        case POLARITY:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.polarity))) {
+                return -1;
+            }
+            break;
 
-	case PROGRAM_STATE:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.programState)))
-		{
-			return -1;
-		}
-		break;
+        case PROGRAM_CHANGE:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.programChange))) {
+                return -1;
+            }
+            break;
 
-	case REASON_FOR_HALT:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.programError)))
-		{
-			return -1;
-		}
-		break;
+        case PROGRAM_STATE:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.programState))) {
+                return -1;
+            }
+            break;
 
-	case RELIABILITY:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.reliability)))
-		{
-			return -1;
-		}
-		break;
+        case REASON_FOR_HALT:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.programError))) {
+                return -1;
+            }
+            break;
 
-	case STATE:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.state)))
-		{
-			return -1;
-		}
-		break;
+        case RELIABILITY:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.reliability))) {
+                return -1;
+            }
+            break;
 
-	case SYSTEM_STATUS:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.systemStatus)))
-		{
-			return -1;
-		}
-		break;
+        case STATE:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.state))) {
+                return -1;
+            }
+            break;
 
-	case UNITS:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.units)))
-		{
-			return -1;
-		}
-		break;
+        case SYSTEM_STATUS:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.systemStatus))) {
+                return -1;
+            }
+            break;
 
-	case UNSIGNED_VALUE:
-		if ( -1 == ( section_length = decode_unsigned(&apdu[len], len_value_type, &value->state.unsignedValue)))
-		{
-			return -1;
-		}
-		break;
+        case UNITS:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.units))) {
+                return -1;
+            }
+            break;
 
-	case LIFE_SAFETY_MODE:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.lifeSafetyMode)))
-		{
-			return -1;
-		}
-		break;
+        case UNSIGNED_VALUE:
+            if (-1 == (section_length =
+                    decode_unsigned(&apdu[len], len_value_type,
+                        &value->state.unsignedValue))) {
+                return -1;
+            }
+            break;
 
-	case LIFE_SAFETY_STATE:
-		if ( -1 == ( section_length = decode_enumerated(&apdu[len], len_value_type, &value->state.lifeSafetyState)))
-		{
-			return -1;
-		}
-		break;
+        case LIFE_SAFETY_MODE:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.lifeSafetyMode))) {
+                return -1;
+            }
+            break;
 
-	default:
-		return -1;
-	}
-	len += section_length;
+        case LIFE_SAFETY_STATE:
+            if (-1 == (section_length =
+                    decode_enumerated(&apdu[len], len_value_type,
+                        &value->state.lifeSafetyState))) {
+                return -1;
+            }
+            break;
 
-	return len;
+        default:
+            return -1;
+    }
+    len += section_length;
+
+    return len;
 }
 
 int bacapp_decode_context_property_state(
     uint8_t * apdu,
-	uint8_t tag_number,
+    uint8_t tag_number,
     BACNET_PROPERTY_STATE * value)
 {
-	int len = 0;
-	int section_length;
+    int len = 0;
+    int section_length;
 
-	if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
-		len++;
-		section_length = bacapp_decode_property_state(
-								&apdu[len], value);
+    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
+        len++;
+        section_length = bacapp_decode_property_state(&apdu[len], value);
 
-		if ( section_length == -1 )
-		{
-			len = -1;
-		}
-		else
-		{
-			len += section_length;
-			if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-				len++;
-			}
-			else
-			{
-				len = -1;
-			}
-		}
-	}
-	else
-	{
-		len = -1;
-	}
-	return len;
+        if (section_length == -1) {
+            len = -1;
+        } else {
+            len += section_length;
+            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
+                len++;
+            } else {
+                len = -1;
+            }
+        }
+    } else {
+        len = -1;
+    }
+    return len;
 }
 
 int bacapp_encode_property_state(
@@ -206,70 +209,96 @@ int bacapp_encode_property_state(
 {
     int len = 0;        /* length of each encoding */
     if (value && apdu) {
-		switch(value->tag)
-		{
-		case BOOLEAN_VALUE:
-			len = encode_context_boolean(&apdu[0], 0, value->state.booleanValue);
-			break;
+        switch (value->tag) {
+            case BOOLEAN_VALUE:
+                len =
+                    encode_context_boolean(&apdu[0], 0,
+                    value->state.booleanValue);
+                break;
 
-		case BINARY_VALUE:
-			len = encode_context_enumerated(&apdu[0], 1, value->state.binaryValue);
-			break;
+            case BINARY_VALUE:
+                len =
+                    encode_context_enumerated(&apdu[0], 1,
+                    value->state.binaryValue);
+                break;
 
-		case EVENT_TYPE:
-			len = encode_context_enumerated(&apdu[0], 2, value->state.eventType);
-			break;
+            case EVENT_TYPE:
+                len =
+                    encode_context_enumerated(&apdu[0], 2,
+                    value->state.eventType);
+                break;
 
-		case POLARITY:
-			len = encode_context_enumerated(&apdu[0], 3, value->state.polarity);
-			break;
+            case POLARITY:
+                len =
+                    encode_context_enumerated(&apdu[0], 3,
+                    value->state.polarity);
+                break;
 
-		case PROGRAM_CHANGE:
-			len = encode_context_enumerated(&apdu[0], 4, value->state.programChange);
-			break;
+            case PROGRAM_CHANGE:
+                len =
+                    encode_context_enumerated(&apdu[0], 4,
+                    value->state.programChange);
+                break;
 
-		case PROGRAM_STATE:
-			len = encode_context_enumerated(&apdu[0], 5, value->state.programState);
-			break;
+            case PROGRAM_STATE:
+                len =
+                    encode_context_enumerated(&apdu[0], 5,
+                    value->state.programState);
+                break;
 
-		case REASON_FOR_HALT:
-			len = encode_context_enumerated(&apdu[0], 6, value->state.programError);
-			break;
+            case REASON_FOR_HALT:
+                len =
+                    encode_context_enumerated(&apdu[0], 6,
+                    value->state.programError);
+                break;
 
-		case RELIABILITY:
-			len = encode_context_enumerated(&apdu[0], 7, value->state.reliability);
-			break;
+            case RELIABILITY:
+                len =
+                    encode_context_enumerated(&apdu[0], 7,
+                    value->state.reliability);
+                break;
 
-		case STATE:
-			len = encode_context_enumerated(&apdu[0], 8, value->state.state);
-			break;
+            case STATE:
+                len =
+                    encode_context_enumerated(&apdu[0], 8, value->state.state);
+                break;
 
-		case SYSTEM_STATUS:
-			len = encode_context_enumerated(&apdu[0], 9, value->state.systemStatus);
-			break;
+            case SYSTEM_STATUS:
+                len =
+                    encode_context_enumerated(&apdu[0], 9,
+                    value->state.systemStatus);
+                break;
 
-		case UNITS:
-			len = encode_context_enumerated(&apdu[0], 10, value->state.units);
-			break;
-			
-		case UNSIGNED_VALUE:
-			len = encode_context_unsigned(&apdu[0], 11, value->state.unsignedValue);
-			break;
+            case UNITS:
+                len =
+                    encode_context_enumerated(&apdu[0], 10,
+                    value->state.units);
+                break;
 
-		case LIFE_SAFETY_MODE:
-			len = encode_context_enumerated(&apdu[0], 12, value->state.lifeSafetyMode);
-			break;
+            case UNSIGNED_VALUE:
+                len =
+                    encode_context_unsigned(&apdu[0], 11,
+                    value->state.unsignedValue);
+                break;
 
-		case LIFE_SAFETY_STATE:
-			len = encode_context_enumerated(&apdu[0], 13, value->state.lifeSafetyState);
-			break;
+            case LIFE_SAFETY_MODE:
+                len =
+                    encode_context_enumerated(&apdu[0], 12,
+                    value->state.lifeSafetyMode);
+                break;
 
-		default:
-			assert(0);
-			break;
-		}
-	}
-	return len;
+            case LIFE_SAFETY_STATE:
+                len =
+                    encode_context_enumerated(&apdu[0], 13,
+                    value->state.lifeSafetyState);
+                break;
+
+            default:
+                assert(0);
+                break;
+        }
+    }
+    return len;
 }
 
 #ifdef TEST
@@ -277,104 +306,104 @@ int bacapp_encode_property_state(
 void testPropStates(
     Test * pTest)
 {
-	BACNET_PROPERTY_STATE inData;
-	BACNET_PROPERTY_STATE outData;
-	uint8_t appMsg[MAX_APDU];
-	int inLen;
-	int outLen;
+    BACNET_PROPERTY_STATE inData;
+    BACNET_PROPERTY_STATE outData;
+    uint8_t appMsg[MAX_APDU];
+    int inLen;
+    int outLen;
 
-	inData.tag = BOOLEAN_VALUE;
-	inData.state.booleanValue = true;
+    inData.tag = BOOLEAN_VALUE;
+    inData.state.booleanValue = true;
 
-	inLen = bacapp_encode_property_state(appMsg, &inData);
+    inLen = bacapp_encode_property_state(appMsg, &inData);
 
-	memset(&outData, 0, sizeof(outData));
+    memset(&outData, 0, sizeof(outData));
 
-	outLen = bacapp_decode_property_state(appMsg, &outData);
+    outLen = bacapp_decode_property_state(appMsg, &outData);
 
-	ct_test(pTest, 	outLen == inLen);
-	ct_test(pTest, inData.tag == outData.tag );
-	ct_test(pTest, inData.state.booleanValue == outData.state.booleanValue );
+    ct_test(pTest, outLen == inLen);
+    ct_test(pTest, inData.tag == outData.tag);
+    ct_test(pTest, inData.state.booleanValue == outData.state.booleanValue);
 
-	/****************
+        /****************
 	*****************
 	****************/
-	inData.tag = BINARY_VALUE;
-	inData.state.binaryValue = BINARY_ACTIVE;
+    inData.tag = BINARY_VALUE;
+    inData.state.binaryValue = BINARY_ACTIVE;
 
-	inLen = bacapp_encode_property_state(appMsg, &inData);
+    inLen = bacapp_encode_property_state(appMsg, &inData);
 
-	memset(&outData, 0, sizeof(outData));
+    memset(&outData, 0, sizeof(outData));
 
-	outLen = bacapp_decode_property_state(appMsg, &outData);
+    outLen = bacapp_decode_property_state(appMsg, &outData);
 
-	ct_test(pTest, 	outLen == inLen);
-	ct_test(pTest, inData.tag == outData.tag );
-	ct_test(pTest, inData.state.binaryValue == outData.state.binaryValue );
+    ct_test(pTest, outLen == inLen);
+    ct_test(pTest, inData.tag == outData.tag);
+    ct_test(pTest, inData.state.binaryValue == outData.state.binaryValue);
 
-	/****************
+        /****************
 	*****************
 	****************/
-	inData.tag = EVENT_TYPE;
-	inData.state.eventType = EVENT_BUFFER_READY;
+    inData.tag = EVENT_TYPE;
+    inData.state.eventType = EVENT_BUFFER_READY;
 
-	inLen = bacapp_encode_property_state(appMsg, &inData);
+    inLen = bacapp_encode_property_state(appMsg, &inData);
 
-	memset(&outData, 0, sizeof(outData));
+    memset(&outData, 0, sizeof(outData));
 
-	outLen = bacapp_decode_property_state(appMsg, &outData);
+    outLen = bacapp_decode_property_state(appMsg, &outData);
 
-	ct_test(pTest, 	outLen == inLen);
-	ct_test(pTest, inData.tag == outData.tag );
-	ct_test(pTest, inData.state.eventType == outData.state.eventType );
+    ct_test(pTest, outLen == inLen);
+    ct_test(pTest, inData.tag == outData.tag);
+    ct_test(pTest, inData.state.eventType == outData.state.eventType);
 
-	/****************
+        /****************
 	*****************
 	****************/
-	inData.tag = POLARITY;
-	inData.state.polarity = POLARITY_REVERSE;
+    inData.tag = POLARITY;
+    inData.state.polarity = POLARITY_REVERSE;
 
-	inLen = bacapp_encode_property_state(appMsg, &inData);
+    inLen = bacapp_encode_property_state(appMsg, &inData);
 
-	memset(&outData, 0, sizeof(outData));
+    memset(&outData, 0, sizeof(outData));
 
-	outLen = bacapp_decode_property_state(appMsg, &outData);
+    outLen = bacapp_decode_property_state(appMsg, &outData);
 
-	ct_test(pTest, 	outLen == inLen);
-	ct_test(pTest, inData.tag == outData.tag );
-	ct_test(pTest, inData.state.polarity == outData.state.polarity );
+    ct_test(pTest, outLen == inLen);
+    ct_test(pTest, inData.tag == outData.tag);
+    ct_test(pTest, inData.state.polarity == outData.state.polarity);
 
-	/****************
+        /****************
 	*****************
 	****************/
-	inData.tag = PROGRAM_CHANGE;
-	inData.state.programChange = PROGRAM_REQUEST_RESTART;
+    inData.tag = PROGRAM_CHANGE;
+    inData.state.programChange = PROGRAM_REQUEST_RESTART;
 
-	inLen = bacapp_encode_property_state(appMsg, &inData);
+    inLen = bacapp_encode_property_state(appMsg, &inData);
 
-	memset(&outData, 0, sizeof(outData));
+    memset(&outData, 0, sizeof(outData));
 
-	outLen = bacapp_decode_property_state(appMsg, &outData);
+    outLen = bacapp_decode_property_state(appMsg, &outData);
 
-	ct_test(pTest, 	outLen == inLen);
-	ct_test(pTest, inData.tag == outData.tag );
-	ct_test(pTest, inData.state.programChange == outData.state.programChange );
+    ct_test(pTest, outLen == inLen);
+    ct_test(pTest, inData.tag == outData.tag);
+    ct_test(pTest, inData.state.programChange == outData.state.programChange);
 
-	/****************
+        /****************
 	*****************
 	****************/
-	inData.tag = UNSIGNED_VALUE;
-	inData.state.unsignedValue = 0xdeadbeef;
+    inData.tag = UNSIGNED_VALUE;
+    inData.state.unsignedValue = 0xdeadbeef;
 
-	inLen = bacapp_encode_property_state(appMsg, &inData);
+    inLen = bacapp_encode_property_state(appMsg, &inData);
 
-	memset(&outData, 0, sizeof(outData));
+    memset(&outData, 0, sizeof(outData));
 
-	outLen = bacapp_decode_property_state(appMsg, &outData);
+    outLen = bacapp_decode_property_state(appMsg, &outData);
 
-	ct_test(pTest, 	outLen == inLen);
-	ct_test(pTest, inData.tag == outData.tag );
-	ct_test(pTest, inData.state.unsignedValue == outData.state.unsignedValue );
+    ct_test(pTest, outLen == inLen);
+    ct_test(pTest, inData.tag == outData.tag);
+    ct_test(pTest, inData.state.unsignedValue == outData.state.unsignedValue);
 
 }
 

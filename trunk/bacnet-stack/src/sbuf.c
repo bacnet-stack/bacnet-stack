@@ -43,8 +43,8 @@
 void sbuf_init(
     STATIC_BUFFER * b,  /* static buffer structure */
     char *data, /* data block */
-    unsigned size) /* actual size, in bytes, of the data block or array of data */
-{
+    unsigned size)
+{       /* actual size, in bytes, of the data block or array of data */
     if (b) {
         b->data = data;
         b->size = size;

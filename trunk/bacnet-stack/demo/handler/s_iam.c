@@ -88,7 +88,6 @@ void Send_I_Am(
 
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n",
-            strerror(errno));
+        fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
 #endif
 }

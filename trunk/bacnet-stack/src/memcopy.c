@@ -36,12 +36,12 @@
 /* copy len bytes from src to offset of dest if there is enough space. */
 /* returns 0 if there is not enough space, or the number of bytes copied. */
 size_t memcopy(
-    void * dest,
-    void * src,
-    size_t offset, /* where in dest to put the data */
+    void *dest,
+    void *src,
+    size_t offset,      /* where in dest to put the data */
     size_t len, /* amount of data to copy */
-    size_t max) /* total size of destination */
-{
+    size_t max)
+{       /* total size of destination */
     size_t i;
     size_t copy_len = 0;
     char *s1, *s2;
@@ -73,15 +73,14 @@ void test_memcopy(
     char big_buffer[480] = "";
     size_t len = 0;
 
-    len = memcopy(&buffer[0], &data1[0], 0,
-        sizeof(data1), sizeof(buffer));
+    len = memcopy(&buffer[0], &data1[0], 0, sizeof(data1), sizeof(buffer));
     ct_test(pTest, len == sizeof(data1));
     ct_test(pTest, memcmp(&buffer[0], &data1[0], len) == 0);
-    len = memcopy(&buffer[0], &data2[0], len,
-        sizeof(data2), sizeof(buffer));
+    len = memcopy(&buffer[0], &data2[0], len, sizeof(data2), sizeof(buffer));
     ct_test(pTest, len == sizeof(data2));
-    len = memcopy(&buffer[0], &big_buffer[0], 1,
-        sizeof(big_buffer), sizeof(buffer));
+    len =
+        memcopy(&buffer[0], &big_buffer[0], 1, sizeof(big_buffer),
+        sizeof(buffer));
     ct_test(pTest, len == 0);
 }
 

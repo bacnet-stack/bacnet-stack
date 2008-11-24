@@ -426,8 +426,8 @@ static bool cov_subscribe(
 
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance(
-                cov_data->monitoredObjectIdentifier.instance)) {
+            if (Binary_Input_Valid_Instance(cov_data->
+                    monitoredObjectIdentifier.instance)) {
                 status =
                     cov_list_subscribe(src, cov_data, error_class, error_code);
             } else {
