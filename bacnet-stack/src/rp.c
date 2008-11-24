@@ -81,7 +81,7 @@ int rp_decode_service_request(
     unsigned len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint16_t type = 0;       /* for decoding */
+    uint16_t type = 0;  /* for decoding */
     int property = 0;   /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
@@ -214,8 +214,8 @@ int rp_ack_decode_service_request(
     uint32_t len_value_type = 0;
     int tag_len = 0;    /* length of tag decode */
     int len = 0;        /* total length of decodes */
-    uint16_t object = 0; /* object type */
-    int property = 0;       /* for decoding */
+    uint16_t object = 0;        /* object type */
+    int property = 0;   /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* FIXME: check apdu_len against the len during decode   */

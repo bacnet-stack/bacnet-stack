@@ -82,7 +82,7 @@ extern "C" {
         uint8_t * apdu,
         size_t max_apdu,
         uint8_t invoke_id,
-        BACNET_READ_ACCESS_DATA *read_access_data);
+        BACNET_READ_ACCESS_DATA * read_access_data);
 
 /* decode the object portion of the service request only */
     int rpm_decode_object_id(

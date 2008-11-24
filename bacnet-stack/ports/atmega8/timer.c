@@ -98,7 +98,8 @@ bool timer_silence_elapsed(
     return status;
 }
 
-void timer_silence_reset(void)
+void timer_silence_reset(
+    void)
 {
     uint8_t sreg;
 

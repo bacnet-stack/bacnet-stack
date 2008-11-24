@@ -1,7 +1,7 @@
 #ifndef _STDBOOL_H
 #define _STDBOOL_H
 
-#include <stdint.h> 
+#include <stdint.h>
 
 /* C99 Boolean types for compilers without C99 support */
 /* http://www.opengroup.org/onlinepubs/009695399/basedefs/stdbool.h.html */
@@ -14,7 +14,7 @@
    the values 0 and 1. */
 /* We choose 8 bit to match C++ */
 /* It must also promote to integer */
-typedef int8_t _Bool; 
+typedef int8_t _Bool;
 #endif
 
 /* ISO C Standard: 7.16 Boolean type */

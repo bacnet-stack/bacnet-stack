@@ -50,32 +50,28 @@ void handler_ucov_notification(
     int len = 0;
 
     /* create linked list to store data if more 
-        than one property value is expected */
+       than one property value is expected */
     property_value.next = NULL;
     cov_data.listOfValues = &property_value;
 #if PRINT_ENABLED
     fprintf(stderr, "UCOV: Received Notification!\n");
 #endif
     /* decode the service request only */
-    len = cov_notify_decode_service_request(
-        service_request, service_len, &cov_data);
+    len =
+        cov_notify_decode_service_request(service_request, service_len,
+        &cov_data);
 #if PRINT_ENABLED
     if (len > 0) {
-        fprintf(stderr, "UCOV: PID=%u ",
-            cov_data.subscriberProcessIdentifier);
-        fprintf(stderr, "instance=%u ",
-            cov_data.initiatingDeviceIdentifier);
+        fprintf(stderr, "UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
+        fprintf(stderr, "instance=%u ", cov_data.initiatingDeviceIdentifier);
         fprintf(stderr, "%s %u ",
-            bactext_object_type_name(
-                cov_data.monitoredObjectIdentifier.type),
+            bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
             cov_data.monitoredObjectIdentifier.instance);
-        fprintf(stderr, "time remaining=%u seconds ",
-            cov_data.timeRemaining);
+        fprintf(stderr, "time remaining=%u seconds ", cov_data.timeRemaining);
         fprintf(stderr, "%s ",
             bactext_property_name(property_value.propertyIdentifier));
         if (property_value.propertyArrayIndex != BACNET_ARRAY_ALL) {
-            fprintf(stderr, "%u ",
-                property_value.propertyArrayIndex);
+            fprintf(stderr, "%u ", property_value.propertyArrayIndex);
         }
         fprintf(stderr, "\n");
     } else {

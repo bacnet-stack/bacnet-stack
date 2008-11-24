@@ -44,20 +44,17 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if DEBUG_ENABLED
-void debug_printf(
-    const char *format,
-    ...);
+    void debug_printf(
+        const char *format,
+        ...);
 #else
-static void debug_printf(
-    const char *format,
-    ...)
-{
-    format = format;
-}
+    static void debug_printf(
+        const char *format,
+        ...) {
+        format = format;
+    }
 #endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #endif

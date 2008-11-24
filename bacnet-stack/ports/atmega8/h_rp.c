@@ -76,7 +76,7 @@ int Encode_Property_APDU(
             break;
 #endif
 #if MAX_BINARY_VALUES
-            case OBJECT_BINARY_VALUE:
+        case OBJECT_BINARY_VALUE:
             if (Binary_Value_Valid_Instance(rp_data->object_instance)) {
                 apdu_len =
                     Binary_Value_Encode_Property_APDU(&apdu[0],

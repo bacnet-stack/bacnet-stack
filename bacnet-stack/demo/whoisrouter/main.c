@@ -86,9 +86,9 @@ static void MyRejectHandler(
 }
 
 static void My_Router_Handler(
-    BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t * npdu,      /* PDU data */
+    BACNET_ADDRESS * src,
+    BACNET_NPDU_DATA * npdu_data,
+    uint8_t * npdu,     /* PDU data */
     uint16_t npdu_len)
 {
     uint16_t npdu_offset = 0;
@@ -109,7 +109,7 @@ static void My_Router_Handler(
             printf("\nNetworks: ");
             while (npdu_len) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
-                printf("%hu",dnet);
+                printf("%hu", dnet);
                 npdu_len -= len;
                 if (npdu_len) {
                     printf(", ");
@@ -141,7 +141,7 @@ void My_NPDU_Handler(
 
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
-        My_Router_Handler(src,&npdu_data,&pdu[apdu_offset],
+        My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
             (uint16_t) (pdu_len - apdu_offset));
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&

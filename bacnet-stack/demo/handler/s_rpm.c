@@ -48,7 +48,7 @@ uint8_t Send_Read_Property_Multiple_Request(
     uint8_t * pdu,
     size_t max_pdu,
     uint32_t device_id, /* destination device */
-    BACNET_READ_ACCESS_DATA *read_access_data)
+    BACNET_READ_ACCESS_DATA * read_access_data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -72,14 +72,10 @@ uint8_t Send_Read_Property_Multiple_Request(
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len =
-            npdu_encode_pdu(&pdu[0], &dest, &my_address,
-            &npdu_data);
+        pdu_len = npdu_encode_pdu(&pdu[0], &dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
-        len = rpm_encode_apdu(
-            &pdu[pdu_len],
-            max_pdu - pdu_len,
-            invoke_id,
+        len =
+            rpm_encode_apdu(&pdu[pdu_len], max_pdu - pdu_len, invoke_id,
             read_access_data);
         if (len <= 0) {
             return 0;
@@ -94,8 +90,7 @@ uint8_t Send_Read_Property_Multiple_Request(
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
                 &npdu_data, &pdu[0], (uint16_t) pdu_len);
             bytes_sent =
-                datalink_send_pdu(&dest, &npdu_data,
-                &pdu[0], pdu_len);
+                datalink_send_pdu(&dest, &npdu_data, &pdu[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
                 fprintf(stderr,

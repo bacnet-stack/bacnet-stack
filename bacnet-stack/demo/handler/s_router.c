@@ -69,8 +69,7 @@ void Send_Who_Is_Router_To_Network(
     BACNET_NPDU_DATA npdu_data;
 
     npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK,
-        false,
+        NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, false,
         MESSAGE_PRIORITY_NORMAL);
     /* fixme: should dnet/dlen/dadr be set in NPDU?  */
     pdu_len =
@@ -112,8 +111,7 @@ void Send_I_Am_Router_To_Network(
     unsigned index = 0;
 
     npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
-        false,
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, false,
         MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
@@ -157,9 +155,7 @@ void Send_Initialize_Routing_Table(
     BACNET_ROUTER_PORT *router_port;
     unsigned i = 0;     /* counter */
 
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_INIT_RT_TABLE,
-        true,
+    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE, true,
         MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
@@ -208,10 +204,8 @@ void Send_Initialize_Routing_Table_Ack(
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
-        false,
-        MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
+        false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
     /* encode the optional DNET list portion of the packet */

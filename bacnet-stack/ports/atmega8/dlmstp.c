@@ -105,18 +105,17 @@ static struct mstp_flag_t {
 } MSTP_Flag;
 
 /* data passed to receive handler */
-struct mstp_packet_info_t 
-{
+struct mstp_packet_info_t {
     /* A Boolean flag set to TRUE by the Receive State Machine  */
     /* if a valid frame is received.  */
     unsigned valid_frame:1;
     /*  preamble flags */
     unsigned preamble1:1;
-    unsigned preamble2:1;   
-    uint8_t header[6]; /* buffer to put the header bytes */
-    uint8_t *buffer; /* buffer to put the data */
+    unsigned preamble2:1;
+    uint8_t header[6];  /* buffer to put the header bytes */
+    uint8_t *buffer;    /* buffer to put the data */
     uint8_t buffer_len; /* buffer to put the data */
-    uint8_t index; /* index into receive buffer */
+    uint8_t index;      /* index into receive buffer */
 };
 static struct nitoo_packet_info_t MSTP_Receive_Packet;
 
@@ -286,23 +285,26 @@ static void MSTP_Send_Frame(
 #if 0
 /* return true if the packet is good. */
 /* note: buffer should include the CRC as the last byte */
-static bool crc_header_good(uint8_t *buffer, uint8_t len)
+static bool crc_header_good(
+    uint8_t * buffer,
+    uint8_t len)
 {
-    uint8_t i; /* loop counter */
-    uint8_t crc8 = 0xFF; /* loop counter */
-    
+    uint8_t i;  /* loop counter */
+    uint8_t crc8 = 0xFF;        /* loop counter */
+
     for (i = 0; i < len; i++) {
         crc8 = CRC_Calc_Header(buffer[i], crc8);
     }
-    
+
     return (crc8 == 0x55);
 }
 
 
-static void mstp_receive_handler(void)
+static void mstp_receive_handler(
+    void)
 {
-    uint8_t data_register = 0; /* data from UART */
-    
+    uint8_t data_register = 0;  /* data from UART */
+
     if (RS485_ReceiveError()) {
         timer_silence_reset();
     } else if (RS485_DataAvailable(&data_register)) {
@@ -311,7 +313,7 @@ static void mstp_receive_handler(void)
             (data_register == 0x55)) {
             MSTP_Receive_Packet.preamble1 = true;
             return;
-        } 
+        }
         if ((MSTP_Receive_Packet.preamble2 == false) &&
             (MSTP_Receive_Packet.preamble1 == true)) {
             if (data_register == 0xFF) {
@@ -327,13 +329,15 @@ static void mstp_receive_handler(void)
             return;
         }
         if (DataLength == 0) {
-            MSTP_Receive_Packet.header[MSTP_Receive_Packet.index] = data_register;
+            MSTP_Receive_Packet.header[MSTP_Receive_Packet.index] =
+                data_register;
             if (MSTP_Receive_Packet.index == 5) {
                 if (crc_header_good(MSTP_Receive_Packet.header, 6)) {
                     FrameType = MSTP_Receive_Packet.header[0];
                     DestinationAddress = MSTP_Receive_Packet.header[1];
                     SourceAddress = MSTP_Receive_Packet.header[2];
-                    DataLength = (MSTP_Receive_Packet.header[3] * 256) +
+                    DataLength =
+                        (MSTP_Receive_Packet.header[3] * 256) +
                         MSTP_Receive_Packet.header[4];
                     if (DataLength == 0) {
                         MSTP_Receive_Packet.valid_frame = true;
@@ -347,11 +351,12 @@ static void mstp_receive_handler(void)
                 }
             }
         } else {
-            MSTP_Receive_Packet.buffer[MSTP_Receive_Packet.index] = data_register;
+            MSTP_Receive_Packet.buffer[MSTP_Receive_Packet.index] =
+                data_register;
             if (packet_info->index == packet_info->len) {
                 /* PDU length ended */
                 packet_info->ready = true;
-            } else if (packet_info->index >= sizeof(packet_info->buffer)){
+            } else if (packet_info->index >= sizeof(packet_info->buffer)) {
                 /* exceeded the size of the storage */
                 packet_info->len = packet_info->index;
                 packet_info->ready = true;
@@ -361,7 +366,8 @@ static void mstp_receive_handler(void)
             MSTP_Receive_Packet.index++;
             if (packet_info->ready) {
                 /* validate the CRC */
-                if (!lrc_packet_good(packet_info->buffer,packet_info->len+1)) {
+                if (!lrc_packet_good(packet_info->buffer,
+                        packet_info->len + 1)) {
                     packet_info->ready = false;
                 }
                 /* pull off the CRC */
@@ -616,9 +622,8 @@ static void MSTP_Slave_Node_FSM(
                 MSTP_Flag.ReceivePacketPending = true;
                 break;
             case FRAME_TYPE_TEST_REQUEST:
-                MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE,
-                    SourceAddress, This_Station, &InputBuffer[0],
-                    DataLength);
+                MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, SourceAddress,
+                    This_Station, &InputBuffer[0], DataLength);
                 break;
             case FRAME_TYPE_TEST_RESPONSE:
             default:
@@ -634,8 +639,8 @@ static void MSTP_Slave_Node_FSM(
         /* and enter the IDLE state to wait for the next frame. */
         /* Note: optimized such that we are never a client */
         MSTP_Send_Frame(FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
-            TransmitPacketDest, This_Station,
-            (uint8_t *) & TransmitPacket[0], TransmitPacketLen);
+            TransmitPacketDest, This_Station, (uint8_t *) & TransmitPacket[0],
+            TransmitPacketLen);
         MSTP_Flag.TransmitPacketPending = false;
         MSTP_Flag.ReceivePacketPending = false;
     }

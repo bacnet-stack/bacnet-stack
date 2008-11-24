@@ -47,12 +47,12 @@ extern "C" {
 
 /* copy len bytes from src to offset of dest if there is enough space. */
 /* returns 0 if there is not enough space, or the number of bytes copied. */
-size_t memcopy(
-    void * dest,
-    void * src,
-    size_t offset, /* where in dest to put the data */
-    size_t len, /* amount of data to copy */
-    size_t max); /* total size of destination */
+    size_t memcopy(
+        void *dest,
+        void *src,
+        size_t offset,  /* where in dest to put the data */
+        size_t len,     /* amount of data to copy */
+        size_t max);    /* total size of destination */
 
 #ifdef __cplusplus
 }

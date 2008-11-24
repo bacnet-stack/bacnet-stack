@@ -43,62 +43,60 @@
 #include "timestamp.h"
 
 typedef enum {
-	BOOLEAN_VALUE,
-	BINARY_VALUE,
-	EVENT_TYPE,
-	POLARITY,
-	PROGRAM_CHANGE,
-	PROGRAM_STATE,
-	REASON_FOR_HALT,
-	RELIABILITY,
-	STATE,
-	SYSTEM_STATUS,
-	UNITS,
-	UNSIGNED_VALUE,
-	LIFE_SAFETY_MODE,
-	LIFE_SAFETY_STATE,
+    BOOLEAN_VALUE,
+    BINARY_VALUE,
+    EVENT_TYPE,
+    POLARITY,
+    PROGRAM_CHANGE,
+    PROGRAM_STATE,
+    REASON_FOR_HALT,
+    RELIABILITY,
+    STATE,
+    SYSTEM_STATUS,
+    UNITS,
+    UNSIGNED_VALUE,
+    LIFE_SAFETY_MODE,
+    LIFE_SAFETY_STATE,
 } BACNET_PROPERTY_STATE_TYPE;
 
 typedef struct {
-	BACNET_PROPERTY_STATE_TYPE		tag;
-	union {
-		bool booleanValue;
-		BACNET_BINARY_PV			binaryValue;
-		BACNET_EVENT_TYPE			eventType;
-		BACNET_POLARITY				polarity;
-		BACNET_PROGRAM_REQUEST		programChange;
-		BACNET_PROGRAM_STATE		programState;
-		BACNET_PROGRAM_ERROR		programError;
-		BACNET_RELIABILITY			reliability;
-		BACNET_EVENT_STATE			state;
-		BACNET_DEVICE_STATUS		systemStatus;
-		BACNET_ENGINEERING_UNITS	units;
-		uint32_t					unsignedValue;
-		BACNET_LIFE_SAFETY_MODE		lifeSafetyMode;
-		BACNET_LIFE_SAFETY_STATE	lifeSafetyState;
-	}								state;
+    BACNET_PROPERTY_STATE_TYPE tag;
+    union {
+        bool booleanValue;
+        BACNET_BINARY_PV binaryValue;
+        BACNET_EVENT_TYPE eventType;
+        BACNET_POLARITY polarity;
+        BACNET_PROGRAM_REQUEST programChange;
+        BACNET_PROGRAM_STATE programState;
+        BACNET_PROGRAM_ERROR programError;
+        BACNET_RELIABILITY reliability;
+        BACNET_EVENT_STATE state;
+        BACNET_DEVICE_STATUS systemStatus;
+        BACNET_ENGINEERING_UNITS units;
+        uint32_t unsignedValue;
+        BACNET_LIFE_SAFETY_MODE lifeSafetyMode;
+        BACNET_LIFE_SAFETY_STATE lifeSafetyState;
+    } state;
 } BACNET_PROPERTY_STATE;
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-int bacapp_decode_property_state(
-    uint8_t * apdu,
-    BACNET_PROPERTY_STATE * value);
+    int bacapp_decode_property_state(
+        uint8_t * apdu,
+        BACNET_PROPERTY_STATE * value);
 
-int bacapp_decode_context_property_state(
-    uint8_t * apdu,
-	uint8_t tag_number,
-    BACNET_PROPERTY_STATE * value);
+    int bacapp_decode_context_property_state(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_PROPERTY_STATE * value);
 
-int bacapp_encode_property_state(
-    uint8_t * apdu,
-    BACNET_PROPERTY_STATE * value);
+    int bacapp_encode_property_state(
+        uint8_t * apdu,
+        BACNET_PROPERTY_STATE * value);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-
 #endif // _BAC_PROP_STATES_H_

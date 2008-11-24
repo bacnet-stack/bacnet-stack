@@ -245,7 +245,7 @@ static void write_received_packet(
         fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
         fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (mstp_port->DataLength) {
-            max_data = min(mstp_port->InputBufferSize,mstp_port->DataLength);
+            max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
             incl_len = orig_len = 8 + max_data + 2;
         } else {
             incl_len = orig_len = 8;

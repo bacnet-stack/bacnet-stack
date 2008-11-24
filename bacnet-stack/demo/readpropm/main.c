@@ -216,23 +216,21 @@ static void Init_DataLink(
 #endif
 }
 
-void cleanup(void)
-{
+void cleanup(void) {
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
     BACNET_PROPERTY_REFERENCE *old_rpm_property;
 
-    rpm_object = Read_Access_Data;
-    old_rpm_object = rpm_object;
-    while (rpm_object) {
+                              rpm_object = Read_Access_Data;
+                              old_rpm_object = rpm_object;
+    while                     (rpm_object) {
         rpm_property = rpm_object->listOfProperties;
         while (rpm_property) {
             old_rpm_property = rpm_property;
             rpm_property = rpm_property->next;
             free(old_rpm_property);
-        }
-        old_rpm_object = rpm_object;
+        } old_rpm_object = rpm_object;
         rpm_object = rpm_object->next;
         free(old_rpm_object);
     }
@@ -251,14 +249,16 @@ int main(int argc, char *argv[]) {
     time_t timeout_seconds = 0;
     uint8_t invoke_id = 0;
     bool found = false;
-    uint8_t buffer[MAX_PDU] = {0};
+    uint8_t buffer[MAX_PDU] = {
+    0};
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
 
 
     if (argc < 5) {
         printf("Usage: %s device-instance object-type object-instance "
-            "property index [object-type ...]\r\n", filename_remove_path(argv[0]));
+            "property index [object-type ...]\r\n",
+            filename_remove_path(argv[0]));
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf("device-instance:\r\n"
                 "BACnet Device Object Instance number that you are\r\n"
@@ -285,8 +285,7 @@ int main(int argc, char *argv[]) {
                 "If the property is an array, individual elements can\r\n"
                 "be read.  If this parameter is missing and the property\r\n"
                 "is an array, the entire array will be read.\r\n"
-                "\r\nExample:\r\n"
-                "If you want read the ALL property in\r\n"
+                "\r\nExample:\r\n" "If you want read the ALL property in\r\n"
                 "Device object 123, you would use the following command:\r\n"
                 "%s 123 8 123 8 -1\r\n"
                 "If you want read the OPTIONAL property in\r\n"
@@ -294,10 +293,8 @@ int main(int argc, char *argv[]) {
                 "%s 123 8 123 80 -1\r\n"
                 "If you want read the REQUIRED property in\r\n"
                 "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 105 -1\r\n",
-                filename_remove_path(argv[0]),
-                filename_remove_path(argv[0]),
-                filename_remove_path(argv[0]));
+                "%s 123 8 123 105 -1\r\n", filename_remove_path(argv[0]),
+                filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         }
         return 0;
     }
@@ -315,8 +312,7 @@ int main(int argc, char *argv[]) {
     arg_sets = 0;
     while (rpm_object) {
         tag_value_arg = 2 + (arg_sets * 4);
-        rpm_object->object_type =
-            strtol(argv[tag_value_arg], NULL, 0);
+        rpm_object->object_type = strtol(argv[tag_value_arg], NULL, 0);
         tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {
@@ -328,8 +324,7 @@ int main(int argc, char *argv[]) {
                 rpm_object->object_type, MAX_BACNET_OBJECT_TYPE + 1);
             return 1;
         }
-        rpm_object->object_instance =
-            strtol(argv[tag_value_arg], NULL, 0);
+        rpm_object->object_instance = strtol(argv[tag_value_arg], NULL, 0);
         tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {
@@ -350,12 +345,14 @@ int main(int argc, char *argv[]) {
             tag_value_arg++;
             args_remaining--;
             if (args_remaining <= 0) {
-                fprintf(stderr, "Error: not enough object property quads.\r\n");
+                fprintf(stderr,
+                    "Error: not enough object property quads.\r\n");
                 return 1;
             }
             if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
                 fprintf(stderr, "property=%u - it must be less than %u\r\n",
-                    rpm_property->propertyIdentifier, MAX_BACNET_PROPERTY_ID + 1);
+                    rpm_property->propertyIdentifier,
+                    MAX_BACNET_PROPERTY_ID + 1);
                 return 1;
             }
             rpm_property->propertyArrayIndex =
@@ -413,10 +410,9 @@ int main(int argc, char *argv[]) {
             &Target_Address);
         if (found) {
             if (invoke_id == 0) {
-                invoke_id = Send_Read_Property_Multiple_Request(
-                    &buffer[0],
-                    sizeof(buffer),
-                    Target_Device_Object_Instance,
+                invoke_id =
+                    Send_Read_Property_Multiple_Request(&buffer[0],
+                    sizeof(buffer), Target_Device_Object_Instance,
                     Read_Access_Data);
             } else if (tsm_invoke_id_free(invoke_id))
                 break;
