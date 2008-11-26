@@ -36,7 +36,7 @@
 #include "datalink.h"
 #include "dcc.h"
 #include "handlers.h"
-#include "iam.h"
+#include "client.h"
 #include "txbuf.h"
 
 /* chip configuration data */
@@ -91,30 +91,6 @@
 
 volatile uint8_t Milliseconds = 0;
 volatile uint8_t Zero_Cross_Timeout = 0;
-
-static void BACnet_Service_Handlers_Init(
-    void)
-{
-    /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
-    /* Set the handlers for any confirmed services that we support. */
-    /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-        handler_reinitialize_device);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        handler_write_property);
-#if 0
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        handler_timesync_utc);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        handler_timesync);
-#endif
-    /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-        handler_device_communication_control);
-}
 
 void Reinitialize(
     void)
@@ -255,7 +231,6 @@ void Initialize_Variables(
     ENABLE_TIMER4_INT();
     /* interrupts must be enabled before we read our inputs */
     Global_Int(INT_ENABLED);
-    BACnet_Service_Handlers_Init();
     dlmstp_init();
     /* Start our time from now */
     Milliseconds = 0;

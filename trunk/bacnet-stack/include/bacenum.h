@@ -710,7 +710,7 @@ typedef enum {
     PROP_STATE_ZONE_OCCUPANCY_STATE = 31,
     PROP_STATE_ACCESS_CRED_DISABLE_REASON = 32,
     PROP_STATE_ACCESS_CRED_DISABLE = 33,
-    PROP_STATE_AUTHENTICATION_STATUS = 34,
+    PROP_STATE_AUTHENTICATION_STATUS = 34
 } BACNET_PROPERTY_STATES;
 
 typedef enum {
@@ -897,15 +897,15 @@ typedef enum {
     OBJECT_ACCESS_USER = 35,
     OBJECT_ACCESS_ZONE = 36,
     OBJECT_AUTHENTICATION_FACTOR_INPUT = 37,
+    MAX_ASHRAE_OBJECT_TYPE = 38
 
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
 
-    /* used for bit string loop */
-    MAX_ASHRAE_OBJECT_TYPE = 38,
-    MAX_BACNET_OBJECT_TYPE = 1023
 } BACNET_OBJECT_TYPE;
+/* used for bit string loop */
+#define MAX_BACNET_OBJECT_TYPE 1023
 
 typedef enum {
     SEGMENTATION_BOTH = 0,
