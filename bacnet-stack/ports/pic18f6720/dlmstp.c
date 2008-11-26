@@ -34,6 +34,7 @@
 #include "dlmstp.h"
 #include "rs485.h"
 #include "npdu.h"
+#include "handlers.h"
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
