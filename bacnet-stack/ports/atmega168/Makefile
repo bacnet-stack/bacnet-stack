@@ -3,8 +3,8 @@
 ###############################################################################
 
 ## General Flags
-PROJECT = bacnet
 MCU = atmega168
+AVRDUDE_MCU = m168
 TARGET = bacnet
 ## Tools
 CC = avr-gcc
@@ -12,7 +12,21 @@ AR = avr-ar
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
 SIZE = avr-size
+AVRDUDE = avrdude
 LINT = splint
+
+# programmer id--check the avrdude for complete list
+# # of available opts.  These should include stk500,
+# # avr910, avrisp, bsd, pony and more.  Set this to
+# # one of the valid "-c PROGRAMMER-ID" values 
+# # described in the avrdude info page.
+# # 
+AVRDUDE_PROGRAMMERID = avrispmkII
+#
+# # port--serial or parallel port to which your 
+# # hardware programmer is attached
+# #
+AVRDUDE_PORT = /dev/ttyUSB0
 
 # Source locations
 BACNET_CORE = ../../src
@@ -171,10 +185,15 @@ $(LIBRARY): $(COREOBJ) Makefile
 
 size: ${TARGET_ELF}
 	@echo
-	@${SIZE} -C --mcu=${MCU} ${TARGET_ELF}
+	@${SIZE} ${TARGET_ELF}
 
 lint:
 	$(LINT) $(BFLAGS) $(CSRC) 
+
+install: $(TARGET_ELF)
+	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)   \
+	 -p $(AVRDUDE_MCU) -P $(AVRDUDE_PORT) -e        \
+	 -U flash:w:$(TARGET).hex
 
 ## Clean target
 .PHONY: clean
