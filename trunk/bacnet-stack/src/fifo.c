@@ -164,8 +164,9 @@ bool FIFO_Add(
     /* limit the ring to prevent overwriting */
     if (FIFO_Available (b, count)) {
         while (count) {
-            b->buffer[b->head % b->buffer_len] = data_byte;
+            b->buffer[b->head % b->buffer_len] = *data_bytes;
             b->head++;
+            data_bytes++;
             count--;
         }
         status = true;
