@@ -70,6 +70,11 @@ bool FIFO_Put(
         FIFO_BUFFER * b,
         uint8_t data_byte);
 
+bool FIFO_Add(
+        FIFO_BUFFER * b,
+        uint8_t *data_bytes,
+        unsigned count);
+
 /* note: buffer_len must be a power of two */
 void FIFO_Init(
         FIFO_BUFFER * b,

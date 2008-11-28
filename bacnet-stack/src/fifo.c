@@ -66,6 +66,19 @@ static bool FIFO_Full (
 }
 
 /****************************************************************************
+* DESCRIPTION: Tests to see if space is available
+* RETURN:      true if the number of bytes is available
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+static bool FIFO_Available (
+    FIFO_BUFFER const *b,
+    unsigned count)
+{
+    return (b ? (count < (b->buffer_len - FIFO_Count(b))) : false);
+}
+
+/****************************************************************************
 * DESCRIPTION: Returns the empty/full status of the ring buffer
 * RETURN:      true if the ring buffer is empty, false if it is not.
 * ALGORITHM:   none
@@ -130,6 +143,32 @@ bool FIFO_Put(
             b->head++;
             status = true;
         }
+    }
+
+    return status;
+}
+
+/****************************************************************************
+* DESCRIPTION: Adds one or more elements of data to the FIFO
+* RETURN:      true if space available and added, false if not added
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool FIFO_Add(
+        FIFO_BUFFER * b,
+        uint8_t *data_bytes,
+        unsigned count)
+{
+    bool status = false;        /* return value */
+
+    /* limit the ring to prevent overwriting */
+    if (FIFO_Available (b, count)) {
+        while (count) {
+            b->buffer[b->head % b->buffer_len] = data_byte;
+            b->head++;
+            count--;
+        }
+        status = true;
     }
 
     return status;

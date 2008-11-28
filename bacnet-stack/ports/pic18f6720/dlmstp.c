@@ -79,7 +79,7 @@ void dlmstp_init(
     MSTP_Init(&MSTP_Port);
     /* FIXME: implement your data storage */
     data = 64;  /* I2C_Read_Byte(
-                   EEPROM_DEVICE_ADDRESS, 
+                   EEPROM_DEVICE_ADDRESS,
                    EEPROM_MSTP_MAC_ADDR); */
     if (data <= 127)
         MSTP_Port.This_Station = data;
@@ -87,7 +87,7 @@ void dlmstp_init(
         dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
     /* FIXME: implement your data storage */
     data = 127; /* I2C_Read_Byte(
-                   EEPROM_DEVICE_ADDRESS, 
+                   EEPROM_DEVICE_ADDRESS,
                    EEPROM_MSTP_MAX_MASTER_ADDR); */
     if ((data <= 127) && (data >= MSTP_Port.This_Station))
         MSTP_Port.Nmax_master = data;
@@ -96,7 +96,7 @@ void dlmstp_init(
     /* FIXME: implement your data storage */
     data = 1;
     /* I2C_Read_Byte(
-       EEPROM_DEVICE_ADDRESS, 
+       EEPROM_DEVICE_ADDRESS,
        EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
     if (data >= 1)
         MSTP_Port.Nmax_info_frames = data;
@@ -155,7 +155,7 @@ int dlmstp_send_pdu(
 void dlmstp_task(
     void)
 {
-    uint8_t bytes_remaining;
+    bool bytes_remaining;
     bool received_frame;
 
     /* only do receive state machine while we don't have a frame */
@@ -234,7 +234,7 @@ void dlmstp_set_my_address(
         MSTP_Port.This_Station = mac_address;
         /* FIXME: implement your data storage */
         /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS, 
+           EEPROM_DEVICE_ADDRESS,
            mac_address,
            EEPROM_MSTP_MAC_ADDR); */
         if (mac_address > MSTP_Port.Nmax_master)
@@ -263,8 +263,8 @@ void dlmstp_set_max_info_frames(
     if (max_info_frames >= 1) {
         MSTP_Port.Nmax_info_frames = max_info_frames;
         /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(  
-           EEPROM_DEVICE_ADDRESS, 
+        /* I2C_Write_Byte(
+           EEPROM_DEVICE_ADDRESS,
            (uint8_t)max_info_frames,
            EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
     }
@@ -291,7 +291,7 @@ void dlmstp_set_max_master(
             MSTP_Port.Nmax_master = max_master;
             /* FIXME: implement your data storage */
             /* I2C_Write_Byte(
-               EEPROM_DEVICE_ADDRESS, 
+               EEPROM_DEVICE_ADDRESS,
                max_master,
                EEPROM_MSTP_MAX_MASTER_ADDR); */
         }
