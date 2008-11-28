@@ -39,20 +39,6 @@
 #include <stdint.h>
 #include "mstp.h"
 
-typedef struct {
-    uint8_t RxHead;
-    uint8_t RxTail;
-    uint8_t Rx_Bytes;
-    uint8_t TxHead;
-    uint8_t TxTail;
-    uint8_t Tx_Bytes;
-    uint8_t Rx_Bufferoverrun:1;
-    uint8_t Tx_Bufferoverrun:1;
-} COMSTAT;
-
-extern COMSTAT RS485_Comstat;
-extern volatile uint8_t RS485_Rx_Buffer[MAX_MPDU];
-extern volatile uint8_t RS485_Tx_Buffer[MAX_MPDU];
 extern uint32_t RS485_Baud_Rate;
 
 
@@ -73,7 +59,8 @@ extern "C" {
         uint8_t * buffer,       /* frame to send (up to 501 bytes of data) */
         uint16_t nbytes);       /* number of bytes of data (up to 501) */
 
-    uint8_t RS485_Check_UART_Data(
+    /* returns true if there is more data waiting */
+    bool RS485_Check_UART_Data(
         volatile struct mstp_port_struct_t *mstp_port); /* port specific data */
 
     void RS485_Interrupt_Rx(

@@ -33,6 +33,7 @@
 #include "hardware.h"
 #include "mstp.h"
 #include "rs485.h"
+#include "fifo.h"
 
 /* public port info */
 extern volatile struct mstp_port_struct_t MSTP_Port;
@@ -40,16 +41,14 @@ extern volatile struct mstp_port_struct_t MSTP_Port;
 /* the baud rate is adjustable */
 uint32_t RS485_Baud_Rate = 38400;
 
-/* the ISR and other use this for status and control */
-COMSTAT RS485_Comstat;
-
 /*#pragma udata MSTPPortData
  */
-/* the buffer for receiving characters */
-volatile uint8_t RS485_Rx_Buffer[MAX_MPDU];
-
-/* UART transmission buffer and index */
-volatile uint8_t RS485_Tx_Buffer[MAX_MPDU];
+/* the buffer for receiving data (size must be a power of 2) */
+volatile uint8_t RS485_Rx_Buffer[128];
+FIFO_BUFFER FIFO_Rx;
+/* the buffer for sending data (size must be a power of 2) */
+volatile uint8_t RS485_Tx_Buffer[128];
+FIFO_BUFFER FIFO_Tx;
 
 /****************************************************************************
 * DESCRIPTION: Transmits a frame using the UART
@@ -68,12 +67,8 @@ void RS485_Send_Frame(
     if (!buffer)
         return;
 
-    /* bounds check */
-    if (nbytes >= sizeof(RS485_Tx_Buffer))
-        return;
-
-    /* buffer is full.  Wait for ISR to transmit. */
-    while (RS485_Comstat.Tx_Bytes) {
+    while (!Empty(&FIFO_Tx)) {
+        /* buffer is not empty.  Wait for ISR to transmit. */
     };
 
     /* wait 40 bit times since reception */
@@ -85,18 +80,10 @@ void RS485_Send_Frame(
         turnaround_time = 1;
 
     while (mstp_port->SilenceTimer < turnaround_time) {
+        /* The line has not been silent long enough, so wait. */
     };
 
-    RS485_Comstat.TxHead = 0;
-    memcpy((void *) &RS485_Tx_Buffer[0], (void *) buffer, nbytes);
-#if 0
-    for (i = 0; i < nbytes; i++) {
-        /* put the data into the buffer */
-        RS485_Tx_Buffer[i] = *buffer;
-        buffer++;
-    }
-#endif
-    RS485_Comstat.Tx_Bytes = nbytes;
+    FIFO_Add(&FIFO_Tx, buffer, nbytes);
     /* disable the receiver */
     PIE3bits.RC2IE = 0;
     RCSTA2bits.CREN = 0;
@@ -106,7 +93,7 @@ void RS485_Send_Frame(
     /* enable the transmitter */
     TXSTA2bits.TXEN = 1;
     PIE3bits.TX2IE = 1;
-    /* per MSTP spec, sort of */
+    /* reset the silence timer per MSTP spec, sort of */
     mstp_port->SilenceTimer = 0;
 
     return;
@@ -118,29 +105,16 @@ void RS485_Send_Frame(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t RS485_Check_UART_Data(
+bool RS485_Check_UART_Data(
     volatile struct mstp_port_struct_t * mstp_port)
 {
     /* check for data */
-    if (RS485_Comstat.Rx_Bytes) {
-        mstp_port->DataRegister = RS485_Rx_Buffer[RS485_Comstat.RxTail];
-        if (RS485_Comstat.RxTail >= (sizeof(RS485_Rx_Buffer) - 1))
-            RS485_Comstat.RxTail = 0;
-        else
-            RS485_Comstat.RxTail++;
-        /* FIXME: disable interrupts around Rx_Bytes */
-        RS485_Comstat.Rx_Bytes--;
-        /* errors? let the state machine know */
-        if (RS485_Comstat.Rx_Bufferoverrun) {
-            RS485_Comstat.Rx_Bufferoverrun = FALSE;
-            mstp_port->ReceiveError = TRUE;
-        }
-        /* We read a good byte */
-        else
-            mstp_port->DataAvailable = TRUE;
+    if (!FIFO_Empty(&FIFO_Rx)) {
+        mstp_port->DataRegister = FIFO_Get(&FIFO_Rx);
+        mstp_port->DataAvailable = TRUE;
     }
 
-    return RS485_Comstat.Rx_Bytes;
+    return (!FIFO_Empty(&FIFO_Rx));
 }
 
 /* *************************************************************************
@@ -155,25 +129,17 @@ uint8_t RS485_Check_UART_Data(
 void RS485_Interrupt_Rx(
     void)
 {
-    char dummy;
+    uint8_t data_byte;
 
     if ((RCSTA2bits.FERR) || (RCSTA2bits.OERR)) {
         /* Clear the error */
         RCSTA2bits.CREN = 0;
         RCSTA2bits.CREN = 1;
-        RS485_Comstat.Rx_Bufferoverrun = TRUE;
-        dummy = RCREG2;
-    } else if (RS485_Comstat.Rx_Bytes < sizeof(RS485_Rx_Buffer)) {
-        RS485_Rx_Buffer[RS485_Comstat.RxHead] = RCREG2;
-        if (RS485_Comstat.RxHead >= (sizeof(RS485_Rx_Buffer) - 1))
-            RS485_Comstat.RxHead = 0;
-        else
-            RS485_Comstat.RxHead++;
-        RS485_Comstat.Rx_Bytes++;
+        /* FIXME: flag the MS/TP state machine on buffer overrun */
+        data_byte = RCREG2;
     } else {
-        RS485_Comstat.Rx_Bufferoverrun = TRUE;
-        dummy = RCREG2;
-        (void) dummy;
+        data_byte = RCREG2;
+        FIFO_Put(&FIFO_Rx, data_byte);
     }
 }
 
@@ -189,13 +155,8 @@ void RS485_Interrupt_Rx(
 void RS485_Interrupt_Tx(
     void)
 {
-    if (RS485_Comstat.Tx_Bytes) {
-        /* Get the data byte */
-        TXREG2 = RS485_Tx_Buffer[RS485_Comstat.TxHead];
-        /* point to the next byte */
-        RS485_Comstat.TxHead++;
-        /* reduce the buffer size */
-        RS485_Comstat.Tx_Bytes--;
+    if (!FIFO_Empty(&FIFO_Tx)) {
+        TXREG2 = FIFO_Get(&FIFO_Tx);
     } else {
         /* wait for the USART to be empty */
         while (!TXSTA2bits.TRMT);
@@ -204,8 +165,7 @@ void RS485_Interrupt_Tx(
         /* enable the receiver */
         RS485_TX_ENABLE = 0;
         RS485_RX_DISABLE = 0;
-        /* FIXME: might not be necessary
-         */
+        /* enable the this interrupt */
         PIE3bits.RC2IE = 1;
         RCSTA2bits.CREN = 1;
     }
@@ -251,7 +211,7 @@ bool RS485_Set_Baud_Rate(
     if (valid) {
         /* FIXME: store the baud rate */
         /* I2C_Write_Block(
-           EEPROM_DEVICE_ADDRESS, 
+           EEPROM_DEVICE_ADDRESS,
            (char *)&RS485_Baud_Rate,
            sizeof(RS485_Baud_Rate),
            EEPROM_MSTP_BAUD_RATE_ADDR); */
@@ -355,6 +315,12 @@ void RS485_Disable_Port(
     PIE3 &= 0xCF;       /* Disable both interrupts */
 }
 
+/****************************************************************************
+* DESCRIPTION: Reinitializes the port
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
 void RS485_Reinit(
     void)
 {
@@ -371,17 +337,12 @@ void RS485_Initialize(
     void)
 {
     /* Init the Rs485 buffers */
-    RS485_Comstat.RxHead = 0;
-    RS485_Comstat.RxTail = 0;
-    RS485_Comstat.Rx_Bytes = 0;
-    RS485_Comstat.Rx_Bufferoverrun = FALSE;
-    RS485_Comstat.TxHead = 0;
-    RS485_Comstat.TxTail = 0;
-    RS485_Comstat.Tx_Bytes = 0;
+    FIFO_Init(&FIFO_Rx, RS485_Rx_Buffer, sizeof(RS485_Rx_Buffer));
+    FIFO_Init(&FIFO_Tx, RS485_Tx_Buffer, sizeof(RS485_Tx_Buffer));
 
-    /* FIXME: read the data from storage */
+    /* FIXME: read the stored baud rate */
     /* I2C_Read_Block(
-       EEPROM_DEVICE_ADDRESS, 
+       EEPROM_DEVICE_ADDRESS,
        (char *)&RS485_Baud_Rate,
        sizeof(RS485_Baud_Rate),
        EEPROM_MSTP_BAUD_RATE_ADDR); */
