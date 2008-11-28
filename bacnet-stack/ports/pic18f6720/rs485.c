@@ -41,14 +41,15 @@ extern volatile struct mstp_port_struct_t MSTP_Port;
 /* the baud rate is adjustable */
 uint32_t RS485_Baud_Rate = 38400;
 
-/*#pragma udata MSTPPortData
- */
+/* the FIFO structures for sending and receiving */
+FIFO_BUFFER FIFO_Rx;
+FIFO_BUFFER FIFO_Tx;
+#pragma udata MSTPPortData
 /* the buffer for receiving data (size must be a power of 2) */
 volatile uint8_t RS485_Rx_Buffer[128];
-FIFO_BUFFER FIFO_Rx;
 /* the buffer for sending data (size must be a power of 2) */
 volatile uint8_t RS485_Tx_Buffer[128];
-FIFO_BUFFER FIFO_Tx;
+#pragma udata
 
 /****************************************************************************
 * DESCRIPTION: Transmits a frame using the UART
@@ -67,7 +68,7 @@ void RS485_Send_Frame(
     if (!buffer)
         return;
 
-    while (!Empty(&FIFO_Tx)) {
+    while (!FIFO_Empty(&FIFO_Tx)) {
         /* buffer is not empty.  Wait for ISR to transmit. */
     };
 
@@ -83,18 +84,19 @@ void RS485_Send_Frame(
         /* The line has not been silent long enough, so wait. */
     };
 
-    FIFO_Add(&FIFO_Tx, buffer, nbytes);
-    /* disable the receiver */
-    PIE3bits.RC2IE = 0;
-    RCSTA2bits.CREN = 0;
-    /* enable the transceiver */
-    RS485_TX_ENABLE = 1;
-    RS485_RX_DISABLE = 1;
-    /* enable the transmitter */
-    TXSTA2bits.TXEN = 1;
-    PIE3bits.TX2IE = 1;
-    /* reset the silence timer per MSTP spec, sort of */
-    mstp_port->SilenceTimer = 0;
+    if (FIFO_Add(&FIFO_Tx, buffer, nbytes)) {
+        /* disable the receiver */
+        PIE3bits.RC2IE = 0;
+        RCSTA2bits.CREN = 0;
+        /* enable the transceiver */
+        RS485_TX_ENABLE = 1;
+        RS485_RX_DISABLE = 1;
+        /* enable the transmitter */
+        TXSTA2bits.TXEN = 1;
+        PIE3bits.TX2IE = 1;
+        /* reset the silence timer per MSTP spec, sort of */
+        mstp_port->SilenceTimer = 0;
+    }
 
     return;
 }
