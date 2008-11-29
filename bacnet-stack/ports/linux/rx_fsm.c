@@ -59,6 +59,10 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#ifndef LOCAL_PRINT
+#define LOCAL_PRINT 1
+#endif
+
 /* local port data - shared with RS-485 */
 static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -236,7 +240,7 @@ static void cleanup(
     pFile = NULL;
 }
 
-#if 0
+#if LOCAL_PRINT
 static void print_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
@@ -340,7 +344,7 @@ int main(
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
             mstp_port->ReceivedValidFrame = false;
-#if 0
+#if LOCAL_PRINT
             print_received_packet(mstp_port);
 #endif
             write_received_packet(mstp_port);
@@ -348,7 +352,7 @@ int main(
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
-#if 0
+#if LOCAL_PRINT
             print_received_packet(mstp_port);
 #endif
             write_received_packet(mstp_port);
