@@ -54,6 +54,41 @@ static struct Address_Cache_Entry {
     BACNET_ADDRESS address;
 } Address_Cache[MAX_ADDRESS_CACHE];
 
+bool address_match(BACNET_ADDRESS * dest,
+   BACNET_ADDRESS * src)
+{
+   unsigned i;
+   unsigned max_len;
+
+   if (dest->mac_len != src->mac_len)
+       return false;
+   max_len = dest->mac_len;
+   if (max_len > MAX_MAC_LEN)
+       max_len = MAX_MAC_LEN;
+   for (i = 0; i < max_len; i++) {
+       if (dest->mac[i] != src->mac[i])
+           return false;
+   }
+   if (dest->net != src->net)
+       return false;
+
+   /* if local, ignore remaining fields */
+   if (dest->net == 0)
+       return true;
+
+   if (dest->len != src->len)
+       return false;
+   max_len = dest->len;
+   if (max_len > MAX_MAC_LEN)
+       max_len = MAX_MAC_LEN;
+   for (i = 0; i < max_len; i++) {
+       if (dest->adr[i] != src->adr[i])
+           return false;
+   }
+
+   return true;
+}
+
 void address_remove_device(
     uint32_t device_id)
 {
