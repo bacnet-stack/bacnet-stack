@@ -231,7 +231,6 @@ void Initialize_Variables(
     ENABLE_TIMER4_INT();
     /* interrupts must be enabled before we read our inputs */
     Global_Int(INT_ENABLED);
-    dlmstp_init();
     /* Start our time from now */
     Milliseconds = 0;
 }
@@ -259,6 +258,12 @@ void main(
     RCONbits.NOT_RI = 1;
     Hardware_Initialize();
     Initialize_Variables();
+    /* initialize BACnet Data Link Layer */
+	dlmstp_set_my_address(42);
+	dlmstp_set_max_info_frames(1);
+	dlmstp_set_max_master(127);
+	RS485_Set_Baud_Rate(38400);
+    dlmstp_init();
     /* Handle anything that needs to be done on powerup */
     /* Greet the BACnet world! */
     Send_I_Am(&Handler_Transmit_Buffer[0]);

@@ -77,31 +77,6 @@ void dlmstp_init(
     RS485_Initialize();
     MSTP_Port.InputBuffer = &Receive_Buffer.pdu[0];
     MSTP_Init(&MSTP_Port);
-    /* FIXME: implement your data storage */
-    data = 64;  /* I2C_Read_Byte(
-                   EEPROM_DEVICE_ADDRESS,
-                   EEPROM_MSTP_MAC_ADDR); */
-    if (data <= 127)
-        MSTP_Port.This_Station = data;
-    else
-        dlmstp_set_my_address(DEFAULT_MAC_ADDRESS);
-    /* FIXME: implement your data storage */
-    data = 127; /* I2C_Read_Byte(
-                   EEPROM_DEVICE_ADDRESS,
-                   EEPROM_MSTP_MAX_MASTER_ADDR); */
-    if ((data <= 127) && (data >= MSTP_Port.This_Station))
-        MSTP_Port.Nmax_master = data;
-    else
-        dlmstp_set_max_master(DEFAULT_MAX_MASTER);
-    /* FIXME: implement your data storage */
-    data = 1;
-    /* I2C_Read_Byte(
-       EEPROM_DEVICE_ADDRESS,
-       EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
-    if (data >= 1)
-        MSTP_Port.Nmax_info_frames = data;
-    else
-        dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
 }
 
 void dlmstp_cleanup(
