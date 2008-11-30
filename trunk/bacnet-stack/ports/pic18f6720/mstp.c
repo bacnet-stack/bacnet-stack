@@ -697,11 +697,7 @@ bool MSTP_Master_Node_FSM(
                 mstp_port->FrameCount = mstp_port->Nmax_info_frames;
                 mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                 transition_now = true;
-            } else if (mstp_port->SilenceTimer > Tusage_delay) {
-                /* if we missed our timing deadline, another token will be sent */
-                mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
             } else {
-                /* don't send it if we are too late in getting out */
                 uint8_t destination = mstp_port->TxBuffer[3];
                 RS485_Send_Frame(mstp_port,
                     (uint8_t *) & mstp_port->TxBuffer[0], mstp_port->TxLength);
