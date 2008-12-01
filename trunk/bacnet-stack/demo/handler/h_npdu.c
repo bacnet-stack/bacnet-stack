@@ -31,8 +31,6 @@
 #include "bits.h"
 #include "npdu.h"
 #include "apdu.h"
-#define DEBUG_ENABLED 0
-#include "debug.h"
 
 #if PRINT_ENABLED
 #include <stdio.h>
@@ -50,7 +48,9 @@ void npdu_handler(
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         /*FIXME: network layer message received!  Handle it! */
-        debug_printf("NPDU: Network Layer Message discarded!\n");
+#if PRINT_ENABLED
+        printf("NPDU: Network Layer Message discarded!\n");
+#endif
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
             ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK))) {
@@ -61,10 +61,14 @@ void npdu_handler(
                 (uint16_t) (pdu_len - apdu_offset));
         } else {
             if (dest.net) {
-                debug_printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
+#if PRINT_ENABLED
+                printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
+#endif
             } else {
-                debug_printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n",
+#if PRINT_ENABLED
+                printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n",
                     npdu_data.protocol_version);
+#endif
             }
         }
     }
