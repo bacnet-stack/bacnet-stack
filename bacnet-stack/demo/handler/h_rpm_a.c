@@ -51,6 +51,8 @@ static int rpm_ack_decode_service_request(
 {
     int decoded_len = 0;        /* return value */
     int len = 0;        /* number of bytes returned from decoding */
+    uint8_t tag_number = 0; /* decoded tag number */
+    uint32_t len_value = 0; /* decoded length value */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -89,6 +91,7 @@ static int rpm_ack_decode_service_request(
             apdu_len -= len;
             apdu += len;
             if (apdu_len && decode_is_opening_tag_number(apdu, 4)) {
+                /* propertyValue */
                 decoded_len++;
                 apdu_len--;
                 apdu++;
@@ -114,6 +117,41 @@ static int rpm_ack_decode_service_request(
                             calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                         old_value->next = value;
                     }
+                }
+            } else if (apdu_len && decode_is_opening_tag_number(apdu, 5)) {
+                /* propertyAccessError */
+                decoded_len++;
+                apdu_len--;
+                apdu++;
+                /* decode the class and code sequence */
+                len =
+                    decode_tag_number_and_value(apdu, &tag_number,
+                    &len_value);
+                decoded_len += len;
+                apdu_len -= len;
+                apdu += len;
+                /* FIXME: we could validate that the tag is enumerated... */
+                len = decode_enumerated(apdu, len_value, 
+                    (int *)&rpm_property->error.error_class);
+                decoded_len += len;
+                apdu_len -= len;
+                apdu += len;
+                len =
+                    decode_tag_number_and_value(apdu, &tag_number,
+                    &len_value);
+                decoded_len += len;
+                apdu_len -= len;
+                apdu += len;
+                /* FIXME: we could validate that the tag is enumerated... */
+                len = decode_enumerated(apdu, len_value, 
+                    (int *)&rpm_property->error.error_code);
+                decoded_len += len;
+                apdu_len -= len;
+                apdu += len;
+                if (apdu_len && decode_is_closing_tag_number(apdu, 5)) {
+                    decoded_len++;
+                    apdu_len--;
+                    apdu++;
                 }
             }
             old_rpm_property = rpm_property;
@@ -163,29 +201,40 @@ static void PrintReadPropertyMultipleData(
 #endif
             }
             value = listOfProperties->value;
-#if PRINT_ENABLED
-            if (value->next) {
-                fprintf(stdout, "{");
-                array_value = true;
-            } else {
-                array_value = false;
-            }
-#endif
-            while (value) {
-                bacapp_print_value(stdout, value,
-                    listOfProperties->propertyIdentifier);
+            if (value) {
 #if PRINT_ENABLED
                 if (value->next) {
-                    fprintf(stdout, ",\r\n        ");
+                    fprintf(stdout, "{");
+                    array_value = true;
                 } else {
-                    if (array_value) {
-                        fprintf(stdout, "}\r\n");
-                    } else {
-                        fprintf(stdout, "\r\n");
-                    }
+                    array_value = false;
                 }
 #endif
-                value = value->next;
+                while (value) {
+                    bacapp_print_value(stdout, value,
+                        listOfProperties->propertyIdentifier);
+#if PRINT_ENABLED
+                    if (value->next) {
+                        fprintf(stdout, ",\r\n        ");
+                    } else {
+                        if (array_value) {
+                            fprintf(stdout, "}\r\n");
+                        } else {
+                            fprintf(stdout, "\r\n");
+                        }
+                    }
+#endif
+                    value = value->next;
+                }
+            } else {
+#if PRINT_ENABLED
+                /* AccessError */
+                fprintf(stdout, "BACnet Error: %s: %s\r\n",
+                    bactext_error_class_name(
+                        (int)listOfProperties->error.error_class),
+                    bactext_error_code_name(
+                        (int)listOfProperties->error.error_code));
+#endif
             }
             listOfProperties = listOfProperties->next;
         }
