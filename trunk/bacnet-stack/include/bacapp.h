@@ -89,11 +89,20 @@ typedef struct BACnet_Application_Data_Value {
     struct BACnet_Application_Data_Value *next;
 } BACNET_APPLICATION_DATA_VALUE;
 
+struct BACnet_Access_Error;
+typedef struct BACnet_Access_Error {
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
+} BACNET_ACCESS_ERROR;
+
 struct BACnet_Property_Reference;
 typedef struct BACnet_Property_Reference {
     BACNET_PROPERTY_ID propertyIdentifier;
     int32_t propertyArrayIndex; /* optional */
+    /* either value or error, but not both. 
+    Use NULL value to indicate error */
     BACNET_APPLICATION_DATA_VALUE *value;
+    BACNET_ACCESS_ERROR error;
     /* simple linked list */
     struct BACnet_Property_Reference *next;
 } BACNET_PROPERTY_REFERENCE;
