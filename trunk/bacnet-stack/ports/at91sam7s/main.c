@@ -40,6 +40,7 @@
 #include "dcc.h"
 #include "iam.h"
 #include "handlers.h"
+#include "client.h"
 #include "device.h"
 #include "dcc.h"
 #include "iam.h"
