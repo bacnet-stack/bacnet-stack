@@ -75,6 +75,9 @@ bool FIFO_Add(
         uint8_t *data_bytes,
         unsigned count);
 
+void FIFO_Flush(
+        FIFO_BUFFER * b);
+
 /* note: buffer_len must be a power of two */
 void FIFO_Init(
         FIFO_BUFFER * b,
