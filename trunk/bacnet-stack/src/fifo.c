@@ -176,6 +176,20 @@ bool FIFO_Add(
 }
 
 /****************************************************************************
+* DESCRIPTION: Flushes any data in the buffer
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void FIFO_Flush(
+        FIFO_BUFFER * b)
+{
+    if (b) {
+        b->tail = b->head;
+    }
+}
+
+/****************************************************************************
 * DESCRIPTION: Configures the ring buffer
 * RETURN:      none
 * ALGORITHM:   none
@@ -210,6 +224,7 @@ void testFIFOBuffer(
 {
     FIFO_BUFFER test_buffer;
     volatile uint8_t data_store[FIFO_BUFFER_SIZE];
+    uint8_t test_add_data[40] = {"RoseSteveLouPatRachelJessicaDaniAmyHerb"};
     uint8_t test_data;
     uint8_t index;
     uint8_t count;
@@ -258,6 +273,25 @@ void testFIFOBuffer(
             ct_test(pTest, test_data == count);
         }
     }
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    /* test Add */
+    status = FIFO_Add(&test_buffer, test_add_data, sizeof(test_add_data));
+    ct_test(pTest, status == true);
+    ct_test(pTest, !FIFO_Empty(&test_buffer));
+    for (index = 0; index < sizeof(test_add_data); index++) {
+        /* unload the buffer */
+        ct_test(pTest, !FIFO_Empty(&test_buffer));
+        test_data = FIFO_Peek(&test_buffer);
+        ct_test(pTest, test_data == test_add_data[index]);
+        test_data = FIFO_Get(&test_buffer);
+        ct_test(pTest, test_data == test_add_data[index]);
+    }
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    /* test flush */
+    status = FIFO_Add(&test_buffer, test_add_data, sizeof(test_add_data));
+    ct_test(pTest, status == true);
+    ct_test(pTest, !FIFO_Empty(&test_buffer));
+    FIFO_Flush(&test_buffer);
     ct_test(pTest, FIFO_Empty(&test_buffer));
 
     return;
