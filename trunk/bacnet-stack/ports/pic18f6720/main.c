@@ -38,6 +38,7 @@
 #include "handlers.h"
 #include "client.h"
 #include "txbuf.h"
+#include "rs485.h"
 
 /* chip configuration data */
 /* define this to enable ICD */
