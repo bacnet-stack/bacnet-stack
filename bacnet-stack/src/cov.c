@@ -606,30 +606,6 @@ int cov_subscribe_property_decode_service_request(
     return len;
 }
 
-int ucov_notify_send(
-    uint8_t * buffer,
-    BACNET_COV_DATA * data)
-{
-    int len = 0;
-    int pdu_len = 0;
-    BACNET_ADDRESS dest;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
-
-    /* unconfirmed is a broadcast */
-    datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&buffer[0], &dest, NULL, &npdu_data);
-    /* encode the APDU portion of the packet */
-    len = ucov_notify_encode_apdu(&buffer[pdu_len], data);
-    pdu_len += len;
-    /* send the data */
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
-
-    return bytes_sent;
-}
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>

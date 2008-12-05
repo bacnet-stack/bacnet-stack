@@ -115,6 +115,9 @@
 		<Unit filename="..\demo\handler\s_iam.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\s_cov.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\s_ihave.c">
 			<Option compilerVar="CC" />
 		</Unit>
