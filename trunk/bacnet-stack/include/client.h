@@ -34,6 +34,7 @@
 #include "bacapp.h"
 #include "bacenum.h"
 #include "rpm.h"
+#include "cov.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,6 +68,15 @@ extern "C" {
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         char *object_name);
+
+    int Send_UCOV_Notify(
+        uint8_t * buffer,
+        BACNET_COV_DATA * cov_data);
+    int ucov_notify_encode_pdu(
+        uint8_t * buffer,
+        BACNET_ADDRESS * dest,
+        BACNET_NPDU_DATA * npdu_data,
+        BACNET_COV_DATA * cov_data);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Read_Property_Request(
