@@ -50,6 +50,7 @@ static int rpm_ack_decode_service_request(
     BACNET_READ_ACCESS_DATA * read_access_data)
 {
     int decoded_len = 0;        /* return value */
+    int error_value = 0;        /* decoded error value */
     int len = 0;        /* number of bytes returned from decoding */
     uint8_t tag_number = 0; /* decoded tag number */
     uint32_t len_value = 0; /* decoded length value */
@@ -131,8 +132,8 @@ static int rpm_ack_decode_service_request(
                 apdu_len -= len;
                 apdu += len;
                 /* FIXME: we could validate that the tag is enumerated... */
-                len = decode_enumerated(apdu, len_value, 
-                    (int *)&rpm_property->error.error_class);
+                len = decode_enumerated(apdu, len_value, &error_value);
+                rpm_property->error.error_class = error_value;
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -143,8 +144,8 @@ static int rpm_ack_decode_service_request(
                 apdu_len -= len;
                 apdu += len;
                 /* FIXME: we could validate that the tag is enumerated... */
-                len = decode_enumerated(apdu, len_value, 
-                    (int *)&rpm_property->error.error_code);
+                len = decode_enumerated(apdu, len_value, &error_value); 
+                rpm_property->error.error_code = error_value;
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
