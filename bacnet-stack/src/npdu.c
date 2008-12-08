@@ -297,6 +297,11 @@ int npdu_decode(
                 dest->len = address_len;
             }
             if (address_len) {
+                if ( address_len > MAX_MAC_LEN ) {
+                    /* address is too large could be a malformed message */
+                    return -1;
+                }
+
                 for (i = 0; i < address_len; i++) {
                     mac_octet = npdu[len++];
                     if (dest)
@@ -327,6 +332,11 @@ int npdu_decode(
                 src->len = address_len;
             }
             if (address_len) {
+                if ( address_len > MAX_MAC_LEN ) {
+                    /* address is too large could be a malformed message */
+                    return -1;
+                }
+
                 for (i = 0; i < address_len; i++) {
                     mac_octet = npdu[len++];
                     if (src)
