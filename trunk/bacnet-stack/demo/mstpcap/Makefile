@@ -62,6 +62,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
 clean:
-	rm -f core ${TARGET_BIN} ${OBJS}
+	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map
 
 include: .depend

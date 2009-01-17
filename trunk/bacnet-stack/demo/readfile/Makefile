@@ -66,6 +66,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
 clean:
-	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET}
+	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET} $(TARGET).map
 
 include: .depend
