@@ -751,7 +751,7 @@ bool MSTP_Master_Node_FSM(
                 } else if (mstp_port->ReceivedValidFrame == true) {
                     if (mstp_port->DestinationAddress ==
                         mstp_port->This_Station) {
-                        switch (mstp_port->TxFrameType) {
+                        switch (mstp_port->FrameType) {
                             case FRAME_TYPE_REPLY_POSTPONED:
                                 /* ReceivedReplyPostponed */
                                 mstp_port->master_state =
