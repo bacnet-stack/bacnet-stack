@@ -505,7 +505,7 @@ int event_notify_decode_service_request(
         /* tag 6 - eventType */
         if ((section_length =
                 decode_context_enumerated(&apdu[len], 6,
-                    &data->eventType)) == -1) {
+                    (int*)&data->eventType)) == -1) {
             return -1;
         } else {
             len += section_length;
@@ -534,7 +534,7 @@ int event_notify_decode_service_request(
         /* tag 8 - notifyType */
         if ((section_length =
                 decode_context_enumerated(&apdu[len], 8,
-                    &data->notifyType)) == -1) {
+                    (int*)&data->notifyType)) == -1) {
             return -1;
         } else {
             len += section_length;
@@ -553,7 +553,7 @@ int event_notify_decode_service_request(
                 /* tag 10 - fromState */
                 if ((section_length =
                         decode_context_enumerated(&apdu[len], 10,
-                            &data->fromState)) == -1) {
+                            (int*)&data->fromState)) == -1) {
                     return -1;
                 } else {
                     len += section_length;
@@ -564,7 +564,7 @@ int event_notify_decode_service_request(
         /* tag 11 - toState */
         if ((section_length =
                 decode_context_enumerated(&apdu[len], 11,
-                    &data->toState)) == -1) {
+                    (int*)&data->toState)) == -1) {
             return -1;
         } else {
             len += section_length;
@@ -744,7 +744,7 @@ int event_notify_decode_service_request(
                     case EVENT_CHANGE_OF_LIFE_SAFETY:
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 0,
-                                    &data->notificationParams.
+                                    (int*)&data->notificationParams.
                                     changeOfLifeSafety.newState))) {
                             return -1;
                         }
@@ -752,7 +752,7 @@ int event_notify_decode_service_request(
 
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 1,
-                                    &data->notificationParams.
+                                    (int*)&data->notificationParams.
                                     changeOfLifeSafety.newMode))) {
                             return -1;
                         }
@@ -768,7 +768,7 @@ int event_notify_decode_service_request(
 
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 3,
-                                    &data->notificationParams.
+                                    (int*)&data->notificationParams.
                                     changeOfLifeSafety.operationExpected))) {
                             return -1;
                         }
