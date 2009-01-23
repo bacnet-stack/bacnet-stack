@@ -70,6 +70,8 @@
 #include "whohas.h"
 #include "whois.h"
 #include "wp.h"
+#include "event.h"
+#include "lso.h"
 
 /* required object - note: developer must supply the device.c file
    since it is not included in the library.  However, the library
