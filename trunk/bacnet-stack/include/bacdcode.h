@@ -288,21 +288,21 @@ extern "C" {
     int decode_enumerated(
         uint8_t * apdu,
         uint32_t len_value,
-        int *value);
+        uint32_t *value);
     int decode_context_enumerated(
         uint8_t * apdu,
         uint8_t tag_value,
-        int *value);
+        uint32_t *value);
     int encode_bacnet_enumerated(
         uint8_t * apdu,
-        int value);
+        uint32_t value);
     int encode_application_enumerated(
         uint8_t * apdu,
-        int value);
+        uint32_t value);
     int encode_context_enumerated(
         uint8_t * apdu,
         int tag_number,
-        int value);
+        uint32_t value);
 
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */

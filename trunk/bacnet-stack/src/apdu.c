@@ -323,8 +323,8 @@ void apdu_handler(
     uint16_t len = 0;   /* counts where we are in PDU */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    int error_code = 0;
-    int error_class = 0;
+    uint32_t error_code = 0;
+    uint32_t error_class = 0;
     uint8_t reason = 0;
     bool server = false;
 

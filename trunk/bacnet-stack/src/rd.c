@@ -77,7 +77,7 @@ int rd_decode_service_request(
     unsigned len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int value = 0;
+    uint32_t value = 0;
 
     /* check for value pointers */
     if (apdu_len) {
