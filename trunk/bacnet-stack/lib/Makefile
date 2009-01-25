@@ -65,6 +65,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
+	$(BACNET_CORE)/ptransfer.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/filename.c \
 	$(BACNET_CORE)/tsm.c \
