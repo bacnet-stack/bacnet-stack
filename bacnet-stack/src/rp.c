@@ -82,7 +82,7 @@ int rp_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint16_t type = 0;  /* for decoding */
-    int property = 0;   /* for decoding */
+    uint32_t property = 0;   /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for value pointers */
@@ -215,7 +215,7 @@ int rp_ack_decode_service_request(
     int tag_len = 0;    /* length of tag decode */
     int len = 0;        /* total length of decodes */
     uint16_t object = 0;        /* object type */
-    int property = 0;   /* for decoding */
+    uint32_t property = 0;   /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* FIXME: check apdu_len against the len during decode   */
@@ -247,9 +247,12 @@ int rp_ack_decode_service_request(
         len++;
         /* don't decode the application tag number or its data here */
         rpdata->application_data = &apdu[len];
-        rpdata->application_data_len = apdu_len - len - 1 /*closing tag */ ;
-    } else
+        rpdata->application_data_len = apdu_len - len - 1 /*closing tag */;
+        /* len includes the data and the closing tag */
+        len = apdu_len;
+    } else {
         return -1;
+    }
 
     return len;
 }
@@ -328,7 +331,7 @@ void testReadPropertyAck(
     BACNET_READ_PROPERTY_DATA test_data;
     BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
     uint32_t object_instance = 0;
-    int object = 0;
+    uint32_t object = 0;
 
     rpdata.object_type = OBJECT_DEVICE;
     rpdata.object_instance = 1;

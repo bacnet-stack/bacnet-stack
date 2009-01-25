@@ -1149,7 +1149,7 @@ int encode_application_unsigned(
 int decode_enumerated(
     uint8_t * apdu,
     uint32_t len_value,
-    int *value)
+    uint32_t *value)
 {
     uint32_t unsigned_value = 0;
     int len;
@@ -1165,7 +1165,7 @@ int decode_enumerated(
 int decode_context_enumerated(
     uint8_t * apdu,
     uint8_t tag_value,
-    int *value)
+    uint32_t *value)
 {
     int len = 0;
     uint8_t tag_number;
@@ -1186,7 +1186,7 @@ int decode_context_enumerated(
 /* returns the number of apdu bytes consumed */
 int encode_bacnet_enumerated(
     uint8_t * apdu,
-    int value)
+    uint32_t value)
 {
     return encode_bacnet_unsigned(apdu, value);
 }
@@ -1196,7 +1196,7 @@ int encode_bacnet_enumerated(
 /* returns the number of apdu bytes consumed */
 int encode_application_enumerated(
     uint8_t * apdu,
-    int value)
+    uint32_t value)
 {
     int len = 0;        /* return value */
 
@@ -1213,7 +1213,7 @@ int encode_application_enumerated(
 int encode_context_enumerated(
     uint8_t * apdu,
     int tag_number,
-    int value)
+    uint32_t value)
 {
     int len = 0;        /* return value */
 
@@ -1782,8 +1782,8 @@ void testBACDCodeEnumerated(
 {
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
-    int value = 1;
-    int decoded_value = 0;
+    uint32_t value = 1;
+    uint32_t decoded_value = 0;
     int i = 0, apdu_len = 0;
     int len = 0;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -2380,8 +2380,8 @@ void testEnumeratedContextDecodes(
     int outLen2;
 
     /* 32 bit number */
-    int32_t in = 0xdeadbeef;
-    int32_t out;
+    uint32_t in = 0xdeadbeef;
+    uint32_t out;
 
     outLen2 = decode_context_enumerated(apdu, 9, &out);
 

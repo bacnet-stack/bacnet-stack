@@ -237,7 +237,7 @@ int rpm_decode_object_property(
     unsigned option_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int property = 0;   /* for decoding */
+    uint32_t property = 0;   /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for valid pointers */
@@ -430,7 +430,7 @@ int rpm_ack_decode_object_property(
     unsigned tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int property = 0;   /* for decoding */
+    uint32_t property = 0;   /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for valid pointers */

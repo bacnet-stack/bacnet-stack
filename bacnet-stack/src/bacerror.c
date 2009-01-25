@@ -70,7 +70,7 @@ int bacerror_decode_error_class_and_code(
     int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int decoded_value = 0;
+    uint32_t decoded_value = 0;
 
     if (apdu_len) {
         /* error class */

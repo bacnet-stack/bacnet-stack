@@ -175,7 +175,7 @@ int cov_notify_decode_service_request(
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
     uint16_t decoded_type = 0;  /* for decoding */
-    int property = 0;   /* for decoding */
+    uint32_t property = 0;   /* for decoding */
     BACNET_PROPERTY_VALUE *value = NULL;        /* value in list */
 
     if (apdu_len && data) {
@@ -520,7 +520,7 @@ int cov_subscribe_property_decode_service_request(
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
     uint16_t decoded_type = 0;  /* for decoding */
-    int property = 0;   /* for decoding */
+    uint32_t property = 0;   /* for decoding */
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */

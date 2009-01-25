@@ -50,7 +50,7 @@ static int rpm_ack_decode_service_request(
     BACNET_READ_ACCESS_DATA * read_access_data)
 {
     int decoded_len = 0;        /* return value */
-    int error_value = 0;        /* decoded error value */
+    uint32_t error_value = 0;        /* decoded error value */
     int len = 0;        /* number of bytes returned from decoding */
     uint8_t tag_number = 0; /* decoded tag number */
     uint32_t len_value = 0; /* decoded length value */

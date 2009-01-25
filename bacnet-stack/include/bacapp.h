@@ -73,7 +73,7 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_BIT_STRING Bit_String;
 #endif
 #if defined (BACAPP_ENUMERATED)
-        int Enumerated;
+        uint32_t Enumerated;
 #endif
 #if defined (BACAPP_DATE)
         BACNET_DATE Date;

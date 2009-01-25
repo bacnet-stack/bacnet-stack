@@ -85,7 +85,6 @@ int iam_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0;
-    int decoded_integer = 0;
 
     /* OBJECT ID - object id */
     len =
@@ -115,12 +114,12 @@ int iam_decode_service_request(
     apdu_len += len;
     if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
         return -1;
-    len = decode_enumerated(&apdu[apdu_len], len_value, &decoded_integer);
+    len = decode_enumerated(&apdu[apdu_len], len_value, &decoded_value);
     apdu_len += len;
-    if (decoded_integer >= MAX_BACNET_SEGMENTATION)
+    if (decoded_value >= MAX_BACNET_SEGMENTATION)
         return -1;
     if (pSegmentation)
-        *pSegmentation = decoded_integer;
+        *pSegmentation = decoded_value;
     /* Vendor ID - unsigned16 */
     len =
         decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);

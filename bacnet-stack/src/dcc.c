@@ -171,7 +171,6 @@ int dcc_decode_service_request(
     unsigned len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int value = 0;
     uint32_t value32 = 0;
 
     /* check for value pointers */
@@ -192,9 +191,9 @@ int dcc_decode_service_request(
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
             &len_value_type);
-        len += decode_enumerated(&apdu[len], len_value_type, &value);
+        len += decode_enumerated(&apdu[len], len_value_type, &value32);
         if (enable_disable)
-            *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE) value;
+            *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE) value32;
         /* Tag 2: password --optional-- */
         if (len < apdu_len) {
             if (!decode_is_context_tag(&apdu[len], 2))
