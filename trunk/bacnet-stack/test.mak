@@ -149,6 +149,12 @@ npdu: logfile test/npdu.mak
 	( ./test/npdu >> ${LOGFILE} )
 	( cd test ; make -f npdu.mak clean )
 
+ptransfer: logfile test/ptransfer.mak
+	( cd test ; make -f ptransfer.mak clean )
+	( cd test ; make -f ptransfer.mak )
+	( ./test/ptransfer >> ${LOGFILE} )
+	( cd test ; make -f ptransfer.mak clean )
+
 rd: logfile test/rd.mak
 	( cd test ; make -f rd.mak clean )
 	( cd test ; make -f rd.mak )
