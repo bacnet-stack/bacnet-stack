@@ -63,7 +63,7 @@ static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 
 /* data passed to receive handler */
-struct packet_info_t 
+struct packet_info_t
 {
     uint8_t InputBuffer[MAX_MPDU];
     uint16_t DataLength;
@@ -137,6 +137,17 @@ static void dlmstp_millisecond_timer(
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
 
+#if !defined (_WIN32)
+void Sleep(unsigned long milliseconds)
+{
+    struct timespec timeOut, remains;
+
+    timeOut.tv_sec = milliseconds/1000;
+    timeOut.tv_nsec = (milliseconds - (timeOut.tv_sec * 1000)) * 10000000;
+    nanosleep(&timeOut, &remains);
+}
+
+
 void *milliseconds_task(
     void *pArg)
 {
@@ -152,9 +163,10 @@ void *milliseconds_task(
 
     return NULL;
 }
+#endif
 
-static void receiver_packet_put( 
-    volatile struct mstp_port_struct_t * mstp_port) 
+static void receiver_packet_put(
+    volatile struct mstp_port_struct_t * mstp_port)
 {
     struct packet_info_t packet_info;
     size_t max_data = 0;
@@ -183,13 +195,13 @@ static void receiver_packet_put(
 * Returns: none
 * Notes: none
 **************************************************************************/
-bool receive_packet_get(struct packet_info_t *packet_info) 
+bool receive_packet_get(struct packet_info_t *packet_info)
 {
     bool status = false;
     uint8_t *in_buffer = NULL;
     uint8_t *out_buffer = NULL;
     unsigned i = 0; /* loop counter */
-    
+
     if (Ringbuf_Empty(&Receive_Queue)) {
 #if defined (_WIN32)
         WaitForSingleObject(Receive_Packet_Flag, INFINITE);
@@ -245,8 +257,9 @@ void *reciever_task(
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             receiver_packet_put(mstp_port);
+        } else {
+            Sleep(1);
         }
-        printf("Receiving Task\n");
     }
 
     return NULL;
@@ -276,7 +289,10 @@ static void milliseconds_task_win32(
 {
     (void) SetThreadPriority(GetCurrentThread(),
         THREAD_PRIORITY_TIME_CRITICAL);
-    milliseconds_task(pArg);
+    for (;;) {
+        Sleep(1);
+        dlmstp_millisecond_timer();
+    }
 }
 #endif
 
