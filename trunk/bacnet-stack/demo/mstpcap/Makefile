@@ -44,6 +44,7 @@ SRCS = main.c \
 	${BACNET_SOURCE_DIR}/mstptext.c \
 	${BACNET_SOURCE_DIR}/debug.c \
 	${BACNET_SOURCE_DIR}/indtext.c \
+	${BACNET_SOURCE_DIR}/ringbuf.c \
 	${BACNET_SOURCE_DIR}/crc.c
 
 OBJS = ${SRCS:.c=.o}
