@@ -36,7 +36,6 @@
 #endif
 #include <winsock2.h>
 #include <sys/timeb.h>
-#include <process.h>
 
 #ifdef _MSC_VER
 #define inline __inline
