@@ -107,17 +107,6 @@ static int gettimeofday(
 
     return 0;
 }
-
-static int nanosleep(
-    const struct timespec *rqtp,
-    struct timespec *rmtp)
-{
-    DWORD dwMilliseconds = (rqtp->tv_sec * 1000) + (rqtp->tv_nsec / 1000);
-
-    Sleep(dwMilliseconds);
-
-    return 0;
-}
 #endif
 
 static uint16_t Timer_Silence(
@@ -146,7 +135,7 @@ void Sleep(unsigned long milliseconds)
     timeOut.tv_nsec = (milliseconds - (timeOut.tv_sec * 1000)) * 10000000;
     nanosleep(&timeOut, &remains);
 }
-
+#endif
 
 void *milliseconds_task(
     void *pArg)
@@ -158,7 +147,6 @@ void *milliseconds_task(
 
     return NULL;
 }
-#endif
 
 static void receiver_packet_put(
     volatile struct mstp_port_struct_t * mstp_port)
@@ -487,8 +475,6 @@ int main(
         RECEIVE_PACKET_COUNT);
 #if defined(_WIN32)
     Receive_Packet_Flag = CreateSemaphore(NULL, 0, 1, "ReceivePacket");
-);
-
     hThread = _beginthread(milliseconds_task_win32, 4096, &arg_value);
     if (hThread == 0) {
         fprintf(stderr, "Failed to start timer task\n");
