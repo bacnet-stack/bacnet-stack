@@ -151,13 +151,8 @@ void Sleep(unsigned long milliseconds)
 void *milliseconds_task(
     void *pArg)
 {
-    struct timespec timeOut, remains;
-
-    timeOut.tv_sec = 0;
-    timeOut.tv_nsec = 10000000; /* 1 milliseconds */
-
     for (;;) {
-        nanosleep(&timeOut, &remains);
+        Sleep(1);
         dlmstp_millisecond_timer();
     }
 
@@ -289,10 +284,7 @@ static void milliseconds_task_win32(
 {
     (void) SetThreadPriority(GetCurrentThread(),
         THREAD_PRIORITY_TIME_CRITICAL);
-    for (;;) {
-        Sleep(1);
-        dlmstp_millisecond_timer();
-    }
+    milliseconds_task(pArg);
 }
 #endif
 
@@ -325,7 +317,7 @@ uint16_t MSTP_Get_Reply(
     return 0;
 }
 
-static char Capture_Filename[32] = "mstp-20090123-091200.cap";
+static char Capture_Filename[32] = "mstp-20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 
 static void filename_create(char *filename)
@@ -394,7 +386,8 @@ static void write_received_packet(
         fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
         fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (packet_info->DataLength) {
-            max_data = packet_info->DataLength;
+            max_data = min(sizeof(packet_info->InputBuffer),
+                packet_info->DataLength);
             incl_len = orig_len = 8 + max_data + 2;
         } else {
             incl_len = orig_len = 8;
@@ -415,6 +408,7 @@ static void write_received_packet(
             fwrite((char *) &packet_info->DataCRCActualMSB, 1, 1, pFile);
             fwrite((char *) &packet_info->DataCRCActualLSB, 1, 1, pFile);
         }
+        fflush(pFile);  /* stream pointer */
     } else {
         fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
             strerror(errno));
@@ -523,6 +517,7 @@ int main(
             packet_count++;
             if (!(packet_count % 100)) {
                 fprintf(stdout, "\r%hu packets", packet_count);
+                fflush(stdout);
             }
             if (packet_count >= 65535) {
                 filename_create_new();
