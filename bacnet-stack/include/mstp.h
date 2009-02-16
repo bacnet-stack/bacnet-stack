@@ -165,7 +165,7 @@ struct mstp_port_struct_t {
     uint8_t HeaderCRCActual;
     /* Used as an index by the Receive State Machine, up to a maximum value of */
     /* InputBufferSize. */
-    unsigned Index;
+    uint16_t Index;
     /* An array of octets, used to store octets as they are received. */
     /* InputBuffer is indexed from 0 to InputBufferSize-1. */
     /* The maximum size of a frame is 501 octets. */
