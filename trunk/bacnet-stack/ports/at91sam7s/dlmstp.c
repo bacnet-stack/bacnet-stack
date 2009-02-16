@@ -45,7 +45,7 @@
 #include "bacaddr.h"
 
 /* This file has been customized for use with small microprocessors */
-/* Assumptions: 
+/* Assumptions:
     Only one MS/TP datalink layer
 */
 #include "board.h"
@@ -121,7 +121,7 @@ static struct mstp_flag_t {
     /* A Boolean flag set TRUE by the datalink transmit if a
        pending packet is DataExpectingReply */
     unsigned TransmitPacketDER:1;
-    /* A Boolean flag set TRUE by the datalink if a 
+    /* A Boolean flag set TRUE by the datalink if a
        packet has been received, but not processed. */
     unsigned ReceivePacketPending:1;
 } MSTP_Flag;
@@ -287,8 +287,8 @@ static bool dlmstp_compare_data_expecting_reply(
     uint8_t dest_address)
 {
     uint16_t offset;
-    /* One way to check the message is to compare NPDU 
-       src, dest, along with the APDU type, invoke id.  
+    /* One way to check the message is to compare NPDU
+       src, dest, along with the APDU type, invoke id.
        Seems a bit overkill */
     struct DER_compare_t {
         BACNET_NPDU_DATA npdu_data;
@@ -327,7 +327,7 @@ static bool dlmstp_compare_data_expecting_reply(
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
-    /* reply could be a lot of things: 
+    /* reply could be a lot of things:
        confirmed, simple ack, abort, reject, error */
     reply.pdu_type = reply_pdu[offset] & 0xF0;
     switch (reply.pdu_type) {
@@ -451,13 +451,13 @@ static void MSTP_Receive_Frame_FSM(
     static uint16_t DataCRC = 0;
     /* Used to accumulate the CRC on the header of a frame. */
     static uint8_t HeaderCRC = 0;
-    /* Used as an index by the Receive State Machine, 
+    /* Used as an index by the Receive State Machine,
        up to a maximum value of the MPDU */
-    static uint8_t Index = 0;
+    static uint16_t Index = 0;
 
     switch (Receive_State) {
         case MSTP_RECEIVE_STATE_IDLE:
-            /* In the IDLE state, the node waits 
+            /* In the IDLE state, the node waits
                for the beginning of a frame. */
             if (RS485_ReceiveError()) {
                 /* EatAnError */
@@ -474,7 +474,7 @@ static void MSTP_Receive_Frame_FSM(
             }
             break;
         case MSTP_RECEIVE_STATE_PREAMBLE:
-            /* In the PREAMBLE state, the node waits for the 
+            /* In the PREAMBLE state, the node waits for the
                second octet of the preamble. */
             if (Timer_Silence() > Tframe_abort) {
                 /* Timeout */
@@ -508,11 +508,11 @@ static void MSTP_Receive_Frame_FSM(
             }
             break;
         case MSTP_RECEIVE_STATE_HEADER:
-            /* In the HEADER state, the node waits 
+            /* In the HEADER state, the node waits
                for the fixed message header. */
             if (Timer_Silence() > Tframe_abort) {
                 /* Timeout */
-                /* indicate that an error has occurred 
+                /* indicate that an error has occurred
                    during the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of a frame. */
@@ -521,7 +521,7 @@ static void MSTP_Receive_Frame_FSM(
                 /* Error */
                 Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
-                /* indicate that an error has occurred 
+                /* indicate that an error has occurred
                    during the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of a frame. */
@@ -557,7 +557,7 @@ static void MSTP_Receive_Frame_FSM(
                 } else if (Index == 5) {
                     /* HeaderCRC */
                     HeaderCRC = CRC_Calc_Header(DataRegister, HeaderCRC);
-                    /* In the HEADER_CRC state, the node validates the CRC 
+                    /* In the HEADER_CRC state, the node validates the CRC
                        on the fixed  message header. */
                     if (HeaderCRC != 0x55) {
                         /* BadCRC */
@@ -569,7 +569,7 @@ static void MSTP_Receive_Frame_FSM(
                     } else {
                         /* Note: proposed change to BACnet MSTP state machine!
                            If we don't decode data that is not for us, we could
-                           get confused about the start if the Preamble 55 FF 
+                           get confused about the start if the Preamble 55 FF
                            is part of the data. */
                         if ((DataLength) && (DataLength <= InputBufferSize)) {
                             /* Data */
@@ -584,7 +584,7 @@ static void MSTP_Receive_Frame_FSM(
                                     (DestinationAddress ==
                                         MSTP_BROADCAST_ADDRESS)) {
                                     /* ForUs */
-                                    /* indicate that a frame with 
+                                    /* indicate that a frame with
                                        no data has been received */
                                     MSTP_Flag.ReceivedValidFrame = true;
                                 } else {
@@ -610,11 +610,11 @@ static void MSTP_Receive_Frame_FSM(
             }
             break;
         case MSTP_RECEIVE_STATE_DATA:
-            /* In the DATA state, the node waits 
+            /* In the DATA state, the node waits
                for the data portion of a frame. */
             if (Timer_Silence() > Tframe_abort) {
                 /* Timeout */
-                /* indicate that an error has occurred 
+                /* indicate that an error has occurred
                    during the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of the next frame. */
@@ -623,7 +623,7 @@ static void MSTP_Receive_Frame_FSM(
                 /* Error */
                 Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
-                /* indicate that an error has occurred during 
+                /* indicate that an error has occurred during
                    the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of the next frame. */
@@ -649,7 +649,7 @@ static void MSTP_Receive_Frame_FSM(
                         if ((DestinationAddress == This_Station) ||
                             (DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
                             /* ForUs */
-                            /* indicate that a frame with no data 
+                            /* indicate that a frame with no data
                                has been received */
                             MSTP_Flag.ReceivedValidFrame = true;
                         }
@@ -677,8 +677,8 @@ static bool MSTP_Master_Node_FSM(
     /* When this counter reaches the value Nmax_info_frames, the node must */
     /* pass the token. */
     static uint8_t FrameCount;
-    /* "Next Station," the MAC address of the node to which This Station 
-       passes the token. If the Next_Station is unknown, Next_Station shall 
+    /* "Next Station," the MAC address of the node to which This Station
+       passes the token. If the Next_Station is unknown, Next_Station shall
        be equal to This_Station. */
     static uint8_t Next_Station;
     /* "Poll Station," the MAC address of the node to which This Station last */
@@ -772,7 +772,7 @@ static bool MSTP_Master_Node_FSM(
                     default:
                         break;
                 }
-                /* For DATA_EXPECTING_REPLY, we will keep the Rx Frame for 
+                /* For DATA_EXPECTING_REPLY, we will keep the Rx Frame for
                    reference, and the flag will be cleared in the next state */
                 if (Master_State != MSTP_MASTER_STATE_ANSWER_DATA_REQUEST) {
                     MSTP_Flag.ReceivedValidFrame = false;
@@ -858,7 +858,7 @@ static bool MSTP_Master_Node_FSM(
                                 /* ReceivedReply */
                                 /* or a proprietary type that indicates
                                    a reply */
-                                /* indicate successful reception to 
+                                /* indicate successful reception to
                                    the higher layers */
                                 MSTP_Flag.ReceivePacketPending = true;
                                 Master_State =
@@ -901,7 +901,7 @@ static bool MSTP_Master_Node_FSM(
                     (Next_Station != next_this_station)) {
                     /* SoleMaster */
                     /* there are no other known master nodes to */
-                    /* which the token may be sent 
+                    /* which the token may be sent
                        (true master-slave operation).  */
                     FrameCount = 0;
                     TokenCount++;
@@ -910,11 +910,11 @@ static bool MSTP_Master_Node_FSM(
                 } else {
                     /* SendToken */
                     /* Npoll changed in Errata SSPC-135-2004 */
-                    /* The comparison of NS and TS+1 
+                    /* The comparison of NS and TS+1
                        eliminates the Poll For Master
-                       if there are no addresses between 
-                       TS and NS, since there is no 
-                       address at which a new master node 
+                       if there are no addresses between
+                       TS and NS, since there is no
+                       address at which a new master node
                        may be found in that case. */
                     TokenCount++;
                     /* transmit a Token frame to NS */
@@ -963,7 +963,7 @@ static bool MSTP_Master_Node_FSM(
             if (Timer_Silence() <= Tusage_timeout) {
                 if (EventCount > Nmin_octets) {
                     /* SawTokenUser */
-                    /* Assume that a frame has been sent by 
+                    /* Assume that a frame has been sent by
                        the new token user.  */
                     /* Enter the IDLE state to process the frame. */
                     Master_State = MSTP_MASTER_STATE_IDLE;
@@ -996,10 +996,10 @@ static bool MSTP_Master_Node_FSM(
                 }
             }
             break;
-            /* The NO_TOKEN state is entered if Timer_Silence() 
-               becomes greater than Tno_token, indicating that 
-               there has been no network activity for that period 
-               of time. The timeout is continued to determine  
+            /* The NO_TOKEN state is entered if Timer_Silence()
+               becomes greater than Tno_token, indicating that
+               there has been no network activity for that period
+               of time. The timeout is continued to determine
                whether or not this node may create a token. */
         case MSTP_MASTER_STATE_NO_TOKEN:
             my_timeout = Tno_token + (Tslot * This_Station);
@@ -1007,7 +1007,7 @@ static bool MSTP_Master_Node_FSM(
                 if (EventCount > Nmin_octets) {
                     /* SawFrame */
                     /* Some other node exists at a lower address.  */
-                    /* Enter the IDLE state to receive and 
+                    /* Enter the IDLE state to receive and
                        process the incoming frame. */
                     Master_State = MSTP_MASTER_STATE_IDLE;
                     transition_now = true;
@@ -1027,7 +1027,7 @@ static bool MSTP_Master_Node_FSM(
                     RetryCount = 0;
                     TokenCount = 0;
                     /* EventCount = 0; removed Addendum 135-2004d-8 */
-                    /* enter the POLL_FOR_MASTER state 
+                    /* enter the POLL_FOR_MASTER state
                        to find a new successor to TS. */
                     Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
                 }
@@ -1093,7 +1093,7 @@ static bool MSTP_Master_Node_FSM(
                             /* Re-enter the current state. */
                         } else {
                             /* DeclareSoleMaster */
-                            /* to indicate that this station 
+                            /* to indicate that this station
                                is the only master */
                             MSTP_Flag.SoleMaster = true;
                             FrameCount = 0;
@@ -1201,7 +1201,7 @@ uint16_t dlmstp_receive(
             MSTP_Receive_Frame_FSM();
             if (MSTP_Flag.ReceivedValidFrame || MSTP_Flag.ReceivedInvalidFrame)
                 break;
-            /* if we are not idle, then we are 
+            /* if we are not idle, then we are
                receiving a frame or timing out */
             if (Receive_State == MSTP_RECEIVE_STATE_IDLE)
                 break;
@@ -1233,7 +1233,7 @@ void dlmstp_set_mac_address(
         This_Station = mac_address;
         /* FIXME: implement your data storage */
         /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS, 
+           EEPROM_DEVICE_ADDRESS,
            mac_address,
            EEPROM_MSTP_MAC_ADDR); */
         if (mac_address > Nmax_master)
@@ -1262,8 +1262,8 @@ void dlmstp_set_max_info_frames(
     if (max_info_frames >= 1) {
         Nmax_info_frames = max_info_frames;
         /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(  
-           EEPROM_DEVICE_ADDRESS, 
+        /* I2C_Write_Byte(
+           EEPROM_DEVICE_ADDRESS,
            (uint8_t)max_info_frames,
            EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
     }
@@ -1290,7 +1290,7 @@ void dlmstp_set_max_master(
             Nmax_master = max_master;
             /* FIXME: implement your data storage */
             /* I2C_Write_Byte(
-               EEPROM_DEVICE_ADDRESS, 
+               EEPROM_DEVICE_ADDRESS,
                max_master,
                EEPROM_MSTP_MAX_MASTER_ADDR); */
         }

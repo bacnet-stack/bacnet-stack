@@ -46,7 +46,7 @@
 #include "txbuf.h"
 
 /* This file has been customized for use with small microprocessors */
-/* Assumptions: 
+/* Assumptions:
     Only one slave node MS/TP datalink layer
 */
 #include "hardware.h"
@@ -99,7 +99,7 @@ static struct mstp_flag_t {
     /* A Boolean flag set TRUE by the datalink transmit if a
        pending packet is DataExpectingReply */
     unsigned TransmitPacketDER:1;
-    /* A Boolean flag set TRUE by the datalink if a 
+    /* A Boolean flag set TRUE by the datalink if a
        packet has been received, but not processed. */
     unsigned ReceivePacketPending:1;
 } MSTP_Flag;
@@ -401,9 +401,9 @@ static void MSTP_Receive_Frame_FSM(
     static uint16_t DataCRC = 0;
     /* Used to accumulate the CRC on the header of a frame. */
     static uint8_t HeaderCRC = 0;
-    /* Used as an index by the Receive State Machine, 
+    /* Used as an index by the Receive State Machine,
        up to a maximum value of the MPDU */
-    static uint8_t Index = 0;
+    static uint16_t Index = 0;
 
     switch (Receive_State) {
         case MSTP_RECEIVE_STATE_IDLE:
@@ -421,7 +421,7 @@ static void MSTP_Receive_Frame_FSM(
             }
             break;
         case MSTP_RECEIVE_STATE_PREAMBLE:
-            /* In the PREAMBLE state, the node waits for the 
+            /* In the PREAMBLE state, the node waits for the
                second octet of the preamble. */
             if (timer_silence_elapsed(Tframe_abort)) {
                 /* Timeout */
@@ -497,7 +497,7 @@ static void MSTP_Receive_Frame_FSM(
                 } else if (Index == 5) {
                     /* HeaderCRC */
                     HeaderCRC = CRC_Calc_Header(DataRegister, HeaderCRC);
-                    /* In the HEADER_CRC state, the node validates the CRC 
+                    /* In the HEADER_CRC state, the node validates the CRC
                        on the fixed  message header. */
                     if (HeaderCRC != 0x55) {
                         /* BadCRC */
@@ -509,7 +509,7 @@ static void MSTP_Receive_Frame_FSM(
                     } else {
                         /* Note: proposed change to BACnet MSTP state machine!
                            If we don't decode data that is not for us, we could
-                           get confused about the start if the Preamble 55 FF 
+                           get confused about the start if the Preamble 55 FF
                            is part of the data. */
                         if ((DataLength) && (DataLength <= InputBufferSize)) {
                             /* Data */
@@ -524,7 +524,7 @@ static void MSTP_Receive_Frame_FSM(
                                     (DestinationAddress ==
                                         MSTP_BROADCAST_ADDRESS)) {
                                     /* ForUs */
-                                    /* indicate that a frame with 
+                                    /* indicate that a frame with
                                        no data has been received */
                                     MSTP_Flag.ReceivedValidFrame = true;
                                 } else {
@@ -560,7 +560,7 @@ static void MSTP_Receive_Frame_FSM(
             } else if (RS485_ReceiveError()) {
                 /* Error */
                 timer_silence_reset();
-                /* indicate that an error has occurred during 
+                /* indicate that an error has occurred during
                    the reception of a frame */
                 MSTP_Flag.ReceivedInvalidFrame = true;
                 /* wait for the start of the next frame. */
@@ -585,7 +585,7 @@ static void MSTP_Receive_Frame_FSM(
                         if ((DestinationAddress == This_Station) ||
                             (DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
                             /* ForUs */
-                            /* indicate that a frame with no data 
+                            /* indicate that a frame with no data
                                has been received */
                             MSTP_Flag.ReceivedValidFrame = true;
                         }
@@ -691,7 +691,7 @@ uint16_t dlmstp_receive(
             MSTP_Receive_Frame_FSM();
             if (MSTP_Flag.ReceivedValidFrame || MSTP_Flag.ReceivedInvalidFrame)
                 break;
-            /* if we are not idle, then we are 
+            /* if we are not idle, then we are
                receiving a frame or timing out */
             if (Receive_State == MSTP_RECEIVE_STATE_IDLE)
                 break;
@@ -721,7 +721,7 @@ void dlmstp_set_mac_address(
         This_Station = mac_address;
         /* FIXME: implement your data storage */
         /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS, 
+           EEPROM_DEVICE_ADDRESS,
            mac_address,
            EEPROM_MSTP_MAC_ADDR); */
     }
