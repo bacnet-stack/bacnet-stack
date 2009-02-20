@@ -305,7 +305,7 @@ uint16_t MSTP_Get_Reply(
     return 0;
 }
 
-static char Capture_Filename[32] = "mstp-20090123091200.cap";
+static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 
 static void filename_create(char *filename)
@@ -458,6 +458,21 @@ int main(
 #endif
 
     /* initialize our interface */
+    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+        printf("mstpcap [inteface] [baud]\r\n"
+            "Captures MS/TP packets from a serial interface\r\n"
+            "and save them to a file. Saves packets in a\r\n"
+            "filename mstp_20090123091200.cap that has data and time.\r\n"
+            "After receiving 65535 packets, a new file is created.\r\n"
+            "\r\n"
+            "Command line options:\r\n"
+            "[interface] - serial interface.\r\n"
+            "    defaults to COM4 on  Windows, and /dev/ttyUSB0 on linux.\r\n"
+            "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
+            "    defaults to 38400.\r\n"
+            "");
+        return 0;
+    }
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);
     }
