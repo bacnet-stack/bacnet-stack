@@ -12,7 +12,8 @@ MAKE=$(BORLAND_DIR)\bin\make.exe
 
 all: library \
 	readprop writeprop readfile writefile server dcc reinit \
-	whois whohas timesync ucov epics readpropm
+	whois whohas timesync ucov epics readpropm \
+	whoisrouter iamrouter initrouter
 	@echo "demo utilities are in the bin directory"
 
 clean: lib\makefile.b32 \
@@ -81,6 +82,22 @@ clean: lib\makefile.b32 \
 	cd ..
 	cd ..
 	cd demo/timesync
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/mstpcap
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/whoisrouter
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/iamrouter
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/initrouter
 	$(MAKE) -i -f makefile.b32 clean
 	cd ..
 	cd ..
@@ -180,3 +197,33 @@ timesync: demo/timesync/makefile.b32
 	$(MAKE) -f makefile.b32 install
 	cd ..
 	cd ..
+
+
+mstpcap: demo/mstpcap/makefile.b32
+	cd demo/mstpcap
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+whoisrouter: demo/whoisrouter/makefile.b32
+	cd demo/whoisrouter
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+iamrouter: demo/iamrouter/makefile.b32
+	cd demo/iamrouter
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+initrouter: demo/initrouter/makefile.b32
+	cd demo/initrouter
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
