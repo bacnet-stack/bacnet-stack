@@ -263,6 +263,22 @@ int main(
 
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
+    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+        printf("mstsnap [serial] [baud] [network]\r\n"
+            "Captures MS/TP packets from a serial interface\r\n"
+            "and sends them to a network interface using SNAP \r\n"
+            "protocol packets (mimics Cimetrics U+4 packet).\r\n"
+            "\r\n"
+            "Command line options:\r\n"
+            "[serial] - serial interface.\r\n"
+            "    defaults to COM4 on  Windows, and /dev/ttyUSB0 on linux.\r\n"
+            "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
+            "    defaults to 38400.\r\n"
+            "[network] - network interface.\r\n"
+            "    defaults to eth0.\r\n"
+            "");
+        return 0;
+    }    
     /* initialize our interface */
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);
