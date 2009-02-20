@@ -459,7 +459,7 @@ int main(
 
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("mstpcap [inteface] [baud]\r\n"
+        printf("mstpcap [interface] [baud]\r\n"
             "Captures MS/TP packets from a serial interface\r\n"
             "and save them to a file. Saves packets in a\r\n"
             "filename mstp_20090123091200.cap that has data and time.\r\n"
