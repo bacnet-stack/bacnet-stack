@@ -271,7 +271,7 @@ int main(
             "\r\n"
             "Command line options:\r\n"
             "[serial] - serial interface.\r\n"
-            "    defaults to COM4 on  Windows, and /dev/ttyUSB0 on linux.\r\n"
+            "    defaults to /dev/ttyUSB0.\r\n"
             "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
             "    defaults to 38400.\r\n"
             "[network] - network interface.\r\n"
