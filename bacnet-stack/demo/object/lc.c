@@ -713,6 +713,7 @@ int Load_Control_Encode_Property_APDU(
                 object_instance);
             break;
         case PROP_OBJECT_NAME:
+        case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
                 Load_Control_Name(object_instance));
             apdu_len =
@@ -722,12 +723,6 @@ int Load_Control_Encode_Property_APDU(
             apdu_len =
                 encode_application_enumerated(&apdu[0], OBJECT_LOAD_CONTROL);
             break;
-            /* optional property
-               case PROP_DESCRIPTION:
-               characterstring_init_ansi(&char_string,"optional description");
-               apdu_len = encode_application_character_string(&apdu[0], &char_string);
-               break;
-             */
         case PROP_PRESENT_VALUE:
             enumeration = Load_Control_Present_Value(object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], enumeration);

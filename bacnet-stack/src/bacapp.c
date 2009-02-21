@@ -396,7 +396,9 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
     BACNET_APPLICATION_TAG tag = MAX_BACNET_APPLICATION_TAG;
 
     switch (property) {
+        case PROP_ACTUAL_SHED_LEVEL:
         case PROP_REQUESTED_SHED_LEVEL:
+        case PROP_EXPECTED_SHED_LEVEL:
             switch (tag_number) {
                 case 0:
                 case 1:

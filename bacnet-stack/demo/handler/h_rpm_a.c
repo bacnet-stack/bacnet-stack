@@ -85,6 +85,10 @@ static int rpm_ack_decode_service_request(
                 &rpm_property->propertyArrayIndex);
             if (len <= 0) {
                 old_rpm_property->next = NULL;
+                if (rpm_object->listOfProperties == rpm_property) {
+                    /* was this the only property in the list? */
+                    rpm_object->listOfProperties = NULL;
+                }
                 free(rpm_property);
                 break;
             }
@@ -102,8 +106,15 @@ static int rpm_ack_decode_service_request(
                 rpm_property->value = value;
                 old_value = value;
                 while (value && (apdu_len > 0)) {
-                    len =
-                        bacapp_decode_application_data(apdu, apdu_len, value);
+                    if (decode_is_context_specific(apdu)) {
+                        len =
+                            bacapp_decode_context_data(
+                                 apdu, apdu_len, value,
+                                 rpm_property->propertyIdentifier);
+                    } else {
+                        len =
+                            bacapp_decode_application_data(apdu, apdu_len, value);
+                    }
                     decoded_len += len;
                     apdu_len -= len;
                     apdu += len;

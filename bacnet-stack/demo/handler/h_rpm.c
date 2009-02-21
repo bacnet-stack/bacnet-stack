@@ -148,12 +148,24 @@ static void RPM_Property_List(
             break;
     }
     /* fill the count */
-    pPropertyList->Required.count =
-        property_list_count(pPropertyList->Required.pList);
-    pPropertyList->Optional.count =
-        property_list_count(pPropertyList->Optional.pList);
-    pPropertyList->Proprietary.count =
-        property_list_count(pPropertyList->Proprietary.pList);
+    if (pPropertyList->Required.pList) {
+        pPropertyList->Required.count =
+            property_list_count(pPropertyList->Required.pList);
+    } else {
+        pPropertyList->Required.count = 0;
+    }
+    if (pPropertyList->Optional.pList) {
+        pPropertyList->Optional.count =
+            property_list_count(pPropertyList->Optional.pList);
+    } else {
+        pPropertyList->Optional.count = 0;
+    }
+    if (pPropertyList->Proprietary.pList) {
+        pPropertyList->Proprietary.count =
+            property_list_count(pPropertyList->Proprietary.pList);
+    } else {
+        pPropertyList->Proprietary.count = 0;
+    }
 
     return;
 }
@@ -405,10 +417,8 @@ void handler_read_property_multiple(
                 property_count =
                     RPM_Object_Property_Count(&property_list,
                     special_object_property);
-                for (index = 0; index < property_count; index++) {
-                    object_property =
-                        RPM_Object_Property(&property_list,
-                        special_object_property, index);
+                if (property_count == 0) {
+                    /* handle the error code - but use the special property */
                     len =
                         RPM_Encode_Property(&Handler_Transmit_Buffer[0],
                         npdu_len + apdu_len, sizeof(Handler_Transmit_Buffer),
@@ -418,10 +428,30 @@ void handler_read_property_multiple(
                         apdu_len += len;
                     } else {
                         apdu_len =
-                            abort_encode_apdu(&Handler_Transmit_Buffer
-                            [npdu_len], service_data->invoke_id,
+                            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                            service_data->invoke_id,
                             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
                         goto RPM_ABORT;
+                    }
+                } else {
+                    for (index = 0; index < property_count; index++) {
+                        object_property =
+                            RPM_Object_Property(&property_list,
+                            special_object_property, index);
+                        len =
+                            RPM_Encode_Property(&Handler_Transmit_Buffer[0],
+                            npdu_len + apdu_len, sizeof(Handler_Transmit_Buffer),
+                            object_type, object_instance, object_property,
+                            array_index);
+                        if (len > 0) {
+                            apdu_len += len;
+                        } else {
+                            apdu_len =
+                                abort_encode_apdu(&Handler_Transmit_Buffer
+                                [npdu_len], service_data->invoke_id,
+                                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+                            goto RPM_ABORT;
+                        }
                     }
                 }
             } else {
