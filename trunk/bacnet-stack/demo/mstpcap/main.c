@@ -47,7 +47,6 @@
 #include "crc.h"
 #include "mstp.h"
 #include "mstptext.h"
-#include "ringbuf.h"
 
 #ifndef max
 #define max(a,b) (((a) (b)) ? (a) : (b))
@@ -61,33 +60,6 @@ static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-
-/* data passed to receive handler */
-struct packet_info_t
-{
-    uint8_t InputBuffer[MAX_MPDU];
-    uint16_t DataLength;
-    uint8_t FrameType;
-    uint8_t DestinationAddress;
-    uint8_t SourceAddress;
-    uint8_t DataCRCActualMSB;
-    uint8_t DataCRCActualLSB;
-    uint8_t HeaderCRCActual;
-};
-
-#define RECEIVE_PACKET_SIZE (sizeof(struct packet_info_t))
-/* count must be a power of 2 for ringbuf library */
-#define RECEIVE_PACKET_COUNT 64
-static uint8_t Receive_Buffer[RECEIVE_PACKET_SIZE * RECEIVE_PACKET_COUNT];
-static RING_BUFFER Receive_Queue;
-
-/* sync of consumer tasks for effeciency */
-#if defined (_WIN32)
-static HANDLE Receive_Packet_Flag;
-#else
-static pthread_mutex_t Receive_Condition_Mutex;
-static pthread_cond_t Receive_Condition;
-#endif
 
 #if defined (_WIN32)
 struct timespec {
@@ -148,120 +120,7 @@ void *milliseconds_task(
     return NULL;
 }
 
-static void receiver_packet_put(
-    volatile struct mstp_port_struct_t * mstp_port)
-{
-    struct packet_info_t packet_info;
-    size_t max_data = 0;
-
-    packet_info.FrameType = mstp_port->FrameType;
-    packet_info.DestinationAddress = mstp_port->DestinationAddress;
-    packet_info.SourceAddress = mstp_port->SourceAddress;
-    packet_info.DataLength = mstp_port->DataLength;
-    packet_info.HeaderCRCActual = mstp_port->HeaderCRCActual;
-    packet_info.DataCRCActualMSB = mstp_port->DataCRCActualMSB;
-    packet_info.DataCRCActualLSB = mstp_port->DataCRCActualLSB;
-    max_data = min(sizeof(packet_info.InputBuffer), mstp_port->DataLength);
-    memmove(packet_info.InputBuffer, mstp_port->InputBuffer, max_data);
-    (void)Ringbuf_Put(&Receive_Queue,(char *)&packet_info);
-#if defined (_WIN32)
-    ReleaseSemaphore(Receive_Packet_Flag, 1, NULL);
-#else
-    pthread_mutex_lock(&Receive_Condition_Mutex);
-    pthread_cond_signal(&Receive_Condition);
-    pthread_mutex_unlock(&Receive_Condition_Mutex);
-#endif
-}
-
-/*************************************************************************
-* Description: Gets the next packet off the queue
-* Returns: none
-* Notes: none
-**************************************************************************/
-bool receive_packet_get(struct packet_info_t *packet_info)
-{
-    bool status = false;
-    uint8_t *in_buffer = NULL;
-    uint8_t *out_buffer = NULL;
-    unsigned i = 0; /* loop counter */
-
-    if (Ringbuf_Empty(&Receive_Queue)) {
-#if defined (_WIN32)
-        WaitForSingleObject(Receive_Packet_Flag, INFINITE);
-#else
-        pthread_mutex_lock(&Receive_Condition_Mutex);
-        pthread_cond_wait(&Receive_Condition, &Receive_Condition_Mutex);
-        pthread_mutex_unlock(&Receive_Condition_Mutex);
-#endif
-    }
-    if (!Ringbuf_Empty(&Receive_Queue)) {
-        in_buffer = (uint8_t *)Ringbuf_Get_Front(&Receive_Queue);
-        out_buffer = (uint8_t *)packet_info;
-        if (in_buffer && out_buffer) {
-            for (i = 0; i < RECEIVE_PACKET_SIZE; i++) {
-                out_buffer[i] = in_buffer[i];
-            }
-            status = true;
-        }
-        /* remove the packet from the queue & allow it to be overwritten */
-        (void)Ringbuf_Pop_Front(&Receive_Queue);
-    }
-
-    return status;
-}
-
-void *reciever_task(
-    void *pArg)
-{
-    volatile struct mstp_port_struct_t *mstp_port;
-
-    MSTP_Port.InputBuffer = &RxBuffer[0];
-    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
-    MSTP_Port.OutputBuffer = &TxBuffer[0];
-    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = 127;
-    MSTP_Port.Nmax_info_frames = 1;
-    MSTP_Port.Nmax_master = 127;
-    MSTP_Port.SilenceTimer = Timer_Silence;
-    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
-    /* mimic our pointer in the state machine */
-    mstp_port = &MSTP_Port;
-    MSTP_Init(mstp_port);
-    MSTP_Port.Lurking = true;
-
-    /* run forever */
-    for (;;) {
-        RS485_Check_UART_Data(mstp_port);
-        MSTP_Receive_Frame_FSM(mstp_port);
-        /* process the data portion of the frame */
-        if (mstp_port->ReceivedValidFrame) {
-            mstp_port->ReceivedValidFrame = false;
-            receiver_packet_put(mstp_port);
-        } else if (mstp_port->ReceivedInvalidFrame) {
-            mstp_port->ReceivedInvalidFrame = false;
-            receiver_packet_put(mstp_port);
-        } else {
-            Sleep(1);
-        }
-    }
-
-    return NULL;
-}
-
 #if defined(_WIN32)
-/*************************************************************************
-* Description: Receiver task
-* Returns: none
-* Notes: none
-*************************************************************************/
-static void reciever_task_win32(
-    void *pArg)
-{
-    (void) SetThreadPriority(GetCurrentThread(),
-        THREAD_PRIORITY_TIME_CRITICAL);
-    reciever_task(pArg);
-}
-
 /*************************************************************************
 * Description: Timer task
 * Returns: none
@@ -270,8 +129,6 @@ static void reciever_task_win32(
 static void milliseconds_task_win32(
     void *pArg)
 {
-    (void) SetThreadPriority(GetCurrentThread(),
-        THREAD_PRIORITY_TIME_CRITICAL);
     milliseconds_task(pArg);
 }
 #endif
@@ -357,7 +214,7 @@ static void write_global_header(
 }
 
 static void write_received_packet(
-    struct packet_info_t *packet_info)
+    volatile struct mstp_port_struct_t *mstp_port)
 {
     uint32_t ts_sec;    /* timestamp seconds */
     uint32_t ts_usec;   /* timestamp microseconds */
@@ -373,9 +230,8 @@ static void write_received_packet(
         ts_usec = tv.tv_usec;
         fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
         fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
-        if (packet_info->DataLength) {
-            max_data = min(sizeof(packet_info->InputBuffer),
-                packet_info->DataLength);
+        if (mstp_port->DataLength) {
+            max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
             incl_len = orig_len = 8 + max_data + 2;
         } else {
             incl_len = orig_len = 8;
@@ -384,19 +240,18 @@ static void write_received_packet(
         fwrite(&orig_len, sizeof(orig_len), 1, pFile);
         header[0] = 0x55;
         header[1] = 0xFF;
-        header[2] = packet_info->FrameType;
-        header[3] = packet_info->DestinationAddress;
-        header[4] = packet_info->SourceAddress;
-        header[5] = HI_BYTE(packet_info->DataLength);
-        header[6] = LO_BYTE(packet_info->DataLength);
-        header[7] = packet_info->HeaderCRCActual;
+        header[2] = mstp_port->FrameType;
+        header[3] = mstp_port->DestinationAddress;
+        header[4] = mstp_port->SourceAddress;
+        header[5] = HI_BYTE(mstp_port->DataLength);
+        header[6] = LO_BYTE(mstp_port->DataLength);
+        header[7] = mstp_port->HeaderCRCActual;
         fwrite(header, sizeof(header), 1, pFile);
-        if (packet_info->DataLength) {
-            fwrite(packet_info->InputBuffer, max_data, 1, pFile);
-            fwrite((char *) &packet_info->DataCRCActualMSB, 1, 1, pFile);
-            fwrite((char *) &packet_info->DataCRCActualLSB, 1, 1, pFile);
+        if (mstp_port->DataLength) {
+            fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
+            fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
+            fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
         }
-        fflush(pFile);  /* stream pointer */
     } else {
         fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
             strerror(errno));
@@ -446,9 +301,9 @@ int main(
     int argc,
     char *argv[])
 {
+    volatile struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
-    struct packet_info_t packet_info;
 #if defined(_WIN32)
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
@@ -457,6 +312,8 @@ int main(
     pthread_t hThread;
 #endif
 
+    /* mimic our pointer in the state machine */
+    mstp_port = &MSTP_Port;
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("mstpcap [interface] [baud]\r\n"
@@ -481,49 +338,54 @@ int main(
     }
     RS485_Set_Baud_Rate(my_baud);
     RS485_Initialize();
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+    MSTP_Port.This_Station = 127;
+    MSTP_Port.Nmax_info_frames = 1;
+    MSTP_Port.Nmax_master = 127;
+    MSTP_Port.SilenceTimer = Timer_Silence;
+    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
+    MSTP_Init(mstp_port);
+    mstp_port->Lurking = true;
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
-    Ringbuf_Init(
-        &Receive_Queue,
-        (char *)Receive_Buffer,
-        RECEIVE_PACKET_SIZE,
-        RECEIVE_PACKET_COUNT);
 #if defined(_WIN32)
-    Receive_Packet_Flag = CreateSemaphore(NULL, 0, 1, "ReceivePacket");
     hThread = _beginthread(milliseconds_task_win32, 4096, &arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start timer task\n");
-    }
-    hThread = _beginthread(reciever_task_win32, 4096, &arg_value);
     if (hThread == 0) {
         fprintf(stderr, "Failed to start timer task\n");
     }
     (void) SetThreadPriority(GetCurrentThread(),
         THREAD_PRIORITY_TIME_CRITICAL);
 #else
-    rc = pthread_mutex_init(&Receive_Condition_Mutex, NULL);
-    rc = pthread_cond_init(&Receive_Condition, NULL);
     /* start our MilliSec task */
     rc = pthread_create(&hThread, NULL, milliseconds_task, NULL);
-    /* start the receive task */
-    rc = pthread_create(&hThread, NULL, reciever_task, NULL);
     signal_init();
 #endif
     atexit(cleanup);
     filename_create_new();
     /* run forever */
     for (;;) {
-        if (receive_packet_get(&packet_info)) {
-            write_received_packet(&packet_info);
+        RS485_Check_UART_Data(mstp_port);
+        MSTP_Receive_Frame_FSM(mstp_port);
+        /* process the data portion of the frame */
+        if (mstp_port->ReceivedValidFrame) {
+            mstp_port->ReceivedValidFrame = false;
+            write_received_packet(mstp_port);
             packet_count++;
-            if (!(packet_count % 100)) {
-                fprintf(stdout, "\r%hu packets", packet_count);
-                fflush(stdout);
-            }
-            if (packet_count >= 65535) {
-                filename_create_new();
-                packet_count = 0;
-            }
+        } else if (mstp_port->ReceivedInvalidFrame) {
+            mstp_port->ReceivedInvalidFrame = false;
+            fprintf(stderr, "ReceivedInvalidFrame\n");
+            write_received_packet(mstp_port);
+            packet_count++;
+        }
+        if (!(packet_count % 100)) {
+            fprintf(stdout, "\r%hu packets", packet_count);
+        }
+        if (packet_count >= 65535) {
+            filename_create_new();
+            packet_count = 0;
         }
     }
 
