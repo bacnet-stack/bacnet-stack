@@ -174,8 +174,14 @@ static void Init_DataLink(
     pEnv = getenv("BACNET_MSTP_BAUD");
     if (pEnv) {
         RS485_Set_Baud_Rate(strtol(pEnv, NULL, 0));
+        fprintf(stderr, "BACNET_MSTP_BAUD=%s\r\n",pEnv);
     } else {
         RS485_Set_Baud_Rate(38400);
+    }
+    pEnv = getenv("BACNET_APDU_TIMEOUT");
+    if (pEnv) {
+        apdu_timeout_set(strtol(pEnv, NULL, 0));
+        fprintf(stderr, "BACNET_APDU_TIMEOUT=%s\r\n",pEnv);
     }
     pEnv = getenv("BACNET_MSTP_MAC");
     if (pEnv) {
@@ -209,7 +215,7 @@ static void Init_DataLink(
             struct in_addr addr;
             addr.s_addr = bbmd_address;
             printf
-                ("ReadProperty: Registering with BBMD at %s:%ld for %ld seconds\n",
+                ("ReadProperty: Registering with BBMD at %s:%ld for %ld seconds\r\n",
                 inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
             bvlc_register_with_bbmd(bbmd_address, bbmd_port,
                 bbmd_timetolive_seconds);
