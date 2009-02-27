@@ -198,13 +198,13 @@ static void write_global_header(
     /* create a new file. */
     pFile = fopen(filename, "wb");
     if (pFile) {
-        fwrite(&magic_number, sizeof(magic_number), 1, pFile);
-        fwrite(&version_major, sizeof(version_major), 1, pFile);
-        fwrite(&version_minor, sizeof(version_minor), 1, pFile);
-        fwrite(&thiszone, sizeof(thiszone), 1, pFile);
-        fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
-        fwrite(&snaplen, sizeof(snaplen), 1, pFile);
-        fwrite(&network, sizeof(network), 1, pFile);
+        (void)fwrite(&magic_number, sizeof(magic_number), 1, pFile);
+        (void)fwrite(&version_major, sizeof(version_major), 1, pFile);
+        (void)fwrite(&version_minor, sizeof(version_minor), 1, pFile);
+        (void)fwrite(&thiszone, sizeof(thiszone), 1, pFile);
+        (void)fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
+        (void)fwrite(&snaplen, sizeof(snaplen), 1, pFile);
+        (void)fwrite(&network, sizeof(network), 1, pFile);
         fflush(pFile);
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
@@ -228,16 +228,16 @@ static void write_received_packet(
         gettimeofday(&tv, NULL);
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
-        fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
-        fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
+        (void)fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
+        (void)fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (mstp_port->DataLength) {
             max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
             incl_len = orig_len = 8 + max_data + 2;
         } else {
             incl_len = orig_len = 8;
         }
-        fwrite(&incl_len, sizeof(incl_len), 1, pFile);
-        fwrite(&orig_len, sizeof(orig_len), 1, pFile);
+        (void)fwrite(&incl_len, sizeof(incl_len), 1, pFile);
+        (void)fwrite(&orig_len, sizeof(orig_len), 1, pFile);
         header[0] = 0x55;
         header[1] = 0xFF;
         header[2] = mstp_port->FrameType;
@@ -246,11 +246,11 @@ static void write_received_packet(
         header[5] = HI_BYTE(mstp_port->DataLength);
         header[6] = LO_BYTE(mstp_port->DataLength);
         header[7] = mstp_port->HeaderCRCActual;
-        fwrite(header, sizeof(header), 1, pFile);
+        (void)fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
-            fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
-            fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
-            fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
+            (void)fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
+            (void)fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
+            (void)fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
         }
     } else {
         fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
