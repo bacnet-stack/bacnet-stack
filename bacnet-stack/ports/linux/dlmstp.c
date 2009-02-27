@@ -200,6 +200,8 @@ static void *dlmstp_receive_fsm_task(
             } while (MSTP_Port.DataAvailable);
         }
     }
+
+    return NULL;
 }
 
 static void *dlmstp_master_fsm_task(
@@ -232,6 +234,8 @@ static void *dlmstp_master_fsm_task(
         }
         MSTP_Master_Node_FSM(&MSTP_Port);
     }
+
+    return NULL;
 }
 
 static void *dlmstp_milliseconds_task(
