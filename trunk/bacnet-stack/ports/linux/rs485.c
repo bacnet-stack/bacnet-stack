@@ -223,6 +223,7 @@ void RS485_Check_UART_Data(
             /* if data is ready, */
             mstp_port->DataAvailable = true;
         }
+        usleep(30);
     }
 }
 
