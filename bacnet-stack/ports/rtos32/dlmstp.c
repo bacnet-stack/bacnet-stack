@@ -89,8 +89,8 @@ int dlmstp_send_pdu(
             return -2;
         }
         /* header len */
-        mtu_len = 8;
-        if ((mtu_len + pdu_len) > MAX_MPDU) {
+        mtu_len = MAX_HEADER - 2 /* data crc */;
+        if ((MAX_HEADER + pdu_len) > MAX_MPDU) {
 #if PRINT_ENABLED
             fprintf(stderr, "mstp: PDU is too big to send!\n");
 #endif

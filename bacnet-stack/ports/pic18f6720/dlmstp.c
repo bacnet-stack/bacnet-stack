@@ -112,7 +112,7 @@ int dlmstp_send_pdu(
             return -2;
         }
         dlmstp_get_my_address(&src);
-        if ((8 /* header len */  + pdu_len) > MAX_MPDU) {
+        if ((MAX_HEADER + pdu_len) > MAX_MPDU) {
             return -4;
         }
         bytes_sent =
