@@ -111,6 +111,7 @@ static void My_Router_Handler(
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
                 printf("%hu", dnet);
                 npdu_len -= len;
+                npdu_offset += len;
                 if (npdu_len) {
                     printf(", ");
                 }
