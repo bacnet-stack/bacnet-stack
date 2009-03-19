@@ -421,7 +421,7 @@ void handler_read_property_multiple(
                     /* handle the error code - but use the special property */
                     len =
                         RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                        npdu_len + apdu_len, sizeof(Handler_Transmit_Buffer),
+                        npdu_len + apdu_len, MAX_APDU,
                         object_type, object_instance, object_property,
                         array_index);
                     if (len > 0) {
@@ -440,7 +440,7 @@ void handler_read_property_multiple(
                             special_object_property, index);
                         len =
                             RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                            npdu_len + apdu_len, sizeof(Handler_Transmit_Buffer),
+                            npdu_len + apdu_len, MAX_APDU,
                             object_type, object_instance, object_property,
                             array_index);
                         if (len > 0) {
