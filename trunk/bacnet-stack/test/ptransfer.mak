@@ -7,9 +7,13 @@ DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_PRIVATE_TRANSFER
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = $(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/bacint.c \
 	$(SRC_DIR)/bacstr.c \
 	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/datetime.c \
 	$(SRC_DIR)/ptransfer.c \
 	ctest.c
 

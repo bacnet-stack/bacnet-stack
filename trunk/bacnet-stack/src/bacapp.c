@@ -1047,6 +1047,13 @@ bool bacapp_same_value(
                     &test_value->type.Character_String);
                 break;
 #endif
+#if defined (BACAPP_OCTET_STRING)
+            case BACNET_APPLICATION_TAG_OCTET_STRING:
+                status =
+                    octetstring_value_same(&value->type.Octet_String,
+                    &test_value->type.Octet_String);
+                break;
+#endif
 #if defined (BACAPP_BIT_STRING)
             case BACNET_APPLICATION_TAG_BIT_STRING:
             default:
@@ -1409,6 +1416,12 @@ void testBACnetApplicationData(
     status =
         bacapp_parse_application_data(BACNET_APPLICATION_TAG_CHARACTER_STRING,
         "Karg!", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+
+    status =
+        bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
+        "Steve + Patricia", &value);
     ct_test(pTest, status == true);
     ct_test(pTest, testBACnetApplicationDataValue(&value));
 

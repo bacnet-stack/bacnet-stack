@@ -305,6 +305,7 @@ int ptransfer_ack_encode_apdu(
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+#include "bacapp.h"
 
 int ptransfer_decode_apdu(
     uint8_t * apdu,
@@ -400,15 +401,27 @@ void test_Private_Transfer_Ack(
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
-#define MAX_PD_CHUNK 32
-    uint8_t private_data_chunk[MAX_PD_CHUNK] = "I Love You, Patricia!";
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     BACNET_PRIVATE_TRANSFER_DATA test_data;
+    uint8_t test_value[480] = { 0 };
+    int private_data_len = 0;
+    uint8_t private_data_chunk[32] = {"I Love You, Patricia!"};
+    BACNET_APPLICATION_DATA_VALUE data_value;
+    BACNET_APPLICATION_DATA_VALUE test_data_value;
 
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
-    private_data.serviceParameters = &private_data_chunk[0];
-    private_data.serviceParametersLen = MAX_PD_CHUNK;
+
+    bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING,
+        &private_data_chunk[0], &data_value);
+    private_data_len = bacapp_encode_application_data(
+        &test_value[0],
+        &data_value);
+
+    private_data.serviceParameters = &test_value[0];
+    private_data.serviceParametersLen = private_data_len;
+
 
     len = ptransfer_ack_encode_apdu(&apdu[0], invoke_id, &private_data);
     ct_test(pTest, len != 0);
@@ -423,11 +436,11 @@ void test_Private_Transfer_Ack(
     ct_test(pTest, test_data.serviceNumber == private_data.serviceNumber);
     ct_test(pTest, 
         test_data.serviceParametersLen == private_data.serviceParametersLen);
-    for (len = 0; len < MAX_PD_CHUNK; len++) {
-        ct_test(pTest, 
-            test_data.serviceParameters[len] == 
-                private_data.serviceParameters[len]);
-    }
+    len = bacapp_decode_application_data(
+        test_data.serviceParameters,
+        test_data.serviceParametersLen,
+        &test_data_value);
+    ct_test(pTest, bacapp_same_value(&data_value, &test_data_value) == true);
 }
 
 void test_Private_Transfer_Error(
@@ -442,15 +455,25 @@ void test_Private_Transfer_Error(
     BACNET_ERROR_CODE error_code = ERROR_CODE_OPERATIONAL_PROBLEM;
     BACNET_ERROR_CLASS test_error_class = 0;
     BACNET_ERROR_CODE test_error_code = 0;
-#define MAX_PD_CHUNK 32
-    uint8_t private_data_chunk[MAX_PD_CHUNK] = "I Love You, Patricia!";
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     BACNET_PRIVATE_TRANSFER_DATA test_data;
+    uint8_t test_value[480] = { 0 };
+    int private_data_len = 0;
+    uint8_t private_data_chunk[32] = {"I Love You, Patricia!"};
+    BACNET_APPLICATION_DATA_VALUE data_value;
+    BACNET_APPLICATION_DATA_VALUE test_data_value;
 
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
-    private_data.serviceParameters = &private_data_chunk[0];
-    private_data.serviceParametersLen = MAX_PD_CHUNK;
+
+    bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING,
+        &private_data_chunk[0], &data_value);
+    private_data_len = bacapp_encode_application_data(
+        &test_value[0],
+        &data_value);
+    private_data.serviceParameters = &test_value[0];
+    private_data.serviceParametersLen = private_data_len;
 
     len = ptransfer_error_encode_apdu(&apdu[0], invoke_id, 
         error_class, error_code, &private_data);
@@ -470,30 +493,41 @@ void test_Private_Transfer_Error(
     ct_test(pTest, test_error_code == error_code);
     ct_test(pTest, 
         test_data.serviceParametersLen == private_data.serviceParametersLen);
-    for (len = 0; len < MAX_PD_CHUNK; len++) {
-        ct_test(pTest, 
-            test_data.serviceParameters[len] == 
-                private_data.serviceParameters[len]);
-    }
+    len = bacapp_decode_application_data(
+        test_data.serviceParameters,
+        test_data.serviceParametersLen,
+        &test_data_value);
+    ct_test(pTest, bacapp_same_value(&data_value, &test_data_value) == true);
 }
 
 void test_Private_Transfer_Request(
                       Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
+    uint8_t test_value[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
-#define MAX_PD_CHUNK 32
-    uint8_t private_data_chunk[MAX_PD_CHUNK] = "I Love You, Patricia!";
+    int private_data_len = 0;
+    uint8_t private_data_chunk[32] = {"I Love You, Patricia!"};
+    BACNET_APPLICATION_DATA_VALUE data_value;
+    BACNET_APPLICATION_DATA_VALUE test_data_value;
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     BACNET_PRIVATE_TRANSFER_DATA test_data;
 
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
-    private_data.serviceParameters = &private_data_chunk[0];
-    private_data.serviceParametersLen = MAX_PD_CHUNK;
+
+    bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING,
+        &private_data_chunk[0], &data_value);
+    private_data_len = bacapp_encode_application_data(
+        &test_value[0],
+        &data_value);
+    private_data.serviceParameters = &test_value[0];
+    private_data.serviceParametersLen = private_data_len;
+
     len = ptransfer_encode_apdu(&apdu[0], invoke_id, &private_data);
     ct_test(pTest, len != 0);
     apdu_len = len;
@@ -503,11 +537,11 @@ void test_Private_Transfer_Request(
     ct_test(pTest, test_data.serviceNumber == private_data.serviceNumber);
     ct_test(pTest, 
         test_data.serviceParametersLen == private_data.serviceParametersLen);
-    for (len = 0; len < MAX_PD_CHUNK; len++) {
-        ct_test(pTest, 
-            test_data.serviceParameters[len] == 
-                private_data.serviceParameters[len]);
-    }
+    len = bacapp_decode_application_data(
+        test_data.serviceParameters,
+        test_data.serviceParametersLen,
+        &test_data_value);
+    ct_test(pTest, bacapp_same_value(&data_value, &test_data_value) == true);
 
     return;
 }
@@ -537,5 +571,3 @@ int main(
 }
 #endif /* TEST_READ_PROPERTY */
 #endif /* TEST */
-
-
