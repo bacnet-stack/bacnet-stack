@@ -51,6 +51,10 @@
 #include "client.h"
 #include "txbuf.h"
 
+#ifndef MAX_PROPERTY_VALUES
+#define MAX_PROPERTY_VALUES 64
+#endif
+
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
@@ -61,7 +65,6 @@ static BACNET_OBJECT_TYPE Target_Object_Type = OBJECT_ANALOG_INPUT;
 static BACNET_PROPERTY_ID Target_Object_Property = PROP_ACKED_TRANSITIONS;
 /* array index value or BACNET_ARRAY_ALL */
 static int32_t Target_Object_Property_Index = BACNET_ARRAY_ALL;
-#define MAX_PROPERTY_VALUES 64
 static BACNET_APPLICATION_DATA_VALUE
     Target_Object_Property_Value[MAX_PROPERTY_VALUES];
 
