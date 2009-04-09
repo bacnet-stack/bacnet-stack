@@ -69,4 +69,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif //_BAC_DEV_PROP_REF_H_
+#endif
