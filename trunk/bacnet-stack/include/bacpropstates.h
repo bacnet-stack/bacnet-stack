@@ -99,4 +99,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif // _BAC_PROP_STATES_H_
+#endif
