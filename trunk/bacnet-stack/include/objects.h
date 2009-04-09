@@ -84,9 +84,4 @@ typedef struct object_device_t {
     uint32_t Database_Revision;
 } OBJECT_DEVICE_T;
 
-
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 #endif
