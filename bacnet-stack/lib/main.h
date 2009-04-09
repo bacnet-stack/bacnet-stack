@@ -13,7 +13,15 @@
 #define DLL_EXPORT __declspec(dllimport)
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 void DLL_EXPORT SomeFunction(
     const LPCSTR sometext);
 
-#endif // __MAIN_H__
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif
