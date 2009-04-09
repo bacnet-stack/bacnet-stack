@@ -92,7 +92,7 @@ LOCATE = $(RTOS32_DIR)\bin\rtloc
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;..\..\;..\..\demo\handler\;..\..\demo\object\;.
+INCL_DIRS = -I$(BORLAND_DIR)\include;$(RTOS32_DIR)\include;..\..\include;..\..\demo\handler\;..\..\demo\object\;.
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)
 
