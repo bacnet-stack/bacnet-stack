@@ -155,7 +155,7 @@ all: $(BCC_CFG) $(OBJS) makefile.b32
 	del $(TARGET).BAK
 
 clean:
-	del ${CORE1_OBJ}
+	del &&| ${CORE1_OBJ} |
 	del ${CORE2_OBJ}
 	del ${PORT_OBJ}
 	del ${HANDLER_OBJ}
