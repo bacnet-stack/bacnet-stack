@@ -29,7 +29,11 @@ clean: lib\makefile.b32 \
 	demo/whohas/makefile.b32 \
 	demo/ucov/makefile.b32 \
 	demo/epics/makefile.b32 \
-	demo/timesync/makefile.b32
+	demo/timesync/makefile.b32 \
+	demo/mstpcap/makefile.b32 \
+	demo/whoisrouter/makefile.b32 \
+	demo/iamrouter/makefile.b32 \
+	demo/initrouter/makefile.b32
 	cd lib
 	$(MAKE) -i -f makefile.b32 clean
 	cd ..
