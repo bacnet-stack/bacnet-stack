@@ -230,5 +230,5 @@ int main(
     return 0;
 }
 
-#endif // TEST_DEV_ID_PROP_REF
-#endif // TEST
+#endif /* TEST_DEV_ID_PROP_REF */
+#endif /* TEST */

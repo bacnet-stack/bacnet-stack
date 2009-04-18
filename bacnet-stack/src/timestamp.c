@@ -297,5 +297,5 @@ int main(
     return 0;
 }
 
-#endif // TEST_TIME_STAMP
-#endif // TEST
+#endif /* TEST_TIME_STAMP */
+#endif /* TEST */

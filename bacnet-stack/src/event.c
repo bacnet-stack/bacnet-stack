@@ -1515,5 +1515,5 @@ int main(
     return 0;
 }
 
-#endif // TEST_EVENT
-#endif // TEST
+#endif /* TEST_EVENT */
+#endif /* TEST */
