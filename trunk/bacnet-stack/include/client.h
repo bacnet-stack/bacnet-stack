@@ -35,6 +35,7 @@
 #include "bacenum.h"
 #include "rpm.h"
 #include "cov.h"
+#include "event.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -131,6 +132,11 @@ extern "C" {
         uint32_t file_instance,
         int fileStartPosition,
         BACNET_OCTET_STRING * fileData);
+
+    int Send_UEvent_Notify(
+        uint8_t * buffer,
+        BACNET_EVENT_NOTIFICATION_DATA * data,
+        BACNET_ADDRESS * dest);
 
     void Send_Who_Is_Router_To_Network(
         BACNET_ADDRESS * dst,

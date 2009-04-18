@@ -106,14 +106,14 @@ int event_notify_encode_service_request(
         /* tag 1 - initiatingObjectIdentifier */
         len =
             encode_context_object_id(&apdu[apdu_len], 1,
-            data->initiatingObjectIdentifier.type,
+            (int)data->initiatingObjectIdentifier.type,
             data->initiatingObjectIdentifier.instance);
         apdu_len += len;
 
         /* tag 2 - eventObjectIdentifier */
         len =
             encode_context_object_id(&apdu[apdu_len], 2,
-            data->eventObjectIdentifier.type,
+            (int)data->eventObjectIdentifier.type,
             data->eventObjectIdentifier.instance);
         apdu_len += len;
 
@@ -859,32 +859,6 @@ int event_notify_decode_service_request(
 
     return len;
 }
-
-#ifndef  TEST
-
-int uevent_notify_send(
-    uint8_t * buffer,
-    BACNET_EVENT_NOTIFICATION_DATA * data,
-    BACNET_ADDRESS * dest)
-{
-    int len = 0;
-    int pdu_len = 0;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
-
-    /* encode the NPDU portion of the packet */
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(buffer, dest, NULL, &npdu_data);
-    /* encode the APDU portion of the packet */
-    len = uevent_notify_encode_apdu(&buffer[pdu_len], data);
-    pdu_len += len;
-    /* send the data */
-    bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
-
-    return bytes_sent;
-}
-#endif
-
 
 #ifdef  TEST
 
