@@ -36,7 +36,6 @@
 #include "bacdcode.h"
 #include "npdu.h"
 #include "device.h"
-#include "datalink.h"
 #include "timestamp.h"
 #include "bacdevobjpropref.h"
 

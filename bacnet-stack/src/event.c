@@ -36,7 +36,6 @@
 #include "bacdcode.h"
 #include "npdu.h"
 #include "device.h"
-#include "datalink.h"
 #include "timestamp.h"
 
 int uevent_notify_encode_apdu(
@@ -72,11 +71,9 @@ int cevent_notify_encode_apdu(
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
 
-    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
-
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_EVENT_NOTIFICATION; /* service choice */
         apdu_len = 4;
@@ -99,8 +96,6 @@ int event_notify_encode_service_request(
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
-    //BACNET_PROPERTY_VALUE *value = NULL;        /* value in list */
-
 
     if (apdu) {
         /* tag 0 - processIdentifier */
@@ -396,7 +391,6 @@ int event_notify_encode_service_request(
                         len = encode_closing_tag(&apdu[apdu_len], 10);
                         apdu_len += len;
                         break;
-
                     case EVENT_UNSIGNED_RANGE:
                         len = encode_opening_tag(&apdu[apdu_len], 11);
                         apdu_len += len;
@@ -422,8 +416,6 @@ int event_notify_encode_service_request(
                         len = encode_closing_tag(&apdu[apdu_len], 11);
                         apdu_len += len;
                         break;
-
-
                     case EVENT_EXTENDED:
                     case EVENT_COMMAND_FAILURE:
                     default:
@@ -432,6 +424,10 @@ int event_notify_encode_service_request(
                 }
                 len = encode_closing_tag(&apdu[apdu_len], 12);
                 apdu_len += len;
+                break;
+            case NOTIFY_ACK_NOTIFICATION:
+                /* FIXME: handle this case */
+            default:
                 break;
         }
     }
@@ -444,8 +440,9 @@ int event_notify_decode_service_request(
     BACNET_EVENT_NOTIFICATION_DATA * data)
 {
     int len = 0;        /* return value */
-    int section_length;
-    uint32_t tmpUInt;
+    int section_length = 0;
+    uint32_t value = 0;
+    
     if (apdu_len && data) {
         /* tag 0 - processIdentifier */
         if ((section_length =
@@ -492,22 +489,23 @@ int event_notify_decode_service_request(
         }
         /* tag 5 - priority */
         if ((section_length =
-                decode_context_unsigned(&apdu[len], 5, &tmpUInt)) == -1) {
+                decode_context_unsigned(&apdu[len], 5, &value)) == -1) {
             return -1;
         } else {
-            if (tmpUInt > 0xff) {
+            if (value > 0xff) {
                 return -1;
             } else {
-                data->priority = (uint8_t) tmpUInt;
+                data->priority = (uint8_t) value;
                 len += section_length;
             }
         }
         /* tag 6 - eventType */
         if ((section_length =
                 decode_context_enumerated(&apdu[len], 6,
-                    (int*)&data->eventType)) == -1) {
+                    &value)) == -1) {
             return -1;
         } else {
+            data->eventType = value;
             len += section_length;
         }
         /* tag 7 - messageText */
@@ -534,9 +532,10 @@ int event_notify_decode_service_request(
         /* tag 8 - notifyType */
         if ((section_length =
                 decode_context_enumerated(&apdu[len], 8,
-                    (int*)&data->notifyType)) == -1) {
+                    &value)) == -1) {
             return -1;
         } else {
+            data->notifyType = value;
             len += section_length;
         }
         switch (data->notifyType) {
@@ -553,20 +552,27 @@ int event_notify_decode_service_request(
                 /* tag 10 - fromState */
                 if ((section_length =
                         decode_context_enumerated(&apdu[len], 10,
-                            (int*)&data->fromState)) == -1) {
+                            &value)) == -1) {
                     return -1;
                 } else {
+                    data->fromState = value;
                     len += section_length;
                 }
+                break;
+            case NOTIFY_ACK_NOTIFICATION:
+                /* FIXME: handle this case */
+            default:
+                return -1;
                 break;
 
         }
         /* tag 11 - toState */
         if ((section_length =
                 decode_context_enumerated(&apdu[len], 11,
-                    (int*)&data->toState)) == -1) {
+                    &value)) == -1) {
             return -1;
         } else {
+            data->toState = value;
             len += section_length;
         }
         /* tag 12 - eventValues */
@@ -744,18 +750,18 @@ int event_notify_decode_service_request(
                     case EVENT_CHANGE_OF_LIFE_SAFETY:
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 0,
-                                    (int*)&data->notificationParams.
-                                    changeOfLifeSafety.newState))) {
+                                    &value))) {
                             return -1;
                         }
+                        data->notificationParams.changeOfLifeSafety.newState = value;
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 1,
-                                    (int*)&data->notificationParams.
-                                    changeOfLifeSafety.newMode))) {
+                                    &value))) {
                             return -1;
                         }
+                        data->notificationParams.changeOfLifeSafety.newMode = value;
                         len += section_length;
 
                         if (-1 == (section_length =
@@ -768,10 +774,10 @@ int event_notify_decode_service_request(
 
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 3,
-                                    (int*)&data->notificationParams.
-                                    changeOfLifeSafety.operationExpected))) {
+                                    &value))) {
                             return -1;
                         }
+                        data->notificationParams.changeOfLifeSafety.operationExpected = value;
                         len += section_length;
                         break;
 
@@ -828,7 +834,6 @@ int event_notify_decode_service_request(
                         len += section_length;
                         break;
 
-
                     default:
                         return -1;
                 }
@@ -843,6 +848,12 @@ int event_notify_decode_service_request(
                 } else {
                     return -1;
                 }
+                break;
+            case NOTIFY_ACK_NOTIFICATION:
+                /* FIXME: handle this case */
+            default:
+                return -1;
+                break;
         }
     }
 
