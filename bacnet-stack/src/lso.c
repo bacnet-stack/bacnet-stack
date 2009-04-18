@@ -71,7 +71,7 @@ int lso_encode_adpu(
          */
 
 		len = encode_context_object_id(&apdu[apdu_len], 3, 
-			data->targetObject.type,
+			(int)data->targetObject.type,
 			data->targetObject.instance);
 
         apdu_len += len;

@@ -68,7 +68,7 @@ static int notify_encode_adpu(
         /* tag 2 - monitoredObjectIdentifier */
         len =
             encode_context_object_id(&apdu[apdu_len], 2,
-            data->monitoredObjectIdentifier.type,
+            (int)data->monitoredObjectIdentifier.type,
             data->monitoredObjectIdentifier.instance);
         apdu_len += len;
         /* tag 3 - timeRemaining */
@@ -338,7 +338,7 @@ int cov_subscribe_encode_adpu(
         /* tag 1 - monitoredObjectIdentifier */
         len =
             encode_context_object_id(&apdu[apdu_len], 1,
-            data->monitoredObjectIdentifier.type,
+            (int)data->monitoredObjectIdentifier.type,
             data->monitoredObjectIdentifier.instance);
         apdu_len += len;
         /*
@@ -467,7 +467,7 @@ int cov_subscribe_property_encode_adpu(
         /* tag 1 - monitoredObjectIdentifier */
         len =
             encode_context_object_id(&apdu[apdu_len], 1,
-            data->monitoredObjectIdentifier.type,
+            (int)data->monitoredObjectIdentifier.type,
             data->monitoredObjectIdentifier.instance);
         apdu_len += len;
         if (!data->cancellationRequest) {

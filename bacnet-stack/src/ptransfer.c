@@ -84,8 +84,8 @@ int ptransfer_decode_service_request(
     unsigned apdu_len,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
-    unsigned len = 0; /* return value */
-    unsigned decode_len = 0; /* return value */
+    int len = 0; /* return value */
+    int decode_len = 0; /* return value */
     uint32_t unsigned_value = 0;
  
     /* check for value pointers */
@@ -111,15 +111,15 @@ int ptransfer_decode_service_request(
             /* don't decode the serviceParameters here */
             private_data->serviceParameters = &apdu[len];
             private_data->serviceParametersLen = 
-                apdu_len - len - 1 /*closing tag */ ;
+                (int)apdu_len - len - 1 /*closing tag */ ;
             /* len includes the data and the closing tag */
-            len = apdu_len;
+            len = (int)apdu_len;
         } else {
             return -1;
         }
     }
 
-    return (int) len;
+    return len;
 }
 
 int ptransfer_error_encode_apdu(
@@ -181,8 +181,8 @@ int ptransfer_error_decode_service_request(
     BACNET_ERROR_CODE * error_code,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
-    unsigned len = 0; /* return value */
-    unsigned decode_len = 0; /* return value */
+    int len = 0; /* return value */
+    int decode_len = 0; /* return value */
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t unsigned_value = 0;
@@ -248,14 +248,14 @@ int ptransfer_error_decode_service_request(
             len++;
             /* don't decode the serviceParameters here */
             private_data->serviceParameters = &apdu[len];
-            private_data->serviceParametersLen = apdu_len - len - 1 /*closing tag */ ;
+            private_data->serviceParametersLen = (int)apdu_len - len - 1 /*closing tag */ ;
         } else {
             return -1;
         }
         /* we could check for a closing tag of 3 */
     }
 
-    return (int) len;
+    return len;
 }
 
 int ptransfer_ack_encode_apdu(

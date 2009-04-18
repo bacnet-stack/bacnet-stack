@@ -559,9 +559,9 @@ int encode_application_null(
 
 int encode_context_null(
     uint8_t * apdu,
-    int tag_number)
+    uint8_t tag_number)
 {
-    return encode_tag(&apdu[0], (uint8_t) tag_number, true, 0);
+    return encode_tag(&apdu[0], tag_number, true, 0);
 }
 
 static uint8_t byte_reverse_bits(
@@ -696,7 +696,7 @@ int encode_application_bitstring(
 
 int encode_context_bitstring(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     BACNET_BIT_STRING * bit_string)
 {
     int len = 0;
@@ -705,7 +705,7 @@ int encode_context_bitstring(
     /* bit string may use more than 1 octet for the tag, so find out how many */
     bit_string_encoded_length += bitstring_bytes_used(bit_string);
     len =
-        encode_tag(&apdu[0], (uint8_t) tag_number, true,
+        encode_tag(&apdu[0], tag_number, true,
         bit_string_encoded_length);
     len += encode_bitstring(&apdu[len], bit_string);
 
@@ -771,7 +771,7 @@ int encode_bacnet_object_id(
 /* returns the number of apdu bytes consumed */
 int encode_context_object_id(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     int object_type,
     uint32_t instance)
 {
@@ -781,7 +781,7 @@ int encode_context_object_id(
     len = encode_bacnet_object_id(&apdu[1], object_type, instance);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if ((tag_number <= 14) && (len <= 4)) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }
@@ -859,14 +859,14 @@ int encode_application_octet_string(
 /* returns the number of apdu bytes consumed */
 int encode_context_octet_string(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     BACNET_OCTET_STRING * octet_string)
 {
     int apdu_len = 0;
 
     if (apdu && octet_string) {
         apdu_len =
-            encode_tag(&apdu[0], (uint8_t) tag_number, true,
+            encode_tag(&apdu[0], tag_number, true,
             octetstring_length(octet_string));
         if ((apdu_len + octetstring_length(octet_string)) < MAX_APDU) {
             apdu_len += encode_octet_string(&apdu[apdu_len], octet_string);
@@ -966,14 +966,14 @@ int encode_application_character_string(
 
 int encode_context_character_string(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     BACNET_CHARACTER_STRING * char_string)
 {
     int len = 0;
     int string_len = 0;
 
     string_len = (int)characterstring_length(char_string) + 1 /* for encoding */ ;
-    len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)string_len);
+    len += encode_tag(&apdu[0], tag_number, true, (uint32_t)string_len);
     if ((len + string_len) < MAX_APDU) {
         len += encode_bacnet_character_string(&apdu[len], char_string);
     } else {
@@ -1111,7 +1111,7 @@ int encode_bacnet_unsigned(
 /* returns the number of apdu bytes consumed */
 int encode_context_unsigned(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     uint32_t value)
 {
     int len = 0;
@@ -1119,7 +1119,7 @@ int encode_context_unsigned(
     len = encode_bacnet_unsigned(&apdu[1], value);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if ((tag_number <= 14) && (len <= 4)) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }
@@ -1212,7 +1212,7 @@ int encode_application_enumerated(
 /* returns the number of apdu bytes consumed */
 int encode_context_enumerated(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     uint32_t value)
 {
     int len = 0;        /* return value */
@@ -1221,7 +1221,7 @@ int encode_context_enumerated(
     len = encode_bacnet_enumerated(&apdu[1], value);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if ((tag_number <= 14) && (len <= 4)) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }
@@ -1326,7 +1326,7 @@ int encode_application_signed(
 /* returns the number of apdu bytes consumed */
 int encode_context_signed(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     int32_t value)
 {
     int len = 0;        /* return value */
@@ -1335,7 +1335,7 @@ int encode_context_signed(
     len = encode_bacnet_signed(&apdu[1], value);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if ((tag_number <= 14) && (len <= 4)) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }
@@ -1361,7 +1361,7 @@ int encode_application_real(
 
 int encode_context_real(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     float value)
 {
     int len = 0;
@@ -1370,7 +1370,7 @@ int encode_context_real(
     len = encode_bacnet_real(value, &apdu[1]);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if (tag_number <= 14) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }
@@ -1396,7 +1396,7 @@ int encode_application_double(
 
 int encode_context_double(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     double value)
 {
     int len = 0;
@@ -1405,7 +1405,7 @@ int encode_context_double(
     len = encode_bacnet_double(value, &apdu[1]);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if (tag_number <= 14) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }
@@ -1446,7 +1446,7 @@ int encode_application_time(
 
 int encode_context_time(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     BACNET_TIME * btime)
 {
     int len = 0;        /* return value */
@@ -1455,7 +1455,7 @@ int encode_context_time(
     len = encode_bacnet_time(&apdu[1], btime);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if ((tag_number <= 14) && (len <= 4)) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }
@@ -1566,7 +1566,7 @@ int encode_application_date(
 
 int encode_context_date(
     uint8_t * apdu,
-    int tag_number,
+    uint8_t tag_number,
     BACNET_DATE * bdate)
 {
     int len = 0;        /* return value */
@@ -1575,7 +1575,7 @@ int encode_context_date(
     len = encode_bacnet_date(&apdu[1], bdate);
     /* we only reserved 1 byte for encoding the tag - check the limits */
     if ((tag_number <= 14) && (len <= 4)) {
-        len += encode_tag(&apdu[0], (uint8_t) tag_number, true, (uint32_t)len);
+        len += encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     } else {
         len = 0;
     }

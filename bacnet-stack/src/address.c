@@ -57,8 +57,8 @@ static struct Address_Cache_Entry {
 bool address_match(BACNET_ADDRESS * dest,
    BACNET_ADDRESS * src)
 {
-   unsigned i;
-   unsigned max_len;
+   uint8_t i = 0;
+   uint8_t max_len = 0;
 
    if (dest->mac_len != src->mac_len)
        return false;
@@ -120,7 +120,7 @@ void address_file_init(
     char line[256] = { "" };    /* holds line from file */
     long device_id = 0;
     int snet = 0;
-    int max_apdu = 0;
+    unsigned max_apdu = 0;
     unsigned mac[6];
     int count = 0;
     char mac_string[80], sadr_string[80];
@@ -129,24 +129,24 @@ void address_file_init(
 
     pFile = fopen(pFilename, "r");
     if (pFile) {
-        while (fgets(line, sizeof(line), pFile) != NULL) {
+        while (fgets(line, (int)sizeof(line), pFile) != NULL) {
             /* ignore comments */
             if (line[0] != ';') {
-                if (sscanf(line, "%ld %s %d %s %d", &device_id, &mac_string[0],
+                if (sscanf(line, "%ld %s %d %s %u", &device_id, &mac_string[0],
                         &snet, &sadr_string[0], &max_apdu) == 5) {
                     count =
                         sscanf(mac_string, "%x:%x:%x:%x:%x:%x", &mac[0],
                         &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                    src.mac_len = count;
+                    src.mac_len = (uint8_t)count;
                     for (index = 0; index < MAX_MAC_LEN; index++) {
                         src.mac[index] = mac[index];
                     }
-                    src.net = snet;
+                    src.net = (uint8_t)snet;
                     if (snet) {
                         count =
                             sscanf(sadr_string, "%x:%x:%x:%x:%x:%x", &mac[0],
                             &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                        src.len = count;
+                        src.len = (uint8_t)count;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
                             src.adr[index] = mac[index];
                         }
@@ -156,7 +156,7 @@ void address_file_init(
                             src.adr[index] = 0;
                         }
                     }
-                    address_add(device_id, max_apdu, &src);
+                    address_add((uint32_t)device_id, max_apdu, &src);
                 }
             }
         }
