@@ -103,7 +103,7 @@ int npdu_encode_pdu(
     BACNET_NPDU_DATA * npdu_data)
 {
     int len = 0;        /* return value - number of octets loaded in this function */
-    uint8_t i = 0;  /* counter  */
+    uint8_t i = 0;      /* counter  */
 
 
     if (npdu && npdu_data) {
@@ -248,7 +248,7 @@ int npdu_decode(
     BACNET_NPDU_DATA * npdu_data)
 {
     int len = 0;        /* return value - number of octets loaded in this function */
-    uint8_t i = 0;  /* counter */
+    uint8_t i = 0;      /* counter */
     uint16_t src_net = 0;
     uint16_t dest_net = 0;
     uint8_t address_len = 0;
@@ -297,7 +297,7 @@ int npdu_decode(
                 dest->len = address_len;
             }
             if (address_len) {
-                if ( address_len > MAX_MAC_LEN ) {
+                if (address_len > MAX_MAC_LEN) {
                     /* address is too large could be a malformed message */
                     return -1;
                 }
@@ -332,7 +332,7 @@ int npdu_decode(
                 src->len = address_len;
             }
             if (address_len) {
-                if ( address_len > MAX_MAC_LEN ) {
+                if (address_len > MAX_MAC_LEN) {
                     /* address is too large could be a malformed message */
                     return -1;
                 }

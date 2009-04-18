@@ -99,11 +99,12 @@ static void dlmstp_millisecond_timer(
 }
 
 #if !defined (_WIN32)
-void Sleep(unsigned long milliseconds)
+void Sleep(
+    unsigned long milliseconds)
 {
     struct timespec timeOut, remains;
 
-    timeOut.tv_sec = milliseconds/1000;
+    timeOut.tv_sec = milliseconds / 1000;
     timeOut.tv_nsec = (milliseconds - (timeOut.tv_sec * 1000)) * 10000000;
     nanosleep(&timeOut, &remains);
 }
@@ -165,7 +166,8 @@ uint16_t MSTP_Get_Reply(
 static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 
-static void filename_create(char *filename)
+static void filename_create(
+    char *filename)
 {
     time_t my_time;
     struct tm *today;
@@ -173,13 +175,9 @@ static void filename_create(char *filename)
     if (filename) {
         my_time = time(NULL);
         today = localtime(&my_time);
-        sprintf(filename,"mstp_%04d%02d%02d%02d%02d%02d.cap",
-            1900+today->tm_year,
-            1+today->tm_mon,
-            today->tm_mday,
-            today->tm_hour,
-            today->tm_min,
-            today->tm_sec);
+        sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
+            1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
+            today->tm_hour, today->tm_min, today->tm_sec);
     }
 }
 
@@ -198,13 +196,13 @@ static void write_global_header(
     /* create a new file. */
     pFile = fopen(filename, "wb");
     if (pFile) {
-        (void)fwrite(&magic_number, sizeof(magic_number), 1, pFile);
-        (void)fwrite(&version_major, sizeof(version_major), 1, pFile);
-        (void)fwrite(&version_minor, sizeof(version_minor), 1, pFile);
-        (void)fwrite(&thiszone, sizeof(thiszone), 1, pFile);
-        (void)fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
-        (void)fwrite(&snaplen, sizeof(snaplen), 1, pFile);
-        (void)fwrite(&network, sizeof(network), 1, pFile);
+        (void) fwrite(&magic_number, sizeof(magic_number), 1, pFile);
+        (void) fwrite(&version_major, sizeof(version_major), 1, pFile);
+        (void) fwrite(&version_minor, sizeof(version_minor), 1, pFile);
+        (void) fwrite(&thiszone, sizeof(thiszone), 1, pFile);
+        (void) fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
+        (void) fwrite(&snaplen, sizeof(snaplen), 1, pFile);
+        (void) fwrite(&network, sizeof(network), 1, pFile);
         fflush(pFile);
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
@@ -228,16 +226,16 @@ static void write_received_packet(
         gettimeofday(&tv, NULL);
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
-        (void)fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
-        (void)fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
+        (void) fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
+        (void) fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (mstp_port->DataLength) {
             max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
             incl_len = orig_len = 8 + max_data + 2;
         } else {
             incl_len = orig_len = 8;
         }
-        (void)fwrite(&incl_len, sizeof(incl_len), 1, pFile);
-        (void)fwrite(&orig_len, sizeof(orig_len), 1, pFile);
+        (void) fwrite(&incl_len, sizeof(incl_len), 1, pFile);
+        (void) fwrite(&orig_len, sizeof(orig_len), 1, pFile);
         header[0] = 0x55;
         header[1] = 0xFF;
         header[2] = mstp_port->FrameType;
@@ -246,11 +244,11 @@ static void write_received_packet(
         header[5] = HI_BYTE(mstp_port->DataLength);
         header[6] = LO_BYTE(mstp_port->DataLength);
         header[7] = mstp_port->HeaderCRCActual;
-        (void)fwrite(header, sizeof(header), 1, pFile);
+        (void) fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
-            (void)fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
-            (void)fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
-            (void)fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
+            (void) fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
+            (void) fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
+            (void) fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
         }
     } else {
         fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
@@ -287,7 +285,8 @@ void signal_init(
 }
 #endif
 
-void filename_create_new(void)
+void filename_create_new(
+    void)
 {
     if (pFile) {
         fclose(pFile);
@@ -320,14 +319,11 @@ int main(
             "Captures MS/TP packets from a serial interface\r\n"
             "and save them to a file. Saves packets in a\r\n"
             "filename mstp_20090123091200.cap that has data and time.\r\n"
-            "After receiving 65535 packets, a new file is created.\r\n"
-            "\r\n"
-            "Command line options:\r\n"
-            "[interface] - serial interface.\r\n"
+            "After receiving 65535 packets, a new file is created.\r\n" "\r\n"
+            "Command line options:\r\n" "[interface] - serial interface.\r\n"
             "    defaults to COM4 on  Windows, and /dev/ttyUSB0 on linux.\r\n"
             "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
-            "    defaults to 38400.\r\n"
-            "");
+            "    defaults to 38400.\r\n" "");
         return 0;
     }
     if (argc > 1) {

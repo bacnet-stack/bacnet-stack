@@ -59,11 +59,13 @@ int ptransfer_encode_apdu(
         serviceParameters      [2] ABSTRACT-SYNTAX.&Type OPTIONAL
     }
 */
-        len = encode_context_unsigned(&apdu[apdu_len], 0, 
-                                       private_data->vendorID);
+        len =
+            encode_context_unsigned(&apdu[apdu_len], 0,
+            private_data->vendorID);
         apdu_len += len;
-        len = encode_context_unsigned(&apdu[apdu_len], 1, 
-                                       private_data->serviceNumber);
+        len =
+            encode_context_unsigned(&apdu[apdu_len], 1,
+            private_data->serviceNumber);
         apdu_len += len;
         len = encode_opening_tag(&apdu[apdu_len], 2);
         apdu_len += len;
@@ -84,10 +86,10 @@ int ptransfer_decode_service_request(
     unsigned apdu_len,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
-    int len = 0; /* return value */
+    int len = 0;        /* return value */
     int decode_len = 0; /* return value */
     uint32_t unsigned_value = 0;
- 
+
     /* check for value pointers */
     if (apdu_len && private_data) {
         /* Tag 0: vendorID */
@@ -110,10 +112,10 @@ int ptransfer_decode_service_request(
             len++;
             /* don't decode the serviceParameters here */
             private_data->serviceParameters = &apdu[len];
-            private_data->serviceParametersLen = 
-                (int)apdu_len - len - 1 /*closing tag */ ;
+            private_data->serviceParametersLen =
+                (int) apdu_len - len - 1 /*closing tag */ ;
             /* len includes the data and the closing tag */
-            len = (int)apdu_len;
+            len = (int) apdu_len;
         } else {
             return -1;
         }
@@ -127,10 +129,10 @@ int ptransfer_error_encode_apdu(
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
-    int len = 0;   /* length of the part of the encoding */
+    int len = 0;        /* length of the part of the encoding */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_ERROR;
@@ -154,11 +156,13 @@ int ptransfer_error_encode_apdu(
         apdu_len += len;
         len = encode_closing_tag(&apdu[apdu_len], 0);
         apdu_len += len;
-        len = encode_context_unsigned(&apdu[apdu_len], 1, 
-                                       private_data->vendorID);
+        len =
+            encode_context_unsigned(&apdu[apdu_len], 1,
+            private_data->vendorID);
         apdu_len += len;
-        len = encode_context_unsigned(&apdu[apdu_len], 2, 
-                                       private_data->serviceNumber);
+        len =
+            encode_context_unsigned(&apdu[apdu_len], 2,
+            private_data->serviceNumber);
         apdu_len += len;
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
@@ -181,7 +185,7 @@ int ptransfer_error_decode_service_request(
     BACNET_ERROR_CODE * error_code,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
-    int len = 0; /* return value */
+    int len = 0;        /* return value */
     int decode_len = 0; /* return value */
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
@@ -196,12 +200,12 @@ int ptransfer_error_decode_service_request(
             /* error class */
             decode_len =
                 decode_tag_number_and_value(&apdu[len], &tag_number,
-                                                &len_value_type);
+                &len_value_type);
             len += decode_len;
             if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
                 return 0;
             }
-            decode_len = 
+            decode_len =
                 decode_enumerated(&apdu[len], len_value_type, &unsigned_value);
             len += decode_len;
             if (error_class) {
@@ -210,12 +214,12 @@ int ptransfer_error_decode_service_request(
             /* error code */
             decode_len =
                 decode_tag_number_and_value(&apdu[len], &tag_number,
-                                                &len_value_type);
+                &len_value_type);
             len += decode_len;
             if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
                 return 0;
             }
-            decode_len = 
+            decode_len =
                 decode_enumerated(&apdu[len], len_value_type, &unsigned_value);
             len += decode_len;
             if (error_code) {
@@ -248,7 +252,8 @@ int ptransfer_error_decode_service_request(
             len++;
             /* don't decode the serviceParameters here */
             private_data->serviceParameters = &apdu[len];
-            private_data->serviceParametersLen = (int)apdu_len - len - 1 /*closing tag */ ;
+            private_data->serviceParametersLen =
+                (int) apdu_len - len - 1 /*closing tag */ ;
         } else {
             return -1;
         }
@@ -261,7 +266,7 @@ int ptransfer_error_decode_service_request(
 int ptransfer_ack_encode_apdu(
     uint8_t * apdu,
     uint8_t invoke_id,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
@@ -269,7 +274,7 @@ int ptransfer_ack_encode_apdu(
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id;    /* original invoke id from request */
-        apdu[2] = SERVICE_CONFIRMED_PRIVATE_TRANSFER;      /* service choice */
+        apdu[2] = SERVICE_CONFIRMED_PRIVATE_TRANSFER;   /* service choice */
         apdu_len = 3;
         /* service ack follows */
 /*
@@ -279,10 +284,12 @@ int ptransfer_ack_encode_apdu(
         resultBlock            [2] ABSTRACT-SYNTAX.&Type OPTIONAL
     }
 */
-        len = encode_context_unsigned(&apdu[apdu_len], 0, 
+        len =
+            encode_context_unsigned(&apdu[apdu_len], 0,
             private_data->vendorID);
         apdu_len += len;
-        len = encode_context_unsigned(&apdu[apdu_len], 1, 
+        len =
+            encode_context_unsigned(&apdu[apdu_len], 1,
             private_data->serviceNumber);
         apdu_len += len;
         len = encode_opening_tag(&apdu[apdu_len], 2);
@@ -311,7 +318,7 @@ int ptransfer_decode_apdu(
     uint8_t * apdu,
     unsigned apdu_len,
     uint8_t * invoke_id,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int len = 0;
     unsigned offset = 0;
@@ -323,16 +330,17 @@ int ptransfer_decode_apdu(
         return -1;
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     /* invoke id - filled in by net layer */
-    *invoke_id = apdu[2];       
+    *invoke_id = apdu[2];
     if (apdu[3] != SERVICE_CONFIRMED_PRIVATE_TRANSFER)
         return -1;
     offset = 4;
 
     if (apdu_len > offset) {
-        len = ptransfer_decode_service_request(
-            &apdu[offset], apdu_len - offset, private_data);
+        len =
+            ptransfer_decode_service_request(&apdu[offset], apdu_len - offset,
+            private_data);
     }
- 
+
     return len;
 }
 
@@ -340,7 +348,7 @@ int ptransfer_ack_decode_apdu(
     uint8_t * apdu,
     int apdu_len,       /* total length of the apdu */
     uint8_t * invoke_id,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int len = 0;
     int offset = 0;
@@ -356,8 +364,8 @@ int ptransfer_ack_decode_apdu(
     offset = 3;
     if (apdu_len > offset) {
         len =
-            ptransfer_decode_service_request(
-                &apdu[offset], apdu_len - offset, private_data);
+            ptransfer_decode_service_request(&apdu[offset], apdu_len - offset,
+            private_data);
     }
 
     return len;
@@ -369,7 +377,7 @@ int ptransfer_error_decode_apdu(
     uint8_t * invoke_id,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int len = 0;
     int offset = 0;
@@ -385,16 +393,15 @@ int ptransfer_error_decode_apdu(
     offset = 3;
     if (apdu_len > offset) {
         len =
-            ptransfer_error_decode_service_request(
-                &apdu[offset], apdu_len - offset, 
-                error_class, error_code, private_data);
+            ptransfer_error_decode_service_request(&apdu[offset],
+            apdu_len - offset, error_class, error_code, private_data);
     }
 
     return len;
 }
 
 void test_Private_Transfer_Ack(
-                         Test * pTest)
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -405,19 +412,17 @@ void test_Private_Transfer_Ack(
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
-    uint8_t private_data_chunk[32] = {"I Love You, Patricia!"};
+    uint8_t private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
 
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OCTET_STRING,
+    bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
         &private_data_chunk[0], &data_value);
-    private_data_len = bacapp_encode_application_data(
-        &test_value[0],
-        &data_value);
+    private_data_len =
+        bacapp_encode_application_data(&test_value[0], &data_value);
 
     private_data.serviceParameters = &test_value[0];
     private_data.serviceParametersLen = private_data_len;
@@ -427,24 +432,23 @@ void test_Private_Transfer_Ack(
     ct_test(pTest, len != 0);
     ct_test(pTest, len != -1);
     apdu_len = len;
-    len = ptransfer_ack_decode_apdu(
-        &apdu[0], apdu_len,
-        &test_invoke_id, &test_data);
+    len =
+        ptransfer_ack_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+        &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_data.vendorID == private_data.vendorID);
     ct_test(pTest, test_data.serviceNumber == private_data.serviceNumber);
-    ct_test(pTest, 
+    ct_test(pTest,
         test_data.serviceParametersLen == private_data.serviceParametersLen);
-    len = bacapp_decode_application_data(
-        test_data.serviceParameters,
-        test_data.serviceParametersLen,
-        &test_data_value);
+    len =
+        bacapp_decode_application_data(test_data.serviceParameters,
+        test_data.serviceParametersLen, &test_data_value);
     ct_test(pTest, bacapp_same_value(&data_value, &test_data_value) == true);
 }
 
 void test_Private_Transfer_Error(
-                         Test * pTest)
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -459,49 +463,45 @@ void test_Private_Transfer_Error(
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
-    uint8_t private_data_chunk[32] = {"I Love You, Patricia!"};
+    uint8_t private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
 
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OCTET_STRING,
+    bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
         &private_data_chunk[0], &data_value);
-    private_data_len = bacapp_encode_application_data(
-        &test_value[0],
-        &data_value);
+    private_data_len =
+        bacapp_encode_application_data(&test_value[0], &data_value);
     private_data.serviceParameters = &test_value[0];
     private_data.serviceParametersLen = private_data_len;
 
-    len = ptransfer_error_encode_apdu(&apdu[0], invoke_id, 
-        error_class, error_code, &private_data);
+    len =
+        ptransfer_error_encode_apdu(&apdu[0], invoke_id, error_class,
+        error_code, &private_data);
     ct_test(pTest, len != 0);
     ct_test(pTest, len != -1);
     apdu_len = len;
-    len = ptransfer_error_decode_apdu(
-        &apdu[0], apdu_len,
-        &test_invoke_id, 
-        &test_error_class, &test_error_code,
-        &test_data);
+    len =
+        ptransfer_error_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+        &test_error_class, &test_error_code, &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_data.vendorID == private_data.vendorID);
     ct_test(pTest, test_data.serviceNumber == private_data.serviceNumber);
     ct_test(pTest, test_error_class == error_class);
     ct_test(pTest, test_error_code == error_code);
-    ct_test(pTest, 
+    ct_test(pTest,
         test_data.serviceParametersLen == private_data.serviceParametersLen);
-    len = bacapp_decode_application_data(
-        test_data.serviceParameters,
-        test_data.serviceParametersLen,
-        &test_data_value);
+    len =
+        bacapp_decode_application_data(test_data.serviceParameters,
+        test_data.serviceParametersLen, &test_data_value);
     ct_test(pTest, bacapp_same_value(&data_value, &test_data_value) == true);
 }
 
 void test_Private_Transfer_Request(
-                      Test * pTest)
+    Test * pTest)
 {
     uint8_t apdu[480] = { 0 };
     uint8_t test_value[480] = { 0 };
@@ -510,7 +510,7 @@ void test_Private_Transfer_Request(
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
     int private_data_len = 0;
-    uint8_t private_data_chunk[32] = {"I Love You, Patricia!"};
+    uint8_t private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
     BACNET_PRIVATE_TRANSFER_DATA private_data;
@@ -519,28 +519,26 @@ void test_Private_Transfer_Request(
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OCTET_STRING,
+    bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
         &private_data_chunk[0], &data_value);
-    private_data_len = bacapp_encode_application_data(
-        &test_value[0],
-        &data_value);
+    private_data_len =
+        bacapp_encode_application_data(&test_value[0], &data_value);
     private_data.serviceParameters = &test_value[0];
     private_data.serviceParametersLen = private_data_len;
 
     len = ptransfer_encode_apdu(&apdu[0], invoke_id, &private_data);
     ct_test(pTest, len != 0);
     apdu_len = len;
-    len = ptransfer_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
+    len =
+        ptransfer_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_data.vendorID == private_data.vendorID);
     ct_test(pTest, test_data.serviceNumber == private_data.serviceNumber);
-    ct_test(pTest, 
+    ct_test(pTest,
         test_data.serviceParametersLen == private_data.serviceParametersLen);
-    len = bacapp_decode_application_data(
-        test_data.serviceParameters,
-        test_data.serviceParametersLen,
-        &test_data_value);
+    len =
+        bacapp_decode_application_data(test_data.serviceParameters,
+        test_data.serviceParametersLen, &test_data_value);
     ct_test(pTest, bacapp_same_value(&data_value, &test_data_value) == true);
 
     return;
@@ -548,7 +546,7 @@ void test_Private_Transfer_Request(
 
 #ifdef TEST_PRIVATE_TRANSFER
 int main(
-         void)
+    void)
 {
     Test *pTest;
     bool rc;

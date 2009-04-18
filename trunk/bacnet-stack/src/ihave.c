@@ -50,13 +50,13 @@ int ihave_encode_apdu(
         apdu_len = 2;
         /* deviceIdentifier */
         len =
-            encode_application_object_id(&apdu[apdu_len], (int)data->device_id.type,
-            data->device_id.instance);
+            encode_application_object_id(&apdu[apdu_len],
+            (int) data->device_id.type, data->device_id.instance);
         apdu_len += len;
         /* objectIdentifier */
         len =
-            encode_application_object_id(&apdu[apdu_len], (int)data->object_id.type,
-            data->object_id.instance);
+            encode_application_object_id(&apdu[apdu_len],
+            (int) data->object_id.type, data->object_id.instance);
         apdu_len += len;
         /* objectName */
         len =

@@ -246,7 +246,7 @@ void RS485_Initialize(
        Open device for reading and writing.
        Blocking mode - more CPU effecient
      */
-    RS485_Handle = open(RS485_Port_Name, O_RDWR | O_NOCTTY /*| O_NDELAY*/);
+    RS485_Handle = open(RS485_Port_Name, O_RDWR | O_NOCTTY /*| O_NDELAY */ );
     if (RS485_Handle < 0) {
         perror(RS485_Port_Name);
         exit(-1);

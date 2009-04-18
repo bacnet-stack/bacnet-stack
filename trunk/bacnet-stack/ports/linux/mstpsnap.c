@@ -267,18 +267,14 @@ int main(
         printf("mstsnap [serial] [baud] [network]\r\n"
             "Captures MS/TP packets from a serial interface\r\n"
             "and sends them to a network interface using SNAP \r\n"
-            "protocol packets (mimics Cimetrics U+4 packet).\r\n"
-            "\r\n"
-            "Command line options:\r\n"
-            "[serial] - serial interface.\r\n"
+            "protocol packets (mimics Cimetrics U+4 packet).\r\n" "\r\n"
+            "Command line options:\r\n" "[serial] - serial interface.\r\n"
             "    defaults to /dev/ttyUSB0.\r\n"
             "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
-            "    defaults to 38400.\r\n"
-            "[network] - network interface.\r\n"
-            "    defaults to eth0.\r\n"
-            "");
+            "    defaults to 38400.\r\n" "[network] - network interface.\r\n"
+            "    defaults to eth0.\r\n" "");
         return 0;
-    }    
+    }
     /* initialize our interface */
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);

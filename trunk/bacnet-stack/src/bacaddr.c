@@ -60,8 +60,8 @@ bool bacnet_address_same(
     BACNET_ADDRESS * dest,
     BACNET_ADDRESS * src)
 {
-    uint8_t i = 0; /* loop counter */
-    uint8_t max_len = 0; /* used for dynamic max */
+    uint8_t i = 0;      /* loop counter */
+    uint8_t max_len = 0;        /* used for dynamic max */
     bool match = true;  /* return value */
 
     if (dest->mac_len != src->mac_len)

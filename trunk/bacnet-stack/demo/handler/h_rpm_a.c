@@ -50,10 +50,10 @@ static int rpm_ack_decode_service_request(
     BACNET_READ_ACCESS_DATA * read_access_data)
 {
     int decoded_len = 0;        /* return value */
-    uint32_t error_value = 0;        /* decoded error value */
+    uint32_t error_value = 0;   /* decoded error value */
     int len = 0;        /* number of bytes returned from decoding */
-    uint8_t tag_number = 0; /* decoded tag number */
-    uint32_t len_value = 0; /* decoded length value */
+    uint8_t tag_number = 0;     /* decoded tag number */
+    uint32_t len_value = 0;     /* decoded length value */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -108,12 +108,12 @@ static int rpm_ack_decode_service_request(
                 while (value && (apdu_len > 0)) {
                     if (decode_is_context_specific(apdu)) {
                         len =
-                            bacapp_decode_context_data(
-                                 apdu, apdu_len, value,
-                                 rpm_property->propertyIdentifier);
+                            bacapp_decode_context_data(apdu, apdu_len, value,
+                            rpm_property->propertyIdentifier);
                     } else {
                         len =
-                            bacapp_decode_application_data(apdu, apdu_len, value);
+                            bacapp_decode_application_data(apdu, apdu_len,
+                            value);
                     }
                     decoded_len += len;
                     apdu_len -= len;
@@ -137,8 +137,7 @@ static int rpm_ack_decode_service_request(
                 apdu++;
                 /* decode the class and code sequence */
                 len =
-                    decode_tag_number_and_value(apdu, &tag_number,
-                    &len_value);
+                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -149,13 +148,12 @@ static int rpm_ack_decode_service_request(
                 apdu_len -= len;
                 apdu += len;
                 len =
-                    decode_tag_number_and_value(apdu, &tag_number,
-                    &len_value);
+                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
                 /* FIXME: we could validate that the tag is enumerated... */
-                len = decode_enumerated(apdu, len_value, &error_value); 
+                len = decode_enumerated(apdu, len_value, &error_value);
                 rpm_property->error.error_code = error_value;
                 decoded_len += len;
                 apdu_len -= len;
@@ -242,10 +240,10 @@ static void PrintReadPropertyMultipleData(
 #if PRINT_ENABLED
                 /* AccessError */
                 fprintf(stdout, "BACnet Error: %s: %s\r\n",
-                    bactext_error_class_name(
-                        (int)listOfProperties->error.error_class),
-                    bactext_error_code_name(
-                        (int)listOfProperties->error.error_code));
+                    bactext_error_class_name((int) listOfProperties->error.
+                        error_class),
+                    bactext_error_code_name((int) listOfProperties->error.
+                        error_code));
 #endif
             }
             listOfProperties = listOfProperties->next;

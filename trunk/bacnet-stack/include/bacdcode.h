@@ -288,11 +288,11 @@ extern "C" {
     int decode_enumerated(
         uint8_t * apdu,
         uint32_t len_value,
-        uint32_t *value);
+        uint32_t * value);
     int decode_context_enumerated(
         uint8_t * apdu,
         uint8_t tag_value,
-        uint32_t *value);
+        uint32_t * value);
     int encode_bacnet_enumerated(
         uint8_t * apdu,
         uint32_t value);

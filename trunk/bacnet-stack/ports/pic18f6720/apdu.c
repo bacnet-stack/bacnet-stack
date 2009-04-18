@@ -123,14 +123,15 @@ void apdu_handler(
                 if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
                     handler_read_property(service_request, service_request_len,
                         src, &service_data);
-                }
-                else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
+                } else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
                     handler_write_property(service_request,
                         service_request_len, src, &service_data);
-                } else if (service_choice == SERVICE_CONFIRMED_REINITIALIZE_DEVICE) {
+                } else if (service_choice ==
+                    SERVICE_CONFIRMED_REINITIALIZE_DEVICE) {
                     handler_reinitialize_device(service_request,
                         service_request_len, src, &service_data);
-                } else if (service_choice == SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL) {
+                } else if (service_choice ==
+                    SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL) {
                     handler_device_communication_control(service_request,
                         service_request_len, src, &service_data);
                 } else {

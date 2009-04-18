@@ -68,7 +68,7 @@ int bacapp_encode_device_obj_property_ref(
 
     len =
         encode_context_object_id(&apdu[apdu_len], 0,
-        (int)value->objectIdentifier.type, value->objectIdentifier.instance);
+        (int) value->objectIdentifier.type, value->objectIdentifier.instance);
     apdu_len += len;
 
     len =
@@ -82,7 +82,8 @@ int bacapp_encode_device_obj_property_ref(
     }
     len =
         encode_context_object_id(&apdu[apdu_len], 3,
-        (int)value->deviceIndentifier.type, value->deviceIndentifier.instance);
+        (int) value->deviceIndentifier.type,
+        value->deviceIndentifier.instance);
     apdu_len += len;
 
     return apdu_len;

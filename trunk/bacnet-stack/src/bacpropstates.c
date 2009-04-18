@@ -301,7 +301,7 @@ int bacapp_encode_property_state(
 }
 
 #ifdef TEST
-#include <string.h> /* for memset */
+#include <string.h>     /* for memset */
 
 void testPropStates(
     Test * pTest)

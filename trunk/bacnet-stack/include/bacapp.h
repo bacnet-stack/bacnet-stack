@@ -100,7 +100,7 @@ typedef struct BACnet_Property_Reference {
     BACNET_PROPERTY_ID propertyIdentifier;
     int32_t propertyArrayIndex; /* optional */
     /* either value or error, but not both. 
-    Use NULL value to indicate error */
+       Use NULL value to indicate error */
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_ACCESS_ERROR error;
     /* simple linked list */

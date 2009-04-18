@@ -135,7 +135,7 @@ int bacapp_encode_application_data(
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 apdu_len =
                     encode_application_object_id(&apdu[0],
-                    (int)value->type.Object_Id.type,
+                    (int) value->type.Object_Id.type,
                     value->type.Object_Id.instance);
                 break;
 #endif
@@ -376,7 +376,7 @@ int bacapp_encode_context_data_value(
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 apdu_len =
                     encode_context_object_id(&apdu[0], context_tag_number,
-                    (int)value->type.Object_Id.type,
+                    (int) value->type.Object_Id.type,
                     value->type.Object_Id.instance);
                 break;
 #endif
@@ -686,7 +686,7 @@ int bacapp_data_len(
                     break;
                 }
             }
-            if ((unsigned)apdu_len > max_apdu_len) {
+            if ((unsigned) apdu_len > max_apdu_len) {
                 /* error: exceeding our buffer limit */
                 total_len = -1;
                 break;

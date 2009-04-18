@@ -174,14 +174,14 @@ static void Init_DataLink(
     pEnv = getenv("BACNET_MSTP_BAUD");
     if (pEnv) {
         RS485_Set_Baud_Rate(strtol(pEnv, NULL, 0));
-        fprintf(stderr, "BACNET_MSTP_BAUD=%s\r\n",pEnv);
+        fprintf(stderr, "BACNET_MSTP_BAUD=%s\r\n", pEnv);
     } else {
         RS485_Set_Baud_Rate(38400);
     }
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {
         apdu_timeout_set(strtol(pEnv, NULL, 0));
-        fprintf(stderr, "BACNET_APDU_TIMEOUT=%s\r\n",pEnv);
+        fprintf(stderr, "BACNET_APDU_TIMEOUT=%s\r\n", pEnv);
     }
     pEnv = getenv("BACNET_MSTP_MAC");
     if (pEnv) {

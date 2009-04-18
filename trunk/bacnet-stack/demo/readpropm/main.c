@@ -230,7 +230,8 @@ void cleanup(void) {
             old_rpm_property = rpm_property;
             rpm_property = rpm_property->next;
             free(old_rpm_property);
-        } old_rpm_object = rpm_object;
+        }
+        old_rpm_object = rpm_object;
         rpm_object = rpm_object->next;
         free(old_rpm_object);
     }

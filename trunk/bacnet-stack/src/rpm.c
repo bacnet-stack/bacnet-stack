@@ -119,8 +119,9 @@ int rpm_encode_apdu(
     BACNET_PROPERTY_REFERENCE *rpm_property;    /* current property */
 
     len = rpm_encode_apdu_init(&apdu_temp[0], invoke_id);
-    len = (int)memcopy(&apdu[0], &apdu_temp[0], 
-        (size_t)apdu_len, (size_t)len, (size_t)max_apdu);
+    len =
+        (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len, (size_t) len,
+        (size_t) max_apdu);
     if (len == 0) {
         return 0;
     }
@@ -130,16 +131,18 @@ int rpm_encode_apdu(
         len =
             encode_context_object_id(&apdu_temp[0], 0, rpm_object->object_type,
             rpm_object->object_instance);
-        len = (int)memcopy(&apdu[0], &apdu_temp[0], 
-            (size_t)apdu_len, (size_t)len, (size_t)max_apdu);
+        len =
+            (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len,
+            (size_t) len, (size_t) max_apdu);
         if (len == 0) {
             return 0;
         }
         apdu_len += len;
         /* Tag 1: sequence of ReadAccessSpecification */
         len = encode_opening_tag(&apdu_temp[0], 1);
-        len = (int)memcopy(&apdu[0], &apdu_temp[0], 
-            (size_t)apdu_len, (size_t)len, (size_t)max_apdu);
+        len =
+            (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len,
+            (size_t) len, (size_t) max_apdu);
         if (len == 0) {
             return 0;
         }
@@ -150,8 +153,9 @@ int rpm_encode_apdu(
             len =
                 encode_context_enumerated(&apdu_temp[0], 0,
                 rpm_property->propertyIdentifier);
-            len = (int)memcopy(&apdu[0], &apdu_temp[0], 
-                (size_t)apdu_len, (size_t)len, (size_t)max_apdu);
+            len =
+                (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len,
+                (size_t) len, (size_t) max_apdu);
             if (len == 0) {
                 return 0;
             }
@@ -161,8 +165,9 @@ int rpm_encode_apdu(
                 len =
                     encode_context_unsigned(&apdu_temp[0], 1,
                     rpm_property->propertyArrayIndex);
-                len = (int)memcopy(&apdu[0], &apdu_temp[0], 
-                        (size_t)apdu_len, (size_t)len, (size_t)max_apdu);
+                len =
+                    (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len,
+                    (size_t) len, (size_t) max_apdu);
                 if (len == 0) {
                     return 0;
                 }
@@ -171,8 +176,9 @@ int rpm_encode_apdu(
             rpm_property = rpm_property->next;
         }
         len = encode_closing_tag(&apdu_temp[0], 1);
-        len = (int)memcopy(&apdu[0], &apdu_temp[0], 
-            (size_t)apdu_len, (size_t)len, (size_t)max_apdu);
+        len =
+            (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len,
+            (size_t) len, (size_t) max_apdu);
         if (len == 0) {
             return 0;
         }
@@ -242,7 +248,7 @@ int rpm_decode_object_property(
     unsigned option_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint32_t property = 0;   /* for decoding */
+    uint32_t property = 0;      /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for valid pointers */
@@ -261,8 +267,9 @@ int rpm_decode_object_property(
         /* Tag 1: Optional propertyArrayIndex */
         if ((len < apdu_len) && decode_is_context_specific(&apdu[len]) &&
             (!decode_is_closing_tag(&apdu[len]))) {
-            option_len = (unsigned)decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
+            option_len =
+                (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             if (tag_number == 1) {
                 len += option_len;
                 len +=
@@ -434,7 +441,7 @@ int rpm_ack_decode_object_property(
     unsigned tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint32_t property = 0;   /* for decoding */
+    uint32_t property = 0;      /* for decoding */
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for valid pointers */
@@ -453,8 +460,9 @@ int rpm_ack_decode_object_property(
         /* Tag 3: Optional propertyArrayIndex */
         if ((len < apdu_len) && decode_is_context_specific(&apdu[len]) &&
             (!decode_is_closing_tag(&apdu[len]))) {
-            tag_len = (unsigned)decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
+            tag_len =
+                (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             if (tag_number == 3) {
                 len += tag_len;
                 len +=
