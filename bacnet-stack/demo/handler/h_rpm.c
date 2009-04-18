@@ -421,15 +421,14 @@ void handler_read_property_multiple(
                     /* handle the error code - but use the special property */
                     len =
                         RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                        npdu_len + apdu_len, MAX_APDU,
-                        object_type, object_instance, object_property,
-                        array_index);
+                        npdu_len + apdu_len, MAX_APDU, object_type,
+                        object_instance, object_property, array_index);
                     if (len > 0) {
                         apdu_len += len;
                     } else {
                         apdu_len =
-                            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                            service_data->invoke_id,
+                            abort_encode_apdu(&Handler_Transmit_Buffer
+                            [npdu_len], service_data->invoke_id,
                             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
                         goto RPM_ABORT;
                     }
@@ -440,9 +439,8 @@ void handler_read_property_multiple(
                             special_object_property, index);
                         len =
                             RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                            npdu_len + apdu_len, MAX_APDU,
-                            object_type, object_instance, object_property,
-                            array_index);
+                            npdu_len + apdu_len, MAX_APDU, object_type,
+                            object_instance, object_property, array_index);
                         if (len > 0) {
                             apdu_len += len;
                         } else {

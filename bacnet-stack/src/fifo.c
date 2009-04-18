@@ -47,7 +47,7 @@
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static unsigned FIFO_Count (
+static unsigned FIFO_Count(
     FIFO_BUFFER const *b)
 {
     return (b ? (b->head - b->tail) : 0);
@@ -59,7 +59,7 @@ static unsigned FIFO_Count (
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static bool FIFO_Full (
+static bool FIFO_Full(
     FIFO_BUFFER const *b)
 {
     return (b ? (FIFO_Count(b) == b->buffer_len) : true);
@@ -71,7 +71,7 @@ static bool FIFO_Full (
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static bool FIFO_Available (
+static bool FIFO_Available(
     FIFO_BUFFER const *b,
     unsigned count)
 {
@@ -85,7 +85,7 @@ static bool FIFO_Available (
 * NOTES:       none
 *****************************************************************************/
 bool FIFO_Empty(
-        FIFO_BUFFER const *b)
+    FIFO_BUFFER const *b)
 {
     return (b ? (FIFO_Count(b) == 0) : true);
 }
@@ -97,7 +97,7 @@ bool FIFO_Empty(
 * NOTES:       Use Empty function to see if there is data to retrieve
 *****************************************************************************/
 uint8_t FIFO_Peek(
-        FIFO_BUFFER const *b)
+    FIFO_BUFFER const *b)
 {
     if (b) {
         return (b->buffer[b->tail % b->buffer_len]);
@@ -113,7 +113,7 @@ uint8_t FIFO_Peek(
 * NOTES:       Use Empty function to see if there is data to retrieve
 *****************************************************************************/
 uint8_t FIFO_Get(
-        FIFO_BUFFER * b)
+    FIFO_BUFFER * b)
 {
     uint8_t data_byte = 0;
 
@@ -131,8 +131,8 @@ uint8_t FIFO_Get(
 * NOTES:       none
 *****************************************************************************/
 bool FIFO_Put(
-        FIFO_BUFFER * b,
-        uint8_t data_byte)
+    FIFO_BUFFER * b,
+    uint8_t data_byte)
 {
     bool status = false;        /* return value */
 
@@ -155,14 +155,14 @@ bool FIFO_Put(
 * NOTES:       none
 *****************************************************************************/
 bool FIFO_Add(
-        FIFO_BUFFER * b,
-        uint8_t *data_bytes,
-        unsigned count)
+    FIFO_BUFFER * b,
+    uint8_t * data_bytes,
+    unsigned count)
 {
     bool status = false;        /* return value */
 
     /* limit the ring to prevent overwriting */
-    if (FIFO_Available (b, count)) {
+    if (FIFO_Available(b, count)) {
         while (count) {
             b->buffer[b->head % b->buffer_len] = *data_bytes;
             b->head++;
@@ -182,7 +182,7 @@ bool FIFO_Add(
 * NOTES:       none
 *****************************************************************************/
 void FIFO_Flush(
-        FIFO_BUFFER * b)
+    FIFO_BUFFER * b)
 {
     if (b) {
         b->tail = b->head;
@@ -197,7 +197,7 @@ void FIFO_Flush(
 *****************************************************************************/
 void FIFO_Init(
     FIFO_BUFFER * b,
-    volatile uint8_t *buffer,
+    volatile uint8_t * buffer,
     unsigned buffer_len)
 {
     if (b) {
@@ -224,7 +224,7 @@ void testFIFOBuffer(
 {
     FIFO_BUFFER test_buffer;
     volatile uint8_t data_store[FIFO_BUFFER_SIZE];
-    uint8_t test_add_data[40] = {"RoseSteveLouPatRachelJessicaDaniAmyHerb"};
+    uint8_t test_add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
     uint8_t test_data;
     uint8_t index;
     uint8_t count;

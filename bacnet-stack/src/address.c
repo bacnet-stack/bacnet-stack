@@ -54,39 +54,40 @@ static struct Address_Cache_Entry {
     BACNET_ADDRESS address;
 } Address_Cache[MAX_ADDRESS_CACHE];
 
-bool address_match(BACNET_ADDRESS * dest,
-   BACNET_ADDRESS * src)
+bool address_match(
+    BACNET_ADDRESS * dest,
+    BACNET_ADDRESS * src)
 {
-   uint8_t i = 0;
-   uint8_t max_len = 0;
+    uint8_t i = 0;
+    uint8_t max_len = 0;
 
-   if (dest->mac_len != src->mac_len)
-       return false;
-   max_len = dest->mac_len;
-   if (max_len > MAX_MAC_LEN)
-       max_len = MAX_MAC_LEN;
-   for (i = 0; i < max_len; i++) {
-       if (dest->mac[i] != src->mac[i])
-           return false;
-   }
-   if (dest->net != src->net)
-       return false;
+    if (dest->mac_len != src->mac_len)
+        return false;
+    max_len = dest->mac_len;
+    if (max_len > MAX_MAC_LEN)
+        max_len = MAX_MAC_LEN;
+    for (i = 0; i < max_len; i++) {
+        if (dest->mac[i] != src->mac[i])
+            return false;
+    }
+    if (dest->net != src->net)
+        return false;
 
-   /* if local, ignore remaining fields */
-   if (dest->net == 0)
-       return true;
+    /* if local, ignore remaining fields */
+    if (dest->net == 0)
+        return true;
 
-   if (dest->len != src->len)
-       return false;
-   max_len = dest->len;
-   if (max_len > MAX_MAC_LEN)
-       max_len = MAX_MAC_LEN;
-   for (i = 0; i < max_len; i++) {
-       if (dest->adr[i] != src->adr[i])
-           return false;
-   }
+    if (dest->len != src->len)
+        return false;
+    max_len = dest->len;
+    if (max_len > MAX_MAC_LEN)
+        max_len = MAX_MAC_LEN;
+    for (i = 0; i < max_len; i++) {
+        if (dest->adr[i] != src->adr[i])
+            return false;
+    }
 
-   return true;
+    return true;
 }
 
 void address_remove_device(
@@ -129,7 +130,7 @@ void address_file_init(
 
     pFile = fopen(pFilename, "r");
     if (pFile) {
-        while (fgets(line, (int)sizeof(line), pFile) != NULL) {
+        while (fgets(line, (int) sizeof(line), pFile) != NULL) {
             /* ignore comments */
             if (line[0] != ';') {
                 if (sscanf(line, "%ld %s %d %s %u", &device_id, &mac_string[0],
@@ -137,16 +138,16 @@ void address_file_init(
                     count =
                         sscanf(mac_string, "%x:%x:%x:%x:%x:%x", &mac[0],
                         &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                    src.mac_len = (uint8_t)count;
+                    src.mac_len = (uint8_t) count;
                     for (index = 0; index < MAX_MAC_LEN; index++) {
                         src.mac[index] = mac[index];
                     }
-                    src.net = (uint16_t)snet;
+                    src.net = (uint16_t) snet;
                     if (snet) {
                         count =
                             sscanf(sadr_string, "%x:%x:%x:%x:%x:%x", &mac[0],
                             &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                        src.len = (uint8_t)count;
+                        src.len = (uint8_t) count;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
                             src.adr[index] = mac[index];
                         }
@@ -156,7 +157,7 @@ void address_file_init(
                             src.adr[index] = 0;
                         }
                     }
-                    address_add((uint32_t)device_id, max_apdu, &src);
+                    address_add((uint32_t) device_id, max_apdu, &src);
                 }
             }
         }

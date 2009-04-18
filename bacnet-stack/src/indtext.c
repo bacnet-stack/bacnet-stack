@@ -44,8 +44,8 @@ int stricmp(
     unsigned char c1, c2;
 
     do {
-        c1 = (unsigned char)*s1;
-        c2 = (unsigned char)*s2;
+        c1 = (unsigned char) *s1;
+        c2 = (unsigned char) *s2;
         c1 = (unsigned char) tolower(c1);
         c2 = (unsigned char) tolower(c2);
         s1++;

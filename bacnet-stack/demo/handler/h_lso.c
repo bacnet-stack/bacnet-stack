@@ -43,12 +43,12 @@ bool handler_lso(
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-    BACNET_LSO_DATA    data;
-    int                len = 0;
-    int                pdu_len = 0;
-    BACNET_NPDU_DATA   npdu_data;
-    int                bytes_sent = 0;
-    BACNET_ADDRESS     my_address;
+    BACNET_LSO_DATA data;
+    int len = 0;
+    int pdu_len = 0;
+    BACNET_NPDU_DATA npdu_data;
+    int bytes_sent = 0;
+    BACNET_ADDRESS my_address;
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
@@ -84,24 +84,20 @@ bool handler_lso(
         goto LSO_ABORT;
     }
 
-	/*
-	** Process Life Safety Operation Here
-	*/
+    /*
+     ** Process Life Safety Operation Here
+     */
 #if PRINT_ENABLED
     fprintf(stderr,
-        "Life Safety Operation: Received operation %d from process id %d for object %id\n", 
-			data.operation,
-			data.processId,
-			data.targetObject.instance);
+        "Life Safety Operation: Received operation %d from process id %d for object %id\n",
+        data.operation, data.processId, data.targetObject.instance);
 #endif
 
     len =
         encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-        service_data->invoke_id,
-        SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION);
+        service_data->invoke_id, SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION);
 #if PRINT_ENABLED
-    fprintf(stderr,
-        "Life Safety Operation: " "Sending Simple Ack!\n");
+    fprintf(stderr, "Life Safety Operation: " "Sending Simple Ack!\n");
 #endif
 
   LSO_ABORT:
@@ -111,11 +107,9 @@ bool handler_lso(
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Life Safety Operation: " "Failed to send PDU (%s)!\n",
+        fprintf(stderr, "Life Safety Operation: " "Failed to send PDU (%s)!\n",
             strerror(errno));
 #endif
 
     return;
 }
-

@@ -17,11 +17,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void DLL_EXPORT SomeFunction(
-    const LPCSTR sometext);
+    void DLL_EXPORT SomeFunction(
+        const LPCSTR sometext);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #endif

@@ -100,7 +100,7 @@ int wp_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint16_t type = 0;  /* for decoding */
-    uint32_t property = 0;   /* for decoding */
+    uint32_t property = 0;      /* for decoding */
     uint32_t unsigned_value = 0;
     int i = 0;  /* loop counter */
 
