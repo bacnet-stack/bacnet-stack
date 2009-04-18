@@ -36,7 +36,6 @@
 #include "bacdcode.h"
 #include "npdu.h"
 #include "device.h"
-#include "datalink.h"
 #include "timestamp.h"
 #include "bacpropstates.h"
 
@@ -302,6 +301,7 @@ int bacapp_encode_property_state(
 }
 
 #ifdef TEST
+#include <string.h> /* for memset */
 
 void testPropStates(
     Test * pTest)

@@ -1,7 +1,7 @@
 LOGFILE = test.log
 
 all: abort address arf awf bacapp bacdcode bacerror bacint \
-	bacstr cov crc datetime dcc fifo filename iam ihave \
+	bacstr cov crc datetime dcc event fifo filename iam ihave \
 	indtext keylist key lso mstp npdu rd reject ringbuf rp \
 	rpm sbuf timesync whohas whois wp
 
@@ -75,6 +75,11 @@ dcc: logfile test/dcc.mak
 	make -C test -f dcc.mak clean all
 	( ./test/dcc >> ${LOGFILE} )
 	make -C test -f dcc.mak clean
+
+event: logfile test/event.mak
+	make -C test -f event.mak clean all
+	( ./test/event >> ${LOGFILE} )
+	make -C test -f event.mak clean
 
 filename: logfile test/filename.mak
 	make -C test -f filename.mak clean all
