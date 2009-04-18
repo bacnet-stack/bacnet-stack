@@ -2,7 +2,7 @@ LOGFILE = test.log
 
 all: abort address arf awf bacapp bacdcode bacerror bacint \
 	bacstr cov crc datetime dcc fifo filename iam ihave \
-	indtext keylist key mstp npdu rd reject ringbuf rp \
+	indtext keylist key lso mstp npdu rd reject ringbuf rp \
 	rpm sbuf timesync whohas whois wp
 
 clean:
@@ -12,273 +12,231 @@ logfile:
 	touch ${LOGFILE}
 
 abort: logfile test/abort.mak
-	( cd test ; make -f abort.mak clean )
-	( cd test ; make -f abort.mak )
+	make -C test -f abort.mak clean all
 	( ./test/abort >> ${LOGFILE} )
-	( cd test ; make -f abort.mak clean )
+	make -C test -f abort.mak clean
 
 address: logfile test/address.mak
-	( cd test ; make -f address.mak clean )
-	( cd test ; make -f address.mak )
+	make -C test -f address.mak clean all
 	( ./test/address >> ${LOGFILE} )
-	( cd test ; make -f address.mak clean )
+	make -C test -f address.mak clean
 
 arf: logfile test/arf.mak
-	( cd test ; make -f arf.mak clean )
-	( cd test ; make -f arf.mak )
+	make -C test -f arf.mak clean all
 	( ./test/arf >> ${LOGFILE} )
-	( cd test ; make -f arf.mak clean )
+	make -C test -f arf.mak clean
 
 awf: logfile test/awf.mak
-	( cd test ; make -f awf.mak clean )
-	( cd test ; make -f awf.mak )
+	make -C test -f awf.mak clean all
 	( ./test/awf >> ${LOGFILE} )
-	( cd test ; make -f awf.mak clean )
+	make -C test -f awf.mak clean
 
 bacapp: logfile test/bacapp.mak
-	( cd test ; make -f bacapp.mak clean )
-	( cd test ; make -f bacapp.mak )
+	make -C test -f bacapp.mak clean all
 	( ./test/bacapp >> ${LOGFILE} )
-	( cd test ; make -f bacapp.mak clean )
+	make -C test -f bacapp.mak clean
 
 bacdcode: logfile test/bacdcode.mak
-	( cd test ; make -f bacdcode.mak clean )
-	( cd test ; make -f bacdcode.mak )
+	make -C test -f bacdcode.mak clean all
 	( ./test/bacdcode >> ${LOGFILE} )
-	( cd test ; make -f bacdcode.mak clean )
+	make -C test -f bacdcode.mak clean
 
 bacerror: logfile test/bacerror.mak
-	( cd test ; make -f bacerror.mak clean )
-	( cd test ; make -f bacerror.mak )
+	make -C test -f bacerror.mak clean all
 	( ./test/bacerror >> ${LOGFILE} )
-	( cd test ; make -f bacerror.mak clean )
+	make -C test -f bacerror.mak clean
 
 bacint: logfile test/bacint.mak
-	( cd test ; make -f bacint.mak clean )
-	( cd test ; make -f bacint.mak )
+	make -C test -f bacint.mak clean all
 	( ./test/bacint >> ${LOGFILE} )
-	( cd test ; make -f bacint.mak clean )
+	make -C test -f bacint.mak clean
 
 bacstr: logfile test/bacstr.mak
-	( cd test ; make -f bacstr.mak clean )
-	( cd test ; make -f bacstr.mak )
+	make -C test -f bacstr.mak clean all
 	( ./test/bacstr >> ${LOGFILE} )
-	( cd test ; make -f bacstr.mak clean )
+	make -C test -f bacstr.mak clean
 
 cov: logfile test/cov.mak
-	( cd test ; make -f cov.mak clean )
-	( cd test ; make -f cov.mak )
+	make -C test -f cov.mak clean all
 	( ./test/cov >> ${LOGFILE} )
-	( cd test ; make -f cov.mak clean )
+	make -C test -f cov.mak clean
 
 crc: logfile test/crc.mak
-	( cd test ; make -f crc.mak clean )
-	( cd test ; make -f crc.mak )
+	make -C test -f crc.mak clean all
 	( ./test/crc >> ${LOGFILE} )
-	( cd test ; make -f crc.mak clean )
+	make -C test -f crc.mak clean
 
 datetime: logfile test/datetime.mak
-	( cd test ; make -f datetime.mak clean )
-	( cd test ; make -f datetime.mak )
+	make -C test -f datetime.mak clean all
 	( ./test/datetime >> ${LOGFILE} )
-	( cd test ; make -f datetime.mak clean )
+	make -C test -f datetime.mak clean
 
 dcc: logfile test/dcc.mak
-	( cd test ; make -f dcc.mak clean )
-	( cd test ; make -f dcc.mak )
+	make -C test -f dcc.mak clean all
 	( ./test/dcc >> ${LOGFILE} )
-	( cd test ; make -f dcc.mak clean )
+	make -C test -f dcc.mak clean
 
 filename: logfile test/filename.mak
-	( cd test ; make -f filename.mak clean )
-	( cd test ; make -f filename.mak )
+	make -C test -f filename.mak clean all
 	( ./test/filename >> ${LOGFILE} )
-	( cd test ; make -f filename.mak clean )
+	make -C test -f filename.mak clean
 
 fifo: logfile test/fifo.mak
-	( cd test ; make -f fifo.mak clean )
-	( cd test ; make -f fifo.mak )
+	make -C test -f fifo.mak clean all
 	( ./test/fifo >> ${LOGFILE} )
-	( cd test ; make -f fifo.mak clean )
+	make -C test -f fifo.mak clean
 
 iam: logfile test/iam.mak
-	( cd test ; make -f iam.mak clean )
-	( cd test ; make -f iam.mak )
+	make -C test -f iam.mak clean all
 	( ./test/iam >> ${LOGFILE} )
-	( cd test ; make -f iam.mak clean )
+	make -C test -f iam.mak clean
 
 ihave: logfile test/ihave.mak
-	( cd test ; make -f ihave.mak clean )
-	( cd test ; make -f ihave.mak )
+	make -C test -f ihave.mak clean all
 	( ./test/ihave >> ${LOGFILE} )
-	( cd test ; make -f ihave.mak clean )
+	make -C test -f ihave.mak clean
 
 indtext: logfile test/indtext.mak
-	( cd test ; make -f indtext.mak clean )
-	( cd test ; make -f indtext.mak )
+	make -C test -f indtext.mak clean all
 	( ./test/indtext >> ${LOGFILE} )
-	( cd test ; make -f indtext.mak clean )
+	make -C test -f indtext.mak clean
 
 keylist: logfile test/keylist.mak
-	( cd test ; make -f keylist.mak clean )
-	( cd test ; make -f keylist.mak )
+	make -C test -f keylist.mak clean all
 	( ./test/keylist >> ${LOGFILE} )
-	( cd test ; make -f keylist.mak clean )
+	make -C test -f keylist.mak clean
 
 key: logfile test/key.mak
-	( cd test ; make -f key.mak clean )
-	( cd test ; make -f key.mak )
+	make -C test -f key.mak clean all
 	( ./test/key >> ${LOGFILE} )
-	( cd test ; make -f key.mak clean )
+	make -C test -f key.mak clean
+
+lso: logfile test/lso.mak
+	make -C test -f lso.mak clean all
+	( ./test/lso >> ${LOGFILE} )
+	make -C test -f lso.mak clean
 
 mstp: logfile test/mstp.mak
-	( cd test ; make -f mstp.mak clean )
-	( cd test ; make -f mstp.mak )
+	make -C test -f mstp.mak clean all
 	( ./test/mstp >> ${LOGFILE} )
-	( cd test ; make -f mstp.mak clean )
+	make -C test -f mstp.mak clean
 
 memcopy: logfile test/memcopy.mak
-	( cd test ; make -f memcopy.mak clean )
-	( cd test ; make -f memcopy.mak )
+	make -C test -f memcopy.mak clean all
 	( ./test/memcopy >> ${LOGFILE} )
-	( cd test ; make -f memcopy.mak clean )
+	make -C test -f memcopy.mak clean
 
 npdu: logfile test/npdu.mak
-	( cd test ; make -f npdu.mak clean )
-	( cd test ; make -f npdu.mak )
+	make -C test -f npdu.mak clean all
 	( ./test/npdu >> ${LOGFILE} )
-	( cd test ; make -f npdu.mak clean )
+	make -C test -f npdu.mak clean
 
 ptransfer: logfile test/ptransfer.mak
-	( cd test ; make -f ptransfer.mak clean )
-	( cd test ; make -f ptransfer.mak )
+	make -C test -f ptransfer.mak clean all
 	( ./test/ptransfer >> ${LOGFILE} )
-	( cd test ; make -f ptransfer.mak clean )
+	make -C test -f ptransfer.mak clean
 
 rd: logfile test/rd.mak
-	( cd test ; make -f rd.mak clean )
-	( cd test ; make -f rd.mak )
+	make -C test -f rd.mak clean all
 	( ./test/rd >> ${LOGFILE} )
-	( cd test ; make -f rd.mak clean )
+	make -C test -f rd.mak clean
 
 reject: logfile test/reject.mak
-	( cd test ; make -f reject.mak clean )
-	( cd test ; make -f reject.mak )
+	make -C test -f reject.mak clean all
 	( ./test/reject >> ${LOGFILE} )
-	( cd test ; make -f reject.mak clean )
+	make -C test -f reject.mak clean
 
 ringbuf: logfile test/ringbuf.mak
-	( cd test ; make -f ringbuf.mak clean )
-	( cd test ; make -f ringbuf.mak )
+	make -C test -f ringbuf.mak clean all
 	( ./test/ringbuf >> ${LOGFILE} )
-	( cd test ; make -f ringbuf.mak clean )
+	make -C test -f ringbuf.mak clean
 
 rp: logfile test/rp.mak
-	( cd test ; make -f rp.mak clean )
-	( cd test ; make -f rp.mak )
+	make -C test -f rp.mak clean all
 	( ./test/rp >> ${LOGFILE} )
-	( cd test ; make -f rp.mak clean )
+	make -C test -f rp.mak clean
 
 rpm: logfile test/rpm.mak
-	( cd test ; make -f rpm.mak clean )
-	( cd test ; make -f rpm.mak )
+	make -C test -f rpm.mak clean all
 	( ./test/rpm >> ${LOGFILE} )
-	( cd test ; make -f rpm.mak clean )
+	make -C test -f rpm.mak clean
 
 sbuf: logfile test/sbuf.mak
-	( cd test ; make -f sbuf.mak clean )
-	( cd test ; make -f sbuf.mak )
+	make -C test -f sbuf.mak clean all
 	( ./test/sbuf >> ${LOGFILE} )
-	( cd test ; make -f sbuf.mak clean )
+	make -C test -f sbuf.mak clean
 
 timesync: logfile test/timesync.mak
-	( cd test ; make -f timesync.mak clean )
-	( cd test ; make -f timesync.mak )
+	make -C test -f timesync.mak clean all
 	( ./test/timesync >> ${LOGFILE} )
-	( cd test ; make -f timesync.mak clean )
+	make -C test -f timesync.mak clean
 
 whohas: logfile test/whohas.mak
-	( cd test ; make -f whohas.mak clean )
-	( cd test ; make -f whohas.mak )
+	make -C test -f whohas.mak clean all
 	( ./test/whohas >> ${LOGFILE} )
-	( cd test ; make -f whohas.mak clean )
+	make -C test -f whohas.mak clean
 
 whois: logfile test/whois.mak
-	( cd test ; make -f whois.mak clean )
-	( cd test ; make -f whois.mak )
+	make -C test -f whois.mak clean all
 	( ./test/whois >> ${LOGFILE} )
-	( cd test ; make -f whois.mak clean )
+	make -C test -f whois.mak clean
 
 wp: logfile test/wp.mak
-	( cd test ; make -f wp.mak clean )
-	( cd test ; make -f wp.mak )
+	make -C test -f wp.mak clean all
 	( ./test/wp >> ${LOGFILE} )
-	( cd test ; make -f wp.mak clean )
+	make -C test -f wp.mak clean
 
 # Objects
 ai: logfile demo/object/ai.mak
-	( cd demo/object ; make -f ai.mak clean )
-	( cd demo/object ; make -f ai.mak )
+	make -C demo/object -f ai.mak clean all
 	( ./demo/object/analog_input >> ${LOGFILE} )
-	( cd demo/object ; make -f ai.mak clean )
+	make -C demo/object -f ai.mak clean
 
 ao: logfile demo/object/ao.mak
-	( cd demo/object ; make -f ao.mak clean )
-	( cd demo/object ; make -f ao.mak )
+	make -C demo/object -f ao.mak clean all
 	( ./demo/object/analog_output >> ${LOGFILE} )
-	( cd demo/object ; make -f ao.mak clean )
+	make -C demo/object -f ao.mak clean
 
 av: logfile demo/object/av.mak
-	( cd demo/object ; make -f av.mak clean )
-	( cd demo/object ; make -f av.mak )
+	make -C demo/object -f av.mak clean all
 	( ./demo/object/analog_value >> ${LOGFILE} )
-	( cd demo/object ; make -f av.mak clean )
+	make -C demo/object -f av.mak clean
 
 bi: logfile demo/object/bi.mak
-	( cd demo/object ; make -f bi.mak clean )
-	( cd demo/object ; make -f bi.mak )
-	( ./demo/object/binary_input >> ${LOGFILE} )
-	( cd demo/object ; make -f bi.mak clean )
+	make -C demo/object -f bi.mak clean all
+	make -C demo/object -f bi.mak clean
 
 bo: logfile demo/object/bo.mak
-	( cd demo/object ; make -f bo.mak clean )
-	( cd demo/object ; make -f bo.mak )
+	make -C demo/object -f bo.mak clean all
 	( ./demo/object/binar_output >> ${LOGFILE} )
-	( cd demo/object ; make -f bo.mak clean )
+	make -C demo/object -f bo.mak clean
 
 bv: logfile demo/object/bv.mak
-	( cd demo/object ; make -f bv.mak clean )
-	( cd demo/object ; make -f bv.mak )
+	make -C demo/object -f bv.mak clean all
 	( ./demo/object/binary_value >> ${LOGFILE} )
-	( cd demo/object ; make -f bv.mak clean )
+	make -C demo/object -f bv.mak clean
 
 device: logfile demo/object/device.mak
-	( cd demo/object ; make -f device.mak clean )
-	( cd demo/object ; make -f device.mak )
+	make -C demo/object -f device.mak clean all
 	( ./demo/object/device >> ${LOGFILE} )
-	( cd demo/object ; make -f device.mak clean )
+	make -C demo/object -f device.mak clean
 
 lc: logfile demo/object/lc.mak
-	( cd demo/object ; make -f lc.mak clean )
-	( cd demo/object ; make -f lc.mak )
+	make -C demo/object -f lc.mak clean all
 	( ./demo/object/load_control >> ${LOGFILE} )
-	( cd demo/object ; make -f lc.mak clean )
+	make -C demo/object -f lc.mak clean
 
 lo: logfile demo/object/lo.mak
-	( cd demo/object ; make -f lo.mak clean )
-	( cd demo/object ; make -f lo.mak )
+	make -C demo/object -f lo.mak clean all
 	( ./demo/object/lighting_output >> ${LOGFILE} )
-	( cd demo/object ; make -f lo.mak clean )
+	make -C demo/object -f lo.mak clean
 
 lsp: logfile demo/object/lsp.mak
-	( cd demo/object ; make -f lsp.mak clean )
-	( cd demo/object ; make -f lsp.mak )
+	make -C demo/object -f lsp.mak clean all
 	( ./demo/object/life_safety_point >> ${LOGFILE} )
-	( cd demo/object ; make -f lsp.mak clean )
+	make -C demo/object -f lsp.mak clean
 
 mso: logfile demo/object/mso.mak
-	( cd demo/object ; make -f mso.mak clean )
-	( cd demo/object ; make -f mso.mak )
+	make -C demo/object -f mso.mak clean all
 	( ./demo/object/multistate_output >> ${LOGFILE} )
-	( cd demo/object ; make -f mso.mak clean )
-
+	make -C demo/object -f mso.mak clean

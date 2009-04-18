@@ -1,6 +1,41 @@
+/*####COPYRIGHTBEGIN####
+ -------------------------------------------
+ Copyright (C) 2008 John Minack
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to:
+ The Free Software Foundation, Inc.
+ 59 Temple Place - Suite 330
+ Boston, MA  02111-1307, USA.
+
+ As a special exception, if other files instantiate templates or
+ use macros or inline functions from this file, or you compile
+ this file and link it with other works to produce a work based
+ on this file, this file does not by itself cause the resulting
+ work to be covered by the GNU General Public License. However
+ the source code for this file must still be made available in
+ accordance with section (3) of the GNU General Public License.
+
+ This exception does not invalidate any other reasons why a work
+ based on this file might be covered by the GNU General Public
+ License.
+ -------------------------------------------
+####COPYRIGHTEND####*/
 #include "lso.h"
 #include "bacdcode.h"
 #include "apdu.h"
+
+/* BACnet Life Safety Operation */
 
 int lso_encode_adpu(
     uint8_t * apdu,
@@ -9,12 +44,10 @@ int lso_encode_adpu(
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
-    uint16_t max_apdu = Device_Max_APDU_Length_Accepted();
-
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION;
         apdu_len = 4;
@@ -53,11 +86,8 @@ int lso_decode_service_request(
 		BACNET_LSO_DATA              *data)
 {
     int len = 0;        /* return value */
-	int section_length;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
-    int type = 0;       /* for decoding */
-    int property = 0;   /* for decoding */
+	int section_length = 0; /* length returned from decoding */
+	uint32_t operation = 0; /* handles decoded value */
 
     /* check for value pointers */
     if (apdu_len && data) {
@@ -75,10 +105,11 @@ int lso_decode_service_request(
 		}
 		len += section_length;
 
-		if ( (section_length = decode_context_enumerated(&apdu[len], 2, (int*)&data->operation)) == -1)
+		if ( (section_length = decode_context_enumerated(&apdu[len], 2, &operation)) == -1)
 		{
 			return -1;
 		}
+		data->operation = operation;
 		len += section_length;
 
 		/*
