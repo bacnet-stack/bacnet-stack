@@ -2,7 +2,7 @@
 CC = gcc
 SRC_DIR = ../src
 INCLUDES = -I../include -I.
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_IAM -DBACDL_TEST
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_IAM
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
@@ -10,9 +10,6 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/bacint.c \
 	$(SRC_DIR)/bacstr.c \
 	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/npdu.c \
-	$(SRC_DIR)/apdu.c \
-	$(SRC_DIR)/dcc.c \
 	$(SRC_DIR)/iam.c \
 	ctest.c
 

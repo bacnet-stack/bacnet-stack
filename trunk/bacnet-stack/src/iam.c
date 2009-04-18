@@ -36,7 +36,6 @@
 #include "bacdef.h"
 #include "npdu.h"
 #include "dcc.h"
-#include "datalink.h"
 #include "device.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -196,58 +195,6 @@ void testIAm(
 }
 
 #ifdef TEST_IAM
-/* dummy function stubs */
-int datalink_send_pdu(
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * pdu,
-    unsigned pdu_len)
-{
-    (void) dest;
-    (void) npdu_data;
-    (void) pdu;
-    (void) pdu_len;
-
-    return 0;
-}
-
-void datalink_get_broadcast_address(
-    BACNET_ADDRESS * dest)
-{       /* destination address */
-    (void) dest;
-}
-
-uint16_t Device_Vendor_Identifier(
-    void)
-{
-    return 0;
-}
-
-uint32_t Device_Object_Instance_Number(
-    void)
-{
-    return 0;
-}
-
-void address_add_binding(
-    uint32_t device_id,
-    unsigned max_apdu,
-    BACNET_ADDRESS * src)
-{
-    (void) device_id;
-    (void) max_apdu;
-    (void) src;
-}
-
-/* dummy for apdu dependency */
-void tsm_free_invoke_id(
-    uint8_t invokeID)
-{
-    /* dummy stub for testing */
-    (void) invokeID;
-}
-
-
 int main(
     void)
 {

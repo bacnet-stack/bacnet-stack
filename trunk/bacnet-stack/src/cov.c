@@ -37,8 +37,6 @@
 #include "bacdef.h"
 #include "bacapp.h"
 #include "cov.h"
-#include "datalink.h"
-#include "npdu.h"
 
 /* encode service */
 
@@ -726,46 +724,6 @@ int cov_subscribe_property_decode_apdu(
     }
 
     return len;
-}
-
-/* dummy function stubs */
-int npdu_encode_pdu(
-    uint8_t * npdu,
-    BACNET_ADDRESS * dest,
-    BACNET_ADDRESS * src,
-    BACNET_NPDU_DATA * npdu_data)
-{
-    return 0;
-}
-
-void npdu_encode_npdu_data(
-    BACNET_NPDU_DATA * npdu,
-    bool data_expecting_reply,
-    BACNET_MESSAGE_PRIORITY priority)
-{
-
-}
-
-/* dummy function stubs */
-int datalink_send_pdu(
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * pdu,
-    unsigned pdu_len)
-{
-    (void) dest;
-    (void) npdu_data;
-    (void) pdu;
-    (void) pdu_len;
-
-    return 0;
-}
-
-/* dummy function stubs */
-void datalink_get_broadcast_address(
-    BACNET_ADDRESS * dest)
-{
-    (void) dest;
 }
 
 /* dummy function stubs */
