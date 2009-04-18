@@ -104,6 +104,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_rp.c  \
 	$(BACNET_HANDLER)/s_rpm.c  \
 	$(BACNET_HANDLER)/s_ts.c \
+	$(BACNET_HANDLER)/s_uevent.c  \
 	$(BACNET_HANDLER)/s_whohas.c \
 	$(BACNET_HANDLER)/s_whois.c  \
 	$(BACNET_HANDLER)/s_router.c  \

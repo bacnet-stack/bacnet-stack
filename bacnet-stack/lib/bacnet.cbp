@@ -133,6 +133,9 @@
 		<Unit filename="..\demo\handler\s_ts.c">
 			<Option compilerVar="CC" />
 		</Unit>
+        <Unit filename="..\demo\handler\s_uevent.c">
+            <Option compilerVar="CC" />
+        </Unit>
 		<Unit filename="..\demo\handler\s_whohas.c">
 			<Option compilerVar="CC" />
 		</Unit>
