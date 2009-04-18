@@ -141,7 +141,7 @@ void address_file_init(
                     for (index = 0; index < MAX_MAC_LEN; index++) {
                         src.mac[index] = mac[index];
                     }
-                    src.net = (uint8_t)snet;
+                    src.net = (uint16_t)snet;
                     if (snet) {
                         count =
                             sscanf(sadr_string, "%x:%x:%x:%x:%x:%x", &mac[0],
@@ -430,7 +430,7 @@ void testAddressFile(
     BACNET_ADDRESS src = { 0 };
     uint32_t device_id = 0;
     unsigned max_apdu = 480;
-    BACNET_ADDRESS test_address;
+    BACNET_ADDRESS test_address = { 0 };
     unsigned test_max_apdu = 0;
 
     /* create a fake address */
@@ -441,7 +441,7 @@ void testAddressFile(
     src.adr[0] = 0;
     max_apdu = 50;
     set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
-
+    /* retrieve it from the file, and see if we can find it */
     address_file_init(Address_Cache_Filename);
     ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
             &test_address));
@@ -462,7 +462,7 @@ void testAddressFile(
     src.adr[0] = 25;
     max_apdu = 50;
     set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
-
+    /* retrieve it from the file, and see if we can find it */
     address_file_init(Address_Cache_Filename);
     ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
             &test_address));
