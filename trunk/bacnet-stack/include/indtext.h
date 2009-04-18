@@ -90,8 +90,8 @@ extern "C" {
    the before_split_default_name is used */
     const char *indtext_by_index_split_default(
         INDTEXT_DATA * data_list,
-        int index,
-        int split_index,
+        unsigned index,
+        unsigned split_index,
         const char *before_split_default_name,
         const char *default_name);
 

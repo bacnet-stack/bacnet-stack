@@ -61,7 +61,8 @@ int iam_encode_apdu(
         apdu_len += len;
         len = encode_application_unsigned(&apdu[apdu_len], max_apdu);
         apdu_len += len;
-        len = encode_application_enumerated(&apdu[apdu_len], segmentation);
+        len = encode_application_enumerated(&apdu[apdu_len], 
+            (uint32_t)segmentation);
         apdu_len += len;
         len = encode_application_unsigned(&apdu[apdu_len], vendor_id);
         apdu_len += len;
@@ -106,7 +107,7 @@ int iam_decode_service_request(
     len = decode_unsigned(&apdu[apdu_len], len_value, &decoded_value);
     apdu_len += len;
     if (pMax_apdu)
-        *pMax_apdu = decoded_value;
+        *pMax_apdu = (unsigned)decoded_value;
     /* Segmentation - enumerated */
     len =
         decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
@@ -118,7 +119,7 @@ int iam_decode_service_request(
     if (decoded_value >= MAX_BACNET_SEGMENTATION)
         return -1;
     if (pSegmentation)
-        *pSegmentation = decoded_value;
+        *pSegmentation = (int)decoded_value;
     /* Vendor ID - unsigned16 */
     len =
         decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);

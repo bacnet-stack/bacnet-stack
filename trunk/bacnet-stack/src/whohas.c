@@ -69,7 +69,7 @@ int whohas_encode_apdu(
         } else {
             len =
                 encode_context_object_id(&apdu[apdu_len], 2,
-                data->object.identifier.type,
+                (int)data->object.identifier.type,
                 data->object.identifier.instance);
             apdu_len += len;
         }

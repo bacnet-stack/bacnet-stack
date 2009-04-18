@@ -40,11 +40,11 @@ extern "C" {
 #endif /* __cplusplus */
 
     const char *mstptext_receive_state(
-        int index);
+        unsigned index);
     const char *mstptext_master_state(
-        int index);
+        unsigned index);
     const char *mstptext_frame_type(
-        int index);
+        unsigned index);
 
 #ifdef __cplusplus
 }

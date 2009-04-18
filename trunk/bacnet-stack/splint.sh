@@ -3,7 +3,7 @@
 [ -x /usr/bin/splint ] || exit 0
 
 INCLUDES="-Iinclude -Iports/linux"
-SETTINGS="-castfcnptr -fullinitblock -weak +posixlib"
+SETTINGS="-castfcnptr -fullinitblock -initallelements -weak +posixlib"
 
 if [ ! -x .splintrc ]
 then

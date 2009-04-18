@@ -44,10 +44,10 @@ int stricmp(
     unsigned char c1, c2;
 
     do {
-        c1 = *s1;
-        c2 = *s2;
-        c1 = (unsigned char) tolower((unsigned char) c1);
-        c2 = (unsigned char) tolower((unsigned char) c2);
+        c1 = (unsigned char)*s1;
+        c2 = (unsigned char)*s2;
+        c1 = (unsigned char) tolower(c1);
+        c2 = (unsigned char) tolower(c2);
         s1++;
         s2++;
     } while ((c1 == c2) && (c1 != '\0'));
@@ -155,8 +155,8 @@ const char *indtext_by_index_default(
 
 const char *indtext_by_index_split_default(
     INDTEXT_DATA * data_list,
-    int index,
-    int split_index,
+    unsigned index,
+    unsigned split_index,
     const char *before_split_default_name,
     const char *default_name)
 {

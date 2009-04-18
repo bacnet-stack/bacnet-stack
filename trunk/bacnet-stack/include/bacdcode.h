@@ -97,7 +97,7 @@ extern "C" {
         uint8_t * apdu);
     int encode_context_null(
         uint8_t * apdu,
-        int tag_number);
+        uint8_t tag_number);
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
     int encode_application_boolean(
@@ -137,7 +137,7 @@ extern "C" {
         BACNET_BIT_STRING * bit_string);
     int encode_context_bitstring(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         BACNET_BIT_STRING * bit_string);
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
@@ -148,7 +148,7 @@ extern "C" {
         float value);
     int encode_context_real(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         float value);
 
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
@@ -160,7 +160,7 @@ extern "C" {
 
     int encode_context_double(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         double value);
 
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
@@ -183,7 +183,7 @@ extern "C" {
         uint32_t instance);
     int encode_context_object_id(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         int object_type,
         uint32_t instance);
     int encode_application_object_id(
@@ -202,7 +202,7 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string);
     int encode_context_octet_string(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         BACNET_OCTET_STRING * octet_string);
     int decode_octet_string(
         uint8_t * apdu,
@@ -225,7 +225,7 @@ extern "C" {
         BACNET_CHARACTER_STRING * char_string);
     int encode_context_character_string(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         BACNET_CHARACTER_STRING * char_string);
     int decode_character_string(
         uint8_t * apdu,
@@ -245,7 +245,7 @@ extern "C" {
         uint32_t value);
     int encode_context_unsigned(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         uint32_t value);
     int encode_application_unsigned(
         uint8_t * apdu,
@@ -270,7 +270,7 @@ extern "C" {
         int32_t value);
     int encode_context_signed(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         int32_t value);
     int decode_signed(
         uint8_t * apdu,
@@ -301,7 +301,7 @@ extern "C" {
         uint32_t value);
     int encode_context_enumerated(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         uint32_t value);
 
 /* from clause 20.2.13 Encoding of a Time Value */
@@ -318,7 +318,7 @@ extern "C" {
         BACNET_TIME * btime);
     int encode_context_time(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         BACNET_TIME * btime);
     int decode_application_time(
         uint8_t * apdu,
@@ -346,7 +346,7 @@ extern "C" {
         BACNET_DATE * bdate);
     int encode_context_date(
         uint8_t * apdu,
-        int tag_number,
+        uint8_t tag_number,
         BACNET_DATE * bdate);
     int decode_date(
         uint8_t * apdu,
