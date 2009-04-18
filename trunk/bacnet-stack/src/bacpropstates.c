@@ -428,5 +428,5 @@ int main(
     return 0;
 }
 
-#endif // TEST_PROP_STATES
-#endif // TEST
+#endif /* TEST_PROP_STATES */
+#endif /* TEST */
