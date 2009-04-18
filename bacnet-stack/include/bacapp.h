@@ -126,7 +126,7 @@ extern "C" {
 
     int bacapp_decode_application_data(
         uint8_t * apdu,
-        int max_apdu_len,
+        unsigned max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     int bacapp_encode_application_data(
@@ -135,7 +135,7 @@ extern "C" {
 
     int bacapp_decode_context_data(
         uint8_t * apdu,
-        int max_apdu_len,
+        unsigned max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
@@ -163,7 +163,7 @@ extern "C" {
        such as the value received in a WriteProperty request */
     int bacapp_data_len(
         uint8_t * apdu,
-        int max_apdu_len,
+        unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
 
 #if PRINT_ENABLED
