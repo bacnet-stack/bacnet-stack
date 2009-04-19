@@ -7,8 +7,8 @@
 
 !ifndef BORLAND_DIR
 BORLAND_DIR_Not_Defined:
-   @echo .
-   @echo You must define environment variable BORLAND_DIR to compile.
+	@echo .
+	@echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
 PRODUCT = bacrp
@@ -82,7 +82,7 @@ install: $(PRODUCT_EXE)
 $(PRODUCT_EXE) : $(OBJS)
 	@echo Running Linker for $(PRODUCT_EXE)
 	$(LINK)	-L$(C_LIB_DIR) -L$(BACNET_LIB_DIR) -m -c -s -v @&&|
-	  $(BORLAND_DIR)\lib\c0x32.obj $**
+	$(BORLAND_DIR)\lib\c0x32.obj $**
 	$<
 	$*.map
 	$(LIBS)
@@ -114,21 +114,21 @@ clean :
 	$(CC) +$(BCC_CFG) -o$@ $<
 
 # Compiler configuration file
-$(BCC_CFG) :
-   Copy &&|
-$(CFLAGS)
--c
--y     #include line numbers in OBJ's
--v     #include debug info
--w+    #turn on all warnings
--Od    #disable all optimizations
-#-a4    #32 bit data alignment
-#-M     # generate link map
-#-ls    # linker options
-#-WM-   #not multithread
--WM    #multithread
--w-aus # ignore warning assigned a value that is never used
--w-sig # ignore warning conversion may lose sig digits
+$(BCC_CFG):
+	Copy &&|
+	$(CFLAGS)
+	-c
+	-y     #include line numbers in OBJ's
+	-v     #include debug info
+	-w+    #turn on all warnings
+	-Od    #disable all optimizations
+	#-a4    #32 bit data alignment
+	#-M     # generate link map
+	#-ls    # linker options
+	#-WM-   #not multithread
+	-WM    #multithread
+	-w-aus # ignore warning assigned a value that is never used
+	-w-sig # ignore warning conversion may lose sig digits
 | $@
 
 # EOF: makefile
