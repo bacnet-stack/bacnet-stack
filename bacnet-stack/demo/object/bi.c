@@ -396,8 +396,7 @@ bool Binary_Input_Write_Property(
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-                if ((value.type.Enumerated >= MIN_BINARY_PV) &&
-                    (value.type.Enumerated <= MAX_BINARY_PV)) {
+                if (value.type.Enumerated <= MAX_BINARY_PV) {
                     Binary_Input_Present_Value_Set(wp_data->object_instance,
                         (BACNET_BINARY_PV) value.type.Enumerated);
                     status = true;

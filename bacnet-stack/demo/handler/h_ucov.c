@@ -49,6 +49,8 @@ void handler_ucov_notification(
     BACNET_PROPERTY_VALUE property_value;
     int len = 0;
 
+    /* src not needed for this application */
+    src = src;
     /* create linked list to store data if more 
        than one property value is expected */
     property_value.next = NULL;
