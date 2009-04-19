@@ -7,8 +7,8 @@
 
 !ifndef BORLAND_DIR
 BORLAND_DIR_Not_Defined:
-   @echo .
-   @echo You must define environment variable BORLAND_DIR to compile.
+	@echo .
+	@echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
 TARGET = bacnet
@@ -34,7 +34,14 @@ INCLUDES = \
 	-I$(BACNET_OBJECT) \
 	-I$(BACNET_HANDLER)
 
-CORE1_SRC = $(BACNET_CORE)\apdu.c \
+CORE1_SRC = $(BACNET_CORE)\indtext.c \
+	$(BACNET_CORE)\debug.c \
+	$(BACNET_CORE)\bigend.c \
+	$(BACNET_CORE)\filename.c \
+	$(BACNET_CORE)\memcopy.c \
+	$(BACNET_CORE)\version.c
+
+CORE2_SRC = $(BACNET_CORE)\apdu.c \
 	$(BACNET_CORE)\npdu.c \
 	$(BACNET_CORE)\bacdcode.c \
 	$(BACNET_CORE)\bacint.c \
@@ -44,20 +51,14 @@ CORE1_SRC = $(BACNET_CORE)\apdu.c \
 	$(BACNET_CORE)\bacprop.c \
 	$(BACNET_CORE)\bactext.c \
 	$(BACNET_CORE)\datetime.c \
-	$(BACNET_CORE)\indtext.c \
-	$(BACNET_CORE)\debug.c \
-	$(BACNET_CORE)\bigend.c \
 	$(BACNET_CORE)\abort.c \
 	$(BACNET_CORE)\reject.c \
 	$(BACNET_CORE)\bacerror.c \
-	$(BACNET_CORE)\filename.c \
-	$(BACNET_CORE)\memcopy.c \
 	$(BACNET_CORE)\tsm.c \
 	$(BACNET_CORE)\bacaddr.c \
-	$(BACNET_CORE)\address.c \
-	$(BACNET_CORE)\version.c
+	$(BACNET_CORE)\address.c
 
-CORE2_SRC = $(BACNET_CORE)\arf.c \
+CORE3_SRC = $(BACNET_CORE)\arf.c \
 	$(BACNET_CORE)\awf.c \
 	$(BACNET_CORE)\cov.c \
 	$(BACNET_CORE)\dcc.c \
@@ -129,12 +130,14 @@ PORT_SRC = $(BACNET_PORT)\bip-init.c \
 
 CORE1_OBJ = ${CORE1_SRC:.c=.obj}
 CORE2_OBJ = ${CORE2_SRC:.c=.obj}
+CORE3_OBJ = ${CORE3_SRC:.c=.obj}
 PORT_OBJ = ${PORT_SRC:.c=.obj}
 HANDLER_OBJ = ${HANDLER_SRC:.c=.obj}
 OBJECT_OBJ = ${OBJECT_SRC:.c=.obj}
 
 OBJS = ${CORE1_OBJ} \
 	${CORE2_OBJ} \
+	${CORE3_OBJ} \
 	${PORT_OBJ} \
 	${HANDLER_OBJ} \
 	${OBJECT_OBJ}
@@ -152,20 +155,16 @@ LFLAGS = /E /P4096
 
 # 'all' should be the first one in the makefile
 
-all: $(BCC_CFG) $(OBJS) makefile.b32
-	del $(TARGET).BAK
+all: $(BCC_CFG) $(OBJS) makefile.b32 $(LIBRARY)
+	@echo Finished!
 
 clean:
-	del &&| ${CORE1_OBJ} 
-|
-	del &&| ${CORE2_OBJ}
-|
-	del &&| ${PORT_OBJ}
-|
-	del &&| ${HANDLER_OBJ}
-|
-	del &&| ${OBJECT_OBJ}
-|
+	del ${CORE1_OBJ} 
+	del ${CORE2_OBJ}
+	del ${CORE3_OBJ}
+	del ${PORT_OBJ}
+	del ${HANDLER_OBJ}
+	del ${OBJECT_OBJ}
 	del ${LIBRARY}
 	del $(BCC_CFG)
 
