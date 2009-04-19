@@ -146,7 +146,7 @@ struct mstp_port_struct_t {
     uint8_t DataCRCActualMSB;
     uint8_t DataCRCActualLSB;
     /* Used to store the data length of a received frame. */
-    unsigned DataLength;
+    uint16_t DataLength;
     /* Used to store the destination address of a received frame. */
     uint8_t DestinationAddress;
     /* Used to count the number of received octets or errors. */

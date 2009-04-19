@@ -342,7 +342,6 @@ bool Binary_Value_Write_Property(
                    object. */
                 if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                     (priority != 6 /* reserved */ ) &&
-                    (value.type.Enumerated >= MIN_BINARY_PV) &&
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     object_index =
