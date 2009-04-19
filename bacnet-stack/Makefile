@@ -21,27 +21,27 @@ clean: lib/Makefile\
 	demo/iamrouter/Makefile \
 	demo/initrouter/Makefile \
 	demo/mstpcap/Makefile
-	( cd lib ; make clean )
-	( cd demo/readprop ; make clean )
-	( cd demo/readpropm ; make clean )
-	( cd demo/writeprop ; make clean )
-	( cd demo/readfile ; make clean )
-	( cd demo/writefile ; make clean )
-	( cd demo/reinit ; make clean )
-	( cd demo/server ; make clean )
-	( cd demo/dcc ; make clean )
-	( cd demo/whohas ; make clean )
-	( cd demo/whois ; make clean )
-	( cd demo/ucov ; make clean )
-	( cd demo/timesync ; make clean )
-	( cd demo/epics ; make clean )
-	( cd demo/whoisrouter ; make clean )
-	( cd demo/iamrouter ; make clean )
-	( cd demo/initrouter ; make clean )
-	( cd demo/mstpcap ; make clean )
+	make -C lib clean
+	make -C demo/readprop clean
+	make -C demo/readpropm clean
+	make -C demo/writeprop clean
+	make -C demo/readfile clean
+	make -C demo/writefile clean
+	make -C demo/reinit clean
+	make -C demo/server clean
+	make -C demo/dcc clean
+	make -C demo/whohas clean
+	make -C demo/whois clean
+	make -C demo/ucov clean
+	make -C demo/timesync clean
+	make -C demo/epics clean
+	make -C demo/whoisrouter clean
+	make -C demo/iamrouter clean
+	make -C demo/initrouter clean
+	make -C demo/mstpcap clean
 
 library: lib/Makefile
-	( cd lib ; make )
+	make -C lib all
 
 readprop: demo/readprop/Makefile
 	( cd demo/readprop ; make ; cp bacrp ../../bin )
