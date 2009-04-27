@@ -34,6 +34,7 @@
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "ao.h"
 
 #define MAX_ANALOG_OUTPUTS 4
 
