@@ -57,7 +57,7 @@ extern "C" {
         unsigned priority);
     bool Analog_Output_Present_Value_Relinquish(
         uint32_t object_instance,
-        int priority);
+        unsigned priority);
 
 
     int Analog_Output_Encode_Property_APDU(
