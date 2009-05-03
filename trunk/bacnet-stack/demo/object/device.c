@@ -86,6 +86,7 @@ static const int Device_Properties_Optional[] = {
     PROP_LOCAL_DATE,
     PROP_DAYLIGHT_SAVINGS_STATUS,
     PROP_PROTOCOL_CONFORMANCE_CLASS,
+    PROP_LOCATION,
     -1
 };
 
@@ -132,8 +133,11 @@ static char Description[16] = "server";
 /* Active_VT_Sessions */
 BACNET_TIME Local_Time; /* rely on OS, if there is one */
 BACNET_DATE Local_Date; /* rely on OS, if there is one */
-/* BACnet UTC is inverse of standard offset - i.e. relative to local */
-static int UTC_Offset = 5;
+/* NOTE: BACnet UTC Offset is inverse of common practice.
+   If your UTC offset is -5hours of GMT, 
+   then BACnet UTC offset is +5hours.
+   BACnet UTC offset is expressed in minutes. */
+static int32_t UTC_Offset = 5*60;
 static bool Daylight_Savings_Status = false;    /* rely on OS */
 /* List_Of_Session_Keys */
 /* Time_Synchronization_Recipients */
@@ -673,6 +677,12 @@ int Device_Encode_Property_APDU(
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+        case PROP_LOCATION:
+            characterstring_init_ansi(&char_string, Location);
+            apdu_len =
+                encode_application_character_string(&apdu[0],
+                    &char_string);
+            break;
             /* FIXME: if you support time */
         case PROP_LOCAL_TIME:
             /* FIXME: get the actual value */
@@ -684,7 +694,6 @@ int Device_Encode_Property_APDU(
             break;
             /* FIXME: if you support time */
         case PROP_UTC_OFFSET:
-            /* NOTE: if your UTC offset is -5, then BACnet UTC offset is 5 */
             apdu_len = encode_application_signed(&apdu[0], UTC_Offset);
             break;
             /* FIXME: if you support date */

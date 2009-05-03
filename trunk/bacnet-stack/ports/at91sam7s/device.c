@@ -436,8 +436,9 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_time(&apdu[0], &local_time);
             break;
         case PROP_UTC_OFFSET:
-            /* Note: BACnet Time Zone is inverse of everybody else */
-            apdu_len = encode_application_signed(&apdu[0], 5 /* EST */ );
+            /* Note: BACnet Time Zone is offset of local time and UTC,
+               rather than offset of GMT.  It is expressed in minutes */
+            apdu_len = encode_application_signed(&apdu[0], 5*60 /* EST */ );
             break;
         case PROP_LOCAL_DATE:
             /* FIXME: if you support date */
