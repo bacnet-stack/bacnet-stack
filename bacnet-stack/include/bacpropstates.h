@@ -35,11 +35,10 @@
 #ifndef _BAC_PROP_STATES_H_
 #define _BAC_PROP_STATES_H_
 
-#include "bacenum.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacenum.h"
 #include "bacapp.h"
-#include <time.h>
 #include "timestamp.h"
 
 typedef enum {
