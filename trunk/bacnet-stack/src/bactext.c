@@ -1628,6 +1628,10 @@ INDTEXT_DATA bacnet_month_names[] = {
     ,
     {12, "December"}
     ,
+    {13, "Odd Months"}
+    ,
+    {14, "Even Months"}
+    ,
     {255, "Any Month"}
     ,
     {0, NULL}

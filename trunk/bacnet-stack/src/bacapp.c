@@ -803,18 +803,47 @@ bool bacapp_print_value(
                 }
                 break;
             case BACNET_APPLICATION_TAG_DATE:
-                fprintf(stream, "%s, %s %u, %u",
+                fprintf(stream, "%s, %s ",
                     bactext_day_of_week_name(value->type.Date.wday),
-                    bactext_month_name(value->type.Date.month),
-                    (unsigned) value->type.Date.day,
-                    (unsigned) value->type.Date.year);
+                    bactext_month_name(value->type.Date.month));
+                if (value->type.Date.day == 255) {
+                    fprintf(stream, "(unspecified), ");
+                } else {
+                    fprintf(stream, "%u, ",
+                        (unsigned) value->type.Date.day);
+                }
+                if (value->type.Date.year == 255) {
+                    fprintf(stream, "(unspecified), ");
+                } else {
+                    fprintf(stream, "%u",
+                        (unsigned) value->type.Date.year);
+                }
                 break;
             case BACNET_APPLICATION_TAG_TIME:
-                fprintf(stream, "%02u:%02u:%02u.%03u",
-                    (unsigned) value->type.Time.hour,
-                    (unsigned) value->type.Time.min,
-                    (unsigned) value->type.Time.sec,
-                    (unsigned) value->type.Time.hundredths);
+                if (value->type.Time.hour == 255) {
+                    fprintf(stream, "**:");
+                } else {
+                    fprintf(stream, "%02u:",
+                        (unsigned) value->type.Time.hour);
+                }
+                if (value->type.Time.min == 255) {
+                    fprintf(stream, "**:");
+                } else {
+                    fprintf(stream, "%02u:",
+                        (unsigned) value->type.Time.min);
+                }
+                if (value->type.Time.sec == 255) {
+                    fprintf(stream, "**.");
+                } else {
+                    fprintf(stream, "%02u.",
+                        (unsigned) value->type.Time.sec);
+                }
+                if (value->type.Time.hundredths == 255) {
+                    fprintf(stream, "**");
+                } else {
+                    fprintf(stream, "%02u",
+                        (unsigned) value->type.Time.hundredths);
+                }
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 fprintf(stream, "%s %u",
