@@ -50,6 +50,8 @@ CSRC = main.c \
 	dlmstp.c \
 	h_wp.c \
 	h_rp.c \
+	h_rpm.c \
+	h_rd.c \
 	device.c \
 	ai.c \
 	bi.c \
@@ -59,7 +61,6 @@ CSRC = main.c \
 DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/h_whois.c \
-	$(BACNET_DEMO)/handler/h_rd.c \
 	$(BACNET_DEMO)/handler/h_dcc.c \
 	$(BACNET_DEMO)/handler/s_iam.c \
 	$(BACNET_DEMO)/handler/noserv.c
@@ -67,6 +68,7 @@ DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
 # core BACnet stack files
 CORESRC =  \
 	$(BACNET_CORE)/fifo.c \
+	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/crc.c \
 	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/npdu.c \
@@ -77,9 +79,10 @@ CORESRC =  \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/rd.c \
+	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/wp.c \
 	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
@@ -97,8 +100,6 @@ CORESRC =  \
 #	$(BACNET_CORE)/cov.c \
 #	$(BACNET_CORE)/iam/iam_client.c \
 #	$(BACNET_CORE)/ihave.c \
-#	$(BACNET_CORE)/rd.c \
-#	$(BACNET_CORE)/rpm.c \
 #	$(BACNET_CORE)/timesync.c \
 #	$(BACNET_CORE)/whohas.c \
 #	$(BACNET_CORE)/filename.c \
@@ -129,7 +130,7 @@ DEFINES =
 
 ## Compile options common for all C compilation units.
 BFLAGS = -DBACDL_MSTP
-BFLAGS += -DMAX_APDU=50
+BFLAGS += -DMAX_APDU=128
 BFLAGS += -DBIG_ENDIAN=0
 BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 #BFLAGS += -DCRC_USE_TABLE

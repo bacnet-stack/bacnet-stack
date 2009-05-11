@@ -38,11 +38,6 @@ void input_task(
     } else {
         if (old_value != Address_Switch) {
             Address_Switch = old_value;
-#if defined(BACDL_MSTP)
-//            dlmstp_set_mac_address(Address_Switch);
-#endif
-//            Device_Set_Object_Instance_Number(86000 + Address_Switch);
-//            Send_I_Am_Flag = true;
         }
     }
 }

@@ -39,6 +39,43 @@
 #error Modify the Analog_Input_Name to handle multiple digits
 #endif
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Analog_Input_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    -1
+};
+
+static const int Analog_Input_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Analog_Input_Properties_Proprietary[] = {
+    -1
+};
+
+void Analog_Input_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (pRequired)
+        *pRequired = Analog_Input_Properties_Required;
+    if (pOptional)
+        *pOptional = Analog_Input_Properties_Optional;
+    if (pProprietary)
+        *pProprietary = Analog_Input_Properties_Proprietary;
+
+    return;
+}
+
 static uint8_t Present_Value[MAX_ANALOG_INPUTS];
 
 /* we simply have 0-n object instances.  Yours might be */

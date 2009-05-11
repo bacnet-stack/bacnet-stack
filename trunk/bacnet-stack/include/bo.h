@@ -35,6 +35,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    void Binary_Output_Init(void);
+    
     void Binary_Output_Property_Lists(
         const int **pRequired,
         const int **pOptional,

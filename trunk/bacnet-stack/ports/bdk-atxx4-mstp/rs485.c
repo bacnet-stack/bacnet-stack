@@ -28,6 +28,7 @@
 #include "fifo.h"
 #include "timer.h"
 #include "led.h"
+#include "nvdata.h"
 
 /* baud rate */
 static uint32_t Baud_Rate = 9600;
@@ -152,10 +153,19 @@ uint32_t rs485_baud_rate(
     return Baud_Rate;
 }
 
+static void rs485_baud_rate_configure(void)
+{
+    /* 2x speed mode */
+    BIT_SET(UCSR0A, U2X0);
+    /* configure baud rate */
+    UBRR0 = (F_CPU / (8UL * Baud_Rate)) - 1;
+}
+
 bool rs485_baud_rate_set(
     uint32_t baud)
 {
     bool valid = true;
+    uint8_t baud_k = 0;
 
     switch (baud) {
         case 9600:
@@ -165,11 +175,13 @@ bool rs485_baud_rate_set(
         case 76800:
         case 115200:
             Baud_Rate = baud;
-            /* 2x speed mode */
-            BIT_SET(UCSR0A, U2X0);
-            /* configure baud rate */
-            UBRR0 = (F_CPU / (8UL * Baud_Rate)) - 1;
-            /* FIXME: store the baud rate */
+            rs485_baud_rate_configure();
+            /* store the baud rate */
+            baud_k = baud/1000;
+            eeprom_bytes_write(
+                NV_EEPROM_BAUD_K,
+                &baud_k,
+                1);
             break;
         default:
             valid = false;
@@ -195,13 +207,53 @@ static void rs485_usart_init(void)
     BIT_CLEAR(PRR, PRUSART0);
 }
 
+static void rs485_init_nvdata(void)
+{
+    uint8_t baud_k = 9; /* from EEPROM value */
+
+    eeprom_bytes_read(
+        NV_EEPROM_BAUD_K,
+        &baud_k,
+        1);
+    switch (baud_k) {
+        case 9:
+            Baud_Rate = 9600;
+            break;
+        case 19:
+            Baud_Rate = 19200;
+            break;
+        case 38:
+            Baud_Rate = 38400;
+            break;
+        case 57:
+            Baud_Rate = 57600;
+            break;
+        case 76:
+            Baud_Rate = 76800;
+            break;
+        case 115:
+            Baud_Rate = 115200;
+            break;
+        default:
+            /* not configured yet */
+            Baud_Rate = 38400;
+            baud_k = 38400/1000;
+            eeprom_bytes_write(
+                NV_EEPROM_BAUD_K,
+                &baud_k,
+                1);
+            break;
+    }
+    rs485_baud_rate_configure();
+}
+
 void rs485_init(void)
 {
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
         (unsigned)sizeof(Receive_Buffer_Data));
     rs485_rts_init();
     rs485_usart_init();
-    rs485_baud_rate_set(Baud_Rate);
+    rs485_init_nvdata();
     rs485_receiver_enable();
     rs485_rts_enable(false);
 }

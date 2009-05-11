@@ -33,8 +33,9 @@
 #include "bacenum.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "led.h"
 
-#define MAX_BINARY_OUTPUTS 8
+#define MAX_BINARY_OUTPUTS 2
 #if (MAX_BINARY_OUTPUTS > 9)
 #error Modify the Binary_Output_Name to handle multiple digits
 #endif
@@ -48,6 +49,8 @@ static BACNET_BINARY_PV
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
 static bool Binary_Output_Out_Of_Service[MAX_BINARY_OUTPUTS];
+/* polarity - normal or inverse */
+static BACNET_POLARITY Polarity[MAX_BINARY_OUTPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Output_Properties_Required[] = {
@@ -167,6 +170,44 @@ static BACNET_BINARY_PV Binary_Output_Present_Value(
     return value;
 }
 
+static void Binary_Output_Sync(
+    uint32_t object_instance)
+{
+    BACNET_BINARY_PV pv = Binary_Output_Present_Value(object_instance);
+    unsigned index = Binary_Output_Instance_To_Index(object_instance);
+
+    if (index < MAX_BINARY_OUTPUTS) {
+        if (Binary_Output_Out_Of_Service[index]) {
+            return;
+        }
+        if (Polarity[index] == POLARITY_REVERSE) {
+            if (pv == BINARY_INACTIVE) {
+                pv = BINARY_ACTIVE;
+            } else if (pv == BINARY_ACTIVE) {
+                pv = BINARY_INACTIVE;
+            }
+        }
+        switch (index) {
+            case 0:
+                if (pv == BINARY_INACTIVE) {
+                    led_off(LED_3);
+                } else if (pv == BINARY_ACTIVE) {
+                    led_on(LED_3);
+                }
+                break;
+            case 1:
+                if (pv == BINARY_INACTIVE) {
+                    led_off(LED_4);
+                } else if (pv == BINARY_ACTIVE) {
+                    led_on(LED_4);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 /* note: the object name must be unique within this device */
 char *Binary_Output_Name(
     uint32_t object_instance)
@@ -195,7 +236,6 @@ int Binary_Output_Encode_Property_APDU(
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
-    BACNET_POLARITY polarity = POLARITY_NORMAL;
     unsigned object_index = 0;
     unsigned i = 0;
     bool state = false;
@@ -244,8 +284,8 @@ int Binary_Output_Encode_Property_APDU(
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
-            /* FIXME: figure out the polarity */
-            apdu_len = encode_application_enumerated(&apdu[0], polarity);
+            apdu_len = encode_application_enumerated(&apdu[0], 
+                Polarity[object_index]);
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
@@ -336,7 +376,8 @@ bool Binary_Output_Write_Property(
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    if (!Binary_Output_Valid_Instance(wp_data->object_instance)) {
+    object_index = Binary_Output_Instance_To_Index(wp_data->object_instance);
+    if (object_index >= MAX_BINARY_OUTPUTS) {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
@@ -358,16 +399,9 @@ bool Binary_Output_Write_Property(
                     (priority != 6 /* reserved */ ) &&
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
-                    object_index =
-                        Binary_Output_Instance_To_Index(wp_data->
-                        object_instance);
                     priority--;
                     Binary_Output_Level[object_index][priority] = level;
-                    /* Note: you could set the physical output here if we
-                       are the highest priority.
-                       However, if Out of Service is TRUE, then don't set the
-                       physical output.  This comment may apply to the
-                       main loop (i.e. check out of service before changing output) */
+                    Binary_Output_Sync(wp_data->object_instance);
                     status = true;
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -381,18 +415,11 @@ bool Binary_Output_Write_Property(
                 }
             } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
                 level = BINARY_NULL;
-                object_index =
-                    Binary_Output_Instance_To_Index(wp_data->object_instance);
                 priority = wp_data->priority;
                 if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                     priority--;
                     Binary_Output_Level[object_index][priority] = level;
-                    /* Note: you could set the physical output here to the next
-                       highest priority, or to the relinquish default if no
-                       priorities are set.
-                       However, if Out of Service is TRUE, then don't set the
-                       physical output.  This comment may apply to the
-                       main loop (i.e. check out of service before changing output) */
+                    Binary_Output_Sync(wp_data->object_instance);
                     status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -405,17 +432,30 @@ bool Binary_Output_Write_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                object_index =
-                    Binary_Output_Instance_To_Index(wp_data->object_instance);
                 Binary_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
+                Binary_Output_Sync(wp_data->object_instance);
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
-        default:
+        case PROP_POLARITY:
+            if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+                if (value.type.Enumerated <= MAX_POLARITY) {
+                    Polarity[object_index] = 
+                        (BACNET_POLARITY)value.type.Enumerated;
+                } else {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;            
+       default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
