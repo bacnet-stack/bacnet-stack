@@ -644,7 +644,8 @@ typedef enum {
 
 typedef enum {
     POLARITY_NORMAL = 0,
-    POLARITY_REVERSE = 1
+    POLARITY_REVERSE = 1,
+    MAX_POLARITY = 2
 } BACNET_POLARITY;
 
 typedef enum {
@@ -932,7 +933,8 @@ typedef enum {
     CHARACTER_JISC_6226 = 2,
     CHARACTER_UCS4 = 3,
     CHARACTER_UCS2 = 4,
-    CHARACTER_ISO8859 = 5
+    CHARACTER_ISO8859 = 5,
+    MAX_CHARACTER_STRING_ENCODING = 6
 } BACNET_CHARACTER_STRING_ENCODING;
 
 typedef enum {

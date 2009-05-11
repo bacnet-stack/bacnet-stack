@@ -157,13 +157,13 @@ static uint8_t This_Station;
 /* nodes. This may be used to allocate more or less of the available link */
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
-static uint8_t Nmax_info_frames;
+static uint8_t Nmax_info_frames = 1;
 /* This parameter represents the value of the Max_Master property of the */
 /* node's Device object. The value of Max_Master specifies the highest */
 /* allowable address for master nodes. The value of Max_Master shall be */
 /* less than or equal to 127. If Max_Master is not writable in a node, */
 /* its value shall be 127. */
-static uint8_t Nmax_master;
+static uint8_t Nmax_master = 127;
 /* An array of octets, used to store octets for transmitting */
 /* OutputBuffer is indexed from 0 to OutputBufferSize-1. */
 /* The MAX_PDU size of a frame is MAX_APDU + MAX_NPDU octets. */

@@ -284,7 +284,7 @@ int main(int argc, char *argv[]) {
     Target_Object_Property = strtol(argv[4], NULL, 0);
     if (argc > 5)
         Target_Object_Index = strtol(argv[5], NULL, 0);
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;

@@ -82,4 +82,8 @@
 #define BITMASK_FLIP(x,y) ((x) ^= (y))
 #define BITMASK_CHECK(x,y) ((x) & (y))
 
+#ifndef _BV
+#define _BV(x) (1<<(x))
+#endif
+
 #endif

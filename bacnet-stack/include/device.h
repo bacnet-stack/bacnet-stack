@@ -44,6 +44,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    
+    void Device_Init(void);
+    
     void Device_Property_Lists(
         const int **pRequired,
         const int **pOptional,

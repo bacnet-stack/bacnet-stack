@@ -34,6 +34,7 @@
 #include "datalink.h"
 #include "rs485.h"
 #include "version.h"
+#include "nvdata.h"
 /* objects */
 #include "device.h"
 #include "ai.h"
@@ -44,13 +45,69 @@
    properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
-static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
-static char Object_Name[32] = "bdk-atxx4-mstp";
+static uint32_t Object_Instance_Number;
+static uint8_t Object_Name[NV_EEPROM_DEVICE_NAME_SIZE];
+static uint8_t Object_Name_Encoding;
+static uint8_t Object_Name_Length;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
+static BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
     REINITIALIZED_STATE_IDLE;
+    
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Device_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION,
+    PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_REVISION,
+    PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+    PROP_OBJECT_LIST,
+    PROP_MAX_APDU_LENGTH_ACCEPTED,
+    PROP_SEGMENTATION_SUPPORTED,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+#if defined(BACDL_MSTP)
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+#endif
+    PROP_DEVICE_ADDRESS_BINDING,
+    PROP_DATABASE_REVISION,
+    -1
+};
 
+static const int Device_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_PROTOCOL_CONFORMANCE_CLASS,
+    -1
+};
+
+static const int Device_Properties_Proprietary[] = {
+    -1
+};
+
+void Device_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (pRequired)
+        *pRequired = Device_Properties_Required;
+    if (pOptional)
+        *pOptional = Device_Properties_Optional;
+    if (pProprietary)
+        *pProprietary = Device_Properties_Proprietary;
+
+    return;
+}
+    
 void Device_Reinit(
     void)
 {
@@ -63,11 +120,43 @@ void Device_Init(
 {
     Reinitialize_State = REINITIALIZED_STATE_IDLE;
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-    /* FIXME: Get the data from the eeprom */
-    /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS,
-       (char *)&Object_Instance_Number,
-       sizeof(Object_Instance_Number),
-       EEPROM_BACNET_ID_ADDR); */
+    /* Get the data from the eeprom */
+    eeprom_bytes_read(
+        NV_EEPROM_DEVICE_0,
+        (uint8_t *)&Object_Instance_Number,
+        sizeof(Object_Instance_Number));
+    if (Object_Instance_Number >= BACNET_MAX_INSTANCE) {
+        Object_Instance_Number = 0;
+        eeprom_bytes_write(
+            NV_EEPROM_DEVICE_0,
+            (uint8_t *)&Object_Instance_Number,
+            sizeof(Object_Instance_Number));
+    }
+    eeprom_bytes_read(
+        NV_EEPROM_DEVICE_NAME_ENCODING,
+        &Object_Name_Encoding,
+        1);
+    eeprom_bytes_read(
+        NV_EEPROM_DEVICE_NAME_LENGTH,
+        &Object_Name_Length,
+        1);
+    eeprom_bytes_read(
+        NV_EEPROM_DEVICE_NAME_0,
+        (uint8_t *)&Object_Name[0],
+        NV_EEPROM_DEVICE_NAME_SIZE);
+    if ((Object_Name_Encoding >= MAX_CHARACTER_STRING_ENCODING) ||
+        (Object_Name_Length > NV_EEPROM_DEVICE_NAME_SIZE)) {
+        Object_Name_Encoding = CHARACTER_ANSI_X34;
+        Object_Name_Length = 0;
+        eeprom_bytes_write(
+            NV_EEPROM_DEVICE_NAME_ENCODING,
+            &Object_Name_Encoding,
+            1);
+        eeprom_bytes_write(
+            NV_EEPROM_DEVICE_NAME_LENGTH,
+            &Object_Name_Length,
+            1);
+    }
 }
 
 /* methods to manipulate the data */
@@ -84,12 +173,10 @@ bool Device_Set_Object_Instance_Number(
 
     if (object_id <= BACNET_MAX_INSTANCE) {
         Object_Instance_Number = object_id;
-        /* FIXME: Write the data to the eeprom */
-        /* I2C_Write_Block(
-           EEPROM_DEVICE_ADDRESS,
-           (char *)&Object_Instance_Number,
-           sizeof(Object_Instance_Number),
-           EEPROM_BACNET_ID_ADDR); */
+        eeprom_bytes_write(
+            NV_EEPROM_DEVICE_0,
+            (uint8_t *)&Object_Instance_Number,
+            sizeof(Object_Instance_Number));
     } else
         status = false;
 
@@ -237,8 +324,6 @@ int Device_Encode_Property_APDU(
     int object_type = 0;
     uint32_t instance = 0;
     unsigned count = 0;
-    BACNET_TIME local_time;
-    BACNET_DATE local_date;
 
     /* FIXME: change the hardcoded names to suit your application */
     switch (property) {
@@ -248,7 +333,10 @@ int Device_Encode_Property_APDU(
                 Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string, Object_Name);
+            characterstring_init(&char_string,
+                Object_Name_Encoding,
+                (char *)&Object_Name[0],
+                Object_Name_Length);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -256,7 +344,7 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string, "BACnet Demo");
+            characterstring_init_ansi(&char_string, "BACnet Development Kit");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -276,7 +364,7 @@ int Device_Encode_Property_APDU(
                 Device_Vendor_Identifier());
             break;
         case PROP_MODEL_NAME:
-            characterstring_init_ansi(&char_string, "GNU Demo");
+            characterstring_init_ansi(&char_string, "bdk-atxx4-mstp");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -287,11 +375,6 @@ int Device_Encode_Property_APDU(
             break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
             characterstring_init_ansi(&char_string, "1.0");
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
-        case PROP_LOCATION:
-            characterstring_init_ansi(&char_string, "USA");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -330,10 +413,9 @@ int Device_Encode_Property_APDU(
             }
             /* FIXME: indicate the objects that YOU support */
             bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
-            bitstring_set_bit(&bit_string, OBJECT_ANALOG_VALUE, true);
-            bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
             bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
             bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
+            bitstring_set_bit(&bit_string, OBJECT_BINARY_OUTPUT, true);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OBJECT_LIST:
@@ -413,30 +495,6 @@ int Device_Encode_Property_APDU(
             apdu_len =
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
-        case PROP_LOCAL_TIME:
-            /* FIXME: if you support time */
-            local_time.hour = 0;
-            local_time.min = 0;
-            local_time.sec = 0;
-            local_time.hundredths = 0;
-            apdu_len = encode_application_time(&apdu[0], &local_time);
-            break;
-        case PROP_UTC_OFFSET:
-            /* Note: BACnet Time Zone is inverse of everybody else */
-            apdu_len = encode_application_signed(&apdu[0], 5 /* EST */ );
-            break;
-        case PROP_LOCAL_DATE:
-            /* FIXME: if you support date */
-            local_date.year = 2006;     /* AD */
-            local_date.month = 4;       /* Jan=1..Dec=12 */
-            local_date.day = 11;        /* 1..31 */
-            local_date.wday = 0;        /* 1=Mon..7=Sun */
-            apdu_len = encode_application_date(&apdu[0], &local_date);
-            break;
-        case PROP_DAYLIGHT_SAVINGS_STATUS:
-            /* FIXME: if you support time/date */
-            apdu_len = encode_application_boolean(&apdu[0], false);
-            break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -515,27 +573,55 @@ bool Device_Write_Property(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                uint8_t encoding;
-                size_t len;
-
-                encoding =
-                    characterstring_encoding(&value.type.Character_String);
-                len = characterstring_length(&value.type.Character_String);
-                if (encoding == CHARACTER_ANSI_X34) {
-                    if (len <= 20) {
-                        /* FIXME: set the name */
-                        /* Display_Set_Name(
-                           characterstring_value(&value.type.Character_String)); */
-                        /* FIXME:  All the object names in a device must be unique.
-                           Disallow setting the Device Object Name to any objects in
-                           the device. */
-                    } else {
+                size_t length = 
+                    characterstring_length(&value.type.Character_String);
+                if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
+                    uint8_t encoding = 
+                        characterstring_encoding(&value.type.Character_String);
+                    if (encoding < MAX_CHARACTER_STRING_ENCODING) {
+                        uint8_t i;
+                        char *pCharString;
+                        Object_Name_Encoding = encoding;
+                        Object_Name_Length = length;
+                        eeprom_bytes_write(
+                            NV_EEPROM_DEVICE_NAME_ENCODING,
+                            &Object_Name_Encoding,
+                            1);
+                        eeprom_bytes_write(
+                            NV_EEPROM_DEVICE_NAME_LENGTH,
+                            &Object_Name_Length,
+                            1);
+                        pCharString = 
+                            characterstring_value(&value.type.Character_String);
+                        for (i = 0; i < Object_Name_Length; i++) {
+                            Object_Name[i] = pCharString[i];
+                        }
+                        eeprom_bytes_write(
+                            NV_EEPROM_DEVICE_NAME_0,
+                            (uint8_t *)&Object_Name[0],
+                            length);
+                        status = true;
+                    } else {                    
                         *error_class = ERROR_CLASS_PROPERTY;
-                        *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
                     }
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+                    *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case 9600:
+            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                if ((value.type.Unsigned_Int > 115200) &&
+                    (rs485_baud_rate_set(value.type.Unsigned_Int))) {
+                    status = true;
+                } else {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;

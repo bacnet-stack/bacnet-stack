@@ -1,4 +1,4 @@
-/**************************************************************************
+/************************************************************************
 *
 * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
 *
@@ -21,7 +21,7 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
-*********************************************************************/
+*************************************************************************/
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -54,25 +54,72 @@ static uint8_t MSTP_MAC_Address;
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
+#if defined(__GNUC__)
+/* AVR fuse settings */
+FUSES =
+{
+    /* External Ceramic Resonator - configuration */
+    /* Full Swing Crystal Oscillator Clock Selection */
+    /* Ceramic resonator, slowly rising power 1K CK 14CK + 65 ms */
+    /* note: fuses are enabled by clearing the bit, so
+       any fuses listed below are cleared fuses. */
+    .low = (FUSE_CKSEL3 &
+        FUSE_SUT0 &
+        FUSE_SUT1),
+
+    /* FIXME: bootrst */
+    /* BOOTSZ configuration:
+    BOOTSZ1 BOOTSZ0 Boot Size
+    ------- ------- ---------
+       1       1      512
+       1       0     1024
+       0       1     2048
+       0       0     4096
+    */
+    /* note: fuses are enabled by clearing the bit, so
+       any fuses listed below are cleared fuses. */
+    .high = (
+        FUSE_BOOTSZ1 &
+        FUSE_BOOTRST &
+        FUSE_EESAVE &
+        FUSE_SPIEN &
+        FUSE_JTAGEN),
+
+    /* Brown-out detection VCC=2.7V */
+    /* BODLEVEL configuration 
+    BODLEVEL2 BODLEVEL1 BODLEVEL0 Voltage
+    --------- --------- --------- --------
+        1         1         1     disabled
+        1         1         0       1.8V
+        1         0         1       2.7V
+        1         0         0       4.3V
+    */
+    /* note: fuses are enabled by clearing the bit, so
+       any fuses listed below are cleared fuses. */
+    .extended = (FUSE_BODLEVEL1 & FUSE_BODLEVEL0),
+};
+/* AVR lock bits - unlocked */
+LOCKBITS = LOCKBITS_DEFAULT;
+#endif
+
 static void bacnet_init(
     void)
 {
-#if defined(BACDL_MSTP)
     MSTP_MAC_Address = input_address();
-    /* configure the BACnet Datalink */
-    rs485_baud_rate_set(9600);
-    dlmstp_set_max_master(127);
-    dlmstp_set_max_info_frames(1);
     dlmstp_set_mac_address(MSTP_MAC_Address);
     dlmstp_init(NULL);
-#endif
-    Device_Set_Object_Instance_Number(4194303);
+    /* initialize objects */
+    Device_Init();
+    Binary_Output_Init();
+
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+        handler_read_property_multiple);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
@@ -94,6 +141,7 @@ static void bacnet_task(void)
     mstp_mac_address = input_address();
     if (MSTP_MAC_Address != mstp_mac_address) {
         MSTP_MAC_Address = mstp_mac_address;
+        dlmstp_set_mac_address(MSTP_MAC_Address);
         Send_I_Am(&Handler_Transmit_Buffer[0]);            
     }
     if (timer_elapsed_seconds(TIMER_DCC, 1)) {
@@ -113,6 +161,8 @@ void idle_init(void)
 
 void idle_task(void)
 {
+#if 0
+    /* blink the leds */
     if (timer_elapsed_seconds(TIMER_LED_3, 1)) {
         timer_reset(TIMER_LED_3);
         led_toggle(LED_3);
@@ -121,6 +171,7 @@ void idle_task(void)
         timer_reset(TIMER_LED_4);
         led_toggle(LED_4);
     }
+#endif
 }
 
 int main(
