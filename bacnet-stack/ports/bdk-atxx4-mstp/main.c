@@ -67,7 +67,6 @@ FUSES =
         FUSE_SUT0 &
         FUSE_SUT1),
 
-    /* FIXME: bootrst */
     /* BOOTSZ configuration:
     BOOTSZ1 BOOTSZ0 Boot Size
     ------- ------- ---------
