@@ -46,6 +46,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "mstp.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -59,7 +60,7 @@ HANDLE RS485_Handle;
 /* Original COM Timeouts */
 static COMMTIMEOUTS RS485_Timeouts;
 /* COM port name COM1, COM2, etc  */
-static char *RS485_Port_Name = "COM4";
+static char RS485_Port_Name[256] = "COM4";
 /* baud rate - MS enumerated
     CBR_110, CBR_300, CBR_600, CBR_1200, CBR_2400,
     CBR_4800, CBR_9600, CBR_14400, CBR_19200, CBR_38400,
@@ -86,14 +87,22 @@ static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
 *              receive mode.
 * RETURN:      none
 * ALGORITHM:   none
-* NOTES:       none
+* NOTES:       expects a constant char ifname, or char from the heap
 *****************************************************************************/
 void RS485_Set_Interface(
     char *ifname)
 {
-    /* note: expects a constant char, or char from the heap */
+    /* For COM ports greater than 9 you have to use a special syntax
+       for CreateFile. The syntax also works for COM ports 1-9. */
+    /* http://support.microsoft.com/kb/115831 */
     if (ifname) {
-        RS485_Port_Name = ifname;
+        if (strncmp("COM", ifname, 3) == 0) {
+            if (strlen(ifname) > 3) {
+                sprintf(RS485_Port_Name, "\\\\.\\COM%i", atoi(ifname+3));
+                fprintf(stderr, "Adjusted interface name to %s\r\n", 
+                    RS485_Port_Name);
+            }
+        }
     }
 }
 
@@ -106,19 +115,20 @@ const char *RS485_Interface(
 static void RS485_Print_Error(
     void)
 {
-    char *szExtended = "";      /* error string translated from error code */
+    LPVOID lpMsgBuf;
     DWORD dwExtSize;
     DWORD dwErr;
 
-    dwErr = GetLastError();
-    fprintf(stderr, "Error %lu:\r\n", dwErr);
-    /* Get error string from system */
-    dwExtSize =
-        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | 80, NULL, dwErr,
-        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPTSTR) szExtended, 0,
-        NULL);
-    fprintf(stderr, "%s\r\n", szExtended);
+    FormatMessage( 
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+        NULL,
+        GetLastError(),
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+        (LPTSTR) &lpMsgBuf,
+        0,
+        NULL );
+    MessageBox( NULL, lpMsgBuf, "GetLastError", MB_OK|MB_ICONINFORMATION );
+    LocalFree(lpMsgBuf);
 
     return;
 }
