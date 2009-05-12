@@ -34,6 +34,7 @@
 #include "dlmstp.h"
 #include "rs485.h"
 #include "version.h"
+#include "stack.h"
 /* objects */
 #include "device.h"
 #include "av.h"
@@ -159,11 +160,6 @@ bool Device_Object_List_Identifier(
 
     return status;
 }
-
-#if defined(__GNUC__)
-extern uint8_t _end;
-extern uint8_t __stack;
-#endif
 
 /* return the length of the apdu encoded or -1 for error */
 int Device_Encode_Property_APDU(
@@ -326,43 +322,12 @@ int Device_Encode_Property_APDU(
             apdu_len =
                 encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());
             break;
-#if defined(__GNUC__)
         case 512:
-            count = 1 + (&__stack) - (&_end);
-            if (array_index == 0) {
-                /* Array element zero is the number of bytes of stack */
-                apdu_len = encode_application_unsigned(&apdu[0], count);
-            } else if (array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list */
-                /* into one packet.  Note that more than likely you will have */
-                /* to return an error if the number of encoded objects exceeds */
-                /* your maximum APDU size. */
-                for (i = 1; i <= count; i++) {
-                    len = encode_application_unsigned(&apdu[0], *(&_end + i));
-                    apdu_len += len;
-                    /* assume next one is the same size as this one */
-                    /* can we all fit into the APDU? */
-                    if ((apdu_len + len) >= MAX_APDU) {
-                        *error_class = ERROR_CLASS_SERVICES;
-                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = -1;
-                        break;
-                    }
-                }
-            } else if (array_index <= count) {
-                apdu_len =
-                    encode_application_unsigned(&apdu[0],
-                    *(&_end + array_index));
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                apdu_len = -1;
-            }
+            apdu_len = encode_application_unsigned(&apdu[0], stack_size());
             break;
         case 513:
-            apdu_len = encode_application_unsigned(&apdu[0], __stack);
+            apdu_len = encode_application_unsigned(&apdu[0], stack_unused());
             break;
-#endif
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
