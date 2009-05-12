@@ -34,6 +34,7 @@
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
 #include "led.h"
+#include "nvdata.h"
 
 #define MAX_BINARY_OUTPUTS 2
 #if (MAX_BINARY_OUTPUTS > 9)
@@ -44,13 +45,13 @@
 /* the Relinquish Default value */
 #define RELINQUISH_DEFAULT BINARY_INACTIVE
 /* Here is our Priority Array.*/
-static BACNET_BINARY_PV
+static uint8_t
     Binary_Output_Level[MAX_BINARY_OUTPUTS][BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
-static bool Binary_Output_Out_Of_Service[MAX_BINARY_OUTPUTS];
+static uint8_t Out_Of_Service[MAX_BINARY_OUTPUTS];
 /* polarity - normal or inverse */
-static BACNET_POLARITY Polarity[MAX_BINARY_OUTPUTS];
+static uint8_t Polarity[MAX_BINARY_OUTPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Output_Properties_Required[] = {
@@ -93,24 +94,51 @@ void Binary_Output_Property_Lists(
     return;
 }
 
-void Binary_Output_Init(
-    void)
+void Binary_Output_Level_Set(
+    unsigned int object_index,
+    unsigned int priority,
+    BACNET_BINARY_PV level)
 {
-    unsigned i, j;
-    static bool initialized = false;
-
-    if (!initialized) {
-        initialized = true;
-
-        /* initialize all the analog output priority arrays to NULL */
-        for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
-            for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
-                Binary_Output_Level[i][j] = BINARY_NULL;
-            }
+    if (object_index < MAX_BINARY_OUTPUTS) {
+        if (priority < BACNET_MAX_PRIORITY) {
+            Binary_Output_Level[object_index][priority] = (uint8_t)level;
+            seeprom_bytes_write(
+                NV_SEEPROM_BINARY_OUTPUT(object_index,
+                NV_SEEPROM_BO_PRIORITY_ARRAY_1+priority),
+                &Binary_Output_Level[object_index][priority],
+                1);
         }
     }
+}
 
-    return;
+void Binary_Output_Polarity_Set(
+    unsigned int object_index,
+    BACNET_POLARITY polarity)
+{
+    if (object_index < MAX_BINARY_OUTPUTS) {
+        if (polarity < MAX_POLARITY) {
+            Polarity[object_index] = POLARITY_NORMAL;
+            seeprom_bytes_write(
+                NV_SEEPROM_BINARY_OUTPUT(object_index,
+                NV_SEEPROM_BO_POLARITY),
+                &Polarity[object_index],
+                1);
+        }
+    }
+}
+
+void Binary_Output_Out_Of_Service_Set(
+    unsigned int object_index,
+    bool flag)
+{
+    if (object_index < MAX_BINARY_OUTPUTS) {
+        Out_Of_Service[object_index] = flag;
+        seeprom_bytes_write(
+            NV_SEEPROM_BINARY_OUTPUT(object_index,
+            NV_SEEPROM_BO_OUT_OF_SERVICE),
+            &Out_Of_Service[object_index],
+            1);
+    }
 }
 
 /* we simply have 0-n object instances. */
@@ -153,14 +181,15 @@ static BACNET_BINARY_PV Binary_Output_Present_Value(
     uint32_t object_instance)
 {
     BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
+    BACNET_BINARY_PV current_value = RELINQUISH_DEFAULT;
     unsigned index = 0;
     unsigned i = 0;
 
-    Binary_Output_Init();
     index = Binary_Output_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            if (Binary_Output_Level[index][i] != BINARY_NULL) {
+            current_value = Binary_Output_Level[index][i];
+            if (current_value != BINARY_NULL) {
                 value = Binary_Output_Level[index][i];
                 break;
             }
@@ -177,7 +206,7 @@ static void Binary_Output_Sync(
     unsigned index = Binary_Output_Instance_To_Index(object_instance);
 
     if (index < MAX_BINARY_OUTPUTS) {
-        if (Binary_Output_Out_Of_Service[index]) {
+        if (Out_Of_Service[index]) {
             return;
         }
         if (Polarity[index] == POLARITY_REVERSE) {
@@ -240,7 +269,6 @@ int Binary_Output_Encode_Property_APDU(
     unsigned i = 0;
     bool state = false;
 
-    Binary_Output_Init();
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -280,7 +308,7 @@ int Binary_Output_Encode_Property_APDU(
             break;
         case PROP_OUT_OF_SERVICE:
             object_index = Binary_Output_Instance_To_Index(object_instance);
-            state = Binary_Output_Out_Of_Service[object_index];
+            state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
@@ -299,10 +327,10 @@ int Binary_Output_Encode_Property_APDU(
                     Binary_Output_Instance_To_Index(object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
-                    if (Binary_Output_Level[object_index][i] == BINARY_NULL)
+                    present_value = Binary_Output_Level[object_index][i];
+                    if (present_value == BINARY_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
-                    else {
-                        present_value = Binary_Output_Level[object_index][i];
+                    } else {
                         len =
                             encode_application_enumerated(&apdu[apdu_len],
                             present_value);
@@ -321,12 +349,11 @@ int Binary_Output_Encode_Property_APDU(
                 object_index =
                     Binary_Output_Instance_To_Index(object_instance);
                 if (array_index <= BACNET_MAX_PRIORITY) {
-                    if (Binary_Output_Level[object_index][array_index] ==
-                        BINARY_NULL)
+                    present_value = 
+                        Binary_Output_Level[object_index][array_index];
+                    if (present_value == BINARY_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
-                    else {
-                        present_value =
-                            Binary_Output_Level[object_index][array_index];
+                    } else {
                         len =
                             encode_application_enumerated(&apdu[apdu_len],
                             present_value);
@@ -400,7 +427,7 @@ bool Binary_Output_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     priority--;
-                    Binary_Output_Level[object_index][priority] = level;
+                    Binary_Output_Level_Set(object_index, priority,level);
                     Binary_Output_Sync(wp_data->object_instance);
                     status = true;
                 } else if (priority == 6) {
@@ -418,9 +445,15 @@ bool Binary_Output_Write_Property(
                 priority = wp_data->priority;
                 if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                     priority--;
-                    Binary_Output_Level[object_index][priority] = level;
+                    Binary_Output_Level_Set(object_index, priority,level);
                     Binary_Output_Sync(wp_data->object_instance);
                     status = true;
+                } else if (priority == 6) {
+                    /* Command priority 6 is reserved for use by Minimum On/Off
+                       algorithm and may not be used for other purposes in any
+                       object. */
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -432,8 +465,8 @@ bool Binary_Output_Write_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                Binary_Output_Out_Of_Service[object_index] =
-                    value.type.Boolean;
+                Binary_Output_Out_Of_Service_Set(object_index, 
+                    value.type.Boolean);
                 Binary_Output_Sync(wp_data->object_instance);
                 status = true;
             } else {
@@ -443,9 +476,11 @@ bool Binary_Output_Write_Property(
             break;
         case PROP_POLARITY:
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-                if (value.type.Enumerated <= MAX_POLARITY) {
-                    Polarity[object_index] = 
-                        (BACNET_POLARITY)value.type.Enumerated;
+                if (value.type.Enumerated < MAX_POLARITY) {
+                    Binary_Output_Polarity_Set(object_index, 
+                        value.type.Enumerated);
+                    Binary_Output_Sync(wp_data->object_instance);
+                    status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -462,4 +497,38 @@ bool Binary_Output_Write_Property(
     }
 
     return status;
+}
+
+void Binary_Output_Init(
+    void)
+{
+    unsigned i, j;
+
+    /* initialize all the analog output priority arrays to NULL */
+    for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
+        seeprom_bytes_read(
+            NV_SEEPROM_BINARY_OUTPUT(i,NV_SEEPROM_BO_POLARITY),
+            &Polarity[i],
+            1);
+        if (Polarity[i] >= MAX_POLARITY) {
+            Binary_Output_Polarity_Set(i, POLARITY_NORMAL); 
+        }
+        seeprom_bytes_read(
+            NV_SEEPROM_BINARY_OUTPUT(i,NV_SEEPROM_BO_OUT_OF_SERVICE),
+            &Out_Of_Service[i],
+            1);
+        if (Out_Of_Service[i] > 1) {
+            Binary_Output_Out_Of_Service_Set(i, false);
+        }        
+        for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
+            seeprom_bytes_read(
+                NV_SEEPROM_BINARY_OUTPUT(i,
+                NV_SEEPROM_BO_PRIORITY_ARRAY_1+j),
+                &Binary_Output_Level[i][j],
+                1);
+        }
+        Binary_Output_Sync(i);
+    }
+
+    return;
 }

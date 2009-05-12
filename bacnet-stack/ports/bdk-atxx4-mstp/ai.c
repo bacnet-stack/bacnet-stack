@@ -33,7 +33,7 @@
 #include "bacenum.h"
 #include "config.h"
 
-/* Analog Input = Photocell */
+/* Analog Input */
 #define MAX_ANALOG_INPUTS 2
 #if (MAX_ANALOG_INPUTS > 9)
 #error Modify the Analog_Input_Name to handle multiple digits
