@@ -235,6 +235,7 @@ int RPM_Encode_Property(
     int32_t array_index)
 {
     int len = 0;
+    size_t copy_len = 0;
     int apdu_len = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -242,8 +243,8 @@ int RPM_Encode_Property(
     len =
         rpm_ack_encode_apdu_object_property(&Temp_Buf[0], object_property,
         array_index);
-    len = memcopy(&apdu[0], &Temp_Buf[0], offset, len, max_apdu);
-    if (!len) {
+    copy_len = memcopy(&apdu[0], &Temp_Buf[0], offset, len, max_apdu);
+    if (copy_len == 0) {
         return 0;
     }
     apdu_len += len;
@@ -255,9 +256,9 @@ int RPM_Encode_Property(
         len =
             rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
             error_class, error_code);
-        len =
+        copy_len =
             memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len, max_apdu);
-        if (!len) {
+        if (copy_len == 0) {
             return 0;
         }
     } else if ((offset + apdu_len + 1 + len + 1) < max_apdu) {

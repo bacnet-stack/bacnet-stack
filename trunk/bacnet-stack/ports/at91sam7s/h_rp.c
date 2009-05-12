@@ -81,7 +81,7 @@ int Encode_Property_APDU(
         case OBJECT_ANALOG_VALUE:
             if (Analog_Value_Valid_Instance(object_instance)) {
                 apdu_len =
-                    Analog_Value_Encode_Property_APDU(&Temp_Buf[0],
+                    Analog_Value_Encode_Property_APDU(&apdu[0],
                     object_instance, property, array_index, error_class,
                     error_code);
             }
@@ -97,7 +97,7 @@ int Encode_Property_APDU(
         case OBJECT_BINARY_VALUE:
             if (Binary_Value_Valid_Instance(object_instance)) {
                 apdu_len =
-                    Binary_Value_Encode_Property_APDU(&Temp_Buf[0],
+                    Binary_Value_Encode_Property_APDU(&apdu[0],
                     object_instance, property, array_index, error_class,
                     error_code);
             }
