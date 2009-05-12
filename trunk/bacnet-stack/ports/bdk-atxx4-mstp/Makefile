@@ -40,6 +40,7 @@ BACNET_DEMO = ../../demo
 # local files for this project
 CSRC = main.c \
 	init.c \
+	stack.c \
 	input.c \
 	serial.c \
 	rs485.c \

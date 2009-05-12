@@ -27,10 +27,11 @@
 #include <stdint.h>
 #include "hardware.h"
 #include "init.h"
+#include "stack.h"
 #include "timer.h"
 #include "input.h"
 #include "led.h"
-#include "seeprom.h"
+#include "nvdata.h"
 #include "timer.h"
 #include "dcc.h"
 #include "rs485.h"
@@ -101,16 +102,41 @@ FUSES =
 LOCKBITS = LOCKBITS_DEFAULT;
 #endif
 
+bool seeprom_version_test(void)
+{
+    uint16_t version = 0;
+    uint16_t id = 0;
+    bool status = false;
+    
+    seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *)&id, 2);
+    seeprom_bytes_read(NV_SEEPROM_VERSION_0, (uint8_t *)&version, 2);
+    
+    if ((id == SEEPROM_ID) && (version == SEEPROM_VERSION)) {
+        status = true;
+    } else {
+        version = SEEPROM_VERSION;
+        id = SEEPROM_ID;
+        seeprom_bytes_write(NV_SEEPROM_TYPE_0, (uint8_t *)&id, 2);
+        seeprom_bytes_write(NV_SEEPROM_VERSION_0, (uint8_t *)&version, 2);
+    }
+    
+    return status;
+}
+
 static void bacnet_init(
     void)
 {
     MSTP_MAC_Address = input_address();
     dlmstp_set_mac_address(MSTP_MAC_Address);
     dlmstp_init(NULL);
+    
+    if (!seeprom_version_test()) {
+        /* invalid version data */
+    }    
     /* initialize objects */
     Device_Init();
     Binary_Output_Init();
-
+    
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */

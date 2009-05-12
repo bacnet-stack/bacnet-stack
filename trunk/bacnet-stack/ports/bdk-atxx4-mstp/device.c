@@ -35,6 +35,7 @@
 #include "rs485.h"
 #include "version.h"
 #include "nvdata.h"
+#include "stack.h"
 /* objects */
 #include "device.h"
 #include "ai.h"
@@ -494,6 +495,12 @@ int Device_Encode_Property_APDU(
         case PROP_MAX_MASTER:
             apdu_len =
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
+            break;
+        case 512:
+            apdu_len = encode_application_unsigned(&apdu[0], stack_size());
+            break;
+        case 513:
+            apdu_len = encode_application_unsigned(&apdu[0], stack_unused());
             break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;

@@ -97,7 +97,7 @@
 /*************************************************************************
 * DESCRIPTION: Return bytes from SEEPROM memory at address
 * RETURN: number of bytes read, or -1 on error
-* NOTES: The 24LC128 SEEPROM uses a two byte memory address
+* NOTES: none
 **************************************************************************/
 int seeprom_bytes_read(
     uint16_t eeaddr, /* SEEPROM starting memory address */
@@ -274,7 +274,7 @@ error:
 /*************************************************************************
 * DESCRIPTION: Write some data and wait until it is sent
 * RETURN: number of bytes written, or -1 on error
-* NOTES: The 24LC128 SEEPROM uses a two byte memory address
+* NOTES: none
 **************************************************************************/
 int seeprom_bytes_write(
     uint16_t eeaddr, /* SEEPROM starting memory address */
