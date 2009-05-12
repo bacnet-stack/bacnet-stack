@@ -88,7 +88,7 @@ int Encode_Property_APDU(
         case OBJECT_BINARY_OUTPUT:
             if (Binary_Output_Valid_Instance(object_instance)) {
                 apdu_len =
-                    Binary_Output_Encode_Property_APDU(&Temp_Buf[0],
+                    Binary_Output_Encode_Property_APDU(&apdu[0],
                     object_instance, property, array_index, error_class,
                     error_code);
             }

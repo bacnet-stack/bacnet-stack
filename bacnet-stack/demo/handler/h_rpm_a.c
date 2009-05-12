@@ -124,6 +124,10 @@ static int rpm_ack_decode_service_request(
                         apdu++;
                         break;
                     } else {
+                        /* nothing decoded and no closing tag, so malformed */
+                        if (len == 0) {
+                            return -1;
+                        }
                         old_value = value;
                         value =
                             calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
@@ -283,6 +287,27 @@ void handler_read_property_multiple_ack(
     if (len > 0) {
         while (rpm_data) {
             PrintReadPropertyMultipleData(rpm_data);
+            rpm_property = rpm_data->listOfProperties;
+            while (rpm_property) {
+                value = rpm_property->value;
+                while (value) {
+                    old_value = value;
+                    value = value->next;
+                    free(old_value);
+                }
+                old_rpm_property = rpm_property;
+                rpm_property = rpm_property->next;
+                free(old_rpm_property);
+            }
+            old_rpm_data = rpm_data;
+            rpm_data = rpm_data->next;
+            free(old_rpm_data);
+        }
+    } else {
+#if 1
+        fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
+#endif
+        while (rpm_data) {
             rpm_property = rpm_data->listOfProperties;
             while (rpm_property) {
                 value = rpm_property->value;
