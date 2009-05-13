@@ -121,14 +121,18 @@ LIBRARY = lib$(TARGET).a
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
 
+# define something from the Makefile or batch file
+DEFINES = 
+
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
 # default optimization is for debugging from AVR Studio
 OPTIMIZATION = -O0
-#OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
 DEBUGGING = -g
-# define something from the Makefile or batch file
-DEFINES = 
+ifeq (${BUILD},release)
+OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
+DEBUGGING =
+endif#
 
 ## Compile options common for all C compilation units.
 BFLAGS = -DBACDL_MSTP
