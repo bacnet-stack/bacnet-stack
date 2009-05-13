@@ -33,16 +33,19 @@ extern "C" {
 #endif /* __cplusplus */
 
     /* C stack checking */
-    void stack_init(void);
+    void stack_init(
+        void);
 
-    unsigned stack_size(void);
+    unsigned stack_size(
+        void);
 
-    uint8_t stack_byte(unsigned offset);
+    uint8_t stack_byte(
+        unsigned offset);
 
-    unsigned stack_unused(void);
+    unsigned stack_unused(
+        void);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 #endif
-    

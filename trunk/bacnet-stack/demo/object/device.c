@@ -137,7 +137,7 @@ BACNET_DATE Local_Date; /* rely on OS, if there is one */
    If your UTC offset is -5hours of GMT, 
    then BACnet UTC offset is +5hours.
    BACnet UTC offset is expressed in minutes. */
-static int32_t UTC_Offset = 5*60;
+static int32_t UTC_Offset = 5 * 60;
 static bool Daylight_Savings_Status = false;    /* rely on OS */
 /* List_Of_Session_Keys */
 /* Time_Synchronization_Recipients */
@@ -680,8 +680,7 @@ int Device_Encode_Property_APDU(
         case PROP_LOCATION:
             characterstring_init_ansi(&char_string, Location);
             apdu_len =
-                encode_application_character_string(&apdu[0],
-                    &char_string);
+                encode_application_character_string(&apdu[0], &char_string);
             break;
             /* FIXME: if you support time */
         case PROP_LOCAL_TIME:

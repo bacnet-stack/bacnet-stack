@@ -35,19 +35,19 @@
 #endif
 
 #if defined(__GNUC__)
-    #if !defined(__AVR_ATmega644P__)
-    #error Firmware is configured for ATmega644P only (-mmcu=atmega644p)
-    #endif
+#if !defined(__AVR_ATmega644P__)
+#error Firmware is configured for ATmega644P only (-mmcu=atmega644p)
+#endif
     /* GCC specific configuration */
-    #include <avr/wdt.h>
+#include <avr/wdt.h>
 #endif
 
 #include "iar2gcc.h"
 #include "bits.h"
 
 /* SEEPROM is 24LC128 */
-//#define SEEPROM_PAGE_SIZE 128
-//#define SEEPROM_WORD_ADDRESS_16BIT 1
+/*#define SEEPROM_PAGE_SIZE 128 */
+/*#define SEEPROM_WORD_ADDRESS_16BIT 1 */
 /* SEEPROM is 24C16 */
 #define SEEPROM_PAGE_SIZE 16
 #define SEEPROM_WORD_ADDRESS_16BIT 0

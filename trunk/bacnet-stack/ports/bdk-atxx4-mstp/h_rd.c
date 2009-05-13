@@ -103,7 +103,7 @@ void handler_reinitialize_device(
                 ERROR_CLASS_SERVICES, ERROR_CODE_PASSWORD_FAILURE);
         }
     }
-RD_ABORT:
+  RD_ABORT:
     pdu_len += len;
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],

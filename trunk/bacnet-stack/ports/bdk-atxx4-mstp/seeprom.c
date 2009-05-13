@@ -100,13 +100,13 @@
 * NOTES: none
 **************************************************************************/
 int seeprom_bytes_read(
-    uint16_t eeaddr, /* SEEPROM starting memory address */
-    uint8_t * buf, /* data to store */
-    int len) /* number of bytes of data to read */
-{
+    uint16_t eeaddr,    /* SEEPROM starting memory address */
+    uint8_t * buf,      /* data to store */
+    int len)
+{       /* number of bytes of data to read */
     uint8_t sla, twcr, n = 0;
     int rv = 0;
-    uint8_t twst; /* status - only valid while TWINT is set. */
+    uint8_t twst;       /* status - only valid while TWINT is set. */
 
 #if SEEPROM_WORD_ADDRESS_16BIT
     /* 16bit address devices need only TWI Device Address */
@@ -116,19 +116,19 @@ int seeprom_bytes_read(
     sla = SEEPROM_I2C_ADDRESS | (((eeaddr >> 8) & 0x07) << 1);
 #endif
     /* Note [8] First cycle: master transmitter mode */
-restart:
+  restart:
     if (n++ >= MAX_ITER) {
         return -1;
     }
-begin:
+  begin:
     /* send start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ;
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
-        /* OK, but should not happen */
+            /* OK, but should not happen */
         case TW_START:
             break;
         case TW_MT_ARB_LOST:
@@ -146,7 +146,7 @@ begin:
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ;
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_SLA_ACK:
@@ -164,11 +164,11 @@ begin:
     }
 #if SEEPROM_WORD_ADDRESS_16BIT
     /* 16 bit word address device, send high 8 bits of addr */
-    TWDR = (eeaddr>>8);
+    TWDR = (eeaddr >> 8);
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ;
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -187,7 +187,7 @@ begin:
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ; 
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -198,18 +198,18 @@ begin:
             goto begin;
         default:
             /* must send stop condition */
-            goto error;               
+            goto error;
     }
 
     /* Note [12] Next cycle(s): master receiver mode */
     /* send repeated start condition */
-    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN); 
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ; 
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_START:
-        /* OK, but should not happen */            
+            /* OK, but should not happen */
         case TW_REP_START:
             break;
         case TW_MT_ARB_LOST:
@@ -221,9 +221,9 @@ begin:
     /* send SLA+R */
     TWDR = sla | TW_READ;
     /* clear interrupt to start transmission */
-    TWCR = _BV(TWINT) | _BV(TWEN); 
+    TWCR = _BV(TWINT) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ; 
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MR_SLA_ACK:
@@ -237,23 +237,23 @@ begin:
     }
     /* Note [13] */
     twcr = _BV(TWINT) | _BV(TWEN) | _BV(TWEA);
-    for (;len > 0; len--) {
+    for (; len > 0; len--) {
         if (len == 1) {
             /* send NAK this time */
-            twcr = _BV(TWINT) | _BV(TWEN); 
+            twcr = _BV(TWINT) | _BV(TWEN);
         }
         /* clear int to start transmission */
-        TWCR = twcr;              
+        TWCR = twcr;
         /* wait for transmission */
-        while ((TWCR & _BV(TWINT)) == 0) ; 
+        while ((TWCR & _BV(TWINT)) == 0);
         twst = TWSR & TW_STATUS_MASK;
         switch (twst) {
             case TW_MR_DATA_NACK:
                 /* force end of loop */
-                len = 0;              
+                len = 0;
                 /* FALLTHROUGH */
             case TW_MR_DATA_ACK:
-                *buf= TWDR;
+                *buf = TWDR;
                 buf++;
                 rv++;
                 break;
@@ -261,12 +261,12 @@ begin:
                 goto error;
         }
     }
-quit:
+  quit:
     /* Note [14] */
     /* send stop condition */
-    TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN); 
+    TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
     return rv;
-error:
+  error:
     rv = -1;
     goto quit;
 }
@@ -277,14 +277,14 @@ error:
 * NOTES: none
 **************************************************************************/
 int seeprom_bytes_write(
-    uint16_t eeaddr, /* SEEPROM starting memory address */
-    uint8_t * buf, /* data to send */
-    int len) /* number of bytes of data */
-{
+    uint16_t eeaddr,    /* SEEPROM starting memory address */
+    uint8_t * buf,      /* data to send */
+    int len)
+{       /* number of bytes of data */
     uint8_t sla, n = 0;
     int rv = 0;
     uint16_t endaddr;
-    uint8_t twst; /* status - only valid while TWINT is set. */
+    uint8_t twst;       /* status - only valid while TWINT is set. */
 
     if ((eeaddr + len) < (eeaddr | (SEEPROM_PAGE_SIZE - 1))) {
         endaddr = eeaddr + len;
@@ -299,14 +299,14 @@ int seeprom_bytes_write(
     /* patch high bits of EEPROM address into SLA */
     sla = SEEPROM_I2C_ADDRESS | (((eeaddr >> 8) & 0x07) << 1);
 #endif
-restart:
+  restart:
     if (n++ >= MAX_ITER) {
         return -1;
     }
-begin:
+  begin:
     /* Note [15] */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN); /* send start condition */
-    while ((TWCR & _BV(TWINT)) == 0) ; /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);   /* wait for transmission */
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
@@ -325,7 +325,7 @@ begin:
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ;
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_SLA_ACK:
@@ -342,11 +342,11 @@ begin:
     }
 #if SEEPROM_WORD_ADDRESS_16BIT
     /* 16 bit word address device, send high 8 bits of addr */
-    TWDR = (eeaddr>>8);
+    TWDR = (eeaddr >> 8);
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) ;
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -365,7 +365,8 @@ begin:
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) {};
+    while ((TWCR & _BV(TWINT)) == 0) {
+    };
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -383,7 +384,7 @@ begin:
         /* start transmission */
         TWCR = _BV(TWINT) | _BV(TWEN);
         /* wait for transmission */
-        while ((TWCR & _BV(TWINT)) == 0) ;
+        while ((TWCR & _BV(TWINT)) == 0);
         twst = TWSR & TW_STATUS_MASK;
         switch (twst) {
             case TW_MT_DATA_NACK:
@@ -396,13 +397,13 @@ begin:
                 goto error;
         }
     }
-quit:
+  quit:
     /* send stop condition */
     TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
 
     return rv;
 
-error:
+  error:
     rv = -1;
     goto quit;
 }
@@ -412,13 +413,14 @@ error:
 * Returns: none
 * Notes: none
 **************************************************************************/
-void seeprom_init(void)
+void seeprom_init(
+    void)
 {
     /* bit rate prescaler */
-    TWSR=0;
-    TWCR=_BV(TWEN) | _BV(TWEA);
+    TWSR = 0;
+    TWCR = _BV(TWEN) | _BV(TWEA);
     /* bit rate */
     TWBR = (F_CPU / SEEPROM_I2C_CLOCK - 16) / 2;
     /* my address */
-    TWAR=0;
+    TWAR = 0;
 }

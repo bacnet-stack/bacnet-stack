@@ -30,12 +30,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void input_init(void);
-void input_task(void);
-uint8_t input_address(void);
+    void input_init(
+        void);
+    void input_task(
+        void);
+    uint8_t input_address(
+        void);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #endif

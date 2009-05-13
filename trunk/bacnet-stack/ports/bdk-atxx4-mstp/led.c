@@ -36,7 +36,8 @@ static uint32_t Off_Delay_Milliseconds_4;
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_on(uint8_t index)
+void led_on(
+    uint8_t index)
 {
     switch (index) {
         case LED_1:
@@ -61,7 +62,8 @@ void led_on(uint8_t index)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_off(uint8_t index)
+void led_off(
+    uint8_t index)
 {
     switch (index) {
         case LED_1:
@@ -86,7 +88,8 @@ void led_off(uint8_t index)
 * Returns: true if on, false if off.
 * Notes: none
 *************************************************************************/
-bool led_state(uint8_t index)
+bool led_state(
+    uint8_t index)
 {
     switch (index) {
         case LED_1:
@@ -104,7 +107,7 @@ bool led_state(uint8_t index)
         default:
             break;
     }
-    
+
     return false;
 }
 
@@ -113,7 +116,8 @@ bool led_state(uint8_t index)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_toggle(uint8_t index)
+void led_toggle(
+    uint8_t index)
 {
     if (led_state(index)) {
         led_off(index);
@@ -127,7 +131,9 @@ void led_toggle(uint8_t index)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_off_delay(uint8_t index, uint32_t delay_ms)
+void led_off_delay(
+    uint8_t index,
+    uint32_t delay_ms)
 {
     switch (index) {
         case LED_1:
@@ -156,36 +162,29 @@ void led_off_delay(uint8_t index, uint32_t delay_ms)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_task(void)
+void led_task(
+    void)
 {
     if (Off_Delay_Milliseconds_1) {
-        if (timer_elapsed_milliseconds(
-                TIMER_LED_1,
-                Off_Delay_Milliseconds_1)) {
+        if (timer_elapsed_milliseconds(TIMER_LED_1, Off_Delay_Milliseconds_1)) {
             Off_Delay_Milliseconds_1 = 0;
             led_off(LED_1);
         }
     }
     if (Off_Delay_Milliseconds_2) {
-        if (timer_elapsed_milliseconds(
-                TIMER_LED_2,
-                Off_Delay_Milliseconds_2)) {
+        if (timer_elapsed_milliseconds(TIMER_LED_2, Off_Delay_Milliseconds_2)) {
             Off_Delay_Milliseconds_2 = 0;
             led_off(LED_2);
         }
     }
     if (Off_Delay_Milliseconds_3) {
-        if (timer_elapsed_milliseconds(
-                TIMER_LED_3,
-                Off_Delay_Milliseconds_3)) {
+        if (timer_elapsed_milliseconds(TIMER_LED_3, Off_Delay_Milliseconds_3)) {
             Off_Delay_Milliseconds_3 = 0;
             led_off(LED_3);
         }
     }
     if (Off_Delay_Milliseconds_4) {
-        if (timer_elapsed_milliseconds(
-                TIMER_LED_4,
-                Off_Delay_Milliseconds_4)) {
+        if (timer_elapsed_milliseconds(TIMER_LED_4, Off_Delay_Milliseconds_4)) {
             Off_Delay_Milliseconds_4 = 0;
             led_off(LED_4);
         }
@@ -197,7 +196,8 @@ void led_task(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_init(void)
+void led_init(
+    void)
 {
     /* configure the port pins as outputs */
     BIT_SET(DDRC, DDC7);

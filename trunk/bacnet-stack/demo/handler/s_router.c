@@ -153,7 +153,7 @@ void Send_Initialize_Routing_Table(
     BACNET_NPDU_DATA npdu_data;
     uint8_t number_of_ports = 0;
     BACNET_ROUTER_PORT *router_port;
-    uint8_t i = 0;     /* counter */
+    uint8_t i = 0;      /* counter */
 
     npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE, true,
         MESSAGE_PRIORITY_NORMAL);
@@ -203,8 +203,8 @@ void Send_Initialize_Routing_Table_Ack(
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-    
-    
+
+
     /* FIXME: is this parameter needed? */
     router_port_list = router_port_list;
     /* setup packet for sending */

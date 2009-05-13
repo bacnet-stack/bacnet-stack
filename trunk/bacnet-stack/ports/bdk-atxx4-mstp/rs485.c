@@ -49,7 +49,8 @@ static uint32_t Baud_Rate = 9600;
 static uint8_t Receive_Buffer_Data[128];
 static FIFO_BUFFER Receive_Buffer;
 
-static void rs485_rts_init(void)
+static void rs485_rts_init(
+    void)
 {
     /* configure the port pin as an output */
     BIT_SET(DDRD, DDD4);
@@ -66,7 +67,8 @@ void rs485_rts_enable(
     }
 }
 
-static void rs485_receiver_enable(void)
+static void rs485_receiver_enable(
+    void)
 {
     UCSR0B = _BV(TXEN0) | _BV(RXEN0) | _BV(RXCIE0);
 }
@@ -92,7 +94,7 @@ ISR(USART0_RX_vect)
     if (BIT_CHECK(UCSR0A, RXC0)) {
         /* data is available */
         data_byte = UDR0;
-        (void)FIFO_Put(&Receive_Buffer, data_byte);
+        (void) FIFO_Put(&Receive_Buffer, data_byte);
         timer_reset(TIMER_SILENCE);
     }
 }
@@ -100,7 +102,7 @@ ISR(USART0_RX_vect)
 bool rs485_byte_available(
     uint8_t * data_register)
 {
-    bool data_available = false; /* return value */
+    bool data_available = false;        /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         led_on(LED_1);
@@ -112,15 +114,16 @@ bool rs485_byte_available(
     return data_available;
 }
 
-bool rs485_receive_error(void)
+bool rs485_receive_error(
+    void)
 {
     return false;
 }
 
 void rs485_bytes_send(
-    uint8_t * buffer, /* data to send */
-    uint16_t nbytes) /* number of bytes of data */
-{
+    uint8_t * buffer,   /* data to send */
+    uint16_t nbytes)
+{       /* number of bytes of data */
     led_on(LED_2);
     while (!BIT_CHECK(UCSR0A, UDRE0)) {
         /* do nothing - wait until Tx buffer is empty */
@@ -153,7 +156,8 @@ uint32_t rs485_baud_rate(
     return Baud_Rate;
 }
 
-static void rs485_baud_rate_configure(void)
+static void rs485_baud_rate_configure(
+    void)
 {
     /* 2x speed mode */
     BIT_SET(UCSR0A, U2X0);
@@ -177,11 +181,8 @@ bool rs485_baud_rate_set(
             Baud_Rate = baud;
             rs485_baud_rate_configure();
             /* store the baud rate */
-            baud_k = baud/1000;
-            eeprom_bytes_write(
-                NV_EEPROM_BAUD_K,
-                &baud_k,
-                1);
+            baud_k = baud / 1000;
+            eeprom_bytes_write(NV_EEPROM_BAUD_K, &baud_k, 1);
             break;
         default:
             valid = false;
@@ -191,7 +192,8 @@ bool rs485_baud_rate_set(
     return valid;
 }
 
-static void rs485_usart_init(void)
+static void rs485_usart_init(
+    void)
 {
     /* enable Transmit and Receive */
     UCSR0B = _BV(TXEN0) | _BV(RXEN0);
@@ -207,14 +209,12 @@ static void rs485_usart_init(void)
     BIT_CLEAR(PRR, PRUSART0);
 }
 
-static void rs485_init_nvdata(void)
+static void rs485_init_nvdata(
+    void)
 {
     uint8_t baud_k = 9; /* from EEPROM value */
 
-    eeprom_bytes_read(
-        NV_EEPROM_BAUD_K,
-        &baud_k,
-        1);
+    eeprom_bytes_read(NV_EEPROM_BAUD_K, &baud_k, 1);
     switch (baud_k) {
         case 9:
             Baud_Rate = 9600;
@@ -237,20 +237,18 @@ static void rs485_init_nvdata(void)
         default:
             /* not configured yet */
             Baud_Rate = 38400;
-            baud_k = 38400/1000;
-            eeprom_bytes_write(
-                NV_EEPROM_BAUD_K,
-                &baud_k,
-                1);
+            baud_k = 38400 / 1000;
+            eeprom_bytes_write(NV_EEPROM_BAUD_K, &baud_k, 1);
             break;
     }
     rs485_baud_rate_configure();
 }
 
-void rs485_init(void)
+void rs485_init(
+    void)
 {
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
-        (unsigned)sizeof(Receive_Buffer_Data));
+        (unsigned) sizeof(Receive_Buffer_Data));
     rs485_rts_init();
     rs485_usart_init();
     rs485_init_nvdata();

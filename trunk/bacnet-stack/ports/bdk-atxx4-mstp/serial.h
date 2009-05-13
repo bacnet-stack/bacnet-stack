@@ -30,24 +30,26 @@
 extern "C" {
 #endif /* __cplusplus */
 
-bool serial_byte_get(
-    uint8_t * data_register);
-bool serial_byte_peek(
-    uint8_t * data_register);
+    bool serial_byte_get(
+        uint8_t * data_register);
+    bool serial_byte_peek(
+        uint8_t * data_register);
 
-void serial_bytes_send(
-    uint8_t * buffer, /* data to send */
-    uint16_t nbytes); /* number of bytes of data */
-void serial_byte_send(uint8_t ch);
+    void serial_bytes_send(
+        uint8_t * buffer,       /* data to send */
+        uint16_t nbytes);       /* number of bytes of data */
+    void serial_byte_send(
+        uint8_t ch);
 
-uint32_t serial_baud_rate(void);
-bool serial_baud_rate_set(
-    uint32_t baud);
+    uint32_t serial_baud_rate(
+        void);
+    bool serial_baud_rate_set(
+        uint32_t baud);
 
-void serial_init(void);
+    void serial_init(
+        void);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #endif

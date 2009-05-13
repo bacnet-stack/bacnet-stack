@@ -51,17 +51,20 @@ void stack_init(
 #endif
 }
 
-unsigned stack_size(void)
+unsigned stack_size(
+    void)
 {
     return (&__stack) - (&_end);
 }
 
-uint8_t stack_byte(unsigned offset)
+uint8_t stack_byte(
+    unsigned offset)
 {
     return *(&_end + offset);
 }
 
-unsigned stack_unused(void)
+unsigned stack_unused(
+    void)
 {
     uint8_t *p = &_end;
     unsigned count = 0;
