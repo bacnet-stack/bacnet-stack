@@ -55,7 +55,7 @@ static uint8_t MSTP_MAC_Address;
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && (__GNUC__ > 4)
 /* AVR fuse settings */
 FUSES =
 {

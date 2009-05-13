@@ -19,13 +19,14 @@ AVRDUDE = avrdude
 LINT = splint
 
 # programmer id--check the avrdude for complete list
-# # of available opts.  These should include stk500,
-# # avr910, avrisp, bsd, pony and more.  Set this to
-# # one of the valid "-c PROGRAMMER-ID" values 
-# # described in the avrdude info page.
-# # jtag2fast = Atmel JTAG ICE mkII, running at 115200 Bd
-# # jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
-AVRDUDE_PROGRAMMERID = jtag2slow
+# of available opts.  These should include stk500,
+# avr910, avrisp, bsd, pony and more.  Set this to
+# one of the valid "-c PROGRAMMER-ID" values 
+# described in the avrdude info page.
+# jtag2fast = Atmel JTAG ICE mkII, running at 115200 Bd
+# jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
+# avrispmkII = AVR ISP MKII
+AVRDUDE_PROGRAMMERID = avrispmkII
 #
 # # port--serial or parallel port to which your 
 # # hardware programmer is attached
