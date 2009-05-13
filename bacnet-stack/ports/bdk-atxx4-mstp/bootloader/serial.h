@@ -17,6 +17,9 @@
 * Description       : Header file for serial.c
 ****************************************************************************/
 
-void initbootuart( void );
-void sendchar( unsigned char );
-unsigned char recchar( void );
+void initbootuart(
+    void);
+void sendchar(
+    unsigned char);
+unsigned char recchar(
+    void);

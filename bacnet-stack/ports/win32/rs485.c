@@ -98,8 +98,8 @@ void RS485_Set_Interface(
     if (ifname) {
         if (strncmp("COM", ifname, 3) == 0) {
             if (strlen(ifname) > 3) {
-                sprintf(RS485_Port_Name, "\\\\.\\COM%i", atoi(ifname+3));
-                fprintf(stderr, "Adjusted interface name to %s\r\n", 
+                sprintf(RS485_Port_Name, "\\\\.\\COM%i", atoi(ifname + 3));
+                fprintf(stderr, "Adjusted interface name to %s\r\n",
                     RS485_Port_Name);
             }
         }
@@ -119,15 +119,9 @@ static void RS485_Print_Error(
     DWORD dwExtSize;
     DWORD dwErr;
 
-    FormatMessage( 
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        GetLastError(),
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-        (LPTSTR) &lpMsgBuf,
-        0,
-        NULL );
-    MessageBox( NULL, lpMsgBuf, "GetLastError", MB_OK|MB_ICONINFORMATION );
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
+        (LPTSTR) & lpMsgBuf, 0, NULL);
+    MessageBox(NULL, lpMsgBuf, "GetLastError", MB_OK | MB_ICONINFORMATION);
     LocalFree(lpMsgBuf);
 
     return;

@@ -57,69 +57,61 @@ static uint8_t MSTP_MAC_Address;
 
 #if defined(__GNUC__) && (__GNUC__ > 4)
 /* AVR fuse settings */
-FUSES =
-{
+FUSES = {
     /* External Ceramic Resonator - configuration */
     /* Full Swing Crystal Oscillator Clock Selection */
     /* Ceramic resonator, slowly rising power 1K CK 14CK + 65 ms */
     /* note: fuses are enabled by clearing the bit, so
        any fuses listed below are cleared fuses. */
-    .low = (FUSE_CKSEL3 &
-        FUSE_SUT0 &
-        FUSE_SUT1),
+    .low = (FUSE_CKSEL3 & FUSE_SUT0 & FUSE_SUT1),
+        /* BOOTSZ configuration:
+           BOOTSZ1 BOOTSZ0 Boot Size
+           ------- ------- ---------
+           1       1      512
+           1       0     1024
+           0       1     2048
+           0       0     4096
+         */
+        /* note: fuses are enabled by clearing the bit, so
+           any fuses listed below are cleared fuses. */
+        .high =
+        (FUSE_BOOTSZ1 & FUSE_BOOTRST & FUSE_EESAVE & FUSE_SPIEN & FUSE_JTAGEN),
+        /* Brown-out detection VCC=2.7V */
+        /* BODLEVEL configuration 
+           BODLEVEL2 BODLEVEL1 BODLEVEL0 Voltage
+           --------- --------- --------- --------
+           1         1         1     disabled
+           1         1         0       1.8V
+           1         0         1       2.7V
+           1         0         0       4.3V
+         */
+        /* note: fuses are enabled by clearing the bit, so
+           any fuses listed below are cleared fuses. */
+.extended = (FUSE_BODLEVEL1 & FUSE_BODLEVEL0),};
 
-    /* BOOTSZ configuration:
-    BOOTSZ1 BOOTSZ0 Boot Size
-    ------- ------- ---------
-       1       1      512
-       1       0     1024
-       0       1     2048
-       0       0     4096
-    */
-    /* note: fuses are enabled by clearing the bit, so
-       any fuses listed below are cleared fuses. */
-    .high = (
-        FUSE_BOOTSZ1 &
-        FUSE_BOOTRST &
-        FUSE_EESAVE &
-        FUSE_SPIEN &
-        FUSE_JTAGEN),
-
-    /* Brown-out detection VCC=2.7V */
-    /* BODLEVEL configuration 
-    BODLEVEL2 BODLEVEL1 BODLEVEL0 Voltage
-    --------- --------- --------- --------
-        1         1         1     disabled
-        1         1         0       1.8V
-        1         0         1       2.7V
-        1         0         0       4.3V
-    */
-    /* note: fuses are enabled by clearing the bit, so
-       any fuses listed below are cleared fuses. */
-    .extended = (FUSE_BODLEVEL1 & FUSE_BODLEVEL0),
-};
 /* AVR lock bits - unlocked */
 LOCKBITS = LOCKBITS_DEFAULT;
 #endif
 
-bool seeprom_version_test(void)
+bool seeprom_version_test(
+    void)
 {
     uint16_t version = 0;
     uint16_t id = 0;
     bool status = false;
-    
-    seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *)&id, 2);
-    seeprom_bytes_read(NV_SEEPROM_VERSION_0, (uint8_t *)&version, 2);
-    
+
+    seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *) & id, 2);
+    seeprom_bytes_read(NV_SEEPROM_VERSION_0, (uint8_t *) & version, 2);
+
     if ((id == SEEPROM_ID) && (version == SEEPROM_VERSION)) {
         status = true;
     } else {
         version = SEEPROM_VERSION;
         id = SEEPROM_ID;
-        seeprom_bytes_write(NV_SEEPROM_TYPE_0, (uint8_t *)&id, 2);
-        seeprom_bytes_write(NV_SEEPROM_VERSION_0, (uint8_t *)&version, 2);
+        seeprom_bytes_write(NV_SEEPROM_TYPE_0, (uint8_t *) & id, 2);
+        seeprom_bytes_write(NV_SEEPROM_VERSION_0, (uint8_t *) & version, 2);
     }
-    
+
     return status;
 }
 
@@ -129,14 +121,14 @@ static void bacnet_init(
     MSTP_MAC_Address = input_address();
     dlmstp_set_mac_address(MSTP_MAC_Address);
     dlmstp_init(NULL);
-    
+
     if (!seeprom_version_test()) {
         /* invalid version data */
-    }    
+    }
     /* initialize objects */
     Device_Init();
     Binary_Output_Init();
-    
+
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
@@ -153,21 +145,22 @@ static void bacnet_init(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 
-    Send_I_Am(&Handler_Transmit_Buffer[0]);            
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
 
 static uint8_t PDUBuffer[MAX_MPDU];
-static void bacnet_task(void)
+static void bacnet_task(
+    void)
 {
     uint8_t mstp_mac_address = 0;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
-    
+
     mstp_mac_address = input_address();
     if (MSTP_MAC_Address != mstp_mac_address) {
         MSTP_MAC_Address = mstp_mac_address;
         dlmstp_set_mac_address(MSTP_MAC_Address);
-        Send_I_Am(&Handler_Transmit_Buffer[0]);            
+        Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
     if (timer_elapsed_seconds(TIMER_DCC, 1)) {
         dcc_timer_seconds(1);
@@ -178,13 +171,15 @@ static void bacnet_task(void)
     }
 }
 
-void idle_init(void)
+void idle_init(
+    void)
 {
     timer_reset(TIMER_LED_3);
     timer_reset(TIMER_LED_4);
 }
 
-void idle_task(void)
+void idle_task(
+    void)
 {
 #if 0
     /* blink the leds */

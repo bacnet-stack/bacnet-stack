@@ -42,21 +42,18 @@ void input_task(
     }
 }
 
-uint8_t input_address(void)
+uint8_t input_address(
+    void)
 {
     return Address_Switch;
 }
 
-void input_init(void)
+void input_init(
+    void)
 {
     /* configure the port pins */
-    BITMASK_CLEAR(DDRA, 
-        _BV(DDA0) |
-        _BV(DDA1) |
-        _BV(DDA2) |
-        _BV(DDA3) |
-        _BV(DDA4) |
-        _BV(DDA5) |
+    BITMASK_CLEAR(DDRA,
+        _BV(DDA0) | _BV(DDA1) | _BV(DDA2) | _BV(DDA3) | _BV(DDA4) | _BV(DDA5) |
         _BV(DDA6)
         );
 }

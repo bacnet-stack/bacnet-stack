@@ -325,7 +325,8 @@ static void address_parse(BACNET_ADDRESS * dst,
             dst->mac_len = 6;
             for (index = 0; index < 4; index++) {
                 dst->mac[index] = mac[index];
-            } encode_unsigned16(&dst->mac[4],
+            }
+            encode_unsigned16(&dst->mac[4],
                 port);
         } else {
             count =

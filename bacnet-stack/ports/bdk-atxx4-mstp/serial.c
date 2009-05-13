@@ -35,7 +35,8 @@ static uint32_t Baud_Rate = 9600;
 static uint8_t Receive_Buffer_Data[128];
 static FIFO_BUFFER Receive_Buffer;
 
-static void serial_receiver_enable(void)
+static void serial_receiver_enable(
+    void)
 {
     UCSR0B = _BV(TXEN0) | _BV(RXEN0) | _BV(RXCIE0);
 }
@@ -47,14 +48,14 @@ ISR(USART1_RX_vect)
     if (BIT_CHECK(UCSR1A, RXC1)) {
         /* data is available */
         data_byte = UDR1;
-        (void)FIFO_Put(&Receive_Buffer, data_byte);
+        (void) FIFO_Put(&Receive_Buffer, data_byte);
     }
 }
 
 bool serial_byte_get(
     uint8_t * data_register)
 {
-    bool data_available = false; /* return value */
+    bool data_available = false;        /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         *data_register = FIFO_Get(&Receive_Buffer);
@@ -67,7 +68,7 @@ bool serial_byte_get(
 bool serial_byte_peek(
     uint8_t * data_register)
 {
-    bool data_available = false; /* return value */
+    bool data_available = false;        /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         *data_register = FIFO_Peek(&Receive_Buffer);
@@ -78,9 +79,9 @@ bool serial_byte_peek(
 }
 
 void serial_bytes_send(
-    uint8_t * buffer, /* data to send */
-    uint16_t nbytes) /* number of bytes of data */
-{
+    uint8_t * buffer,   /* data to send */
+    uint16_t nbytes)
+{       /* number of bytes of data */
     while (!BIT_CHECK(UCSR1A, UDRE1)) {
         /* do nothing - wait until Tx buffer is empty */
     }
@@ -104,10 +105,11 @@ void serial_bytes_send(
     return;
 }
 
-void serial_byte_send(uint8_t ch)
+void serial_byte_send(
+    uint8_t ch)
 {
     uint8_t buffer[1];
-    
+
     buffer[0] = ch;
     serial_bytes_send(&buffer[0], 1);
 
@@ -147,7 +149,8 @@ bool serial_baud_rate_set(
     return valid;
 }
 
-static void serial_usart_init(void)
+static void serial_usart_init(
+    void)
 {
     /* enable Transmit and Receive */
     UCSR1B = _BV(TXEN1) | _BV(RXEN1);
@@ -163,10 +166,11 @@ static void serial_usart_init(void)
     BIT_CLEAR(PRR, PRUSART1);
 }
 
-void serial_init(void)
+void serial_init(
+    void)
 {
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
-        (unsigned)sizeof(Receive_Buffer_Data));
+        (unsigned) sizeof(Receive_Buffer_Data));
     serial_usart_init();
     serial_baud_rate_set(Baud_Rate);
     serial_receiver_enable();

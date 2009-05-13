@@ -19,24 +19,26 @@
 #include "defines.h"
 
 
-void initbootuart(void)
+void initbootuart(
+    void)
 {
-  BAUD_RATE_LOW_REG = BRREG_VALUE;
-  UART_CONTROL_REG = (1 << ENABLE_RECEIVER_BIT) |
-                     (1 << ENABLE_TRANSMITTER_BIT); // enable receive and transmit 
+    BAUD_RATE_LOW_REG = BRREG_VALUE;
+    UART_CONTROL_REG = (1 << ENABLE_RECEIVER_BIT) | (1 << ENABLE_TRANSMITTER_BIT);      /* enable receive and transmit  */
 }
 
 
-void sendchar(unsigned char c)
+void sendchar(
+    unsigned char c)
 {
-  UART_DATA_REG = c;                                   // prepare transmission
-  while (!(UART_STATUS_REG & (1 << TRANSMIT_COMPLETE_BIT)));// wait until byte sendt
-  UART_STATUS_REG |= (1 << TRANSMIT_COMPLETE_BIT);          // delete TXCflag
+    UART_DATA_REG = c;  /* prepare transmission */
+    while (!(UART_STATUS_REG & (1 << TRANSMIT_COMPLETE_BIT)));  /* wait until byte sendt */
+    UART_STATUS_REG |= (1 << TRANSMIT_COMPLETE_BIT);    /* delete TXCflag */
 }
 
 
-unsigned char recchar(void)
+unsigned char recchar(
+    void)
 {
-  while(!(UART_STATUS_REG & (1 << RECEIVE_COMPLETE_BIT)));  // wait for data
-  return UART_DATA_REG;
+    while (!(UART_STATUS_REG & (1 << RECEIVE_COMPLETE_BIT)));   /* wait for data */
+    return UART_DATA_REG;
 }

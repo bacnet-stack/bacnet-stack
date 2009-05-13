@@ -30,10 +30,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void init(void);
+    void init(
+        void);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #endif

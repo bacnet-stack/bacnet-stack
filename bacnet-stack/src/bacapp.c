@@ -809,34 +809,29 @@ bool bacapp_print_value(
                 if (value->type.Date.day == 255) {
                     fprintf(stream, "(unspecified), ");
                 } else {
-                    fprintf(stream, "%u, ",
-                        (unsigned) value->type.Date.day);
+                    fprintf(stream, "%u, ", (unsigned) value->type.Date.day);
                 }
                 if (value->type.Date.year == 255) {
                     fprintf(stream, "(unspecified), ");
                 } else {
-                    fprintf(stream, "%u",
-                        (unsigned) value->type.Date.year);
+                    fprintf(stream, "%u", (unsigned) value->type.Date.year);
                 }
                 break;
             case BACNET_APPLICATION_TAG_TIME:
                 if (value->type.Time.hour == 255) {
                     fprintf(stream, "**:");
                 } else {
-                    fprintf(stream, "%02u:",
-                        (unsigned) value->type.Time.hour);
+                    fprintf(stream, "%02u:", (unsigned) value->type.Time.hour);
                 }
                 if (value->type.Time.min == 255) {
                     fprintf(stream, "**:");
                 } else {
-                    fprintf(stream, "%02u:",
-                        (unsigned) value->type.Time.min);
+                    fprintf(stream, "%02u:", (unsigned) value->type.Time.min);
                 }
                 if (value->type.Time.sec == 255) {
                     fprintf(stream, "**.");
                 } else {
-                    fprintf(stream, "%02u.",
-                        (unsigned) value->type.Time.sec);
+                    fprintf(stream, "%02u.", (unsigned) value->type.Time.sec);
                 }
                 if (value->type.Time.hundredths == 255) {
                     fprintf(stream, "**");

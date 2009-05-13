@@ -48,7 +48,8 @@ static volatile unsigned long Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 * Returns: none
 * Notes: Global interupts must be enabled
 *************************************************************************/
-static inline void timer_interrupt_handler(void)
+static inline void timer_interrupt_handler(
+    void)
 {
     unsigned i; /* loop counter */
 
@@ -79,8 +80,8 @@ unsigned long timer_milliseconds_set(
     unsigned index,
     unsigned long value)
 {
-    uint8_t sreg = 0; /* holds interrupts pending */
-    unsigned long old_value = 0; /* return value */
+    uint8_t sreg = 0;   /* holds interrupts pending */
+    unsigned long old_value = 0;        /* return value */
 
     if (index < MAX_MILLISECOND_TIMERS) {
         sreg = SREG;
@@ -101,8 +102,8 @@ unsigned long timer_milliseconds_set(
 unsigned long timer_milliseconds(
     unsigned index)
 {
-    unsigned long timer_value = 0; /* return value */
-    uint8_t sreg = 0; /* holds interrupts pending */
+    unsigned long timer_value = 0;      /* return value */
+    uint8_t sreg = 0;   /* holds interrupts pending */
 
     if (index < MAX_MILLISECOND_TIMERS) {
         sreg = SREG;
@@ -135,7 +136,7 @@ bool timer_elapsed_seconds(
     unsigned index,
     unsigned long seconds)
 {
-    return ((timer_milliseconds(index)/1000UL) >= seconds);
+    return ((timer_milliseconds(index) / 1000UL) >= seconds);
 }
 
 /*************************************************************************
@@ -147,7 +148,7 @@ bool timer_elapsed_minutes(
     unsigned index,
     unsigned long minutes)
 {
-    return ((timer_milliseconds(index)/(1000UL*60UL)) >= minutes);
+    return ((timer_milliseconds(index) / (1000UL * 60UL)) >= minutes);
 }
 
 /*************************************************************************
@@ -158,7 +159,7 @@ bool timer_elapsed_minutes(
 unsigned long timer_reset(
     unsigned index)
 {
-    return timer_milliseconds_set(index,0);
+    return timer_milliseconds_set(index, 0);
 }
 
 /*************************************************************************
@@ -198,7 +199,7 @@ static void timer2_init(
 #elif (TIMER2_PRESCALER==1024)
     TCCR2B = _BV(CS22) | _BV(CS21) | _BV(CS20);
 #else
-    #error Timer2 Prescale: Invalid Value
+#error Timer2 Prescale: Invalid Value
 #endif
     /* Clear any TOV Flag set when the timer overflowed */
     BIT_CLEAR(TIFR2, TOV2);

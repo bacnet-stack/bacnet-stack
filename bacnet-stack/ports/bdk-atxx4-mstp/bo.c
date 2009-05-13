@@ -45,8 +45,7 @@
 /* the Relinquish Default value */
 #define RELINQUISH_DEFAULT BINARY_INACTIVE
 /* Here is our Priority Array.*/
-static uint8_t
-    Binary_Output_Level[MAX_BINARY_OUTPUTS][BACNET_MAX_PRIORITY];
+static uint8_t Binary_Output_Level[MAX_BINARY_OUTPUTS][BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
 static uint8_t Out_Of_Service[MAX_BINARY_OUTPUTS];
@@ -101,12 +100,10 @@ void Binary_Output_Level_Set(
 {
     if (object_index < MAX_BINARY_OUTPUTS) {
         if (priority < BACNET_MAX_PRIORITY) {
-            Binary_Output_Level[object_index][priority] = (uint8_t)level;
-            seeprom_bytes_write(
-                NV_SEEPROM_BINARY_OUTPUT(object_index,
-                NV_SEEPROM_BO_PRIORITY_ARRAY_1+priority),
-                &Binary_Output_Level[object_index][priority],
-                1);
+            Binary_Output_Level[object_index][priority] = (uint8_t) level;
+            seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(object_index,
+                    NV_SEEPROM_BO_PRIORITY_ARRAY_1 + priority),
+                &Binary_Output_Level[object_index][priority], 1);
         }
     }
 }
@@ -118,11 +115,8 @@ void Binary_Output_Polarity_Set(
     if (object_index < MAX_BINARY_OUTPUTS) {
         if (polarity < MAX_POLARITY) {
             Polarity[object_index] = POLARITY_NORMAL;
-            seeprom_bytes_write(
-                NV_SEEPROM_BINARY_OUTPUT(object_index,
-                NV_SEEPROM_BO_POLARITY),
-                &Polarity[object_index],
-                1);
+            seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(object_index,
+                    NV_SEEPROM_BO_POLARITY), &Polarity[object_index], 1);
         }
     }
 }
@@ -133,10 +127,8 @@ void Binary_Output_Out_Of_Service_Set(
 {
     if (object_index < MAX_BINARY_OUTPUTS) {
         Out_Of_Service[object_index] = flag;
-        seeprom_bytes_write(
-            NV_SEEPROM_BINARY_OUTPUT(object_index,
-            NV_SEEPROM_BO_OUT_OF_SERVICE),
-            &Out_Of_Service[object_index],
+        seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(object_index,
+                NV_SEEPROM_BO_OUT_OF_SERVICE), &Out_Of_Service[object_index],
             1);
     }
 }
@@ -312,7 +304,8 @@ int Binary_Output_Encode_Property_APDU(
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
-            apdu_len = encode_application_enumerated(&apdu[0], 
+            apdu_len =
+                encode_application_enumerated(&apdu[0],
                 Polarity[object_index]);
             break;
         case PROP_PRIORITY_ARRAY:
@@ -349,7 +342,7 @@ int Binary_Output_Encode_Property_APDU(
                 object_index =
                     Binary_Output_Instance_To_Index(object_instance);
                 if (array_index <= BACNET_MAX_PRIORITY) {
-                    present_value = 
+                    present_value =
                         Binary_Output_Level[object_index][array_index];
                     if (present_value == BINARY_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
@@ -427,7 +420,7 @@ bool Binary_Output_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     priority--;
-                    Binary_Output_Level_Set(object_index, priority,level);
+                    Binary_Output_Level_Set(object_index, priority, level);
                     Binary_Output_Sync(wp_data->object_instance);
                     status = true;
                 } else if (priority == 6) {
@@ -445,7 +438,7 @@ bool Binary_Output_Write_Property(
                 priority = wp_data->priority;
                 if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                     priority--;
-                    Binary_Output_Level_Set(object_index, priority,level);
+                    Binary_Output_Level_Set(object_index, priority, level);
                     Binary_Output_Sync(wp_data->object_instance);
                     status = true;
                 } else if (priority == 6) {
@@ -465,7 +458,7 @@ bool Binary_Output_Write_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                Binary_Output_Out_Of_Service_Set(object_index, 
+                Binary_Output_Out_Of_Service_Set(object_index,
                     value.type.Boolean);
                 Binary_Output_Sync(wp_data->object_instance);
                 status = true;
@@ -477,7 +470,7 @@ bool Binary_Output_Write_Property(
         case PROP_POLARITY:
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                 if (value.type.Enumerated < MAX_POLARITY) {
-                    Binary_Output_Polarity_Set(object_index, 
+                    Binary_Output_Polarity_Set(object_index,
                         value.type.Enumerated);
                     Binary_Output_Sync(wp_data->object_instance);
                     status = true;
@@ -489,8 +482,8 @@ bool Binary_Output_Write_Property(
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
-            break;            
-       default:
+            break;
+        default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
@@ -506,26 +499,20 @@ void Binary_Output_Init(
 
     /* initialize all the analog output priority arrays to NULL */
     for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
-        seeprom_bytes_read(
-            NV_SEEPROM_BINARY_OUTPUT(i,NV_SEEPROM_BO_POLARITY),
-            &Polarity[i],
-            1);
+        seeprom_bytes_read(NV_SEEPROM_BINARY_OUTPUT(i, NV_SEEPROM_BO_POLARITY),
+            &Polarity[i], 1);
         if (Polarity[i] >= MAX_POLARITY) {
-            Binary_Output_Polarity_Set(i, POLARITY_NORMAL); 
+            Binary_Output_Polarity_Set(i, POLARITY_NORMAL);
         }
-        seeprom_bytes_read(
-            NV_SEEPROM_BINARY_OUTPUT(i,NV_SEEPROM_BO_OUT_OF_SERVICE),
-            &Out_Of_Service[i],
-            1);
+        seeprom_bytes_read(NV_SEEPROM_BINARY_OUTPUT(i,
+                NV_SEEPROM_BO_OUT_OF_SERVICE), &Out_Of_Service[i], 1);
         if (Out_Of_Service[i] > 1) {
             Binary_Output_Out_Of_Service_Set(i, false);
-        }        
+        }
         for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
-            seeprom_bytes_read(
-                NV_SEEPROM_BINARY_OUTPUT(i,
-                NV_SEEPROM_BO_PRIORITY_ARRAY_1+j),
-                &Binary_Output_Level[i][j],
-                1);
+            seeprom_bytes_read(NV_SEEPROM_BINARY_OUTPUT(i,
+                    NV_SEEPROM_BO_PRIORITY_ARRAY_1 + j),
+                &Binary_Output_Level[i][j], 1);
         }
         Binary_Output_Sync(i);
     }

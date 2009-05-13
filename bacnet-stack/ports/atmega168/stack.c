@@ -28,7 +28,7 @@
 #if defined(__GNUC__)
 extern uint8_t _end;
 extern uint8_t __stack;
-#endif 
+#endif
 
 #if defined(__GNUC__)
 #define STACK_CANARY (0xC5)
@@ -57,7 +57,8 @@ void stack_init(
 #endif
 }
 
-unsigned stack_size(void)
+unsigned stack_size(
+    void)
 {
 #if defined(__GNUC__)
     return (&__stack) - (&_end);
@@ -66,7 +67,8 @@ unsigned stack_size(void)
 #endif
 }
 
-uint8_t stack_byte(unsigned offset)
+uint8_t stack_byte(
+    unsigned offset)
 {
 #if defined(__GNUC__)
     return *(&_end + offset);
@@ -76,7 +78,8 @@ uint8_t stack_byte(unsigned offset)
 #endif
 }
 
-unsigned stack_unused(void)
+unsigned stack_unused(
+    void)
 {
     unsigned count = 0;
 #if defined(__GNUC__)

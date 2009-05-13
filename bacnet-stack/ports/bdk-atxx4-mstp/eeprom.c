@@ -31,17 +31,17 @@
 
 #if defined(__GNUC__)
     /* bug in WinAVR - not quite IAR compatible */
-    #define __EEPUT _EEPUT
-    #define __EEGET _EEGET
+#define __EEPUT _EEPUT
+#define __EEGET _EEGET
 #endif
 
 int eeprom_bytes_read(
-    uint16_t eeaddr, /* EEPROM starting memory address (offset of zero) */
-    uint8_t * buf, /* data to store */
-    int len) /* number of bytes of data to read */
-{
-    int count = 0; /* return value */
-    
+    uint16_t eeaddr,    /* EEPROM starting memory address (offset of zero) */
+    uint8_t * buf,      /* data to store */
+    int len)
+{       /* number of bytes of data to read */
+    int count = 0;      /* return value */
+
     while (len) {
         __EEGET(buf[count], eeaddr);
         count++;
@@ -53,18 +53,18 @@ int eeprom_bytes_read(
 }
 
 int eeprom_bytes_write(
-    uint16_t eeaddr, /* EEPROM starting memory address */
-    uint8_t * buf, /* data to send */
-    int len) /* number of bytes of data */
-{
+    uint16_t eeaddr,    /* EEPROM starting memory address */
+    uint8_t * buf,      /* data to send */
+    int len)
+{       /* number of bytes of data */
     int count = 0;
-    
+
     while (len) {
         __EEPUT(eeaddr, buf[count]);
         count++;
         eeaddr++;
         len--;
     }
-    
+
     return count;
 }

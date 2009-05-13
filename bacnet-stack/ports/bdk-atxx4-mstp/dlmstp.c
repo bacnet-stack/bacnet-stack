@@ -1005,7 +1005,7 @@ static bool MSTP_Master_Node_FSM(
                 if (timer_elapsed_milliseconds(TIMER_SILENCE, ns_timeout)) {
                     /* should never get here unless timer resolution is bad */
                     timer_reset(TIMER_SILENCE);
-                    Master_State = MSTP_MASTER_STATE_IDLE;                    
+                    Master_State = MSTP_MASTER_STATE_IDLE;
                 } else {
                     /* GenerateToken */
                     /* Assume that this node is the lowest numerical address  */
@@ -1062,8 +1062,8 @@ static bool MSTP_Master_Node_FSM(
                     transition_now = true;
                 }
                 MSTP_Flag.ReceivedValidFrame = false;
-            } else if ((timer_elapsed_milliseconds(TIMER_SILENCE, 
-                    Tusage_timeout)) ||
+            } else if ((timer_elapsed_milliseconds(TIMER_SILENCE,
+                        Tusage_timeout)) ||
                 (MSTP_Flag.ReceivedInvalidFrame == true)) {
                 if (MSTP_Flag.SoleMaster == true) {
                     /* SoleMaster */

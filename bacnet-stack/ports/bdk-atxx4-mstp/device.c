@@ -54,7 +54,7 @@ static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
 static BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
     REINITIALIZED_STATE_IDLE;
-    
+
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -108,7 +108,7 @@ void Device_Property_Lists(
 
     return;
 }
-    
+
 void Device_Reinit(
     void)
 {
@@ -122,40 +122,26 @@ void Device_Init(
     Reinitialize_State = REINITIALIZED_STATE_IDLE;
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* Get the data from the eeprom */
-    eeprom_bytes_read(
-        NV_EEPROM_DEVICE_0,
-        (uint8_t *)&Object_Instance_Number,
+    eeprom_bytes_read(NV_EEPROM_DEVICE_0, (uint8_t *) & Object_Instance_Number,
         sizeof(Object_Instance_Number));
     if (Object_Instance_Number >= BACNET_MAX_INSTANCE) {
         Object_Instance_Number = 0;
-        eeprom_bytes_write(
-            NV_EEPROM_DEVICE_0,
-            (uint8_t *)&Object_Instance_Number,
+        eeprom_bytes_write(NV_EEPROM_DEVICE_0,
+            (uint8_t *) & Object_Instance_Number,
             sizeof(Object_Instance_Number));
     }
-    eeprom_bytes_read(
-        NV_EEPROM_DEVICE_NAME_ENCODING,
-        &Object_Name_Encoding,
+    eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_ENCODING, &Object_Name_Encoding,
         1);
-    eeprom_bytes_read(
-        NV_EEPROM_DEVICE_NAME_LENGTH,
-        &Object_Name_Length,
-        1);
-    eeprom_bytes_read(
-        NV_EEPROM_DEVICE_NAME_0,
-        (uint8_t *)&Object_Name[0],
+    eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_LENGTH, &Object_Name_Length, 1);
+    eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & Object_Name[0],
         NV_EEPROM_DEVICE_NAME_SIZE);
     if ((Object_Name_Encoding >= MAX_CHARACTER_STRING_ENCODING) ||
         (Object_Name_Length > NV_EEPROM_DEVICE_NAME_SIZE)) {
         Object_Name_Encoding = CHARACTER_ANSI_X34;
         Object_Name_Length = 0;
-        eeprom_bytes_write(
-            NV_EEPROM_DEVICE_NAME_ENCODING,
-            &Object_Name_Encoding,
-            1);
-        eeprom_bytes_write(
-            NV_EEPROM_DEVICE_NAME_LENGTH,
-            &Object_Name_Length,
+        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
+            &Object_Name_Encoding, 1);
+        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &Object_Name_Length,
             1);
     }
 }
@@ -174,9 +160,8 @@ bool Device_Set_Object_Instance_Number(
 
     if (object_id <= BACNET_MAX_INSTANCE) {
         Object_Instance_Number = object_id;
-        eeprom_bytes_write(
-            NV_EEPROM_DEVICE_0,
-            (uint8_t *)&Object_Instance_Number,
+        eeprom_bytes_write(NV_EEPROM_DEVICE_0,
+            (uint8_t *) & Object_Instance_Number,
             sizeof(Object_Instance_Number));
     } else
         status = false;
@@ -334,10 +319,8 @@ int Device_Encode_Property_APDU(
                 Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            characterstring_init(&char_string,
-                Object_Name_Encoding,
-                (char *)&Object_Name[0],
-                Object_Name_Length);
+            characterstring_init(&char_string, Object_Name_Encoding,
+                (char *) &Object_Name[0], Object_Name_Length);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -580,35 +563,30 @@ bool Device_Write_Property(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                size_t length = 
+                size_t length =
                     characterstring_length(&value.type.Character_String);
                 if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
-                    uint8_t encoding = 
+                    uint8_t encoding =
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
                         uint8_t i;
                         char *pCharString;
                         Object_Name_Encoding = encoding;
                         Object_Name_Length = length;
-                        eeprom_bytes_write(
-                            NV_EEPROM_DEVICE_NAME_ENCODING,
-                            &Object_Name_Encoding,
-                            1);
-                        eeprom_bytes_write(
-                            NV_EEPROM_DEVICE_NAME_LENGTH,
-                            &Object_Name_Length,
-                            1);
-                        pCharString = 
-                            characterstring_value(&value.type.Character_String);
+                        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
+                            &Object_Name_Encoding, 1);
+                        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH,
+                            &Object_Name_Length, 1);
+                        pCharString =
+                            characterstring_value(&value.type.
+                            Character_String);
                         for (i = 0; i < Object_Name_Length; i++) {
                             Object_Name[i] = pCharString[i];
                         }
-                        eeprom_bytes_write(
-                            NV_EEPROM_DEVICE_NAME_0,
-                            (uint8_t *)&Object_Name[0],
-                            length);
+                        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
+                            (uint8_t *) & Object_Name[0], length);
                         status = true;
-                    } else {                    
+                    } else {
                         *error_class = ERROR_CLASS_PROPERTY;
                         *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
                     }
