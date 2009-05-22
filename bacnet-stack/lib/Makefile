@@ -1,4 +1,4 @@
-#Makefile to build BACnet Library for the Linux Port
+#Makefile to build BACnet Library with GCC
 
 # tools
 CC = gcc
@@ -74,6 +74,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/version.c
 
 HANDLER_SRC = \
+	$(BACNET_HANDLER)/dlenv.c \
 	$(BACNET_HANDLER)/txbuf.c \
 	$(BACNET_HANDLER)/noserv.c \
 	$(BACNET_HANDLER)/h_npdu.c \

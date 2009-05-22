@@ -44,36 +44,18 @@
 			<Add directory="..\..\demo\handler" />
 			<Add directory="..\..\demo\object" />
 		</Compiler>
-		<Unit filename="..\..\src\bacaddr.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Linker>
+			<Add library="winmm" />
+		</Linker>
 		<Unit filename="..\..\include\bacaddr.h" />
 		<Unit filename="..\..\include\bacdef.h" />
-		<Unit filename="..\..\src\bacint.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\..\include\bacint.h" />
-		<Unit filename="..\..\src\crc.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\..\include\crc.h" />
 		<Unit filename="..\..\include\datalink.h" />
 		<Unit filename="..\..\include\dlmstp.h" />
-		<Unit filename="..\..\src\indtext.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\..\include\indtext.h" />
-		<Unit filename="..\..\src\mstp.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\..\include\mstp.h" />
-		<Unit filename="..\..\src\mstptext.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\..\include\mstptext.h" />
-		<Unit filename="..\..\src\npdu.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\..\include\npdu.h" />
 		<Unit filename="dlmstp.c">
 			<Option compilerVar="CC" />
@@ -82,6 +64,27 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="rs485.h" />
+		<Unit filename="..\..\src\bacaddr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\bacint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\crc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\indtext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\mstp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\mstptext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\npdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

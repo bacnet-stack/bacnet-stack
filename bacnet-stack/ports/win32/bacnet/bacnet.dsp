@@ -329,6 +329,10 @@ SOURCE=..\..\..\demo\handler\txbuf.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\handler\dlenv.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\version.c
 # End Source File
 # Begin Source File

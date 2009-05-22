@@ -116,8 +116,6 @@ static void RS485_Print_Error(
     void)
 {
     LPVOID lpMsgBuf;
-    DWORD dwExtSize;
-    DWORD dwErr;
 
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
         (LPTSTR) & lpMsgBuf, 0, NULL);

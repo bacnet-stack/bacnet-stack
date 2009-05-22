@@ -148,6 +148,9 @@
 		<Unit filename="..\demo\handler\txbuf.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\dlenv.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\object\ai.c">
 			<Option compilerVar="CC" />
 		</Unit>
