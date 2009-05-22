@@ -39,7 +39,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
-#include <process.h>
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
