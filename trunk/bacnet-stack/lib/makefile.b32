@@ -72,7 +72,9 @@ CORE3_SRC = $(BACNET_CORE)\arf.c \
 	$(BACNET_CORE)\whois.c \
 	$(BACNET_CORE)\wp.c
 
-HANDLER_SRC = $(BACNET_HANDLER)\txbuf.c \
+HANDLER_SRC = \
+	$(BACNET_HANDLER)\dlenv.c \
+	$(BACNET_HANDLER)\txbuf.c \
 	$(BACNET_HANDLER)\noserv.c \
 	$(BACNET_HANDLER)\h_whois.c \
 	$(BACNET_HANDLER)\h_npdu.c \

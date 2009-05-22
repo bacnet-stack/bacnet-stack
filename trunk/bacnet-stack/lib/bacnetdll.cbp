@@ -111,6 +111,7 @@
 		<Unit filename="..\include\timesync.h" />
 		<Unit filename="..\include\tsm.h" />
 		<Unit filename="..\include\txbuf.h" />
+		<Unit filename="..\include\dlenv.h" />
 		<Unit filename="..\include\version.h" />
 		<Unit filename="..\include\whohas.h" />
 		<Unit filename="..\include\whois.h" />

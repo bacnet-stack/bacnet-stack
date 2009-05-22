@@ -1,4 +1,4 @@
-#Makefile to build BACnet Application for the Linux Port
+#Makefile to build BACnet Application for GCC compiler
 CC      = gcc
 
 TARGET = bacdcc
@@ -30,7 +30,7 @@ endif
 ifeq (${BACNET_PORT},win32)
 TARGET_BIN = ${TARGET}.exe
 LIBRARY1=-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
-LIBRARY2=-lws2_32,-lgcc,-lm,-liphlpapi
+LIBRARY2=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
 LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif
 #build for release (default) or debug

@@ -146,9 +146,9 @@ static void Init_DataLink(
     }
     pEnv = getenv("BACNET_MSTP_BAUD");
     if (pEnv) {
-        RS485_Set_Baud_Rate(strtol(pEnv, NULL, 0));
+        dlmstp_set_baud_rate(strtol(pEnv, NULL, 0));
     } else {
-        RS485_Set_Baud_Rate(38400);
+        dlmstp_set_baud_rate(38400);
     }
     pEnv = getenv("BACNET_MSTP_MAC");
     if (pEnv) {
@@ -157,6 +157,15 @@ static void Init_DataLink(
         dlmstp_set_mac_address(127);
     }
 #endif
+    pEnv = getenv("BACNET_APDU_TIMEOUT");
+    if (pEnv) {
+        apdu_timeout_set(strtol(pEnv, NULL, 0));
+        fprintf(stderr, "BACNET_APDU_TIMEOUT=%s\r\n", pEnv);
+    } else {
+#if defined(BACDL_MSTP)
+        apdu_timeout_set(60000);
+#endif
+    }
     if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
     }
