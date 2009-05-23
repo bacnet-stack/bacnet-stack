@@ -170,11 +170,17 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
-    bool handler_lso(
+    void handler_lso(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+
+	void handler_alarm_ack(
+		uint8_t * service_request,
+		uint16_t service_len,
+		BACNET_ADDRESS * src,
+		BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
 
 #ifdef __cplusplus
