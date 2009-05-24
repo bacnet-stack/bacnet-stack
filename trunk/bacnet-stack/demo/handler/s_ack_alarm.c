@@ -49,7 +49,7 @@
 
 uint8_t Send_Alarm_Acknowledgement(
     uint32_t device_id,
-	BACNET_ALARM_ACK_DATA *data)							
+    BACNET_ALARM_ACK_DATA * data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -109,4 +109,3 @@ uint8_t Send_Alarm_Acknowledgement(
 
     return invoke_id;
 }
-

@@ -223,14 +223,17 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void address_parse(BACNET_ADDRESS * dst,
-    int argc, char *argv[]) {
+static void address_parse(
+    BACNET_ADDRESS * dst,
+    int argc,
+    char *argv[])
+{
     unsigned mac[6];
     unsigned port;
     int count = 0;
     int index = 0;
 
-    if  (argc > 0) {
+    if (argc > 0) {
         count =
             sscanf(argv[0], "%u.%u.%u.%u:%u", &mac[0], &mac[1], &mac[2],
             &mac[3], &port);
@@ -239,8 +242,7 @@ static void address_parse(BACNET_ADDRESS * dst,
             for (index = 0; index < 4; index++) {
                 dst->mac[index] = mac[index];
             }
-            encode_unsigned16(&dst->mac[4],
-                port);
+            encode_unsigned16(&dst->mac[4], port);
         } else {
             count =
                 sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
@@ -262,9 +264,13 @@ static void address_parse(BACNET_ADDRESS * dst,
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     BACNET_ADDRESS src = {
-    0}; /* address where message came from */
+        0
+    };  /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     time_t total_seconds = 0;

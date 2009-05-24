@@ -150,12 +150,12 @@ extern "C" {
     void Send_Initialize_Routing_Table_Ack(
         BACNET_ROUTER_PORT * router_port_list);
 
-	uint8_t Send_Life_Safety_Operation_Data(
-		uint32_t device_id,
-		BACNET_LSO_DATA *data);
-	uint8_t Send_Alarm_Acknowledgement(
-		uint32_t device_id,
-		BACNET_ALARM_ACK_DATA *data);
+    uint8_t Send_Life_Safety_Operation_Data(
+        uint32_t device_id,
+        BACNET_LSO_DATA * data);
+    uint8_t Send_Alarm_Acknowledgement(
+        uint32_t device_id,
+        BACNET_ALARM_ACK_DATA * data);
 
 
 

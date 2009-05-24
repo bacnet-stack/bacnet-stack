@@ -29,9 +29,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void dlenv_init(
-    void);
-    
+    void dlenv_init(
+        void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

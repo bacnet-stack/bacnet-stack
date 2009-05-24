@@ -49,7 +49,7 @@
 
 uint8_t Send_Life_Safety_Operation_Data(
     uint32_t device_id,
-	BACNET_LSO_DATA *data)							
+    BACNET_LSO_DATA * data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -109,4 +109,3 @@ uint8_t Send_Life_Safety_Operation_Data(
 
     return invoke_id;
 }
-

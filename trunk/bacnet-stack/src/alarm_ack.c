@@ -40,9 +40,9 @@
 **
 ****************************************************/
 int alarm_ack_encode_apdu(
-	uint8_t * apdu,
-	uint8_t invoke_id,
-	BACNET_ALARM_ACK_DATA * data)
+    uint8_t * apdu,
+    uint8_t invoke_id,
+    BACNET_ALARM_ACK_DATA * data)
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
@@ -51,11 +51,11 @@ int alarm_ack_encode_apdu(
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM; /* service choice */
+        apdu[3] = SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM;  /* service choice */
         apdu_len = 4;
-		
-		len = alarm_ack_encode_service_request(&apdu[apdu_len], data);
-		apdu_len += len;
+
+        len = alarm_ack_encode_service_request(&apdu[apdu_len], data);
+        apdu_len += len;
     }
 
     return apdu_len;
@@ -68,30 +68,43 @@ int alarm_ack_encode_apdu(
 **
 ****************************************************/
 int alarm_ack_encode_service_request(
-	uint8_t * apdu,
-	BACNET_ALARM_ACK_DATA * data)
+    uint8_t * apdu,
+    BACNET_ALARM_ACK_DATA * data)
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-		len = encode_context_unsigned(&apdu[apdu_len], 0, data->ackProcessIdentifier);
-		apdu_len += len;
-		
-		len = encode_context_object_id(&apdu[apdu_len], 1, data->eventObjectIdentifier.type, data->eventObjectIdentifier.instance);
-		apdu_len += len;
-		
-		len = encode_context_enumerated(&apdu[apdu_len], 2, data->eventTypeAcked);
-		apdu_len += len;
-		
-		len = bacapp_encode_context_timestamp(&apdu[apdu_len], 3, &data->eventTimeStamp);
-		apdu_len += len;
-		
-		len = encode_context_character_string(&apdu[apdu_len], 4, &data->ackSource);
-		apdu_len += len;
-		
-		len = bacapp_encode_context_timestamp(&apdu[apdu_len], 5, &data->ackTimeStamp);
-		apdu_len += len;
+        len =
+            encode_context_unsigned(&apdu[apdu_len], 0,
+            data->ackProcessIdentifier);
+        apdu_len += len;
+
+        len =
+            encode_context_object_id(&apdu[apdu_len], 1,
+            data->eventObjectIdentifier.type,
+            data->eventObjectIdentifier.instance);
+        apdu_len += len;
+
+        len =
+            encode_context_enumerated(&apdu[apdu_len], 2,
+            data->eventTypeAcked);
+        apdu_len += len;
+
+        len =
+            bacapp_encode_context_timestamp(&apdu[apdu_len], 3,
+            &data->eventTimeStamp);
+        apdu_len += len;
+
+        len =
+            encode_context_character_string(&apdu[apdu_len], 4,
+            &data->ackSource);
+        apdu_len += len;
+
+        len =
+            bacapp_encode_context_timestamp(&apdu[apdu_len], 5,
+            &data->ackTimeStamp);
+        apdu_len += len;
     }
 
     return apdu_len;
@@ -104,50 +117,57 @@ int alarm_ack_encode_service_request(
 **
 ****************************************************/
 int alarm_ack_decode_service_request(
-	uint8_t * apdu,
-	unsigned apdu_len,
-	BACNET_ALARM_ACK_DATA * data)
+    uint8_t * apdu,
+    unsigned apdu_len,
+    BACNET_ALARM_ACK_DATA * data)
 {
     int len = 0;
     int section_len;
 
     if (-1 == (section_len =
-            decode_context_unsigned(&apdu[len], 0, &data->ackProcessIdentifier))) {
+            decode_context_unsigned(&apdu[len], 0,
+                &data->ackProcessIdentifier))) {
         return -1;
     }
     len += section_len;
 
     if (-1 == (section_len =
-            decode_context_object_id(&apdu[len], 1, &data->eventObjectIdentifier.type, &data->eventObjectIdentifier.instance))) {
+            decode_context_object_id(&apdu[len], 1,
+                &data->eventObjectIdentifier.type,
+                &data->eventObjectIdentifier.instance))) {
         return -1;
     }
     len += section_len;
 
     if (-1 == (section_len =
-            decode_context_enumerated(&apdu[len], 2, (int*)&data->eventTypeAcked))) {
+            decode_context_enumerated(&apdu[len], 2,
+                (int *) &data->eventTypeAcked))) {
         return -1;
     }
     len += section_len;
 
     if (-1 == (section_len =
-            bacapp_decode_context_timestamp(&apdu[len], 3, &data->eventTimeStamp))) {
+            bacapp_decode_context_timestamp(&apdu[len], 3,
+                &data->eventTimeStamp))) {
         return -1;
     }
     len += section_len;
 
     if (-1 == (section_len =
-            decode_context_character_string(&apdu[len], 4, &data->ackSource))) {
+            decode_context_character_string(&apdu[len], 4,
+                &data->ackSource))) {
         return -1;
     }
     len += section_len;
-	
+
     if (-1 == (section_len =
-            bacapp_decode_context_timestamp(&apdu[len], 5, &data->ackTimeStamp))) {
+            bacapp_decode_context_timestamp(&apdu[len], 5,
+                &data->ackTimeStamp))) {
         return -1;
     }
     len += section_len;
-	
-	return len;
+
+    return len;
 }
 
 #ifdef TEST
@@ -163,22 +183,22 @@ void testAlarmAck(
     BACNET_ALARM_ACK_DATA testAlarmAckIn;
     BACNET_ALARM_ACK_DATA testAlarmAckOut;
 
-	uint8_t buffer[MAX_APDU];
+    uint8_t buffer[MAX_APDU];
     int inLen;
     int outLen;
 
-	testAlarmAckIn.ackProcessIdentifier = 0x1234;
-	characterstring_init_ansi(&testAlarmAckIn.ackSource, "This is a test");
-	testAlarmAckIn.ackTimeStamp.tag = TIME_STAMP_SEQUENCE;
-	testAlarmAckIn.ackTimeStamp.value.sequenceNum = 0x4331;
-	testAlarmAckIn.eventObjectIdentifier.instance = 567;
-	testAlarmAckIn.eventObjectIdentifier.type = OBJECT_DEVICE;
-	testAlarmAckIn.eventTimeStamp.tag = TIME_STAMP_TIME;
-	testAlarmAckIn.eventTimeStamp.value.time.hour = 10;
-	testAlarmAckIn.eventTimeStamp.value.time.min  = 11;
-	testAlarmAckIn.eventTimeStamp.value.time.sec  = 12;
-	testAlarmAckIn.eventTimeStamp.value.time.hundredths  = 14;
-	testAlarmAckIn.eventTypeAcked = EVENT_CHANGE_OF_LIFE_SAFETY;
+    testAlarmAckIn.ackProcessIdentifier = 0x1234;
+    characterstring_init_ansi(&testAlarmAckIn.ackSource, "This is a test");
+    testAlarmAckIn.ackTimeStamp.tag = TIME_STAMP_SEQUENCE;
+    testAlarmAckIn.ackTimeStamp.value.sequenceNum = 0x4331;
+    testAlarmAckIn.eventObjectIdentifier.instance = 567;
+    testAlarmAckIn.eventObjectIdentifier.type = OBJECT_DEVICE;
+    testAlarmAckIn.eventTimeStamp.tag = TIME_STAMP_TIME;
+    testAlarmAckIn.eventTimeStamp.value.time.hour = 10;
+    testAlarmAckIn.eventTimeStamp.value.time.min = 11;
+    testAlarmAckIn.eventTimeStamp.value.time.sec = 12;
+    testAlarmAckIn.eventTimeStamp.value.time.hundredths = 14;
+    testAlarmAckIn.eventTypeAcked = EVENT_CHANGE_OF_LIFE_SAFETY;
 
     memset(&testAlarmAckOut, 0, sizeof(testAlarmAckOut));
 
@@ -188,23 +208,45 @@ void testAlarmAck(
 
     ct_test(pTest, inLen == outLen);
 
-    ct_test(pTest, testAlarmAckIn.ackProcessIdentifier == testAlarmAckOut.ackProcessIdentifier);
+    ct_test(pTest,
+        testAlarmAckIn.ackProcessIdentifier ==
+        testAlarmAckOut.ackProcessIdentifier);
 
-	ct_test(pTest, testAlarmAckIn.ackTimeStamp.tag == testAlarmAckOut.ackTimeStamp.tag);
-    ct_test(pTest, testAlarmAckIn.ackTimeStamp.value.sequenceNum == testAlarmAckOut.ackTimeStamp.value.sequenceNum);
+    ct_test(pTest,
+        testAlarmAckIn.ackTimeStamp.tag == testAlarmAckOut.ackTimeStamp.tag);
+    ct_test(pTest,
+        testAlarmAckIn.ackTimeStamp.value.sequenceNum ==
+        testAlarmAckOut.ackTimeStamp.value.sequenceNum);
 
-    ct_test(pTest, testAlarmAckIn.ackProcessIdentifier == testAlarmAckOut.ackProcessIdentifier);
+    ct_test(pTest,
+        testAlarmAckIn.ackProcessIdentifier ==
+        testAlarmAckOut.ackProcessIdentifier);
 
-	ct_test(pTest, testAlarmAckIn.eventObjectIdentifier.instance == testAlarmAckOut.eventObjectIdentifier.instance);
-	ct_test(pTest, testAlarmAckIn.eventObjectIdentifier.type == testAlarmAckOut.eventObjectIdentifier.type);
+    ct_test(pTest,
+        testAlarmAckIn.eventObjectIdentifier.instance ==
+        testAlarmAckOut.eventObjectIdentifier.instance);
+    ct_test(pTest,
+        testAlarmAckIn.eventObjectIdentifier.type ==
+        testAlarmAckOut.eventObjectIdentifier.type);
 
-	ct_test(pTest, testAlarmAckIn.eventTimeStamp.tag == testAlarmAckOut.eventTimeStamp.tag);
-    ct_test(pTest, testAlarmAckIn.eventTimeStamp.value.time.hour == testAlarmAckOut.eventTimeStamp.value.time.hour);
-    ct_test(pTest, testAlarmAckIn.eventTimeStamp.value.time.min == testAlarmAckOut.eventTimeStamp.value.time.min);
-    ct_test(pTest, testAlarmAckIn.eventTimeStamp.value.time.sec == testAlarmAckOut.eventTimeStamp.value.time.sec);
-    ct_test(pTest, testAlarmAckIn.eventTimeStamp.value.time.hundredths == testAlarmAckOut.eventTimeStamp.value.time.hundredths);
+    ct_test(pTest,
+        testAlarmAckIn.eventTimeStamp.tag ==
+        testAlarmAckOut.eventTimeStamp.tag);
+    ct_test(pTest,
+        testAlarmAckIn.eventTimeStamp.value.time.hour ==
+        testAlarmAckOut.eventTimeStamp.value.time.hour);
+    ct_test(pTest,
+        testAlarmAckIn.eventTimeStamp.value.time.min ==
+        testAlarmAckOut.eventTimeStamp.value.time.min);
+    ct_test(pTest,
+        testAlarmAckIn.eventTimeStamp.value.time.sec ==
+        testAlarmAckOut.eventTimeStamp.value.time.sec);
+    ct_test(pTest,
+        testAlarmAckIn.eventTimeStamp.value.time.hundredths ==
+        testAlarmAckOut.eventTimeStamp.value.time.hundredths);
 
-	ct_test(pTest, testAlarmAckIn.eventTypeAcked == testAlarmAckOut.eventTypeAcked);
+    ct_test(pTest,
+        testAlarmAckIn.eventTypeAcked == testAlarmAckOut.eventTypeAcked);
 
 }
 

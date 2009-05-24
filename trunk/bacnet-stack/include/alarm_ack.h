@@ -41,13 +41,13 @@
 #include "bacapp.h"
 #include "timestamp.h"
 
-typedef struct  {
-    uint32_t                ackProcessIdentifier;
-    BACNET_OBJECT_ID        eventObjectIdentifier;
-    BACNET_EVENT_TYPE       eventTypeAcked;
-    BACNET_TIMESTAMP        eventTimeStamp;
-    BACNET_CHARACTER_STRING ackSource;       
-	BACNET_TIMESTAMP        ackTimeStamp;
+typedef struct {
+    uint32_t ackProcessIdentifier;
+    BACNET_OBJECT_ID eventObjectIdentifier;
+    BACNET_EVENT_TYPE eventTypeAcked;
+    BACNET_TIMESTAMP eventTimeStamp;
+    BACNET_CHARACTER_STRING ackSource;
+    BACNET_TIMESTAMP ackTimeStamp;
 } BACNET_ALARM_ACK_DATA;
 
 #ifdef __cplusplus
@@ -87,6 +87,3 @@ extern "C" {
 }
 #endif /* __cplusplus */
 #endif /* ALARM_ACK_H_ */
-
-
-
