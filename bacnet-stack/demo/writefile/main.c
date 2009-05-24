@@ -210,7 +210,7 @@ static void Init_DataLink(
 #if defined(BACDL_MSTP)
         apdu_timeout_set(60000);
 #endif
-    }    
+    }
     if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
     }

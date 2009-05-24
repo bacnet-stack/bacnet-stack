@@ -241,7 +241,6 @@ int main(
                 _SET_LOCK_BITS(recchar());      /* Read and set lock bits. */
                 sendchar('\r'); /* Send OK back. */
             }
-
 #if defined(_GET_LOCK_BITS)
             /* Read lock bits. */
             else if (val == 'r') {

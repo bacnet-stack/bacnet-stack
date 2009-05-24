@@ -68,7 +68,8 @@ void handler_alarm_ack(
         goto AA_ABORT;
     }
 
-    len = alarm_ack_decode_service_request(service_request, service_len, &data);
+    len =
+        alarm_ack_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
     if (len <= 0)
         fprintf(stderr, "Alarm Ack: Unable to decode Request!\n");
@@ -90,10 +91,8 @@ void handler_alarm_ack(
 #if PRINT_ENABLED
     fprintf(stderr,
         "Alarm Ack Operation: Received acknowledge for object id %d from %s for process id %d for object %id\n",
-			data.eventObjectIdentifier.instance, 
-			data.ackSource.value,
-			data.ackProcessIdentifier, 
-			data.eventObjectIdentifier.instance);
+        data.eventObjectIdentifier.instance, data.ackSource.value,
+        data.ackProcessIdentifier, data.eventObjectIdentifier.instance);
 #endif
 
     len =

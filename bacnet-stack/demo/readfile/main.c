@@ -197,9 +197,13 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     BACNET_ADDRESS src = {
-    0}; /* address where message came from */
+        0
+    };  /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;

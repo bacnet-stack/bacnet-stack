@@ -131,29 +131,36 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-void cleanup(void) {
+void cleanup(
+    void)
+{
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
     BACNET_PROPERTY_REFERENCE *old_rpm_property;
 
-                              rpm_object = Read_Access_Data;
-                              old_rpm_object = rpm_object;
-    while                     (rpm_object) {
+    rpm_object = Read_Access_Data;
+    old_rpm_object = rpm_object;
+    while (rpm_object) {
         rpm_property = rpm_object->listOfProperties;
         while (rpm_property) {
             old_rpm_property = rpm_property;
             rpm_property = rpm_property->next;
             free(old_rpm_property);
-        } old_rpm_object = rpm_object;
+        }
+        old_rpm_object = rpm_object;
         rpm_object = rpm_object->next;
         free(old_rpm_object);
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     BACNET_ADDRESS src = {
-    0}; /* address where message came from */
+        0
+    };  /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
@@ -165,7 +172,8 @@ int main(int argc, char *argv[]) {
     uint8_t invoke_id = 0;
     bool found = false;
     uint8_t buffer[MAX_PDU] = {
-    0};
+        0
+    };
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
 

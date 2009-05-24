@@ -311,9 +311,13 @@ static uint8_t Read_Properties(
     return invoke_id;
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     BACNET_ADDRESS src = {
-    0}; /* address where message came from */
+        0
+    };  /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;

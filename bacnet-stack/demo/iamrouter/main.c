@@ -101,18 +101,18 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     unsigned arg_count = 0;
 
-    if       (argc < 2) {
+    if (argc < 2) {
         printf("Usage: %s DNET [DNET] [DNET] [...]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
-    if   ((
-            argc > 1) && (
-            strcmp(argv[1],
-                "--help") == 0)) {
+    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("Send BACnet I-Am-Router-To-Network message for \r\n"
             "one or more networks.\r\n" "\r\nDNET:\r\n"
             "BACnet destination network number 0-65534\r\n"
