@@ -222,16 +222,15 @@ void JobInfo::parseCommandline( int argc, char *argv[] )
 
 
 			case 'c' : // Specify COM port.
-				if( strlen( param ) != 6 )
-					throw new ErrorMsg( "COM port parameter syntax is -cCOMx!" );
-
-				if( param[2] != 'C' || param[3] != 'O' || param[4] != 'M' )
-					throw new ErrorMsg( "COM port parameter syntax is -cCOMx!" );
-
-				if( param[5] < '1' || param[5] > '8' )
-					throw new ErrorMsg( "Use COM1 to COM8!" );
-
+				if (( strlen( param ) < 6 ) || (strlen( param ) > 7) ||
+                    (param[2] != 'C' || param[3] != 'O' || param[4] != 'M' ) ||
+				    (param[5] < '1' || param[5] > '9')) {
+					throw new ErrorMsg( "COM port parameter syntax is -cCOM1 to -cCOM99" );
+                }
 				comPort = param[5] - '0'; // Convert COM port digit to number.
+				if (param[6] != 0) {
+                    comPort = (comPort * 10) + param[6] - '0';
+                } 
 				break;
 
 
@@ -697,7 +696,7 @@ void JobInfo::help()
 		<< "        default is the entire FLASH. Byte addresses in hex." << endl
 		<< "ae      EEPROM address range. Specifies the address range of operations." << endl
 		<< "        The default is the entire EEPROM. Byte addresses in hex." << endl
-		<< "c       Select communication port; 'COM1' to 'COM8'. If this parameter is" << endl
+		<< "c       Select communication port; 'COM1' to 'COM99'. If this parameter is" << endl
 		<< "        omitted the program will scan the COM ports for a programmer." << endl
 		<< "b       Get revisions; hardware revision (h) and software revision (s)." << endl
 		<< "g       Silent operation." << endl

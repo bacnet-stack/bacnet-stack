@@ -28,8 +28,8 @@ SerialPort::SerialPort( long _portNumber, long _timeout )
 	if( _timeout < 0 )
 		throw new ErrorMsg( "Negative COM-port timeout not allowed!" );
 
-	if( _portNumber < 1 || _portNumber > 8 )
-		throw new ErrorMsg( "Only COM1 to COM8 is supported!" );
+	if( _portNumber < 1 || _portNumber > 99 )
+		throw new ErrorMsg( "Only COM1 to COM99 is supported!" );
 
 	/* Initialize internal parameters */
 	portNumber = _portNumber;
@@ -48,7 +48,9 @@ SerialPort::~SerialPort()
 /* Open the communication channel */
 void SerialPort::openChannel()
 {
-	char comName[] = "COMx";
+    /* CreateFile expects a constant char, or char from the heap */
+	static char comName[64] = "COM1";
+    
 	COMMTIMEOUTS comTimeouts;
 
 	/* Check if channel already open */
@@ -56,7 +58,14 @@ void SerialPort::openChannel()
 		throw new ErrorMsg( "Channel already open! Cannot open port twice." );
 
 	/* Generate COM filename and attempt open */
-	comName[3] = '0' + portNumber;
+	if (portNumber < 10) {
+		comName[3] = '0' + portNumber;
+	} else if (portNumber < 100) {
+		/* For COM ports greater than 9 you have to use a special syntax
+		for CreateFile. The syntax also works for COM ports 1-9. */
+		/* http://support.microsoft.com/kb/115831 */
+		sprintf(comName, "\\\\.\\COM%ld", portNumber);
+	}
 	serialHandle = CreateFile( comName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
 
