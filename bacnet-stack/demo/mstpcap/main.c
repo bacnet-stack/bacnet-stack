@@ -48,6 +48,15 @@
 #include "mstp.h"
 #include "mstptext.h"
 
+#if defined(_WIN32)
+#include <process.h> /* _beginthread */
+#endif
+#if defined(__BORLANDC__)
+#include <sys/timeb.h>
+#define _timeb timeb
+#define _ftime(param) ftime(param)
+#endif
+
 #ifndef max
 #define max(a,b) (((a) (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -72,6 +81,8 @@ static int gettimeofday(
     void *tzp)
 {
     struct _timeb timebuffer;
+
+	(void) tzp;
 
     _ftime(&timebuffer);
     tp->tv_sec = timebuffer.time;
@@ -113,6 +124,8 @@ void Sleep(
 void *milliseconds_task(
     void *pArg)
 {
+	(void) pArg;
+
     for (;;) {
         Sleep(1);
         dlmstp_millisecond_timer();
