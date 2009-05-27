@@ -752,7 +752,7 @@ void JobInfo::doJob()
 	{
 		Util.log( "Scanning COM ports for supported programmer...\n\r" );
 
-		for( scanCOM = 1; scanCOM <= 8; scanCOM++ )
+		for( scanCOM = 1; scanCOM <= 99; scanCOM++ )
 		{
 			Util.progress( "COM" + Util.convertLong( scanCOM ) + "...\r\n" );
 
@@ -782,7 +782,7 @@ void JobInfo::doJob()
 		}
 
 		/* Exit if no supported programmers found */
-		if( scanCOM > 8 )
+		if( scanCOM > 99 )
 		{
 			Util.log( "No supported programmers found!\r\n" );
 			return;
