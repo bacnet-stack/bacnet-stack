@@ -146,6 +146,8 @@ OBJS = ${CORE1_OBJ} \
 	${HANDLER_OBJ} \
 	${OBJECT_OBJ}
 
+DEL = ${OBJS:.obj=.del}
+
 # Compiler definitions
 #
 BCC_CFG = bcc32.cfg
@@ -162,20 +164,13 @@ LFLAGS = /E /P4096
 all: $(BCC_CFG) $(OBJS) makefile.b32 $(LIBRARY)
 	@echo Finished!
 
-clean:
-	del ${CORE1_OBJ} 
-	del ${CORE2_OBJ}
-	del ${CORE3_OBJ}
-	del ${PORT_OBJ}
-	del ${HANDLER_OBJ}
-	del ${OBJECT_OBJ}
+clean: ${DEL}
 	del ${LIBRARY}
-	del $(BCC_CFG)
-
+	del ${BCC_CFG}
 #
 # Generic rules
 #
-.SUFFIXES: .cpp .c .sbr .obj
+.SUFFIXES: .cpp .c .sbr .obj .del
 
 #
 # cc generic rule
@@ -183,6 +178,10 @@ clean:
 .c.obj:
 	$(CC) +$(BCC_CFG) -o$@ $<
 	$(TLIB) $(LIBRARY) $(LFLAGS) -+"$@"
+
+# delete rule - to delete one at a time
+.obj.del:
+	del $**
 
 # Compiler configuration file
 $(BCC_CFG) :
