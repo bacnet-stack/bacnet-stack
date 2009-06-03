@@ -38,7 +38,7 @@ static FIFO_BUFFER Receive_Buffer;
 static void serial_receiver_enable(
     void)
 {
-    UCSR0B = _BV(TXEN0) | _BV(RXEN0) | _BV(RXCIE0);
+    UCSR1B = _BV(TXEN1) | _BV(RXEN1) | _BV(RXCIE1);
 }
 
 ISR(USART1_RX_vect)
@@ -161,7 +161,7 @@ static void serial_usart_init(
     /* Set Stop Bit Select: USBSn = 0 for 1 stop bit */
     /* Set Character Size: UCSZn2 UCSZn1 UCSZn0 = 011 for 8-bit */
     /* Clock Polarity: UCPOLn = 0 when asynchronous mode is used. */
-    UCSR0C = _BV(UCSZ11) | _BV(UCSZ10);
+    UCSR1C = _BV(UCSZ11) | _BV(UCSZ10);
     /* Clear Power Reduction */
     BIT_CLEAR(PRR, PRUSART1);
 }
