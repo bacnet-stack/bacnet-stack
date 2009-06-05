@@ -159,7 +159,35 @@ unsigned Analog_Value_Instance_To_Index(
     return index;
 }
 
-static float Analog_Value_Present_Value(
+bool Analog_Value_Present_Value_Set(
+    uint32_t object_instance,
+    float value,
+    uint8_t priority)
+{
+    unsigned index = 0;
+    bool status = false;
+
+    Analog_Value_Init();
+    index = Analog_Value_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_VALUES) {
+        if (priority && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */ ) &&
+            (value >= 0.0) && (value <= 100.0)) {
+            Analog_Value_Level[index][priority - 1] = (uint8_t) value;
+            /* Note: you could set the physical output here to the next
+               highest priority, or to the relinquish default if no
+               priorities are set.
+               However, if Out of Service is TRUE, then don't set the
+               physical output.  This comment may apply to the
+               main loop (i.e. check out of service before changing output) */
+            status = true;
+        }
+    }
+    return status;
+}
+
+
+float Analog_Value_Present_Value(
     uint32_t object_instance)
 {
     float value = ANALOG_RELINQUISH_DEFAULT;
@@ -346,26 +374,15 @@ bool Analog_Value_Write_Property(
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_REAL) {
-                priority = wp_data->priority;
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                    (priority != 6 /* reserved */ ) &&
-                    (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
-                    level = (uint8_t) value.type.Real;
-                    object_index =
-                        Analog_Value_Instance_To_Index(wp_data->
-                        object_instance);
-                    priority--;
-                    Analog_Value_Level[object_index][priority] = level;
-                    /* Note: you could set the physical output here if we
-                       are the highest priority.
-                       However, if Out of Service is TRUE, then don't set the
-                       physical output.  This comment may apply to the
-                       main loop (i.e. check out of service before changing output) */
+                if (Analog_Value_Present_Value_Set(
+                    wp_data->object_instance,
+                    wp_data->priority,
+                    value.type.Real)) {
                     status = true;
-                } else if (priority == 6) {
+                } else if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
                        object. */
