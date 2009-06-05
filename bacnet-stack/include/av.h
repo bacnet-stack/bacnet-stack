@@ -63,6 +63,14 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
+        
+    bool Analog_Value_Present_Value_Set(
+        uint32_t object_instance,
+        float value,
+        uint8_t priority);
+    float Analog_Value_Present_Value(
+        uint32_t object_instance);
+
 
 #ifdef TEST
 #include "ctest.h"
