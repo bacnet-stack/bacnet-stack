@@ -48,9 +48,6 @@
 #include "mstp.h"
 #include "mstptext.h"
 
-#if defined(_WIN32)
-#include <process.h> /* _beginthread */
-#endif
 #if defined(__BORLANDC__)
 #include <sys/timeb.h>
 #define _timeb timeb
