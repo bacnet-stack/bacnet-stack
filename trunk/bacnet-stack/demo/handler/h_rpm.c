@@ -131,6 +131,9 @@ static void RPM_Property_List(
                 &pPropertyList->Proprietary.pList);
             break;
         case OBJECT_MULTI_STATE_OUTPUT:
+            Multistate_Output_Property_Lists(&pPropertyList->Required.pList,
+                &pPropertyList->Optional.pList,
+                &pPropertyList->Proprietary.pList);
             break;
 #if defined(BACFILE)
         case OBJECT_FILE:
