@@ -39,6 +39,7 @@
 /* demo objects */
 #include "device.h"
 #include "ai.h"
+#include "av.h"
 #include "bi.h"
 #include "bo.h"
 
@@ -73,6 +74,14 @@ int Encode_Property_APDU(
             if (Analog_Input_Valid_Instance(object_instance)) {
                 apdu_len =
                     Analog_Input_Encode_Property_APDU(&apdu[0],
+                    object_instance, property, array_index, error_class,
+                    error_code);
+            }
+            break;
+        case OBJECT_ANALOG_VALUE:
+            if (Analog_Value_Valid_Instance(object_instance)) {
+                apdu_len =
+                    Analog_Value_Encode_Property_APDU(&apdu[0],
                     object_instance, property, array_index, error_class,
                     error_code);
             }

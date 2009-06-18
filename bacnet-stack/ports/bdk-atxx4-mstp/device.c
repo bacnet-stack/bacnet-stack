@@ -39,6 +39,7 @@
 /* objects */
 #include "device.h"
 #include "ai.h"
+#include "av.h"
 #include "bi.h"
 #include "bo.h"
 
@@ -229,6 +230,7 @@ unsigned Device_Object_List_Count(
     count += Binary_Input_Count();
     count += Binary_Output_Count();
     count += Analog_Input_Count();
+    count += Analog_Value_Count();
 
     return count;
 }
@@ -287,6 +289,17 @@ bool Device_Object_List_Identifier(
         if (object_index < object_count) {
             *object_type = OBJECT_BINARY_INPUT;
             *instance = Binary_Input_Index_To_Instance(object_index);
+            status = true;
+        }
+    }
+    /* analog value objects */
+    if (!status) {
+        /* array index starts at 1, and 1 for the device object */
+        object_index -= object_count;
+        object_count = Analog_Value_Count();
+        if (object_index < object_count) {
+            *object_type = OBJECT_ANALOG_VALUE;
+            *instance = Analog_Value_Index_To_Instance(object_index);
             status = true;
         }
     }
@@ -398,6 +411,7 @@ int Device_Encode_Property_APDU(
             /* FIXME: indicate the objects that YOU support */
             bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
             bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
+            bitstring_set_bit(&bit_string, OBJECT_ANALOG_VALUE, true);
             bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
             bitstring_set_bit(&bit_string, OBJECT_BINARY_OUTPUT, true);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);

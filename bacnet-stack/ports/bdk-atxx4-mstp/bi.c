@@ -80,17 +80,13 @@ void Binary_Input_Property_Lists(
     return;
 }
 
-static void Binary_Input_Initialize(
+void Binary_Input_Init(
     void)
 {
-    static bool initialized = false;
     unsigned i;
 
-    if (!initialized) {
-        initialized = true;
-        for (i = 0; i < MAX_BINARY_INPUTS; i++) {
-            Present_Value[i] = BINARY_INACTIVE;
-        }
+    for (i = 0; i < MAX_BINARY_INPUTS; i++) {
+        Present_Value[i] = BINARY_INACTIVE;
     }
 }
 
@@ -132,19 +128,37 @@ unsigned Binary_Input_Instance_To_Index(
     return index;
 }
 
-static BACNET_BINARY_PV Binary_Input_Present_Value(
+BACNET_BINARY_PV Binary_Input_Present_Value(
     uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned index = 0;
 
-    Binary_Input_Initialize();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         value = Present_Value[index];
     }
 
     return value;
+}
+
+bool Binary_Input_Present_Value_Set(
+    uint32_t object_instance,
+    bool value)
+{
+    unsigned index = 0;
+
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS) {
+        if (value) {
+            Present_Value[index] = BINARY_ACTIVE;
+        } else {
+            Present_Value[index] = BINARY_INACTIVE;
+        }
+        return true;
+    }
+    
+    return false;
 }
 
 char *Binary_Input_Name(
@@ -178,7 +192,6 @@ int Binary_Input_Encode_Property_APDU(
 
 
     (void) array_index;
-    Binary_Input_Initialize();
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =

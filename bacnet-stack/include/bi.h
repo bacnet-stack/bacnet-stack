@@ -67,6 +67,14 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
+    void Binary_Input_Init(
+        void);
+    BACNET_BINARY_PV Binary_Input_Present_Value(
+        uint32_t object_instance);
+
+    bool Binary_Input_Present_Value_Set(
+        uint32_t object_instance,
+        bool value);
 
 #ifdef TEST
 #include "ctest.h"

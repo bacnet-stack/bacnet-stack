@@ -70,7 +70,9 @@ extern "C" {
         uint8_t priority);
     float Analog_Value_Present_Value(
         uint32_t object_instance);
-
+        
+    void Analog_Value_Init(
+        void);        
 
 #ifdef TEST
 #include "ctest.h"

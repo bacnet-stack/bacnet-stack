@@ -36,6 +36,8 @@ extern "C" {
         void);
     uint8_t input_address(
         void);
+    bool input_button_value(
+        uint8_t index);
 
 #ifdef __cplusplus
 }

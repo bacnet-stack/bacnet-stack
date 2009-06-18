@@ -33,7 +33,11 @@
 #include "bacenum.h"
 #include "config.h"     /* the custom stuff */
 
+#ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS 7
+#endif
+
+static float Present_Value[MAX_ANALOG_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Analog_Input_Properties_Required[] = {
@@ -104,6 +108,27 @@ uint32_t Analog_Input_Index_To_Instance(
     return index;
 }
 
+float Analog_Input_Present_Value(
+    uint32_t object_instance)
+{
+    float value = 0.0;
+
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        value = Present_Value[object_instance];
+    }
+
+    return value;
+}
+
+void Analog_Input_Present_Value_Set(
+    uint32_t object_instance,
+    float value)
+{
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        Present_Value[object_instance] = value;
+    }
+}
+
 char *Analog_Input_Name(
     uint32_t object_instance)
 {
@@ -130,7 +155,6 @@ int Analog_Input_Encode_Property_APDU(
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    float value = 3.14159F;
 
     (void) array_index;
     switch (property) {
@@ -151,7 +175,8 @@ int Analog_Input_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_real(&apdu[0], value);
+            apdu_len = encode_application_real(&apdu[0], 
+                Analog_Input_Present_Value(object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
