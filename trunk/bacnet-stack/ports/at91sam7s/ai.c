@@ -39,7 +39,7 @@
 #error Modify the Analog_Input_Name to handle multiple digits
 #endif
 
-static uint8_t Present_Value[MAX_ANALOG_INPUTS];
+static float Present_Value[MAX_ANALOG_INPUTS];
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
@@ -80,7 +80,7 @@ char *Analog_Input_Name(
     return NULL;
 }
 
-static float Analog_Input_Present_Value(
+float Analog_Input_Present_Value(
     uint32_t object_instance)
 {
     float value = 0.0;
@@ -89,6 +89,15 @@ static float Analog_Input_Present_Value(
         value = Present_Value[object_instance];
 
     return value;
+}
+
+void Analog_Input_Present_Value_Set(
+    uint32_t object_instance,
+    float value)
+{
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        Present_Value[object_instance] = value;
+    }
 }
 
 /* return apdu length, or -1 on error */

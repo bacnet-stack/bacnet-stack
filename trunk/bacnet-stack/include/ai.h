@@ -52,6 +52,13 @@ extern "C" {
         int32_t array_index,
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
+    float Analog_Input_Present_Value(
+        uint32_t object_instance);
+    void Analog_Input_Present_Value_Set(
+        uint32_t object_instance,
+        float value);
+    void Analog_Input_Init(
+        void);
 
 #ifdef TEST
 #include "ctest.h"

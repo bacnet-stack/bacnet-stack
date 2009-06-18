@@ -31,6 +31,7 @@
 #include "timer.h"
 #include "input.h"
 #include "led.h"
+#include "adc.h"
 #include "nvdata.h"
 #include "timer.h"
 #include "dcc.h"
@@ -44,6 +45,7 @@
 #include "iam.h"
 #include "device.h"
 #include "ai.h"
+#include "av.h"
 #include "bi.h"
 #include "bo.h"
 
@@ -128,6 +130,9 @@ static void bacnet_init(
     /* initialize objects */
     Device_Init();
     Binary_Output_Init();
+    Analog_Input_Init();
+    Binary_Input_Init();
+    Analog_Value_Init();
 
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
@@ -155,6 +160,9 @@ static void bacnet_task(
     uint8_t mstp_mac_address = 0;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
+    uint8_t value = 0;
+    bool button_value = false;
+    uint8_t i = 0;
 
     mstp_mac_address = input_address();
     if (MSTP_MAC_Address != mstp_mac_address) {
@@ -162,9 +170,18 @@ static void bacnet_task(
         dlmstp_set_mac_address(MSTP_MAC_Address);
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
+    /* handle the inputs */
+    value = adc_result(7);
+    Analog_Input_Present_Value_Set(0, value);
+    for (i = 0; i < 5; i++) {
+        button_value = input_button_value(i);
+        Binary_Input_Present_Value_Set(i, button_value);
+    }
+    /* handle the communication timer */
     if (timer_elapsed_seconds(TIMER_DCC, 1)) {
         dcc_timer_seconds(1);
     }
+    /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
     if (pdu_len) {
         npdu_handler(&src, &PDUBuffer[0], pdu_len);
@@ -198,6 +215,7 @@ int main(
     void)
 {
     init();
+    adc_init();
     led_init();
     input_init();
     timer_init();

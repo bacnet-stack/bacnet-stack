@@ -39,6 +39,7 @@
 /* demo objects */
 #include "device.h"
 #include "ai.h"
+#include "av.h"
 #include "bi.h"
 #include "bo.h"
 
@@ -106,6 +107,19 @@ void handler_write_property(
             break;
         case OBJECT_BINARY_OUTPUT:
             if (Binary_Output_Write_Property(&wp_data, &error_class,
+                    &error_code)) {
+                len =
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+            } else {
+                len =
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    error_class, error_code);
+            }
+            break;
+        case OBJECT_ANALOG_VALUE:
+            if (Analog_Value_Write_Property(&wp_data, &error_class,
                     &error_code)) {
                 len =
                     encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],

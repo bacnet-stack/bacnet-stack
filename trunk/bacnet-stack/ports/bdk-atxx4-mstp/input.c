@@ -22,22 +22,36 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
+#include <stdint.h>
+#include <stdbool.h>
 #include "hardware.h"
 
 static uint8_t Address_Switch;
+static uint8_t Buttons;
 
+/* debounce the inputs */
 void input_task(
     void)
 {
     uint8_t value;
-    static uint8_t old_value = 0;
+    static uint8_t old_address = 0;
+    static uint8_t old_buttons = 0;
 
     value = BITMASK_CHECK(PINA, 0x7F);
-    if (value != old_value) {
-        old_value = value;
+    if (value != old_address) {
+        old_address = value;
     } else {
-        if (old_value != Address_Switch) {
-            Address_Switch = old_value;
+        if (old_address != Address_Switch) {
+            Address_Switch = old_address;
+        }
+    }
+    /* pins used are PB4, PB3, PB2, PB1, PB0 */
+    value = BITMASK_CHECK(PINB, 0x1F);
+    if (value != old_buttons) {
+        old_buttons = value;
+    } else {
+        if (old_buttons != Buttons) {
+            Buttons = old_buttons;
         }
     }
 }
@@ -48,12 +62,49 @@ uint8_t input_address(
     return Address_Switch;
 }
 
+bool input_button_value(
+    uint8_t index)
+{
+    bool value = false;
+    
+    switch (index) {
+        case 0:
+            value = BIT_CHECK(Buttons, 0);
+            break;
+        case 1:
+            value = BIT_CHECK(Buttons, 1);
+            break;
+        case 2:
+            value = BIT_CHECK(Buttons, 2);
+            break;
+        case 3:
+            value = BIT_CHECK(Buttons, 3);
+            break;
+        case 4:
+            value = BIT_CHECK(Buttons, 4);
+            break;
+        default:
+            break;
+    }
+    
+    return value;        
+}
+
+
 void input_init(
     void)
 {
-    /* configure the port pins */
-    BITMASK_CLEAR(DDRA,
-        _BV(DDA0) | _BV(DDA1) | _BV(DDA2) | _BV(DDA3) | _BV(DDA4) | _BV(DDA5) |
-        _BV(DDA6)
-        );
+    /* configure the port pins for the switch */
+    BIT_CLEAR(DDRA, DDA0);
+    BIT_CLEAR(DDRA, DDA1);
+    BIT_CLEAR(DDRA, DDA2);
+    BIT_CLEAR(DDRA, DDA3);
+    BIT_CLEAR(DDRA, DDA4);
+    BIT_CLEAR(DDRA, DDA5);
+    BIT_CLEAR(DDRA, DDA6);
+    /* configure the port pins for binary inputs */
+    BIT_CLEAR(DDRB, DDB1);
+    BIT_CLEAR(DDRB, DDB2);
+    BIT_CLEAR(DDRB, DDB3);
+    BIT_CLEAR(DDRB, DDB4);
 }

@@ -77,7 +77,7 @@ char *Analog_Input_Name(
     return NULL;
 }
 
-static float Analog_Input_Present_Value(
+float Analog_Input_Present_Value(
     uint32_t object_instance)
 {
     float value = 0.0;
@@ -86,6 +86,15 @@ static float Analog_Input_Present_Value(
         value = Present_Value[object_instance];
 
     return value;
+}
+
+void Analog_Input_Present_Value_Set(
+    uint32_t object_instance,
+    float value)
+{
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        Present_Value[object_instance] = value;
+    }
 }
 
 /* return apdu length, or -1 on error */

@@ -42,6 +42,7 @@ BACNET_DEMO = ../../demo
 CSRC = main.c \
 	init.c \
 	stack.c \
+	adc.c \
 	input.c \
 	serial.c \
 	rs485.c \
@@ -56,6 +57,7 @@ CSRC = main.c \
 	h_rd.c \
 	device.c \
 	ai.c \
+	av.c \
 	bi.c \
 	bo.c
 
