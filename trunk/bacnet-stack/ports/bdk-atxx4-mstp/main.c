@@ -57,44 +57,6 @@ static uint8_t MSTP_MAC_Address;
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
 
-#if defined(__GNUC__) && (__GNUC__ > 4)
-/* AVR fuse settings */
-FUSES = {
-    /* External Ceramic Resonator - configuration */
-    /* Full Swing Crystal Oscillator Clock Selection */
-    /* Ceramic resonator, slowly rising power 1K CK 14CK + 65 ms */
-    /* note: fuses are enabled by clearing the bit, so
-       any fuses listed below are cleared fuses. */
-    .low = (FUSE_CKSEL3 & FUSE_SUT0 & FUSE_SUT1),
-        /* BOOTSZ configuration:
-           BOOTSZ1 BOOTSZ0 Boot Size
-           ------- ------- ---------
-           1       1      512
-           1       0     1024
-           0       1     2048
-           0       0     4096
-         */
-        /* note: fuses are enabled by clearing the bit, so
-           any fuses listed below are cleared fuses. */
-        .high =
-        (FUSE_BOOTSZ1 & FUSE_BOOTRST & FUSE_EESAVE & FUSE_SPIEN & FUSE_JTAGEN),
-        /* Brown-out detection VCC=2.7V */
-        /* BODLEVEL configuration 
-           BODLEVEL2 BODLEVEL1 BODLEVEL0 Voltage
-           --------- --------- --------- --------
-           1         1         1     disabled
-           1         1         0       1.8V
-           1         0         1       2.7V
-           1         0         0       4.3V
-         */
-        /* note: fuses are enabled by clearing the bit, so
-           any fuses listed below are cleared fuses. */
-.extended = (FUSE_BODLEVEL1 & FUSE_BODLEVEL0),};
-
-/* AVR lock bits - unlocked */
-LOCKBITS = LOCKBITS_DEFAULT;
-#endif
-
 bool seeprom_version_test(
     void)
 {
