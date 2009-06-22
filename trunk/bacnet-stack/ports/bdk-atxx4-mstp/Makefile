@@ -27,6 +27,7 @@ LINT = splint
 # jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
+#AVRDUDE_PROGRAMMERID = avr109
 AVRDUDE_PROGRAMMERID = jtag2fast
 #
 # port--serial or parallel port to which your 
@@ -244,7 +245,7 @@ AVRDUDE_READ_FUSES = -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
 AVRDUDE_WRITE_FLASH = -e -U flash:w:$(TARGET).hex
 
 AVRDUDE_INSTALL = $(AVRDUDE_WRITE_FLASH)
-AVRDUDE_INSTALL += $(AVRDUDE_READ_FUSES)
+AVRDUDE_INSTALL += $(AVRDUDE_WRITE_FUSES)
 
 ## Objects that must be built in order to link
 OBJECTS = $(COBJ) $(DEMOOBJ)
