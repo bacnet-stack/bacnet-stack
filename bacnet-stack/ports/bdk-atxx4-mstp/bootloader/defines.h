@@ -7,6 +7,18 @@
 #endif
 #if __GNUC__
 #include <avr/io.h>
+
+#if (__GNUC__ <= 4) && (__GNUC_MINOR__ < 3)
+
+#if !defined(EEWE) && defined(EEPE)
+# define EEWE EEPE
+#endif
+
+#if !defined(EEMWE) && defined(EEMPE)
+# define EEMWE EEMPE
+#endif
+
+#endif
 #endif
 
 /* define pin for enter-self-prog-mode */

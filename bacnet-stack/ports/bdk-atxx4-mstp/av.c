@@ -28,7 +28,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <math.h> /* for NAN */
+#if defined(__GNUC__) && (__GNUC__ > 4) && (__GNUC_MINOR__ > 2)
+    #include <math.h> /* for NAN */
+#else
+    #define NAN __builtin_nan("")
+#endif
+
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"

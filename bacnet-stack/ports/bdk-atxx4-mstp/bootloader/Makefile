@@ -87,9 +87,16 @@ LDFLAGS = -Ttext=$(BASEADDR) $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $
 
 
 # Programming support using avrdude. Settings and variables.
-
-AVRDUDE_PROGRAMMER = stk500
-AVRDUDE_PORT = /dev/ttya
+# jtag2fast = Atmel JTAG ICE mkII, running at 115200 Bd
+# jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
+# avrispmkII = AVR ISP MKII
+AVRDUDE_PROGRAMMER = jtag2fast
+#
+# # port--serial or parallel port to which your 
+# # hardware programmer is attached
+# # usb can just be usb
+# # /dev/ttya
+AVRDUDE_PORT = usb
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
@@ -109,9 +116,16 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 # to submit bug reports.
 #AVRDUDE_VERBOSE = -v -v
 
-AVRDUDE_BASIC = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
-AVRDUDE_FLAGS = $(AVRDUDE_BASIC) $(AVRDUDE_NO_VERIFY) $(AVRDUDE_VERBOSE) $(AVRDUDE_ERASE_COUNTER)
+# Disable auto-erase so that the chip can be initially
+# programmed with application code, with the bootloader code added second
+AVRDUDE_AUTOERASE = -D
 
+AVRDUDE_BASIC = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+AVRDUDE_FLAGS = $(AVRDUDE_BASIC)
+AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
+AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
+AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
+AVRDUDE_FLAGS += $(AVRDUDE_AUTOERASE)
 
 CC = avr-gcc
 OBJCOPY = avr-objcopy
@@ -133,7 +147,6 @@ LST = $(ASRC:.S=.lst) $(SRC:.c=.lst)
 ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
-
 # Default target.
 all: build
 
@@ -147,10 +160,8 @@ sym: $(TARGET).sym
 
 
 # Program the device.  
-program: $(TARGET).hex $(TARGET).eep
+install: $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
-
-
 
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
