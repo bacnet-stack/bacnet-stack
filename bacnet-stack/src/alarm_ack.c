@@ -123,6 +123,7 @@ int alarm_ack_decode_service_request(
 {
     int len = 0;
     int section_len;
+	uint32_t enumValue;
 
     if (-1 == (section_len =
             decode_context_unsigned(&apdu[len], 0,
@@ -141,9 +142,10 @@ int alarm_ack_decode_service_request(
 
     if (-1 == (section_len =
             decode_context_enumerated(&apdu[len], 2,
-                (int *) &data->eventTypeAcked))) {
+                &enumValue))) {
         return -1;
     }
+	data->eventTypeAcked = (BACNET_EVENT_TYPE)enumValue;
     len += section_len;
 
     if (-1 == (section_len =

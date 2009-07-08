@@ -242,7 +242,6 @@ void tsm_timer_milliseconds(
     uint16_t milliseconds)
 {
     unsigned i = 0;     /* counter */
-    int bytes_sent = 0;
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].state == TSM_STATE_AWAIT_CONFIRMATION) {
@@ -255,7 +254,6 @@ void tsm_timer_milliseconds(
                 TSM_List[i].RetryCount--;
                 TSM_List[i].RequestTimer = apdu_timeout();
                 if (TSM_List[i].RetryCount) {
-                    bytes_sent =
                         datalink_send_pdu(&TSM_List[i].dest,
                         &TSM_List[i].npdu_data, &TSM_List[i].apdu[0],
                         TSM_List[i].apdu_len);

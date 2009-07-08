@@ -238,7 +238,7 @@ int cov_notify_decode_service_request(
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
                 len += decode_enumerated(&apdu[len], len_value, &property);
-                value->propertyIdentifier = property;
+                value->propertyIdentifier = (BACNET_PROPERTY_ID)property;
             } else {
                 return -1;
             }
@@ -572,7 +572,7 @@ int cov_subscribe_property_decode_service_request(
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
             len += decode_enumerated(&apdu[len], len_value, &property);
-            data->monitoredProperty.propertyIdentifier = property;
+            data->monitoredProperty.propertyIdentifier = (BACNET_PROPERTY_ID)property;
         } else
             return -4;
         /* the optional array index is tag 1 */
