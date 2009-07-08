@@ -204,7 +204,7 @@ uint16_t bip_receive(
     fd_set read_fds;
     int max = 0;
     struct timeval select_timeout;
-    struct sockaddr_in sin = { -1 };
+    struct sockaddr_in sin = { 0 };
     socklen_t sin_len = sizeof(sin);
     uint16_t i = 0;
 
@@ -224,7 +224,7 @@ uint16_t bip_receive(
         select_timeout.tv_usec = 1000 * timeout;
     }
     FD_ZERO(&read_fds);
-    FD_SET((unsigned int) BIP_Socket, &read_fds);
+    FD_SET(BIP_Socket, &read_fds);
     max = BIP_Socket;
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)

@@ -659,7 +659,6 @@ static void bvlc_bdt_forward_npdu(
 {       /* length of the NPDU  */
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
-    int bytes_sent = 0;
     unsigned i = 0;     /* loop counter */
     struct sockaddr_in bip_dest = { 0 };
 
@@ -685,7 +684,7 @@ static void bvlc_bdt_forward_npdu(
                 (bip_dest.sin_port == htons(bip_get_port()))) {
                 continue;
             }
-            bytes_sent = bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
+            bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
             debug_printf("BVLC: BDT Sent Forwarded-NPDU to %s:%04X\n",
                 inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
@@ -719,7 +718,6 @@ static void bvlc_fdt_forward_npdu(
 {       /* amount of space available in the NPDU  */
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
-    int bytes_sent = 0;
     unsigned i = 0;     /* loop counter */
     struct sockaddr_in bip_dest = { 0 };
 
@@ -739,7 +737,7 @@ static void bvlc_fdt_forward_npdu(
                 (bip_dest.sin_port == sin->sin_port)) {
                 continue;
             }
-            bytes_sent = bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
+            bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
             debug_printf("BVLC: FDT Sent Forwarded-NPDU to %s:%04X\n",
                 inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
@@ -846,9 +844,9 @@ uint16_t bvlc_receive(
     fd_set read_fds;
     int max = 0;
     struct timeval select_timeout;
-    struct sockaddr_in sin = { -1 };
-    struct sockaddr_in original_sin = { -1 };
-    struct sockaddr_in dest = { -1 };
+    struct sockaddr_in sin = { 0 };
+    struct sockaddr_in original_sin = { 0 };
+    struct sockaddr_in dest = { 0 };
     socklen_t sin_len = sizeof(sin);
     int function_type = 0;
     int received_bytes = 0;
@@ -874,7 +872,7 @@ uint16_t bvlc_receive(
         select_timeout.tv_usec = 1000 * timeout;
     }
     FD_ZERO(&read_fds);
-    FD_SET((unsigned int) bip_socket(), &read_fds);
+    FD_SET(bip_socket(), &read_fds);
     max = bip_socket();
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
@@ -912,7 +910,7 @@ uint16_t bvlc_receive(
                Register-Foreign-Device message */
             /* FIXME: clients may need this result */
             (void) decode_unsigned16(&npdu[4], &result_code);
-            BVLC_Result_Code = result_code;
+            BVLC_Result_Code = (BACNET_BVLC_RESULT)result_code;
             debug_printf("BVLC: Result Code=%d\n", BVLC_Result_Code);
             /* not an NPDU */
             npdu_len = 0;
