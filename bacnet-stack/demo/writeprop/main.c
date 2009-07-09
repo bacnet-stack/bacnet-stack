@@ -428,22 +428,17 @@ int main(int argc, char *argv[]) {
         /* increment timer - exit if timed out */
         current_seconds = time(NULL);
 
-        /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
-        /* process */
-        if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
-        }
         /* at least one second has passed */
         if (current_seconds != last_seconds)
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
-        found =
-            address_bind_request(Target_Device_Object_Instance, &max_apdu,
-            &Target_Address);
+        if(!found){
+            found =
+                address_bind_request(Target_Device_Object_Instance, &max_apdu,
+                &Target_Address);
+        }
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =
@@ -470,6 +465,15 @@ int main(int argc, char *argv[]) {
                 break;
             }
         }
+
+        /* returns 0 bytes on timeout */
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+
+        /* process */
+        if (pdu_len) {
+            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+        }
+
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
