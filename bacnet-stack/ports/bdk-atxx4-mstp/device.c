@@ -615,7 +615,7 @@ bool Device_Write_Property(
             break;
         case 9600:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                if ((value.type.Unsigned_Int > 115200) &&
+                if ((value.type.Unsigned_Int <= 115200) &&
                     (rs485_baud_rate_set(value.type.Unsigned_Int))) {
                     status = true;
                 } else {
