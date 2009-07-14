@@ -28,14 +28,16 @@ LINT = splint
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
 #AVRDUDE_PROGRAMMERID = avr109
-AVRDUDE_PROGRAMMERID = jtag2fast
+#AVRDUDE_PROGRAMMERID = jtag2fast
+#AVRDUDE_PROGRAMMERID = avrispmkII
+#AVRDUDE_PROGRAMMERID = dragon_isp
+AVRDUDE_PROGRAMMERID = dragon_jtag
 #
 # port--serial or parallel port to which your 
 # hardware programmer is attached
 # usb can just be usb
 AVRDUDE_PORT = usb
 #AVRDUDE_PORT = /dev/ttyUSB0
-
 
 # Source locations
 BACNET_CORE = ../../src
@@ -133,13 +135,18 @@ DEFINES =
 
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
-# default optimization is for debugging from AVR Studio
+# default is for debugging from AVR Studio
 OPTIMIZATION = -O0
 DEBUGGING = -g
+ifeq (${BUILD},debug)
+OPTIMIZATION = -O0
+DEBUGGING = -g
+endif
 ifeq (${BUILD},release)
 OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
 DEBUGGING =
-endif#
+endif
+
 
 ## BACnet options
 BFLAGS = -DBACDL_MSTP
@@ -201,7 +208,7 @@ AVRDUDE_FLAGS += -p $(AVRDUDE_MCU)
 AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 
 # Fuse high byte (0=enable,1=disable):
-# 0x92 = 1 0 0 1   0 0 1 0
+# 0x93 = 1 0 0 1   0 0 1 1
 #        ^ ^ ^ ^   ^ \+/ ^ 
 #        | | | |   |  |  |---- BOOTRST (Enable Bootloader Reset Vector)
 #        | | | |   |  +------- BOOTSZ 1..0 (Select Boot Size)
@@ -238,7 +245,9 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 #        | | +---------------- 
 #        | +------------------ 
 #        +--------------------
-AVRDUDE_WRITE_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xC7:m -U efuse:w:0xFC:m
+AVRDUDE_WRITE_FUSES = -U hfuse:w:0x93:m -U lfuse:w:0xC7:m -U efuse:w:0xFC:m
+
+AVRDUDE_BOOTL_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xC7:m -U efuse:w:0xFC:m
 
 AVRDUDE_READ_FUSES = -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
 
@@ -294,6 +303,9 @@ install: $(TARGET_ELF)
 	
 writefuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FUSES)	
+
+bootloadfuses:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BOOTL_FUSES)	
 
 showfuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_FUSES)	

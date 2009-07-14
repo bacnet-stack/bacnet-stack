@@ -26,17 +26,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "hardware.h"
 
 /* Timer Module */
-/* reserve the millisecond timer indexes as needed for each module */
-#define TIMER_SILENCE 0
-#define TIMER_DEBOUNCE 1
-#define TIMER_LED_1 2
-#define TIMER_LED_2 3
-#define TIMER_LED_3 4
-#define TIMER_LED_4 5
-#define TIMER_DCC 6
-#define MAX_MILLISECOND_TIMERS 7
 
 #ifdef __cplusplus
 extern "C" {

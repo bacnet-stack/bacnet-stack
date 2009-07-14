@@ -90,7 +90,10 @@ LDFLAGS = -Ttext=$(BASEADDR) $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $
 # jtag2fast = Atmel JTAG ICE mkII, running at 115200 Bd
 # jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
 # avrispmkII = AVR ISP MKII
-AVRDUDE_PROGRAMMER = jtag2fast
+#AVRDUDE_PROGRAMMER = jtag2fast
+#AVRDUDE_PROGRAMMER = avrispmkII
+#AVRDUDE_PROGRAMMER = dragon_isp
+AVRDUDE_PROGRAMMER = dragon_jtag
 #
 # # port--serial or parallel port to which your 
 # # hardware programmer is attached
@@ -109,7 +112,7 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 
 # Uncomment the following if you do /not/ wish a verification to be
 # performed after programming the device.
-#AVRDUDE_NO_VERIFY = -V
+AVRDUDE_NO_VERIFY = -V
 
 # Increase verbosity level.  Please use this when submitting bug
 # reports about avrdude. See <http://savannah.nongnu.org/projects/avrdude> 

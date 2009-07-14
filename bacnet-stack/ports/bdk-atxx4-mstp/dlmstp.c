@@ -189,7 +189,7 @@ static uint8_t TransmitPacketDest;
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
-#define Tusage_timeout 25
+#define Tusage_timeout 60
 
 /* The number of tokens received or used before a Poll For Master cycle */
 /* is executed: 50. */

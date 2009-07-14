@@ -108,12 +108,24 @@ void serial_bytes_send(
 void serial_byte_send(
     uint8_t ch)
 {
-    uint8_t buffer[1];
-
-    buffer[0] = ch;
-    serial_bytes_send(&buffer[0], 1);
+    while (!BIT_CHECK(UCSR1A, UDRE1)) {
+        /* do nothing - wait until Tx buffer is empty */
+    }
+    /* Send the data byte */
+    UDR1 = ch;
 
     return;
+}
+
+void serial_byte_transmit_complete(void)
+{
+    /* was the frame sent? */
+    while (!BIT_CHECK(UCSR1A, TXC1)) {
+        /* do nothing - wait until the entire frame in the
+           Transmit Shift Register has been shifted out */
+    }
+    /* Clear the Transmit Complete flag by writing a one to it. */
+    BIT_SET(UCSR1A, TXC1);
 }
 
 uint32_t serial_baud_rate(
