@@ -169,15 +169,13 @@ unsigned Binary_Output_Instance_To_Index(
     return index;
 }
 
-static BACNET_BINARY_PV Binary_Output_Present_Value(
-    uint32_t object_instance)
+static BACNET_BINARY_PV Present_Value(
+    unsigned int index)
 {
     BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
     BACNET_BINARY_PV current_value = RELINQUISH_DEFAULT;
-    unsigned index = 0;
     unsigned i = 0;
-
-    index = Binary_Output_Instance_To_Index(object_instance);
+    
     if (index < MAX_BINARY_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
             current_value = Binary_Output_Level[index][i];
@@ -191,16 +189,26 @@ static BACNET_BINARY_PV Binary_Output_Present_Value(
     return value;
 }
 
-static void Binary_Output_Sync(
+static BACNET_BINARY_PV Binary_Output_Present_Value(
     uint32_t object_instance)
 {
-    BACNET_BINARY_PV pv = Binary_Output_Present_Value(object_instance);
-    unsigned index = Binary_Output_Instance_To_Index(object_instance);
+    unsigned index = 0;
 
+    index = Binary_Output_Instance_To_Index(object_instance);
+
+    return Present_Value(index);
+}
+
+void Binary_Output_Level_Sync(
+    unsigned int index)
+{
+    BACNET_BINARY_PV pv;
+    
     if (index < MAX_BINARY_OUTPUTS) {
         if (Out_Of_Service[index]) {
             return;
         }
+        pv = Present_Value(index);
         if (Polarity[index] == POLARITY_REVERSE) {
             if (pv == BINARY_INACTIVE) {
                 pv = BINARY_ACTIVE;
@@ -421,7 +429,7 @@ bool Binary_Output_Write_Property(
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     priority--;
                     Binary_Output_Level_Set(object_index, priority, level);
-                    Binary_Output_Sync(wp_data->object_instance);
+                    Binary_Output_Level_Sync(object_index);
                     status = true;
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -439,7 +447,7 @@ bool Binary_Output_Write_Property(
                 if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                     priority--;
                     Binary_Output_Level_Set(object_index, priority, level);
-                    Binary_Output_Sync(wp_data->object_instance);
+                    Binary_Output_Level_Sync(object_index);
                     status = true;
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -460,7 +468,7 @@ bool Binary_Output_Write_Property(
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                 Binary_Output_Out_Of_Service_Set(object_index,
                     value.type.Boolean);
-                Binary_Output_Sync(wp_data->object_instance);
+                Binary_Output_Level_Sync(object_index);
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -472,7 +480,7 @@ bool Binary_Output_Write_Property(
                 if (value.type.Enumerated < MAX_POLARITY) {
                     Binary_Output_Polarity_Set(object_index,
                         value.type.Enumerated);
-                    Binary_Output_Sync(wp_data->object_instance);
+                    Binary_Output_Level_Sync(object_index);
                     status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -514,7 +522,7 @@ void Binary_Output_Init(
                     NV_SEEPROM_BO_PRIORITY_ARRAY_1 + j),
                 &Binary_Output_Level[i][j], 1);
         }
-        Binary_Output_Sync(i);
+        Binary_Output_Level_Sync(i);
     }
 
     return;

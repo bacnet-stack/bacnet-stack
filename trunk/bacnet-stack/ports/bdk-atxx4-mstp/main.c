@@ -128,6 +128,7 @@ static void bacnet_task(
 
     mstp_mac_address = input_address();
     if (MSTP_MAC_Address != mstp_mac_address) {
+        /* address changed! */
         MSTP_MAC_Address = mstp_mac_address;
         dlmstp_set_mac_address(MSTP_MAC_Address);
         Send_I_Am(&Handler_Transmit_Buffer[0]);
@@ -153,24 +154,63 @@ static void bacnet_task(
 void idle_init(
     void)
 {
-    timer_reset(TIMER_LED_3);
-    timer_reset(TIMER_LED_4);
 }
 
 void idle_task(
     void)
 {
-#if 0
-    /* blink the leds */
-    if (timer_elapsed_seconds(TIMER_LED_3, 1)) {
-        timer_reset(TIMER_LED_3);
-        led_toggle(LED_3);
+	/* do nothing */
+}
+
+void test_init(void)
+{
+    timer_reset(TIMER_LED_3);
+    timer_reset(TIMER_LED_4);
+    timer_reset(TIMER_TEST);
+}
+
+void test_task(
+	void)
+{
+    uint8_t buffer[32] = "BACnet: 0000000\r\n";
+    uint8_t nbytes = 17;
+    uint8_t data_register = 0;
+    
+    if (timer_elapsed_seconds(TIMER_TEST, 1)) {
+        timer_reset(TIMER_TEST);
+        buffer[8] = (MSTP_MAC_Address&BIT0)?'1':'0';
+        buffer[9] = (MSTP_MAC_Address&BIT1)?'1':'0';
+        buffer[10] = (MSTP_MAC_Address&BIT2)?'1':'0';
+        buffer[11] = (MSTP_MAC_Address&BIT3)?'1':'0';
+        buffer[12] = (MSTP_MAC_Address&BIT4)?'1':'0';
+        buffer[13] = (MSTP_MAC_Address&BIT5)?'1':'0';
+        buffer[14] = (MSTP_MAC_Address&BIT6)?'1':'0';
+        serial_bytes_send(buffer, nbytes);
     }
-    if (timer_elapsed_milliseconds(TIMER_LED_4, 125)) {
-        timer_reset(TIMER_LED_4);
-        led_toggle(LED_4);
+    if (serial_byte_get(&data_register)) {
+        if (data_register == '0') {
+            Binary_Output_Level_Set(0, 1, BINARY_INACTIVE);
+            Binary_Output_Level_Sync(0);
+            Binary_Output_Level_Set(1, 1, BINARY_INACTIVE);
+            Binary_Output_Level_Sync(1);
+        }
+        if (data_register == '1') {
+            Binary_Output_Level_Set(0, 1, BINARY_ACTIVE);
+            Binary_Output_Level_Sync(0);
+            Binary_Output_Level_Set(1, 1, BINARY_ACTIVE);
+            Binary_Output_Level_Sync(1);
+        }
+        if (data_register == '2') {
+            Binary_Output_Level_Set(0, 1, BINARY_NULL);
+            Binary_Output_Level_Sync(0);
+            Binary_Output_Level_Set(1, 1, BINARY_NULL);
+            Binary_Output_Level_Sync(1);
+        }
+        serial_byte_send(data_register);
+        serial_byte_send('\r');
+        serial_byte_send('\n');
+        serial_byte_transmit_complete();
     }
-#endif
 }
 
 int main(
@@ -186,6 +226,7 @@ int main(
     serial_init();
     bacnet_init();
     idle_init();
+    test_init();
     /* Enable global interrupts */
     __enable_interrupt();
     for (;;) {
@@ -193,5 +234,6 @@ int main(
         bacnet_task();
         led_task();
         idle_task();
+        test_task();
     }
 }

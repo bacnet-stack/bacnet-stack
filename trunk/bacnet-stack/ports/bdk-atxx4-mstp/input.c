@@ -25,9 +25,45 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "hardware.h"
+#include "timer.h"
 
 static uint8_t Address_Switch;
 static uint8_t Buttons;
+
+#define BDK_V1_HACK 0
+
+#if BDK_V1_HACK
+/* version 1 BDK workaournd for floating inputs */
+static void input_switch_workaround(void)
+{
+    /* configure the port pins for the switch - as outputs */
+    BIT_SET(DDRA, DDA0);
+    BIT_SET(DDRA, DDA1);
+    BIT_SET(DDRA, DDA2);
+    BIT_SET(DDRA, DDA3);
+    BIT_SET(DDRA, DDA4);
+    BIT_SET(DDRA, DDA5);
+    BIT_SET(DDRA, DDA6);
+    /* turn off the outputs */
+    BIT_CLEAR(PORTA, PA0);
+    BIT_CLEAR(PORTA, PA1);
+    BIT_CLEAR(PORTA, PA2);
+    BIT_CLEAR(PORTA, PA3);
+    BIT_CLEAR(PORTA, PA4);
+    BIT_CLEAR(PORTA, PA5);
+    BIT_CLEAR(PORTA, PA6);
+    /* configure the port pins for the switch - as inputs */
+    BIT_CLEAR(DDRA, DDA0);
+    BIT_CLEAR(DDRA, DDA1);
+    BIT_CLEAR(DDRA, DDA2);
+    BIT_CLEAR(DDRA, DDA3);
+    BIT_CLEAR(DDRA, DDA4);
+    BIT_CLEAR(DDRA, DDA5);
+    BIT_CLEAR(DDRA, DDA6);
+    
+    return;
+}
+#endif
 
 /* debounce the inputs */
 void input_task(
@@ -37,23 +73,32 @@ void input_task(
     static uint8_t old_address = 0;
     static uint8_t old_buttons = 0;
 
-    value = BITMASK_CHECK(PINA, 0x7F);
-    if (value != old_address) {
-        old_address = value;
-    } else {
-        if (old_address != Address_Switch) {
+    /* only check the inputs every debounce time */
+    if (timer_elapsed_milliseconds(TIMER_DEBOUNCE,30)) {
+        timer_reset(TIMER_DEBOUNCE);
+        /* pins used are PA6, PA5, PA4, PA3, PA2, PA1, PA0 */
+#if BDK_V1_HACK
+        /* version 1 BDK - workaround */
+        value = (PINA&0x7F);
+#else
+        /* version 2 BDK - has inverted inputs */
+        value = ~PINA;
+        value &= 0x7F;
+#endif        
+        if (value == old_address) {
+            /* stable value */
             Address_Switch = old_address;
         }
-    }
-    /* pins used are PB4, PB3, PB2, PB1, PB0 */
-    value = BITMASK_CHECK(PINB, 0x1F);
-    if (value != old_buttons) {
-        old_buttons = value;
-    } else {
-        if (old_buttons != Buttons) {
+        old_address = value;
+        /* pins used are PB4, PB3, PB2, PB1, PB0 */
+        value = BITMASK_CHECK(PINB, 0x1F);
+        if (value == old_buttons) {
             Buttons = old_buttons;
         }
     }
+#if BDK_V1_HACK
+    input_switch_workaround();
+#endif
 }
 
 uint8_t input_address(
@@ -102,9 +147,18 @@ void input_init(
     BIT_CLEAR(DDRA, DDA4);
     BIT_CLEAR(DDRA, DDA5);
     BIT_CLEAR(DDRA, DDA6);
+    /* activate the internal pull up resistors */
+    BIT_SET(PORTA, PA0);
+    BIT_SET(PORTA, PA1);
+    BIT_SET(PORTA, PA2);
+    BIT_SET(PORTA, PA3);
+    BIT_SET(PORTA, PA4);
+    BIT_SET(PORTA, PA5);
+    BIT_SET(PORTA, PA6);
     /* configure the port pins for binary inputs */
     BIT_CLEAR(DDRB, DDB1);
     BIT_CLEAR(DDRB, DDB2);
     BIT_CLEAR(DDRB, DDB3);
     BIT_CLEAR(DDRB, DDB4);
+    timer_reset(TIMER_DEBOUNCE);
 }

@@ -64,6 +64,13 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
+    void Binary_Output_Level_Sync(
+        unsigned int index);
+    void Binary_Output_Level_Set(
+        unsigned int object_index,
+        unsigned int priority,
+        BACNET_BINARY_PV level);
+
 #ifdef TEST
 #include "ctest.h"
     void testBinaryOutput(
