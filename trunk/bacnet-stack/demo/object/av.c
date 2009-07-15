@@ -379,8 +379,8 @@ bool Analog_Value_Write_Property(
                    object. */
                 if (Analog_Value_Present_Value_Set(
                     wp_data->object_instance,
-                    wp_data->priority,
-                    value.type.Real)) {
+                    value.type.Real,
+                    wp_data->priority)) {
                     status = true;
                 } else if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
