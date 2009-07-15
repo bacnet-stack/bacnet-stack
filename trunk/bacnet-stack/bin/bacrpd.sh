@@ -1,53 +1,115 @@
 #!/bin/bash
 
-BACRP=./bacrp
-DEVICE_ID=${1}
+PROG=`basename $0`
+usage()
+{
+ echo "usage: $PROG <<BACnetID>>
+    
+    Will return Required and Optional property values
+    from the requested device.
+"
+}
 
-echo Test: Read Required Properties of Device Object ${DEVICE_ID}
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 75
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 77
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 79
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 112
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 121
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 120
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 70
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 44
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 12
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 98
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 139
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 97
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 96
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 76 0
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 76
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 62
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 107
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 11
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 73
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 30
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 155
+if [ $# -eq 0 ] || [ "$1" = "" ] ; then
+	usage
+	exit
+fi
+if [ $(( $1 + 0 )) -eq 0 ] ; then
+	echo "ERROR: ID must be an integer!!" >&2
+	usage
+	exit
+fi
 
-echo Test: Read Optional Properties of Device Object ${DEVICE_ID}
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 58
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 28
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 167
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 122
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 5
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 57
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 56
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 119
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 24
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 10
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 55
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 116
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 64
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 63
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 1
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 154
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 157
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 153
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 152
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 172
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 170
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 169
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 171
-${BACRP} ${DEVICE_ID} 8 ${DEVICE_ID} 168
+echo "Test: Read Required Properties of Device Object $1"
+echo -n "OBJECT IDENTIFIER:"
+./bacrp $1 8 $1 75
+echo -n "OBJECT NAME:"
+./bacrp $1 8 $1 77
+echo -n "OBJECT TYPE:"
+./bacrp $1 8 $1 79
+echo -n "SYSTEM STATUS:"
+./bacrp $1 8 $1 112
+echo -n "VENDOR NAME:"
+./bacrp $1 8 $1 121
+echo -n "VENDOR IDENTIFIER:"
+./bacrp $1 8 $1 120
+echo -n "MODEL NAME:"
+./bacrp $1 8 $1 70
+echo -n "FIRMWARE REVISION:"
+./bacrp $1 8 $1 44
+echo -n "APPLICATION SOFTWARE VERSION:"
+./bacrp $1 8 $1 12
+echo -n "PROTOCOL VERSION:"
+./bacrp $1 8 $1 98
+echo -n "PROTOCOL REVISION:"
+./bacrp $1 8 $1 139
+echo -n "PROTOCOL SERVICES SUPPORTED:"
+./bacrp $1 8 $1 97
+echo -n "OBJECT TYPES SUPPORTED:"
+./bacrp $1 8 $1 96
+echo -n "OBJECT LIST LENGTH:"
+./bacrp $1 8 $1 76 0
+echo -n "OBJECT LIST:"
+./bacrp $1 8 $1 76 
+echo -n "MAX APDU LENGTH ACCEPTED:"
+./bacrp $1 8 $1 62
+echo -n "SEGMENTATION SUPPORTED:"
+./bacrp $1 8 $1 107
+echo -n "APDU TIMEOUT:"
+./bacrp $1 8 $1 11
+echo -n "NUMGER OF APDU ENTRIES:"
+./bacrp $1 8 $1 73
+echo -n "DEVICE ADDRESS BINDING:"
+./bacrp $1 8 $1 30
+echo -n "DATABASE REVISION:"
+./bacrp $1 8 $1 155
+echo ""
+echo "Test: Read Optional Properties of Device Object $1"
+echo -n "LOCATION:"
+./bacrp $1 8 $1 58
+echo -n "DESCRIPTION:"
+./bacrp $1 8 $1 28
+echo -n "MAX SEGMENTS SUPPORTED:"
+./bacrp $1 8 $1 167
+echo -n "VT CLASSES SUPPORTED:"
+./bacrp $1 8 $1 122
+echo -n "ACTIVE VT SESSIONS:"
+./bacrp $1 8 $1 5
+echo -n "LOCAL TIME:"
+./bacrp $1 8 $1 57
+echo -n "LOCAL DATE:"
+./bacrp $1 8 $1 56
+echo -n "UTC OFFSET:"
+./bacrp $1 8 $1 119
+echo -n "DAYLIGHT SAVINGS STATUS:"
+./bacrp $1 8 $1 24
+echo -n "APDU SEGMENT TIMEOUT:"
+./bacrp $1 8 $1 10
+echo -n "LIST OF SESSION KEYS:"
+./bacrp $1 8 $1 55
+echo -n "TIME SYNCHRONIZATION RECIPIENTS:"
+./bacrp $1 8 $1 116
+echo -n "MAX MASTER:"
+./bacrp $1 8 $1 64
+echo -n "MAX INFO FRAMES:"
+./bacrp $1 8 $1 63
+echo -n "ACK REQUIRED:"
+./bacrp $1 8 $1 1
+echo -n "CONFIGURATION FILES:"
+./bacrp $1 8 $1 154
+echo -n "LAST RESTORE TIME:"
+./bacrp $1 8 $1 157
+echo -n "BACKUP FAILURE TIMEOUT:"
+./bacrp $1 8 $1 153
+echo -n "ACTIVE COV SUBSCRIPTIONS:"
+./bacrp $1 8 $1 152
+echo -n "SLAVE PROXY ENABLE:"
+./bacrp $1 8 $1 172
+echo -n "MANUAL SLAVE ADDRESS BINDING:"
+./bacrp $1 8 $1 170
+echo -n "AUTO SLAVE DISCOVERY:"
+./bacrp $1 8 $1 169
+echo -n "SLAVE ADDRESS BINDING:"
+./bacrp $1 8 $1 171
+echo -n "PROFILE NAME:"
+./bacrp $1 8 $1 168
