@@ -6,6 +6,17 @@ devices, but can also use a static binding file address_cache.
 Most of the tools have help (--help option), and use 
 environment variables to configure the datalink. 
 
+The Client Tools use WhoIs to bind to target devices.
+The WhoIs can be eliminated by using the address_cache
+file, which is read by each client tool from the current
+working directory.  Having the device address from the 
+address_cache file will greatly improve the throughput 
+and speed of the client tools. The address_cache file 
+can be generated using the standard output of the bacwi tool.
+
+EXAMPLE:
+bacwi -1 > address_cache
+
 Client Tools:
 bacrp - BACnet ReadProperty service
 bacwp - BACnet ReadProperty service
