@@ -38,7 +38,7 @@ fi
 
 run_test()
 {
-	echo "Test: Read Required Properties of Device Object $1"
+	echo -e -e "Test: Read Required Properties of Device Object $1\r"
 	echo -n "OBJECT IDENTIFIER:"
 	./bacrp $1 8 $1 75
 	echo -n "OBJECT NAME:"
@@ -82,7 +82,7 @@ run_test()
 	echo -n "DATABASE REVISION:"
 	./bacrp $1 8 $1 155
 	if [ $OPTIONAL -eq 1 ] ; then
-		echo "Test: Read Optional Properties of Device Object $1"
+		echo -e "Test: Read Optional Properties of Device Object $1\r"
 		echo -n "LOCATION:"
 		./bacrp $1 8 $1 58
 		echo -n "DESCRIPTION:"
@@ -132,7 +132,7 @@ run_test()
 		echo -n "PROFILE NAME:"
 		./bacrp $1 8 $1 168
 	fi
-	echo " "
+	echo -e " \r"
 }
 
 while [ $# -gt 0 ] ; do
