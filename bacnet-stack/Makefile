@@ -1,6 +1,6 @@
 all: library readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov timesync epics readpropm mstpcap \
-	whoisrouter iamrouter initrouter
+	whoisrouter iamrouter initrouter 
 	@echo "utilities are in the bin directory"
 
 clean: lib/Makefile\
@@ -93,4 +93,19 @@ iamrouter: demo/iamrouter/Makefile
 
 initrouter: demo/initrouter/Makefile
 	( cd demo/initrouter ; make ; cp bacinitr ../../bin )
+
+ports:	atmega168 at91sam7s bdk-atxx4-mstp
+	echo "Built the ports"
+
+atmega168: ports/atmega168/Makefile
+	make -C ports/atmega168 clean all
+
+at91sam7s: ports/at91sam7s/Makefile
+	make -C ports/at91sam7s clean all
+
+bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
+	make -C ports/bdk-atxx4-mstp clean all
+
+
+
 

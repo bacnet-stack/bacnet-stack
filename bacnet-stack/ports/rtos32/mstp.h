@@ -40,57 +40,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacdef.h"
+#include "mstpdef.h"
 #include "dlmstp.h"
-
-/*  The value 255 is used to denote broadcast when used as a */
-/* destination address but is not allowed as a value for a station. */
-/* Station addresses for master nodes can be 0-127.  */
-/* Station addresses for slave nodes can be 127-254.  */
-#define MSTP_BROADCAST_ADDRESS 255
-
-/* MS/TP Frame Type */
-/* Frame Types 8 through 127 are reserved by ASHRAE. */
-#define FRAME_TYPE_TOKEN 0
-#define FRAME_TYPE_POLL_FOR_MASTER 1
-#define FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER 2
-#define FRAME_TYPE_TEST_REQUEST 3
-#define FRAME_TYPE_TEST_RESPONSE 4
-#define FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY 5
-#define FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY 6
-#define FRAME_TYPE_REPLY_POSTPONED 7
-/* Frame Types 128 through 255: Proprietary Frames */
-/* These frames are available to vendors as proprietary (non-BACnet) frames. */
-/* The first two octets of the Data field shall specify the unique vendor */
-/* identification code, most significant octet first, for the type of */
-/* vendor-proprietary frame to be conveyed. The length of the data portion */
-/* of a Proprietary frame shall be in the range of 2 to 501 octets. */
-#define FRAME_TYPE_PROPRIETARY_MIN 128
-#define FRAME_TYPE_PROPRIETARY_MAX 255
-/* The initial CRC16 checksum value */
-#define CRC16_INITIAL_VALUE (0xFFFF)
-
-
-/* receive FSM states */
-typedef enum {
-    MSTP_RECEIVE_STATE_IDLE,
-    MSTP_RECEIVE_STATE_PREAMBLE,
-    MSTP_RECEIVE_STATE_HEADER,
-    MSTP_RECEIVE_STATE_HEADER_CRC,
-    MSTP_RECEIVE_STATE_DATA
-} MSTP_RECEIVE_STATE;
-
-/* master node FSM states */
-typedef enum {
-    MSTP_MASTER_STATE_INITIALIZE,
-    MSTP_MASTER_STATE_IDLE,
-    MSTP_MASTER_STATE_USE_TOKEN,
-    MSTP_MASTER_STATE_WAIT_FOR_REPLY,
-    MSTP_MASTER_STATE_DONE_WITH_TOKEN,
-    MSTP_MASTER_STATE_PASS_TOKEN,
-    MSTP_MASTER_STATE_NO_TOKEN,
-    MSTP_MASTER_STATE_POLL_FOR_MASTER,
-    MSTP_MASTER_STATE_ANSWER_DATA_REQUEST
-} MSTP_MASTER_STATE;
 
 struct mstp_port_struct_t {
     MSTP_RECEIVE_STATE receive_state;
@@ -204,14 +155,6 @@ struct mstp_port_struct_t {
     bool TxReady;       /* true if ready to be sent or received */
     uint8_t TxFrameType;        /* type of message - needed by MS/TP */
 };
-
-#define DEFAULT_MAX_INFO_FRAMES 1
-#define DEFAULT_MAX_MASTER 127
-
-/* The minimum time after the end of the stop bit of the final octet of a */
-/* received frame before a node may enable its EIA-485 driver: 40 bit times. */
-/* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
-#define Tturnaround  40;
 
 #ifdef __cplusplus
 extern "C" {

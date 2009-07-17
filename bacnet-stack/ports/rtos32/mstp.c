@@ -255,9 +255,6 @@ char *mstp_receive_state_text(
         case MSTP_RECEIVE_STATE_HEADER:
             text = "HEADER";
             break;
-        case MSTP_RECEIVE_STATE_HEADER_CRC:
-            text = "HEADER_CRC";
-            break;
         case MSTP_RECEIVE_STATE_DATA:
             text = "DATA";
             break;
