@@ -419,7 +419,6 @@ void MSTP_Receive_Frame_FSM(
                         mstp_port->HeaderCRC);
                     mstp_port->DataAvailable = false;
                     /* don't wait for next state - do it here */
-                    /* MSTP_RECEIVE_STATE_HEADER_CRC */
                     if (mstp_port->HeaderCRC != 0x55) {
                         /* BadCRC */
                         /* indicate that an error has occurred during the reception of a frame */
@@ -478,10 +477,6 @@ void MSTP_Receive_Frame_FSM(
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 }
             }
-            break;
-            /* In the HEADER_CRC state, the node validates the CRC on the fixed */
-            /* message header. */
-        case MSTP_RECEIVE_STATE_HEADER_CRC:
             break;
             /* In the DATA state, the node waits for the data portion of a frame. */
         case MSTP_RECEIVE_STATE_DATA:
