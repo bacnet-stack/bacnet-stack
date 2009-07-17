@@ -35,6 +35,7 @@
 #define DATALINK_H
 
 #include "config.h"
+#include "bacdef.h"
 
 #if defined(BACDL_ETHERNET)
 #include "ethernet.h"
