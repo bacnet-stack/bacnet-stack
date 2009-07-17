@@ -48,6 +48,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "mstp.h"
+#include "dlmstp.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1

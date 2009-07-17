@@ -60,6 +60,8 @@ extern "C" {
 
     bool dlmstp_init(
         char *ifname);
+    void dlmstp_reset(
+        void);
     void dlmstp_cleanup(
         void);
 

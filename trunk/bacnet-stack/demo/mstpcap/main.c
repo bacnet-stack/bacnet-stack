@@ -45,8 +45,8 @@
 #include "bytes.h"
 #include "rs485.h"
 #include "crc.h"
-#include "mstp.h"
 #include "mstptext.h"
+#include "dlmstp.h"
 
 #if defined(__BORLANDC__)
 #include <sys/timeb.h>
