@@ -100,7 +100,7 @@ ports:	atmega168 at91sam7s bdk-atxx4-mstp
 atmega168: ports/atmega168/Makefile
 	make -C ports/atmega168 clean all
 
-at91sam7s: ports/at91sam7s/Makefile
+at91sam7s: ports/at91sam7s/makefile
 	make -C ports/at91sam7s clean all
 
 bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile

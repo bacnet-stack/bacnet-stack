@@ -126,9 +126,12 @@ $(LIBRARY): $(COREOBJ) Makefile
 .s.o:
 	$(CC) -c $(AFLAGS) $*.s -o $@
 
+.PHONY: clean
 clean:
-	touch Makefile
 	rm $(COBJ) $(AOBJ) $(COREOBJ)
 	rm $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
 	rm $(LIBRARY)
 	rm *.lst
+
+## Other dependencies
+-include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
