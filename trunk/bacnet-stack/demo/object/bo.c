@@ -285,12 +285,12 @@ int Binary_Output_Encode_Property_APDU(
                 object_index =
                     Binary_Output_Instance_To_Index(object_instance);
                 if (array_index <= BACNET_MAX_PRIORITY) {
-                    if (Binary_Output_Level[object_index][array_index] ==
+                    if (Binary_Output_Level[object_index][array_index-1] ==
                         BINARY_NULL)
                         len = encode_application_null(&apdu[apdu_len]);
                     else {
                         present_value =
-                            Binary_Output_Level[object_index][array_index];
+                            Binary_Output_Level[object_index][array_index-1];
                         len =
                             encode_application_enumerated(&apdu[apdu_len],
                             present_value);
