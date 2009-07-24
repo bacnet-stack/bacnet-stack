@@ -110,7 +110,7 @@ static void print_address_cache(
     uint32_t device_id = 0;
     unsigned max_apdu = 0;
 
-//    printf("%-7s %-14s %-4s %-5s %-14s\n", "Device", "MAC", "APDU", "SNET", "SADR");
+/*    printf("%-7s %-14s %-4s %-5s %-14s\n", "Device", "MAC", "APDU", "SNET", "SADR"); */
     printf(";%-7s %-17s %-5s %-17s %-4s\n", "Device", "MAC", "SNET", "SADR", "APDU");
     printf(";------- ----------------- ----- ----------------- ----\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
@@ -133,7 +133,7 @@ static void print_address_cache(
                     } else {
                         printf(" ");
                     }
-                    //printf(" ");
+                    /*printf(" "); */
                 }
             }else{
                 printf("0  ");

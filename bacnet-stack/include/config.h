@@ -67,8 +67,14 @@
 /* Lon=206, MS/TP=480, ARCNET=480, Ethernet=1476, BACnet/IP=64K */
 #if !defined(MAX_APDU)
     /* #define MAX_APDU 50 */
-#define MAX_APDU 480
     /* #define MAX_APDU 1476 */
+#if defined(BACDL_BIP)
+#define MAX_APDU 16383
+#elif defined (BACDL_ETHERNET)
+#define MAX_APDU 1476
+#else
+#define MAX_APDU 480
+#endif
 #endif
 
 /* for confirmed messages, this is the number of transactions */
