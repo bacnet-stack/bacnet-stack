@@ -11,8 +11,10 @@ Clean up the object files and binaries to prepare for tar
 $ make clean
      
 Make the source code look the same
-$ indent -kr -nut -nlp *.c *.h
-      
+$ ./indent.sh
+$ ./comment.sh
+$ ./fixup.sh
+     
 Verify that the code compiles and runs the demos without error or
 warnings:
 $ make all
@@ -25,44 +27,15 @@ Commit any changes to subversion.
 $ svn commit
 $ svn update
 
-Create the change log
-$ svn log --xml --verbose | xsltproc svn2cl.xsl - > ChangeLog
+Run the release script:
+$ ./release.sh 0.0.0
 
-Set a tag on the "bacnet-stack" module called "bacnet-stack-0-0-0"
-$ svn copy https://svn.sourceforge.net/svnroot/bacnet/current https://svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-0-0
-
-Get a clean version out of subversion that doesn't have subversion in it.
-$ svn export https://svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack bacnet-stack
-
-tar and gzip the clean directory from one directory up.
-$ tar -cvvzf bacnet-stack-0.0.0.tgz bacnet-stack/ 
-
-Put the new release up on SourceForge
-Connect to the Web upload page. 
-Use your SourceForge.net username and password to authenticate. 
-Upload the tarball.
-
-Go to http://sourceforge.net/projects/bacnet/
-  Admin -> File Releases
-  Add Release
-    Release Name "bacnet-stack-0.0.0"
-    Set status to Hidden (for now).
-  Create a change log (use svn log)
-  [Submit/Refresh]
-  Attach the tarball that was uploaded (should be listed)
-  [Add Files and/or Refresh View]
-  Set file metadata
-    Processor: Platform Independent
-    Release Date: Today's date
-    File Type: Source .gz
-  [Update/Refresh]
-  Activate Release
-  Set status to Active
-  [Submit/Refresh]
-  [Send Notice]
-
-  Update the website (if necessary)
-
-  Add release notes under What's New on SourceForge.
-  The release notes should include project details
-  for someone unfamiliar with the project or BACnet.
+Go to file manager at http://sourceforge.net/projects/bacnet/
+  Admin -> File Manager
+  Tag the files for the various platforms
+  Tag the ChangeLog as release notes.
+  
+Update the website (if necessary)
+Add release notes under What's New on SourceForge.
+The release notes should include project details
+for someone unfamiliar with the project or BACnet.
