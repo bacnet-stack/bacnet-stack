@@ -1,9 +1,9 @@
 LOGFILE = test.log
 
 all: abort address arf awf bacapp bacdcode bacerror bacint \
-	bacstr cov crc datetime dcc event fifo filename iam ihave \
-	indtext keylist key lso mstp npdu rd reject ringbuf rp \
-	rpm sbuf timesync whohas whois wp
+	bacstr cov crc datetime dcc fifo filename iam ihave \
+	indtext keylist key lso npdu rd reject ringbuf rp \
+	rpm sbuf timesync whohas whois wp event
 
 clean:
 	rm ${LOGFILE}
