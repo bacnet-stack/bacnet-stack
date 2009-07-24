@@ -4,7 +4,7 @@
 PROJECT=bacnet
 SVN_MODULE=bacnet-stack
 CHANGELOG=ChangeLog
-FRS_URL=skarg,bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet
+FRS_URL=skarg,bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet/bacnet-stack
 
 if [ -z "$1" ]
 then
@@ -76,11 +76,11 @@ rm -rf $ARCHIVE_NAME
 
 echo "Sending to SourceForge..."
 
-mkdir $ARCIVE_NAME
-mv $ZIP_FILENAME $ARCIVE_NAME
-mv $GZIP_FILENAME $ARCIVE_NAME
+mkdir $ARCHIVE_NAME
+mv $ZIP_FILENAME $ARCHIVE_NAME
+mv $GZIP_FILENAME $ARCHIVE_NAME
 mv $CHANGELOG $ARCHIVE_NAME
-echo "scp -r $ARCHIVE_NAME $FRS_URL"
+scp -r $ARCHIVE_NAME $FRS_URL
 
 echo "Complete!"
 
