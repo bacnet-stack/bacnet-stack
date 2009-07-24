@@ -972,7 +972,7 @@ void testBaseEventState(
 void testEventEventState(
     Test * pTest)
 {
-    uint8_t buffer[1000];
+    uint8_t buffer[MAX_APDU];
     int inLen;
     int outLen;
     BACNET_CHARACTER_STRING messageText;
