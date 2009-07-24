@@ -82,7 +82,7 @@ int alarm_ack_encode_service_request(
 
         len =
             encode_context_object_id(&apdu[apdu_len], 1,
-            data->eventObjectIdentifier.type,
+            (int)data->eventObjectIdentifier.type,
             data->eventObjectIdentifier.instance);
         apdu_len += len;
 
