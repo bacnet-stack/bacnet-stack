@@ -1,0 +1,233 @@
+# Master Makefile for BACnet Stack demos
+# for Borland C++
+
+!ifndef BORLAND_DIR
+BORLAND_DIR_Not_Defined:
+	@echo .
+	@echo You must define environment variable BORLAND_DIR to compile.
+	@echo Type: set BORLAND_DIR=c:\Borland\bcc55
+!endif
+
+MAKE=$(BORLAND_DIR)\bin\make.exe
+
+all: library \
+	readprop writeprop readfile writefile server dcc reinit \
+	whois whohas timesync ucov epics readpropm \
+	whoisrouter iamrouter initrouter
+	@echo "demo utilities are in the bin directory"
+
+clean: lib\makefile.b32 \
+	demo/readprop/makefile.b32 \
+	demo/readpropm/makefile.b32 \
+	demo/writeprop/makefile.b32 \
+	demo/readfile/makefile.b32 \
+	demo/writefile/makefile.b32 \
+	demo/server/makefile.b32 \
+	demo/dcc/makefile.b32 \
+	demo/reinit/makefile.b32 \
+	demo/whois/makefile.b32 \
+	demo/whohas/makefile.b32 \
+	demo/ucov/makefile.b32 \
+	demo/epics/makefile.b32 \
+	demo/timesync/makefile.b32 \
+	demo/mstpcap/makefile.b32 \
+	demo/whoisrouter/makefile.b32 \
+	demo/iamrouter/makefile.b32 \
+	demo/initrouter/makefile.b32
+	cd lib
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd demo/readprop
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/readpropm
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/writeprop
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/readfile
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/writefile
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/server
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/dcc
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/reinit
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/whois
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/whohas
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/ucov
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/epics
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/timesync
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/mstpcap
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/whoisrouter
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/iamrouter
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+	cd demo/initrouter
+	$(MAKE) -i -f makefile.b32 clean
+	cd ..
+	cd ..
+
+library: lib\makefile.b32
+	cd lib
+	$(MAKE) -f makefile.b32 all
+	cd ..
+
+readprop: demo/readprop/makefile.b32
+	cd demo/readprop
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+readpropm: demo/readpropm/makefile.b32
+	cd demo/readpropm
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+writeprop: demo/writeprop/makefile.b32
+	cd demo/writeprop
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+readfile: demo/readfile/makefile.b32
+	cd demo/readfile
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+writefile: demo/writefile/makefile.b32
+	cd demo/writefile
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+server: demo/server/makefile.b32
+	cd demo/server
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+dcc: demo/dcc/makefile.b32
+	cd demo/dcc
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+reinit: demo/reinit/makefile.b32
+	cd demo/reinit
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+whois: demo/whois/makefile.b32
+	cd demo/whois
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+whohas: demo/whohas/makefile.b32
+	cd demo/whohas
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+ucov: demo/ucov/makefile.b32
+	cd demo/ucov
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+epics: demo/epics/makefile.b32
+	cd demo/epics
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+timesync: demo/timesync/makefile.b32
+	cd demo/timesync
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+
+mstpcap: demo/mstpcap/makefile.b32
+	cd demo/mstpcap
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+whoisrouter: demo/whoisrouter/makefile.b32
+	cd demo/whoisrouter
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+iamrouter: demo/iamrouter/makefile.b32
+	cd demo/iamrouter
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
+initrouter: demo/initrouter/makefile.b32
+	cd demo/initrouter
+	$(MAKE) -f makefile.b32 all
+	$(MAKE) -f makefile.b32 install
+	cd ..
+	cd ..
+
