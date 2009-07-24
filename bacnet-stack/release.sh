@@ -4,6 +4,7 @@
 PROJECT=bacnet
 SVN_MODULE=bacnet-stack
 CHANGELOG=ChangeLog
+FRS_URL=skarg,bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet
 
 if [ -z "$1" ]
 then
@@ -73,8 +74,13 @@ fi
 
 rm -rf $ARCHIVE_NAME
 
+echo "Sending to SourceForge..."
+
+mkdir $ARCIVE_NAME
+mv $ZIP_FILENAME $ARCIVE_NAME
+mv $GZIP_FILENAME $ARCIVE_NAME
+mv $CHANGELOG $ARCHIVE_NAME
+echo "scp -r $ARCHIVE_NAME $FRS_URL"
+
 echo "Complete!"
-echo "WebDAV the files to https://frs.sourceforge.net/s/sk/skarg/upload"
-echo "Use the command line FTP-like client cadaver"
-echo "or go to https://frs.sourceforge.net/webupload"
 
