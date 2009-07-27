@@ -25,7 +25,7 @@ LIBRARIES=-lc,-lgcc,-lrt,-lm
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_BIN = ${TARGET}.exe
-LIBRARIES=-lws2_32,-lgcc,-lm,-liphlpapi
+LIBRARIES=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
 endif
 #build for release (default) or debug
 DEBUGGING =
@@ -40,6 +40,7 @@ LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES),--gc-sections
 
 SRCS = main.c \
 	${BACNET_PORT_DIR}/rs485.c \
+	${BACNET_PORT_DIR}/timer.c \
 	${BACNET_SOURCE_DIR}/mstp.c \
 	${BACNET_SOURCE_DIR}/mstptext.c \
 	${BACNET_SOURCE_DIR}/debug.c \
