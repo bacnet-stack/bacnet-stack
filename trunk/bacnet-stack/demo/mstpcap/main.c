@@ -60,6 +60,164 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 
+/* statistics derived from monitoring the network for each node */
+struct mstp_statistics
+{
+    /* counts how many times the node passes the token */
+    uint32_t token_count; 
+    /* counts how many times the node gets a second token */
+    uint32_t token_retries; 
+    /* delay after poll for master */
+    uint32_t tusage_timeout;
+    /* highest number MAC during poll for master */
+    uint8_t max_master;
+    /* how long it takes a node to pass the token */
+    uint32_t token_reply_min;
+    uint32_t token_reply_max;
+    /* how long it takes a node to reply to PFM */
+    uint32_t pfm_reply_min;
+    uint32_t pfm_reply_max;
+    /* how long it takes a node to reply to DER */
+    uint32_t der_reply_min;
+    uint32_t der_reply_max;
+};
+
+static struct mstp_statistics MSTP_Statistics[256];
+
+static uint32_t timeval_diff_ms(
+    struct timeval *old,
+    struct timeval *now)
+{
+    uint32_t ms = 0;
+
+    /* convert to milliseconds */
+    ms = (now->tv_sec-old->tv_sec)*1000+
+        (now->tv_usec-old->tv_usec)/1000;
+
+    return ms;
+}
+
+static void packet_statistics(
+    struct timeval *tv,
+    volatile struct mstp_port_struct_t *mstp_port)
+{
+    static struct timeval old_tv = {0};
+    static uint8_t old_frame = 255;
+    static uint8_t old_src = 255;
+    static uint8_t old_dst = 255;
+    uint8_t frame, src, dst;
+    uint32_t delta;
+
+    dst = mstp_port->DestinationAddress;
+    src = mstp_port->SourceAddress;
+    frame = mstp_port->FrameType;
+    switch (frame) {
+        case FRAME_TYPE_TOKEN:
+            MSTP_Statistics[src].token_count++;
+            if ((old_frame == frame) && (old_dst == dst)) {
+                /* repeated token */
+                MSTP_Statistics[dst].token_retries++;
+            }
+            if (old_frame == frame) {
+                /* token to token response time */
+                delta = timeval_diff_ms(&old_tv, tv);
+                if (delta) {
+                    /* only count times that are non-zero */
+                    if (MSTP_Statistics[src].token_reply_min == 0) {
+                        MSTP_Statistics[src].token_reply_min = delta;
+                    } else if (delta < MSTP_Statistics[src].token_reply_min) {
+                        MSTP_Statistics[src].token_reply_min = delta;
+                    }
+                    if (delta > MSTP_Statistics[src].token_reply_max) {
+                        MSTP_Statistics[src].token_reply_max = delta;
+                    }
+                }
+            }
+            break;
+        case FRAME_TYPE_POLL_FOR_MASTER:
+            if (dst > MSTP_Statistics[src].max_master) {
+                MSTP_Statistics[src].max_master = dst;
+            }
+            break;
+        case FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER:
+            if (old_frame == FRAME_TYPE_POLL_FOR_MASTER) {
+                delta = timeval_diff_ms(&old_tv, tv);
+                if (delta) {
+                    if (MSTP_Statistics[src].pfm_reply_min == 0) {
+                        MSTP_Statistics[src].pfm_reply_min = delta;
+                    } else if (delta < MSTP_Statistics[src].pfm_reply_min) {
+                        MSTP_Statistics[src].pfm_reply_min = delta;
+                    }
+                    if (delta > MSTP_Statistics[src].pfm_reply_max) {
+                        MSTP_Statistics[src].pfm_reply_max = delta;
+                    }
+                }
+            }
+            break;
+        case FRAME_TYPE_TEST_REQUEST:
+            break;
+        case FRAME_TYPE_TEST_RESPONSE:
+            break;
+        case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+            break;
+        case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+            break;
+        case FRAME_TYPE_REPLY_POSTPONED:
+            break;
+        default:
+            break;
+    }
+
+    /* update the old variables */
+    old_dst = dst;
+    old_src = src;
+    old_frame = frame;
+    old_tv.tv_sec = tv->tv_sec;
+    old_tv.tv_usec = tv->tv_usec;
+}
+
+static void packet_statistics_save(void)
+{
+    unsigned i; /* loop counter */
+
+    fprintf(stdout, "\r\n");
+    for (i = 0; i < 256; i++) {
+        if (MSTP_Statistics[i].token_count) {
+            fprintf(stdout, "%u", i);
+            fprintf(stdout, "\ttc=%lu\ttr=%lu\ttu=%lu\tmm=%u",
+                (long unsigned int)MSTP_Statistics[i].token_count,
+                (long unsigned int)MSTP_Statistics[i].token_retries,
+                (long unsigned int)MSTP_Statistics[i].tusage_timeout,
+                (unsigned)MSTP_Statistics[i].max_master);
+            fprintf(stdout, "\ttr-max=%lu",
+                (long unsigned int)MSTP_Statistics[i].token_reply_max);
+            fprintf(stdout, "\trpfm-max=%lu",
+                (long unsigned int)MSTP_Statistics[i].pfm_reply_max);
+            fprintf(stdout, "\tder-max=%lu",
+                (long unsigned int)MSTP_Statistics[i].der_reply_max);
+            fprintf(stdout, "\r\n");
+        }
+    }
+}
+
+static void packet_statistics_clear(void)
+{
+    unsigned i; /* loop counter */
+
+    for (i = 0; i < 256; i++) {
+        MSTP_Statistics[i].token_count = 0;
+        MSTP_Statistics[i].token_retries = 0;
+        MSTP_Statistics[i].tusage_timeout = 0;
+        MSTP_Statistics[i].max_master = 0;
+        MSTP_Statistics[i].token_reply_min = 0;
+        MSTP_Statistics[i].token_reply_max = 0;
+        MSTP_Statistics[i].pfm_reply_min = 0;
+        MSTP_Statistics[i].pfm_reply_max = 0;
+        MSTP_Statistics[i].der_reply_min = 0;
+        MSTP_Statistics[i].der_reply_max = 0;
+    }
+}
+
 static uint16_t Timer_Silence(
     void)
 {
@@ -171,6 +329,7 @@ static void write_received_packet(
         gettimeofday(&tv, NULL);
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
+        packet_statistics(&tv, mstp_port);
         (void) fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
         (void) fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
         if (mstp_port->DataLength) {
@@ -204,6 +363,7 @@ static void write_received_packet(
 static void cleanup(
     void)
 {
+    packet_statistics_save();
     if (pFile) {
         fflush(pFile);  /* stream pointer */
         fclose(pFile);  /* stream pointer */
@@ -217,7 +377,6 @@ static void sig_int(
 {
     (void) signo;
 
-    cleanup();
     exit(0);
 }
 
@@ -286,6 +445,9 @@ int main(
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
     atexit(cleanup);
+#if (!defined(_WIN32))
+    signal_init();
+#endif
     filename_create_new();
     /* run forever */
     for (;;) {
@@ -306,6 +468,8 @@ int main(
             fprintf(stdout, "\r%hu packets", packet_count);
         }
         if (packet_count >= 65535) {
+            packet_statistics_save();
+            packet_statistics_clear();
             filename_create_new();
             packet_count = 0;
         }
