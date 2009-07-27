@@ -385,7 +385,6 @@ typedef enum {
 /* do the MAX as define rather than enumeration for devices
    and compilers that want to use smaller datatype for enum */
 #define MAX_BACNET_PROPERTY_ID 4194303
-#define MAX_BACNET_OBJECT_ID (0x3FFFFFU)
 typedef enum {
     ACTION_DIRECT = 0,
     ACTION_REVERSE = 1
