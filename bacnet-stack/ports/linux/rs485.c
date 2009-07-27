@@ -281,6 +281,9 @@ void RS485_Initialize(
     tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
     /* destructor */
     atexit(RS485_Cleanup);
+    /* flush any data waiting */
+    usleep(200000);
+    tcflush(RS485_Handle, TCIOFLUSH);
     printf("=success!\n");
 }
 
