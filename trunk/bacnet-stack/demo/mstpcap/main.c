@@ -41,18 +41,13 @@
 #include <time.h>
 /* OS specific include*/
 #include "net.h"
+#include "timer.h"
 /* local includes */
 #include "bytes.h"
 #include "rs485.h"
 #include "crc.h"
 #include "mstptext.h"
 #include "dlmstp.h"
-
-#if defined(__BORLANDC__)
-#include <sys/timeb.h>
-#define _timeb timeb
-#define _ftime(param) ftime(param)
-#endif
 
 #ifndef max
 #define max(a,b) (((a) (b)) ? (a) : (b))
@@ -64,85 +59,25 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
-static uint16_t SilenceTime;
-#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-
-#if defined (_WIN32)
-struct timespec {
-    time_t tv_sec;      /* Seconds */
-    long tv_nsec;       /* Nanoseconds [0 .. 999999999] */
-};
-
-static int gettimeofday(
-    struct timeval *tp,
-    void *tzp)
-{
-    struct _timeb timebuffer;
-
-	(void) tzp;
-
-    _ftime(&timebuffer);
-    tp->tv_sec = timebuffer.time;
-    tp->tv_usec = timebuffer.millitm * 1000;
-
-    return 0;
-}
-#endif
 
 static uint16_t Timer_Silence(
     void)
 {
-    return SilenceTime;
+    uint32_t delta_time = 0;
+
+    delta_time = timer_milliseconds(TIMER_SILENCE);
+    if (delta_time > 0xFFFF) {
+        delta_time = 0xFFFF;
+    }
+
+    return (uint16_t)delta_time;
 }
+
 static void Timer_Silence_Reset(
     void)
 {
-    SilenceTime = 0;
+    timer_reset(TIMER_SILENCE);
 }
-
-static void dlmstp_millisecond_timer(
-    void)
-{
-    INCREMENT_AND_LIMIT_UINT16(SilenceTime);
-}
-
-#if !defined (_WIN32)
-void Sleep(
-    unsigned long milliseconds)
-{
-    struct timespec timeOut, remains;
-
-    timeOut.tv_sec = milliseconds / 1000;
-    timeOut.tv_nsec = (milliseconds - (timeOut.tv_sec * 1000)) * 10000000;
-    nanosleep(&timeOut, &remains);
-}
-#endif
-
-void *milliseconds_task(
-    void *pArg)
-{
-	(void) pArg;
-
-    for (;;) {
-        Sleep(1);
-        dlmstp_millisecond_timer();
-    }
-
-    return NULL;
-}
-
-#if defined(_WIN32)
-/*************************************************************************
-* Description: Timer task
-* Returns: none
-* Notes: none
-*************************************************************************/
-static void milliseconds_task_win32(
-    void *pArg)
-{
-    milliseconds_task(pArg);
-}
-#endif
 
 /* functions used by the MS/TP state machine to put or get data */
 uint16_t MSTP_Put_Receive(
@@ -313,13 +248,6 @@ int main(
     volatile struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
-#if defined(_WIN32)
-    unsigned long hThread = 0;
-    uint32_t arg_value = 0;
-#else
-    int rc = 0;
-    pthread_t hThread;
-#endif
 
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
@@ -357,18 +285,6 @@ int main(
     mstp_port->Lurking = true;
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
-#if defined(_WIN32)
-    hThread = _beginthread(milliseconds_task_win32, 4096, &arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start timer task\n");
-    }
-    (void) SetThreadPriority(GetCurrentThread(),
-        THREAD_PRIORITY_TIME_CRITICAL);
-#else
-    /* start our MilliSec task */
-    rc = pthread_create(&hThread, NULL, milliseconds_task, NULL);
-    signal_init();
-#endif
     atexit(cleanup);
     filename_create_new();
     /* run forever */
