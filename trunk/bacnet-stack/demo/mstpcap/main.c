@@ -72,14 +72,13 @@ struct mstp_statistics
     /* highest number MAC during poll for master */
     uint8_t max_master;
     /* how long it takes a node to pass the token */
-    uint32_t token_reply_min;
-    uint32_t token_reply_max;
+    uint32_t token_reply;
     /* how long it takes a node to reply to PFM */
-    uint32_t pfm_reply_min;
-    uint32_t pfm_reply_max;
+    uint32_t pfm_reply;
     /* how long it takes a node to reply to DER */
-    uint32_t der_reply_min;
-    uint32_t der_reply_max;
+    uint32_t der_reply;
+    /* how long it takes a node to send a reply post poned */
+    uint32_t reply_postponed;
 };
 
 static struct mstp_statistics MSTP_Statistics[256];
@@ -114,23 +113,23 @@ static void packet_statistics(
     switch (frame) {
         case FRAME_TYPE_TOKEN:
             MSTP_Statistics[src].token_count++;
-            if ((old_frame == frame) && (old_dst == dst)) {
-                /* repeated token */
-                MSTP_Statistics[dst].token_retries++;
-            }
-            if (old_frame == frame) {
-                /* token to token response time */
+            if (old_frame == FRAME_TYPE_TOKEN) {
+                if (old_dst == dst) {
+                    /* repeated token */
+                    MSTP_Statistics[dst].token_retries++;
+                } else if (old_dst == src) {
+                    /* token to token response time */
+                    delta = timeval_diff_ms(&old_tv, tv);
+                    if (delta > MSTP_Statistics[src].token_reply) {
+                        MSTP_Statistics[src].token_reply = delta;
+                    }
+                }
+            } else if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER) &&
+                (old_src == src)) {
+                /* Tusage_timeout */
                 delta = timeval_diff_ms(&old_tv, tv);
-                if (delta) {
-                    /* only count times that are non-zero */
-                    if (MSTP_Statistics[src].token_reply_min == 0) {
-                        MSTP_Statistics[src].token_reply_min = delta;
-                    } else if (delta < MSTP_Statistics[src].token_reply_min) {
-                        MSTP_Statistics[src].token_reply_min = delta;
-                    }
-                    if (delta > MSTP_Statistics[src].token_reply_max) {
-                        MSTP_Statistics[src].token_reply_max = delta;
-                    }
+                if (delta > MSTP_Statistics[src].tusage_timeout) {
+                    MSTP_Statistics[src].tusage_timeout = delta;
                 }
             }
             break;
@@ -142,15 +141,8 @@ static void packet_statistics(
         case FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER:
             if (old_frame == FRAME_TYPE_POLL_FOR_MASTER) {
                 delta = timeval_diff_ms(&old_tv, tv);
-                if (delta) {
-                    if (MSTP_Statistics[src].pfm_reply_min == 0) {
-                        MSTP_Statistics[src].pfm_reply_min = delta;
-                    } else if (delta < MSTP_Statistics[src].pfm_reply_min) {
-                        MSTP_Statistics[src].pfm_reply_min = delta;
-                    }
-                    if (delta > MSTP_Statistics[src].pfm_reply_max) {
-                        MSTP_Statistics[src].pfm_reply_max = delta;
-                    }
+                if (delta > MSTP_Statistics[src].pfm_reply) {
+                    MSTP_Statistics[src].pfm_reply = delta;
                 }
             }
             break;
@@ -161,8 +153,24 @@ static void packet_statistics(
         case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
             break;
         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+            if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) &&
+                (old_dst == src)) {
+                /* DER response time */
+                delta = timeval_diff_ms(&old_tv, tv);
+                if (delta > MSTP_Statistics[src].der_reply) {
+                    MSTP_Statistics[src].der_reply = delta;
+                }
+            }
             break;
         case FRAME_TYPE_REPLY_POSTPONED:
+            if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) &&
+                (old_dst == src)) {
+                /* Postponed response time */
+                delta = timeval_diff_ms(&old_tv, tv);
+                if (delta > MSTP_Statistics[src].reply_postponed) {
+                    MSTP_Statistics[src].reply_postponed = delta;
+                }
+            }
             break;
         default:
             break;
@@ -181,20 +189,26 @@ static void packet_statistics_save(void)
     unsigned i; /* loop counter */
 
     fprintf(stdout, "\r\n");
+    /* separate with tabs (8) keep words under 8 characters */
+    fprintf(stdout, 
+        "MAC\tMaxMstr\tTokens\tRetries\tTusage"
+        "\tTreply\tTrpfm\tTder\tTpostpd");
+    fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         if (MSTP_Statistics[i].token_count) {
-            fprintf(stdout, "%u", i);
-            fprintf(stdout, "\ttc=%lu\ttr=%lu\ttu=%lu\tmm=%u",
+            fprintf(stdout, "%u\t%u", i,
+                (unsigned)MSTP_Statistics[i].max_master);
+            fprintf(stdout,
+                "\t%lu\t%lu\t%lu",
                 (long unsigned int)MSTP_Statistics[i].token_count,
                 (long unsigned int)MSTP_Statistics[i].token_retries,
-                (long unsigned int)MSTP_Statistics[i].tusage_timeout,
-                (unsigned)MSTP_Statistics[i].max_master);
-            fprintf(stdout, "\ttr-max=%lu",
-                (long unsigned int)MSTP_Statistics[i].token_reply_max);
-            fprintf(stdout, "\trpfm-max=%lu",
-                (long unsigned int)MSTP_Statistics[i].pfm_reply_max);
-            fprintf(stdout, "\tder-max=%lu",
-                (long unsigned int)MSTP_Statistics[i].der_reply_max);
+                (long unsigned int)MSTP_Statistics[i].tusage_timeout);
+            fprintf(stdout, 
+                "\t%lu\t%lu\t%lu\t%lu",
+                (long unsigned int)MSTP_Statistics[i].token_reply,
+                (long unsigned int)MSTP_Statistics[i].pfm_reply,
+                (long unsigned int)MSTP_Statistics[i].der_reply,
+                (long unsigned int)MSTP_Statistics[i].reply_postponed);
             fprintf(stdout, "\r\n");
         }
     }
@@ -209,12 +223,10 @@ static void packet_statistics_clear(void)
         MSTP_Statistics[i].token_retries = 0;
         MSTP_Statistics[i].tusage_timeout = 0;
         MSTP_Statistics[i].max_master = 0;
-        MSTP_Statistics[i].token_reply_min = 0;
-        MSTP_Statistics[i].token_reply_max = 0;
-        MSTP_Statistics[i].pfm_reply_min = 0;
-        MSTP_Statistics[i].pfm_reply_max = 0;
-        MSTP_Statistics[i].der_reply_min = 0;
-        MSTP_Statistics[i].der_reply_max = 0;
+        MSTP_Statistics[i].token_reply = 0;
+        MSTP_Statistics[i].pfm_reply = 0;
+        MSTP_Statistics[i].der_reply = 0;
+        MSTP_Statistics[i].reply_postponed = 0;
     }
 }
 
