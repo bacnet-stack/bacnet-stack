@@ -117,9 +117,14 @@ static void packet_statistics(
         case FRAME_TYPE_TOKEN:
             MSTP_Statistics[src].token_count++;
             if (old_frame == FRAME_TYPE_TOKEN) {
-                if (old_dst == dst) {
+                if ((old_dst == dst) && (old_src == src)) {
                     /* repeated token */
                     MSTP_Statistics[dst].token_retries++;
+                    /* Tusage_timeout */
+                    delta = timeval_diff_ms(&old_tv, tv);
+                    if (delta > MSTP_Statistics[src].tusage_timeout) {
+                        MSTP_Statistics[src].tusage_timeout = delta;
+                    }
                 } else if (old_dst == src) {
                     /* token to token response time */
                     delta = timeval_diff_ms(&old_tv, tv);
@@ -194,21 +199,21 @@ static void packet_statistics_save(void)
     fprintf(stdout, "\r\n");
     /* separate with tabs (8) keep words under 8 characters */
     fprintf(stdout, 
-        "MAC\tMaxMstr\tTokens\tRetries\tTusage"
-        "\tTreply\tTrpfm\tTder\tTpostpd");
+        "MAC\tMaxMstr\tTokens\tRetries\tTreply"
+        "\tTusage\tTrpfm\tTder\tTpostpd");
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         if (MSTP_Statistics[i].token_count) {
             fprintf(stdout, "%u\t%u", i,
                 (unsigned)MSTP_Statistics[i].max_master);
             fprintf(stdout,
-                "\t%lu\t%lu\t%lu",
+                "\t%lu\t%lu\t%lu\t%lu",
                 (long unsigned int)MSTP_Statistics[i].token_count,
                 (long unsigned int)MSTP_Statistics[i].token_retries,
+                (long unsigned int)MSTP_Statistics[i].token_reply,
                 (long unsigned int)MSTP_Statistics[i].tusage_timeout);
             fprintf(stdout, 
-                "\t%lu\t%lu\t%lu\t%lu",
-                (long unsigned int)MSTP_Statistics[i].token_reply,
+                "\t%lu\t%lu\t%lu",
                 (long unsigned int)MSTP_Statistics[i].pfm_reply,
                 (long unsigned int)MSTP_Statistics[i].der_reply,
                 (long unsigned int)MSTP_Statistics[i].reply_postponed);
