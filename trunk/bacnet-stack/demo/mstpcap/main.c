@@ -39,6 +39,9 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#if defined(_WIN32)
+#include <conio.h>
+#endif
 /* OS specific include*/
 #include "net.h"
 #include "timer.h"
@@ -383,7 +386,13 @@ static void cleanup(
     pFile = NULL;
 }
 
-#if (!defined(_WIN32))
+#if defined(_WIN32)
+static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
+{
+    dwCtrlType = dwCtrlType;
+    exit(0);
+}
+#else
 static void sig_int(
     int signo)
 {
@@ -457,7 +466,12 @@ int main(
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
     atexit(cleanup);
-#if (!defined(_WIN32))
+#if defined(_WIN32)
+    SetConsoleMode(
+        GetStdHandle(STD_INPUT_HANDLE),
+        ENABLE_PROCESSED_INPUT);
+    SetConsoleCtrlHandler( (PHANDLER_ROUTINE)CtrlCHandler, TRUE );
+#else
     signal_init();
 #endif
     filename_create_new();
