@@ -30,14 +30,7 @@
 #define STRICT 1
 #include <windows.h>
 #include <MMSystem.h> 
-#include <sys/time.h>
-#include <sys/timeb.h>
 #include "timer.h"
-
-#if defined(__BORLANDC__)
-#define _timeb timeb
-#define _ftime(param) ftime(param)
-#endif
 
 /* counter for the various timers */
 static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];

@@ -126,6 +126,7 @@ OBJECT_SRC = $(BACNET_OBJECT)\device.c \
 PORT_SRC = $(BACNET_PORT)\bip-init.c \
 	$(BACNET_PORT)\rs485.c \
 	$(BACNET_PORT)\dlmstp.c \
+	$(BACNET_PORT)\timer.c \
 	$(BACNET_CORE)\crc.c \
 	$(BACNET_CORE)\mstp.c \
 	$(BACNET_CORE)\mstptext.c \
