@@ -55,6 +55,16 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[MAX_MPDU];
 static uint8_t RxBuffer[MAX_MPDU];
+/* The minimum time without a DataAvailable or ReceiveError event */
+/* that a node must wait for a station to begin replying to a */
+/* confirmed request: 255 milliseconds. (Implementations may use */
+/* larger values for this timeout, not to exceed 300 milliseconds.) */
+static uint8_t Treply_timeout = 260;
+/* The minimum time without a DataAvailable or ReceiveError event that a */
+/* node must wait for a remote node to begin using a token or replying to */
+/* a Poll For Master frame: 20 milliseconds. (Implementations may use */
+/* larger values for this timeout, not to exceed 100 milliseconds.) */
+static uint8_t Tusage_timeout = 50;
 /* Timer that indicates line silence - and functions */
 static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}

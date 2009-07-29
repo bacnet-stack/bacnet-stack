@@ -13,6 +13,7 @@ MAKE=$(BORLAND_DIR)\bin\make.exe
 all: library \
 	readprop writeprop readfile writefile server dcc reinit \
 	whois whohas timesync ucov epics readpropm \
+	mstpcap \
 	whoisrouter iamrouter initrouter
 	@echo "demo utilities are in the bin directory"
 

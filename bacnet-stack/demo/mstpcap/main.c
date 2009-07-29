@@ -39,9 +39,6 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#if defined(_WIN32)
-#include <conio.h>
-#endif
 /* OS specific include*/
 #include "net.h"
 #include "timer.h"
@@ -203,7 +200,9 @@ static void packet_statistics_save(void)
         "\tTusage\tTrpfm\tTder\tTpostpd");
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
-        if (MSTP_Statistics[i].token_count) {
+        /* check for masters or slaves */
+        if ((MSTP_Statistics[i].token_count) ||
+            (MSTP_Statistics[i].der_reply)) {
             fprintf(stdout, "%u\t%u", i,
                 (unsigned)MSTP_Statistics[i].max_master);
             fprintf(stdout,
@@ -396,6 +395,7 @@ static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
 {
     dwCtrlType = dwCtrlType;
     exit(0);
+    return TRUE;
 }
 #else
 static void sig_int(
@@ -505,6 +505,4 @@ int main(
             packet_count = 0;
         }
     }
-
-    return 0;
 }
