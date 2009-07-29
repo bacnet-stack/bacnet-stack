@@ -175,7 +175,8 @@ int Analog_Input_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_real(&apdu[0], 
+            apdu_len =
+                encode_application_real(&apdu[0],
                 Analog_Input_Present_Value(object_instance));
             break;
         case PROP_STATUS_FLAGS:

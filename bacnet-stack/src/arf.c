@@ -105,7 +105,7 @@ int arf_decode_service_request(
         if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
             return -1;
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
-        data->object_type = (BACNET_OBJECT_TYPE)type;
+        data->object_type = (BACNET_OBJECT_TYPE) type;
         if (decode_is_opening_tag_number(&apdu[len], 0)) {
             data->access = FILE_STREAM_ACCESS;
             /* a tag number is not extended so only one octet */

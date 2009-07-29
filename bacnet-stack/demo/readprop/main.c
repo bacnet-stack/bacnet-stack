@@ -245,10 +245,10 @@ int main(
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
-        if(!found){
-        found =
-            address_bind_request(Target_Device_Object_Instance, &max_apdu,
-            &Target_Address);
+        if (!found) {
+            found =
+                address_bind_request(Target_Device_Object_Instance, &max_apdu,
+                &Target_Address);
         }
         if (found) {
             if (invoke_id == 0) {

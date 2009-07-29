@@ -82,7 +82,7 @@ int alarm_ack_encode_service_request(
 
         len =
             encode_context_object_id(&apdu[apdu_len], 1,
-            (int)data->eventObjectIdentifier.type,
+            (int) data->eventObjectIdentifier.type,
             data->eventObjectIdentifier.instance);
         apdu_len += len;
 
@@ -123,7 +123,7 @@ int alarm_ack_decode_service_request(
 {
     int len = 0;
     int section_len;
-	uint32_t enumValue;
+    uint32_t enumValue;
 
     if (-1 == (section_len =
             decode_context_unsigned(&apdu[len], 0,
@@ -141,11 +141,10 @@ int alarm_ack_decode_service_request(
     len += section_len;
 
     if (-1 == (section_len =
-            decode_context_enumerated(&apdu[len], 2,
-                &enumValue))) {
+            decode_context_enumerated(&apdu[len], 2, &enumValue))) {
         return -1;
     }
-	data->eventTypeAcked = (BACNET_EVENT_TYPE)enumValue;
+    data->eventTypeAcked = (BACNET_EVENT_TYPE) enumValue;
     len += section_len;
 
     if (-1 == (section_len =

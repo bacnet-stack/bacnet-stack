@@ -61,12 +61,11 @@ static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 
 /* statistics derived from monitoring the network for each node */
-struct mstp_statistics
-{
+struct mstp_statistics {
     /* counts how many times the node passes the token */
-    uint32_t token_count; 
+    uint32_t token_count;
     /* counts how many times the node gets a second token */
-    uint32_t token_retries; 
+    uint32_t token_retries;
     /* delay after poll for master */
     uint32_t tusage_timeout;
     /* highest number MAC during poll for master */
@@ -90,8 +89,8 @@ static uint32_t timeval_diff_ms(
     uint32_t ms = 0;
 
     /* convert to milliseconds */
-    ms = (now->tv_sec-old->tv_sec)*1000+
-        (now->tv_usec-old->tv_usec)/1000;
+    ms = (now->tv_sec - old->tv_sec) * 1000 + (now->tv_usec -
+        old->tv_usec) / 1000;
 
     return ms;
 }
@@ -100,7 +99,7 @@ static void packet_statistics(
     struct timeval *tv,
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    static struct timeval old_tv = {0};
+    static struct timeval old_tv = { 0 };
     static uint8_t old_frame = 255;
     static uint8_t old_src = 255;
     static uint8_t old_dst = 255;
@@ -189,39 +188,38 @@ static void packet_statistics(
     old_tv.tv_usec = tv->tv_usec;
 }
 
-static void packet_statistics_save(void)
+static void packet_statistics_save(
+    void)
 {
     unsigned i; /* loop counter */
 
     fprintf(stdout, "\r\n");
     /* separate with tabs (8) keep words under 8 characters */
-    fprintf(stdout, 
+    fprintf(stdout,
         "MAC\tMaxMstr\tTokens\tRetries\tTreply"
         "\tTusage\tTrpfm\tTder\tTpostpd");
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         /* check for masters or slaves */
-        if ((MSTP_Statistics[i].token_count) ||
-            (MSTP_Statistics[i].der_reply)) {
+        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)) {
             fprintf(stdout, "%u\t%u", i,
-                (unsigned)MSTP_Statistics[i].max_master);
-            fprintf(stdout,
-                "\t%lu\t%lu\t%lu\t%lu",
-                (long unsigned int)MSTP_Statistics[i].token_count,
-                (long unsigned int)MSTP_Statistics[i].token_retries,
-                (long unsigned int)MSTP_Statistics[i].token_reply,
-                (long unsigned int)MSTP_Statistics[i].tusage_timeout);
-            fprintf(stdout, 
-                "\t%lu\t%lu\t%lu",
-                (long unsigned int)MSTP_Statistics[i].pfm_reply,
-                (long unsigned int)MSTP_Statistics[i].der_reply,
-                (long unsigned int)MSTP_Statistics[i].reply_postponed);
+                (unsigned) MSTP_Statistics[i].max_master);
+            fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
+                (long unsigned int) MSTP_Statistics[i].token_count,
+                (long unsigned int) MSTP_Statistics[i].token_retries,
+                (long unsigned int) MSTP_Statistics[i].token_reply,
+                (long unsigned int) MSTP_Statistics[i].tusage_timeout);
+            fprintf(stdout, "\t%lu\t%lu\t%lu",
+                (long unsigned int) MSTP_Statistics[i].pfm_reply,
+                (long unsigned int) MSTP_Statistics[i].der_reply,
+                (long unsigned int) MSTP_Statistics[i].reply_postponed);
             fprintf(stdout, "\r\n");
         }
     }
 }
 
-static void packet_statistics_clear(void)
+static void packet_statistics_clear(
+    void)
 {
     unsigned i; /* loop counter */
 
@@ -247,7 +245,7 @@ static uint16_t Timer_Silence(
         delta_time = 0xFFFF;
     }
 
-    return (uint16_t)delta_time;
+    return (uint16_t) delta_time;
 }
 
 static void Timer_Silence_Reset(
@@ -391,7 +389,8 @@ static void cleanup(
 }
 
 #if defined(_WIN32)
-static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
+static BOOL WINAPI CtrlCHandler(
+    DWORD dwCtrlType)
 {
     dwCtrlType = dwCtrlType;
     exit(0);
@@ -472,10 +471,8 @@ int main(
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
     atexit(cleanup);
 #if defined(_WIN32)
-    SetConsoleMode(
-        GetStdHandle(STD_INPUT_HANDLE),
-        ENABLE_PROCESSED_INPUT);
-    SetConsoleCtrlHandler( (PHANDLER_ROUTINE)CtrlCHandler, TRUE );
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
 #else
     signal_init();
 #endif

@@ -159,10 +159,11 @@ void idle_init(
 void idle_task(
     void)
 {
-	/* do nothing */
+    /* do nothing */
 }
 
-void test_init(void)
+void test_init(
+    void)
 {
     timer_reset(TIMER_LED_3);
     timer_reset(TIMER_LED_4);
@@ -170,21 +171,21 @@ void test_init(void)
 }
 
 void test_task(
-	void)
+    void)
 {
     uint8_t buffer[32] = "BACnet: 0000000\r\n";
     uint8_t nbytes = 17;
     uint8_t data_register = 0;
-    
+
     if (timer_elapsed_seconds(TIMER_TEST, 1)) {
         timer_reset(TIMER_TEST);
-        buffer[8] = (MSTP_MAC_Address&BIT0)?'1':'0';
-        buffer[9] = (MSTP_MAC_Address&BIT1)?'1':'0';
-        buffer[10] = (MSTP_MAC_Address&BIT2)?'1':'0';
-        buffer[11] = (MSTP_MAC_Address&BIT3)?'1':'0';
-        buffer[12] = (MSTP_MAC_Address&BIT4)?'1':'0';
-        buffer[13] = (MSTP_MAC_Address&BIT5)?'1':'0';
-        buffer[14] = (MSTP_MAC_Address&BIT6)?'1':'0';
+        buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';
+        buffer[9] = (MSTP_MAC_Address & BIT1) ? '1' : '0';
+        buffer[10] = (MSTP_MAC_Address & BIT2) ? '1' : '0';
+        buffer[11] = (MSTP_MAC_Address & BIT3) ? '1' : '0';
+        buffer[12] = (MSTP_MAC_Address & BIT4) ? '1' : '0';
+        buffer[13] = (MSTP_MAC_Address & BIT5) ? '1' : '0';
+        buffer[14] = (MSTP_MAC_Address & BIT6) ? '1' : '0';
         serial_bytes_send(buffer, nbytes);
     }
     if (serial_byte_get(&data_register)) {

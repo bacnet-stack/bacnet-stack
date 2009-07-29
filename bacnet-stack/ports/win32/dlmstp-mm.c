@@ -40,7 +40,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
-#include <MMSystem.h> /* for multimedia timers */
+#include <MMSystem.h>   /* for multimedia timers */
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -77,7 +77,7 @@ static uint16_t Timer_Silence(
         delta_time = 0xFFFF;
     }
 
-    return (uint16_t)delta_time;
+    return (uint16_t) delta_time;
 }
 
 static void Timer_Silence_Reset(
@@ -659,9 +659,10 @@ bool dlmstp_init(
 #endif
     /* set timer resolution */
     if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
-       fprintf(stderr, "Failed to set timer resolution\n");
+        fprintf(stderr, "Failed to set timer resolution\n");
     }
-    TimeBeginPeriod = min(max(tc.wPeriodMin, TARGET_RESOLUTION), tc.wPeriodMax);
+    TimeBeginPeriod =
+        min(max(tc.wPeriodMin, TARGET_RESOLUTION), tc.wPeriodMax);
     timeBeginPeriod(TimeBeginPeriod);
 
     /* start the threads */

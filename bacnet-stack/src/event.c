@@ -504,7 +504,7 @@ int event_notify_decode_service_request(
                 decode_context_enumerated(&apdu[len], 6, &value)) == -1) {
             return -1;
         } else {
-            data->eventType = (BACNET_EVENT_TYPE)value;
+            data->eventType = (BACNET_EVENT_TYPE) value;
             len += section_length;
         }
         /* tag 7 - messageText */
@@ -533,7 +533,7 @@ int event_notify_decode_service_request(
                 decode_context_enumerated(&apdu[len], 8, &value)) == -1) {
             return -1;
         } else {
-            data->notifyType = (BACNET_NOTIFY_TYPE)value;
+            data->notifyType = (BACNET_NOTIFY_TYPE) value;
             len += section_length;
         }
         switch (data->notifyType) {
@@ -553,7 +553,7 @@ int event_notify_decode_service_request(
                             &value)) == -1) {
                     return -1;
                 } else {
-                    data->fromState = (BACNET_EVENT_STATE)value;
+                    data->fromState = (BACNET_EVENT_STATE) value;
                     len += section_length;
                 }
                 break;
@@ -561,14 +561,14 @@ int event_notify_decode_service_request(
                 /* FIXME: handle this case */
             default:
                 return -1;
-	
+
         }
         /* tag 11 - toState */
         if ((section_length =
                 decode_context_enumerated(&apdu[len], 11, &value)) == -1) {
             return -1;
         } else {
-            data->toState = (BACNET_EVENT_STATE)value;
+            data->toState = (BACNET_EVENT_STATE) value;
             len += section_length;
         }
         /* tag 12 - eventValues */
@@ -750,7 +750,7 @@ int event_notify_decode_service_request(
                             return -1;
                         }
                         data->notificationParams.changeOfLifeSafety.newState =
-                            (BACNET_LIFE_SAFETY_STATE)value;
+                            (BACNET_LIFE_SAFETY_STATE) value;
                         len += section_length;
 
                         if (-1 == (section_length =
@@ -759,7 +759,7 @@ int event_notify_decode_service_request(
                             return -1;
                         }
                         data->notificationParams.changeOfLifeSafety.newMode =
-                            (BACNET_LIFE_SAFETY_MODE)value;
+                            (BACNET_LIFE_SAFETY_MODE) value;
                         len += section_length;
 
                         if (-1 == (section_length =
@@ -776,7 +776,8 @@ int event_notify_decode_service_request(
                             return -1;
                         }
                         data->notificationParams.changeOfLifeSafety.
-                            operationExpected = (BACNET_LIFE_SAFETY_OPERATION)value;
+                            operationExpected =
+                            (BACNET_LIFE_SAFETY_OPERATION) value;
                         len += section_length;
                         break;
 

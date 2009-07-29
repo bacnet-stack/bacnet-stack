@@ -175,7 +175,7 @@ static BACNET_BINARY_PV Present_Value(
     BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
     BACNET_BINARY_PV current_value = RELINQUISH_DEFAULT;
     unsigned i = 0;
-    
+
     if (index < MAX_BINARY_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
             current_value = Binary_Output_Level[index][i];
@@ -203,7 +203,7 @@ void Binary_Output_Level_Sync(
     unsigned int index)
 {
     BACNET_BINARY_PV pv;
-    
+
     if (index < MAX_BINARY_OUTPUTS) {
         if (Out_Of_Service[index]) {
             return;
@@ -351,7 +351,7 @@ int Binary_Output_Encode_Property_APDU(
                     Binary_Output_Instance_To_Index(object_instance);
                 if (array_index <= BACNET_MAX_PRIORITY) {
                     present_value =
-                        Binary_Output_Level[object_index][array_index-1];
+                        Binary_Output_Level[object_index][array_index - 1];
                     if (present_value == BINARY_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
                     } else {

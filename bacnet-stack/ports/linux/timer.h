@@ -29,14 +29,15 @@
 
 /* Timer Module */
 #ifndef MAX_MILLISECOND_TIMERS
-    #define TIMER_SILENCE 0
-    #define MAX_MILLISECOND_TIMERS 1
+#define TIMER_SILENCE 0
+#define MAX_MILLISECOND_TIMERS 1
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-    uint32_t timeGetTime(void);
+    uint32_t timeGetTime(
+        void);
 
     void timer_init(
         void);

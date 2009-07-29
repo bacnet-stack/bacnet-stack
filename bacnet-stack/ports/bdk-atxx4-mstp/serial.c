@@ -117,7 +117,8 @@ void serial_byte_send(
     return;
 }
 
-void serial_byte_transmit_complete(void)
+void serial_byte_transmit_complete(
+    void)
 {
     /* was the frame sent? */
     while (!BIT_CHECK(UCSR1A, TXC1)) {

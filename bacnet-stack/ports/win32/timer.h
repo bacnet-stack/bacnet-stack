@@ -43,8 +43,8 @@
 
 /* Timer Module */
 #ifndef MAX_MILLISECOND_TIMERS
-    #define TIMER_SILENCE 0
-    #define MAX_MILLISECOND_TIMERS 1
+#define TIMER_SILENCE 0
+#define MAX_MILLISECOND_TIMERS 1
 #endif
 
 #ifdef __cplusplus

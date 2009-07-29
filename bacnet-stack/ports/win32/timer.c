@@ -29,7 +29,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
-#include <MMSystem.h> 
+#include <MMSystem.h>
 #include "timer.h"
 
 /* counter for the various timers */
@@ -63,7 +63,7 @@ uint32_t timer_milliseconds(
 {
     uint32_t now = timeGetTime();
     uint32_t delta_time = 0;
-    
+
 
     if (index < MAX_MILLISECOND_TIMERS) {
         if (Millisecond_Counter[index] <= now) {
@@ -97,7 +97,7 @@ bool timer_elapsed_seconds(
     unsigned index,
     uint32_t seconds)
 {
-    return ((timer_milliseconds(index)/1000) >= seconds);
+    return ((timer_milliseconds(index) / 1000) >= seconds);
 }
 
 /*************************************************************************
@@ -109,7 +109,7 @@ bool timer_elapsed_minutes(
     unsigned index,
     uint32_t minutes)
 {
-    return ((timer_milliseconds(index)/(1000*60)) >= minutes);
+    return ((timer_milliseconds(index) / (1000 * 60)) >= minutes);
 }
 
 /*************************************************************************
@@ -140,7 +140,7 @@ void timer_init(
 
     /* set timer resolution */
     if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
-       fprintf(stderr, "Failed to get timer resolution parameters\n");
+        fprintf(stderr, "Failed to get timer resolution parameters\n");
     }
     /* configure for 1ms resolution - if possible */
     period = min(max(tc.wPeriodMin, 1), tc.wPeriodMax);

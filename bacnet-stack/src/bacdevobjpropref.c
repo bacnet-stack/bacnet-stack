@@ -95,7 +95,7 @@ int bacapp_decode_device_obj_property_ref(
 {
     int len;
     int apdu_len = 0;
-	uint32_t enumValue;
+    uint32_t enumValue;
     if (-1 == (len =
             decode_context_object_id(&apdu[apdu_len], 0,
                 &value->objectIdentifier.type,
@@ -105,11 +105,10 @@ int bacapp_decode_device_obj_property_ref(
     apdu_len += len;
 
     if (-1 == (len =
-            decode_context_enumerated(&apdu[apdu_len], 1,
-                &enumValue))) {
+            decode_context_enumerated(&apdu[apdu_len], 1, &enumValue))) {
         return -1;
     }
-	value->propertyIdentifier = (BACNET_PROPERTY_ID)enumValue;
+    value->propertyIdentifier = (BACNET_PROPERTY_ID) enumValue;
     apdu_len += len;
 
     if (decode_is_context_tag(&apdu[apdu_len], 2)) {

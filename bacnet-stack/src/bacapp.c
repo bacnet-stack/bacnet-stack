@@ -744,7 +744,7 @@ bool bacapp_print_value(
                     characterstring_value(&value->type.Character_String);
                 fprintf(stream, "\"");
                 for (i = 0; i < len; i++) {
-                    if (isprint(*((unsigned char *)char_str))) {
+                    if (isprint(*((unsigned char *) char_str))) {
                         fprintf(stream, "%c", *char_str);
                     } else {
                         fprintf(stream, ".");

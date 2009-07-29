@@ -109,7 +109,7 @@ int lso_decode_service_request(
                 decode_context_enumerated(&apdu[len], 2, &operation)) == -1) {
             return -1;
         }
-        data->operation = (BACNET_LIFE_SAFETY_OPERATION)operation;
+        data->operation = (BACNET_LIFE_SAFETY_OPERATION) operation;
         len += section_length;
 
         /*

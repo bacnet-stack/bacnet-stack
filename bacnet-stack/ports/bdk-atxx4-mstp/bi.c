@@ -157,7 +157,7 @@ bool Binary_Input_Present_Value_Set(
         }
         return true;
     }
-    
+
     return false;
 }
 

@@ -67,7 +67,8 @@ void MyAbortHandler(
     (void) src;
     (void) invoke_id;
     (void) server;
-    fprintf(stderr,"BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
+    fprintf(stderr, "BACnet Abort: %s\r\n",
+        bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
@@ -79,7 +80,8 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    fprintf(stderr, "BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
+    fprintf(stderr, "BACnet Reject: %s\r\n",
+        bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
@@ -111,14 +113,16 @@ static void print_address_cache(
     unsigned max_apdu = 0;
 
 /*    printf("%-7s %-14s %-4s %-5s %-14s\n", "Device", "MAC", "APDU", "SNET", "SADR"); */
-    printf(";%-7s %-17s %-5s %-17s %-4s\n", "Device", "MAC", "SNET", "SADR", "APDU");
+    printf(";%-7s %-17s %-5s %-17s %-4s\n", "Device", "MAC", "SNET", "SADR",
+        "APDU");
     printf(";------- ----------------- ----- ----------------- ----\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
             printf(" %-7u ", device_id);
             for (j = 0; j < MAX_MAC_LEN; j++) {
                 if (j < address.mac_len) {
-                    if(j > 0) printf(":");
+                    if (j > 0)
+                        printf(":");
                     printf("%02X", address.mac[j]);
                 } else {
                     printf(" ");
@@ -128,20 +132,21 @@ static void print_address_cache(
             if (address.net) {
                 for (j = 0; j < MAX_MAC_LEN; j++) {
                     if (j < address.len) {
-                        if(j > 0) printf(":");
+                        if (j > 0)
+                            printf(":");
                         printf("%02X", address.adr[j]);
                     } else {
                         printf(" ");
                     }
                     /*printf(" "); */
                 }
-            }else{
+            } else {
                 printf("0  ");
                 for (j = 2; j < MAX_MAC_LEN; j++) {
-                	printf ("   ");
+                    printf("   ");
                 }
                 printf("");
-           }
+            }
             printf("%-4hu ", max_apdu);
             printf("\n");
         }

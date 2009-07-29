@@ -377,10 +377,8 @@ bool Analog_Value_Write_Property(
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                if (Analog_Value_Present_Value_Set(
-                    wp_data->object_instance,
-                    value.type.Real,
-                    wp_data->priority)) {
+                if (Analog_Value_Present_Value_Set(wp_data->object_instance,
+                        value.type.Real, wp_data->priority)) {
                     status = true;
                 } else if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off

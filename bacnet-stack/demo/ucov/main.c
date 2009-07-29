@@ -67,14 +67,17 @@ static void Init_Service_Handlers(
         handler_read_property);
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     char *value_string = NULL;
     bool status = false;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
     uint8_t tag;
 
-    if      (argc < 7) {
+    if (argc < 7) {
         /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s pid device-id object-type object-instance "
             "time property tag value [priority] [index]\r\n" "\r\n" "pid:\r\n"

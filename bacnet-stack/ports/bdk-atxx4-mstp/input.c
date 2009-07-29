@@ -34,7 +34,8 @@ static uint8_t Buttons;
 
 #if BDK_V1_HACK
 /* version 1 BDK workaournd for floating inputs */
-static void input_switch_workaround(void)
+static void input_switch_workaround(
+    void)
 {
     /* configure the port pins for the switch - as outputs */
     BIT_SET(DDRA, DDA0);
@@ -60,7 +61,7 @@ static void input_switch_workaround(void)
     BIT_CLEAR(DDRA, DDA4);
     BIT_CLEAR(DDRA, DDA5);
     BIT_CLEAR(DDRA, DDA6);
-    
+
     return;
 }
 #endif
@@ -74,17 +75,17 @@ void input_task(
     static uint8_t old_buttons = 0;
 
     /* only check the inputs every debounce time */
-    if (timer_elapsed_milliseconds(TIMER_DEBOUNCE,30)) {
+    if (timer_elapsed_milliseconds(TIMER_DEBOUNCE, 30)) {
         timer_reset(TIMER_DEBOUNCE);
         /* pins used are PA6, PA5, PA4, PA3, PA2, PA1, PA0 */
 #if BDK_V1_HACK
         /* version 1 BDK - workaround */
-        value = (PINA&0x7F);
+        value = (PINA & 0x7F);
 #else
         /* version 2 BDK - has inverted inputs */
         value = ~PINA;
         value &= 0x7F;
-#endif        
+#endif
         if (value == old_address) {
             /* stable value */
             Address_Switch = old_address;
@@ -111,7 +112,7 @@ bool input_button_value(
     uint8_t index)
 {
     bool value = false;
-    
+
     switch (index) {
         case 0:
             value = BIT_CHECK(Buttons, 0);
@@ -131,8 +132,8 @@ bool input_button_value(
         default:
             break;
     }
-    
-    return value;        
+
+    return value;
 }
 
 
