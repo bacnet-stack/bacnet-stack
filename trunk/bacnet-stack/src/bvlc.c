@@ -910,7 +910,7 @@ uint16_t bvlc_receive(
                Register-Foreign-Device message */
             /* FIXME: clients may need this result */
             (void) decode_unsigned16(&npdu[4], &result_code);
-            BVLC_Result_Code = (BACNET_BVLC_RESULT)result_code;
+            BVLC_Result_Code = (BACNET_BVLC_RESULT) result_code;
             debug_printf("BVLC: Result Code=%d\n", BVLC_Result_Code);
             /* not an NPDU */
             npdu_len = 0;

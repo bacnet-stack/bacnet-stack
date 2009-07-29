@@ -33,16 +33,18 @@ static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 
 /* start time for the clock */
 static struct timespec start;
-uint32_t timeGetTime(void)
+uint32_t timeGetTime(
+    void)
 {
     struct timespec now;
     uint32_t ticks;
-    
-    clock_gettime(CLOCK_MONOTONIC,&now);
-    
-    ticks = (now.tv_sec-start.tv_sec)*1000+
-        (now.tv_nsec-start.tv_nsec)/1000000;
-    
+
+    clock_gettime(CLOCK_MONOTONIC, &now);
+
+    ticks =
+        (now.tv_sec - start.tv_sec) * 1000 + (now.tv_nsec -
+        start.tv_nsec) / 1000000;
+
     return ticks;
 }
 
@@ -56,7 +58,7 @@ uint32_t timer_milliseconds(
 {
     uint32_t now = timeGetTime();
     uint32_t delta_time = 0;
-    
+
     if (index < MAX_MILLISECOND_TIMERS) {
         if (Millisecond_Counter[index] <= now) {
             delta_time = now - Millisecond_Counter[index];
@@ -64,7 +66,7 @@ uint32_t timer_milliseconds(
             delta_time = (UINT32_MAX - Millisecond_Counter[index]) + now + 1;
         }
     }
-    
+
     return delta_time;
 }
 
@@ -89,7 +91,7 @@ bool timer_elapsed_seconds(
     unsigned index,
     uint32_t seconds)
 {
-    return ((timer_milliseconds(index)/1000) >= seconds);
+    return ((timer_milliseconds(index) / 1000) >= seconds);
 }
 
 /*************************************************************************
@@ -101,7 +103,7 @@ bool timer_elapsed_minutes(
     unsigned index,
     uint32_t minutes)
 {
-    return ((timer_milliseconds(index)/(1000*60)) >= minutes);
+    return ((timer_milliseconds(index) / (1000 * 60)) >= minutes);
 }
 
 /*************************************************************************
@@ -113,12 +115,12 @@ uint32_t timer_reset(
     unsigned index)
 {
     uint32_t timer_value = 0;
-    
+
     if (index < MAX_MILLISECOND_TIMERS) {
         timer_value = timer_milliseconds(index);
         Millisecond_Counter[index] = timeGetTime();
     }
-    
+
     return timer_value;
 }
 
@@ -130,5 +132,5 @@ uint32_t timer_reset(
 void timer_init(
     void)
 {
-    clock_gettime(CLOCK_MONOTONIC,&start);
+    clock_gettime(CLOCK_MONOTONIC, &start);
 }

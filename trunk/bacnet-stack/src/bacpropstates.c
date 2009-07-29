@@ -46,7 +46,7 @@ int bacapp_decode_property_state(
     int len = 0;
     uint32_t len_value_type;
     int section_length;
-	uint32_t enumValue;
+    uint32_t enumValue;
 
     section_length =
         decode_tag_number_and_value(&apdu[len], (uint8_t *) & value->tag,
@@ -68,7 +68,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.binaryValue = (BACNET_BINARY_PV)enumValue;
+            value->state.binaryValue = (BACNET_BINARY_PV) enumValue;
             break;
 
         case EVENT_TYPE:
@@ -77,7 +77,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.eventType = (BACNET_EVENT_TYPE)enumValue;
+            value->state.eventType = (BACNET_EVENT_TYPE) enumValue;
             break;
 
         case POLARITY:
@@ -86,7 +86,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.polarity = (BACNET_POLARITY)enumValue;
+            value->state.polarity = (BACNET_POLARITY) enumValue;
             break;
 
         case PROGRAM_CHANGE:
@@ -95,7 +95,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.programChange = (BACNET_PROGRAM_REQUEST)enumValue;
+            value->state.programChange = (BACNET_PROGRAM_REQUEST) enumValue;
             break;
 
         case PROGRAM_STATE:
@@ -104,7 +104,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.programState = (BACNET_PROGRAM_STATE)enumValue;
+            value->state.programState = (BACNET_PROGRAM_STATE) enumValue;
             break;
 
         case REASON_FOR_HALT:
@@ -113,7 +113,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.programError = (BACNET_PROGRAM_ERROR)enumValue;
+            value->state.programError = (BACNET_PROGRAM_ERROR) enumValue;
             break;
 
         case RELIABILITY:
@@ -122,7 +122,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.reliability = (BACNET_RELIABILITY)enumValue;
+            value->state.reliability = (BACNET_RELIABILITY) enumValue;
             break;
 
         case STATE:
@@ -131,7 +131,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.state = (BACNET_EVENT_STATE)enumValue;
+            value->state.state = (BACNET_EVENT_STATE) enumValue;
             break;
 
         case SYSTEM_STATUS:
@@ -140,7 +140,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.systemStatus = (BACNET_DEVICE_STATUS)enumValue;
+            value->state.systemStatus = (BACNET_DEVICE_STATUS) enumValue;
             break;
 
         case UNITS:
@@ -149,7 +149,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.units = (BACNET_ENGINEERING_UNITS)enumValue;
+            value->state.units = (BACNET_ENGINEERING_UNITS) enumValue;
             break;
 
         case UNSIGNED_VALUE:
@@ -166,7 +166,7 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.lifeSafetyMode = (BACNET_LIFE_SAFETY_MODE)enumValue;
+            value->state.lifeSafetyMode = (BACNET_LIFE_SAFETY_MODE) enumValue;
             break;
 
         case LIFE_SAFETY_STATE:
@@ -175,7 +175,8 @@ int bacapp_decode_property_state(
                         &enumValue))) {
                 return -1;
             }
-			value->state.lifeSafetyState = (BACNET_LIFE_SAFETY_STATE)enumValue;
+            value->state.lifeSafetyState =
+                (BACNET_LIFE_SAFETY_STATE) enumValue;
             break;
 
         default:

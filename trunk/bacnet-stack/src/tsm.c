@@ -254,7 +254,7 @@ void tsm_timer_milliseconds(
                 TSM_List[i].RetryCount--;
                 TSM_List[i].RequestTimer = apdu_timeout();
                 if (TSM_List[i].RetryCount) {
-                        datalink_send_pdu(&TSM_List[i].dest,
+                    datalink_send_pdu(&TSM_List[i].dest,
                         &TSM_List[i].npdu_data, &TSM_List[i].apdu[0],
                         TSM_List[i].apdu_len);
                 } else {

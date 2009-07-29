@@ -29,9 +29,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #if defined(__GNUC__) && (__GNUC__ > 4) && (__GNUC_MINOR__ > 2)
-    #include <math.h> /* for NAN */
+#include <math.h>       /* for NAN */
 #else
-    #define NAN __builtin_nan("")
+#define NAN __builtin_nan("")
 #endif
 
 #include "bacdef.h"
@@ -209,7 +209,7 @@ int Analog_Value_Encode_Property_APDU(
     unsigned i = 0;
     bool state = false;
 #endif
-    
+
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -346,10 +346,8 @@ bool Analog_Value_Write_Property(
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_REAL) {
-                if (Analog_Value_Present_Value_Set(
-                    wp_data->object_instance,
-                    value.type.Real,
-                    wp_data->priority)) {
+                if (Analog_Value_Present_Value_Set(wp_data->object_instance,
+                        value.type.Real, wp_data->priority)) {
                     status = true;
                 } else if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -363,10 +361,8 @@ bool Analog_Value_Write_Property(
                 }
 #if 0
             } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
-                if (Analog_Value_Present_Value_Set(
-                    wp_data->object_instance,
-                    NAN,
-                    wp_data->priority)) {
+                if (Analog_Value_Present_Value_Set(wp_data->object_instance,
+                        NAN, wp_data->priority)) {
                     status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
