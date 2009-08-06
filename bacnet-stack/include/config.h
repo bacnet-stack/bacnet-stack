@@ -134,4 +134,10 @@
 #define BACAPP_OBJECT_ID
 #endif
 
+/*
+** Set the maximum vector type sizes
+*/
+#define MAX_BITSTRING_BYTES        (15)
+#define MAX_CHARACTER_STRING_BYTES (MAX_APDU-6)
+#define MAX_OCTET_STRING_BYTES     (MAX_APDU-6)
 #endif

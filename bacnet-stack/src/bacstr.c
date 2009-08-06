@@ -167,7 +167,7 @@ uint8_t bitstring_bits_capacity(
     BACNET_BIT_STRING * bit_string)
 {
     if (bit_string) {
-        return (sizeof(bit_string->value) * 8);
+        return (MAX_BITSTRING_BYTES * 8);
     } else {
         return 0;
     }
@@ -420,7 +420,7 @@ uint8_t characterstring_encoding(
 }
 
 /* returns false if the string exceeds capacity
-   initialize by using length=0 */
+   initialize by using value=0 */
 bool octetstring_init(
     BACNET_OCTET_STRING * octet_string,
     uint8_t * value,
@@ -431,17 +431,18 @@ bool octetstring_init(
 
     if (octet_string) {
         octet_string->length = 0;
-        if (length <= sizeof(octet_string->value)) {
-            if (value) {
-                for (i = 0; i < length; i++) {
-                    octet_string->value[octet_string->length] = value[i];
-                    octet_string->length++;
-                }
-            } else {
-                for (i = 0; i < sizeof(octet_string->value); i++) {
-                    octet_string->value[i] = 0;
-                }
-            }
+		if (value) {
+			if (length <= MAX_OCTET_STRING_BYTES) {
+				for (i = 0; i < length; i++) {
+					octet_string->value[octet_string->length] = value[i];
+					octet_string->length++;
+				}
+				status = true;
+			}
+		} else {
+			for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
+				octet_string->value[i] = 0;
+			}
             status = true;
         }
     }
@@ -467,7 +468,7 @@ bool octetstring_append(
     bool status = false;        /* return value */
 
     if (octet_string) {
-        if ((length + octet_string->length) <= sizeof(octet_string->value)) {
+        if ((length + octet_string->length) <= MAX_OCTET_STRING_BYTES) {
             for (i = 0; i < length; i++) {
                 octet_string->value[octet_string->length] = value[i];
                 octet_string->length++;
@@ -489,7 +490,7 @@ bool octetstring_truncate(
     bool status = false;        /* return value */
 
     if (octet_string) {
-        if (length <= sizeof(octet_string->value)) {
+        if (length <= MAX_OCTET_STRING_BYTES) {
             octet_string->length = length;
             status = true;
         }
@@ -533,7 +534,7 @@ size_t octetstring_capacity(
 
     if (octet_string) {
         /* FIXME: validate length is within bounds? */
-        length = sizeof(octet_string->value);
+        length = MAX_OCTET_STRING_BYTES;
     }
 
     return length;
@@ -548,7 +549,7 @@ bool octetstring_value_same(
 
     if (octet_string1 && octet_string2) {
         if ((octet_string1->length == octet_string2->length) &&
-            (octet_string1->length <= sizeof(octet_string1->value))) {
+            (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
             for (i = 0; i < octet_string1->length; i++) {
                 if (octet_string1->value[i] != octet_string2->value[i]) {
                     return false;

@@ -38,16 +38,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "bacdef.h"
+#include "config.h"
 
 /* bit strings
    They could be as large as 256/8=32 octets */
-#define MAX_BITSTRING_BYTES 15
 typedef struct BACnet_Bit_String {
     uint8_t bits_used;
     uint8_t value[MAX_BITSTRING_BYTES];
 } BACNET_BIT_STRING;
 
-#define MAX_CHARACTER_STRING_BYTES (MAX_APDU-6)
 typedef struct BACnet_Character_String {
     size_t length;
     uint8_t encoding;
@@ -60,7 +59,7 @@ typedef struct BACnet_Character_String {
 typedef struct BACnet_Octet_String {
     size_t length;
     /* limit - 6 octets is the most our tag and type could be */
-    uint8_t value[MAX_APDU - 6];
+    uint8_t value[MAX_OCTET_STRING_BYTES];
 } BACNET_OCTET_STRING;
 
 #ifdef __cplusplus
