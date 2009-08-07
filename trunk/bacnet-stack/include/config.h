@@ -137,7 +137,16 @@
 /*
 ** Set the maximum vector type sizes
 */
-#define MAX_BITSTRING_BYTES        (15)
+#ifndef MAX_BITSTRING_BYTES
+#define MAX_BITSTRING_BYTES (15)
+#endif
+
+#ifndef MAX_CHARACTER_STRING_BYTES
 #define MAX_CHARACTER_STRING_BYTES (MAX_APDU-6)
-#define MAX_OCTET_STRING_BYTES     (MAX_APDU-6)
+#endif
+
+#ifndef MAX_OCTET_STRING_BYTES
+#define MAX_OCTET_STRING_BYTES (MAX_APDU-6)
+#endif
+
 #endif
