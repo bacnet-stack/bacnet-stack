@@ -98,6 +98,9 @@ extern "C" {
         BACNET_BIT_STRING * dest,
         BACNET_BIT_STRING * src);
 
+	bool bitstring_same(
+		BACNET_BIT_STRING * bitstring1,
+		BACNET_BIT_STRING * bitstring2);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
