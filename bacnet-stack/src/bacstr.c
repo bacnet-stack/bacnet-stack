@@ -191,6 +191,39 @@ bool bitstring_copy(
     return status;
 }
 
+/* returns true if the same length and contents */
+bool bitstring_same(
+    BACNET_BIT_STRING * bitstring1,
+    BACNET_BIT_STRING * bitstring2)
+{
+    int i = 0;       /* loop counter */
+
+    if (bitstring1 && bitstring1) {
+        if ((bitstring1->bits_used == bitstring2->bits_used) &&
+            (bitstring1->bits_used/8 <= MAX_BITSTRING_BYTES)) 
+		{
+			int bytes_used       = bitstring1->bits_used/8;
+			uint8_t compare_mask = 0xFF >> (8 - (bitstring1->bits_used%8));
+
+            for (i = 0; i < bytes_used; i++) {
+                if (bitstring1->value[i] != bitstring2->value[i]) {
+                    return false;
+                }
+            }
+			if ( (bitstring1->value[bytes_used] & compare_mask) !=
+				 (bitstring2->value[bytes_used] & compare_mask) )
+			{
+				return false;
+			}
+			else {
+				return true;
+			}
+        }
+    }
+
+    return false;
+}
+
 #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
@@ -565,13 +598,17 @@ bool octetstring_value_same(
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 #include "ctest.h"
 
 void testBitString(
     Test * pTest)
 {
     uint8_t bit = 0;
+	int max_bit;
     BACNET_BIT_STRING bit_string;
+    BACNET_BIT_STRING bit_string2;
+    BACNET_BIT_STRING bit_string3;
 
     bitstring_init(&bit_string);
     /* verify initialization */
@@ -593,6 +630,36 @@ void testBitString(
         ct_test(pTest, bitstring_bits_used(&bit_string) == (bit + 1));
         ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
     }
+
+    /* test for compare equals*/
+	srand(time(NULL));
+    for (max_bit = 0; max_bit < (MAX_BITSTRING_BYTES * 8); max_bit++) {
+		bitstring_init(&bit_string);
+		bitstring_init(&bit_string2);
+		for (bit = 0; bit < max_bit; bit++) {
+			bool bit_value = rand() % 2;
+			bitstring_set_bit(&bit_string, bit, bit_value);
+			bitstring_set_bit(&bit_string2, bit, bit_value);
+		}
+		ct_test(pTest, bitstring_same(&bit_string, &bit_string2));
+	}
+    /* test for compare not equals*/
+    for (max_bit = 1; max_bit < (MAX_BITSTRING_BYTES * 8); max_bit++) {
+		bitstring_init(&bit_string);
+		bitstring_init(&bit_string2);
+		bitstring_init(&bit_string3);
+		for (bit = 0; bit < max_bit; bit++) {
+			bool bit_value = rand() % 2;
+			bitstring_set_bit(&bit_string, bit, bit_value);
+			bitstring_set_bit(&bit_string2, bit, bit_value);
+			bitstring_set_bit(&bit_string3, bit, bit_value);
+		}
+		/* Set the first bit of bit_string2 and the last bit of bit_string3 to be different */
+		bitstring_set_bit(&bit_string2, 0, !bitstring_bit(&bit_string, 0));
+		bitstring_set_bit(&bit_string3, max_bit-1, !bitstring_bit(&bit_string, max_bit-1));
+		ct_test(pTest, !bitstring_same(&bit_string, &bit_string2));
+		ct_test(pTest, !bitstring_same(&bit_string, &bit_string3));
+	}
 }
 
 void testCharacterString(
@@ -705,8 +772,7 @@ void testOctetString(
     }
 
     test_length = strlen((char *) test_append_value);
-    status =
-        octetstring_append(&bacnet_string, &test_append_value[0], test_length);
+    status =octetstring_append(&bacnet_string, &test_append_value[0], test_length);
     strcat((char *) test_append_string, (char *) test_value);
     strcat((char *) test_append_string, (char *) test_append_value);
     test_length = strlen((char *) test_append_string);
