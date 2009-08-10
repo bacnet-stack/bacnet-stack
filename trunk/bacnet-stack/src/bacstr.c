@@ -226,7 +226,7 @@ bool bitstring_same(
 
 #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /* returns false if the string exceeds capacity
-   initialize by using length=0 */
+   initialize by using value=NULL */
 bool characterstring_init(
     BACNET_CHARACTER_STRING * char_string,
     uint8_t encoding,
@@ -453,7 +453,7 @@ uint8_t characterstring_encoding(
 }
 
 /* returns false if the string exceeds capacity
-   initialize by using value=0 */
+   initialize by using value=NULL */
 bool octetstring_init(
     BACNET_OCTET_STRING * octet_string,
     uint8_t * value,
@@ -464,18 +464,17 @@ bool octetstring_init(
 
     if (octet_string) {
         octet_string->length = 0;
-		if (value) {
-			if (length <= MAX_OCTET_STRING_BYTES) {
-				for (i = 0; i < length; i++) {
-					octet_string->value[octet_string->length] = value[i];
-					octet_string->length++;
-				}
-				status = true;
-			}
-		} else {
-			for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
-				octet_string->value[i] = 0;
-			}
+        if (length <= MAX_OCTET_STRING_BYTES) {
+            if (value) {
+                for (i = 0; i < length; i++) {
+                    octet_string->value[octet_string->length] = value[i];
+                    octet_string->length++;
+                }
+            } else {
+                for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
+                    octet_string->value[i] = 0;
+                }
+            }
             status = true;
         }
     }
