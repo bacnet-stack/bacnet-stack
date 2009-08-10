@@ -76,6 +76,22 @@ int decode_real(
     return 4;
 }
 
+int decode_real_safe(
+    uint8_t * apdu,
+    uint32_t len_value,
+    float *real_value)
+{
+	if ( len_value != 4 )
+	{
+		*real_value = 0.0f;
+		return len_value;
+	}
+	else
+	{
+		return decode_real(apdu, real_value);
+	}
+}
+
 int decode_context_real(
     uint8_t * apdu,
     uint8_t tag_number,
@@ -157,6 +173,22 @@ int decode_double(
     *double_value = my_data.double_value;
 
     return 8;
+}
+
+int decode_double_safe(
+    uint8_t * apdu,
+    uint32_t len_value,
+    double *double_value)
+{
+	if ( len_value != 8 )
+	{
+		*double_value = 0.0;
+		return len_value;
+	}
+	else
+	{
+		return decode_double(apdu, double_value);
+	}
 }
 
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */

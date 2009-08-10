@@ -344,6 +344,33 @@ int decode_tag_number(
     return len;
 }
 
+/* Same as function above, but will safely fail is packet has been truncated */
+int decode_tag_number_safe(
+    uint8_t * apdu,
+	uint16_t   apdu_len_remaining,
+    uint8_t * tag_number)
+{
+    int len = 0;        /* return value */
+
+    /* decode the tag number first */
+	if ( apdu_len_remaining >= 1 ) {
+		if (decode_is_extended_tag_number(&apdu[0]) && apdu_len_remaining >= 2) {
+			/* extended tag */
+			if (tag_number) {
+				*tag_number = apdu[1];
+			}
+			len = 2;
+		} else {
+			if (tag_number) {
+				*tag_number = (uint8_t) (apdu[0] >> 4);
+			}
+			len = 1;
+		}
+	}
+    return len;
+}
+
+
 bool decode_is_opening_tag(
     uint8_t * apdu)
 {
@@ -404,6 +431,62 @@ int decode_tag_number_and_value(
         *value = apdu[0] & 0x07;
     }
 
+    return len;
+}
+
+/* Same as function above, but will safely fail is packet has been truncated */
+int decode_tag_number_and_value_safe(
+    uint8_t *   apdu,
+	uint8_t     apdu_len_remaining,
+    uint8_t *   tag_number,
+    uint32_t *  value)
+{
+    int len = 0;
+
+	len = decode_tag_number_safe(&apdu[0], apdu_len_remaining, tag_number);
+
+	if ( len > 0 ) {
+		apdu_len_remaining -= len;
+		if (decode_is_extended_value(&apdu[0])) {
+			/* tagged as uint32_t */
+			if (apdu[len] == 255 && apdu_len_remaining >= 5) {
+			    uint32_t value32;
+				len++;
+				len += decode_unsigned32(&apdu[len], &value32);
+				if (value) {
+					*value = value32;
+				}
+			}
+			/* tagged as uint16_t */
+			else if (apdu[len] == 254 && apdu_len_remaining >= 3) {
+			    uint16_t value16;
+				len++;
+				len += decode_unsigned16(&apdu[len], &value16);
+				if (value) {
+					*value = value16;
+				}
+			}
+			/* no tag - must be uint8_t */
+			else if (apdu[len] < 254 && apdu_len_remaining >= 1) {
+				if (value) {
+					*value = apdu[len];
+				}
+				len++;
+			}
+			else {
+				/* packet is truncated */
+				len = 0;
+			}
+		} else if (decode_is_opening_tag(&apdu[0]) && value) {
+			*value = 0;
+		} else if (decode_is_closing_tag(&apdu[0]) && value) {
+			/* closing tag */
+			*value = 0;
+		} else if (value) {
+			/* small value */
+			*value = apdu[0] & 0x07;
+		}
+	}
     return len;
 }
 
@@ -726,6 +809,20 @@ int decode_object_id(
     *instance = (value & BACNET_MAX_INSTANCE);
 
     return len;
+}
+
+int decode_object_id_safe(
+    uint8_t * apdu,
+	uint32_t len_value,
+    uint16_t * object_type,
+    uint32_t * instance)
+{
+	if ( len_value != 4 ) {
+		return 0;
+	}
+	else {
+		return decode_object_id(apdu, object_type, instance);
+	}
 }
 
 int decode_context_object_id(
@@ -1396,8 +1493,9 @@ int encode_application_double(
 {
     int len = 0;
 
-    /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_double(value, &apdu[1]);
+    /* assumes that the tag only consumes 2 octet */
+    len = encode_bacnet_double(value, &apdu[2]);
+
     len +=
         encode_tag(&apdu[0], BACNET_APPLICATION_TAG_DOUBLE, false,
         (uint32_t) len);
@@ -1489,6 +1587,25 @@ int decode_bacnet_time(
     btime->hundredths = apdu[3];
 
     return 4;
+}
+
+int decode_bacnet_time_safe(
+    uint8_t * apdu,
+	uint32_t len_value,
+    BACNET_TIME * btime)
+{
+	if ( len_value != 4 )
+	{
+		btime->hour = 0;
+		btime->hundredths = 0;
+		btime->min = 0;
+		btime->sec = 0;
+		return len_value;
+	}
+	else
+	{
+		return decode_bacnet_time(apdu, btime);
+	}
 }
 
 int decode_application_time(
@@ -1612,6 +1729,24 @@ int decode_date(
 
     return 4;
 }
+
+int decode_date_safe(
+    uint8_t * apdu,
+	uint32_t len_value,
+    BACNET_DATE * bdate)
+{
+	if ( len_value != 4 ) {
+		bdate->day = 0;
+		bdate->month = 0;
+		bdate->wday = 0;
+		bdate->year = 0;
+		return len_value;
+	}
+	else {
+		return decode_date(apdu, bdate);
+	}
+}
+
 
 int decode_application_date(
     uint8_t * apdu,
@@ -1870,7 +2005,7 @@ void testBACDCodeReal(
     return;
 }
 
-void testBACDCodeDouble(
+static void testBACDCodeDouble(
     Test * pTest)
 {
     uint8_t double_array[8] = { 0 };
@@ -1891,12 +2026,12 @@ void testBACDCodeDouble(
 
     /* a real will take up 4 octects plus a one octet tag */
     apdu_len = encode_application_double(&apdu[0], value);
-    ct_test(pTest, apdu_len == 9);
+    ct_test(pTest, apdu_len == 10);
     /* len tells us how many octets were used for encoding the value */
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_DOUBLE);
     ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
-    ct_test(pTest, len == 1);
+    ct_test(pTest, len == 2);
     ct_test(pTest, long_value == 8);
     decode_double(&apdu[len], &decoded_value);
     ct_test(pTest, decoded_value == value);
@@ -2472,7 +2607,7 @@ void testFloatContextDecodes(
     ct_test(pTest, in == out);
 }
 
-void testObjectIDContextDecodes(
+static void testObjectIDContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2501,7 +2636,7 @@ void testObjectIDContextDecodes(
 
 }
 
-void testCharacterStringContextDecodes(
+static void testCharacterStringContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2701,6 +2836,8 @@ int main(
     rc = ct_addTestFunction(pTest, testOctetStringContextDecodes);
     assert(rc);
 
+    rc = ct_addTestFunction(pTest, testBACDCodeDouble);
+    assert(rc);
     /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);
