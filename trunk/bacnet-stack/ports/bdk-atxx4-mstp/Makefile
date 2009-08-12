@@ -220,7 +220,7 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 #        +-------------------- OCDEN (Enable OCD)
 #
 # Fuse low byte (0=enable,1=disable):
-# 0xC7 = 1 1 0 0   0 1 1 1
+# 0xD7 = 1 1 0 1   0 1 1 1
 #        ^ ^ \+/   \--+--/
 #        | |  |       +------- CKSEL 3..0 (Select Clock Source)
 #        | |  |       +------- [1111-1000=Low Power Crystal Oscillator]
@@ -230,8 +230,8 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 #        | |  |       +------- [0010=Calibrated Internal RC Oscillator]
 #        | |  |       +------- [0000=External Clock]
 #        | |  +--------------- SUT 1..0 (Start up Time selection)
-#        | |  +--------------- [CKSEL=0:14CK+ 00=4.1ms,01=65ms,10=0ms,11=4.1ms]
-#        | |  +--------------- [CKSEL=1:14CK+ 00=65ms,01=0ms,10=4.1ms,11=65ms]
+#        | |  +--------------- [CKSEL0=0:14CK+ 00=4.1ms,01=65ms,10=0ms,11=4.1ms]
+#        | |  +--------------- [CKSEL0=1:14CK+ 00=65ms,01=BOD,10=4.1ms,11=65ms]
 #        | +------------------ CKOUT (clock output on CKOUT pin)
 #        +-------------------- CKDIV8 (divide clock by 8)
 #
@@ -245,9 +245,9 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 #        | | +---------------- 
 #        | +------------------ 
 #        +--------------------
-AVRDUDE_WRITE_FUSES = -U hfuse:w:0x93:m -U lfuse:w:0xC7:m -U efuse:w:0xFC:m
+AVRDUDE_WRITE_FUSES = -U hfuse:w:0x93:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
 
-AVRDUDE_BOOTL_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xC7:m -U efuse:w:0xFC:m
+AVRDUDE_BOOTL_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
 
 AVRDUDE_READ_FUSES = -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
 
