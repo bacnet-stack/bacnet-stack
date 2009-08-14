@@ -1,8 +1,8 @@
-MSTP Capture Tool
+BACnet MS/TP Capture Tool
 
-This tool captures MS/TP packets on an RS485 serial interface,
+This tool captures BACnet MS/TP packets on an RS485 serial interface,
 and saves the packets to a file in Wireshark PCAP format for 
-the MS/TP dissector to read.  The filename has a date and time
+the BACnet MS/TP dissector to read.  The filename has a date and time
 code in it, and will contain up to 65535 packets.  A new file
 will be created at each 65535 packet interval.  The tool can
 be stopped by using Control-C.
@@ -17,8 +17,8 @@ MAC     MaxMstr Tokens  Retries Treply  Tusage  Trpfm   Tder    Tpostpd
 0       0       525     0       32      0       0       0       0
 1       127     525     0       16      79      0       0       0
 
-MS/TP capture tool also includes statistics which are listed for
-any MAC addresses found passing a token, 
+The BACnet MS/TP capture tool also includes statistics which are 
+listed for any MAC addresses found passing a token, 
 or any MAC address replying to a DER message. 
 The statistics are emitted when Control-C is pressed, or when
 65535 packets are captured and the new file is created.
@@ -49,6 +49,7 @@ than 250ms.
 Tpostpd = maximum number of milliseconds to respond to 
 DataExpectingReply request with ReplyPostponed.  Tpostpd is 
 required to be less than 250ms.
+
 Note that the mstpcap tool may not have that good of 
 resolution on Windows, so timing under 50ms may not be accurate.
 
