@@ -73,7 +73,7 @@ FUSES = {
        any fuses listed below are cleared fuses,
        or are BOOTSZ bits that are zero. */
     .high =
-    (FUSE_BOOTSZ1 & FUSE_BOOTRST & FUSE_EESAVE & FUSE_SPIEN & FUSE_JTAGEN),
+    (FUSE_BOOTSZ1 & FUSE_EESAVE & FUSE_SPIEN & FUSE_JTAGEN),
 
     /* == EXTENDED FUSE or EFUSE settings == */
     /* BODLEVEL configuration 
