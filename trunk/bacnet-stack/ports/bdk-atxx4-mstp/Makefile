@@ -208,18 +208,21 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 
 # Fuse high byte (0=enable,1=disable):
 # 0x93 = 1 0 0 1   0 0 1 1
+# 0x17 = 0 0 0 1   0 1 1 1 - default
 #        ^ ^ ^ ^   ^ \+/ ^ 
 #        | | | |   |  |  |---- BOOTRST (Enable Bootloader Reset Vector)
 #        | | | |   |  +------- BOOTSZ 1..0 (Select Boot Size)
 #        | | | |   |  +------- [00=4k, 01=2k, 10=1k, 11=512]
 #        | | | |   +---------- EESAVE (Enable preserve EEPROM on Chip Erase)
 #        | | | +-------------- WDTON (watchdog timer always on)
-#        | | +---------------- SPIEN (Enable Serial Program and Data Downloading)
+#        | | +---------------- SPIEN (Enable Serial Program / Data Downloading)
 #        | +------------------ JTAGEN (Enable JTAG)
 #        +-------------------- OCDEN (Enable OCD)
 #
 # Fuse low byte (0=enable,1=disable):
 # 0xD7 = 1 1 0 1   0 1 1 1
+# 0xC7 = 1 1 0 0   0 1 1 1
+# 0x62 = 0 1 1 0   0 0 1 0 - default
 #        ^ ^ \+/   \--+--/
 #        | |  |       +------- CKSEL 3..0 (Select Clock Source)
 #        | |  |       +------- [1111-1000=Low Power Crystal Oscillator]
@@ -236,6 +239,7 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 #
 # Fuse extended byte (0=enable,1=disable):
 # 0xFC = 1 1 1 1   1 1 0 0
+# 0xFC = 1 1 1 1   1 1 1 1 - default
 #        ^ ^ ^ ^   ^ \-+-/ 
 #        | | | |   |   +------ BODLEVEL 2..0 (brownout trigger level)
 #        | | | |   |   +------ [100=4.3V, 101=2.7V, 110=1.8V, 111=disabled]
@@ -244,6 +248,8 @@ AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 #        | | +---------------- 
 #        | +------------------ 
 #        +--------------------
+AVRDUDE_DEFAULT_FUSES = -U hfuse:w:0x17:m -U lfuse:w:0x62:m -U efuse:w:0xFF:m
+
 AVRDUDE_WRITE_FUSES = -U hfuse:w:0x93:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
 
 AVRDUDE_BOOTL_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
@@ -253,7 +259,7 @@ AVRDUDE_READ_FUSES = -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
 AVRDUDE_WRITE_FLASH = -e -U flash:w:$(TARGET).hex
 
 AVRDUDE_INSTALL = $(AVRDUDE_WRITE_FLASH)
-AVRDUDE_INSTALL += $(AVRDUDE_WRITE_FUSES)
+#AVRDUDE_INSTALL += $(AVRDUDE_WRITE_FUSES)
 
 ## Objects that must be built in order to link
 OBJECTS = $(COBJ) $(DEMOOBJ)
@@ -305,6 +311,9 @@ writefuses:
 
 bootloadfuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BOOTL_FUSES)	
+
+defaultfuses:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_DEFAULT_FUSES)	
 
 showfuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_FUSES)	

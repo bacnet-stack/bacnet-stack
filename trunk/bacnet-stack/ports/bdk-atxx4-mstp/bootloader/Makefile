@@ -91,9 +91,9 @@ LDFLAGS = -Ttext=$(BASEADDR) $(EXTMEMOPTS) $(LDMAP) $(PRINTF_LIB) $(SCANF_LIB) $
 # jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
 # avrispmkII = AVR ISP MKII
 #AVRDUDE_PROGRAMMER = jtag2fast
-#AVRDUDE_PROGRAMMER = avrispmkII
+AVRDUDE_PROGRAMMER = avrispmkII
 #AVRDUDE_PROGRAMMER = dragon_isp
-AVRDUDE_PROGRAMMER = dragon_jtag
+#AVRDUDE_PROGRAMMER = dragon_jtag
 #
 # # port--serial or parallel port to which your 
 # # hardware programmer is attached
