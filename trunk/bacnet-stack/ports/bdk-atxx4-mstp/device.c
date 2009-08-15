@@ -76,10 +76,8 @@ static const int Device_Properties_Required[] = {
     PROP_SEGMENTATION_SUPPORTED,
     PROP_APDU_TIMEOUT,
     PROP_NUMBER_OF_APDU_RETRIES,
-#if defined(BACDL_MSTP)
     PROP_MAX_MASTER,
     PROP_MAX_INFO_FRAMES,
-#endif
     PROP_DEVICE_ADDRESS_BINDING,
     PROP_DATABASE_REVISION,
     -1
@@ -498,6 +496,10 @@ int Device_Encode_Property_APDU(
             break;
         case 513:
             apdu_len = encode_application_unsigned(&apdu[0], stack_unused());
+            break;
+        case 9600:
+            apdu_len = encode_application_unsigned(&apdu[0], 
+			    rs485_baud_rate());
             break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
