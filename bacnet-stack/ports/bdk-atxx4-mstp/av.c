@@ -62,8 +62,10 @@ static const int Analog_Value_Properties_Required[] = {
 
 static const int Analog_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
+#if 0
     PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
+#endif
     -1
 };
 
