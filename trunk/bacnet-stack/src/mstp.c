@@ -218,9 +218,9 @@ uint16_t MSTP_Create_Frame(
     crc8 = CRC_Calc_Header(buffer[3], crc8);
     buffer[4] = source;
     crc8 = CRC_Calc_Header(buffer[4], crc8);
-    buffer[5] = data_len / 256;
+    buffer[5] = data_len >> 8;                 /* MSB first */
     crc8 = CRC_Calc_Header(buffer[5], crc8);
-    buffer[6] = data_len % 256;
+    buffer[6] = data_len & 0xFF;
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
 
@@ -236,9 +236,9 @@ uint16_t MSTP_Create_Frame(
     if (index > 8) {
         if ((index + 2) <= buffer_len) {
             crc16 = ~crc16;
-            buffer[index] = (crc16 & 0x00FF);
+            buffer[index] = crc16 & 0xFF;      /* LSB first */
             index++;
-            buffer[index] = ((crc16 & 0xFF00) >> 8);
+            buffer[index] = crc16  >> 8;
             index++;
         } else
             return 0;
