@@ -58,6 +58,6 @@ void init(
     DDRD = 0;
     PORTD = 0;
     /* Configure the watchdog timer - Disabled for testing */
-    BIT_CLEAR(MCUSR, WDRF);
-    WDTCSR = 0;
+    /* wdt_enable(WDTO_2S); */
+    wdt_disable();    
 }
