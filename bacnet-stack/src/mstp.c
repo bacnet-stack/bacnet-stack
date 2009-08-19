@@ -1078,34 +1078,9 @@ void MSTP_Init(
     volatile struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port) {
-        mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-        mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
-        mstp_port->ReceiveError = false;
-        mstp_port->DataAvailable = false;
-        mstp_port->DataRegister = 0;
-        mstp_port->DataCRC = 0;
-        mstp_port->DataCRC = 0;
-        mstp_port->DataLength = 0;
-        mstp_port->DestinationAddress = 0;
-        mstp_port->EventCount = 0;
-        mstp_port->FrameType = FRAME_TYPE_TOKEN;
-        mstp_port->FrameCount = 0;
-        mstp_port->HeaderCRC = 0;
-        mstp_port->Index = 0;
-        mstp_port->Index = 0;
-        mstp_port->Next_Station = mstp_port->This_Station;
-        mstp_port->Poll_Station = mstp_port->This_Station;
-        mstp_port->ReceivedInvalidFrame = false;
-        mstp_port->ReceivedValidFrame = false;
-        mstp_port->RetryCount = 0;
-        mstp_port->SilenceTimerReset();
-        mstp_port->SoleMaster = false;
-        mstp_port->SourceAddress = 0;
-        mstp_port->TokenCount = 0;
-        mstp_port->Lurking = false;
 #if 0
         /* FIXME: you must point these buffers to actual byte buckets
-           in the dlmstp function before or after calling this init. */
+           in the dlmstp function before calling this init. */
         mstp_port->InputBuffer = &InputBuffer[0];
         mstp_port->InputBufferSize = sizeof(InputBuffer);
         mstp_port->OutputBuffer = &OutputBuffer[0];
@@ -1117,6 +1092,29 @@ void MSTP_Init(
         mstp_port->SilenceTimer = Timer_Silence;
         mstp_port = >SilenceTimerReset = Timer_Silence_Reset;
 #endif
+        mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+        mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
+        mstp_port->ReceiveError = false;
+        mstp_port->DataAvailable = false;
+        mstp_port->DataRegister = 0;
+        mstp_port->DataCRC = 0;
+        mstp_port->DataLength = 0;
+        mstp_port->DestinationAddress = 0;
+        mstp_port->EventCount = 0;
+        mstp_port->FrameType = FRAME_TYPE_TOKEN;
+        mstp_port->FrameCount = 0;
+        mstp_port->HeaderCRC = 0;
+        mstp_port->Index = 0;
+        mstp_port->Next_Station = mstp_port->This_Station;
+        mstp_port->Poll_Station = mstp_port->This_Station;
+        mstp_port->ReceivedInvalidFrame = false;
+        mstp_port->ReceivedValidFrame = false;
+        mstp_port->RetryCount = 0;
+        mstp_port->SilenceTimerReset();
+        mstp_port->SoleMaster = false;
+        mstp_port->SourceAddress = 0;
+        mstp_port->TokenCount = 0;
+        mstp_port->Lurking = false;
     }
 }
 
