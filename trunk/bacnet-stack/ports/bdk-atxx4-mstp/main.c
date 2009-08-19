@@ -231,6 +231,7 @@ int main(
     /* Enable global interrupts */
     __enable_interrupt();
     for (;;) {
+        wdt_reset();
         input_task();
         bacnet_task();
         led_task();
