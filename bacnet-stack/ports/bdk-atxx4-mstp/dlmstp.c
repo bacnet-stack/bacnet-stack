@@ -42,6 +42,7 @@
 #include "crc.h"
 #include "npdu.h"
 #include "bits.h"
+#include "bytes.h"
 #include "bacaddr.h"
 #include "timer.h"
 
@@ -416,9 +417,9 @@ static void MSTP_Send_Frame(
     crc8 = CRC_Calc_Header(buffer[3], crc8);
     buffer[4] = source;
     crc8 = CRC_Calc_Header(buffer[4], crc8);
-    buffer[5] = data_len / 256;
+    buffer[5] = HI_BYTE(data_len);
     crc8 = CRC_Calc_Header(buffer[5], crc8);
-    buffer[6] = data_len % 256;
+    buffer[6] = LO_BYTE(data_len);
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
     rs485_turnaround_delay();
