@@ -10,7 +10,6 @@
 
     Author:  James P Lynch  May 12, 2007
 *****************************************************************************/
-#include "AT91SAM7S256.h"
 #include "board.h"
 
 /* global variables */

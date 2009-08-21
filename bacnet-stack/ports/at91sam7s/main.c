@@ -24,7 +24,6 @@
 *
 *********************************************************************/
 /* hardware specific */
-#include "AT91SAM7S256.h"
 #include "board.h"
 #include "timer.h"
 /* standard libraries */
