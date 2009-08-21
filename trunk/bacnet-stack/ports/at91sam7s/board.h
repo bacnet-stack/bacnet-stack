@@ -15,7 +15,7 @@
 #ifndef Board_h
 #define Board_h
 
-#include "AT91SAM7S256.h"
+#include "at91sam7s256.h"
 #include "isr.h"
 #define __inline inline
 

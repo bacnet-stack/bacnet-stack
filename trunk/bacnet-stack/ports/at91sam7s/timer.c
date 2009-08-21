@@ -41,7 +41,6 @@
                     Header files
  **********************************************************/
 #include <stdint.h>
-#include "AT91SAM7S256.h"
 #include "board.h"
 #include "dlmstp.h"
 

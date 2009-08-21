@@ -15,8 +15,7 @@
 
 
 /* Include the board file description */
-#include "AT91SAM7S256.h"
-#include "Board.h"
+#include "board.h"
 
 /* The following functions must be write in ARM mode this function called directly */
 /* by exception vector */
