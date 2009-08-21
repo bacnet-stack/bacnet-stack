@@ -128,10 +128,10 @@ $(LIBRARY): $(COREOBJ) Makefile
 
 .PHONY: clean
 clean:
-	rm $(COBJ) $(AOBJ) $(COREOBJ)
-	rm $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
-	rm $(LIBRARY)
-	rm *.lst
+	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
+	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
+	-rm -rf $(LIBRARY)
+	-rm -rf *.lst
 
 ## Other dependencies
 -include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
