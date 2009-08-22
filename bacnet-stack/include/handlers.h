@@ -73,6 +73,10 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
+    void handler_read_property_object_set(
+        BACNET_OBJECT_TYPE object_type,
+        read_property_function pFunction);
+
     void handler_read_property_ack(
         uint8_t * service_request,
         uint16_t service_len,
@@ -84,6 +88,10 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+        
+    void handler_write_property_object_set(
+        BACNET_OBJECT_TYPE object_type,
+        write_property_function pFunction);
 
     void handler_atomic_read_file(
         uint8_t * service_request,

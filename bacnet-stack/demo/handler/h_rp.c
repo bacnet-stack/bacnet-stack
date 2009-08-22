@@ -52,6 +52,20 @@
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
+
+static read_property_function
+    Read_Property[MAX_BACNET_OBJECT_TYPE];
+                
+void handler_read_property_object_set(
+    BACNET_OBJECT_TYPE object_type,
+    read_property_function pFunction)
+{
+    if (object_type < MAX_BACNET_OBJECT_TYPE) {
+        Read_Property[object_type] = pFunction;
+    }
+}                
+
+
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Encode_Property_APDU(
