@@ -53,17 +53,23 @@ typedef struct BACnet_Write_Property_Data {
     uint8_t priority;   /* use BACNET_NO_PRIORITY if no priority */
 } BACNET_WRITE_PROPERTY_DATA;
 
+typedef bool (*write_property_function) (
+    BACNET_WRITE_PROPERTY_DATA * wp_data,
+    uint8_t * service_request,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-/* encode service */
+ 
+    /* encode service */
     int wp_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-/* decode the service request only */
+    /* decode the service request only */
     int wp_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,

@@ -1002,6 +1002,16 @@ bool Device_Write_Property(
     return status;
 }
 
+void Device_Init(void)
+{
+    handler_write_property_object_set(
+        OBJECT_DEVICE,
+        Device_Write_Property);
+    handler_read_property_object_set(
+        OBJECT_DEVICE,
+        Device_Encode_Property_APDU);
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>

@@ -46,6 +46,13 @@ typedef struct BACnet_Read_Property_Data {
     int application_data_len;
 } BACNET_READ_PROPERTY_DATA;
 
+typedef int (*read_property_function) (
+    uint8_t * apdu,
+    BACNET_PROPERTY_ID property,
+    int32_t array_index,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
