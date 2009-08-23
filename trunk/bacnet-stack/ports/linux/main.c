@@ -43,6 +43,7 @@
 #include "datalink.h"
 #include "net.h"
 #include "txbuf.h"
+#include "dlenv.h"
 
 /* This is an example application using the BACnet Stack on Linux */
 bool Who_Is_Request = true;
@@ -161,6 +162,11 @@ static void Read_Properties(
 static void Init_Service_Handlers(
     void)
 {
+    Device_Init();
+    handler_read_property_object_set(
+        OBJECT_DEVICE,
+        Device_Encode_Property_APDU,
+		Device_Valid_Object_Instance_Number);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, LocalIAmHandler);
@@ -173,15 +179,9 @@ static void Init_Service_Handlers(
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        handler_write_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-        handler_atomic_read_file);
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property_ack);
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-        handler_atomic_read_file_ack);
 }
 
 static void print_address_cache(
@@ -246,22 +246,7 @@ int main(
     /* setup this BACnet Server device */
     Device_Set_Object_Instance_Number(111);
     Init_Service_Handlers();
-#ifdef BACDL_ETHERNET
-    /* init the physical layer */
-    if (!ethernet_init("eth0"))
-        return 1;
-#endif
-#ifdef BACDL_BIP
-    bip_set_interface("eth0");
-    bip_set_port(0xBAC0);
-    if (!bip_init())
-        return 1;
-#endif
-#ifdef BACDL_ARCNET
-    if (!arcnet_init("arc0"))
-        return 1;
-#endif
-
+    dlenv_init();
     /* loop forever */
     for (;;) {
         /* input */
