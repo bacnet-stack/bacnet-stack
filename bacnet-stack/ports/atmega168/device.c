@@ -164,6 +164,7 @@ bool Device_Object_List_Identifier(
 /* return the length of the apdu encoded or -1 for error */
 int Device_Encode_Property_APDU(
     uint8_t * apdu,
+    uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
     BACNET_ERROR_CLASS * error_class,
@@ -178,6 +179,7 @@ int Device_Encode_Property_APDU(
     uint32_t instance = 0;
     unsigned count = 0;
 
+    object_instance = object_instance;
     /* FIXME: change the hardcoded names to suit your application */
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:

@@ -61,7 +61,9 @@ int Encode_Property_APDU(
             if (Device_Valid_Object_Instance_Number(rp_data->object_instance)) {
                 apdu_len =
                     Device_Encode_Property_APDU(&apdu[0],
-                    rp_data->object_property, rp_data->array_index,
+                    rp_data->object_instance,
+                    rp_data->object_property, 
+                    rp_data->array_index,
                     error_class, error_code);
             }
             break;
