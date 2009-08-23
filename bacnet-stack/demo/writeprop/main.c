@@ -50,6 +50,7 @@
 #include "handlers.h"
 #include "client.h"
 #include "txbuf.h"
+#include "dlenv.h"
 
 #ifndef MAX_PROPERTY_VALUES
 #define MAX_PROPERTY_VALUES 64
@@ -129,6 +130,11 @@ void MyWritePropertySimpleAckHandler(
 static void Init_Service_Handlers(
     void)
 {
+    Device_Init();
+    handler_read_property_object_set(
+        OBJECT_DEVICE,
+        Device_Encode_Property_APDU,
+		Device_Valid_Object_Instance_Number);
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
@@ -148,101 +154,6 @@ static void Init_Service_Handlers(
     apdu_set_error_handler(SERVICE_CONFIRMED_WRITE_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
-}
-
-static void Init_DataLink(
-    void)
-{
-    char *pEnv = NULL;
-#if defined(BACDL_BIP) && BBMD_ENABLED
-    long bbmd_port = 0xBAC0;
-    long bbmd_address = 0;
-    long bbmd_timetolive_seconds = 60000;
-#endif
-
-#if defined(BACDL_ALL)
-    pEnv = getenv("BACNET_DATALINK");
-    if (pEnv) {
-        datalink_set(pEnv));
-    } else {
-        datalink_set(NULL);
-    }
-#endif
-
-#if defined(BACDL_BIP)
-    pEnv = getenv("BACNET_IP_PORT");
-    if (pEnv) {
-        bip_set_port(strtol(pEnv, NULL, 0));
-    } else {
-        bip_set_port(0xBAC0);
-    }
-#elif defined(BACDL_MSTP)
-    pEnv = getenv("BACNET_MAX_INFO_FRAMES");
-    if (pEnv) {
-        dlmstp_set_max_info_frames(strtol(pEnv, NULL, 0));
-    } else {
-        dlmstp_set_max_info_frames(1);
-    }
-    pEnv = getenv("BACNET_MAX_MASTER");
-    if (pEnv) {
-        dlmstp_set_max_master(strtol(pEnv, NULL, 0));
-    } else {
-        dlmstp_set_max_master(127);
-    }
-    pEnv = getenv("BACNET_MSTP_BAUD");
-    if (pEnv) {
-        dlmstp_set_baud_rate(strtol(pEnv, NULL, 0));
-    } else {
-        dlmstp_set_baud_rate(38400);
-    }
-    pEnv = getenv("BACNET_MSTP_MAC");
-    if (pEnv) {
-        dlmstp_set_mac_address(strtol(pEnv, NULL, 0));
-    } else {
-        dlmstp_set_mac_address(127);
-    }
-#endif
-    pEnv = getenv("BACNET_APDU_TIMEOUT");
-    if (pEnv) {
-        apdu_timeout_set(strtol(pEnv, NULL, 0));
-        fprintf(stderr, "BACNET_APDU_TIMEOUT=%s\r\n", pEnv);
-    } else {
-#if defined(BACDL_MSTP)
-        apdu_timeout_set(60000);
-#endif
-    }
-    if (!datalink_init(getenv("BACNET_IFACE"))) {
-        exit(1);
-    }
-#if defined(BACDL_BIP) && BBMD_ENABLED
-    pEnv = getenv("BACNET_BBMD_PORT");
-    if (pEnv) {
-        bbmd_port = strtol(pEnv, NULL, 0);
-        if (bbmd_port > 0xFFFF) {
-            bbmd_port = 0xBAC0;
-        }
-    }
-    pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
-    if (pEnv) {
-        bbmd_timetolive_seconds = strtol(pEnv, NULL, 0);
-        if (bbmd_timetolive_seconds > 0xFFFF) {
-            bbmd_timetolive_seconds = 0xFFFF;
-        }
-    }
-    pEnv = getenv("BACNET_BBMD_ADDRESS");
-    if (pEnv) {
-        bbmd_address = bip_getaddrbyname(pEnv);
-        if (bbmd_address) {
-            struct in_addr addr;
-            addr.s_addr = bbmd_address;
-            printf
-                ("WriteProperty: Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(bbmd_address, bbmd_port,
-                bbmd_timetolive_seconds);
-        }
-    }
-#endif
 }
 
 int main(int argc, char *argv[]) {
@@ -411,7 +322,7 @@ int main(int argc, char *argv[]) {
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
     Init_Service_Handlers();
-    Init_DataLink();
+    dlenv_init();
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();

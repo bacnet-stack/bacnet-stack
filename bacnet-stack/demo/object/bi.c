@@ -140,7 +140,6 @@ unsigned Binary_Input_Instance_To_Index(
 {
     unsigned index = MAX_BINARY_INPUTS;
 
-    Binary_Input_Init();
     if (object_instance < MAX_BINARY_INPUTS) {
         index = object_instance;
     }
@@ -154,7 +153,6 @@ static BACNET_BINARY_PV Binary_Input_Present_Value(
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned index = 0;
 
-    Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         value = Present_Value[index];
@@ -169,7 +167,6 @@ static bool Binary_Input_Out_Of_Service(
     bool value = false;
     unsigned index = 0;
 
-    Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         value = Out_Of_Service[index];
@@ -248,7 +245,6 @@ static void Binary_Input_Present_Value_Set(
 {
     unsigned index = 0;
 
-    Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         if (Present_Value[index] != value) {
@@ -266,7 +262,6 @@ static void Binary_Input_Out_Of_Service_Set(
 {
     unsigned index = 0;
 
-    Binary_Input_Init();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         if (Out_Of_Service[index] != value) {
@@ -283,7 +278,6 @@ char *Binary_Input_Name(
 {
     static char text_string[32] = "";   /* okay for single thread */
 
-    Binary_Input_Init();
     if (object_instance < MAX_BINARY_INPUTS) {
         sprintf(text_string, "BINARY INPUT %u", object_instance);
         return text_string;
@@ -308,7 +302,6 @@ int Binary_Input_Encode_Property_APDU(
     BACNET_POLARITY polarity = POLARITY_NORMAL;
 
     (void) array_index;
-    Binary_Input_Init();
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -381,7 +374,6 @@ bool Binary_Input_Write_Property(
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    Binary_Input_Init();
     if (!Binary_Input_Valid_Instance(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;

@@ -462,3 +462,7 @@ bool bacfile_write_stream_data(
 
     return found;
 }
+
+void bacfile_init(void)
+{
+}

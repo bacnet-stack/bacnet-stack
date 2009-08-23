@@ -47,6 +47,8 @@ extern "C" {
         unsigned index);
     char *Life_Safety_Point_Name(
         uint32_t object_instance);
+    void Life_Safety_Point_Init(
+        void);
 
     int Life_Safety_Point_Encode_Property_APDU(
         uint8_t * apdu,

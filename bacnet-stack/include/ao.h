@@ -58,7 +58,8 @@ extern "C" {
     bool Analog_Output_Present_Value_Relinquish(
         uint32_t object_instance,
         unsigned priority);
-
+    
+    void Analog_Output_Init(void);
 
     int Analog_Output_Encode_Property_APDU(
         uint8_t * apdu,

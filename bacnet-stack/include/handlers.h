@@ -31,6 +31,9 @@
 #include "bacdef.h"
 #include "apdu.h"
 #include "bacapp.h"
+#include "rp.h"
+#include "rpm.h"
+#include "wp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,9 +78,10 @@ extern "C" {
 
     void handler_read_property_object_set(
         BACNET_OBJECT_TYPE object_type,
-        read_property_function pFunction);
+        read_property_function pFunction1,
+		object_valid_instance_function pFunction2);
 
-    void handler_read_property_ack(
+	void handler_read_property_ack(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
@@ -143,6 +147,10 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+
+	void handler_read_property_multiple_list_set(
+		BACNET_OBJECT_TYPE object_type,
+		rpm_property_lists_function pFunction);
 
     void handler_read_property_multiple_ack(
         uint8_t * service_request,

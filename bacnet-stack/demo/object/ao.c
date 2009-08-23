@@ -57,7 +57,7 @@ static bool Analog_Output_Out_Of_Service[MAX_ANALOG_OUTPUTS];
 static bool Analog_Output_Initialized = false;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Analog_Output_Properties_Required[] = {
+static const int Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -71,12 +71,12 @@ static const int Analog_Output_Properties_Required[] = {
     -1
 };
 
-static const int Analog_Output_Properties_Optional[] = {
+static const int Properties_Optional[] = {
     PROP_DESCRIPTION,
     -1
 };
 
-static const int Analog_Output_Properties_Proprietary[] = {
+static const int Properties_Proprietary[] = {
     -1
 };
 
@@ -86,11 +86,11 @@ void Analog_Output_Property_Lists(
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = Analog_Output_Properties_Required;
+        *pRequired = Properties_Required;
     if (pOptional)
-        *pOptional = Analog_Output_Properties_Optional;
+        *pOptional = Properties_Optional;
     if (pProprietary)
-        *pProprietary = Analog_Output_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
 
     return;
 }
@@ -120,7 +120,6 @@ void Analog_Output_Init(
 bool Analog_Output_Valid_Instance(
     uint32_t object_instance)
 {
-    Analog_Output_Init();
     if (object_instance < MAX_ANALOG_OUTPUTS)
         return true;
 
@@ -132,7 +131,6 @@ bool Analog_Output_Valid_Instance(
 unsigned Analog_Output_Count(
     void)
 {
-    Analog_Output_Init();
     return MAX_ANALOG_OUTPUTS;
 }
 
@@ -142,7 +140,6 @@ unsigned Analog_Output_Count(
 uint32_t Analog_Output_Index_To_Instance(
     unsigned index)
 {
-    Analog_Output_Init();
     return index;
 }
 
@@ -154,7 +151,6 @@ unsigned Analog_Output_Instance_To_Index(
 {
     unsigned index = MAX_ANALOG_OUTPUTS;
 
-    Analog_Output_Init();
     if (object_instance < MAX_ANALOG_OUTPUTS)
         index = object_instance;
 
@@ -168,7 +164,6 @@ float Analog_Output_Present_Value(
     unsigned index = 0;
     unsigned i = 0;
 
-    Analog_Output_Init();
     index = Analog_Output_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
@@ -189,7 +184,6 @@ unsigned Analog_Output_Present_Value_Priority(
     unsigned i = 0;     /* loop counter */
     unsigned priority = 0;      /* return value */
 
-    Analog_Output_Init();
     index = Analog_Output_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
@@ -287,7 +281,6 @@ int Analog_Output_Encode_Property_APDU(
     unsigned i = 0;
     bool state = false;
 
-    Analog_Output_Init();
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -405,7 +398,6 @@ bool Analog_Output_Write_Property(
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    Analog_Output_Init();
     if (!Analog_Output_Valid_Instance(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
