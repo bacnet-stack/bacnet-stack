@@ -32,10 +32,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-    void Analog_Input_Property_Lists(
-        const int **pRequired,
-        const int **pOptional,
-        const int **pProprietary);
+	void Analog_Input_Property_Lists(
+		const int **pRequired,
+		const int **pOptional,
+		const int **pProprietary);	
     bool Analog_Input_Valid_Instance(
         uint32_t object_instance);
     unsigned Analog_Input_Count(

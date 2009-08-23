@@ -32,15 +32,6 @@
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "apdu.h"
-#include "ai.h" /* object list dependency */
-#include "ao.h" /* object list dependency */
-#include "av.h" /* object list dependency */
-#include "bi.h" /* object list dependency */
-#include "bo.h" /* object list dependency */
-#include "bv.h" /* object list dependency */
-#include "lc.h" /* object list dependency */
-#include "lsp.h"        /* object list dependency */
-#include "mso.h"        /* object list dependency */
 #include "wp.h" /* write property handling */
 #include "version.h"
 #include "device.h"     /* me */
@@ -49,6 +40,26 @@
 #if defined(BACFILE)
 #include "bacfile.h"    /* object list dependency */
 #endif
+
+static object_count_function 
+    Object_Count[MAX_BACNET_OBJECT_TYPE];
+static object_index_to_instance_function 
+    Object_Index_To_Instance[MAX_BACNET_OBJECT_TYPE];
+static object_name_function
+    Object_Name[MAX_BACNET_OBJECT_TYPE];
+
+void Device_Object_Function_Set(
+    BACNET_OBJECT_TYPE object_type,
+    object_count_function count_function,
+    object_index_to_instance_function index_function,
+    object_name_function name_function)
+{
+    if (object_type < MAX_BACNET_OBJECT_TYPE) {
+        Object_Count[object_type] = count_function;
+        Object_Index_To_Instance[object_type] = index_function;
+        Object_Name[object_type] = name_function;
+    }
+}                
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
@@ -114,7 +125,7 @@ void Device_Property_Lists(
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 260001;
-static char Object_Name[16] = "SimpleServer";
+static char My_Object_Name[16] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
@@ -186,7 +197,7 @@ bool Device_Valid_Object_Instance_Number(
 const char *Device_Object_Name(
     void)
 {
-    return Object_Name;
+    return My_Object_Name;
 }
 
 bool Device_Set_Object_Name(
@@ -200,7 +211,7 @@ bool Device_Set_Object_Name(
        the device. */
     if (length < sizeof(Object_Name)) {
         memmove(Object_Name, name, length);
-        Object_Name[length] = 0;
+        My_Object_Name[length] = 0;
         status = true;
     }
 
@@ -363,20 +374,14 @@ void Device_Set_Database_Revision(
 unsigned Device_Object_List_Count(
     void)
 {
-    unsigned count = 1;
-
-    count += Analog_Input_Count();
-    count += Analog_Output_Count();
-    count += Analog_Value_Count();
-    count += Binary_Input_Count();
-    count += Binary_Output_Count();
-    count += Binary_Value_Count();
-    count += Life_Safety_Point_Count();
-    count += Load_Control_Count();
-    count += Multistate_Output_Count();
-#if defined(BACFILE)
-    count += bacfile_count();
-#endif
+    unsigned count = 1; /* 1 for the device object */
+    unsigned i = 0; /* loop counter */
+    
+    for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
+        if (Object_Count[i]) {
+            count += Object_Count[i]();
+        }
+    }
 
     return count;
 }
@@ -388,144 +393,38 @@ bool Device_Object_List_Identifier(
 {
     bool status = false;
     unsigned object_index = 0;
-    unsigned object_count = 0;
+    unsigned count = 0;
+    unsigned i = 0; /* loop counter */
 
-    /* device object */
+    if (array_index == 0) {
+        return status;
+    }
+        /* device object */
     if (array_index == 1) {
         *object_type = OBJECT_DEVICE;
         *instance = Object_Instance_Number;
         status = true;
     }
-    /* analog input objects */
+    
     if (!status) {
-        /* array index starts at 1, and 1 for the device object */
+        /* array index starts at 1, and if we are this far,
+           we are not the device object, so array_index must
+           be at least 2. */
         object_index = array_index - 2;
-        object_count = Analog_Input_Count();
-        if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_INPUT;
-            *instance = Analog_Input_Index_To_Instance(object_index);
-            status = true;
+        /* look through the objects to find the right index */
+        for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
+            if (Object_Count[i] && Object_Index_To_Instance[i]) {
+                object_index -= count;
+                count = Object_Count[i]();
+                if (object_index < count) {
+                    *object_type = i;
+                    *instance = Object_Index_To_Instance[i](object_index);
+                    status = true;
+                    break;
+                }
+            }
         }
     }
-    /* analog output objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Analog_Output_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_OUTPUT;
-            *instance = Analog_Output_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* analog value objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Analog_Value_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_ANALOG_VALUE;
-            *instance = Analog_Value_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* binary input objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Binary_Input_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_BINARY_INPUT;
-            *instance = Binary_Input_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* binary output objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Binary_Output_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_BINARY_OUTPUT;
-            *instance = Binary_Output_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* binary value objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Binary_Value_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_BINARY_VALUE;
-            *instance = Binary_Value_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* life safety point objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Life_Safety_Point_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_LIFE_SAFETY_POINT;
-            *instance = Life_Safety_Point_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* load control objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Load_Control_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_LOAD_CONTROL;
-            *instance = Load_Control_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* multi-state output objects */
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = Multistate_Output_Count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_MULTI_STATE_OUTPUT;
-            *instance = Multistate_Output_Index_To_Instance(object_index);
-            status = true;
-        }
-    }
-    /* file objects */
-#if defined(BACFILE)
-    if (!status) {
-        /* normalize the index since
-           we know it is not the previous objects */
-        object_index -= object_count;
-        object_count = bacfile_count();
-        /* is it a valid index for this object? */
-        if (object_index < object_count) {
-            *object_type = OBJECT_FILE;
-            *instance = bacfile_index_to_instance(object_index);
-            status = true;
-        }
-    }
-#endif
 
     return status;
 }
@@ -549,10 +448,12 @@ bool Device_Valid_Object_Name(
             name = Device_Valid_Object_Id(type, instance);
             if (strcmp(name, object_name) == 0) {
                 found = true;
-                if (object_type)
+                if (object_type) {
                     *object_type = type;
-                if (object_instance)
+                }
+                if (object_instance) {
                     *object_instance = instance;
+                }
                 break;
             }
         }
@@ -567,46 +468,18 @@ char *Device_Valid_Object_Id(
     uint32_t object_instance)
 {
     char *name = NULL;  /* return value */
+    object_name_function name_function = NULL;
 
-    switch (object_type) {
-        case OBJECT_ANALOG_INPUT:
-            name = Analog_Input_Name(object_instance);
-            break;
-        case OBJECT_ANALOG_OUTPUT:
-            name = Analog_Output_Name(object_instance);
-            break;
-        case OBJECT_ANALOG_VALUE:
-            name = Analog_Value_Name(object_instance);
-            break;
-        case OBJECT_BINARY_INPUT:
-            name = Binary_Input_Name(object_instance);
-            break;
-        case OBJECT_BINARY_OUTPUT:
-            name = Binary_Output_Name(object_instance);
-            break;
-        case OBJECT_BINARY_VALUE:
-            name = Binary_Value_Name(object_instance);
-            break;
-        case OBJECT_LIFE_SAFETY_POINT:
-            name = Life_Safety_Point_Name(object_instance);
-            break;
-        case OBJECT_LOAD_CONTROL:
-            name = Load_Control_Name(object_instance);
-            break;
-        case OBJECT_MULTI_STATE_OUTPUT:
-            name = Multistate_Output_Name(object_instance);
-            break;
-#if defined(BACFILE)
-        case OBJECT_FILE:
-            name = bacfile_name(object_instance);
-            break;
-#endif
-        case OBJECT_DEVICE:
-            if (object_instance == Object_Instance_Number)
-                name = Object_Name;
-            break;
-        default:
-            break;
+    if (object_type < MAX_BACNET_OBJECT_TYPE) {
+        name_function = Object_Name[object_type];
+    }
+    if (name_function) {
+        name = name_function(object_instance);
+    } else {
+        if ((object_type == OBJECT_DEVICE) &&
+            (object_instance == Object_Instance_Number)) {
+            name = My_Object_Name;
+        }
     }
 
     return name;
@@ -616,6 +489,7 @@ char *Device_Valid_Object_Id(
    -2 for abort message */
 int Device_Encode_Property_APDU(
     uint8_t * apdu,
+    uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
     BACNET_ERROR_CLASS * error_class,
@@ -629,7 +503,8 @@ int Device_Encode_Property_APDU(
     int object_type = 0;
     uint32_t instance = 0;
     unsigned count = 0;
-
+    
+    object_instance = object_instance;
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -637,7 +512,7 @@ int Device_Encode_Property_APDU(
                 Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string, Object_Name);
+            characterstring_init_ansi(&char_string, My_Object_Name);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -737,34 +612,13 @@ int Device_Encode_Property_APDU(
                not a list of objects that this device can access */
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
-                /* initialize all the object types to not-supported */
-                bitstring_set_bit(&bit_string, (uint8_t) i, false);
+                if ((i == OBJECT_DEVICE) || Object_Count[i]) {
+                    bitstring_set_bit(&bit_string, i, true);
+                } else {
+                    /* initialize all the object types to not-supported */
+                    bitstring_set_bit(&bit_string, (uint8_t) i, false);
+                }
             }
-            /* FIXME: indicate the objects that YOU support */
-            bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
-            if (Analog_Input_Count())
-                bitstring_set_bit(&bit_string, OBJECT_ANALOG_INPUT, true);
-            if (Analog_Output_Count())
-                bitstring_set_bit(&bit_string, OBJECT_ANALOG_OUTPUT, true);
-            if (Analog_Value_Count())
-                bitstring_set_bit(&bit_string, OBJECT_ANALOG_VALUE, true);
-            if (Binary_Input_Count())
-                bitstring_set_bit(&bit_string, OBJECT_BINARY_INPUT, true);
-            if (Binary_Output_Count())
-                bitstring_set_bit(&bit_string, OBJECT_BINARY_OUTPUT, true);
-            if (Binary_Value_Count())
-                bitstring_set_bit(&bit_string, OBJECT_BINARY_VALUE, true);
-            if (Life_Safety_Point_Count())
-                bitstring_set_bit(&bit_string, OBJECT_LIFE_SAFETY_POINT, true);
-            if (Load_Control_Count())
-                bitstring_set_bit(&bit_string, OBJECT_LOAD_CONTROL, true);
-            if (Multistate_Output_Count())
-                bitstring_set_bit(&bit_string, OBJECT_MULTI_STATE_OUTPUT,
-                    true);
-#if defined(BACFILE)
-            if (bacfile_count())
-                bitstring_set_bit(&bit_string, OBJECT_FILE, true);
-#endif
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OBJECT_LIST:
@@ -1004,12 +858,6 @@ bool Device_Write_Property(
 
 void Device_Init(void)
 {
-    handler_write_property_object_set(
-        OBJECT_DEVICE,
-        Device_Write_Property);
-    handler_read_property_object_set(
-        OBJECT_DEVICE,
-        Device_Encode_Property_APDU);
 }
 
 #ifdef TEST
@@ -1051,194 +899,6 @@ void testDevice(
 }
 
 #ifdef TEST_DEVICE
-/* stubs to dependencies to keep unit test simple */
-char *Analog_Input_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Analog_Input_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Analog_Input_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Analog_Output_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Analog_Output_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Analog_Output_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Analog_Value_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Analog_Value_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Analog_Value_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Binary_Input_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Binary_Input_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Binary_Input_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Binary_Output_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Binary_Output_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Binary_Output_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Binary_Value_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Binary_Value_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Binary_Value_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Life_Safety_Point_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Life_Safety_Point_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Life_Safety_Point_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Load_Control_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Load_Control_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Load_Control_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-char *Multistate_Output_Name(
-    uint32_t object_instance)
-{
-    (void) object_instance;
-    return "";
-}
-
-unsigned Multistate_Output_Count(
-    void)
-{
-    return 0;
-}
-
-uint32_t Multistate_Output_Index_To_Instance(
-    unsigned index)
-{
-    return index;
-}
-
-#if defined(BACFILE)
-uint32_t bacfile_count(
-    void)
-{
-    return 0;
-}
-#endif
-
-#if defined(BACFILE)
-uint32_t bacfile_index_to_instance(
-    unsigned find_index)
-{
-    return find_index;
-}
-#endif
-
 int main(
     void)
 {

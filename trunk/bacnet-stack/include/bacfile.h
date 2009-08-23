@@ -74,6 +74,8 @@ extern "C" {
     bool bacfile_write_stream_data(
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
+    void bacfile_init(void);
+
 /* handling for read property service */
     int bacfile_encode_property_apdu(
         uint8_t * apdu,

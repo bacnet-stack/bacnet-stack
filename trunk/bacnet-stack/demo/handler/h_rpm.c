@@ -38,23 +38,12 @@
 #include "abort.h"
 #include "rpm.h"
 #include "handlers.h"
-/* demo objects */
-#include "device.h"
-#include "ai.h"
-#include "ao.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
-#include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#if defined(BACFILE)
-#include "bacfile.h"
-#endif
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
+static rpm_property_lists_function
+    RPM_Lists[MAX_BACNET_OBJECT_TYPE];
+                
 struct property_list_t {
     const int *pList;
     unsigned count;
@@ -81,75 +70,34 @@ static unsigned property_list_count(
     return property_count;
 }
 
+void handler_read_property_multiple_list_set(
+    BACNET_OBJECT_TYPE object_type,
+    rpm_property_lists_function pFunction)
+{
+    if (object_type < MAX_BACNET_OBJECT_TYPE) {
+        RPM_Lists[object_type] = pFunction;
+    }
+}                
+
 /* for a given object type, returns the special property list */
 static void RPM_Property_List(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
 {
+	rpm_property_lists_function object_property_list = NULL;
     pPropertyList->Required.pList = NULL;
     pPropertyList->Optional.pList = NULL;
     pPropertyList->Proprietary.pList = NULL;
-    switch (object_type) {
-        case OBJECT_ANALOG_INPUT:
-            Analog_Input_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_ANALOG_OUTPUT:
-            Analog_Output_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_ANALOG_VALUE:
-            Analog_Value_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_BINARY_INPUT:
-            Binary_Input_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_BINARY_OUTPUT:
-            Binary_Output_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_BINARY_VALUE:
-            Binary_Value_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_LIFE_SAFETY_POINT:
-            Life_Safety_Point_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_LOAD_CONTROL:
-            Load_Control_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        case OBJECT_MULTI_STATE_OUTPUT:
-            Multistate_Output_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-#if defined(BACFILE)
-        case OBJECT_FILE:
-            BACfile_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-#endif
-        case OBJECT_DEVICE:
-            Device_Property_Lists(&pPropertyList->Required.pList,
-                &pPropertyList->Optional.pList,
-                &pPropertyList->Proprietary.pList);
-            break;
-        default:
-            break;
-    }
+	
+	if (object_type < MAX_BACNET_OBJECT_TYPE) {
+		object_property_list = RPM_Lists[object_type];
+	}
+	if (object_property_list) {
+		object_property_list(
+			&pPropertyList->Required.pList,
+			&pPropertyList->Optional.pList,
+			&pPropertyList->Proprietary.pList);
+	}
     /* fill the count */
     if (pPropertyList->Required.pList) {
         pPropertyList->Required.count =

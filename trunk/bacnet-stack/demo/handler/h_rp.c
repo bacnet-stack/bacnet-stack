@@ -31,40 +31,30 @@
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bacerror.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
 #include "rp.h"
-/* demo objects */
-#include "device.h"
-#include "ai.h"
-#include "ao.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
-#include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#if defined(BACFILE)
-#include "bacfile.h"
-#endif
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
-
 static read_property_function
     Read_Property[MAX_BACNET_OBJECT_TYPE];
-                
+
+static object_valid_instance_function
+    Valid_Instance[MAX_BACNET_OBJECT_TYPE];
+
 void handler_read_property_object_set(
     BACNET_OBJECT_TYPE object_type,
-    read_property_function pFunction)
+    read_property_function pFunction1,
+    object_valid_instance_function pFunction2)
 {
     if (object_type < MAX_BACNET_OBJECT_TYPE) {
-        Read_Property[object_type] = pFunction;
+        Read_Property[object_type] = pFunction1;
+        Valid_Instance[object_type] = pFunction2;
     }
 }                
-
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
@@ -78,104 +68,25 @@ int Encode_Property_APDU(
     BACNET_ERROR_CODE * error_code)
 {
     int apdu_len = -1;
+    read_property_function object_rp = NULL;
+    object_valid_instance_function object_valid = NULL;
 
     /* initialize the default return values */
     *error_class = ERROR_CLASS_OBJECT;
     *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     /* handle each object type */
-    switch (object_type) {
-        case OBJECT_DEVICE:
-            if (Device_Valid_Object_Instance_Number(object_instance)) {
-                apdu_len =
-                    Device_Encode_Property_APDU(&apdu[0], property,
-                    array_index, error_class, error_code);
-            }
-            break;
-        case OBJECT_ANALOG_INPUT:
-            if (Analog_Input_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Analog_Input_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_ANALOG_OUTPUT:
-            if (Analog_Output_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Analog_Output_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_ANALOG_VALUE:
-            if (Analog_Value_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Analog_Value_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Binary_Input_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_BINARY_OUTPUT:
-            if (Binary_Output_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Binary_Output_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_BINARY_VALUE:
-            if (Binary_Value_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Binary_Value_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_LIFE_SAFETY_POINT:
-            if (Life_Safety_Point_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Life_Safety_Point_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_LOAD_CONTROL:
-            if (Load_Control_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Load_Control_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-        case OBJECT_MULTI_STATE_OUTPUT:
-            if (Multistate_Output_Valid_Instance(object_instance)) {
-                apdu_len =
-                    Multistate_Output_Encode_Property_APDU(&apdu[0],
-                    object_instance, property, array_index, error_class,
-                    error_code);
-            }
-            break;
-#if defined(BACFILE)
-        case OBJECT_FILE:
-            if (bacfile_valid_instance(object_instance)) {
-                apdu_len =
-                    bacfile_encode_property_apdu(&apdu[0], object_instance,
-                    property, array_index, error_class, error_code);
-            }
-            break;
-#endif
-        default:
-            *error_class = ERROR_CLASS_OBJECT;
-            *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
-            break;
+    if (object_type < MAX_BACNET_OBJECT_TYPE) {
+        object_rp = Read_Property[object_type];
+        object_valid = Valid_Instance[object_type];
+    }
+    if (object_rp && object_valid &&
+        object_valid(object_instance)) {
+        apdu_len = object_rp(
+            &apdu[0], object_instance, property,
+            array_index, error_class, error_code);
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
 
     return apdu_len;

@@ -40,7 +40,7 @@
 static float Present_Value[MAX_ANALOG_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Analog_Input_Properties_Required[] = {
+static const int Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -52,12 +52,12 @@ static const int Analog_Input_Properties_Required[] = {
     -1
 };
 
-static const int Analog_Input_Properties_Optional[] = {
+static const int Properties_Optional[] = {
     PROP_DESCRIPTION,
     -1
 };
 
-static const int Analog_Input_Properties_Proprietary[] = {
+static const int Properties_Proprietary[] = {
     9997,
     9998,
     9999,
@@ -70,11 +70,11 @@ void Analog_Input_Property_Lists(
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = Analog_Input_Properties_Required;
+        *pRequired = Properties_Required;
     if (pOptional)
-        *pOptional = Analog_Input_Properties_Optional;
+        *pOptional = Properties_Optional;
     if (pProprietary)
-        *pProprietary = Analog_Input_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
 
     return;
 }
@@ -215,6 +215,10 @@ int Analog_Input_Encode_Property_APDU(
     }
 
     return apdu_len;
+}
+
+void Analog_Input_Init(void)
+{
 }
 
 #ifdef TEST

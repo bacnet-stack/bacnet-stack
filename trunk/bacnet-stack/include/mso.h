@@ -48,6 +48,9 @@ extern "C" {
     char *Multistate_Output_Name(
         uint32_t object_instance);
 
+    void Multistate_Output_Init(
+        void);
+
     int Multistate_Output_Encode_Property_APDU(
         uint8_t * apdu,
         uint32_t object_instance,

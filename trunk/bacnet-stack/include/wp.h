@@ -55,7 +55,6 @@ typedef struct BACnet_Write_Property_Data {
 
 typedef bool (*write_property_function) (
     BACNET_WRITE_PROPERTY_DATA * wp_data,
-    uint8_t * service_request,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code);
 

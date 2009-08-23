@@ -51,6 +51,9 @@ extern "C" {
     char *Load_Control_Name(
         uint32_t object_instance);
 
+    void Load_Control_Init(
+        void);
+
     int Load_Control_Encode_Property_APDU(
         uint8_t * apdu,
         uint32_t object_instance,

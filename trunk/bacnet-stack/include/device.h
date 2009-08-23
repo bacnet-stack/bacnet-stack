@@ -40,10 +40,21 @@
 #include "bacenum.h"
 #include "wp.h"
 
+typedef unsigned (*object_count_function) (void);
+typedef uint32_t (*object_index_to_instance_function) 
+    (unsigned index);
+typedef char * (*object_name_function)
+    (uint32_t object_instance);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    void Device_Object_Function_Set(
+        BACNET_OBJECT_TYPE object_type,
+        object_count_function count_function,
+        object_index_to_instance_function index_function,
+        object_name_function name_function);
 
     void Device_Init(
         void);
@@ -127,6 +138,7 @@ extern "C" {
 
     int Device_Encode_Property_APDU(
         uint8_t * apdu,
+        uint32_t object_instance,
         BACNET_PROPERTY_ID property,
         int32_t array_index,
         BACNET_ERROR_CLASS * error_class,

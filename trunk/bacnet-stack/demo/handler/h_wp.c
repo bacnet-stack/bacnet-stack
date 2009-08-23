@@ -31,24 +31,11 @@
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "bacerror.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
 #include "wp.h"
-/* demo objects */
-#include "device.h"
-#include "ai.h"
-#include "ao.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
-#include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#if defined(BACFILE)
-#include "bacfile.h"
-#endif
 
 static write_property_function
     Write_Property[MAX_BACNET_OBJECT_TYPE];

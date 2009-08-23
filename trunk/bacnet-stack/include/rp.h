@@ -36,6 +36,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacdef.h"
+#include "bacenum.h"
 
 typedef struct BACnet_Read_Property_Data {
     BACNET_OBJECT_TYPE object_type;
@@ -48,10 +50,14 @@ typedef struct BACnet_Read_Property_Data {
 
 typedef int (*read_property_function) (
     uint8_t * apdu,
+    uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code);
+
+typedef bool (*object_valid_instance_function) (
+        uint32_t object_instance);
 
 #ifdef __cplusplus
 extern "C" {
