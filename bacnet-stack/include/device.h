@@ -103,6 +103,12 @@ extern "C" {
         const char *name,
         size_t length);
 
+    bool Device_Set_Object_Name(
+        const char *name,
+        size_t length);
+    const char *Device_Object_Name(
+        void);
+
     const char *Device_Description(
         void);
     bool Device_Set_Description(
