@@ -247,6 +247,16 @@ const char *bactext_object_type_name(
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+bool bactext_object_type_index(
+    const char *search_name,
+    unsigned *found_index)
+{
+    return indtext_by_istring(
+        bacnet_object_type_names,
+        search_name,
+        found_index);
+}
+
 INDTEXT_DATA bacnet_property_names[] = {
 /* FIXME: use the enumerations from bacenum.h */
     {PROP_ACKED_TRANSITIONS, "acked-transitions"}

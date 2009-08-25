@@ -61,6 +61,9 @@ extern "C" {
         unsigned index);
     const char *bactext_object_type_name(
         unsigned index);
+    bool bactext_object_type_index(
+       const char *search_name,
+       unsigned *found_index);
     const char *bactext_property_name(
         unsigned index);
     const char *bactext_engineering_unit_name(
