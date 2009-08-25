@@ -99,6 +99,13 @@ extern "C" {
     unsigned indtext_count(
         INDTEXT_DATA * data_list);
 
+
+#if !defined(__BORLANDC__) && !defined(_MSC_VER)
+int stricmp(
+    const char *s1,
+    const char *s2);
+#endif
+
 #ifdef TEST
 #include "ctest.h"
     void testIndexText(
