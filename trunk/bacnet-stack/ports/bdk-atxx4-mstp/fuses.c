@@ -87,7 +87,7 @@ FUSES = {
     /* note: fuses are enabled by clearing the bit, so
        any fuses listed below are cleared fuses,
        or are BODLEVEL bits that are zero. */
-    /* Brown-out detection VCC=2.7V */
+    /* Brown-out detection VCC=4.3V */
     .extended = (FUSE_BODLEVEL1 & FUSE_BODLEVEL0)
 };
 
