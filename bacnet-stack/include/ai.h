@@ -44,6 +44,9 @@ extern "C" {
         unsigned index);
     char *Analog_Input_Name(
         uint32_t object_instance);
+    bool Analog_Input_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
 
     int Analog_Input_Encode_Property_APDU(
         uint8_t * apdu,
