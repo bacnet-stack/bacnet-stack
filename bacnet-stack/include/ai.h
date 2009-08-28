@@ -35,17 +35,29 @@ extern "C" {
 	void Analog_Input_Property_Lists(
 		const int **pRequired,
 		const int **pOptional,
-		const int **pProprietary);	
+		const int **pProprietary);
+	
     bool Analog_Input_Valid_Instance(
         uint32_t object_instance);
     unsigned Analog_Input_Count(
         void);
     uint32_t Analog_Input_Index_To_Instance(
         unsigned index);
+    unsigned Analog_Input_Instance_To_Index(
+        uint32_t instance);
+    bool Analog_Input_Object_Instance_Add(
+        uint32_t instance);
+
     char *Analog_Input_Name(
         uint32_t object_instance);
     bool Analog_Input_Name_Set(
         uint32_t object_instance,
+        char *new_name);
+
+    char *Analog_Input_Description(
+        uint32_t instance);
+    bool Analog_Input_Description_Set(
+        uint32_t instance,
         char *new_name);
 
     int Analog_Input_Encode_Property_APDU(
