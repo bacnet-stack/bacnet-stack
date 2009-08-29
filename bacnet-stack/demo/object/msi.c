@@ -67,6 +67,7 @@ static const int Properties_Required[] = {
 
 static const int Properties_Optional[] = {
     PROP_DESCRIPTION,
+    PROP_STATE_TEXT,
     -1
 };
 
@@ -399,7 +400,7 @@ int Multistate_Input_Encode_Property_APDU(
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(object_instance, i));
                     /* FIXME: this might go beyond MAX_APDU length! */
-                    apdu_len = encode_application_character_string(
+                    len = encode_application_character_string(
                         &apdu[apdu_len], 
                         &char_string);
                     /* add it if we have room */

@@ -39,14 +39,15 @@ extern "C" {
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    
     bool Multistate_Input_Valid_Instance(
         uint32_t object_instance);
     unsigned Multistate_Input_Count(
         void);
     uint32_t Multistate_Input_Index_To_Instance(
         unsigned index);
-    char *Multistate_Input_Name(
-        uint32_t object_instance);
+    unsigned Multistate_Input_Instance_To_Index(
+        uint32_t instance);    
 
     int Multistate_Input_Encode_Property_APDU(
         uint8_t * apdu,
@@ -61,18 +62,29 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
+    /* optional API */
+    bool Multistate_Input_Object_Instance_Add(
+        uint32_t instance);
+    char *Multistate_Input_Name(
+        uint32_t object_instance);
+    bool Multistate_Input_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
+    uint32_t Multistate_Input_Present_Value(
+        uint32_t object_instance);
     bool Multistate_Input_Present_Value_Set(
         uint32_t object_instance,
         uint32_t value);
-
     bool Multistate_Input_Description_Set(
         uint32_t object_instance,
         char *text_string);
-
     bool Multistate_Input_State_Text_Set(
         uint32_t object_instance,
         uint32_t state_index,
         char *new_name);
+    bool Multistate_Input_Max_States_Set(
+        uint32_t instance,
+        uint32_t max_states_requested);
 
     void Multistate_Input_Init(
         void);
