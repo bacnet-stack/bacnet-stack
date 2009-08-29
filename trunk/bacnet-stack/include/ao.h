@@ -45,8 +45,11 @@ extern "C" {
         void);
     uint32_t Analog_Output_Index_To_Instance(
         unsigned index);
-    char *Analog_Output_Name(
-        uint32_t object_instance);
+    unsigned Analog_Output_Instance_To_Index(
+        uint32_t instance);
+    bool Analog_Output_Object_Instance_Add(
+        uint32_t instance);
+
     float Analog_Output_Present_Value(
         uint32_t object_instance);
     unsigned Analog_Output_Present_Value_Priority(
@@ -58,6 +61,18 @@ extern "C" {
     bool Analog_Output_Present_Value_Relinquish(
         uint32_t object_instance,
         unsigned priority);
+
+    char *Analog_Output_Name(
+        uint32_t object_instance);
+    bool Analog_Output_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
+
+    char *Analog_Output_Description(
+        uint32_t instance);
+    bool Analog_Output_Description_Set(
+        uint32_t instance,
+        char *new_name);
     
     void Analog_Output_Init(void);
 
