@@ -87,6 +87,15 @@ extern "C" {
         unsigned int priority,
         BACNET_BINARY_PV level);
 
+    bool Binary_Output_Present_Value_Set(
+        uint32_t instance,
+        BACNET_BINARY_PV binary_value,
+        unsigned priority);
+    bool Binary_Output_Present_Value_Relinquish(
+        uint32_t instance,
+        unsigned priority);
+
+
 #ifdef TEST
 #include "ctest.h"
     void testBinaryOutput(
