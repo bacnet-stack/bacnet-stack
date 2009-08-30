@@ -25,6 +25,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacstr.h"
@@ -119,6 +120,7 @@ void Device_Init(
     void)
 {
     Reinitialize_State = REINITIALIZED_STATE_IDLE;
+    
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* Get the data from the eeprom */
     eeprom_bytes_read(NV_EEPROM_DEVICE_0, (uint8_t *) & Object_Instance_Number,
@@ -137,11 +139,14 @@ void Device_Init(
     if ((Object_Name_Encoding >= MAX_CHARACTER_STRING_ENCODING) ||
         (Object_Name_Length > NV_EEPROM_DEVICE_NAME_SIZE)) {
         Object_Name_Encoding = CHARACTER_ANSI_X34;
-        Object_Name_Length = 0;
+        Object_Name_Length = 11;
         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
             &Object_Name_Encoding, 1);
         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &Object_Name_Length,
             1);
+        sprintf(Object_Name, "DEVICE-%lu", Object_Instance_Number);
+        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & Object_Name[0],
+            NV_EEPROM_DEVICE_NAME_SIZE);
     }
 }
 
@@ -583,7 +588,10 @@ bool Device_Write_Property(
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
                 size_t length =
                     characterstring_length(&value.type.Character_String);
-                if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
+                if (length < 1) {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;                    
+                } else if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
                     uint8_t encoding =
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {

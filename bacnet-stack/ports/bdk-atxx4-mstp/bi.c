@@ -33,9 +33,8 @@
 #include "bacenum.h"
 #include "config.h"
 
+#ifndef MAX_BINARY_INPUTS
 #define MAX_BINARY_INPUTS 8
-#if (MAX_BINARY_INPUTS > 9)
-#error Modify the Binary_Input_Name to handle multiple digits
 #endif
 
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
@@ -164,10 +163,10 @@ bool Binary_Input_Present_Value_Set(
 char *Binary_Input_Name(
     uint32_t object_instance)
 {
-    static char text_string[16] = "BI-0";       /* okay for single thread */
+    static char text_string[32]; /* okay for single thread */
 
     if (object_instance < MAX_BINARY_INPUTS) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        sprintf(text_string, "BI-%lu", object_instance);
         return text_string;
     }
 

@@ -34,9 +34,8 @@
 #include "config.h"
 
 /* Analog Input */
+#ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS 2
-#if (MAX_ANALOG_INPUTS > 9)
-#error Modify the Analog_Input_Name to handle multiple digits
 #endif
 
 static uint8_t Present_Value[MAX_ANALOG_INPUTS];
@@ -113,10 +112,10 @@ uint32_t Analog_Input_Index_To_Instance(
 char *Analog_Input_Name(
     uint32_t object_instance)
 {
-    static char text_string[16] = "AI-0";       /* okay for single thread */
+    static char text_string[32]; /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_INPUTS) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        sprintf(text_string, "AI-%lu", object_instance);
         return text_string;
     }
 

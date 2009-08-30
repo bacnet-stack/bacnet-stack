@@ -36,9 +36,8 @@
 #include "led.h"
 #include "nvdata.h"
 
+#ifndef MAX_BINARY_OUTPUTS
 #define MAX_BINARY_OUTPUTS 2
-#if (MAX_BINARY_OUTPUTS > 9)
-#error Modify the Binary_Output_Name to handle multiple digits
 #endif
 
 /* When all the priorities are level null, the present value returns */
@@ -241,10 +240,10 @@ void Binary_Output_Level_Sync(
 char *Binary_Output_Name(
     uint32_t object_instance)
 {
-    static char text_string[16] = "BV-0";       /* okay for single thread */
+    static char text_string[32]; /* okay for single thread */
 
     if (object_instance < MAX_BINARY_OUTPUTS) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        sprintf(text_string, "BO-%lu", object_instance);
         return text_string;
     }
 
