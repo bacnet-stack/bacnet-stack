@@ -38,14 +38,29 @@ extern "C" {
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+
     bool Binary_Input_Valid_Instance(
         uint32_t object_instance);
     unsigned Binary_Input_Count(
         void);
     uint32_t Binary_Input_Index_To_Instance(
         unsigned index);
+    unsigned Binary_Input_Instance_To_Index(
+        uint32_t instance);
+    bool Binary_Input_Object_Instance_Add(
+        uint32_t instance);
+
     char *Binary_Input_Name(
         uint32_t object_instance);
+    bool Binary_Input_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
+
+    char *Binary_Input_Description(
+        uint32_t instance);
+    bool Binary_Input_Description_Set(
+        uint32_t instance,
+        char *new_name);
 
     bool Binary_Input_Change_Of_Value(
         uint32_t object_instance);
