@@ -42,14 +42,30 @@ extern "C" {
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+
     bool Binary_Output_Valid_Instance(
         uint32_t object_instance);
     unsigned Binary_Output_Count(
         void);
     uint32_t Binary_Output_Index_To_Instance(
         unsigned index);
+    unsigned Binary_Output_Instance_To_Index(
+        uint32_t instance);
+    bool Binary_Output_Object_Instance_Add(
+        uint32_t instance);
+
     char *Binary_Output_Name(
         uint32_t object_instance);
+    bool Binary_Output_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
+
+    char *Binary_Output_Description(
+        uint32_t instance);
+    bool Binary_Output_Description_Set(
+        uint32_t instance,
+        char *new_name);
+
 
     int Binary_Output_Encode_Property_APDU(
         uint8_t * apdu,
