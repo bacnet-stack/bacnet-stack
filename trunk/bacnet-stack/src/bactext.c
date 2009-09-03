@@ -1334,6 +1334,16 @@ const char *bactext_engineering_unit_name(
         256, ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+bool bactext_engineering_unit_index(
+    const char *search_name,
+    unsigned *found_index)
+{
+    return indtext_by_istring(
+        bacnet_engineering_unit_names,
+        search_name,
+        found_index);
+}
+
 INDTEXT_DATA bacnet_reject_reason_names[] = {
     {REJECT_REASON_OTHER, "Other"}
     ,
