@@ -195,7 +195,7 @@ static void Init_Objects(void)
 
     Multistate_Output_Init();
     Init_Object(
-        OBJECT_LIFE_SAFETY_POINT,
+        OBJECT_MULTI_STATE_OUTPUT,
         Multistate_Output_Property_Lists,
         Multistate_Output_Encode_Property_APDU,
 		Multistate_Output_Valid_Instance,
