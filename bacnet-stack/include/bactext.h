@@ -68,6 +68,9 @@ extern "C" {
         unsigned index);
     const char *bactext_engineering_unit_name(
         unsigned index);
+    bool bactext_engineering_unit_index(
+        const char *search_name,
+        unsigned *found_index);
     const char *bactext_reject_reason_name(
         unsigned index);
     const char *bactext_abort_reason_name(
