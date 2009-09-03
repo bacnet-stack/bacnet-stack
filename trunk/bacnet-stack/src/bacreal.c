@@ -40,6 +40,7 @@
 #include "bits.h"
 #include "bacstr.h"
 #include "bacint.h"
+#include "bacreal.h"
 
 /* NOTE: byte order plays a role in decoding multibyte values */
 /* http://www.unixpapa.com/incnote/byteorder.html */
@@ -225,6 +226,24 @@ int encode_bacnet_double(
 #endif
 
     return 8;
+}
+
+int decode_context_double(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    double *double_value)
+{
+    uint32_t len_value;
+    int len = 0;
+
+    if (decode_is_context_tag(&apdu[len], tag_number)) {
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_double(&apdu[len], double_value);
+    } else {
+        len = -1;
+    }
+    return len;
 }
 
 /* end of decoding_encoding.c */

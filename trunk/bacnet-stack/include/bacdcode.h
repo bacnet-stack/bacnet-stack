@@ -72,7 +72,7 @@ extern "C" {
         uint32_t * value);
 	int decode_tag_number_and_value_safe(
 		uint8_t *   apdu,
-		uint8_t     apdu_len_remaining,
+		uint32_t    apdu_len_remaining,
 		uint8_t *   tag_number,
 		uint32_t *  value);
 /* returns true if the tag is context specific */
