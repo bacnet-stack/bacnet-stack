@@ -73,6 +73,8 @@ Makefile = svn:eol-style=native
 *.java = svn:mime-type=text/plain;svn:eol-style=native
 *.properties = svn:mime-type=text/plain;svn:eol-style=native
 *.sql = svn:mime-type=text/plain;svn:eol-style=native
+*.sln = svn:eol-style=CRLF
+*.vcproj = svn:eol-style=CRLF
 
 To test the properties of a file:
 $ svn proplist 

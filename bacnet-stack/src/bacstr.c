@@ -35,6 +35,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for strlen */
+#include "config.h"
 #include "bacstr.h"
 #include "bits.h"
 
