@@ -60,6 +60,12 @@ extern "C" {
         uint32_t instance,
         char *new_name);
 
+    bool Analog_Input_Units_Set(
+        uint32_t instance,
+        uint32_t units);
+    uint32_t Analog_Input_Units(
+        uint32_t instance);
+
     int Analog_Input_Encode_Property_APDU(
         uint8_t * apdu,
         uint32_t object_instance,

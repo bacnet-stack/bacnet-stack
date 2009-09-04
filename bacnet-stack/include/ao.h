@@ -73,7 +73,14 @@ extern "C" {
     bool Analog_Output_Description_Set(
         uint32_t instance,
         char *new_name);
-    
+
+    bool Analog_Output_Units_Set(
+        uint32_t instance,
+        uint32_t units);
+    uint32_t Analog_Output_Units(
+        uint32_t instance);
+
+
     void Analog_Output_Init(void);
 
     int Analog_Output_Encode_Property_APDU(

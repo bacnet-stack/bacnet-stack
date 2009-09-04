@@ -38,7 +38,27 @@
 #include "reject.h"
 #include "dcc.h"
 
-static char *My_Password = "filister";
+static char My_Password[32] = "filister";
+
+void handler_dcc_password_set(
+    char *new_password)
+{
+    size_t i = 0; /* loop counter */
+    
+    if (new_password) {
+        for (i = 0; i < (sizeof(My_Password)-1); i++) {
+            My_Password[i] = new_password[i];
+            My_Password[i+1] = 0;
+            if (new_password[i] == 0) {
+                break;
+            }
+        }
+    } else {
+        for (i = 0; i < sizeof(My_Password); i++) {
+            My_Password[i] = 0;
+        }
+    }
+}
 
 void handler_device_communication_control(
     uint8_t * service_request,

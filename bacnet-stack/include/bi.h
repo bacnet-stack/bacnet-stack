@@ -62,6 +62,17 @@ extern "C" {
         uint32_t instance,
         char *new_name);
 
+    char *Binary_Input_Inactive_Text(
+        uint32_t instance);
+    bool Binary_Input_Inactive_Text_Set(
+        uint32_t instance,
+        char *new_name);
+    char *Binary_Input_Active_Text(
+        uint32_t instance);
+    bool Binary_Input_Active_Text_Set(
+        uint32_t instance,
+        char *new_name);
+
     bool Binary_Input_Change_Of_Value(
         uint32_t object_instance);
     void Binary_Input_Change_Of_Value_Clear(

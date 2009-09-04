@@ -66,6 +66,16 @@ extern "C" {
         uint32_t instance,
         char *new_name);
 
+    char *Binary_Output_Inactive_Text(
+        uint32_t instance);
+    bool Binary_Output_Inactive_Text_Set(
+        uint32_t instance,
+        char *new_name);
+    char *Binary_Output_Active_Text(
+        uint32_t instance);
+    bool Binary_Output_Active_Text_Set(
+        uint32_t instance,
+        char *new_name);
 
     int Binary_Output_Encode_Property_APDU(
         uint8_t * apdu,
