@@ -459,7 +459,7 @@ void apdu_handler(
 				   WritePropertyMultiple-Error and VTClose_Error but they may be left as
 				   is for now until support for these services is added */
 
-				if(service_choice = SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over opening tag 0 */
+				if(service_choice == SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over opening tag 0 */
 					if (decode_is_opening_tag_number(&apdu[len], 0)) {
 						len++; /* a tag number of 0 is not extended so only one octet */
 					}
@@ -475,7 +475,7 @@ void apdu_handler(
 				/* FIXME: we could validate that the tag is enumerated... */
 				len += decode_enumerated(&apdu[len], len_value, &error_code);
 
-				if(service_choice = SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over closing tag 0 */
+				if(service_choice == SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over closing tag 0 */
 					if (decode_is_closing_tag_number(&apdu[len], 0)) {
 						len++; /* a tag number of 0 is not extended so only one octet */
 					}
