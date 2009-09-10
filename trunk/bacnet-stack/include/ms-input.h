@@ -22,8 +22,8 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef MSI_H
-#define MSI_H
+#ifndef MS_INPUT_H
+#define MS_INPUT_H
 
 #include <stdbool.h>
 #include <stdint.h>
