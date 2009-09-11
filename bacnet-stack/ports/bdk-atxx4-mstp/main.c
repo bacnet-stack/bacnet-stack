@@ -25,6 +25,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include "hardware.h"
 #include "init.h"
 #include "stack.h"
@@ -173,10 +174,12 @@ void test_init(
 void test_task(
     void)
 {
-    uint8_t buffer[32] = "BACnet: 0000000\r\n";
+    char buffer[32] = "BACnet: 0000000\r\n";
     uint8_t nbytes = 17;
+    uint8_t *pBuffer = NULL;
     uint8_t data_register = 0;
 
+    pBuffer = &buffer[0];
     if (timer_elapsed_seconds(TIMER_TEST, 1)) {
         timer_reset(TIMER_TEST);
         buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';
@@ -186,9 +189,11 @@ void test_task(
         buffer[12] = (MSTP_MAC_Address & BIT4) ? '1' : '0';
         buffer[13] = (MSTP_MAC_Address & BIT5) ? '1' : '0';
         buffer[14] = (MSTP_MAC_Address & BIT6) ? '1' : '0';
-        serial_bytes_send(buffer, nbytes);
+        serial_bytes_send(pBuffer, nbytes);
     }
     if (serial_byte_get(&data_register)) {
+        /* echo the character */
+        serial_byte_send(data_register);
         if (data_register == '0') {
             Binary_Output_Level_Set(0, 1, BINARY_INACTIVE);
             Binary_Output_Level_Sync(0);
@@ -207,7 +212,26 @@ void test_task(
             Binary_Output_Level_Set(1, 1, BINARY_NULL);
             Binary_Output_Level_Sync(1);
         }
-        serial_byte_send(data_register);
+        if (data_register == 'm') {
+            sprintf(buffer, "->Master State: ");
+            pBuffer = &buffer[0];
+            nbytes = strlen(pBuffer);
+            serial_bytes_send(pBuffer, nbytes);
+            extern char *dlmstp_master_state_text(void);
+            pBuffer = dlmstp_master_state_text();
+            nbytes = strlen(pBuffer);
+            serial_bytes_send(pBuffer, nbytes);
+        }
+        if (data_register == 'r') {
+            sprintf(buffer, "->Receive State: ");
+            pBuffer = &buffer[0];
+            nbytes = strlen(pBuffer);
+            serial_bytes_send(pBuffer, nbytes);
+            extern char *dlmstp_receive_state_text(void);
+            pBuffer = dlmstp_receive_state_text();
+            nbytes = strlen(pBuffer);
+            serial_bytes_send(pBuffer, nbytes);
+        }
         serial_byte_send('\r');
         serial_byte_send('\n');
         serial_byte_transmit_complete();

@@ -49,7 +49,7 @@
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number;
-static uint8_t Object_Name[NV_EEPROM_DEVICE_NAME_SIZE];
+static char Object_Name[NV_EEPROM_DEVICE_NAME_SIZE];
 static uint8_t Object_Name_Encoding;
 static uint8_t Object_Name_Length;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
@@ -506,7 +506,7 @@ int Device_Encode_Property_APDU(
             break;
         case 9600:
             apdu_len = encode_application_unsigned(&apdu[0], 
-			    rs485_baud_rate());
+                rs485_baud_rate());
             break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
