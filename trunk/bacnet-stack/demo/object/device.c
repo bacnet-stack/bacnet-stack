@@ -98,6 +98,7 @@ static const int Device_Properties_Optional[] = {
     PROP_DAYLIGHT_SAVINGS_STATUS,
     PROP_PROTOCOL_CONFORMANCE_CLASS,
     PROP_LOCATION,
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
     -1
 };
 
