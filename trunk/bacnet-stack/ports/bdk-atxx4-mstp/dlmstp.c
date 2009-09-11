@@ -1341,3 +1341,49 @@ void dlmstp_get_broadcast_address(
 
     return;
 }
+
+char *dlmstp_receive_state_text(void)
+{
+    switch (Receive_State) {
+        case MSTP_RECEIVE_STATE_IDLE:
+            return "idle";
+        case MSTP_RECEIVE_STATE_PREAMBLE:
+            return "preamble";
+        case MSTP_RECEIVE_STATE_HEADER:
+            return "header";
+        case MSTP_RECEIVE_STATE_DATA:
+            return "data";
+        default:
+            break;
+    }
+    
+    return "unknown";
+}
+
+char *dlmstp_master_state_text(void)
+{
+    switch (Master_State) {
+        case MSTP_MASTER_STATE_INITIALIZE:
+            return "init";
+        case MSTP_MASTER_STATE_IDLE:
+            return "idle";
+        case MSTP_MASTER_STATE_USE_TOKEN:
+            return "use-token";
+        case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
+            return "wait-for-reply";
+        case MSTP_MASTER_STATE_DONE_WITH_TOKEN:
+            return "done-with-token";
+        case MSTP_MASTER_STATE_PASS_TOKEN:
+            return "pass-token";
+        case MSTP_MASTER_STATE_NO_TOKEN:
+            return "no-token";
+        case MSTP_MASTER_STATE_POLL_FOR_MASTER:
+            return "poll-for-master";
+        case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
+            return "answer-data-request";
+        default:
+            break;
+    }
+    
+    return "unknown";
+}
