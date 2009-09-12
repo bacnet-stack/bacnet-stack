@@ -139,6 +139,10 @@ extern "C" {
         BACNET_EVENT_NOTIFICATION_DATA * data,
         BACNET_ADDRESS * dest);
 
+    uint8_t Send_CEvent_Notify(
+        uint32_t device_id,
+        BACNET_EVENT_NOTIFICATION_DATA * data);
+
     void Send_Who_Is_Router_To_Network(
         BACNET_ADDRESS * dst,
         int dnet);
@@ -156,8 +160,6 @@ extern "C" {
     uint8_t Send_Alarm_Acknowledgement(
         uint32_t device_id,
         BACNET_ALARM_ACK_DATA * data);
-
-
 
 #ifdef __cplusplus
 }
