@@ -97,7 +97,18 @@ extern "C" {
         unsigned index);
     const char *bactext_segmentation_name(
         unsigned index);
+        
+    const char *bactext_event_transition_name(
+        unsigned index);
+    bool bactext_event_transition_index(
+        const char *search_name,
+        unsigned *found_index);
 
+    const char *bactext_days_of_week_name(
+        unsigned index);
+    bool bactext_days_of_week_index(
+        const char *search_name,
+        unsigned *found_index);
 
 #ifdef __cplusplus
 }
