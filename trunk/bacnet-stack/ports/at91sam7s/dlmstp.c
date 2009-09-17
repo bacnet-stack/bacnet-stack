@@ -727,6 +727,10 @@ static bool MSTP_Master_Node_FSM(
                 /* assume that the token has been lost */
                 EventCount = 0; /* Addendum 135-2004d-8 */
                 Master_State = MSTP_MASTER_STATE_NO_TOKEN;
+                /* set the receive frame flags to false in case we received
+                   some bytes and had a timeout for some reason */
+                MSTP_Flag.ReceivedValidFrame = false;
+                MSTP_Flag.ReceivedInvalidFrame = false;
                 transition_now = true;
             } else if (MSTP_Flag.ReceivedInvalidFrame == true) {
                 /* ReceivedInvalidFrame */
