@@ -176,10 +176,9 @@ void test_task(
 {
     char buffer[32] = "BACnet: 0000000\r\n";
     uint8_t nbytes = 17;
-    uint8_t *pBuffer = NULL;
+    char *pBuffer = NULL;
     uint8_t data_register = 0;
 
-    pBuffer = &buffer[0];
     if (timer_elapsed_seconds(TIMER_TEST, 1)) {
         timer_reset(TIMER_TEST);
         buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';
@@ -189,7 +188,7 @@ void test_task(
         buffer[12] = (MSTP_MAC_Address & BIT4) ? '1' : '0';
         buffer[13] = (MSTP_MAC_Address & BIT5) ? '1' : '0';
         buffer[14] = (MSTP_MAC_Address & BIT6) ? '1' : '0';
-        serial_bytes_send(pBuffer, nbytes);
+        serial_bytes_send((uint8_t *)buffer, nbytes);
     }
     if (serial_byte_get(&data_register)) {
         /* echo the character */
@@ -214,23 +213,21 @@ void test_task(
         }
         if (data_register == 'm') {
             sprintf(buffer, "->Master State: ");
-            pBuffer = &buffer[0];
-            nbytes = strlen(pBuffer);
-            serial_bytes_send(pBuffer, nbytes);
+            nbytes = (uint8_t)strlen(buffer);
+            serial_bytes_send((uint8_t *)buffer, nbytes);
             extern char *dlmstp_master_state_text(void);
             pBuffer = dlmstp_master_state_text();
-            nbytes = strlen(pBuffer);
-            serial_bytes_send(pBuffer, nbytes);
+            nbytes = (uint8_t)strlen(pBuffer);
+            serial_bytes_send((uint8_t *)pBuffer, nbytes);
         }
         if (data_register == 'r') {
             sprintf(buffer, "->Receive State: ");
-            pBuffer = &buffer[0];
-            nbytes = strlen(pBuffer);
-            serial_bytes_send(pBuffer, nbytes);
+            nbytes = (uint8_t)strlen(buffer);
+            serial_bytes_send((uint8_t *)buffer, nbytes);
             extern char *dlmstp_receive_state_text(void);
             pBuffer = dlmstp_receive_state_text();
-            nbytes = strlen(pBuffer);
-            serial_bytes_send(pBuffer, nbytes);
+            nbytes = (uint8_t)strlen(pBuffer);
+            serial_bytes_send((uint8_t *)pBuffer, nbytes);
         }
         serial_byte_send('\r');
         serial_byte_send('\n');
