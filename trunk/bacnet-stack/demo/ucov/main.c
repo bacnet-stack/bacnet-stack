@@ -57,7 +57,7 @@ static void Init_Service_Handlers(
     handler_read_property_object_set(
         OBJECT_DEVICE,
         Device_Encode_Property_APDU,
-		Device_Valid_Object_Instance_Number);
+        Device_Valid_Object_Instance_Number);
     /* we need to handle who-is 
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
