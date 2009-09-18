@@ -667,6 +667,7 @@ static void MSTP_Receive_Frame_FSM(
     return;
 }
 
+#ifdef MSTP_DEBUG_STATES
 static MSTP_MASTER_STATE Master_State_Log[128];
 static unsigned master_state_log_index = 0;
 void log_master_state(MSTP_MASTER_STATE state)
@@ -677,6 +678,9 @@ void log_master_state(MSTP_MASTER_STATE state)
         master_state_log_index = 0;
     }
 }
+#else
+    #define log_master_state(n) (void)n;
+#endif
 
 /* returns true if we need to transition immediately */
 static bool MSTP_Master_Node_FSM(
