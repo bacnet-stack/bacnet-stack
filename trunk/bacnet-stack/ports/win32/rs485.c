@@ -356,6 +356,10 @@ void RS485_Check_UART_Data(
 }
 
 #ifdef TEST_RS485
+
+#include "mstpdef.h"
+
+
 static void test_transmit_task(
     void *pArg)
 {
@@ -368,25 +372,88 @@ static void test_transmit_task(
     }
 }
 
+#if defined(_WIN32)
+static BOOL WINAPI CtrlCHandler(
+    DWORD dwCtrlType)
+{
+    dwCtrlType = dwCtrlType;
+    exit(0);
+    return TRUE;
+}
+#endif
+
+static int ascii_hex_to_int(char ch)
+{
+    int rv = -1;
+    
+    if ((ch >= '0') && (ch <= '9')) {
+        rv = ch - '0';
+    } else if ((ch >= 'a') && (ch <= 'f')) {
+        rv = 10 + ch - 'a';
+    } else if ((ch >= 'A') && (ch <= 'F')) {
+        rv = 10 + ch - 'a';
+    }
+    
+    return rv;
+}
+
 int main(
-    void)
+    int argc,
+    char *argv[])
 {
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
     char lpBuf[1];
     DWORD dwRead = 0;
-    unsigned i = 0;
+    unsigned i = 0, len = 0, count = 0;
+    char hex_pair[5] = "0xff";
+    char ch = ' ';
+    int lsb = 0, msb = 0;
+    long my_baud = 38400;
+    uint8_t buffer[501] = {0};
 
-    RS485_Set_Interface("COM4");
-    RS485_Set_Baud_Rate(38400);
+    if (argc > 1) {
+        RS485_Set_Interface(argv[1]);
+    }
+    if (argc > 2) {
+        my_baud = strtol(argv[2], NULL, 0);
+    }
+    RS485_Set_Baud_Rate(my_baud);
     RS485_Initialize();
-#if 0
-    /* create a task for synchronous transmit */
-    hThread = _beginthread(test_transmit_task, 4096, &arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start transmit task\n");
+#if defined(_WIN32)
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
+#endif
+#ifdef TEST_RS485_TRANSMIT
+    /* read a stream of characters from stdin or argument */
+    if (argc > 3) {
+        len = strlen(argv[3]);
+        for (i = 0; i < len; i++) {
+            /* grab pairs of hex characters, skip spaces */
+            ch = argv[3][i];
+            if (ch == ' ') {
+                continue;
+            }
+            msb = ascii_hex_to_int(ch);
+            if (msb >= 0) {
+                i++;
+                ch = argv[3][i];
+                lsb = ascii_hex_to_int(ch);
+               if (lsb >= 0) {
+                    buffer[count] = msb << 4 | lsb;
+               } else {
+                    buffer[count] = msb;
+               }
+               count++;
+               if (count >= sizeof(buffer)) {
+                   break;
+               }
+            }
+        }
+        RS485_Send_Frame(NULL, buffer, count);
     }
 #endif
+#ifdef TEST_RS485_RECEIVE
     /* receive task */
     for (;;) {
         if (!ReadFile(RS485_Handle, lpBuf, sizeof(lpBuf), &dwRead, NULL)) {
@@ -403,5 +470,7 @@ int main(
             dwRead = 0;
         }
     }
+#endif
 }
-#endif /* TEST_ABORT */
+#endif
+
