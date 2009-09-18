@@ -15,7 +15,7 @@ PRODUCT = rs485
 PRODUCT_EXE = $(PRODUCT).exe
 
 # Choose the Data Link Layer to Enable
-DEFINES = -DBACDL_MSTP=1;TEST_RS485
+DEFINES = -DBACDL_MSTP=1;TEST_RS485;TEST_RS485_TRANSMIT
 
 SRCS = rs485.c
 OBJS = $(SRCS:.c=.obj)
@@ -32,7 +32,7 @@ TLIB = $(BORLAND_DIR)\bin\tlib
 # Include directories
 #
 CC_DIR     = $(BORLAND_DIR)\BIN
-BACNET_INCL = ..\..\;..\..\demo\handler\;..\..\demo\object\;.
+BACNET_INCL = ..\..\include;.
 INCL_DIRS = -I$(BORLAND_DIR)\include;$(BACNET_INCL)
 
 CFLAGS = $(INCL_DIRS) $(CS_FLAGS) $(DEFINES)

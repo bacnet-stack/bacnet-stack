@@ -667,6 +667,17 @@ static void MSTP_Receive_Frame_FSM(
     return;
 }
 
+static MSTP_MASTER_STATE Master_State_Log[128];
+static unsigned master_state_log_index = 0;
+void log_master_state(MSTP_MASTER_STATE state)
+{
+    Master_State_Log[master_state_log_index] = state;
+    master_state_log_index++;
+    if (master_state_log_index > 128) {
+        master_state_log_index = 0;
+    }
+}
+
 /* returns true if we need to transition immediately */
 static bool MSTP_Master_Node_FSM(
     void)
@@ -704,6 +715,7 @@ static bool MSTP_Master_Node_FSM(
     next_poll_station = (Poll_Station + 1) % (Nmax_master + 1);
     next_this_station = (This_Station + 1) % (Nmax_master + 1);
     next_next_station = (Next_Station + 1) % (Nmax_master + 1);
+    log_master_state(Master_State);
     switch (Master_State) {
         case MSTP_MASTER_STATE_INITIALIZE:
             /* DoneInitializing */

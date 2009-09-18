@@ -46,8 +46,8 @@ static uint32_t Baud_Rate = 9600;
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/Baud_Rate; */
 
 /* buffer for storing received bytes - size must be power of two */
-static uint8_t Receive_Buffer_Data[128];
-static FIFO_BUFFER Receive_Buffer;
+uint8_t Receive_Buffer_Data[128];
+FIFO_BUFFER Receive_Buffer;
 
 static void rs485_rts_init(
     void)
