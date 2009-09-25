@@ -106,7 +106,7 @@ static int rpm_ack_decode_service_request(
                 rpm_property->value = value;
                 old_value = value;
                 while (value && (apdu_len > 0)) {
-                    if (decode_is_context_specific(apdu)) {
+                    if (IS_CONTEXT_SPECIFIC(*apdu)) {
                         len =
                             bacapp_decode_context_data(apdu, apdu_len, value,
                             rpm_property->propertyIdentifier);

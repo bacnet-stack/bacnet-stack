@@ -254,7 +254,7 @@ int rpm_decode_object_property(
     /* check for valid pointers */
     if (apdu && apdu_len && object_property && array_index) {
         /* Tag 0: propertyIdentifier */
-        if (!decode_is_context_specific(&apdu[len]))
+        if (!IS_CONTEXT_SPECIFIC(apdu[len]))
             return -1;
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -265,7 +265,7 @@ int rpm_decode_object_property(
         if (object_property)
             *object_property = (BACNET_PROPERTY_ID) property;
         /* Tag 1: Optional propertyArrayIndex */
-        if ((len < apdu_len) && decode_is_context_specific(&apdu[len]) &&
+        if ((len < apdu_len) && IS_CONTEXT_SPECIFIC(apdu[len]) &&
             (!decode_is_closing_tag(&apdu[len]))) {
             option_len =
                 (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -447,7 +447,7 @@ int rpm_ack_decode_object_property(
     /* check for valid pointers */
     if (apdu && apdu_len && object_property && array_index) {
         /* Tag 2: propertyIdentifier */
-        if (!decode_is_context_specific(&apdu[len]))
+        if (!IS_CONTEXT_SPECIFIC(apdu[len]))
             return -1;
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -458,7 +458,7 @@ int rpm_ack_decode_object_property(
         if (object_property)
             *object_property = (BACNET_PROPERTY_ID) property;
         /* Tag 3: Optional propertyArrayIndex */
-        if ((len < apdu_len) && decode_is_context_specific(&apdu[len]) &&
+        if ((len < apdu_len) && IS_CONTEXT_SPECIFIC(apdu[len]) &&
             (!decode_is_closing_tag(&apdu[len]))) {
             tag_len =
                 (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,

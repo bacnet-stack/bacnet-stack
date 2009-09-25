@@ -35,6 +35,7 @@
 #include "rpm.h"
 #include "wp.h"
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -211,7 +212,19 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
-#
+
+    void handler_read_range(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+
+    void handler_read_range_ack(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -266,7 +266,7 @@ int bacapp_decode_application_data(
 
     /* FIXME: use max_apdu_len! */
     max_apdu_len = max_apdu_len;
-    if (apdu && value && !decode_is_context_specific(apdu)) {
+    if (apdu && value && !IS_CONTEXT_SPECIFIC(*apdu)) {
         value->context_specific = false;
         tag_len =
             decode_tag_number_and_value(&apdu[0], &tag_number,
@@ -320,7 +320,7 @@ bool bacapp_decode_application_data_safe(
 		apdu_len     = 0;
 	}
 
-    if (value && apdu_len_remaining > 0 && !decode_is_context_specific(&apdu[apdu_len]) ) {
+    if (value && apdu_len_remaining > 0 && !IS_CONTEXT_SPECIFIC(apdu[apdu_len]) ) {
         value->context_specific = false;
         tag_len =
             decode_tag_number_and_value_safe(&apdu[apdu_len], apdu_len_remaining, &tag_number,
@@ -562,7 +562,7 @@ int bacapp_decode_context_data(
 
     /* FIXME: use max_apdu_len! */
     max_apdu_len = max_apdu_len;
-    if (apdu && value && decode_is_context_specific(apdu)) {
+    if (apdu && value && IS_CONTEXT_SPECIFIC(*apdu)) {
         value->context_specific = true;
         tag_len =
             decode_tag_number_and_value(&apdu[0], &tag_number,
@@ -735,7 +735,7 @@ int bacapp_data_len(
                     &value);
                 if (tag_number == opening_tag_number)
                     opening_tag_number_counter--;
-            } else if (decode_is_context_specific(&apdu[apdu_len])) {
+            } else if (IS_CONTEXT_SPECIFIC(apdu[apdu_len])) {
                 /* context-specific tagged data */
                 len =
                     bacapp_decode_context_data(&apdu[apdu_len],
