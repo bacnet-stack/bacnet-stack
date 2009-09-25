@@ -298,29 +298,7 @@ int encode_closing_tag(
     return len;
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns true if extended tag numbering is used */
-static bool decode_is_extended_tag_number(
-    uint8_t * apdu)
-{
-    return (bool) ((apdu[0] & 0xF0) == 0xF0);
-}
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns true if the extended value is used */
-static bool decode_is_extended_value(
-    uint8_t * apdu)
-{
-    return (bool) ((apdu[0] & 0x07) == 5);
-}
-
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns true if the tag is context specific */
-bool decode_is_context_specific(
-    uint8_t * apdu)
-{
-    return (bool) ((apdu[0] & BIT3) == BIT3);
-}
 
 int decode_tag_number(
     uint8_t * apdu,
@@ -329,7 +307,7 @@ int decode_tag_number(
     int len = 1;        /* return value */
 
     /* decode the tag number first */
-    if (decode_is_extended_tag_number(&apdu[0])) {
+    if (IS_EXTENDED_TAG_NUMBER(apdu[0])) {
         /* extended tag */
         if (tag_number) {
             *tag_number = apdu[1];
@@ -354,7 +332,7 @@ int decode_tag_number_safe(
 
     /* decode the tag number first */
 	if ( apdu_len_remaining >= 1 ) {
-		if (decode_is_extended_tag_number(&apdu[0]) && apdu_len_remaining >= 2) {
+		if (IS_EXTENDED_TAG_NUMBER(apdu[0]) && apdu_len_remaining >= 2) {
 			/* extended tag */
 			if (tag_number) {
 				*tag_number = apdu[1];
@@ -397,7 +375,7 @@ int decode_tag_number_and_value(
     uint32_t value32;
 
     len = decode_tag_number(&apdu[0], tag_number);
-    if (decode_is_extended_value(&apdu[0])) {
+    if (IS_EXTENDED_VALUE(apdu[0])) {
         /* tagged as uint32_t */
         if (apdu[len] == 255) {
             len++;
@@ -447,7 +425,7 @@ int decode_tag_number_and_value_safe(
 
 	if ( len > 0 ) {
 		apdu_len_remaining -= len;
-		if (decode_is_extended_value(&apdu[0])) {
+		if (IS_EXTENDED_VALUE(apdu[0])) {
 			/* tagged as uint32_t */
 			if (apdu[len] == 255 && apdu_len_remaining >= 5) {
 			    uint32_t value32;
@@ -497,13 +475,9 @@ bool decode_is_context_tag(
     uint8_t tag_number)
 {
     uint8_t my_tag_number = 0;
-    bool context_specific = false;
 
-
-    context_specific = decode_is_context_specific(apdu);
     decode_tag_number(apdu, &my_tag_number);
-
-    return (bool) (context_specific && (my_tag_number == tag_number));
+    return (bool) (IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
 }
 
 bool decode_is_context_tag_with_length(
@@ -512,13 +486,10 @@ bool decode_is_context_tag_with_length(
     int *tag_length)
 {
     uint8_t my_tag_number = 0;
-    bool context_specific = false;
 
-
-    context_specific = decode_is_context_specific(apdu);
     *tag_length = decode_tag_number(apdu, &my_tag_number);
 
-    return (bool) (context_specific && (my_tag_number == tag_number));
+    return (bool) (IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -1877,7 +1848,7 @@ void testBACDCodeTags(
 
     for (tag_number = 0;; tag_number++) {
         len = encode_opening_tag(&apdu[0], tag_number);
-        test_len = get_apdu_len(decode_is_extended_tag_number(&apdu[0]), 0);
+        test_len = get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), 0);
         ct_test(pTest, len == test_len);
         len = decode_tag_number_and_value(&apdu[0], &test_tag_number, &value);
         ct_test(pTest, value == 0);
@@ -1902,7 +1873,7 @@ void testBACDCodeTags(
             ct_test(pTest, tag_number == test_tag_number);
             ct_test(pTest, value == test_value);
             test_len =
-                get_apdu_len(decode_is_extended_tag_number(&apdu[0]), value);
+                get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), value);
             ct_test(pTest, len == test_len);
             /* stop at the the last value */
             if (value & BIT31) {
@@ -1948,10 +1919,10 @@ void testBACDCodeEnumerated(
         len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
         ct_test(pTest, len == 1);
         ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_ENUMERATED);
-        ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+        ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
         /* context specific encoding */
         apdu_len = encode_context_enumerated(&apdu[0], 3, value);
-        ct_test(pTest, decode_is_context_specific(&apdu[0]) == true);
+        ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == true);
         len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
         ct_test(pTest, len == 1);
         ct_test(pTest, tag_number == 3);
@@ -1987,7 +1958,7 @@ void testBACDCodeReal(
     /* len tells us how many octets were used for encoding the value */
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_REAL);
-    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+    ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
     ct_test(pTest, len == 1);
     ct_test(pTest, long_value == 4);
     decode_real(&apdu[len], &decoded_value);
@@ -2021,7 +1992,7 @@ static void testBACDCodeDouble(
     /* len tells us how many octets were used for encoding the value */
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_DOUBLE);
-    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+    ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
     ct_test(pTest, len == 2);
     ct_test(pTest, long_value == 8);
     decode_double(&apdu[len], &decoded_value);
@@ -2060,7 +2031,7 @@ void testBACDCodeUnsignedValue(
     len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
     ct_test(pTest, len == 1);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_UNSIGNED_INT);
-    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+    ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
 }
 
 void testBACDCodeUnsigned(
@@ -2131,7 +2102,7 @@ void testBACDCodeSignedValue(
     apdu_len = encode_application_signed(&apdu[0], value);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
-    ct_test(pTest, decode_is_context_specific(&apdu[0]) == false);
+    ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
 
     return;
 }

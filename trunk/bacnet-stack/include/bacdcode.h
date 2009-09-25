@@ -42,6 +42,7 @@
 #include "bacstr.h"
 #include "bacint.h"
 #include "bacreal.h"
+#include "bits.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,9 +76,6 @@ extern "C" {
 		uint32_t    apdu_len_remaining,
 		uint8_t *   tag_number,
 		uint32_t *  value);
-/* returns true if the tag is context specific */
-    bool decode_is_context_specific(
-        uint8_t * apdu);
 /* returns true if the tag is an opening tag and matches */
     bool decode_is_opening_tag_number(
         uint8_t * apdu,
@@ -395,7 +393,19 @@ extern "C" {
         uint8_t invoke_id,
         uint8_t service_choice);
 
+/* from clause 20.2.1.3.2 Constructed Data */
+/* true if extended tag numbering is used */
+#define IS_EXTENDED_TAG_NUMBER(x) ((x & 0xF0) == 0xF0)
+
+/* from clause 20.2.1.3.2 Constructed Data */
+/* true if the extended value is used */
+#define IS_EXTENDED_VALUE(x) ((x & 0x07) == 5)
+
+/* from clause 20.2.1.3.2 Constructed Data */
+/* true if the tag is context specific */
+#define IS_CONTEXT_SPECIFIC(x) ((x & BIT3) == BIT3)
 #ifdef __cplusplus
+
 }
 #endif /* __cplusplus */
 #endif
