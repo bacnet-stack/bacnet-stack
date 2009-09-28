@@ -131,8 +131,9 @@ static int bvlc_encode_bip_address(
     int len = 0;
 
     if (pdu) {
-        len = encode_unsigned32(&pdu[0], address->s_addr);
-        len += encode_unsigned16(&pdu[len], port);
+        encode_unsigned32(&pdu[0], address->s_addr);
+        encode_unsigned16(&pdu[len], port);
+        len = 6;
     }
 
     return len;
@@ -383,6 +384,7 @@ static int bvlc_encode_read_fdt_ack(
     int len = 0;
     unsigned count = 0;
     unsigned i;
+    uint16_t seconds_remaining = 0;
 
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid) {
@@ -402,10 +404,10 @@ static int bvlc_encode_read_fdt_ack(
                 bvlc_encode_bip_address(&pdu[pdu_len],
                 &FD_Table[i].dest_address, FD_Table[i].dest_port);
             pdu_len += len;
-            encode_unsigned16(&pdu[pdu_len], FD_Table[i].time_to_live);
+            len = encode_unsigned16(&pdu[pdu_len], FD_Table[i].time_to_live);
             pdu_len += len;
-            encode_unsigned16(&pdu[pdu_len],
-                (uint16_t) FD_Table[i].seconds_remaining);
+            seconds_remaining = FD_Table[i].seconds_remaining;
+            len = encode_unsigned16(&pdu[pdu_len], seconds_remaining);
             pdu_len += len;
         }
     }
@@ -538,22 +540,14 @@ static bool bvlc_create_bdt(
     uint16_t npdu_length)
 {
     bool status = false;
-    struct in_addr dest_address;
-    uint16_t dest_port;
     unsigned i = 0;
-    uint32_t raw_address = 0;
 
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (npdu_length >= 10) {
             BBMD_Table[i].valid = true;
-            decode_unsigned32(&npdu[0], &raw_address);
-            dest_address.s_addr = raw_address;
-            BBMD_Table[i].dest_address.s_addr = ntohl(dest_address.s_addr);
-            decode_unsigned16(&npdu[4], &dest_port);
-            BBMD_Table[i].dest_port = ntohs(dest_port);
-            decode_unsigned32(&npdu[6], &raw_address);
-            dest_address.s_addr = raw_address;
-            BBMD_Table[i].broadcast_mask.s_addr = ntohl(dest_address.s_addr);
+            BBMD_Table[i].dest_address.s_addr = ntohl(&npdu[0]);
+            BBMD_Table[i].dest_port = ntohs(&npdu[4]);
+            BBMD_Table[i].broadcast_mask.s_addr = ntohl(&npdu[6]);
             npdu_length -= 10;
         } else {
             BBMD_Table[i].valid = false;
