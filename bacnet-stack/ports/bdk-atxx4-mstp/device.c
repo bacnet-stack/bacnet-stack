@@ -137,16 +137,17 @@ void Device_Init(
     eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & Object_Name[0],
         NV_EEPROM_DEVICE_NAME_SIZE);
     if ((Object_Name_Encoding >= MAX_CHARACTER_STRING_ENCODING) ||
-        (Object_Name_Length > NV_EEPROM_DEVICE_NAME_SIZE)) {
+        (Object_Name_Length > NV_EEPROM_DEVICE_NAME_SIZE) ||
+        (Object_Name_Length < 1)) {
         Object_Name_Encoding = CHARACTER_ANSI_X34;
-        Object_Name_Length = 11;
         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
             &Object_Name_Encoding, 1);
-        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &Object_Name_Length,
-            1);
         sprintf(Object_Name, "DEVICE-%lu", Object_Instance_Number);
         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & Object_Name[0],
             NV_EEPROM_DEVICE_NAME_SIZE);
+        Object_Name_Length = strlen(Object_Name);
+        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &Object_Name_Length,
+            1);
     }
 }
 
