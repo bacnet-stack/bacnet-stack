@@ -933,6 +933,16 @@ unsigned bactext_property_id(
     return indtext_by_istring_default(bacnet_property_names, name, 0);
 }
 
+bool bactext_property_index(
+    const char *search_name,
+    unsigned *found_index)
+{
+    return indtext_by_istring(
+        bacnet_property_names,
+        search_name,
+        found_index);
+}
+
 INDTEXT_DATA bacnet_engineering_unit_names[] = {
     {UNITS_SQUARE_METERS, "square-meters"}
     ,
