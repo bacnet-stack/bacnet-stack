@@ -541,13 +541,17 @@ static bool bvlc_create_bdt(
 {
     bool status = false;
     unsigned i = 0;
+    uint16_t pdu_offset = 0;
 
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (npdu_length >= 10) {
             BBMD_Table[i].valid = true;
-            BBMD_Table[i].dest_address.s_addr = ntohl(&npdu[0]);
-            BBMD_Table[i].dest_port = ntohs(&npdu[4]);
-            BBMD_Table[i].broadcast_mask.s_addr = ntohl(&npdu[6]);
+            BBMD_Table[i].dest_address.s_addr = ntohl(*(long *)&npdu[pdu_offset]);
+            pdu_offset += 4;
+            BBMD_Table[i].dest_port = ntohs(*(short *)&npdu[pdu_offset]);
+            pdu_offset += 2;
+            BBMD_Table[i].broadcast_mask.s_addr = ntohl(*(long *)&npdu[pdu_offset]);
+            pdu_offset += 4;
             npdu_length -= 10;
         } else {
             BBMD_Table[i].valid = false;
