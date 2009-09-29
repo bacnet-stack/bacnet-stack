@@ -132,7 +132,7 @@ static int bvlc_encode_bip_address(
 
     if (pdu) {
         encode_unsigned32(&pdu[0], address->s_addr);
-        encode_unsigned16(&pdu[len], port);
+        encode_unsigned16(&pdu[4], port);
         len = 6;
     }
 
@@ -583,6 +583,10 @@ static bool bvlc_register_foreign_device(
                 (FD_Table[i].dest_port == ntohs(sin->sin_port))) {
                 status = true;
                 FD_Table[i].time_to_live = time_to_live;
+                /*  Upon receipt of a BVLL Register-Foreign-Device message, 
+                    a BBMD shall start a timer with a value equal to the 
+                    Time-to-Live parameter supplied plus a fixed grace 
+                    period of 30 seconds. */
                 FD_Table[i].seconds_remaining = time_to_live + 30;
                 break;
             }
