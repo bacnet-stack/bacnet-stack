@@ -37,6 +37,7 @@
 #include "device.h"     /* me */
 #include "handlers.h"
 #include "datalink.h"
+#include "address.h"
 #if defined(BACFILE)
 #include "bacfile.h"    /* object list dependency */
 #endif
@@ -682,7 +683,8 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
-            /* FIXME: encode the list here, if it exists */
+            /* FIXME: the real max apdu remaining should be passed into function */
+            apdu_len = address_list_encode(&apdu[0], MAX_APDU);
             break;
         case PROP_DATABASE_REVISION:
             apdu_len =
