@@ -47,12 +47,21 @@
 /* The normal method is using Who-Is, and using the data from I-Am */
 
 static struct Address_Cache_Entry {
-    bool valid;
-    bool bind_request;
+    uint8_t Flags;
     uint32_t device_id;
     unsigned max_apdu;
     BACNET_ADDRESS address;
+    uint32_t TimeToLive;
 } Address_Cache[MAX_ADDRESS_CACHE];
+
+/* State flags for cache entries */
+
+#define BAC_ADDR_IN_USE     1   /* Address cache entry in use */
+#define BAC_ADDR_BIND_REQ   2   /* Bind request outstanding for entry */
+#define BAC_ADDR_STATIC     4   /* Static address mapping - does not expire */
+#define BAC_ADDR_SHORT_TTL  8   /* Oppertunistaclly added address with short TTL */
+
+
 
 bool address_match(
     BACNET_ADDRESS * dest,
@@ -93,14 +102,15 @@ bool address_match(
 void address_remove_device(
     uint32_t device_id)
 {
-    unsigned i;
+	struct Address_Cache_Entry *pMatch;
 
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if ((Address_Cache[i].valid || Address_Cache[i].bind_request) &&
-            (Address_Cache[i].device_id == device_id)) {
-            Address_Cache[i].valid = false;
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1]) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) && (pMatch->device_id == device_id)) {
+            pMatch->Flags = 0;
             break;
         }
+        pMatch++;
     }
 
     return;
@@ -170,11 +180,12 @@ void address_file_init(
 void address_init(
     void)
 {
-    unsigned i;
+    struct Address_Cache_Entry *pMatch;
 
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        Address_Cache[i].valid = false;
-        Address_Cache[i].bind_request = false;
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        pMatch->Flags = 0;
+        pMatch++;
     }
     address_file_init(Address_Cache_Filename);
 
@@ -186,17 +197,21 @@ bool address_get_by_device(
     unsigned *max_apdu,
     BACNET_ADDRESS * src)
 {
-    unsigned i;
+    struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
 
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (Address_Cache[i].valid &&
-            (Address_Cache[i].device_id == device_id)) {
-            bacnet_address_copy(src, &Address_Cache[i].address);
-            *max_apdu = Address_Cache[i].max_apdu;
-            found = true;
-            break;
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
+            (pMatch->device_id == device_id)) {
+            if((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) { /* If bound then fetch data */
+                *src = pMatch->address;
+                *max_apdu = pMatch->max_apdu;
+                found = true; /* Prove we found it */
+            }
+            break; /* Exit now if found at all - bound or unbound */
         }
+        pMatch++;
     }
 
     return found;
@@ -207,19 +222,21 @@ bool address_get_device_id(
     BACNET_ADDRESS * src,
     uint32_t * device_id)
 {
-    unsigned i;
+    struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
 
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (Address_Cache[i].valid) {
-            if (bacnet_address_same(&Address_Cache[i].address, src)) {
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) { /* If bound */
+            if (bacnet_address_same(&pMatch->address, src)) {
                 if (device_id) {
-                    *device_id = Address_Cache[i].device_id;
+                    *device_id = pMatch->device_id;
                 }
                 found = true;
                 break;
             }
         }
+        pMatch++;
     }
 
     return found;
@@ -230,29 +247,40 @@ void address_add(
     unsigned max_apdu,
     BACNET_ADDRESS * src)
 {
-    unsigned i;
     bool found = false; /* return value */
-
-    /* existing device - update address */
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (Address_Cache[i].valid &&
-            (Address_Cache[i].device_id == device_id)) {
-            bacnet_address_copy(&Address_Cache[i].address, src);
-            Address_Cache[i].max_apdu = max_apdu;
+    struct Address_Cache_Entry *pMatch;
+    
+    /* Note: Previously this function would ignore bind request
+       marked entries and in fact would probably overwrite the first
+       bind request entry blindly with the device info which may
+       have nothing to do with that bind request. Now it honours the 
+       bind request if it exists */
+       
+    /* existing device or bind request outstanding - update address */
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) && (pMatch->device_id == device_id)) {
+            pMatch->address = *src;
+            pMatch->max_apdu = max_apdu;
+            pMatch->Flags &= ~BAC_ADDR_BIND_REQ; /* Clear bind request flag just in case */
             found = true;
             break;
         }
+        pMatch++;
     }
-    /* new device */
+    
+    /* new device - add to cache if there is room */
     if (!found) {
-        for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-            if (!Address_Cache[i].valid) {
-                Address_Cache[i].valid = true;
-                Address_Cache[i].device_id = device_id;
-                Address_Cache[i].max_apdu = max_apdu;
-                bacnet_address_copy(&Address_Cache[i].address, src);
+        pMatch = Address_Cache;
+        while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+            if ((pMatch->Flags & BAC_ADDR_IN_USE) == 0) {
+                pMatch->Flags = BAC_ADDR_IN_USE;
+                pMatch->device_id = device_id;
+                pMatch->max_apdu = max_apdu;
+                pMatch->address = *src;
                 break;
             }
+            pMatch++;
         }
     }
 
@@ -266,33 +294,33 @@ bool address_bind_request(
     unsigned *max_apdu,
     BACNET_ADDRESS * src)
 {
-    unsigned i;
     bool found = false; /* return value */
+    struct Address_Cache_Entry *pMatch;
 
-    /* existing device - update address */
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (Address_Cache[i].valid &&
-            (Address_Cache[i].device_id == device_id)) {
-            found = true;
-            bacnet_address_copy(src, &Address_Cache[i].address);
-            *max_apdu = Address_Cache[i].max_apdu;
-            break;
+    /* existing device - update address info if currently bound */
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) && (pMatch->device_id == device_id)) {
+            if((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) { /* Already bound */
+                found = true;
+                *src = pMatch->address;
+                *max_apdu = pMatch->max_apdu;
+            }
+            return found; /* True if bound, false if bind request outstanding */
         }
-        /* already have a bind request active for this puppy */
-        else if (Address_Cache[i].bind_request &&
-            (Address_Cache[i].device_id == device_id)) {
-            return found;
-        }
+        pMatch++;
     }
 
     if (!found) {
-        for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-            if (!(Address_Cache[i].bind_request || Address_Cache[i].valid)) {
-                Address_Cache[i].bind_request = true;
-                Address_Cache[i].device_id = device_id;
+        pMatch = Address_Cache;
+        while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+            if ((pMatch->Flags & BAC_ADDR_IN_USE) == 0) {
+                pMatch->Flags = BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ; /* In use and awaiting binding */
+                pMatch->device_id = device_id;
                 /* now would be a good time to do a Who-Is request */
                 break;
             }
+            pMatch++;
         }
     }
 
@@ -304,33 +332,19 @@ void address_add_binding(
     unsigned max_apdu,
     BACNET_ADDRESS * src)
 {
-    unsigned i;
-    bool found = false; /* return value */
+    struct Address_Cache_Entry *pMatch;
 
-    /* existing device - update address */
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (Address_Cache[i].valid &&
-            (Address_Cache[i].device_id == device_id)) {
-            bacnet_address_copy(&Address_Cache[i].address, src);
-            Address_Cache[i].max_apdu = max_apdu;
-            found = true;
+    /* existing device or bind request - update address */
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) && (pMatch->device_id == device_id)) {
+            pMatch->address = *src;
+            pMatch->max_apdu = max_apdu;
+            pMatch->Flags &= ~BAC_ADDR_BIND_REQ; /* Clear bind request flag in case it was set */
             break;
         }
+        pMatch++;
     }
-    /* add new device - but only if bind requested */
-    if (!found) {
-        for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-            if (!Address_Cache[i].valid && Address_Cache[i].bind_request) {
-                Address_Cache[i].valid = true;
-                Address_Cache[i].bind_request = false;
-                Address_Cache[i].device_id = device_id;
-                Address_Cache[i].max_apdu = max_apdu;
-                bacnet_address_copy(&Address_Cache[i].address, src);
-                break;
-            }
-        }
-    }
-
     return;
 }
 
@@ -340,13 +354,15 @@ bool address_get_by_index(
     unsigned *max_apdu,
     BACNET_ADDRESS * src)
 {
+    struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
 
     if (index < MAX_ADDRESS_CACHE) {
-        if (Address_Cache[index].valid) {
-            bacnet_address_copy(src, &Address_Cache[index].address);
-            *device_id = Address_Cache[index].device_id;
-            *max_apdu = Address_Cache[index].max_apdu;
+        pMatch = &Address_Cache[index];
+        if ((pMatch->Flags & BAC_ADDR_IN_USE) != 0) {
+            *src = pMatch->address;
+            *device_id = pMatch->device_id;
+            *max_apdu = pMatch->max_apdu;
             found = true;
         }
     }
@@ -357,16 +373,56 @@ bool address_get_by_index(
 unsigned address_count(
     void)
 {
-    unsigned i;
+    struct Address_Cache_Entry *pMatch;
     unsigned count = 0; /* return value */
 
-    for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (Address_Cache[i].valid)
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) /* Only count bound entries */
             count++;
+            
+        pMatch++;
     }
 
     return count;
 }
+
+int address_list_encode(
+    uint8_t * apdu,
+    unsigned apdu_len)
+
+{
+    int iLen = 0;
+    struct Address_Cache_Entry *pMatch; 
+    BACNET_OCTET_STRING MAC_Address;
+    
+    /* FIXME: I really shouild check the length remaining here but it is 
+              fairly pointless until we have the true length remaining in
+              the packet to work with as at the moment it is just MAX_APDU */
+              
+    pMatch = Address_Cache;
+    while(pMatch <= &Address_Cache[MAX_ADDRESS_CACHE-1] ) {
+        if ((pMatch->Flags & BAC_ADDR_IN_USE) != 0) {
+            iLen += encode_application_object_id(&apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
+            iLen += encode_application_unsigned(&apdu[iLen],  pMatch->address.net);
+            
+            /* pick the appropriate type of entry from the cache */
+            
+            if(pMatch->address.len != 0) {
+                octetstring_init(&MAC_Address, pMatch->address.adr, pMatch->address.len);
+                iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
+            }
+            else {
+                octetstring_init(&MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
+                iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
+            }
+        }
+        pMatch++;
+    }
+
+return(iLen);
+}
+
 
 #ifdef TEST
 #include <assert.h>

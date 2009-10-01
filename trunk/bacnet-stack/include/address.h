@@ -86,6 +86,10 @@ extern "C" {
         unsigned max_apdu,
         BACNET_ADDRESS * src);
 
+    int address_list_encode(
+        uint8_t * apdu,
+        unsigned apdu_len);
+        
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
