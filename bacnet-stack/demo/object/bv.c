@@ -278,11 +278,11 @@ int Binary_Value_Encode_Property_APDU(
                 if (array_index <= BACNET_MAX_PRIORITY) {
                     if (Binary_Value_Level[object_index][array_index] ==
                         BINARY_NULL)
-                        len = encode_application_null(&apdu[apdu_len]);
+                        apdu_len = encode_application_null(&apdu[apdu_len]);
                     else {
                         present_value =
                             Binary_Value_Level[object_index][array_index];
-                        len =
+                        apdu_len =
                             encode_application_enumerated(&apdu[apdu_len],
                             present_value);
                     }
