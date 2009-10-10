@@ -35,6 +35,68 @@
 #include "assert.h"
 #include "timestamp.h"
 
+void bacapp_timestamp_copy(
+    BACNET_TIMESTAMP * dest,
+    BACNET_TIMESTAMP * src)
+{
+    if (dest && src) {
+        dest->tag = src->tag;
+        switch (src->tag) {
+            case TIME_STAMP_TIME:
+                datetime_copy_time(
+                    &dest->value.time,
+                    &src->value.time);
+                break;
+            case TIME_STAMP_SEQUENCE:
+                dest->value.sequenceNum = src->value.sequenceNum;
+                break;
+            case TIME_STAMP_DATETIME:
+                datetime_copy(
+                    &dest->value.dateTime,
+                    &src->value.dateTime);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+int bacapp_encode_timestamp(
+    uint8_t * apdu,
+    BACNET_TIMESTAMP * value)
+{
+    int len = 0;        /* length of each encoding */
+
+    if (value && apdu) {
+        switch (value->tag) {
+            case TIME_STAMP_TIME:
+                len =
+                    encode_context_time(&apdu[0], 0,
+                    &value->value.time);
+                break;
+
+            case TIME_STAMP_SEQUENCE:
+                len =
+                    encode_context_unsigned(&apdu[0], 1,
+                    value->value.sequenceNum);
+                break;
+
+            case TIME_STAMP_DATETIME:
+                len =
+                    bacapp_encode_context_datetime(&apdu[0], 2,
+                    &value->value.dateTime);
+                break;
+
+            default:
+                len = 0;
+                assert(0);
+                break;
+        }
+    }
+    
+    return len;
+}
+
 int bacapp_encode_context_timestamp(
     uint8_t * apdu,
     uint8_t tag_number,
@@ -46,33 +108,8 @@ int bacapp_encode_context_timestamp(
     if (value && apdu) {
         len = encode_opening_tag(&apdu[apdu_len], tag_number);
         apdu_len += len;
-
-        switch (value->tag) {
-            case TIME_STAMP_TIME:
-                len =
-                    encode_context_time(&apdu[apdu_len], 0,
-                    &value->value.time);
-                break;
-
-            case TIME_STAMP_SEQUENCE:
-                len =
-                    encode_context_unsigned(&apdu[apdu_len], 1,
-                    value->value.sequenceNum);
-                break;
-
-            case TIME_STAMP_DATETIME:
-                len =
-                    bacapp_encode_context_datetime(&apdu[apdu_len], 2,
-                    &value->value.dateTime);
-                break;
-
-            default:
-                len = 0;
-                assert(0);
-                break;
-        }
+        len = bacapp_encode_timestamp(&apdu[apdu_len], value);
         apdu_len += len;
-
         len = encode_closing_tag(&apdu[apdu_len], tag_number);
         apdu_len += len;
     }

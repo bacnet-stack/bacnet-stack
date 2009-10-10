@@ -504,6 +504,15 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
             }
             break;
+        case PROP_LIST_OF_GROUP_MEMBERS:
+            switch (tag_number) {
+                case 0:
+                    tag = BACNET_APPLICATION_TAG_OBJECT_ID;
+                    break;
+                default:
+                    break;
+            }
+            break;
         case PROP_EXCEPTION_SCHEDULE:
             switch (tag_number) {
                 case 1:

@@ -59,6 +59,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+    void bacapp_timestamp_copy(
+        BACNET_TIMESTAMP * dest,
+        BACNET_TIMESTAMP * src);
+
+    int bacapp_encode_timestamp(
+        uint8_t * apdu,
+        BACNET_TIMESTAMP * value);
 
     int bacapp_encode_context_timestamp(
         uint8_t * apdu,
