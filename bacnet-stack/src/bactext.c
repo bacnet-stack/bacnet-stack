@@ -1819,6 +1819,16 @@ const char *bactext_binary_present_value_name(
         ASHRAE_Reserved_String);
 }
 
+bool bactext_binary_present_value_index(
+    const char *search_name,
+    unsigned *found_index)
+{
+    return indtext_by_istring(
+        bacnet_binary_present_value_names,
+        search_name,
+        found_index);
+}
+
 INDTEXT_DATA bacnet_reliability_names[] = {
     {RELIABILITY_NO_FAULT_DETECTED, "no-fault-detected"}
     ,
