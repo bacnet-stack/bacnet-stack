@@ -87,9 +87,10 @@ void handler_write_property(
     len = wp_decode_service_request(service_request, service_len, &wp_data);
 #if PRINT_ENABLED
     if (len > 0)
-        fprintf(stderr, "WP: type=%u instance=%u property=%u index=%d\n",
+        fprintf(stderr, 
+            "WP: type=%u instance=%u property=%u priority=%u index=%d\n",
             wp_data.object_type, wp_data.object_instance,
-            wp_data.object_property, wp_data.array_index);
+            wp_data.object_property, wp_data.priority, wp_data.array_index);
     else
         fprintf(stderr, "WP: Unable to decode Request!\n");
 #endif
