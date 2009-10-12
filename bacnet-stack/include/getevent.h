@@ -52,8 +52,12 @@ typedef struct BACnet_Get_Event_Information_Data {
     uint32_t eventPriorities[3];
     struct BACnet_Get_Event_Information_Data *next;
 } BACNET_GET_EVENT_INFORMATION_DATA;
-    
+
+/* return 0 if no active event at this index
+   return -1 if end of list 
+   return +1 if active event */
 typedef int (*get_event_info_function) (
+    unsigned index,
     BACNET_GET_EVENT_INFORMATION_DATA *getevent_data);
 
 #ifdef __cplusplus
