@@ -36,8 +36,7 @@
 #include "npdu.h"
 #include "abort.h"
 #include "event.h"
-
-static uint8_t Temp_Buf[MAX_APDU] = { 0 };
+#include "getevent.h"
 
 static get_event_info_function
     Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
@@ -66,8 +65,9 @@ void handler_get_event_information(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
     BACNET_OBJECT_ID object_id;
-    unsigned i = 0; /* counter */
+    unsigned i = 0, j = 0; /* counter */
     BACNET_GET_EVENT_INFORMATION_DATA getevent_data;
+    int valid_event = 0;
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
@@ -116,16 +116,22 @@ void handler_get_event_information(
     pdu_len += len;
     for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
         if (Get_Event_Info[i]) {
-            Get_Event_Info[i](&getevent_data);
-            len = getevent_ack_encode_apdu_data(
-                &Handler_Transmit_Buffer[pdu_len], 
-                sizeof(Handler_Transmit_Buffer)-pdu_len,
-                &getevent_data);
-            if (len <= 0) {
-                error = true;
-                goto GET_EVENT_ERROR;
+            for (j = 0; j < 0xffff; j++) {
+                valid_event = Get_Event_Info[i](j, &getevent_data);
+                if (valid_event > 0) {
+                    len = getevent_ack_encode_apdu_data(
+                        &Handler_Transmit_Buffer[pdu_len], 
+                        sizeof(Handler_Transmit_Buffer)-pdu_len,
+                        &getevent_data);
+                    if (len <= 0) {
+                        error = true;
+                        goto GET_EVENT_ERROR;
+                    }
+                    pdu_len += len;
+                } else if (valid_event < 0) {
+                    break;
+                }
             }
-            pdu_len += len;
         }
     }
     len = getevent_ack_encode_apdu_end(
