@@ -325,26 +325,26 @@ int decode_tag_number(
 /* Same as function above, but will safely fail is packet has been truncated */
 int decode_tag_number_safe(
     uint8_t * apdu,
-	uint32_t  apdu_len_remaining,
+    uint32_t  apdu_len_remaining,
     uint8_t * tag_number)
 {
     int len = 0;        /* return value */
 
     /* decode the tag number first */
-	if ( apdu_len_remaining >= 1 ) {
-		if (IS_EXTENDED_TAG_NUMBER(apdu[0]) && apdu_len_remaining >= 2) {
-			/* extended tag */
-			if (tag_number) {
-				*tag_number = apdu[1];
-			}
-			len = 2;
-		} else {
-			if (tag_number) {
-				*tag_number = (uint8_t) (apdu[0] >> 4);
-			}
-			len = 1;
-		}
-	}
+    if ( apdu_len_remaining >= 1 ) {
+        if (IS_EXTENDED_TAG_NUMBER(apdu[0]) && apdu_len_remaining >= 2) {
+            /* extended tag */
+            if (tag_number) {
+                *tag_number = apdu[1];
+            }
+            len = 2;
+        } else {
+            if (tag_number) {
+                *tag_number = (uint8_t) (apdu[0] >> 4);
+            }
+            len = 1;
+        }
+    }
     return len;
 }
 
@@ -415,56 +415,56 @@ int decode_tag_number_and_value(
 /* Same as function above, but will safely fail is packet has been truncated */
 int decode_tag_number_and_value_safe(
     uint8_t *   apdu,
-	uint32_t    apdu_len_remaining,
+    uint32_t    apdu_len_remaining,
     uint8_t *   tag_number,
     uint32_t *  value)
 {
     int len = 0;
 
-	len = decode_tag_number_safe(&apdu[0], apdu_len_remaining, tag_number);
+    len = decode_tag_number_safe(&apdu[0], apdu_len_remaining, tag_number);
 
-	if ( len > 0 ) {
-		apdu_len_remaining -= len;
-		if (IS_EXTENDED_VALUE(apdu[0])) {
-			/* tagged as uint32_t */
-			if (apdu[len] == 255 && apdu_len_remaining >= 5) {
-			    uint32_t value32;
-				len++;
-				len += decode_unsigned32(&apdu[len], &value32);
-				if (value) {
-					*value = value32;
-				}
-			}
-			/* tagged as uint16_t */
-			else if (apdu[len] == 254 && apdu_len_remaining >= 3) {
-			    uint16_t value16;
-				len++;
-				len += decode_unsigned16(&apdu[len], &value16);
-				if (value) {
-					*value = value16;
-				}
-			}
-			/* no tag - must be uint8_t */
-			else if (apdu[len] < 254 && apdu_len_remaining >= 1) {
-				if (value) {
-					*value = apdu[len];
-				}
-				len++;
-			}
-			else {
-				/* packet is truncated */
-				len = 0;
-			}
-		} else if (decode_is_opening_tag(&apdu[0]) && value) {
-			*value = 0;
-		} else if (decode_is_closing_tag(&apdu[0]) && value) {
-			/* closing tag */
-			*value = 0;
-		} else if (value) {
-			/* small value */
-			*value = apdu[0] & 0x07;
-		}
-	}
+    if ( len > 0 ) {
+        apdu_len_remaining -= len;
+        if (IS_EXTENDED_VALUE(apdu[0])) {
+            /* tagged as uint32_t */
+            if (apdu[len] == 255 && apdu_len_remaining >= 5) {
+                uint32_t value32;
+                len++;
+                len += decode_unsigned32(&apdu[len], &value32);
+                if (value) {
+                    *value = value32;
+                }
+            }
+            /* tagged as uint16_t */
+            else if (apdu[len] == 254 && apdu_len_remaining >= 3) {
+                uint16_t value16;
+                len++;
+                len += decode_unsigned16(&apdu[len], &value16);
+                if (value) {
+                    *value = value16;
+                }
+            }
+            /* no tag - must be uint8_t */
+            else if (apdu[len] < 254 && apdu_len_remaining >= 1) {
+                if (value) {
+                    *value = apdu[len];
+                }
+                len++;
+            }
+            else {
+                /* packet is truncated */
+                len = 0;
+            }
+        } else if (decode_is_opening_tag(&apdu[0]) && value) {
+            *value = 0;
+        } else if (decode_is_closing_tag(&apdu[0]) && value) {
+            /* closing tag */
+            *value = 0;
+        } else if (value) {
+            /* small value */
+            *value = apdu[0] & 0x07;
+        }
+    }
     return len;
 }
 
@@ -784,16 +784,16 @@ int decode_object_id(
 
 int decode_object_id_safe(
     uint8_t * apdu,
-	uint32_t len_value,
+    uint32_t len_value,
     uint16_t * object_type,
     uint32_t * instance)
 {
-	if ( len_value != 4 ) {
-		return 0;
-	}
-	else {
-		return decode_object_id(apdu, object_type, instance);
-	}
+    if ( len_value != 4 ) {
+        return 0;
+    }
+    else {
+        return decode_object_id(apdu, object_type, instance);
+    }
 }
 
 int decode_context_object_id(
@@ -1181,7 +1181,7 @@ int encode_context_unsigned(
     uint32_t value)
 {
     int len = 0;
-	
+    
     /* length of unsigned is variable, as per 20.2.4 */
     if (value < 0x100) {
         len = 1;
@@ -1193,8 +1193,8 @@ int encode_context_unsigned(
         len = 4;
     }
 
-	len  = encode_tag(&apdu[0], tag_number, true, len);
-	len += encode_bacnet_unsigned(&apdu[len], value);
+    len  = encode_tag(&apdu[0], tag_number, true, len);
+    len += encode_bacnet_unsigned(&apdu[len], value);
 
     return len;
 }
@@ -1306,7 +1306,7 @@ int encode_context_enumerated(
     len  = encode_tag(&apdu[0], tag_number, true, (uint32_t) len);
     len += encode_bacnet_enumerated(&apdu[len], value);
 
-	return len;
+    return len;
 }
 
 /* from clause 20.2.5 Encoding of a Signed Integer Value */
@@ -1558,21 +1558,21 @@ int decode_bacnet_time(
 
 int decode_bacnet_time_safe(
     uint8_t * apdu,
-	uint32_t len_value,
+    uint32_t len_value,
     BACNET_TIME * btime)
 {
-	if ( len_value != 4 )
-	{
-		btime->hour = 0;
-		btime->hundredths = 0;
-		btime->min = 0;
-		btime->sec = 0;
-		return len_value;
-	}
-	else
-	{
-		return decode_bacnet_time(apdu, btime);
-	}
+    if ( len_value != 4 )
+    {
+        btime->hour = 0;
+        btime->hundredths = 0;
+        btime->min = 0;
+        btime->sec = 0;
+        return len_value;
+    }
+    else
+    {
+        return decode_bacnet_time(apdu, btime);
+    }
 }
 
 int decode_application_time(
@@ -1694,19 +1694,19 @@ int decode_date(
 
 int decode_date_safe(
     uint8_t * apdu,
-	uint32_t len_value,
+    uint32_t len_value,
     BACNET_DATE * bdate)
 {
-	if ( len_value != 4 ) {
-		bdate->day = 0;
-		bdate->month = 0;
-		bdate->wday = 0;
-		bdate->year = 0;
-		return len_value;
-	}
-	else {
-		return decode_date(apdu, bdate);
-	}
+    if ( len_value != 4 ) {
+        bdate->day = 0;
+        bdate->month = 0;
+        bdate->wday = 0;
+        bdate->year = 0;
+        return len_value;
+    }
+    else {
+        return decode_date(apdu, bdate);
+    }
 }
 
 
@@ -2380,7 +2380,7 @@ void testUnsignedContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
     /* 32 bit number */
     uint32_t in = 0xdeadbeef;
@@ -2404,7 +2404,7 @@ void testUnsignedContextDecodes(
     ct_test(pTest, in == out);
     ct_test(pTest, outLen2 == -1);
 
-	/* 16 bit number */
+    /* 16 bit number */
     in = 0xdead;
     inLen = encode_context_unsigned(apdu, 10, in);
     outLen = decode_context_unsigned(apdu, 10, &out);
@@ -2457,7 +2457,7 @@ void testUnsignedContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
 
-	inLen   = encode_context_unsigned(apdu, large_context_tag, in);
+    inLen   = encode_context_unsigned(apdu, large_context_tag, in);
     outLen  = decode_context_unsigned(apdu, large_context_tag, &out);
     outLen2 = decode_context_unsigned(apdu, large_context_tag-1, &out);
 
@@ -2474,7 +2474,7 @@ void testSignedContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
 
     /* 32 bit number */
@@ -2555,7 +2555,7 @@ void testSignedContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
 
-	inLen = encode_context_signed(apdu, large_context_tag, in);
+    inLen = encode_context_signed(apdu, large_context_tag, in);
     outLen = decode_context_signed(apdu, large_context_tag, &out);
     outLen2 = decode_context_signed(apdu, large_context_tag-1, &out);
 
@@ -2572,7 +2572,7 @@ void testEnumeratedContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
     /* 32 bit number */
     uint32_t in = 0xdeadbeef;
@@ -2649,7 +2649,7 @@ void testEnumeratedContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
 
-	inLen = encode_context_enumerated(apdu, large_context_tag, in);
+    inLen = encode_context_enumerated(apdu, large_context_tag, in);
     outLen = decode_context_enumerated(apdu, large_context_tag, &out);
     outLen2 = decode_context_enumerated(apdu, large_context_tag-1, &out);
 
@@ -2665,7 +2665,7 @@ void testFloatContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
     /* 32 bit number */
     float in;
@@ -2713,7 +2713,7 @@ void testDoubleContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
     /* 64 bit number */
     double in;
@@ -2761,7 +2761,7 @@ static void testObjectIDContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
     /* 32 bit number */
     uint16_t in_type;
@@ -2799,7 +2799,7 @@ static void testCharacterStringContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
 
     BACNET_CHARACTER_STRING in;
@@ -2835,7 +2835,7 @@ void testBitStringContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
     BACNET_BIT_STRING in;
     BACNET_BIT_STRING out;
@@ -2874,7 +2874,7 @@ void testOctetStringContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
 
     BACNET_OCTET_STRING in;
@@ -2911,7 +2911,7 @@ void testTimeContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
     BACNET_TIME in;
     BACNET_TIME out;
@@ -2953,7 +2953,7 @@ void testDateContextDecodes(
     int inLen;
     int outLen;
     int outLen2;
-	uint8_t large_context_tag = 0xfe;
+    uint8_t large_context_tag = 0xfe;
 
 
     BACNET_DATE in;
@@ -2968,19 +2968,19 @@ void testDateContextDecodes(
     outLen = decode_context_date(apdu, 10, &out);
     outLen2 = decode_context_date(apdu, 9, &out);
 
-	ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == -1);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.day == out.day);
     ct_test(pTest, in.month == out.month);
     ct_test(pTest, in.wday == out.wday);
     ct_test(pTest, in.year == out.year);
 
-	/* Test large tags */
-	inLen = encode_context_date(apdu, large_context_tag, &in);
+    /* Test large tags */
+    inLen = encode_context_date(apdu, large_context_tag, &in);
     outLen = decode_context_date(apdu, large_context_tag, &out);
     outLen2 = decode_context_date(apdu, large_context_tag-1, &out);
 
-	ct_test(pTest, inLen == outLen);
+    ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.day == out.day);
     ct_test(pTest, in.month == out.month);
     ct_test(pTest, in.wday == out.wday);
@@ -2995,7 +2995,7 @@ int main(
     Test *pTest;
     bool rc;
 
-	pTest = ct_create("BACDCode", NULL);
+    pTest = ct_create("BACDCode", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testBACDCodeTags);
     assert(rc);

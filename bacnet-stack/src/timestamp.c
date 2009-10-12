@@ -116,9 +116,8 @@ int bacapp_encode_context_timestamp(
     return apdu_len;
 }
 
-int bacapp_decode_context_timestamp(
+int bacapp_decode_timestamp(
     uint8_t * apdu,
-    uint8_t tag_number,
     BACNET_TIMESTAMP * value)
 {
     int len = 0;
@@ -126,10 +125,7 @@ int bacapp_decode_context_timestamp(
     uint32_t len_value_type;
     uint32_t sequenceNum;
 
-
-    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
-        len++;
-
+    if (apdu) {
         section_len =
             decode_tag_number_and_value(&apdu[len], &value->tag,
             &len_value_type);
@@ -177,10 +173,30 @@ int bacapp_decode_context_timestamp(
             default:
                 return -1;
         }
-        if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-            len++;
-        } else {
-            return -1;
+    }
+    
+    return len;
+}
+
+int bacapp_decode_context_timestamp(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    BACNET_TIMESTAMP * value)
+{
+    int len = 0;
+    int section_len;
+
+
+    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
+        len++;
+        section_len = bacapp_decode_timestamp(&apdu[len], value);
+        if (section_len > 0) {
+            len += section_len;
+            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
+                len++;
+            } else {
+                return -1;
+            }
         }
     }
     return len;

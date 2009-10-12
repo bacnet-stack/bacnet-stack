@@ -34,6 +34,7 @@
 #include "rp.h"
 #include "rpm.h"
 #include "wp.h"
+#include "getevent.h"
 
 
 #ifdef __cplusplus
@@ -224,6 +225,17 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
+        
+    void handler_get_event_information_set(
+        BACNET_OBJECT_TYPE object_type,
+        get_event_info_function pFunction);
+
+    void handler_get_event_information(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+        
 
 #ifdef __cplusplus
 }
