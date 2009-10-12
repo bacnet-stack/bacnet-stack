@@ -66,12 +66,15 @@ extern "C" {
     int bacapp_encode_timestamp(
         uint8_t * apdu,
         BACNET_TIMESTAMP * value);
+    int bacapp_decode_timestamp(
+       uint8_t * apdu,
+       BACNET_TIMESTAMP * value);
+
 
     int bacapp_encode_context_timestamp(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIMESTAMP * value);
-
     int bacapp_decode_context_timestamp(
         uint8_t * apdu,
         uint8_t tag_number,
