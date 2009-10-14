@@ -64,6 +64,8 @@ extern "C" {
         void);
     bool RS485_Set_Baud_Rate(
         uint32_t baud);
+        
+    void RS485_Print_Error(void);
 
 #ifdef __cplusplus
 }
