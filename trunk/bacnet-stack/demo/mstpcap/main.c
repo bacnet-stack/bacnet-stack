@@ -285,6 +285,44 @@ uint16_t MSTP_Get_Reply(
 
 static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
+static HANDLE hPipe = NULL; /* pipe handle */
+
+#if defined(_WIN32)
+static void named_pipe_create(char *name)
+{
+    fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", name);
+    hPipe = CreateNamedPipe(
+        name,
+        PIPE_ACCESS_OUTBOUND,
+        PIPE_TYPE_MESSAGE | PIPE_WAIT,
+        1, 65536, 65536,
+        300,
+        NULL);
+    if (hPipe == INVALID_HANDLE_VALUE) {
+        RS485_Print_Error();
+        return;
+    }
+    ConnectNamedPipe(hPipe, NULL);
+}
+
+size_t data_write(const void *ptr, size_t size, size_t nitems)
+{
+    DWORD cbWritten = 0;
+    (void)WriteFile( 
+         hPipe,        // handle to pipe 
+         ptr,      // buffer to write from 
+         size*nitems, // number of bytes to write 
+         &cbWritten,   // number of bytes written 
+         NULL);        // not overlapped I/O 
+
+    return fwrite(ptr, size, nitems, pFile);
+}
+#else
+size_t data_write(const void *ptr, size_t size, size_t nitems)
+{
+    return fwrite(ptr, size, nitems, pFile);
+}
+#endif
 
 static void filename_create(
     char *filename)
@@ -316,13 +354,13 @@ static void write_global_header(
     /* create a new file. */
     pFile = fopen(filename, "wb");
     if (pFile) {
-        (void) fwrite(&magic_number, sizeof(magic_number), 1, pFile);
-        (void) fwrite(&version_major, sizeof(version_major), 1, pFile);
-        (void) fwrite(&version_minor, sizeof(version_minor), 1, pFile);
-        (void) fwrite(&thiszone, sizeof(thiszone), 1, pFile);
-        (void) fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
-        (void) fwrite(&snaplen, sizeof(snaplen), 1, pFile);
-        (void) fwrite(&network, sizeof(network), 1, pFile);
+        (void) data_write(&magic_number, sizeof(magic_number), 1);
+        (void) data_write(&version_major, sizeof(version_major), 1);
+        (void) data_write(&version_minor, sizeof(version_minor), 1);
+        (void) data_write(&thiszone, sizeof(thiszone), 1);
+        (void) data_write(&sigfigs, sizeof(sigfigs), 1);
+        (void) data_write(&snaplen, sizeof(snaplen), 1);
+        (void) data_write(&network, sizeof(network), 1);
         fflush(pFile);
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
@@ -347,16 +385,16 @@ static void write_received_packet(
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
         packet_statistics(&tv, mstp_port);
-        (void) fwrite(&ts_sec, sizeof(ts_sec), 1, pFile);
-        (void) fwrite(&ts_usec, sizeof(ts_usec), 1, pFile);
+        (void) data_write(&ts_sec, sizeof(ts_sec), 1);
+        (void) data_write(&ts_usec, sizeof(ts_usec), 1);
         if (mstp_port->DataLength) {
             max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
             incl_len = orig_len = 8 + max_data + 2;
         } else {
             incl_len = orig_len = 8;
         }
-        (void) fwrite(&incl_len, sizeof(incl_len), 1, pFile);
-        (void) fwrite(&orig_len, sizeof(orig_len), 1, pFile);
+        (void) data_write(&incl_len, sizeof(incl_len), 1);
+        (void) data_write(&orig_len, sizeof(orig_len), 1);
         header[0] = 0x55;
         header[1] = 0xFF;
         header[2] = mstp_port->FrameType;
@@ -365,11 +403,11 @@ static void write_received_packet(
         header[5] = HI_BYTE(mstp_port->DataLength);
         header[6] = LO_BYTE(mstp_port->DataLength);
         header[7] = mstp_port->HeaderCRCActual;
-        (void) fwrite(header, sizeof(header), 1, pFile);
+        (void) data_write(header, sizeof(header), 1);
         if (mstp_port->DataLength) {
-            (void) fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
-            (void) fwrite((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
-            (void) fwrite((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
+            (void) data_write(mstp_port->InputBuffer, max_data, 1);
+            (void) data_write((char *) &mstp_port->DataCRCActualMSB, 1, 1);
+            (void) data_write((char *) &mstp_port->DataCRCActualLSB, 1, 1);
         }
     } else {
         fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
@@ -393,6 +431,12 @@ static BOOL WINAPI CtrlCHandler(
     DWORD dwCtrlType)
 {
     dwCtrlType = dwCtrlType;
+    
+    if (hPipe) {
+        FlushFileBuffers(hPipe); 
+        DisconnectNamedPipe(hPipe); 
+        CloseHandle(hPipe);
+    }
     exit(0);
     return TRUE;
 }
@@ -437,7 +481,7 @@ int main(
     mstp_port = &MSTP_Port;
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("mstpcap [interface] [baud]\r\n"
+        printf("mstpcap [interface] [baud] [named pipe]\r\n"
             "Captures MS/TP packets from a serial interface\r\n"
             "and save them to a file. Saves packets in a\r\n"
             "filename mstp_20090123091200.cap that has data and time.\r\n"
@@ -445,7 +489,9 @@ int main(
             "Command line options:\r\n" "[interface] - serial interface.\r\n"
             "    defaults to COM4 on  Windows, and /dev/ttyUSB0 on linux.\r\n"
             "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
-            "    defaults to 38400.\r\n" "");
+            "    defaults to 38400.\r\n"
+            "[named pipe] - use \\\\.\\pipe\\wireshark as the name\r\n"
+            "    and set that name as the interface name in Wireshark\r\n");
         return 0;
     }
     if (argc > 1) {
@@ -473,6 +519,9 @@ int main(
 #if defined(_WIN32)
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
+    if (argc > 3) {
+        named_pipe_create(argv[3]);
+    }
 #else
     signal_init();
 #endif
