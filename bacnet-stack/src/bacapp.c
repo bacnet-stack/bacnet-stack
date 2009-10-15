@@ -847,17 +847,31 @@ bool bacapp_print_value(
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 switch (property) {
                     case PROP_OBJECT_TYPE:
-                        fprintf(stream, "%s",
-                            bactext_object_type_name(value->type.Enumerated));
+                        if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
+                            fprintf(stream, "%s",
+                                bactext_object_type_name(
+                                   value->type.Enumerated));
+                        } else if (value->type.Enumerated < 128) {
+                            fprintf(stream, "reserved %u", 
+                                value->type.Enumerated);
+                        } else {
+                            fprintf(stream, "proprietary %u", 
+                                value->type.Enumerated);
+                        }
                         break;
                     case PROP_EVENT_STATE:
                         fprintf(stream, "%s",
                             bactext_event_state_name(value->type.Enumerated));
                         break;
                     case PROP_UNITS:
-                        fprintf(stream, "%s",
-                            bactext_engineering_unit_name(value->type.
-                                Enumerated));
+                        if (value->type.Enumerated < 256) {
+                            fprintf(stream, "%s",
+                                bactext_engineering_unit_name(value->type.
+                                    Enumerated));
+                        } else {
+                            fprintf(stream, "proprietary %u",value->type.
+                                Enumerated);
+                        }
                         break;
                     case PROP_PRESENT_VALUE:
                         fprintf(stream, "%s",
@@ -921,9 +935,19 @@ bool bacapp_print_value(
                 }
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                fprintf(stream, "%s %u",
-                    bactext_object_type_name(value->type.Object_Id.type),
-                    value->type.Object_Id.instance);
+                if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
+                    fprintf(stream, "(%s, %u)",
+                        bactext_object_type_name(value->type.Object_Id.type),
+                        value->type.Object_Id.instance);
+                } else if (value->type.Object_Id.type < 128) {
+                    fprintf(stream, "(reserved %u, %u)",
+                        value->type.Object_Id.type,
+                        value->type.Object_Id.instance);
+                } else {
+                    fprintf(stream, "(proprietary %u, %u)", 
+                        value->type.Object_Id.type,
+                        value->type.Object_Id.instance);
+                }
                 break;
             default:
                 status = false;

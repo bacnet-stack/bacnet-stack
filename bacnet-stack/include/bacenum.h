@@ -903,6 +903,7 @@ typedef enum {
         /* the procedures and constraints described in Clause 23. */
 } BACNET_OBJECT_TYPE;
 /* used for bit string loop */
+#define PROPRIETARY_BACNET_OBJECT_TYPE 128
 #define MAX_BACNET_OBJECT_TYPE 1023
 
 typedef enum {

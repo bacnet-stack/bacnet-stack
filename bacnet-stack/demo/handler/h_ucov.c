@@ -70,8 +70,13 @@ void handler_ucov_notification(
             bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
             cov_data.monitoredObjectIdentifier.instance);
         fprintf(stderr, "time remaining=%u seconds ", cov_data.timeRemaining);
-        fprintf(stderr, "%s ",
-            bactext_property_name(property_value.propertyIdentifier));
+        if (property_value.propertyIdentifier < 512) {
+            fprintf(stderr, "%s ",
+                bactext_property_name(property_value.propertyIdentifier));
+        } else {
+            fprintf(stderr, "proprietary %u ",
+                property_value.propertyIdentifier);
+        }
         if (property_value.propertyArrayIndex != BACNET_ARRAY_ALL) {
             fprintf(stderr, "%u ", property_value.propertyArrayIndex);
         }
