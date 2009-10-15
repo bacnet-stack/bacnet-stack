@@ -206,8 +206,14 @@ static void PrintReadPropertyMultipleData(
         listOfProperties = rpm_data->listOfProperties;
         while (listOfProperties) {
 #if PRINT_ENABLED
-            fprintf(stdout, "    %s: ",
-                bactext_property_name(listOfProperties->propertyIdentifier));
+            if (listOfProperties->propertyIdentifier < 512) {
+                fprintf(stdout, "    %s: ",
+                    bactext_property_name(
+                    listOfProperties->propertyIdentifier));
+            } else {
+                fprintf(stdout, "    proprietary %u: ",
+                    listOfProperties->propertyIdentifier);
+            }
 #endif
             if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
 #if PRINT_ENABLED
