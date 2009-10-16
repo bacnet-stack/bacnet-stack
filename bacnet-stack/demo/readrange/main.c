@@ -411,6 +411,7 @@ int main(
 				putchar('.'); /* Just to show that time is passing... */
 				last_seconds = current_seconds;
 				tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+			    address_cache_timer(current_seconds - last_seconds);
 			}
 			
 			if(_kbhit()) {
@@ -442,8 +443,10 @@ int main(
 				npdu_handler(&src, &Rx_Buf[0], pdu_len);
 			}
 			/* at least one second has passed */
-			if (current_seconds != last_seconds)
+			if (current_seconds != last_seconds) {
 				tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+			    address_cache_timer(current_seconds - last_seconds);
+			}
 			if (Error_Detected)
 				break;
 			/* wait until the device is bound, or timeout and quit */
