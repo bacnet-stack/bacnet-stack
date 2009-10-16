@@ -285,9 +285,9 @@ uint16_t MSTP_Get_Reply(
 
 static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
+#if defined(_WIN32)
 static HANDLE hPipe = NULL; /* pipe handle */
 
-#if defined(_WIN32)
 static void named_pipe_create(char *name)
 {
     fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", name);
