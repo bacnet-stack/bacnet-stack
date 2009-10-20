@@ -98,17 +98,14 @@ int ptransfer_encode_apdu(
 
 int uptransfer_encode_apdu(
     uint8_t * apdu,
-    uint8_t invoke_id,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
-        apdu[2] = invoke_id;
-        apdu[3] = SERVICE_UNCONFIRMED_PRIVATE_TRANSFER;
-        apdu_len = 4;
+        apdu[1] = SERVICE_UNCONFIRMED_PRIVATE_TRANSFER;
+        apdu_len = 2;
         apdu_len = pt_encode_apdu(
             &apdu[apdu_len],
             MAX_APDU-apdu_len,

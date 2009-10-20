@@ -38,6 +38,7 @@
 #include "event.h"
 #include "lso.h"
 #include "alarm_ack.h"
+#include "ptransfer.h"
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -160,6 +161,10 @@ extern "C" {
     uint8_t Send_Alarm_Acknowledgement(
         uint32_t device_id,
         BACNET_ALARM_ACK_DATA * data);
+
+    void Send_UnconfirmedPrivateTransfer(
+        BACNET_ADDRESS * dest,
+        BACNET_PRIVATE_TRANSFER_DATA *private_data);
 
 #ifdef __cplusplus
 }
