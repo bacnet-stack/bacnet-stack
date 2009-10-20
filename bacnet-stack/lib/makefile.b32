@@ -112,6 +112,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)\s_whohas.c \
 	$(BACNET_HANDLER)\s_whois.c  \
 	$(BACNET_HANDLER)\s_ptransfer.c  \
+	$(BACNET_HANDLER)\h_upt.c  \
 	$(BACNET_HANDLER)\h_pt.c  \
 	$(BACNET_HANDLER)\h_pt_a.c  \
 	$(BACNET_HANDLER)\s_wp.c

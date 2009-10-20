@@ -95,6 +95,9 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_ihave.c  \
 	$(BACNET_HANDLER)/h_cov.c  \
 	$(BACNET_HANDLER)/h_ucov.c  \
+	$(BACNET_HANDLER)/h_pt.c  \
+	$(BACNET_HANDLER)/h_pt_a.c  \
+	$(BACNET_HANDLER)/h_upt.c  \
 	$(BACNET_HANDLER)/s_arfs.c \
 	$(BACNET_HANDLER)/s_awfs.c \
 	$(BACNET_HANDLER)/s_dcc.c \
