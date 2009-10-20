@@ -24,39 +24,53 @@
 *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
+#include <string.h>
+#include "config.h"
 #include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
-#include "apdu.h"
+#include "address.h"
+#include "tsm.h"
 #include "npdu.h"
-#include "abort.h"
+#include "apdu.h"
+#include "device.h"
+#include "datalink.h"
+#include "dcc.h"
 #include "ptransfer.h"
+/* some demo stuff needed */
+#include "handlers.h"
+#include "txbuf.h"
 
-void handler_unconfirmed_private_transfer(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src)
+void Send_UnconfirmedPrivateTransfer(
+    BACNET_ADDRESS * dest,
+    BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
-    BACNET_PRIVATE_TRANSFER_DATA private_data; 
     int len = 0;
+    int pdu_len = 0;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
 
+    if (!dcc_communication_enabled())
+        return;
+
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, NULL, &npdu_data);
+    /* encode the APDU portion of the packet */
+    len = uptransfer_encode_apdu(
+        &Handler_Transmit_Buffer[pdu_len], 
+        private_data);
+    pdu_len += len;
+    bytes_sent =
+        datalink_send_pdu(dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
-    fprintf(stderr,"Received Unconfirmed Private Transfer Request!\n");
+    if (bytes_sent <= 0)
+        fprintf(stderr, 
+            "Failed to Send UnconfirmedPrivateTransfer Request (%s)!\n",
+            strerror(errno));
 #endif
-    (void) src;
-    len = ptransfer_decode_service_request(
-        service_request, service_len, &private_data);
-    if (len >= 0) {
-        #if PRINT_ENABLED
-        fprintf(stderr,
-            "UnconfirmedPrivateTransfer: "
-            "vendorID=%u serviceNumber=%u\n",
-            private_data.vendorID, private_data.serviceNumber);
-        #endif
-    }
 }
-

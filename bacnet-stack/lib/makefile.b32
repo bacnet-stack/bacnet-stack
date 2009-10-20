@@ -115,6 +115,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)\h_upt.c  \
 	$(BACNET_HANDLER)\h_pt.c  \
 	$(BACNET_HANDLER)\h_pt_a.c  \
+	$(BACNET_HANDLER)\s_upt.c  \
 	$(BACNET_HANDLER)\s_wp.c
 
 OBJECT_SRC = $(BACNET_OBJECT)\device.c \

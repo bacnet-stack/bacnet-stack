@@ -52,6 +52,9 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_PRIVATE_TRANSFER_DATA * private_data);
+    int uptransfer_encode_apdu(
+        uint8_t * apdu,
+        BACNET_PRIVATE_TRANSFER_DATA * private_data);
     int ptransfer_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
