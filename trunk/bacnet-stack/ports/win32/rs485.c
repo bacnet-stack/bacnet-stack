@@ -47,9 +47,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "mstp.h"
 #include "dlmstp.h"
-
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
@@ -84,6 +84,20 @@ static DWORD RS485_DTRControl = DTR_CONTROL_DISABLE;
 static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
 
 /****************************************************************************
+* DESCRIPTION: Change the characters in a string to uppercase
+* RETURN:      nothing
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void strupper(char *str) 
+{
+    char *p;
+    for (p = str; *p != '\0'; ++p) {
+       *p = toupper(*p);
+    }
+}
+
+/****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
 *              receive mode.
 * RETURN:      none
@@ -97,6 +111,7 @@ void RS485_Set_Interface(
        for CreateFile. The syntax also works for COM ports 1-9. */
     /* http://support.microsoft.com/kb/115831 */
     if (ifname) {
+        strupper(ifname); 
         if (strncmp("COM", ifname, 3) == 0) {
             if (strlen(ifname) > 3) {
                 sprintf(RS485_Port_Name, "\\\\.\\COM%i", atoi(ifname + 3));
