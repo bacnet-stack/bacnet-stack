@@ -8,6 +8,14 @@ CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = $(SRC_DIR)/address.c \
 	$(SRC_DIR)/bacaddr.c \
+	$(SRC_DIR)/bacdcode.c \
+	$(SRC_DIR)/bacint.c \
+	$(SRC_DIR)/bacstr.c \
+	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/indtext.c \
 	ctest.c
 
 OBJS = ${SRCS:.c=.o}
