@@ -82,6 +82,6 @@ mkdir ${ARCHIVE_NAME}
 mv ${ZIP_FILENAME} ${ARCHIVE_NAME}
 mv ${GZIP_FILENAME} ${ARCHIVE_NAME}
 mv ${CHANGELOG} ${ARCHIVE_NAME}
-#scp -r ${ARCHIVE_NAME} ${FRS_URL}
+scp -r ${ARCHIVE_NAME} ${FRS_URL}
 
 echo "Complete!"
