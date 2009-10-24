@@ -43,21 +43,21 @@ static uint8_t Temp_Buf[MAX_APDU] = { 0 };
    or sets the error, and returns -1 */
 int Encode_RR_payload(
     uint8_t * apdu,
-    BACNET_READ_RANGE_DATA *pRequest,
+    BACNET_READ_RANGE_DATA * pRequest,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code)
 {
     int apdu_len = -1;
-    
+
     /* FIXME: Stub function at the moment which just returns something
      * for the sake of testing things out. Need to look at existing objects
      * and see how we can do this for real. 
      */
-    
+
     pRequest->ItemCount = 6;
     bitstring_init(&pRequest->ResultFlags);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
-    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  true);
+    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
     pRequest->FirstSequence = 0;
 
@@ -91,10 +91,15 @@ void handler_read_range(
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         fprintf(stderr, "RR: Segmented message.  Sending Abort!\n");
 #endif
@@ -108,7 +113,9 @@ void handler_read_range(
 #endif
     if (len < 0) {
         /* bad decoding - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, ABORT_REASON_OTHER, true);
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "RR: Bad Encoding.  Sending Abort!\n");
 #endif
@@ -123,7 +130,9 @@ void handler_read_range(
         data.application_data = &Temp_Buf[0];
         data.application_data_len = len;
         /* FIXME: probably need a length limitation sent with encode */
-        len = rr_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
+        len =
+            rr_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, &data);
 #if PRINT_ENABLED
         fprintf(stderr, "RR: Sending Ack!\n");
 #endif
@@ -132,12 +141,18 @@ void handler_read_range(
     if (error) {
         if (len == -2) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+            len =
+                abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id,
+                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
             fprintf(stderr, "RR: Reply too big to fit into APDU!\n");
 #endif
         } else {
-            len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
+            len =
+                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+                error_class, error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "RR: Sending Error!\n");
 #endif
@@ -145,7 +160,9 @@ void handler_read_range(
     }
   RR_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

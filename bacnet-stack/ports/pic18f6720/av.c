@@ -310,8 +310,8 @@ bool Analog_Value_Write_Property(
                     (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
                     level = (uint8_t) value.type.Real;
                     object_index =
-                        Analog_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Analog_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     Present_Value[object_index] = level;
                     /* Note: you could set the physical output here if we

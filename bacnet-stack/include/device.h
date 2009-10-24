@@ -40,11 +40,17 @@
 #include "bacenum.h"
 #include "wp.h"
 
-typedef unsigned (*object_count_function) (void);
-typedef uint32_t (*object_index_to_instance_function) 
-    (unsigned index);
-typedef char * (*object_name_function)
-    (uint32_t object_instance);
+typedef unsigned (
+    *object_count_function) (
+    void);
+typedef uint32_t(
+    *object_index_to_instance_function)
+        (
+    unsigned index);
+typedef char *(
+    *object_name_function)
+     (
+    uint32_t object_instance);
 
 #ifdef __cplusplus
 extern "C" {

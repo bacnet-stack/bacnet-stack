@@ -127,6 +127,7 @@ static char *Shed_Level_Descriptions[MAX_SHED_LEVELS] = {
     "dim lights 20%",
     "dim lights 30%"
 };
+
 static float Shed_Level_Values[MAX_SHED_LEVELS] = {
     90.0,
     80.0,

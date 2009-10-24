@@ -286,18 +286,15 @@ uint16_t MSTP_Get_Reply(
 static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 #if defined(_WIN32)
-static HANDLE hPipe = NULL; /* pipe handle */
+static HANDLE hPipe = NULL;     /* pipe handle */
 
-static void named_pipe_create(char *name)
+static void named_pipe_create(
+    char *name)
 {
     fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", name);
-    hPipe = CreateNamedPipe(
-        name,
-        PIPE_ACCESS_OUTBOUND,
-        PIPE_TYPE_MESSAGE | PIPE_WAIT,
-        1, 65536, 65536,
-        300,
-        NULL);
+    hPipe =
+        CreateNamedPipe(name, PIPE_ACCESS_OUTBOUND,
+        PIPE_TYPE_MESSAGE | PIPE_WAIT, 1, 65536, 65536, 300, NULL);
     if (hPipe == INVALID_HANDLE_VALUE) {
         RS485_Print_Error();
         return;
@@ -305,43 +302,48 @@ static void named_pipe_create(char *name)
     ConnectNamedPipe(hPipe, NULL);
 }
 
-size_t data_write(const void *ptr, size_t size, size_t nitems)
+size_t data_write(
+    const void *ptr,
+    size_t size,
+    size_t nitems)
 {
     DWORD cbWritten = 0;
     if (hPipe != INVALID_HANDLE_VALUE) {
-        (void)WriteFile( 
-             hPipe,        /* handle to pipe  */
-             ptr,      /* buffer to write from  */
-             size*nitems, /* number of bytes to write  */
-             &cbWritten,   /* number of bytes written  */
-             NULL);        /* not overlapped I/O  */
+        (void) WriteFile(hPipe, /* handle to pipe  */
+            ptr,        /* buffer to write from  */
+            size * nitems,      /* number of bytes to write  */
+            &cbWritten, /* number of bytes written  */
+            NULL);      /* not overlapped I/O  */
     }
-    
+
     return fwrite(ptr, size, nitems, pFile);
 }
 #else
 static int FD_Pipe = -1;
-static void named_pipe_create(char *name)
+static void named_pipe_create(
+    char *name)
 {
     int rv = 0;
-	rv = mkfifo(name, 0666);
-	if (( rv == -1) && (errno != EEXIST)) 
-	{
-		perror("Error creating named pipe");
-		exit(1);
-	}
-	FD_Pipe = open(name, O_WRONLY);
+    rv = mkfifo(name, 0666);
+    if ((rv == -1) && (errno != EEXIST)) {
+        perror("Error creating named pipe");
+        exit(1);
+    }
+    FD_Pipe = open(name, O_WRONLY);
     if (FD_Pipe == -1) {
-		perror("Error connecting to named pipe");
-		exit(1);
+        perror("Error connecting to named pipe");
+        exit(1);
     }
 }
 
-size_t data_write(const void *ptr, size_t size, size_t nitems)
+size_t data_write(
+    const void *ptr,
+    size_t size,
+    size_t nitems)
 {
     ssize_t bytes = 0;
     if (FD_Pipe != -1) {
-        bytes = write(FD_Pipe, ptr, size*nitems); 
+        bytes = write(FD_Pipe, ptr, size * nitems);
         bytes = bytes;
     }
     return fwrite(ptr, size, nitems, pFile);
@@ -455,10 +457,10 @@ static BOOL WINAPI CtrlCHandler(
     DWORD dwCtrlType)
 {
     dwCtrlType = dwCtrlType;
-    
+
     if (hPipe) {
-        FlushFileBuffers(hPipe); 
-        DisconnectNamedPipe(hPipe); 
+        FlushFileBuffers(hPipe);
+        DisconnectNamedPipe(hPipe);
         CloseHandle(hPipe);
     }
     exit(0);

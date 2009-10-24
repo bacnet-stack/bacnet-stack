@@ -39,11 +39,9 @@
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
-static read_property_function
-    Read_Property[MAX_BACNET_OBJECT_TYPE];
+static read_property_function Read_Property[MAX_BACNET_OBJECT_TYPE];
 
-static object_valid_instance_function
-    Valid_Instance[MAX_BACNET_OBJECT_TYPE];
+static object_valid_instance_function Valid_Instance[MAX_BACNET_OBJECT_TYPE];
 
 void handler_read_property_object_set(
     BACNET_OBJECT_TYPE object_type,
@@ -54,7 +52,7 @@ void handler_read_property_object_set(
         Read_Property[object_type] = pFunction1;
         Valid_Instance[object_type] = pFunction2;
     }
-}                
+}
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
@@ -79,11 +77,10 @@ int Encode_Property_APDU(
         object_rp = Read_Property[object_type];
         object_valid = Valid_Instance[object_type];
     }
-    if (object_rp && object_valid &&
-        object_valid(object_instance)) {
-        apdu_len = object_rp(
-            &apdu[0], object_instance, property,
-            array_index, error_class, error_code);
+    if (object_rp && object_valid && object_valid(object_instance)) {
+        apdu_len =
+            object_rp(&apdu[0], object_instance, property, array_index,
+            error_class, error_code);
     } else {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;

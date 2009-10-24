@@ -164,7 +164,7 @@ extern "C" {
 
     void Send_UnconfirmedPrivateTransfer(
         BACNET_ADDRESS * dest,
-        BACNET_PRIVATE_TRANSFER_DATA *private_data);
+        BACNET_PRIVATE_TRANSFER_DATA * private_data);
 
 #ifdef __cplusplus
 }

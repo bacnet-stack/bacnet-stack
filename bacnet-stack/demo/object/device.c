@@ -42,12 +42,10 @@
 #include "bacfile.h"    /* object list dependency */
 #endif
 
-static object_count_function 
-    Object_Count[MAX_BACNET_OBJECT_TYPE];
-static object_index_to_instance_function 
+static object_count_function Object_Count[MAX_BACNET_OBJECT_TYPE];
+static object_index_to_instance_function
     Object_Index_To_Instance[MAX_BACNET_OBJECT_TYPE];
-static object_name_function
-    Object_Name[MAX_BACNET_OBJECT_TYPE];
+static object_name_function Object_Name[MAX_BACNET_OBJECT_TYPE];
 
 void Device_Object_Function_Set(
     BACNET_OBJECT_TYPE object_type,
@@ -60,7 +58,7 @@ void Device_Object_Function_Set(
         Object_Index_To_Instance[object_type] = index_function;
         Object_Name[object_type] = name_function;
     }
-}                
+}
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
@@ -377,11 +375,11 @@ unsigned Device_Object_List_Count(
     void)
 {
     unsigned count = 1; /* 1 for the device object */
-    unsigned i = 0; /* loop counter */
-    
+    unsigned i = 0;     /* loop counter */
+
     for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
         if (Object_Count[i]) {
-            count += Object_Count[i]();
+            count += Object_Count[i] ();
         }
     }
 
@@ -396,18 +394,18 @@ bool Device_Object_List_Identifier(
     bool status = false;
     unsigned object_index = 0;
     unsigned count = 0;
-    unsigned i = 0; /* loop counter */
+    unsigned i = 0;     /* loop counter */
 
     if (array_index == 0) {
         return status;
     }
-        /* device object */
+    /* device object */
     if (array_index == 1) {
         *object_type = OBJECT_DEVICE;
         *instance = Object_Instance_Number;
         status = true;
     }
-    
+
     if (!status) {
         /* array index starts at 1, and if we are this far,
            we are not the device object, so array_index must
@@ -417,10 +415,10 @@ bool Device_Object_List_Identifier(
         for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
             if (Object_Count[i] && Object_Index_To_Instance[i]) {
                 object_index -= count;
-                count = Object_Count[i]();
+                count = Object_Count[i] ();
                 if (object_index < count) {
                     *object_type = i;
-                    *instance = Object_Index_To_Instance[i](object_index);
+                    *instance = Object_Index_To_Instance[i] (object_index);
                     status = true;
                     break;
                 }
@@ -505,7 +503,7 @@ int Device_Encode_Property_APDU(
     int object_type = 0;
     uint32_t instance = 0;
     unsigned count = 0;
-    
+
     object_instance = object_instance;
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -740,8 +738,8 @@ bool Device_Write_Property(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -776,8 +774,8 @@ bool Device_Write_Property(
         case PROP_VENDOR_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t) value.type.
-                    Unsigned_Int);
+                Device_Set_Vendor_Identifier((uint16_t) value.
+                    type.Unsigned_Int);
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -787,8 +785,8 @@ bool Device_Write_Property(
         case PROP_SYSTEM_STATUS:
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                 /* FIXME: bounds check? */
-                Device_Set_System_Status((BACNET_DEVICE_STATUS) value.type.
-                    Enumerated);
+                Device_Set_System_Status((BACNET_DEVICE_STATUS) value.
+                    type.Enumerated);
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -802,8 +800,8 @@ bool Device_Write_Property(
                     characterstring_encoding(&value.type.Character_String);
                 if (encoding == CHARACTER_ANSI_X34) {
                     status =
-                        Device_Set_Object_Name(characterstring_value(&value.
-                            type.Character_String),
+                        Device_Set_Object_Name(characterstring_value
+                        (&value.type.Character_String),
                         characterstring_length(&value.type.Character_String));
                     if (!status) {
                         *error_class = ERROR_CLASS_PROPERTY;
@@ -822,8 +820,8 @@ bool Device_Write_Property(
         case PROP_MAX_INFO_FRAMES:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames((uint8_t) value.type.
-                        Unsigned_Int);
+                    dlmstp_set_max_info_frames((uint8_t) value.
+                        type.Unsigned_Int);
                     status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -859,7 +857,8 @@ bool Device_Write_Property(
     return status;
 }
 
-void Device_Init(void)
+void Device_Init(
+    void)
 {
 }
 

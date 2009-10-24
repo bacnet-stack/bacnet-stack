@@ -43,17 +43,13 @@ void bacapp_timestamp_copy(
         dest->tag = src->tag;
         switch (src->tag) {
             case TIME_STAMP_TIME:
-                datetime_copy_time(
-                    &dest->value.time,
-                    &src->value.time);
+                datetime_copy_time(&dest->value.time, &src->value.time);
                 break;
             case TIME_STAMP_SEQUENCE:
                 dest->value.sequenceNum = src->value.sequenceNum;
                 break;
             case TIME_STAMP_DATETIME:
-                datetime_copy(
-                    &dest->value.dateTime,
-                    &src->value.dateTime);
+                datetime_copy(&dest->value.dateTime, &src->value.dateTime);
                 break;
             default:
                 break;
@@ -70,9 +66,7 @@ int bacapp_encode_timestamp(
     if (value && apdu) {
         switch (value->tag) {
             case TIME_STAMP_TIME:
-                len =
-                    encode_context_time(&apdu[0], 0,
-                    &value->value.time);
+                len = encode_context_time(&apdu[0], 0, &value->value.time);
                 break;
 
             case TIME_STAMP_SEQUENCE:
@@ -93,7 +87,7 @@ int bacapp_encode_timestamp(
                 break;
         }
     }
-    
+
     return len;
 }
 
@@ -174,7 +168,7 @@ int bacapp_decode_timestamp(
                 return -1;
         }
     }
-    
+
     return len;
 }
 

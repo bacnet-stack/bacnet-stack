@@ -81,7 +81,8 @@ extern "C" {
         uint32_t instance);
 
 
-    void Analog_Output_Init(void);
+    void Analog_Output_Init(
+        void);
 
     int Analog_Output_Encode_Property_APDU(
         uint8_t * apdu,

@@ -71,11 +71,11 @@ extern "C" {
         uint8_t * apdu,
         uint8_t * tag_number,
         uint32_t * value);
-	int decode_tag_number_and_value_safe(
-		uint8_t *   apdu,
-		uint32_t    apdu_len_remaining,
-		uint8_t *   tag_number,
-		uint32_t *  value);
+    int decode_tag_number_and_value_safe(
+        uint8_t * apdu,
+        uint32_t apdu_len_remaining,
+        uint8_t * tag_number,
+        uint32_t * value);
 /* returns true if the tag is an opening tag and matches */
     bool decode_is_opening_tag_number(
         uint8_t * apdu,
@@ -174,11 +174,11 @@ extern "C" {
         uint16_t * object_type,
         uint32_t * instance);
 
-	int decode_object_id_safe(
-		uint8_t * apdu,
-		uint32_t len_value,
-		uint16_t * object_type,
-		uint32_t * instance);
+    int decode_object_id_safe(
+        uint8_t * apdu,
+        uint32_t len_value,
+        uint16_t * object_type,
+        uint32_t * instance);
 
     int decode_context_object_id(
         uint8_t * apdu,
@@ -325,11 +325,11 @@ extern "C" {
     int decode_bacnet_time(
         uint8_t * apdu,
         BACNET_TIME * btime);
-	int decode_bacnet_time_safe(
-		uint8_t * apdu,
-		uint32_t len_value,
-		BACNET_TIME * btime);
-	int encode_context_time(
+    int decode_bacnet_time_safe(
+        uint8_t * apdu,
+        uint32_t len_value,
+        BACNET_TIME * btime);
+    int encode_context_time(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIME * btime);
@@ -364,11 +364,11 @@ extern "C" {
     int decode_date(
         uint8_t * apdu,
         BACNET_DATE * bdate);
-	int decode_date_safe(
-		uint8_t * apdu,
-		uint32_t len_value,
-		BACNET_DATE * bdate);
-	int decode_application_date(
+    int decode_date_safe(
+        uint8_t * apdu,
+        uint32_t len_value,
+        BACNET_DATE * bdate);
+    int decode_application_date(
         uint8_t * apdu,
         BACNET_DATE * bdate);
     int decode_context_date(

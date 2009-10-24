@@ -93,9 +93,8 @@ void handler_read_property(
             if (Device_Valid_Object_Instance_Number(data.object_instance)) {
                 len =
                     Device_Encode_Property_APDU(&Temp_Buf[0],
-                    data.object_instance,
-                    data.object_property, data.array_index, &error_class,
-                    &error_code);
+                    data.object_instance, data.object_property,
+                    data.array_index, &error_class, &error_code);
                 if (len >= 0) {
                     /* encode the APDU portion of the packet */
                     data.application_data = &Temp_Buf[0];

@@ -50,10 +50,8 @@ uint8_t Send_Private_Transfer_Request(
     uint32_t device_id,
     uint16_t vendor_id,
     uint32_t service_number,
-	char block_number,
-	DATABLOCK *block
-	)
-
+    char block_number,
+    DATABLOCK * block)
 {       /* NULL=optional */
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -64,9 +62,9 @@ uint8_t Send_Private_Transfer_Request(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-	static uint8_t pt_req_buffer[300];  /* Somewhere to build the request packet */
-	BACNET_PRIVATE_TRANSFER_DATA pt_block;
-	BACNET_CHARACTER_STRING bsTemp;
+    static uint8_t pt_req_buffer[300];  /* Somewhere to build the request packet */
+    BACNET_PRIVATE_TRANSFER_DATA pt_block;
+    BACNET_CHARACTER_STRING bsTemp;
 
     /* if we are forbidden to send, don't send! */
     if (!dcc_communication_enabled())
@@ -86,28 +84,32 @@ uint8_t Send_Private_Transfer_Request(
             &npdu_data);
         /* encode the APDU portion of the packet */
 
-		pt_block.vendorID = vendor_id;
-		pt_block.serviceNumber = service_number;
-		if(service_number == MY_SVC_READ)
-			{
-			len += encode_application_unsigned(&pt_req_buffer[len], block_number); /* The block number we want to retrieve */
-			}
-		else
-			{
-			len += encode_application_unsigned(&pt_req_buffer[len], block_number);	  /* The block number */
-			len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte1); /* And Then the block contents */
-			len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte2);
-			len += encode_application_real(&pt_req_buffer[len], block->fMyReal);
-			characterstring_init_ansi(&bsTemp, block->sMyString);
-			len += encode_application_character_string(&pt_req_buffer[len], &bsTemp);
-			}
+        pt_block.vendorID = vendor_id;
+        pt_block.serviceNumber = service_number;
+        if (service_number == MY_SVC_READ) {
+            len += encode_application_unsigned(&pt_req_buffer[len], block_number);      /* The block number we want to retrieve */
+        } else {
+            len += encode_application_unsigned(&pt_req_buffer[len], block_number);      /* The block number */
+            len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte1);   /* And Then the block contents */
+            len +=
+                encode_application_unsigned(&pt_req_buffer[len],
+                block->cMyByte2);
+            len +=
+                encode_application_real(&pt_req_buffer[len], block->fMyReal);
+            characterstring_init_ansi(&bsTemp, block->sMyString);
+            len +=
+                encode_application_character_string(&pt_req_buffer[len],
+                &bsTemp);
+        }
 
-		pt_block.serviceParameters = &pt_req_buffer[0];
-		pt_block.serviceParametersLen = len;
-        len = ptransfer_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id, &pt_block);
+        pt_block.serviceParameters = &pt_req_buffer[0];
+        pt_block.serviceParametersLen = len;
+        len =
+            ptransfer_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
+            &pt_block);
         pdu_len += len;
 
-		/* will it fit in the sender?
+        /* will it fit in the sender?
            note: if there is a bottleneck router in between
            us and the destination, we won't know unless
            we have a way to check for that and update the

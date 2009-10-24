@@ -75,6 +75,7 @@ static uint16_t Timer_Silence(
 {
     return SilenceTime;
 }
+
 static void Timer_Silence_Reset(
     void)
 {

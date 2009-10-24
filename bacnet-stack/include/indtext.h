@@ -101,9 +101,9 @@ extern "C" {
 
 
 #if !defined(__BORLANDC__) && !defined(_MSC_VER)
-int stricmp(
-    const char *s1,
-    const char *s2);
+    int stricmp(
+        const char *s1,
+        const char *s2);
 #endif
 
 #ifdef TEST

@@ -48,7 +48,7 @@ extern "C" {
 
     void address_init_partial(
         void);
-    
+
     void address_add(
         uint32_t device_id,
         unsigned max_apdu,
@@ -92,12 +92,12 @@ extern "C" {
     int address_list_encode(
         uint8_t * apdu,
         unsigned apdu_len);
-        
+
     void address_set_device_TTL(
         uint32_t device_id,
         uint32_t TimeOut,
-        bool     StaticFlag);
-        
+        bool StaticFlag);
+
     void address_cache_timer(
         uint16_t uSeconds);
 

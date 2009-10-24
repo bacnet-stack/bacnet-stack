@@ -364,8 +364,8 @@ bool Multistate_Output_Write_Property(
                     (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                     level = value.type.Unsigned_Int;
                     object_index =
-                        Multistate_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Multistate_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     Multistate_Output_Level[object_index][priority] =
                         (uint8_t) level;
@@ -388,8 +388,8 @@ bool Multistate_Output_Write_Property(
             } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
                 level = MULTISTATE_NULL;
                 object_index =
-                    Multistate_Output_Instance_To_Index(wp_data->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (wp_data->object_instance);
                 priority = wp_data->priority;
                 if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                     priority--;
@@ -414,8 +414,8 @@ bool Multistate_Output_Write_Property(
         case PROP_OUT_OF_SERVICE:
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                 object_index =
-                    Multistate_Output_Instance_To_Index(wp_data->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (wp_data->object_instance);
                 Multistate_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
                 status = true;

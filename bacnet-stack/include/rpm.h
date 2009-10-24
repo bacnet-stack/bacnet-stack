@@ -49,7 +49,8 @@ typedef struct BACnet_Read_Access_Data {
     struct BACnet_Read_Access_Data *next;
 } BACNET_READ_ACCESS_DATA;
 
-typedef void (*rpm_property_lists_function) (
+typedef void (
+    *rpm_property_lists_function) (
     const int **pRequired,
     const int **pOptional,
     const int **pProprietary);

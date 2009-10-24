@@ -170,10 +170,8 @@ static void Init_Service_Handlers(
     void)
 {
     Device_Init();
-    handler_read_property_object_set(
-        OBJECT_DEVICE,
-        Device_Encode_Property_APDU,
-		Device_Valid_Object_Instance_Number);
+    handler_read_property_object_set(OBJECT_DEVICE,
+        Device_Encode_Property_APDU, Device_Valid_Object_Instance_Number);
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
@@ -192,14 +190,17 @@ static void Init_Service_Handlers(
 }
 
 
-static void address_parse(BACNET_ADDRESS * dst,
-    int argc, char *argv[]) {
+static void address_parse(
+    BACNET_ADDRESS * dst,
+    int argc,
+    char *argv[])
+{
     int dnet = 0;
     unsigned mac[6];
     int count = 0;
     int index = 0;
 
-    if  (argc > 0) {
+    if (argc > 0) {
         count =
             sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
             &mac[3], &mac[4], &mac[5]);
@@ -240,9 +241,13 @@ static void address_parse(BACNET_ADDRESS * dst,
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     BACNET_ADDRESS src = {
-    0}; /* address where message came from */
+        0
+    };  /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     time_t total_seconds = 0;

@@ -56,65 +56,66 @@ typedef struct BACnet_Get_Event_Information_Data {
 /* return 0 if no active event at this index
    return -1 if end of list 
    return +1 if active event */
-typedef int (*get_event_info_function) (
+typedef int (
+    *get_event_info_function) (
     unsigned index,
-    BACNET_GET_EVENT_INFORMATION_DATA *getevent_data);
+    BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-int getevent_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
+    int getevent_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
 
-int getevent_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_OBJECT_ID * object_id);
+    int getevent_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_OBJECT_ID * object_id);
 
-int getevent_ack_encode_apdu_init(
-    uint8_t * apdu,
-    size_t max_apdu,
-    uint8_t invoke_id);
+    int getevent_ack_encode_apdu_init(
+        uint8_t * apdu,
+        size_t max_apdu,
+        uint8_t invoke_id);
 
-int getevent_ack_encode_apdu_data(
-    uint8_t * apdu,
-    size_t max_apdu,
-    BACNET_GET_EVENT_INFORMATION_DATA * get_event_data);    
-    
-int getevent_ack_encode_apdu_end(
-    uint8_t * apdu,
-    size_t max_apdu,
-    bool moreEvents);
-    
-int getevent_ack_decode_service_request(
-    uint8_t * apdu,
-    int apdu_len,       /* total length of the apdu */
-    BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
-    bool *moreEvents);
+    int getevent_ack_encode_apdu_data(
+        uint8_t * apdu,
+        size_t max_apdu,
+        BACNET_GET_EVENT_INFORMATION_DATA * get_event_data);
+
+    int getevent_ack_encode_apdu_end(
+        uint8_t * apdu,
+        size_t max_apdu,
+        bool moreEvents);
+
+    int getevent_ack_decode_service_request(
+        uint8_t * apdu,
+        int apdu_len,   /* total length of the apdu */
+        BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
+        bool * moreEvents);
 
 #ifdef TEST
 #include "ctest.h"
-int getevent_decode_apdu(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    uint8_t * invoke_id,
-    BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
+    int getevent_decode_apdu(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        uint8_t * invoke_id,
+        BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
 
-int getevent_ack_decode_apdu(
-    uint8_t * apdu,
-    int apdu_len,       /* total length of the apdu */
-    uint8_t * invoke_id,
-    BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
-    bool *moreEvents);
+    int getevent_ack_decode_apdu(
+        uint8_t * apdu,
+        int apdu_len,   /* total length of the apdu */
+        uint8_t * invoke_id,
+        BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
+        bool * moreEvents);
 
-void testGetEventInformationAck(
-    Test * pTest);
+    void testGetEventInformationAck(
+        Test * pTest);
 
-void testGetEventInformation(
-    Test * pTest);
+    void testGetEventInformation(
+        Test * pTest);
 
 #endif
 

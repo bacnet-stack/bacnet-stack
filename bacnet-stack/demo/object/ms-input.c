@@ -44,8 +44,7 @@
 #define MULTISTATE_NUMBER_OF_STATES (254)
 #endif
 /* Here is our Present Value */
-static uint8_t
-    Present_Value[MAX_MULTISTATE_INPUTS];
+static uint8_t Present_Value[MAX_MULTISTATE_INPUTS];
 /* Writable out-of-service allows others to manipulate our Present Value */
 static bool Out_Of_Service[MAX_MULTISTATE_INPUTS];
 static char Object_Name[MAX_MULTISTATE_INPUTS][64];
@@ -138,7 +137,7 @@ bool Multistate_Input_Valid_Instance(
     uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
-    
+
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         return true;
@@ -167,7 +166,7 @@ bool Multistate_Input_Present_Value_Set(
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
-    
+
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         if (value < MULTISTATE_NUMBER_OF_STATES) {
@@ -175,7 +174,7 @@ bool Multistate_Input_Present_Value_Set(
             status = true;
         }
     }
-    
+
     return status;
 }
 
@@ -184,7 +183,7 @@ char *Multistate_Input_Description(
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
-    
+
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         pName = Object_Description[index];
@@ -198,8 +197,8 @@ bool Multistate_Input_Description_Set(
     char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
-    bool status = false; /* return value */
+    size_t i = 0;       /* loop counter */
+    bool status = false;        /* return value */
 
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
@@ -217,7 +216,7 @@ bool Multistate_Input_Description_Set(
             }
         }
     }
-    
+
     return status;
 }
 
@@ -226,7 +225,7 @@ char *Multistate_Input_Name(
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
-    
+
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         pName = Object_Name[index];
@@ -241,9 +240,9 @@ bool Multistate_Input_Name_Set(
     char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
-    bool status = false; /* return value */
-    
+    size_t i = 0;       /* loop counter */
+    bool status = false;        /* return value */
+
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         status = true;
@@ -271,9 +270,9 @@ char *Multistate_Input_State_Text(
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
-    
+
     index = Multistate_Input_Instance_To_Index(object_instance);
-    if ((index < MAX_MULTISTATE_INPUTS) && 
+    if ((index < MAX_MULTISTATE_INPUTS) &&
         (state_index < MULTISTATE_NUMBER_OF_STATES)) {
         pName = State_Text[index][state_index];
     }
@@ -288,11 +287,11 @@ bool Multistate_Input_State_Text_Set(
     char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
-    bool status = false; /* return value */
-    
+    size_t i = 0;       /* loop counter */
+    bool status = false;        /* return value */
+
     index = Multistate_Input_Instance_To_Index(object_instance);
-    if ((index < MAX_MULTISTATE_INPUTS) && 
+    if ((index < MAX_MULTISTATE_INPUTS) &&
         (state_index < MULTISTATE_NUMBER_OF_STATES)) {
         status = true;
         if (new_name) {
@@ -375,8 +374,7 @@ int Multistate_Input_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index =
-                Multistate_Input_Instance_To_Index(object_instance);
+            object_index = Multistate_Input_Instance_To_Index(object_instance);
             state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -388,10 +386,10 @@ int Multistate_Input_Encode_Property_APDU(
         case PROP_STATE_TEXT:
             if (array_index == 0) {
                 /* Array element zero is the number of elements in the array */
-                apdu_len = encode_application_unsigned(&apdu[0], 
+                apdu_len =
+                    encode_application_unsigned(&apdu[0],
                     MULTISTATE_NUMBER_OF_STATES);
-            }
-            else if (array_index == BACNET_ARRAY_ALL) {
+            } else if (array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
                 object_index =
@@ -400,8 +398,8 @@ int Multistate_Input_Encode_Property_APDU(
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(object_instance, i));
                     /* FIXME: this might go beyond MAX_APDU length! */
-                    len = encode_application_character_string(
-                        &apdu[apdu_len], 
+                    len =
+                        encode_application_character_string(&apdu[apdu_len],
                         &char_string);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU) {
@@ -419,11 +417,10 @@ int Multistate_Input_Encode_Property_APDU(
                 if (array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     array_index--;
                     characterstring_init_ansi(&char_string,
-                        Multistate_Input_State_Text(
-                            object_instance, 
+                        Multistate_Input_State_Text(object_instance,
                             array_index));
-                    apdu_len = encode_application_character_string(
-                        &apdu[0], 
+                    apdu_len =
+                        encode_application_character_string(&apdu[0],
                         &char_string);
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -469,9 +466,8 @@ bool Multistate_Input_Write_Property(
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 if (Out_Of_Service[object_index]) {
-                    if (Multistate_Input_Present_Value_Set(
-                        wp_data->object_instance,
-                        value.type.Unsigned_Int)) {
+                    if (Multistate_Input_Present_Value_Set(wp_data->
+                            object_instance, value.type.Unsigned_Int)) {
                         status = true;
                     } else {
                         *error_class = ERROR_CLASS_PROPERTY;
@@ -489,10 +485,9 @@ bool Multistate_Input_Write_Property(
         case PROP_OUT_OF_SERVICE:
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                 object_index =
-                    Multistate_Input_Instance_To_Index(wp_data->
-                    object_instance);
-                Out_Of_Service[object_index] =
-                    value.type.Boolean;
+                    Multistate_Input_Instance_To_Index
+                    (wp_data->object_instance);
+                Out_Of_Service[object_index] = value.type.Boolean;
                 status = true;
             } else {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -560,5 +555,5 @@ int main(
 
     return 0;
 }
-#endif 
+#endif
 #endif /* TEST */

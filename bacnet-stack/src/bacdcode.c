@@ -325,13 +325,13 @@ int decode_tag_number(
 /* Same as function above, but will safely fail is packet has been truncated */
 int decode_tag_number_safe(
     uint8_t * apdu,
-    uint32_t  apdu_len_remaining,
+    uint32_t apdu_len_remaining,
     uint8_t * tag_number)
 {
     int len = 0;        /* return value */
 
     /* decode the tag number first */
-    if ( apdu_len_remaining >= 1 ) {
+    if (apdu_len_remaining >= 1) {
         if (IS_EXTENDED_TAG_NUMBER(apdu[0]) && apdu_len_remaining >= 2) {
             /* extended tag */
             if (tag_number) {
@@ -414,16 +414,16 @@ int decode_tag_number_and_value(
 
 /* Same as function above, but will safely fail is packet has been truncated */
 int decode_tag_number_and_value_safe(
-    uint8_t *   apdu,
-    uint32_t    apdu_len_remaining,
-    uint8_t *   tag_number,
-    uint32_t *  value)
+    uint8_t * apdu,
+    uint32_t apdu_len_remaining,
+    uint8_t * tag_number,
+    uint32_t * value)
 {
     int len = 0;
 
     len = decode_tag_number_safe(&apdu[0], apdu_len_remaining, tag_number);
 
-    if ( len > 0 ) {
+    if (len > 0) {
         apdu_len_remaining -= len;
         if (IS_EXTENDED_VALUE(apdu[0])) {
             /* tagged as uint32_t */
@@ -450,8 +450,7 @@ int decode_tag_number_and_value_safe(
                     *value = apdu[len];
                 }
                 len++;
-            }
-            else {
+            } else {
                 /* packet is truncated */
                 len = 0;
             }
@@ -477,7 +476,8 @@ bool decode_is_context_tag(
     uint8_t my_tag_number = 0;
 
     decode_tag_number(apdu, &my_tag_number);
-    return (bool) (IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
+    return (bool) (IS_CONTEXT_SPECIFIC(*apdu) &&
+        (my_tag_number == tag_number));
 }
 
 bool decode_is_context_tag_with_length(
@@ -489,7 +489,8 @@ bool decode_is_context_tag_with_length(
 
     *tag_length = decode_tag_number(apdu, &my_tag_number);
 
-    return (bool) (IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
+    return (bool) (IS_CONTEXT_SPECIFIC(*apdu) &&
+        (my_tag_number == tag_number));
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -788,10 +789,9 @@ int decode_object_id_safe(
     uint16_t * object_type,
     uint32_t * instance)
 {
-    if ( len_value != 4 ) {
+    if (len_value != 4) {
         return 0;
-    }
-    else {
+    } else {
         return decode_object_id(apdu, object_type, instance);
     }
 }
@@ -845,7 +845,7 @@ int encode_context_object_id(
 
     /* length of object id is 4 octets, as per 20.2.14 */
 
-    len  = encode_tag(&apdu[0], tag_number, true, 4);
+    len = encode_tag(&apdu[0], tag_number, true, 4);
     len += encode_bacnet_object_id(&apdu[len], object_type, instance);
 
     return len;
@@ -1181,7 +1181,7 @@ int encode_context_unsigned(
     uint32_t value)
 {
     int len = 0;
-    
+
     /* length of unsigned is variable, as per 20.2.4 */
     if (value < 0x100) {
         len = 1;
@@ -1193,7 +1193,7 @@ int encode_context_unsigned(
         len = 4;
     }
 
-    len  = encode_tag(&apdu[0], tag_number, true, len);
+    len = encode_tag(&apdu[0], tag_number, true, len);
     len += encode_bacnet_unsigned(&apdu[len], value);
 
     return len;
@@ -1303,7 +1303,7 @@ int encode_context_enumerated(
         len = 4;
     }
 
-    len  = encode_tag(&apdu[0], tag_number, true, (uint32_t) len);
+    len = encode_tag(&apdu[0], tag_number, true, (uint32_t) len);
     len += encode_bacnet_enumerated(&apdu[len], value);
 
     return len;
@@ -1424,7 +1424,7 @@ int encode_context_signed(
         len = 4;
     }
 
-    len  = encode_tag(&apdu[0], tag_number, true, (uint32_t) len);
+    len = encode_tag(&apdu[0], tag_number, true, (uint32_t) len);
     len += encode_bacnet_signed(&apdu[len], value);
 
     return len;
@@ -1456,7 +1456,7 @@ int encode_context_real(
     int len = 0;
 
     /* length of double is 4 octets, as per 20.2.6 */
-    len  = encode_tag(&apdu[0], tag_number, true, 4);
+    len = encode_tag(&apdu[0], tag_number, true, 4);
     len += encode_bacnet_real(value, &apdu[len]);
     return len;
 }
@@ -1488,7 +1488,7 @@ int encode_context_double(
     int len = 0;
 
     /* length of double is 8 octets, as per 20.2.7 */
-    len  = encode_tag(&apdu[0], tag_number, true, 8);
+    len = encode_tag(&apdu[0], tag_number, true, 8);
     len += encode_bacnet_double(value, &apdu[len]);
 
     return len;
@@ -1535,7 +1535,7 @@ int encode_context_time(
     int len = 0;        /* return value */
 
     /* length of time is 4 octets, as per 20.2.13 */
-    len  = encode_tag(&apdu[0], tag_number, true, 4);
+    len = encode_tag(&apdu[0], tag_number, true, 4);
     len += encode_bacnet_time(&apdu[len], btime);
 
     return len;
@@ -1561,16 +1561,13 @@ int decode_bacnet_time_safe(
     uint32_t len_value,
     BACNET_TIME * btime)
 {
-    if ( len_value != 4 )
-    {
+    if (len_value != 4) {
         btime->hour = 0;
         btime->hundredths = 0;
         btime->min = 0;
         btime->sec = 0;
         return len_value;
-    }
-    else
-    {
+    } else {
         return decode_bacnet_time(apdu, btime);
     }
 }
@@ -1671,7 +1668,7 @@ int encode_context_date(
     int len = 0;        /* return value */
 
     /* length of date is 4 octets, as per 20.2.12 */
-    len  = encode_tag(&apdu[0], tag_number, true, 4);
+    len = encode_tag(&apdu[0], tag_number, true, 4);
     len += encode_bacnet_date(&apdu[len], bdate);
 
     return len;
@@ -1697,14 +1694,13 @@ int decode_date_safe(
     uint32_t len_value,
     BACNET_DATE * bdate)
 {
-    if ( len_value != 4 ) {
+    if (len_value != 4) {
         bdate->day = 0;
         bdate->month = 0;
         bdate->wday = 0;
         bdate->year = 0;
         return len_value;
-    }
-    else {
+    } else {
         return decode_date(apdu, bdate);
     }
 }
@@ -1872,8 +1868,7 @@ void testBACDCodeTags(
                 &test_value);
             ct_test(pTest, tag_number == test_tag_number);
             ct_test(pTest, value == test_value);
-            test_len =
-                get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), value);
+            test_len = get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), value);
             ct_test(pTest, len == test_len);
             /* stop at the the last value */
             if (value & BIT31) {
@@ -2396,9 +2391,9 @@ void testUnsignedContextDecodes(
     ct_test(pTest, in == out);
     ct_test(pTest, outLen2 == -1);
 
-    inLen   = encode_context_unsigned(apdu, large_context_tag, in);
-    outLen  = decode_context_unsigned(apdu, large_context_tag, &out);
-    outLen2 = decode_context_unsigned(apdu, large_context_tag-1, &out);
+    inLen = encode_context_unsigned(apdu, large_context_tag, in);
+    outLen = decode_context_unsigned(apdu, large_context_tag, &out);
+    outLen2 = decode_context_unsigned(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2412,9 +2407,9 @@ void testUnsignedContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
 
-    inLen   = encode_context_unsigned(apdu, large_context_tag, in);
-    outLen  = decode_context_unsigned(apdu, large_context_tag, &out);
-    outLen2 = decode_context_unsigned(apdu, large_context_tag-1, &out);
+    inLen = encode_context_unsigned(apdu, large_context_tag, in);
+    outLen = decode_context_unsigned(apdu, large_context_tag, &out);
+    outLen2 = decode_context_unsigned(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2427,9 +2422,9 @@ void testUnsignedContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
 
-    inLen   = encode_context_unsigned(apdu, large_context_tag, in);
-    outLen  = decode_context_unsigned(apdu, large_context_tag, &out);
-    outLen2 = decode_context_unsigned(apdu, large_context_tag-1, &out);
+    inLen = encode_context_unsigned(apdu, large_context_tag, in);
+    outLen = decode_context_unsigned(apdu, large_context_tag, &out);
+    outLen2 = decode_context_unsigned(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2442,9 +2437,9 @@ void testUnsignedContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
 
-    inLen   = encode_context_unsigned(apdu, large_context_tag, in);
-    outLen  = decode_context_unsigned(apdu, large_context_tag, &out);
-    outLen2 = decode_context_unsigned(apdu, large_context_tag-1, &out);
+    inLen = encode_context_unsigned(apdu, large_context_tag, in);
+    outLen = decode_context_unsigned(apdu, large_context_tag, &out);
+    outLen2 = decode_context_unsigned(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2457,9 +2452,9 @@ void testUnsignedContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
 
-    inLen   = encode_context_unsigned(apdu, large_context_tag, in);
-    outLen  = decode_context_unsigned(apdu, large_context_tag, &out);
-    outLen2 = decode_context_unsigned(apdu, large_context_tag-1, &out);
+    inLen = encode_context_unsigned(apdu, large_context_tag, in);
+    outLen = decode_context_unsigned(apdu, large_context_tag, &out);
+    outLen2 = decode_context_unsigned(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2493,7 +2488,7 @@ void testSignedContextDecodes(
 
     inLen = encode_context_signed(apdu, large_context_tag, in);
     outLen = decode_context_signed(apdu, large_context_tag, &out);
-    outLen2 = decode_context_signed(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_signed(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2509,7 +2504,7 @@ void testSignedContextDecodes(
 
     inLen = encode_context_signed(apdu, large_context_tag, in);
     outLen = decode_context_signed(apdu, large_context_tag, &out);
-    outLen2 = decode_context_signed(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_signed(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2525,7 +2520,7 @@ void testSignedContextDecodes(
 
     inLen = encode_context_signed(apdu, large_context_tag, in);
     outLen = decode_context_signed(apdu, large_context_tag, &out);
-    outLen2 = decode_context_signed(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_signed(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2541,7 +2536,7 @@ void testSignedContextDecodes(
 
     inLen = encode_context_signed(apdu, large_context_tag, in);
     outLen = decode_context_signed(apdu, large_context_tag, &out);
-    outLen2 = decode_context_signed(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_signed(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2557,7 +2552,7 @@ void testSignedContextDecodes(
 
     inLen = encode_context_signed(apdu, large_context_tag, in);
     outLen = decode_context_signed(apdu, large_context_tag, &out);
-    outLen2 = decode_context_signed(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_signed(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2590,7 +2585,7 @@ void testEnumeratedContextDecodes(
 
     inLen = encode_context_enumerated(apdu, large_context_tag, in);
     outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2606,7 +2601,7 @@ void testEnumeratedContextDecodes(
 
     inLen = encode_context_enumerated(apdu, large_context_tag, in);
     outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2621,7 +2616,7 @@ void testEnumeratedContextDecodes(
 
     inLen = encode_context_enumerated(apdu, large_context_tag, in);
     outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2636,7 +2631,7 @@ void testEnumeratedContextDecodes(
 
     inLen = encode_context_enumerated(apdu, large_context_tag, in);
     outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2651,7 +2646,7 @@ void testEnumeratedContextDecodes(
 
     inLen = encode_context_enumerated(apdu, large_context_tag, in);
     outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2683,7 +2678,7 @@ void testFloatContextDecodes(
 
     inLen = encode_context_real(apdu, large_context_tag, in);
     outLen = decode_context_real(apdu, large_context_tag, &out);
-    outLen2 = decode_context_real(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_real(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2699,7 +2694,7 @@ void testFloatContextDecodes(
 
     inLen = encode_context_real(apdu, large_context_tag, in);
     outLen = decode_context_real(apdu, large_context_tag, &out);
-    outLen2 = decode_context_real(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_real(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2731,7 +2726,7 @@ void testDoubleContextDecodes(
 
     inLen = encode_context_double(apdu, large_context_tag, in);
     outLen = decode_context_double(apdu, large_context_tag, &out);
-    outLen2 = decode_context_double(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_double(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2747,7 +2742,7 @@ void testDoubleContextDecodes(
 
     inLen = encode_context_double(apdu, large_context_tag, in);
     outLen = decode_context_double(apdu, large_context_tag, &out);
-    outLen2 = decode_context_double(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_double(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
@@ -2783,8 +2778,11 @@ static void testObjectIDContextDecodes(
     ct_test(pTest, outLen2 == -1);
 
     inLen = encode_context_object_id(apdu, large_context_tag, in_type, in_id);
-    outLen = decode_context_object_id(apdu, large_context_tag, &out_type, &out_id);
-    outLen2 = decode_context_object_id(apdu, large_context_tag-1, &out_type, &out_id);
+    outLen =
+        decode_context_object_id(apdu, large_context_tag, &out_type, &out_id);
+    outLen2 =
+        decode_context_object_id(apdu, large_context_tag - 1, &out_type,
+        &out_id);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in_type == out_type);
@@ -2819,7 +2817,8 @@ static void testCharacterStringContextDecodes(
 
     inLen = encode_context_character_string(apdu, large_context_tag, &in);
     outLen = decode_context_character_string(apdu, large_context_tag, &out);
-    outLen2 = decode_context_character_string(apdu, large_context_tag-1, &out);
+    outLen2 =
+        decode_context_character_string(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, outLen2 == -1);
     ct_test(pTest, inLen == outLen);
@@ -2859,7 +2858,7 @@ void testBitStringContextDecodes(
 
     inLen = encode_context_bitstring(apdu, large_context_tag, &in);
     outLen = decode_context_bitstring(apdu, large_context_tag, &out);
-    outLen2 = decode_context_bitstring(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_bitstring(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, outLen2 == -1);
     ct_test(pTest, inLen == outLen);
@@ -2895,7 +2894,7 @@ void testOctetStringContextDecodes(
 
     inLen = encode_context_octet_string(apdu, large_context_tag, &in);
     outLen = decode_context_octet_string(apdu, large_context_tag, &out);
-    outLen2 = decode_context_octet_string(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_octet_string(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, outLen2 == -1);
     ct_test(pTest, inLen == outLen);
@@ -2934,7 +2933,7 @@ void testTimeContextDecodes(
 
     inLen = encode_context_time(apdu, large_context_tag, &in);
     outLen = decode_context_bacnet_time(apdu, large_context_tag, &out);
-    outLen2 = decode_context_bacnet_time(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_bacnet_time(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, outLen2 == -1);
     ct_test(pTest, inLen == outLen);
@@ -2978,7 +2977,7 @@ void testDateContextDecodes(
     /* Test large tags */
     inLen = encode_context_date(apdu, large_context_tag, &in);
     outLen = decode_context_date(apdu, large_context_tag, &out);
-    outLen2 = decode_context_date(apdu, large_context_tag-1, &out);
+    outLen2 = decode_context_date(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.day == out.day);

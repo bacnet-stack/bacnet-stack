@@ -112,7 +112,7 @@ uint32_t Analog_Input_Index_To_Instance(
 char *Analog_Input_Name(
     uint32_t object_instance)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text_string[32];        /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_INPUTS) {
         sprintf(text_string, "AI-%lu", object_instance);

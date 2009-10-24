@@ -66,9 +66,8 @@ int Encode_Property_APDU(
         case OBJECT_DEVICE:
             if (Device_Valid_Object_Instance_Number(object_instance)) {
                 apdu_len =
-                    Device_Encode_Property_APDU(&apdu[0], 
-                    object_instance, property,
-                    array_index, error_class, error_code);
+                    Device_Encode_Property_APDU(&apdu[0], object_instance,
+                    property, array_index, error_class, error_code);
             }
             break;
         case OBJECT_ANALOG_INPUT:

@@ -39,7 +39,7 @@ extern "C" {
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
-    
+
     bool Multistate_Input_Valid_Instance(
         uint32_t object_instance);
     unsigned Multistate_Input_Count(
@@ -47,7 +47,7 @@ extern "C" {
     uint32_t Multistate_Input_Index_To_Instance(
         unsigned index);
     unsigned Multistate_Input_Instance_To_Index(
-        uint32_t instance);    
+        uint32_t instance);
 
     int Multistate_Input_Encode_Property_APDU(
         uint8_t * apdu,

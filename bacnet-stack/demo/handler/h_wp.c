@@ -37,9 +37,8 @@
 #include "abort.h"
 #include "wp.h"
 
-static write_property_function
-    Write_Property[MAX_BACNET_OBJECT_TYPE];
-                
+static write_property_function Write_Property[MAX_BACNET_OBJECT_TYPE];
+
 void handler_write_property_object_set(
     BACNET_OBJECT_TYPE object_type,
     write_property_function pFunction)
@@ -47,7 +46,7 @@ void handler_write_property_object_set(
     if (object_type < MAX_BACNET_OBJECT_TYPE) {
         Write_Property[object_type] = pFunction;
     }
-}                
+}
 
 void handler_write_property(
     uint8_t * service_request,
@@ -87,7 +86,7 @@ void handler_write_property(
     len = wp_decode_service_request(service_request, service_len, &wp_data);
 #if PRINT_ENABLED
     if (len > 0)
-        fprintf(stderr, 
+        fprintf(stderr,
             "WP: type=%u instance=%u property=%u priority=%u index=%d\n",
             wp_data.object_type, wp_data.object_instance,
             wp_data.object_property, wp_data.priority, wp_data.array_index);

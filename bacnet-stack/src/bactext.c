@@ -251,9 +251,7 @@ bool bactext_object_type_index(
     const char *search_name,
     unsigned *found_index)
 {
-    return indtext_by_istring(
-        bacnet_object_type_names,
-        search_name,
+    return indtext_by_istring(bacnet_object_type_names, search_name,
         found_index);
 }
 
@@ -937,10 +935,7 @@ bool bactext_property_index(
     const char *search_name,
     unsigned *found_index)
 {
-    return indtext_by_istring(
-        bacnet_property_names,
-        search_name,
-        found_index);
+    return indtext_by_istring(bacnet_property_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_engineering_unit_names[] = {
@@ -1348,9 +1343,7 @@ bool bactext_engineering_unit_index(
     const char *search_name,
     unsigned *found_index)
 {
-    return indtext_by_istring(
-        bacnet_engineering_unit_names,
-        search_name,
+    return indtext_by_istring(bacnet_engineering_unit_names, search_name,
         found_index);
 }
 
@@ -1729,13 +1722,20 @@ const char *bactext_day_of_week_name(
 
 /* note: different than DayOfWeek bit string where 1=monday */
 INDTEXT_DATA bacnet_days_of_week_names[] = {
-    {BACNET_DAYS_OF_WEEK_MONDAY, "Monday"},
-    {BACNET_DAYS_OF_WEEK_TUESDAY, "Tuesday"},
-    {BACNET_DAYS_OF_WEEK_WEDNESDAY, "Wednesday"},
-    {BACNET_DAYS_OF_WEEK_THURSDAY, "Thursday"},
-    {BACNET_DAYS_OF_WEEK_FRIDAY, "Friday"},
-    {BACNET_DAYS_OF_WEEK_SATURDAY, "Saturday"},
-    {BACNET_DAYS_OF_WEEK_SUNDAY, "Sunday"},
+    {BACNET_DAYS_OF_WEEK_MONDAY, "Monday"}
+    ,
+    {BACNET_DAYS_OF_WEEK_TUESDAY, "Tuesday"}
+    ,
+    {BACNET_DAYS_OF_WEEK_WEDNESDAY, "Wednesday"}
+    ,
+    {BACNET_DAYS_OF_WEEK_THURSDAY, "Thursday"}
+    ,
+    {BACNET_DAYS_OF_WEEK_FRIDAY, "Friday"}
+    ,
+    {BACNET_DAYS_OF_WEEK_SATURDAY, "Saturday"}
+    ,
+    {BACNET_DAYS_OF_WEEK_SUNDAY, "Sunday"}
+    ,
     {0, NULL}
 };
 
@@ -1750,9 +1750,7 @@ bool bactext_days_of_week_index(
     const char *search_name,
     unsigned *found_index)
 {
-    return indtext_by_istring(
-        bacnet_days_of_week_names,
-        search_name,
+    return indtext_by_istring(bacnet_days_of_week_names, search_name,
         found_index);
 }
 
@@ -1777,9 +1775,7 @@ bool bactext_event_transition_index(
     const char *search_name,
     unsigned *found_index)
 {
-    return indtext_by_istring(
-        bacnet_event_transition_names,
-        search_name,
+    return indtext_by_istring(bacnet_event_transition_names, search_name,
         found_index);
 }
 
@@ -1823,9 +1819,7 @@ bool bactext_binary_present_value_index(
     const char *search_name,
     unsigned *found_index)
 {
-    return indtext_by_istring(
-        bacnet_binary_present_value_names,
-        search_name,
+    return indtext_by_istring(bacnet_binary_present_value_names, search_name,
         found_index);
 }
 

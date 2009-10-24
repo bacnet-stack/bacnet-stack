@@ -131,10 +131,8 @@ static void Init_Service_Handlers(
     void)
 {
     Device_Init();
-    handler_read_property_object_set(
-        OBJECT_DEVICE,
-        Device_Encode_Property_APDU,
-		Device_Valid_Object_Instance_Number);
+    handler_read_property_object_set(OBJECT_DEVICE,
+        Device_Encode_Property_APDU, Device_Valid_Object_Instance_Number);
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
@@ -156,9 +154,13 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(int argc, char *argv[]) {
+int main(
+    int argc,
+    char *argv[])
+{
     BACNET_ADDRESS src = {
-    0}; /* address where message came from */
+        0
+    };  /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;

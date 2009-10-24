@@ -41,9 +41,8 @@
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
-static rpm_property_lists_function
-    RPM_Lists[MAX_BACNET_OBJECT_TYPE];
-                
+static rpm_property_lists_function RPM_Lists[MAX_BACNET_OBJECT_TYPE];
+
 struct property_list_t {
     const int *pList;
     unsigned count;
@@ -77,27 +76,25 @@ void handler_read_property_multiple_list_set(
     if (object_type < MAX_BACNET_OBJECT_TYPE) {
         RPM_Lists[object_type] = pFunction;
     }
-}                
+}
 
 /* for a given object type, returns the special property list */
 static void RPM_Property_List(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
 {
-	rpm_property_lists_function object_property_list = NULL;
+    rpm_property_lists_function object_property_list = NULL;
     pPropertyList->Required.pList = NULL;
     pPropertyList->Optional.pList = NULL;
     pPropertyList->Proprietary.pList = NULL;
-	
-	if (object_type < MAX_BACNET_OBJECT_TYPE) {
-		object_property_list = RPM_Lists[object_type];
-	}
-	if (object_property_list) {
-		object_property_list(
-			&pPropertyList->Required.pList,
-			&pPropertyList->Optional.pList,
-			&pPropertyList->Proprietary.pList);
-	}
+
+    if (object_type < MAX_BACNET_OBJECT_TYPE) {
+        object_property_list = RPM_Lists[object_type];
+    }
+    if (object_property_list) {
+        object_property_list(&pPropertyList->Required.pList,
+            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
+    }
     /* fill the count */
     if (pPropertyList->Required.pList) {
         pPropertyList->Required.count =

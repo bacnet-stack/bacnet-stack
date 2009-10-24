@@ -120,7 +120,7 @@ void Device_Init(
     void)
 {
     Reinitialize_State = REINITIALIZED_STATE_IDLE;
-    
+
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* Get the data from the eeprom */
     eeprom_bytes_read(NV_EEPROM_DEVICE_0, (uint8_t *) & Object_Instance_Number,
@@ -143,8 +143,8 @@ void Device_Init(
         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
             &Object_Name_Encoding, 1);
         sprintf(Object_Name, "DEVICE-%lu", Object_Instance_Number);
-        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & Object_Name[0],
-            NV_EEPROM_DEVICE_NAME_SIZE);
+        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
+            (uint8_t *) & Object_Name[0], NV_EEPROM_DEVICE_NAME_SIZE);
         Object_Name_Length = strlen(Object_Name);
         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &Object_Name_Length,
             1);
@@ -506,8 +506,8 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_unsigned(&apdu[0], stack_unused());
             break;
         case 9600:
-            apdu_len = encode_application_unsigned(&apdu[0], 
-                rs485_baud_rate());
+            apdu_len =
+                encode_application_unsigned(&apdu[0], rs485_baud_rate());
             break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
@@ -543,8 +543,8 @@ bool Device_Write_Property(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -591,7 +591,7 @@ bool Device_Write_Property(
                     characterstring_length(&value.type.Character_String);
                 if (length < 1) {
                     *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;                    
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 } else if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
                     uint8_t encoding =
                         characterstring_encoding(&value.type.Character_String);
@@ -605,8 +605,8 @@ bool Device_Write_Property(
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH,
                             &Object_Name_Length, 1);
                         pCharString =
-                            characterstring_value(&value.type.
-                            Character_String);
+                            characterstring_value(&value.
+                            type.Character_String);
                         for (i = 0; i < Object_Name_Length; i++) {
                             Object_Name[i] = pCharString[i];
                         }
