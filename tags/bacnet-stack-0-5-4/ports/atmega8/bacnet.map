@@ -1,0 +1,1130 @@
+Archive member included because of file (symbol)
+
+.\libbacnet.a(npdu.o)         h_rp.o (npdu_encode_npdu_data)
+.\libbacnet.a(bacdcode.o)     apdu.o (decode_max_segs)
+.\libbacnet.a(bacint.o)       .\libbacnet.a(npdu.o) (encode_unsigned16)
+.\libbacnet.a(bacreal.o)      .\libbacnet.a(bacdcode.o) (encode_bacnet_real)
+.\libbacnet.a(bacstr.o)       device.o (bitstring_init)
+.\libbacnet.a(rp.o)           h_rp.o (rp_decode_service_request)
+.\libbacnet.a(abort.o)        h_rp.o (abort_encode_apdu)
+.\libbacnet.a(reject.o)       ../../demo/handler/noserv.o (reject_encode_apdu)
+.\libbacnet.a(bacerror.o)     h_rp.o (bacerror_encode_apdu)
+c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_udivmodsi4.o)
+                              rs485.o (__udivmodsi4)
+c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_prologue.o)
+                              main.o (__prologue_saves__)
+c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_epilogue.o)
+                              dlmstp.o (__epilogue_restores__)
+c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_exit.o)
+                              c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o (exit)
+c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_copy_data.o)
+                              main.o (__do_copy_data)
+c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_clear_bss.o)
+                              main.o (__do_clear_bss)
+
+Discarded input sections
+
+ .data          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+ .bss           0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+ .text          0x00000000        0x0 main.o
+ .data          0x00000000        0x0 main.o
+ .bss           0x00000000        0x0 main.o
+ .text.dcc_communication_enabled
+                0x00000000        0x0 main.o
+ .data.BACnet_Version
+                0x00000000        0x0 main.o
+ .text          0x00000000        0x0 timer.o
+ .data          0x00000000        0x0 timer.o
+ .bss           0x00000000        0x0 timer.o
+ .text          0x00000000        0x0 rs485.o
+ .data          0x00000000        0x0 rs485.o
+ .bss           0x00000000        0x0 rs485.o
+ .text.RS485_Get_Baud_Rate
+                0x00000000        0x0 rs485.o
+ .text          0x00000000        0x0 dlmstp.o
+ .data          0x00000000        0x0 dlmstp.o
+ .bss           0x00000000        0x0 dlmstp.o
+ .text.dlmstp_cleanup
+                0x00000000        0x0 dlmstp.o
+ .text.dlmstp_fill_bacnet_address
+                0x00000000        0x0 dlmstp.o
+ .text.dlmstp_set_mac_address
+                0x00000000        0x0 dlmstp.o
+ .text.dlmstp_mac_address
+                0x00000000        0x0 dlmstp.o
+ .text.dlmstp_get_broadcast_address
+                0x00000000        0x0 dlmstp.o
+ .text          0x00000000        0x0 apdu.o
+ .data          0x00000000        0x0 apdu.o
+ .bss           0x00000000        0x0 apdu.o
+ .text          0x00000000        0x0 ../../src/crc.o
+ .data          0x00000000        0x0 ../../src/crc.o
+ .bss           0x00000000        0x0 ../../src/crc.o
+ .text          0x00000000        0x0 h_rp.o
+ .data          0x00000000        0x0 h_rp.o
+ .bss           0x00000000        0x0 h_rp.o
+ .text          0x00000000        0x0 device.o
+ .bss           0x00000000        0x0 device.o
+ .text.Device_Init
+                0x00000000        0x0 device.o
+ .text.Device_Object_Instance_Number
+                0x00000000        0x0 device.o
+ .text.Device_Set_Object_Instance_Number
+                0x00000000        0x0 device.o
+ .text.Device_Vendor_Identifier
+                0x00000000        0x0 device.o
+ .text.Device_Object_List_Count
+                0x00000000        0x0 device.o
+ .text          0x00000000        0x0 ../../demo/handler/txbuf.o
+ .data          0x00000000        0x0 ../../demo/handler/txbuf.o
+ .bss           0x00000000        0x0 ../../demo/handler/txbuf.o
+ .text          0x00000000        0x0 ../../demo/handler/h_npdu.o
+ .data          0x00000000        0x0 ../../demo/handler/h_npdu.o
+ .bss           0x00000000        0x0 ../../demo/handler/h_npdu.o
+ .text          0x00000000        0x0 ../../demo/handler/noserv.o
+ .data          0x00000000        0x0 ../../demo/handler/noserv.o
+ .bss           0x00000000        0x0 ../../demo/handler/noserv.o
+ .text          0x00000000        0x0 .\libbacnet.a(npdu.o)
+ .data          0x00000000        0x0 .\libbacnet.a(npdu.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(npdu.o)
+ .text.npdu_copy_data
+                0x00000000        0x0 .\libbacnet.a(npdu.o)
+ .text          0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .data          0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_max_segs_max_apdu
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_is_context_specific
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_is_opening_tag
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_is_closing_tag
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_is_opening_tag_number
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_is_closing_tag_number
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_context_boolean
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_boolean
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_bacnet_time
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_bacnet_time
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_bacnet_date
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_date
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_simple_ack
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_bacnet_signed
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_signed
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_date
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_date
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_time
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_time
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_double
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_double
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_real
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_real
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_signed
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_signed
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_null
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_null
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_boolean
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_boolean
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_character_string
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_character_string
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_octet_string
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_octet_string
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_octet_string
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_application_octet_string
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.encode_context_bitstring
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text.decode_bitstring
+                0x00000000        0x0 .\libbacnet.a(bacdcode.o)
+ .text          0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .data          0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.encode_signed8
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.decode_signed8
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.encode_signed16
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.decode_signed16
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.encode_signed24
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.decode_signed24
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.encode_signed32
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text.decode_signed32
+                0x00000000        0x0 .\libbacnet.a(bacint.o)
+ .text          0x00000000        0x0 .\libbacnet.a(bacreal.o)
+ .data          0x00000000        0x0 .\libbacnet.a(bacreal.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(bacreal.o)
+ .text.decode_real
+                0x00000000        0x0 .\libbacnet.a(bacreal.o)
+ .text.encode_bacnet_real
+                0x00000000        0x0 .\libbacnet.a(bacreal.o)
+ .text.decode_double
+                0x00000000        0x0 .\libbacnet.a(bacreal.o)
+ .text.encode_bacnet_double
+                0x00000000        0x0 .\libbacnet.a(bacreal.o)
+ .text          0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .data          0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.bitstring_bit
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.bitstring_set_octet
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.bitstring_set_bits_used
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.bitstring_bits_capacity
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.bitstring_copy
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.characterstring_ansi_copy
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.characterstring_same
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.characterstring_append
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.characterstring_truncate
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.characterstring_capacity
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.octetstring_init
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.octetstring_append
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.octetstring_truncate
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.octetstring_value
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.octetstring_length
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.octetstring_capacity
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.characterstring_ansi_same
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.characterstring_copy
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text.octetstring_copy
+                0x00000000        0x0 .\libbacnet.a(bacstr.o)
+ .text          0x00000000        0x0 .\libbacnet.a(rp.o)
+ .data          0x00000000        0x0 .\libbacnet.a(rp.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(rp.o)
+ .text.rp_ack_decode_service_request
+                0x00000000        0x0 .\libbacnet.a(rp.o)
+ .text.rp_ack_encode_apdu
+                0x00000000        0x0 .\libbacnet.a(rp.o)
+ .text.rp_encode_apdu
+                0x00000000        0x0 .\libbacnet.a(rp.o)
+ .text          0x00000000        0x0 .\libbacnet.a(abort.o)
+ .data          0x00000000        0x0 .\libbacnet.a(abort.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(abort.o)
+ .text.abort_decode_service_request
+                0x00000000        0x0 .\libbacnet.a(abort.o)
+ .text          0x00000000        0x0 .\libbacnet.a(reject.o)
+ .data          0x00000000        0x0 .\libbacnet.a(reject.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(reject.o)
+ .text.reject_decode_service_request
+                0x00000000        0x0 .\libbacnet.a(reject.o)
+ .text          0x00000000        0x0 .\libbacnet.a(bacerror.o)
+ .data          0x00000000        0x0 .\libbacnet.a(bacerror.o)
+ .bss           0x00000000        0x0 .\libbacnet.a(bacerror.o)
+ .text.bacerror_decode_error_class_and_code
+                0x00000000        0x0 .\libbacnet.a(bacerror.o)
+ .text.bacerror_decode_service_request
+                0x00000000        0x0 .\libbacnet.a(bacerror.o)
+ .text          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_udivmodsi4.o)
+ .data          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_udivmodsi4.o)
+ .bss           0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_udivmodsi4.o)
+ .text          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_prologue.o)
+ .data          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_prologue.o)
+ .bss           0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_prologue.o)
+ .text          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_epilogue.o)
+ .data          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_epilogue.o)
+ .bss           0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_epilogue.o)
+ .text          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_exit.o)
+ .data          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_exit.o)
+ .bss           0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_exit.o)
+ .text.libgcc   0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_exit.o)
+ .text          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_copy_data.o)
+ .data          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_copy_data.o)
+ .bss           0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_copy_data.o)
+ .text.libgcc   0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_copy_data.o)
+ .text          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_clear_bss.o)
+ .data          0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_clear_bss.o)
+ .bss           0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc   0x00000000        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_clear_bss.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+text             0x00000000         0x00020000         xr
+data             0x00800060         0x0000ffa0         rw !x
+eeprom           0x00810000         0x00010000         rw !x
+fuse             0x00820000         0x00000400         rw !x
+lock             0x00830000         0x00000400         rw !x
+signature        0x00840000         0x00000400         rw !x
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+Address of section .data set to 0x800100
+LOAD c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+LOAD main.o
+LOAD timer.o
+LOAD rs485.o
+LOAD dlmstp.o
+LOAD apdu.o
+LOAD ../../src/crc.o
+LOAD h_rp.o
+LOAD device.o
+LOAD ../../demo/handler/txbuf.o
+LOAD ../../demo/handler/h_npdu.o
+LOAD ../../demo/handler/noserv.o
+LOAD .\libbacnet.a
+LOAD c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a
+LOAD c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5\libc.a
+LOAD c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a
+
+.hash
+ *(.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.init
+ *(.rel.init)
+
+.rela.init
+ *(.rela.init)
+
+.rel.text
+ *(.rel.text)
+ *(.rel.text.*)
+ *(.rel.gnu.linkonce.t*)
+
+.rela.text
+ *(.rela.text)
+ *(.rela.text.*)
+ *(.rela.gnu.linkonce.t*)
+
+.rel.fini
+ *(.rel.fini)
+
+.rela.fini
+ *(.rela.fini)
+
+.rel.rodata
+ *(.rel.rodata)
+ *(.rel.rodata.*)
+ *(.rel.gnu.linkonce.r*)
+
+.rela.rodata
+ *(.rela.rodata)
+ *(.rela.rodata.*)
+ *(.rela.gnu.linkonce.r*)
+
+.rel.data
+ *(.rel.data)
+ *(.rel.data.*)
+ *(.rel.gnu.linkonce.d*)
+
+.rela.data
+ *(.rela.data)
+ *(.rela.data.*)
+ *(.rela.gnu.linkonce.d*)
+
+.rel.ctors
+ *(.rel.ctors)
+
+.rela.ctors
+ *(.rela.ctors)
+
+.rel.dtors
+ *(.rel.dtors)
+
+.rela.dtors
+ *(.rela.dtors)
+
+.rel.got
+ *(.rel.got)
+
+.rela.got
+ *(.rela.got)
+
+.rel.bss
+ *(.rel.bss)
+
+.rela.bss
+ *(.rela.bss)
+
+.rel.plt
+ *(.rel.plt)
+
+.rela.plt
+ *(.rela.plt)
+
+.text           0x00000000     0x21de
+ *(.vectors)
+ .vectors       0x00000000       0x68 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+                0x00000000                __vectors
+                0x00000000                __vector_default
+ *(.vectors)
+ *(.progmem.gcc*)
+ *(.progmem*)
+                0x00000068                . = ALIGN (0x2)
+                0x00000068                __trampolines_start = .
+ *(.trampolines)
+ .trampolines   0x00000068        0x0 linker stubs
+ *(.trampolines*)
+                0x00000068                __trampolines_end = .
+ *(.jumptables)
+ *(.jumptables*)
+ *(.lowtext)
+ *(.lowtext*)
+                0x00000068                __ctors_start = .
+ *(.ctors)
+                0x00000068                __ctors_end = .
+                0x00000068                __dtors_start = .
+ *(.dtors)
+                0x00000068                __dtors_end = .
+ SORT(*)(.ctors)
+ SORT(*)(.dtors)
+ *(.init0)
+ .init0         0x00000068        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+                0x00000068                __init
+ *(.init0)
+ *(.init1)
+ *(.init1)
+ *(.init2)
+ .init2         0x00000068        0xc c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+ *(.init2)
+ *(.init3)
+ *(.init3)
+ *(.init4)
+ .init4         0x00000074       0x16 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_copy_data.o)
+                0x00000074                __do_copy_data
+ .init4         0x0000008a       0x10 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_clear_bss.o)
+                0x0000008a                __do_clear_bss
+ *(.init4)
+ *(.init5)
+ *(.init5)
+ *(.init6)
+ *(.init6)
+ *(.init7)
+ *(.init7)
+ *(.init8)
+ *(.init8)
+ *(.init9)
+ .init9         0x0000009a        0x8 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+ *(.init9)
+ *(.text)
+ .text          0x000000a2        0x4 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+                0x000000a2                __vector_22
+                0x000000a2                __vector_1
+                0x000000a2                __vector_24
+                0x000000a2                __vector_12
+                0x000000a2                __bad_interrupt
+                0x000000a2                __vector_6
+                0x000000a2                __vector_3
+                0x000000a2                __vector_23
+                0x000000a2                __vector_25
+                0x000000a2                __vector_11
+                0x000000a2                __vector_13
+                0x000000a2                __vector_17
+                0x000000a2                __vector_19
+                0x000000a2                __vector_7
+                0x000000a2                __vector_5
+                0x000000a2                __vector_4
+                0x000000a2                __vector_9
+                0x000000a2                __vector_2
+                0x000000a2                __vector_21
+                0x000000a2                __vector_15
+                0x000000a2                __vector_8
+                0x000000a2                __vector_14
+                0x000000a2                __vector_10
+                0x000000a2                __vector_18
+                0x000000a2                __vector_20
+                0x000000a6                . = ALIGN (0x2)
+ *(.text.*)
+ .text.main     0x000000a6       0x78 main.o
+                0x000000a6                main
+ .text.timer_init
+                0x0000011e       0x24 timer.o
+                0x0000011e                timer_init
+ .text.__vector_16
+                0x00000142       0x32 timer.o
+                0x00000142                __vector_16
+ .text.timer_silence_elapsed
+                0x00000174       0x20 timer.o
+                0x00000174                timer_silence_elapsed
+ .text.timer_silence_reset
+                0x00000194       0x10 timer.o
+                0x00000194                timer_silence_reset
+ .text.RS485_Initialize
+                0x000001a4       0x1c rs485.o
+                0x000001a4                RS485_Initialize
+ .text.RS485_Set_Baud_Rate
+                0x000001c0       0xc0 rs485.o
+                0x000001c0                RS485_Set_Baud_Rate
+ .text.RS485_Transmitter_Enable
+                0x00000280        0xc rs485.o
+                0x00000280                RS485_Transmitter_Enable
+ .text.RS485_ReceiveError
+                0x0000028c       0x1e rs485.o
+                0x0000028c                RS485_ReceiveError
+ .text.RS485_DataAvailable
+                0x000002aa       0x1a rs485.o
+                0x000002aa                RS485_DataAvailable
+ .text.RS485_Send_Data
+                0x000002c4       0x34 rs485.o
+                0x000002c4                RS485_Send_Data
+ .text.RS485_Turnaround_Delay
+                0x000002f8       0x34 rs485.o
+                0x000002f8                RS485_Turnaround_Delay
+ .text.dlmstp_send_pdu
+                0x0000032c       0x46 dlmstp.o
+                0x0000032c                dlmstp_send_pdu
+ .text.dlmstp_get_my_address
+                0x00000372       0x24 dlmstp.o
+                0x00000372                dlmstp_get_my_address
+ .text.MSTP_Send_Frame
+                0x00000396       0xc0 dlmstp.o
+ .text.dlmstp_receive
+                0x00000456      0x3b2 dlmstp.o
+                0x00000456                dlmstp_receive
+ .text.dlmstp_init
+                0x00000808        0xa dlmstp.o
+                0x00000808                dlmstp_init
+ .text.apdu_service_supported
+                0x00000812       0x10 apdu.o
+                0x00000812                apdu_service_supported
+ .text.apdu_decode_confirmed_service_request
+                0x00000822       0xa8 apdu.o
+                0x00000822                apdu_decode_confirmed_service_request
+ .text.apdu_handler
+                0x000008ca       0x84 apdu.o
+                0x000008ca                apdu_handler
+ .text.CRC_Calc_Header
+                0x0000094e       0x5a ../../src/crc.o
+                0x0000094e                CRC_Calc_Header
+ .text.CRC_Calc_Data
+                0x000009a8       0x5c ../../src/crc.o
+                0x000009a8                CRC_Calc_Data
+ .text.Encode_Property_APDU
+                0x00000a04       0x62 h_rp.o
+                0x00000a04                Encode_Property_APDU
+ .text.handler_read_property
+                0x00000a66      0x126 h_rp.o
+                0x00000a66                handler_read_property
+ .text.Device_Valid_Object_Instance_Number
+                0x00000b8c       0x34 device.o
+                0x00000b8c                Device_Valid_Object_Instance_Number
+ .text.Device_Object_List_Identifier
+                0x00000bc0       0x3a device.o
+                0x00000bc0                Device_Object_List_Identifier
+ .text.Device_Encode_Property_APDU
+                0x00000bfa      0x2d6 device.o
+                0x00000bfa                Device_Encode_Property_APDU
+ .text.npdu_handler
+                0x00000ed0       0x7a ../../demo/handler/h_npdu.o
+                0x00000ed0                npdu_handler
+ .text.handler_unrecognized_service
+                0x00000f4a       0x6c ../../demo/handler/noserv.o
+                0x00000f4a                handler_unrecognized_service
+ .text.npdu_encode_npdu_data
+                0x00000fb6       0x24 .\libbacnet.a(npdu.o)
+                0x00000fb6                npdu_encode_npdu_data
+ .text.npdu_decode
+                0x00000fda      0x1f2 .\libbacnet.a(npdu.o)
+                0x00000fda                npdu_decode
+ .text.npdu_encode_pdu
+                0x000011cc      0x192 .\libbacnet.a(npdu.o)
+                0x000011cc                npdu_encode_pdu
+ .text.decode_max_segs
+                0x0000135e       0x68 .\libbacnet.a(bacdcode.o)
+                0x0000135e                decode_max_segs
+ .text.decode_max_apdu
+                0x000013c6       0x56 .\libbacnet.a(bacdcode.o)
+                0x000013c6                decode_max_apdu
+ .text.encode_opening_tag
+                0x0000141c       0x2c .\libbacnet.a(bacdcode.o)
+                0x0000141c                encode_opening_tag
+ .text.encode_closing_tag
+                0x00001448       0x2c .\libbacnet.a(bacdcode.o)
+                0x00001448                encode_closing_tag
+ .text.decode_tag_number
+                0x00001474       0x36 .\libbacnet.a(bacdcode.o)
+                0x00001474                decode_tag_number
+ .text.byte_reverse_bits
+                0x000014aa       0x2e .\libbacnet.a(bacdcode.o)
+ .text.encode_bacnet_unsigned
+                0x000014d8       0x50 .\libbacnet.a(bacdcode.o)
+                0x000014d8                encode_bacnet_unsigned
+ .text.encode_bacnet_enumerated
+                0x00001528       0x10 .\libbacnet.a(bacdcode.o)
+                0x00001528                encode_bacnet_enumerated
+ .text.encode_bacnet_object_id
+                0x00001538       0x3e .\libbacnet.a(bacdcode.o)
+                0x00001538                encode_bacnet_object_id
+ .text.encode_tag
+                0x00001576       0xa8 .\libbacnet.a(bacdcode.o)
+                0x00001576                encode_tag
+ .text.encode_context_enumerated
+                0x0000161e       0x50 .\libbacnet.a(bacdcode.o)
+                0x0000161e                encode_context_enumerated
+ .text.encode_application_enumerated
+                0x0000166e       0x3c .\libbacnet.a(bacdcode.o)
+                0x0000166e                encode_application_enumerated
+ .text.encode_application_unsigned
+                0x000016aa       0x3c .\libbacnet.a(bacdcode.o)
+                0x000016aa                encode_application_unsigned
+ .text.encode_context_unsigned
+                0x000016e6       0x52 .\libbacnet.a(bacdcode.o)
+                0x000016e6                encode_context_unsigned
+ .text.encode_application_object_id
+                0x00001738       0x3c .\libbacnet.a(bacdcode.o)
+                0x00001738                encode_application_object_id
+ .text.encode_context_object_id
+                0x00001774       0x54 .\libbacnet.a(bacdcode.o)
+                0x00001774                encode_context_object_id
+ .text.decode_unsigned
+                0x000017c8       0xa4 .\libbacnet.a(bacdcode.o)
+                0x000017c8                decode_unsigned
+ .text.decode_enumerated
+                0x0000186c       0x3c .\libbacnet.a(bacdcode.o)
+                0x0000186c                decode_enumerated
+ .text.decode_object_id
+                0x000018a8       0x66 .\libbacnet.a(bacdcode.o)
+                0x000018a8                decode_object_id
+ .text.encode_bacnet_character_string
+                0x0000190e       0x56 .\libbacnet.a(bacdcode.o)
+                0x0000190e                encode_bacnet_character_string
+ .text.encode_application_character_string
+                0x00001964       0x60 .\libbacnet.a(bacdcode.o)
+                0x00001964                encode_application_character_string
+ .text.encode_bitstring
+                0x000019c4       0x82 .\libbacnet.a(bacdcode.o)
+                0x000019c4                encode_bitstring
+ .text.encode_application_bitstring
+                0x00001a46       0x4e .\libbacnet.a(bacdcode.o)
+                0x00001a46                encode_application_bitstring
+ .text.decode_is_context_tag
+                0x00001a94       0x46 .\libbacnet.a(bacdcode.o)
+                0x00001a94                decode_is_context_tag
+ .text.decode_tag_number_and_value
+                0x00001ada       0xfc .\libbacnet.a(bacdcode.o)
+                0x00001ada                decode_tag_number_and_value
+ .text.encode_unsigned16
+                0x00001bd6       0x10 .\libbacnet.a(bacint.o)
+                0x00001bd6                encode_unsigned16
+ .text.decode_unsigned16
+                0x00001be6       0x30 .\libbacnet.a(bacint.o)
+                0x00001be6                decode_unsigned16
+ .text.encode_unsigned24
+                0x00001c16        0xe .\libbacnet.a(bacint.o)
+                0x00001c16                encode_unsigned24
+ .text.decode_unsigned24
+                0x00001c24       0x64 .\libbacnet.a(bacint.o)
+                0x00001c24                decode_unsigned24
+ .text.encode_unsigned32
+                0x00001c88       0x18 .\libbacnet.a(bacint.o)
+                0x00001c88                encode_unsigned32
+ .text.decode_unsigned32
+                0x00001ca0       0x84 .\libbacnet.a(bacint.o)
+                0x00001ca0                decode_unsigned32
+ .text.bitstring_init
+                0x00001d24       0x1a .\libbacnet.a(bacstr.o)
+                0x00001d24                bitstring_init
+ .text.bitstring_set_bit
+                0x00001d3e       0x66 .\libbacnet.a(bacstr.o)
+                0x00001d3e                bitstring_set_bit
+ .text.bitstring_bits_used
+                0x00001da4        0x8 .\libbacnet.a(bacstr.o)
+                0x00001da4                bitstring_bits_used
+ .text.bitstring_bytes_used
+                0x00001dac       0x1c .\libbacnet.a(bacstr.o)
+                0x00001dac                bitstring_bytes_used
+ .text.bitstring_octet
+                0x00001dc8       0x18 .\libbacnet.a(bacstr.o)
+                0x00001dc8                bitstring_octet
+ .text.characterstring_init
+                0x00001de0       0x8a .\libbacnet.a(bacstr.o)
+                0x00001de0                characterstring_init
+ .text.characterstring_value
+                0x00001e6a        0xe .\libbacnet.a(bacstr.o)
+                0x00001e6a                characterstring_value
+ .text.characterstring_length
+                0x00001e78       0x12 .\libbacnet.a(bacstr.o)
+                0x00001e78                characterstring_length
+ .text.characterstring_encoding
+                0x00001e8a       0x10 .\libbacnet.a(bacstr.o)
+                0x00001e8a                characterstring_encoding
+ .text.characterstring_init_ansi
+                0x00001e9a       0x2a .\libbacnet.a(bacstr.o)
+                0x00001e9a                characterstring_init_ansi
+ .text.rp_decode_service_request
+                0x00001ec4      0x12a .\libbacnet.a(rp.o)
+                0x00001ec4                rp_decode_service_request
+ .text.rp_ack_encode_apdu_init
+                0x00001fee       0xa2 .\libbacnet.a(rp.o)
+                0x00001fee                rp_ack_encode_apdu_init
+ .text.rp_ack_encode_apdu_object_property_end
+                0x00002090       0x12 .\libbacnet.a(rp.o)
+                0x00002090                rp_ack_encode_apdu_object_property_end
+ .text.abort_encode_apdu
+                0x000020a2       0x22 .\libbacnet.a(abort.o)
+                0x000020a2                abort_encode_apdu
+ .text.reject_encode_apdu
+                0x000020c4       0x1a .\libbacnet.a(reject.o)
+                0x000020c4                reject_encode_apdu
+ .text.bacerror_encode_apdu
+                0x000020de       0x4c .\libbacnet.a(bacerror.o)
+                0x000020de                bacerror_encode_apdu
+ .text.libgcc   0x0000212a       0x44 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_udivmodsi4.o)
+                0x0000212a                __udivmodsi4
+ .text.libgcc   0x0000216e       0x38 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_prologue.o)
+                0x0000216e                __prologue_saves__
+ .text.libgcc   0x000021a6       0x36 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_epilogue.o)
+                0x000021a6                __epilogue_restores__
+                0x000021dc                . = ALIGN (0x2)
+ *(.fini9)
+ .fini9         0x000021dc        0x0 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_exit.o)
+                0x000021dc                exit
+                0x000021dc                _exit
+ *(.fini9)
+ *(.fini8)
+ *(.fini8)
+ *(.fini7)
+ *(.fini7)
+ *(.fini6)
+ *(.fini6)
+ *(.fini5)
+ *(.fini5)
+ *(.fini4)
+ *(.fini4)
+ *(.fini3)
+ *(.fini3)
+ *(.fini2)
+ *(.fini2)
+ *(.fini1)
+ *(.fini1)
+ *(.fini0)
+ .fini0         0x000021dc        0x2 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/avr5\libgcc.a(_exit.o)
+ *(.fini0)
+                0x000021de                _etext = .
+
+.data           0x00800100       0x40 load address 0x000021de
+                0x00800100                PROVIDE (__data_start, .)
+ *(.data)
+ .data          0x00800100       0x39 device.o
+ *(.data*)
+ .data.Object_Instance_Number
+                0x00800139        0x4 device.o
+ *(.rodata)
+ *(.rodata*)
+ .rodata.Object_Name
+                0x0080013d        0x2 device.o
+ *(.gnu.linkonce.d*)
+                0x00800140                . = ALIGN (0x2)
+ *fill*         0x0080013f        0x1 00
+                0x00800140                _edata = .
+                0x00800140                PROVIDE (__data_end, .)
+
+.bss            0x00800140       0xbe load address 0x0000221e
+                0x00800140                PROVIDE (__bss_start, .)
+ *(.bss)
+ *(.bss*)
+ .bss.PDUBuffer
+                0x00800140       0x56 main.o
+ .bss.Timer_Silence
+                0x00800196        0x2 timer.o
+ .bss.RS485_Baud
+                0x00800198        0x4 rs485.o
+ .bss.Index.3067
+                0x0080019c        0x1 dlmstp.o
+ .bss.HeaderCRC.3066
+                0x0080019d        0x1 dlmstp.o
+ .bss.DataCRC.3065
+                0x0080019e        0x2 dlmstp.o
+ .bss.Receive_State
+                0x008001a0        0x2 dlmstp.o
+ .bss.MSTP_Flag
+                0x008001a2        0x1 dlmstp.o
+ .bss.DataLength
+                0x008001a3        0x2 dlmstp.o
+ .bss.DestinationAddress
+                0x008001a5        0x1 dlmstp.o
+ .bss.FrameType
+                0x008001a6        0x1 dlmstp.o
+ .bss.InputBuffer
+                0x008001a7        0x2 dlmstp.o
+ .bss.InputBufferSize
+                0x008001a9        0x2 dlmstp.o
+ .bss.SourceAddress
+                0x008001ab        0x1 dlmstp.o
+ .bss.This_Station
+                0x008001ac        0x1 dlmstp.o
+ .bss.TransmitPacket
+                0x008001ad        0x2 dlmstp.o
+ .bss.TransmitPacketLen
+                0x008001af        0x2 dlmstp.o
+ .bss.TransmitPacketDest
+                0x008001b1        0x1 dlmstp.o
+ .bss.Handler_Transmit_Buffer
+                0x008001b2       0x4c ../../demo/handler/txbuf.o
+                0x008001b2                Handler_Transmit_Buffer
+ *(COMMON)
+                0x008001fe                PROVIDE (__bss_end, .)
+                0x000021de                __data_load_start = LOADADDR (.data)
+                0x0000221e                __data_load_end = (__data_load_start + SIZEOF (.data))
+
+.noinit         0x008001fe        0x0
+                0x008001fe                PROVIDE (__noinit_start, .)
+ *(.noinit*)
+                0x008001fe                PROVIDE (__noinit_end, .)
+                0x008001fe                _end = .
+                0x008001fe                PROVIDE (__heap_start, .)
+
+.eeprom         0x00810000        0x0
+ *(.eeprom*)
+                0x00810000                __eeprom_end = .
+
+.fuse
+ *(.fuse)
+ *(.lfuse)
+ *(.hfuse)
+ *(.efuse)
+
+.lock
+ *(.lock*)
+
+.signature
+ *(.signature*)
+
+.stab           0x00000000      0x378
+ *(.stab)
+ .stab          0x00000000      0x378 c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+
+.stabstr        0x00000000       0x5f
+ *(.stabstr)
+ .stabstr       0x00000000       0x5f c:/winavr-20071221rc1/bin/../lib/gcc/avr/4.2.2/../../../../avr/lib/avr5/crtm168.o
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment
+ *(.comment)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges  0x00000000      0x798
+ *(.debug_aranges)
+ .debug_aranges
+                0x00000000       0x30 main.o
+ .debug_aranges
+                0x00000030       0x40 timer.o
+ .debug_aranges
+                0x00000070       0x60 rs485.o
+ .debug_aranges
+                0x000000d0       0x70 dlmstp.o
+ .debug_aranges
+                0x00000140       0x38 apdu.o
+ .debug_aranges
+                0x00000178       0x30 ../../src/crc.o
+ .debug_aranges
+                0x000001a8       0x30 h_rp.o
+ .debug_aranges
+                0x000001d8       0x60 device.o
+ .debug_aranges
+                0x00000238       0x28 ../../demo/handler/h_npdu.o
+ .debug_aranges
+                0x00000260       0x28 ../../demo/handler/noserv.o
+ .debug_aranges
+                0x00000288       0x40 .\libbacnet.a(npdu.o)
+ .debug_aranges
+                0x000002c8      0x210 .\libbacnet.a(bacdcode.o)
+ .debug_aranges
+                0x000004d8       0x90 .\libbacnet.a(bacint.o)
+ .debug_aranges
+                0x00000568       0x40 .\libbacnet.a(bacreal.o)
+ .debug_aranges
+                0x000005a8      0x108 .\libbacnet.a(bacstr.o)
+ .debug_aranges
+                0x000006b0       0x50 .\libbacnet.a(rp.o)
+ .debug_aranges
+                0x00000700       0x30 .\libbacnet.a(abort.o)
+ .debug_aranges
+                0x00000730       0x30 .\libbacnet.a(reject.o)
+ .debug_aranges
+                0x00000760       0x38 .\libbacnet.a(bacerror.o)
+
+.debug_pubnames
+                0x00000000     0x11f6
+ *(.debug_pubnames)
+ .debug_pubnames
+                0x00000000       0x4c main.o
+ .debug_pubnames
+                0x0000004c       0x63 timer.o
+ .debug_pubnames
+                0x000000af       0xd2 rs485.o
+ .debug_pubnames
+                0x00000181       0xe8 dlmstp.o
+ .debug_pubnames
+                0x00000269       0x68 apdu.o
+ .debug_pubnames
+                0x000002d1       0x38 ../../src/crc.o
+ .debug_pubnames
+                0x00000309       0x45 h_rp.o
+ .debug_pubnames
+                0x0000034e      0x10e device.o
+ .debug_pubnames
+                0x0000045c       0x2e ../../demo/handler/txbuf.o
+ .debug_pubnames
+                0x0000048a       0x23 ../../demo/handler/h_npdu.o
+ .debug_pubnames
+                0x000004ad       0x33 ../../demo/handler/noserv.o
+ .debug_pubnames
+                0x000004e0       0x63 .\libbacnet.a(npdu.o)
+ .debug_pubnames
+                0x00000543      0x66b .\libbacnet.a(bacdcode.o)
+ .debug_pubnames
+                0x00000bae      0x134 .\libbacnet.a(bacint.o)
+ .debug_pubnames
+                0x00000ce2       0x64 .\libbacnet.a(bacreal.o)
+ .debug_pubnames
+                0x00000d46      0x2e1 .\libbacnet.a(bacstr.o)
+ .debug_pubnames
+                0x00001027       0xc3 .\libbacnet.a(rp.o)
+ .debug_pubnames
+                0x000010ea       0x49 .\libbacnet.a(abort.o)
+ .debug_pubnames
+                0x00001133       0x4b .\libbacnet.a(reject.o)
+ .debug_pubnames
+                0x0000117e       0x78 .\libbacnet.a(bacerror.o)
+
+.debug_info     0x00000000     0x818f
+ *(.debug_info)
+ .debug_info    0x00000000      0x19e main.o
+ .debug_info    0x0000019e      0x121 timer.o
+ .debug_info    0x000002bf      0x208 rs485.o
+ .debug_info    0x000004c7      0x6fb dlmstp.o
+ .debug_info    0x00000bc2      0x4f5 apdu.o
+ .debug_info    0x000010b7      0x100 ../../src/crc.o
+ .debug_info    0x000011b7     0x11ed h_rp.o
+ .debug_info    0x000023a4     0x117a device.o
+ .debug_info    0x0000351e       0x95 ../../demo/handler/txbuf.o
+ .debug_info    0x000035b3      0x28e ../../demo/handler/h_npdu.o
+ .debug_info    0x00003841      0x39b ../../demo/handler/noserv.o
+ .debug_info    0x00003bdc      0x39e .\libbacnet.a(npdu.o)
+ .debug_info    0x00003f7a     0x1858 .\libbacnet.a(bacdcode.o)
+ .debug_info    0x000057d2      0x415 .\libbacnet.a(bacint.o)
+ .debug_info    0x00005be7      0x274 .\libbacnet.a(bacreal.o)
+ .debug_info    0x00005e5b      0xb9d .\libbacnet.a(bacstr.o)
+ .debug_info    0x000069f8      0xe78 .\libbacnet.a(rp.o)
+ .debug_info    0x00007870      0x17f .\libbacnet.a(abort.o)
+ .debug_info    0x000079ef      0x16b .\libbacnet.a(reject.o)
+ .debug_info    0x00007b5a      0x635 .\libbacnet.a(bacerror.o)
+ *(.gnu.linkonce.wi.*)
+
+.debug_abbrev   0x00000000     0x17a5
+ *(.debug_abbrev)
+ .debug_abbrev  0x00000000      0x119 main.o
+ .debug_abbrev  0x00000119       0xbb timer.o
+ .debug_abbrev  0x000001d4      0x10d rs485.o
+ .debug_abbrev  0x000002e1      0x2b1 dlmstp.o
+ .debug_abbrev  0x00000592      0x14b apdu.o
+ .debug_abbrev  0x000006dd       0x92 ../../src/crc.o
+ .debug_abbrev  0x0000076f      0x15c h_rp.o
+ .debug_abbrev  0x000008cb      0x1a5 device.o
+ .debug_abbrev  0x00000a70       0x63 ../../demo/handler/txbuf.o
+ .debug_abbrev  0x00000ad3      0x124 ../../demo/handler/h_npdu.o
+ .debug_abbrev  0x00000bf7      0x118 ../../demo/handler/noserv.o
+ .debug_abbrev  0x00000d0f      0x148 .\libbacnet.a(npdu.o)
+ .debug_abbrev  0x00000e57      0x20f .\libbacnet.a(bacdcode.o)
+ .debug_abbrev  0x00001066       0x8c .\libbacnet.a(bacint.o)
+ .debug_abbrev  0x000010f2       0xdf .\libbacnet.a(bacreal.o)
+ .debug_abbrev  0x000011d1      0x253 .\libbacnet.a(bacstr.o)
+ .debug_abbrev  0x00001424      0x10e .\libbacnet.a(rp.o)
+ .debug_abbrev  0x00001532       0xc7 .\libbacnet.a(abort.o)
+ .debug_abbrev  0x000015f9       0xc7 .\libbacnet.a(reject.o)
+ .debug_abbrev  0x000016c0       0xe5 .\libbacnet.a(bacerror.o)
+
+.debug_line     0x00000000     0x3cb7
+ *(.debug_line)
+ .debug_line    0x00000000      0x137 main.o
+ .debug_line    0x00000137      0x138 timer.o
+ .debug_line    0x0000026f      0x1eb rs485.o
+ .debug_line    0x0000045a      0x633 dlmstp.o
+ .debug_line    0x00000a8d      0x18e apdu.o
+ .debug_line    0x00000c1b       0xb4 ../../src/crc.o
+ .debug_line    0x00000ccf      0x189 h_rp.o
+ .debug_line    0x00000e58      0x30b device.o
+ .debug_line    0x00001163       0x6b ../../demo/handler/txbuf.o
+ .debug_line    0x000011ce       0xf2 ../../demo/handler/h_npdu.o
+ .debug_line    0x000012c0       0xec ../../demo/handler/noserv.o
+ .debug_line    0x000013ac      0x42d .\libbacnet.a(npdu.o)
+ .debug_line    0x000017d9     0x10a6 .\libbacnet.a(bacdcode.o)
+ .debug_line    0x0000287f      0x37f .\libbacnet.a(bacint.o)
+ .debug_line    0x00002bfe      0x184 .\libbacnet.a(bacreal.o)
+ .debug_line    0x00002d82      0x7b6 .\libbacnet.a(bacstr.o)
+ .debug_line    0x00003538      0x3c6 .\libbacnet.a(rp.o)
+ .debug_line    0x000038fe      0x111 .\libbacnet.a(abort.o)
+ .debug_line    0x00003a0f      0x102 .\libbacnet.a(reject.o)
+ .debug_line    0x00003b11      0x1a6 .\libbacnet.a(bacerror.o)
+
+.debug_frame    0x00000000      0xba0
+ *(.debug_frame)
+ .debug_frame   0x00000000       0x30 main.o
+ .debug_frame   0x00000030       0x50 timer.o
+ .debug_frame   0x00000080       0x90 rs485.o
+ .debug_frame   0x00000110       0xb0 dlmstp.o
+ .debug_frame   0x000001c0       0x40 apdu.o
+ .debug_frame   0x00000200       0x30 ../../src/crc.o
+ .debug_frame   0x00000230       0x30 h_rp.o
+ .debug_frame   0x00000260       0x90 device.o
+ .debug_frame   0x000002f0       0x20 ../../demo/handler/h_npdu.o
+ .debug_frame   0x00000310       0x20 ../../demo/handler/noserv.o
+ .debug_frame   0x00000330       0x50 .\libbacnet.a(npdu.o)
+ .debug_frame   0x00000380      0x3f0 .\libbacnet.a(bacdcode.o)
+ .debug_frame   0x00000770       0xf0 .\libbacnet.a(bacint.o)
+ .debug_frame   0x00000860       0x50 .\libbacnet.a(bacreal.o)
+ .debug_frame   0x000008b0      0x1e0 .\libbacnet.a(bacstr.o)
+ .debug_frame   0x00000a90       0x70 .\libbacnet.a(rp.o)
+ .debug_frame   0x00000b00       0x30 .\libbacnet.a(abort.o)
+ .debug_frame   0x00000b30       0x30 .\libbacnet.a(reject.o)
+ .debug_frame   0x00000b60       0x40 .\libbacnet.a(bacerror.o)
+
+.debug_str      0x00000000     0x57cf
+ *(.debug_str)
+ .debug_str     0x00000000      0x113 main.o
+                                0x13e (size before relaxing)
+ .debug_str     0x00000113       0x5c timer.o
+                                0x123 (size before relaxing)
+ .debug_str     0x0000016f       0xf7 rs485.o
+                                0x1d6 (size before relaxing)
+ .debug_str     0x00000266      0x627 dlmstp.o
+                                0x743 (size before relaxing)
+ .debug_str     0x0000088d      0xbc6 apdu.o
+                                0xd16 (size before relaxing)
+ .debug_str     0x00001453       0x48 ../../src/crc.o
+                                 0xfc (size before relaxing)
+ .debug_str     0x0000149b     0x2e28 h_rp.o
+                               0x37a1 (size before relaxing)
+ .debug_str     0x000042c3      0x295 device.o
+                               0x35f8 (size before relaxing)
+ .debug_str     0x00004558       0x1b ../../demo/handler/txbuf.o
+                                 0xe4 (size before relaxing)
+ .debug_str     0x00004573       0x49 ../../demo/handler/h_npdu.o
+                                0x436 (size before relaxing)
+ .debug_str     0x000045bc      0x1e3 ../../demo/handler/noserv.o
+                                0x6d6 (size before relaxing)
+ .debug_str     0x0000479f       0x7e .\libbacnet.a(npdu.o)
+                                0x463 (size before relaxing)
+ .debug_str     0x0000481d      0x934 .\libbacnet.a(bacdcode.o)
+                                0xbfc (size before relaxing)
+ .debug_str     0x00005151       0xfd .\libbacnet.a(bacint.o)
+                                0x1dc (size before relaxing)
+ .debug_str     0x0000524e       0x6e .\libbacnet.a(bacreal.o)
+                                0x143 (size before relaxing)
+ .debug_str     0x000052bc      0x325 .\libbacnet.a(bacstr.o)
+                                0x4dc (size before relaxing)
+ .debug_str     0x000055e1       0xca .\libbacnet.a(rp.o)
+                               0x2715 (size before relaxing)
+ .debug_str     0x000056ab       0x55 .\libbacnet.a(abort.o)
+                                0x1d7 (size before relaxing)
+ .debug_str     0x00005700       0x52 .\libbacnet.a(reject.o)
+                                0x1ce (size before relaxing)
+ .debug_str     0x00005752       0x7d .\libbacnet.a(bacerror.o)
+                               0x1521 (size before relaxing)
+
+.debug_loc      0x00000000     0x58bf
+ *(.debug_loc)
+ .debug_loc     0x00000000       0x38 main.o
+ .debug_loc     0x00000038       0x2b timer.o
+ .debug_loc     0x00000063      0x11f rs485.o
+ .debug_loc     0x00000182      0x583 dlmstp.o
+ .debug_loc     0x00000705      0x262 apdu.o
+ .debug_loc     0x00000967      0x141 ../../src/crc.o
+ .debug_loc     0x00000aa8      0x1f0 h_rp.o
+ .debug_loc     0x00000c98      0x540 device.o
+ .debug_loc     0x000011d8       0xa0 ../../demo/handler/h_npdu.o
+ .debug_loc     0x00001278       0x80 ../../demo/handler/noserv.o
+ .debug_loc     0x000012f8      0x416 .\libbacnet.a(npdu.o)
+ .debug_loc     0x0000170e     0x2257 .\libbacnet.a(bacdcode.o)
+ .debug_loc     0x00003965      0x330 .\libbacnet.a(bacint.o)
+ .debug_loc     0x00003c95       0x6e .\libbacnet.a(bacreal.o)
+ .debug_loc     0x00003d03     0x1078 .\libbacnet.a(bacstr.o)
+ .debug_loc     0x00004d7b      0x5b5 .\libbacnet.a(rp.o)
+ .debug_loc     0x00005330      0x128 .\libbacnet.a(abort.o)
+ .debug_loc     0x00005458      0x108 .\libbacnet.a(reject.o)
+ .debug_loc     0x00005560      0x35f .\libbacnet.a(bacerror.o)
+
+.debug_macinfo
+ *(.debug_macinfo)
+OUTPUT(bacnet.elf elf32-avr)
+LOAD linker stubs
+
+.debug_ranges   0x00000000       0xb0
+ .debug_ranges  0x00000000       0xb0 dlmstp.o
