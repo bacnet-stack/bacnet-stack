@@ -34,7 +34,7 @@
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
-//#include "arf.h"
+/*#include "arf.h" */
 /* demo objects */
 #include "device.h"
 #include "ai.h"
@@ -45,7 +45,7 @@
 #include "bacfile.h"
 #endif
 
-extern uint8_t IOBufferPT[300]; // Somewhere to build the encoded result block for Private Transfers
+extern uint8_t IOBufferPT[300]; /* Somewhere to build the encoded result block for Private Transfers */
 
 
 void DecodeBlock(char cBlockNum, uint8_t *pData)
@@ -94,7 +94,7 @@ void DecodeBlock(char cBlockNum, uint8_t *pData)
 
 	iLen += decode_character_string(&pData[iLen], len_value_type, &bsName);
 	strncpy(Response.sMyString, characterstring_value(&bsName), MY_MAX_STR);
-	Response.sMyString[MY_MAX_STR] = '\0'; // Make sure it is nul terminated
+	Response.sMyString[MY_MAX_STR] = '\0'; /* Make sure it is nul terminated */
 
 	printf("Private Transfer Read Block Response\n");
 	printf("Data Block: %d\n", (int)cBlockNum);
@@ -109,7 +109,7 @@ void DecodeBlock(char cBlockNum, uint8_t *pData)
 void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
 
 {
-	int iLen; // Index to current location in data
+	int iLen; /* Index to current location in data */
 	uint32_t uiErrorCode;
 	char cBlockNumber;
 	uint32_t ulTemp;
@@ -119,7 +119,7 @@ void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
 
 	iLen = 0;
 	
-	// Error code is returned for read and write operations
+	/* Error code is returned for read and write operations */
 	
 	tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
 	iLen += tag_len;
@@ -131,11 +131,11 @@ void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
 	}
 	iLen += decode_unsigned(&data->serviceParameters[iLen], len_value_type, &uiErrorCode);
 
-	if(data->serviceNumber == MY_SVC_READ) { // Read I/O block so should be full block of data or error
-		// Decode the error type and if necessary block number and then fetch the info
+	if(data->serviceNumber == MY_SVC_READ) { /* Read I/O block so should be full block of data or error */
+		/* Decode the error type and if necessary block number and then fetch the info */
 
 		if(uiErrorCode == MY_ERR_OK) {
-			// Block Number
+			/* Block Number */
 			tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
 			iLen += tag_len;
 			if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
@@ -149,12 +149,12 @@ void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
 			cBlockNumber = (char)ulTemp;
 			DecodeBlock(cBlockNumber, &data->serviceParameters[iLen]);
 		}
-		else { // Read error
+		else { /* Read error */
 			printf("Private Transfer read operation returned error code: %u\n", uiErrorCode);
 			return;
 		}
 	}
-	else { // Write I/O block - should just be an OK type message
+	else { /* Write I/O block - should just be an OK type message */
 		printf("Private Transfer write operation returned error code: %u\n", uiErrorCode);
 	}
 }
@@ -194,7 +194,7 @@ void handler_conf_private_trans_ack(
     printf("Received Confirmed Private Transfer Ack!\n");
 #endif
 
-    len = ptransfer_decode_service_request(service_request, service_len, &data); // Same decode for ack as for service request!
+    len = ptransfer_decode_service_request(service_request, service_len, &data); /* Same decode for ack as for service request! */
     if (len < 0)
       {
 #if PRINT_ENABLED
@@ -202,7 +202,7 @@ void handler_conf_private_trans_ack(
 #endif
       }
 
-    ProcessPTA(&data); // See what to do with the response
+    ProcessPTA(&data); /* See what to do with the response */
 
 return;
 }
