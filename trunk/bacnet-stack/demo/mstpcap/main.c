@@ -308,18 +308,42 @@ static void named_pipe_create(char *name)
 size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
     DWORD cbWritten = 0;
-    (void)WriteFile( 
-         hPipe,        /* handle to pipe  */
-         ptr,      /* buffer to write from  */
-         size*nitems, /* number of bytes to write  */
-         &cbWritten,   /* number of bytes written  */
-         NULL);        /* not overlapped I/O  */
-
+    if (hPipe != INVALID_HANDLE_VALUE) {
+        (void)WriteFile( 
+             hPipe,        /* handle to pipe  */
+             ptr,      /* buffer to write from  */
+             size*nitems, /* number of bytes to write  */
+             &cbWritten,   /* number of bytes written  */
+             NULL);        /* not overlapped I/O  */
+    }
+    
     return fwrite(ptr, size, nitems, pFile);
 }
 #else
+static int FD_Pipe = -1;
+static void named_pipe_create(char *name)
+{
+    int rv = 0;
+	rv = mkfifo(name, 0666);
+	if (( rv == -1) && (errno != EEXIST)) 
+	{
+		perror("Error creating named pipe");
+		exit(1);
+	}
+	FD_Pipe = open(name, O_WRONLY);
+    if (FD_Pipe == -1) {
+		perror("Error connecting to named pipe");
+		exit(1);
+    }
+}
+
 size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
+    ssize_t bytes = 0;
+    if (FD_Pipe != -1) {
+        bytes = write(FD_Pipe, ptr, size*nitems); 
+        bytes = bytes;
+    }
     return fwrite(ptr, size, nitems, pFile);
 }
 #endif
@@ -445,6 +469,9 @@ static void sig_int(
     int signo)
 {
     (void) signo;
+    if (FD_Pipe != -1) {
+        close(FD_Pipe);
+    }
 
     exit(0);
 }
@@ -519,12 +546,12 @@ int main(
 #if defined(_WIN32)
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
-    if (argc > 3) {
-        named_pipe_create(argv[3]);
-    }
 #else
     signal_init();
 #endif
+    if (argc > 3) {
+        named_pipe_create(argv[3]);
+    }
     filename_create_new();
     /* run forever */
     for (;;) {
