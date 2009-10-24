@@ -64,7 +64,7 @@ uint8_t Send_Private_Transfer_Request(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-	static uint8_t pt_req_buffer[300];  // Somewhere to build the request packet
+	static uint8_t pt_req_buffer[300];  /* Somewhere to build the request packet */
 	BACNET_PRIVATE_TRANSFER_DATA pt_block;
 	BACNET_CHARACTER_STRING bsTemp;
 
@@ -90,12 +90,12 @@ uint8_t Send_Private_Transfer_Request(
 		pt_block.serviceNumber = service_number;
 		if(service_number == MY_SVC_READ)
 			{
-			len += encode_application_unsigned(&pt_req_buffer[len], block_number); // The block number we want to retrieve
+			len += encode_application_unsigned(&pt_req_buffer[len], block_number); /* The block number we want to retrieve */
 			}
 		else
 			{
-			len += encode_application_unsigned(&pt_req_buffer[len], block_number);	  // The block number
-			len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte1); // And Then the block contents
+			len += encode_application_unsigned(&pt_req_buffer[len], block_number);	  /* The block number */
+			len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte1); /* And Then the block contents */
 			len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte2);
 			len += encode_application_real(&pt_req_buffer[len], block->fMyReal);
 			characterstring_init_ansi(&bsTemp, block->sMyString);

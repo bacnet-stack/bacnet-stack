@@ -309,11 +309,11 @@ size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
     DWORD cbWritten = 0;
     (void)WriteFile( 
-         hPipe,        // handle to pipe 
-         ptr,      // buffer to write from 
-         size*nitems, // number of bytes to write 
-         &cbWritten,   // number of bytes written 
-         NULL);        // not overlapped I/O 
+         hPipe,        /* handle to pipe  */
+         ptr,      /* buffer to write from  */
+         size*nitems, /* number of bytes to write  */
+         &cbWritten,   /* number of bytes written  */
+         NULL);        /* not overlapped I/O  */
 
     return fwrite(ptr, size, nitems, pFile);
 }

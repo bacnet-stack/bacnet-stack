@@ -90,7 +90,7 @@ static void MyErrorHandler(
     printf("BACnet Error: %s: %s\r\n",
         bactext_error_class_name((int) error_class),
         bactext_error_code_name((int) error_code));
-//    Error_Detected = true;
+/*    Error_Detected = true; */
 }
 
 void MyAbortHandler(
@@ -241,7 +241,7 @@ int main(
 			}
 			/* at least one second has passed */
 			if (current_seconds != last_seconds) {
-				putchar('.'); // Just to show that time is passing...
+				putchar('.'); /* Just to show that time is passing... */
 				last_seconds = current_seconds;
 				tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
 			}
@@ -287,9 +287,9 @@ int main(
 				found = address_bind_request(Target_Device_Object_Instance, &max_apdu, &Target_Address);
 			if (found) 
 				{
-				if (invoke_id == 0) { // Safe to send a new request
+				if (invoke_id == 0) { /* Safe to send a new request */
 					switch(iType) {
-						case 0:	// Write blocks to server
+						case 0:	/* Write blocks to server */
 							NewData.cMyByte1 = iCount;
 							NewData.cMyByte2 = 255 - iCount;
 							NewData.fMyReal  = (float)iCount;
@@ -299,14 +299,14 @@ int main(
 							invoke_id = Send_Private_Transfer_Request(Target_Device_Object_Instance, BACNET_VENDOR_ID, 1, iCount, &NewData);
 							break;
 
-						case 1: // Read blocks from server
+						case 1: /* Read blocks from server */
 							printf("Requesting block %d\n", iCount);
 							invoke_id = Send_Private_Transfer_Request(Target_Device_Object_Instance, BACNET_VENDOR_ID, 0, iCount, &NewData);
 							break;
 
-						case 2: // Generate some error responses
+						case 2: /* Generate some error responses */
 							switch(iCount) {
-								case 0: // Bad service number i.e. 2
+								case 0: /* Bad service number i.e. 2 */
 								case 2:
 								case 4:
 								case 6:
@@ -315,7 +315,7 @@ int main(
 									invoke_id = Send_Private_Transfer_Request(Target_Device_Object_Instance, BACNET_VENDOR_ID, 2, iCount, &NewData);
 									break;
 
-								case 1: // Bad vendor ID number
+								case 1: /* Bad vendor ID number */
 								case 3:
 								case 5:
 								case 7:

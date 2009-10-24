@@ -17,7 +17,7 @@ typedef struct MyData {
 	uint8_t cMyByte1;
 	uint8_t cMyByte2;
 	float   fMyReal;
-	int8_t  sMyString[MY_MAX_STR+1]; // A little extra for the nul
+	int8_t  sMyString[MY_MAX_STR+1]; /* A little extra for the nul */
 } DATABLOCK;
 
 
