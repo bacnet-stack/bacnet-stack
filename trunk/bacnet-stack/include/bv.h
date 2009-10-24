@@ -55,7 +55,7 @@ extern "C" {
 
     void Binary_Value_Init(
         void);
-    
+
     int Binary_Value_Encode_Property_APDU(
         uint8_t * apdu,
         uint32_t object_instance,

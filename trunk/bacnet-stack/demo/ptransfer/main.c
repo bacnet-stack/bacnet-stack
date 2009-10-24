@@ -63,8 +63,8 @@ uint8_t Send_Private_Transfer_Request(
     uint32_t device_id,
     uint16_t vendor_id,
     uint32_t service_number,
-	char block_number,
-	DATABLOCK *block);
+    char block_number,
+    DATABLOCK * block);
 
 
 /* buffer used for receive */
@@ -73,7 +73,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 
-static int Target_Mode = 0; 
+static int Target_Mode = 0;
 
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
@@ -137,7 +137,7 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
 
-	apdu_set_confirmed_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
         handler_conf_private_trans);
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
@@ -146,7 +146,7 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
         handler_conf_private_trans_ack);
 
-	/* handle any errors coming back */
+    /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_error_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -169,53 +169,54 @@ int main(
     time_t timeout_seconds = 0;
     uint8_t invoke_id = 0;
     bool found = false;
-	DATABLOCK NewData;
-	int iCount = 0;
-	int iType = 0;
-	int iKey;
-	static int iLimit[3] = {7, 11, 7};
+    DATABLOCK NewData;
+    int iCount = 0;
+    int iType = 0;
+    int iKey;
+    static int iLimit[3] = { 7, 11, 7 };
 
-    if (((argc != 2) && (argc != 3)) || ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
-		printf("%s\n",argv[0]);
+    if (((argc != 2) && (argc != 3)) || ((argc >= 2) &&
+            (strcmp(argv[1], "--help") == 0))) {
+        printf("%s\n", argv[0]);
         printf("Usage: %s server local-device-instance\r\n       or\r\n"
-			"       %s remote-device-instance\r\n"
-            , filename_remove_path(argv[0]), filename_remove_path(argv[0]));
+            "       %s remote-device-instance\r\n",
+            filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf("\r\nServer mode:\r\n\r\n"
                 "local-device-instance determins the device id of the application\r\n"
                 "when running as the server end of a test set up.\r\n\r\n"
-				"Non server:\r\n\r\n"
+                "Non server:\r\n\r\n"
                 "remote-device-instance indicates the device id of the server\r\n"
                 "instance of the application.\r\n"
                 "The non server application will write a series of blocks to the\r\n"
-				"server and then retrieve them for display locally\r\n"
-				"First it writes all 8 blocks plus a 9th which should trigger\r\n"
-				"an out of range error response. Then it reads all the blocks\r\n"
-				"including the ninth and finally it repeats the read operation\r\n"
-				"with some deliberate errors to trigger a nack response\r\n");
+                "server and then retrieve them for display locally\r\n"
+                "First it writes all 8 blocks plus a 9th which should trigger\r\n"
+                "an out of range error response. Then it reads all the blocks\r\n"
+                "including the ninth and finally it repeats the read operation\r\n"
+                "with some deliberate errors to trigger a nack response\r\n");
         }
         return 0;
     }
     /* decode the command line parameters */
-	if(_stricmp(argv[1], "server") == 0)
-		Target_Mode = 1;
-	else
-		Target_Mode = 0;
+    if (_stricmp(argv[1], "server") == 0)
+        Target_Mode = 1;
+    else
+        Target_Mode = 0;
 
     Target_Device_Object_Instance = strtol(argv[1 + Target_Mode], NULL, 0);
 
-	if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
 
     /* setup my info */
-	if(Target_Mode)
-	    Device_Set_Object_Instance_Number(Target_Device_Object_Instance);
-	else
-	    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-	
+    if (Target_Mode)
+        Device_Set_Object_Instance_Number(Target_Device_Object_Instance);
+    else
+        Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+
     address_init();
     Init_Service_Handlers();
     dlenv_init();
@@ -223,147 +224,160 @@ int main(
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
 
-	if(Target_Mode) {
-		printf("Entering server mode. press q to quit program\r\n\r\n");
-		
-		for (;;) {
-			/* increment timer - exit if timed out */
-			current_seconds = time(NULL);
-			if(current_seconds != last_seconds) {
-			}
+    if (Target_Mode) {
+        printf("Entering server mode. press q to quit program\r\n\r\n");
 
-			/* returns 0 bytes on timeout */
-			pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        for (;;) {
+            /* increment timer - exit if timed out */
+            current_seconds = time(NULL);
+            if (current_seconds != last_seconds) {
+            }
 
-			/* process */
-			if (pdu_len) {
-				npdu_handler(&src, &Rx_Buf[0], pdu_len);
-			}
-			/* at least one second has passed */
-			if (current_seconds != last_seconds) {
-				putchar('.'); /* Just to show that time is passing... */
-				last_seconds = current_seconds;
-				tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
-			}
-			
-			if(_kbhit()) {
-				iKey = toupper(_getch());
-				if(iKey == 'Q') {
-					printf("\r\nExiting program now\r\n");
-					exit(0);
-				}
-			}
-		}
-	}
-	else {
-				
-		/* try to bind with the device */
-		found =
-			address_bind_request(Target_Device_Object_Instance, &max_apdu,
-			&Target_Address);
-		if (!found) {
-			Send_WhoIs(Target_Device_Object_Instance,
-				Target_Device_Object_Instance);
-		}
-		/* loop forever */
-		for (;;) {
-			/* increment timer - exit if timed out */
-			current_seconds = time(NULL);
+            /* returns 0 bytes on timeout */
+            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
-			/* returns 0 bytes on timeout */
-			pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+            /* process */
+            if (pdu_len) {
+                npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            }
+            /* at least one second has passed */
+            if (current_seconds != last_seconds) {
+                putchar('.');   /* Just to show that time is passing... */
+                last_seconds = current_seconds;
+                tsm_timer_milliseconds(((current_seconds -
+                            last_seconds) * 1000));
+            }
 
-			/* process */
-			if (pdu_len) {
-				npdu_handler(&src, &Rx_Buf[0], pdu_len);
-			}
-			/* at least one second has passed */
-			if (current_seconds != last_seconds)
-				tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
-			if (Error_Detected)
-				break;
-			/* wait until the device is bound, or timeout and quit */
-			if(!found)
-				found = address_bind_request(Target_Device_Object_Instance, &max_apdu, &Target_Address);
-			if (found) 
-				{
-				if (invoke_id == 0) { /* Safe to send a new request */
-					switch(iType) {
-						case 0:	/* Write blocks to server */
-							NewData.cMyByte1 = iCount;
-							NewData.cMyByte2 = 255 - iCount;
-							NewData.fMyReal  = (float)iCount;
-							strcpy(NewData.sMyString, "Test Data - [x]");
-							NewData.sMyString[13] = 'a' + iCount;
-							printf("Sending block %d\n", iCount);
-							invoke_id = Send_Private_Transfer_Request(Target_Device_Object_Instance, BACNET_VENDOR_ID, 1, iCount, &NewData);
-							break;
+            if (_kbhit()) {
+                iKey = toupper(_getch());
+                if (iKey == 'Q') {
+                    printf("\r\nExiting program now\r\n");
+                    exit(0);
+                }
+            }
+        }
+    } else {
 
-						case 1: /* Read blocks from server */
-							printf("Requesting block %d\n", iCount);
-							invoke_id = Send_Private_Transfer_Request(Target_Device_Object_Instance, BACNET_VENDOR_ID, 0, iCount, &NewData);
-							break;
+        /* try to bind with the device */
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
+        if (!found) {
+            Send_WhoIs(Target_Device_Object_Instance,
+                Target_Device_Object_Instance);
+        }
+        /* loop forever */
+        for (;;) {
+            /* increment timer - exit if timed out */
+            current_seconds = time(NULL);
 
-						case 2: /* Generate some error responses */
-							switch(iCount) {
-								case 0: /* Bad service number i.e. 2 */
-								case 2:
-								case 4:
-								case 6:
-								case 8:
-									printf("Requesting block %d with bad service number\n", iCount);
-									invoke_id = Send_Private_Transfer_Request(Target_Device_Object_Instance, BACNET_VENDOR_ID, 2, iCount, &NewData);
-									break;
+            /* returns 0 bytes on timeout */
+            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
-								case 1: /* Bad vendor ID number */
-								case 3:
-								case 5:
-								case 7:
-									printf("Requesting block %d with invalid Vendor ID\n", iCount);
-									invoke_id = Send_Private_Transfer_Request(Target_Device_Object_Instance, BACNET_VENDOR_ID + 1, 0, iCount, &NewData);
-									break;
-							}
+            /* process */
+            if (pdu_len) {
+                npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            }
+            /* at least one second has passed */
+            if (current_seconds != last_seconds)
+                tsm_timer_milliseconds(((current_seconds -
+                            last_seconds) * 1000));
+            if (Error_Detected)
+                break;
+            /* wait until the device is bound, or timeout and quit */
+            if (!found)
+                found =
+                    address_bind_request(Target_Device_Object_Instance,
+                    &max_apdu, &Target_Address);
+            if (found) {
+                if (invoke_id == 0) {   /* Safe to send a new request */
+                    switch (iType) {
+                        case 0:        /* Write blocks to server */
+                            NewData.cMyByte1 = iCount;
+                            NewData.cMyByte2 = 255 - iCount;
+                            NewData.fMyReal = (float) iCount;
+                            strcpy(NewData.sMyString, "Test Data - [x]");
+                            NewData.sMyString[13] = 'a' + iCount;
+                            printf("Sending block %d\n", iCount);
+                            invoke_id =
+                                Send_Private_Transfer_Request
+                                (Target_Device_Object_Instance,
+                                BACNET_VENDOR_ID, 1, iCount, &NewData);
+                            break;
 
-							break;
-					}
-				}
-				else if (tsm_invoke_id_free(invoke_id))	{
-					if(iCount != MY_MAX_BLOCK) {
-						iCount++;
-						invoke_id = 0;
-					}
-					else {
-						iType++;
-						iCount    = 0;
-						invoke_id = 0;
+                        case 1:        /* Read blocks from server */
+                            printf("Requesting block %d\n", iCount);
+                            invoke_id =
+                                Send_Private_Transfer_Request
+                                (Target_Device_Object_Instance,
+                                BACNET_VENDOR_ID, 0, iCount, &NewData);
+                            break;
 
-						if(iType > 2) 
-							break;
-					}
-				}
-				else if (tsm_invoke_id_failed(invoke_id)) 
-					{
-					fprintf(stderr, "\rError: TSM Timeout!\r\n");
-					tsm_free_invoke_id(invoke_id);
-					Error_Detected = true;
-					/* try again or abort? */
-					break;
-					}
-				}
-			else
-				{
-				/* increment timer - exit if timed out */
-				elapsed_seconds += (current_seconds - last_seconds);
-				if (elapsed_seconds > timeout_seconds) {
-					printf("\rError: APDU Timeout!\r\n");
-					Error_Detected = true;
-					break;
-				}
-			}
-			/* keep track of time for next check */
-			last_seconds = current_seconds;
-		}
-	}
+                        case 2:        /* Generate some error responses */
+                            switch (iCount) {
+                                case 0:        /* Bad service number i.e. 2 */
+                                case 2:
+                                case 4:
+                                case 6:
+                                case 8:
+                                    printf
+                                        ("Requesting block %d with bad service number\n",
+                                        iCount);
+                                    invoke_id =
+                                        Send_Private_Transfer_Request
+                                        (Target_Device_Object_Instance,
+                                        BACNET_VENDOR_ID, 2, iCount, &NewData);
+                                    break;
+
+                                case 1:        /* Bad vendor ID number */
+                                case 3:
+                                case 5:
+                                case 7:
+                                    printf
+                                        ("Requesting block %d with invalid Vendor ID\n",
+                                        iCount);
+                                    invoke_id =
+                                        Send_Private_Transfer_Request
+                                        (Target_Device_Object_Instance,
+                                        BACNET_VENDOR_ID + 1, 0, iCount,
+                                        &NewData);
+                                    break;
+                            }
+
+                            break;
+                    }
+                } else if (tsm_invoke_id_free(invoke_id)) {
+                    if (iCount != MY_MAX_BLOCK) {
+                        iCount++;
+                        invoke_id = 0;
+                    } else {
+                        iType++;
+                        iCount = 0;
+                        invoke_id = 0;
+
+                        if (iType > 2)
+                            break;
+                    }
+                } else if (tsm_invoke_id_failed(invoke_id)) {
+                    fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                    tsm_free_invoke_id(invoke_id);
+                    Error_Detected = true;
+                    /* try again or abort? */
+                    break;
+                }
+            } else {
+                /* increment timer - exit if timed out */
+                elapsed_seconds += (current_seconds - last_seconds);
+                if (elapsed_seconds > timeout_seconds) {
+                    printf("\rError: APDU Timeout!\r\n");
+                    Error_Detected = true;
+                    break;
+                }
+            }
+            /* keep track of time for next check */
+            last_seconds = current_seconds;
+        }
+    }
 
     if (Error_Detected)
         return 1;

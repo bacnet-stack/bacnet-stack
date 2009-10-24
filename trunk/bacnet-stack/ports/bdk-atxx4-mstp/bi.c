@@ -163,7 +163,7 @@ bool Binary_Input_Present_Value_Set(
 char *Binary_Input_Name(
     uint32_t object_instance)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text_string[32];        /* okay for single thread */
 
     if (object_instance < MAX_BINARY_INPUTS) {
         sprintf(text_string, "BI-%lu", object_instance);

@@ -45,7 +45,7 @@
 
 void Send_UnconfirmedPrivateTransfer(
     BACNET_ADDRESS * dest,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -60,8 +60,8 @@ void Send_UnconfirmedPrivateTransfer(
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, NULL, &npdu_data);
     /* encode the APDU portion of the packet */
-    len = uptransfer_encode_apdu(
-        &Handler_Transmit_Buffer[pdu_len], 
+    len =
+        uptransfer_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         private_data);
     pdu_len += len;
     bytes_sent =
@@ -69,7 +69,7 @@ void Send_UnconfirmedPrivateTransfer(
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, 
+        fprintf(stderr,
             "Failed to Send UnconfirmedPrivateTransfer Request (%s)!\n",
             strerror(errno));
 #endif

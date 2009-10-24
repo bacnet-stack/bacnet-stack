@@ -240,7 +240,7 @@ void Binary_Output_Level_Sync(
 char *Binary_Output_Name(
     uint32_t object_instance)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text_string[32];        /* okay for single thread */
 
     if (object_instance < MAX_BINARY_OUTPUTS) {
         sprintf(text_string, "BO-%lu", object_instance);

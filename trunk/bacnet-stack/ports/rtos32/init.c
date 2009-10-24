@@ -68,12 +68,15 @@ RTFDevice RTFDeviceList[] = {
 #define MAXTYPES   32
 
 RTW32Handle RTHandleTable[MAXHANDLES] = { {0} };
+
 int RTHandleCount = MAXHANDLES;
 
 RTW32Object RTObjectTable[MAXOBJECTS] = { {0} };
+
 int RTObjectCount = MAXOBJECTS;
 
 RTW32Types RTTypeTable[MAXTYPES] = { {0} };
+
 int RTTypeCount = MAXTYPES;
 
 #if 0

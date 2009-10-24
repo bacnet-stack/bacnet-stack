@@ -551,11 +551,11 @@ bool Lighting_Output_Write_Property(
             } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
                 level = LIGHTING_LEVEL_NULL;
                 object_index =
-                    Lighting_Output_Instance_To_Index(wp_data->
-                    object_instance);
+                    Lighting_Output_Instance_To_Index
+                    (wp_data->object_instance);
                 status =
-                    Lighting_Output_Present_Value_Relinquish(wp_data->
-                    object_instance, wp_data->priority);
+                    Lighting_Output_Present_Value_Relinquish
+                    (wp_data->object_instance, wp_data->priority);
                 if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
@@ -580,8 +580,8 @@ bool Lighting_Output_Write_Property(
         case PROP_OUT_OF_SERVICE:
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                 object_index =
-                    Lighting_Output_Instance_To_Index(wp_data->
-                    object_instance);
+                    Lighting_Output_Instance_To_Index
+                    (wp_data->object_instance);
                 Lighting_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
                 status = true;

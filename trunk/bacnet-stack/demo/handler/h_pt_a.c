@@ -48,115 +48,132 @@
 extern uint8_t IOBufferPT[300]; /* Somewhere to build the encoded result block for Private Transfers */
 
 
-void DecodeBlock(char cBlockNum, uint8_t *pData)
-
+void DecodeBlock(
+    char cBlockNum,
+    uint8_t * pData)
 {
-	int iLen;
-	uint32_t ulTemp;
-	int tag_len;
-	uint8_t tag_number;
-	uint32_t len_value_type;
-	BACNET_CHARACTER_STRING bsName;
-	DATABLOCK Response;
+    int iLen;
+    uint32_t ulTemp;
+    int tag_len;
+    uint8_t tag_number;
+    uint32_t len_value_type;
+    BACNET_CHARACTER_STRING bsName;
+    DATABLOCK Response;
 
-	iLen = 0;
+    iLen = 0;
 
-	if(cBlockNum >= MY_MAX_BLOCK)
-		return;
+    if (cBlockNum >= MY_MAX_BLOCK)
+        return;
 
-	tag_len = decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
-	iLen += tag_len;
-	if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
-		return;
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number,
+        &len_value_type);
+    iLen += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+        return;
 
-	iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
-	Response.cMyByte1 = (char)ulTemp;
+    iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
+    Response.cMyByte1 = (char) ulTemp;
 
-	tag_len = decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
-	iLen += tag_len;
-	if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
-		return;
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number,
+        &len_value_type);
+    iLen += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+        return;
 
-	iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
-	Response.cMyByte2 = (char)ulTemp;
+    iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
+    Response.cMyByte2 = (char) ulTemp;
 
-	tag_len = decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
-	iLen += tag_len;
-	if (tag_number != BACNET_APPLICATION_TAG_REAL)
-		return;
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number,
+        &len_value_type);
+    iLen += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_REAL)
+        return;
 
-	iLen += decode_real(&pData[iLen], &Response.fMyReal);
+    iLen += decode_real(&pData[iLen], &Response.fMyReal);
 
-	tag_len = decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
-	iLen += tag_len;
-	if (tag_number != BACNET_APPLICATION_TAG_CHARACTER_STRING)
-		return;
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number,
+        &len_value_type);
+    iLen += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_CHARACTER_STRING)
+        return;
 
-	iLen += decode_character_string(&pData[iLen], len_value_type, &bsName);
-	strncpy(Response.sMyString, characterstring_value(&bsName), MY_MAX_STR);
-	Response.sMyString[MY_MAX_STR] = '\0'; /* Make sure it is nul terminated */
+    iLen += decode_character_string(&pData[iLen], len_value_type, &bsName);
+    strncpy(Response.sMyString, characterstring_value(&bsName), MY_MAX_STR);
+    Response.sMyString[MY_MAX_STR] = '\0';      /* Make sure it is nul terminated */
 
-	printf("Private Transfer Read Block Response\n");
-	printf("Data Block: %d\n", (int)cBlockNum);
-	printf("  First Byte  : %d\n", (int)Response.cMyByte1);
-	printf("  Second Byte : %d\n", (int)Response.cMyByte2);
-	printf("  Real        : %f\n", Response.fMyReal);
-	printf("  String      : %s\n\n", Response.sMyString);
+    printf("Private Transfer Read Block Response\n");
+    printf("Data Block: %d\n", (int) cBlockNum);
+    printf("  First Byte  : %d\n", (int) Response.cMyByte1);
+    printf("  Second Byte : %d\n", (int) Response.cMyByte2);
+    printf("  Real        : %f\n", Response.fMyReal);
+    printf("  String      : %s\n\n", Response.sMyString);
 }
 
 
 
-void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
-
+void ProcessPTA(
+    BACNET_PRIVATE_TRANSFER_DATA * data)
 {
-	int iLen; /* Index to current location in data */
-	uint32_t uiErrorCode;
-	char cBlockNumber;
-	uint32_t ulTemp;
-	int tag_len;
-	uint8_t tag_number;
-	uint32_t len_value_type;
+    int iLen;   /* Index to current location in data */
+    uint32_t uiErrorCode;
+    char cBlockNumber;
+    uint32_t ulTemp;
+    int tag_len;
+    uint8_t tag_number;
+    uint32_t len_value_type;
 
-	iLen = 0;
-	
-	/* Error code is returned for read and write operations */
-	
-	tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
-	iLen += tag_len;
-	if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+    iLen = 0;
+
+    /* Error code is returned for read and write operations */
+
+    tag_len =
+        decode_tag_number_and_value(&data->serviceParameters[iLen],
+        &tag_number, &len_value_type);
+    iLen += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
 #if PRINT_ENABLED
-		printf("CPTA: Bad Encoding!\n");
+        printf("CPTA: Bad Encoding!\n");
 #endif
-		return;
-	}
-	iLen += decode_unsigned(&data->serviceParameters[iLen], len_value_type, &uiErrorCode);
+        return;
+    }
+    iLen +=
+        decode_unsigned(&data->serviceParameters[iLen], len_value_type,
+        &uiErrorCode);
 
-	if(data->serviceNumber == MY_SVC_READ) { /* Read I/O block so should be full block of data or error */
-		/* Decode the error type and if necessary block number and then fetch the info */
+    if (data->serviceNumber == MY_SVC_READ) {   /* Read I/O block so should be full block of data or error */
+        /* Decode the error type and if necessary block number and then fetch the info */
 
-		if(uiErrorCode == MY_ERR_OK) {
-			/* Block Number */
-			tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
-			iLen += tag_len;
-			if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        if (uiErrorCode == MY_ERR_OK) {
+            /* Block Number */
+            tag_len =
+                decode_tag_number_and_value(&data->serviceParameters[iLen],
+                &tag_number, &len_value_type);
+            iLen += tag_len;
+            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
 #if PRINT_ENABLED
-				printf("CPTA: Bad Encoding!\n");
+                printf("CPTA: Bad Encoding!\n");
 #endif
-				return;
-			}
+                return;
+            }
 
-			iLen += decode_unsigned(&data->serviceParameters[iLen], len_value_type, &ulTemp);
-			cBlockNumber = (char)ulTemp;
-			DecodeBlock(cBlockNumber, &data->serviceParameters[iLen]);
-		}
-		else { /* Read error */
-			printf("Private Transfer read operation returned error code: %u\n", uiErrorCode);
-			return;
-		}
-	}
-	else { /* Write I/O block - should just be an OK type message */
-		printf("Private Transfer write operation returned error code: %u\n", uiErrorCode);
-	}
+            iLen +=
+                decode_unsigned(&data->serviceParameters[iLen], len_value_type,
+                &ulTemp);
+            cBlockNumber = (char) ulTemp;
+            DecodeBlock(cBlockNumber, &data->serviceParameters[iLen]);
+        } else {        /* Read error */
+            printf("Private Transfer read operation returned error code: %u\n",
+                uiErrorCode);
+            return;
+        }
+    } else {    /* Write I/O block - should just be an OK type message */
+        printf("Private Transfer write operation returned error code: %u\n",
+            uiErrorCode);
+    }
 }
 
 
@@ -183,28 +200,27 @@ void handler_conf_private_trans_ack(
  * we were expecting. But this is just to silence some compiler
  * warnings from Borland.
  */
-  src = src;
-  service_data = service_data;
+    src = src;
+    service_data = service_data;
 
-  len = 0;
+    len = 0;
 
-	
-	
+
+
 #if PRINT_ENABLED
     printf("Received Confirmed Private Transfer Ack!\n");
 #endif
 
-    len = ptransfer_decode_service_request(service_request, service_len, &data); /* Same decode for ack as for service request! */
-    if (len < 0)
-      {
+    len = ptransfer_decode_service_request(service_request, service_len, &data);        /* Same decode for ack as for service request! */
+    if (len < 0) {
 #if PRINT_ENABLED
-       printf("cpta: Bad Encoding!\n");
+        printf("cpta: Bad Encoding!\n");
 #endif
-      }
+    }
 
-    ProcessPTA(&data); /* See what to do with the response */
+    ProcessPTA(&data);  /* See what to do with the response */
 
-return;
+    return;
 }
 
 #if 0
@@ -223,4 +239,3 @@ void PTErrorHandler(
     Error_Detected = true;
 }
 #endif
-

@@ -38,8 +38,7 @@
 #include "event.h"
 #include "getevent.h"
 
-static get_event_info_function
-    Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
+static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
 
 void handler_get_event_information_set(
     BACNET_OBJECT_TYPE object_type,
@@ -48,7 +47,7 @@ void handler_get_event_information_set(
     if (object_type < MAX_BACNET_OBJECT_TYPE) {
         Get_Event_Info[object_type] = pFunction;
     }
-}                
+}
 
 void handler_get_event_information(
     uint8_t * service_request,
@@ -65,7 +64,7 @@ void handler_get_event_information(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
     BACNET_OBJECT_ID object_id;
-    unsigned i = 0, j = 0; /* counter */
+    unsigned i = 0, j = 0;      /* counter */
     BACNET_GET_EVENT_INFORMATION_DATA getevent_data;
     int valid_event = 0;
 
@@ -82,15 +81,14 @@ void handler_get_event_information(
             service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
             true);
 #if PRINT_ENABLED
-        fprintf(stderr, "GetEventInformation: "
-            "Segmented message. Sending Abort!\n");
+        fprintf(stderr,
+            "GetEventInformation: " "Segmented message. Sending Abort!\n");
 #endif
         goto GET_EVENT_ABORT;
     }
 
-    len = getevent_decode_service_request(
-        service_request, 
-        service_len, 
+    len =
+        getevent_decode_service_request(service_request, service_len,
         &object_id);
     if (len < 0) {
         /* bad decoding - send an abort */
@@ -98,17 +96,17 @@ void handler_get_event_information(
             abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
-        fprintf(stderr, "GetEventInformation: Bad Encoding.  Sending Abort!\n");
+        fprintf(stderr,
+            "GetEventInformation: Bad Encoding.  Sending Abort!\n");
 #endif
         goto GET_EVENT_ABORT;
     }
 
     /* assume that there is an error */
     error = true;
-    len = getevent_ack_encode_apdu_init(
-        &Handler_Transmit_Buffer[pdu_len], 
-        sizeof(Handler_Transmit_Buffer) - pdu_len,
-        service_data->invoke_id);
+    len =
+        getevent_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
+        sizeof(Handler_Transmit_Buffer) - pdu_len, service_data->invoke_id);
     if (len <= 0) {
         error = true;
         goto GET_EVENT_ERROR;
@@ -117,11 +115,11 @@ void handler_get_event_information(
     for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
         if (Get_Event_Info[i]) {
             for (j = 0; j < 0xffff; j++) {
-                valid_event = Get_Event_Info[i](j, &getevent_data);
+                valid_event = Get_Event_Info[i] (j, &getevent_data);
                 if (valid_event > 0) {
-                    len = getevent_ack_encode_apdu_data(
-                        &Handler_Transmit_Buffer[pdu_len], 
-                        sizeof(Handler_Transmit_Buffer)-pdu_len,
+                    len =
+                        getevent_ack_encode_apdu_data(&Handler_Transmit_Buffer
+                        [pdu_len], sizeof(Handler_Transmit_Buffer) - pdu_len,
                         &getevent_data);
                     if (len <= 0) {
                         error = true;
@@ -134,10 +132,9 @@ void handler_get_event_information(
             }
         }
     }
-    len = getevent_ack_encode_apdu_end(
-        &Handler_Transmit_Buffer[pdu_len], 
-        sizeof(Handler_Transmit_Buffer)-pdu_len,
-        false);
+    len =
+        getevent_ack_encode_apdu_end(&Handler_Transmit_Buffer[pdu_len],
+        sizeof(Handler_Transmit_Buffer) - pdu_len, false);
     if (len <= 0) {
         error = true;
         goto GET_EVENT_ERROR;
@@ -146,7 +143,7 @@ void handler_get_event_information(
 #if PRINT_ENABLED
     fprintf(stderr, "GetEventInformation: Sending Ack!\n");
 #endif
-GET_EVENT_ERROR:
+  GET_EVENT_ERROR:
     if (error) {
         if (len == -2) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
@@ -155,8 +152,8 @@ GET_EVENT_ERROR:
                 service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
-            fprintf(stderr, "GetEventInformation: "
-            "Reply too big to fit into APDU!\n");
+            fprintf(stderr,
+                "GetEventInformation: " "Reply too big to fit into APDU!\n");
 #endif
         } else {
             len =
@@ -168,7 +165,7 @@ GET_EVENT_ERROR:
 #endif
         }
     }
-GET_EVENT_ABORT:
+  GET_EVENT_ABORT:
     pdu_len += len;
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],

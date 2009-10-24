@@ -64,58 +64,75 @@
 /*****************************************************************************
  *  Build a ReadRange request packet.                                        *
  *****************************************************************************/
- 
+
 int rr_encode_apdu(
     uint8_t * apdu,
     uint8_t invoke_id,
     BACNET_READ_RANGE_DATA * rrdata)
 {
-    int apdu_len;   /* total length of the apdu, return value */
+    int apdu_len;       /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_READ_RANGE;      /* service choice */
+        apdu[3] = SERVICE_CONFIRMED_READ_RANGE; /* service choice */
         apdu_len = 4;
-        
-        apdu_len += encode_context_object_id(&apdu[apdu_len], 0, rrdata->object_type, rrdata->object_instance);
-        apdu_len += encode_context_enumerated(&apdu[apdu_len], 1, rrdata->object_property);
-        
+
+        apdu_len +=
+            encode_context_object_id(&apdu[apdu_len], 0, rrdata->object_type,
+            rrdata->object_instance);
+        apdu_len +=
+            encode_context_enumerated(&apdu[apdu_len], 1,
+            rrdata->object_property);
+
         /* optional array index */
-        
+
         if (rrdata->array_index != BACNET_ARRAY_ALL) {
-            apdu_len += encode_context_unsigned(&apdu[apdu_len], 2, rrdata->array_index);
+            apdu_len +=
+                encode_context_unsigned(&apdu[apdu_len], 2,
+                rrdata->array_index);
         }
 
         /* Build the appropriate (optional) range parameter based on the request type */
-        
+
         switch (rrdata->RequestType) {
             case RR_BY_POSITION:
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
-                apdu_len += encode_application_unsigned(&apdu[apdu_len], rrdata->Range.RefIndex);
-                apdu_len += encode_application_signed(&apdu[apdu_len], rrdata->Count);
+                apdu_len +=
+                    encode_application_unsigned(&apdu[apdu_len],
+                    rrdata->Range.RefIndex);
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len], rrdata->Count);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
                 break;
 
             case RR_BY_SEQUENCE:
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 6);
-                apdu_len += encode_application_unsigned(&apdu[apdu_len], rrdata->Range.RefSeqNum);
-                apdu_len += encode_application_signed(&apdu[apdu_len], rrdata->Count);
+                apdu_len +=
+                    encode_application_unsigned(&apdu[apdu_len],
+                    rrdata->Range.RefSeqNum);
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len], rrdata->Count);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 6);
                 break;
 
             case RR_BY_TIME:
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 7);
-                apdu_len += encode_application_date(&apdu[apdu_len], &rrdata->Range.RefTime.date);
-                apdu_len += encode_application_time(&apdu[apdu_len], &rrdata->Range.RefTime.time);
-                apdu_len += encode_application_signed(&apdu[apdu_len], rrdata->Count);
+                apdu_len +=
+                    encode_application_date(&apdu[apdu_len],
+                    &rrdata->Range.RefTime.date);
+                apdu_len +=
+                    encode_application_time(&apdu[apdu_len],
+                    &rrdata->Range.RefTime.time);
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len], rrdata->Count);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 7);
                 break;
 
-            case RR_READ_ALL: /* to attempt a read of the whole array or list, omit the range parameter */
+            case RR_READ_ALL:  /* to attempt a read of the whole array or list, omit the range parameter */
                 break;
-                
+
             default:
                 break;
         }
@@ -139,7 +156,7 @@ int rr_decode_service_request(
     uint32_t len_value_type = 0;
     uint16_t type = 0;  /* for decoding */
     uint32_t UnsignedTemp;
-    
+
     /* check for value pointers */
     if (apdu_len && rrdata) {
         /* Tag 0: Object ID */
@@ -148,23 +165,28 @@ int rr_decode_service_request(
         len += decode_object_id(&apdu[len], &type, &rrdata->object_instance);
         rrdata->object_type = (BACNET_OBJECT_TYPE) type;
         /* Tag 1: Property ID */
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number,
+            &len_value_type);
         if (tag_number != 1)
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &UnsignedTemp);
         rrdata->object_property = (BACNET_PROPERTY_ID) UnsignedTemp;
         /* Tag 2: Optional Array Index */
-        rrdata->array_index = BACNET_ARRAY_ALL;   /* Assuming this is the most common outcome... */
+        rrdata->array_index = BACNET_ARRAY_ALL; /* Assuming this is the most common outcome... */
         if (len < apdu_len) {
-            TagLen = decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+            TagLen =
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
             if (tag_number == 2) {
                 len += TagLen;
-                len += decode_unsigned(&apdu[len], len_value_type, &UnsignedTemp);
+                len +=
+                    decode_unsigned(&apdu[len], len_value_type, &UnsignedTemp);
                 rrdata->array_index = UnsignedTemp;
             }
         }
         /* And/or optional range selection- Tags 3, 6 and 7 */
-        rrdata->RequestType = RR_READ_ALL; /* Assume the worst to cut out explicit checking later */
+        rrdata->RequestType = RR_READ_ALL;      /* Assume the worst to cut out explicit checking later */
         if (len < apdu_len) {
             /*
              * Note: We pick up the opening tag and then decode the parameter types we recognise.
@@ -173,39 +195,74 @@ int rr_decode_service_request(
              * This is so that if we receive a tag we don't recognise, we don't try to decode it
              * blindly and make a mess of it.
              */
-            len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-            switch(tag_number) {
-                case 3: /* ReadRange by position */
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value_type);
+            switch (tag_number) {
+                case 3:        /* ReadRange by position */
                     rrdata->RequestType = RR_BY_POSITION;
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-                    len += decode_unsigned(&apdu[len], len_value_type, &rrdata->Range.RefIndex);
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-                    len += decode_signed(&apdu[len], len_value_type, &rrdata->Count);
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
+                    len +=
+                        decode_unsigned(&apdu[len], len_value_type,
+                        &rrdata->Range.RefIndex);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
+                    len +=
+                        decode_signed(&apdu[len], len_value_type,
+                        &rrdata->Count);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
                     break;
-                    
-                case 6: /* ReadRange by sequence number */
+
+                case 6:        /* ReadRange by sequence number */
                     rrdata->RequestType = RR_BY_SEQUENCE;
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-                    len += decode_unsigned(&apdu[len], len_value_type, &rrdata->Range.RefSeqNum);
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-                    len += decode_signed(&apdu[len], len_value_type, &rrdata->Count);
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
+                    len +=
+                        decode_unsigned(&apdu[len], len_value_type,
+                        &rrdata->Range.RefSeqNum);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
+                    len +=
+                        decode_signed(&apdu[len], len_value_type,
+                        &rrdata->Count);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
                     break;
 
-                case 7: /* ReadRange by time stamp */
+                case 7:        /* ReadRange by time stamp */
                     rrdata->RequestType = RR_BY_TIME;
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-                    len += decode_date(&apdu[len], &rrdata->Range.RefTime.date);
-                    len += decode_bacnet_time(&apdu[len], &rrdata->Range.RefTime.time);
-                    len += decode_unsigned(&apdu[len], len_value_type, &rrdata->Range.RefIndex);
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-                    len += decode_signed(&apdu[len], len_value_type, &rrdata->Count);
-                    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
+                    len +=
+                        decode_date(&apdu[len], &rrdata->Range.RefTime.date);
+                    len +=
+                        decode_bacnet_time(&apdu[len],
+                        &rrdata->Range.RefTime.time);
+                    len +=
+                        decode_unsigned(&apdu[len], len_value_type,
+                        &rrdata->Range.RefIndex);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
+                    len +=
+                        decode_signed(&apdu[len], len_value_type,
+                        &rrdata->Count);
+                    len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
                     break;
 
-                default: /* If we don't recognise the tag then we do nothing here and try to return
-                          * all elements of the array */
+                default:       /* If we don't recognise the tag then we do nothing here and try to return
+                                 * all elements of the array */
                     break;
             }
         }
@@ -226,7 +283,7 @@ int rr_decode_service_request(
  *                                                  -- type 'By Sequence Number' or 'By Time'
  * }
  */
- 
+
 /*****************************************************************************
  * Build a ReadRange response packet                                         *
  *****************************************************************************/
@@ -237,38 +294,49 @@ int rr_ack_encode_apdu(
     BACNET_READ_RANGE_DATA * rrdata)
 {
     int len = 0;        /* length of each encoding */
-    int apdu_len;   /* total length of the apdu, return value */
+    int apdu_len;       /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_COMPLEX_ACK;         /* complex ACK service */
-        apdu[1] = invoke_id;                    /* original invoke id from request */
+        apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
+        apdu[1] = invoke_id;    /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_RANGE; /* service choice */
         apdu_len = 3;
         /* service ack follows */
-        apdu_len += encode_context_object_id(&apdu[apdu_len], 0, rrdata->object_type, rrdata->object_instance);
-        apdu_len += encode_context_enumerated(&apdu[apdu_len], 1, rrdata->object_property);
+        apdu_len +=
+            encode_context_object_id(&apdu[apdu_len], 0, rrdata->object_type,
+            rrdata->object_instance);
+        apdu_len +=
+            encode_context_enumerated(&apdu[apdu_len], 1,
+            rrdata->object_property);
         /* context 2 array index is optional */
         if (rrdata->array_index != BACNET_ARRAY_ALL) {
-            apdu_len += encode_context_unsigned(&apdu[apdu_len], 2, rrdata->array_index);
+            apdu_len +=
+                encode_context_unsigned(&apdu[apdu_len], 2,
+                rrdata->array_index);
         }
         /* Context 3 BACnet Result Flags */
-        apdu_len += encode_context_bitstring(&apdu[apdu_len], 3, &rrdata->ResultFlags);
+        apdu_len +=
+            encode_context_bitstring(&apdu[apdu_len], 3, &rrdata->ResultFlags);
         /* Context 4 Item Count */
-        apdu_len += encode_context_unsigned(&apdu[apdu_len], 4, rrdata->ItemCount);
+        apdu_len +=
+            encode_context_unsigned(&apdu[apdu_len], 4, rrdata->ItemCount);
         /* Context 5 Property list - reading the standard it looks like an empty list still 
          * requires an opening and closing tag as the tagged parameter is not optional
          */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 5);
-        if(rrdata->ItemCount != 0) {
+        if (rrdata->ItemCount != 0) {
             for (len = 0; len < rrdata->application_data_len; len++) {
                 apdu[apdu_len++] = rrdata->application_data[len];
             }
-        }   
+        }
         apdu_len += encode_closing_tag(&apdu[apdu_len], 5);
-        
-        if((rrdata->ItemCount != 0) && (rrdata->RequestType != RR_BY_POSITION) && (rrdata->RequestType != RR_READ_ALL)) {
+
+        if ((rrdata->ItemCount != 0) && (rrdata->RequestType != RR_BY_POSITION)
+            && (rrdata->RequestType != RR_READ_ALL)) {
             /* Context 6 Sequence number of first item */
-            apdu_len += encode_context_unsigned(&apdu[apdu_len], 6, rrdata->FirstSequence);
+            apdu_len +=
+                encode_context_unsigned(&apdu[apdu_len], 6,
+                rrdata->FirstSequence);
         }
     }
 
@@ -302,68 +370,78 @@ int rr_ack_decode_service_request(
     rrdata->object_type = (BACNET_OBJECT_TYPE) object;
 
     /* Tag 1: Property ID */
-    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    len +=
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number != 1)
         return -1;
     len += decode_enumerated(&apdu[len], len_value_type, &property);
     rrdata->object_property = (BACNET_PROPERTY_ID) property;
-    
+
     /* Tag 2: Optional Array Index */
-    tag_len = decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number == 2) {
         len += tag_len;
         len += decode_unsigned(&apdu[len], len_value_type, &array_value);
         rrdata->array_index = array_value;
     } else
         rrdata->array_index = BACNET_ARRAY_ALL;
-        
+
     /* Tag 3: Result Flags */
-    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    len +=
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number != 3)
         return -1;
 
     len += decode_bitstring(&apdu[len], len_value_type, &rrdata->ResultFlags);
-    
+
     /* Tag 4: Item count */
-    len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    len +=
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number != 4)
         return -1;
 
     len += decode_unsigned(&apdu[len], len_value_type, &rrdata->ItemCount);
-    
+
     if (decode_is_opening_tag_number(&apdu[len], 5)) {
-        len++; /* a tag number of 5 is not extended so only one octet */
+        len++;  /* a tag number of 5 is not extended so only one octet */
         /* Setup the start position and length of the data returned from the request
          * don't decode the application tag number or its data here */
         rrdata->application_data = &apdu[len];
         start_len = len;
-        while(len < apdu_len) {
-            if(IS_CONTEXT_SPECIFIC(apdu[len]) && (decode_is_closing_tag_number(&apdu[len], 5))) {
+        while (len < apdu_len) {
+            if (IS_CONTEXT_SPECIFIC(apdu[len]) &&
+                (decode_is_closing_tag_number(&apdu[len], 5))) {
                 rrdata->application_data_len = len - start_len;
-                len++; /* Step over single byte closing tag */
+                len++;  /* Step over single byte closing tag */
                 break;
-            }
-            else {
+            } else {
                 /* Don't care about tag number, just skipping over anyway */
-                len += decode_tag_number_and_value(&apdu[len], NULL, &len_value_type); 
+                len +=
+                    decode_tag_number_and_value(&apdu[len], NULL,
+                    &len_value_type);
                 len += len_value_type;  /* Skip over data value as well */
-                if(len >= apdu_len) /* APDU is exhausted so we have failed to find closing tag */
-                    return(-1);
+                if (len >= apdu_len)    /* APDU is exhausted so we have failed to find closing tag */
+                    return (-1);
             }
         }
     } else {
         return -1;
-    }    
-    if(len < apdu_len) { /* Still something left to look at? */
+    }
+    if (len < apdu_len) {       /* Still something left to look at? */
         /* Tag 6: Item count */
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        len +=
+            decode_tag_number_and_value(&apdu[len], &tag_number,
+            &len_value_type);
         if (tag_number != 6)
             return -1;
 
-        len += decode_unsigned(&apdu[len], len_value_type, &rrdata->FirstSequence);
+        len +=
+            decode_unsigned(&apdu[len], len_value_type,
+            &rrdata->FirstSequence);
     }
 
-    len = apdu_len;  /* There should be nothing left to see here */
+    len = apdu_len;     /* There should be nothing left to see here */
     return len;
 }
 

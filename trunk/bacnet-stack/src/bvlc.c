@@ -546,11 +546,13 @@ static bool bvlc_create_bdt(
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (npdu_length >= 10) {
             BBMD_Table[i].valid = true;
-            BBMD_Table[i].dest_address.s_addr = ntohl(*(long *)&npdu[pdu_offset]);
+            BBMD_Table[i].dest_address.s_addr =
+                ntohl(*(long *) &npdu[pdu_offset]);
             pdu_offset += 4;
-            BBMD_Table[i].dest_port = ntohs(*(short *)&npdu[pdu_offset]);
+            BBMD_Table[i].dest_port = ntohs(*(short *) &npdu[pdu_offset]);
             pdu_offset += 2;
-            BBMD_Table[i].broadcast_mask.s_addr = ntohl(*(long *)&npdu[pdu_offset]);
+            BBMD_Table[i].broadcast_mask.s_addr =
+                ntohl(*(long *) &npdu[pdu_offset]);
             pdu_offset += 4;
             npdu_length -= 10;
         } else {
@@ -584,9 +586,9 @@ static bool bvlc_register_foreign_device(
                 status = true;
                 FD_Table[i].time_to_live = time_to_live;
                 /*  Upon receipt of a BVLL Register-Foreign-Device message, 
-                    a BBMD shall start a timer with a value equal to the 
-                    Time-to-Live parameter supplied plus a fixed grace 
-                    period of 30 seconds. */
+                   a BBMD shall start a timer with a value equal to the 
+                   Time-to-Live parameter supplied plus a fixed grace 
+                   period of 30 seconds. */
                 FD_Table[i].seconds_remaining = time_to_live + 30;
                 break;
             }
@@ -673,8 +675,8 @@ static void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
             bip_dest.sin_addr.s_addr =
-                htonl(((~BBMD_Table[i].broadcast_mask.s_addr) | BBMD_Table[i].
-                    dest_address.s_addr));
+                htonl(((~BBMD_Table[i].broadcast_mask.
+                        s_addr) | BBMD_Table[i].dest_address.s_addr));
             bip_dest.sin_port = htons(BBMD_Table[i].dest_port);
             /* don't send to my broadcast address and same port */
             if ((bip_dest.sin_addr.s_addr == htonl(bip_get_broadcast_addr()))

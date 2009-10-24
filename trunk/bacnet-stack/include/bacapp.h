@@ -129,10 +129,10 @@ extern "C" {
         unsigned max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value);
 
-	bool bacapp_decode_application_data_safe(
-		uint8_t *    new_apdu,
-		uint32_t     new_apdu_len,
-		BACNET_APPLICATION_DATA_VALUE * value);
+    bool bacapp_decode_application_data_safe(
+        uint8_t * new_apdu,
+        uint32_t new_apdu_len,
+        BACNET_APPLICATION_DATA_VALUE * value);
 
     int bacapp_encode_application_data(
         uint8_t * apdu,

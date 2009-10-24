@@ -48,7 +48,8 @@ typedef struct BACnet_Read_Property_Data {
     int application_data_len;
 } BACNET_READ_PROPERTY_DATA;
 
-typedef int (*read_property_function) (
+typedef int (
+    *read_property_function) (
     uint8_t * apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
@@ -56,8 +57,9 @@ typedef int (*read_property_function) (
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code);
 
-typedef bool (*object_valid_instance_function) (
-        uint32_t object_instance);
+typedef bool(
+    *object_valid_instance_function) (
+    uint32_t object_instance);
 
 #ifdef __cplusplus
 extern "C" {

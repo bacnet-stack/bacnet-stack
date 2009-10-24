@@ -217,7 +217,8 @@ int Analog_Input_Encode_Property_APDU(
     return apdu_len;
 }
 
-void Analog_Input_Init(void)
+void Analog_Input_Init(
+    void)
 {
 }
 

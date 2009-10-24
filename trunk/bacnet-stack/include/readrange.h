@@ -35,21 +35,21 @@
 struct BACnet_Read_Range_Data;
 typedef struct BACnet_Read_Range_Data {
     BACNET_OBJECT_TYPE object_type;
-    uint32_t           object_instance;
+    uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
-    uint32_t           array_index;
-    uint8_t           *application_data;
-    int                application_data_len;
-    BACNET_BIT_STRING  ResultFlags;     /*  FIRST_ITEM, LAST_ITEM, MORE_ITEMS */
-    int                RequestType;     /* Index, sequence or time based request */
-    uint32_t           ItemCount;
-    uint32_t           FirstSequence;
-	union {                             /* Pick the appropriate data type */
+    uint32_t array_index;
+    uint8_t *application_data;
+    int application_data_len;
+    BACNET_BIT_STRING ResultFlags;      /*  FIRST_ITEM, LAST_ITEM, MORE_ITEMS */
+    int RequestType;    /* Index, sequence or time based request */
+    uint32_t ItemCount;
+    uint32_t FirstSequence;
+    union {     /* Pick the appropriate data type */
         uint32_t RefIndex;
         uint32_t RefSeqNum;
         BACNET_DATE_TIME RefTime;
-    }                  Range;
-    int32_t            Count;           /* SIGNED value as +ve vs -ve  is important */
+    } Range;
+    int32_t Count;      /* SIGNED value as +ve vs -ve  is important */
 } BACNET_READ_RANGE_DATA;
 
 /* Defines to indicate which type of read range request it is */
@@ -57,12 +57,12 @@ typedef struct BACnet_Read_Range_Data {
 #define RR_BY_POSITION 0
 #define RR_BY_SEQUENCE 1
 #define RR_BY_TIME     2
-#define RR_READ_ALL    4    /* Read all of array - so don't send any range in the request */
+#define RR_READ_ALL    4        /* Read all of array - so don't send any range in the request */
 
 /* Bit String Enumerations */
 typedef enum {
     RESULT_FLAG_FIRST_ITEM = 0,
-    RESULT_FLAG_LAST_ITEM  = 1,
+    RESULT_FLAG_LAST_ITEM = 1,
     RESULT_FLAG_MORE_ITEMS = 2
 } BACNET_RESULT_FLAGS;
 

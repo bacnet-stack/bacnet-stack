@@ -59,5 +59,5 @@ void init(
     PORTD = 0;
     /* Configure the watchdog timer - Disabled for testing */
     /* wdt_enable(WDTO_2S); */
-    wdt_disable();    
+    wdt_disable();
 }

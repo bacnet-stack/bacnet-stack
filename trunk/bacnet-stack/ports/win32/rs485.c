@@ -89,11 +89,12 @@ static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void strupper(char *str) 
+void strupper(
+    char *str)
 {
     char *p;
     for (p = str; *p != '\0'; ++p) {
-       *p = toupper(*p);
+        *p = toupper(*p);
     }
 }
 
@@ -111,7 +112,7 @@ void RS485_Set_Interface(
        for CreateFile. The syntax also works for COM ports 1-9. */
     /* http://support.microsoft.com/kb/115831 */
     if (ifname) {
-        strupper(ifname); 
+        strupper(ifname);
         if (strncmp("COM", ifname, 3) == 0) {
             if (strlen(ifname) > 3) {
                 sprintf(RS485_Port_Name, "\\\\.\\COM%i", atoi(ifname + 3));
@@ -133,8 +134,8 @@ void RS485_Print_Error(
 {
     LPVOID lpMsgBuf;
 
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 
-        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         (LPTSTR) & lpMsgBuf, 0, NULL);
     MessageBox(NULL, lpMsgBuf, "GetLastError", MB_OK | MB_ICONINFORMATION);
     LocalFree(lpMsgBuf);
@@ -398,10 +399,11 @@ static BOOL WINAPI CtrlCHandler(
 }
 #endif
 
-static int ascii_hex_to_int(char ch)
+static int ascii_hex_to_int(
+    char ch)
 {
     int rv = -1;
-    
+
     if ((ch >= '0') && (ch <= '9')) {
         rv = ch - '0';
     } else if ((ch >= 'a') && (ch <= 'f')) {
@@ -409,7 +411,7 @@ static int ascii_hex_to_int(char ch)
     } else if ((ch >= 'A') && (ch <= 'F')) {
         rv = 10 + ch - 'a';
     }
-    
+
     return rv;
 }
 
@@ -426,7 +428,7 @@ int main(
     char ch = ' ';
     int lsb = 0, msb = 0;
     long my_baud = 38400;
-    uint8_t buffer[501] = {0};
+    uint8_t buffer[501] = { 0 };
 
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);
@@ -455,15 +457,15 @@ int main(
                 i++;
                 ch = argv[3][i];
                 lsb = ascii_hex_to_int(ch);
-               if (lsb >= 0) {
+                if (lsb >= 0) {
                     buffer[count] = msb << 4 | lsb;
-               } else {
+                } else {
                     buffer[count] = msb;
-               }
-               count++;
-               if (count >= sizeof(buffer)) {
-                   break;
-               }
+                }
+                count++;
+                if (count >= sizeof(buffer)) {
+                    break;
+                }
             }
         }
         RS485_Send_Frame(NULL, buffer, count);
@@ -489,4 +491,3 @@ int main(
 #endif
 }
 #endif
-

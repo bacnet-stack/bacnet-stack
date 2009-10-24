@@ -200,8 +200,8 @@ bool Binary_Value_Write_Property(
                 if ((value.type.Enumerated == BINARY_ACTIVE) ||
                     (value.type.Enumerated == BINARY_INACTIVE)) {
                     object_index =
-                        Binary_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Binary_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] =
                         (BACNET_BINARY_PV) value.type.Enumerated;

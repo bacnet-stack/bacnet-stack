@@ -98,7 +98,8 @@ static void bacnet_init(
     Analog_Value_Init();
 
     /* set up our confirmed service unrecognized service handler - required! */
-    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler
+        (handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
@@ -190,7 +191,7 @@ void test_task(
         buffer[12] = (MSTP_MAC_Address & BIT4) ? '1' : '0';
         buffer[13] = (MSTP_MAC_Address & BIT5) ? '1' : '0';
         buffer[14] = (MSTP_MAC_Address & BIT6) ? '1' : '0';
-        serial_bytes_send((uint8_t *)buffer, nbytes);
+        serial_bytes_send((uint8_t *) buffer, nbytes);
     }
     if (serial_byte_get(&data_register)) {
         /* echo the character */
@@ -215,21 +216,23 @@ void test_task(
         }
         if (data_register == 'm') {
             sprintf(buffer, "->Master State: ");
-            nbytes = (uint8_t)strlen(buffer);
-            serial_bytes_send((uint8_t *)buffer, nbytes);
-            extern char *dlmstp_master_state_text(void);
+            nbytes = (uint8_t) strlen(buffer);
+            serial_bytes_send((uint8_t *) buffer, nbytes);
+            extern char *dlmstp_master_state_text(
+                void);
             pBuffer = dlmstp_master_state_text();
-            nbytes = (uint8_t)strlen(pBuffer);
-            serial_bytes_send((uint8_t *)pBuffer, nbytes);
+            nbytes = (uint8_t) strlen(pBuffer);
+            serial_bytes_send((uint8_t *) pBuffer, nbytes);
         }
         if (data_register == 'r') {
             sprintf(buffer, "->Receive State: ");
-            nbytes = (uint8_t)strlen(buffer);
-            serial_bytes_send((uint8_t *)buffer, nbytes);
-            extern char *dlmstp_receive_state_text(void);
+            nbytes = (uint8_t) strlen(buffer);
+            serial_bytes_send((uint8_t *) buffer, nbytes);
+            extern char *dlmstp_receive_state_text(
+                void);
             pBuffer = dlmstp_receive_state_text();
-            nbytes = (uint8_t)strlen(pBuffer);
-            serial_bytes_send((uint8_t *)pBuffer, nbytes);
+            nbytes = (uint8_t) strlen(pBuffer);
+            serial_bytes_send((uint8_t *) pBuffer, nbytes);
         }
         serial_byte_send('\r');
         serial_byte_send('\n');

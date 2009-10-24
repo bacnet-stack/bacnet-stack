@@ -50,99 +50,122 @@
 
 DATABLOCK MyData[MYMAXBLOCK];
 
-uint8_t IOBufferPT[MAX_APDU]; /* Buffer for building response in  */
+uint8_t IOBufferPT[MAX_APDU];   /* Buffer for building response in  */
 
-void ProcessPT(BACNET_PRIVATE_TRANSFER_DATA *data)
-
+void ProcessPT(
+    BACNET_PRIVATE_TRANSFER_DATA * data)
 {
-	int iLen; /* Index to current location in data */
-	char cBlockNumber;
-	uint32_t ulTemp;
-	int tag_len;
-	uint8_t tag_number;
-	uint32_t len_value_type;
-	BACNET_CHARACTER_STRING bsTemp;
+    int iLen;   /* Index to current location in data */
+    char cBlockNumber;
+    uint32_t ulTemp;
+    int tag_len;
+    uint8_t tag_number;
+    uint32_t len_value_type;
+    BACNET_CHARACTER_STRING bsTemp;
 
-	iLen = 0;
+    iLen = 0;
 
-	/* Decode the block number */
+    /* Decode the block number */
 
-	tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
-	iLen += tag_len;
-	if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) { /* Bail out early if wrong type */
-	  data->serviceParametersLen = 0;						 /* and signal unexpected error */
-	  return;
-	  }
+    tag_len =
+        decode_tag_number_and_value(&data->serviceParameters[iLen],
+        &tag_number, &len_value_type);
+    iLen += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {    /* Bail out early if wrong type */
+        data->serviceParametersLen = 0; /* and signal unexpected error */
+        return;
+    }
 
-	iLen += decode_unsigned(&data->serviceParameters[iLen], len_value_type, &ulTemp);
-	cBlockNumber = (char)ulTemp;
-	if(cBlockNumber < MY_MAX_BLOCK) {
-		if(data->serviceNumber == MY_SVC_READ) {
-			/* Read Response is an unsigned int with 0 for success or a non 0 error code */
-			/* For a successful read the 0 success code is followed by the block number */
-			/* and then the block contents which consist of 2 unsigned ints (in 0 to 255 */
-			/* range as they are really chars) a single precision real and a string which */
-			/* will be up to 32 chars + a nul */
+    iLen +=
+        decode_unsigned(&data->serviceParameters[iLen], len_value_type,
+        &ulTemp);
+    cBlockNumber = (char) ulTemp;
+    if (cBlockNumber < MY_MAX_BLOCK) {
+        if (data->serviceNumber == MY_SVC_READ) {
+            /* Read Response is an unsigned int with 0 for success or a non 0 error code */
+            /* For a successful read the 0 success code is followed by the block number */
+            /* and then the block contents which consist of 2 unsigned ints (in 0 to 255 */
+            /* range as they are really chars) a single precision real and a string which */
+            /* will be up to 32 chars + a nul */
 
-			iLen = 0;
+            iLen = 0;
 
-			iLen += encode_application_unsigned(&IOBufferPT[iLen], MY_ERR_OK);    /* Signal success */
-			iLen += encode_application_unsigned(&IOBufferPT[iLen], cBlockNumber); /* Followed by the block number */
-			iLen += encode_application_unsigned(&IOBufferPT[iLen], MyData[cBlockNumber].cMyByte1); /* And Then the block contents */
-			iLen += encode_application_unsigned(&IOBufferPT[iLen], MyData[cBlockNumber].cMyByte2);
-			iLen += encode_application_real(&IOBufferPT[iLen], MyData[cBlockNumber].fMyReal);
-			characterstring_init_ansi(&bsTemp, MyData[cBlockNumber].sMyString);
-			iLen += encode_application_character_string(&IOBufferPT[iLen], &bsTemp);
-		}
-		else { /* Write operation */
-			/* Write block consists of the block number followed by the block contents as */
-			/* described above for the read operation. The returned result is an unsigned */
-			/* response which is 0 for success and a non 0 error code otherwise. */
+            iLen += encode_application_unsigned(&IOBufferPT[iLen], MY_ERR_OK);  /* Signal success */
+            iLen += encode_application_unsigned(&IOBufferPT[iLen], cBlockNumber);       /* Followed by the block number */
+            iLen += encode_application_unsigned(&IOBufferPT[iLen], MyData[cBlockNumber].cMyByte1);      /* And Then the block contents */
+            iLen +=
+                encode_application_unsigned(&IOBufferPT[iLen],
+                MyData[cBlockNumber].cMyByte2);
+            iLen +=
+                encode_application_real(&IOBufferPT[iLen],
+                MyData[cBlockNumber].fMyReal);
+            characterstring_init_ansi(&bsTemp, MyData[cBlockNumber].sMyString);
+            iLen +=
+                encode_application_character_string(&IOBufferPT[iLen],
+                &bsTemp);
+        } else {        /* Write operation */
+            /* Write block consists of the block number followed by the block contents as */
+            /* described above for the read operation. The returned result is an unsigned */
+            /* response which is 0 for success and a non 0 error code otherwise. */
 
-			tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
-			iLen += tag_len;
-			if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-				data->serviceParametersLen = 0;
-				return;
-			}
-			iLen += decode_unsigned(&data->serviceParameters[iLen], len_value_type, &ulTemp);
-			MyData[cBlockNumber].cMyByte1 = (char)ulTemp;
+            tag_len =
+                decode_tag_number_and_value(&data->serviceParameters[iLen],
+                &tag_number, &len_value_type);
+            iLen += tag_len;
+            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                data->serviceParametersLen = 0;
+                return;
+            }
+            iLen +=
+                decode_unsigned(&data->serviceParameters[iLen], len_value_type,
+                &ulTemp);
+            MyData[cBlockNumber].cMyByte1 = (char) ulTemp;
 
-			tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
-			iLen += tag_len;
-			if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-				data->serviceParametersLen = 0;
-				return;
-			}
-			iLen += decode_unsigned(&data->serviceParameters[iLen], len_value_type, &ulTemp);
-			MyData[cBlockNumber].cMyByte2 = (char)ulTemp;
+            tag_len =
+                decode_tag_number_and_value(&data->serviceParameters[iLen],
+                &tag_number, &len_value_type);
+            iLen += tag_len;
+            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                data->serviceParametersLen = 0;
+                return;
+            }
+            iLen +=
+                decode_unsigned(&data->serviceParameters[iLen], len_value_type,
+                &ulTemp);
+            MyData[cBlockNumber].cMyByte2 = (char) ulTemp;
 
-			tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
-			iLen += tag_len;
-			if (tag_number != BACNET_APPLICATION_TAG_REAL) {
-				data->serviceParametersLen = 0;
-				return;
-			}
-			iLen += decode_real(&data->serviceParameters[iLen], &MyData[cBlockNumber].fMyReal);
+            tag_len =
+                decode_tag_number_and_value(&data->serviceParameters[iLen],
+                &tag_number, &len_value_type);
+            iLen += tag_len;
+            if (tag_number != BACNET_APPLICATION_TAG_REAL) {
+                data->serviceParametersLen = 0;
+                return;
+            }
+            iLen +=
+                decode_real(&data->serviceParameters[iLen],
+                &MyData[cBlockNumber].fMyReal);
 
-			tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen], &tag_number, &len_value_type);
-			iLen += tag_len;
-			if (tag_number != BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-				data->serviceParametersLen = 0;
-				return;
-			}
-		    decode_character_string(&data->serviceParameters[iLen], len_value_type, &bsTemp);
-			strncpy(MyData[cBlockNumber].sMyString, characterstring_value(&bsTemp), MY_MAX_STR); /* Only copy as much as we can accept */
-			MyData[cBlockNumber].sMyString[MY_MAX_STR] = '\0';									 /* Make sure it is nul terminated */
-			
-			iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_OK);    /* Signal success */
-		}
-	}
-	else {
-		iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_BAD_INDEX);    /* Signal bad index */
-	}
-	data->serviceParametersLen = iLen;
-	data->serviceParameters    = IOBufferPT;
+            tag_len =
+                decode_tag_number_and_value(&data->serviceParameters[iLen],
+                &tag_number, &len_value_type);
+            iLen += tag_len;
+            if (tag_number != BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                data->serviceParametersLen = 0;
+                return;
+            }
+            decode_character_string(&data->serviceParameters[iLen],
+                len_value_type, &bsTemp);
+            strncpy(MyData[cBlockNumber].sMyString, characterstring_value(&bsTemp), MY_MAX_STR);        /* Only copy as much as we can accept */
+            MyData[cBlockNumber].sMyString[MY_MAX_STR] = '\0';  /* Make sure it is nul terminated */
+
+            iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_OK);      /* Signal success */
+        }
+    } else {
+        iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_BAD_INDEX);   /* Signal bad index */
+    }
+    data->serviceParametersLen = iLen;
+    data->serviceParameters = IOBufferPT;
 }
 
 /*
@@ -162,7 +185,7 @@ void handler_conf_private_trans(
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-    BACNET_PRIVATE_TRANSFER_DATA data; 
+    BACNET_PRIVATE_TRANSFER_DATA data;
     int len;
     int pdu_len;
     bool error;
@@ -180,76 +203,84 @@ void handler_conf_private_trans(
     error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
 #if PRINT_ENABLED
-    fprintf(stderr,"Received Confirmed Private Transfer Request!\n");
+    fprintf(stderr, "Received Confirmed Private Transfer Request!\n");
 #endif
-     /* encode the NPDU portion of the response packet as it will be needed */
-     /* no matter what the outcome. */
+    /* encode the NPDU portion of the response packet as it will be needed */
+    /* no matter what the outcome. */
 
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
 
-    if (service_data->segmented_message)
-     	 {
-       len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+    if (service_data->segmented_message) {
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
-        fprintf(stderr,"CPT: Segmented Message. Sending Abort!\n");
+        fprintf(stderr, "CPT: Segmented Message. Sending Abort!\n");
 #endif
-       goto CPT_ABORT;
-       }
+        goto CPT_ABORT;
+    }
 
-    len = ptransfer_decode_service_request(service_request, service_len, &data);
+    len =
+        ptransfer_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
-   if (len < 0)
-      {
-      len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, ABORT_REASON_OTHER, true);
+    if (len < 0) {
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
-       fprintf(stderr,"CPT: Bad Encoding. Sending Abort!\n");
+        fprintf(stderr, "CPT: Bad Encoding. Sending Abort!\n");
 #endif
-      goto CPT_ABORT;
-      }
+        goto CPT_ABORT;
+    }
 
 /* Simple example with service number of 0 for read block and 1 for write block */
 /* We also only support our own vendor ID. In theory we could support others */
 /* for compatability purposes but these interfaces are rarely documented... */
 
-   if((data.vendorID == BACNET_VENDOR_ID) && (data.serviceNumber <= MY_SVC_WRITE)){  /* We only try to understand our own IDs and service numbers */
-   ProcessPT(&data); /* Will either return a result block or an app level status block */
-   if(data.serviceParametersLen == 0){ /* No respopnse means fatal error */
-	   error = true;
-	   error_class = ERROR_CLASS_SERVICES;
-	   error_code  = ERROR_CODE_OTHER;
-	#if PRINT_ENABLED
-	   fprintf(stderr,"CPT: Error servicing request!\n");
-	#endif
-	   }
-   len = ptransfer_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
-	}
-else /* Not our vendor ID or bad service parameter */
- 	{
-   error = true;
-   error_class = ERROR_CLASS_SERVICES;
-   error_code  = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+    if ((data.vendorID == BACNET_VENDOR_ID) && (data.serviceNumber <= MY_SVC_WRITE)) {  /* We only try to understand our own IDs and service numbers */
+        ProcessPT(&data);       /* Will either return a result block or an app level status block */
+        if (data.serviceParametersLen == 0) {   /* No respopnse means fatal error */
+            error = true;
+            error_class = ERROR_CLASS_SERVICES;
+            error_code = ERROR_CODE_OTHER;
 #if PRINT_ENABLED
-   fprintf(stderr,"CPT: Not our Vendor ID or invalid service code!\n");
+            fprintf(stderr, "CPT: Error servicing request!\n");
 #endif
-   }
+        }
+        len =
+            ptransfer_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, &data);
+    } else {    /* Not our vendor ID or bad service parameter */
 
-if (error){
-   len = ptransfer_error_encode_apdu(&Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, error_class, error_code, &data);
-   }
-CPT_ABORT:
-pdu_len += len;
-bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+        error = true;
+        error_class = ERROR_CLASS_SERVICES;
+        error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+#if PRINT_ENABLED
+        fprintf(stderr, "CPT: Not our Vendor ID or invalid service code!\n");
+#endif
+    }
+
+    if (error) {
+        len =
+            ptransfer_error_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, error_class, error_code, &data);
+    }
+  CPT_ABORT:
+    pdu_len += len;
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 
 #if PRINT_ENABLED
-if (bytes_sent <= 0)
- 	{
-   fprintf(stderr,"Failed to send PDU (%s)!\n",
-            strerror(errno));
-   }
+    if (bytes_sent <= 0) {
+        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+    }
 #endif
 
-return;
+    return;
 }
-

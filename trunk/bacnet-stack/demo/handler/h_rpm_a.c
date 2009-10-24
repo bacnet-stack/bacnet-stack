@@ -208,8 +208,8 @@ static void PrintReadPropertyMultipleData(
 #if PRINT_ENABLED
             if (listOfProperties->propertyIdentifier < 512) {
                 fprintf(stdout, "    %s: ",
-                    bactext_property_name(
-                    listOfProperties->propertyIdentifier));
+                    bactext_property_name(listOfProperties->
+                        propertyIdentifier));
             } else {
                 fprintf(stdout, "    proprietary %u: ",
                     listOfProperties->propertyIdentifier);
@@ -250,10 +250,10 @@ static void PrintReadPropertyMultipleData(
 #if PRINT_ENABLED
                 /* AccessError */
                 fprintf(stdout, "BACnet Error: %s: %s\r\n",
-                    bactext_error_class_name((int) listOfProperties->error.
-                        error_class),
-                    bactext_error_code_name((int) listOfProperties->error.
-                        error_code));
+                    bactext_error_class_name((int) listOfProperties->
+                        error.error_class),
+                    bactext_error_code_name((int) listOfProperties->
+                        error.error_code));
 #endif
             }
             listOfProperties = listOfProperties->next;

@@ -670,7 +670,8 @@ static void MSTP_Receive_Frame_FSM(
 #ifdef MSTP_DEBUG_STATES
 static MSTP_MASTER_STATE Master_State_Log[128];
 static unsigned master_state_log_index = 0;
-void log_master_state(MSTP_MASTER_STATE state)
+void log_master_state(
+    MSTP_MASTER_STATE state)
 {
     Master_State_Log[master_state_log_index] = state;
     master_state_log_index++;
@@ -679,7 +680,7 @@ void log_master_state(MSTP_MASTER_STATE state)
     }
 }
 #else
-    #define log_master_state(n) (void)n;
+#define log_master_state(n) (void)n;
 #endif
 
 /* returns true if we need to transition immediately */
@@ -1362,7 +1363,8 @@ void dlmstp_get_broadcast_address(
     return;
 }
 
-char *dlmstp_receive_state_text(void)
+char *dlmstp_receive_state_text(
+    void)
 {
     switch (Receive_State) {
         case MSTP_RECEIVE_STATE_IDLE:
@@ -1376,11 +1378,12 @@ char *dlmstp_receive_state_text(void)
         default:
             break;
     }
-    
+
     return "unknown";
 }
 
-char *dlmstp_master_state_text(void)
+char *dlmstp_master_state_text(
+    void)
 {
     switch (Master_State) {
         case MSTP_MASTER_STATE_INITIALIZE:
@@ -1404,6 +1407,6 @@ char *dlmstp_master_state_text(void)
         default:
             break;
     }
-    
+
     return "unknown";
 }

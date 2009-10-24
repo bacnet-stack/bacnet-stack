@@ -81,9 +81,9 @@ extern "C" {
     void handler_read_property_object_set(
         BACNET_OBJECT_TYPE object_type,
         read_property_function pFunction1,
-		object_valid_instance_function pFunction2);
+        object_valid_instance_function pFunction2);
 
-	void handler_read_property_ack(
+    void handler_read_property_ack(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
@@ -94,7 +94,7 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-        
+
     void handler_write_property_object_set(
         BACNET_OBJECT_TYPE object_type,
         write_property_function pFunction);
@@ -152,9 +152,9 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
-	void handler_read_property_multiple_list_set(
-		BACNET_OBJECT_TYPE object_type,
-		rpm_property_lists_function pFunction);
+    void handler_read_property_multiple_list_set(
+        BACNET_OBJECT_TYPE object_type,
+        rpm_property_lists_function pFunction);
 
     void handler_read_property_multiple_ack(
         uint8_t * service_request,
@@ -207,7 +207,7 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    
+
     void handler_conf_private_trans_ack(
         uint8_t * service_request,
         uint16_t service_len,
@@ -230,7 +230,7 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
-        
+
     void handler_get_event_information_set(
         BACNET_OBJECT_TYPE object_type,
         get_event_info_function pFunction);
@@ -240,7 +240,7 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-        
+
 
 #ifdef __cplusplus
 }

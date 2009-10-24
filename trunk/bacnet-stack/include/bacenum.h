@@ -1428,7 +1428,7 @@ typedef enum BACnetDaysOfWeek {
     BACNET_DAYS_OF_WEEK_FRIDAY = 4,
     BACNET_DAYS_OF_WEEK_SATURDAY = 5,
     BACNET_DAYS_OF_WEEK_SUNDAY = 6,
-    MAX_BACNET_DAYS_OF_WEEK = 7    
+    MAX_BACNET_DAYS_OF_WEEK = 7
 } BACNET_DAYS_OF_WEEK;
 
 typedef enum BACnetEventTransitionBits {

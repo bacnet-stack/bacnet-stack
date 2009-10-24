@@ -42,10 +42,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-	int decode_real_safe(
-		uint8_t * apdu,
-		uint32_t len_value,
-		float *real_value);
+    int decode_real_safe(
+        uint8_t * apdu,
+        uint32_t len_value,
+        float *real_value);
 
     int decode_real(
         uint8_t * apdu,
@@ -65,12 +65,12 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         double *double_value);
-	int decode_double_safe(
-		uint8_t * apdu,
-		uint32_t len_value,
-		double *double_value);
+    int decode_double_safe(
+        uint8_t * apdu,
+        uint32_t len_value,
+        double *double_value);
 
-	int encode_bacnet_double(
+    int encode_bacnet_double(
         double value,
         uint8_t * apdu);
 
