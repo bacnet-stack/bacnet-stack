@@ -417,12 +417,20 @@ void testGetEventInformationAck(
     }
     event_data.next = NULL;
 
-    len =
-        getevent_ack_encode_apdu(&apdu[0], sizeof(apdu), invoke_id,
-        &event_data, moreEvents);
+    len = getevent_ack_encode_apdu_init(&apdu[0], sizeof(apdu), invoke_id);
     ct_test(pTest, len != 0);
     ct_test(pTest, len != -1);
     apdu_len = len;
+    len = getevent_ack_encode_apdu_data(&apdu[apdu_len], 
+        sizeof(apdu)-apdu_len, &event_data);
+    ct_test(pTest, len != 0);
+    ct_test(pTest, len != -1);
+    apdu_len += len;
+    len = getevent_ack_encode_apdu_end(&apdu[apdu_len], 
+        sizeof(apdu)-apdu_len, moreEvents);
+    ct_test(pTest, len != 0);
+    ct_test(pTest, len != -1);
+    apdu_len += len;
     len = getevent_ack_decode_apdu(&apdu[0], apdu_len,  /* total length of the apdu */
         &test_invoke_id, &test_event_data, &test_moreEvents);
     ct_test(pTest, len != -1);

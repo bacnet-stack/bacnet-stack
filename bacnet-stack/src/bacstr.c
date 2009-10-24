@@ -596,6 +596,7 @@ bool octetstring_value_same(
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "ctest.h"
 
 void testBitString(
