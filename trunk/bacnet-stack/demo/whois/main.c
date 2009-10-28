@@ -116,42 +116,47 @@ static void print_address_cache(
     uint32_t device_id = 0;
     unsigned max_apdu = 0;
 
-/*    printf("%-7s %-14s %-4s %-5s %-14s\n", "Device", "MAC", "APDU", "SNET", "SADR"); */
-    printf(";%-7s %-17s %-5s %-17s %-4s\n", "Device", "MAC", "SNET", "SADR",
+    printf(";%-7s %-20s %-5s %-20s %-4s\n", "Device", "MAC", "SNET", "SADR",
         "APDU");
-    printf(";------- ----------------- ----- ----------------- ----\n");
+    printf(";------- -------------------- ----- -------------------- ----\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
             printf(" %-7u ", device_id);
             for (j = 0; j < MAX_MAC_LEN; j++) {
                 if (j < address.mac_len) {
-                    if (j > 0)
+                    if (j > 0) {
                         printf(":");
+                    }
                     printf("%02X", address.mac[j]);
                 } else {
-                    printf(" ");
+                    if (j > 0) {
+                        printf(" ");
+                    }
+                    printf("  ");
                 }
             }
-            printf("%-5hu ", address.net);
+            printf(" %-5hu ", address.net);
             if (address.net) {
                 for (j = 0; j < MAX_MAC_LEN; j++) {
                     if (j < address.len) {
-                        if (j > 0)
+                        if (j > 0) {
                             printf(":");
+                        }
                         printf("%02X", address.adr[j]);
                     } else {
-                        printf(" ");
+                        if (j > 0) {
+                            printf(" ");
+                        }
+                        printf("  ");
                     }
-                    /*printf(" "); */
                 }
             } else {
-                printf("0  ");
-                for (j = 2; j < MAX_MAC_LEN; j++) {
+                printf("0 ");
+                for (j = 1; j < MAX_MAC_LEN; j++) {
                     printf("   ");
                 }
-                printf("");
             }
-            printf("%-4hu ", max_apdu);
+            printf(" %-4hu ", max_apdu);
             printf("\n");
         }
     }
