@@ -173,7 +173,7 @@ static unsigned RPM_Object_Property_Count(
 
 /* Encode the RPM property returning the length of the encoding,
    or 0 if there is no room to fit the encoding.  */
-int RPM_Encode_Property(
+static int RPM_Encode_Property(
     uint8_t * apdu,
     uint16_t offset,
     uint16_t max_apdu,
