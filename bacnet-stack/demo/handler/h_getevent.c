@@ -101,9 +101,6 @@ void handler_get_event_information(
 #endif
         goto GET_EVENT_ABORT;
     }
-
-    /* assume that there is an error */
-    error = true;
     len =
         getevent_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
         sizeof(Handler_Transmit_Buffer) - pdu_len, service_data->invoke_id);
@@ -117,6 +114,7 @@ void handler_get_event_information(
             for (j = 0; j < 0xffff; j++) {
                 valid_event = Get_Event_Info[i] (j, &getevent_data);
                 if (valid_event > 0) {
+                    getevent_data.next = NULL;
                     len =
                         getevent_ack_encode_apdu_data(&Handler_Transmit_Buffer
                         [pdu_len], sizeof(Handler_Transmit_Buffer) - pdu_len,
@@ -139,7 +137,6 @@ void handler_get_event_information(
         error = true;
         goto GET_EVENT_ERROR;
     }
-    pdu_len += len;
 #if PRINT_ENABLED
     fprintf(stderr, "GetEventInformation: Sending Ack!\n");
 #endif
