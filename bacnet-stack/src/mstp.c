@@ -715,16 +715,18 @@ bool MSTP_Master_Node_FSM(
                 mstp_port->FrameCount++;
                 switch (frame_type) {
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                        /* SendAndWait */
                         if (destination == MSTP_BROADCAST_ADDRESS) {
+                            /* SendNoWait */
                             mstp_port->master_state =
                                 MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                         } else {
+                            /* SendAndWait */
                             mstp_port->master_state =
                                 MSTP_MASTER_STATE_WAIT_FOR_REPLY;
                         }
                         break;
                     case FRAME_TYPE_TEST_REQUEST:
+                        /* SendAndWait */
                         mstp_port->master_state =
                             MSTP_MASTER_STATE_WAIT_FOR_REPLY;
                         break;
