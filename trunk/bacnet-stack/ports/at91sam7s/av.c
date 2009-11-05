@@ -272,6 +272,16 @@ int Analog_Value_Encode_Property_APDU(
             apdu_len = -1;
             break;
     }
+    /*  only array properties can have array options */
+    if ((apdu_len >= 0) &&
+#if 0
+        (property != PROP_PRIORITY_ARRAY) &&
+#endif
+        (array_index != BACNET_ARRAY_ALL)) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = -1;
+    }
 
     return apdu_len;
 }

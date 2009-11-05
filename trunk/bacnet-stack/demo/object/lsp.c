@@ -207,7 +207,6 @@ int Life_Safety_Point_Encode_Property_APDU(
     bool state = false;
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
 
-    (void) array_index; /* currently not used */
     Life_Safety_Point_Init();
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -284,6 +283,13 @@ int Life_Safety_Point_Encode_Property_APDU(
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
+    }
+    /*  only array properties can have array options */
+    if ((apdu_len >= 0) &&
+        (array_index != BACNET_ARRAY_ALL)) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = -1;
     }
 
     return apdu_len;
