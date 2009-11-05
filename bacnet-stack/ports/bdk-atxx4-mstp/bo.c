@@ -364,7 +364,6 @@ int Binary_Output_Encode_Property_APDU(
                     apdu_len = -1;
                 }
             }
-
             break;
         case PROP_RELINQUISH_DEFAULT:
             present_value = RELINQUISH_DEFAULT;
@@ -385,6 +384,14 @@ int Binary_Output_Encode_Property_APDU(
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
+    }
+    /*  only array properties can have array options */
+    if ((apdu_len >= 0) &&
+        (property != PROP_PRIORITY_ARRAY) &&
+        (array_index != BACNET_ARRAY_ALL)) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = -1;
     }
 
     return apdu_len;

@@ -25,6 +25,11 @@
 
 /* Lighting Output Objects - customize for your use */
 
+/* WARNING!  This object is still BACnet DRAFT status! 
+   If you need to implement in a real product, you will 
+   need to modify the new OBJECT type and properties to
+   be in the proprietrary range to be BACnet compliant */ 
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -500,6 +505,14 @@ int Lighting_Output_Encode_Property_APDU(
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
+    }
+    /*  only array properties can have array options */
+    if ((apdu_len >= 0) &&
+        (property != PROP_PRIORITY_ARRAY) &&
+        (array_index != BACNET_ARRAY_ALL)) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = -1;
     }
 
     return apdu_len;

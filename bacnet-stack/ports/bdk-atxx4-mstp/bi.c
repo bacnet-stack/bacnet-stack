@@ -189,8 +189,6 @@ int Binary_Input_Encode_Property_APDU(
     BACNET_POLARITY polarity = POLARITY_NORMAL;
     BACNET_BINARY_PV value = BINARY_INACTIVE;
 
-
-    (void) array_index;
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -238,6 +236,13 @@ int Binary_Input_Encode_Property_APDU(
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
+    }
+    /*  only array properties can have array options */
+    if ((apdu_len >= 0) &&
+        (array_index != BACNET_ARRAY_ALL)) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = -1;
     }
 
     return apdu_len;

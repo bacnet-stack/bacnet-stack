@@ -61,6 +61,7 @@ DEMOSRC = ai.c \
 	h_wp.c \
 	device.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
+	$(BACNET_DEMO)/handler/noserv.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/h_whois.c \
 	$(BACNET_DEMO)/handler/h_rd.c \
