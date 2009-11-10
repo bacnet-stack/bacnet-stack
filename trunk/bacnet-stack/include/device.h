@@ -39,6 +39,7 @@
 #include "bacdef.h"
 #include "bacenum.h"
 #include "wp.h"
+#include "readrange.h"
 
 typedef unsigned (
     *object_count_function) (
@@ -160,6 +161,14 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
+        
+    bool DeviceGetRRInfo(
+        uint32_t           Object,   /* Which particular object - obviously not important for device object */
+        BACNET_PROPERTY_ID Property, /* Which property */
+        RR_PROP_INFO      *pInfo,    /* Where to put the information */
+        BACNET_ERROR_CLASS *error_class,
+        BACNET_ERROR_CODE  *error_code);
+
 
 #ifdef __cplusplus
 }
