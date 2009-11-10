@@ -169,7 +169,7 @@ struct Address_Cache_Entry *address_remove_oldest(
         if ((pMatch->
                 Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) ==
-            (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) {
+            ((uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
                 pCandidate = pMatch;
@@ -239,7 +239,7 @@ void address_file_init(
                         }
                     }
                     address_add((uint32_t) device_id, max_apdu, &src);
-                    address_set_device_TTL(device_id, 0, true); /* Mark as static entry */
+                    address_set_device_TTL((uint32_t)device_id, 0, true); /* Mark as static entry */
                 }
             }
         }
@@ -494,9 +494,11 @@ bool address_bind_request(
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) == 0) {
-            pMatch->Flags = BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ;        /* In use and awaiting binding */
+            /* In use and awaiting binding */
+            pMatch->Flags = (uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
             pMatch->device_id = device_id;
-            pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;   /* No point in leaving bind requests in for long haul */
+            /* No point in leaving bind requests in for long haul */
+            pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;   
             /* now would be a good time to do a Who-Is request */
             return (false);
         }
@@ -506,9 +508,10 @@ bool address_bind_request(
     /* No free entries, See if we can squeeze it in by dropping an existing one */
     pMatch = address_remove_oldest();
     if (pMatch != NULL) {
-        pMatch->Flags = BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ;
+        pMatch->Flags = (uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
         pMatch->device_id = device_id;
-        pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;       /* No point in leaving bind requests in for long haul */
+        /* No point in leaving bind requests in for long haul */
+        pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
     }
     return (false);
 }
@@ -528,9 +531,13 @@ void address_add_binding(
             (pMatch->device_id == device_id)) {
             pMatch->address = *src;
             pMatch->max_apdu = max_apdu;
-            pMatch->Flags &= ~BAC_ADDR_BIND_REQ;        /* Clear bind request flag in case it was set */
-            if ((pMatch->Flags & BAC_ADDR_STATIC) == 0) /* Only update TTL if not static */
-                pMatch->TimeToLive = BAC_ADDR_LONG_TIME;        /* and set it on a long fuse */
+            /* Clear bind request flag in case it was set */
+            pMatch->Flags &= ~BAC_ADDR_BIND_REQ;
+            /* Only update TTL if not static */
+            if ((pMatch->Flags & BAC_ADDR_STATIC) == 0) { 
+                /* and set it on a long fuse */
+                pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
+            }
             break;
         }
         pMatch++;
@@ -569,7 +576,8 @@ unsigned address_count(
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) /* Only count bound entries */
+        /* Only count bound entries */
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) 
             count++;
 
         pMatch++;
