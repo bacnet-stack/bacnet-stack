@@ -186,9 +186,9 @@ void tsm_set_confirmed_unsegmented_transaction(
     if (invokeID) {
         index = tsm_find_invokeID_index(invokeID);
         if (index < MAX_TSM_TRANSACTIONS) {
-            /* assign the transaction */
+            /* SendConfirmedUnsegmented */
             TSM_List[index].state = TSM_STATE_AWAIT_CONFIRMATION;
-            TSM_List[index].RetryCount = apdu_retries();
+            TSM_List[index].RetryCount = 0;
             /* start the timer */
             TSM_List[index].RequestTimer = apdu_timeout();
             /* copy the data */
@@ -249,11 +249,11 @@ void tsm_timer_milliseconds(
                 TSM_List[i].RequestTimer -= milliseconds;
             else
                 TSM_List[i].RequestTimer = 0;
-            /* timeout.  retry? */
+            /* AWAIT_CONFIRMATION */
             if (TSM_List[i].RequestTimer == 0) {
-                TSM_List[i].RetryCount--;
-                TSM_List[i].RequestTimer = apdu_timeout();
-                if (TSM_List[i].RetryCount) {
+                if (TSM_List[i].RetryCount < apdu_retries()) {
+                    TSM_List[i].RequestTimer = apdu_timeout();
+                    TSM_List[i].RetryCount++;
                     datalink_send_pdu(&TSM_List[i].dest,
                         &TSM_List[i].npdu_data, &TSM_List[i].apdu[0],
                         TSM_List[i].apdu_len);
