@@ -39,6 +39,16 @@
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
+static rr_info_function get_rr_info[MAX_BACNET_OBJECT_TYPE];
+
+void handler_rr_object_set(
+    BACNET_OBJECT_TYPE object_type,
+    rr_info_function pFunction1)
+{
+    if (object_type < MAX_BACNET_OBJECT_TYPE)
+        get_rr_info[object_type] = pFunction1;
+}
+
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Encode_RR_payload(
@@ -48,26 +58,39 @@ int Encode_RR_payload(
     BACNET_ERROR_CODE * error_code)
 {
     int apdu_len = -1;
+    rr_info_function    info_fn_ptr = NULL;
+    rr_handler_function rr_fn_ptr   = NULL;
+    RR_PROP_INFO PropInfo;
 
-    /* FIXME: Stub function at the moment which just returns something
-     * for the sake of testing things out. Need to look at existing objects
-     * and see how we can do this for real. 
-     */
-
-    pRequest->ItemCount = 6;
-    bitstring_init(&pRequest->ResultFlags);
-    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
-    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
-    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
-    pRequest->FirstSequence = 0;
-
-    apdu_len = 0;
-    apdu_len += encode_application_unsigned(&apdu[apdu_len], 1);
-    apdu_len += encode_application_unsigned(&apdu[apdu_len], 2);
-    apdu_len += encode_application_unsigned(&apdu[apdu_len], 3);
-    apdu_len += encode_application_unsigned(&apdu[apdu_len], 4);
-    apdu_len += encode_application_unsigned(&apdu[apdu_len], 5);
-    apdu_len += encode_application_unsigned(&apdu[apdu_len], 6);
+    /* initialize the default return values */
+    *error_class = ERROR_CLASS_SERVICES;
+    *error_code  = ERROR_CODE_OTHER;
+    
+    /* handle each object type */
+    if (pRequest->object_type < MAX_BACNET_OBJECT_TYPE)
+        info_fn_ptr = get_rr_info[pRequest->object_type];
+ 
+    if ((info_fn_ptr != NULL) && (info_fn_ptr(pRequest->object_instance, pRequest->object_property, &PropInfo, error_class, error_code) != false)) {
+        /* We try and do some of the more generic error checking here to cut down on duplication of effort */
+             
+        if(((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) && (pRequest->array_index != 0)) {
+            /* Array access attempted on a non array property */
+            *error_code  = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        } 
+        else if((pRequest->RequestType != RR_READ_ALL) && ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
+            /* By Time or By Sequence not supported */
+            *error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
+        }
+        else if(pRequest->Count == 0) { /* Count cannot be zero */
+            *error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
+        }
+        else if(PropInfo.Handler != NULL) {
+            apdu_len = PropInfo.Handler(apdu, pRequest, error_class, error_code);
+        }
+    } else {
+        /* Either we don't support RR for this property yet or it is not a list or array of lists */
+        *error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+    }
 
     return apdu_len;
 }
@@ -151,7 +174,7 @@ void handler_read_range(
         } else {
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+                service_data->invoke_id, SERVICE_CONFIRMED_READ_RANGE,
                 error_class, error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "RR: Sending Error!\n");

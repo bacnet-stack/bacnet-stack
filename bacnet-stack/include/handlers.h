@@ -34,6 +34,7 @@
 #include "rp.h"
 #include "rpm.h"
 #include "wp.h"
+#include "readrange.h"
 #include "getevent.h"
 
 
@@ -78,6 +79,10 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
+    void handler_rr_object_set(
+        BACNET_OBJECT_TYPE object_type,
+        rr_info_function pFunction1);
+    
     void handler_read_property_object_set(
         BACNET_OBJECT_TYPE object_type,
         read_property_function pFunction1,

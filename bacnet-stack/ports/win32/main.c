@@ -59,14 +59,14 @@
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 static void Init_Object(
-    BACNET_OBJECT_TYPE object_type,
-    rpm_property_lists_function rpm_list_function,
-    read_property_function rp_function,
-    object_valid_instance_function object_valid_function,
-    write_property_function wp_function,
-    object_count_function count_function,
+    BACNET_OBJECT_TYPE                object_type,
+    rpm_property_lists_function       rpm_list_function,
+    read_property_function            rp_function,
+    object_valid_instance_function    object_valid_function,
+    write_property_function           wp_function,
+    object_count_function             count_function,
     object_index_to_instance_function index_function,
-    object_name_function name_function)
+    object_name_function              name_function)
 {
     handler_read_property_object_set(object_type, rp_function,
         object_valid_function);

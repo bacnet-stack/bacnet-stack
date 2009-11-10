@@ -870,6 +870,46 @@ void Device_Init(
 {
 }
 
+bool DeviceGetRRInfo(
+    uint32_t           Object,   /* Which particular object - obviously not important for device object */
+    BACNET_PROPERTY_ID Property, /* Which property */
+    RR_PROP_INFO      *pInfo,    /* Where to put the information */
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE  *error_code)
+{
+*error_class = ERROR_CLASS_SERVICES;
+*error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+
+    switch(Property) {
+        case PROP_VT_CLASSES_SUPPORTED:
+        case PROP_ACTIVE_VT_SESSIONS:
+        case PROP_LIST_OF_SESSION_KEYS:
+        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
+        case PROP_MANUAL_SLAVE_ADDRESS_BINDING:
+        case PROP_SLAVE_ADDRESS_BINDING:
+        case PROP_RESTART_NOTIFICATION_RECIPIENTS:
+        case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
+            pInfo->RequestTypes = RR_BY_POSITION;
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code  = ERROR_CODE_UNKNOWN_PROPERTY;
+            break;
+
+        case PROP_DEVICE_ADDRESS_BINDING:
+            pInfo->RequestTypes = RR_BY_POSITION;
+            pInfo->Handler = &rr_address_list_encode;
+            return(true);
+            break;
+        
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            pInfo->RequestTypes = RR_BY_POSITION;
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code  = ERROR_CODE_UNKNOWN_PROPERTY;
+            break;
+    }
+
+return(false);
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>

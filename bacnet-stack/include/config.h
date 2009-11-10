@@ -70,6 +70,7 @@
     /* #define MAX_APDU 1476 */
 #if defined(BACDL_BIP)
 #define MAX_APDU 1476
+/* #define MAX_APDU 128 enable this IP for testing readrange so you get the More Follows flag set */
 #elif defined (BACDL_ETHERNET)
 #define MAX_APDU 1476
 #else

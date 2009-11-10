@@ -41,6 +41,7 @@
 #include "address.h"
 #include "bacdef.h"
 #include "bacdcode.h"
+#include "readrange.h"
 
 /* This module is used to handle the address binding that */
 /* occurs in BACnet.  A device id is bound to a MAC address. */
@@ -633,6 +634,171 @@ int address_list_encode(
     return (iLen);
 }
 
+/****************************************************************************
+ * Build a list of the current bindings for the device address binding      *
+ * property as required for the ReadsRange functionality.                   *
+ * We assume we only get called for "Read All" or "By Position" requests.   *
+ *                                                                          *
+ * We need to treat the address cache as a contiguous array but in reality  *
+ * it could be sparsely populated. We can get the count but we can only     *
+ * extract entries by doing a linear scan starting from the first entry in  *
+ * the cache and picking them off one by one.                               *
+ *                                                                          *
+ * We do assume the list cannot change whilst we are accessing it so would  *
+ * not be multithread safe if there are other tasks that change the cache.  *
+ *                                                                          *
+ * We take the simple approach here to filling the buffer by taking a max   *
+ * size for a single entry and then stopping if there is less than that     *
+ * left in the buffer. You could build each entry in a seperate buffer and  *
+ * determine the exact length before copying but this is time consuming,    *
+ * requires more memory and would probably only let you sqeeeze one more    *
+ * entry in on occasion. The value is calculated as 5 bytes for the device  *
+ * ID + 3 bytes for the network number and nine bytes for the MAC address   *
+ * oct string to give 17 bytes (the minimum possible is 5 + 2 + 3 = 10).    *
+ ****************************************************************************/
+
+#define ACACHE_MAX_ENC 17  /* Maximum size of encoded cache entry, see above */
+
+int rr_address_list_encode(
+    uint8_t *apdu,
+    BACNET_READ_RANGE_DATA *pRequest,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE  *error_code)
+{
+    int iLen;
+    int32_t iTemp;
+    struct Address_Cache_Entry *pMatch; 
+    BACNET_OCTET_STRING MAC_Address;
+    uint32_t uiTotal;               /* Number of bound entries in the cache */
+    uint32_t uiIndex;               /* Current entry number */
+    uint32_t uiFirst;               /* Entry number we started encoding from */
+    uint32_t uiLast;                /* Entry number we finished encoding on */
+    uint32_t uiTarget;              /* Last entry we are required to encode */
+    uint32_t uiRemaining;           /* Amount of unused space in packet */
+    
+    /* Initialise result flags to all false */
+      
+    bitstring_init(&pRequest->ResultFlags);
+    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, false);
+    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  false);
+    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
+
+    uiFirst = 0;
+    uiLast  = 0;
+    iLen    = 0;
+    uiRemaining = MAX_APDU - pRequest->Overhead; /* See how much space we have */
+
+    pRequest->ItemCount = 0;    /* Start out with nothing */
+    uiTotal = address_count();  /* What do we have to work with here ? */
+    if(uiTotal == 0)            /* Bail out now if nowt */
+        return(0);
+
+    if(pRequest->RequestType == RR_READ_ALL) {
+        /*
+         * Read all the array or as much as will fit in the buffer by selecting
+         * a range that covers the whole list and falling through to the next
+         * section of code
+         */
+        pRequest->Count = uiTotal;     /* Full list */
+        pRequest->Range.RefIndex = 1;  /* Starting at the beginning */
+        }
+
+    if(pRequest->Count < 0) { /* negative count means work from index backwards */
+        /*
+         * Convert from end index/negative count to
+         * start index/positive count and then process as
+         * normal. This assumes that the order to return items
+         * is always first to last, if this is not true we will
+         * have to handle this differently. 
+         *
+         * Note: We need to be careful about how we convert these
+         * values due to the mix of signed and unsigned types - don't
+         * try to optimise the code unless you understand all the
+         * implications of the data type conversions!
+         */
+        
+        iTemp = pRequest->Range.RefIndex; /* pull out and convert to signed */
+        iTemp += pRequest->Count + 1;     /* Adjust backwards, remember count is -ve */
+        if(iTemp < 1) { /* if count is too much, return from 1 to start index */
+            pRequest->Count = pRequest->Range.RefIndex;
+            pRequest->Range.RefIndex = 1;
+        }
+        else { /* Otherwise adjust the start index and make count +ve */
+            pRequest->Range.RefIndex = iTemp;
+            pRequest->Count = -pRequest->Count;
+        }
+    }
+    
+    /* From here on in we only have a starting point and a positive count */
+    
+    if(pRequest->Range.RefIndex > uiTotal)  /* Nothing to return as we are past the end of the list */
+        return(0);
+        
+    uiTarget = pRequest->Range.RefIndex + pRequest->Count - 1; /* Index of last required entry */
+    if(uiTarget > uiTotal)                                     /* Capped at end of list if necessary */
+        uiTarget = uiTotal;
+        
+    pMatch  = Address_Cache;
+    uiIndex = 1;
+    while((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) != BAC_ADDR_IN_USE) /* Find first bound entry */
+        pMatch++;
+    
+    /* Seek to start position */
+    while(uiIndex != pRequest->Range.RefIndex) {
+        if((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) { /* Only count bound entries */
+            pMatch++;
+            uiIndex++;
+        }
+        else
+            pMatch++;
+    }
+    
+    uiFirst = uiIndex; /* Record where we started from */
+    while(uiIndex <= uiTarget) {
+        if(uiRemaining < ACACHE_MAX_ENC) {
+            /*
+             * Can't fit any more in! We just set the result flag to say there 
+             * was more and drop out of the loop early
+             */
+            bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true); 
+            break;
+        }               
+            
+        iTemp  = encode_application_object_id(&apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
+        iTemp += encode_application_unsigned(&apdu[iLen + iTemp],  pMatch->address.net);
+        
+        /* pick the appropriate type of entry from the cache */
+        
+        if(pMatch->address.len != 0) {
+            octetstring_init(&MAC_Address, pMatch->address.adr, pMatch->address.len);
+            iTemp += encode_application_octet_string(&apdu[iLen + iTemp], &MAC_Address);
+        }
+        else {
+            octetstring_init(&MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
+            iTemp += encode_application_octet_string(&apdu[iLen + iTemp], &MAC_Address);
+        }
+        
+        uiRemaining -= iTemp; /* Reduce the remaining space */
+        iLen        += iTemp; /* and increase the length consumed */
+        
+        uiLast = uiIndex;       /* Record the last entry encoded */
+        uiIndex++;              /* and get ready for next one */
+        pMatch++;
+        pRequest->ItemCount++;  /* Chalk up another one for the response count */
+                  
+        while((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) != BAC_ADDR_IN_USE) /* Find next bound entry */
+            pMatch++;
+    }
+    
+    /* Set remaining result flags if necessary */
+    if(uiFirst == 1)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+        
+    if(uiLast == uiTotal)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  true);
+    
+return(iLen);
+}
 
 /****************************************************************************
  * Scan the cache and eliminate any expired entries. Should be called       *

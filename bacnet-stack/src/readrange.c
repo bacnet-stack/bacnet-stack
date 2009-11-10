@@ -172,6 +172,8 @@ int rr_decode_service_request(
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &UnsignedTemp);
         rrdata->object_property = (BACNET_PROPERTY_ID) UnsignedTemp;
+        rrdata->Overhead = RR_OVERHEAD; /* Start with the fixed overhead */
+
         /* Tag 2: Optional Array Index */
         rrdata->array_index = BACNET_ARRAY_ALL; /* Assuming this is the most common outcome... */
         if (len < apdu_len) {
@@ -183,6 +185,7 @@ int rr_decode_service_request(
                 len +=
                     decode_unsigned(&apdu[len], len_value_type, &UnsignedTemp);
                 rrdata->array_index = UnsignedTemp;
+                rrdata->Overhead += RR_INDEX_OVERHEAD; /* Allow for this in the response */
             }
         }
         /* And/or optional range selection- Tags 3, 6 and 7 */
@@ -235,6 +238,7 @@ int rr_decode_service_request(
                     len +=
                         decode_tag_number_and_value(&apdu[len], &tag_number,
                         &len_value_type);
+                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; /* Allow for this in the response */
                     break;
 
                 case 7:        /* ReadRange by time stamp */
@@ -259,6 +263,7 @@ int rr_decode_service_request(
                     len +=
                         decode_tag_number_and_value(&apdu[len], &tag_number,
                         &len_value_type);
+                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; /* Allow for this in the response */
                     break;
 
                 default:       /* If we don't recognise the tag then we do nothing here and try to return
