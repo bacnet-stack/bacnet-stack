@@ -56,7 +56,7 @@ int getevent_encode_apdu(
         if (lastReceivedObjectIdentifier) {
             len =
                 encode_context_object_id(&apdu[apdu_len], 0,
-                lastReceivedObjectIdentifier->type,
+                (int)lastReceivedObjectIdentifier->type,
                 lastReceivedObjectIdentifier->instance);
             apdu_len += len;
         }
@@ -121,7 +121,7 @@ int getevent_ack_encode_apdu_data(
             /* Tag 0: objectIdentifier */
             apdu_len +=
                 encode_context_object_id(&apdu[apdu_len], 0,
-                event_data->objectIdentifier.type,
+                (int)event_data->objectIdentifier.type,
                 event_data->objectIdentifier.instance);
             /* Tag 1: eventState */
             apdu_len +=

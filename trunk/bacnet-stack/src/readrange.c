@@ -176,7 +176,7 @@ int rr_decode_service_request(
         rrdata->array_index = BACNET_ARRAY_ALL; /* Assuming this is the most common outcome... */
         if (len < apdu_len) {
             TagLen =
-                decode_tag_number_and_value(&apdu[len], &tag_number,
+                (unsigned)decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             if (tag_number == 2) {
                 len += TagLen;

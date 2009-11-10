@@ -84,7 +84,7 @@ int decode_real_safe(
 {
     if (len_value != 4) {
         *real_value = 0.0f;
-        return len_value;
+        return (int)len_value;
     } else {
         return decode_real(apdu, real_value);
     }
@@ -180,7 +180,7 @@ int decode_double_safe(
 {
     if (len_value != 8) {
         *double_value = 0.0;
-        return len_value;
+        return (int)len_value;
     } else {
         return decode_double(apdu, double_value);
     }

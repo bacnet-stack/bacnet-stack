@@ -447,7 +447,7 @@ void MSTP_Receive_Frame_FSM(
                             /* NoData */
                             else if (mstp_port->DataLength == 0) {
                                 printf_receive_data("%s",
-                                    mstptext_frame_type(mstp_port->FrameType));
+                                    mstptext_frame_type((unsigned)mstp_port->FrameType));
                                 if ((mstp_port->DestinationAddress ==
                                         mstp_port->This_Station)
                                     || (mstp_port->DestinationAddress ==
@@ -528,7 +528,7 @@ void MSTP_Receive_Frame_FSM(
                         mstp_port->DataCRC);
                     mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
                     printf_receive_data("%s",
-                        mstptext_frame_type(mstp_port->FrameType));
+                        mstptext_frame_type((unsigned)mstp_port->FrameType));
                     /* STATE DATA CRC - no need for new state */
                     /* indicate the complete reception of a valid frame */
                     if (mstp_port->DataCRC == 0xF0B8) {
@@ -634,7 +634,7 @@ bool MSTP_Master_Node_FSM(
                     mstp_port->SourceAddress, mstp_port->DestinationAddress,
                     mstp_port->DataLength, mstp_port->FrameCount,
                     mstp_port->SilenceTimer(),
-                    mstptext_frame_type(mstp_port->FrameType));
+                    mstptext_frame_type((unsigned)mstp_port->FrameType));
                 /* destined for me! */
                 if ((mstp_port->DestinationAddress == mstp_port->This_Station)
                     || (mstp_port->DestinationAddress ==
@@ -663,12 +663,12 @@ bool MSTP_Master_Node_FSM(
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                             /* indicate successful reception to the higher layers */
-                            MSTP_Put_Receive(mstp_port);
+                            (void)MSTP_Put_Receive(mstp_port);
                             break;
                         case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                             /*mstp_port->ReplyPostponedTimer = 0; */
                             /* indicate successful reception to the higher layers  */
-                            MSTP_Put_Receive(mstp_port);
+                            (void)MSTP_Put_Receive(mstp_port);
                             /* broadcast DER just remains IDLE */
                             if (mstp_port->DestinationAddress !=
                                 MSTP_BROADCAST_ADDRESS) {
@@ -701,7 +701,7 @@ bool MSTP_Master_Node_FSM(
             /* more data frames. These may be BACnet Data frames or */
             /* proprietary frames. */
             /* FIXME: We could wait for up to Tusage_delay */
-            length = MSTP_Get_Send(mstp_port, 0);
+            length = (unsigned)MSTP_Get_Send(mstp_port, 0);
             if (length < 1) {
                 /* NothingToSend */
                 mstp_port->FrameCount = mstp_port->Nmax_info_frames;
@@ -778,7 +778,7 @@ bool MSTP_Master_Node_FSM(
                                 /* ReceivedReply */
                                 /* or a proprietary type that indicates a reply */
                                 /* indicate successful reception to the higher layers */
-                                MSTP_Put_Receive(mstp_port);
+                                (void)MSTP_Put_Receive(mstp_port);
                                 mstp_port->master_state =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                                 break;
@@ -1036,7 +1036,7 @@ bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
             /* FIXME: we could wait for up to Treply_delay */
-            length = MSTP_Get_Reply(mstp_port, 0);
+            length = (unsigned)MSTP_Get_Reply(mstp_port, 0);
             if (length > 0) {
                 /* Reply */
                 /* If a reply is available from the higher layers  */

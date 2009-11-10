@@ -198,12 +198,14 @@ bool bitstring_same(
     BACNET_BIT_STRING * bitstring2)
 {
     int i = 0;  /* loop counter */
+    int bytes_used = 0;
+    uint8_t compare_mask = 0;
 
     if (bitstring1 && bitstring1) {
         if ((bitstring1->bits_used == bitstring2->bits_used) &&
             (bitstring1->bits_used / 8 <= MAX_BITSTRING_BYTES)) {
-            int bytes_used = bitstring1->bits_used / 8;
-            uint8_t compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
+            bytes_used = (int)(bitstring1->bits_used / 8);
+            compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
 
             for (i = 0; i < bytes_used; i++) {
                 if (bitstring1->value[i] != bitstring2->value[i]) {
