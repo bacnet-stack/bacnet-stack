@@ -274,9 +274,9 @@ int seeprom_bytes_read(
 /*************************************************************************
 * DESCRIPTION: Write some data and wait until it is sent
 * RETURN: number of bytes written, or -1 on error
-* NOTES: none
+* NOTES: only writes from offset to end of page.
 **************************************************************************/
-int seeprom_bytes_write(
+int seeprom_bytes_write_page(
     uint16_t eeaddr,    /* SEEPROM starting memory address */
     uint8_t * buf,      /* data to send */
     int len)
@@ -406,6 +406,45 @@ int seeprom_bytes_write(
   error:
     rv = -1;
     goto quit;
+}
+
+/*************************************************************************
+* DESCRIPTION: Write some data and wait until it is sent
+* RETURN: number of bytes written, or -1 on error
+* NOTES: 
+*   When the word address, internally generated, 
+*   reaches the page boundary, the following
+*   byte is placed at the beginning of the same 
+*   page. If more than 64 data words are
+*   transmitted to the EEPROM, the data word 
+*   address will “roll over” and previous data will be
+*   overwritten. The address “roll over” during write 
+*   is from the last byte of the current page to the
+*   first byte of the same page.
+**************************************************************************/
+int seeprom_bytes_write(
+    uint16_t off, /* SEEPROM starting memory address */
+    uint8_t * buf, /* data to send */
+    int len) /* number of bytes of data */
+{
+    int status = 0;
+    int rv = 0;
+    
+    while (len) {
+        status = seeprom_bytes_write_page(off, buf, len);
+        if (status <= 0) {
+            if (rv == 0) {
+                rv = status;
+            }
+            break;
+        }
+        buf += status;
+        off += status;
+        len -= status;
+        rv += status;
+    }
+
+    return rv;
 }
 
 /*************************************************************************
