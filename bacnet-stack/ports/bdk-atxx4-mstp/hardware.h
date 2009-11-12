@@ -46,7 +46,7 @@
 #include "bits.h"
 
 /* SEEPROM is 24LC128 */
-/*#define SEEPROM_PAGE_SIZE 128 */
+/*#define SEEPROM_PAGE_SIZE 64 */
 /*#define SEEPROM_WORD_ADDRESS_16BIT 1 */
 /* SEEPROM is 24C16 */
 #define SEEPROM_PAGE_SIZE 16
