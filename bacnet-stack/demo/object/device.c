@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for memmove */
+#include <time.h>
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -485,6 +486,44 @@ char *Device_Valid_Object_Id(
     return name;
 }
 
+static void Update_Current_Time(void)
+{
+    time_t timer;
+    struct tm *tblock;
+
+/*
+struct tm
+    
+int    tm_sec   Seconds [0,60]. 
+int    tm_min   Minutes [0,59]. 
+int    tm_hour  Hour [0,23]. 
+int    tm_mday  Day of month [1,31]. 
+int    tm_mon   Month of year [0,11]. 
+int    tm_year  Years since 1900. 
+int    tm_wday  Day of week [0,6] (Sunday =0). 
+int    tm_yday  Day of year [0,365]. 
+int    tm_isdst Daylight Savings flag. 
+*/
+
+    timer = time(NULL);
+    tblock = localtime(&timer);
+    datetime_set_date(
+        &Local_Date,
+        (uint16_t) tblock->tm_year+1900,
+        (uint8_t) tblock->tm_mon+1, 
+        (uint8_t) tblock->tm_mday);
+    datetime_set_time(
+        &Local_Time,
+        (uint8_t) tblock->tm_hour, 
+        (uint8_t) tblock->tm_min,
+        (uint8_t) tblock->tm_sec, 0);
+    if (tblock->tm_isdst) {
+        Daylight_Savings_Status = true;
+    } else {
+        Daylight_Savings_Status = false;
+    }
+}
+
 /* return the length of the apdu encoded or -1 for error or
    -2 for abort message */
 int Device_Encode_Property_APDU(
@@ -557,26 +596,17 @@ int Device_Encode_Property_APDU(
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-            /* FIXME: if you support time */
         case PROP_LOCAL_TIME:
-            /* FIXME: get the actual value */
-            Local_Time.hour = 7;
-            Local_Time.min = 0;
-            Local_Time.sec = 3;
-            Local_Time.hundredths = 1;
+            Update_Current_Time();
             apdu_len = encode_application_time(&apdu[0], &Local_Time);
             break;
-            /* FIXME: if you support time */
         case PROP_UTC_OFFSET:
+            /* note: timezone is declared in <time.h> stdlib. */
+            UTC_Offset = timezone/60;
             apdu_len = encode_application_signed(&apdu[0], UTC_Offset);
             break;
-            /* FIXME: if you support date */
         case PROP_LOCAL_DATE:
-            /* FIXME: get the actual value instead of April Fool's Day */
-            Local_Date.year = 2006;     /* AD */
-            Local_Date.month = 4;       /* 1=Jan */
-            Local_Date.day = 1; /* 1..31 */
-            Local_Date.wday = 6;        /* 1=Monday */
+            Update_Current_Time();
             apdu_len = encode_application_date(&apdu[0], &Local_Date);
             break;
         case PROP_DAYLIGHT_SAVINGS_STATUS:
@@ -871,16 +901,13 @@ void Device_Init(
 }
 
 bool DeviceGetRRInfo(
-    uint32_t           Object,   /* Which particular object - obviously not important for device object */
-    BACNET_PROPERTY_ID Property, /* Which property */
+    uint32_t           object,   /* Which particular object - obviously not important for device object */
+    BACNET_PROPERTY_ID property, /* Which property */
     RR_PROP_INFO      *pInfo,    /* Where to put the information */
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE  *error_code)
 {
-*error_class = ERROR_CLASS_SERVICES;
-*error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
-
-    switch(Property) {
+    switch(property) {
         case PROP_VT_CLASSES_SUPPORTED:
         case PROP_ACTIVE_VT_SESSIONS:
         case PROP_LIST_OF_SESSION_KEYS:
@@ -905,9 +932,13 @@ bool DeviceGetRRInfo(
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code  = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
+        default:
+            *error_class = ERROR_CLASS_SERVICES;
+            *error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+            break;
     }
 
-return(false);
+    return(false);
 }
 
 #ifdef TEST
