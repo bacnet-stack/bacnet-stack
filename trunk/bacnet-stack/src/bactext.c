@@ -606,7 +606,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_SLAVE_PROXY_ENABLE, "slave-proxy-enable"}
     ,
-    {PROP_LAST_NOTIFY_TIME, "last-notify-time"}
+    {PROP_LAST_NOTIFY_RECORD, "last-notify-record"}
     ,
     {PROP_SCHEDULE_DEFAULT, "schedule-default"}
     ,
