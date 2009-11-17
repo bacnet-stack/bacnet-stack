@@ -524,7 +524,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_LOG_BUFFER, "log-buffer"}
     ,
-    {PROP_LOG_DEVICE_OBJECT, "log-device-object-property"}
+    {PROP_LOG_DEVICE_OBJECT_PROPERTY, "log-device-object-property"}
     ,
     {PROP_ENABLE, "enable"}
     ,

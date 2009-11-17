@@ -167,7 +167,7 @@ typedef enum {
     PROP_CURRENT_NOTIFY_TIME = 129,
     PROP_EVENT_TIME_STAMPS = 130,
     PROP_LOG_BUFFER = 131,
-    PROP_LOG_DEVICE_OBJECT = 132,
+    PROP_LOG_DEVICE_OBJECT_PROPERTY = 132,
     /* The enable property is renamed from log-enable in
        Addendum b to ANSI/ASHRAE 135-2004(135b-2) */
     PROP_ENABLE = 133,
