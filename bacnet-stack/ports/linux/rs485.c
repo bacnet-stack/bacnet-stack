@@ -57,6 +57,10 @@
 /* Posix serial programming reference:
 http://www.easysw.com/~mike/serial/serial.html */
 
+/* Use ionice wrapper to improve serial performance:
+   $ sudo ionice -c 1 -n 0 ./bin/bacserv 12345
+*/
+
 /* handle returned from open() */
 static int RS485_Handle = -1;
 /* baudrate settings are defined in <asm/termbits.h>, which is
