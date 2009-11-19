@@ -26,7 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for memmove */
-#include <time.h>
+#include <time.h> /* for timezone, localtime */
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -41,6 +41,12 @@
 #include "address.h"
 #if defined(BACFILE)
 #include "bacfile.h"    /* object list dependency */
+#endif
+
+#if defined(__BORLANDC__)
+/* seems to not be defined in time.h as specified by The Open Group */
+/* difference from UTC and local standard time  */
+long int timezone;
 #endif
 
 static object_count_function Object_Count[MAX_BACNET_OBJECT_TYPE];
@@ -907,6 +913,9 @@ bool DeviceGetRRInfo(
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE  *error_code)
 {
+    bool status = false; /* return value */
+    
+    object = object;
     switch(property) {
         case PROP_VT_CLASSES_SUPPORTED:
         case PROP_ACTIVE_VT_SESSIONS:
@@ -923,8 +932,8 @@ bool DeviceGetRRInfo(
 
         case PROP_DEVICE_ADDRESS_BINDING:
             pInfo->RequestTypes = RR_BY_POSITION;
-            pInfo->Handler = &rr_address_list_encode;
-            return(true);
+            pInfo->Handler = rr_address_list_encode;
+            status = true;
             break;
         
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
@@ -938,7 +947,7 @@ bool DeviceGetRRInfo(
             break;
     }
 
-    return(false);
+    return status;
 }
 
 #ifdef TEST

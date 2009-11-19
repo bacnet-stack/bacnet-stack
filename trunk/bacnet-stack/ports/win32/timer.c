@@ -46,6 +46,7 @@ int gettimeofday(
 {
     struct _timeb timebuffer;
 
+    tzp = tzp;
     _ftime(&timebuffer);
     tp->tv_sec = timebuffer.time;
     tp->tv_usec = timebuffer.millitm * 1000;
