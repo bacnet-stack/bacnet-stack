@@ -74,6 +74,14 @@ CORE3_SRC = $(BACNET_CORE)\arf.c \
 	$(BACNET_CORE)\whois.c \
 	$(BACNET_CORE)\wp.c
 
+CORE4_SRC = $(BACNET_CORE)\bacdevobjpropref.c \
+	$(BACNET_CORE)\bacpropstates.c \
+	$(BACNET_CORE)\alarm_ack.c \
+	$(BACNET_CORE)\event.c \
+	$(BACNET_CORE)\getevent.c \
+	$(BACNET_CORE)\readrange.c \
+	$(BACNET_CORE)\timestamp.c
+
 HANDLER_SRC = \
 	$(BACNET_HANDLER)\dlenv.c \
 	$(BACNET_HANDLER)\txbuf.c \
@@ -143,6 +151,7 @@ PORT_SRC = $(BACNET_PORT)\bip-init.c \
 CORE1_OBJ = ${CORE1_SRC:.c=.obj}
 CORE2_OBJ = ${CORE2_SRC:.c=.obj}
 CORE3_OBJ = ${CORE3_SRC:.c=.obj}
+CORE4_OBJ = ${CORE4_SRC:.c=.obj}
 PORT_OBJ = ${PORT_SRC:.c=.obj}
 HANDLER_OBJ = ${HANDLER_SRC:.c=.obj}
 OBJECT_OBJ = ${OBJECT_SRC:.c=.obj}
@@ -150,6 +159,7 @@ OBJECT_OBJ = ${OBJECT_SRC:.c=.obj}
 OBJS = ${CORE1_OBJ} \
 	${CORE2_OBJ} \
 	${CORE3_OBJ} \
+	${CORE4_OBJ} \
 	${PORT_OBJ} \
 	${HANDLER_OBJ} \
 	${OBJECT_OBJ}
