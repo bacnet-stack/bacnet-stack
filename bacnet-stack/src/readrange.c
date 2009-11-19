@@ -70,7 +70,7 @@ int rr_encode_apdu(
     uint8_t invoke_id,
     BACNET_READ_RANGE_DATA * rrdata)
 {
-    int apdu_len;       /* total length of the apdu, return value */
+    int apdu_len = 0;       /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -299,7 +299,7 @@ int rr_ack_encode_apdu(
     BACNET_READ_RANGE_DATA * rrdata)
 {
     int len = 0;        /* length of each encoding */
-    int apdu_len;       /* total length of the apdu, return value */
+    int apdu_len = 0;       /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
