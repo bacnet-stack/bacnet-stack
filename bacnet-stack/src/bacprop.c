@@ -33,7 +33,9 @@
 ####COPYRIGHTEND####*/
 #include <stdbool.h>
 #include <string.h>
+#if PRINT_ENABLED
 #include <stdio.h>
+#endif
 #include "bacprop.h"
 
 PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
@@ -107,7 +109,9 @@ signed bacprop_property_tag(
                 bacprop_tag_by_index_default
                 (bacnet_object_device_property_tag_map, prop, -1);
         default:
+#if PRINT_ENABLED
             fprintf(stderr, "Unsupported object type");
+#endif
             break;
     }
 

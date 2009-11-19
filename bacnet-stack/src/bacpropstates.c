@@ -32,7 +32,6 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <assert.h>
 #include "bacdcode.h"
 #include "npdu.h"
 #include "device.h"
@@ -306,7 +305,7 @@ int bacapp_encode_property_state(
                 break;
 
             default:
-                assert(0);
+                /* FIXME: assert(0); - return a negative len? */
                 break;
         }
     }
@@ -421,7 +420,7 @@ void testPropStates(
 }
 
 #ifdef TEST_PROP_STATES
-
+#include <assert.h>
 int main(
     void)
 {

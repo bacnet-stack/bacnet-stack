@@ -32,7 +32,6 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <assert.h>
 #include "bacdcode.h"
 #include "npdu.h"
 #include "device.h"
@@ -211,7 +210,7 @@ void testDevIdPropRef(
 }
 
 #ifdef TEST_DEV_ID_PROP_REF
-
+#include <assert.h>
 int main(
     void)
 {

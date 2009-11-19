@@ -93,7 +93,7 @@ int getevent_ack_encode_apdu_init(
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
 
-    if (apdu) {
+    if (apdu && (max_apdu >= 4)) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id;    /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_GET_EVENT_INFORMATION;
