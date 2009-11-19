@@ -71,6 +71,13 @@ CORE_SRC = \
 	$(BACNET_CORE)/tsm.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/address.c \
+	$(BACNET_CORE)/bacdevobjpropref.c \
+	$(BACNET_CORE)/bacpropstates.c \
+	$(BACNET_CORE)/alarm_ack.c \
+	$(BACNET_CORE)/event.c \
+	$(BACNET_CORE)/getevent.c \
+	$(BACNET_CORE)/readrange.c \
+	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/version.c
 
 HANDLER_SRC = \
