@@ -75,16 +75,22 @@ int bacapp_encode_device_obj_property_ref(
         value->propertyIdentifier);
     apdu_len += len;
 
+    /* Array index is optional so check if needed before inserting */
     if (value->arrayIndex > 0) {
         len = encode_context_unsigned(&apdu[apdu_len], 2, value->arrayIndex);
         apdu_len += len;
     }
-    len =
-        encode_context_object_id(&apdu[apdu_len], 3,
-        (int) value->deviceIndentifier.type,
-        value->deviceIndentifier.instance);
-    apdu_len += len;
 
+    /* Likewise, device id is optional so see if needed
+     * (set type to non device to omit */
+     
+    if(value->deviceIndentifier.type == OBJECT_DEVICE) {
+        len =
+            encode_context_object_id(&apdu[apdu_len], 3,
+            (int) value->deviceIndentifier.type,
+            value->deviceIndentifier.instance);
+        apdu_len += len;
+    }
     return apdu_len;
 }
 
