@@ -266,7 +266,7 @@ int rpm_decode_object_property(
             *object_property = (BACNET_PROPERTY_ID) property;
         /* Tag 1: Optional propertyArrayIndex */
         if ((len < apdu_len) && IS_CONTEXT_SPECIFIC(apdu[len]) &&
-            (!decode_is_closing_tag(&apdu[len]))) {
+            (!IS_CLOSING_TAG(apdu[len]))) {
             option_len =
                 (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
@@ -459,7 +459,7 @@ int rpm_ack_decode_object_property(
             *object_property = (BACNET_PROPERTY_ID) property;
         /* Tag 3: Optional propertyArrayIndex */
         if ((len < apdu_len) && IS_CONTEXT_SPECIFIC(apdu[len]) &&
-            (!decode_is_closing_tag(&apdu[len]))) {
+            (!IS_CLOSING_TAG(apdu[len]))) {
             tag_len =
                 (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
