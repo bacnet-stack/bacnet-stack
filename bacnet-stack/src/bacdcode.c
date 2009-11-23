@@ -399,9 +399,9 @@ int decode_tag_number_and_value(
             }
             len++;
         }
-    } else if (decode_is_opening_tag(&apdu[0]) && value) {
+    } else if (IS_OPENING_TAG(apdu[0]) && value) {
         *value = 0;
-    } else if (decode_is_closing_tag(&apdu[0]) && value) {
+    } else if (IS_CLOSING_TAG(apdu[0]) && value) {
         /* closing tag */
         *value = 0;
     } else if (value) {
@@ -454,9 +454,9 @@ int decode_tag_number_and_value_safe(
                 /* packet is truncated */
                 len = 0;
             }
-        } else if (decode_is_opening_tag(&apdu[0]) && value) {
+        } else if (IS_OPENING_TAG(apdu[0]) && value) {
             *value = 0;
-        } else if (decode_is_closing_tag(&apdu[0]) && value) {
+        } else if (IS_CLOSING_TAG(apdu[0]) && value) {
             /* closing tag */
             *value = 0;
         } else if (value) {
@@ -500,12 +500,9 @@ bool decode_is_opening_tag_number(
     uint8_t tag_number)
 {
     uint8_t my_tag_number = 0;
-    bool opening_tag = false;
 
-    opening_tag = (bool) ((apdu[0] & 0x07) == 6);
     decode_tag_number(apdu, &my_tag_number);
-
-    return (bool) (opening_tag && (my_tag_number == tag_number));
+    return (bool) (IS_OPENING_TAG(apdu[0]) && (my_tag_number == tag_number));
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
@@ -515,12 +512,9 @@ bool decode_is_closing_tag_number(
     uint8_t tag_number)
 {
     uint8_t my_tag_number = 0;
-    bool closing_tag = false;
 
-    closing_tag = (bool) ((apdu[0] & 0x07) == 7);
     decode_tag_number(apdu, &my_tag_number);
-
-    return (bool) (closing_tag && (my_tag_number == tag_number));
+    return (bool) (IS_CLOSING_TAG(apdu[0]) && (my_tag_number == tag_number));
 }
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
@@ -1850,16 +1844,16 @@ void testBACDCodeTags(
         ct_test(pTest, value == 0);
         ct_test(pTest, len == test_len);
         ct_test(pTest, tag_number == test_tag_number);
-        ct_test(pTest, decode_is_opening_tag(&apdu[0]) == true);
-        ct_test(pTest, decode_is_closing_tag(&apdu[0]) == false);
+        ct_test(pTest, IS_OPENING_TAG(apdu[0]) == true);
+        ct_test(pTest, IS_CLOSING_TAG(apdu[0]) == false);
         len = encode_closing_tag(&apdu[0], tag_number);
         ct_test(pTest, len == test_len);
         len = decode_tag_number_and_value(&apdu[0], &test_tag_number, &value);
         ct_test(pTest, len == test_len);
         ct_test(pTest, value == 0);
         ct_test(pTest, tag_number == test_tag_number);
-        ct_test(pTest, decode_is_opening_tag(&apdu[0]) == false);
-        ct_test(pTest, decode_is_closing_tag(&apdu[0]) == true);
+        ct_test(pTest, IS_OPENING_TAG(apdu[0]) == false);
+        ct_test(pTest, IS_CLOSING_TAG(apdu[0]) == true);
         /* test the len-value-type portion */
         for (value = 1;; value = value << 1) {
             len = encode_tag(&apdu[0], tag_number, false, value);

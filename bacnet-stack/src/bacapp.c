@@ -537,6 +537,22 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
             }
             break;
+        case PROP_LOG_DEVICE_OBJECT_PROPERTY:
+            switch (tag_number) {
+                case 0: /* Object ID */
+                case 3: /* Device ID */
+                    tag = BACNET_APPLICATION_TAG_OBJECT_ID; 
+                    break;
+                case 1: /* Property ID */
+                    tag = BACNET_APPLICATION_TAG_ENUMERATED;
+                    break;
+                case 2: /* Array index */
+                    tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    break;
+                default:
+                    break;
+            }
+            break;
         default:
             break;
     }
@@ -735,20 +751,20 @@ int bacapp_data_len(
     uint32_t value = 0;
     BACNET_APPLICATION_DATA_VALUE application_value;
 
-    if (decode_is_opening_tag(&apdu[0])) {
+    if (IS_OPENING_TAG(apdu[0])) {
         len =
             decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &value);
         apdu_len += len;
         opening_tag_number = tag_number;
         opening_tag_number_counter = 1;
         while (opening_tag_number_counter) {
-            if (decode_is_opening_tag(&apdu[apdu_len])) {
+            if (IS_OPENING_TAG(apdu[apdu_len])) {
                 len =
                     decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
                     &value);
                 if (tag_number == opening_tag_number)
                     opening_tag_number_counter++;
-            } else if (decode_is_closing_tag(&apdu[apdu_len])) {
+            } else if (IS_CLOSING_TAG(apdu[apdu_len])) {
                 len =
                     decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
                     &value);

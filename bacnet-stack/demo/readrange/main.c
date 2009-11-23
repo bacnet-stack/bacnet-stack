@@ -66,6 +66,7 @@
 #include "lc.h"
 #include "lsp.h"
 #include "mso.h"
+#include "trendlog.h"
 #include "bacfile.h"
 
 #if defined(__BORLANDC__)
@@ -216,6 +217,13 @@ static void Init_Objects(
         Multistate_Output_Valid_Instance, Multistate_Output_Write_Property,
         Multistate_Output_Count, Multistate_Output_Index_To_Instance,
         Multistate_Output_Name, NULL);
+
+    Trend_Log_Init();
+    Init_Object(OBJECT_TRENDLOG, Trend_Log_Property_Lists,
+        Trend_Log_Encode_Property_APDU,
+        Trend_Log_Valid_Instance, Trend_Log_Write_Property,
+        Trend_Log_Count, Trend_Log_Index_To_Instance,
+        Trend_Log_Name, NULL);
 
 #if defined(BACFILE)
     bacfile_init();

@@ -641,6 +641,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\object\trendlog.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\tsm.c"
 				>
 			</File>
@@ -996,6 +1000,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\timesync.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\trendlog.h"
 				>
 			</File>
 			<File
