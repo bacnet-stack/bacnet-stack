@@ -253,8 +253,10 @@ static void Init_Service_Handlers(
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-        handler_read_property_multiple);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
+        handler_read_range);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+        handler_write_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
         handler_read_range);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
