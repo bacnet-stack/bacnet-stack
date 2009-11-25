@@ -68,6 +68,17 @@ extern "C" {
     void Trend_Log_Init(
         void);
 
+    void TL_Insert_Status_Rec(
+        int iLog,
+        BACNET_LOG_STATUS eStatus,
+        bool bState);
+        
+    bool TL_Is_Enabled(
+        int iLog);
+        
+    time_t TL_BAC_Time_To_Local(
+        BACNET_DATE_TIME *SourceTime);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
