@@ -557,10 +557,12 @@ int event_notify_decode_service_request(
                     len += section_length;
                 }
                 break;
-            case NOTIFY_ACK_NOTIFICATION:
-                /* FIXME: handle this case */
+            /* In cases other than alarm and event
+			there's no data, so do not return an error
+			but continue normally */
+			case NOTIFY_ACK_NOTIFICATION:
             default:
-                return -1;
+                break;
 
         }
         /* tag 11 - toState */
@@ -854,10 +856,12 @@ int event_notify_decode_service_request(
                     return -1;
                 }
                 break;
-            case NOTIFY_ACK_NOTIFICATION:
-                /* FIXME: handle this case */
+			 /* In cases other than alarm and event
+			there's no data, so do not return an error
+			but continue normally */
+			case NOTIFY_ACK_NOTIFICATION:
             default:
-                return -1;
+                break;
         }
     }
 
