@@ -174,7 +174,7 @@ int rr_decode_service_request(
         rrdata->object_property = (BACNET_PROPERTY_ID) UnsignedTemp;
         rrdata->Overhead = RR_OVERHEAD; /* Start with the fixed overhead */
 
-        /* Tag 2: Optional Array Index */
+        /* Tag 2: Optional Array Index - set to ALL if not present */
         rrdata->array_index = BACNET_ARRAY_ALL; /* Assuming this is the most common outcome... */
         if (len < apdu_len) {
             TagLen =

@@ -399,6 +399,26 @@ bool datetime_wildcard(
     return wildcard_present;
 }
 
+/* Returns true if any type of wildcard is present except for day of week 
+ * on it's own. 
+ */
+bool datetime_wildcard_present(
+    BACNET_DATE_TIME * bdatetime)
+{
+    bool wildcard_present = false;
+
+    if (bdatetime) {
+        if ((bdatetime->date.year == (1900 + 0xFF)) ||
+            (bdatetime->date.month > 12) || (bdatetime->date.day > 31) ||
+            (bdatetime->time.hour == 0xFF) ||
+            (bdatetime->time.min == 0xFF) || (bdatetime->time.sec == 0xFF) ||
+            (bdatetime->time.hundredths == 0xFF)) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
 void datetime_date_wildcard_set(
     BACNET_DATE * bdate)
 {

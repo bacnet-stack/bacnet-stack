@@ -79,6 +79,34 @@ extern "C" {
     time_t TL_BAC_Time_To_Local(
         BACNET_DATE_TIME *SourceTime);
 
+    void TL_Local_Time_To_BAC(
+        BACNET_DATE_TIME *DestTime,
+        time_t SourceTime);
+
+    int TL_encode_entry(
+        uint8_t *apdu,
+        int iLog,
+        int iEntry);
+        
+    int TL_encode_by_position(
+        uint8_t *apdu,
+        BACNET_READ_RANGE_DATA *pRequest,
+        BACNET_ERROR_CLASS *error_class,
+        BACNET_ERROR_CODE  *error_code);
+            
+    bool TrendLogGetRRInfo(
+        uint32_t           Object,   /* Which particular object */
+        BACNET_PROPERTY_ID Property, /* Which property */
+        RR_PROP_INFO      *pInfo,    /* Where to put the information */
+        BACNET_ERROR_CLASS *error_class,
+        BACNET_ERROR_CODE  *error_code);
+
+	int rr_trend_log_encode(
+		uint8_t *apdu,
+		BACNET_READ_RANGE_DATA *pRequest,
+		BACNET_ERROR_CLASS *error_class,
+		BACNET_ERROR_CODE  *error_code);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
