@@ -88,7 +88,7 @@ int alarm_ack_encode_service_request(
 
         len =
             encode_context_enumerated(&apdu[apdu_len], 2,
-            data->eventTypeAcked);
+            data->eventStateAcked);
         apdu_len += len;
 
         len =
@@ -144,7 +144,7 @@ int alarm_ack_decode_service_request(
             decode_context_enumerated(&apdu[len], 2, &enumValue))) {
         return -1;
     }
-    data->eventTypeAcked = (BACNET_EVENT_TYPE) enumValue;
+	data->eventStateAcked = (BACNET_EVENT_STATE)enumValue;
     len += section_len;
 
     if (-1 == (section_len =
@@ -199,7 +199,7 @@ void testAlarmAck(
     testAlarmAckIn.eventTimeStamp.value.time.min = 11;
     testAlarmAckIn.eventTimeStamp.value.time.sec = 12;
     testAlarmAckIn.eventTimeStamp.value.time.hundredths = 14;
-    testAlarmAckIn.eventTypeAcked = EVENT_CHANGE_OF_LIFE_SAFETY;
+    testAlarmAckIn.eventStateAcked = EVENT_STATE_OFFNORMAL;
 
     memset(&testAlarmAckOut, 0, sizeof(testAlarmAckOut));
 
@@ -247,7 +247,7 @@ void testAlarmAck(
         testAlarmAckOut.eventTimeStamp.value.time.hundredths);
 
     ct_test(pTest,
-        testAlarmAckIn.eventTypeAcked == testAlarmAckOut.eventTypeAcked);
+        testAlarmAckIn.eventStateAcked == testAlarmAckOut.eventStateAcked);
 
 }
 

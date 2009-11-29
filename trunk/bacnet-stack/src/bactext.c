@@ -1867,6 +1867,8 @@ INDTEXT_DATA bacnet_device_status_names[] = {
     ,
     {STATUS_NON_OPERATIONAL, "non-operational"}
     ,
+    {STATUS_BACKUP_IN_PROGRESS, "backup-in-progress"}
+    ,
     {0, NULL}
 };
 

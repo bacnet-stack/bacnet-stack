@@ -257,7 +257,7 @@ int getevent_ack_decode_service_request(
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
                 len +=
-                    decode_enumerated(&apdu[apdu_len], len_value, &enum_value);
+                    decode_enumerated(&apdu[len], len_value, &enum_value);
                 event_data->notifyType = enum_value;
             } else {
                 return -1;
@@ -308,7 +308,10 @@ int getevent_ack_decode_service_request(
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
-            *moreEvents = decode_boolean(len_value);
+			if (len_value == 1)
+				*moreEvents = decode_context_boolean(&apdu[len++]);
+			else
+				*moreEvents = false;
         } else {
             return -1;
         }

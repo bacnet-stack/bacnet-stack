@@ -44,7 +44,7 @@
 typedef struct {
     uint32_t ackProcessIdentifier;
     BACNET_OBJECT_ID eventObjectIdentifier;
-    BACNET_EVENT_TYPE eventTypeAcked;
+    BACNET_EVENT_STATE eventStateAcked;
     BACNET_TIMESTAMP eventTimeStamp;
     BACNET_CHARACTER_STRING ackSource;
     BACNET_TIMESTAMP ackTimeStamp;
