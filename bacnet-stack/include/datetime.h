@@ -131,6 +131,8 @@ extern "C" {
     /* date and time wildcards */
     bool datetime_wildcard(
         BACNET_DATE_TIME * bdatetime);
+    bool datetime_wildcard_present(
+        BACNET_DATE_TIME * bdatetime);
     void datetime_wildcard_set(
         BACNET_DATE_TIME * bdatetime);
     void datetime_date_wildcard_set(

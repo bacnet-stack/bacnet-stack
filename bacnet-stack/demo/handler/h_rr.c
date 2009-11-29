@@ -69,19 +69,21 @@ int Encode_RR_payload(
     /* handle each object type */
     if (pRequest->object_type < MAX_BACNET_OBJECT_TYPE)
         info_fn_ptr = get_rr_info[pRequest->object_type];
- 
+        
     if ((info_fn_ptr != NULL) && (info_fn_ptr(pRequest->object_instance, pRequest->object_property, &PropInfo, error_class, error_code) != false)) {
         /* We try and do some of the more generic error checking here to cut down on duplication of effort */
              
-        if(((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) && (pRequest->array_index != 0)) {
+        if((pRequest->RequestType == RR_BY_POSITION) && (pRequest->Range.RefIndex == 0)) {/* First index is 1 so can't accept 0 */
+            *error_code  = ERROR_CODE_OTHER; /* I couldn't see anything more appropriate so... */
+        } else if(((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) && (pRequest->array_index != 0) && (pRequest->array_index != BACNET_ARRAY_ALL)) {
             /* Array access attempted on a non array property */
             *error_code  = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         } 
         else if((pRequest->RequestType != RR_READ_ALL) && ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
-            /* By Time or By Sequence not supported */
+            /* By Time or By Sequence not supported - By Position is always required */
             *error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
         }
-        else if(pRequest->Count == 0) { /* Count cannot be zero */
+        else if((pRequest->Count == 0) && (pRequest->RequestType != RR_READ_ALL)) { /* Count cannot be zero */
             *error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
         }
         else if(PropInfo.Handler != NULL) {
@@ -128,7 +130,7 @@ void handler_read_range(
 #endif
         goto RR_ABORT;
     }
-
+    memset(&data, 0, sizeof(data)); /* start with blank canvas */
     len = rr_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
     if (len <= 0)
