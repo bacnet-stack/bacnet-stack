@@ -1221,15 +1221,7 @@ uint16_t dlmstp_receive(
     /* only do receive state machine while we don't have a frame */
     if ((MSTP_Flag.ReceivedValidFrame == false) &&
         (MSTP_Flag.ReceivedInvalidFrame == false)) {
-        for (;;) {
-            MSTP_Receive_Frame_FSM();
-            if (MSTP_Flag.ReceivedValidFrame || MSTP_Flag.ReceivedInvalidFrame)
-                break;
-            /* if we are not idle, then we are
-               receiving a frame or timing out */
-            if (Receive_State == MSTP_RECEIVE_STATE_IDLE)
-                break;
-        }
+        MSTP_Receive_Frame_FSM();
     }
     /* only do master state machine while rx is idle */
     if (Receive_State == MSTP_RECEIVE_STATE_IDLE) {
