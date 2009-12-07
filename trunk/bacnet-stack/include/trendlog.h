@@ -94,6 +94,18 @@ extern "C" {
         BACNET_ERROR_CLASS *error_class,
         BACNET_ERROR_CODE  *error_code);
             
+    int TL_encode_by_sequence(
+        uint8_t *apdu,
+        BACNET_READ_RANGE_DATA *pRequest,
+        BACNET_ERROR_CLASS *error_class,
+        BACNET_ERROR_CODE  *error_code);
+
+    int TL_encode_by_time(
+        uint8_t *apdu,
+        BACNET_READ_RANGE_DATA *pRequest,
+        BACNET_ERROR_CLASS *error_class,
+        BACNET_ERROR_CODE  *error_code);
+
     bool TrendLogGetRRInfo(
         uint32_t           Object,   /* Which particular object */
         BACNET_PROPERTY_ID Property, /* Which property */

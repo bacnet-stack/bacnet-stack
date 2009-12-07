@@ -249,11 +249,11 @@ int rr_decode_service_request(
                     len +=
                         decode_date(&apdu[len], &rrdata->Range.RefTime.date);
                     len +=
+                        decode_tag_number_and_value(&apdu[len], &tag_number,
+                        &len_value_type);
+                    len +=
                         decode_bacnet_time(&apdu[len],
                         &rrdata->Range.RefTime.time);
-                    len +=
-                        decode_unsigned(&apdu[len], len_value_type,
-                        &rrdata->Range.RefIndex);
                     len +=
                         decode_tag_number_and_value(&apdu[len], &tag_number,
                         &len_value_type);
