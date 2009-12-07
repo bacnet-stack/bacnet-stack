@@ -113,6 +113,7 @@ typedef struct tl_log_info {
     uint32_t ulIntervalOffset;       /* Offset from start of period for taking reading in seconds */
     bool bTrigger;                   /* Set to 1 to cause a reading to be taken */
     int iIndex;                      /* Current insertion point */
+	bool bClocked;					 /* True if ulTotalRecordCount has wrapped around */
 } TL_LOG_INFO;
 
 
@@ -310,6 +311,7 @@ void Trend_Log_Init(
            LogInfo[iLog].ulLogInterval      = 900;
            LogInfo[iLog].ulRecordCount      = 1000;
            LogInfo[iLog].ulTotalRecordCount = 10000;
+           LogInfo[iLog].bClocked           = false;
            
            LogInfo[iLog].Source.deviceIndentifier.instance = Device_Object_Instance_Number();
            LogInfo[iLog].Source.deviceIndentifier.type     = OBJECT_DEVICE;
@@ -951,6 +953,9 @@ void TL_Insert_Status_Rec(int iLog, BACNET_LOG_STATUS eStatus, bool bState)
         CurrentLog->iIndex = 0;
         
     CurrentLog->ulTotalRecordCount++;
+	if(CurrentLog->ulTotalRecordCount == 0)
+		CurrentLog->bClocked = true;
+
     if(CurrentLog->ulRecordCount < TL_MAX_ENTRIES)
         CurrentLog->ulRecordCount++;
 }
@@ -1087,17 +1092,27 @@ int rr_trend_log_encode(
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
     pRequest->ItemCount = 0; /* Start out with nothing */
 
+     /* Bail out now if nowt - should never happen for a Trend Log but ... */
+    if(LogInfo[pRequest->object_instance].ulRecordCount == 0)
+        return(0);
+
     if((pRequest->RequestType == RR_BY_POSITION) || (pRequest->RequestType == RR_READ_ALL))
         return(TL_encode_by_position(apdu, pRequest, error_class, error_code));
+    else if(pRequest->RequestType == RR_BY_SEQUENCE)
+        return(TL_encode_by_sequence(apdu, pRequest, error_class, error_code));
     else {
-        /* Reject by sequence and by time for the moment */
-        *error_class = ERROR_CLASS_SERVICES;
-        *error_code = ERROR_CODE_OTHER;
+        return(TL_encode_by_time(apdu, pRequest, error_class, error_code));
     }
     
     return(-1);
 }
 
+/****************************************************************************
+ * Handle encoding for the By Position and All options.                     *
+ * Does All option by converting to a By Position request starting at index *
+ * 1 and of maximum log size length.                                        *
+ ****************************************************************************/
+ 
 int TL_encode_by_position(
     uint8_t *apdu,
     BACNET_READ_RANGE_DATA *pRequest,
@@ -1121,9 +1136,6 @@ int TL_encode_by_position(
 
     CurrentLog = &LogInfo[pRequest->object_instance];
     
-    if(CurrentLog->ulRecordCount == 0) /* Bail out now if nowt - should never happen for a Trend Log... */
-        return(0);
-
     if(pRequest->RequestType == RR_READ_ALL) {
         /*
          * Read all the list or as much as will fit in the buffer by selecting
@@ -1201,6 +1213,274 @@ return(iLen);
 }
 
 
+/****************************************************************************
+ * Handle encoding for the By Sequence option.                              *
+ * The fact that the buffer always has at least a single entry is used      *
+ * implicetly in the following as we don't have to handle the case of an    *
+ * empty buffer.                                                            *
+ ****************************************************************************/
+
+int TL_encode_by_sequence(
+    uint8_t *apdu,
+    BACNET_READ_RANGE_DATA *pRequest,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE  *error_code)
+{
+    int iLen;
+    int32_t iTemp;
+    TL_LOG_INFO *CurrentLog;
+
+    uint32_t uiIndex;     /* Current entry number */
+    uint32_t uiFirst;     /* Entry number we started encoding from */
+    uint32_t uiLast;      /* Entry number we finished encoding on */
+    uint32_t uiSequence;  /* Tracking sequenc number when encoding */
+    uint32_t uiRemaining; /* Amount of unused space in packet */
+    uint32_t uiFirstSeq;  /* Sequence number for 1st record in log */
+
+    uint32_t uiBegin;     /* Starting Sequence number for request */
+    uint32_t uiEnd;       /* Ending Sequence number for request */
+    bool bWrapReq = false; /* Has request sequence range spanned the max for uint32_t? */
+    bool bWrapLog = false; /* Has log sequence range spanned the max for uint32_t? */
+
+    uiFirst = 0;
+    uiLast  = 0;
+    iLen    = 0;
+    uiRemaining = MAX_APDU - pRequest->Overhead; /* See how much space we have */
+    CurrentLog = &LogInfo[pRequest->object_instance];
+	/* Figure out the sequence number for the first record, last is ulTotalRecordCount */
+	uiFirstSeq = CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
+
+    /* Calculate start and end sequence numbers from request */
+    if(pRequest->Count < 0) {
+        uiBegin = pRequest->Range.RefSeqNum + pRequest->Count + 1;
+        uiEnd   = pRequest->Range.RefSeqNum;
+    } else {
+        uiBegin = pRequest->Range.RefSeqNum;
+        uiEnd   = pRequest->Range.RefSeqNum + pRequest->Count - 1;
+    }
+    /* See if we have any wrap around situations */
+    if(uiBegin > uiEnd)
+        bWrapReq = true;
+    if(uiFirstSeq > CurrentLog->ulTotalRecordCount)
+        bWrapLog = true;
+    
+    if((bWrapReq == false) && (bWrapLog == false)) { /* Simple case no wraps */
+        /* If no overlap between request range and buffer contents bail out */
+        if((uiEnd < uiFirstSeq) || (uiBegin > CurrentLog->ulTotalRecordCount))
+            return(0);
+        
+        /* Truncate range if necessary so it is guaranteed to lie
+         * between the first and last sequence numbers in the buffer
+         * inclusive.
+         */
+        if(uiBegin < uiFirstSeq)
+            uiBegin = uiFirstSeq;
+            
+        if(uiEnd > CurrentLog->ulTotalRecordCount)
+            uiEnd = CurrentLog->ulTotalRecordCount;
+    } else { /* There are wrap arounds to contend with */
+        /* First check for non overlap condition as it is common to all */
+        if((uiBegin > CurrentLog->ulTotalRecordCount) && (uiEnd < uiFirstSeq))
+            return(0);
+        
+        if(bWrapLog == false) { /* Only request range wraps */
+            if(uiEnd < uiFirstSeq) {
+                uiEnd = CurrentLog->ulTotalRecordCount;
+                if(uiBegin < uiFirstSeq)
+                    uiBegin = uiFirstSeq;
+            } else {
+                uiBegin = uiFirstSeq;
+                if(uiEnd > CurrentLog->ulTotalRecordCount)
+                    uiEnd = CurrentLog->ulTotalRecordCount;
+            }
+        } else if(bWrapReq == false) { /* Only log wraps */
+            if(uiBegin > CurrentLog->ulTotalRecordCount) {
+                if(uiBegin > uiFirstSeq)
+                    uiBegin = uiFirstSeq;
+            } else {
+                if(uiEnd > CurrentLog->ulTotalRecordCount)
+                    uiEnd = CurrentLog->ulTotalRecordCount;
+            }
+        } else { /* Both wrap */
+            if(uiBegin < uiFirstSeq)
+                uiBegin = uiFirstSeq;
+            
+            if(uiEnd > CurrentLog->ulTotalRecordCount)
+                uiEnd = CurrentLog->ulTotalRecordCount;
+        }
+    }
+
+    /* We now have a range that lies completely within the log buffer
+     * and we need to figure out where that starts in the buffer.
+     */
+    uiIndex = uiBegin - uiFirstSeq + 1;
+    uiSequence = uiBegin;
+    uiFirst = uiIndex; /* Record where we started from */
+    while(uiSequence != uiEnd + 1) {
+        if(uiRemaining < TL_MAX_ENC) {
+            /*
+             * Can't fit any more in! We just set the result flag to say there 
+             * was more and drop out of the loop early
+             */
+            bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true); 
+            break;
+        }               
+        
+        iTemp = TL_encode_entry(&apdu[iLen], pRequest->object_instance, uiIndex);    
+        
+        uiRemaining -= iTemp; /* Reduce the remaining space */
+        iLen        += iTemp; /* and increase the length consumed */
+        uiLast = uiIndex;       /* Record the last entry encoded */
+        uiIndex++;              /* and get ready for next one */
+        uiSequence++;
+        pRequest->ItemCount++;  /* Chalk up another one for the response count */
+    }
+    
+    /* Set remaining result flags if necessary */
+    if(uiFirst == 1)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+        
+    if(uiLast == CurrentLog->ulRecordCount)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  true);
+    
+    pRequest->FirstSequence = uiBegin;
+    
+return(iLen);
+}
+
+/****************************************************************************
+ * Handle encoding for the By Time option.                                  *
+ * The fact that the buffer always has at least a single entry is used      *
+ * implicetly in the following as we don't have to handle the case of an    *
+ * empty buffer.                                                            *
+ ****************************************************************************/
+
+int TL_encode_by_time(
+    uint8_t *apdu,
+    BACNET_READ_RANGE_DATA *pRequest,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE  *error_code)
+{
+    int iLen;
+    int32_t iTemp;
+    int iCount;
+    TL_LOG_INFO *CurrentLog;
+
+    uint32_t uiIndex;     /* Current entry number */
+    uint32_t uiFirst;     /* Entry number we started encoding from */
+    uint32_t uiLast;      /* Entry number we finished encoding on */
+    uint32_t uiRemaining; /* Amount of unused space in packet */
+    uint32_t uiFirstSeq;  /* Sequence number for 1st record in log */
+    time_t tRefTime;       /* The time from the request in local format */
+    
+    uiFirst = 0;
+    uiLast  = 0;
+    iLen    = 0;
+    uiRemaining = MAX_APDU - pRequest->Overhead; /* See how much space we have */
+    CurrentLog = &LogInfo[pRequest->object_instance];
+    
+    tRefTime = TL_BAC_Time_To_Local(&pRequest->Range.RefTime);
+    /* Find correct position for oldest entry in log */
+    if(CurrentLog->ulRecordCount < TL_MAX_ENTRIES)
+        uiIndex = 0;
+    else
+        uiIndex = CurrentLog->iIndex;
+        
+    if(pRequest->Count < 0) {
+        /* Start at end of log and look for record which has
+         * timestamp greater than or equal to the reference.
+         */
+        iCount = CurrentLog->ulRecordCount - 1;
+	    /* Start out with the sequence number for the last record */
+	    uiFirstSeq = CurrentLog->ulTotalRecordCount;
+        for(;;) {
+            if(Logs[pRequest->object_instance][(uiIndex + iCount) % TL_MAX_ENTRIES].tTimeStamp < tRefTime)
+                break;
+            
+            uiFirstSeq--;
+            iCount--;
+            if(iCount < 0)
+                return(0);
+        }
+        
+        /* We have an and point for our request,
+         * now work backwards to find where we should start from
+         */
+        
+        pRequest->Count  = -pRequest->Count; /* Conveert to +ve count */
+        /* If count would bring us back beyond the limits
+         * Of the buffer then pin it to the start of the buffer
+         * otherwise adjust starting point and sequence number 
+         * appropriately.
+         */
+        iTemp = pRequest->Count - 1;     
+        if(iTemp > iCount) {
+            uiFirstSeq      -= iCount;
+            pRequest->Count  = iCount + 1;
+            iCount = 0;
+        } else {
+            uiFirstSeq -= iTemp;
+            iCount     -= iTemp;
+        }
+    } else {
+        /* Start at beginning of log and look for 1st record which has
+         * timestamp greater than the reference time.
+         */
+        iCount = 0;
+	    /* Figure out the sequence number for the first record, last is ulTotalRecordCount */
+	    uiFirstSeq = CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
+        for(;;) {
+            if(Logs[pRequest->object_instance][(uiIndex + iCount) % TL_MAX_ENTRIES].tTimeStamp > tRefTime)
+                break;
+            
+            uiFirstSeq++;
+            iCount++;
+            if(iCount == CurrentLog->ulRecordCount)
+                return(0);
+        }
+    }
+
+    /* We now have a starting point for the operation and a +ve count */
+    
+    uiIndex = iCount + 1; /* Convert to BACnet 1 based reference */
+    uiFirst = uiIndex; /* Record where we started from */
+    iCount  = pRequest->Count;
+    while(iCount != 0) {
+        if(uiRemaining < TL_MAX_ENC) {
+            /*
+             * Can't fit any more in! We just set the result flag to say there 
+             * was more and drop out of the loop early
+             */
+            bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true); 
+            break;
+        }               
+        
+        iTemp = TL_encode_entry(&apdu[iLen], pRequest->object_instance, uiIndex);    
+        
+        uiRemaining -= iTemp;   /* Reduce the remaining space */
+        iLen        += iTemp;   /* and increase the length consumed */
+        uiLast = uiIndex;       /* Record the last entry encoded */
+        uiIndex++;              /* and get ready for next one */
+        pRequest->ItemCount++;  /* Chalk up another one for the response count */
+        iCount--;               /* And finally cross another one off the requested count */
+
+        if(uiIndex > CurrentLog->ulRecordCount) /* Finish up if we hit the end of the log */
+            break;
+    }
+    
+    /* Set remaining result flags if necessary */
+    if(uiFirst == 1)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+        
+    if(uiLast == CurrentLog->ulRecordCount)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  true);
+    
+    pRequest->FirstSequence = uiFirstSeq;
+    
+return(iLen);
+}
+
+
 int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 {
     int iLen;
@@ -1211,8 +1491,12 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
     
     /* Convert from BACnet 1 based to 0 based array index and then
      * handle wrap around of the circular buffer */
-     
-    pSource = &Logs[iLog][(iEntry - 1) % TL_MAX_ENTRIES];
+    
+    if(LogInfo[iLog].ulRecordCount < TL_MAX_ENTRIES)
+        pSource = &Logs[iLog][(iEntry - 1) % TL_MAX_ENTRIES];
+    else
+        pSource = &Logs[iLog][(LogInfo[iLog].iIndex + iEntry - 1) % TL_MAX_ENTRIES];
+    
     iLen = 0;
     /* First stick the time stamp in with tag [0] */
     TL_Local_Time_To_BAC(&TempTime, pSource->tTimeStamp);
