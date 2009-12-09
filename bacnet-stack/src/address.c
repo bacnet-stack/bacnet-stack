@@ -686,7 +686,8 @@ int rr_address_list_encode(
     uiFirst = 0;
     uiLast  = 0;
     iLen    = 0;
-    uiRemaining = MAX_APDU - pRequest->Overhead; /* See how much space we have */
+    /* See how much space we have */
+    uiRemaining = (uint32_t)(MAX_APDU - pRequest->Overhead); 
 
     pRequest->ItemCount = 0;    /* Start out with nothing */
     uiTotal = address_count();  /* What do we have to work with here ? */
@@ -764,8 +765,11 @@ int rr_address_list_encode(
             break;
         }               
             
-        iTemp  = encode_application_object_id(&apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
-        iTemp += encode_application_unsigned(&apdu[iLen + iTemp],  pMatch->address.net);
+        iTemp  = (int32_t)encode_application_object_id(&apdu[iLen], 
+            OBJECT_DEVICE, 
+            pMatch->device_id);
+        iTemp += encode_application_unsigned(&apdu[iLen + iTemp],  
+            pMatch->address.net);
         
         /* pick the appropriate type of entry from the cache */
         
