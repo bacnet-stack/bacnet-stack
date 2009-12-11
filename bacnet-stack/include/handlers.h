@@ -78,6 +78,13 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+        
+    int local_read_property(
+        uint8_t * value,
+        uint8_t * status,
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
     void handler_rr_object_set(
         BACNET_OBJECT_TYPE object_type,

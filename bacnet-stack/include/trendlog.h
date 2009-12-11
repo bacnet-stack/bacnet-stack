@@ -119,6 +119,9 @@ extern "C" {
 		BACNET_ERROR_CLASS *error_class,
 		BACNET_ERROR_CODE  *error_code);
 
+        void trend_log_timer(
+            uint16_t uSeconds);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

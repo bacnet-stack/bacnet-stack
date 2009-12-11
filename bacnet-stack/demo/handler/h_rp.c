@@ -32,6 +32,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacerror.h"
+#include "bacdevobjpropref.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
@@ -59,7 +60,7 @@ void handler_read_property_object_set(
 int Encode_Property_APDU(
     uint8_t * apdu,
     BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
+    uint32_t  object_instance,
     BACNET_PROPERTY_ID property,
     int32_t array_index,
     BACNET_ERROR_CLASS * error_class,
@@ -189,4 +190,30 @@ void handler_read_property(
 #endif
 
     return;
+}
+
+
+int local_read_property(
+    uint8_t * value,
+    uint8_t * status,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
+    
+{
+    int len = 0;
+
+    /* Try to fetch the required property */
+    len = Encode_Property_APDU(value, Source->objectIdentifier.type,
+        Source->objectIdentifier.instance, Source->propertyIdentifier,
+        Source->arrayIndex, error_class, error_code);
+        
+    if((len >= 0) && (status != NULL)){
+        /* Fetch the status flags if required */
+        Encode_Property_APDU(status, Source->objectIdentifier.type,
+            Source->objectIdentifier.instance, PROP_STATUS_FLAGS,
+            0, error_class, error_code);
+    }
+    
+    return(len);
 }
