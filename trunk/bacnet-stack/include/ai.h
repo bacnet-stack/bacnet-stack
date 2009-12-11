@@ -32,6 +32,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+#ifndef MAX_ANALOG_INPUTS
+#define MAX_ANALOG_INPUTS 7
+#endif
+
     void Analog_Input_Property_Lists(
         const int **pRequired,
         const int **pOptional,

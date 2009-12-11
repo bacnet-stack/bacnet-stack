@@ -296,7 +296,8 @@ int main(
     int iCount = 0;
     int iType = 0;
     int iKey;
-    static int iLimit[3] = { 7, 11, 7 };
+    int iSecondsRun = 0;
+
 
     if (((argc != 2) && (argc != 3)) || ((argc >= 2) &&
             (strcmp(argv[1], "--help") == 0))) {
@@ -352,8 +353,6 @@ int main(
         for (;;) {
             /* increment timer - exit if timed out */
             current_seconds = time(NULL);
-            if (current_seconds != last_seconds) {
-            }
 
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
@@ -365,10 +364,16 @@ int main(
             /* at least one second has passed */
             if (current_seconds != last_seconds) {
                 putchar('.');   /* Just to show that time is passing... */
-                last_seconds = current_seconds;
-                tsm_timer_milliseconds(((current_seconds -
-                            last_seconds) * 1000));
+                tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
                 address_cache_timer(current_seconds - last_seconds);
+                trend_log_timer(current_seconds - last_seconds);
+                last_seconds = current_seconds;
+                /* Change the analog input PVs for testing purposes */
+                for(iCount = 0; iCount < MAX_ANALOG_INPUTS; iCount++) {
+                    Analog_Input_Present_Value_Set(iCount, iSecondsRun * (iCount + 1));
+                }
+                    
+                iSecondsRun++;
             }
 
             if (_kbhit()) {
@@ -403,9 +408,10 @@ int main(
             }
             /* at least one second has passed */
             if (current_seconds != last_seconds) {
-                tsm_timer_milliseconds(((current_seconds -
-                            last_seconds) * 1000));
+                tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
                 address_cache_timer(current_seconds - last_seconds);
+                trend_log_timer(current_seconds - last_seconds);
+                last_seconds = current_seconds;
             }
             if (Error_Detected)
                 break;
