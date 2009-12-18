@@ -61,6 +61,15 @@ typedef bool(
     *object_valid_instance_function) (
     uint32_t object_instance);
 
+/* structure for linked list of object functions */
+struct BACnet_Read_Property_Functions;
+typedef struct BACnet_Read_Property_Functions {
+    BACNET_OBJECT_TYPE object_type;
+    read_property_function rp_object_property_value;
+    object_valid_instance_function rp_object_valid_instance;
+    struct BACnet_Read_Property_Functions *next;    
+} BACNET_RP_FUNCTIONS;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
