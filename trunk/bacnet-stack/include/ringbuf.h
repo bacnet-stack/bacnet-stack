@@ -64,6 +64,8 @@ extern "C" {
     bool Ringbuf_Put(
         RING_BUFFER * b,        /* ring buffer structure */
         char *data_element);    /* one element to add to the ring */
+    char * Ringbuf_Alloc(
+        RING_BUFFER * b);
     void Ringbuf_Init(
         RING_BUFFER * b,        /* ring buffer structure */
         char *data,     /* data block or array of data */

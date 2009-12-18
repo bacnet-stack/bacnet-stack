@@ -76,17 +76,17 @@ char *Ringbuf_Get_Front(
 char *Ringbuf_Pop_Front(
     RING_BUFFER * b)
 {
-    char *data = NULL;  /* return value */
+    char *ring_data = NULL;     /* used to help point ring data */
 
     if (b && b->count) {
-        data = &(b->data[b->head * b->element_size]);
+        ring_data = &(b->data[b->head * b->element_size]);
         b->head++;
         if (b->head >= b->element_count)
             b->head = 0;
         b->count--;
     }
 
-    return data;
+    return ring_data;
 }
 
 /****************************************************************************
@@ -121,6 +121,33 @@ bool Ringbuf_Put(
 
     return status;
 }
+
+/****************************************************************************
+* DESCRIPTION: Allocates and adds an element of data to the ring buffer
+* RETURN:      pointer to the data, or NULL if nothing in the list
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+char * Ringbuf_Alloc(
+    RING_BUFFER * b)
+{ 
+    unsigned offset = 0;        /* offset into array of data */
+    char *ring_data = NULL;     /* used to help point ring data */
+
+    if (b) {
+        /* limit the amount of data that we accept */
+        if (b->count < b->element_count) {
+            offset = b->head + b->count;
+            if (offset >= b->element_count)
+                offset -= b->element_count;
+            ring_data = b->data + offset * b->element_size;
+            b->count++;
+        }
+    }
+
+    return ring_data;
+}
+
 
 /****************************************************************************
 * DESCRIPTION: Configures the ring buffer
@@ -251,7 +278,19 @@ void testRingBuf(
         }
     }
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
-
+    /* test the alloc feature */
+    test_data = Ringbuf_Alloc(&test_buffer);
+    ct_test(pTest, test_data != NULL);
+    ct_test(pTest, !Ringbuf_Empty(&test_buffer));
+    for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
+        test_data[data_index] = data_index;
+    }
+    test_data = Ringbuf_Pop_Front(&test_buffer);
+    ct_test(pTest, test_data != NULL);
+    ct_test(pTest, Ringbuf_Empty(&test_buffer));
+    for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
+        ct_test(pTest, test_data[data_index] == data_index);
+    }
 
     return;
 }
