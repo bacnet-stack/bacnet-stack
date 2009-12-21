@@ -56,7 +56,6 @@ DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
 # core BACnet stack files
 CORESRC =  \
 	$(BACNET_CORE)/crc.c \
-	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/bacdcode.c \
 	$(BACNET_CORE)/bacint.c \
