@@ -289,7 +289,10 @@
   server application that can be built using
   <a href="http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/AVR_GCC_Tool_Collection">GCC-AVR</a> or
   <a href="http://winavr.sourceforge.net/">WinAVR</a> for Atmel AVR series of microcontrollers.
-  The datalink layer uses BACnet MS/TP
+  There is also a project in the 
+  <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/bdk-atxx4-mstp">ports/bdk-atxx4-mstp</a>
+  directory which works on the <a href="http://bacnetdevelopmentkit.com/">ATmega644 based BACnet Development Kit</a>.
+  Both ports use the BACnet MS/TP datalink layer 
   and the example uses several different objects and services.</p>
 
   <TABLE border="1" width="100%" cellpadding="1" cellspacing="0"
@@ -521,10 +524,10 @@
   <p>More details about the project can be found on
   the <a href="http://sourceforge.net/projects/bacnet/">BACnet Source Forge Project Page</a></p>
 
-  <p>There is documentation that <a href="http://sourceforge.net/docman/display_doc.php?docid=33182&group_id=117598">describes the mechanisms in the BACnet Stack</a>.
-  I wrote up some <a href="http://sourceforge.net/docman/display_doc.php?docid=35583&group_id=117598">answers to some frequently asked questions</a>.
+  <p>There is documentation that <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/doc/README.developer">describes the mechanisms in the BACnet Stack</a>.
+  I wrote up some <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/doc/README.faq">answers to some frequently asked questions</a>.
 Of course, there are a handful of text files in the doc directory of
-the project.</p>
+the project with more useful information.</p>
 
   <p><a
     href="http://sourceforge.net/project/showfiles.php?group_id=117598&package_id=140172">BACnet
@@ -589,9 +592,13 @@ There are a number of resources that can help you develop a BACnet product or pr
 <p>Did you develop a product using this BACnet stack?  <a href="http://kargs.net/contacts.html">Let us know</a>, and you
 can get a little recognition for your hard work!</p>
 
+<p><a href="http://bacnetdevelopmentkit.com/">BACnet Development Kit</a> - An 
+Atmel ATmega644 based development kit designed to kickstart BACnet MS/TP 
+development.</p>
+
 <p><a href="http://sensors.scinterface.com/">SCInterface&trade; = Sensor Control Interface</a> - middleware
  platform for managing legacy and modern-day sensors through a centralized
- interface</p>
+ interface.</p>
 
 <p><a href="http://sourceforge.net/projects/bacnet-sim/">BACnetSim</a> - a
 portable implementation of the BACnet data communication protocol.
@@ -608,6 +615,6 @@ access layer. BACnetSim is a fork of bacnet-stack-0.0.1</p>
     <b>BACnet<sup>&reg;</sup></b> are registered trademarks of the American
     Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.,
     1791 Tullie Circle NE, Atlanta, GA 30329.</font> </p>
-  <p>Website updated 31-January-2009 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
+  <p>Website updated 28-December-2009 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
 </BODY>
 </HTML>
