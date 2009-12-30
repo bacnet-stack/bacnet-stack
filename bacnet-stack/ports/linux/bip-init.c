@@ -66,10 +66,12 @@ static int get_local_ifr_ioctl(
 
     strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name));
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    if (fd < 0)
+    if (fd < 0) {
         rv = fd;
-    else
+    } else {
         rv = ioctl(fd, request, ifr);
+        close(fd);
+    }
 
     return rv;
 }
