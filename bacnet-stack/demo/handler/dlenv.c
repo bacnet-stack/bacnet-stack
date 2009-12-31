@@ -53,8 +53,10 @@ void dlenv_init(
         datalink_set(NULL);
     }
 #endif
-
 #if defined(BACDL_BIP)
+#if defined(BIP_DEBUG)
+    BIP_Debug = true;
+#endif
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
         bip_set_port(strtol(pEnv, NULL, 0));
