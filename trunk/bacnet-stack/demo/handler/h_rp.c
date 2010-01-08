@@ -154,10 +154,22 @@ void handler_read_property(
         len =
             rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, &data);
+        if (len > service_data->max_resp) {
+            /* we don't support segmentation - send an abort */
+            len =
+                abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+                true);
 #if PRINT_ENABLED
-        fprintf(stderr, "RP: Sending Ack!\n");
+            fprintf(stderr, "RP: Message too large.  Sending Abort!\n");
 #endif
-        error = false;
+            goto RP_ABORT;
+        } else {
+#if PRINT_ENABLED
+            fprintf(stderr, "RP: Sending Ack!\n");
+#endif
+            error = false;
+        }
     }
     if (error) {
         if (len == -2) {

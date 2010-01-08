@@ -423,6 +423,17 @@ void handler_read_property_multiple(
             break;
         }
     } while (1);
+    if (pdu_len > service_data->max_resp) {
+        /* we don't support segmentation - send an abort */
+        apdu_len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
+#if PRINT_ENABLED
+        fprintf(stderr, "RP: Message too large.  Sending Abort!\n");
+#endif
+        goto RPM_ABORT;
+    }
   RPM_ABORT:
     pdu_len = apdu_len + npdu_len;
     bytes_sent =
