@@ -38,6 +38,10 @@
 #include "cov.h"
 #include "bactext.h"
 
+#ifndef MAX_COV_PROPERTIES
+#define MAX_COV_PROPERTIES 2
+#endif
+
 /* note: nothing is specified in BACnet about what to do with the
   information received from Unconfirmed COV Notifications. */
 void handler_ucov_notification(
@@ -46,15 +50,26 @@ void handler_ucov_notification(
     BACNET_ADDRESS * src)
 {
     BACNET_COV_DATA cov_data;
-    BACNET_PROPERTY_VALUE property_value;
+    BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
+    BACNET_PROPERTY_VALUE *pProperty_value = NULL;
     int len = 0;
+    unsigned index = 0;
 
     /* src not needed for this application */
     src = src;
     /* create linked list to store data if more 
        than one property value is expected */
-    property_value.next = NULL;
-    cov_data.listOfValues = &property_value;
+    pProperty_value = &property_value[0];
+    while (pProperty_value) {
+        index++;
+        if (index < MAX_COV_PROPERTIES) {
+            pProperty_value->next = &property_value[index];
+        } else {
+            pProperty_value->next = NULL;
+        }
+        pProperty_value = pProperty_value->next;
+    }
+    cov_data.listOfValues = &property_value[0];
 #if PRINT_ENABLED
     fprintf(stderr, "UCOV: Received Notification!\n");
 #endif
@@ -70,17 +85,23 @@ void handler_ucov_notification(
             bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
             cov_data.monitoredObjectIdentifier.instance);
         fprintf(stderr, "time remaining=%u seconds ", cov_data.timeRemaining);
-        if (property_value.propertyIdentifier < 512) {
-            fprintf(stderr, "%s ",
-                bactext_property_name(property_value.propertyIdentifier));
-        } else {
-            fprintf(stderr, "proprietary %u ",
-                property_value.propertyIdentifier);
-        }
-        if (property_value.propertyArrayIndex != BACNET_ARRAY_ALL) {
-            fprintf(stderr, "%u ", property_value.propertyArrayIndex);
-        }
         fprintf(stderr, "\n");
+        pProperty_value = &property_value[0];
+        while (pProperty_value) {
+            fprintf(stderr, "UCOV: ");
+            if (pProperty_value->propertyIdentifier < 512) {
+                fprintf(stderr, "%s ",
+                    bactext_property_name(pProperty_value->propertyIdentifier));
+            } else {
+                fprintf(stderr, "proprietary %u ",
+                    pProperty_value->propertyIdentifier);
+            }
+            if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
+                fprintf(stderr, "%u ", pProperty_value->propertyArrayIndex);
+            }
+            fprintf(stderr, "\n");
+            pProperty_value = pProperty_value->next;
+        }
     } else {
         fprintf(stderr, "UCOV: Unable to decode service request!\n");
     }
