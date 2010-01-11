@@ -155,7 +155,7 @@ void handler_read_property(
             rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, &data);
         if (len > service_data->max_resp) {
-            /* we don't support segmentation - send an abort */
+            /* too big for the sender - send an abort */
             len =
                 abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
