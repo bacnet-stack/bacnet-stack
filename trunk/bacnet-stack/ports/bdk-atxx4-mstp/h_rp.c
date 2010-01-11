@@ -163,7 +163,16 @@ void handler_read_property(
         len =
             rp_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, &data);
-        error = false;
+        if (len > service_data->max_resp) {
+            /* too big for the sender - send an abort */
+            len =
+                abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+                true);
+            goto RP_ABORT;
+        } else {
+            error = false;
+        }
     }
     if (error) {
         if (len == -2) {
