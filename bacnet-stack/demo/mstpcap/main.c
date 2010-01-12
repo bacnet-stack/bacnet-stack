@@ -318,6 +318,24 @@ size_t data_write(
 
     return fwrite(ptr, size, nitems, pFile);
 }
+
+size_t data_write_header(
+    const void *ptr,
+    size_t size,
+    size_t nitems,
+    bool pipe_enable)
+{
+    DWORD cbWritten = 0;
+    if (pipe_enable && (hPipe != INVALID_HANDLE_VALUE)) {
+        (void) WriteFile(hPipe, /* handle to pipe  */
+            ptr,        /* buffer to write from  */
+            size * nitems,      /* number of bytes to write  */
+            &cbWritten, /* number of bytes written  */
+            NULL);      /* not overlapped I/O  */
+    }
+
+    return fwrite(ptr, size, nitems, pFile);
+}
 #else
 static int FD_Pipe = -1;
 static void named_pipe_create(
@@ -348,6 +366,19 @@ size_t data_write(
     }
     return fwrite(ptr, size, nitems, pFile);
 }
+size_t data_write_header(
+    const void *ptr,
+    size_t size,
+    size_t nitems,
+    bool pipe_enable)
+{
+    ssize_t bytes = 0;
+    if (pipe_enable && (FD_Pipe != -1)) {
+        bytes = write(FD_Pipe, ptr, size * nitems);
+        bytes = bytes;
+    }
+    return fwrite(ptr, size, nitems, pFile);
+}
 #endif
 
 static void filename_create(
@@ -369,6 +400,7 @@ static void filename_create(
 static void write_global_header(
     const char *filename)
 {
+    static bool pipe_enable = true; /* don't write more than one header */
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
     uint16_t version_minor = 4; /* minor version number */
@@ -380,18 +412,21 @@ static void write_global_header(
     /* create a new file. */
     pFile = fopen(filename, "wb");
     if (pFile) {
-        (void) data_write(&magic_number, sizeof(magic_number), 1);
-        (void) data_write(&version_major, sizeof(version_major), 1);
-        (void) data_write(&version_minor, sizeof(version_minor), 1);
-        (void) data_write(&thiszone, sizeof(thiszone), 1);
-        (void) data_write(&sigfigs, sizeof(sigfigs), 1);
-        (void) data_write(&snaplen, sizeof(snaplen), 1);
-        (void) data_write(&network, sizeof(network), 1);
+        (void) data_write_header(&magic_number, sizeof(magic_number), 1, pipe_enable);
+        (void) data_write_header(&version_major, sizeof(version_major), 1, pipe_enable);
+        (void) data_write_header(&version_minor, sizeof(version_minor), 1, pipe_enable);
+        (void) data_write_header(&thiszone, sizeof(thiszone), 1, pipe_enable);
+        (void) data_write_header(&sigfigs, sizeof(sigfigs), 1, pipe_enable);
+        (void) data_write_header(&snaplen, sizeof(snaplen), 1, pipe_enable);
+        (void) data_write_header(&network, sizeof(network), 1, pipe_enable);
         fflush(pFile);
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
         fprintf(stderr, "mstpcap: failed to open %s: %s\n", filename,
             strerror(errno));
+    }
+    if (pipe_enable) {
+        pipe_enable = false;
     }
 }
 
