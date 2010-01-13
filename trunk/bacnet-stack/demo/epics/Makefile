@@ -44,9 +44,7 @@ endif
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
 
-SRCS = main.c \
-	$(BACNET_SOURCE)/keylist.c \
-	$(BACNET_SOURCE)/key.c
+SRCS = main.c
 
 OBJS = ${SRCS:.c=.o}
 
