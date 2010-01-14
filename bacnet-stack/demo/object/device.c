@@ -42,6 +42,8 @@
 #if defined(BACFILE)
 #include "bacfile.h"    /* object list dependency */
 #endif
+/* os specfic includes */
+#include "timer.h"
 
 #if defined(__BORLANDC__)
 /* seems to not be defined in time.h as specified by The Open Group */
@@ -149,8 +151,8 @@ static char Description[16] = "server";
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
-BACNET_TIME Local_Time; /* rely on OS, if there is one */
-BACNET_DATE Local_Date; /* rely on OS, if there is one */
+static BACNET_TIME Local_Time; /* rely on OS, if there is one */
+static BACNET_DATE Local_Date; /* rely on OS, if there is one */
 /* NOTE: BACnet UTC Offset is inverse of common practice.
    If your UTC offset is -5hours of GMT, 
    then BACnet UTC offset is +5hours.
@@ -494,9 +496,8 @@ char *Device_Valid_Object_Id(
 
 static void Update_Current_Time(void)
 {
-    time_t timer;
-    struct tm *tblock;
-
+    struct tm *tblock = NULL;
+    struct timeval tv;
 /*
 struct tm
     
@@ -510,22 +511,29 @@ int    tm_wday  Day of week [0,6] (Sunday =0).
 int    tm_yday  Day of year [0,365]. 
 int    tm_isdst Daylight Savings flag. 
 */
-
-    timer = time(NULL);
-    tblock = localtime(&timer);
-    datetime_set_date(
-        &Local_Date,
-        (uint16_t) tblock->tm_year+1900,
-        (uint8_t) tblock->tm_mon+1, 
-        (uint8_t) tblock->tm_mday);
-    datetime_set_time(
-        &Local_Time,
-        (uint8_t) tblock->tm_hour, 
-        (uint8_t) tblock->tm_min,
-        (uint8_t) tblock->tm_sec, 0);
-    if (tblock->tm_isdst) {
-        Daylight_Savings_Status = true;
+    if (gettimeofday(&tv, NULL) == 0) { 
+        tblock = localtime(&tv.tv_sec);
+    }
+    if (tblock) {
+        datetime_set_date(
+            &Local_Date,
+            (uint16_t) tblock->tm_year+1900,
+            (uint8_t) tblock->tm_mon+1, 
+            (uint8_t) tblock->tm_mday);
+        datetime_set_time(
+            &Local_Time,
+            (uint8_t) tblock->tm_hour, 
+            (uint8_t) tblock->tm_min,
+            (uint8_t) tblock->tm_sec, 
+            (uint8_t)(tv.tv_usec / 10000));
+        if (tblock->tm_isdst) {
+            Daylight_Savings_Status = true;
+        } else {
+            Daylight_Savings_Status = false;
+        }
     } else {
+        datetime_date_wildcard_set(&Local_Date);
+        datetime_time_wildcard_set(&Local_Time);        
         Daylight_Savings_Status = false;
     }
 }
@@ -616,6 +624,7 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_date(&apdu[0], &Local_Date);
             break;
         case PROP_DAYLIGHT_SAVINGS_STATUS:
+            Update_Current_Time();
             apdu_len =
                 encode_application_boolean(&apdu[0], Daylight_Savings_Status);
             break;
