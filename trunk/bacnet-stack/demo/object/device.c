@@ -531,6 +531,8 @@ int    tm_isdst Daylight Savings flag.
         } else {
             Daylight_Savings_Status = false;
         }
+        /* note: timezone is declared in <time.h> stdlib. */
+        UTC_Offset = timezone/60;
     } else {
         datetime_date_wildcard_set(&Local_Date);
         datetime_time_wildcard_set(&Local_Time);        
@@ -615,8 +617,7 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_time(&apdu[0], &Local_Time);
             break;
         case PROP_UTC_OFFSET:
-            /* note: timezone is declared in <time.h> stdlib. */
-            UTC_Offset = timezone/60;
+            Update_Current_Time();
             apdu_len = encode_application_signed(&apdu[0], UTC_Offset);
             break;
         case PROP_LOCAL_DATE:
