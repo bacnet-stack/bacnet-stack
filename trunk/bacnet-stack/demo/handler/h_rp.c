@@ -78,11 +78,20 @@ int Encode_Property_APDU(
         object_rp = Read_Property[object_type];
         object_valid = Valid_Instance[object_type];
     }
-    if (object_rp && object_valid && object_valid(object_instance)) {
-        apdu_len =
-            object_rp(&apdu[0], object_instance, property, array_index,
-            error_class, error_code);
+    if (object_rp && object_valid) {
+        /* There are handlers for this type of object */
+        if(object_valid(object_instance)) {
+            apdu_len =
+                object_rp(&apdu[0], object_instance, property, array_index,
+                error_class, error_code);
+        } else {
+            /* The specified object instance is not valid */
+            *error_class = ERROR_CLASS_OBJECT;
+            *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+        
     } else {
+        /* We don't support this object type */
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
