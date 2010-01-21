@@ -33,6 +33,8 @@ static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 
 /* start time for the clock */
 static struct timespec start;
+/* The timeGetTime function retrieves the system time, in milliseconds. 
+   The system time is the time elapsed since Windows was started. */
 uint32_t timeGetTime(
     void)
 {
