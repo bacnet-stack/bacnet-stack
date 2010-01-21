@@ -39,7 +39,6 @@
 #include "rd.h"
 
 static char *Password = "Jesus";
-static BACNET_CHARACTER_STRING My_Password;
 
 void handler_reinitialize_device(
     uint8_t * service_request,
@@ -107,8 +106,7 @@ void handler_reinitialize_device(
             "ReinitializeDevice: Sending Reject - undefined enumeration\n");
 #endif
     } else {
-        characterstring_init_ansi(&My_Password, Password);
-        if (characterstring_same(&their_password, &My_Password)) {
+        if (characterstring_ansi_same(&their_password, Password)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
