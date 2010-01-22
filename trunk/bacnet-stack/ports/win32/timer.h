@@ -33,7 +33,9 @@
 #if defined(__BORLANDC__)
 #include <winsock2.h>
 #else
+#if !defined(_MSC_VER)
 #include <sys/time.h>
+#endif
 #endif
 #include <sys/timeb.h>
 #if defined(__BORLANDC__)

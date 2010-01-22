@@ -497,7 +497,11 @@ char *Device_Valid_Object_Id(
 static void Update_Current_Time(void)
 {
     struct tm *tblock = NULL;
+    #if defined(_MSC_VER)
+    time_t tTemp;
+    #else
     struct timeval tv;
+    #endif
 /*
 struct tm
     
@@ -511,21 +515,36 @@ int    tm_wday  Day of week [0,6] (Sunday =0).
 int    tm_yday  Day of year [0,365]. 
 int    tm_isdst Daylight Savings flag. 
 */
+    #if defined(_MSC_VER)
+    time(&tTemp);
+    tblock = localtime(&tTemp);
+    #else
     if (gettimeofday(&tv, NULL) == 0) { 
         tblock = localtime(&tv.tv_sec);
     }
+    #endif
+    
     if (tblock) {
         datetime_set_date(
             &Local_Date,
             (uint16_t) tblock->tm_year+1900,
             (uint8_t) tblock->tm_mon+1, 
             (uint8_t) tblock->tm_mday);
+        #if !defined(_MSC_VER)
         datetime_set_time(
             &Local_Time,
             (uint8_t) tblock->tm_hour, 
             (uint8_t) tblock->tm_min,
             (uint8_t) tblock->tm_sec, 
             (uint8_t)(tv.tv_usec / 10000));
+        #else
+        datetime_set_time(
+            &Local_Time,
+            (uint8_t) tblock->tm_hour, 
+            (uint8_t) tblock->tm_min,
+            (uint8_t) tblock->tm_sec, 
+            0);
+        #endif
         if (tblock->tm_isdst) {
             Daylight_Savings_Status = true;
         } else {
