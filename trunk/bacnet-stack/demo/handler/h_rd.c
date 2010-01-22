@@ -122,7 +122,7 @@ void handler_reinitialize_device(
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                ERROR_CLASS_SERVICES, ERROR_CODE_PASSWORD_FAILURE);
+                ERROR_CLASS_SECURITY, ERROR_CODE_PASSWORD_FAILURE);
 #if PRINT_ENABLED
             fprintf(stderr,
                 "ReinitializeDevice: Sending Error - password failure.\n");
