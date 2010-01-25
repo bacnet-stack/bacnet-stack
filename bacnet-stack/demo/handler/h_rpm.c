@@ -430,7 +430,7 @@ void handler_read_property_multiple(
             service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
             true);
 #if PRINT_ENABLED
-        fprintf(stderr, "RP: Message too large.  Sending Abort!\n");
+        fprintf(stderr, "RPM: Message too large.  Sending Abort!\n");
 #endif
         goto RPM_ABORT;
     }
