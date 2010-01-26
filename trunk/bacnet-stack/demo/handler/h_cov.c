@@ -385,8 +385,8 @@ void handler_cov_task(
             if (lifetime_seconds >= elapsed_seconds) {
                 COV_Subscriptions[index].lifetime -= elapsed_seconds;
 #if 0
-                fprintf(stderr, "COVtask: subscription[%d].lifetime=%d\n",
-                    index, COV_Subscriptions[index].lifetime);
+                fprintf(stderr, "COVtask: subscription[%d].lifetime=%lu\n",
+                    index, (unsigned long)COV_Subscriptions[index].lifetime);
 #endif
             } else {
                 COV_Subscriptions[index].lifetime = 0;

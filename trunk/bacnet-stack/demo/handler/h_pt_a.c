@@ -166,13 +166,13 @@ void ProcessPTA(
             cBlockNumber = (char) ulTemp;
             DecodeBlock(cBlockNumber, &data->serviceParameters[iLen]);
         } else {        /* Read error */
-            printf("Private Transfer read operation returned error code: %u\n",
-                uiErrorCode);
+            printf("Private Transfer read operation returned error code: %lu\n",
+                (unsigned long)uiErrorCode);
             return;
         }
     } else {    /* Write I/O block - should just be an OK type message */
-        printf("Private Transfer write operation returned error code: %u\n",
-            uiErrorCode);
+        printf("Private Transfer write operation returned error code: %lu\n",
+            (unsigned long)uiErrorCode);
     }
 }
 

@@ -198,9 +198,9 @@ static void PrintReadPropertyMultipleData(
 
     if (rpm_data) {
 #if PRINT_ENABLED
-        fprintf(stdout, "%s #%u\r\n",
+        fprintf(stdout, "%s #%lu\r\n",
             bactext_object_type_name(rpm_data->object_type),
-            rpm_data->object_instance);
+            (unsigned long)rpm_data->object_instance);
         fprintf(stdout, "{\r\n");
 #endif
         listOfProperties = rpm_data->listOfProperties;
@@ -212,7 +212,7 @@ static void PrintReadPropertyMultipleData(
                         propertyIdentifier));
             } else {
                 fprintf(stdout, "    proprietary %u: ",
-                    listOfProperties->propertyIdentifier);
+                    (unsigned)listOfProperties->propertyIdentifier);
             }
 #endif
             if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
