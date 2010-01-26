@@ -348,8 +348,8 @@ void MSTP_Receive_Frame_FSM(
                 mstp_port->ReceivedInvalidFrame = true;
                 /* wait for the start of a frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-                printf_receive_error("MSTP: Rx Header: SilenceTimer %d > %d\n",
-                    mstp_port->SilenceTimer(), Tframe_abort);
+                printf_receive_error("MSTP: Rx Header: SilenceTimer %u > %d\n",
+                    (unsigned)mstp_port->SilenceTimer(), Tframe_abort);
             }
             /* Error */
             else if (mstp_port->ReceiveError == true) {
@@ -438,8 +438,8 @@ void MSTP_Receive_Frame_FSM(
                             /* FrameTooLong */
                             if (mstp_port->DataLength) {
                                 printf_receive_error
-                                    ("MSTP: Rx Header: FrameTooLong %d\n",
-                                    mstp_port->DataLength);
+                                    ("MSTP: Rx Header: FrameTooLong %u\n",
+                                    (unsigned)mstp_port->DataLength);
                                 /* indicate that a frame with an illegal or  */
                                 /* unacceptable data length has been received */
                                 mstp_port->ReceivedInvalidFrame = true;
@@ -471,8 +471,8 @@ void MSTP_Receive_Frame_FSM(
                     /* indicate that an error has occurred during  */
                     /* the reception of a frame */
                     mstp_port->ReceivedInvalidFrame = true;
-                    printf_receive_error("MSTP: Rx Data: BadIndex %d\n",
-                        mstp_port->Index);
+                    printf_receive_error("MSTP: Rx Data: BadIndex %u\n",
+                        (unsigned)mstp_port->Index);
                     /* wait for the start of a frame. */
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 }
@@ -488,8 +488,8 @@ void MSTP_Receive_Frame_FSM(
                 /* indicate that an error has occurred during the reception of a frame */
                 mstp_port->ReceivedInvalidFrame = true;
                 printf_receive_error
-                    ("MSTP: Rx Data: SilenceTimer %dms > %dms\n",
-                    mstp_port->SilenceTimer(), Tframe_abort);
+                    ("MSTP: Rx Data: SilenceTimer %ums > %dms\n",
+                    (unsigned)mstp_port->SilenceTimer(), Tframe_abort);
                 /* wait for the start of the next frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
             }

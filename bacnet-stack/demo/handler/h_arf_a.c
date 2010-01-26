@@ -79,8 +79,8 @@ void handler_atomic_read_file_ack(
                             octetstring_length(&data.fileData), 1,
                             pFile) != 1) {
 #if PRINT_ENABLED
-                        fprintf(stderr, "Failed to write to %s (%u)!\n",
-                            pFilename, instance);
+                        fprintf(stderr, "Failed to write to %s (%lu)!\n",
+                            pFilename, (unsigned long)instance);
 #endif
                     }
                     fclose(pFile);

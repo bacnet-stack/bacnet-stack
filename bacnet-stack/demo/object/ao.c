@@ -256,7 +256,7 @@ char *Analog_Output_Name(
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_OUTPUTS) {
-        sprintf(text_string, "ANALOG OUTPUT %u", object_instance);
+        sprintf(text_string, "ANALOG OUTPUT %lu", (unsigned long)object_instance);
         return text_string;
     }
 

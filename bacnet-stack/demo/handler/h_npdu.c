@@ -62,12 +62,12 @@ void npdu_handler(
         } else {
             if (dest.net) {
 #if PRINT_ENABLED
-                printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
+                printf("NPDU: DNET=%u.  Discarded!\n", (unsigned)dest.net);
 #endif
             } else {
 #if PRINT_ENABLED
-                printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n",
-                    npdu_data.protocol_version);
+                printf("NPDU: BACnet Protocol Version=%u.  Discarded!\n",
+                    (unsigned)npdu_data.protocol_version);
 #endif
             }
         }

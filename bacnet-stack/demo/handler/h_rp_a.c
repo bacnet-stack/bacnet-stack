@@ -55,14 +55,14 @@ static void PrintReadPropertyData(
     if (data) {
 #if 0
         if (data->array_index == BACNET_ARRAY_ALL)
-            fprintf(stderr, "%s #%u %s\n",
+            fprintf(stderr, "%s #%lu %s\n",
                 bactext_object_type_name(data->object_type),
-                data->object_instance,
+                (unsigned long)data->object_instance,
                 bactext_property_name(data->object_property));
         else
-            fprintf(stderr, "%s #%u %s[%d]\n",
+            fprintf(stderr, "%s #%lu %s[%d]\n",
                 bactext_object_type_name(data->object_type),
-                data->object_instance,
+                (unsigned long)data->object_instance,
                 bactext_property_name(data->object_property),
                 data->array_index);
 #endif

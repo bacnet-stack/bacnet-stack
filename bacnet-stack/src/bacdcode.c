@@ -2007,7 +2007,7 @@ void testBACDCodeUnsignedValue(
     len = decode_unsigned(&array[len], len_value, &decoded_value);
     ct_test(pTest, decoded_value == value);
     if (decoded_value != value) {
-        printf("value=%u decoded_value=%u\n", value, decoded_value);
+        printf("value=%lu decoded_value=%lu\n", (unsigned long)value, (unsigned long)decoded_value);
         print_apdu(&array[0], sizeof(array));
     }
     encode_application_unsigned(&encoded_array[0], decoded_value);
@@ -2075,14 +2075,14 @@ void testBACDCodeSignedValue(
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
     ct_test(pTest, decoded_value == value);
     if (decoded_value != value) {
-        printf("value=%d decoded_value=%d\n", value, decoded_value);
+        printf("value=%ld decoded_value=%ld\n", (long)value, (long)decoded_value);
         print_apdu(&array[0], sizeof(array));
     }
     encode_application_signed(&encoded_array[0], decoded_value);
     diff = memcmp(&array[0], &encoded_array[0], sizeof(array));
     ct_test(pTest, diff == 0);
     if (diff) {
-        printf("value=%d decoded_value=%d\n", value, decoded_value);
+        printf("value=%ld decoded_value=%ld\n", (long)value, (long)decoded_value);
         print_apdu(&array[0], sizeof(array));
         print_apdu(&encoded_array[0], sizeof(array));
     }

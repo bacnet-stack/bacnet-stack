@@ -822,10 +822,10 @@ bool bacapp_print_value(
                 fprintf(stream, "%s", value->type.Boolean ? "TRUE" : "FALSE");
                 break;
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                fprintf(stream, "%u", value->type.Unsigned_Int);
+                fprintf(stream, "%lu", (unsigned long)value->type.Unsigned_Int);
                 break;
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                fprintf(stream, "%d", value->type.Signed_Int);
+                fprintf(stream, "%ld", (long)value->type.Signed_Int);
                 break;
             case BACNET_APPLICATION_TAG_REAL:
                 fprintf(stream, "%f", (double) value->type.Real);
@@ -878,11 +878,11 @@ bool bacapp_print_value(
                                 bactext_object_type_name(value->type.
                                     Enumerated));
                         } else if (value->type.Enumerated < 128) {
-                            fprintf(stream, "reserved %u",
-                                value->type.Enumerated);
+                            fprintf(stream, "reserved %lu",
+                                (unsigned long)value->type.Enumerated);
                         } else {
-                            fprintf(stream, "proprietary %u",
-                                value->type.Enumerated);
+                            fprintf(stream, "proprietary %lu",
+                                (unsigned long)value->type.Enumerated);
                         }
                         break;
                     case PROP_EVENT_STATE:
@@ -895,8 +895,8 @@ bool bacapp_print_value(
                                 bactext_engineering_unit_name(value->
                                     type.Enumerated));
                         } else {
-                            fprintf(stream, "proprietary %u",
-                                value->type.Enumerated);
+                            fprintf(stream, "proprietary %lu",
+                                (unsigned long)value->type.Enumerated);
                         }
                         break;
                     case PROP_PRESENT_VALUE:
@@ -918,7 +918,7 @@ bool bacapp_print_value(
                             bactext_segmentation_name(value->type.Enumerated));
                         break;
                     default:
-                        fprintf(stream, "%u", value->type.Enumerated);
+                        fprintf(stream, "%lu", (unsigned long)value->type.Enumerated);
                         break;
                 }
                 break;
@@ -962,17 +962,17 @@ bool bacapp_print_value(
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
-                    fprintf(stream, "(%s, %u)",
+                    fprintf(stream, "(%s, %lu)",
                         bactext_object_type_name(value->type.Object_Id.type),
-                        value->type.Object_Id.instance);
+                        (unsigned long)value->type.Object_Id.instance);
                 } else if (value->type.Object_Id.type < 128) {
-                    fprintf(stream, "(reserved %u, %u)",
-                        value->type.Object_Id.type,
-                        value->type.Object_Id.instance);
+                    fprintf(stream, "(reserved %u, %lu)",
+                        (unsigned)value->type.Object_Id.type,
+                        (unsigned long)value->type.Object_Id.instance);
                 } else {
-                    fprintf(stream, "(proprietary %u, %u)",
-                        value->type.Object_Id.type,
-                        value->type.Object_Id.instance);
+                    fprintf(stream, "(proprietary %u, %lu)",
+                        (unsigned)value->type.Object_Id.type,
+                        (unsigned long)value->type.Object_Id.instance);
                 }
                 break;
             default:

@@ -176,7 +176,7 @@ char *Binary_Value_Name(
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_BINARY_VALUES) {
-        sprintf(text_string, "BINARY VALUE %u", object_instance);
+        sprintf(text_string, "BINARY VALUE %lu", (unsigned long)object_instance);
         return text_string;
     }
 
