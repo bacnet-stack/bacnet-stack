@@ -164,7 +164,7 @@ static bool Daylight_Savings_Status = false;    /* rely on OS */
 /* Max_Master - rely on MS/TP subsystem, if there is one */
 /* Max_Info_Frames - rely on MS/TP subsystem, if there is one */
 /* Device_Address_Binding - required, but relies on binding cache */
-static uint8_t Database_Revision = 0;
+static uint32_t Database_Revision = 0;
 /* Configuration_Files */
 /* Last_Restore_Time */
 /* Backup_Failure_Timeout */
@@ -187,8 +187,11 @@ bool Device_Set_Object_Instance_Number(
 {
     bool status = true; /* return value */
 
-    if (object_id <= BACNET_MAX_INSTANCE)
+    if (object_id <= BACNET_MAX_INSTANCE) {
+        /* Make the change and update the database revision */
         Object_Instance_Number = object_id;
+        Device_Inc_Database_Revision();
+    }
     else
         status = false;
 
@@ -219,8 +222,10 @@ bool Device_Set_Object_Name(
        Disallow setting the Device Object Name to any objects in
        the device. */
     if (length < sizeof(My_Object_Name)) {
+        /* Make the change and update the database revision */
         memmove(My_Object_Name, name, length);
         My_Object_Name[length] = 0;
+        Device_Inc_Database_Revision();
         status = true;
     }
 
@@ -366,16 +371,27 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(
     return SEGMENTATION_NONE;
 }
 
-uint8_t Device_Database_Revision(
+uint32_t Device_Database_Revision(
     void)
 {
     return Database_Revision;
 }
 
 void Device_Set_Database_Revision(
-    uint8_t revision)
+    uint32_t revision)
 {
     Database_Revision = revision;
+}
+
+/* 
+ * Shortcut for incrementing database revision as this is potentially
+ * the most common operation if changing object names and ids is
+ * implemented.
+ */
+void Device_Inc_Database_Revision(
+    void)
+{
+    Database_Revision++;
 }
 
 /* Since many network clients depend on the object list */
@@ -868,18 +884,21 @@ bool Device_Write_Property(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                uint8_t encoding;
-                encoding =
-                    characterstring_encoding(&value.type.Character_String);
-                if (encoding == CHARACTER_ANSI_X34) {
-                    status =
-                        Device_Set_Object_Name(characterstring_value
-                        (&value.type.Character_String),
-                        characterstring_length(&value.type.Character_String));
-                    if (!status) {
+                if (characterstring_encoding(&value.type.Character_String) == CHARACTER_ANSI_X34) {
+					if(characterstring_length(&value.type.Character_String) == 0) {
                         *error_class = ERROR_CLASS_PROPERTY;
-                        *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    }
+                        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+					} else {
+						status =
+							Device_Set_Object_Name(characterstring_value
+							(&value.type.Character_String),
+							characterstring_length(&value.type.Character_String));
+					
+	                    if (!status) {
+		                    *error_class = ERROR_CLASS_RESOURCES;
+			                *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+				        }
+					}
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;

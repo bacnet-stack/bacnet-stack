@@ -136,10 +136,12 @@ extern "C" {
     BACNET_SEGMENTATION Device_Segmentation_Supported(
         void);
 
-    uint8_t Device_Database_Revision(
+    uint32_t Device_Database_Revision(
         void);
     void Device_Set_Database_Revision(
-        uint8_t revision);
+        uint32_t revision);
+    void Device_Inc_Database_Revision(
+        void);
 
     bool Device_Valid_Object_Name(
         const char *object_name,
