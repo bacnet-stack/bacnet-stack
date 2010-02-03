@@ -144,3 +144,72 @@ void handler_write_property(
 
     return;
 }
+
+
+/*
+ * Perform basic validation of Write Property argument based on
+ * the assumption that it is a string. Check for correct data type,
+ * correct encoding (fixed here as ANSI X34),correct length, and
+ * finally if it is allowed to be empty.
+ */
+
+bool WPValidateString(
+    BACNET_APPLICATION_DATA_VALUE *pValue,
+    int iMaxLen,
+    bool bEmptyAllowed,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+	bool bResult;
+
+    /* Save on a bit of code duplication by pre selecting the most
+     * common outcomes from the tests (not necessarily the most likely
+     * outcome of the tests).
+     */
+    bResult = false;
+    *pErrorClass = ERROR_CLASS_PROPERTY;
+
+    if(pValue->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+        if(characterstring_encoding(&pValue->type.Character_String) == CHARACTER_ANSI_X34) {
+            if((bEmptyAllowed == false) && (characterstring_length(&pValue->type.Character_String) == 0)) {
+                *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            } else if(characterstring_length(&pValue->type.Character_String) >= iMaxLen) {
+                *pErrorClass = ERROR_CLASS_RESOURCES;
+                *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            } else
+	            bResult = true; /* It's all good! */
+        } else
+            *pErrorCode = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+    } else
+        *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
+
+    return(bResult);
+}
+
+/*
+ * Perform simple validation of type of Write Property argument based
+ * the expected type vs the actual. Set up error response if the
+ * validation fails. Cuts out reams of repeated code in the object code.
+ */
+
+bool WPValidateArgType(
+    BACNET_APPLICATION_DATA_VALUE *pValue,
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+	bool bResult;
+
+    /* 
+     * start out assuming success and only set up error
+     * response if validation fails.
+     */
+    bResult = true;
+    if(pValue->tag != ucExpectedTag) {
+        bResult = false;
+        *pErrorClass = ERROR_CLASS_PROPERTY;
+        *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
+    }
+
+    return(bResult);
+}
