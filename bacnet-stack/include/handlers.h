@@ -111,6 +111,19 @@ extern "C" {
         BACNET_OBJECT_TYPE object_type,
         write_property_function pFunction);
 
+    bool WPValidateString(
+        BACNET_APPLICATION_DATA_VALUE *pValue,
+        int iMaxLen,
+        bool bEmptyAllowed,
+        BACNET_ERROR_CLASS * pErrorClass,
+        BACNET_ERROR_CODE * pErrorCode);
+
+    bool WPValidateArgType(
+        BACNET_APPLICATION_DATA_VALUE *pValue,
+        uint8_t ucExpectedType,
+        BACNET_ERROR_CLASS * pErrorClass,
+        BACNET_ERROR_CODE * pErrorCode);
+
     void handler_atomic_read_file(
         uint8_t * service_request,
         uint16_t service_len,
