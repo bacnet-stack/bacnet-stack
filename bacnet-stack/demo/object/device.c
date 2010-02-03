@@ -133,15 +133,24 @@ void Device_Property_Lists(
    properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
+
+/* String Lengths - excluding any nul terminator */
+
+#define MAX_DEV_NAME_LEN 32
+#define MAX_DEV_LOC_LEN  64
+#define MAX_DEV_MOD_LEN  32
+#define MAX_DEV_VER_LEN  16
+#define MAX_DEV_DESC_LEN 64
+
 static uint32_t Object_Instance_Number = 260001;
-static char My_Object_Name[16] = "SimpleServer";
+static char My_Object_Name[MAX_DEV_NAME_LEN + 1] = "SimpleServer";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
-static char Model_Name[16] = "GNU";
-static char Application_Software_Version[16] = "1.0";
-static char Location[16] = "USA";
-static char Description[16] = "server";
+static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
+static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
+static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
+static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -216,7 +225,9 @@ bool Device_Set_Object_Name(
     const char *name,
     size_t length)
 {
-    bool status = false;        /*return value */
+    bool status;        /*return value */
+
+    status = false;
 
     /* FIXME:  All the object names in a device must be unique.
        Disallow setting the Device Object Name to any objects in
@@ -238,11 +249,71 @@ BACNET_DEVICE_STATUS Device_System_Status(
     return System_Status;
 }
 
-void Device_Set_System_Status(
-    BACNET_DEVICE_STATUS status)
+int Device_Set_System_Status(
+    BACNET_DEVICE_STATUS status,
+    bool local)
 {
-    /* FIXME: bounds check? */
+    int result;        /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
+
+    result = 0;
+    /* We limit the options available depending on whether the source is
+     * internal or external. */
+    if(local) {
+        switch(status) {
+            case STATUS_OPERATIONAL:
+            case STATUS_OPERATIONAL_READ_ONLY:
+            case STATUS_DOWNLOAD_REQUIRED:
+            case STATUS_DOWNLOAD_IN_PROGRESS:
+            case STATUS_NON_OPERATIONAL:
+                System_Status = status;
+                break;
+
+            /* Don't support backup at present so don't allow setting */
+            case STATUS_BACKUP_IN_PROGRESS:
+                result = -2;
+                break;
+
+            default:
+                result = -1;
+                break;
+        }
+    } else {
+        switch(status) {
+            /* Allow these for the moment as a way to easily alter
+             * overall device operation. The lack of password protection
+             * or other authentication makes allowing writes to this
+             * property a risky facility to provide.
+             */
+            case STATUS_OPERATIONAL:
+            case STATUS_OPERATIONAL_READ_ONLY:
+            case STATUS_NON_OPERATIONAL:
+                System_Status = status;
+                break;
+
+            /* Don't allow outsider set this - it should probably
+             * be set if the device config is incomplete or 
+             * corrupted or perhaps after some sort of operator
+             * wipe operation.
+             */
+            case STATUS_DOWNLOAD_REQUIRED:
+            /* Don't allow outsider set this - it should be set
+             * internally at the start of a multi packet download
+             * perhaps indirectly via PT or WF to a config file.
+             */
+            case STATUS_DOWNLOAD_IN_PROGRESS:
+            /* Don't support backup at present so don't allow setting */
+            case STATUS_BACKUP_IN_PROGRESS:
+                result = -2;
+                break;
+
+            default:
+                result = -1;
+                break;
+        }
+    }
     System_Status = status;
+
+    return(result);
 }
 
 const char *Device_Vendor_Name(
@@ -811,6 +882,7 @@ bool Device_Write_Property(
     bool status = false;        /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    int temp;
 
     if (!Device_Valid_Object_Instance_Number(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
@@ -825,92 +897,70 @@ bool Device_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
+            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_OBJECT_ID, error_class, error_code) == true) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_NUMBER_OF_APDU_RETRIES:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
                 /* FIXME: bounds check? */
                 apdu_retries_set((uint8_t) value.type.Unsigned_Int);
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_APDU_TIMEOUT:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
                 /* FIXME: bounds check? */
                 apdu_timeout_set((uint16_t) value.type.Unsigned_Int);
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_VENDOR_IDENTIFIER:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
                 /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t) value.
-                    type.Unsigned_Int);
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                Device_Set_Vendor_Identifier((uint16_t) value.type.Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
-            if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-                /* FIXME: bounds check? */
-                Device_Set_System_Status((BACNET_DEVICE_STATUS) value.
-                    type.Enumerated);
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-            break;
-        case PROP_OBJECT_NAME:
-            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                if (characterstring_encoding(&value.type.Character_String) == CHARACTER_ANSI_X34) {
-					if(characterstring_length(&value.type.Character_String) == 0) {
-                        *error_class = ERROR_CLASS_PROPERTY;
-                        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-					} else {
-						status =
-							Device_Set_Object_Name(characterstring_value
-							(&value.type.Character_String),
-							characterstring_length(&value.type.Character_String));
-					
-	                    if (!status) {
-		                    *error_class = ERROR_CLASS_RESOURCES;
-			                *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-				        }
-					}
-                } else {
+            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED, error_class, error_code) == true) {
+                temp = Device_Set_System_Status((BACNET_DEVICE_STATUS) value.type.Enumerated, false);
+                if(temp == 0)
+                    status = true;
+                else {
                     *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+                    *error_code = temp == -1 ? ERROR_CODE_VALUE_OUT_OF_RANGE : ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
+
+        case PROP_OBJECT_NAME:
+        	if((status = WPValidateString(&value, MAX_DEV_LOC_LEN, false, error_class, error_code)) == true)
+				Device_Set_Object_Name(characterstring_value(&value.type.Character_String), characterstring_length(&value.type.Character_String));
+            break;
+
+        case PROP_LOCATION:
+        	if((status = WPValidateString(&value, MAX_DEV_LOC_LEN, true, error_class, error_code)) == true)
+				Device_Set_Location(characterstring_value(&value.type.Character_String), characterstring_length(&value.type.Character_String));
+            break;
+
+        case PROP_DESCRIPTION:
+        	if((status = WPValidateString(&value, MAX_DEV_DESC_LEN, true, error_class, error_code)) == true)
+				Device_Set_Description(characterstring_value(&value.type.Character_String), characterstring_length(&value.type.Character_String));
+            break;
+
+        case PROP_MODEL_NAME:
+        	if((status = WPValidateString(&value, MAX_DEV_MOD_LEN, true, error_class, error_code)) == true)
+				Device_Set_Model_Name(characterstring_value(&value.type.Character_String), characterstring_length(&value.type.Character_String));
+            break;
+
 #if defined(BACDL_MSTP)
         case PROP_MAX_INFO_FRAMES:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code) == true) {
                 if (value.type.Unsigned_Int <= 255) {
                     dlmstp_set_max_info_frames((uint8_t) value.
                         type.Unsigned_Int);
@@ -919,13 +969,10 @@ bool Device_Write_Property(
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_MAX_MASTER:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code) == true) {
                 if ((value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= 127)) {
                     dlmstp_set_max_master((uint8_t) value.type.Unsigned_Int);
@@ -934,9 +981,6 @@ bool Device_Write_Property(
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #endif
@@ -1025,7 +1069,7 @@ void testDevice(
     ct_test(pTest, status == false);
 
 
-    Device_Set_System_Status(STATUS_NON_OPERATIONAL);
+    Device_Set_System_Status(STATUS_NON_OPERATIONAL, true);
     ct_test(pTest, Device_System_Status() == STATUS_NON_OPERATIONAL);
 
     ct_test(pTest, Device_Vendor_Identifier() == BACNET_VENDOR_ID);

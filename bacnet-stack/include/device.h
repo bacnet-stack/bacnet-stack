@@ -86,8 +86,9 @@ extern "C" {
 
     BACNET_DEVICE_STATUS Device_System_Status(
         void);
-    void Device_Set_System_Status(
-        BACNET_DEVICE_STATUS status);
+    int Device_Set_System_Status(
+        BACNET_DEVICE_STATUS status,
+        bool local);
 
     const char *Device_Vendor_Name(
         void);
