@@ -34,6 +34,7 @@
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "handlers.h"
 
 #define MAX_MULTISTATE_OUTPUTS 4
 
@@ -393,7 +394,7 @@ bool Multistate_Output_Write_Property(
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
+            } else if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL, error_class, error_code) == true) {
                 level = MULTISTATE_NULL;
                 object_index =
                     Multistate_Output_Instance_To_Index
@@ -414,22 +415,15 @@ bool Multistate_Output_Write_Property(
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
                 object_index =
                     Multistate_Output_Instance_To_Index
                     (wp_data->object_instance);
                 Multistate_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         default:

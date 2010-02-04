@@ -300,27 +300,21 @@ bool bacfile_write_property(
                property shall be logical TRUE only if no changes have been
                made to the file data by internal processes or through File
                Access Services since the last time the object was archived. */
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
                 if (value.type.Boolean) {
                     /* FIXME: do something to wp_data->object_instance */
                 } else {
                     /* FIXME: do something to wp_data->object_instance */
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_FILE_SIZE:
             /* If the file size can be changed by writing to the file,
                and File_Access_Method is STREAM_ACCESS, then this property
                shall be writable. */
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
                 /* FIXME: do something with value.type.Unsigned
                    to wp_data->object_instance */
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         default:

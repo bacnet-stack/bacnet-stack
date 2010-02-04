@@ -34,6 +34,7 @@
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "handlers.h"
 
 #ifndef MAX_MULTISTATE_INPUTS
 #define MAX_MULTISTATE_INPUTS 1
@@ -472,7 +473,7 @@ bool Multistate_Input_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code) == true) {
                 if (Out_Of_Service[object_index]) {
                     if (Multistate_Input_Present_Value_Set(wp_data->
                             object_instance, value.type.Unsigned_Int)) {
@@ -485,21 +486,14 @@ bool Multistate_Input_Write_Property(
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
                 object_index =
                     Multistate_Input_Instance_To_Index
                     (wp_data->object_instance);
                 Out_Of_Service[object_index] = value.type.Boolean;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         default:
