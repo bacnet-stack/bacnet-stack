@@ -39,6 +39,7 @@
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "handlers.h"
 
 #define MAX_LIGHTING_OUTPUTS 5
 
@@ -155,7 +156,7 @@ int Lighting_Output_Decode_Lighting_Command(
         apdu_len += len;
         len =
             decode_enumerated(&apdu[apdu_len], len_value_type,
-            &data->operation);
+            (uint32_t *)&data->operation);
         apdu_len += len;
         /* Tag 1: level - OPTIONAL */
         if (decode_is_context_tag(&apdu[apdu_len], 1)) {
@@ -165,7 +166,7 @@ int Lighting_Output_Decode_Lighting_Command(
             apdu_len += len;
             len = decode_real(&apdu[apdu_len], &real_value);
             apdu_len += len;
-            data->level = real_value;
+            data->level = (uint8_t)real_value;
             /* FIXME: are we going to flag errors in decoding values here? */
         }
         /* FIXME: finish me! */
@@ -561,7 +562,7 @@ bool Lighting_Output_Write_Property(
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
+            } else if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL, error_class, error_code) == true) {
                 level = LIGHTING_LEVEL_NULL;
                 object_index =
                     Lighting_Output_Instance_To_Index
@@ -572,16 +573,14 @@ bool Lighting_Output_Write_Property(
                 if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
-                       object. */
+                       object.  - Note Lighting_Output_Present_Value_Relinquish()
+                       will have returned false because of this */
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else if (!status) {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_LIGHTING_COMMAND:
@@ -591,16 +590,12 @@ bool Lighting_Output_Write_Property(
                 &Lighting_Command[wp_data->object_instance]);
             break;
         case PROP_OUT_OF_SERVICE:
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
                 object_index =
                     Lighting_Output_Instance_To_Index
                     (wp_data->object_instance);
                 Lighting_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         default:
