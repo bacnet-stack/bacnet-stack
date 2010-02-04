@@ -39,6 +39,7 @@
 #include "lc.h"
 #include "ao.h"
 #include "wp.h"
+#include "handlers.h"
 
 /* number of demo objects */
 #define MAX_LOAD_CONTROLS 4
@@ -943,6 +944,7 @@ bool Load_Control_Write_Property(
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_DATE TempDate; /* build here in case of error in time half of datetime */
 
     Load_Control_Init();
     if (!Load_Control_Valid_Instance(wp_data->object_instance)) {
@@ -993,53 +995,38 @@ bool Load_Control_Write_Property(
                 Load_Control_Request_Written[object_index] = true;
             }
             break;
+
         case PROP_START_TIME:
-            if (value.tag == BACNET_APPLICATION_TAG_DATE) {
-                memcpy(&Start_Time[object_index].date, &value.type.Date,
-                    sizeof(value.type.Date));
-                Start_Time_Property_Written[object_index] = true;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-            if (!status)
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_DATE, error_class, error_code)) == false)
                 break;
-            len =
-                bacapp_decode_application_data(wp_data->application_data + len,
+            /* Hold the date until we are sure the time is also there */
+            TempDate = value.type.Date;
+            len = bacapp_decode_application_data(wp_data->application_data + len,
                 wp_data->application_data_len - len, &value);
-            if (len && value.tag == BACNET_APPLICATION_TAG_TIME) {
-                memcpy(&Start_Time[object_index].time, &value.type.Time,
-                    sizeof(value.type.Time));
-                status = true;
-            } else {
-                status = false;
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            if (len && ((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_TIME, error_class, error_code)) == true)) {
+                /* Write time and date and set written flag */
+                Start_Time[object_index].date = TempDate;
+                Start_Time[object_index].time = value.type.Time;
+                Start_Time_Property_Written[object_index] = true;
             }
             break;
+
         case PROP_SHED_DURATION:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
                 Shed_Duration[object_index] = value.type.Unsigned_Int;
                 Load_Control_Request_Written[object_index] = true;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
+
         case PROP_DUTY_WINDOW:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
                 Duty_Window[object_index] = value.type.Unsigned_Int;
                 Load_Control_Request_Written[object_index] = true;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
+
         case PROP_SHED_LEVELS:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code) == true) {
                 /* re-write the size of the array? */
                 if (wp_data->array_index == 0) {
                     *error_class = ERROR_CLASS_PROPERTY;
@@ -1052,21 +1039,20 @@ bool Load_Control_Write_Property(
                         value.type.Unsigned_Int;
                     status = true;
                 } else {
+                    /* FIXME: Something's missing from here so I'll just put in
+                     * a place holder error here for the moment*/
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_OTHER;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
+
         case PROP_ENABLE:
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true)
                 Load_Control_Enable[object_index] = value.type.Boolean;
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
+
             break;
+
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
