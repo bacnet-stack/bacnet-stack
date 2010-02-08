@@ -311,7 +311,6 @@ int Device_Set_System_Status(
                 break;
         }
     }
-    System_Status = status;
 
     return(result);
 }
