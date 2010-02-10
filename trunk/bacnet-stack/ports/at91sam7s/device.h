@@ -39,12 +39,8 @@
 #include "bacdef.h"
 #include "bacenum.h"
 #include "wp.h"
-#include "rp.h"
 #include "readrange.h"
 
-typedef void (
-    *object_init_function) (
-    void);
 typedef unsigned (
     *object_count_function) (
     void);
@@ -57,13 +53,15 @@ typedef char *(
      (
     uint32_t object_instance);
 
-typedef bool(
-    *object_valid_instance_function) (
-    uint32_t object_instance);
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    void Device_Object_Function_Set(
+        BACNET_OBJECT_TYPE object_type,
+        object_count_function count_function,
+        object_index_to_instance_function index_function,
+        object_name_function name_function);
 
     void Device_Init(
         void);
@@ -86,17 +84,10 @@ extern "C" {
         int *object_type,
         uint32_t * instance);
 
-    unsigned Device_Count(void);
-    uint32_t Device_Index_To_Instance(
-        unsigned index);
-    char *Device_Name(
-        uint32_t object_instance);
-
     BACNET_DEVICE_STATUS Device_System_Status(
         void);
-    int Device_Set_System_Status(
-        BACNET_DEVICE_STATUS status,
-        bool local);
+    void Device_Set_System_Status(
+        BACNET_DEVICE_STATUS status);
 
     const char *Device_Vendor_Name(
         void);
@@ -145,12 +136,10 @@ extern "C" {
     BACNET_SEGMENTATION Device_Segmentation_Supported(
         void);
 
-    uint32_t Device_Database_Revision(
+    uint8_t Device_Database_Revision(
         void);
     void Device_Set_Database_Revision(
-        uint32_t revision);
-    void Device_Inc_Database_Revision(
-        void);
+        uint8_t revision);
 
     bool Device_Valid_Object_Name(
         const char *object_name,
@@ -160,13 +149,18 @@ extern "C" {
         int object_type,
         uint32_t object_instance);
 
-    int Device_Objects_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+    int Device_Encode_Property_APDU(
+        uint8_t * apdu,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID property,
+        int32_t array_index,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
-    int Device_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
     bool Device_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
         
     bool DeviceGetRRInfo(
         uint32_t           Object,   /* Which particular object - obviously not important for device object */

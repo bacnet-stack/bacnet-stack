@@ -136,102 +136,12 @@ void MyRejectHandler(
 /*    Error_Detected = true; */
 }
 
-static void Init_Object(
-    BACNET_OBJECT_TYPE object_type,
-    rpm_property_lists_function rpm_list_function,
-    read_property_function rp_function,
-    object_valid_instance_function object_valid_function,
-    write_property_function wp_function,
-    object_count_function count_function,
-    object_index_to_instance_function index_function,
-    object_name_function name_function,
-    rr_info_function rr_inf_function)
-{
-    handler_read_property_object_set(object_type, rp_function,
-        object_valid_function);
-    handler_write_property_object_set(object_type, wp_function);
-    handler_read_property_multiple_list_set(object_type, rpm_list_function);
-    Device_Object_Function_Set(object_type, count_function, index_function,
-        name_function);
-    handler_rr_object_set(object_type, rr_inf_function);
-}
-
 static void Init_Objects(
     void)
 {
     Device_Init();
-    Init_Object(OBJECT_DEVICE, Device_Property_Lists,
-        Device_Encode_Property_APDU, Device_Valid_Object_Instance_Number,
-        Device_Write_Property, NULL, NULL, NULL, DeviceGetRRInfo);
-
-    Analog_Input_Init();
-    Init_Object(OBJECT_ANALOG_INPUT, Analog_Input_Property_Lists,
-        Analog_Input_Encode_Property_APDU, Analog_Input_Valid_Instance, NULL,
-        Analog_Input_Count, Analog_Input_Index_To_Instance, Analog_Input_Name, NULL);
-
-    Analog_Output_Init();
-    Init_Object(OBJECT_ANALOG_OUTPUT, Analog_Output_Property_Lists,
-        Analog_Output_Encode_Property_APDU, Analog_Output_Valid_Instance,
-        Analog_Output_Write_Property, Analog_Output_Count,
-        Analog_Output_Index_To_Instance, Analog_Output_Name, NULL);
-
-    Analog_Value_Init();
-    Init_Object(OBJECT_ANALOG_VALUE, Analog_Value_Property_Lists,
-        Analog_Value_Encode_Property_APDU, Analog_Value_Valid_Instance,
-        Analog_Value_Write_Property, Analog_Value_Count,
-        Analog_Value_Index_To_Instance, Analog_Value_Name, NULL);
-
-    Binary_Input_Init();
-    Init_Object(OBJECT_BINARY_INPUT, Binary_Input_Property_Lists,
-        Binary_Input_Encode_Property_APDU, Binary_Input_Valid_Instance, NULL,
-        Binary_Input_Count, Binary_Input_Index_To_Instance, Binary_Input_Name, NULL);
-
-    Binary_Output_Init();
-    Init_Object(OBJECT_BINARY_OUTPUT, Binary_Output_Property_Lists,
-        Binary_Output_Encode_Property_APDU, Binary_Output_Valid_Instance,
-        Binary_Output_Write_Property, Binary_Output_Count,
-        Binary_Output_Index_To_Instance, Binary_Output_Name, NULL);
-
-    Binary_Value_Init();
-    Init_Object(OBJECT_BINARY_VALUE, Binary_Value_Property_Lists,
-        Binary_Value_Encode_Property_APDU, Binary_Value_Valid_Instance,
-        Binary_Value_Write_Property, Binary_Value_Count,
-        Binary_Value_Index_To_Instance, Binary_Value_Name, NULL);
-
-    Life_Safety_Point_Init();
-    Init_Object(OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Property_Lists,
-        Life_Safety_Point_Encode_Property_APDU,
-        Life_Safety_Point_Valid_Instance, Life_Safety_Point_Write_Property,
-        Life_Safety_Point_Count, Life_Safety_Point_Index_To_Instance,
-        Life_Safety_Point_Name, NULL);
-
-    Load_Control_Init();
-    Init_Object(OBJECT_LOAD_CONTROL, Load_Control_Property_Lists,
-        Load_Control_Encode_Property_APDU, Load_Control_Valid_Instance,
-        Load_Control_Write_Property, Load_Control_Count,
-        Load_Control_Index_To_Instance, Load_Control_Name, NULL);
-
-    Multistate_Output_Init();
-    Init_Object(OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Property_Lists,
-        Multistate_Output_Encode_Property_APDU,
-        Multistate_Output_Valid_Instance, Multistate_Output_Write_Property,
-        Multistate_Output_Count, Multistate_Output_Index_To_Instance,
-        Multistate_Output_Name, NULL);
-
-    Trend_Log_Init();
-    Init_Object(OBJECT_TRENDLOG, Trend_Log_Property_Lists,
-        Trend_Log_Encode_Property_APDU,
-        Trend_Log_Valid_Instance, Trend_Log_Write_Property,
-        Trend_Log_Count, Trend_Log_Index_To_Instance,
-        Trend_Log_Name, TrendLogGetRRInfo);
-
-#if defined(BACFILE)
-    bacfile_init();
-    Init_Object(OBJECT_FILE, BACfile_Property_Lists,
-        bacfile_encode_property_apdu, bacfile_valid_instance,
-        bacfile_write_property, bacfile_count, bacfile_index_to_instance,
-        bacfile_name, NULL);
-#endif
+    handler_rr_object_set(OBJECT_DEVICE, DeviceGetRRInfo);
+    handler_rr_object_set(OBJECT_TRENDLOG, TrendLogGetRRInfo);
 }
 
 static void Init_Service_Handlers(

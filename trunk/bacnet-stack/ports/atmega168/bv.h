@@ -29,12 +29,12 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "bacerror.h"
-#include "rp.h"
 #include "wp.h"
 
 #ifndef MAX_BINARY_VALUES
 #define MAX_BINARY_VALUES 10
 #endif
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,11 +56,18 @@ extern "C" {
     void Binary_Value_Init(
         void);
 
-    int Binary_Value_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+    int Binary_Value_Encode_Property_APDU(
+        uint8_t * apdu,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID property,
+        int32_t array_index,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
     bool Binary_Value_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
 #ifdef TEST
 #include "ctest.h"

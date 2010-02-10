@@ -22,90 +22,73 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef BO_H
-#define BO_H
+#ifndef AI_H
+#define AI_H
 
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacdef.h"
-#include "bacerror.h"
-#include "wp.h"
-
-#ifndef MAX_BINARY_OUTPUTS
-#define MAX_BINARY_OUTPUTS 6
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    void Binary_Output_Init(
-        void);
+#ifndef MAX_ANALOG_INPUTS
+#define MAX_ANALOG_INPUTS 7
+#endif
 
-    void Binary_Output_Property_Lists(
+    void Analog_Input_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
 
-    bool Binary_Output_Valid_Instance(
+    bool Analog_Input_Valid_Instance(
         uint32_t object_instance);
-    unsigned Binary_Output_Count(
+    unsigned Analog_Input_Count(
         void);
-    uint32_t Binary_Output_Index_To_Instance(
+    uint32_t Analog_Input_Index_To_Instance(
         unsigned index);
-    unsigned Binary_Output_Instance_To_Index(
+    unsigned Analog_Input_Instance_To_Index(
         uint32_t instance);
-    bool Binary_Output_Object_Instance_Add(
+    bool Analog_Input_Object_Instance_Add(
         uint32_t instance);
 
-    char *Binary_Output_Name(
+    char *Analog_Input_Name(
         uint32_t object_instance);
-    bool Binary_Output_Name_Set(
+    bool Analog_Input_Name_Set(
         uint32_t object_instance,
         char *new_name);
 
-    char *Binary_Output_Description(
+    char *Analog_Input_Description(
         uint32_t instance);
-    bool Binary_Output_Description_Set(
+    bool Analog_Input_Description_Set(
         uint32_t instance,
         char *new_name);
 
-    char *Binary_Output_Inactive_Text(
+    bool Analog_Input_Units_Set(
+        uint32_t instance,
+        uint32_t units);
+    uint32_t Analog_Input_Units(
         uint32_t instance);
-    bool Binary_Output_Inactive_Text_Set(
-        uint32_t instance,
-        char *new_name);
-    char *Binary_Output_Active_Text(
-        uint32_t instance);
-    bool Binary_Output_Active_Text_Set(
-        uint32_t instance,
-        char *new_name);
 
-    int Binary_Output_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
-
-    bool Binary_Output_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
-
-    void Binary_Output_Level_Sync(
-        unsigned int index);
-    void Binary_Output_Level_Set(
-        unsigned int object_index,
-        unsigned int priority,
-        BACNET_BINARY_PV level);
-
-    bool Binary_Output_Present_Value_Set(
-        uint32_t instance,
-        BACNET_BINARY_PV binary_value,
-        unsigned priority);
-    bool Binary_Output_Present_Value_Relinquish(
-        uint32_t instance,
-        unsigned priority);
-
+    int Analog_Input_Encode_Property_APDU(
+        uint8_t * apdu,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID property,
+        int32_t array_index,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
+    float Analog_Input_Present_Value(
+        uint32_t object_instance);
+    void Analog_Input_Present_Value_Set(
+        uint32_t object_instance,
+        float value);
+    void Analog_Input_Init(
+        void);
 
 #ifdef TEST
 #include "ctest.h"
-    void testBinaryOutput(
+    void testAnalogInput(
         Test * pTest);
 #endif
 

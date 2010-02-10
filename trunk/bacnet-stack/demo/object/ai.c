@@ -142,29 +142,30 @@ char *Analog_Input_Name(
 
 /* return apdu length, or -1 on error */
 /* assumption - object has already exists */
-int Analog_Input_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Analog_Input_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
+    uint8_t *apdu = NULL;
 
-    (void) array_index;
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
-                object_instance);
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Analog_Input_Name(object_instance));
+                Analog_Input_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -175,7 +176,7 @@ int Analog_Input_Encode_Property_APDU(
         case PROP_PRESENT_VALUE:
             apdu_len =
                 encode_application_real(&apdu[0],
-                Analog_Input_Present_Value(object_instance));
+                Analog_Input_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -196,26 +197,28 @@ int Analog_Input_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
             break;
         case 9997:
-            apdu_len = encode_application_real(&apdu[0], (float) 90.510);
+            /* test case for real encoding-decoding unsigned value correctly */
+            apdu_len = encode_application_real(&apdu[0], 90.510F);
             break;
         case 9998:
+            /* test case for unsigned encoding-decoding unsigned value correctly */
             apdu_len = encode_application_unsigned(&apdu[0], 90);
             break;
-            /* test case for signed encoding-decoding negative value correctly */
         case 9999:
+            /* test case for signed encoding-decoding negative value correctly */
             apdu_len = encode_application_signed(&apdu[0], -200);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
@@ -239,24 +242,25 @@ void testAnalogInput(
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_OUTPUT;
     uint32_t decoded_instance = 0;
-    uint32_t instance = 123;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
+    uint16_t decoded_type = 0;
+    BACNET_READ_PROPERTY_DATA rpdata;
 
-
-    /* FIXME: we should do a lot more testing here... */
-    len =
-        Analog_Input_Encode_Property_APDU(&apdu[0], instance,
-        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
-    ct_test(pTest, len >= 0);
+    Analog_Input_Init();
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_ANALOG_INPUT; 
+    rpdata.object_instance = 1;
+    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Analog_Input_Read_Property(&rpdata);
+    ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
     len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_ANALOG_INPUT);
-    ct_test(pTest, decoded_instance == instance);
+        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    ct_test(pTest, decoded_type == rpdata.object_type);
+    ct_test(pTest, decoded_instance == rpdata.object_instance);
 
     return;
 }

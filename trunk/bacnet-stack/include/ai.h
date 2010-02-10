@@ -28,15 +28,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacdef.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+#include "rp.h"
 
 #ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS 7
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
     void Analog_Input_Property_Lists(
         const int **pRequired,
         const int **pOptional,
@@ -71,18 +71,15 @@ extern "C" {
     uint32_t Analog_Input_Units(
         uint32_t instance);
 
-    int Analog_Input_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+    int Analog_Input_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
+
     float Analog_Input_Present_Value(
         uint32_t object_instance);
     void Analog_Input_Present_Value_Set(
         uint32_t object_instance,
         float value);
+    
     void Analog_Input_Init(
         void);
 

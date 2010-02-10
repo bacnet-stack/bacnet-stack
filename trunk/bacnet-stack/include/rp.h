@@ -46,29 +46,13 @@ typedef struct BACnet_Read_Property_Data {
     int32_t array_index;
     uint8_t *application_data;
     int application_data_len;
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
 } BACNET_READ_PROPERTY_DATA;
 
 typedef int (
     *read_property_function) (
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code);
-
-typedef bool(
-    *object_valid_instance_function) (
-    uint32_t object_instance);
-
-/* structure for linked list of object functions */
-struct BACnet_Read_Property_Functions;
-typedef struct BACnet_Read_Property_Functions {
-    BACNET_OBJECT_TYPE object_type;
-    read_property_function rp_object_property_value;
-    object_valid_instance_function rp_object_valid_instance;
-    struct BACnet_Read_Property_Functions *next;    
-} BACNET_RP_FUNCTIONS;
+    BACNET_READ_PROPERTY_DATA *rp_data);
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -22,8 +22,8 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef BO_H
-#define BO_H
+#ifndef AV_H
+#define AV_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -31,81 +31,52 @@
 #include "bacerror.h"
 #include "wp.h"
 
-#ifndef MAX_BINARY_OUTPUTS
-#define MAX_BINARY_OUTPUTS 6
+#ifndef MAX_ANALOG_VALUES
+#define MAX_ANALOG_VALUES 4
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    void Binary_Output_Init(
-        void);
-
-    void Binary_Output_Property_Lists(
+    void Analog_Value_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
-
-    bool Binary_Output_Valid_Instance(
+    bool Analog_Value_Valid_Instance(
         uint32_t object_instance);
-    unsigned Binary_Output_Count(
+    unsigned Analog_Value_Count(
         void);
-    uint32_t Binary_Output_Index_To_Instance(
+    uint32_t Analog_Value_Index_To_Instance(
         unsigned index);
-    unsigned Binary_Output_Instance_To_Index(
-        uint32_t instance);
-    bool Binary_Output_Object_Instance_Add(
-        uint32_t instance);
-
-    char *Binary_Output_Name(
+    char *Analog_Value_Name(
         uint32_t object_instance);
-    bool Binary_Output_Name_Set(
+
+    int Analog_Value_Encode_Property_APDU(
+        uint8_t * apdu,
         uint32_t object_instance,
-        char *new_name);
+        BACNET_PROPERTY_ID property,
+        int32_t array_index,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
-    char *Binary_Output_Description(
-        uint32_t instance);
-    bool Binary_Output_Description_Set(
-        uint32_t instance,
-        char *new_name);
+    bool Analog_Value_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
-    char *Binary_Output_Inactive_Text(
-        uint32_t instance);
-    bool Binary_Output_Inactive_Text_Set(
-        uint32_t instance,
-        char *new_name);
-    char *Binary_Output_Active_Text(
-        uint32_t instance);
-    bool Binary_Output_Active_Text_Set(
-        uint32_t instance,
-        char *new_name);
+    bool Analog_Value_Present_Value_Set(
+        uint32_t object_instance,
+        float value,
+        uint8_t priority);
+    float Analog_Value_Present_Value(
+        uint32_t object_instance);
 
-    int Binary_Output_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
-
-    bool Binary_Output_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
-
-    void Binary_Output_Level_Sync(
-        unsigned int index);
-    void Binary_Output_Level_Set(
-        unsigned int object_index,
-        unsigned int priority,
-        BACNET_BINARY_PV level);
-
-    bool Binary_Output_Present_Value_Set(
-        uint32_t instance,
-        BACNET_BINARY_PV binary_value,
-        unsigned priority);
-    bool Binary_Output_Present_Value_Relinquish(
-        uint32_t instance,
-        unsigned priority);
-
+    void Analog_Value_Init(
+        void);
 
 #ifdef TEST
 #include "ctest.h"
-    void testBinaryOutput(
+    void testAnalog_Value(
         Test * pTest);
 #endif
 

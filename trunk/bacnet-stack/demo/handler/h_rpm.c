@@ -39,84 +39,23 @@
 #include "rpm.h"
 #include "handlers.h"
 
+/* function that handles the reading of properties from objects */
+static read_property_function Read_Property_Function;
+static rpm_object_property_lists_function RPM_Property_List;
+
+void handler_rpm_function_set(
+    read_property_function pFunction)
+{
+    Read_Property_Function = pFunction;
+}
+
+void handler_rpm_list_set(
+    rpm_object_property_lists_function pFunction)
+{
+    RPM_Property_List = pFunction;
+}
+
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
-
-static rpm_property_lists_function RPM_Lists[MAX_BACNET_OBJECT_TYPE];
-
-struct property_list_t {
-    const int *pList;
-    unsigned count;
-};
-
-struct special_property_list_t {
-    struct property_list_t Required;
-    struct property_list_t Optional;
-    struct property_list_t Proprietary;
-};
-
-static unsigned property_list_count(
-    const int *pList)
-{
-    unsigned property_count = 0;
-
-    if (pList) {
-        while (*pList != -1) {
-            property_count++;
-            pList++;
-        }
-    }
-
-    return property_count;
-}
-
-void handler_read_property_multiple_list_set(
-    BACNET_OBJECT_TYPE object_type,
-    rpm_property_lists_function pFunction)
-{
-    if (object_type < MAX_BACNET_OBJECT_TYPE) {
-        RPM_Lists[object_type] = pFunction;
-    }
-}
-
-/* for a given object type, returns the special property list */
-static void RPM_Property_List(
-    BACNET_OBJECT_TYPE object_type,
-    struct special_property_list_t *pPropertyList)
-{
-    rpm_property_lists_function object_property_list = NULL;
-    pPropertyList->Required.pList = NULL;
-    pPropertyList->Optional.pList = NULL;
-    pPropertyList->Proprietary.pList = NULL;
-
-    if (object_type < MAX_BACNET_OBJECT_TYPE) {
-        object_property_list = RPM_Lists[object_type];
-    }
-    if (object_property_list) {
-        object_property_list(&pPropertyList->Required.pList,
-            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
-    }
-    /* fill the count */
-    if (pPropertyList->Required.pList) {
-        pPropertyList->Required.count =
-            property_list_count(pPropertyList->Required.pList);
-    } else {
-        pPropertyList->Required.count = 0;
-    }
-    if (pPropertyList->Optional.pList) {
-        pPropertyList->Optional.count =
-            property_list_count(pPropertyList->Optional.pList);
-    } else {
-        pPropertyList->Optional.count = 0;
-    }
-    if (pPropertyList->Proprietary.pList) {
-        pPropertyList->Proprietary.count =
-            property_list_count(pPropertyList->Proprietary.pList);
-    } else {
-        pPropertyList->Proprietary.count = 0;
-    }
-
-    return;
-}
 
 static int RPM_Object_Property(
     struct special_property_list_t *pPropertyList,
@@ -185,8 +124,7 @@ static int RPM_Encode_Property(
     int len = 0;
     size_t copy_len = 0;
     int apdu_len = 0;
-    BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    BACNET_READ_PROPERTY_DATA rpdata;
 
     len =
         rpm_ack_encode_apdu_object_property(&Temp_Buf[0], object_property,
@@ -196,14 +134,23 @@ static int RPM_Encode_Property(
         return 0;
     }
     apdu_len += len;
-    len =
-        Encode_Property_APDU(&Temp_Buf[0], object_type, object_instance,
-        object_property, array_index, &error_class, &error_code);
+    len = 0;
+    if (Read_Property_Function) {
+        rpdata.error_class = ERROR_CLASS_OBJECT;
+        rpdata.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        rpdata.object_type = object_type;
+        rpdata.object_instance = object_instance;
+        rpdata.object_property = object_property;
+        rpdata.array_index = array_index;
+        rpdata.application_data = &Temp_Buf[0];
+        rpdata.application_data_len = sizeof(Temp_Buf);        
+        len = Read_Property_Function(&rpdata);
+    }    
     if (len < 0) {
         /* error was returned - encode that for the response */
         len =
             rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
-            error_class, error_code);
+            rpdata.error_class, rpdata.error_code);
         copy_len =
             memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len, max_apdu);
         if (copy_len == 0) {

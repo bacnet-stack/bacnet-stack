@@ -51,13 +51,13 @@ typedef struct BACnet_Write_Property_Data {
     uint8_t application_data[MAX_APDU];
     int application_data_len;
     uint8_t priority;   /* use BACNET_NO_PRIORITY if no priority */
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
 } BACNET_WRITE_PROPERTY_DATA;
 
 typedef bool(
     *write_property_function) (
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code);
+    BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus
 extern "C" {
