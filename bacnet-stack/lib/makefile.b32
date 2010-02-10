@@ -138,6 +138,7 @@ OBJECT_SRC = $(BACNET_OBJECT)\device.c \
 	$(BACNET_OBJECT)\lc.c \
 	$(BACNET_OBJECT)\lsp.c \
 	$(BACNET_OBJECT)\mso.c \
+	$(BACNET_OBJECT)\trendlog.c \
 	$(BACNET_OBJECT)\bacfile.c
 
 PORT_SRC = $(BACNET_PORT)\bip-init.c \

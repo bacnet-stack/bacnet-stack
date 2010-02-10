@@ -136,6 +136,7 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/lc.c \
 	$(BACNET_OBJECT)/lsp.c \
 	$(BACNET_OBJECT)/mso.c \
+	$(BACNET_OBJECT)/trendlog.c \
 	$(BACNET_OBJECT)/bacfile.c
 
 PORT_ARCNET_SRC = \

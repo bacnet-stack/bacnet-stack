@@ -1269,8 +1269,11 @@ void testBACnetApplicationData_Safe(
                 break;
 
             case BACNET_APPLICATION_TAG_OCTET_STRING:
-                octetstring_init(&input_value[i].type.Octet_String,
-                    "This is a o-string", strlen("This is a o-string"));
+                {
+                    uint8_t test_octet[5] = {"Karg"};
+                    octetstring_init(&input_value[i].type.Octet_String,
+                        test_octet, sizeof(test_octet));
+                }
                 break;
 
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:

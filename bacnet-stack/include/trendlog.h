@@ -29,6 +29,12 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "cov.h"
+#include "rp.h"
+#include "wp.h"
+
+#ifndef MAX_TREND_LOGS
+#define MAX_TREND_LOGS 8
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,18 +59,11 @@ extern "C" {
     char *Trend_Log_Name(
         uint32_t object_instance);
 
-    int Trend_Log_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+    int Trend_Log_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
     bool Trend_Log_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
     void Trend_Log_Init(
         void);
 

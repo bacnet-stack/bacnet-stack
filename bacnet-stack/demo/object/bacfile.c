@@ -39,6 +39,8 @@
 #include "device.h"
 #include "arf.h"
 #include "awf.h"
+#include "rp.h"
+#include "wp.h"
 
 typedef struct {
     uint32_t instance;
@@ -181,29 +183,30 @@ static unsigned bacfile_file_size(
 }
 
 /* return the number of bytes used, or -1 on error */
-int bacfile_encode_property_apdu(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int bacfile_read_property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     char text_string[32] = { "" };
     BACNET_CHARACTER_STRING char_string;
     BACNET_DATE bdate;
     BACNET_TIME btime;
+    uint8_t *apdu = NULL;
 
-    (void) array_index;
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_FILE,
-                object_instance);
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            sprintf(text_string, "FILE %lu", (unsigned long)object_instance);
+            sprintf(text_string, "FILE %lu", (unsigned long)rpdata->object_instance);
             characterstring_init_ansi(&char_string, text_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -213,7 +216,7 @@ int bacfile_encode_property_apdu(
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                bacfile_name(object_instance));
+                bacfile_name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -225,7 +228,7 @@ int bacfile_encode_property_apdu(
         case PROP_FILE_SIZE:
             apdu_len =
                 encode_application_unsigned(&apdu[0],
-                bacfile_file_size(object_instance));
+                bacfile_file_size(rpdata->object_instance));
             break;
         case PROP_MODIFICATION_DATE:
             /* FIXME: get the actual value instead of April Fool's Day */
@@ -261,8 +264,8 @@ int bacfile_encode_property_apdu(
                 encode_application_enumerated(&apdu[0], FILE_STREAM_ACCESS);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
@@ -272,17 +275,15 @@ int bacfile_encode_property_apdu(
 
 /* returns true if successful */
 bool bacfile_write_property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     if (!bacfile_valid_instance(wp_data->object_instance)) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
 
@@ -300,7 +301,11 @@ bool bacfile_write_property(
                property shall be logical TRUE only if no changes have been
                made to the file data by internal processes or through File
                Access Services since the last time the object was archived. */
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_BOOLEAN, 
+                    &wp_data->error_class, 
+                    &wp_data->error_code);
+            if (status) {
                 if (value.type.Boolean) {
                     /* FIXME: do something to wp_data->object_instance */
                 } else {
@@ -312,21 +317,23 @@ bool bacfile_write_property(
             /* If the file size can be changed by writing to the file,
                and File_Access_Method is STREAM_ACCESS, then this property
                shall be writable. */
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
+                    &wp_data->error_class, 
+                    &wp_data->error_code);
+            if (status) {
                 /* FIXME: do something with value.type.Unsigned
                    to wp_data->object_instance */
             }
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
     return status;
 }
-
-
 
 uint32_t bacfile_instance(
     char *filename)

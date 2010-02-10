@@ -31,12 +31,13 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
+#include "bacapp.h"
+#include "rp.h"
 #include "wp.h"
 #include "cov.h"
 #include "config.h"     /* the custom stuff */
+#include "bi.h"
 #include "handlers.h"
-
-#define MAX_BINARY_INPUTS 5
 
 /* stores the current value */
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
@@ -148,7 +149,7 @@ unsigned Binary_Input_Instance_To_Index(
     return index;
 }
 
-static BACNET_BINARY_PV Binary_Input_Present_Value(
+BACNET_BINARY_PV Binary_Input_Present_Value(
     uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
@@ -240,11 +241,12 @@ bool Binary_Input_Encode_Value_List(
     return true;
 }
 
-static void Binary_Input_Present_Value_Set(
+bool Binary_Input_Present_Value_Set(
     uint32_t object_instance,
     BACNET_BINARY_PV value)
 {
     unsigned index = 0;
+    bool status = false;
 
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
@@ -252,9 +254,10 @@ static void Binary_Input_Present_Value_Set(
             Change_Of_Value[index] = true;
         }
         Present_Value[index] = value;
+        status = true;
     }
 
-    return;
+    return status;
 }
 
 static void Binary_Input_Out_Of_Service_Set(
@@ -289,31 +292,32 @@ char *Binary_Input_Name(
 
 /* return apdu length, or -1 on error */
 /* assumption - object already exists, and has been bounds checked */
-int Binary_Input_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Binary_Input_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_POLARITY polarity = POLARITY_NORMAL;
+    uint8_t *apdu = NULL;
 
-    (void) array_index;
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_BINARY_INPUT,
-                object_instance);
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             /* note: object name must be unique in our device */
             characterstring_init_ansi(&char_string,
-                Binary_Input_Name(object_instance));
+                Binary_Input_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -325,7 +329,7 @@ int Binary_Input_Encode_Property_APDU(
             /* note: you need to look up the actual value */
             apdu_len =
                 encode_application_enumerated(&apdu[0],
-                Binary_Input_Present_Value(object_instance));
+                Binary_Input_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
@@ -333,7 +337,7 @@ int Binary_Input_Encode_Property_APDU(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            if (Binary_Input_Out_Of_Service(object_instance)) {
+            if (Binary_Input_Out_Of_Service(rpdata->object_instance)) {
                 bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                     true);
             } else {
@@ -350,22 +354,22 @@ int Binary_Input_Encode_Property_APDU(
         case PROP_OUT_OF_SERVICE:
             apdu_len =
                 encode_application_boolean(&apdu[0],
-                Binary_Input_Out_Of_Service(object_instance));
+                Binary_Input_Out_Of_Service(rpdata->object_instance));
             break;
         case PROP_POLARITY:
             apdu_len = encode_application_enumerated(&apdu[0], polarity);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
@@ -374,19 +378,12 @@ int Binary_Input_Encode_Property_APDU(
 
 /* returns true if successful */
 bool Binary_Input_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    if (!Binary_Input_Valid_Instance(wp_data->object_instance)) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        return false;
-    }
     /* decode the some of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
@@ -395,26 +392,34 @@ bool Binary_Input_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED, error_class, error_code) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_ENUMERATED, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 if (value.type.Enumerated <= MAX_BINARY_PV) {
                     Binary_Input_Present_Value_Set(wp_data->object_instance,
                         (BACNET_BINARY_PV) value.type.Enumerated);
-                    status = true;
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_BOOLEAN, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 Binary_Input_Out_Of_Service_Set(wp_data->object_instance,
                     value.type.Boolean);
             }
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
@@ -429,28 +434,29 @@ bool Binary_Input_Write_Property(
 void testBinaryInput(
     Test * pTest)
 {
+    BACNET_READ_PROPERTY_DATA rpdata;
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_BINARY_OUTPUT;
+    uint16_t decoded_type = 0;
     uint32_t decoded_instance = 0;
-    uint32_t instance = 123;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
-
-    /* FIXME: we should do a lot more testing here... */
-    len =
-        Binary_Input_Encode_Property_APDU(&apdu[0], instance,
-        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
-    ct_test(pTest, len >= 0);
+    Binary_Input_Init();
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_BINARY_INPUT; 
+    rpdata.object_instance = 1;
+    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Binary_Input_Read_Property(&rpdata);
+    ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
     len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_BINARY_INPUT);
-    ct_test(pTest, decoded_instance == instance);
+        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    ct_test(pTest, decoded_type == rpdata.object_type);
+    ct_test(pTest, decoded_instance == rpdata.object_instance);
 
     return;
 }

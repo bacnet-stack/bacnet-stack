@@ -41,6 +41,8 @@
 #include "apdu.h"
 #include "arf.h"
 #include "awf.h"
+#include "rp.h"
+#include "wp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,19 +80,12 @@ extern "C" {
         void);
 
 /* handling for read property service */
-    int bacfile_encode_property_apdu(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+    int bacfile_read_property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
 /* handling for write property service */
     bool bacfile_write_property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus
 }

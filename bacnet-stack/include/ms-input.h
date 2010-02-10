@@ -29,7 +29,12 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "bacerror.h"
+#include "rp.h"
 #include "wp.h"
+
+#ifndef MAX_MULTISTATE_INPUTS
+#define MAX_MULTISTATE_INPUTS 1
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,18 +54,11 @@ extern "C" {
     unsigned Multistate_Input_Instance_To_Index(
         uint32_t instance);
 
-    int Multistate_Input_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+    int Multistate_Input_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
     bool Multistate_Input_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     /* optional API */
     bool Multistate_Input_Object_Instance_Add(

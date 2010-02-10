@@ -55,6 +55,22 @@ typedef void (
     const int **pOptional,
     const int **pProprietary);
 
+struct property_list_t {
+    const int *pList;
+    unsigned count;
+};
+
+struct special_property_list_t {
+    struct property_list_t Required;
+    struct property_list_t Optional;
+    struct property_list_t Proprietary;
+};
+
+typedef void (
+    *rpm_object_property_lists_function) (
+    BACNET_OBJECT_TYPE object_type,
+    struct special_property_list_t *pPropertyList);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

@@ -78,23 +78,13 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+    void handler_read_property_function_set(
+        read_property_function pFunction);
         
-    int local_read_property(
-        uint8_t * value,
-        uint8_t * status,
-        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
-
     void handler_rr_object_set(
         BACNET_OBJECT_TYPE object_type,
         rr_info_function pFunction1);
     
-    void handler_read_property_object_set(
-        BACNET_OBJECT_TYPE object_type,
-        read_property_function pFunction1,
-        object_valid_instance_function pFunction2);
-
     void handler_read_property_ack(
         uint8_t * service_request,
         uint16_t service_len,
@@ -106,9 +96,7 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-
-    void handler_write_property_object_set(
-        BACNET_OBJECT_TYPE object_type,
+    void handler_write_property_function_set(
         write_property_function pFunction);
 
     bool WPValidateString(
@@ -176,10 +164,10 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-
-    void handler_read_property_multiple_list_set(
-        BACNET_OBJECT_TYPE object_type,
-        rpm_property_lists_function pFunction);
+    void handler_rpm_function_set(
+        read_property_function pFunction);
+    void handler_rpm_list_set(
+        rpm_object_property_lists_function pFunction);
 
     void handler_read_property_multiple_ack(
         uint8_t * service_request,

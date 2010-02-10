@@ -37,15 +37,12 @@
 #include "abort.h"
 #include "wp.h"
 
-static write_property_function Write_Property[MAX_BACNET_OBJECT_TYPE];
+static write_property_function Write_Property;
 
-void handler_write_property_object_set(
-    BACNET_OBJECT_TYPE object_type,
+void handler_write_property_function_set(
     write_property_function pFunction)
 {
-    if (object_type < MAX_BACNET_OBJECT_TYPE) {
-        Write_Property[object_type] = pFunction;
-    }
+    Write_Property = pFunction;
 }
 
 void handler_write_property(
@@ -58,11 +55,8 @@ void handler_write_property(
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
-    write_property_function wp_function = NULL;
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
@@ -103,11 +97,8 @@ void handler_write_property(
 #endif
         goto WP_ABORT;
     }
-    if (wp_data.object_type < MAX_BACNET_OBJECT_TYPE) {
-        wp_function = Write_Property[wp_data.object_type];
-    }
-    if (wp_function) {
-        if (wp_function(&wp_data, &error_class, &error_code)) {
+    if (Write_Property) {
+        if (Write_Property(&wp_data) >= 0) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
@@ -118,19 +109,19 @@ void handler_write_property(
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-                error_class, error_code);
+                wp_data.error_class, wp_data.error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "WP: Sending Error!\n");
 #endif
         }
     } else {
         len =
-            bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-            error_class, error_code);
+            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
-        fprintf(stderr, "WP: Sending Unknown Object Error!\n");
+        fprintf(stderr, "WP: No WP Function Set. Sending Abort!\n");
 #endif
+        goto WP_ABORT;
     }
   WP_ABORT:
     pdu_len += len;

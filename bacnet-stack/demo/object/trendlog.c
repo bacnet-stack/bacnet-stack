@@ -44,8 +44,6 @@
 #include "bacfile.h"    /* object list dependency */
 #endif
 
-#define MAX_TREND_LOGS 8
-
 /* Error code for Trend Log storage */
 
 typedef struct tl_error {
@@ -347,36 +345,33 @@ char *Trend_Log_Name(
 
 /* return the length of the apdu encoded or -1 for error or
    -2 for abort message */
-int Trend_Log_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Trend_Log_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     int len = 0;        /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    unsigned i = 0;
-    int object_type = 0;
-    uint32_t instance = 0;
-    unsigned count = 0;
     TL_LOG_INFO *CurrentLog;
+    uint8_t *apdu = NULL;
 
-    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(object_instance)]; /* Pin down which log to look at */
-
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(rpdata->object_instance)]; /* Pin down which log to look at */
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = 
                 encode_application_object_id(&apdu[0], OBJECT_TRENDLOG,
-                object_instance);
+                rpdata->object_instance);
             break;
             
         case PROP_DESCRIPTION:
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string, Trend_Log_Name(object_instance));
+            characterstring_init_ansi(&char_string, Trend_Log_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -399,8 +394,8 @@ int Trend_Log_Encode_Property_APDU(
 
         case PROP_LOG_BUFFER:
             /* You can only read the buffer via the ReadRange service */
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_READ_ACCESS_DENIED;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_READ_ACCESS_DENIED;
             apdu_len = -1;
             break;
 
@@ -482,17 +477,17 @@ int Trend_Log_Encode_Property_APDU(
             break;
             
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (property != PROP_EVENT_TIME_STAMPS) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
@@ -501,9 +496,7 @@ int Trend_Log_Encode_Property_APDU(
 
 /* returns true if successful */
 bool Trend_Log_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     int len = 0;
@@ -514,14 +507,8 @@ bool Trend_Log_Write_Property(
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE TempSource;
     bool bEffectiveEnable;
     
-    if (!Trend_Log_Valid_Instance(wp_data->object_instance)) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        return false;
-    }
-
-    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(wp_data->object_instance)]; /* Pin down which log to look at */
-
+    /* Pin down which log to look at */
+    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(wp_data->object_instance)]; 
     /* decode the some of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
@@ -531,14 +518,19 @@ bool Trend_Log_Write_Property(
 
     switch (wp_data->object_property) {
         case PROP_ENABLE:
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_BOOLEAN, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 /* Section 12.25.5 can't enable a full log with stop when full set */
                 if((CurrentLog->bEnable       == false) &&
                    (CurrentLog->bStopWhenFull == true) &&
                    (CurrentLog->ulRecordCount == TL_MAX_ENTRIES) &&
                    (value.type.Boolean        == true)) {
-                    *error_class = ERROR_CLASS_OBJECT;
-                    *error_code = ERROR_CODE_LOG_BUFFER_FULL;
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_OBJECT;
+                    wp_data->error_code = ERROR_CODE_LOG_BUFFER_FULL;
                     break;
                 }
                 
@@ -549,24 +541,30 @@ bool Trend_Log_Write_Property(
                     /* To do: what actions do we need to take on writing ? */
                     if(value.type.Boolean == false) {
                         if(bEffectiveEnable == true) {
-                            /* Only insert record if we really were enabled i.e. times and enable flags */
-                            TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_LOG_DISABLED, true);
+                            /* Only insert record if we really were 
+                                enabled i.e. times and enable flags */
+                            TL_Insert_Status_Rec(wp_data->object_instance, 
+                                LOG_STATUS_LOG_DISABLED, true);
                         }
                     } else {
                         if(TL_Is_Enabled(wp_data->object_instance)) {
                             /* Have really gone from disabled to enabled as 
                              * enable flag and times were correct
                              */
-                            TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_LOG_DISABLED, false);
+                            TL_Insert_Status_Rec(wp_data->object_instance, 
+                                LOG_STATUS_LOG_DISABLED, false);
                         }
                     }
                 }
-                status = true;
             }
             break;
 
         case PROP_STOP_WHEN_FULL:
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_BOOLEAN, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 /* Only trigger this on a change of state */
                 if(CurrentLog->bStopWhenFull != value.type.Boolean) {
                     CurrentLog->bStopWhenFull = value.type.Boolean;
@@ -579,7 +577,8 @@ bool Trend_Log_Write_Property(
                          * disable the log and record the fact - see 135-2008 12.25.12
                          */
                         CurrentLog->bEnable = false;
-                        TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_LOG_DISABLED, true);
+                        TL_Insert_Status_Rec(wp_data->object_instance, 
+                           LOG_STATUS_LOG_DISABLED, true);
                     }
                 }    
             }
@@ -590,12 +589,16 @@ bool Trend_Log_Write_Property(
              * we would probably erase the current log, resize, re-initalise
              * and carry on - however write is not allowed if enable is true.
              */
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
 
         case PROP_RECORD_COUNT:
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 if(value.type.Unsigned_Int == 0) {
                     /* Time to clear down the log */
                     CurrentLog->ulRecordCount = 0;
@@ -608,9 +611,12 @@ bool Trend_Log_Write_Property(
         case PROP_LOGGING_TYPE:
             /* logic 
              * triggered and polled options.
-             */ 
-        
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED, error_class, error_code) == true) {
+             */
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_ENUMERATED, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 if(value.type.Enumerated != LOGGING_TYPE_COV) {
                     CurrentLog->LoggingType = value.type.Enumerated;
                     if(value.type.Enumerated == LOGGING_TYPE_POLLED) {
@@ -623,26 +629,37 @@ bool Trend_Log_Write_Property(
                         /* As per 12.25.27 0 the interval if triggered logging selected */
                         CurrentLog->ulLogInterval = 0;
                     }
-                    status = true;
                 } else {
                     /* We don't currently support COV */
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }                
             }
             break;
 
         case PROP_START_TIME:
             /* Copy the date part to safe place */
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_DATE, error_class, error_code) == false)
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_DATE, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (!status) {
                 break;
-
+            }
             TempDate = value.type.Date;
-                        /* Then decode the time part */
+            /* Then decode the time part */
             len = bacapp_decode_application_data(wp_data->application_data + len,
                 wp_data->application_data_len - len, &value);
                 
-            if (len && ((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_TIME, error_class, error_code)) == true)) {
+            if (len) {
+                status = WPValidateArgType(&value, 
+                    BACNET_APPLICATION_TAG_TIME, 
+                    &wp_data->error_class, 
+                    &wp_data->error_code);
+                if (!status) {
+                    break;
+                }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(wp_data->object_instance);
                 CurrentLog->StartTime.date = TempDate; /* Safe to copy the date now */
@@ -673,15 +690,26 @@ bool Trend_Log_Write_Property(
 
         case PROP_STOP_TIME:
             /* Copy the date part to safe place */
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_DATE, error_class, error_code) == false)
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_DATE, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (!status) {
                 break;
-
+            }
             TempDate = value.type.Date;
             /* Then decode the time part */
             len = bacapp_decode_application_data(wp_data->application_data + len,
                 wp_data->application_data_len - len, &value);
                 
-            if (len && ((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_TIME, error_class, error_code)) == true)) {
+            if (len) {
+                status = WPValidateArgType(&value, 
+                    BACNET_APPLICATION_TAG_TIME,
+                    &wp_data->error_class, 
+                    &wp_data->error_code);
+                if (!status) {
+                    break;
+                }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(wp_data->object_instance);
                 CurrentLog->StopTime.date = TempDate; /* Safe to copy the date now */
@@ -718,8 +746,8 @@ bool Trend_Log_Write_Property(
             len = bacapp_decode_context_data(wp_data->application_data, wp_data->application_data_len, &value, PROP_LOG_DEVICE_OBJECT_PROPERTY);
             if((len == 0) || (value.context_tag != 0) || ((wp_data->application_data_len - len) == 0)) {
                 /* Bad decode, wrong tag or following required parameter missing */                
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_OTHER;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_OTHER;
                 break;
             }
             
@@ -730,8 +758,8 @@ bool Trend_Log_Write_Property(
             len = bacapp_decode_context_data(&wp_data->application_data[iOffset], wp_data->application_data_len, &value, PROP_LOG_DEVICE_OBJECT_PROPERTY);
             if((len == 0) || (value.context_tag != 1)) {
                 /* Bad decode or wrong tag */                
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_OTHER;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_OTHER;
                 break;
             }
             
@@ -744,8 +772,8 @@ bool Trend_Log_Write_Property(
                 len = bacapp_decode_context_data(&wp_data->application_data[iOffset], wp_data->application_data_len, &value, PROP_LOG_DEVICE_OBJECT_PROPERTY);
                 if((len == 0) || ((value.context_tag != 2) && (value.context_tag != 3))) {
                     /* Bad decode or wrong tag */                
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_OTHER;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_OTHER;
                     break;
                 }
 
@@ -759,8 +787,8 @@ bool Trend_Log_Write_Property(
                         len = bacapp_decode_context_data(&wp_data->application_data[iOffset], wp_data->application_data_len, &value, PROP_LOG_DEVICE_OBJECT_PROPERTY);
                         if((len == 0) || (value.context_tag != 3)) {
                             /* Bad decode or wrong tag */                
-                            *error_class = ERROR_CLASS_PROPERTY;
-                            *error_code = ERROR_CODE_OTHER;
+                            wp_data->error_class = ERROR_CLASS_PROPERTY;
+                            wp_data->error_code = ERROR_CODE_OTHER;
                             break;
                         }
                     }
@@ -772,8 +800,8 @@ bool Trend_Log_Write_Property(
                     if((TempSource.deviceIndentifier.instance != Device_Object_Instance_Number()) ||
                        (TempSource.deviceIndentifier.type != OBJECT_DEVICE)) {
                          /* Not our ID so can't handle it at the moment */                
-                         *error_class = ERROR_CLASS_PROPERTY;
-                         *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                         wp_data->error_class = ERROR_CLASS_PROPERTY;
+                         wp_data->error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                         break;
                     }
                 }    
@@ -795,58 +823,74 @@ bool Trend_Log_Write_Property(
         case PROP_LOG_INTERVAL:
             if(CurrentLog->LoggingType == LOGGING_TYPE_TRIGGERED) {
                 /* Read only if triggered log so flag error and bail out */
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 break;
             }
-
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code) == true) {
-                if((CurrentLog->LoggingType == LOGGING_TYPE_POLLED) && (value.type.Unsigned_Int == 0)) {
-                /* We don't support COV at the moment so don't allow switching
-                 * to it by clearing interval whilst in polling mode */
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
+                if((CurrentLog->LoggingType == LOGGING_TYPE_POLLED) && 
+                    (value.type.Unsigned_Int == 0)) {
+                    /* We don't support COV at the moment so don't allow switching
+                     * to it by clearing interval whilst in polling mode */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                    status = false;
                 } else {
                     /* We only log to 1 sec accuracy so must divide by 100 before passing it on */
                     CurrentLog->ulLogInterval = value.type.Unsigned_Int / 100;
-                    status = true;
                 }
             }
             break;
 
         case PROP_ALIGN_INTERVALS:
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true)
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_BOOLEAN, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 CurrentLog->bAlignIntervals = value.type.Boolean;
-
+            }
             break;
             
         case PROP_INTERVAL_OFFSET:
             /* We only log to 1 sec accuracy so must divide by 100 before passing it on */
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT, error_class, error_code)) == true)
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 CurrentLog->ulIntervalOffset = value.type.Unsigned_Int / 100;
-
+            }
             break;
             
         case PROP_TRIGGER:
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_BOOLEAN, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 /* We will not allow triggered operation if polling with aligning
                  * to the clock as that will produce non aligned readings which
                  * goes against the reason for selscting this mode
                  */
                 if((CurrentLog->LoggingType == LOGGING_TYPE_POLLED) &&
                    (CurrentLog->bAlignIntervals == true)) {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_NOT_CONFIGURED_FOR_TRIGGERED_LOGGING;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_NOT_CONFIGURED_FOR_TRIGGERED_LOGGING;
+                    status = false;
                 } else {
                     CurrentLog->bTrigger = value.type.Boolean;
-                    status = true;
                 }
             }
             break;
 
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
@@ -1544,6 +1588,51 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
     }
 
     return(iLen);
+}
+
+static int local_read_property(
+    uint8_t * value,
+    uint8_t * status,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
+    
+{
+    int len = 0;
+    BACNET_READ_PROPERTY_DATA rpdata;
+
+    if (value != NULL) {
+        /* configure our storage */
+        rpdata.application_data = value;
+        rpdata.application_data_len = MAX_APDU;
+        rpdata.object_type = Source->objectIdentifier.type;
+        rpdata.object_instance = Source->objectIdentifier.instance;
+        rpdata.object_property = Source->propertyIdentifier;
+        rpdata.array_index = Source->arrayIndex;
+        /* Try to fetch the required property */
+        len = Device_Objects_Read_Property(&rpdata);        
+        if (len < 0) {
+            *error_class = rpdata.error_class;
+            *error_code = rpdata.error_code;
+        }
+    }
+    if((len >= 0) && (status != NULL)){
+        /* Fetch the status flags if required */
+        rpdata.application_data = status;
+        rpdata.application_data_len = MAX_APDU;
+        rpdata.object_property = PROP_STATUS_FLAGS;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = Device_Objects_Read_Property(&rpdata);        
+        if (len < 0) {
+            *error_class = rpdata.error_class;
+            *error_code = rpdata.error_code;
+        }
+    } else {
+        *error_class = rpdata.error_class;
+        *error_code = rpdata.error_code;
+    }
+    
+    return(len);
 }
 
 /****************************************************************************

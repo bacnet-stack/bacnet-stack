@@ -3,22 +3,22 @@ CC      = gcc
 SRC_DIR = ../../src
 TEST_DIR = ../../test
 INCLUDES = -I../../include -I$(TEST_DIR) -I.
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BINARY_INPUT
+DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_MULTISTATE_INPUT
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = bi.c \
+SRCS = ms-input.c \
 	$(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/bacint.c \
 	$(SRC_DIR)/bacstr.c \
 	$(SRC_DIR)/bacreal.c \
+	$(SRC_DIR)/datetime.c \
 	$(SRC_DIR)/bacapp.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
-	$(SRC_DIR)/datetime.c \
 	$(TEST_DIR)/ctest.c
 
-TARGET = binary_input
+TARGET = multistate_input
 
 all: ${TARGET}
  

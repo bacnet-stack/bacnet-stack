@@ -94,7 +94,7 @@ iamrouter: demo/iamrouter/Makefile
 initrouter: demo/initrouter/Makefile
 	( cd demo/initrouter ; make ; cp bacinitr ../../bin )
 
-ports:	atmega168 at91sam7s bdk-atxx4-mstp
+ports:	atmega168 bdk-atxx4-mstp at91sam7s
 	echo "Built the ports"
 
 atmega168: ports/atmega168/Makefile

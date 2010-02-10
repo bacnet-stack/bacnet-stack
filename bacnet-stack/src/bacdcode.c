@@ -1956,7 +1956,7 @@ void testBACDCodeReal(
     return;
 }
 
-static void testBACDCodeDouble(
+void testBACDCodeDouble(
     Test * pTest)
 {
     uint8_t double_array[8] = { 0 };
@@ -2743,7 +2743,7 @@ void testDoubleContextDecodes(
     ct_test(pTest, outLen2 == -1);
 }
 
-static void testObjectIDContextDecodes(
+void testObjectIDContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2784,7 +2784,7 @@ static void testObjectIDContextDecodes(
     ct_test(pTest, outLen2 == -1);
 }
 
-static void testCharacterStringContextDecodes(
+void testCharacterStringContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];

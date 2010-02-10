@@ -30,6 +30,10 @@
 #include "bacdef.h"
 #include "cov.h"
 
+#ifndef MAX_BINARY_INPUTS 
+#define MAX_BINARY_INPUTS 5
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -81,18 +85,11 @@ extern "C" {
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
 
-    int Binary_Input_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+    int Binary_Input_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
     bool Binary_Input_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
     void Binary_Input_Init(
         void);
     BACNET_BINARY_PV Binary_Input_Present_Value(
@@ -100,7 +97,7 @@ extern "C" {
 
     bool Binary_Input_Present_Value_Set(
         uint32_t object_instance,
-        bool value);
+        BACNET_BINARY_PV value);
 
 #ifdef TEST
 #include "ctest.h"

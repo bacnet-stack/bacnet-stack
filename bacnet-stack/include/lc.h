@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "bacerror.h"
+#include "rp.h"
 #include "wp.h"
 
 #ifdef __cplusplus
@@ -54,18 +55,11 @@ extern "C" {
     void Load_Control_Init(
         void);
 
-    int Load_Control_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+    int Load_Control_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
     bool Load_Control_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST
 #include "ctest.h"

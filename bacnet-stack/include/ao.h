@@ -29,7 +29,12 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "bacerror.h"
+#include "rp.h"
 #include "wp.h"
+
+#ifndef MAX_ANALOG_OUTPUTS
+#define MAX_ANALOG_OUTPUTS 4
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,18 +89,10 @@ extern "C" {
     void Analog_Output_Init(
         void);
 
-    int Analog_Output_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
-
+    int Analog_Output_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
     bool Analog_Output_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST
 #include "ctest.h"

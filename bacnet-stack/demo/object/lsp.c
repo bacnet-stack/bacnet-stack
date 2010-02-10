@@ -33,10 +33,10 @@
 #include "bacenum.h"
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
+#include "rp.h"
 #include "wp.h"
+#include "lsp.h"
 #include "handlers.h"
-
-#define MAX_LIFE_SAFETY_POINTS 7
 
 /* Here are our stored levels.*/
 static BACNET_LIFE_SAFETY_MODE Life_Safety_Point_Mode[MAX_LIFE_SAFETY_POINTS];
@@ -118,7 +118,6 @@ void Life_Safety_Point_Init(
 bool Life_Safety_Point_Valid_Instance(
     uint32_t object_instance)
 {
-    Life_Safety_Point_Init();
     if (object_instance < MAX_LIFE_SAFETY_POINTS)
         return true;
 
@@ -130,7 +129,6 @@ bool Life_Safety_Point_Valid_Instance(
 unsigned Life_Safety_Point_Count(
     void)
 {
-    Life_Safety_Point_Init();
     return MAX_LIFE_SAFETY_POINTS;
 }
 
@@ -140,7 +138,6 @@ unsigned Life_Safety_Point_Count(
 uint32_t Life_Safety_Point_Index_To_Instance(
     unsigned index)
 {
-    Life_Safety_Point_Init();
     return index;
 }
 
@@ -152,7 +149,6 @@ unsigned Life_Safety_Point_Instance_To_Index(
 {
     unsigned index = MAX_LIFE_SAFETY_POINTS;
 
-    Life_Safety_Point_Init();
     if (object_instance < MAX_LIFE_SAFETY_POINTS)
         index = object_instance;
 
@@ -165,7 +161,6 @@ static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
     BACNET_LIFE_SAFETY_STATE present_value = LIFE_SAFETY_STATE_QUIET;
     unsigned index = 0;
 
-    Life_Safety_Point_Init();
     index = Life_Safety_Point_Instance_To_Index(object_instance);
     if (index < MAX_LIFE_SAFETY_POINTS)
         present_value = Life_Safety_Point_State[index];
@@ -188,13 +183,8 @@ char *Life_Safety_Point_Name(
 }
 
 /* return apdu len, or -1 on error */
-int Life_Safety_Point_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Life_Safety_Point_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -207,18 +197,24 @@ int Life_Safety_Point_Encode_Property_APDU(
     unsigned object_index = 0;
     bool state = false;
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
+    uint8_t *apdu = NULL;
 
-    Life_Safety_Point_Init();
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0],
-                OBJECT_LIFE_SAFETY_POINT, object_instance);
+                OBJECT_LIFE_SAFETY_POINT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Life_Safety_Point_Name(object_instance));
+                Life_Safety_Point_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -228,7 +224,7 @@ int Life_Safety_Point_Encode_Property_APDU(
                 OBJECT_LIFE_SAFETY_POINT);
             break;
         case PROP_PRESENT_VALUE:
-            present_value = Life_Safety_Point_Present_Value(object_instance);
+            present_value = Life_Safety_Point_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -245,7 +241,7 @@ int Life_Safety_Point_Encode_Property_APDU(
             break;
         case PROP_OUT_OF_SERVICE:
             object_index =
-                Life_Safety_Point_Instance_To_Index(object_instance);
+                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
             state = Life_Safety_Point_Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -256,7 +252,7 @@ int Life_Safety_Point_Encode_Property_APDU(
             break;
         case PROP_MODE:
             object_index =
-                Life_Safety_Point_Instance_To_Index(object_instance);
+                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
             mode = Life_Safety_Point_Mode[object_index];
             apdu_len = encode_application_enumerated(&apdu[0], mode);
             break;
@@ -269,27 +265,27 @@ int Life_Safety_Point_Encode_Property_APDU(
             break;
         case PROP_SILENCED:
             object_index =
-                Life_Safety_Point_Instance_To_Index(object_instance);
+                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
             silenced_state = Life_Safety_Point_Silenced_State[object_index];
             apdu_len = encode_application_enumerated(&apdu[0], silenced_state);
             break;
         case PROP_OPERATION_EXPECTED:
             object_index =
-                Life_Safety_Point_Instance_To_Index(object_instance);
+                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
             operation = Life_Safety_Point_Operation[object_index];
             apdu_len = encode_application_enumerated(&apdu[0], operation);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
@@ -298,21 +294,13 @@ int Life_Safety_Point_Encode_Property_APDU(
 
 /* returns true if successful */
 bool Life_Safety_Point_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    Life_Safety_Point_Init();
-    if (!Life_Safety_Point_Valid_Instance(wp_data->object_instance)) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        return false;
-    }
     /* decode the some of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
@@ -321,22 +309,30 @@ bool Life_Safety_Point_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_MODE:
-            if(WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED, error_class, error_code) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_ENUMERATED, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
                     object_index =
                         Life_Safety_Point_Instance_To_Index
                         (wp_data->object_instance);
                     Life_Safety_Point_Mode[object_index] =
                         value.type.Enumerated;
-                    status = true;
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            if((status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN, error_class, error_code)) == true) {
+            status = WPValidateArgType(&value, 
+                BACNET_APPLICATION_TAG_BOOLEAN, 
+                &wp_data->error_class, 
+                &wp_data->error_code);
+            if (status) {
                 object_index =
                     Life_Safety_Point_Instance_To_Index
                     (wp_data->object_instance);
@@ -345,8 +341,8 @@ bool Life_Safety_Point_Write_Property(
             }
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
@@ -366,23 +362,25 @@ void testLifeSafetyPoint(
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_LIFE_SAFETY_POINT;
+    uint16_t decoded_type = 0;
     uint32_t decoded_instance = 0;
-    uint32_t instance = 123;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
+    BACNET_READ_PROPERTY_DATA rpdata;
 
-
-    len =
-        Life_Safety_Point_Encode_Property_APDU(&apdu[0], instance,
-        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
+    Life_Safety_Point_Init();
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_LIFE_SAFETY_POINT; 
+    rpdata.object_instance = 1;
+    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Life_Safety_Point_Read_Property(&rpdata);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
     len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_LIFE_SAFETY_POINT);
-    ct_test(pTest, decoded_instance == instance);
+        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    ct_test(pTest, decoded_type == rpdata.object_type);
+    ct_test(pTest, decoded_instance == rpdata.object_instance);
 
     return;
 }
