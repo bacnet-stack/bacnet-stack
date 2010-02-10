@@ -97,7 +97,7 @@
 
 /* some modules have debugging enabled using PRINT_ENABLED */
 #if !defined(PRINT_ENABLED)
-#define PRINT_ENABLED 1
+#define PRINT_ENABLED 0
 #endif
 
 /* BACAPP decodes WriteProperty service requests
