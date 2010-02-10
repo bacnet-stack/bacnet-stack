@@ -41,6 +41,7 @@
 #include "awf.h"
 #include "rp.h"
 #include "wp.h"
+#include "handlers.h"
 
 typedef struct {
     uint32_t instance;

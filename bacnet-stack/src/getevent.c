@@ -115,6 +115,8 @@ int getevent_ack_encode_apdu_data(
     BACNET_GET_EVENT_INFORMATION_DATA *event_data;
     unsigned i = 0;     /* counter */
 
+    /* unused parameter */
+    max_apdu = max_apdu;
     if (apdu) {
         event_data = get_event_data;
         while (event_data) {
@@ -169,6 +171,8 @@ int getevent_ack_encode_apdu_end(
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
 
+    /* unused parameter */
+    max_apdu = max_apdu;
     if (apdu) {
         apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
         apdu_len += encode_context_boolean(&apdu[apdu_len], 1, moreEvents);

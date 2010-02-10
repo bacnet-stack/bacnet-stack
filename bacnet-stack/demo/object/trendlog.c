@@ -447,14 +447,14 @@ int Trend_Log_Read_Property(
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
             /*
              * BACnetDeviceObjectPropertyReference ::= SEQUENCE {
-	         *     objectIdentifier   [0] BACnetObjectIdentifier,
+             *     objectIdentifier   [0] BACnetObjectIdentifier,
              *     propertyIdentifier [1] BACnetPropertyIdentifier,
              *     propertyArrayIndex [2] Unsigned OPTIONAL, -- used only with array datatype
              *                                               -- if omitted with an array then
              *                                               -- the entire array is referenced
              *     deviceIdentifier   [3] BACnetObjectIdentifier OPTIONAL
-	         * }
-	         */
+             * }
+             */
             apdu_len += bacapp_encode_device_obj_property_ref(&apdu[0], &CurrentLog->Source);
             break;
 
@@ -1111,11 +1111,8 @@ int rr_trend_log_encode(
         return(TL_encode_by_position(apdu, pRequest, error_class, error_code));
     else if(pRequest->RequestType == RR_BY_SEQUENCE)
         return(TL_encode_by_sequence(apdu, pRequest, error_class, error_code));
-    else {
-        return(TL_encode_by_time(apdu, pRequest, error_class, error_code));
-    }
-    
-    return(-1);
+
+    return(TL_encode_by_time(apdu, pRequest, error_class, error_code));
 }
 
 /****************************************************************************
@@ -1130,23 +1127,22 @@ int TL_encode_by_position(
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE  *error_code)
 {
-    int iLen;
-    int32_t iTemp;
-    TL_LOG_INFO *CurrentLog;
+    int iLen = 0;
+    int32_t iTemp = 0;
+    TL_LOG_INFO *CurrentLog = NULL;
 
-    uint32_t uiIndex;     /* Current entry number */
-    uint32_t uiFirst;     /* Entry number we started encoding from */
-    uint32_t uiLast;      /* Entry number we finished encoding on */
-    uint32_t uiTarget;    /* Last entry we are required to encode */
-    uint32_t uiRemaining; /* Amount of unused space in packet */
+    uint32_t uiIndex = 0;     /* Current entry number */
+    uint32_t uiFirst = 0;     /* Entry number we started encoding from */
+    uint32_t uiLast = 0;      /* Entry number we finished encoding on */
+    uint32_t uiTarget = 0;    /* Last entry we are required to encode */
+    uint32_t uiRemaining = 0; /* Amount of unused space in packet */
     
-    uiFirst = 0;
-    uiLast  = 0;
-    iLen    = 0;
-    uiRemaining = MAX_APDU - pRequest->Overhead; /* See how much space we have */
-
+    /* unused parameters */
+    error_class = error_class;
+    error_code = error_code;
+    /* See how much space we have */
+    uiRemaining = MAX_APDU - pRequest->Overhead; 
     CurrentLog = &LogInfo[pRequest->object_instance];
-    
     if(pRequest->RequestType == RR_READ_ALL) {
         /*
          * Read all the list or as much as will fit in the buffer by selecting
@@ -1155,7 +1151,7 @@ int TL_encode_by_position(
          */
         pRequest->Count = CurrentLog->ulRecordCount;     /* Full list */
         pRequest->Range.RefIndex = 1;  /* Starting at the beginning */
-        }
+    }
 
     if(pRequest->Count < 0) { /* negative count means work from index backwards */
         /*
@@ -1237,29 +1233,30 @@ int TL_encode_by_sequence(
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE  *error_code)
 {
-    int iLen;
-    int32_t iTemp;
-    TL_LOG_INFO *CurrentLog;
+    int iLen = 0;
+    int32_t iTemp = 0;
+    TL_LOG_INFO *CurrentLog = NULL;
 
-    uint32_t uiIndex;     /* Current entry number */
-    uint32_t uiFirst;     /* Entry number we started encoding from */
-    uint32_t uiLast;      /* Entry number we finished encoding on */
-    uint32_t uiSequence;  /* Tracking sequenc number when encoding */
-    uint32_t uiRemaining; /* Amount of unused space in packet */
-    uint32_t uiFirstSeq;  /* Sequence number for 1st record in log */
+    uint32_t uiIndex = 0;     /* Current entry number */
+    uint32_t uiFirst = 0;     /* Entry number we started encoding from */
+    uint32_t uiLast = 0;      /* Entry number we finished encoding on */
+    uint32_t uiSequence = 0;  /* Tracking sequenc number when encoding */
+    uint32_t uiRemaining = 0; /* Amount of unused space in packet */
+    uint32_t uiFirstSeq = 0;  /* Sequence number for 1st record in log */
 
-    uint32_t uiBegin;     /* Starting Sequence number for request */
-    uint32_t uiEnd;       /* Ending Sequence number for request */
+    uint32_t uiBegin = 0;     /* Starting Sequence number for request */
+    uint32_t uiEnd = 0;       /* Ending Sequence number for request */
     bool bWrapReq = false; /* Has request sequence range spanned the max for uint32_t? */
     bool bWrapLog = false; /* Has log sequence range spanned the max for uint32_t? */
 
-    uiFirst = 0;
-    uiLast  = 0;
-    iLen    = 0;
-    uiRemaining = MAX_APDU - pRequest->Overhead; /* See how much space we have */
+    /* unused parameters */
+    error_class = error_class;
+    error_code = error_code;
+    /* See how much space we have */
+    uiRemaining = MAX_APDU - pRequest->Overhead; 
     CurrentLog = &LogInfo[pRequest->object_instance];
-	/* Figure out the sequence number for the first record, last is ulTotalRecordCount */
-	uiFirstSeq = CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
+    /* Figure out the sequence number for the first record, last is ulTotalRecordCount */
+    uiFirstSeq = CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
 
     /* Calculate start and end sequence numbers from request */
     if(pRequest->Count < 0) {
@@ -1356,7 +1353,7 @@ int TL_encode_by_sequence(
     
     pRequest->FirstSequence = uiBegin;
     
-return(iLen);
+    return(iLen);
 }
 
 /****************************************************************************
@@ -1372,22 +1369,23 @@ int TL_encode_by_time(
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE  *error_code)
 {
-    int iLen;
-    int32_t iTemp;
-    int iCount;
-    TL_LOG_INFO *CurrentLog;
+    int iLen = 0;
+    int32_t iTemp = 0;
+    int iCount = 0;
+    TL_LOG_INFO *CurrentLog = NULL;
 
-    uint32_t uiIndex;     /* Current entry number */
-    uint32_t uiFirst;     /* Entry number we started encoding from */
-    uint32_t uiLast;      /* Entry number we finished encoding on */
-    uint32_t uiRemaining; /* Amount of unused space in packet */
-    uint32_t uiFirstSeq;  /* Sequence number for 1st record in log */
-    time_t tRefTime;       /* The time from the request in local format */
+    uint32_t uiIndex = 0;     /* Current entry number */
+    uint32_t uiFirst = 0;     /* Entry number we started encoding from */
+    uint32_t uiLast = 0;      /* Entry number we finished encoding on */
+    uint32_t uiRemaining = 0; /* Amount of unused space in packet */
+    uint32_t uiFirstSeq = 0;  /* Sequence number for 1st record in log */
+    time_t tRefTime = 0;       /* The time from the request in local format */
     
-    uiFirst = 0;
-    uiLast  = 0;
-    iLen    = 0;
-    uiRemaining = MAX_APDU - pRequest->Overhead; /* See how much space we have */
+    /* unused parameters */
+    error_class = error_class;
+    error_code = error_code;
+    /* See how much space we have */
+    uiRemaining = MAX_APDU - pRequest->Overhead; 
     CurrentLog = &LogInfo[pRequest->object_instance];
     
     tRefTime = TL_BAC_Time_To_Local(&pRequest->Range.RefTime);
@@ -1402,8 +1400,8 @@ int TL_encode_by_time(
          * timestamp greater than or equal to the reference.
          */
         iCount = CurrentLog->ulRecordCount - 1;
-	    /* Start out with the sequence number for the last record */
-	    uiFirstSeq = CurrentLog->ulTotalRecordCount;
+        /* Start out with the sequence number for the last record */
+        uiFirstSeq = CurrentLog->ulTotalRecordCount;
         for(;;) {
             if(Logs[pRequest->object_instance][(uiIndex + iCount) % TL_MAX_ENTRIES].tTimeStamp < tRefTime)
                 break;
@@ -1438,15 +1436,15 @@ int TL_encode_by_time(
          * timestamp greater than the reference time.
          */
         iCount = 0;
-	    /* Figure out the sequence number for the first record, last is ulTotalRecordCount */
-	    uiFirstSeq = CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
+        /* Figure out the sequence number for the first record, last is ulTotalRecordCount */
+        uiFirstSeq = CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
         for(;;) {
             if(Logs[pRequest->object_instance][(uiIndex + iCount) % TL_MAX_ENTRIES].tTimeStamp > tRefTime)
                 break;
             
             uiFirstSeq++;
             iCount++;
-            if(iCount == CurrentLog->ulRecordCount)
+            if((uint32_t)iCount == CurrentLog->ulRecordCount)
                 return(0);
         }
     }
@@ -1488,16 +1486,16 @@ int TL_encode_by_time(
     
     pRequest->FirstSequence = uiFirstSeq;
     
-return(iLen);
+    return(iLen);
 }
 
 
 int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 {
-    int iLen;
-    TL_DATA_REC *pSource;
+    int iLen = 0;
+    TL_DATA_REC *pSource = NULL;
     BACNET_BIT_STRING TempBits;    
-    int iCount;
+    int iCount = 0;
     BACNET_DATE_TIME TempTime;
     
     /* Convert from BACnet 1 based to 0 based array index and then
@@ -1750,10 +1748,13 @@ void TL_fetch_property(int iLog)
 void trend_log_timer(
     uint16_t uSeconds)
 {
-    TL_LOG_INFO *CurrentLog;
-    int iCount;
-    time_t tNow;
+    TL_LOG_INFO *CurrentLog = NULL;
+    int iCount = 0;
+    time_t tNow = 0;
 
+    /* unused parameter */
+    uSeconds = uSeconds;
+    /* use OS to get the current time */
     tNow = time(NULL);
     for(iCount = 0; iCount < MAX_TREND_LOGS; iCount++) {
         CurrentLog = &LogInfo[iCount];

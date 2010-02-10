@@ -603,7 +603,8 @@ int address_list_encode(
     /* FIXME: I really shouild check the length remaining here but it is 
        fairly pointless until we have the true length remaining in
        the packet to work with as at the moment it is just MAX_APDU */
-
+    apdu_len = apdu_len;
+    /* look for matching address */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
@@ -665,27 +666,25 @@ int rr_address_list_encode(
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE  *error_code)
 {
-    int iLen;
-    int32_t iTemp;
-    struct Address_Cache_Entry *pMatch; 
+    int iLen = 0;
+    int32_t iTemp = 0;
+    struct Address_Cache_Entry *pMatch = NULL; 
     BACNET_OCTET_STRING MAC_Address;
-    uint32_t uiTotal;               /* Number of bound entries in the cache */
-    uint32_t uiIndex;               /* Current entry number */
-    uint32_t uiFirst;               /* Entry number we started encoding from */
-    uint32_t uiLast;                /* Entry number we finished encoding on */
-    uint32_t uiTarget;              /* Last entry we are required to encode */
-    uint32_t uiRemaining;           /* Amount of unused space in packet */
+    uint32_t uiTotal = 0;               /* Number of bound entries in the cache */
+    uint32_t uiIndex = 0;               /* Current entry number */
+    uint32_t uiFirst = 0;               /* Entry number we started encoding from */
+    uint32_t uiLast = 0;                /* Entry number we finished encoding on */
+    uint32_t uiTarget = 0;              /* Last entry we are required to encode */
+    uint32_t uiRemaining = 0;           /* Amount of unused space in packet */
     
+    /* unused parameters */
+    error_class = error_class;
+    error_code = error_code;
     /* Initialise result flags to all false */
-      
-    bitstring_init(&pRequest->ResultFlags);
+          bitstring_init(&pRequest->ResultFlags);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, false);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  false);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
-
-    uiFirst = 0;
-    uiLast  = 0;
-    iLen    = 0;
     /* See how much space we have */
     uiRemaining = (uint32_t)(MAX_APDU - pRequest->Overhead); 
 
@@ -801,7 +800,7 @@ int rr_address_list_encode(
     if(uiLast == uiTotal)
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  true);
     
-return(iLen);
+    return(iLen);
 }
 
 /****************************************************************************
