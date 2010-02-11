@@ -898,14 +898,14 @@ typedef enum {
     OBJECT_ACCESS_USER = 35,
     OBJECT_ACCESS_ZONE = 36,
     OBJECT_AUTHENTICATION_FACTOR_INPUT = 37,
-    MAX_ASHRAE_OBJECT_TYPE = 38
+    MAX_ASHRAE_OBJECT_TYPE = 38,
+    /* used for bit string loop */
+    PROPRIETARY_BACNET_OBJECT_TYPE = 128,
+    MAX_BACNET_OBJECT_TYPE = 1024
         /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
         /* Enumerated values 128-1023 may be used by others subject to  */
         /* the procedures and constraints described in Clause 23. */
 } BACNET_OBJECT_TYPE;
-/* used for bit string loop */
-#define PROPRIETARY_BACNET_OBJECT_TYPE 128
-#define MAX_BACNET_OBJECT_TYPE 1023
 
 typedef enum {
     SEGMENTATION_BOTH = 0,
