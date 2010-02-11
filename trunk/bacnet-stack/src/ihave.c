@@ -173,7 +173,7 @@ void testIHave(
         data.device_id.instance <= BACNET_MAX_INSTANCE;
         data.device_id.instance <<= 1) {
         for (data.object_id.type = OBJECT_ANALOG_INPUT;
-            data.object_id.type <= MAX_BACNET_OBJECT_TYPE;
+            data.object_id.type < MAX_BACNET_OBJECT_TYPE;
             data.object_id.type++) {
             for (data.object_id.instance = 1;
                 data.object_id.instance <= BACNET_MAX_INSTANCE;

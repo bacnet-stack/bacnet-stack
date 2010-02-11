@@ -218,7 +218,7 @@ void testWhoHas(
             data.high_limit += (BACNET_MAX_INSTANCE / 4)) {
             data.object_name = false;
             for (data.object.identifier.type = OBJECT_ANALOG_INPUT;
-                data.object.identifier.type <= MAX_BACNET_OBJECT_TYPE;
+                data.object.identifier.type < MAX_BACNET_OBJECT_TYPE;
                 data.object.identifier.type++) {
                 for (data.object.identifier.instance = 1;
                     data.object.identifier.instance <= BACNET_MAX_INSTANCE;

@@ -243,9 +243,9 @@ int main(
             fprintf(stderr, "Error: not enough object property quads.\r\n");
             return 1;
         }
-        if (rpm_object->object_type > MAX_BACNET_OBJECT_TYPE) {
+        if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
             fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-                rpm_object->object_type, MAX_BACNET_OBJECT_TYPE + 1);
+                rpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
             return 1;
         }
         rpm_object->object_instance = strtol(argv[tag_value_arg], NULL, 0);
