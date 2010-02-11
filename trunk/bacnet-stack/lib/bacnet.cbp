@@ -46,6 +46,12 @@
 			<Add library="ws2_32" />
 			<Add library="iphlpapi" />
 		</Linker>
+		<Unit filename="..\demo\handler\dlenv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\h_alarm_ack.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\h_arf.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -61,13 +67,25 @@
 		<Unit filename="..\demo\handler\h_dcc.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\h_getevent.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\h_iam.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\h_ihave.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\h_lso.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\h_npdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\h_pt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\h_pt_a.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\h_rd.c">
@@ -82,13 +100,22 @@
 		<Unit filename="..\demo\handler\h_rpm.c">
 			<Option compilerVar="CC" />
 		</Unit>
-        <Unit filename="..\demo\handler\h_rpm_a.c">
-            <Option compilerVar="CC" />
-        </Unit>
+		<Unit filename="..\demo\handler\h_rpm_a.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\h_rr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\h_rr_a.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\h_ts.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\h_ucov.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\h_upt.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\h_whohas.c">
@@ -103,10 +130,19 @@
 		<Unit filename="..\demo\handler\noserv.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\s_ack_alarm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\s_arfs.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\s_awfs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\s_cevent.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\s_cov.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\s_dcc.c">
@@ -115,27 +151,39 @@
 		<Unit filename="..\demo\handler\s_iam.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\demo\handler\s_cov.c">
+		<Unit filename="..\demo\handler\s_ihave.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\demo\handler\s_ihave.c">
+		<Unit filename="..\demo\handler\s_lso.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\s_ptransfer.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\s_rd.c">
 			<Option compilerVar="CC" />
 		</Unit>
-        <Unit filename="..\demo\handler\s_rp.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="..\demo\handler\s_rpm.c">
-            <Option compilerVar="CC" />
-        </Unit>
+		<Unit filename="..\demo\handler\s_readrange.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\s_router.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\s_rp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\s_rpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\s_ts.c">
 			<Option compilerVar="CC" />
 		</Unit>
-        <Unit filename="..\demo\handler\s_uevent.c">
-            <Option compilerVar="CC" />
-        </Unit>
+		<Unit filename="..\demo\handler\s_uevent.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\handler\s_upt.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\s_whohas.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -146,9 +194,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\txbuf.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\handler\dlenv.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\object\ai.c">
@@ -182,6 +227,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\object\mso.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\demo\object\trendlog.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\include\abort.h" />
@@ -234,6 +282,7 @@
 		<Unit filename="..\include\lc.h" />
 		<Unit filename="..\include\lo.h" />
 		<Unit filename="..\include\lsp.h" />
+		<Unit filename="..\include\memcopy.h" />
 		<Unit filename="..\include\mso.h" />
 		<Unit filename="..\include\mstp.h" />
 		<Unit filename="..\include\mstptext.h" />
@@ -243,8 +292,7 @@
 		<Unit filename="..\include\ringbuf.h" />
 		<Unit filename="..\include\rp.h" />
 		<Unit filename="..\include\rpm.h" />
-        <Unit filename="..\include\sbuf.h" />
-        <Unit filename="..\include\memcopy.h" />
+		<Unit filename="..\include\sbuf.h" />
 		<Unit filename="..\include\timesync.h" />
 		<Unit filename="..\include\tsm.h" />
 		<Unit filename="..\include\txbuf.h" />
@@ -269,6 +317,9 @@
 		<Unit filename="..\src\address.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\src\alarm_ack.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\apdu.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -287,6 +338,9 @@
 		<Unit filename="..\src\bacdcode.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\src\bacdevobjpropref.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\bacerror.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -296,6 +350,9 @@
 		<Unit filename="..\src\bacprop.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\src\bacpropstates.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\bacreal.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -303,6 +360,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\bactext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\bigend.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\bip.c">
@@ -326,7 +386,16 @@
 		<Unit filename="..\src\debug.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\src\event.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\fifo.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\filename.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\getevent.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\iam.c">
@@ -344,25 +413,43 @@
 		<Unit filename="..\src\keylist.c">
 			<Option compilerVar="CC" />
 		</Unit>
-        <Unit filename="..\src\memcopy.c">
-            <Option compilerVar="CC" />
-        </Unit>
-        <Unit filename="..\src\mstp.c">
-            <Option compilerVar="CC" />
-        </Unit>
+		<Unit filename="..\src\lso.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\memcopy.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\npdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\ptransfer.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\rd.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\src\readrange.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\src\reject.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\ringbuf.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\rp.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\rpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\sbuf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\stricmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\timestamp.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\timesync.c">
