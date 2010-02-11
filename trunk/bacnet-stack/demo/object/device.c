@@ -187,7 +187,7 @@ static struct object_functions {
         BACfile_Property_Lists},
 #endif
         
-    {-1, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 /* Encodes the property APDU and returns the length,
@@ -204,7 +204,7 @@ int Device_Objects_Read_Property(
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     pObject = &Object_Table[0];
-    while (pObject->Object_Type != -1) {
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
         if (pObject->Object_Type == rpdata->object_type) {
             found = true;
@@ -242,7 +242,7 @@ bool Device_Objects_Write_Property(
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     pObject = &Object_Table[0];
-    while (pObject->Object_Type != -1) {
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
         if (pObject->Object_Type == wp_data->object_type) {
             found = true;
@@ -300,7 +300,7 @@ static void Device_Objects_Property_List(
     pPropertyList->Optional.pList = NULL;
     pPropertyList->Proprietary.pList = NULL;
     pObject = &Object_Table[0];
-    while (pObject->Object_Type != -1) {
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
         if (pObject->Object_Type == object_type) {
             found = true;
@@ -766,7 +766,7 @@ unsigned Device_Object_List_Count(
 
     /* initialize the default return values */
     pObject = &Object_Table[0];
-    while (pObject->Object_Type != -1) {
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Count) {
             count += pObject->Object_Count();
         }
@@ -795,7 +795,7 @@ bool Device_Object_List_Identifier(
     object_index = array_index - 1;
     /* initialize the default return values */
     pObject = &Object_Table[0];
-    while (pObject->Object_Type != -1) {
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Count &&
             pObject->Object_Index_To_Instance) {
             object_index -= count;
@@ -857,7 +857,7 @@ char *Device_Valid_Object_Id(
     struct object_functions *pObject = NULL;
 
     pObject = &Object_Table[0];
-    while (pObject->Object_Type != -1) {
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if ((pObject->Object_Type == object_type) && 
             (pObject->Object_Name)) {
             name = pObject->Object_Name(object_instance);
@@ -1062,7 +1062,7 @@ int Device_Read_Property(
             /* set the object types with objects to supported */
             i = 0;
             pObject = &Object_Table[i];
-            while (pObject->Object_Type != -1) {
+            while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
                 if ((pObject->Object_Count) &&
                     (pObject->Object_Count() > 0)) {
                     bitstring_set_bit(&bit_string, pObject->Object_Type, true);
@@ -1356,7 +1356,7 @@ void Device_Init(
     handler_write_property_function_set(Device_Objects_Write_Property);
 
     pObject = &Object_Table[0];
-    while (pObject->Object_Type != -1) {
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
             pObject->Object_Init();
         }
