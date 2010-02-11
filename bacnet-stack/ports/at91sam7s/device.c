@@ -477,7 +477,7 @@ int Device_Encode_Property_APDU(
     return apdu_len;
 }
 
-bool Device_Write_Property_APDU(
+bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code)
