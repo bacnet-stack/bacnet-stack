@@ -58,7 +58,7 @@ static uint8_t RxBuffer[MAX_MPDU];
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
-static uint8_t Treply_timeout = 260;
+static uint16_t Treply_timeout = 260;
 /* The minimum time without a DataAvailable or ReceiveError event that a */
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
