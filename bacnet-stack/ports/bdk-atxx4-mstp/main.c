@@ -170,7 +170,6 @@ void test_task(
 {
     char buffer[32] = "BACnet: 0000000\r\n";
     uint8_t nbytes = 17;
-    char *pBuffer = NULL;
     uint8_t data_register = 0;
 
     if (timer_elapsed_seconds(TIMER_TEST, 1)) {
@@ -204,26 +203,6 @@ void test_task(
             Binary_Output_Level_Sync(0);
             Binary_Output_Level_Set(1, 1, BINARY_NULL);
             Binary_Output_Level_Sync(1);
-        }
-        if (data_register == 'm') {
-            sprintf(buffer, "->Master State: ");
-            nbytes = (uint8_t) strlen(buffer);
-            serial_bytes_send((uint8_t *) buffer, nbytes);
-            extern char *dlmstp_master_state_text(
-                void);
-            pBuffer = dlmstp_master_state_text();
-            nbytes = (uint8_t) strlen(pBuffer);
-            serial_bytes_send((uint8_t *) pBuffer, nbytes);
-        }
-        if (data_register == 'r') {
-            sprintf(buffer, "->Receive State: ");
-            nbytes = (uint8_t) strlen(buffer);
-            serial_bytes_send((uint8_t *) buffer, nbytes);
-            extern char *dlmstp_receive_state_text(
-                void);
-            pBuffer = dlmstp_receive_state_text();
-            nbytes = (uint8_t) strlen(pBuffer);
-            serial_bytes_send((uint8_t *) pBuffer, nbytes);
         }
         serial_byte_send('\r');
         serial_byte_send('\n');
