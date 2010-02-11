@@ -29,10 +29,11 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "bacerror.h"
+#include "rp.h"
 #include "wp.h"
 
 #ifndef MAX_BINARY_OUTPUTS
-#define MAX_BINARY_OUTPUTS 6
+#define MAX_BINARY_OUTPUTS 4
 #endif
 
 #ifdef __cplusplus

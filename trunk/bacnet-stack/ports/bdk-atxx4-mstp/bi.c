@@ -32,10 +32,8 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h"
-
-#ifndef MAX_BINARY_INPUTS
-#define MAX_BINARY_INPUTS 8
-#endif
+#include "bi.h"
+#include "handlers.h"
 
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 
@@ -143,17 +141,13 @@ BACNET_BINARY_PV Binary_Input_Present_Value(
 
 bool Binary_Input_Present_Value_Set(
     uint32_t object_instance,
-    bool value)
+    BACNET_BINARY_PV value)
 {
     unsigned index = 0;
 
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
-        if (value) {
-            Present_Value[index] = BINARY_ACTIVE;
-        } else {
-            Present_Value[index] = BINARY_INACTIVE;
-        }
+        Present_Value[index] = value;
         return true;
     }
 
@@ -175,31 +169,33 @@ char *Binary_Input_Name(
 
 /* return apdu length, or -1 on error */
 /* assumption - object already exists, and has been bounds checked */
-int Binary_Input_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Binary_Input_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_POLARITY polarity = POLARITY_NORMAL;
     BACNET_BINARY_PV value = BINARY_INACTIVE;
+    uint8_t *apdu = NULL;
 
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_BINARY_INPUT,
-                object_instance);
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             /* note: object name must be unique in our device */
             characterstring_init_ansi(&char_string,
-                Binary_Input_Name(object_instance));
+                Binary_Input_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -208,7 +204,7 @@ int Binary_Input_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_INPUT);
             break;
         case PROP_PRESENT_VALUE:
-            value = Binary_Input_Present_Value(object_instance);
+            value = Binary_Input_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], value);
             break;
         case PROP_STATUS_FLAGS:
@@ -232,16 +228,16 @@ int Binary_Input_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], polarity);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 

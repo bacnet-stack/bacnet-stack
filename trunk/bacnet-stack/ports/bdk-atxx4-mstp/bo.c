@@ -35,10 +35,8 @@
 #include "wp.h"
 #include "led.h"
 #include "nvdata.h"
-
-#ifndef MAX_BINARY_OUTPUTS
-#define MAX_BINARY_OUTPUTS 2
-#endif
+#include "bo.h"
+#include "handlers.h"
 
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
@@ -251,13 +249,8 @@ char *Binary_Output_Name(
 }
 
 /* return apdu len, or -1 on error */
-int Binary_Output_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Binary_Output_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -267,19 +260,26 @@ int Binary_Output_Encode_Property_APDU(
     unsigned object_index = 0;
     unsigned i = 0;
     bool state = false;
+    uint8_t *apdu = NULL;
 
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_BINARY_OUTPUT,
-                object_instance);
+                rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Binary_Output_Name(object_instance));
+                Binary_Output_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -288,7 +288,7 @@ int Binary_Output_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_OUTPUT);
             break;
         case PROP_PRESENT_VALUE:
-            present_value = Binary_Output_Present_Value(object_instance);
+            present_value = Binary_Output_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -306,25 +306,26 @@ int Binary_Output_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index = Binary_Output_Instance_To_Index(object_instance);
+            object_index = Binary_Output_Instance_To_Index(rpdata->object_instance);
             state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
+            object_index = Binary_Output_Instance_To_Index(rpdata->object_instance);
             apdu_len =
                 encode_application_enumerated(&apdu[0],
                 Polarity[object_index]);
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (array_index == 0)
+            if (rpdata->array_index == 0)
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
-            else if (array_index == BACNET_ARRAY_ALL) {
+            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
-                    Binary_Output_Instance_To_Index(object_instance);
+                    Binary_Output_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     present_value = Binary_Output_Level[object_index][i];
@@ -339,18 +340,18 @@ int Binary_Output_Encode_Property_APDU(
                     if ((apdu_len + len) < MAX_APDU)
                         apdu_len += len;
                     else {
-                        *error_class = ERROR_CLASS_SERVICES;
-                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                        rpdata->error_class = ERROR_CLASS_SERVICES;
+                        rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
                         apdu_len = -1;
                         break;
                     }
                 }
             } else {
                 object_index =
-                    Binary_Output_Instance_To_Index(object_instance);
-                if (array_index <= BACNET_MAX_PRIORITY) {
+                    Binary_Output_Instance_To_Index(rpdata->object_instance);
+                if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     present_value =
-                        Binary_Output_Level[object_index][array_index - 1];
+                        Binary_Output_Level[object_index][rpdata->array_index - 1];
                     if (present_value == BINARY_NULL) {
                         apdu_len = encode_application_null(&apdu[apdu_len]);
                     } else {
@@ -359,8 +360,8 @@ int Binary_Output_Encode_Property_APDU(
                             present_value);
                     }
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                    rpdata->error_class = ERROR_CLASS_PROPERTY;
+                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                     apdu_len = -1;
                 }
             }
@@ -380,17 +381,17 @@ int Binary_Output_Encode_Property_APDU(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (property != PROP_PRIORITY_ARRAY) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
@@ -399,9 +400,7 @@ int Binary_Output_Encode_Property_APDU(
 
 /* returns true if successful */
 bool Binary_Output_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
@@ -410,12 +409,6 @@ bool Binary_Output_Write_Property(
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    object_index = Binary_Output_Instance_To_Index(wp_data->object_instance);
-    if (object_index >= MAX_BINARY_OUTPUTS) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        return false;
-    }
     /* decode the some of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
@@ -424,7 +417,11 @@ bool Binary_Output_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+            status = WPValidateArgType(&value,
+                BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class,
+                &wp_data->error_code);
+            if (status) {
                 priority = wp_data->priority;
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -436,70 +433,76 @@ bool Binary_Output_Write_Property(
                     priority--;
                     Binary_Output_Level_Set(object_index, priority, level);
                     Binary_Output_Level_Sync(object_index);
-                    status = true;
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
                        object. */
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
-                level = BINARY_NULL;
-                priority = wp_data->priority;
-                if (priority && (priority <= BACNET_MAX_PRIORITY)) {
-                    priority--;
-                    Binary_Output_Level_Set(object_index, priority, level);
-                    Binary_Output_Level_Sync(object_index);
-                    status = true;
-                } else if (priority == 6) {
-                    /* Command priority 6 is reserved for use by Minimum On/Off
-                       algorithm and may not be used for other purposes in any
-                       object. */
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                status = WPValidateArgType(&value,
+                    BACNET_APPLICATION_TAG_NULL,
+                    &wp_data->error_class,
+                    &wp_data->error_code);
+                if (status) {
+                    level = BINARY_NULL;
+                    priority = wp_data->priority;
+                    if (priority && (priority <= BACNET_MAX_PRIORITY)) {
+                        priority--;
+                        Binary_Output_Level_Set(object_index, priority, level);
+                        Binary_Output_Level_Sync(object_index);
+                    } else if (priority == 6) {
+                        status = false;
+                        /* Command priority 6 is reserved for use by Minimum On/Off
+                           algorithm and may not be used for other purposes in any
+                           object. */
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    } else {
+                        status = false;
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
+                }
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            status = WPValidateArgType(&value,
+                BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class,
+                &wp_data->error_code);
+            if (status) {
                 Binary_Output_Out_Of_Service_Set(object_index,
                     value.type.Boolean);
                 Binary_Output_Level_Sync(object_index);
-                status = true;
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_POLARITY:
-            if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+            status = WPValidateArgType(&value,
+                BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class,
+                &wp_data->error_code);
+            if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
                     Binary_Output_Polarity_Set(object_index,
                         value.type.Enumerated);
                     Binary_Output_Level_Sync(object_index);
-                    status = true;
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
