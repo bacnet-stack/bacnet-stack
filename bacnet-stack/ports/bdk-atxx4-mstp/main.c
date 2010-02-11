@@ -92,10 +92,6 @@ static void bacnet_init(
     }
     /* initialize objects */
     Device_Init();
-    Binary_Output_Init();
-    Analog_Input_Init();
-    Binary_Input_Init();
-    Analog_Value_Init();
 
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler
@@ -123,12 +119,14 @@ static uint8_t PDUBuffer[MAX_MPDU];
 static void bacnet_task(
     void)
 {
-    uint8_t mstp_mac_address = 0;
-    uint16_t pdu_len = 0;
+    uint8_t mstp_mac_address;
+    uint16_t pdu_len;
     BACNET_ADDRESS src; /* source address */
-    uint8_t value = 0;
-    bool button_value = false;
-    uint8_t i = 0;
+    uint8_t value;
+    bool button_value;
+    uint8_t i;
+    BACNET_BINARY_PV binary_value = BINARY_INACTIVE;
+
 
     mstp_mac_address = input_address();
     if (MSTP_MAC_Address != mstp_mac_address) {
@@ -140,12 +138,16 @@ static void bacnet_task(
     /* handle the inputs */
     value = adc_result(7);
     Analog_Input_Present_Value_Set(0, value);
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < MAX_BINARY_INPUTS; i++) {
         button_value = input_button_value(i);
-        Binary_Input_Present_Value_Set(i, button_value);
+        if (button_value) {
+            binary_value = BINARY_ACTIVE;
+        }
+        Binary_Input_Present_Value_Set(i, binary_value);
     }
     /* handle the communication timer */
     if (timer_elapsed_seconds(TIMER_DCC, 1)) {
+        timer_reset(TIMER_DCC);
         dcc_timer_seconds(1);
     }
     /* handle the messaging */
@@ -153,17 +155,6 @@ static void bacnet_task(
     if (pdu_len) {
         npdu_handler(&src, &PDUBuffer[0], pdu_len);
     }
-}
-
-void idle_init(
-    void)
-{
-}
-
-void idle_task(
-    void)
-{
-    /* do nothing */
 }
 
 void test_init(
@@ -252,7 +243,6 @@ int main(
     rs485_init();
     serial_init();
     bacnet_init();
-    idle_init();
     test_init();
     /* Enable global interrupts */
     __enable_interrupt();
@@ -261,7 +251,6 @@ int main(
         input_task();
         bacnet_task();
         led_task();
-        idle_task();
         test_task();
     }
 }

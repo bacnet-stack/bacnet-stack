@@ -32,11 +32,8 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h"
-
-/* Analog Input */
-#ifndef MAX_ANALOG_INPUTS
-#define MAX_ANALOG_INPUTS 2
-#endif
+#include "ai.h"
+#include "handlers.h"
 
 static uint8_t Present_Value[MAX_ANALOG_INPUTS];
 
@@ -144,31 +141,33 @@ void Analog_Input_Present_Value_Set(
 }
 
 /* return apdu length, or -1 on error */
-/* assumption - object has already exists */
-int Analog_Input_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+/* assumption - object already exists */
+int Analog_Input_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
+    uint8_t *apdu = NULL;
 
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
-                object_instance);
+                rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Analog_Input_Name(object_instance));
+                Analog_Input_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -179,7 +178,7 @@ int Analog_Input_Encode_Property_APDU(
         case PROP_PRESENT_VALUE:
             apdu_len =
                 encode_application_real(&apdu[0],
-                Analog_Input_Present_Value(object_instance));
+                Analog_Input_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -200,16 +199,16 @@ int Analog_Input_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 

@@ -29,6 +29,8 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "cov.h"
+#include "rp.h"
+#include "wp.h"
 
 #ifndef MAX_BINARY_INPUTS 
 #define MAX_BINARY_INPUTS 5

@@ -18,6 +18,7 @@ SIZE = avr-size
 AVRDUDE = avrdude
 LINT = splint
 
+SIZE_OPTIONS = -C --mcu=${MCU}
 # programmer id--check the avrdude for complete list
 # of available opts.  These should include stk500,
 # avr910, avrisp, bsd, pony and more.  Set this to
@@ -58,9 +59,6 @@ CSRC = main.c \
 	eeprom.c \
 	seeprom.c \
 	dlmstp.c \
-	h_wp.c \
-	h_rp.c \
-	h_rpm.c \
 	h_rd.c \
 	device.c \
 	ai.c \
@@ -73,6 +71,9 @@ DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/h_whois.c \
 	$(BACNET_DEMO)/handler/h_dcc.c \
+	$(BACNET_DEMO)/handler/h_wp.c \
+	$(BACNET_DEMO)/handler/h_rp.c \
+	$(BACNET_DEMO)/handler/h_rpm.c \
 	$(BACNET_DEMO)/handler/s_iam.c \
 	$(BACNET_DEMO)/handler/noserv.c
 
@@ -298,7 +299,7 @@ $(LIBRARY): $(COREOBJ) Makefile
 
 size: ${TARGET_ELF}
 	@echo
-	@${SIZE} ${TARGET_ELF}
+	@${SIZE} ${SIZE_OPTIONS} ${TARGET_ELF}
 
 lint:
 	$(LINT) $(BFLAGS) $(CSRC) 
