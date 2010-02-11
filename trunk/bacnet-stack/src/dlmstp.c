@@ -43,7 +43,11 @@
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
-
+/* The minimum time without a DataAvailable or ReceiveError event */
+/* that a node must wait for a station to begin replying to a */
+/* confirmed request: 255 milliseconds. (Implementations may use */
+/* larger values for this timeout, not to exceed 300 milliseconds.) */
+static uint16_t Treply_timeout = 260;
 /* packet queues */
 static DLMSTP_PACKET Receive_Packet;
 static HANDLE Receive_Packet_Flag;
