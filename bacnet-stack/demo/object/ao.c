@@ -37,6 +37,10 @@
 #include "ao.h"
 #include "handlers.h"
 
+#ifndef MAX_ANALOG_OUTPUTS
+#define MAX_ANALOG_OUTPUTS 4
+#endif
+
 /* we choose to have a NULL level in our system represented by */
 /* a particular value.  When the priorities are not in use, they */
 /* will be relinquished (i.e. set to the NULL level). */

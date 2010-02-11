@@ -44,8 +44,12 @@
 #include "bacfile.h"    /* object list dependency */
 #endif
 
-/* Error code for Trend Log storage */
+/* number of demo objects */
+#ifndef MAX_TREND_LOGS
+#define MAX_TREND_LOGS 8
+#endif
 
+/* Error code for Trend Log storage */
 typedef struct tl_error {
     uint16_t usClass;
     uint16_t usCode;

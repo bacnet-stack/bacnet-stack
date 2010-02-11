@@ -46,7 +46,9 @@
 #include "handlers.h"
 >>>>>>> .r1574
 
+#ifndef MAX_LIGHTING_OUTPUTS
 #define MAX_LIGHTING_OUTPUTS 5
+#endif
 
 /* we choose to have a NULL level in our system represented by */
 /* a particular value.  When the priorities are not in use, they */

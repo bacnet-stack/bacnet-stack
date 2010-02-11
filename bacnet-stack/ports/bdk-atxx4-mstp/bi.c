@@ -35,6 +35,10 @@
 #include "bi.h"
 #include "handlers.h"
 
+#ifndef MAX_BINARY_INPUTS
+#define MAX_BINARY_INPUTS 5
+#endif
+
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */

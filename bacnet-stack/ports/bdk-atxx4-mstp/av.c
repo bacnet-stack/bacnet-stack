@@ -43,6 +43,10 @@
 #include "av.h"
 #include "handlers.h"
 
+#ifndef MAX_ANALOG_VALUES
+#define MAX_ANALOG_VALUES 2
+#endif
+
 static float Present_Value[MAX_ANALOG_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */

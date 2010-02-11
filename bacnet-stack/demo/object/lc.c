@@ -42,7 +42,9 @@
 #include "handlers.h"
 
 /* number of demo objects */
+#ifndef MAX_LOAD_CONTROLS
 #define MAX_LOAD_CONTROLS 4
+#endif
 
 /*  indicates the current load shedding state of the object */
 static BACNET_SHED_STATE Present_Value[MAX_LOAD_CONTROLS];

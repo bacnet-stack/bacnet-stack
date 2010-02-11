@@ -138,7 +138,7 @@ static void bacnet_task(
     /* handle the inputs */
     value = adc_result(7);
     Analog_Input_Present_Value_Set(0, value);
-    for (i = 0; i < MAX_BINARY_INPUTS; i++) {
+    for (i = 0; i < 5; i++) {
         button_value = input_button_value(i);
         if (button_value) {
             binary_value = BINARY_ACTIVE;

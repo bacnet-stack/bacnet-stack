@@ -32,10 +32,6 @@
 #include "wp.h"
 #include "rp.h"
 
-#ifndef MAX_ANALOG_VALUES
-#define MAX_ANALOG_VALUES 4
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

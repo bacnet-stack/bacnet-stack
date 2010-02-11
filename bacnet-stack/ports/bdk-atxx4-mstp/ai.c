@@ -35,6 +35,10 @@
 #include "ai.h"
 #include "handlers.h"
 
+#ifndef MAX_ANALOG_INPUTS
+#define MAX_ANALOG_INPUTS 2
+#endif
+
 static uint8_t Present_Value[MAX_ANALOG_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */

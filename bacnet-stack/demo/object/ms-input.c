@@ -38,6 +38,11 @@
 #include "ms-input.h"
 #include "handlers.h"
 
+/* number of demo objects */
+#ifndef MAX_MULTISTATE_INPUTS
+#define MAX_MULTISTATE_INPUTS 1
+#endif
+
 /* how many states? 0-253 is 254 states */
 #ifndef MULTISTATE_NUMBER_OF_STATES
 #define MULTISTATE_NUMBER_OF_STATES (254)

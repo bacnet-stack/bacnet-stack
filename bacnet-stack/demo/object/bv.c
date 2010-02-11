@@ -38,6 +38,10 @@
 #include "bv.h"
 #include "handlers.h"
 
+#ifndef MAX_BINARY_VALUES
+#define MAX_BINARY_VALUES 10
+#endif
+
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
 #define RELINQUISH_DEFAULT BINARY_INACTIVE
