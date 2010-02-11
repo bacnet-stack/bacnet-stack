@@ -32,10 +32,6 @@
 #include "rp.h"
 #include "wp.h"
 
-#ifndef MAX_MULTISTATE_OUTPUTS
-#define MAX_MULTISTATE_OUTPUTS 4
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

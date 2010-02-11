@@ -30,10 +30,6 @@
 #include "bacdef.h"
 #include "rp.h"
 
-#ifndef MAX_ANALOG_INPUTS
-#define MAX_ANALOG_INPUTS 4
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

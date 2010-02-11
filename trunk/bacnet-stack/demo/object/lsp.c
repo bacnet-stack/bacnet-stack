@@ -38,6 +38,10 @@
 #include "lsp.h"
 #include "handlers.h"
 
+#ifndef MAX_LIFE_SAFETY_POINTS
+#define MAX_LIFE_SAFETY_POINTS 7
+#endif
+
 /* Here are our stored levels.*/
 static BACNET_LIFE_SAFETY_MODE Life_Safety_Point_Mode[MAX_LIFE_SAFETY_POINTS];
 static BACNET_LIFE_SAFETY_STATE

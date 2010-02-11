@@ -39,6 +39,10 @@
 #include "bi.h"
 #include "handlers.h"
 
+#ifndef MAX_BINARY_INPUTS 
+#define MAX_BINARY_INPUTS 5
+#endif
+
 /* stores the current value */
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 /* out of service decouples physical input from Present_Value */

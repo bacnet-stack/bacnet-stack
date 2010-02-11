@@ -32,10 +32,6 @@
 #include "rp.h"
 #include "wp.h"
 
-#ifndef MAX_TREND_LOGS
-#define MAX_TREND_LOGS 8
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

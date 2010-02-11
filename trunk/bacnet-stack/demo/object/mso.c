@@ -38,6 +38,10 @@
 #include "mso.h"
 #include "handlers.h"
 
+#ifndef MAX_MULTISTATE_OUTPUTS
+#define MAX_MULTISTATE_OUTPUTS 4
+#endif
+
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
 #define MULTISTATE_RELINQUISH_DEFAULT 0

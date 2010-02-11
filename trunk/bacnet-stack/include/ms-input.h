@@ -32,10 +32,6 @@
 #include "rp.h"
 #include "wp.h"
 
-#ifndef MAX_MULTISTATE_INPUTS
-#define MAX_MULTISTATE_INPUTS 1
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

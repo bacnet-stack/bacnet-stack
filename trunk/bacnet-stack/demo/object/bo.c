@@ -38,6 +38,10 @@
 #include "bo.h"
 #include "handlers.h"
 
+#ifndef MAX_BINARY_OUTPUTS
+#define MAX_BINARY_OUTPUTS 4
+#endif
+
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
 #define RELINQUISH_DEFAULT BINARY_INACTIVE

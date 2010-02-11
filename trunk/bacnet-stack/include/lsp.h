@@ -32,10 +32,6 @@
 #include "rp.h"
 #include "wp.h"
 
-#ifndef MAX_LIFE_SAFETY_POINTS
-#define MAX_LIFE_SAFETY_POINTS 7
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

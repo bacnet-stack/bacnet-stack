@@ -34,6 +34,9 @@
 #include "config.h"     /* the custom stuff */
 #include "ai.h"
 
+#ifndef MAX_ANALOG_INPUTS
+#define MAX_ANALOG_INPUTS 4
+#endif
 
 static float Present_Value[MAX_ANALOG_INPUTS];
 
