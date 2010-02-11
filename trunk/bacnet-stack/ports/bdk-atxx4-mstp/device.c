@@ -299,7 +299,6 @@ static const int Device_Properties_Required[] = {
 
 static const int Device_Properties_Optional[] = {
     PROP_DESCRIPTION,
-    PROP_PROTOCOL_CONFORMANCE_CLASS,
     -1
 };
 
@@ -458,18 +457,6 @@ uint16_t Device_Vendor_Identifier(
     void)
 {
     return BACNET_VENDOR_ID;
-}
-
-uint8_t Device_Protocol_Version(
-    void)
-{
-    return 1;
-}
-
-uint8_t Device_Protocol_Revision(
-    void)
-{
-    return 5;
 }
 
 BACNET_SEGMENTATION Device_Segmentation_Supported(
@@ -652,8 +639,7 @@ int Device_Read_Property(
             break;
         case PROP_VENDOR_IDENTIFIER:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                Device_Vendor_Identifier());
+                encode_application_unsigned(&apdu[0], BACNET_VENDOR_ID);
             break;
         case PROP_MODEL_NAME:
             characterstring_init_ansi(&char_string, "bdk-atxx4-mstp");
@@ -672,17 +658,11 @@ int Device_Read_Property(
             break;
         case PROP_PROTOCOL_VERSION:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                Device_Protocol_Version());
+                encode_application_unsigned(&apdu[0], 1);
             break;
         case PROP_PROTOCOL_REVISION:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                Device_Protocol_Revision());
-            break;
-            /* BACnet Legacy Support */
-        case PROP_PROTOCOL_CONFORMANCE_CLASS:
-            apdu_len = encode_application_unsigned(&apdu[0], 1);
+                encode_application_unsigned(&apdu[0], 5);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             /* Note: list of services that are executed, not initiated. */
