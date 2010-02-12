@@ -94,46 +94,6 @@ void Binary_Output_Property_Lists(
     return;
 }
 
-void Binary_Output_Level_Set(
-    unsigned int object_index,
-    unsigned int priority,
-    BACNET_BINARY_PV level)
-{
-    if (object_index < MAX_BINARY_OUTPUTS) {
-        if (priority < BACNET_MAX_PRIORITY) {
-            Binary_Output_Level[object_index][priority] = (uint8_t) level;
-            seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(object_index,
-                    NV_SEEPROM_BO_PRIORITY_ARRAY_1 + priority),
-                &Binary_Output_Level[object_index][priority], 1);
-        }
-    }
-}
-
-void Binary_Output_Polarity_Set(
-    unsigned int object_index,
-    BACNET_POLARITY polarity)
-{
-    if (object_index < MAX_BINARY_OUTPUTS) {
-        if (polarity < MAX_POLARITY) {
-            Polarity[object_index] = POLARITY_NORMAL;
-            seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(object_index,
-                    NV_SEEPROM_BO_POLARITY), &Polarity[object_index], 1);
-        }
-    }
-}
-
-void Binary_Output_Out_Of_Service_Set(
-    unsigned int object_index,
-    bool flag)
-{
-    if (object_index < MAX_BINARY_OUTPUTS) {
-        Out_Of_Service[object_index] = flag;
-        seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(object_index,
-                NV_SEEPROM_BO_OUT_OF_SERVICE), &Out_Of_Service[object_index],
-            1);
-    }
-}
-
 /* we simply have 0-n object instances. */
 bool Binary_Output_Valid_Instance(
     uint32_t object_instance)
@@ -201,23 +161,23 @@ static BACNET_BINARY_PV Binary_Output_Present_Value(
 }
 
 void Binary_Output_Level_Sync(
-    unsigned int index)
+    uint32_t instance)
 {
     BACNET_BINARY_PV pv;
 
-    if (index < MAX_BINARY_OUTPUTS) {
-        if (Out_Of_Service[index]) {
+    if (instance < MAX_BINARY_OUTPUTS) {
+        if (Out_Of_Service[instance]) {
             return;
         }
-        pv = Present_Value(index);
-        if (Polarity[index] == POLARITY_REVERSE) {
+        pv = Present_Value(instance);
+        if (Polarity[instance] == POLARITY_REVERSE) {
             if (pv == BINARY_INACTIVE) {
                 pv = BINARY_ACTIVE;
             } else if (pv == BINARY_ACTIVE) {
                 pv = BINARY_INACTIVE;
             }
         }
-        switch (index) {
+        switch (instance) {
             case 0:
                 if (pv == BINARY_INACTIVE) {
                     led_off(LED_3);
@@ -235,6 +195,46 @@ void Binary_Output_Level_Sync(
             default:
                 break;
         }
+    }
+}
+
+void Binary_Output_Level_Set(
+    uint32_t instance,
+    unsigned int priority,
+    BACNET_BINARY_PV level)
+{
+    if (instance < MAX_BINARY_OUTPUTS) {
+        if (priority < BACNET_MAX_PRIORITY) {
+            Binary_Output_Level[instance][priority] = (uint8_t) level;
+            seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
+                    NV_SEEPROM_BO_PRIORITY_ARRAY_1 + priority),
+                &Binary_Output_Level[instance][priority], 1);
+        }
+    }
+}
+
+void Binary_Output_Polarity_Set(
+    uint32_t instance,
+    BACNET_POLARITY polarity)
+{
+    if (instance < MAX_BINARY_OUTPUTS) {
+        if (polarity < MAX_POLARITY) {
+            Polarity[instance] = POLARITY_NORMAL;
+            seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
+                    NV_SEEPROM_BO_POLARITY), &Polarity[instance], 1);
+        }
+    }
+}
+
+void Binary_Output_Out_Of_Service_Set(
+    uint32_t instance,
+    bool flag)
+{
+    if (instance < MAX_BINARY_OUTPUTS) {
+        Out_Of_Service[instance] = flag;
+        seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
+                NV_SEEPROM_BO_OUT_OF_SERVICE), &Out_Of_Service[instance],
+            1);
     }
 }
 
@@ -407,7 +407,6 @@ bool Binary_Output_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
-    unsigned int object_index = 0;
     unsigned int priority = 0;
     BACNET_BINARY_PV level = BINARY_NULL;
     int len = 0;
@@ -435,8 +434,10 @@ bool Binary_Output_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     priority--;
-                    Binary_Output_Level_Set(object_index, priority, level);
-                    Binary_Output_Level_Sync(object_index);
+                    Binary_Output_Level_Set(
+                        wp_data->object_instance, 
+                        priority, level);
+                    Binary_Output_Level_Sync(wp_data->object_instance);
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
@@ -459,8 +460,10 @@ bool Binary_Output_Write_Property(
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Binary_Output_Level_Set(object_index, priority, level);
-                        Binary_Output_Level_Sync(object_index);
+                        Binary_Output_Level_Set(
+                            wp_data->object_instance, 
+                            priority, level);
+                        Binary_Output_Level_Sync(wp_data->object_instance);
                     } else if (priority == 6) {
                         status = false;
                         /* Command priority 6 is reserved for use by Minimum On/Off
@@ -482,9 +485,10 @@ bool Binary_Output_Write_Property(
                 &wp_data->error_class,
                 &wp_data->error_code);
             if (status) {
-                Binary_Output_Out_Of_Service_Set(object_index,
+                Binary_Output_Out_Of_Service_Set(
+                    wp_data->object_instance,
                     value.type.Boolean);
-                Binary_Output_Level_Sync(object_index);
+                Binary_Output_Level_Sync(wp_data->object_instance);
             }
             break;
         case PROP_POLARITY:
@@ -494,9 +498,10 @@ bool Binary_Output_Write_Property(
                 &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
-                    Binary_Output_Polarity_Set(object_index,
+                    Binary_Output_Polarity_Set(
+                        wp_data->object_instance,
                         value.type.Enumerated);
-                    Binary_Output_Level_Sync(object_index);
+                    Binary_Output_Level_Sync(wp_data->object_instance);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
