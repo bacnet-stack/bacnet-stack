@@ -84,13 +84,6 @@ extern "C" {
     bool Binary_Output_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-    void Binary_Output_Level_Sync(
-        unsigned int index);
-    void Binary_Output_Level_Set(
-        unsigned int object_index,
-        unsigned int priority,
-        BACNET_BINARY_PV level);
-
     bool Binary_Output_Present_Value_Set(
         uint32_t instance,
         BACNET_BINARY_PV binary_value,
