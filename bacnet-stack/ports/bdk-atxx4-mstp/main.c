@@ -97,7 +97,10 @@ static void bacnet_init(
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, 
+        handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, 
+        handler_who_has);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
@@ -187,22 +190,16 @@ void test_task(
         /* echo the character */
         serial_byte_send(data_register);
         if (data_register == '0') {
-            Binary_Output_Level_Set(0, 1, BINARY_INACTIVE);
-            Binary_Output_Level_Sync(0);
-            Binary_Output_Level_Set(1, 1, BINARY_INACTIVE);
-            Binary_Output_Level_Sync(1);
+            Binary_Output_Present_Value_Set(0, 0, BINARY_INACTIVE);
+            Binary_Output_Present_Value_Set(1, 0, BINARY_INACTIVE);
         }
         if (data_register == '1') {
-            Binary_Output_Level_Set(0, 1, BINARY_ACTIVE);
-            Binary_Output_Level_Sync(0);
-            Binary_Output_Level_Set(1, 1, BINARY_ACTIVE);
-            Binary_Output_Level_Sync(1);
+            Binary_Output_Present_Value_Set(0, 0, BINARY_ACTIVE);
+            Binary_Output_Present_Value_Set(1, 0, BINARY_ACTIVE);
         }
         if (data_register == '2') {
-            Binary_Output_Level_Set(0, 1, BINARY_NULL);
-            Binary_Output_Level_Sync(0);
-            Binary_Output_Level_Set(1, 1, BINARY_NULL);
-            Binary_Output_Level_Sync(1);
+            Binary_Output_Present_Value_Set(0, 0, BINARY_NULL);
+            Binary_Output_Present_Value_Set(1, 0, BINARY_NULL);
         }
         serial_byte_send('\r');
         serial_byte_send('\n');

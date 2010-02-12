@@ -74,7 +74,9 @@ DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/h_wp.c \
 	$(BACNET_DEMO)/handler/h_rp.c \
 	$(BACNET_DEMO)/handler/h_rpm.c \
+	$(BACNET_DEMO)/handler/h_whohas.c \
 	$(BACNET_DEMO)/handler/s_iam.c \
+	$(BACNET_DEMO)/handler/s_ihave.c \
 	$(BACNET_DEMO)/handler/noserv.c
 
 # core BACnet stack files
@@ -89,12 +91,14 @@ CORESRC =  \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/iam.c \
+	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/wp.c \
 	$(BACNET_CORE)/whois.c \
+	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
@@ -137,8 +141,8 @@ DEFINES =
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
 # default is for debugging from AVR Studio
-OPTIMIZATION = -O0
-DEBUGGING = -g
+OPTIMIZATION = -Os  $(OPTIMIZE_FLAGS)
+DEBUGGING =
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
 DEBUGGING = -g

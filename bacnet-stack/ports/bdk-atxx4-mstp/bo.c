@@ -150,7 +150,7 @@ static BACNET_BINARY_PV Present_Value(
     return value;
 }
 
-static BACNET_BINARY_PV Binary_Output_Present_Value(
+BACNET_BINARY_PV Binary_Output_Present_Value(
     uint32_t object_instance)
 {
     unsigned index = 0;
@@ -160,7 +160,7 @@ static BACNET_BINARY_PV Binary_Output_Present_Value(
     return Present_Value(index);
 }
 
-void Binary_Output_Level_Sync(
+static void Binary_Output_Level_Sync(
     uint32_t instance)
 {
     BACNET_BINARY_PV pv;
@@ -198,19 +198,25 @@ void Binary_Output_Level_Sync(
     }
 }
 
-void Binary_Output_Level_Set(
+bool Binary_Output_Present_Value_Set(
     uint32_t instance,
-    unsigned int priority,
-    BACNET_BINARY_PV level)
+    BACNET_BINARY_PV binary_value,
+    unsigned priority) /* 0..15 */
 {
+    bool status = false;
+    
     if (instance < MAX_BINARY_OUTPUTS) {
         if (priority < BACNET_MAX_PRIORITY) {
-            Binary_Output_Level[instance][priority] = (uint8_t) level;
+            Binary_Output_Level[instance][priority] = (uint8_t) binary_value;
             seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
                     NV_SEEPROM_BO_PRIORITY_ARRAY_1 + priority),
                 &Binary_Output_Level[instance][priority], 1);
+            Binary_Output_Level_Sync(instance);
+            status = true;
         }
     }
+    
+    return status;
 }
 
 void Binary_Output_Polarity_Set(
@@ -434,10 +440,9 @@ bool Binary_Output_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     priority--;
-                    Binary_Output_Level_Set(
+                    Binary_Output_Present_Value_Set(
                         wp_data->object_instance, 
-                        priority, level);
-                    Binary_Output_Level_Sync(wp_data->object_instance);
+                        level, priority);
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
@@ -460,10 +465,9 @@ bool Binary_Output_Write_Property(
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Binary_Output_Level_Set(
+                        Binary_Output_Present_Value_Set(
                             wp_data->object_instance, 
-                            priority, level);
-                        Binary_Output_Level_Sync(wp_data->object_instance);
+                            level, priority);
                     } else if (priority == 6) {
                         status = false;
                         /* Command priority 6 is reserved for use by Minimum On/Off
