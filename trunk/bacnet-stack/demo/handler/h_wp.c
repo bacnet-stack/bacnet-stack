@@ -98,7 +98,7 @@ void handler_write_property(
         goto WP_ABORT;
     }
     if (Write_Property) {
-        if (Write_Property(&wp_data) >= 0) {
+        if (Write_Property(&wp_data)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
