@@ -57,7 +57,7 @@ void handler_rpm_list_set(
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
-static int RPM_Object_Property(
+static BACNET_PROPERTY_ID RPM_Object_Property(
     struct special_property_list_t *pPropertyList,
     BACNET_PROPERTY_ID special_property,
     unsigned index)
@@ -88,7 +88,7 @@ static int RPM_Object_Property(
         }
     }
 
-    return property;
+    return (BACNET_PROPERTY_ID)property;
 }
 
 static unsigned RPM_Object_Property_Count(
@@ -143,9 +143,9 @@ static int RPM_Encode_Property(
         rpdata.object_property = object_property;
         rpdata.array_index = array_index;
         rpdata.application_data = &Temp_Buf[0];
-        rpdata.application_data_len = sizeof(Temp_Buf);        
+        rpdata.application_data_len = sizeof(Temp_Buf);
         len = Read_Property_Function(&rpdata);
-    }    
+    }
     if (len < 0) {
         /* error was returned - encode that for the response */
         len =
