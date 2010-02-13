@@ -339,6 +339,44 @@ static void Device_Objects_Property_List(
     return;
 }
 
+bool Device_Reinitialize(        
+    BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
+{
+    bool status = false;
+
+    if (characterstring_ansi_same(&rd_data->password, "Jesus")) {
+        switch (rd_data->state) {
+            case REINITIALIZED_STATE_COLD_START:
+                break;
+            case REINITIALIZED_STATE_WARM_START:
+                break;
+            case REINITIALIZED_STATE_START_BACKUP:
+                break;
+            case REINITIALIZED_STATE_END_BACKUP:
+                break;
+            case REINITIALIZED_STATE_START_RESTORE:
+                break;
+            case REINITIALIZED_STATE_END_RESTORE:
+                break;
+            case REINITIALIZED_STATE_ABORT_RESTORE:
+                break;
+            default:
+                break;
+        }
+        /* Note: you could use a mix of state 
+           and password to multiple things */
+        /* note: you probably want to restart *after* the 
+           simple ack has been sent from the return handler
+           so just set a flag from here */
+        status = true;
+    } else {
+        rd_data->error_class = ERROR_CLASS_SECURITY;
+        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+    }
+    
+    return status;
+}
+
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -1354,6 +1392,7 @@ void Device_Init(
     handler_rpm_function_set(Device_Objects_Read_Property);    
     handler_rpm_list_set(Device_Objects_Property_List);
     handler_write_property_function_set(Device_Objects_Write_Property);
+    handler_reinitialize_device_function_set(Device_Reinitialize);
 
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {

@@ -38,7 +38,12 @@
 #include "reject.h"
 #include "rd.h"
 
-static char *Password = "Jesus";
+static reinitialize_device_function Reinitialize_Device_Function;
+void handler_reinitialize_device_function_set(
+    reinitialize_device_function pFunction)
+{
+    Reinitialize_Device_Function = pFunction;
+}
 
 void handler_reinitialize_device(
     uint8_t * service_request,
@@ -46,8 +51,7 @@ void handler_reinitialize_device(
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-    BACNET_REINITIALIZED_STATE state;
-    BACNET_CHARACTER_STRING their_password;
+    BACNET_REINITIALIZE_DEVICE_DATA rd_data;
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
@@ -75,15 +79,17 @@ void handler_reinitialize_device(
         goto RD_ABORT;
     }
     /* decode the service request only */
-    len =
-        rd_decode_service_request(service_request, service_len, &state,
-        &their_password);
+    len = rd_decode_service_request(service_request, service_len, 
+        &rd_data.state,
+        &rd_data.password);
 #if PRINT_ENABLED
-    if (len > 0)
+    if (len > 0) {
         fprintf(stderr, "ReinitializeDevice: state=%u password=%s\n",
-            (unsigned) state, characterstring_value(&their_password));
-    else
+            (unsigned) rd_data.state, 
+            characterstring_value(&rd_data.password));
+    } else {
         fprintf(stderr, "ReinitializeDevice: Unable to decode request!\n");
+    }
 #endif
     /* bad decoding or something we didn't understand - send an abort */
     if (len < 0) {
@@ -97,7 +103,7 @@ void handler_reinitialize_device(
         goto RD_ABORT;
     }
     /* check the data from the request */
-    if (state >= MAX_BACNET_REINITIALIZED_STATE) {
+    if (rd_data.state >= MAX_BACNET_REINITIALIZED_STATE) {
         len =
             reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
@@ -106,7 +112,8 @@ void handler_reinitialize_device(
             "ReinitializeDevice: Sending Reject - undefined enumeration\n");
 #endif
     } else {
-        if (characterstring_ansi_same(&their_password, Password)) {
+        if (Reinitialize_Device_Function && 
+            Reinitialize_Device_Function(&rd_data)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
@@ -114,15 +121,11 @@ void handler_reinitialize_device(
 #if PRINT_ENABLED
             fprintf(stderr, "ReinitializeDevice: Sending Simple Ack!\n");
 #endif
-            /* FIXME: now you can reboot, restart, quit, or something clever */
-            /* Note: you can use a mix of state and password to do specific stuff */
-            /* Note: if you don't do something clever like actually restart,
-               you probably should clear any DCC status and timeouts */
         } else {
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                ERROR_CLASS_SECURITY, ERROR_CODE_PASSWORD_FAILURE);
+                rd_data.error_class, rd_data.error_code);
 #if PRINT_ENABLED
             fprintf(stderr,
                 "ReinitializeDevice: Sending Error - password failure.\n");
