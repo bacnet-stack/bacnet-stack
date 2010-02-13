@@ -31,6 +31,7 @@
 #include "bacdef.h"
 #include "apdu.h"
 #include "bacapp.h"
+#include "rd.h"
 #include "rp.h"
 #include "rpm.h"
 #include "wp.h"
@@ -135,6 +136,8 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+    void handler_reinitialize_device_function_set(
+        reinitialize_device_function pFunction);
 
     void handler_device_communication_control(
         uint8_t * service_request,

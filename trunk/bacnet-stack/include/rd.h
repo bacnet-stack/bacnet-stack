@@ -37,6 +37,18 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef struct BACnet_Reinitialize_Device_Data {
+    BACNET_REINITIALIZED_STATE state;
+    BACNET_CHARACTER_STRING password;
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
+} BACNET_REINITIALIZE_DEVICE_DATA;
+
+typedef bool (
+    *reinitialize_device_function) (
+    BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
