@@ -32,26 +32,61 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h"     /* the custom stuff */
-#include "wp.h"
+#include "bv.h"
+#include "handlers.h"
 
+#ifndef MAX_BINARY_VALUES
 #define MAX_BINARY_VALUES 8
+#endif
 #if (MAX_BINARY_VALUES > 9)
 #error Modify the Binary_Value_Name to handle multiple digits
 #endif
 
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
 
-static void Binary_Value_Initialize(
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Binary_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    -1
+};
+
+static const int Binary_Value_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Binary_Value_Properties_Proprietary[] = {
+    -1
+};
+
+void Binary_Value_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (pRequired)
+        *pRequired = Binary_Value_Properties_Required;
+    if (pOptional)
+        *pOptional = Binary_Value_Properties_Optional;
+    if (pProprietary)
+        *pProprietary = Binary_Value_Properties_Proprietary;
+
+    return;
+}
+
+void Binary_Value_Init(
     void)
 {
-    static bool initialized = false;
     unsigned i;
 
-    if (!initialized) {
-        initialized = true;
-        for (i = 0; i < MAX_BINARY_VALUES; i++) {
-            Present_Value[i] = BINARY_INACTIVE;
-        }
+    for (i = 0; i < MAX_BINARY_VALUES; i++) {
+        Present_Value[i] = BINARY_INACTIVE;
     }
 }
 
@@ -96,7 +131,6 @@ static BACNET_BINARY_PV Binary_Value_Present_Value(
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
 
-    Binary_Value_Initialize();
     if (object_instance < MAX_BINARY_VALUES) {
         value = Present_Value[object_instance];
     }
@@ -119,13 +153,8 @@ char *Binary_Value_Name(
 }
 
 /* return apdu len, or -1 on error */
-int Binary_Value_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Binary_Value_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
@@ -133,19 +162,26 @@ int Binary_Value_Encode_Property_APDU(
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
     BACNET_POLARITY polarity = POLARITY_NORMAL;
 
-    Binary_Value_Initialize();
-    switch (property) {
+    uint8_t *apdu = NULL;
+
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_BINARY_VALUE,
-                object_instance);
+                rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Binary_Value_Name(object_instance));
+                Binary_Value_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -154,7 +190,7 @@ int Binary_Value_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            present_value = Binary_Value_Present_Value(object_instance);
+            present_value = Binary_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -179,16 +215,16 @@ int Binary_Value_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], polarity);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
@@ -197,9 +233,7 @@ int Binary_Value_Encode_Property_APDU(
 
 /* returns true if successful */
 bool Binary_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
@@ -209,8 +243,8 @@ bool Binary_Value_Write_Property(
     BACNET_APPLICATION_DATA_VALUE value;
 
     if (!Binary_Value_Valid_Instance(wp_data->object_instance)) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
     /* decode the some of the request */
@@ -246,40 +280,15 @@ bool Binary_Value_Write_Property(
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
                        object. */
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
-#if 0
-                /* NOTE: this Binary Value has no priority array */
-                level = BINARY_NULL;
-                object_index =
-                    Binary_Value_Instance_To_Index(wp_data->object_instance);
-                priority = wp_data->priority;
-                if (priority && (priority <= BACNET_MAX_PRIORITY)) {
-                    priority--;
-                    Binary_Value_Level[object_index][priority] = level;
-                    /* Note: you could set the physical output here to the next
-                       highest priority, or to the relinquish default if no
-                       priorities are set.
-                       However, if Out of Service is TRUE, then don't set the 
-                       physical output.  This comment may apply to the 
-                       main loop (i.e. check out of service before changing output) */
-                    status = true;
-                } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-#else
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-#endif
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #if 0
@@ -290,71 +299,17 @@ bool Binary_Value_Write_Property(
                 Binary_Value_Out_Of_Service[object_index] = value.type.Boolean;
                 status = true;
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #endif
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
     return status;
 }
 
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-void testBinary_Value(
-    Test * pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_BINARY_VALUE;
-    uint32_t decoded_instance = 0;
-    uint32_t instance = 123;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
-
-
-    len =
-        Binary_Value_Encode_Property_APDU(&apdu[0], instance,
-        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
-    ct_test(pTest, len != 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_BINARY_VALUE);
-    ct_test(pTest, decoded_instance == instance);
-
-    return;
-}
-
-#ifdef TEST_BINARY_VALUE
-int main(
-    void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Binary_Value", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testBinary_Value);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void) ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_BINARY_VALUE */
-#endif /* TEST */

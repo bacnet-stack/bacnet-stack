@@ -554,9 +554,7 @@ bool Device_Set_Object_Name(
     const char *name,
     size_t length)
 {
-    bool status;        /*return value */
-
-    status = false;
+    bool status = false;        /*return value */
 
     /* FIXME:  All the object names in a device must be unique.
        Disallow setting the Device Object Name to any objects in
@@ -582,9 +580,8 @@ int Device_Set_System_Status(
     BACNET_DEVICE_STATUS status,
     bool local)
 {
-    int result;        /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
+    int result = 0;  /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
 
-    result = 0;
     /* We limit the options available depending on whether the source is
      * internal or external. */
     if(local) {
