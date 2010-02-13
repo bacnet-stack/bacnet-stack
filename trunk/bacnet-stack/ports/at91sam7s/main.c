@@ -142,15 +142,21 @@ static inline void bacnet_init(
     dlmstp_init(NULL);
 #endif
     Device_Set_Object_Instance_Number(22222);
+    /* initialize objects */
+    Device_Init();
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, 
+        handler_who_has);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+        handler_read_property_multiple);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,

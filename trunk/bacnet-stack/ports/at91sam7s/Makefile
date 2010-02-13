@@ -57,16 +57,19 @@ DEMOSRC = ai.c \
 	av.c \
 	bi.c \
 	bv.c \
-	h_rp.c \
-	h_wp.c \
 	device.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/noserv.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
+	$(BACNET_DEMO)/handler/h_whohas.c \
 	$(BACNET_DEMO)/handler/h_whois.c \
 	$(BACNET_DEMO)/handler/h_rd.c \
+	$(BACNET_DEMO)/handler/h_rp.c \
+	$(BACNET_DEMO)/handler/h_rpm.c \
+	$(BACNET_DEMO)/handler/h_wp.c \
 	$(BACNET_DEMO)/handler/h_dcc.c \
-	$(BACNET_DEMO)/handler/s_iam.c
+	$(BACNET_DEMO)/handler/s_iam.c \
+	$(BACNET_DEMO)/handler/s_ihave.c
 
 CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/apdu.c \
@@ -80,12 +83,16 @@ CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/datetime.c \
-	$(BACNET_CORE)/rp.c \
-	$(BACNET_CORE)/wp.c \
 	$(BACNET_CORE)/dcc.c \
-	$(BACNET_CORE)/rd.c \
-	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/iam.c \
+	$(BACNET_CORE)/ihave.c \
+	$(BACNET_CORE)/memcopy.c \
+	$(BACNET_CORE)/rd.c \
+	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/wp.c \
+	$(BACNET_CORE)/whohas.c \
+	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/version.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)

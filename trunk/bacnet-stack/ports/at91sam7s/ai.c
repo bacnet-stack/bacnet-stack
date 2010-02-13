@@ -32,14 +32,54 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h"
+#include "ai.h"
+#include "handlers.h"
 
-/* Analog Input = Photocell */
+#ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS 2
+#endif
 #if (MAX_ANALOG_INPUTS > 9)
 #error Modify the Analog_Input_Name to handle multiple digits
 #endif
 
 static float Present_Value[MAX_ANALOG_INPUTS];
+
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Analog_Input_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    -1
+};
+
+static const int Analog_Input_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Analog_Input_Properties_Proprietary[] = {
+    -1
+};
+
+void Analog_Input_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (pRequired)
+        *pRequired = Analog_Input_Properties_Required;
+    if (pOptional)
+        *pOptional = Analog_Input_Properties_Optional;
+    if (pProprietary)
+        *pProprietary = Analog_Input_Properties_Proprietary;
+
+    return;
+}
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
@@ -102,30 +142,32 @@ void Analog_Input_Present_Value_Set(
 
 /* return apdu length, or -1 on error */
 /* assumption - object has already exists */
-int Analog_Input_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Analog_Input_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
+    uint8_t *apdu = NULL;
 
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
-                object_instance);
+                rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Analog_Input_Name(object_instance));
+                Analog_Input_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -136,7 +178,7 @@ int Analog_Input_Encode_Property_APDU(
         case PROP_PRESENT_VALUE:
             apdu_len =
                 encode_application_real(&apdu[0],
-                Analog_Input_Present_Value(object_instance));
+                Analog_Input_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -157,74 +199,24 @@ int Analog_Input_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
     return apdu_len;
 }
 
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-void testAnalogInput(
-    Test * pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_OUTPUT;
-    uint32_t decoded_instance = 0;
-    uint32_t instance = 123;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
-
-
-    /* FIXME: we should do a lot more testing here... */
-    len =
-        Analog_Input_Encode_Property_APDU(&apdu[0], instance,
-        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
-    ct_test(pTest, len >= 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_ANALOG_INPUT);
-    ct_test(pTest, decoded_instance == instance);
-
-    return;
-}
-
-#ifdef TEST_ANALOG_INPUT
-int main(
+void Analog_Input_Init(
     void)
 {
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Analog Input", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testAnalogInput);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void) ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
+    return;
 }
-#endif /* TEST_ANALOG_INPUT */
-#endif /* TEST */

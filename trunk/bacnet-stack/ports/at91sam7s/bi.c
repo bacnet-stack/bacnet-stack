@@ -32,6 +32,8 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "config.h"
+#include "bi.h"
+#include "handlers.h"
 
 #define MAX_BINARY_INPUTS 8
 #if (MAX_BINARY_INPUTS > 9)
@@ -40,17 +42,53 @@
 
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 
-static void Binary_Input_Initialize(
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Binary_Input_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_POLARITY,
+    -1
+};
+
+static const int Binary_Input_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    -1
+};
+
+static const int Binary_Input_Properties_Proprietary[] = {
+    -1
+};
+
+void Binary_Input_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (pRequired) {
+        *pRequired = Binary_Input_Properties_Required;
+    }
+    if (pOptional) {
+        *pOptional = Binary_Input_Properties_Optional;
+    }
+    if (pProprietary) {
+        *pProprietary = Binary_Input_Properties_Proprietary;
+    }
+
+    return;
+}
+
+void Binary_Input_Init(
     void)
 {
-    static bool initialized = false;
     unsigned i;
 
-    if (!initialized) {
-        initialized = true;
-        for (i = 0; i < MAX_BINARY_INPUTS; i++) {
-            Present_Value[i] = BINARY_INACTIVE;
-        }
+    for (i = 0; i < MAX_BINARY_INPUTS; i++) {
+        Present_Value[i] = BINARY_INACTIVE;
     }
 }
 
@@ -92,13 +130,12 @@ unsigned Binary_Input_Instance_To_Index(
     return index;
 }
 
-static BACNET_BINARY_PV Binary_Input_Present_Value(
+BACNET_BINARY_PV Binary_Input_Present_Value(
     uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned index = 0;
 
-    Binary_Input_Initialize();
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         value = Present_Value[index];
@@ -122,33 +159,33 @@ char *Binary_Input_Name(
 
 /* return apdu length, or -1 on error */
 /* assumption - object already exists, and has been bounds checked */
-int Binary_Input_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Binary_Input_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_POLARITY polarity = POLARITY_NORMAL;
     BACNET_BINARY_PV value = BINARY_INACTIVE;
+    uint8_t *apdu = NULL;
 
-
-    Binary_Input_Initialize();
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_BINARY_INPUT,
-                object_instance);
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             /* note: object name must be unique in our device */
             characterstring_init_ansi(&char_string,
-                Binary_Input_Name(object_instance));
+                Binary_Input_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -157,7 +194,7 @@ int Binary_Input_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_INPUT);
             break;
         case PROP_PRESENT_VALUE:
-            value = Binary_Input_Present_Value(object_instance);
+            value = Binary_Input_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], value);
             break;
         case PROP_STATUS_FLAGS:
@@ -181,74 +218,19 @@ int Binary_Input_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], polarity);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
     return apdu_len;
 }
 
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-void testBinaryInput(
-    Test * pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_BINARY_OUTPUT;
-    uint32_t decoded_instance = 0;
-    uint32_t instance = 123;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
-
-
-    /* FIXME: we should do a lot more testing here... */
-    len =
-        Binary_Input_Encode_Property_APDU(&apdu[0], instance,
-        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
-    ct_test(pTest, len >= 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_BINARY_INPUT);
-    ct_test(pTest, decoded_instance == instance);
-
-    return;
-}
-
-#ifdef TEST_BINARY_INPUT
-int main(
-    void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Binary Input", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testBinaryInput);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void) ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_BINARY_INPUT */
-#endif /* TEST */

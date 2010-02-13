@@ -32,9 +32,12 @@
 #include "bacenum.h"
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
-#include "wp.h"
+#include "av.h"
+#include "handlers.h"
 
+#ifndef MAX_ANALOG_VALUES
 #define MAX_ANALOG_VALUES 4
+#endif
 #if (MAX_ANALOG_VALUES > 9)
 #error Modify the Analog_Value_Name to handle multiple digits
 #endif
@@ -51,21 +54,55 @@
 /* and load a Real for returning the value when asked. */
 static uint8_t Present_Value[MAX_ANALOG_VALUES];
 
-/* we need to have our arrays initialized before answering any calls */
-static bool Analog_Value_Initialized = false;
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Analog_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    -1
+};
+
+static const int Analog_Value_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+#if 0
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+#endif
+    -1
+};
+
+static const int Analog_Value_Properties_Proprietary[] = {
+    -1
+};
+
+void Analog_Value_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (pRequired)
+        *pRequired = Analog_Value_Properties_Required;
+    if (pOptional)
+        *pOptional = Analog_Value_Properties_Optional;
+    if (pProprietary)
+        *pProprietary = Analog_Value_Properties_Proprietary;
+
+    return;
+}
 
 void Analog_Value_Init(
     void)
 {
     unsigned i;
 
-    if (!Analog_Value_Initialized) {
-        Analog_Value_Initialized = true;
-
-        /* initialize all the analog output priority arrays to NULL */
-        for (i = 0; i < MAX_ANALOG_VALUES; i++) {
-            Present_Value[i] = ANALOG_LEVEL_NULL;
-        }
+    /* initialize all the analog output priority arrays to NULL */
+    for (i = 0; i < MAX_ANALOG_VALUES; i++) {
+        Present_Value[i] = ANALOG_LEVEL_NULL;
     }
 
     return;
@@ -77,7 +114,6 @@ void Analog_Value_Init(
 bool Analog_Value_Valid_Instance(
     uint32_t object_instance)
 {
-    Analog_Value_Init();
     if (object_instance < MAX_ANALOG_VALUES)
         return true;
 
@@ -89,7 +125,6 @@ bool Analog_Value_Valid_Instance(
 unsigned Analog_Value_Count(
     void)
 {
-    Analog_Value_Init();
     return MAX_ANALOG_VALUES;
 }
 
@@ -99,7 +134,6 @@ unsigned Analog_Value_Count(
 uint32_t Analog_Value_Index_To_Instance(
     unsigned index)
 {
-    Analog_Value_Init();
     return index;
 }
 
@@ -111,20 +145,18 @@ unsigned Analog_Value_Instance_To_Index(
 {
     unsigned index = MAX_ANALOG_VALUES;
 
-    Analog_Value_Init();
     if (object_instance < MAX_ANALOG_VALUES)
         index = object_instance;
 
     return index;
 }
 
-static float Analog_Value_Present_Value(
+float Analog_Value_Present_Value(
     uint32_t object_instance)
 {
     float value = ANALOG_RELINQUISH_DEFAULT;
     unsigned index = 0;
 
-    Analog_Value_Init();
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         value = Present_Value[index];
@@ -148,13 +180,8 @@ char *Analog_Value_Name(
 }
 
 /* return apdu len, or -1 on error */
-int Analog_Value_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    int32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Analog_Value_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
@@ -166,18 +193,24 @@ int Analog_Value_Encode_Property_APDU(
     unsigned i = 0;
     bool state = false;
 #endif
+    uint8_t *apdu = NULL;
 
-    Analog_Value_Init();
-    switch (property) {
+    if ((rpdata == NULL) ||
+        (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_ANALOG_VALUE,
-                object_instance);
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Analog_Value_Name(object_instance));
+                Analog_Value_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -186,7 +219,7 @@ int Analog_Value_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            real_value = Analog_Value_Present_Value(object_instance);
+            real_value = Analog_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -203,7 +236,7 @@ int Analog_Value_Encode_Property_APDU(
             break;
         case PROP_OUT_OF_SERVICE:
 #if 0
-            object_index = Analog_Value_Instance_To_Index(object_instance);
+            object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
             state = Analog_Value_Out_Of_Service[object_index];
 #endif
             apdu_len = encode_application_boolean(&apdu[0], false);
@@ -214,13 +247,13 @@ int Analog_Value_Encode_Property_APDU(
 #if 0
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (array_index == 0)
+            if (rpdata->array_index == 0)
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
-            else if (array_index == BACNET_ARRAY_ALL) {
-                object_index = Analog_Value_Instance_To_Index(object_instance);
+            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Present_Value[object_index][i] == ANALOG_LEVEL_NULL)
@@ -235,27 +268,27 @@ int Analog_Value_Encode_Property_APDU(
                     if ((apdu_len + len) < MAX_APDU)
                         apdu_len += len;
                     else {
-                        *error_class = ERROR_CLASS_SERVICES;
-                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                        rpdata->error_class = ERROR_CLASS_SERVICES;
+                        rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
                         apdu_len = -1;
                         break;
                     }
                 }
             } else {
                 object_index = Analog_Value_Instance_To_Index(object_instance);
-                if (array_index <= BACNET_MAX_PRIORITY) {
-                    if (Present_Value[object_index][array_index - 1] ==
+                if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
+                    if (Present_Value[object_index][rpdata->array_index - 1] ==
                         ANALOG_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Present_Value[object_index][array_index - 1];
+                            Present_Value[object_index][rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                    rpdata->error_class = ERROR_CLASS_PROPERTY;
+                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                     apdu_len = -1;
                 }
             }
@@ -267,19 +300,19 @@ int Analog_Value_Encode_Property_APDU(
             break;
 #endif
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
 #if 0
-        (property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
 #endif
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
     }
 
@@ -288,9 +321,7 @@ int Analog_Value_Encode_Property_APDU(
 
 /* returns true if successful */
 bool Analog_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
@@ -299,10 +330,9 @@ bool Analog_Value_Write_Property(
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    Analog_Value_Init();
     if (!Analog_Value_Valid_Instance(wp_data->object_instance)) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
     /* decode the some of the request */
@@ -337,11 +367,11 @@ bool Analog_Value_Write_Property(
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
                        object. */
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
 #if 0
             } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
@@ -360,13 +390,13 @@ bool Analog_Value_Write_Property(
                        main loop (i.e. check out of service before changing output) */
                     status = true;
                 } else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
 #endif
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #if 0
@@ -377,72 +407,17 @@ bool Analog_Value_Write_Property(
                 Analog_Value_Out_Of_Service[object_index] = value.type.Boolean;
                 status = true;
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #endif
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
     return status;
 }
 
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-void testAnalog_Value(
-    Test * pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_VALUE;
-    uint32_t decoded_instance = 0;
-    uint32_t instance = 123;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
-
-
-    len =
-        Analog_Value_Encode_Property_APDU(&apdu[0], instance,
-        PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
-    ct_test(pTest, len != 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == OBJECT_ANALOG_VALUE);
-    ct_test(pTest, decoded_instance == instance);
-
-    return;
-}
-
-#ifdef TEST_ANALOG_VALUE
-int main(
-    void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Analog Value", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testAnalog_Value);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void) ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_ANALOG_VALUE */
-#endif /* TEST */
