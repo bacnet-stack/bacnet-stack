@@ -35,7 +35,7 @@
 #include "bacdcode.h"
 #include "apdu.h"
 
-/* BACnet Life Safety Operation */
+/** @file lso.c  BACnet Life Safety Operation encode/decode */
 
 int lso_encode_adpu(
     uint8_t * apdu,

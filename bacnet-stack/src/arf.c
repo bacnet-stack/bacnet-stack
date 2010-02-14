@@ -37,7 +37,7 @@
 #include "bacdef.h"
 #include "arf.h"
 
-/* Atomic Read File */
+/** @file arf.c  Atomic Read File */
 
 /* encode service */
 int arf_encode_apdu(

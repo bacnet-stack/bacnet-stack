@@ -41,6 +41,9 @@
 #if PRINT_ENABLED
 #include <stdio.h>      /* for standard integer types uint8_t etc. */
 #endif
+
+/** @file bip.c  Configuration and Operations for BACnet/IP */
+
 static int BIP_Socket = -1;
 /* port to use - stored in host byte order */
 static uint16_t BIP_Port = 0xBAC0;

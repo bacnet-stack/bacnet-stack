@@ -36,6 +36,8 @@
 #include "indtext.h"
 #include "bacenum.h"
 
+/** @file bactext.c  Lookup or Translate BACnet Name Text */
+
 static const char *ASHRAE_Reserved_String = "Reserved for Use by ASHRAE";
 static const char *Vendor_Proprietary_String = "Vendor Proprietary Value";
 

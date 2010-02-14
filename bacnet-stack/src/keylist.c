@@ -30,7 +30,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-/* Keyed Linked List Library */
+/** @file keylist.c  Keyed Linked List Library */
+
 /* */
 /* This is an enhanced array of pointers to data. */
 /* The list is sorted, indexed, and keyed. */

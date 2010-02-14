@@ -47,8 +47,9 @@
 #include "address.h"
 #include "bacaddr.h"
 
+/** @file tsm.c  BACnet Transaction State Machine operations  */
+
 #if (MAX_TSM_TRANSACTIONS)
-/* Transaction State Machine */
 /* Really only needed for segmented messages */
 /* and a little for sending confirmed messages */
 /* If we are only a server and only initiate broadcasts, */

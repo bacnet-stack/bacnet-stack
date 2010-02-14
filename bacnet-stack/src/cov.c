@@ -38,7 +38,7 @@
 #include "bacapp.h"
 #include "cov.h"
 
-/* encode service */
+/** @file cov.c  Encode/Decode Change of Value (COV) services */
 
 /* Change-Of-Value Services
 COV Subscribe

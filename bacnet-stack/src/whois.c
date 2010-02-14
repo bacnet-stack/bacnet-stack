@@ -36,6 +36,8 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 
+/** @file whois.c  Encode/Decode Who-Is requests  */
+
 /* encode I-Am service  - use -1 for limit if you want unlimited */
 int whois_encode_apdu(
     uint8_t * apdu,

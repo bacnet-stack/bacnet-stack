@@ -34,6 +34,8 @@
 #include "datalink.h"
 #include <string.h>
 
+/** @file datalink.c  Optional run-time assignment of datalink transport */
+
 #if defined(BACDL_ALL)
 /* Function pointers - point to your datalink */
 bool(*datalink_init) (char *ifname);

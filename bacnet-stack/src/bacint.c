@@ -38,6 +38,8 @@
 #include <stdbool.h>
 #include "config.h"
 
+/** @file bacint.c  Encode/Decode Integer Types */
+
 int encode_unsigned16(
     uint8_t * apdu,
     uint16_t value)

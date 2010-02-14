@@ -46,6 +46,8 @@
 #include "bactext.h"
 #include "datetime.h"
 
+/** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
+
 int bacapp_encode_application_data(
     uint8_t * apdu,
     BACNET_APPLICATION_DATA_VALUE * value)

@@ -45,6 +45,8 @@
 #endif
 #include "debug.h"
 
+/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC) */
+
 /* Handle the BACnet Virtual Link Control (BVLC), which includes:
    BACnet Broadcast Management Device,
    Broadcast Distribution Table, and

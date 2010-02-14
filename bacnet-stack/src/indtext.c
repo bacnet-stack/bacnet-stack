@@ -35,6 +35,8 @@
 #include <string.h>
 #include "indtext.h"
 
+/** @file indtext.c  Maps text strings and indices of type INDTEXT_DATA */
+
 #if !defined(__BORLANDC__) && !defined(_MSC_VER)
 #include <ctype.h>
 int stricmp(

@@ -38,6 +38,8 @@
 #include "timestamp.h"
 #include "bacdevobjpropref.h"
 
+/** @file bacdevobjpropref.c  BACnet Application Device Object Property Reference */
+
 int bacapp_encode_context_device_obj_property_ref(
     uint8_t * apdu,
     uint8_t tag_number,

@@ -42,6 +42,9 @@
 #include "bacint.h"
 #include "bacreal.h"
 
+/** @file bacdcode.c  Functions to encode/decode BACnet data types */
+
+
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
    B'001'      2 segments accepted.

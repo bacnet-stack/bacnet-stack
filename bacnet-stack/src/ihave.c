@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "ihave.h"
 
+/** @file ihave.c  Encode/Decode I-Have service */
+
 int ihave_encode_apdu(
     uint8_t * apdu,
     BACNET_I_HAVE_DATA * data)

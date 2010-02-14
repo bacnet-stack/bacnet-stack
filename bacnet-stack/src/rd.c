@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "rd.h"
 
+/** @file rd.c  Encode/Decode Reinitialize Device APDUs */ 
+
 /* encode service */
 int rd_encode_apdu(
     uint8_t * apdu,

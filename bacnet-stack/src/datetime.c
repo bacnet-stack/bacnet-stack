@@ -40,6 +40,8 @@
 #include "datetime.h"
 #include "bacdcode.h"
 
+/** @file datetime.c  Manipulate BACnet Date and Time values */
+
 /* BACnet Date */
 /* year = years since 1900 */
 /* month 1=Jan */

@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "wp.h"
 
+/** @file wp.c  Encode/Decode BACnet Write Property APDUs  */
+
 /* encode service */
 int wp_encode_apdu(
     uint8_t * apdu,

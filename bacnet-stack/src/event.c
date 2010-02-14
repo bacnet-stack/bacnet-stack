@@ -38,6 +38,8 @@
 #include "device.h"
 #include "timestamp.h"
 
+/** @file event.c  Encode/Decode Event Notifications */
+
 int uevent_notify_encode_apdu(
     uint8_t * apdu,
     BACNET_EVENT_NOTIFICATION_DATA * data)

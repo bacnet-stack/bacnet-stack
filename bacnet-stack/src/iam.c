@@ -40,6 +40,8 @@
 #include "bacdcode.h"
 #include "address.h"
 
+/** @file iam.c  Encode/Decode I-Am service */
+
 /* encode I-Am service */
 int iam_encode_apdu(
     uint8_t * apdu,

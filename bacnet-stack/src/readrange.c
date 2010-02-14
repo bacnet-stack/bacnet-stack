@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "readrange.h"
 
+/** @file readrange.c  Encode/Decode ReadRange requests */
+
 /*
  * ReadRange-Request ::= SEQUENCE {
  *     objectIdentifier   [0] BACnetObjectIdentifier,

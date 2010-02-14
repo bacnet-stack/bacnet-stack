@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "dcc.h"
 
+/** @file dcc.c  Enable/Disable Device Communication Control (DCC) */
+
 /* note: the disable and time are not expected to survive
    over a power cycle or reinitialization. */
 /* note: time duration is given in Minutes, but in order to be accurate,

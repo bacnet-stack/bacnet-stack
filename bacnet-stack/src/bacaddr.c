@@ -37,6 +37,8 @@
 #include "config.h"
 #include "bacdef.h"
 
+/** @file bacaddr.c  BACnet Address structure utilities */
+
 void bacnet_address_copy(
     BACNET_ADDRESS * dest,
     BACNET_ADDRESS * src)
