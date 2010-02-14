@@ -34,7 +34,7 @@
 #ifndef BACNET_H
 #define BACNET_H
 
-/* This file is designed to reference the entire BACnet stack library */
+/** @file bacnet.h  This file is designed to reference the entire BACnet stack library */
 
 /* core files */
 #include "version.h"
@@ -96,4 +96,18 @@
 #include "client.h"
 #include "handlers.h"
 
+/* Additions for Doxygen documenting */
+/**
+ * @mainpage BACnet-stack API Documentation
+ * This documents the BACnet-Stack API, OS ports, and sample applications. <br>
+ * 
+ *  - The high-level handler interface can be found in the Modules tab.
+ *  - Specifics for each file can be found in the Files tab.
+ *  - A full list of all functions is provided in the index of the 
+ *  Files->Globals subtab.
+ * 
+ * See doc/README.doxygen for notes on building and extending this document. <br>
+ * In particular, if you have graphviz installed, you can enhance this 
+ * documentation by turning on the function call graphs feature.
+ */
 #endif
