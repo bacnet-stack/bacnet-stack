@@ -41,6 +41,8 @@
 #include "npdu.h"
 #include "apdu.h"
 
+/** @file npdu.c  Encode/Decode NPDUs - Network Protocol Data Units */
+
 void npdu_copy_data(
     BACNET_NPDU_DATA * dest,
     BACNET_NPDU_DATA * src)

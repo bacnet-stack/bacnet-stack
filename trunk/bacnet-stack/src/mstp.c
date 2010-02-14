@@ -33,6 +33,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
+/** @file mstp.c  BACnet Master-Slave Twisted Pair (MS/TP) functions */
+
 /* This clause describes a Master-Slave/Token-Passing (MS/TP) data link  */
 /* protocol, which provides the same services to the network layer as  */
 /* ISO 8802-2 Logical Link Control. It uses services provided by the  */

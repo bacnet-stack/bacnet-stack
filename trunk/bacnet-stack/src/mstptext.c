@@ -36,6 +36,8 @@
 #include "indtext.h"
 #include "bacenum.h"
 
+/** @file mstptext.c  Text mapping functions for BACnet MS/TP */
+
 static INDTEXT_DATA mstp_receive_state_text[] = {
     {MSTP_RECEIVE_STATE_IDLE, "IDLE"},
     {MSTP_RECEIVE_STATE_PREAMBLE, "PREAMBLE"},

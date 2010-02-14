@@ -36,6 +36,8 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 
+/** @file bacerror.c  Encode/Decode BACnet Errors */
+
 /* encode service */
 int bacerror_encode_apdu(
     uint8_t * apdu,

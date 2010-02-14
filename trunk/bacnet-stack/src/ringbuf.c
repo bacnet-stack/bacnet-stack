@@ -33,6 +33,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
+/** @file ringbuf.c  Generic ring buffer library for deeply embedded system. */
+
 /* Functional Description: Generic ring buffer library for deeply
    embedded system. See the unit tests for usage examples. */
 

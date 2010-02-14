@@ -41,6 +41,9 @@
 #include <windows.h>
 #include <process.h>
 
+/** @file src/dlmstp.c  Win32 MS/TP Functions */
+
+
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
 /* The minimum time without a DataAvailable or ReceiveError event */

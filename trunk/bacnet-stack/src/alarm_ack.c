@@ -34,6 +34,8 @@
 
 #include "alarm_ack.h"
 
+/** @file alarm_ack.c  Handles Event Notifications (ACKs) */
+
 /***************************************************
 **
 ** Creates an Unconfirmed Event Notification APDU

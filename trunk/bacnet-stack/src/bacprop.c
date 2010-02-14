@@ -38,6 +38,8 @@
 #endif
 #include "bacprop.h"
 
+/** @file bacprop.c  Lookup BACnet Property Tags */
+
 PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
     {PROP_OBJECT_IDENTIFIER, BACNET_APPLICATION_TAG_OBJECT_ID}
     ,

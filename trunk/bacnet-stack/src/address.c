@@ -43,6 +43,8 @@
 #include "bacdcode.h"
 #include "readrange.h"
 
+/** @file address.c  Handle address binding */
+
 /* This module is used to handle the address binding that */
 /* occurs in BACnet.  A device id is bound to a MAC address. */
 /* The normal method is using Who-Is, and using the data from I-Am */

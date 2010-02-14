@@ -40,6 +40,8 @@
 #include "memcopy.h"
 #include "rpm.h"
 
+/** @file rpm.c  Encode/Decode Read Property Multiple and RPM ACKs  */
+
 /* encode the initial portion of the service */
 int rpm_encode_apdu_init(
     uint8_t * apdu,

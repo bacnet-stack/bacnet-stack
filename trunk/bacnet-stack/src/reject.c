@@ -36,6 +36,8 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 
+/** @file reject.c  Encode/Decode Reject APDUs */
+
 /* encode service */
 int reject_encode_apdu(
     uint8_t * apdu,

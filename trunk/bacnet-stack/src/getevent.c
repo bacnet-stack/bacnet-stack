@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "getevent.h"
 
+/** @file getevent.c  Encode/Decode GetEvent services */
+
 /* encode service */
 int getevent_encode_apdu(
     uint8_t * apdu,

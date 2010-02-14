@@ -39,6 +39,8 @@
 #include "bacstr.h"
 #include "bits.h"
 
+/** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
+
 void bitstring_init(
     BACNET_BIT_STRING * bit_string)
 {

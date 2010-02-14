@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "rp.h"
 
+/** @file rp.c  Encode/Decode Read Property and RP ACKs */
+
 /* encode service */
 int rp_encode_apdu(
     uint8_t * apdu,

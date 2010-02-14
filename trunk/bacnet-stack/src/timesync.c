@@ -38,6 +38,8 @@
 #include "bacapp.h"
 #include "timesync.h"
 
+/** @file timesync.c  Encode/Decode TimeSync APDUs  */
+
 /* encode service */
 int timesync_encode_apdu_service(
     uint8_t * apdu,

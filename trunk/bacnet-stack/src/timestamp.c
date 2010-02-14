@@ -35,6 +35,9 @@
 #include "assert.h"
 #include "timestamp.h"
 
+/** @file timestamp.c  Encode/Decode BACnet Timestamps  */
+
+
 void bacapp_timestamp_copy(
     BACNET_TIMESTAMP * dest,
     BACNET_TIMESTAMP * src)

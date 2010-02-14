@@ -36,6 +36,8 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 
+/** @file abort.c  Abort Encoding/Decoding */
+
 /* encode service */
 int abort_encode_apdu(
     uint8_t * apdu,

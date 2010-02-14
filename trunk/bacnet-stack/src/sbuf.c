@@ -33,6 +33,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
+/** @file sbuf.c  Static buffer library for deeply embedded system. */
+
 /* Functional Description: Static buffer library for deeply
    embedded system. See the unit tests for usage examples. */
 #include <stdint.h>

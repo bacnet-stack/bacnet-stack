@@ -38,6 +38,8 @@
 #include "timestamp.h"
 #include "bacpropstates.h"
 
+/** @file bacpropstates.c  Encode/Decode BACnet Application Property States */
+
 int bacapp_decode_property_state(
     uint8_t * apdu,
     BACNET_PROPERTY_STATE * value)

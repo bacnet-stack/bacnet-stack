@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "whohas.h"
 
+/** @file whohas.c  Encode/Decode Who-Has requests */
+
 /* encode service  - use -1 for limit for unlimited */
 
 int whohas_encode_apdu(

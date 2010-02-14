@@ -38,6 +38,8 @@
 #include <stdlib.h>     /* Standard Library */
 #include <stdarg.h>
 
+/** @file debug.c  Debug print function */
+
 void debug_printf(
     const char *format,
     ...)

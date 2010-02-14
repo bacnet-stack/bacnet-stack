@@ -37,6 +37,8 @@
 #include "bacdef.h"
 #include "ptransfer.h"
 
+/** @file ptransfer.c  Encode/Decode Private Transfer data */
+
 /* encode service */
 int pt_encode_apdu(
     uint8_t * apdu,

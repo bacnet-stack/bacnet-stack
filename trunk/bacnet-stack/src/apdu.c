@@ -43,6 +43,8 @@
 #include "dcc.h"
 #include "iam.h"
 
+/** @file apdu.c  Handles APDU services */
+
 /* APDU Timeout in Milliseconds */
 static uint16_t Timeout_Milliseconds = 3000;
 /* Number of APDU Retries */

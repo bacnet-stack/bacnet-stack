@@ -34,6 +34,8 @@
 #include <stdio.h>
 #include <string.h>
 
+/** @file filename.c  Function for filename manipulation */
+
 char *filename_remove_path(
     const char *filename_in)
 {

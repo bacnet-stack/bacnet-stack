@@ -33,6 +33,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
+/** @file fifo.c  Generic FIFO library for deeply embedded system */
+
 /* Functional Description: Generic FIFO library for deeply
    embedded system. See the unit tests for usage examples. */
 

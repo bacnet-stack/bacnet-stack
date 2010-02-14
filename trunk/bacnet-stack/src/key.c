@@ -35,6 +35,8 @@
 /*#define TEST_KEY */
 #include "key.h"
 
+/** @file key.c  Tests (only) of key encoding/decoding.  */
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>

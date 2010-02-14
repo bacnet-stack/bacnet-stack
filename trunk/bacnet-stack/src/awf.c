@@ -37,7 +37,7 @@
 #include "bacdef.h"
 #include "awf.h"
 
-/* Atomic Write File */
+/** @file awf.c  Atomic Write File */
 
 /* encode service */
 int awf_encode_apdu(
