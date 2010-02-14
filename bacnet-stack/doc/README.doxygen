@@ -1,0 +1,35 @@
+To build the Doxygen documentation for the BACnet Stack:
+- Install doxygen as described at 
+  http://www.stack.nl/~dimitri/doxygen/install.html
+- If you want to generate call graphs (recommended - very nice! - but takes 
+  signficantly longer to build the documents), you must also have 
+  graphviz installed.
+- To build from the command line, just enter
+  doxygen BACnet-stack.doxyfile
+- Output is built in doc/output/html and doc/output/latex
+- The Latex output can be converted into a PDF (see doxygen manual,
+  google, and good luck!)
+- If you use Eclipse, 
+  - install the eClox plugin to support doxygen within Eclipse
+  - Build the documents by right clicking on BACnet-stack.doxyfile,
+    and selecting "@ Build Documentation"
+- Feel free to tweak the doxygen output to your tastes, interests, and 
+  choice of output formats.
+    
+The doxygen output is not checked into this project because it consists of
+  over 10,000 little files (for HTML and Latex), and it is easily 
+  regenerated.
+  
+For speed, the function call graphs are not enabled in the SVN version
+  of the doxyfile.  To enable them, edit BACnet-stack.doxyfile (with a
+  text editor or with GUI-based editors in Eclipse or using the 
+  doxywizard application) and change 
+    HAVE_DOT = YES
+    CALLER_GRAPH = YES
+    
+    
+Following the doxygen website's lead, I found the D-Bus project to be a good 
+  example of the sort of documentation we needed to have here.
+  http://dbus.freedesktop.org/doc/dbus/api/html/index.html
+
+  
