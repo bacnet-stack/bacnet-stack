@@ -38,6 +38,8 @@
 #include "arcnet.h"
 #include "net.h"
 
+/** @file linux/arcnet.c  Provides Linux-specific functions for Arcnet. */
+
 /* my local device data - MAC address */
 uint8_t ARCNET_MAC_Address = 0;
 /* ARCNET file handle */

@@ -28,6 +28,8 @@
 #include <time.h>
 #include "timer.h"
 
+/** @file linux/timer.c  Provides Linux-specific time and timer functions. */
+
 /* counter for the various timers */
 static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 

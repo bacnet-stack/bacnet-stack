@@ -45,7 +45,8 @@
 #include "txbuf.h"
 #include "dlenv.h"
 
-/* This is an example application using the BACnet Stack on Linux */
+/** @file linux/main.c  Example application using the BACnet Stack on Linux. */
+
 bool Who_Is_Request = true;
 
 /* buffers used for receiving */
