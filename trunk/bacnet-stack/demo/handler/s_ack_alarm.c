@@ -44,6 +44,8 @@
 #include "txbuf.h"
 #include "alarm_ack.h"
 
+/** @file s_ack_alarm.c  Send an Alarm Acknowledgment. */
+
 /* returns the invoke ID for confirmed request, or zero on failure */
 
 

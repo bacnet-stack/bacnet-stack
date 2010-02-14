@@ -31,6 +31,8 @@
 #include "bacdcode.h"
 #include "timesync.h"
 
+/** @file h_ts.c  Handles TimeSync requests. */
+
 #if PRINT_ENABLED
 static void show_bacnet_date_time(
     BACNET_DATE * bdate,

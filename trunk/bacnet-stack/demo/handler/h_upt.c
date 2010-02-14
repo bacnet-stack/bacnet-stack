@@ -36,6 +36,8 @@
 #include "abort.h"
 #include "ptransfer.h"
 
+/** @file h_upt.c  Handles Unconfirmed Private Transfer requests. */
+
 void handler_unconfirmed_private_transfer(
     uint8_t * service_request,
     uint16_t service_len,

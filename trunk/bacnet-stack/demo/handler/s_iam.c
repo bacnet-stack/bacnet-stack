@@ -40,6 +40,14 @@
 /* some demo stuff needed */
 #include "handlers.h"
 
+/** @file s_iam.c  Send an I-Am message. */
+
+/** Encode an I Am message.
+ * @param buffer [in,out] The buffer to use for building the message.
+ * @param dest [out] The destination address information.
+ * @param npdu_data [out] The NPDU structure describing the message.
+ * @return The length of the message in buffer[].
+ */
 int iam_encode_pdu(
     uint8_t * buffer,
     BACNET_ADDRESS * dest,
@@ -62,6 +70,9 @@ int iam_encode_pdu(
     return pdu_len;
 }
 
+/** Broadcast an I Am message.
+ * @param buffer [in] The buffer to use for building and sending the message.
+ */
 void Send_I_Am(
     uint8_t * buffer)
 {

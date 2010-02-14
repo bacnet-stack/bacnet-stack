@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_rp.c  Send Read Property request. */
+
 /* returns invoke id of 0 if device is not bound or no tsm available */
 uint8_t Send_Read_Property_Request(
     uint32_t device_id, /* destination device */

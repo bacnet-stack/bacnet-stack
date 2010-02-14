@@ -37,6 +37,8 @@
 #include "abort.h"
 #include "wp.h"
 
+/** @file h_wp.c  Handles Write Property requests. */
+
 static write_property_function Write_Property;
 
 void handler_write_property_function_set(

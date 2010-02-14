@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_whois.c  Send a Who-Is request. */
+
 /* find a specific device, or use -1 for limit if you want unlimited */
 void Send_WhoIs(
     int32_t low_limit,

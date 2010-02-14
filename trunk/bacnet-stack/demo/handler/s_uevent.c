@@ -28,6 +28,8 @@
 #include "event.h"
 #include "datalink.h"
 
+/** @file s_uevent.c  Send an Unconfirmed Event Notification. */
+
 int Send_UEvent_Notify(
     uint8_t * buffer,
     BACNET_EVENT_NOTIFICATION_DATA * data,

@@ -39,6 +39,8 @@
 #include "rpm.h"
 #include "handlers.h"
 
+/** @file h_rpm.c  Handles Read Property Multiple requests. */
+
 /* function that handles the reading of properties from objects */
 static read_property_function Read_Property_Function;
 static rpm_object_property_lists_function RPM_Property_List;

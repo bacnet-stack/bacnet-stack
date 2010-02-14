@@ -42,6 +42,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file h_rpm_a.c  Handles Read Property Multiple Acknowledgments. */
+
 /* returns the number of bytes decoded, or -1 on error */
 /* note: initial the linked list of read_access_data */
 static int rpm_ack_decode_service_request(

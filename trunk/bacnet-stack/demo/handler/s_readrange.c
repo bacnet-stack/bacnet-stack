@@ -44,6 +44,8 @@
 #include "txbuf.h"
 #include "readrange.h"
 
+/** @file s_readrange.c  Send a ReadRange request. */
+
 /* returns invoke id of 0 if device is not bound or no tsm available */
 uint8_t Send_ReadRange_Request(
     uint32_t device_id, /* destination device */

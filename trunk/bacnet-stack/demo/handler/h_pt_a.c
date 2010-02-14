@@ -45,6 +45,8 @@
 #include "bacfile.h"
 #endif
 
+/** @file h_pt_a.c  Handles Confirmed Private Transfer Acknowledgment. */
+
 extern uint8_t IOBufferPT[300]; /* Somewhere to build the encoded result block for Private Transfers */
 
 

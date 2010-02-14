@@ -42,6 +42,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_dcc.c  Send a Device Communication Control (DCC) request. */
+
 uint8_t Send_Device_Communication_Control_Request(
     uint32_t device_id,
     uint16_t timeDuration,      /* 0=optional */

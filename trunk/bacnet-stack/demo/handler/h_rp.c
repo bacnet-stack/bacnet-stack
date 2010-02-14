@@ -38,6 +38,8 @@
 #include "abort.h"
 #include "rp.h"
 
+/** @file h_rp.c  Handles Read Property requests. */
+
 /* function that handles the reading of properties from objects */
 static read_property_function Read_Property_Function;
 

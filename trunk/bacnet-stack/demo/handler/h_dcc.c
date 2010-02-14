@@ -38,6 +38,8 @@
 #include "reject.h"
 #include "dcc.h"
 
+/** @file h_dcc.c  Handles Device Communication Control request. */
+
 static char My_Password[32] = "filister";
 
 void handler_dcc_password_set(

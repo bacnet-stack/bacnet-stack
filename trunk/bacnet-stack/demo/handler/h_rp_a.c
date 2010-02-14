@@ -41,6 +41,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file h_rp_a.c  Handles Read Property Acknowledgments. */
+
 /* for debugging... */
 static void PrintReadPropertyData(
     BACNET_READ_PROPERTY_DATA * data)

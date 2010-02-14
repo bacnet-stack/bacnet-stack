@@ -37,6 +37,8 @@
 #include "lso.h"
 #include "handlers.h"
 
+/** @file h_lso.c  Handles BACnet Life Safey Operation messages. */
+
 void handler_lso(
     uint8_t * service_request,
     uint16_t service_len,

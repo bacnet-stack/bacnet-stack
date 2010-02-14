@@ -43,6 +43,8 @@
 #include "bacfile.h"
 #endif
 
+/** @file h_awf.c  Handles Atomic Write File request. */
+
 /*
 from BACnet SSPC-135-2004
 

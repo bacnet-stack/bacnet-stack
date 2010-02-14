@@ -50,7 +50,7 @@
 /* include the device object */
 #include "device.h"
 
-/* This is an example server application using the BACnet Stack */
+/** @file server/main.c  Example server application using the BACnet Stack */
 
 /* buffers used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };

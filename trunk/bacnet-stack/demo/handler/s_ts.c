@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_ts.c  Send TimeSync requests. */
+
 void Send_TimeSync(
     BACNET_DATE * bdate,
     BACNET_TIME * btime)

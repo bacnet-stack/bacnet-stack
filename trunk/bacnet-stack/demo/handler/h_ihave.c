@@ -32,6 +32,8 @@
 #include "bactext.h"
 #include "ihave.h"
 
+/** @file h_ihave.c  Handles incoming I-Have messages. */
+
 void handler_i_have(
     uint8_t * service_request,
     uint16_t service_len,

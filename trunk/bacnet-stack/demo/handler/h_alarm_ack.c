@@ -37,6 +37,8 @@
 #include "alarm_ack.h"
 #include "handlers.h"
 
+/** @file h_alarm_ack.c  Handles Alarm Acknowledgment. */
+
 void handler_alarm_ack(
     uint8_t * service_request,
     uint16_t service_len,

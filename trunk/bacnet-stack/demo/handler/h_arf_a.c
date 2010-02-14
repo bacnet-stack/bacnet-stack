@@ -41,6 +41,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file h_arf_a.c  Handles Acknowledgment of Atomic Read  File response. */
+
 /* We performed an AtomicReadFile Request, */
 /* and here is the data from the server */
 /* Note: it does not have to be the same file=instance */

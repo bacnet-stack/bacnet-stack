@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "sbuf.h"
 
+/** @file s_rpm.c  Send Read Property Multiple request. */
+
 /* returns invoke id of 0 if device is not bound or no tsm available */
 uint8_t Send_Read_Property_Multiple_Request(
     uint8_t * pdu,
