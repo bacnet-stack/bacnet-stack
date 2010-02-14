@@ -1,5 +1,7 @@
 #include "main.h"
 
+/** @file lib/main.cpp  Provides DLLMain for Win32 build of library. */
+
 // a sample exported function
 void SomeFunction(const LPCSTR sometext)
 {
