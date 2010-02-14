@@ -41,6 +41,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_cov.c  Send a Change of Value (COV) update or a Subscribe COV request. */
+
 int ucov_notify_encode_pdu(
     uint8_t * buffer,
     BACNET_ADDRESS * dest,

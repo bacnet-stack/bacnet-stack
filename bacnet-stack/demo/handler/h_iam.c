@@ -32,6 +32,8 @@
 #include "iam.h"
 #include "address.h"
 
+/** @file h_iam.c  Handles I-Am requests. */
+
 void handler_i_am_add(
     uint8_t * service_request,
     uint16_t service_len,

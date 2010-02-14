@@ -42,6 +42,8 @@
 #define MAX_COV_PROPERTIES 2
 #endif
 
+/** @file h_ucov.c  Handles Unconfirmed COV Notifications. */
+
 /* note: nothing is specified in BACnet about what to do with the
   information received from Unconfirmed COV Notifications. */
 void handler_ucov_notification(

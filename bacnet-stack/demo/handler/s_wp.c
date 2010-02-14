@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_wp.c  Send a Write Property request. */
+
 /* returns the invoke ID for confirmed request, or zero on failure */
 uint8_t Send_Write_Property_Request_Data(
     uint32_t device_id,

@@ -45,6 +45,8 @@
 #include "mydata.h"
 #include "ptransfer.h"
 
+/** @file h_pt.c  Handles Confirmed Private Transfer requests. */
+
 #define MYMAXSTR 32
 #define MYMAXBLOCK 8
 

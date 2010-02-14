@@ -38,6 +38,8 @@
 #include "reject.h"
 #include "rd.h"
 
+/** @file h_rd.c  Handles Reinitialize Device requests. */
+
 static reinitialize_device_function Reinitialize_Device_Function;
 void handler_reinitialize_device_function_set(
     reinitialize_device_function pFunction)

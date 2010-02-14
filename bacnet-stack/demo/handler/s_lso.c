@@ -44,6 +44,8 @@
 #include "txbuf.h"
 #include "lso.h"
 
+/** @file s_lso.c  Send BACnet Life Safety Operation message. */
+
 /* returns the invoke ID for confirmed request, or zero on failure */
 
 

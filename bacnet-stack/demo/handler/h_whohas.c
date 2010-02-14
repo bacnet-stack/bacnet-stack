@@ -35,6 +35,8 @@
 #include "device.h"
 #include "client.h"
 
+/** @file h_whohas.c  Handles Who-Has requests. */
+
 void handler_who_has(
     uint8_t * service_request,
     uint16_t service_len,

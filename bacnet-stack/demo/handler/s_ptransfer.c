@@ -45,6 +45,7 @@
 #include "txbuf.h"
 #include "mydata.h"
 
+/** @file s_ptransfer.c  Send a Private Transfer request. */
 
 uint8_t Send_Private_Transfer_Request(
     uint32_t device_id,

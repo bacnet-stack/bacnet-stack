@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_ihave.c  Send an I-Have (property) message. */
+
 /* find a specific device, or use -1 for limit if you want unlimited */
 void Send_I_Have(
     uint32_t device_id,

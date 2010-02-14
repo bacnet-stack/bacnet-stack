@@ -34,6 +34,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_cevent.c  Send a ConfirmedEventNotification Request. */
+
 /* returns the invoke id, 0=unsuccessful */
 uint8_t Send_CEvent_Notify(
     uint32_t device_id,

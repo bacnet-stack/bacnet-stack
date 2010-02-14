@@ -37,6 +37,8 @@
 #include "abort.h"
 #include "readrange.h"
 
+/** @file h_rr.c  Handles Read Range requests. */
+
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
 static rr_info_function get_rr_info[MAX_BACNET_OBJECT_TYPE];

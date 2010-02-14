@@ -52,6 +52,8 @@
 #include "bacfile.h"
 #endif
 
+/** @file h_cov.c  Handles Change of Value (COV) services. */
+
 /* note: This COV service only monitors the properties
    of an object that have been specified in the standard.  */
 typedef struct BACnet_COV_Subscription {

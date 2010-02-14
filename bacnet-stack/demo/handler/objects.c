@@ -39,6 +39,8 @@
 #include "keylist.h"
 #include "objects.h"
 
+/** @file objects.c  Manage Device Objects. */
+
 /* list of devices */
 static OS_Keylist Device_List = NULL;
 

@@ -43,6 +43,8 @@
 #include "bacfile.h"
 #endif
 
+/** @file h_arf.c  Handles Atomic Read File request. */
+
 /*
 from BACnet SSPC-135-2004
 

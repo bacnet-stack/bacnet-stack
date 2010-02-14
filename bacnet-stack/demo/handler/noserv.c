@@ -34,6 +34,8 @@
 #include "npdu.h"
 #include "reject.h"
 
+/** @file noserv.c  Handles an unrecognized/unsupported service. */
+
 void handler_unrecognized_service(
     uint8_t * service_request,
     uint16_t service_len,

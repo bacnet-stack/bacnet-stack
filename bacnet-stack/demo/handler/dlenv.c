@@ -35,6 +35,8 @@
 #include "handlers.h"
 #include "client.h"
 
+/** @file dlenv.c  Initialize the DataLink configuration. */
+
 void dlenv_init(
     void)
 {

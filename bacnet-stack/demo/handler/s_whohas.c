@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_whohas.c  Send Who-Has requests. */
+
 /* find a specific device, or use -1 for limit if you want unlimited */
 void Send_WhoHas_Name(
     int32_t low_limit,

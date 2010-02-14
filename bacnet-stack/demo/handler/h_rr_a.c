@@ -41,6 +41,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file h_rr_a.c  Handles Read Range Acknowledgments. */
+
 /* for debugging... */
 static void PrintReadRangeData(
     BACNET_READ_RANGE_DATA * data)

@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_rd.c  Send a Reinitialize Device request. */
+
 uint8_t Send_Reinitialize_Device_Request(
     uint32_t device_id,
     BACNET_REINITIALIZED_STATE state,

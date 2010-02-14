@@ -36,6 +36,8 @@
 #include <stdio.h>
 #endif
 
+/** @file h_npdu.c  Handles messages at the NPDU level of the BACnet stack. */
+
 void npdu_handler(
     BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,      /* PDU data */

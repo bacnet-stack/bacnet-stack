@@ -38,6 +38,8 @@
 #include "event.h"
 #include "getevent.h"
 
+/** @file h_getevent.c  Handles Get Event Information request. */
+
 static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
 
 void handler_get_event_information_set(

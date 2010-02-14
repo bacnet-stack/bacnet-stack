@@ -43,6 +43,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_arfs.c  Send part of an Atomic Read File Stream. */
+
 uint8_t Send_Atomic_Read_File_Stream(
     uint32_t device_id,
     uint32_t file_instance,

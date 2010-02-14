@@ -41,6 +41,8 @@
 #include "handlers.h"
 #include "txbuf.h"
 
+/** @file s_router.c  Send BACnet Router requests. */
+
 static void npdu_encode_npdu_network(
     BACNET_NPDU_DATA * npdu_data,
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,

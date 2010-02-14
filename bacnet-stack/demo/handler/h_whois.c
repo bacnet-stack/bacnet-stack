@@ -37,6 +37,8 @@
 #include "client.h"
 #include "txbuf.h"
 
+/** @file h_whois.c  Handles Who-Is requests. */
+
 void handler_who_is(
     uint8_t * service_request,
     uint16_t service_len,
