@@ -38,6 +38,8 @@
 /* OS Specific include */
 #include "net.h"
 
+/** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP. */
+
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
 

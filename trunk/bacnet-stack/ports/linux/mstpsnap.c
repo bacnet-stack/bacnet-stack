@@ -48,6 +48,8 @@
 #include "mstptext.h"
 #include "bacint.h"
 
+/** @file linux/mstpsnap.c  Example application testing BACnet MS/TP on Linux. */
+
 #ifndef max
 #define max(a,b) (((a) (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))

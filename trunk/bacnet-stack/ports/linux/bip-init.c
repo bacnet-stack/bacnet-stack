@@ -38,6 +38,8 @@
 #include "bip.h"
 #include "net.h"
 
+/** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
+
 bool BIP_Debug = false;
 
 /* gets an IP address by name, where name can be a

@@ -33,6 +33,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
+/** @file linux/rs485.c  Provides Linux-specific functions for RS-485 serial. */
+
 /* The module handles sending data out the RS-485 port */
 /* and handles receiving data from the RS-485 port. */
 /* Customize this file for your specific hardware */

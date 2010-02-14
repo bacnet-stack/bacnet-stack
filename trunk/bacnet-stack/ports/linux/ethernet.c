@@ -40,6 +40,8 @@
 #include "ethernet.h"
 #include "bacint.h"
 
+/** @file linux/ethernet.c  Provides Linux-specific functions for BACnet/Ethernet. */
+
 /* commonly used comparison address for ethernet */
 uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
     { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };

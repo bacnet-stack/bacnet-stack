@@ -54,6 +54,8 @@
 #include "mstp.h"
 #include "mstptext.h"
 
+/** @file linux/rx_fsm.c  Example app testing MS/TP Rx State Machine on Linux. */
+
 #ifndef max
 #define max(a,b) (((a) (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
