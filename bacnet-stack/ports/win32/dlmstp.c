@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <process.h>
 #include "bacdef.h"
 #include "bacaddr.h"
 #include "mstp.h"
