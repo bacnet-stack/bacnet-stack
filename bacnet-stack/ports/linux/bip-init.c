@@ -180,3 +180,18 @@ bool bip_init(
 
     return true;
 }
+
+/** Get the netmask of the BACnet/IP's interface via an ioctl() call.
+ * @param netmask [out] The netmask, in host order.
+ * @return 0 on success, else the error from the ioctl() call.
+ */
+int bip_get_local_netmask(
+    struct in_addr *netmask )
+{
+	int rv;
+    char *ifname = getenv("BACNET_IFACE");		/* will probably be null */
+    if ( ifname == NULL )
+    	ifname = "eth0";
+    rv = get_local_address_ioctl(ifname, netmask, SIOCGIFNETMASK);
+    return rv;
+}
