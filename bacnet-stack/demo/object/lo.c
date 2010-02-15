@@ -40,11 +40,7 @@
 #include "config.h"     /* the custom stuff */
 #include "rp.h"
 #include "wp.h"
-<<<<<<< .mine
-#include "lo.h"
-=======
 #include "handlers.h"
->>>>>>> .r1574
 
 #ifndef MAX_LIGHTING_OUTPUTS
 #define MAX_LIGHTING_OUTPUTS 5
