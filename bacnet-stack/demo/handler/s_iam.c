@@ -42,7 +42,7 @@
 
 /** @file s_iam.c  Send an I-Am message. */
 
-/** Encode an I Am message.
+/** Encode an I Am message to be broadcast.
  * @param buffer [in,out] The buffer to use for building the message.
  * @param dest [out] The destination address information.
  * @param npdu_data [out] The NPDU structure describing the message.
@@ -56,8 +56,7 @@ int iam_encode_pdu(
     int len = 0;
     int pdu_len = 0;
 
-    /* I-Am is a global broadcast */
-    datalink_get_broadcast_address(dest);
+	datalink_get_broadcast_address(dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
@@ -74,7 +73,86 @@ int iam_encode_pdu(
  * @param buffer [in] The buffer to use for building and sending the message.
  */
 void Send_I_Am(
-    uint8_t * buffer)
+    uint8_t * buffer )
+{
+    int pdu_len = 0;
+    BACNET_ADDRESS dest;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+
+#if 0
+    /* note: there is discussion in the BACnet committee
+       that we should allow a device to reply with I-Am
+       so that dynamic binding always work.  If the DCC
+       initiator loses the MAC address and routing info,
+       they can never re-enable DCC because they can't
+       find the device with WhoIs/I-Am */
+    /* are we are forbidden to send? */
+    if (!dcc_communication_enabled())
+        return 0;
+#endif
+
+    /* encode the data */
+    pdu_len = iam_encode_pdu(buffer, &dest, &npdu_data);
+    /* send data */
+    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
+
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
+#endif
+}
+
+/** Encode an I Am message to be unicast directly back to the src.
+ * If the src address is not given, the dest address will be
+ * a broadcast address.
+ * @param buffer [in,out] The buffer to use for building the message.
+ * @param src [in] The source address information, if any (may be NULL).
+ * @param dest [out] The destination address information.
+ * @param npdu_data [out] The NPDU structure describing the message.
+ * @return The length of the message in buffer[].
+ */
+int iam_unicast_encode_pdu(
+    uint8_t * buffer,
+    BACNET_ADDRESS * src,
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * npdu_data)
+{
+    int len = 0;
+    int pdu_len = 0;
+
+    if ( ( src == NULL ) || ( src->mac_len == 0 ) )
+    	datalink_get_broadcast_address(dest);
+    else {
+		memcpy( dest, src, sizeof( BACNET_ADDRESS ) );
+		dest->net = 0;
+    }
+
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
+    /* encode the APDU portion of the packet */
+    len =
+        iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
+        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    pdu_len += len;
+
+    return pdu_len;
+}
+
+/** Send an I-Am message by unicasting directly back to the src.
+ * @note If no src address is given, the I-Am will be broadcast instead.
+ * @note As of Addendum 135-2008q-1, unicast responses are allowed;
+ *  in modern firewalled corporate networks, this may be the
+ *  only type of response that will reach the source on
+ *  another subnet (without using the BBMD).
+ *
+ * @param buffer [in] The buffer to use for building and sending the message.
+ * @param src [in] The source address information, if any (may be NULL).
+ */
+void Send_I_Am_Unicast(
+    uint8_t * buffer,
+    BACNET_ADDRESS * src )
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -92,8 +170,9 @@ void Send_I_Am(
     if (!dcc_communication_enabled())
         return 0;
 #endif
+
     /* encode the data */
-    pdu_len = iam_encode_pdu(buffer, &dest, &npdu_data);
+    pdu_len = iam_unicast_encode_pdu(buffer, src, &dest, &npdu_data);
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
@@ -102,3 +181,4 @@ void Send_I_Am(
         fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
 #endif
 }
+
