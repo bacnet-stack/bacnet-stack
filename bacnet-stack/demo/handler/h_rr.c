@@ -58,7 +58,6 @@ int Encode_RR_payload(
 {
     int apdu_len = -1;
     rr_info_function    info_fn_ptr = NULL;
-    rr_handler_function rr_fn_ptr   = NULL;
     RR_PROP_INFO PropInfo;
 
     /* initialize the default return values */

@@ -324,7 +324,6 @@ static void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
 {
-    rpm_property_lists_function object_property_list = NULL;
     struct object_functions *pObject = NULL;
 
     pPropertyList->Required.pList = NULL;
