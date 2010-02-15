@@ -96,6 +96,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_rp_a.c \
 	$(BACNET_HANDLER)/h_rpm.c \
 	$(BACNET_HANDLER)/h_rpm_a.c \
+	$(BACNET_HANDLER)/h_rr.c \
 	$(BACNET_HANDLER)/h_wp.c  \
 	$(BACNET_HANDLER)/h_arf.c  \
 	$(BACNET_HANDLER)/h_arf_a.c  \
@@ -138,6 +139,7 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/bv.c \
 	$(BACNET_OBJECT)/lc.c \
 	$(BACNET_OBJECT)/lsp.c \
+	$(BACNET_OBJECT)/ms-input.c \
 	$(BACNET_OBJECT)/mso.c \
 	$(BACNET_OBJECT)/trendlog.c \
 	$(BACNET_OBJECT)/bacfile.c
