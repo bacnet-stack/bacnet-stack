@@ -50,6 +50,9 @@ extern "C" {
         uint8_t * buffer,
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data);
+    void Send_I_Am_Unicast(
+        uint8_t * buffer,
+        BACNET_ADDRESS * src);
 
     void Send_WhoIs(
         int32_t low_limit,
