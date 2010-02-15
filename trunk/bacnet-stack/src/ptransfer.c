@@ -54,6 +54,8 @@ int pt_encode_apdu(
         serviceParameters      [2] ABSTRACT-SYNTAX.&Type OPTIONAL
     }
 */
+    /* unused parameter */
+    max_apdu = max_apdu;
     if (apdu) {
         len =
             encode_context_unsigned(&apdu[apdu_len], 0,
