@@ -56,6 +56,8 @@ typedef struct BACnet_Read_Range_Data {
         BACNET_DATE_TIME RefTime;
     } Range;
     int32_t Count;      /* SIGNED value as +ve vs -ve  is important */
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
 } BACNET_READ_RANGE_DATA;
 
 /* Defines to indicate which type of read range request it is
@@ -108,15 +110,11 @@ typedef enum {
    1. A pointer to a buffer of at least MAX_APDU bytes to build the response in.
    2. A pointer to a BACNET_READ_RANGE_DATA structure with all the request
       information in it. The function is responsible for applying the request
-      to the property in question and returning the response.
-   3/4. pointers to Error Class and Error Code values to write to in the
-      event of a failure. */
+      to the property in question and returning the response. */
    
 typedef int (*rr_handler_function) (
     uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE  *error_code);
+    BACNET_READ_RANGE_DATA *pRequest);
 
 /* Structure to return the type of requests a given object property can
  * accept and the address of the function to handle the request */
@@ -135,6 +133,8 @@ typedef bool (*rr_info_function) (
     BACNET_ERROR_CLASS *error_class, /* Somewhere to write error responses to */
     BACNET_ERROR_CODE  *error_code);
 
+typedef rr_info_function (*get_rr_info_fn) (
+    BACNET_OBJECT_TYPE object_type);
 
 int rr_encode_apdu(
     uint8_t * apdu,

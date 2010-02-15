@@ -1096,9 +1096,7 @@ void TL_Local_Time_To_BAC(BACNET_DATE_TIME *DestTime, time_t SourceTime)
 
 int rr_trend_log_encode(
     uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE  *error_code)
+    BACNET_READ_RANGE_DATA *pRequest)
 {
     /* Initialise result flags to all false */
     bitstring_init(&pRequest->ResultFlags);
@@ -1112,11 +1110,11 @@ int rr_trend_log_encode(
         return(0);
 
     if((pRequest->RequestType == RR_BY_POSITION) || (pRequest->RequestType == RR_READ_ALL))
-        return(TL_encode_by_position(apdu, pRequest, error_class, error_code));
+        return(TL_encode_by_position(apdu, pRequest));
     else if(pRequest->RequestType == RR_BY_SEQUENCE)
-        return(TL_encode_by_sequence(apdu, pRequest, error_class, error_code));
+        return(TL_encode_by_sequence(apdu, pRequest));
 
-    return(TL_encode_by_time(apdu, pRequest, error_class, error_code));
+    return(TL_encode_by_time(apdu, pRequest));
 }
 
 /****************************************************************************
@@ -1127,9 +1125,7 @@ int rr_trend_log_encode(
  
 int TL_encode_by_position(
     uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE  *error_code)
+    BACNET_READ_RANGE_DATA *pRequest)
 {
     int iLen = 0;
     int32_t iTemp = 0;
@@ -1141,9 +1137,6 @@ int TL_encode_by_position(
     uint32_t uiTarget = 0;    /* Last entry we are required to encode */
     uint32_t uiRemaining = 0; /* Amount of unused space in packet */
     
-    /* unused parameters */
-    error_class = error_class;
-    error_code = error_code;
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead; 
     CurrentLog = &LogInfo[pRequest->object_instance];
@@ -1233,9 +1226,7 @@ return(iLen);
 
 int TL_encode_by_sequence(
     uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE  *error_code)
+    BACNET_READ_RANGE_DATA *pRequest)
 {
     int iLen = 0;
     int32_t iTemp = 0;
@@ -1253,9 +1244,6 @@ int TL_encode_by_sequence(
     bool bWrapReq = false; /* Has request sequence range spanned the max for uint32_t? */
     bool bWrapLog = false; /* Has log sequence range spanned the max for uint32_t? */
 
-    /* unused parameters */
-    error_class = error_class;
-    error_code = error_code;
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead; 
     CurrentLog = &LogInfo[pRequest->object_instance];
@@ -1369,9 +1357,7 @@ int TL_encode_by_sequence(
 
 int TL_encode_by_time(
     uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE  *error_code)
+    BACNET_READ_RANGE_DATA *pRequest)
 {
     int iLen = 0;
     int32_t iTemp = 0;
@@ -1385,9 +1371,6 @@ int TL_encode_by_time(
     uint32_t uiFirstSeq = 0;  /* Sequence number for 1st record in log */
     time_t tRefTime = 0;       /* The time from the request in local format */
     
-    /* unused parameters */
-    error_class = error_class;
-    error_code = error_code;
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead; 
     CurrentLog = &LogInfo[pRequest->object_instance];
