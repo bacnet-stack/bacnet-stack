@@ -94,6 +94,12 @@
 #include <sys/ioctl.h>
 #include <netdb.h>
 
+/** @file linux/net.h  Includes Linux network headers. */
+
+/* Local helper functions for this port */
+extern int bip_get_local_netmask(
+			struct in_addr *netmask );
+
+
 #endif
 
-/** @file linux/net.h  Includes Linux network headers. */
