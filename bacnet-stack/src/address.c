@@ -664,9 +664,7 @@ int address_list_encode(
 
 int rr_address_list_encode(
     uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE  *error_code)
+    BACNET_READ_RANGE_DATA *pRequest)
 {
     int iLen = 0;
     int32_t iTemp = 0;
@@ -679,9 +677,6 @@ int rr_address_list_encode(
     uint32_t uiTarget = 0;              /* Last entry we are required to encode */
     uint32_t uiRemaining = 0;           /* Amount of unused space in packet */
     
-    /* unused parameters */
-    error_class = error_class;
-    error_code = error_code;
     /* Initialise result flags to all false */
           bitstring_init(&pRequest->ResultFlags);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, false);

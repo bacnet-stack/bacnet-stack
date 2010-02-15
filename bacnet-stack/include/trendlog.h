@@ -86,21 +86,15 @@ extern "C" {
         
     int TL_encode_by_position(
         uint8_t *apdu,
-        BACNET_READ_RANGE_DATA *pRequest,
-        BACNET_ERROR_CLASS *error_class,
-        BACNET_ERROR_CODE  *error_code);
+        BACNET_READ_RANGE_DATA *pRequest);
             
     int TL_encode_by_sequence(
         uint8_t *apdu,
-        BACNET_READ_RANGE_DATA *pRequest,
-        BACNET_ERROR_CLASS *error_class,
-        BACNET_ERROR_CODE  *error_code);
+        BACNET_READ_RANGE_DATA *pRequest);
 
     int TL_encode_by_time(
         uint8_t *apdu,
-        BACNET_READ_RANGE_DATA *pRequest,
-        BACNET_ERROR_CLASS *error_class,
-        BACNET_ERROR_CODE  *error_code);
+        BACNET_READ_RANGE_DATA *pRequest);
 
     bool TrendLogGetRRInfo(
         uint32_t           Object,   /* Which particular object */
@@ -111,9 +105,7 @@ extern "C" {
 
 	int rr_trend_log_encode(
 		uint8_t *apdu,
-		BACNET_READ_RANGE_DATA *pRequest,
-		BACNET_ERROR_CLASS *error_class,
-		BACNET_ERROR_CODE  *error_code);
+		BACNET_READ_RANGE_DATA *pRequest);
 
         void trend_log_timer(
             uint16_t uSeconds);

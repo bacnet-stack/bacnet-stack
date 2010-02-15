@@ -83,8 +83,7 @@ extern "C" {
         read_property_function pFunction);
         
     void handler_rr_object_set(
-        BACNET_OBJECT_TYPE object_type,
-        rr_info_function pFunction1);
+        get_rr_info_fn pFunction1);
     
     void handler_read_property_ack(
         uint8_t * service_request,

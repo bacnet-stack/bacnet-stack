@@ -41,23 +41,20 @@
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
-static rr_info_function get_rr_info[MAX_BACNET_OBJECT_TYPE];
+
+static get_rr_info_fn get_rr_info;
 
 void handler_rr_object_set(
-    BACNET_OBJECT_TYPE object_type,
-    rr_info_function pFunction1)
+    get_rr_info_fn pFunction1)
 {
-    if (object_type < MAX_BACNET_OBJECT_TYPE)
-        get_rr_info[object_type] = pFunction1;
+    get_rr_info = pFunction1;
 }
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Encode_RR_payload(
     uint8_t * apdu,
-    BACNET_READ_RANGE_DATA * pRequest,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_READ_RANGE_DATA * pRequest)
 {
     int apdu_len = -1;
     rr_info_function    info_fn_ptr = NULL;
@@ -65,35 +62,34 @@ int Encode_RR_payload(
     RR_PROP_INFO PropInfo;
 
     /* initialize the default return values */
-    *error_class = ERROR_CLASS_SERVICES;
-    *error_code  = ERROR_CODE_OTHER;
+    pRequest->error_class = ERROR_CLASS_SERVICES;
+    pRequest->error_code  = ERROR_CODE_OTHER;
     
     /* handle each object type */
-    if (pRequest->object_type < MAX_BACNET_OBJECT_TYPE)
-        info_fn_ptr = get_rr_info[pRequest->object_type];
+    info_fn_ptr = *get_rr_info(pRequest->object_type);
         
-    if ((info_fn_ptr != NULL) && (info_fn_ptr(pRequest->object_instance, pRequest->object_property, &PropInfo, error_class, error_code) != false)) {
+    if ((get_rr_info != NULL) && (info_fn_ptr(pRequest->object_instance, pRequest->object_property, &PropInfo, &pRequest->error_class, &pRequest->error_code) != false)) {
         /* We try and do some of the more generic error checking here to cut down on duplication of effort */
              
         if((pRequest->RequestType == RR_BY_POSITION) && (pRequest->Range.RefIndex == 0)) {/* First index is 1 so can't accept 0 */
-            *error_code  = ERROR_CODE_OTHER; /* I couldn't see anything more appropriate so... */
+            pRequest->error_code  = ERROR_CODE_OTHER; /* I couldn't see anything more appropriate so... */
         } else if(((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) && (pRequest->array_index != 0) && (pRequest->array_index != BACNET_ARRAY_ALL)) {
             /* Array access attempted on a non array property */
-            *error_code  = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            pRequest->error_code  = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         } 
         else if((pRequest->RequestType != RR_READ_ALL) && ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
             /* By Time or By Sequence not supported - By Position is always required */
-            *error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
+            pRequest->error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
         }
         else if((pRequest->Count == 0) && (pRequest->RequestType != RR_READ_ALL)) { /* Count cannot be zero */
-            *error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
+            pRequest->error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
         }
         else if(PropInfo.Handler != NULL) {
-            apdu_len = PropInfo.Handler(apdu, pRequest, error_class, error_code);
+            apdu_len = PropInfo.Handler(apdu, pRequest);
         }
     } else {
         /* Either we don't support RR for this property yet or it is not a list or array of lists */
-        *error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+        pRequest->error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
     }
 
     return apdu_len;
@@ -111,10 +107,10 @@ void handler_read_range(
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
     int bytes_sent = 0;
-    BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
 
+    data.error_class = ERROR_CLASS_OBJECT;
+    data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
@@ -151,7 +147,7 @@ void handler_read_range(
 
     /* assume that there is an error */
     error = true;
-    len = Encode_RR_payload(&Temp_Buf[0], &data, &error_class, &error_code);
+    len = Encode_RR_payload(&Temp_Buf[0], &data);
     if (len >= 0) {
         /* encode the APDU portion of the packet */
         data.application_data = &Temp_Buf[0];
@@ -179,7 +175,7 @@ void handler_read_range(
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_READ_RANGE,
-                error_class, error_code);
+                data.error_class, data.error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "RR: Sending Error!\n");
 #endif
