@@ -51,6 +51,7 @@
 #include "lc.h"
 #include "lsp.h"
 #include "mso.h"
+#include "ms-input.h"
 #include "trendlog.h"
 #if defined(BACFILE)
 #include "bacfile.h"    /* object list dependency */
@@ -74,6 +75,7 @@ static struct object_functions {
     read_property_function Object_Read_Property;
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
+    rr_info_function Object_RR_Info;
 } Object_Table[] =
 {
     {OBJECT_DEVICE, 
@@ -84,7 +86,8 @@ static struct object_functions {
         Device_Name, 
         Device_Read_Property,
         Device_Write_Property, 
-        Device_Property_Lists},
+        Device_Property_Lists,
+        DeviceGetRRInfo},
     {OBJECT_ANALOG_INPUT, 
         Analog_Input_Init,
         Analog_Input_Count,
@@ -93,7 +96,8 @@ static struct object_functions {
         Analog_Input_Name,
         Analog_Input_Read_Property,  
         NULL,
-        Analog_Input_Property_Lists},
+        Analog_Input_Property_Lists,
+        NULL},
     {OBJECT_ANALOG_OUTPUT, 
         Analog_Output_Init,
         Analog_Output_Count,
@@ -102,7 +106,8 @@ static struct object_functions {
         Analog_Output_Name,
         Analog_Output_Read_Property,  
         Analog_Output_Write_Property,
-        Analog_Output_Property_Lists},        
+        Analog_Output_Property_Lists,
+        NULL},
     {OBJECT_ANALOG_VALUE, 
         Analog_Value_Init,
         Analog_Value_Count,
@@ -111,7 +116,8 @@ static struct object_functions {
         Analog_Value_Name,
         Analog_Value_Read_Property,  
         Analog_Value_Write_Property,
-        Analog_Value_Property_Lists},
+        Analog_Value_Property_Lists,
+        NULL},
     {OBJECT_BINARY_INPUT, 
         Binary_Input_Init,
         Binary_Input_Count,
@@ -120,7 +126,8 @@ static struct object_functions {
         Binary_Input_Name,
         Binary_Input_Read_Property,  
         NULL,
-        Binary_Input_Property_Lists},
+        Binary_Input_Property_Lists,
+        NULL},
     {OBJECT_BINARY_OUTPUT, 
         Binary_Output_Init,
         Binary_Output_Count,
@@ -129,7 +136,8 @@ static struct object_functions {
         Binary_Output_Name,
         Binary_Output_Read_Property,  
         Binary_Output_Write_Property,
-        Binary_Output_Property_Lists},        
+        Binary_Output_Property_Lists,
+        NULL},
     {OBJECT_BINARY_VALUE, 
         Binary_Value_Init,
         Binary_Value_Count,
@@ -138,7 +146,8 @@ static struct object_functions {
         Binary_Value_Name,
         Binary_Value_Read_Property,  
         Binary_Value_Write_Property,
-        Binary_Value_Property_Lists},
+        Binary_Value_Property_Lists,
+        NULL},
     {OBJECT_LIFE_SAFETY_POINT, 
         Life_Safety_Point_Init,
         Life_Safety_Point_Count,
@@ -147,7 +156,8 @@ static struct object_functions {
         Life_Safety_Point_Name,
         Life_Safety_Point_Read_Property,  
         Life_Safety_Point_Write_Property,
-        Life_Safety_Point_Property_Lists},
+        Life_Safety_Point_Property_Lists,
+        NULL},
     {OBJECT_LOAD_CONTROL, 
         Load_Control_Init,
         Load_Control_Count,
@@ -156,7 +166,8 @@ static struct object_functions {
         Load_Control_Name,
         Load_Control_Read_Property,  
         Load_Control_Write_Property,
-        Load_Control_Property_Lists},
+        Load_Control_Property_Lists,
+        NULL},
     {OBJECT_MULTI_STATE_OUTPUT, 
         Multistate_Output_Init,
         Multistate_Output_Count,
@@ -165,7 +176,18 @@ static struct object_functions {
         Multistate_Output_Name,
         Multistate_Output_Read_Property,  
         Multistate_Output_Write_Property,
-        Multistate_Output_Property_Lists},
+        Multistate_Output_Property_Lists,
+        NULL},
+    {OBJECT_MULTI_STATE_INPUT, 
+        Multistate_Input_Init,
+        Multistate_Input_Count,
+        Multistate_Input_Index_To_Instance,
+        Multistate_Input_Valid_Instance,
+        Multistate_Input_Name,
+        Multistate_Input_Read_Property,  
+        Multistate_Input_Write_Property,
+        Multistate_Input_Property_Lists,
+        NULL},
     {OBJECT_TRENDLOG, 
         Trend_Log_Init,
         Trend_Log_Count,
@@ -174,7 +196,8 @@ static struct object_functions {
         Trend_Log_Name,
         Trend_Log_Read_Property,  
         Trend_Log_Write_Property,
-        Trend_Log_Property_Lists},       
+        Trend_Log_Property_Lists,
+        TrendLogGetRRInfo},
 #if defined(BACFILE)
     {OBJECT_FILE, 
         bacfile_init,
@@ -190,39 +213,59 @@ static struct object_functions {
     {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
+static struct object_functions * Device_Objects_Find_Functions(
+    BACNET_OBJECT_TYPE Object_Type)
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = &Object_Table[0];
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        /* handle each object type */
+        if (pObject->Object_Type == Object_Type) {
+            return(pObject);
+        }
+
+        pObject++;
+    }
+
+    return(NULL);
+}
+
+/* Try and find an rr_info_function for the requested object type */
+
+rr_info_function Device_Objects_RR_Info(
+    BACNET_OBJECT_TYPE object_type)
+
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    return(pObject != NULL ? pObject->Object_RR_Info : NULL);
+}
+
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Device_Objects_Read_Property(
     BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = -1;
-    unsigned index = 0;
     struct object_functions *pObject = NULL;
-    bool found = false;
 
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = &Object_Table[0];
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        /* handle each object type */
-        if (pObject->Object_Type == rpdata->object_type) {
-            found = true;
-            if (pObject->Object_Valid_Instance && 
-                pObject->Object_Valid_Instance(rpdata->object_instance)) {
-                if (pObject->Object_Read_Property) {
-                    apdu_len = pObject->Object_Read_Property(rpdata);
-                }
-            } else {
-                rpdata->error_class = ERROR_CLASS_OBJECT;
-                rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    pObject = Device_Objects_Find_Functions(rpdata->object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance && 
+            pObject->Object_Valid_Instance(rpdata->object_instance)) {
+            if (pObject->Object_Read_Property) {
+                apdu_len = pObject->Object_Read_Property(rpdata);
             }
-            break;
+        } else {
+            rpdata->error_class = ERROR_CLASS_OBJECT;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         }
-        index++;
-        pObject = &Object_Table[index];
-    }
-    if (!found) {
+    } else {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
@@ -234,36 +277,26 @@ bool Device_Objects_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     int apdu_len = -1;
-    unsigned index = 0;
     struct object_functions *pObject = NULL;
-    bool found = false;
 
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = &Object_Table[0];
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        /* handle each object type */
-        if (pObject->Object_Type == wp_data->object_type) {
-            found = true;
-            if (pObject->Object_Valid_Instance && 
-                pObject->Object_Valid_Instance(wp_data->object_instance)) {
-                if (pObject->Object_Write_Property) {
-                    apdu_len = pObject->Object_Write_Property(wp_data);
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                }
+    pObject = Device_Objects_Find_Functions(wp_data->object_type);
+    if (pObject != NULL) {
+       if (pObject->Object_Valid_Instance && 
+            pObject->Object_Valid_Instance(wp_data->object_instance)) {
+            if (pObject->Object_Write_Property) {
+                apdu_len = pObject->Object_Write_Property(wp_data);
             } else {
-                wp_data->error_class = ERROR_CLASS_OBJECT;
-                wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
-            break;
+        } else {
+            wp_data->error_class = ERROR_CLASS_OBJECT;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         }
-        index++;
-        pObject = &Object_Table[index];
-    }
-    if (!found) {
+    } else {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
@@ -292,49 +325,34 @@ static void Device_Objects_Property_List(
     struct special_property_list_t *pPropertyList)
 {
     rpm_property_lists_function object_property_list = NULL;
-    unsigned index = 0;
     struct object_functions *pObject = NULL;
-    bool found = false;
 
     pPropertyList->Required.pList = NULL;
     pPropertyList->Optional.pList = NULL;
     pPropertyList->Proprietary.pList = NULL;
-    pObject = &Object_Table[0];
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        /* handle each object type */
-        if (pObject->Object_Type == object_type) {
-            found = true;
-            object_property_list = pObject->Object_RPM_List;
-            break;
-        }
-        index++;
-        pObject = &Object_Table[index];
-    }
-    if (found && object_property_list) {
-        object_property_list(
+
+    /* If we can find an entry for the required object type
+     * and there is an Object_List_RPM fn ptr then call it
+     * to populate the pointers to the individual list counters.
+     */
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
+        pObject->Object_RPM_List(
             &pPropertyList->Required.pList,
             &pPropertyList->Optional.pList, 
             &pPropertyList->Proprietary.pList);
     }
-    /* fill the count */
-    if (pPropertyList->Required.pList) {
-        pPropertyList->Required.count =
-            property_list_count(pPropertyList->Required.pList);
-    } else {
-        pPropertyList->Required.count = 0;
-    }
-    if (pPropertyList->Optional.pList) {
-        pPropertyList->Optional.count =
-            property_list_count(pPropertyList->Optional.pList);
-    } else {
-        pPropertyList->Optional.count = 0;
-    }
-    if (pPropertyList->Proprietary.pList) {
-        pPropertyList->Proprietary.count =
-            property_list_count(pPropertyList->Proprietary.pList);
-    } else {
-        pPropertyList->Proprietary.count = 0;
-    }
+
+    /* Fetch the counts if available otherwise zero them */
+    pPropertyList->Required.count = pPropertyList->Required.pList == NULL
+        ? 0 : property_list_count(pPropertyList->Required.pList);
+
+    pPropertyList->Optional.count = pPropertyList->Optional.pList == NULL
+        ? 0 : property_list_count(pPropertyList->Optional.pList);
+    
+    pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
+        ? 0 : property_list_count(pPropertyList->Proprietary.pList);
 
     return;
 }
@@ -796,7 +814,6 @@ unsigned Device_Object_List_Count(
     void)
 {
     unsigned count = 0; /* number of objects */
-    unsigned index = 0;     /* loop counter */
     struct object_functions *pObject = NULL;
 
     /* initialize the default return values */
@@ -805,8 +822,7 @@ unsigned Device_Object_List_Count(
         if (pObject->Object_Count) {
             count += pObject->Object_Count();
         }
-        index++;
-        pObject = &Object_Table[index];
+        pObject++;
     }
 
     return count;
@@ -820,7 +836,6 @@ bool Device_Object_List_Identifier(
     bool status = false;
     unsigned count = 0;
     unsigned object_index = 0;
-    unsigned index = 0; /* loop counter */
     struct object_functions *pObject = NULL;
 
     /* array index zero is length - so invalid */
@@ -842,8 +857,7 @@ bool Device_Object_List_Identifier(
                 break;
             }
         }
-        index++;
-        pObject = &Object_Table[index];
+        pObject++;
     }
 
     return status;
@@ -888,19 +902,11 @@ char *Device_Valid_Object_Id(
     uint32_t object_instance)
 {
     char *name = NULL;  /* return value */
-    unsigned index = 0; /* loop counter */
     struct object_functions *pObject = NULL;
 
-    pObject = &Object_Table[0];
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if ((pObject->Object_Type == object_type) && 
-            (pObject->Object_Name)) {
-            name = pObject->Object_Name(object_instance);
-            break;
-        }
-        index++;
-        pObject = &Object_Table[index];
-    }
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_Name != NULL))
+        name = pObject->Object_Name(object_instance);
     
     return name;
 }
@@ -1095,15 +1101,14 @@ int Device_Read_Property(
                 bitstring_set_bit(&bit_string, (uint8_t) i, false);
             }
             /* set the object types with objects to supported */
-            i = 0;
-            pObject = &Object_Table[i];
+
+            pObject = &Object_Table[0];
             while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
                 if ((pObject->Object_Count) &&
                     (pObject->Object_Count() > 0)) {
                     bitstring_set_bit(&bit_string, pObject->Object_Type, true);
                 }
-                i++;
-                pObject = &Object_Table[i];
+                pObject++;
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -1382,13 +1387,13 @@ bool Device_Write_Property(
 void Device_Init(
     void)
 {
-    unsigned index = 0; /* loop counter */
     struct object_functions *pObject = NULL;
 
     handler_read_property_function_set(Device_Objects_Read_Property);
     handler_rpm_function_set(Device_Objects_Read_Property);    
     handler_rpm_list_set(Device_Objects_Property_List);
     handler_write_property_function_set(Device_Objects_Write_Property);
+    handler_rr_object_set(Device_Objects_RR_Info);
     handler_reinitialize_device_function_set(Device_Reinitialize);
 
     pObject = &Object_Table[0];
@@ -1396,8 +1401,7 @@ void Device_Init(
         if (pObject->Object_Init) {
             pObject->Object_Init();
         }
-        index++;
-        pObject = &Object_Table[index];
+        pObject++;
     }
 }
 
