@@ -140,8 +140,6 @@ static void Init_Objects(
     void)
 {
     Device_Init();
-    handler_rr_object_set(OBJECT_DEVICE, DeviceGetRRInfo);
-    handler_rr_object_set(OBJECT_TRENDLOG, TrendLogGetRRInfo);
 }
 
 static void Init_Service_Handlers(
@@ -279,7 +277,7 @@ int main(
                 trend_log_timer(current_seconds - last_seconds);
                 last_seconds = current_seconds;
                 /* Change the analog input PVs for testing purposes */
-                for(iCount = 0; iCount < MAX_ANALOG_INPUTS; iCount++) {
+                for(iCount = 0; iCount < Analog_Input_Count(); iCount++) {
                     Analog_Input_Present_Value_Set(iCount, iSecondsRun * (iCount + 1));
                 }
                     
