@@ -272,31 +272,13 @@ int Binary_Output_Read_Property(
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_BINARY_OUTPUT,
-                rpdata->object_instance);
-            break;
-            /* note: Name and Description don't have to be the same.
-               You could make Description writable and different */
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Binary_Output_Name(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
-        case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_BINARY_OUTPUT);
-            break;
+        /* object id, object name, object type are handled in Device object */
         case PROP_PRESENT_VALUE:
             present_value = Binary_Output_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);

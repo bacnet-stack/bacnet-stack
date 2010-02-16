@@ -63,7 +63,6 @@ static const int Analog_Value_Properties_Required[] = {
 };
 
 static const int Analog_Value_Properties_Optional[] = {
-    PROP_DESCRIPTION,
 #if 0
     PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
@@ -201,7 +200,6 @@ int Analog_Value_Read_Property(
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
     float real_value = 1.414F;
 #if 0
     unsigned object_index = 0;
@@ -210,29 +208,13 @@ int Analog_Value_Read_Property(
 #endif
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ANALOG_VALUE,
-                rpdata->object_instance);
-            break;
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Value_Name(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
-        case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
-            break;
+        /* object id, object name, object type are handled in Device object */
         case PROP_PRESENT_VALUE:
             real_value = Analog_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
