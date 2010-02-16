@@ -55,7 +55,6 @@ static const int Binary_Input_Properties_Required[] = {
 };
 
 static const int Binary_Input_Properties_Optional[] = {
-    PROP_DESCRIPTION,
     -1
 };
 
@@ -178,35 +177,17 @@ int Binary_Input_Read_Property(
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
     BACNET_POLARITY polarity = POLARITY_NORMAL;
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_BINARY_INPUT,
-                rpdata->object_instance);
-            break;
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-            /* note: object name must be unique in our device */
-            characterstring_init_ansi(&char_string,
-                Binary_Input_Name(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
-        case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_BINARY_INPUT);
-            break;
+        /* object id, object name, object type are handled in Device object */
         case PROP_PRESENT_VALUE:
             value = Binary_Input_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], value);

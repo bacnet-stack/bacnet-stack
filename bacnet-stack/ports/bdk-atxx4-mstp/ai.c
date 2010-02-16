@@ -55,7 +55,6 @@ static const int Analog_Input_Properties_Required[] = {
 };
 
 static const int Analog_Input_Properties_Optional[] = {
-    PROP_DESCRIPTION,
     -1
 };
 
@@ -151,7 +150,6 @@ int Analog_Input_Read_Property(
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) ||
@@ -161,24 +159,7 @@ int Analog_Input_Read_Property(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
-                rpdata->object_instance);
-            break;
-            /* note: Name and Description don't have to be the same.
-               You could make Description writable and different */
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Input_Name(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
-        case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);
-            break;
+        /* object id, object name, object type are handled in Device object */
         case PROP_PRESENT_VALUE:
             apdu_len =
                 encode_application_real(&apdu[0],
