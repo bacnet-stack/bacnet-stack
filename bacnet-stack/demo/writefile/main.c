@@ -56,6 +56,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* global variables used in this file */
 static uint32_t Target_File_Object_Instance = 4194303;
 static uint32_t Target_Device_Object_Instance = 4194303;
+static uint32_t Target_File_Requested_Octet_Count;
 static BACNET_ADDRESS Target_Address;
 static char *Local_File_Name = NULL;
 static bool End_Of_File_Detected = false;
@@ -177,7 +178,7 @@ int main(
 
     if (argc < 4) {
         /* FIXME: what about access method - record or stream? */
-        printf("%s device-instance file-instance local-name\r\n",
+        printf("%s device-instance file-instance local-name [octet count]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -194,6 +195,9 @@ int main(
         fprintf(stderr, "file-instance=%u - it must be less than %u\r\n",
             Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
+    }
+    if (argc > 4) {
+        Target_File_Requested_Octet_Count = strtol(argv[4], NULL, 0);
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
@@ -229,23 +233,27 @@ int main(
             address_bind_request(Target_Device_Object_Instance, &max_apdu,
             &Target_Address);
         if (found) {
-            /* calculate the smaller of our APDU size or theirs
-               and remove the overhead of the APDU (varies depending on size).
-               note: we could fail if there is a bottle neck (router)
-               and smaller MPDU in betweeen. */
-            if (max_apdu < MAX_APDU)
-                my_max_apdu = max_apdu;
-            else
-                my_max_apdu = MAX_APDU;
-            /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
-            if (my_max_apdu <= 50)
-                requestedOctetCount = my_max_apdu - 19;
-            else if (my_max_apdu <= 480)
-                requestedOctetCount = my_max_apdu - 32;
-            else if (my_max_apdu <= 1476)
-                requestedOctetCount = my_max_apdu - 64;
-            else
-                requestedOctetCount = my_max_apdu / 2;
+            if (Target_File_Requested_Octet_Count) {
+                requestedOctetCount = Target_File_Requested_Octet_Count;
+            } else {
+                /* calculate the smaller of our APDU size or theirs
+                   and remove the overhead of the APDU (varies depending on size).
+                   note: we could fail if there is a bottle neck (router)
+                   and smaller MPDU in betweeen. */
+                if (max_apdu < MAX_APDU)
+                    my_max_apdu = max_apdu;
+                else
+                    my_max_apdu = MAX_APDU;
+                /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
+                if (my_max_apdu <= 50)
+                    requestedOctetCount = my_max_apdu - 19;
+                else if (my_max_apdu <= 480)
+                    requestedOctetCount = my_max_apdu - 32;
+                else if (my_max_apdu <= 1476)
+                    requestedOctetCount = my_max_apdu - 64;
+                else
+                    requestedOctetCount = my_max_apdu / 2;
+            }
             /* has the previous invoke id expired or returned?
                note: invoke ID = 0 is invalid, so it will be idle */
             if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id)) {
