@@ -533,7 +533,7 @@ bool octetstring_truncate(
     return status;
 }
 
-/* returns the length.  Returns the value in parameter. */
+/* returns a pointer to the value. */
 uint8_t *octetstring_value(
     BACNET_OCTET_STRING * octet_string)
 {
@@ -560,7 +560,7 @@ size_t octetstring_length(
     return length;
 }
 
-/* returns the length. */
+/* returns the maximum capacity. */
 size_t octetstring_capacity(
     BACNET_OCTET_STRING * octet_string)
 {
