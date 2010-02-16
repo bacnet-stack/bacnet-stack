@@ -626,6 +626,8 @@ int Device_Read_Property(
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+    /* requested instance may have been the wildcard instance */
+    rpdata->object_instance = Object_Instance_Number;
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
