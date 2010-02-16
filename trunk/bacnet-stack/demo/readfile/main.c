@@ -132,12 +132,16 @@ static void AtomicReadFileAckHandler(
                     SEEK_SET);
                 octets_written = fwrite(octetstring_value(&data.fileData), 1,   /* unit to write in bytes - in our case, an octet is one byte */
                     octetstring_length(&data.fileData), pFile);
-                if (octets_written != octetstring_length(&data.fileData))
+                if (octets_written != octetstring_length(&data.fileData)) {
                     fprintf(stderr, "Unable to write data to file \"%s\".\n",
                         Local_File_Name);
-                else
+                } else if (octets_written == 0) {
+                    fprintf(stderr, "Received 0 byte octet string!.\n");                    
+                } else {
                     printf("\r%u bytes",
                         (data.type.stream.fileStartPosition + octets_written));
+                }
+                fflush(pFile);
                 fclose(pFile);
             }
             if (data.endOfFile) {
