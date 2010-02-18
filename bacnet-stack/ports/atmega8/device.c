@@ -49,7 +49,7 @@ static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 void Device_Init(
     void)
 {
-    /* Reinitialize_State = REINITIALIZED_STATE_IDLE; */
+    /* Reinitialize_State = BACNET_REINIT_IDLE; */
     /* dcc_set_status_duration(COMMUNICATION_ENABLE, 0); */
     /* FIXME: Get the data from the eeprom */
     /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS,

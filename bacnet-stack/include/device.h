@@ -72,6 +72,8 @@ extern "C" {
     
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
+    
+    BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void);
 
     rr_info_function Device_Objects_RR_Info(
         BACNET_OBJECT_TYPE object_type);

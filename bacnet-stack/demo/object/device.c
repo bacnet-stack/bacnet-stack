@@ -309,19 +309,19 @@ bool Device_Reinitialize(
 
     if (characterstring_ansi_same(&rd_data->password, "Jesus")) {
         switch (rd_data->state) {
-            case REINITIALIZED_STATE_COLD_START:
+            case BACNET_REINIT_COLDSTART:
                 break;
-            case REINITIALIZED_STATE_WARM_START:
+            case BACNET_REINIT_WARMSTART:
                 break;
-            case REINITIALIZED_STATE_START_BACKUP:
+            case BACNET_REINIT_STARTBACKUP:
                 break;
-            case REINITIALIZED_STATE_END_BACKUP:
+            case BACNET_REINIT_ENDBACKUP:
                 break;
-            case REINITIALIZED_STATE_START_RESTORE:
+            case BACNET_REINIT_STARTRESTORE:
                 break;
-            case REINITIALIZED_STATE_END_RESTORE:
+            case BACNET_REINIT_ENDRESTORE:
                 break;
-            case REINITIALIZED_STATE_ABORT_RESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
                 break;
             default:
                 break;

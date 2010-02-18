@@ -51,8 +51,8 @@
 static uint32_t Object_Instance_Number = 12345;
 static char My_Object_Name[32] = "ARM7 Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-static BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
-    REINITIALIZED_STATE_IDLE;
+static BACNET_REINITIALIZED_STATE Reinitialize_State =
+    BACNET_REINIT_IDLE;
     
 /* forward prototypes */
 int Device_Read_Property_Local(
@@ -486,7 +486,7 @@ void Device_Init(
     unsigned index = 0; /* loop counter */
     struct object_functions *pObject = NULL;
 
-    Reinitialize_State = REINITIALIZED_STATE_IDLE;
+    Reinitialize_State = BACNET_REINIT_IDLE;
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* FIXME: Get the data from the eeprom */
     /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS,

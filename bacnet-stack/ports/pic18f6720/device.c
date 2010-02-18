@@ -50,20 +50,19 @@
 static uint32_t Object_Instance_Number = 12345;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
-    REINITIALIZED_STATE_IDLE;
+BACNET_REINITIALIZED_STATE Reinitialize_State =
+    BACNET_REINIT_IDLE;
 
 void Device_Reinit(
     void)
 {
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
 }
 
 void Device_Init(
     void)
 {
-    Reinitialize_State = REINITIALIZED_STATE_IDLE;
+    Reinitialize_State = BACNET_REINIT_IDLE;
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* FIXME: Get the data from the eeprom */
     /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS,
