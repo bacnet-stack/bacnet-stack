@@ -225,7 +225,7 @@ void Binary_Output_Polarity_Set(
 {
     if (instance < MAX_BINARY_OUTPUTS) {
         if (polarity < MAX_POLARITY) {
-            Polarity[instance] = POLARITY_NORMAL;
+            Polarity[instance] = polarity;
             seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
                     NV_SEEPROM_BO_POLARITY), &Polarity[instance], 1);
         }
