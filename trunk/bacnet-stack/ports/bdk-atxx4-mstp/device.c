@@ -123,8 +123,8 @@ static uint8_t My_Object_Name_Encoding;
 static uint8_t My_Object_Name_Length;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-static BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
-    REINITIALIZED_STATE_IDLE;
+static BACNET_REINITIALIZED_STATE Reinitialize_State =
+    BACNET_REINIT_IDLE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
