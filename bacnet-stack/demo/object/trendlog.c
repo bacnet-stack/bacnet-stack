@@ -907,22 +907,19 @@ void TrendLog_Init(
 }
 
 bool TrendLogGetRRInfo(
-    uint32_t           Object,   /* Which particular object */
-    BACNET_PROPERTY_ID Property, /* Which property */
-    RR_PROP_INFO      *pInfo,    /* Where to put the information */
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE  *error_code)
+    BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
+    RR_PROP_INFO *pInfo)              /* Where to put the information */
 {
-    if(Object >= MAX_TREND_LOGS) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code  = ERROR_CODE_UNKNOWN_OBJECT;
-    } else if(Property == PROP_LOG_BUFFER) {
+    if(pRequest->object_instance >= MAX_TREND_LOGS) {
+        pRequest->error_class = ERROR_CLASS_OBJECT;
+        pRequest->error_code  = ERROR_CODE_UNKNOWN_OBJECT;
+    } else if(pRequest->object_property == PROP_LOG_BUFFER) {
         pInfo->RequestTypes = RR_BY_POSITION | RR_BY_TIME | RR_BY_SEQUENCE;
         pInfo->Handler = rr_trend_log_encode;
         return(true);
     } else {
-        *error_class = ERROR_CLASS_SERVICES;
-        *error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+        pRequest->error_class = ERROR_CLASS_SERVICES;
+        pRequest->error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
     }
 
     return(false);

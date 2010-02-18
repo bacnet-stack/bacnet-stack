@@ -73,6 +73,9 @@ extern "C" {
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
 
+    rr_info_function Device_Objects_RR_Info(
+        BACNET_OBJECT_TYPE object_type);
+
     void Device_Property_Lists(
         const int **pRequired,
         const int **pOptional,
@@ -174,11 +177,8 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
         
     bool DeviceGetRRInfo(
-        uint32_t           Object,   /* Which particular object - obviously not important for device object */
-        BACNET_PROPERTY_ID Property, /* Which property */
-        RR_PROP_INFO      *pInfo,    /* Where to put the information */
-        BACNET_ERROR_CLASS *error_class,
-        BACNET_ERROR_CODE  *error_code);
+        BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
+        RR_PROP_INFO *pInfo); /* Where to put the information */
 
 
 #ifdef __cplusplus

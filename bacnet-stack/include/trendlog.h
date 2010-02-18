@@ -97,11 +97,8 @@ extern "C" {
         BACNET_READ_RANGE_DATA *pRequest);
 
     bool TrendLogGetRRInfo(
-        uint32_t           Object,   /* Which particular object */
-        BACNET_PROPERTY_ID Property, /* Which property */
-        RR_PROP_INFO      *pInfo,    /* Where to put the information */
-        BACNET_ERROR_CLASS *error_class,
-        BACNET_ERROR_CODE  *error_code);
+        BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
+        RR_PROP_INFO *pInfo);             /* Where to put the information */
 
 	int rr_trend_log_encode(
 		uint8_t *apdu,

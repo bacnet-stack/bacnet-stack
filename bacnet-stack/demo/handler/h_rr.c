@@ -36,19 +36,11 @@
 #include "npdu.h"
 #include "abort.h"
 #include "readrange.h"
+#include "device.h"
 
 /** @file h_rr.c  Handles Read Range requests. */
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
-
-
-static get_rr_info_fn get_rr_info;
-
-void handler_rr_object_set(
-    get_rr_info_fn pFunction1)
-{
-    get_rr_info = pFunction1;
-}
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
@@ -65,9 +57,9 @@ int Encode_RR_payload(
     pRequest->error_code  = ERROR_CODE_OTHER;
     
     /* handle each object type */
-    info_fn_ptr = *get_rr_info(pRequest->object_type);
+    info_fn_ptr = Device_Objects_RR_Info(pRequest->object_type);
         
-    if ((get_rr_info != NULL) && (info_fn_ptr(pRequest->object_instance, pRequest->object_property, &PropInfo, &pRequest->error_class, &pRequest->error_code) != false)) {
+    if ((info_fn_ptr != NULL) && (info_fn_ptr(pRequest, &PropInfo) != false)) {
         /* We try and do some of the more generic error checking here to cut down on duplication of effort */
              
         if((pRequest->RequestType == RR_BY_POSITION) && (pRequest->Range.RefIndex == 0)) {/* First index is 1 so can't accept 0 */
