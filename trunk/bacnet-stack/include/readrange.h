@@ -127,14 +127,8 @@ typedef struct rrpropertyinfo {
 /* Function pointer for ReadRange information retrieval function */
 
 typedef bool (*rr_info_function) (
-    uint32_t           Object,   /* Which particular object instance (we know the type implicetly) */
-    BACNET_PROPERTY_ID Property, /* Which property */
-    RR_PROP_INFO *pInfo,         /* Where to write the response to */
-    BACNET_ERROR_CLASS *error_class, /* Somewhere to write error responses to */
-    BACNET_ERROR_CODE  *error_code);
-
-typedef rr_info_function (*get_rr_info_fn) (
-    BACNET_OBJECT_TYPE object_type);
+    BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
+    RR_PROP_INFO *pInfo);         /* Where to write the response to */
 
 int rr_encode_apdu(
     uint8_t * apdu,

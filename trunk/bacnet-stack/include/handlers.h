@@ -80,9 +80,6 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
         
-    void handler_rr_object_set(
-        get_rr_info_fn pFunction1);
-    
     void handler_read_property_ack(
         uint8_t * service_request,
         uint16_t service_len,
