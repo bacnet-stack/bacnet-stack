@@ -118,37 +118,34 @@ int iam_unicast_encode_pdu(
     BACNET_ADDRESS * dest,
     BACNET_NPDU_DATA * npdu_data)
 {
-    int len = 0;
+    int npdu_len = 0;
+    int apdu_len = 0;
     int pdu_len = 0;
+    BACNET_ADDRESS my_address;
 
-    if ( ( src == NULL ) || ( src->mac_len == 0 ) )
-    	datalink_get_broadcast_address(dest);
-    else {
-		memcpy( dest, src, sizeof( BACNET_ADDRESS ) );
-		dest->net = 0;
-    }
-
+    datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
+    npdu_len =
+        npdu_encode_pdu(&buffer[0], src, &my_address,
+        npdu_data);
     /* encode the APDU portion of the packet */
-    len =
-        iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
+    apdu_len =
+        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
-    pdu_len += len;
+    pdu_len = npdu_len + apdu_len;
 
     return pdu_len;
 }
 
 /** Send an I-Am message by unicasting directly back to the src.
- * @note If no src address is given, the I-Am will be broadcast instead.
  * @note As of Addendum 135-2008q-1, unicast responses are allowed;
  *  in modern firewalled corporate networks, this may be the
  *  only type of response that will reach the source on
  *  another subnet (without using the BBMD).
  *
  * @param buffer [in] The buffer to use for building and sending the message.
- * @param src [in] The source address information, if any (may be NULL).
+ * @param src [in] The source address information from service handler.
  */
 void Send_I_Am_Unicast(
     uint8_t * buffer,
@@ -161,10 +158,10 @@ void Send_I_Am_Unicast(
 
 #if 0
     /* note: there is discussion in the BACnet committee
-       that we should allow a device to reply with I-Am 
+       that we should allow a device to reply with I-Am
        so that dynamic binding always work.  If the DCC
-       initiator loses the MAC address and routing info, 
-       they can never re-enable DCC because they can't 
+       initiator loses the MAC address and routing info,
+       they can never re-enable DCC because they can't
        find the device with WhoIs/I-Am */
     /* are we are forbidden to send? */
     if (!dcc_communication_enabled())
