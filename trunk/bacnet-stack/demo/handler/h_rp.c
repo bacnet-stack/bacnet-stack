@@ -37,17 +37,10 @@
 #include "npdu.h"
 #include "abort.h"
 #include "rp.h"
+/* device object has custom handler for all objects */
+#include "device.h"
 
 /** @file h_rp.c  Handles Read Property requests. */
-
-/* function that handles the reading of properties from objects */
-static read_property_function Read_Property_Function;
-
-void handler_read_property_function_set(
-    read_property_function pFunction)
-{
-    Read_Property_Function = pFunction;
-}
 
 void handler_read_property(
     uint8_t * service_request,
@@ -100,37 +93,35 @@ void handler_read_property(
     }
     /* assume that there is an error */
     error = true;
-    if (Read_Property_Function) {
-        apdu_len = rp_ack_encode_apdu_init(
-            &Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id,
-            &rpdata);
-        /* configure our storage */
-        rpdata.application_data = &Handler_Transmit_Buffer[npdu_len+apdu_len];
-        rpdata.application_data_len = 
-            sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
-        len = Read_Property_Function(&rpdata);
-        if (len >= 0) {
-            apdu_len += len;
-            len = rp_ack_encode_apdu_object_property_end(
-                &Handler_Transmit_Buffer[npdu_len+apdu_len]);
-            apdu_len += len;
-            if (apdu_len > service_data->max_resp) {
-                /* too big for the sender - send an abort */
-                apdu_len =
-                    abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                    service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-                    true);
+    apdu_len = rp_ack_encode_apdu_init(
+        &Handler_Transmit_Buffer[npdu_len],
+        service_data->invoke_id,
+        &rpdata);
+    /* configure our storage */
+    rpdata.application_data = &Handler_Transmit_Buffer[npdu_len+apdu_len];
+    rpdata.application_data_len = 
+        sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
+    len =  Device_Read_Property(&rpdata);
+    if (len >= 0) {
+        apdu_len += len;
+        len = rp_ack_encode_apdu_object_property_end(
+            &Handler_Transmit_Buffer[npdu_len+apdu_len]);
+        apdu_len += len;
+        if (apdu_len > service_data->max_resp) {
+            /* too big for the sender - send an abort */
+            apdu_len =
+                abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+                true);
 #if PRINT_ENABLED
-                fprintf(stderr, "RP: Message too large.  Sending Abort!\n");
+            fprintf(stderr, "RP: Message too large.  Sending Abort!\n");
 #endif
-                goto RP_ABORT;
-            } else {
+            goto RP_ABORT;
+        } else {
 #if PRINT_ENABLED
-                fprintf(stderr, "RP: Sending Ack!\n");
+            fprintf(stderr, "RP: Sending Ack!\n");
 #endif
-                error = false;
-            }
+            error = false;
         }
     }
     if (error) {

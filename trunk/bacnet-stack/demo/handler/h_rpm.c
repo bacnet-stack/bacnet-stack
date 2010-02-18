@@ -38,24 +38,10 @@
 #include "abort.h"
 #include "rpm.h"
 #include "handlers.h"
+/* device object has custom handler for all objects */
+#include "device.h"
 
 /** @file h_rpm.c  Handles Read Property Multiple requests. */
-
-/* function that handles the reading of properties from objects */
-static read_property_function Read_Property_Function;
-static rpm_object_property_lists_function RPM_Property_List;
-
-void handler_rpm_function_set(
-    read_property_function pFunction)
-{
-    Read_Property_Function = pFunction;
-}
-
-void handler_rpm_list_set(
-    rpm_object_property_lists_function pFunction)
-{
-    RPM_Property_List = pFunction;
-}
 
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
@@ -137,17 +123,15 @@ static int RPM_Encode_Property(
     }
     apdu_len += len;
     len = 0;
-    if (Read_Property_Function) {
-        rpdata.error_class = ERROR_CLASS_OBJECT;
-        rpdata.error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        rpdata.object_type = object_type;
-        rpdata.object_instance = object_instance;
-        rpdata.object_property = object_property;
-        rpdata.array_index = array_index;
-        rpdata.application_data = &Temp_Buf[0];
-        rpdata.application_data_len = sizeof(Temp_Buf);
-        len = Read_Property_Function(&rpdata);
-    }
+    rpdata.error_class = ERROR_CLASS_OBJECT;
+    rpdata.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    rpdata.object_type = object_type;
+    rpdata.object_instance = object_instance;
+    rpdata.object_property = object_property;
+    rpdata.array_index = array_index;
+    rpdata.application_data = &Temp_Buf[0];
+    rpdata.application_data_len = sizeof(Temp_Buf);
+    len = Device_Read_Property(&rpdata);
     if (len < 0) {
         /* error was returned - encode that for the response */
         len =
@@ -311,7 +295,7 @@ void handler_read_property_multiple(
                 BACNET_PROPERTY_ID special_object_property;
 
                 special_object_property = object_property;
-                RPM_Property_List(object_type, &property_list);
+                Device_Objects_Property_List(object_type, &property_list);
                 property_count =
                     RPM_Object_Property_Count(&property_list,
                     special_object_property);

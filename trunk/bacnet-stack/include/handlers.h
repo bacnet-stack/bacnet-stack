@@ -79,8 +79,6 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    void handler_read_property_function_set(
-        read_property_function pFunction);
         
     void handler_rr_object_set(
         get_rr_info_fn pFunction1);
@@ -96,8 +94,6 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    void handler_write_property_function_set(
-        write_property_function pFunction);
 
     bool WPValidateString(
         BACNET_APPLICATION_DATA_VALUE *pValue,
@@ -135,16 +131,12 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    void handler_reinitialize_device_function_set(
-        reinitialize_device_function pFunction);
 
     void handler_device_communication_control(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    void handler_dcc_password_set(
-        char *new_password);
 
     void handler_i_have(
         uint8_t * service_request,
@@ -166,10 +158,6 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    void handler_rpm_function_set(
-        read_property_function pFunction);
-    void handler_rpm_list_set(
-        rpm_object_property_lists_function pFunction);
 
     void handler_read_property_multiple_ack(
         uint8_t * service_request,

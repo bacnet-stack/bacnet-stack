@@ -39,7 +39,9 @@
 #include "bacdef.h"
 #include "bacenum.h"
 #include "wp.h"
+#include "rd.h"
 #include "rp.h"
+#include "rpm.h"
 #include "readrange.h"
 
 typedef void (
@@ -67,11 +69,17 @@ extern "C" {
 
     void Device_Init(
         void);
+    
+    bool Device_Reinitialize(
+        BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
 
     void Device_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    void Device_Objects_Property_List(
+        BACNET_OBJECT_TYPE object_type,
+        struct special_property_list_t *pPropertyList);
 
     uint32_t Device_Object_Instance_Number(
         void);
@@ -159,9 +167,6 @@ extern "C" {
     char *Device_Valid_Object_Id(
         int object_type,
         uint32_t object_instance);
-
-    int Device_Objects_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
 
     int Device_Read_Property(
         BACNET_READ_PROPERTY_DATA *rpdata);

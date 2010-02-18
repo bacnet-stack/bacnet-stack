@@ -1595,7 +1595,7 @@ static int local_read_property(
         rpdata.object_property = Source->propertyIdentifier;
         rpdata.array_index = Source->arrayIndex;
         /* Try to fetch the required property */
-        len = Device_Objects_Read_Property(&rpdata);        
+        len = Device_Read_Property(&rpdata);        
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
@@ -1607,7 +1607,7 @@ static int local_read_property(
         rpdata.application_data_len = MAX_APDU;
         rpdata.object_property = PROP_STATUS_FLAGS;
         rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Device_Objects_Read_Property(&rpdata);        
+        len = Device_Read_Property(&rpdata);        
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
