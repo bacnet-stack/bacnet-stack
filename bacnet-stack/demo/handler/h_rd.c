@@ -37,15 +37,10 @@
 #include "abort.h"
 #include "reject.h"
 #include "rd.h"
+/* custom handling in device object */
+#include "device.h"
 
 /** @file h_rd.c  Handles Reinitialize Device requests. */
-
-static reinitialize_device_function Reinitialize_Device_Function;
-void handler_reinitialize_device_function_set(
-    reinitialize_device_function pFunction)
-{
-    Reinitialize_Device_Function = pFunction;
-}
 
 void handler_reinitialize_device(
     uint8_t * service_request,
@@ -114,8 +109,7 @@ void handler_reinitialize_device(
             "ReinitializeDevice: Sending Reject - undefined enumeration\n");
 #endif
     } else {
-        if (Reinitialize_Device_Function && 
-            Reinitialize_Device_Function(&rd_data)) {
+        if (Device_Reinitialize(&rd_data)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
@@ -130,7 +124,7 @@ void handler_reinitialize_device(
                 rd_data.error_class, rd_data.error_code);
 #if PRINT_ENABLED
             fprintf(stderr,
-                "ReinitializeDevice: Sending Error - password failure.\n");
+                "ReinitializeDevice: Sending Error.\n");
 #endif
         }
     }

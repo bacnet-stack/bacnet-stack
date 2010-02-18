@@ -59,7 +59,6 @@ CSRC = main.c \
 	eeprom.c \
 	seeprom.c \
 	dlmstp.c \
-	h_rd.c \
 	device.c \
 	ai.c \
 	av.c \
@@ -68,13 +67,14 @@ CSRC = main.c \
 
 # common demo files needed
 DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
-	$(BACNET_DEMO)/handler/h_npdu.c \
-	$(BACNET_DEMO)/handler/h_whois.c \
 	$(BACNET_DEMO)/handler/h_dcc.c \
-	$(BACNET_DEMO)/handler/h_wp.c \
+	$(BACNET_DEMO)/handler/h_npdu.c \
+	$(BACNET_DEMO)/handler/h_rd.c \
 	$(BACNET_DEMO)/handler/h_rp.c \
 	$(BACNET_DEMO)/handler/h_rpm.c \
 	$(BACNET_DEMO)/handler/h_whohas.c \
+	$(BACNET_DEMO)/handler/h_whois.c \
+	$(BACNET_DEMO)/handler/h_wp.c \
 	$(BACNET_DEMO)/handler/s_iam.c \
 	$(BACNET_DEMO)/handler/s_ihave.c \
 	$(BACNET_DEMO)/handler/noserv.c

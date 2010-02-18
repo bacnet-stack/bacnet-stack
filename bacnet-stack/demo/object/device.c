@@ -65,6 +65,13 @@
 long int timezone;
 #endif
 
+/* forward prototypes */
+static int Device_Read_Property_Local(
+    BACNET_READ_PROPERTY_DATA *rpdata);
+static bool Device_Write_Property_Local(
+    BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+/* all object helper functions */ 
 static struct object_functions {
     BACNET_OBJECT_TYPE Object_Type;
     object_init_function Object_Init;
@@ -84,8 +91,8 @@ static struct object_functions {
         Device_Index_To_Instance,
         Device_Valid_Object_Instance_Number, 
         Device_Name, 
-        Device_Read_Property,
-        Device_Write_Property, 
+        Device_Read_Property_Local,
+        Device_Write_Property_Local, 
         Device_Property_Lists,
         DeviceGetRRInfo},
     {OBJECT_ANALOG_INPUT, 
@@ -243,67 +250,6 @@ rr_info_function Device_Objects_RR_Info(
     return(pObject != NULL ? pObject->Object_RR_Info : NULL);
 }
 
-/* Encodes the property APDU and returns the length,
-   or sets the error, and returns -1 */
-int Device_Objects_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
-{
-    int apdu_len = -1;
-    struct object_functions *pObject = NULL;
-
-    /* initialize the default return values */
-    rpdata->error_class = ERROR_CLASS_OBJECT;
-    rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(rpdata->object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Valid_Instance && 
-            pObject->Object_Valid_Instance(rpdata->object_instance)) {
-            if (pObject->Object_Read_Property) {
-                apdu_len = pObject->Object_Read_Property(rpdata);
-            }
-        } else {
-            rpdata->error_class = ERROR_CLASS_OBJECT;
-            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        }
-    } else {
-        rpdata->error_class = ERROR_CLASS_OBJECT;
-        rpdata->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
-    }
-
-    return apdu_len;
-}
-
-bool Device_Objects_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
-{
-    int apdu_len = -1;
-    struct object_functions *pObject = NULL;
-
-    /* initialize the default return values */
-    wp_data->error_class = ERROR_CLASS_OBJECT;
-    wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(wp_data->object_type);
-    if (pObject != NULL) {
-       if (pObject->Object_Valid_Instance && 
-            pObject->Object_Valid_Instance(wp_data->object_instance)) {
-            if (pObject->Object_Write_Property) {
-                apdu_len = pObject->Object_Write_Property(wp_data);
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            }
-        } else {
-            wp_data->error_class = ERROR_CLASS_OBJECT;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        }
-    } else {
-        wp_data->error_class = ERROR_CLASS_OBJECT;
-        wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
-    }
-
-    return apdu_len;    
-}
-
 static unsigned property_list_count(
     const int *pList)
 {
@@ -320,7 +266,7 @@ static unsigned property_list_count(
 }
 
 /* for a given object type, returns the special property list */
-static void Device_Objects_Property_List(
+void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
 {
@@ -977,7 +923,7 @@ int    tm_isdst Daylight Savings flag.
 
 /* return the length of the apdu encoded or -1 for error or
    -2 for abort message */
-int Device_Read_Property(
+static int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
@@ -1217,8 +1163,38 @@ int Device_Read_Property(
     return apdu_len;
 }
 
+/* Encodes the property APDU and returns the length,
+   or sets the error, and returns -1 */
+int Device_Read_Property(
+    BACNET_READ_PROPERTY_DATA *rpdata)
+{
+    int apdu_len = -1;
+    struct object_functions *pObject = NULL;
+
+    /* initialize the default return values */
+    rpdata->error_class = ERROR_CLASS_OBJECT;
+    rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    pObject = Device_Objects_Find_Functions(rpdata->object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance && 
+            pObject->Object_Valid_Instance(rpdata->object_instance)) {
+            if (pObject->Object_Read_Property) {
+                apdu_len = pObject->Object_Read_Property(rpdata);
+            }
+        } else {
+            rpdata->error_class = ERROR_CLASS_OBJECT;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+    }
+
+    return apdu_len;
+}
+
 /* returns true if successful */
-bool Device_Write_Property(
+static bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -1383,17 +1359,43 @@ bool Device_Write_Property(
     return status;
 }
 
+bool Device_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
+{
+    int apdu_len = -1;
+    struct object_functions *pObject = NULL;
+
+    /* initialize the default return values */
+    wp_data->error_class = ERROR_CLASS_OBJECT;
+    wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    pObject = Device_Objects_Find_Functions(wp_data->object_type);
+    if (pObject != NULL) {
+       if (pObject->Object_Valid_Instance && 
+            pObject->Object_Valid_Instance(wp_data->object_instance)) {
+            if (pObject->Object_Write_Property) {
+                apdu_len = pObject->Object_Write_Property(wp_data);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_OBJECT;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+    }
+
+    return apdu_len;    
+}
+
 void Device_Init(
     void)
 {
     struct object_functions *pObject = NULL;
 
-    handler_read_property_function_set(Device_Objects_Read_Property);
-    handler_rpm_function_set(Device_Objects_Read_Property);    
-    handler_rpm_list_set(Device_Objects_Property_List);
-    handler_write_property_function_set(Device_Objects_Write_Property);
     handler_rr_object_set(Device_Objects_RR_Info);
-    handler_reinitialize_device_function_set(Device_Reinitialize);
 
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {

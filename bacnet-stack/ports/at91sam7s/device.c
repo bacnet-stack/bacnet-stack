@@ -53,6 +53,12 @@ static char My_Object_Name[32] = "ARM7 Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_REINITIALIZED_STATE_OF_DEVICE Reinitialize_State =
     REINITIALIZED_STATE_IDLE;
+    
+/* forward prototypes */
+int Device_Read_Property_Local(
+    BACNET_READ_PROPERTY_DATA *rpdata);
+bool Device_Write_Property_Local(
+    BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 static struct object_functions {
     BACNET_OBJECT_TYPE Object_Type;
@@ -72,8 +78,8 @@ static struct object_functions {
         Device_Index_To_Instance,
         Device_Valid_Object_Instance_Number,
         Device_Name,
-        Device_Read_Property,
-        Device_Write_Property,
+        Device_Read_Property_Local,
+        Device_Write_Property_Local,
         Device_Property_Lists},
     {OBJECT_ANALOG_INPUT,
         Analog_Input_Init,
@@ -169,7 +175,7 @@ void Device_Property_Lists(
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
-int Device_Objects_Read_Property(
+int Device_Read_Property(
     BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = -1;
@@ -207,7 +213,7 @@ int Device_Objects_Read_Property(
     return apdu_len;
 }
 
-bool Device_Objects_Write_Property(
+bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     int apdu_len = -1;
@@ -264,7 +270,7 @@ static unsigned property_list_count(
 }
 
 /* for a given object type, returns the special property list */
-static void Device_Objects_Property_List(
+void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
 {
@@ -431,46 +437,6 @@ char *Device_Valid_Object_Id(
     return name;
 }
 
-bool Device_Reinitialize(        
-    BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
-{
-    bool status = false;
-
-    if (characterstring_ansi_same(&rd_data->password, "Jesus")) {
-        switch (rd_data->state) {
-            case REINITIALIZED_STATE_COLD_START:
-                break;
-            case REINITIALIZED_STATE_WARM_START:
-                break;
-            case REINITIALIZED_STATE_START_BACKUP:
-                break;
-            case REINITIALIZED_STATE_END_BACKUP:
-                break;
-            case REINITIALIZED_STATE_START_RESTORE:
-                break;
-            case REINITIALIZED_STATE_END_RESTORE:
-                break;
-            case REINITIALIZED_STATE_ABORT_RESTORE:
-                break;
-            default:
-                break;
-        }
-        Reinitialize_State = rd_data->state;
-        /* Note: you could use a mix of state 
-           and password to multiple things */
-        /* note: you probably want to restart *after* the 
-           simple ack has been sent from the return handler
-           so just set a flag from here */
-        dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-        status = true;
-    } else {
-        rd_data->error_class = ERROR_CLASS_SECURITY;
-        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
-    }
-    
-    return status;
-}
-
 unsigned Device_Count(void)
 {
     return 1;
@@ -492,6 +458,28 @@ char *Device_Name(
     return NULL;
 }
 
+bool Device_Reinitialize(        
+    BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
+{
+    bool status = false;
+
+    if (characterstring_ansi_same(&rd_data->password, "filister")) {
+        Reinitialize_State = rd_data->state;
+        dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+        /* Note: you could use a mix of state 
+           and password to multiple things */
+        /* note: you probably want to restart *after* the 
+           simple ack has been sent from the return handler
+           so just set a flag from here */
+        status = true;
+    } else {
+        rd_data->error_class = ERROR_CLASS_SECURITY;
+        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+    }
+    
+    return status;
+}
+
 void Device_Init(
     void)
 {
@@ -505,11 +493,6 @@ void Device_Init(
        (char *)&Object_Instance_Number,
        sizeof(Object_Instance_Number),
        EEPROM_BACNET_ID_ADDR); */
-    handler_read_property_function_set(Device_Objects_Read_Property);
-    handler_rpm_function_set(Device_Objects_Read_Property);    
-    handler_rpm_list_set(Device_Objects_Property_List);
-    handler_write_property_function_set(Device_Objects_Write_Property);
-    handler_reinitialize_device_function_set(Device_Reinitialize);
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -604,7 +587,7 @@ uint32_t Device_Database_Revision(
 }
 
 /* return the length of the apdu encoded or -1 for error */
-int Device_Read_Property(
+int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;   /* return value */
@@ -853,7 +836,7 @@ int Device_Read_Property(
     return apdu_len;
 }
 
-bool Device_Write_Property(
+bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
