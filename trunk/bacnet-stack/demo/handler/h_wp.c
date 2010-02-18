@@ -36,16 +36,10 @@
 #include "npdu.h"
 #include "abort.h"
 #include "wp.h"
+/* device object has the handling for all objects */
+#include "device.h"
 
 /** @file h_wp.c  Handles Write Property requests. */
-
-static write_property_function Write_Property;
-
-void handler_write_property_function_set(
-    write_property_function pFunction)
-{
-    Write_Property = pFunction;
-}
 
 void handler_write_property(
     uint8_t * service_request,
@@ -99,31 +93,21 @@ void handler_write_property(
 #endif
         goto WP_ABORT;
     }
-    if (Write_Property) {
-        if (Write_Property(&wp_data)) {
-            len =
-                encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+    if (Device_Write_Property(&wp_data)) {
+        len =
+            encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
 #if PRINT_ENABLED
-            fprintf(stderr, "WP: Sending Simple Ack!\n");
+        fprintf(stderr, "WP: Sending Simple Ack!\n");
 #endif
-        } else {
-            len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-                wp_data.error_class, wp_data.error_code);
-#if PRINT_ENABLED
-            fprintf(stderr, "WP: Sending Error!\n");
-#endif
-        }
     } else {
         len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+            bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+            wp_data.error_class, wp_data.error_code);
 #if PRINT_ENABLED
-        fprintf(stderr, "WP: No WP Function Set. Sending Abort!\n");
+        fprintf(stderr, "WP: Sending Error!\n");
 #endif
-        goto WP_ABORT;
     }
   WP_ABORT:
     pdu_len += len;
