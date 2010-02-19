@@ -40,7 +40,6 @@
 /** @file h_whois.c  Handles Who-Is requests. */
 
 /** Handler for Who-Is requests.
- * @note: Now using Unicast to send I-Am response.
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.
@@ -59,7 +58,7 @@ void handler_who_is(
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
     if (len == 0)
-    	Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+        Send_I_Am(&Handler_Transmit_Buffer[0], src);
     else if (len != -1) {
         /* is my device id within the limits? */
         if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
@@ -68,7 +67,41 @@ void handler_who_is(
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
                 (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-        	Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+            Send_I_Am(&Handler_Transmit_Buffer[0], src);
+    }
+
+    return;
+}
+
+/** Handler for Who-Is requests - Unicast (per Addendum 135-2004q).
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source.
+ */
+void handler_who_is_unicast(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
+{
+    int len = 0;
+    int32_t low_limit = 0;
+    int32_t high_limit = 0;
+
+    (void) src;
+    len =
+        whois_decode_service_request(service_request, service_len, &low_limit,
+        &high_limit);
+    if (len == 0)
+        Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+    else if (len != -1) {
+        /* is my device id within the limits? */
+        if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
+                (Device_Object_Instance_Number() <= (uint32_t) high_limit))
+            ||
+            /* BACnet wildcard is the max instance number - everyone responds */
+            ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
+                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
+            Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     }
 
     return;

@@ -107,7 +107,7 @@ void Send_I_Am(
  * If the src address is not given, the dest address will be
  * a broadcast address.
  * @param buffer [in,out] The buffer to use for building the message.
- * @param src [in] The source address information, if any (may be NULL).
+ * @param src [in] The source address information.
  * @param dest [out] The destination address information.
  * @param npdu_data [out] The NPDU structure describing the message.
  * @return The length of the message in buffer[].

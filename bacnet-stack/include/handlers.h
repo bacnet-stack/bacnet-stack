@@ -59,6 +59,11 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
+    void handler_who_is_whois(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
+    
     void handler_who_has(
         uint8_t * service_request,
         uint16_t service_len,
