@@ -83,4 +83,20 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @defgroup DMRD Device Management-ReinitializeDevice (DM-RD)
+ * @ingroup RDMS
+ * 16.4 ReinitializeDevice Service <br>
+ * The ReinitializeDevice service is used by a client BACnet-user to instruct 
+ * a remote device to reboot itself (cold start), reset itself to some 
+ * predefined initial state (warm start), or to control the backup or restore 
+ * procedure. Resetting or rebooting a device is primarily initiated by a human 
+ * operator for diagnostic purposes. Use of this service during the backup or 
+ * restore procedure is usually initiated on behalf of the user by the device 
+ * controlling the backup or restore. Due to the sensitive nature of this 
+ * service, a password may be required from the responding BACnet-user prior 
+ * to executing the service.
+ * 
+ */
+
 #endif
