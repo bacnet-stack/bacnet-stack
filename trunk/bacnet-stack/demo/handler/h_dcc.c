@@ -42,6 +42,9 @@
 
 static char My_Password[32] = "filister";
 
+/** Sets (non-volatile hold) the password to be used for DCC requests.
+ * @param new_password [in] The new DCC password, of up to 31 characters.
+ */
 void handler_dcc_password_set(
     char *new_password)
 {
@@ -62,6 +65,26 @@ void handler_dcc_password_set(
     }
 }
 
+
+/** Handler for a Device Communication Control (DCC) request.
+ * @ingroup DMDCC
+ * This handler will be invoked by apdu_handler() if it has been enabled
+ * by a call to apdu_set_confirmed_handler().
+ * This handler builds a response packet, which is
+ * - an Abort if
+ *   - the message is segmented
+ *   - if decoding fails
+ *   - if not a known DCC state
+ * - an Error if the DCC password is incorrect
+ * - else tries to send a simple ACK for the DCC on success,
+ *   and sets the DCC state requested.
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
+ *                          decoded from the APDU header of this message. 
+ */
 void handler_device_communication_control(
     uint8_t * service_request,
     uint16_t service_len,

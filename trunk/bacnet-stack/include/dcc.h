@@ -97,4 +97,26 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @defgroup RDMS Remote Device Management Services BIBBs
+ * These device management BIBBs prescribe the BACnet capabilities required 
+ * to interoperably perform the device management functions enumerated in 
+ * 22.2.1.5 for the BACnet devices defined therein. 
+ */
+
+/** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
+ * @ingroup RDMS
+ * 16.1 DeviceCommunicationControl Service <br>
+ * The DeviceCommunicationControl service is used by a client BACnet-user to 
+ * instruct a remote device to stop initiating and optionally stop responding 
+ * to all APDUs (except DeviceCommunicationControl or, if supported, 
+ * ReinitializeDevice) on the communication network or internetwork for a 
+ * specified duration of time. This service is primarily used by a human operator
+ * for diagnostic purposes. A password may be required from the client 
+ * BACnet-user prior to executing the service. The time duration may be set to 
+ * "indefinite," meaning communication must be re-enabled by a 
+ * DeviceCommunicationControl or, if supported, ReinitializeDevice service, 
+ * not by time.
+ */
+
 #endif

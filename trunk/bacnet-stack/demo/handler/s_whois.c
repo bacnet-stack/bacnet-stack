@@ -45,7 +45,15 @@
 
 /** @file s_whois.c  Send a Who-Is request. */
 
-/* find a specific device, or use -1 for limit if you want unlimited */
+/** Send a Who-Is request for a specific device, a range, or any device.
+ * @ingroup DMDDB
+ * If low_limit and high_limit both are -1, then the range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only 
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit.
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ */
 void Send_WhoIs(
     int32_t low_limit,
     int32_t high_limit)

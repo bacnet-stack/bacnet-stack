@@ -70,6 +70,8 @@ int iam_encode_pdu(
 }
 
 /** Broadcast an I Am message.
+ * @ingroup DMDDB
+ * 
  * @param buffer [in] The buffer to use for building and sending the message.
  */
 void Send_I_Am(
@@ -104,10 +106,10 @@ void Send_I_Am(
 }
 
 /** Encode an I Am message to be unicast directly back to the src.
- * If the src address is not given, the dest address will be
- * a broadcast address.
+ *
  * @param buffer [in,out] The buffer to use for building the message.
- * @param src [in] The source address information.
+ * @param src [in] The source address information. If the src address is not 
+ *                 given, the dest address will be a broadcast address.
  * @param dest [out] The destination address information.
  * @param npdu_data [out] The NPDU structure describing the message.
  * @return The length of the message in buffer[].
@@ -139,10 +141,12 @@ int iam_unicast_encode_pdu(
 }
 
 /** Send an I-Am message by unicasting directly back to the src.
+ * @ingroup DMDDB
  * @note As of Addendum 135-2008q-1, unicast responses are allowed;
  *  in modern firewalled corporate networks, this may be the
  *  only type of response that will reach the source on
- *  another subnet (without using the BBMD).
+ *  another subnet (without using the BBMD).  <br>
+ *  However, some BACnet routers may not correctly handle this message.
  *
  * @param buffer [in] The buffer to use for building and sending the message.
  * @param src [in] The source address information from service handler.

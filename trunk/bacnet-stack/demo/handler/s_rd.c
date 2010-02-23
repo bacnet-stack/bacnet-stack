@@ -45,6 +45,14 @@
 
 /** @file s_rd.c  Send a Reinitialize Device request. */
 
+/** Sends a Reinitialize Device (RD) request.
+ * @ingroup DMRD
+ * 
+ * @param device_id [in] The index to the device address in our address cache.
+ * @param state [in] Specifies the desired state of the device after reinitialization.
+ * @param password [in] Optional password, up to 20 chars.
+ * @return The invokeID of the transmitted message, or 0 on failure.
+ */
 uint8_t Send_Reinitialize_Device_Request(
     uint32_t device_id,
     BACNET_REINITIALIZED_STATE state,

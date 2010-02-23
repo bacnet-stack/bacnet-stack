@@ -39,7 +39,8 @@
 
 /** @file h_whois.c  Handles Who-Is requests. */
 
-/** Handler for Who-Is requests.
+/** Handler for Who-Is requests, with broadcast I-Am response.
+ * @ingroup DMDDB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.
@@ -73,7 +74,8 @@ void handler_who_is(
     return;
 }
 
-/** Handler for Who-Is requests - Unicast (per Addendum 135-2004q).
+/** Handler for Who-Is requests, with Unicast I-Am response (per Addendum 135-2004q).
+ * @ingroup DMDDB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.
