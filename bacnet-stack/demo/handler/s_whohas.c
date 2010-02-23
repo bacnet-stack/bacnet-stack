@@ -45,7 +45,16 @@
 
 /** @file s_whohas.c  Send Who-Has requests. */
 
-/* find a specific device, or use -1 for limit if you want unlimited */
+/** Send a Who-Has request for a device which has a named Object.
+ * @ingroup DMDOB
+ * If low_limit and high_limit both are -1, then the device ID range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only 
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit for a range.
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ * @param object_name [in] The Name of the desired Object.
+ */
 void Send_WhoHas_Name(
     int32_t low_limit,
     int32_t high_limit,
@@ -85,7 +94,17 @@ void Send_WhoHas_Name(
 #endif
 }
 
-/* find a specific device, or use -1 for limit if you want unlimited */
+/** Send a Who-Has request for a device which has a specific Object type and ID.
+ * @ingroup DMDOB
+ * If low_limit and high_limit both are -1, then the device ID range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only 
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit for a range.
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ * @param object_type [in] The BACNET_OBJECT_TYPE of the desired Object.
+ * @param object_instance [in] The ID of the desired Object.
+ */
 void Send_WhoHas_Object(
     int32_t low_limit,
     int32_t high_limit,

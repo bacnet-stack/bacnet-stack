@@ -37,6 +37,15 @@
 
 /** @file h_whohas.c  Handles Who-Has requests. */
 
+/** Handler for Who-Has requests, with broadcast I-Have response.
+ * Will respond if the device Object ID matches, and we have
+ * the Object or Object Name requested. 
+ * 
+ * @ingroup DMDOB
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source.
+ */
 void handler_who_has(
     uint8_t * service_request,
     uint16_t service_len,

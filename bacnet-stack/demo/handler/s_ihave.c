@@ -45,7 +45,14 @@
 
 /** @file s_ihave.c  Send an I-Have (property) message. */
 
-/* find a specific device, or use -1 for limit if you want unlimited */
+/** Broadcast an I Have message.
+ * @ingroup DMDOB
+ * 
+ * @param device_id [in] My device ID.
+ * @param object_type [in] The BACNET_OBJECT_TYPE that I Have.
+ * @param object_instance [in] The Object ID that I Have.
+ * @param object_name [in] The Name of the Object I Have.
+ */
 void Send_I_Have(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
