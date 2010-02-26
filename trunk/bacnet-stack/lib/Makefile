@@ -1,8 +1,10 @@
 #Makefile to build BACnet Library with GCC
 
-# tools
-CC = gcc
-AR = ar
+# tools 
+#     ('?=' sets them to gcc and ar unless they are already defined for
+#           a board-specific cross-compiler and archiver)
+CC ?= gcc
+AR ?= ar
 
 # target
 TARGET = bacnet
