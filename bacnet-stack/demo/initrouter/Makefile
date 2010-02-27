@@ -1,5 +1,5 @@
 #Makefile to build BACnet Application for the Linux Port
-CC = gcc
+CC := gcc
 
 TARGET = bacinitr
 

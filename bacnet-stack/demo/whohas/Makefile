@@ -1,7 +1,7 @@
 #Makefile to build BACnet Application for the Linux Port
 
 # Compiler to use
-CC = gcc
+CC := gcc
 # Executable file name
 TARGET = bacwh
 
