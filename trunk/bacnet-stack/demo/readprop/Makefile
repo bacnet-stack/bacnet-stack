@@ -1,6 +1,6 @@
 #Makefile to build BACnet Application using GCC compiler
 # Compiler to use
-CC = gcc
+CC := gcc
 # Executable file name
 TARGET = bacrp
 

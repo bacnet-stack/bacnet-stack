@@ -1,5 +1,5 @@
 #Makefile to build BACnet Application for GCC compiler
-CC      = gcc
+CC := gcc
 
 TARGET = bacdcc
 
