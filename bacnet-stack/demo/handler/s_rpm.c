@@ -45,7 +45,16 @@
 
 /** @file s_rpm.c  Send Read Property Multiple request. */
 
-/* returns invoke id of 0 if device is not bound or no tsm available */
+/** Sends a Read Property Multiple request.
+ * @ingroup DSRPM
+ *  
+ * @param pdu [out] Buffer to build the outgoing message into
+ * @param max_pdu [in] Length of the pdu buffer.
+ * @param device_id [in] ID of the destination device
+ * @param read_access_data [in] Ptr to structure with the linked list of 
+ *        properties to be read.
+ * @return invoke id of outgoing message, or 0 if device is not bound or no tsm available 
+ */
 uint8_t Send_Read_Property_Multiple_Request(
     uint8_t * pdu,
     size_t max_pdu,

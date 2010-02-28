@@ -41,6 +41,25 @@
 
 /** @file h_wp.c  Handles Write Property requests. */
 
+
+/** Handler for a WriteProperty Service request.
+ * @ingroup DSWP
+ * This handler will be invoked by apdu_handler() if it has been enabled
+ * by a call to apdu_set_confirmed_handler().
+ * This handler builds a response packet, which is
+ * - an Abort if
+ *   - the message is segmented
+ *   - if decoding fails
+ * - an ACK if Device_Write_Property() succeeds
+ * - an Error if Device_Write_Property() fails 
+ *   or there isn't enough room in the APDU to fit the data.
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
+ *                          decoded from the APDU header of this message. 
+ */
 void handler_write_property(
     uint8_t * service_request,
     uint16_t service_len,
@@ -123,8 +142,7 @@ void handler_write_property(
 }
 
 
-/*
- * Perform basic validation of Write Property argument based on
+/** Perform basic validation of Write Property argument based on
  * the assumption that it is a string. Check for correct data type,
  * correct encoding (fixed here as ANSI X34),correct length, and
  * finally if it is allowed to be empty.
@@ -163,8 +181,7 @@ bool WPValidateString(
     return(bResult);
 }
 
-/*
- * Perform simple validation of type of Write Property argument based
+/** Perform simple validation of type of Write Property argument based
  * the expected type vs the actual. Set up error response if the
  * validation fails. Cuts out reams of repeated code in the object code.
  */

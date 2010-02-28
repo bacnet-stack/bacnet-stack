@@ -42,6 +42,26 @@
 
 /** @file h_rp.c  Handles Read Property requests. */
 
+
+/** Handler for a ReadProperty Service request.
+ * @ingroup DSRP
+ * This handler will be invoked by apdu_handler() if it has been enabled
+ * by a call to apdu_set_confirmed_handler().
+ * This handler builds a response packet, which is
+ * - an Abort if
+ *   - the message is segmented
+ *   - if decoding fails
+ *   - if the response would be too large
+ * - the result from Device_Read_Property(), if it succeeds
+ * - an Error if Device_Read_Property() fails 
+ *   or there isn't enough room in the APDU to fit the data.
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
+ *                          decoded from the APDU header of this message. 
+ */
 void handler_read_property(
     uint8_t * service_request,
     uint16_t service_len,

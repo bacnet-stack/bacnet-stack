@@ -45,7 +45,7 @@
 
 /** @file s_wp.c  Send a Write Property request. */
 
-/* returns the invoke ID for confirmed request, or zero on failure */
+/** returns the invoke ID for confirmed request, or zero on failure */
 uint8_t Send_Write_Property_Request_Data(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -125,6 +125,20 @@ uint8_t Send_Write_Property_Request_Data(
     return invoke_id;
 }
 
+
+/** Sends a Write Property request.
+ * @ingroup DSWP
+ *  
+ * @param device_id [in] ID of the destination device
+ * @param object_type [in]  Type of the object whose property is to be written.
+ * @param object_instance [in] Instance # of the object to be written.
+ * @param object_property [in] Property to be written.
+ * @param object_value [in] The value to be written to the property.
+ * @param priority [in] Write priority of 1 (highest) to 16 (lowest)
+ * @param array_index [in] Optional: if the Property is an array,  
+ *        the index from 1 to n for the individual array member to be written.
+ * @return invoke id of outgoing message, or 0 on failure. 
+ */
 uint8_t Send_Write_Property_Request(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,

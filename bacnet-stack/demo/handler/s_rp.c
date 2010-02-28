@@ -45,7 +45,19 @@
 
 /** @file s_rp.c  Send Read Property request. */
 
-/* returns invoke id of 0 if device is not bound or no tsm available */
+/** Sends a Read Property request.
+ * @ingroup DSRP
+ *  
+ * @param device_id [in] ID of the destination device
+ * @param object_type [in]  Type of the object whose property is to be read.
+ * @param object_instance [in] Instance # of the object to be read.
+ * @param object_property [in] Property to be read, but not ALL, REQUIRED, or OPTIONAL.
+ * @param array_index [in] Optional: if the Property is an array,  
+ *   - 0 for the array size
+ *   - 1 to n for individual array members
+ *   - -1 for the full array to be read.
+ * @return invoke id of outgoing message, or 0 if device is not bound or no tsm available 
+ */
 uint8_t Send_Read_Property_Request(
     uint32_t device_id, /* destination device */
     BACNET_OBJECT_TYPE object_type,
