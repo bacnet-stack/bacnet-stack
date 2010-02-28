@@ -191,4 +191,18 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @defgroup DSRPM Data Sharing -Read Property Multiple Service (DS-RPM)
+ * @ingroup DataShare
+ * 15.7 ReadPropertyMultiple Service <br>
+ * The ReadPropertyMultiple service is used by a client BACnet-user to request 
+ * the values of one or more specified properties of one or more BACnet Objects. 
+ * This service allows read access to any property of any object, whether a 
+ * BACnet-defined object or not. The user may read a single property of a single 
+ * object, a list of properties of a single object, or any number of properties 
+ * of any number of objects. 
+ * A 'Read Access Specification' with the property identifier ALL can be used to 
+ * learn the implemented properties of an object along with their values.
+ */
+
 #endif

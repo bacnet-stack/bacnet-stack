@@ -43,7 +43,9 @@
 
 /** @file h_rp_a.c  Handles Read Property Acknowledgments. */
 
-/* for debugging... */
+/** For debugging... 
+ * @param [in] data portion of the ACK 
+ */
 static void PrintReadPropertyData(
     BACNET_READ_PROPERTY_DATA * data)
 {
@@ -105,6 +107,18 @@ static void PrintReadPropertyData(
     }
 }
 
+
+/** Handler for a ReadProperty ACK.
+ * @ingroup DSRP
+ * Doesn't actually do anything, except, for debugging, to
+ * print out the ACK message.
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
+ *                          decoded from the APDU header of this message. 
+ */
 void handler_read_property_ack(
     uint8_t * service_request,
     uint16_t service_len,

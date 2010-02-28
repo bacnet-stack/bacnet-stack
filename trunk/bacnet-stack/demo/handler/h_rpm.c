@@ -98,7 +98,7 @@ static unsigned RPM_Object_Property_Count(
     return count;
 }
 
-/* Encode the RPM property returning the length of the encoding,
+/** Encode the RPM property returning the length of the encoding,
    or 0 if there is no room to fit the encoding.  */
 static int RPM_Encode_Property(
     uint8_t * apdu,
@@ -156,6 +156,26 @@ static int RPM_Encode_Property(
     return apdu_len;
 }
 
+
+/** Handler for a ReadPropertyMultiple Service request.
+ * @ingroup DSRPM
+ * This handler will be invoked by apdu_handler() if it has been enabled
+ * by a call to apdu_set_confirmed_handler().
+ * This handler builds a response packet, which is
+ * - an Abort if
+ *   - the message is segmented
+ *   - if decoding fails
+ *   - if the response would be too large
+ * - the result from each included read request, if it succeeds
+ * - an Error if processing fails for all, or individual errors if only some fail, 
+ *   or there isn't enough room in the APDU to fit the data.
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
+ *                          decoded from the APDU header of this message. 
+ */
 void handler_read_property_multiple(
     uint8_t * service_request,
     uint16_t service_len,
