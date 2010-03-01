@@ -125,11 +125,15 @@ int iam_unicast_encode_pdu(
     int pdu_len = 0;
     BACNET_ADDRESS my_address;
 
+    /* The destination will be the same as the src, so copy it over. */
+    memcpy( dest, src, sizeof( BACNET_ADDRESS ) );
+    dest->net = 0;
+
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len =
-        npdu_encode_pdu(&buffer[0], src, &my_address,
+        npdu_encode_pdu(&buffer[0], dest, &my_address,
         npdu_data);
     /* encode the APDU portion of the packet */
     apdu_len =
