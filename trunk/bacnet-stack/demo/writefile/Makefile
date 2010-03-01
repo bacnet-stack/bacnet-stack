@@ -1,7 +1,9 @@
 #Makefile to build BACnet Application for the Linux Port
 
-# Compiler to use
-CC := gcc
+# tools - only if you need them.  
+# Most platforms have this already defined
+# CC = gcc
+
 # Executable file name
 TARGET = bacawf
 

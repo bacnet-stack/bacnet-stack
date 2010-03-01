@@ -1,6 +1,8 @@
 @echo off
 echo Build with MinGW mingw.sourceforge.net
 echo Note: copy mingw32-make.exe to make.exe to build for Win32
+set CC=gcc
+set AR=ar
 make BACNET_PORT=win32 BUILD=release clean all
 
 rem Build for MinGW debug
