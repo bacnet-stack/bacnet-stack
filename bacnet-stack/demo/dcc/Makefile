@@ -1,5 +1,8 @@
 #Makefile to build BACnet Application for GCC compiler
-CC := gcc
+
+# tools - only if you need them.  
+# Most platforms have this already defined
+# CC = gcc
 
 TARGET = bacdcc
 
