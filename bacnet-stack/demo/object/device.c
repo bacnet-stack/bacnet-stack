@@ -23,6 +23,9 @@
 *
 *********************************************************************/
 
+/** @file device.c Base "class" for handling all BACnet objects belonging
+ *                 to a BACnet device, as well as Device-specific properties. */
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for memmove */

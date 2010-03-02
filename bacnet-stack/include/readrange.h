@@ -124,8 +124,11 @@ typedef struct rrpropertyinfo {
     rr_handler_function Handler;
     } RR_PROP_INFO;
 
-/** Function pointer for ReadRange information retrieval function */
-
+/** Function template for ReadRange information retrieval function.
+ * @param pRequest [in]	Info on the request.
+ * @param pInfo [out]   Where to write the response to.
+ * @return True on success, False on error or failure.
+ */
 typedef bool (*rr_info_function) (
     BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
     RR_PROP_INFO *pInfo);         /* Where to write the response to */

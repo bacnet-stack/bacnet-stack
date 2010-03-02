@@ -55,6 +55,15 @@ typedef struct BACnet_Write_Property_Data {
     BACNET_ERROR_CODE error_code;
 } BACNET_WRITE_PROPERTY_DATA;
 
+/** Attempts to write a new value to one property for this object type
+ *  of a given instance.
+ * A function template; @see device.c for assignment to object types.
+ *
+ * @param wp_data [in] Pointer to the BACnet_Write_Property_Data structure,
+ *                     which is packed with the information from the WP request.
+ * @return The length of the apdu encoded or -1 for error or
+ *         -2 for abort message.
+ */
 typedef bool(
     *write_property_function) (
     BACNET_WRITE_PROPERTY_DATA * wp_data);

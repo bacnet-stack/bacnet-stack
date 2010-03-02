@@ -31,6 +31,10 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
+
+/** @file device.h Defines functions for handling all BACnet objects belonging
+ *                 to a BACnet device, as well as Device-specific properties. */
+
 #ifndef DEVICE_H
 #define DEVICE_H
 
@@ -44,21 +48,43 @@
 #include "rpm.h"
 #include "readrange.h"
 
+/** Called so a BACnet object can perform any necessary initialization. */
 typedef void (
     *object_init_function) (
     void);
+
+/** Counts the number of objects of this type.
+ * @return Count of implemented objects of this type.
+ */
 typedef unsigned (
     *object_count_function) (
     void);
+
+/** Maps an object index position to its corresponding BACnet object instance number.
+ * @param index [in] The index of the object, in the array of objects of its type.
+ * @return The BACnet object instance number to be used in a BACNET_OBJECT_ID.
+ */
 typedef uint32_t(
     *object_index_to_instance_function)
         (
     unsigned index);
+
+/** Provides the BACnet Object_Name for a given object instance of this type.
+ * @param [in] The object instance number to be looked up.
+ * @return Pointer to a string containing the unique Object_Name.  This string
+ *         is temporary and should be copied upon the return.  It is
+ *         allocated by the system and does not need to be freed.
+ */
 typedef char *(
     *object_name_function)
      (
     uint32_t object_instance);
 
+/** Look in the table of objects of this type, and see if this is a valid
+ *  instance number.
+ * @param [in] The object instance number to be looked up.
+ * @return True if the object instance refers to a valid object of this type.
+ */
 typedef bool(
     *object_valid_instance_function) (
     uint32_t object_instance);
