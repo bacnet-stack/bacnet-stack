@@ -50,6 +50,14 @@ typedef struct BACnet_Read_Property_Data {
     BACNET_ERROR_CODE error_code;
 } BACNET_READ_PROPERTY_DATA;
 
+/** Reads one property for this object type of a given instance.
+ * A function template; @see device.c for assignment to object types.
+ *
+ * @param rp_data [in] Pointer to the BACnet_Read_Property_Data structure,
+ *                     which is packed with the information from the RP request.
+ * @return The length of the apdu encoded or -1 for error or
+ *         -2 for abort message.
+ */
 typedef int (
     *read_property_function) (
     BACNET_READ_PROPERTY_DATA *rp_data);
