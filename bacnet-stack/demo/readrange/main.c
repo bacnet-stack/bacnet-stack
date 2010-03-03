@@ -31,7 +31,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>       /* for time */
+#if defined(WIN32) || defined(__BORLANDC__)
 #include <conio.h>
+#endif
 #include "bacdef.h"
 #include "config.h"
 #include "bactext.h"
@@ -68,6 +70,10 @@
 #include "mso.h"
 #include "trendlog.h"
 #include "bacfile.h"
+
+#if !defined(WIN32) && !defined(__BORLANDC__)
+#define stricmp strcasecmp
+#endif
 
 #if defined(__BORLANDC__)
 #define _kbhit kbhit
@@ -256,8 +262,11 @@ int main(
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
 
     if (Target_Mode) {
+#if defined(WIN32) || defined(__BORLANDC__)
         printf("Entering server mode. press q to quit program\r\n\r\n");
-
+#else
+        printf("Entering server mode.\r\n\r\n");
+#endif
         for (;;) {
             /* increment timer - exit if timed out */
             current_seconds = time(NULL);
@@ -283,7 +292,7 @@ int main(
                     
                 iSecondsRun++;
             }
-
+#if defined(WIN32) || defined(__BORLANDC__)
             if (_kbhit()) {
                 iKey = toupper(_getch());
                 if (iKey == 'Q') {
@@ -291,6 +300,7 @@ int main(
                     exit(0);
                 }
             }
+#endif
         }
     } else {
 
