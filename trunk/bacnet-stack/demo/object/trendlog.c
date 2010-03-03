@@ -49,95 +49,8 @@
 #define MAX_TREND_LOGS 8
 #endif
 
-/* Error code for Trend Log storage */
-typedef struct tl_error {
-    uint16_t usClass;
-    uint16_t usCode;
-} TL_ERROR;
-
-/* Bit string of up to 32 bits for Trend Log storage */
-
-typedef struct tl_bits {
-    uint8_t  ucLen;         /* bytes used in upper nibble/bits free in lower nibble */
-    uint8_t  ucStore[4];
-} TL_BITS;
-
-/* Storage structure for Trend Log data
- *
- * Note. I've tried to minimise the storage requirements here
- * as the memory requirements for logging in embedded
- * implementations are frequently a big issue. For PC or
- * embedded Linux type setupz this may seem like overkill
- * but if you have limited memory and need to squeeze as much
- * logging capacity as possible every little byte counts!
- */
-
-typedef struct tl_data_record {
-    time_t tTimeStamp;     /* When the event occurred */
-    uint8_t ucRecType;     /* What type of Event */
-    uint8_t ucStatus;      /* Optional Status for read value in b0-b2, b7 = 1 if status is used */
-    union {
-        uint8_t  ucLogStatus;   /* Change of log state flags */
-        uint8_t  ucBoolean;     /* Stored boolean value */
-        float    fReal;         /* Stored floating point value */
-        uint32_t ulEnum;        /* Stored enumerated value - max 32 bits */
-        uint32_t ulUValue;      /* Stored unsigned value - max 32 bits */
-        int32_t  lSValue;       /* Stored signed value - max 32 bits */
-        TL_BITS  Bits;          /* Stored bitstring - max 32 bits */
-        TL_ERROR Error;         /* Two part error class/code combo */
-        float    fTime;         /* Interval value for change of time - seconds */
-    } Datum;
-} TL_DATA_REC;
-
-#define TL_T_START_WILD 1 /* Start time is wild carded */
-#define TL_T_STOP_WILD  2 /* Stop Time is wild carded */
-
-#define TL_MAX_ENTRIES 1000 /* Entries per datalog */
-
 TL_DATA_REC Logs[MAX_TREND_LOGS][TL_MAX_ENTRIES];
-
-/* Structure containing config and status info for a Trend Log */
-
-typedef struct tl_log_info {
-    bool bEnable;               /* Trend log is active when this is true */
-    BACNET_DATE_TIME StartTime; /* BACnet format start time */
-    time_t tStartTime;          /* Local time working copy of start time */
-    BACNET_DATE_TIME StopTime;  /* BACnet format stop time */
-    time_t tStopTime;           /* Local time working copy of stop time */
-    uint8_t  ucTimeFlags;       /* Shorthand info on times */
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Source; /* Where the data comes from */
-    uint32_t ulLogInterval;     /* Time between entries in seconds */
-    bool bStopWhenFull;         /* Log halts when full if true */
-    uint32_t ulRecordCount;     /* Count of items currently in the buffer */
-    uint32_t ulTotalRecordCount;     /* Count of all items that have ever been inserted into the buffer */
-    BACNET_LOGGING_TYPE LoggingType; /* Polled/cov/triggered */
-    bool bAlignIntervals;            /* If true align to the clock */
-    uint32_t ulIntervalOffset;       /* Offset from start of period for taking reading in seconds */
-    bool bTrigger;                   /* Set to 1 to cause a reading to be taken */
-    int iIndex;                      /* Current insertion point */
-    time_t tLastDataTime;
-} TL_LOG_INFO;
-
-
 static TL_LOG_INFO LogInfo[MAX_TREND_LOGS];
-
-/* 
- * Data types associated with a BACnet Log Record. We use these for managing the
- * log buffer but they are also the tag numbers to use when encoding/decoding
- * the log datum field.
- */
-
-#define TL_TYPE_STATUS  0
-#define TL_TYPE_BOOL    1
-#define TL_TYPE_REAL    2
-#define TL_TYPE_ENUM    3
-#define TL_TYPE_UNSIGN  4
-#define TL_TYPE_SIGN    5
-#define TL_TYPE_BITS    6
-#define TL_TYPE_NULL    7
-#define TL_TYPE_ERROR   8
-#define TL_TYPE_DELTA   9
-#define TL_TYPE_ANY     10 /* We don't support this particular can of worms! */
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Trend_Log_Properties_Required[] = {
@@ -333,6 +246,11 @@ void Trend_Log_Init(
 }
 
 
+/*
+ * Note: we use the instance number here and build the name based
+ * on the assumption that there is a 1 to 1 correspondance. If there
+ * is not we need to convert to index before proceeding.
+ */
 char *Trend_Log_Name(
     uint32_t object_instance)
 {
@@ -510,9 +428,12 @@ bool Trend_Log_Write_Property(
     BACNET_DATE TempDate; /* build here in case of error in time half of datetime */
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE TempSource;
     bool bEffectiveEnable;
+    int log_index;
     
     /* Pin down which log to look at */
-    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(wp_data->object_instance)]; 
+    log_index  = Trend_Log_Instance_To_Index(wp_data->object_instance);
+    CurrentLog = &LogInfo[log_index]; 
+
     /* decode the some of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
@@ -540,22 +461,22 @@ bool Trend_Log_Write_Property(
                 
                 /* Only trigger this validation on a potential change of state */
                 if(CurrentLog->bEnable != value.type.Boolean) {
-                    bEffectiveEnable = TL_Is_Enabled(wp_data->object_instance);
+                    bEffectiveEnable = TL_Is_Enabled(log_index);
                     CurrentLog->bEnable = value.type.Boolean;
                     /* To do: what actions do we need to take on writing ? */
                     if(value.type.Boolean == false) {
                         if(bEffectiveEnable == true) {
                             /* Only insert record if we really were 
                                 enabled i.e. times and enable flags */
-                            TL_Insert_Status_Rec(wp_data->object_instance, 
+                            TL_Insert_Status_Rec(log_index, 
                                 LOG_STATUS_LOG_DISABLED, true);
                         }
                     } else {
-                        if(TL_Is_Enabled(wp_data->object_instance)) {
+                        if(TL_Is_Enabled(log_index)) {
                             /* Have really gone from disabled to enabled as 
                              * enable flag and times were correct
                              */
-                            TL_Insert_Status_Rec(wp_data->object_instance, 
+                            TL_Insert_Status_Rec(log_index, 
                                 LOG_STATUS_LOG_DISABLED, false);
                         }
                     }
@@ -581,8 +502,7 @@ bool Trend_Log_Write_Property(
                          * disable the log and record the fact - see 135-2008 12.25.12
                          */
                         CurrentLog->bEnable = false;
-                        TL_Insert_Status_Rec(wp_data->object_instance, 
-                           LOG_STATUS_LOG_DISABLED, true);
+                        TL_Insert_Status_Rec(log_index, LOG_STATUS_LOG_DISABLED, true);
                     }
                 }    
             }
@@ -607,7 +527,7 @@ bool Trend_Log_Write_Property(
                     /* Time to clear down the log */
                     CurrentLog->ulRecordCount = 0;
                     CurrentLog->iIndex = 0;
-                    TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_BUFFER_PURGED, true);
+                    TL_Insert_Status_Rec(log_index, LOG_STATUS_BUFFER_PURGED, true);
                 }
             }
             break;
@@ -665,7 +585,7 @@ bool Trend_Log_Write_Property(
                     break;
                 }
                 /* First record the current enable state of the log */
-                bEffectiveEnable = TL_Is_Enabled(wp_data->object_instance);
+                bEffectiveEnable = TL_Is_Enabled(log_index);
                 CurrentLog->StartTime.date = TempDate; /* Safe to copy the date now */
                 CurrentLog->StartTime.time = value.type.Time;
                                     
@@ -679,14 +599,14 @@ bool Trend_Log_Write_Property(
                     CurrentLog->tStartTime = TL_BAC_Time_To_Local(&CurrentLog->StartTime);
                 }
                 
-                if(bEffectiveEnable != TL_Is_Enabled(wp_data->object_instance)) {
+                if(bEffectiveEnable != TL_Is_Enabled(log_index)) {
                     /* Enable status has changed because of time update */
                     if(bEffectiveEnable == true) {
                         /* Say we went from enabled to disabled */
-                        TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_LOG_DISABLED, true);
+                        TL_Insert_Status_Rec(log_index, LOG_STATUS_LOG_DISABLED, true);
                     } else {
                         /* Say we went from disabled to enabled */
-                        TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_LOG_DISABLED, false);
+                        TL_Insert_Status_Rec(log_index, LOG_STATUS_LOG_DISABLED, false);
                     }
                 }    
             }
@@ -715,7 +635,7 @@ bool Trend_Log_Write_Property(
                     break;
                 }
                 /* First record the current enable state of the log */
-                bEffectiveEnable = TL_Is_Enabled(wp_data->object_instance);
+                bEffectiveEnable = TL_Is_Enabled(log_index);
                 CurrentLog->StopTime.date = TempDate; /* Safe to copy the date now */
                 CurrentLog->StopTime.time = value.type.Time;
                                     
@@ -729,14 +649,14 @@ bool Trend_Log_Write_Property(
                     CurrentLog->tStopTime = TL_BAC_Time_To_Local(&CurrentLog->StopTime);
                 }
                           
-                if(bEffectiveEnable != TL_Is_Enabled(wp_data->object_instance)) {
+                if(bEffectiveEnable != TL_Is_Enabled(log_index)) {
                     /* Enable status has changed because of time update */
                     if(bEffectiveEnable == true) {
                         /* Say we went from enabled to disabled */
-                        TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_LOG_DISABLED, true);
+                        TL_Insert_Status_Rec(log_index, LOG_STATUS_LOG_DISABLED, true);
                     } else {
                         /* Say we went from disabled to enabled */
-                        TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_LOG_DISABLED, false);
+                        TL_Insert_Status_Rec(log_index, LOG_STATUS_LOG_DISABLED, false);
                     }
                 }    
             }
@@ -818,7 +738,7 @@ bool Trend_Log_Write_Property(
                 /* Clear buffer if property being logged is changed */
                 CurrentLog->ulRecordCount = 0;
                 CurrentLog->iIndex = 0;
-                TL_Insert_Status_Rec(wp_data->object_instance, LOG_STATUS_BUFFER_PURGED, true);
+                TL_Insert_Status_Rec(log_index, LOG_STATUS_BUFFER_PURGED, true);
             }
             CurrentLog->Source = TempSource;    
             status = true;
@@ -901,16 +821,14 @@ bool Trend_Log_Write_Property(
     return status;
 }
 
-void TrendLog_Init(
-    void)
-{
-}
-
 bool TrendLogGetRRInfo(
     BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
     RR_PROP_INFO *pInfo)              /* Where to put the information */
 {
-    if(pRequest->object_instance >= MAX_TREND_LOGS) {
+    int log_index;
+
+    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    if(log_index >= MAX_TREND_LOGS) {
         pRequest->error_class = ERROR_CLASS_OBJECT;
         pRequest->error_code  = ERROR_CODE_UNKNOWN_OBJECT;
     } else if(pRequest->object_property == PROP_LOG_BUFFER) {
@@ -1071,11 +989,6 @@ void TL_Local_Time_To_BAC(BACNET_DATE_TIME *DestTime, time_t SourceTime)
  *                                                                          *
  * We have to support By Position, By Sequence and By Time requests.        *
  *                                                                          *
- * We need to treat the address cache as a contiguous array but in reality  *
- * it could be sparsely populated. We can get the count but we can only     *
- * extract entries by doing a linear scan starting from the first entry in  *
- * the cache and picking them off one by one.                               *
- *                                                                          *
  * We do assume the list cannot change whilst we are accessing it so would  *
  * not be multithread safe if there are other tasks that write to the log.  *
  *                                                                          *
@@ -1103,7 +1016,7 @@ int rr_trend_log_encode(
     pRequest->ItemCount = 0; /* Start out with nothing */
 
      /* Bail out now if nowt - should never happen for a Trend Log but ... */
-    if(LogInfo[pRequest->object_instance].ulRecordCount == 0)
+    if(LogInfo[Trend_Log_Instance_To_Index(pRequest->object_instance)].ulRecordCount == 0)
         return(0);
 
     if((pRequest->RequestType == RR_BY_POSITION) || (pRequest->RequestType == RR_READ_ALL))
@@ -1124,6 +1037,7 @@ int TL_encode_by_position(
     uint8_t *apdu,
     BACNET_READ_RANGE_DATA *pRequest)
 {
+    int log_index = 0;
     int iLen = 0;
     int32_t iTemp = 0;
     TL_LOG_INFO *CurrentLog = NULL;
@@ -1136,7 +1050,8 @@ int TL_encode_by_position(
     
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead; 
-    CurrentLog = &LogInfo[pRequest->object_instance];
+    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    CurrentLog = &LogInfo[log_index];
     if(pRequest->RequestType == RR_READ_ALL) {
         /*
          * Read all the list or as much as will fit in the buffer by selecting
@@ -1194,7 +1109,7 @@ int TL_encode_by_position(
             break;
         }               
         
-        iTemp = TL_encode_entry(&apdu[iLen], pRequest->object_instance, uiIndex);    
+        iTemp = TL_encode_entry(&apdu[iLen], log_index, uiIndex);    
         
         uiRemaining -= iTemp; /* Reduce the remaining space */
         iLen        += iTemp; /* and increase the length consumed */
@@ -1225,6 +1140,7 @@ int TL_encode_by_sequence(
     uint8_t *apdu,
     BACNET_READ_RANGE_DATA *pRequest)
 {
+    int log_index = 0;
     int iLen = 0;
     int32_t iTemp = 0;
     TL_LOG_INFO *CurrentLog = NULL;
@@ -1243,7 +1159,8 @@ int TL_encode_by_sequence(
 
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead; 
-    CurrentLog = &LogInfo[pRequest->object_instance];
+    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    CurrentLog = &LogInfo[log_index];
     /* Figure out the sequence number for the first record, last is ulTotalRecordCount */
     uiFirstSeq = CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
 
@@ -1323,7 +1240,7 @@ int TL_encode_by_sequence(
             break;
         }               
         
-        iTemp = TL_encode_entry(&apdu[iLen], pRequest->object_instance, uiIndex);    
+        iTemp = TL_encode_entry(&apdu[iLen], log_index, uiIndex);    
         
         uiRemaining -= iTemp; /* Reduce the remaining space */
         iLen        += iTemp; /* and increase the length consumed */
@@ -1356,6 +1273,7 @@ int TL_encode_by_time(
     uint8_t *apdu,
     BACNET_READ_RANGE_DATA *pRequest)
 {
+    int log_index = 0;
     int iLen = 0;
     int32_t iTemp = 0;
     int iCount = 0;
@@ -1370,7 +1288,8 @@ int TL_encode_by_time(
     
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead; 
-    CurrentLog = &LogInfo[pRequest->object_instance];
+    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    CurrentLog = &LogInfo[log_index];
     
     tRefTime = TL_BAC_Time_To_Local(&pRequest->Range.RefTime);
     /* Find correct position for oldest entry in log */
@@ -1448,7 +1367,7 @@ int TL_encode_by_time(
             break;
         }               
         
-        iTemp = TL_encode_entry(&apdu[iLen], pRequest->object_instance, uiIndex);    
+        iTemp = TL_encode_entry(&apdu[iLen], log_index, uiIndex);    
         
         uiRemaining -= iTemp;   /* Reduce the remaining space */
         iLen        += iTemp;   /* and increase the length consumed */
@@ -1742,48 +1661,50 @@ void trend_log_timer(
     tNow = time(NULL);
     for(iCount = 0; iCount < MAX_TREND_LOGS; iCount++) {
         CurrentLog = &LogInfo[iCount];
-        if(CurrentLog->LoggingType == LOGGING_TYPE_POLLED) {
-            /* For polled logs we first need to see if they are clock
-             * aligned or not.
-             */
-            if(CurrentLog->bAlignIntervals == true) {
-                /* Aligned logging so use the combination of the interval
-                 * and the offset to decide when to log. Also log a reading if
-                 * more than interval time has elapsed since last reading to ensure
-                 * we don't miss a reading if we aren't called at the precise second
-                 * when the match occurrs.
+        if(TL_Is_Enabled(iCount)) {
+            if(CurrentLog->LoggingType == LOGGING_TYPE_POLLED) {
+                /* For polled logs we first need to see if they are clock
+                 * aligned or not.
                  */
+                if(CurrentLog->bAlignIntervals == true) {
+                    /* Aligned logging so use the combination of the interval
+                     * and the offset to decide when to log. Also log a reading if
+                     * more than interval time has elapsed since last reading to ensure
+                     * we don't miss a reading if we aren't called at the precise second
+                     * when the match occurrs.
+                     */
 //                if(((tNow % CurrentLog->ulLogInterval) >= (CurrentLog->ulIntervalOffset % CurrentLog->ulLogInterval)) &&
 //                   ((tNow - CurrentLog->tLastDataTime) >= CurrentLog->ulLogInterval)) {
-                if((tNow % CurrentLog->ulLogInterval) == (CurrentLog->ulIntervalOffset % CurrentLog->ulLogInterval)) {
-                    /* Record value if time synchronised trigger condition is met
-                     * and at least one period has elapsed.
-                     */
-                    TL_fetch_property(iCount);
-                } else if((tNow - CurrentLog->tLastDataTime) > CurrentLog->ulLogInterval) {
-                    /* Also record value if we have waited more than a period
-                     * since the last reading. This ensures we take a reading as
-                     * soon as possible after a power down if we have been off for
-                     * more than a single period. 
+                    if((tNow % CurrentLog->ulLogInterval) == (CurrentLog->ulIntervalOffset % CurrentLog->ulLogInterval)) {
+                        /* Record value if time synchronised trigger condition is met
+                         * and at least one period has elapsed.
+                         */
+                        TL_fetch_property(iCount);
+                    } else if((tNow - CurrentLog->tLastDataTime) > CurrentLog->ulLogInterval) {
+                        /* Also record value if we have waited more than a period
+                         * since the last reading. This ensures we take a reading as
+                         * soon as possible after a power down if we have been off for
+                         * more than a single period. 
+                         */
+                        TL_fetch_property(iCount);
+                    }
+                } else if(((tNow - CurrentLog->tLastDataTime) >= CurrentLog->ulLogInterval) ||
+                   (CurrentLog->bTrigger == true)) {
+                    /* If not aligned take a reading when we have either waited long
+                     * enough or a trigger is set.
                      */
                     TL_fetch_property(iCount);
                 }
-            } else if(((tNow - CurrentLog->tLastDataTime) >= CurrentLog->ulLogInterval) ||
-               (CurrentLog->bTrigger == true)) {
-                /* If not aligned take a reading when we have either waited long
-                 * enough or a trigger is set.
+                
+                CurrentLog->bTrigger = false; /* Clear this every time */
+            } else if(CurrentLog->LoggingType == LOGGING_TYPE_TRIGGERED) {
+                /* Triggered logs take a reading when the trigger is set and
+                 * then reset the trigger to wait for the next event
                  */
-                TL_fetch_property(iCount);
-            }
-            
-            CurrentLog->bTrigger = false; /* Clear this every time */
-        } else if(CurrentLog->LoggingType == LOGGING_TYPE_TRIGGERED) {
-            /* Triggered logs take a reading when the trigger is set and
-             * then reset the trigger to wait for the next event
-             */
-            if(CurrentLog->bTrigger == true) {
-                TL_fetch_property(iCount);
-                CurrentLog->bTrigger = false;
+                if(CurrentLog->bTrigger == true) {
+                    TL_fetch_property(iCount);
+                    CurrentLog->bTrigger = false;
+                }
             }
         }
     }
