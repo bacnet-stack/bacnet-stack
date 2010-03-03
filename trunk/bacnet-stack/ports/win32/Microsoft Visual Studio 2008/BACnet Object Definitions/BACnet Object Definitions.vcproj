@@ -194,7 +194,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\demo\object\ms-input.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\demo\object\mso.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\demo\object\trendlog.c"
 				>
 			</File>
 		</Filter>
