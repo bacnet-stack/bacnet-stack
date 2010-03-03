@@ -946,10 +946,22 @@ bool TL_Is_Enabled(int iLog)
 time_t TL_BAC_Time_To_Local(BACNET_DATE_TIME *SourceTime)
 {
     struct tm LocalTime;
-    
+    int iTemp;
+
     LocalTime.tm_year = SourceTime->date.year - 1900; /* We store BACnet year in full format */
-    LocalTime.tm_mon  = SourceTime->date.month - 1;
-    LocalTime.tm_mday = SourceTime->date.day;
+    /* Some clients send a date of all 0s to indicate start of epoch
+     * even though this is not a valid date. Pick this up here and 
+     * correct the day and month for the local time functions.
+     */
+    iTemp = SourceTime->date.year + SourceTime->date.month +SourceTime->date.day;
+    if(iTemp == 1900) {
+	    LocalTime.tm_mon  = 0;
+	    LocalTime.tm_mday = 1;
+	} else {
+        LocalTime.tm_mon  = SourceTime->date.month - 1;
+        LocalTime.tm_mday = SourceTime->date.day;
+	}
+
     LocalTime.tm_hour = SourceTime->time.hour;
     LocalTime.tm_min  = SourceTime->time.min;
     LocalTime.tm_sec  = SourceTime->time.sec;
