@@ -1496,7 +1496,7 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
         bitstring_init(&TempBits);
         bitstring_set_bits_used(&TempBits, 1, 4);
         /* only insert the 1st 4 bits */
-        bitstring_set_octet(&TempBits, 0, (pSource->Datum.ucLogStatus & 0x0F));
+        bitstring_set_octet(&TempBits, 0, (pSource->ucStatus & 0x0F));
         iLen += encode_context_bitstring(&apdu[iLen], 2, &TempBits);
     }
 
@@ -1641,8 +1641,8 @@ void TL_fetch_property(int iLog)
                 break;
         }
         /* Finally insert the status flags into the record */
-        iLen += decode_tag_number_and_value(StatusBuf, &tag_number, &len_value_type);
-        decode_bitstring(&ValueBuf[iLen], len_value_type, &TempBits);
+        iLen = decode_tag_number_and_value(StatusBuf, &tag_number, &len_value_type);
+        decode_bitstring(&StatusBuf[iLen], len_value_type, &TempBits);
         TempRec.ucStatus = 128 | bitstring_octet(&TempBits,0);
     }
 
