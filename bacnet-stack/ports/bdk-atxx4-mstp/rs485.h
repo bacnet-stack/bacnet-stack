@@ -60,6 +60,8 @@ extern "C" {
 
     void rs485_turnaround_delay(
         void);
+    void rs485_silence_time_reset(void);
+    bool rs485_silence_time_elapsed(uint32_t milliseconds);
 
 #ifdef __cplusplus
 }

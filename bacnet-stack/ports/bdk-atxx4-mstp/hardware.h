@@ -52,15 +52,4 @@
 #define SEEPROM_PAGE_SIZE 16
 #define SEEPROM_WORD_ADDRESS_16BIT 0
 
-/* reserve the millisecond timer indexes as needed for each module */
-#define TIMER_SILENCE 0
-#define TIMER_DEBOUNCE 1
-#define TIMER_LED_1 2
-#define TIMER_LED_2 3
-#define TIMER_LED_3 4
-#define TIMER_LED_4 5
-#define TIMER_DCC 6
-#define TIMER_TEST 7
-#define MAX_MILLISECOND_TIMERS 8
-
 #endif
