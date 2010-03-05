@@ -77,8 +77,8 @@ extern "C" {
 
     bool Analog_Output_Units_Set(
         uint32_t instance,
-        uint32_t units);
-    uint32_t Analog_Output_Units(
+        uint16_t units);
+    uint16_t Analog_Output_Units(
         uint32_t instance);
 
 
