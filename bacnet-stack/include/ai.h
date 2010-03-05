@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include "bacdef.h"
 #include "rp.h"
+#include "wp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,12 +64,14 @@ extern "C" {
 
     bool Analog_Input_Units_Set(
         uint32_t instance,
-        uint32_t units);
-    uint32_t Analog_Input_Units(
+        uint16_t units);
+    uint16_t Analog_Input_Units(
         uint32_t instance);
 
     int Analog_Input_Read_Property(
         BACNET_READ_PROPERTY_DATA *rpdata);
+    bool Analog_Input_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     float Analog_Input_Present_Value(
         uint32_t object_instance);
