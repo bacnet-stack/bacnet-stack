@@ -29,6 +29,7 @@
 
 static uint8_t Address_Switch;
 static uint8_t Buttons;
+static struct itimer Debounce_Timer;
 
 #define BDK_V1_HACK 0
 
@@ -75,8 +76,8 @@ void input_task(
     static uint8_t old_buttons = 0;
 
     /* only check the inputs every debounce time */
-    if (timer_elapsed_milliseconds(TIMER_DEBOUNCE, 30)) {
-        timer_reset(TIMER_DEBOUNCE);
+    if (timer_interval_expired(&Debounce_Timer)) {
+        timer_interval_reset(&Debounce_Timer);
         /* pins used are PA6, PA5, PA4, PA3, PA2, PA1, PA0 */
 #if BDK_V1_HACK
         /* version 1 BDK - workaround */
@@ -161,5 +162,5 @@ void input_init(
     BIT_CLEAR(DDRB, DDB2);
     BIT_CLEAR(DDRB, DDB3);
     BIT_CLEAR(DDRB, DDB4);
-    timer_reset(TIMER_DEBOUNCE);
+    timer_interval_start(&Debounce_Timer, 30);
 }

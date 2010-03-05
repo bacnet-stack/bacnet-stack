@@ -26,10 +26,7 @@
 #include "timer.h"
 #include "led.h"
 
-static uint32_t Off_Delay_Milliseconds_1;
-static uint32_t Off_Delay_Milliseconds_2;
-static uint32_t Off_Delay_Milliseconds_3;
-static uint32_t Off_Delay_Milliseconds_4;
+static struct itimer Off_Delay_Timer[MAX_LEDS];
 
 /*************************************************************************
 * Description: Turn on an LED
@@ -54,6 +51,9 @@ void led_on(
             break;
         default:
             break;
+    }
+    if (index < MAX_LEDS) {
+        timer_interval_no_expire(&Off_Delay_Timer[index]);
     }
 }
 
@@ -80,6 +80,9 @@ void led_off(
             break;
         default:
             break;
+    }
+    if (index < MAX_LEDS) {
+        timer_interval_no_expire(&Off_Delay_Timer[index]);
     }
 }
 
@@ -135,25 +138,8 @@ void led_off_delay(
     uint8_t index,
     uint32_t delay_ms)
 {
-    switch (index) {
-        case LED_1:
-            Off_Delay_Milliseconds_1 = delay_ms;
-            timer_reset(TIMER_LED_1);
-            break;
-        case LED_2:
-            Off_Delay_Milliseconds_2 = delay_ms;
-            timer_reset(TIMER_LED_2);
-            break;
-        case LED_3:
-            Off_Delay_Milliseconds_3 = delay_ms;
-            timer_reset(TIMER_LED_3);
-            break;
-        case LED_4:
-            Off_Delay_Milliseconds_4 = delay_ms;
-            timer_reset(TIMER_LED_4);
-            break;
-        default:
-            break;
+    if (index < MAX_LEDS) {
+        timer_interval_start(&Off_Delay_Timer[index], delay_ms);
     }
 }
 
@@ -165,28 +151,12 @@ void led_off_delay(
 void led_task(
     void)
 {
-    if (Off_Delay_Milliseconds_1) {
-        if (timer_elapsed_milliseconds(TIMER_LED_1, Off_Delay_Milliseconds_1)) {
-            Off_Delay_Milliseconds_1 = 0;
-            led_off(LED_1);
-        }
-    }
-    if (Off_Delay_Milliseconds_2) {
-        if (timer_elapsed_milliseconds(TIMER_LED_2, Off_Delay_Milliseconds_2)) {
-            Off_Delay_Milliseconds_2 = 0;
-            led_off(LED_2);
-        }
-    }
-    if (Off_Delay_Milliseconds_3) {
-        if (timer_elapsed_milliseconds(TIMER_LED_3, Off_Delay_Milliseconds_3)) {
-            Off_Delay_Milliseconds_3 = 0;
-            led_off(LED_3);
-        }
-    }
-    if (Off_Delay_Milliseconds_4) {
-        if (timer_elapsed_milliseconds(TIMER_LED_4, Off_Delay_Milliseconds_4)) {
-            Off_Delay_Milliseconds_4 = 0;
-            led_off(LED_4);
+    uint8_t i; /* loop counter */
+    
+    for (i = 0; i < MAX_LEDS; i++) {
+        if (timer_interval_expired(&Off_Delay_Timer[i])) {
+            timer_interval_no_expire(&Off_Delay_Timer[i]);
+            led_off(i);
         }
     }
 }
@@ -199,13 +169,14 @@ void led_task(
 void led_init(
     void)
 {
+    uint8_t i; /* loop counter */
+    
     /* configure the port pins as outputs */
     BIT_SET(DDRC, DDC7);
     BIT_SET(DDRC, DDC6);
     BIT_SET(DDRD, DDD7);
     BIT_SET(DDRD, DDD6);
-    led_off(LED_1);
-    led_off(LED_2);
-    led_off(LED_3);
-    led_off(LED_4);
+    for (i = 0; i < MAX_LEDS; i++) {
+        led_off(i);
+    }   
 }

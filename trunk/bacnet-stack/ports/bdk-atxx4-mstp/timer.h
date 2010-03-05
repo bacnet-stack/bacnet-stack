@@ -30,28 +30,69 @@
 
 /* Timer Module */
 
+/* elapsed timer structure */
+struct etimer {
+    uint32_t start;
+};
+/* interval timer structure */
+struct itimer {
+    uint32_t start;
+    uint32_t interval;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    /* these 3 functions are created in the hardware specific module */
     void timer_init(
         void);
-    unsigned long timer_milliseconds(
-        unsigned index);
+    uint32_t timer_milliseconds(void);
+    uint32_t timer_milliseconds_set(
+        uint32_t value);
+
+    /* these functions are in the generic timer.c module */
+    
+    /* elapsed timer */
+    void timer_elapsed_start(
+        struct etimer *t);
+    void timer_elapsed_start_offset(
+        struct etimer *t,
+        uint32_t offset);
+    uint32_t timer_elapsed_time(
+        struct etimer *t);
     bool timer_elapsed_milliseconds(
-        unsigned index,
-        unsigned long value);
+        struct etimer *t,
+        uint32_t value);
     bool timer_elapsed_seconds(
-        unsigned index,
-        unsigned long value);
+        struct etimer *t,
+        uint32_t value);
     bool timer_elapsed_minutes(
-        unsigned index,
-        unsigned long seconds);
-    unsigned long timer_milliseconds_set(
-        unsigned index,
-        unsigned long value);
-    unsigned long timer_reset(
-        unsigned index);
+        struct etimer *t,
+        uint32_t seconds);
+
+    /* interval timer */
+    void timer_interval_start(
+        struct itimer *t,
+        uint32_t interval);
+    void timer_interval_start_seconds(
+        struct itimer *t,
+        uint32_t interval);
+    void timer_interval_start_minutes(
+        struct itimer *t,
+        uint32_t interval);
+    bool timer_interval_expired(
+        struct itimer *t);
+    uint32_t timer_interval(
+        struct itimer *t);
+    uint32_t timer_interval_elapsed(
+        struct itimer *t);
+    void timer_interval_no_expire(
+        struct itimer *t);
+    void timer_interval_reset(
+        struct itimer *t);
+    void timer_interval_restart(
+        struct itimer *t);
 
 #ifdef __cplusplus
 }

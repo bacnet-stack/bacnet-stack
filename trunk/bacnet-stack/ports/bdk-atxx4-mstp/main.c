@@ -54,6 +54,11 @@
 const char *BACnet_Version = "1.0";
 /* MAC Address of MS/TP */
 static uint8_t MSTP_MAC_Address;
+/* timer for device communications control */
+static struct itimer DCC_Timer;
+#define DCC_CYCLE_SECONDS 1
+/* timer for test task */
+static struct itimer Test_Timer;
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
@@ -114,7 +119,9 @@ static void bacnet_init(
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
-
+    /* start the cyclic 1 second timer for DCC */
+    timer_interval_start_seconds(&DCC_Timer, DCC_CYCLE_SECONDS);
+    /* Hello World! */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
 
@@ -149,9 +156,9 @@ static void bacnet_task(
         Binary_Input_Present_Value_Set(i, binary_value);
     }
     /* handle the communication timer */
-    if (timer_elapsed_seconds(TIMER_DCC, 1)) {
-        timer_reset(TIMER_DCC);
-        dcc_timer_seconds(1);
+    if (timer_interval_expired(&DCC_Timer)) {
+        timer_interval_reset(&DCC_Timer);
+        dcc_timer_seconds(DCC_CYCLE_SECONDS);
     }
     /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
@@ -163,9 +170,7 @@ static void bacnet_task(
 void test_init(
     void)
 {
-    timer_reset(TIMER_LED_3);
-    timer_reset(TIMER_LED_4);
-    timer_reset(TIMER_TEST);
+    timer_interval_start_seconds(&Test_Timer, 1);
 }
 
 void test_task(
@@ -175,8 +180,8 @@ void test_task(
     uint8_t nbytes = 17;
     uint8_t data_register = 0;
 
-    if (timer_elapsed_seconds(TIMER_TEST, 1)) {
-        timer_reset(TIMER_TEST);
+    if (timer_interval_expired(&Test_Timer)) {
+        timer_interval_reset(&Test_Timer);
         buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';
         buffer[9] = (MSTP_MAC_Address & BIT1) ? '1' : '0';
         buffer[10] = (MSTP_MAC_Address & BIT2) ? '1' : '0';

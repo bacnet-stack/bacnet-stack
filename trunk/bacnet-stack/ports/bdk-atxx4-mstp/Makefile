@@ -55,6 +55,7 @@ CSRC = main.c \
 	serial.c \
 	rs485.c \
 	timer2.c \
+	timer.c \
 	led.c \
 	eeprom.c \
 	seeprom.c \

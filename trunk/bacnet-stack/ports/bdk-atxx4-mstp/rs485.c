@@ -49,6 +49,18 @@ static uint32_t Baud_Rate = 9600;
 static uint8_t Receive_Buffer_Data[128];
 static FIFO_BUFFER Receive_Buffer;
 
+static struct etimer Silence_Timer;
+
+bool rs485_silence_time_elapsed(uint32_t milliseconds)
+{
+    return timer_elapsed_milliseconds(&Silence_Timer, milliseconds);
+}
+
+void rs485_silence_time_reset(void)
+{
+    timer_elapsed_start(&Silence_Timer);
+}
+
 static void rs485_rts_init(
     void)
 {
@@ -82,7 +94,7 @@ void rs485_turnaround_delay(
     /* wait a minimum  40 bit times since reception */
     /* at least 1 ms for errors: rounding, clock tick */
     turnaround_time = 1 + ((Tturnaround * 1000UL) / Baud_Rate);
-    while (!timer_elapsed_milliseconds(TIMER_SILENCE, turnaround_time)) {
+    while (!timer_elapsed_milliseconds(&Silence_Timer, turnaround_time)) {
         /* do nothing - wait for timer to increment */
     };
 }
@@ -95,7 +107,7 @@ ISR(USART0_RX_vect)
         /* data is available */
         data_byte = UDR0;
         (void) FIFO_Put(&Receive_Buffer, data_byte);
-        timer_reset(TIMER_SILENCE);
+        timer_elapsed_start(&Silence_Timer);
     }
 }
 
@@ -144,7 +156,7 @@ void rs485_bytes_send(
     }
     /* Clear the Transmit Complete flag by writing a one to it. */
     BIT_SET(UCSR0A, TXC0);
-    timer_reset(TIMER_SILENCE);
+    timer_elapsed_start(&Silence_Timer);
     led_off_delay(LED_2, 1);
 
     return;
@@ -249,6 +261,7 @@ void rs485_init(
 {
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
         (unsigned) sizeof(Receive_Buffer_Data));
+    timer_elapsed_start(&Silence_Timer);
     rs485_rts_init();
     rs485_usart_init();
     rs485_init_nvdata();

@@ -26,11 +26,6 @@
 #include "hardware.h"
 #include "timer.h"
 
-/* define various timers in timer.h file */
-#ifndef MAX_MILLISECOND_TIMERS
-#define MAX_MILLISECOND_TIMERS 2
-#endif
-
 /* Timer2 Prescaling: 1, 8, 32, 64, 128, 256, or 1024 */
 #define TIMER2_PRESCALER 128
 /* Count: Timer counts up to 0xFF and then signals overflow */
@@ -40,24 +35,8 @@
 #endif
 #define TIMER2_COUNT (0xFF-TIMER2_TICKS)
 
-/* counter for the various timers */
-static volatile unsigned long Millisecond_Counter[MAX_MILLISECOND_TIMERS];
-
-/*************************************************************************
-* Description: Timer Interrupt Handler
-* Returns: none
-* Notes: Global interupts must be enabled
-*************************************************************************/
-static inline void timer_interrupt_handler(
-    void)
-{
-    unsigned i; /* loop counter */
-
-    /* increment the tick count */
-    for (i = 0; i < MAX_MILLISECOND_TIMERS; i++) {
-        Millisecond_Counter[i]++;
-    }
-}
+/* counter for the the timer which wraps every 49.7 days */
+static volatile uint32_t Millisecond_Counter;
 
 /*************************************************************************
 * Description: Timer Interrupt Service Routine - Timer Overflowed!
@@ -68,7 +47,7 @@ ISR(TIMER2_OVF_vect)
 {
     /* Set the counter for the next interrupt */
     TCNT2 = TIMER2_COUNT;
-    timer_interrupt_handler();
+    Millisecond_Counter++;
 }
 
 /*************************************************************************
@@ -76,20 +55,17 @@ ISR(TIMER2_OVF_vect)
 * Returns: none
 * Notes: none
 *************************************************************************/
-unsigned long timer_milliseconds_set(
-    unsigned index,
-    unsigned long value)
+uint32_t timer_milliseconds_set(
+    uint32_t value)
 {
     uint8_t sreg = 0;   /* holds interrupts pending */
-    unsigned long old_value = 0;        /* return value */
+    uint32_t old_value = 0;        /* return value */
 
-    if (index < MAX_MILLISECOND_TIMERS) {
-        sreg = SREG;
-        __disable_interrupt();
-        old_value = Millisecond_Counter[index];
-        Millisecond_Counter[index] = value;
-        SREG = sreg;
-    }
+    sreg = SREG;
+    __disable_interrupt();
+    old_value = Millisecond_Counter;
+    Millisecond_Counter = value;
+    SREG = sreg;
 
     return old_value;
 }
@@ -99,67 +75,17 @@ unsigned long timer_milliseconds_set(
 * Returns: none
 * Notes: none
 *************************************************************************/
-unsigned long timer_milliseconds(
-    unsigned index)
+uint32_t timer_milliseconds(void)
 {
-    unsigned long timer_value = 0;      /* return value */
+    uint32_t timer_value = 0;      /* return value */
     uint8_t sreg = 0;   /* holds interrupts pending */
 
-    if (index < MAX_MILLISECOND_TIMERS) {
-        sreg = SREG;
-        __disable_interrupt();
-        timer_value = Millisecond_Counter[index];
-        SREG = sreg;
-    }
+    sreg = SREG;
+    __disable_interrupt();
+    timer_value = Millisecond_Counter;
+    SREG = sreg;
 
     return timer_value;
-}
-
-/*************************************************************************
-* Description: compares the current time count with a value
-* Returns: true if the time has elapsed
-* Notes: none
-*************************************************************************/
-bool timer_elapsed_milliseconds(
-    unsigned index,
-    unsigned long value)
-{
-    return (timer_milliseconds(index) >= value);
-}
-
-/*************************************************************************
-* Description: compares the current time count with a value
-* Returns: true if the time has elapsed
-* Notes: none
-*************************************************************************/
-bool timer_elapsed_seconds(
-    unsigned index,
-    unsigned long seconds)
-{
-    return ((timer_milliseconds(index) / 1000UL) >= seconds);
-}
-
-/*************************************************************************
-* Description: compares the current time count with a value
-* Returns: true if the time has elapsed
-* Notes: none
-*************************************************************************/
-bool timer_elapsed_minutes(
-    unsigned index,
-    unsigned long minutes)
-{
-    return ((timer_milliseconds(index) / (1000UL * 60UL)) >= minutes);
-}
-
-/*************************************************************************
-* Description: Sets the timer counter to zero.
-* Returns: none
-* Notes: none
-*************************************************************************/
-unsigned long timer_reset(
-    unsigned index)
-{
-    return timer_milliseconds_set(index, 0);
 }
 
 /*************************************************************************
@@ -167,8 +93,7 @@ unsigned long timer_reset(
 * Returns: none
 * Notes: none
 *************************************************************************/
-static void timer2_init(
-    void)
+void timer_init(void)
 {
     /* Normal Operation */
     TCCR2A = 0;
@@ -209,15 +134,4 @@ static void timer2_init(
     BIT_SET(TIMSK2, TOIE2);
     /* Clear the Power Reduction Timer/Counter0 */
     BIT_CLEAR(PRR, PRTIM2);
-}
-
-/*************************************************************************
-* Description: Initialization for Timer
-* Returns: none
-* Notes: none
-*************************************************************************/
-void timer_init(
-    void)
-{
-    timer2_init();
 }
