@@ -260,3 +260,108 @@ void timer_interval_restart(
         t->start = timer_milliseconds();
     }
 }
+
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+
+#include "ctest.h"
+
+static uint32_t Milliseconds;
+
+uint32_t timer_milliseconds(void)
+{
+    return Milliseconds;
+}
+
+uint32_t timer_milliseconds_set(
+    uint32_t value)
+{
+    uint32_t old_value = Milliseconds;
+
+    Milliseconds = value;
+
+    return old_value;
+}
+
+void testElapsedTimer(
+    Test * pTest)
+{
+    struct etimer t;
+    uint32_t test_time = 0;
+    
+    timer_milliseconds_set(test_time);    
+    timer_elapsed_start(&t);
+    ct_test(pTest, timer_elapsed_time(&t) == test_time);
+    test_time = 0xffff;
+    timer_milliseconds_set(test_time);    
+    ct_test(pTest, timer_elapsed_time(&t) == test_time);
+    test_time = 0xffffffff;
+    timer_milliseconds_set(test_time);    
+    ct_test(pTest, timer_elapsed_time(&t) == test_time);
+}
+
+void testIntervalTimer(
+    Test * pTest)
+{
+    struct itimer t;
+    uint32_t interval = 0;
+    uint32_t test_time = 0;
+    
+    timer_milliseconds_set(test_time);    
+    timer_interval_start(&t, interval);
+    test_time = 0xffff;
+    timer_milliseconds_set(test_time);    
+    ct_test(pTest, timer_interval(&t) == interval);
+    ct_test(pTest, timer_interval_elapsed(&t) == test_time);
+    test_time = 0xffffffff;
+    timer_milliseconds_set(test_time);    
+    ct_test(pTest, timer_interval(&t) == interval);
+    ct_test(pTest, timer_interval_elapsed(&t) == test_time);
+    test_time = 0;
+    timer_milliseconds_set(test_time);    
+    interval = 0xffff;
+    timer_interval_start(&t, interval);
+    ct_test(pTest, timer_interval(&t) == interval);
+    interval = 0xffffffff;
+    timer_interval_start(&t, interval);
+    ct_test(pTest, timer_interval(&t) == interval);
+
+    interval = 0;
+    timer_interval_start_seconds(&t, interval);
+    ct_test(pTest, timer_interval(&t) == interval);
+    interval = 60L;
+    timer_interval_start_seconds(&t, interval);
+    interval *= 1000L;
+    ct_test(pTest, timer_interval(&t) == interval);
+    
+}
+
+
+#ifdef TEST_TIMER
+int main(
+    void)
+{
+    Test *pTest;
+    bool rc;
+
+    pTest = ct_create("Timer", NULL);
+
+    /* individual tests */
+    rc = ct_addTestFunction(pTest, testElapsedTimer);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testIntervalTimer);
+    assert(rc);
+
+
+    ct_setStream(pTest, stdout);
+    ct_run(pTest);
+    (void) ct_report(pTest);
+
+    ct_destroy(pTest);
+
+    return 0;
+}
+#endif
+#endif
+
