@@ -126,4 +126,19 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @defgroup DSCOV Data Sharing - Change of Value Service (DS-COV)
+ * @ingroup DataShare
+ * 13.1 Change of Value Reporting <br>
+ * Change of value (COV) reporting allows a COV-client to subscribe with a 
+ * COV-server, on a permanent or temporary basis, to receive reports of some 
+ * changes of value of some referenced property based on fixed criteria. 
+ * If an object provides COV reporting, then changes of value of any 
+ * subscribed-to properties of the object, in some cases based on programmable
+ * increments, trigger COV notifications to be sent to subscribing clients. 
+ * Typically, COV notifications are sent to supervisory programs in COV-client 
+ * devices or to operators or logging devices. Any object, proprietary or 
+ * standard, may support COV reporting at the implementor's option.
+ */
+
 #endif

@@ -177,6 +177,17 @@ static int cov_encode_subscription(
     return apdu_len;
 }
 
+/** Handle a request to list all the COV subscriptions.
+ * @ingroup DSCOV
+ *  Invoked by a request to read the Device object's PROP_ACTIVE_COV_SUBSCRIPTIONS.
+ *  Loops through the list of COV Subscriptions, and, for each valid one,
+ *  adds its description to the APDU.
+ *  @note This function needs some work to better handle buffer overruns.
+ *  @param apdu [out] Buffer in which the APDU contents are built.
+ *  @param max_apdu [in] Max length of the APDU buffer.
+ *  @return How many bytes were encoded in the buffer, or -2 if the response
+ *          would not fit within the buffer. 
+ */
 int handler_cov_encode_subscriptions(
     uint8_t * apdu,
     int max_apdu)
@@ -192,6 +203,7 @@ int handler_cov_encode_subscriptions(
                     cov_encode_subscription(&apdu[apdu_len],
                     max_apdu - apdu_len, &COV_Subscriptions[index]);
                 apdu_len += len;
+                /* TODO: too late here to notice that we overran the buffer */
                 if (apdu_len > max_apdu) {
                     return -2;
                 }
@@ -202,6 +214,9 @@ int handler_cov_encode_subscriptions(
     return apdu_len;
 }
 
+/** Handler to initialize the COV list, clearing and disabling each entry. 
+ * @ingroup DSCOV
+ */
 void handler_cov_init(
     void)
 {
@@ -368,8 +383,27 @@ static bool cov_send_request(
     return status;
 }
 
-/* note: worst case tasking: MS/TP with the ability to send only
-   one notification per task cycle */
+/** Handler to check the list of subscribed objects for any that have changed 
+ *  and so need to have notifications sent.
+ * @ingroup DSCOV
+ * This handler will be invoked by the main program every second or so.
+ * This example only handles Binary Inputs, but can be easily extended to
+ * support other types.
+ * For each subscribed object,
+ *  - See if the subscription has timed out
+ *    - Remove it if it has timed out.
+ *  - See if the subscribed object instance has changed
+ *    (eg, check with Binary_Input_Change_Of_Value() )
+ *  - If changed,
+ *    - Clear the COV (eg, Binary_Input_Change_Of_Value_Clear() )
+ *    - Send the notice with cov_send_request() 
+ *      - Will be confirmed or unconfirmed, as per the subscription.  
+ *      
+ * @note worst case tasking: MS/TP with the ability to send only
+ *        one notification per task cycle.
+ *        
+ * @param elapsed_seconds [in] How many seconds have elapsed since last called.
+ */
 void handler_cov_task(
     uint32_t elapsed_seconds)
 {
@@ -447,6 +481,23 @@ static bool cov_subscribe(
     return status;
 }
 
+/** Handler for a COV Subscribe Service request.
+ * @ingroup DSCOV
+ * This handler will be invoked by apdu_handler() if it has been enabled
+ * by a call to apdu_set_confirmed_handler().
+ * This handler builds a response packet, which is
+ * - an Abort if
+ *   - the message is segmented
+ *   - if decoding fails
+ * - an ACK, if cov_subscribe() succeeds
+ * - an Error if cov_subscribe() fails 
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
+ *                          decoded from the APDU header of this message. 
+ */
 void handler_cov_subscribe(
     uint8_t * service_request,
     uint16_t service_len,
