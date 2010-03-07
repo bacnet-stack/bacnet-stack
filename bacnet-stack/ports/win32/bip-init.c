@@ -429,7 +429,7 @@ bool bip_init(
     rv = bind(sock_fd, (const struct sockaddr *) &sin,
         sizeof(struct sockaddr));
     if (rv < 0) {
-        fprintf(stderr, "bip: failed to bind to %s port %hd\n",
+        fprintf(stderr, "bip: failed to bind to %s port %hu\n",
             inet_ntoa(sin.sin_addr), bip_get_port());
         close(sock_fd);
         bip_set_socket(-1);
