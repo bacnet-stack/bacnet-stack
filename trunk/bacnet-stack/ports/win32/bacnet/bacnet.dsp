@@ -7,19 +7,19 @@
 CFG=bacnet - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
-!MESSAGE
+!MESSAGE 
 !MESSAGE NMAKE /f "bacnet.mak".
-!MESSAGE
+!MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
-!MESSAGE
+!MESSAGE 
 !MESSAGE NMAKE /f "bacnet.mak" CFG="bacnet - Win32 Debug"
-!MESSAGE
+!MESSAGE 
 !MESSAGE Possible choices for configuration are:
-!MESSAGE
+!MESSAGE 
 !MESSAGE "bacnet - Win32 Release" (based on "Win32 (x86) Console Application")
 !MESSAGE "bacnet - Win32 Debug" (based on "Win32 (x86) Console Application")
-!MESSAGE
+!MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
@@ -78,7 +78,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
-!ENDIF
+!ENDIF 
 
 # Begin Target
 
@@ -126,6 +126,10 @@ SOURCE=..\..\..\src\bacapp.c
 # Begin Source File
 
 SOURCE=..\..\..\src\bacdcode.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\bacdevobjpropref.c
 # End Source File
 # Begin Source File
 
@@ -201,6 +205,10 @@ SOURCE=..\..\..\demo\object\device.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\handler\dlenv.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\dlmstp.c
 # End Source File
 # Begin Source File
@@ -221,6 +229,10 @@ SOURCE=..\..\..\demo\handler\h_iam.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\handler\h_npdu.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\demo\handler\h_rp.c
 # End Source File
 # Begin Source File
@@ -229,11 +241,11 @@ SOURCE=..\..\..\demo\handler\h_rp_a.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\demo\handler\h_whois.c
+SOURCE=..\..\..\demo\handler\h_rpm.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\demo\handler\h_npdu.c
+SOURCE=..\..\..\demo\handler\h_whois.c
 # End Source File
 # Begin Source File
 
@@ -269,6 +281,14 @@ SOURCE=..\main.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\memcopy.c
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\demo\object\ms-input.c"
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\demo\object\mso.c
 # End Source File
 # Begin Source File
@@ -282,10 +302,6 @@ SOURCE=..\..\..\src\mstptext.c
 # Begin Source File
 
 SOURCE=..\..\..\demo\handler\noserv.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\demo\handler\s_iam.c
 # End Source File
 # Begin Source File
 
@@ -305,7 +321,15 @@ SOURCE=..\..\..\src\rp.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\rpm.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\rs485.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\demo\handler\s_iam.c
 # End Source File
 # Begin Source File
 
@@ -321,15 +345,15 @@ SOURCE=..\..\..\demo\handler\s_wp.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\demo\object\trendlog.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\tsm.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\demo\handler\txbuf.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\demo\handler\dlenv.c
 # End Source File
 # Begin Source File
 
