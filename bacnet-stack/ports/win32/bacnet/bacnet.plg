@@ -6,36 +6,14 @@
 --------------------Configuration: bacnet - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP18.tmp" with contents
+Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP2E.tmp" with contents
 [
 /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\..\include\\" /I ".." /I "..\..\..\demo\object\\" /I "..\..\..\demo\handler\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BACAPP_ALL" /D PRINT_ENABLED=1 /D BIG_ENDIAN=0 /D "BACDL_BIP" /D USE_INADDR=1 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"C:\code\bacnet-stack\demo\object\bacfile.c"
-"C:\code\bacnet-stack\ports\win32\bip-init.c"
-"C:\code\bacnet-stack\src\bip.c"
-"C:\code\bacnet-stack\src\bvlc.c"
-"C:\code\bacnet-stack\src\cov.c"
-"C:\code\bacnet-stack\demo\object\device.c"
-"C:\code\bacnet-stack\ports\win32\dlmstp.c"
-"C:\code\bacnet-stack\demo\handler\h_arf.c"
-"C:\code\bacnet-stack\demo\handler\h_arf_a.c"
-"C:\code\bacnet-stack\demo\handler\h_cov.c"
-"C:\code\bacnet-stack\demo\handler\h_iam.c"
-"C:\code\bacnet-stack\demo\handler\h_rp.c"
-"C:\code\bacnet-stack\demo\handler\h_rp_a.c"
-"C:\code\bacnet-stack\demo\handler\h_whois.c"
-"C:\code\bacnet-stack\demo\handler\h_wp.c"
-"C:\code\bacnet-stack\src\iam.c"
-"C:\code\bacnet-stack\ports\win32\main.c"
-"C:\code\bacnet-stack\src\mstp.c"
-"C:\code\bacnet-stack\demo\handler\noserv.c"
-"C:\code\bacnet-stack\demo\handler\s_rp.c"
-"C:\code\bacnet-stack\demo\handler\s_whois.c"
-"C:\code\bacnet-stack\demo\handler\s_wp.c"
-"C:\code\bacnet-stack\src\tsm.c"
-"C:\code\bacnet-stack\demo\handler\txbuf.c"
+"C:\code\bacnet-stack\src\bacdevobjpropref.c"
+"C:\code\bacnet-stack\src\memcopy.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP18.tmp" 
-Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP19.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP2E.tmp" 
+Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP2F.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/bacnet.pdb" /debug /machine:I386 /out:"Debug/bacnet.exe" /pdbtype:sept 
 ".\Debug\abort.obj"
@@ -63,8 +41,8 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\cov.obj"
 ".\Debug\crc.obj"
 ".\Debug\datetime.obj"
-".\Debug\debug.obj"
 ".\Debug\dcc.obj"
+".\Debug\debug.obj"
 ".\Debug\device.obj"
 ".\Debug\dlmstp.obj"
 ".\Debug\h_arf.obj"
@@ -74,6 +52,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\h_rp.obj"
 ".\Debug\h_rp_a.obj"
 ".\Debug\h_whois.obj"
+".\Debug\h_npdu.obj"
 ".\Debug\h_wp.obj"
 ".\Debug\iam.obj"
 ".\Debug\indtext.obj"
@@ -84,6 +63,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\mstp.obj"
 ".\Debug\mstptext.obj"
 ".\Debug\noserv.obj"
+".\Debug\s_iam.obj"
 ".\Debug\npdu.obj"
 ".\Debug\reject.obj"
 ".\Debug\ringbuf.obj"
@@ -94,46 +74,25 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\s_wp.obj"
 ".\Debug\tsm.obj"
 ".\Debug\txbuf.obj"
+".\Debug\dlenv.obj"
 ".\Debug\version.obj"
 ".\Debug\whois.obj"
 ".\Debug\wp.obj"
+".\Debug\ms-input.obj"
+".\Debug\trendlog.obj"
+".\Debug\h_rpm.obj"
+".\Debug\rpm.obj"
+".\Debug\bacdevobjpropref.obj"
+".\Debug\memcopy.obj"
 ]
-Creating command line "link.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP19.tmp"
+Creating command line "link.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP2F.tmp"
 <h3>Output Window</h3>
 Compiling...
-bacfile.c
-bip-init.c
-bip.c
-bvlc.c
-cov.c
-device.c
-dlmstp.c
-h_arf.c
-h_arf_a.c
-h_cov.c
-h_iam.c
-h_rp.c
-h_rp_a.c
-h_whois.c
-h_wp.c
-iam.c
-main.c
-mstp.c
-noserv.c
-s_rp.c
-Generating Code...
-c:\code\bacnet-stack\src\mstp.c(676) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\src\mstp.c(706) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\src\mstp.c(1039) : warning C4761: integral size mismatch in argument; conversion supplied
-c:\code\bacnet-stack\ports\win32\dlmstp.c(451) : warning C4761: integral size mismatch in argument; conversion supplied
-Compiling...
-s_whois.c
-s_wp.c
-tsm.c
-txbuf.c
+bacdevobjpropref.c
+memcopy.c
 Generating Code...
 Linking...
-Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP1B.tmp" with contents
+Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP31.tmp" with contents
 [
 /nologo /o"Debug/bacnet.bsc" 
 ".\Debug\abort.sbr"
@@ -161,8 +120,8 @@ Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP1B.tmp" with conten
 ".\Debug\cov.sbr"
 ".\Debug\crc.sbr"
 ".\Debug\datetime.sbr"
-".\Debug\debug.sbr"
 ".\Debug\dcc.sbr"
+".\Debug\debug.sbr"
 ".\Debug\device.sbr"
 ".\Debug\dlmstp.sbr"
 ".\Debug\h_arf.sbr"
@@ -172,6 +131,7 @@ Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP1B.tmp" with conten
 ".\Debug\h_rp.sbr"
 ".\Debug\h_rp_a.sbr"
 ".\Debug\h_whois.sbr"
+".\Debug\h_npdu.sbr"
 ".\Debug\h_wp.sbr"
 ".\Debug\iam.sbr"
 ".\Debug\indtext.sbr"
@@ -182,6 +142,7 @@ Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP1B.tmp" with conten
 ".\Debug\mstp.sbr"
 ".\Debug\mstptext.sbr"
 ".\Debug\noserv.sbr"
+".\Debug\s_iam.sbr"
 ".\Debug\npdu.sbr"
 ".\Debug\reject.sbr"
 ".\Debug\ringbuf.sbr"
@@ -192,17 +153,24 @@ Creating temporary file "C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP1B.tmp" with conten
 ".\Debug\s_wp.sbr"
 ".\Debug\tsm.sbr"
 ".\Debug\txbuf.sbr"
+".\Debug\dlenv.sbr"
 ".\Debug\version.sbr"
 ".\Debug\whois.sbr"
-".\Debug\wp.sbr"]
-Creating command line "bscmake.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP1B.tmp"
+".\Debug\wp.sbr"
+".\Debug\ms-input.sbr"
+".\Debug\trendlog.sbr"
+".\Debug\h_rpm.sbr"
+".\Debug\rpm.sbr"
+".\Debug\bacdevobjpropref.sbr"
+".\Debug\memcopy.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\VMWare\LOCALS~1\Temp\RSP31.tmp"
 Creating browse info file...
 <h3>Output Window</h3>
 
 
 
 <h3>Results</h3>
-bacnet.exe - 0 error(s), 4 warning(s)
+bacnet.exe - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>
