@@ -86,7 +86,10 @@ void Analog_Input_Property_Lists(
 bool Analog_Input_Valid_Instance(
     uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_INPUTS)
+    unsigned int index;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS)
         return true;
 
     return false;
@@ -109,13 +112,29 @@ uint32_t Analog_Input_Index_To_Instance(
     return index;
 }
 
+/* we simply have 0-n object instances.  Yours might be */
+/* more complex, and then you need to return the index */
+/* that correlates to the correct instance number */
+unsigned Analog_Input_Instance_To_Index(
+    uint32_t object_instance)
+{
+    unsigned index = MAX_ANALOG_INPUTS;
+
+    if (object_instance < MAX_ANALOG_INPUTS)
+        index = object_instance;
+
+    return index;
+}
+
 float Analog_Input_Present_Value(
     uint32_t object_instance)
 {
     float value = 0.0;
+    unsigned int index;
 
-    if (object_instance < MAX_ANALOG_INPUTS) {
-        value = Present_Value[object_instance];
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        value = Present_Value[index];
     }
 
     return value;
@@ -125,8 +144,11 @@ void Analog_Input_Present_Value_Set(
     uint32_t object_instance,
     float value)
 {
-    if (object_instance < MAX_ANALOG_INPUTS) {
-        Present_Value[object_instance] = value;
+    unsigned int index;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        Present_Value[index] = value;
     }
 }
 
@@ -134,9 +156,11 @@ char *Analog_Input_Name(
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
+    unsigned int index;
 
-    if (object_instance < MAX_ANALOG_INPUTS) {
-        sprintf(text_string, "ANALOG INPUT %lu", (unsigned long)object_instance);
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        sprintf(text_string, "ANALOG INPUT %lu", (unsigned long)index);
         return text_string;
     }
 
