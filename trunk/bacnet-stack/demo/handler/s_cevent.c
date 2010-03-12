@@ -36,7 +36,14 @@
 
 /** @file s_cevent.c  Send a ConfirmedEventNotification Request. */
 
-/* returns the invoke id, 0=unsuccessful */
+/** Sends an Confirmed Alarm/Event Notification.
+ * @ingroup EVNOTFCN
+ *  
+ * @param device_id [in] ID of the destination device
+ * @param data [in] The information about the Event to be sent.
+ * @return invoke id of outgoing message, or 0 if communication is disabled,
+ *         or no tsm slot is available. 
+ */
 uint8_t Send_CEvent_Notify(
     uint32_t device_id,
     BACNET_EVENT_NOTIFICATION_DATA * data)

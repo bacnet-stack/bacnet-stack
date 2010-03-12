@@ -44,8 +44,18 @@
 
 /** @file h_ucov.c  Handles Unconfirmed COV Notifications. */
 
-/* note: nothing is specified in BACnet about what to do with the
-  information received from Unconfirmed COV Notifications. */
+/*  */
+/** Handler for an Unconfirmed COV Notification.
+ * @ingroup DSCOV
+ * Decodes the received list of Properties to update,
+ * and print them out with the subscription information. 
+ * @note Nothing is specified in BACnet about what to do with the
+ *       information received from Unconfirmed COV Notifications.
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message (unused)
+ */
 void handler_ucov_notification(
     uint8_t * service_request,
     uint16_t service_len,

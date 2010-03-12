@@ -250,4 +250,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @defgroup MISCHNDLR Miscellaneous Handler Utilities
+ * Various utilities and functions to support the Handlers.
+ */
+
+
 #endif

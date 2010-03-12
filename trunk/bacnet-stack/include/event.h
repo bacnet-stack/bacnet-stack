@@ -209,4 +209,42 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+/** @defgroup ALMEVNT Alarm and Event Management BIBBs
+ * These BIBBs prescribe the BACnet capabilities required to interoperably 
+ * perform the alarm and event management functions enumerated in 22.2.1.2 
+ * for the BACnet devices defined therein.
+ */
+
+/** @defgroup EVNOTFCN Alarm and Event-Notification (AE-N)
+ * @ingroup ALMEVNT
+ * 13.6 ConfirmedCOVNotification Service <br>
+ * The ConfirmedCOVNotification service is used to notify subscribers about 
+ * changes that may have occurred to the properties of a particular object. 
+ * Subscriptions for COV notifications are made using the SubscribeCOV service 
+ * or the SubscribeCOVProperty service.
+ * 
+ * 13.7 UnconfirmedCOVNotification Service <br>
+ * The UnconfirmedCOVNotification Service is used to notify subscribers about 
+ * changes that may have occurred to the properties of a particular object, 
+ * or to distribute object properties of wide interest (such as outside air 
+ * conditions) to many devices simultaneously without a subscription. 
+ * Subscriptions for COV notifications are made using the SubscribeCOV service. 
+ * For unsubscribed notifications, the algorithm for determining when to issue 
+ * this service is a local matter and may be based on a change of value, 
+ * periodic updating, or some other criteria.
+ */
+
+/** @defgroup ALMACK  Alarm and Event-ACK (AE-ACK)
+ * @ingroup ALMEVNT
+ * 13.5 AcknowledgeAlarm Service <br>
+ * In some systems a device may need to know that an operator has seen the alarm 
+ * notification. The AcknowledgeAlarm service is used by a notification-client 
+ * to acknowledge that a human operator has seen and responded to an event 
+ * notification with 'AckRequired' = TRUE. Ensuring that the acknowledgment 
+ * actually comes from a person with appropriate authority is a local matter. 
+ * This service may be used in conjunction with either the 
+ * ConfirmedEventNotification service or the UnconfirmedEventNotification service.
+ */
+
 #endif /* BACNET_EVENT_H_ */

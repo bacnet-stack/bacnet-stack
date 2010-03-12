@@ -39,6 +39,22 @@
 
 /** @file h_alarm_ack.c  Handles Alarm Acknowledgment. */
 
+/** Handler for an Alarm/Event Acknowledgement.
+ * @ingroup ALMACK
+ * This handler will be invoked by apdu_handler() if it has been enabled
+ * by a call to apdu_set_confirmed_handler().
+ * This handler builds a response packet, which is
+ * - an Abort if
+ *   - the message is segmented
+ *   - if decoding fails
+ * - Otherwise, sends a simple ACK
+ * 
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
+ *                          decoded from the APDU header of this message. 
+ */
 void handler_alarm_ack(
     uint8_t * service_request,
     uint16_t service_len,

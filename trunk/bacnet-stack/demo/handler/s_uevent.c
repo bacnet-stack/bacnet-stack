@@ -30,6 +30,14 @@
 
 /** @file s_uevent.c  Send an Unconfirmed Event Notification. */
 
+/** Sends an Unconfirmed Alarm/Event Notification.
+ * @ingroup EVNOTFCN
+ *  
+ * @param buffer [in,out] The buffer to build the message in for sending.
+ * @param data [in] The information about the Event to be sent.
+ * @param dest [in] The destination address information (may be a broadcast).
+ * @return Size of the message sent (bytes), or a negative value on error.
+ */
 int Send_UEvent_Notify(
     uint8_t * buffer,
     BACNET_EVENT_NOTIFICATION_DATA * data,

@@ -64,6 +64,13 @@ int ucov_notify_encode_pdu(
     return pdu_len;
 }
 
+/** Sends an Unconfirmed COV Notification.
+ * @ingroup DSCOV
+ *  
+ * @param buffer [in,out] The buffer to build the message in for sending.
+ * @param cov_data [in]  The COV update information to be encoded.
+ * @return Size of the message sent (bytes), or a negative value on error.
+ */
 int Send_UCOV_Notify(
     uint8_t * buffer,
     BACNET_COV_DATA * cov_data)
@@ -79,6 +86,14 @@ int Send_UCOV_Notify(
     return bytes_sent;
 }
 
+/** Sends a COV Subscription request.
+ * @ingroup DSCOV
+ *  
+ * @param device_id [in] ID of the destination device
+ * @param cov_data [in]  The COV subscription information to be encoded.
+ * @return invoke id of outgoing message, or 0 if communication is disabled or
+ *         no slot is available from the tsm for sending.
+ */
 uint8_t Send_COV_Subscribe(
     uint32_t device_id,
     BACNET_SUBSCRIBE_COV_DATA * cov_data)
