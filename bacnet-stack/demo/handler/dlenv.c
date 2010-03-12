@@ -37,6 +37,34 @@
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 
+/** Initialize the DataLink configuration from Environment variables, 
+ * or else to defaults.
+ * @ingroup MISCHNDLR
+ * The items configured depend on which BACDL_ the code is built for,
+ * eg, BACDL_BIP. 
+ * 
+ * For most items, checks first for an environment variable, and, if
+ * found, uses that to set the item's value.  Otherwise, will set
+ * to a default value. 
+ * 
+ * The Environment Variables, by BACDL_ type, are:
+ * - BACDL_ALL: (the general-purpose solution)
+ *   - BACNET_DATALINK to set which BACDL_ type we are using.
+ * - (Any):
+ *   - BACNET_APDU_TIMEOUT
+ *   - BACNET_IFACE
+ * - BACDL_BIP: (BACnet/IP)
+ *   - BACNET_IP_PORT
+ *   - with BBMD_ENABLED also:
+ *     - BACNET_BBMD_PORT
+ *     - BACNET_BBMD_TIMETOLIVE
+ *     - BACNET_BBMD_ADDRESS
+ * - BACDL_MSTP: (BACnet MS/TP)
+ *   - BACNET_MAX_INFO_FRAMES
+ *   - BACNET_MAX_MASTER
+ *   - BACNET_MSTP_BAUD
+ *   - BACNET_MSTP_MAC
+ */
 void dlenv_init(
     void)
 {
