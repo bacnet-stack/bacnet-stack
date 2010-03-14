@@ -74,7 +74,15 @@ static int Device_Read_Property_Local(
 static bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-/* all object helper functions */ 
+/** Defines the group of object helper functions for any supported Object. 
+ * @ingroup ObjHelpers 
+ * Each Object must provide some implementation of each of these helpers
+ * in order to properly support the handlers.  Eg, the ReadProperty handler
+ * handler_read_property() relies on the instance of Object_Read_Property
+ * for each Object type.
+ * In both appearance and operation, this group of functions acts like
+ * they are member functions of a C++ Object base class.
+ */ 
 static struct object_functions {
     BACNET_OBJECT_TYPE Object_Type;
     object_init_function Object_Init;
@@ -223,6 +231,13 @@ static struct object_functions {
     {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
+/** Glue function to let the Device object, when called by a handler,
+ * lookup which Object type needs to be invoked.
+ * @ingroup ObjHelpers 
+ * @param Object_Type [in] The type of BACnet Object the handler wants to access.
+ * @return Pointer to the group of object helper functions that implement this
+ *         type of Object. 
+ */
 static struct object_functions * Device_Objects_Find_Functions(
     BACNET_OBJECT_TYPE Object_Type)
 {
@@ -241,8 +256,15 @@ static struct object_functions * Device_Objects_Find_Functions(
     return(NULL);
 }
 
-/* Try and find an rr_info_function for the requested object type */
-
+/** Try to find a rr_info_function helper function for the requested object type.
+ * @ingroup ObjIntf
+ * 
+ * @param object_type [in] The type of BACnet Object the handler wants to access.
+ * @return Pointer to the object helper function that implements the 
+ *         ReadRangeInfo function, Object_RR_Info, for this type of Object on 
+ *         success, else a NULL pointer if the type of Object isn't supported 
+ *         or doesn't have a ReadRangeInfo function.
+ */
 rr_info_function Device_Objects_RR_Info(
     BACNET_OBJECT_TYPE object_type)
 
@@ -268,7 +290,17 @@ static unsigned property_list_count(
     return property_count;
 }
 
-/* for a given object type, returns the special property list */
+/** For a given object type, returns the special property list.
+ * This function is used for ReadPropertyMultiple calls which want
+ * just Required, just Optional, or All properties.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The desired BACNET_OBJECT_TYPE whose properties
+ *            are to be listed.
+ * @param pPropertyList [out] Reference to the structure which will, on return,
+ *            list, separately, the Required, Optional, and Proprietary object
+ *            properties with their counts.
+ */
 void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
@@ -305,6 +337,19 @@ void Device_Objects_Property_List(
     return;
 }
 
+/** Commands a Device re-initialization, to a given state.
+ * The request's password must match for the operation to succeed.
+ * This implementation provides a framework, but doesn't
+ * actually *DO* anything.
+ * @note You could use a mix of states and passwords to multiple outcomes.
+ * @note You probably want to restart *after* the simple ack has been sent
+ *       from the return handler, so just set a local flag here.
+ * @ingroup ObjIntf
+ *
+ * @param rd_data [in,out] The information from the RD request.
+ *                         On failure, the error class and code will be set.
+ * @return True if succeeds (password is correct), else False.
+ */
 bool Device_Reinitialize(        
     BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
@@ -470,6 +515,13 @@ uint32_t Device_Index_To_Instance(
 }
 
 /* methods to manipulate the data */
+
+/** Return the Object Instance number for our (single) Device Object.
+ * This is a key function, widely invoked by the handler code, since
+ * it provides "our" (ie, local) address.
+ * @ingroup ObjIntf
+ * @return The Instance number used in the BACNET_OBJECT_ID for the Device.
+ */
 uint32_t Device_Object_Instance_Number(
     void)
 {
@@ -613,6 +665,10 @@ const char *Device_Vendor_Name(
     return Vendor_Name;
 }
 
+/** Returns the Vendor ID for this Device.
+ * See the assignments at http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+ * @return The Vendor ID of this Device.
+ */
 uint16_t Device_Vendor_Identifier(
     void)
 {
@@ -811,6 +867,14 @@ bool Device_Object_List_Identifier(
     return status;
 }
 
+/** Determine if we have an object with the given object_name.
+ * If the object_type and object_instance pointers are not null,
+ * and the lookup succeeds, they will be given the resulting values.
+ * @param object_name [in] The desired Object Name to look for.
+ * @param object_type [out] The BACNET_OBJECT_TYPE of the matching Object.
+ * @param object_instance [out] The object instance number of the matching Object.
+ * @return True on success or else False if not found.
+ */
 bool Device_Valid_Object_Name(
     const char *object_name,
     int *object_type,
@@ -844,7 +908,11 @@ bool Device_Valid_Object_Name(
     return found;
 }
 
-/* returns the name or NULL if not found */
+/** Determine if we have an object of this type and instance number.
+ * @param object_type [in] The desired BACNET_OBJECT_TYPE
+ * @param object_instance [in] The object instance number to be looked up.
+ * @return The Object Name or else NULL if not found
+ */
 char *Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
@@ -1166,8 +1234,14 @@ static int Device_Read_Property_Local(
     return apdu_len;
 }
 
-/* Encodes the property APDU and returns the length,
-   or sets the error, and returns -1 */
+/** Looks up the requested Object and Property, and encodes its Value in an APDU.
+ * @ingroup ObjIntf
+ * If the Object or Property can't be found, sets the error class and code.
+ * 
+ * @param rpdata [in,out] Structure with the desired Object and Property info
+ * 				on entry, and APDU message on return.
+ * @return The length of the APDU on success, else -1
+ */
 int Device_Read_Property(
     BACNET_READ_PROPERTY_DATA *rpdata)
 {
@@ -1280,7 +1354,7 @@ static bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             status = WPValidateString(&value, 
-                MAX_DEV_LOC_LEN, 
+            	MAX_DEV_NAME_LEN,
                 false, 
                 &wp_data->error_class, 
                 &wp_data->error_code);
@@ -1362,6 +1436,15 @@ static bool Device_Write_Property_Local(
     return status;
 }
 
+/** Looks up the requested Object and Property, and set the new Value in it,
+ *  if allowed.
+ * If the Object or Property can't be found, sets the error class and code.
+ * @ingroup ObjIntf
+ * 
+ * @param wp_data [in,out] Structure with the desired Object and Property info
+ *              and new Value on entry, and APDU message on return.
+ * @return True on success, else False if there is an error.
+ */
 bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
@@ -1390,9 +1473,13 @@ bool Device_Write_Property(
         wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
 
-    return apdu_len;    
+    return ( ( apdu_len > 0 ) ? true : false );     
 }
 
+
+/** Initialize the Device Object and each of its child Object instances.
+ * @ingroup ObjIntf
+ */
 void Device_Init(
     void)
 {

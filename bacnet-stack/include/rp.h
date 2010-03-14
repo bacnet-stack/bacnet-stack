@@ -52,6 +52,7 @@ typedef struct BACnet_Read_Property_Data {
 
 /** Reads one property for this object type of a given instance.
  * A function template; @see device.c for assignment to object types.
+ * @ingroup ObjHelpers 
  *
  * @param rp_data [in] Pointer to the BACnet_Read_Property_Data structure,
  *                     which is packed with the information from the RP request.

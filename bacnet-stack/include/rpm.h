@@ -52,6 +52,7 @@ typedef struct BACnet_Read_Access_Data {
 /** Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for this
  *  object type, grouped by Required, Optional, and Proprietary.
  * A function template; @see device.c for assignment to object types.
+ * @ingroup ObjHelpers 
  *
  * @param pRequired [out] Pointer reference for the list of Required properties.
  * @param pOptional [out] Pointer reference for the list of Optional properties.
