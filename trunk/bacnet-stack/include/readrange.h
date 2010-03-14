@@ -125,6 +125,8 @@ typedef struct rrpropertyinfo {
     } RR_PROP_INFO;
 
 /** Function template for ReadRange information retrieval function.
+ * A function template; @see device.c for assignment to object types.
+ * @ingroup ObjHelpers 
  * @param pRequest [in]	Info on the request.
  * @param pInfo [out]   Where to write the response to.
  * @return True on success, False on error or failure.

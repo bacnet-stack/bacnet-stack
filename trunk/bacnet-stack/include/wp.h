@@ -58,6 +58,7 @@ typedef struct BACnet_Write_Property_Data {
 /** Attempts to write a new value to one property for this object type
  *  of a given instance.
  * A function template; @see device.c for assignment to object types.
+ * @ingroup ObjHelpers 
  *
  * @param wp_data [in] Pointer to the BACnet_Write_Property_Data structure,
  *                     which is packed with the information from the WP request.
