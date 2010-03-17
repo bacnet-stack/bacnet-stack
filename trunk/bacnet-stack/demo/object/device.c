@@ -1448,7 +1448,7 @@ static bool Device_Write_Property_Local(
 bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
-    int apdu_len = -1;
+    bool status = false; /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
 
     /* initialize the default return values */
@@ -1459,7 +1459,7 @@ bool Device_Write_Property(
        if (pObject->Object_Valid_Instance && 
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
             if (pObject->Object_Write_Property) {
-                apdu_len = pObject->Object_Write_Property(wp_data);
+                status = pObject->Object_Write_Property(wp_data);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -1473,7 +1473,7 @@ bool Device_Write_Property(
         wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
 
-    return ( ( apdu_len > 0 ) ? true : false );     
+    return(status);     
 }
 
 
