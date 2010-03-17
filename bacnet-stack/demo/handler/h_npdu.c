@@ -47,32 +47,32 @@ void npdu_handler(
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
-    apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
-    if (npdu_data.network_layer_message) {
-        /*FIXME: network layer message received!  Handle it! */
+    /* only handle the version that we know how to handle */
+    if (pdu[0] == BACNET_PROTOCOL_VERSION) {
+        apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+        if (npdu_data.network_layer_message) {
+            /*FIXME: network layer message received!  Handle it! */
 #if PRINT_ENABLED
-        printf("NPDU: Network Layer Message discarded!\n");
+            printf("NPDU: Network Layer Message discarded!\n");
 #endif
-    } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
-        if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
-            ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK))) {
-            /* only handle the version that we know how to handle */
-            /* and we are not a router, so ignore messages with
-               routing information cause they are not for us */
-            apdu_handler(src, &pdu[apdu_offset],
-                (uint16_t) (pdu_len - apdu_offset));
-        } else {
-            if (dest.net) {
+        } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
+            if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
+                /* only handle the version that we know how to handle */
+                /* and we are not a router, so ignore messages with
+                   routing information cause they are not for us */
+                apdu_handler(src, &pdu[apdu_offset],
+                    (uint16_t) (pdu_len - apdu_offset));
+            } else {
 #if PRINT_ENABLED
                 printf("NPDU: DNET=%u.  Discarded!\n", (unsigned)dest.net);
 #endif
-            } else {
-#if PRINT_ENABLED
-                printf("NPDU: BACnet Protocol Version=%u.  Discarded!\n",
-                    (unsigned)npdu_data.protocol_version);
-#endif
             }
         }
+    } else {
+#if PRINT_ENABLED
+        printf("NPDU: BACnet Protocol Version=%u.  Discarded!\n", 
+            (unsigned)pdu[0]);
+#endif
     }
 
     return;
