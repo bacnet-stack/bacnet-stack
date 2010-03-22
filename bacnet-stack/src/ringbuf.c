@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2004 by Steve Karg
+ Copyright (C) 2008 by Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -33,14 +33,37 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-/** @file ringbuf.c  Generic ring buffer library for deeply embedded system. */
-
 /* Functional Description: Generic ring buffer library for deeply
    embedded system. See the unit tests for usage examples. */
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include "ringbuf.h"
+
+/****************************************************************************
+* DESCRIPTION: Returns the number of elements in the ring buffer
+* RETURN:      Number of elements in the ring buffer
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+unsigned Ringbuf_Count (
+    RING_BUFFER const *b)
+{
+    return (b ? (b->head - b->tail) : 0);
+}
+
+/****************************************************************************
+* DESCRIPTION: Returns the empty/full status of the ring buffer
+* RETURN:      true if the ring buffer is full, false if it is not.
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+bool Ringbuf_Full (
+    RING_BUFFER const *b)
+{
+    return (b ? (Ringbuf_Count(b) == b->element_count) : true);
+}
 
 /****************************************************************************
 * DESCRIPTION: Returns the empty/full status of the ring buffer
@@ -51,7 +74,7 @@
 bool Ringbuf_Empty(
     RING_BUFFER const *b)
 {
-    return (b ? b->count == 0 : true);
+    return (b ? (Ringbuf_Count(b) == 0) : true);
 }
 
 /****************************************************************************
@@ -60,11 +83,11 @@ bool Ringbuf_Empty(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-char *Ringbuf_Get_Front(
+uint8_t *Ringbuf_Get_Front(
     RING_BUFFER const *b)
 {
     if (b) {
-        return (b->count ? &(b->data[b->head * b->element_size]) : NULL);
+        return (!Ringbuf_Empty(b) ? &(b->data[(b->tail % b->element_count) * b->element_size]) : NULL);
     }
     return NULL;
 }
@@ -75,20 +98,17 @@ char *Ringbuf_Get_Front(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-char *Ringbuf_Pop_Front(
+uint8_t *Ringbuf_Pop_Front(
     RING_BUFFER * b)
 {
-    char *ring_data = NULL;     /* used to help point ring data */
+    uint8_t *data = NULL;  /* return value */
 
-    if (b && b->count) {
-        ring_data = &(b->data[b->head * b->element_size]);
-        b->head++;
-        if (b->head >= b->element_count)
-            b->head = 0;
-        b->count--;
+    if (!Ringbuf_Empty(b)) {
+        data = &(b->data[(b->tail % b->element_count) * b->element_size]);
+        b->tail++;
     }
 
-    return ring_data;
+    return data;
 }
 
 /****************************************************************************
@@ -99,24 +119,20 @@ char *Ringbuf_Pop_Front(
 *****************************************************************************/
 bool Ringbuf_Put(
     RING_BUFFER * b,    /* ring buffer structure */
-    char *data_element)
+    uint8_t *data_element)
 {       /* one element to add to the ring */
     bool status = false;        /* return value */
-    unsigned offset = 0;        /* offset into array of data */
-    char *ring_data = NULL;     /* used to help point ring data */
+    uint8_t *ring_data = NULL;     /* used to help point ring data */
     unsigned i; /* loop counter */
 
     if (b && data_element) {
-        /* limit the amount of data that we accept */
-        if (b->count < b->element_count) {
-            offset = b->head + b->count;
-            if (offset >= b->element_count)
-                offset -= b->element_count;
-            ring_data = b->data + offset * b->element_size;
+        /* limit the amount of elements that we accept */
+        if (!Ringbuf_Full(b)) {
+            ring_data = b->data + ((b->head % b->element_count) * b->element_size);
             for (i = 0; i < b->element_size; i++) {
                 ring_data[i] = data_element[i];
             }
-            b->count++;
+            b->head++;
             status = true;
         }
     }
@@ -125,47 +141,43 @@ bool Ringbuf_Put(
 }
 
 /****************************************************************************
-* DESCRIPTION: Allocates and adds an element of data to the ring buffer
-* RETURN:      pointer to the data, or NULL if nothing in the list
+* DESCRIPTION: Reserves and gets the next data portion of the buffer.
+* RETURN:      pointer to the data, or NULL if the list is full
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-char * Ringbuf_Alloc(
-    RING_BUFFER * b)
-{ 
-    unsigned offset = 0;        /* offset into array of data */
-    char *ring_data = NULL;     /* used to help point ring data */
+uint8_t *Ringbuf_Alloc(
+    RING_BUFFER *b)
+{
+    uint8_t *ring_data = NULL;     /* used to help point ring data */
 
     if (b) {
-        /* limit the amount of data that we accept */
-        if (b->count < b->element_count) {
-            offset = b->head + b->count;
-            if (offset >= b->element_count)
-                offset -= b->element_count;
-            ring_data = b->data + offset * b->element_size;
-            b->count++;
+        /* limit the amount of elements that we accept */
+        if (!Ringbuf_Full(b)) {
+            ring_data = b->data + ((b->head % b->element_count) * b->element_size);
+            b->head++;
         }
     }
 
     return ring_data;
 }
 
-
 /****************************************************************************
 * DESCRIPTION: Configures the ring buffer
 * RETURN:      none
 * ALGORITHM:   none
-* NOTES:       none
+* NOTES:
+*   element_count must be a power of two
 *****************************************************************************/
 void Ringbuf_Init(
     RING_BUFFER * b,    /* ring buffer structure */
-    char *data, /* data block or array of data */
+    uint8_t *data, /* data block or array of data */
     unsigned element_size,      /* size of one element in the data block */
     unsigned element_count)
 {       /* number of elements in the data block */
     if (b) {
         b->head = 0;
-        b->count = 0;
+        b->tail = 0;
         b->data = data;
         b->element_size = element_size;
         b->element_count = element_count;
@@ -180,122 +192,144 @@ void Ringbuf_Init(
 
 #include "ctest.h"
 
-/* test the FIFO */
-#define RING_BUFFER_DATA_SIZE 5
-#define RING_BUFFER_COUNT 16
+/* test the ring buffer */
 void testRingBuf(
-    Test * pTest)
+    Test * pTest,
+    uint8_t *data_store,
+    uint8_t *data_element,
+    unsigned element_size,
+    unsigned element_count)
 {
     RING_BUFFER test_buffer;
-    char data_store[RING_BUFFER_DATA_SIZE * RING_BUFFER_COUNT];
-    char data[RING_BUFFER_DATA_SIZE];
-    char *test_data;
+    uint8_t *test_data;
     unsigned index;
     unsigned data_index;
     unsigned count;
     unsigned dummy;
     bool status;
 
-    Ringbuf_Init(&test_buffer, data_store, RING_BUFFER_DATA_SIZE,
-        RING_BUFFER_COUNT);
+    Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
-    for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-        data[data_index] = data_index;
+    for (data_index = 0; data_index < element_size; data_index++) {
+        data_element[data_index] = data_index;
     }
-    status = Ringbuf_Put(&test_buffer, data);
+    status = Ringbuf_Put(&test_buffer, data_element);
     ct_test(pTest, status == true);
     ct_test(pTest, !Ringbuf_Empty(&test_buffer));
 
     test_data = Ringbuf_Get_Front(&test_buffer);
-    for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-        ct_test(pTest, test_data[data_index] == data[data_index]);
+    for (data_index = 0; data_index < element_size; data_index++) {
+        ct_test(pTest, test_data[data_index] == data_element[data_index]);
     }
     ct_test(pTest, !Ringbuf_Empty(&test_buffer));
 
     test_data = Ringbuf_Pop_Front(&test_buffer);
-    for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-        ct_test(pTest, test_data[data_index] == data[data_index]);
+    for (data_index = 0; data_index < element_size; data_index++) {
+        ct_test(pTest, test_data[data_index] == data_element[data_index]);
     }
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
     /* fill to max */
-    for (index = 0; index < RING_BUFFER_COUNT; index++) {
-        for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-            data[data_index] = index;
+    for (index = 0; index < element_count; index++) {
+        for (data_index = 0; data_index < element_size; data_index++) {
+            data_element[data_index] = index;
         }
-        status = Ringbuf_Put(&test_buffer, data);
+        status = Ringbuf_Put(&test_buffer, data_element);
         ct_test(pTest, status == true);
         ct_test(pTest, !Ringbuf_Empty(&test_buffer));
     }
     /* verify actions on full buffer */
-    for (index = 0; index < RING_BUFFER_COUNT; index++) {
-        for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-            data[data_index] = index;
+    for (index = 0; index < element_count; index++) {
+        for (data_index = 0; data_index < element_size; data_index++) {
+            data_element[data_index] = index;
         }
-        status = Ringbuf_Put(&test_buffer, data);
+        status = Ringbuf_Put(&test_buffer, data_element);
         ct_test(pTest, status == false);
         ct_test(pTest, !Ringbuf_Empty(&test_buffer));
     }
 
     /* check buffer full */
-    for (index = 0; index < RING_BUFFER_COUNT; index++) {
+    for (index = 0; index < element_count; index++) {
         test_data = Ringbuf_Get_Front(&test_buffer);
-        for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-            ct_test(pTest, test_data[data_index] == index);
+        ct_test(pTest, test_data);
+        if (test_data) {
+            for (data_index = 0; data_index < element_size; data_index++) {
+                ct_test(pTest, test_data[data_index] == index);
+            }
         }
 
         test_data = Ringbuf_Pop_Front(&test_buffer);
-        for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-            ct_test(pTest, test_data[data_index] == index);
+        ct_test(pTest, test_data);
+        if (test_data) {
+            for (data_index = 0; data_index < element_size; data_index++) {
+                ct_test(pTest, test_data[data_index] == index);
+            }
         }
     }
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
     /* test the ring around the buffer */
-    for (index = 0; index < RING_BUFFER_COUNT; index++) {
+    for (index = 0; index < element_count; index++) {
         for (count = 1; count < 4; count++) {
             dummy = index * count;
-            for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE;
+            for (data_index = 0; data_index < element_size;
                 data_index++) {
-                data[data_index] = dummy;
+                data_element[data_index] = dummy;
             }
-            status = Ringbuf_Put(&test_buffer, data);
+            status = Ringbuf_Put(&test_buffer, data_element);
             ct_test(pTest, status == true);
         }
 
         for (count = 1; count < 4; count++) {
             dummy = index * count;
             test_data = Ringbuf_Get_Front(&test_buffer);
-            for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE;
-                data_index++) {
-                ct_test(pTest, test_data[data_index] == dummy);
+            ct_test(pTest, test_data);
+            if (test_data) {
+                for (data_index = 0; data_index < element_size;
+                    data_index++) {
+                    ct_test(pTest, test_data[data_index] == dummy);
+                }
             }
 
             test_data = Ringbuf_Pop_Front(&test_buffer);
-            for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE;
-                data_index++) {
-                ct_test(pTest, test_data[data_index] == dummy);
+            ct_test(pTest, test_data);
+            if (test_data) {
+                for (data_index = 0; data_index < element_size;
+                    data_index++) {
+                    ct_test(pTest, test_data[data_index] == dummy);
+                }
             }
         }
     }
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
-    /* test the alloc feature */
-    test_data = Ringbuf_Alloc(&test_buffer);
-    ct_test(pTest, test_data != NULL);
-    ct_test(pTest, !Ringbuf_Empty(&test_buffer));
-    for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-        test_data[data_index] = data_index;
-    }
-    test_data = Ringbuf_Pop_Front(&test_buffer);
-    ct_test(pTest, test_data != NULL);
-    ct_test(pTest, Ringbuf_Empty(&test_buffer));
-    for (data_index = 0; data_index < RING_BUFFER_DATA_SIZE; data_index++) {
-        ct_test(pTest, test_data[data_index] == data_index);
-    }
+
 
     return;
 }
+
+void testRingBufSize16(
+    Test * pTest)
+{
+    uint8_t data_element[5];
+    uint8_t data_store[sizeof(data_element) * 16];
+
+    testRingBuf(pTest,data_store,data_element,
+        sizeof(data_element),
+        sizeof(data_store)/sizeof(data_element));
+}
+
+void testRingBufSize32(
+    Test * pTest)
+{
+    uint8_t data_element[16];
+    uint8_t data_store[sizeof(data_element) * 32];
+
+    testRingBuf(pTest,data_store,data_element,
+        sizeof(data_element),
+        sizeof(data_store)/sizeof(data_element));
+}
+
 
 #ifdef TEST_RINGBUF
 int main(
@@ -307,7 +341,9 @@ int main(
     pTest = ct_create("ringbuf", NULL);
 
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testRingBuf);
+    rc = ct_addTestFunction(pTest, testRingBufSize16);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testRingBufSize32);
     assert(rc);
 
     ct_setStream(pTest, stdout);
