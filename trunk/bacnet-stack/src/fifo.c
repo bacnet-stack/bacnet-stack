@@ -49,7 +49,7 @@
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static unsigned FIFO_Count(
+unsigned FIFO_Count(
     FIFO_BUFFER const *b)
 {
     return (b ? (b->head - b->tail) : 0);
@@ -61,7 +61,7 @@ static unsigned FIFO_Count(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static bool FIFO_Full(
+bool FIFO_Full(
     FIFO_BUFFER const *b)
 {
     return (b ? (FIFO_Count(b) == b->buffer_len) : true);
