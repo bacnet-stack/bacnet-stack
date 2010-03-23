@@ -158,6 +158,15 @@ extern "C" {
     bool apdu_service_supported(
         BACNET_SERVICES_SUPPORTED service_supported);
 
+/* Function to translate a SERVICE_SUPPORTED_ enum to its SERVICE_CONFIRMED_
+ *  or SERVICE_UNCONFIRMED_ index.
+ */
+    bool apdu_service_supported_to_index(
+        BACNET_SERVICES_SUPPORTED service_supported,
+        size_t *index, 
+        bool *bIsConfirmed );
+
+
     void apdu_set_error_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         error_function pFunction);
