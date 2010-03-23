@@ -166,6 +166,50 @@ bool apdu_service_supported(
     return status;
 }
 
+/** Function to translate a SERVICE_SUPPORTED_ enum to its SERVICE_CONFIRMED_
+ *  or SERVICE_UNCONFIRMED_ index.
+ *  Useful with the bactext_confirmed_service_name() functions.
+ *  
+ * @param service_supported [in] The SERVICE_SUPPORTED_ enum value to convert.
+ * @param index [out] The SERVICE_CONFIRMED_ or SERVICE_UNCONFIRMED_ index,
+ *                    if found.
+ * @param bIsConfirmed [out] True if index is a SERVICE_CONFIRMED_ type.
+ * @return True if a match was found and index and bIsConfirmed are valid.
+ */
+bool apdu_service_supported_to_index(
+    BACNET_SERVICES_SUPPORTED service_supported,
+    size_t *index, 
+    bool *bIsConfirmed )
+{
+    int i = 0;
+    *bIsConfirmed = false;
+    bool found = false;
+
+    if (service_supported < MAX_BACNET_SERVICES_SUPPORTED) {
+        /* is it a confirmed service? */
+        for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
+            if (confirmed_service_supported[i] == service_supported) {
+                found = true;
+                *index = i;
+                *bIsConfirmed = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            /* is it an unconfirmed service? */
+            for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
+                if (unconfirmed_service_supported[i] == service_supported) {
+                    found = true;
+                    *index = i;
+                    break;
+                }
+            }
+        }
+    }
+    return found;
+}
+
 /* Confirmed ACK Function Handlers */
 static void *Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 

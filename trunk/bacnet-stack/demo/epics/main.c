@@ -135,6 +135,85 @@ void MyRejectHandler(
     Error_Detected = true;
 }
 
+/** Provide a nicer output for Supported Services and Object Types.
+ * 
+ * @param stream
+ * @param value
+ * @param property
+ * @return
+ */
+ 
+ bool PrettyPrintPropertyValue(
+    FILE * stream,
+    BACNET_APPLICATION_DATA_VALUE * value,
+    BACNET_PROPERTY_ID property)
+{
+    bool status = true; /*return value */
+    size_t len = 0, i = 0, j = 0;
+
+    if ( (value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) &&
+         ( (property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) || 
+           (property == PROP_PROTOCOL_SERVICES_SUPPORTED) ) )
+     {
+        len = bitstring_bits_used(&value->type.Bit_String);
+        fprintf(stream, "{ \r\n        ");
+        for (i = 0; i < len; i++) {
+            fprintf(stream, "%s",
+                bitstring_bit(&value->type.Bit_String,
+                    (uint8_t) i) ? " true" : "false");
+            if (i < len - 1)
+                fprintf(stream, ",");
+            else
+                fprintf(stream, " ");
+            if ( (i == (len-1) ) || ( (i % 8) == 7 ) )       // line break every 8
+            {
+                fprintf(stream, "   # ");
+                // Now rerun the same 8 bits, but print labels for true ones
+                for ( j = i - (i%8); j <= i; j++)
+                {
+                    if ( bitstring_bit(&value->type.Bit_String, (uint8_t) j) )
+                    {
+                        if (property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) 
+                            fprintf( stream, " %s,", bactext_object_type_name(j) );
+                        // PROP_PROTOCOL_SERVICES_SUPPORTED
+                        else
+                        {
+                            bool bIsConfirmed;
+                            size_t newIndex;
+                            if ( apdu_service_supported_to_index( j,
+                                            &newIndex, &bIsConfirmed ) )
+                            { 
+                                if ( bIsConfirmed )   
+                                    fprintf( stream, " %s,", 
+                                         bactext_confirmed_service_name(newIndex) );
+                            
+                                else 
+                                    fprintf( stream, " %s,", 
+                                        bactext_unconfirmed_service_name( 
+                                                        (newIndex) ) );
+                               
+                            }
+                        }
+                     }
+                    else    // not supported
+                        fprintf( stream, "," );
+                }
+                fprintf(stream, "\r\n        ");
+           }
+         }
+        fprintf(stream, "}");
+     }
+     else 
+     {
+         /* How did I get here?  Fix your code. */
+         /* Meanwhile, a safe fallback plan */
+         status = bacapp_print_value(stdout, value, property);
+     }
+
+    return status;
+}
+
+
 void PrintReadPropertyData(
     BACNET_READ_PROPERTY_DATA * data)
 {
@@ -198,7 +277,13 @@ void PrintReadPropertyData(
                         fprintf(stdout, "\r\n");
                     }
                 }
-            } else {
+            } 
+            else if ( (data->object_property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) || 
+                      (data->object_property == PROP_PROTOCOL_SERVICES_SUPPORTED) )
+            {
+                PrettyPrintPropertyValue(stdout, &value, data->object_property);
+            }
+            else {
                 bacapp_print_value(stdout, &value, data->object_property);
             }
             if (len) {
