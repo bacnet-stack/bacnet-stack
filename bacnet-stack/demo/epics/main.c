@@ -137,10 +137,10 @@ void MyRejectHandler(
 
 /** Provide a nicer output for Supported Services and Object Types.
  * 
- * @param stream
- * @param value
- * @param property
- * @return
+ * @param stream [in] Normally stdout
+ * @param value [in] The structure holding this property's value (union) and type.
+ * @param property [in] Which property we are printing.
+ * @return True if success.  Or otherwise.
  */
  
  bool PrettyPrintPropertyValue(
@@ -165,11 +165,12 @@ void MyRejectHandler(
                 fprintf(stream, ",");
             else
                 fprintf(stream, " ");
-            if ( (i == (len-1) ) || ( (i % 8) == 7 ) )       // line break every 8
+            // Tried with 8 per line, but with the comments, got way too long.
+            if ( (i == (len-1) ) || ( (i % 4) == 3 ) )       // line break every 4
             {
                 fprintf(stream, "   # ");
-                // Now rerun the same 8 bits, but print labels for true ones
-                for ( j = i - (i%8); j <= i; j++)
+                // Now rerun the same 4 bits, but print labels for true ones
+                for ( j = i - (i%4); j <= i; j++)
                 {
                     if ( bitstring_bit(&value->type.Bit_String, (uint8_t) j) )
                     {
