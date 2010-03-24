@@ -36,10 +36,30 @@
 
 /** @file datalink.c  Optional run-time assignment of datalink transport */
 
-#if defined(BACDL_ALL)
+#if defined(BACDL_ALL) || defined FOR_DOXYGEN
 /* Function pointers - point to your datalink */
+
+/** Function template to Initialize the DataLink services at the given interface.
+ * @ingroup DLTemplates
+ * 
+ * @note For Linux, ifname is eth0, ath0, arc0, ttyS0, and others.
+         For Windows, ifname is the COM port or dotted ip address of the interface.
+         
+ * @param ifname [in] The named interface to use for the network layer.
+ * @return True if the interface is successfully initialized,
+ *         else False if the initialization fails.
+ */
 bool(*datalink_init) (char *ifname);
 
+/** Function template to send a packet via the DataLink.
+ * @ingroup DLTemplates
+ *
+ * @param dest [in] Destination address.
+ * @param npdu_data [in] The NPDU header (Network) information.
+ * @param pdu [in] Buffer of data to be sent - may be null.
+ * @param pdu_len [in] Number of bytes in the pdu buffer.
+ * @return Number of bytes sent on success, negative number on failure.
+ */
 int (
     *datalink_send_pdu) (
     BACNET_ADDRESS * dest,
@@ -50,6 +70,9 @@ int (
 uint16_t(*datalink_receive) (BACNET_ADDRESS * src, uint8_t * pdu,
     uint16_t max_pdu, unsigned timeout);
 
+/** Function template to close the DataLink services and perform any cleanup.
+ * @ingroup DLTemplates
+ */
 void (
     *datalink_cleanup) (
     void);

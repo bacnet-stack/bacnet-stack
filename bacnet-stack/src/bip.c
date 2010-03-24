@@ -52,12 +52,20 @@ static struct in_addr BIP_Address;
 /* Broadcast Address - stored in host byte order */
 static struct in_addr BIP_Broadcast_Address;
 
+/** Setter for the BACnet/IP socket handle.
+ * 
+ * @param sock_fd [in] Handle for the BACnet/IP socket.
+ */
 void bip_set_socket(
     int sock_fd)
 {
     BIP_Socket = sock_fd;
 }
 
+/** Getter for the BACnet/IP socket handle.
+ * 
+ * @return The handle to the BACnet/IP socket.
+ */
 int bip_socket(
     void)
 {
@@ -70,6 +78,9 @@ bool bip_valid(
     return (BIP_Socket != -1);
 }
 
+/** Cleanup and close out the BACnet/IP services by closing the socket.
+ * @ingroup DLBIP
+  */
 void bip_cleanup(
     void)
 {
@@ -140,8 +151,15 @@ static int bip_decode_bip_address(
     return len;
 }
 
-/* function to send a packet out the BACnet/IP socket (Annex J) */
-/* returns number of bytes sent on success, negative number on failure */
+/** Function to send a packet out the BACnet/IP socket (Annex J).
+ * @ingroup DLBIP
+ *
+ * @param dest [in] Destination address (may encode an IP address and port #).
+ * @param npdu_data [in] The NPDU header (Network) information (not used).
+ * @param pdu [in] Buffer of data to be sent - may be null (why?).
+ * @param pdu_len [in] Number of bytes in the pdu buffer.
+ * @return Number of bytes sent on success, negative number on failure.
+ */
 int bip_send_pdu(
     BACNET_ADDRESS * dest,      /* destination address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
