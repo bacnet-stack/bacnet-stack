@@ -83,7 +83,7 @@
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #define datalink_get_my_address bip_get_my_address
 
-#else
+#else               /* Ie, BACDL_ALL */
 #include "npdu.h"
 
 #define MAX_HEADER (8)
@@ -118,4 +118,35 @@ extern "C" {
 }
 #endif /* __cplusplus */
 #endif
+
+/** @defgroup DataLink The BACnet Network (DataLink) Layer
+ * <b>6 THE NETWORK LAYER </b><br>
+ * The purpose of the BACnet network layer is to provide the means by which 
+ * messages can be relayed from one BACnet network to another, regardless of 
+ * the BACnet data link technology in use on that network. Whereas the data 
+ * link layer provides the capability to address messages to a single device 
+ * or broadcast them to all devices on the local network, the network layer 
+ * allows messages to be directed to a single remote device, broadcast on a 
+ * remote network, or broadcast globally to all devices on all networks. 
+ * A BACnet Device is uniquely located by a network number and a MAC address.
+ * 
+ * Each client or server application must define exactly one of these
+ * DataLink settings, which will control which parts of the code will be built:
+ * - BACDL_ETHERNET -- for Clause 7 ISO 8802-3 ("Ethernet") LAN
+ * - BACDL_ARCNET   -- for Clause 8 ARCNET LAN
+ * - BACDL_MSTP     -- for Clause 9 MASTER-SLAVE/TOKEN PASSING (MS/TP) LAN
+ * - BACDL_BIP      -- for ANNEX J - BACnet/IP 
+ * - BACDL_ALL      -- Unspecified for the build, so the transport can be 
+ *                     chosen at runtime from among these choices.
+ * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
+ *   are not currently supported by this project.
+ */
+
+/** @defgroup DLTemplates DataLink Template Functions
+ * @ingroup DataLink
+ * Most of the functions in this group are function templates which are assigned
+ * to a specific DataLink network layer implementation either at compile time or
+ * at runtime.
+ */
+
 #endif

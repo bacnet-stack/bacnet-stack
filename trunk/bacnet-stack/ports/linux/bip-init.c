@@ -96,7 +96,12 @@ static int get_local_address_ioctl(
     return rv;
 }
 
-/* on Linux, ifname is eth0, ath0, arc0, and others. */
+/** Gets the local IP address and local broadcast address from the system,
+ *  and saves it into the BACnet/IP data structures.
+ * 
+ * @param ifname [in] The named interface to use for the network layer.
+ *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
+ */
 static void bip_set_interface(
     char *ifname)
 {
@@ -128,6 +133,24 @@ static void bip_set_interface(
     }
 }
 
+/** Initialize the BACnet/IP services at the given interface.
+ * @ingroup DLBIP
+ * -# Gets the local IP address and local broadcast address from the system,
+ *  and saves it into the BACnet/IP data structures.
+ * -# Opens a UDP socket
+ * -# Configures the socket for sending and receiving
+ * -# Configures the socket so it can send broadcasts
+ * -# Binds the socket to the local IP address at the specified port for 
+ *    BACnet/IP (by default, 0xBAC0 = 47808).
+ * 
+ * @note For Linux, ifname is eth0, ath0, arc0, and others.
+         For Windows, ifname is the dotted ip address of the interface.
+         
+ * @param ifname [in] The named interface to use for the network layer.
+ *        If NULL, the "eth0" interface is assigned.
+ * @return True if the socket is successfully opened for BACnet/IP,
+ *         else False if the socket functions fail.
+ */
 bool bip_init(
     char *ifname)
 {
@@ -163,7 +186,7 @@ bool bip_init(
     if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
-        return status;
+        return false;
     }
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
