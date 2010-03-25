@@ -285,13 +285,14 @@ int seeprom_bytes_write_page(
     int rv = 0;
     uint16_t endaddr;
     uint8_t twst;       /* status - only valid while TWINT is set. */
+    uint16_t page_end_addr;
 
-    if ((eeaddr + len) < (eeaddr | (SEEPROM_PAGE_SIZE - 1))) {
-        endaddr = eeaddr + len;
-    } else {
-        endaddr = (eeaddr | (SEEPROM_PAGE_SIZE - 1)) + 1;
+    /* limit the length to end of the EEPROM page */
+    page_end_addr = eeaddr | (EEPROM_PAGE_SIZE - 1);
+    if ((eeaddr + len) > page_end_addr) {
+        endaddr = page_end_addr + 1;
+        len = endaddr - eeaddr;
     }
-    len = endaddr - eeaddr;
 #if SEEPROM_WORD_ADDRESS_16BIT
     /* 16bit address devices need only TWI Device Address */
     sla = SEEPROM_I2C_ADDRESS;
@@ -380,7 +381,7 @@ int seeprom_bytes_write_page(
             goto error;
     }
     for (; len > 0; len--) {
-        TWDR = *buf++;
+        TWDR = *buf;
         /* start transmission */
         TWCR = _BV(TWINT) | _BV(TWEN);
         /* wait for transmission */
@@ -391,6 +392,7 @@ int seeprom_bytes_write_page(
                 /* device write protected -- Note [16] */
                 goto error;
             case TW_MT_DATA_ACK:
+                buf++;
                 rv++;
                 break;
             default:
