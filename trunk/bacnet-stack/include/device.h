@@ -95,6 +95,21 @@ typedef bool(
     *object_valid_instance_function) (
     uint32_t object_instance);
 
+/** Helper function to step through an array of objects and find either the 
+ * first one or the next one of a given type. Used to step through an array
+ * of objects which is not necessarily contiguious for each type i.e. the
+ * index for the 'n'th object of a given type is not necessarily 'n'.
+ * @ingroup ObjHelpers 
+ * @param [in] The index of the current object or a value of ~0 to indicate
+ * start at the beginning.
+ * @return The index of the next object of the required type or ~0 (all bits
+ * == 1) to indicate no more objects found.
+ */
+typedef unsigned (
+    *object_iterate_function)(
+    unsigned current_index);
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
