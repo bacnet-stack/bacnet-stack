@@ -94,6 +94,7 @@ static struct object_functions {
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
     rr_info_function Object_RR_Info;
+    object_iterate_function Object_Iterator;
 } Object_Table[] =
 {
     {OBJECT_DEVICE, 
@@ -105,7 +106,8 @@ static struct object_functions {
         Device_Read_Property_Local,
         Device_Write_Property_Local, 
         Device_Property_Lists,
-        DeviceGetRRInfo},
+        DeviceGetRRInfo,
+        NULL},
     {OBJECT_ANALOG_INPUT, 
         Analog_Input_Init,
         Analog_Input_Count,
@@ -115,6 +117,7 @@ static struct object_functions {
         Analog_Input_Read_Property,  
         NULL,
         Analog_Input_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_ANALOG_OUTPUT, 
         Analog_Output_Init,
@@ -125,6 +128,7 @@ static struct object_functions {
         Analog_Output_Read_Property,  
         Analog_Output_Write_Property,
         Analog_Output_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_ANALOG_VALUE, 
         Analog_Value_Init,
@@ -135,6 +139,7 @@ static struct object_functions {
         Analog_Value_Read_Property,  
         Analog_Value_Write_Property,
         Analog_Value_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_BINARY_INPUT, 
         Binary_Input_Init,
@@ -145,6 +150,7 @@ static struct object_functions {
         Binary_Input_Read_Property,  
         NULL,
         Binary_Input_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_BINARY_OUTPUT, 
         Binary_Output_Init,
@@ -155,6 +161,7 @@ static struct object_functions {
         Binary_Output_Read_Property,  
         Binary_Output_Write_Property,
         Binary_Output_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_BINARY_VALUE, 
         Binary_Value_Init,
@@ -165,6 +172,7 @@ static struct object_functions {
         Binary_Value_Read_Property,  
         Binary_Value_Write_Property,
         Binary_Value_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_LIFE_SAFETY_POINT, 
         Life_Safety_Point_Init,
@@ -175,6 +183,7 @@ static struct object_functions {
         Life_Safety_Point_Read_Property,  
         Life_Safety_Point_Write_Property,
         Life_Safety_Point_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_LOAD_CONTROL, 
         Load_Control_Init,
@@ -185,6 +194,7 @@ static struct object_functions {
         Load_Control_Read_Property,  
         Load_Control_Write_Property,
         Load_Control_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_MULTI_STATE_OUTPUT, 
         Multistate_Output_Init,
@@ -195,6 +205,7 @@ static struct object_functions {
         Multistate_Output_Read_Property,  
         Multistate_Output_Write_Property,
         Multistate_Output_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_MULTI_STATE_INPUT, 
         Multistate_Input_Init,
@@ -205,6 +216,7 @@ static struct object_functions {
         Multistate_Input_Read_Property,  
         Multistate_Input_Write_Property,
         Multistate_Input_Property_Lists,
+        NULL,
         NULL},
     {OBJECT_TRENDLOG, 
         Trend_Log_Init,
@@ -215,7 +227,8 @@ static struct object_functions {
         Trend_Log_Read_Property,  
         Trend_Log_Write_Property,
         Trend_Log_Property_Lists,
-        TrendLogGetRRInfo},
+        TrendLogGetRRInfo,
+        NULL},
 #if defined(BACFILE)
     {OBJECT_FILE, 
         bacfile_init,
@@ -225,10 +238,11 @@ static struct object_functions {
         bacfile_name,
         bacfile_read_property,  
         bacfile_write_property,
-        BACfile_Property_Lists},
+        BACfile_Property_Lists,
+        NULL},
 #endif
         
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -840,6 +854,7 @@ bool Device_Object_List_Identifier(
     bool status = false;
     unsigned count = 0;
     unsigned object_index = 0;
+    unsigned temp_index = 0;
     struct object_functions *pObject = NULL;
 
     /* array index zero is length - so invalid */
@@ -850,16 +865,30 @@ bool Device_Object_List_Identifier(
     /* initialize the default return values */
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Count &&
-            pObject->Object_Index_To_Instance) {
+        if (pObject->Object_Count) {
             object_index -= count;
-            count = pObject->Object_Count();
-            if (object_index < count) {
-                *object_type = pObject->Object_Type;
-                *instance = pObject->Object_Index_To_Instance(object_index);
-                status = true;
-                break;
-            }
+  	        count = pObject->Object_Count();
+       	    if (object_index < count) {
+		        /* Use the iterator function if available otherwise
+                 * look for the index to instance to get the ID */
+	            if(pObject->Object_Iterator) {
+                    /* First find the first object */
+                    temp_index = pObject->Object_Iterator(~0);
+                    /* Then step through the objects to find the nth */
+                    while(object_index != 0) {
+	                    temp_index = pObject->Object_Iterator(temp_index);
+                        object_index--;
+                    }
+                    /* set the object_index up before falling through to next bit */
+                    object_index = temp_index;
+                }
+   	   			if(pObject->Object_Index_To_Instance) {
+	                *object_type = pObject->Object_Type;
+    	            *instance = pObject->Object_Index_To_Instance(object_index);
+                    status = true;
+            	    break;
+	            }
+			}
         }
         pObject++;
     }
