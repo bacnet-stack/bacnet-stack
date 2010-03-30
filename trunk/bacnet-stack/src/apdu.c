@@ -182,9 +182,9 @@ bool apdu_service_supported_to_index(
     bool *bIsConfirmed )
 {
     int i = 0;
-    *bIsConfirmed = false;
     bool found = false;
 
+    *bIsConfirmed = false;
     if (service_supported < MAX_BACNET_SERVICES_SUPPORTED) {
         /* is it a confirmed service? */
         for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
