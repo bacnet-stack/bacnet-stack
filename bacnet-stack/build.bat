@@ -1,6 +1,6 @@
 @echo off
-echo Build with MinGW mingw.sourceforge.net
-echo Note: copy mingw32-make.exe to make.exe to build for Win32
+echo Build with MinGW: mingw.sourceforge.net
+echo and Yagarto Tools: www.yagarto.de
 set CC=gcc
 set AR=ar
 make BACNET_PORT=win32 BUILD=release clean all
