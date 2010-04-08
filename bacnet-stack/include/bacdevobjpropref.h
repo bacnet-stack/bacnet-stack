@@ -43,6 +43,16 @@ typedef struct {
     BACNET_OBJECT_ID deviceIndentifier;
 } BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE;
 
+/** BACnetDeviceObjectReference structure.
+ * If the optional deviceIdentifier is not provided, then this refers
+ * to an object inside this Device.
+ */
+typedef struct {
+    BACNET_OBJECT_ID deviceIndentifier;		/**< Optional, for external device. */
+    BACNET_OBJECT_ID objectIdentifier;
+} BACNET_DEVICE_OBJECT_REFERENCE;
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,6 +75,26 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
+
+
+    int bacapp_encode_device_obj_ref(
+        uint8_t * apdu,
+        BACNET_DEVICE_OBJECT_REFERENCE * value);
+
+    int bacapp_encode_context_device_obj_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_DEVICE_OBJECT_REFERENCE * value);
+
+    int bacapp_decode_device_obj_ref(
+        uint8_t * apdu,
+        BACNET_DEVICE_OBJECT_REFERENCE * value);
+
+    int bacapp_decode_context_device_obj_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_DEVICE_OBJECT_REFERENCE * value);
+
 
 #ifdef __cplusplus
 }
