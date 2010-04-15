@@ -826,8 +826,11 @@ void Device_Inc_Database_Revision(
     Database_Revision++;
 }
 
-/* Since many network clients depend on the object list */
-/* for discovery, it must be consistent! */
+/** Get the total count of objects supported by this Device Object.
+ * @note Since many network clients depend on the object list
+ *       for discovery, it must be consistent!
+ * @return The count of objects, for all supported Object types.
+ */
 unsigned Device_Object_List_Count(
     void)
 {
@@ -846,6 +849,16 @@ unsigned Device_Object_List_Count(
     return count;
 }
 
+/** Lookup the Object at the given array index in the Device's Object List.
+ * Even though we don't keep a single linear array of objects in the Device,
+ * this method acts as though we do and works through a virtual, concatenated
+ * array of all of our object type arrays.
+ *
+ * @param array_index [in] The desired array index (1 to N)
+ * @param object_type [out] The object's type, if found.
+ * @param instance [out] The object's instance number, if found.
+ * @return True if found, else false.
+ */
 bool Device_Object_List_Identifier(
     unsigned array_index,
     int *object_type,

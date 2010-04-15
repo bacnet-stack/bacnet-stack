@@ -207,6 +207,18 @@ int rp_ack_encode_apdu(
     return apdu_len;
 }
 
+
+/** Decode the ReadProperty reply and store the result for one Property in a
+ *  BACNET_READ_PROPERTY_DATA structure.
+ *  This leaves the value(s) in the application_data buffer to be decoded later;
+ *  the application_data field points into the apdu buffer (is not allocated).
+ *
+ * @param apdu [in] The apdu portion of the ACK reply.
+ * @param apdu_len [in] The total length of the apdu.
+ * @param rpdata [out] The structure holding the partially decoded result.
+ * @return Number of decoded bytes (could be less than apdu_len),
+ * 			or -1 on decoding error.
+ */
 int rp_ack_decode_service_request(
     uint8_t * apdu,
     int apdu_len,       /* total length of the apdu */

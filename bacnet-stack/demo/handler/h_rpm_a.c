@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "config.h"
 #include "config.h"
 #include "txbuf.h"
@@ -44,11 +45,18 @@
 
 /** @file h_rpm_a.c  Handles Read Property Multiple Acknowledgments. */
 
-/* returns the number of bytes decoded, or -1 on error */
-/* note: initial the linked list of read_access_data */
-static int rpm_ack_decode_service_request(
+/** Decode the received RPM data and make a linked list of the results.
+ * @ingroup DSRPM
+ *
+ * @param apdu [in] The received apdu data.
+ * @param apdu_len [in] Total length of the apdu.
+ * @param read_access_data [out] Pointer to the head of the linked list
+ * 			where the RPM data is to be stored.
+ * @return The number of bytes decoded, or -1 on error
+ */
+int rpm_ack_decode_service_request(
     uint8_t * apdu,
-    int apdu_len,       /* total length of the apdu */
+    int apdu_len,
     BACNET_READ_ACCESS_DATA * read_access_data)
 {
     int decoded_len = 0;        /* return value */
@@ -63,6 +71,7 @@ static int rpm_ack_decode_service_request(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
+    assert( read_access_data != NULL );
     rpm_object = read_access_data;
     old_rpm_object = rpm_object;
     while (rpm_object && apdu_len) {

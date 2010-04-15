@@ -282,7 +282,10 @@ void tsm_free_invoke_id(
     }
 }
 
-/* check if the invoke ID has been made free */
+/** Check if the invoke ID has been made free by the Transaction State Machine.
+ * @param invokeID [in] The invokeID to be checked, normally of last message sent.
+ * @return True if it is free (done with), False if still pending in the TSM.
+ */
 bool tsm_invoke_id_free(
     uint8_t invokeID)
 {
@@ -296,7 +299,12 @@ bool tsm_invoke_id_free(
     return status;
 }
 
-/* see if the invoke ID has failed get a confirmation */
+/** See if we failed get a confirmation for the message associated
+ *  with this invoke ID.
+ * @param invokeID [in] The invokeID to be checked, normally of last message sent.
+ * @return True if already failed, False if done or segmented or still waiting
+ *         for a confirmation.
+ */
 bool tsm_invoke_id_failed(
     uint8_t invokeID)
 {
