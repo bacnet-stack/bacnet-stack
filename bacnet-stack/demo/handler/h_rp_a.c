@@ -137,3 +137,95 @@ void handler_read_property_ack(
     if (len > 0)
         PrintReadPropertyData(&data);
 }
+
+/** Decode the received RP data into a linked list of the results, with the
+ *  same data structure used by RPM ACK replies.
+ *  This function is provided to provide common handling for RP and RPM data,
+ *  and fully decodes the value(s) portion of the data for one property.
+ * @ingroup DSRP
+ * @see rp_ack_decode_service_request(), rpm_ack_decode_service_request()
+ *
+ * @param apdu [in] The received apdu data.
+ * @param apdu_len [in] Total length of the apdu.
+ * @param read_access_data [out] Pointer to the head of the linked list
+ * 			where the RP data is to be stored.
+ * @return Number of decoded bytes (could be less than apdu_len),
+ * 			or -1 on decoding error.
+ */
+int rp_ack_fully_decode_service_request(
+    uint8_t * apdu,
+    int apdu_len,
+    BACNET_READ_ACCESS_DATA * read_access_data)
+{
+    int decoded_len = 0;        /* return value */
+    BACNET_READ_PROPERTY_DATA rp1data;
+    BACNET_PROPERTY_REFERENCE *rp1_property;	/* single property */
+    BACNET_APPLICATION_DATA_VALUE *value, *old_value;
+    uint8_t * vdata;
+    int vlen, len;
+
+    decoded_len = rp_ack_decode_service_request(apdu, apdu_len, &rp1data);
+    if ( decoded_len > 0 )
+    {
+    	/* Then we have to transfer to the BACNET_READ_ACCESS_DATA structure
+    	 * and decode the value(s) portion
+    	 */
+    	read_access_data->object_type = rp1data.object_type;
+    	read_access_data->object_instance = rp1data.object_instance;
+        rp1_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+        read_access_data->listOfProperties = rp1_property;
+        if ( rp1_property == NULL )
+        	return -1;		/* can't proceed if calloc failed. */
+        rp1_property->propertyIdentifier = rp1data.object_property;
+        rp1_property->propertyArrayIndex = rp1data.array_index;
+        /* Is there no Error case possible here, as there is when decoding RPM? */
+        /* rp1_property->error.error_class = ?? */
+        /* rp_ack_decode_service_request() processing already removed the
+         * Opening and Closing '3' Tags.
+         * note: if this is an array, there will be
+           more than one element to decode */
+        vdata = rp1data.application_data;
+        vlen = rp1data.application_data_len;
+        value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+        rp1_property->value = value;
+        old_value = value;
+        while (value && vdata && (vlen > 0)) {
+            if (IS_CONTEXT_SPECIFIC(*vdata)) {
+                len =
+                    bacapp_decode_context_data(vdata, vlen, value,
+                    rp1_property->propertyIdentifier);
+            } else {
+                len =
+                    bacapp_decode_application_data(vdata, vlen,
+                    value);
+            }
+            decoded_len += len;
+            vlen -= len;
+            vdata += len;
+            /* If unexpected closing tag here: */
+            if (vlen && decode_is_closing_tag_number(vdata, 3)) {
+                decoded_len++;
+                vlen--;
+                vdata++;
+                break;
+            } else {
+                /* nothing decoded and no closing tag, so malformed */
+                if (len == 0) {
+                	free( value );
+                	free( rp1_property );
+                    read_access_data->listOfProperties = NULL;
+                    return -1;
+                }
+                if ( vlen > 0 )		/* If more values */
+                {
+					old_value = value;
+					value =
+						calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+					old_value->next = value;
+                }
+            }
+        }
+    }
+
+    return decoded_len;
+}

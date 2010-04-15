@@ -50,6 +50,9 @@ typedef struct BACnet_Read_Property_Data {
     BACNET_ERROR_CODE error_code;
 } BACNET_READ_PROPERTY_DATA;
 
+/* Forward declaration of RPM-style data structure */
+struct BACnet_Read_Access_Data;
+
 /** Reads one property for this object type of a given instance.
  * A function template; @see device.c for assignment to object types.
  * @ingroup ObjHelpers 
@@ -99,6 +102,11 @@ extern "C" {
         int apdu_len,   /* total length of the apdu */
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    /* Decode instead to RPM-style data structure. */
+    int rp_ack_fully_decode_service_request(
+        uint8_t * apdu,
+        int apdu_len,
+        struct BACnet_Read_Access_Data * read_access_data);
 
 #ifdef TEST
 #include "ctest.h"
