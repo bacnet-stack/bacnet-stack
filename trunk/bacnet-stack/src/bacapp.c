@@ -517,6 +517,7 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             }
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
+        	/* Sequence of ReadAccessSpecification */
             switch (tag_number) {
                 case 0:
                     tag = BACNET_APPLICATION_TAG_OBJECT_ID;
@@ -555,6 +556,18 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
             }
             break;
+		case PROP_SUBORDINATE_LIST:
+			/* BACnetARRAY[N] of BACnetDeviceObjectReference */
+			switch (tag_number) {
+				case 0: /* Optional Device ID */
+				case 1: /* Object ID */
+					tag = BACNET_APPLICATION_TAG_OBJECT_ID;
+					break;
+				default:
+					break;
+			}
+			break;
+
         default:
             break;
     }

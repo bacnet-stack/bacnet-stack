@@ -167,6 +167,12 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
+    /* Decode the received RPM data and make a linked list of the results. */
+    int rpm_ack_decode_service_request(
+        uint8_t * apdu,
+        int apdu_len,
+        BACNET_READ_ACCESS_DATA * read_access_data);
+
     /* Encodes the property APDU and returns the length,
        or sets the error, and returns -1 */
     /* resides in h_rp.c */

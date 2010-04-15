@@ -347,8 +347,8 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_FILE_TYPE, "file-type"}
     ,
-    {PROP_FIRMWARE_REVISION, "firmware-version"}
-    ,
+    {PROP_FIRMWARE_REVISION, "firmware-revision"}
+    ,					/* VTS wants "revision", not "version" */
     {PROP_HIGH_LIMIT, "high-limit"}
     ,
     {PROP_INACTIVE_TEXT, "inactive-text"}
