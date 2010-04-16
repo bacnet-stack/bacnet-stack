@@ -914,6 +914,11 @@ bool bacapp_print_value(
                                 (unsigned long)value->type.Enumerated);
                         }
                         break;
+                    case PROP_POLARITY:
+                        fprintf(stream, "%s",
+                        	bactext_binary_polarity_name(value->
+                                type.Enumerated));
+                        break;
                     case PROP_PRESENT_VALUE:
                         fprintf(stream, "%s",
                             bactext_binary_present_value_name(value->
@@ -931,6 +936,10 @@ bool bacapp_print_value(
                     case PROP_SEGMENTATION_SUPPORTED:
                         fprintf(stream, "%s",
                             bactext_segmentation_name(value->type.Enumerated));
+                        break;
+                    case PROP_NODE_TYPE:
+                        fprintf(stream, "%s",
+                            bactext_node_type_name(value->type.Enumerated));
                         break;
                     default:
                         fprintf(stream, "%lu", (unsigned long)value->type.Enumerated);

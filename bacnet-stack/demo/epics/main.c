@@ -103,6 +103,7 @@ static uint32_t Walked_List_Length = 0;
 static uint32_t Walked_List_Index = 0;
 static bool Using_Walked_List = false;
 
+static bool ShowValues = false;		/* Show value instead of '?' */
 
 #if !defined(PRINT_ERRORS)
 #define PRINT_ERRORS 1
@@ -214,7 +215,7 @@ void MyReadPropertyMultipleAckHandler(
         		sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
         Read_Property_Multiple_Data.rpm_data = rpm_data;
         Read_Property_Multiple_Data.new_data = true;
-        // Will process and free the RPM data later
+        /* Will process and free the RPM data later */
     }
     else
     {
@@ -256,6 +257,7 @@ static void Init_Service_Handlers(
  * We have to override the library's normal bitfield print because the
  * EPICS format wants just T and F, and we want to provide (as comments)
  * the names of the active types.
+ * These bitfields use opening and closing parentheses instead of braces.
  * We also limit the output to 4 bit fields per line.
  * 
  * @param stream [in] Normally stdout
@@ -277,7 +279,7 @@ static void Init_Service_Handlers(
            (property == PROP_PROTOCOL_SERVICES_SUPPORTED) ) )
      {
         len = bitstring_bits_used(&value->type.Bit_String);
-        fprintf(stream, "{ \r\n        ");
+        fprintf(stream, "( \r\n        ");
         for (i = 0; i < len; i++) {
             fprintf(stream, "%s",
                 bitstring_bit(&value->type.Bit_String,
@@ -286,18 +288,18 @@ static void Init_Service_Handlers(
                 fprintf(stream, ",");
             else
                 fprintf(stream, " ");
-            // Tried with 8 per line, but with the comments, got way too long.
+            /* Tried with 8 per line, but with the comments, got way too long. */
             if ( (i == (len-1) ) || ( (i % 4) == 3 ) )       // line break every 4
             {
                 fprintf(stream, "   -- ");		// EPICS comments begin with "--"
-                // Now rerun the same 4 bits, but print labels for true ones
+                /* Now rerun the same 4 bits, but print labels for true ones */
                 for ( j = i - (i%4); j <= i; j++)
                 {
                     if ( bitstring_bit(&value->type.Bit_String, (uint8_t) j) )
                     {
                         if (property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) 
                             fprintf( stream, " %s,", bactext_object_type_name(j) );
-                        // PROP_PROTOCOL_SERVICES_SUPPORTED
+                        /* PROP_PROTOCOL_SERVICES_SUPPORTED */
                         else
                         {
                             bool bIsConfirmed;
@@ -317,20 +319,22 @@ static void Init_Service_Handlers(
                             }
                         }
                      }
-                    else    // not supported
+                    else    /* not supported */
                         fprintf( stream, "," );
                 }
                 fprintf(stream, "\r\n        ");
            }
          }
-        fprintf(stream, "} \r\n");
+        fprintf(stream, ") \r\n");
      }
-     else 
+     else if ( value != NULL )
      {
-         /* How did I get here?  Fix your code. */
-         /* Meanwhile, a safe fallback plan */
+         assert( false );	/* How did I get here?  Fix your code. */
+         /* Meanwhile, a fallback plan */
          status = bacapp_print_value(stdout, value, property);
      }
+     else
+         fprintf(stream, "? \r\n");
 
     return status;
 }
@@ -360,7 +364,9 @@ void PrintReadPropertyData(
     if ( value == NULL )
     {
     	/* Then we print the error information */
-		fprintf(stdout, "\r\n");
+        fprintf(stdout, "?  -- BACnet Error: %s: %s\r\n",
+            bactext_error_class_name((int) rpm_property->error.error_class),
+            bactext_error_code_name((int) rpm_property->error.error_code));
     	return;
     }
 
@@ -456,7 +462,29 @@ void PrintReadPropertyData(
 			break;
 
 		default:
-			bacapp_print_value(stdout, value, rpm_property->propertyIdentifier);
+			/* Some properties are presented just as '?' in an EPICS;
+			 * screen these out here, unless ShowValues is true.  */
+			switch( rpm_property->propertyIdentifier )
+			{
+			case PROP_DEVICE_ADDRESS_BINDING:
+			case PROP_DAYLIGHT_SAVINGS_STATUS:
+			case PROP_LOCAL_DATE:
+			case PROP_LOCAL_TIME:
+			case PROP_PRESENT_VALUE:
+			case PROP_PRIORITY_ARRAY:
+			case PROP_RELIABILITY:
+			case PROP_UTC_OFFSET:
+			case PROP_DATABASE_REVISION:
+				if ( !ShowValues )
+				{
+					fprintf(stdout, "?");
+					break;
+				}
+				/* Else, fall through and print value: */
+			default:
+				bacapp_print_value(stdout, value, rpm_property->propertyIdentifier);
+				break;
+			}
 			if ( value->next != NULL ) {
 				/* there's more! */
 				fprintf(stdout, ",");
@@ -566,8 +594,9 @@ EPICS_STATES ProcessRPMData(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
     bool bSuccess = true;
-    EPICS_STATES nextState = myState;		// assume no change
-    /* Some flags to keep the output "pretty" - object lists at the end */
+    EPICS_STATES nextState = myState;		/* assume no change */
+    /* Some flags to keep the output "pretty" -
+     * wait and put these object lists at the end */
     bool bHasObjectList = false;
     bool bHasStructuredViewList = false;
 
@@ -616,10 +645,10 @@ EPICS_STATES ProcessRPMData(
         free(old_rpm_data);
     }
 
-    // Now determine the next state
+    /* Now determine the next state */
     if ( bSuccess && ( myState == GET_ALL_RESPONSE) )
     	nextState = NEXT_OBJECT;
-    else if ( bSuccess )	// and GET_LIST_OF_ALL_RESPONSE
+    else if ( bSuccess )	/* and GET_LIST_OF_ALL_RESPONSE */
     {
     	/* Now append the properties we waited on. */
     	if ( bHasStructuredViewList ) {
@@ -639,6 +668,61 @@ EPICS_STATES ProcessRPMData(
     return nextState;
 }
 
+void PrintUsage()
+{
+	printf("bacepics -- Generates Object and Property List for EPICS \r\n" );
+	printf("Usage: \r\n" );
+    printf("  bacepics [-v] device-instance \r\n" );
+    printf("    Use the -v option to show values instead of '?' \r\n\r\n" );
+    printf("Insert the output in your EPICS file as the last section: \r\n");
+    printf("\"List of Objects in test device:\"  \r\n");
+    printf("before the final statement: \r\n");
+    printf("\"End of BACnet Protocol Implementation Conformance Statement\" \r\n");
+    exit(0);
+}
+
+int CheckCommandLineArgs(
+	int argc,
+    char *argv[] )
+{
+	int i;
+	bool bFoundTarget = false;
+    /* FIXME: handle multi homed systems - use an argument passed to the datalink_init() */
+
+    /* print help if not enough arguments */
+    if (argc < 2) {
+    	fprintf(stderr, "Must provide a device-instance \r\n\r\n" );
+    	PrintUsage();		/* Will exit */
+    }
+    for ( i = 1; i < argc; i++ )
+    {
+    	char *anArg = argv[i];
+    	if ( anArg[0] == '-' )
+    	{
+    		if ( anArg[1] == 'v' )
+    			ShowValues = true;
+    		else
+    			PrintUsage();
+    	}
+    	else
+    	{
+    	    /* decode the Target Device Instance parameter */
+    	    Target_Device_Object_Instance = strtol( anArg, NULL, 0);
+    	    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+    	        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+    	            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+    			PrintUsage();
+    	    }
+    	    bFoundTarget = true;
+    	}
+    }
+    if ( !bFoundTarget ) {
+    	fprintf(stderr, "Must provide a device-instance \r\n\r\n" );
+    	PrintUsage();		/* Will exit */
+    }
+
+    return 0;		/* All OK if we reach here */
+}
 
 int main(
     int argc,
@@ -662,21 +746,8 @@ int main(
     BACNET_PROPERTY_REFERENCE *rpm_property;
     KEY nextKey;
 
-    /* FIXME: handle multi homed systems - use an argument passed to the datalink_init() */
+    CheckCommandLineArgs( argc, argv );		/* Won't return if there is an issue. */
 
-    /* print help if not enough arguments */
-    if (argc < 2) {
-        printf("%s device-instance\r\n", filename_remove_path(argv[0]));
-        return 0;
-    }
-
-    /* decode the command line parameters */
-    Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
-        return 1;
-    }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Object_List = Keylist_Create();
@@ -710,7 +781,7 @@ int main(
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         }
 
-         // OK to proceed; see what we are up to now
+        /* OK to proceed; see what we are up to now */
     	switch ( myState )
     	{
     	case INITIAL_BINDING:
@@ -721,10 +792,6 @@ int main(
             if (pdu_len) {
                 npdu_handler(&src, &Rx_Buf[0], pdu_len);
             }
-//            /* at least one second has passed */
-//            if (current_seconds != last_seconds) {
-//                tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
-//            }
             /* will wait until the device is bound, or timeout and quit */
             found = address_bind_request(Target_Device_Object_Instance,
 											&max_apdu, &Target_Address);
@@ -736,7 +803,7 @@ int main(
                     printf("\rError: APDU Timeout!\r\n");
                     break;
                 }
-                // else, loop back and try again
+                /* else, loop back and try again */
                 continue;
             }
             else
@@ -923,10 +990,14 @@ int main(
 		    		/* Closing brace for the previous Object */
 		    	    printf("  }, \r\n");
 					myObject.type = KEY_DECODE_TYPE( nextKey );
+					myObject.instance = KEY_DECODE_ID( nextKey );
 		    		/* Opening brace for the new Object */
 		    	    printf("  { \r\n");
+		    	    /* Test code:
+		    	    if ( myObject.type == OBJECT_STRUCTURED_VIEW )
+		    	    	printf( "    -- Structured View %d \n", myObject.instance );
+		    	    */
 				}
-				myObject.instance = KEY_DECODE_ID( nextKey );
 				myState = GET_ALL_REQUEST;
 
 			} while ( myObject.type == OBJECT_DEVICE );
@@ -934,7 +1005,7 @@ int main(
     		break;
 
     	default:
-    		assert( false );	// program error; fix this
+    		assert( false );	/* program error; fix this */
     		break;
     	}
 

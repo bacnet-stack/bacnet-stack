@@ -1825,6 +1825,22 @@ bool bactext_binary_present_value_index(
         found_index);
 }
 
+INDTEXT_DATA bacnet_binary_polarity_names[] = {
+    {POLARITY_NORMAL, "normal"}
+    ,
+    {POLARITY_REVERSE, "reverse"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_binary_polarity_name(
+    unsigned index)
+{
+    return indtext_by_index_default(bacnet_binary_polarity_names, index,
+        ASHRAE_Reserved_String);
+}
+
+
 INDTEXT_DATA bacnet_reliability_names[] = {
     {RELIABILITY_NO_FAULT_DETECTED, "no-fault-detected"}
     ,
@@ -1897,5 +1913,40 @@ const char *bactext_segmentation_name(
     unsigned index)
 {
     return indtext_by_index_default(bacnet_segmentation_names, index,
+        ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_node_type_names[] = {
+    {BACNET_NODE_UNKNOWN, "unknown"}
+    ,
+    {BACNET_NODE_SYSTEM, "system"}
+    ,
+    {BACNET_NODE_NETWORK, "network"}
+    ,
+    {BACNET_NODE_DEVICE, "device"}
+    ,
+    {BACNET_NODE_ORGANIZATIONAL, "organizational"}
+    ,
+    {BACNET_NODE_AREA, "area"}
+    ,
+    {BACNET_NODE_EQUIPMENT, "equipment"}
+    ,
+    {BACNET_NODE_POINT, "point"}
+    ,
+    {BACNET_NODE_COLLECTION, "collection"}
+    ,
+    {BACNET_NODE_PROPERTY, "property"}
+    ,
+    {BACNET_NODE_FUNCTIONAL, "functional"}
+    ,
+    {BACNET_NODE_OTHER, "other"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_node_type_name(
+    unsigned index)
+{
+    return indtext_by_index_default(bacnet_node_type_names, index,
         ASHRAE_Reserved_String);
 }
