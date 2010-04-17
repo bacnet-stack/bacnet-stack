@@ -23,7 +23,9 @@
 *
 *********************************************************************/
 
-/* command line tool that sends a BACnet service, and displays the reply */
+/** @file epics/main.c  Command line tool to build a list of Objects and
+ *                      Properties that can be used with VTS3 EPICS files. */
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -53,6 +55,12 @@
 #include "dlenv.h"
 #include "keylist.h"
 #include "bacepics.h"
+
+
+/* (Doxygen note: The next two lines pull all the following Javadoc 
+ *  into the BACEPICS module.) */
+/** @addtogroup BACEPICS 
+ * @{ */
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -724,6 +732,19 @@ int CheckCommandLineArgs(
     return 0;		/* All OK if we reach here */
 }
 
+/** Main function of the bacepics program.
+ *
+ * @see Device_Set_Object_Instance_Number, Keylist_Create, address_init, 
+ *      dlenv_init, address_bind_request, Send_WhoIs, 
+ *      tsm_timer_milliseconds, datalink_receive, npdu_handler,
+ *      Send_Read_Property_Multiple_Request,  
+ *      
+ *  
+ * @param argc [in] Arg count.
+ * @param argv [in] Takes one or two arguments: an optional -v "Show Values"
+ *                  switch, and the Device Instance #.
+ * @return 0 on success.
+ */
 int main(
     int argc,
     char *argv[])
@@ -1027,3 +1048,6 @@ int main(
 
     return 0;
 }
+
+/*@}*/      /* End group BACEPICS */
+
