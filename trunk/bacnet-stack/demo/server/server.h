@@ -27,7 +27,7 @@
 #define SERVER_H_
 
 /** @file server/server.h  Header for example server (ie, BACnet Device) 
- *        using the BACnet Stack */
+ *        using the BACnet Stack. */
 
 /** @defgroup Demos Demos of Servers and Clients
  * Most of the folders under the /demo folder contain demonstration (ie, sample) 
@@ -37,14 +37,12 @@
  * described in the various BIBBs and Object Framework modules. 
  */
 
-/** @defgroup ServerDemo Demo of a BACnet Server (Device)
+/** @defgroup ServerDemo Demo of a BACnet Server (Device).
  * @ingroup Demos
  * This is a basic demonstration of a simple BACnet Device consisting of
  * the services and properties shown in its EPICS
  * (see file demo/server/epics_vts3.tpi)
  */
 
-/** @file server/epics_vts3.tpi  EPICS file for the example server
- *        that can be loaded into VTS3 */
 
 #endif /* SERVER_H_ */

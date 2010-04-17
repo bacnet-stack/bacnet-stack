@@ -51,11 +51,11 @@
 /* include the device object */
 #include "device.h"
 
-/** @file server/main.c  Example server application using the BACnet Stack */
+/** @file server/main.c  Example server application using the BACnet Stack. */
 
 /* (Doxygen note: The next two lines pull all the following Javadoc 
  *  into the ServerDemo module.) */
-/** @ingroup ServerDemo */
+/** @addtogroup ServerDemo */ 
 /*@{*/
 
 /** Buffer used for receiving */
@@ -184,4 +184,4 @@ int main(
     }
 }
 
-/*@}*/      /* End group ServerDemo */
+/* @} */      /* End group ServerDemo */
