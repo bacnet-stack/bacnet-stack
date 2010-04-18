@@ -39,7 +39,7 @@
 
 /** Initialize the DataLink configuration from Environment variables, 
  * or else to defaults.
- * @ingroup MISCHNDLR
+ * @ingroup DataLink
  * The items configured depend on which BACDL_ the code is built for,
  * eg, BACDL_BIP. 
  * 

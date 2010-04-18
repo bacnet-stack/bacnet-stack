@@ -106,6 +106,12 @@
  *  - A full list of all functions is provided in the index of the 
  *  Files->Globals subtab.
  * 
+ * While all the central files are included in the file list, not all important
+ * functions have been given the javadoc treatment, nor have Modules (chapters)
+ * been created yet for all groupings.  If you are doing work in an under-
+ * documented area, please add the javadoc comments at least to the API calls,
+ * and consider adding doxygen's module grouping for your area of interest.
+ * 
  * See doc/README.doxygen for notes on building and extending this document. <br>
  * In particular, if you have graphviz installed, you can enhance this 
  * documentation by turning on the function call graphs feature.
