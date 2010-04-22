@@ -211,6 +211,8 @@ HEX_FUSE_FLAGS += --change-section-lma .fuse=0 --no-change-warnings
 AVRDUDE_FLAGS = -c $(AVRDUDE_PROGRAMMERID)
 AVRDUDE_FLAGS += -p $(AVRDUDE_MCU) 
 AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
+AVRDUDE_FLAGS += -B 8
+
 
 # Fuse high byte (0=enable,1=disable):
 # 0x93 = 1 0 0 1   0 0 1 1

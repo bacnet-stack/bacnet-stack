@@ -118,9 +118,6 @@ static struct object_functions {
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number;
-static char My_Object_Name[NV_EEPROM_DEVICE_NAME_SIZE];
-static uint8_t My_Object_Name_Encoding;
-static uint8_t My_Object_Name_Length;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
 static BACNET_REINITIALIZED_STATE Reinitialize_State =
@@ -364,11 +361,37 @@ uint32_t Device_Index_To_Instance(
 char *Device_Name(
     uint32_t object_instance)
 {
+    uint8_t encoding = 0;
+    uint8_t length = 0;
+    static char name[NV_EEPROM_DEVICE_NAME_SIZE+1] = "";
+    char *pName = NULL;
+    
     if (object_instance == Object_Instance_Number) {
-        return My_Object_Name;
+        eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_ENCODING, &encoding, 1);
+        eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_LENGTH, &length, 1);
+        eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & name,
+            NV_EEPROM_DEVICE_NAME_SIZE);
+        if ((encoding >= MAX_CHARACTER_STRING_ENCODING) ||
+            (length > NV_EEPROM_DEVICE_NAME_SIZE) ||
+            (length < 1)) {
+            encoding = CHARACTER_ANSI_X34;
+            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
+                &encoding, 1);
+            sprintf(name, "DEVICE-%lu", Object_Instance_Number);
+            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
+                (uint8_t *) & name[0], NV_EEPROM_DEVICE_NAME_SIZE);
+            length = strlen(name);
+            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &length, 1);
+        }
+        if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
+            name[length] = 0;
+        } else {
+            name[NV_EEPROM_DEVICE_NAME_SIZE] = 0;
+        }
+        pName = &name[0];
     }
     
-    return NULL;
+    return pName;
 }
 
 bool Device_Reinitialize(
@@ -415,24 +438,7 @@ void Device_Init(
             (uint8_t *) & Object_Instance_Number,
             sizeof(Object_Instance_Number));
     }
-    eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_ENCODING, &My_Object_Name_Encoding,
-        1);
-    eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_LENGTH, &My_Object_Name_Length, 1);
-    eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & My_Object_Name[0],
-        NV_EEPROM_DEVICE_NAME_SIZE);
-    if ((My_Object_Name_Encoding >= MAX_CHARACTER_STRING_ENCODING) ||
-        (My_Object_Name_Length > NV_EEPROM_DEVICE_NAME_SIZE) ||
-        (My_Object_Name_Length < 1)) {
-        My_Object_Name_Encoding = CHARACTER_ANSI_X34;
-        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
-            &My_Object_Name_Encoding, 1);
-        sprintf(My_Object_Name, "DEVICE-%lu", Object_Instance_Number);
-        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
-            (uint8_t *) & My_Object_Name[0], NV_EEPROM_DEVICE_NAME_SIZE);
-        My_Object_Name_Length = strlen(My_Object_Name);
-        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &My_Object_Name_Length,
-            1);
-    }
+    (void)Device_Name(Object_Instance_Number);
 }
 
 /* methods to manipulate the data */
@@ -878,22 +884,18 @@ bool Device_Write_Property_Local(
                     uint8_t encoding =
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
-                        uint8_t i;
                         char *pCharString;
-                        My_Object_Name_Encoding = encoding;
-                        My_Object_Name_Length = length;
+                        uint8_t small_length;
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
-                            &My_Object_Name_Encoding, 1);
+                            &encoding, 1);
+                        small_length = length;
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH,
-                            &My_Object_Name_Length, 1);
+                            &small_length, 1);
                         pCharString =
                             characterstring_value(&value.
                             type.Character_String);
-                        for (i = 0; i < My_Object_Name_Length; i++) {
-                            My_Object_Name[i] = pCharString[i];
-                        }
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
-                            (uint8_t *) & My_Object_Name[0], length);
+                            (uint8_t *) pCharString, length);
                         status = true;
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
