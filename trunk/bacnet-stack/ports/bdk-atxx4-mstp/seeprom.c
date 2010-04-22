@@ -288,7 +288,7 @@ int seeprom_bytes_write_page(
     uint16_t page_end_addr;
 
     /* limit the length to end of the EEPROM page */
-    page_end_addr = eeaddr | (EEPROM_PAGE_SIZE - 1);
+    page_end_addr = eeaddr | (SEEPROM_PAGE_SIZE - 1);
     if ((eeaddr + len) > page_end_addr) {
         endaddr = page_end_addr + 1;
         len = endaddr - eeaddr;
