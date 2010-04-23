@@ -133,6 +133,9 @@ static int RPM_Encode_Property(
     rpdata.application_data_len = sizeof(Temp_Buf);
     len = Device_Read_Property(&rpdata);
     if (len < 0) {
+    	if ( len == -2 ) {
+    		return 0;			/* Ie, Abort */
+    	}
         /* error was returned - encode that for the response */
         len =
             rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
