@@ -44,11 +44,16 @@ char *filename_remove_path(
     /* allow the device ID to be set */
     if (filename_in) {
         filename_out = strrchr(filename_in, '\\');
-        if (!filename_out)
+        if (!filename_out) {
             filename_out = strrchr(filename_in, '/');
+        }
         /* go beyond the slash */
-        if (filename_out)
+        if (filename_out) {
             filename_out++;
+        } else {
+            /* no slash in filename */
+            filename_out = (char *) filename_in;
+        }
     }
 
     return filename_out;
