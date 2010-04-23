@@ -64,6 +64,8 @@ static uint8_t TxBuffer[MAX_MPDU];
 struct mstp_statistics {
     /* counts how many times the node passes the token */
     uint32_t token_count;
+    /* counts how many times the node passes the token */
+    uint32_t pfm_count;
     /* counts how many times the node gets a second token */
     uint32_t token_retries;
     /* delay after poll for master */
@@ -138,8 +140,17 @@ static void packet_statistics(
             }
             break;
         case FRAME_TYPE_POLL_FOR_MASTER:
+            MSTP_Statistics[src].pfm_count++;
             if (dst > MSTP_Statistics[src].max_master) {
                 MSTP_Statistics[src].max_master = dst;
+            }
+            if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER) &&
+                (old_src == src)) {
+                /* Tusage_timeout */
+                delta = timeval_diff_ms(&old_tv, tv);
+                if (delta > MSTP_Statistics[src].tusage_timeout) {
+                    MSTP_Statistics[src].tusage_timeout = delta;
+                }
             }
             break;
         case FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER:
@@ -201,7 +212,9 @@ static void packet_statistics_save(
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         /* check for masters or slaves */
-        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)) {
+        if ((MSTP_Statistics[i].token_count) ||
+            (MSTP_Statistics[i].der_reply) ||
+            (MSTP_Statistics[i].pfm_count)) {
             fprintf(stdout, "%u\t%u", i,
                 (unsigned) MSTP_Statistics[i].max_master);
             fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
