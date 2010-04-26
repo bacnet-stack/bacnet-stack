@@ -282,6 +282,7 @@ int main(
             } else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(invoke_id);
+                Error_Detected = true;
                 /* try again or abort? */
                 break;
             }
@@ -290,6 +291,7 @@ int main(
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
                 fprintf(stderr, "\rError: APDU Timeout!\r\n");
+                Error_Detected = true;
                 break;
             }
         }
