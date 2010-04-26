@@ -106,10 +106,15 @@ static int32_t Property_List[MAX_PROPS + 2];
 static const int *pPropList = NULL;
 
 /* When we have to walk through an array of things, like ObjectIDs or
- * Subordinate_Annotations, one RP call at a time, use these for indexing. */
+ * Subordinate_Annotations, one RP call at a time, use these for indexing.
+ */
 static uint32_t Walked_List_Length = 0;
 static uint32_t Walked_List_Index = 0;
+/* TODO: Probably should have done this as additional EPICS_STATES */
 static bool Using_Walked_List = false;
+/* When requesting RP for BACNET_ARRAY_ALL of what we know can be a long
+ * array, then set this true in case it aborts and we need Using_Walked_List */
+static bool IsLongArray = false;
 
 static bool ShowValues = false;		/* Show value instead of '?' */
 
@@ -127,7 +132,7 @@ static void MyErrorHandler(
     (void) src;
     (void) invoke_id;
 #if PRINT_ERRORS
-    printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
+    printf("-- BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
 #else
     (void) error_class;
@@ -148,8 +153,8 @@ void MyAbortHandler(
     (void) server;
 #if PRINT_ERRORS
     /* It is normal for this to fail, so don't print. */
-    if ( myState != GET_ALL_RESPONSE )
-    	printf("BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
+    if ( ( myState != GET_ALL_RESPONSE ) && !IsLongArray )
+    	printf("-- BACnet Abort: %s ", bactext_abort_reason_name(abort_reason));
 #else
     (void) abort_reason;
 #endif
@@ -362,6 +367,7 @@ void PrintReadPropertyData(
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     bool print_brace = false;
     KEY object_list_element;
+    bool isSequence = false;	/* Ie, will need bracketing braces {} */
 
     if (rpm_property == NULL )
     {
@@ -405,8 +411,11 @@ void PrintReadPropertyData(
 	{
 		switch( rpm_property->propertyIdentifier )
 		{
+		/* These are all arrays, so they open and close with braces */
 		case PROP_OBJECT_LIST:
+		case PROP_STATE_TEXT:
 		case PROP_STRUCTURED_OBJECT_LIST:
+		case PROP_SUBORDINATE_ANNOTATIONS:
 		case PROP_SUBORDINATE_LIST:
 			if ( Using_Walked_List )
 			{
@@ -423,21 +432,30 @@ void PrintReadPropertyData(
 					assert( Walked_List_Index == rpm_property->propertyArrayIndex);
 			}
 			else
+			{
 				Walked_List_Index++;
+				/* If we got the whole Object List array in one RP call, keep
+				 * the Index and List_Length in sync as we cycle through. */
+				if ( rpm_property->propertyIdentifier == PROP_OBJECT_LIST)
+					Object_List_Length = ++Object_List_Index;
+			}
 			if ( Walked_List_Index == 1 )
 			{
-				/* Open the list of Objects (opening brace may be already printed) */
+				/* Open this Array of Objects for the first entry (unless
+				 * opening brace has already printed, since this is an array
+				 * of values[] ) */
 				if( value->next == NULL )
 					fprintf(stdout, "{ \r\n        ");
 				else
 					fprintf(stdout, "\r\n        ");
 			}
-			if ( value->tag != BACNET_APPLICATION_TAG_OBJECT_ID ) {
-				assert( false );		/* Something not right here */
-				break;
-			}
-			else if ( rpm_property->propertyIdentifier == PROP_OBJECT_LIST)
+
+			if ( rpm_property->propertyIdentifier == PROP_OBJECT_LIST)
 			{
+				if ( value->tag != BACNET_APPLICATION_TAG_OBJECT_ID ) {
+					assert( false );		/* Something not right here */
+					break;
+				}
 				/* Store the object list so we can interrogate
 				   each object. */
 				object_list_element =
@@ -447,16 +465,42 @@ void PrintReadPropertyData(
 				 * yet, so just leave it null.  The key is Key here. */
 				Keylist_Data_Add( Object_List, object_list_element, NULL );
 			}
+			else if ( rpm_property->propertyIdentifier == PROP_STATE_TEXT )
+			{
+				/* Make sure it fits within 31 chars for original VTS3 limitation.
+				 * If longer, take first 15 dash, and last 15 chars. */
+				if ( value->type.Character_String.length > 31 )
+				{
+					int iLast15idx = value->type.Character_String.length - 15;
+					value->type.Character_String.value[15] = '-';
+					memcpy( &value->type.Character_String.value[16],
+							&value->type.Character_String.value[iLast15idx], 15 );
+					value->type.Character_String.value[31] = 0;
+					value->type.Character_String.length = 31;
+				}
+			}
 			else if ( rpm_property->propertyIdentifier == PROP_SUBORDINATE_LIST)
 			{
+				if ( value->tag != BACNET_APPLICATION_TAG_OBJECT_ID ) {
+					assert( false );		/* Something not right here */
+					break;
+				}
 				/* TODO: handle Sequence of { Device ObjID, Object ID }, */
+				isSequence = true;
 			}
+
+			/* If the object is a Sequence, it needs its own bracketing braces */
+			if ( isSequence )
+				fprintf(stdout, "{");
 			bacapp_print_value(stdout, value, rpm_property->propertyIdentifier );
+			if ( isSequence )
+				fprintf(stdout, "}");
+
 			if ( ( Walked_List_Index < Walked_List_Length ) ||
 				 ( value->next != NULL ) )
 			{
 				/* There are more. */
-				fprintf(stdout, ",");
+				fprintf(stdout, ", ");
 				if (!(Walked_List_Index % 4))
 					fprintf(stdout, "\r\n        ");
 			} else {
@@ -557,27 +601,37 @@ static uint8_t Read_Properties(
     if ( (pPropList != NULL ) && ( pPropList[Property_List_Index] != -1) )
     {
     	int prop = pPropList[Property_List_Index];
+    	int32_t array_index;
+    	IsLongArray = false;
 		if ( Using_Walked_List )
         {
             if (Walked_List_Length == 0) {
-                printf("    %s: ", bactext_property_name( prop ) );
-                invoke_id =
-                    Send_Read_Property_Request(device_instance,
-								pMyObject->type, pMyObject->instance,
-								prop, 0);
+//                printf("    %s: ", bactext_property_name( prop ) );
+                array_index = 0;
             } else {
-                invoke_id =
-                    Send_Read_Property_Request(device_instance,
-								pMyObject->type, pMyObject->instance,
-								prop, Walked_List_Index);
+            	array_index = Walked_List_Index;
             }
         } else {
             printf("    %s: ", bactext_property_name( prop ) );
-            invoke_id =
-                Send_Read_Property_Request(device_instance,
-						pMyObject->type, pMyObject->instance,
-						prop, BACNET_ARRAY_ALL);
+            array_index = BACNET_ARRAY_ALL;
+
+            switch( prop )
+    		{
+    		/* These are all potentially long arrays, so they may abort */
+    		case PROP_OBJECT_LIST:
+    		case PROP_STATE_TEXT:
+    		case PROP_STRUCTURED_OBJECT_LIST:
+    		case PROP_SUBORDINATE_ANNOTATIONS:
+    		case PROP_SUBORDINATE_LIST:
+    			IsLongArray = true;
+    			break;
+    		}
         }
+        invoke_id =
+            Send_Read_Property_Request(device_instance,
+					pMyObject->type, pMyObject->instance,
+					prop, array_index );
+
     }
 
     return invoke_id;
@@ -956,24 +1010,31 @@ int main(
 				}
 				else
                     Property_List_Index++;
-				if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST )
-				{
-					if ( !Using_Walked_List )		/* Just switched */
-					{
-                        Using_Walked_List = true;
-                        Walked_List_Index = Walked_List_Length = 0;
-					}
-				}
+//				if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST )
+//				{
+//					if ( !Using_Walked_List )		/* Just switched */
+//					{
+//                        Using_Walked_List = true;
+//                        Walked_List_Index = Walked_List_Length = 0;
+//					}
+//				}
 				myState = GET_PROPERTY_REQUEST;		/* Go fetch next Property */
 			}
             else if (tsm_invoke_id_free(invoke_id)) {
 				invoke_id = 0;
 				if (Error_Detected)
 				{
-					/* OK, skip this one and try the next property. */
-					fprintf( stdout, "    -- Failed to get %s \r\n",
-							 bactext_property_name(pPropList[Property_List_Index]) );
-					Property_List_Index++;
+					if ( IsLongArray ) {
+						/* Change to using a Walked List and retry this property */
+                        Using_Walked_List = true;
+                        Walked_List_Index = Walked_List_Length = 0;
+					}
+					else {
+						/* OK, skip this one and try the next property. */
+						fprintf( stdout, "    -- Failed to get %s \r\n",
+								 bactext_property_name(pPropList[Property_List_Index]) );
+						Property_List_Index++;
+					}
 				}
 				myState = GET_PROPERTY_REQUEST;
 			} else if (tsm_invoke_id_failed(invoke_id)) {
