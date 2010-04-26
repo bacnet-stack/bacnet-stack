@@ -321,5 +321,7 @@ int main(
         last_seconds = current_seconds;
     }
 
+    if (Error_Detected)
+        return 1;
     return 0;
 }
