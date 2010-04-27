@@ -106,6 +106,7 @@ extern "C" {
 /* use these in tandem */
     uint8_t tsm_next_free_invokeID(
         void);
+    void tsm_invokeID_set(uint8_t invokeID);
 /* returns the same invoke ID that was given */
     void tsm_set_confirmed_unsegmented_transaction(
         uint8_t invokeID,
