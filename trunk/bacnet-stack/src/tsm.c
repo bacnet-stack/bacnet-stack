@@ -61,6 +61,9 @@
 /* table rules: an Invoke ID = 0 is an unused spot in the table */
 static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS];
 
+/* invoke ID for incrementing between subsequent calls. */
+static uint8_t Current_Invoke_ID = 1;
+
 /* returns MAX_TSM_TRANSACTIONS if not found */
 static uint8_t tsm_find_invokeID_index(
     uint8_t invokeID)
@@ -128,13 +131,22 @@ uint8_t tsm_transaction_idle_count(
     return count;
 }
 
+/* sets the invokeID */
+
+void tsm_invokeID_set(uint8_t invokeID)
+{
+	if(invokeID == 0) {
+		invokeID = 1;
+	}
+	Current_Invoke_ID=invokeID;
+}
+
 /* gets the next free invokeID,
    and reserves a spot in the table
    returns 0 if none are available */
 uint8_t tsm_next_free_invokeID(
     void)
 {
-    static uint8_t current_invokeID = 1;        /* incremented... */
     uint8_t index = 0;
     uint8_t invokeID = 0;
     bool found = false;
@@ -142,30 +154,30 @@ uint8_t tsm_next_free_invokeID(
     /* is there even space available? */
     if (tsm_transaction_available()) {
         while (!found) {
-            index = tsm_find_invokeID_index(current_invokeID);
+            index = tsm_find_invokeID_index(Current_Invoke_ID);
             if (index == MAX_TSM_TRANSACTIONS) {
                 /* Not found, so this invokeID is not used */
                 found = true;
                 /* set this id into the table */
                 index = tsm_find_first_free_index();
                 if (index != MAX_TSM_TRANSACTIONS) {
-                    TSM_List[index].InvokeID = invokeID = current_invokeID;
+                    TSM_List[index].InvokeID = invokeID = Current_Invoke_ID;
                     TSM_List[index].state = TSM_STATE_IDLE;
                     TSM_List[index].RequestTimer = apdu_timeout();
                     /* update for the next call or check */
-                    current_invokeID++;
+                    Current_Invoke_ID++;
                     /* skip zero - we treat that internally as invalid or no free */
-                    if (current_invokeID == 0) {
-                        current_invokeID = 1;
+                    if (Current_Invoke_ID == 0) {
+                        Current_Invoke_ID = 1;
                     }
                 }
             } else {
                 /* found! This invokeID is already used */
                 /* try next one */
-                current_invokeID++;
+                Current_Invoke_ID++;
                 /* skip zero - we treat that internally as invalid or no free */
-                if (current_invokeID == 0) {
-                    current_invokeID = 1;
+                if (Current_Invoke_ID == 0) {
+                    Current_Invoke_ID = 1;
                 }
             }
         }
