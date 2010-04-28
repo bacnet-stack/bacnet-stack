@@ -185,7 +185,7 @@ static int Read_Property_Common(
     BACNET_CHARACTER_STRING char_string;
     char *pString = "";
     uint8_t *apdu = NULL;
-    
+
     if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
@@ -199,7 +199,7 @@ static int Read_Property_Common(
                 rpdata->object_instance = Object_Instance_Number;
             }
             apdu_len =
-                encode_application_object_id(&apdu[0], 
+                encode_application_object_id(&apdu[0],
                     rpdata->object_type,
                     rpdata->object_instance);
             break;
@@ -254,7 +254,7 @@ int Device_Read_Property(
 bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
-    int apdu_len = -1;
+    bool status = false;
     struct object_functions *pObject = NULL;
 
     /* initialize the default return values */
@@ -263,7 +263,7 @@ bool Device_Write_Property(
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(wp_data->object_instance)) {
             if (pObject->Object_Write_Property) {
-                apdu_len = pObject->Object_Write_Property(wp_data);
+                status = pObject->Object_Write_Property(wp_data);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -277,7 +277,7 @@ bool Device_Write_Property(
         wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
 
-    return apdu_len;
+    return status;
 }
 
 static unsigned property_list_count(
@@ -315,7 +315,7 @@ void Device_Objects_Property_List(
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
         pObject->Object_RPM_List(
             &pPropertyList->Required.pList,
-            &pPropertyList->Optional.pList, 
+            &pPropertyList->Optional.pList,
             &pPropertyList->Proprietary.pList);
     }
 
@@ -325,7 +325,7 @@ void Device_Objects_Property_List(
 
     pPropertyList->Optional.count = pPropertyList->Optional.pList == NULL
         ? 0 : property_list_count(pPropertyList->Optional.pList);
-    
+
     pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
         ? 0 : property_list_count(pPropertyList->Proprietary.pList);
 
@@ -365,7 +365,7 @@ char *Device_Name(
     uint8_t length = 0;
     static char name[NV_EEPROM_DEVICE_NAME_SIZE+1] = "";
     char *pName = NULL;
-    
+
     if (object_instance == Object_Instance_Number) {
         eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_ENCODING, &encoding, 1);
         eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_LENGTH, &length, 1);
@@ -390,7 +390,7 @@ char *Device_Name(
         }
         pName = &name[0];
     }
-    
+
     return pName;
 }
 
@@ -402,9 +402,9 @@ bool Device_Reinitialize(
     if (characterstring_ansi_same(&rd_data->password, "rehmite")) {
         Reinitialize_State = rd_data->state;
         dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-        /* Note: you could use a mix of state 
+        /* Note: you could use a mix of state
            and password to multiple things */
-        /* note: you probably want to restart *after* the 
+        /* note: you probably want to restart *after* the
            simple ack has been sent from the return handler
            so just set a flag from here */
         status = true;
@@ -412,7 +412,7 @@ bool Device_Reinitialize(
         rd_data->error_class = ERROR_CLASS_SECURITY;
         rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
     }
-    
+
     return status;
 }
 
@@ -483,13 +483,13 @@ int Device_Set_System_Status(
     bool local)
 {
     /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
-    int result = -1;        
-    
+    int result = -1;
+
     if (status < MAX_DEVICE_STATUS) {
         System_Status = status;
         result = 0;
     }
-    
+
     return result;
 }
 
@@ -611,7 +611,7 @@ char *Device_Valid_Object_Id(
     if ((pObject) && (pObject->Object_Name)) {
         name = pObject->Object_Name(object_instance);
     }
-    
+
     return name;
 }
 
@@ -817,7 +817,7 @@ int Device_Read_Property_Local(
 bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false;        /* return value - false=error */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 

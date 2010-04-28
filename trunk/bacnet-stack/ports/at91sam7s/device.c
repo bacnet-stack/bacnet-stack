@@ -53,7 +53,7 @@ static char My_Object_Name[32] = "ARM7 Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_REINITIALIZED_STATE Reinitialize_State =
     BACNET_REINIT_IDLE;
-    
+
 /* forward prototypes */
 int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA *rpdata);
@@ -108,13 +108,13 @@ static struct object_functions {
         Binary_Input_Read_Property,
         NULL,
         Binary_Input_Property_Lists},
-    {OBJECT_BINARY_VALUE, 
+    {OBJECT_BINARY_VALUE,
         Binary_Value_Init,
         Binary_Value_Count,
         Binary_Value_Index_To_Instance,
         Binary_Value_Valid_Instance,
         Binary_Value_Name,
-        Binary_Value_Read_Property,  
+        Binary_Value_Read_Property,
         Binary_Value_Write_Property,
         Binary_Value_Property_Lists},
 
@@ -216,7 +216,7 @@ int Device_Read_Property(
 bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
-    int apdu_len = -1;
+    bool status = false;
     unsigned index = 0;
     struct object_functions *pObject = NULL;
     bool found = false;
@@ -232,7 +232,7 @@ bool Device_Write_Property(
             if (pObject->Object_Valid_Instance &&
                 pObject->Object_Valid_Instance(wp_data->object_instance)) {
                 if (pObject->Object_Write_Property) {
-                    apdu_len = pObject->Object_Write_Property(wp_data);
+                    status = pObject->Object_Write_Property(wp_data);
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -251,7 +251,7 @@ bool Device_Write_Property(
         wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
 
-    return apdu_len;
+    return status;
 }
 
 static unsigned property_list_count(
@@ -425,7 +425,7 @@ char *Device_Valid_Object_Id(
 
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if ((pObject->Object_Type == object_type) && 
+        if ((pObject->Object_Type == object_type) &&
             (pObject->Object_Name)) {
             name = pObject->Object_Name(object_instance);
             break;
@@ -433,7 +433,7 @@ char *Device_Valid_Object_Id(
         index++;
         pObject = &Object_Table[index];
     }
-    
+
     return name;
 }
 
@@ -454,11 +454,11 @@ char *Device_Name(
     if (object_instance == Object_Instance_Number) {
         return My_Object_Name;
     }
-    
+
     return NULL;
 }
 
-bool Device_Reinitialize(        
+bool Device_Reinitialize(
     BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
@@ -466,9 +466,9 @@ bool Device_Reinitialize(
     if (characterstring_ansi_same(&rd_data->password, "filister")) {
         Reinitialize_State = rd_data->state;
         dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-        /* Note: you could use a mix of state 
+        /* Note: you could use a mix of state
            and password to multiple things */
-        /* note: you probably want to restart *after* the 
+        /* note: you probably want to restart *after* the
            simple ack has been sent from the return handler
            so just set a flag from here */
         status = true;
@@ -476,7 +476,7 @@ bool Device_Reinitialize(
         rd_data->error_class = ERROR_CLASS_SECURITY;
         rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
     }
-    
+
     return status;
 }
 
@@ -552,7 +552,7 @@ int Device_Set_System_Status(
     if (status < MAX_DEVICE_STATUS) {
         System_Status = status;
     }
-    
+
     return result;
 }
 
