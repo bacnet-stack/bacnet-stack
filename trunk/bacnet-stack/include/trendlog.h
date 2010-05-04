@@ -27,7 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <time.h>		// for time_t
+#include <time.h>		/* for time_t */
 #include "bacdef.h"
 #include "cov.h"
 #include "rp.h"
