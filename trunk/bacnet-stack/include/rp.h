@@ -64,7 +64,7 @@ struct BACnet_Read_Access_Data;
  */
 typedef int (
     *read_property_function) (
-    BACNET_READ_PROPERTY_DATA *rp_data);
+    BACNET_READ_PROPERTY_DATA * rp_data);
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,7 +106,7 @@ extern "C" {
     int rp_ack_fully_decode_service_request(
         uint8_t * apdu,
         int apdu_len,
-        struct BACnet_Read_Access_Data * read_access_data);
+        struct BACnet_Read_Access_Data *read_access_data);
 
 #ifdef TEST
 #include "ctest.h"
@@ -131,19 +131,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DataShare Data Sharing BIBBs
  * These BIBBs prescribe the BACnet capabilities required to interoperably 
  * perform the data sharing functions enumerated in 22.2.1.1 for the BACnet 
  * devices defined therein.
- */
-
-/** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
+ *//** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
  * @ingroup DataShare
  * 15.5 ReadProperty Service <br>
  * The ReadProperty service is used by a client BACnet-user to request the 
  * value of one property of one BACnet Object. This service allows read access 
  * to any property of any object, whether a BACnet-defined object or not.
  */
-
 #endif

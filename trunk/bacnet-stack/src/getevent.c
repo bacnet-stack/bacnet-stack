@@ -58,7 +58,7 @@ int getevent_encode_apdu(
         if (lastReceivedObjectIdentifier) {
             len =
                 encode_context_object_id(&apdu[apdu_len], 0,
-                (int)lastReceivedObjectIdentifier->type,
+                (int) lastReceivedObjectIdentifier->type,
                 lastReceivedObjectIdentifier->instance);
             apdu_len += len;
         }
@@ -125,7 +125,7 @@ int getevent_ack_encode_apdu_data(
             /* Tag 0: objectIdentifier */
             apdu_len +=
                 encode_context_object_id(&apdu[apdu_len], 0,
-                (int)event_data->objectIdentifier.type,
+                (int) event_data->objectIdentifier.type,
                 event_data->objectIdentifier.instance);
             /* Tag 1: eventState */
             apdu_len +=
@@ -262,8 +262,7 @@ int getevent_ack_decode_service_request(
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
-                len +=
-                    decode_enumerated(&apdu[len], len_value, &enum_value);
+                len += decode_enumerated(&apdu[len], len_value, &enum_value);
                 event_data->notifyType = enum_value;
             } else {
                 return -1;
@@ -314,10 +313,10 @@ int getevent_ack_decode_service_request(
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
-			if (len_value == 1)
-				*moreEvents = decode_context_boolean(&apdu[len++]);
-			else
-				*moreEvents = false;
+            if (len_value == 1)
+                *moreEvents = decode_context_boolean(&apdu[len++]);
+            else
+                *moreEvents = false;
         } else {
             return -1;
         }
@@ -430,13 +429,15 @@ void testGetEventInformationAck(
     ct_test(pTest, len != 0);
     ct_test(pTest, len != -1);
     apdu_len = len;
-    len = getevent_ack_encode_apdu_data(&apdu[apdu_len], 
-        sizeof(apdu)-apdu_len, &event_data);
+    len =
+        getevent_ack_encode_apdu_data(&apdu[apdu_len], sizeof(apdu) - apdu_len,
+        &event_data);
     ct_test(pTest, len != 0);
     ct_test(pTest, len != -1);
     apdu_len += len;
-    len = getevent_ack_encode_apdu_end(&apdu[apdu_len], 
-        sizeof(apdu)-apdu_len, moreEvents);
+    len =
+        getevent_ack_encode_apdu_end(&apdu[apdu_len], sizeof(apdu) - apdu_len,
+        moreEvents);
     ct_test(pTest, len != 0);
     ct_test(pTest, len != -1);
     apdu_len += len;

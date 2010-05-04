@@ -84,7 +84,7 @@ extern "C" {
         BACNET_PROPERTY_VALUE * value_list);
 
     int Binary_Input_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Binary_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);

@@ -71,7 +71,7 @@ int rpm_ack_decode_service_request(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
-    assert( read_access_data != NULL );
+    assert(read_access_data != NULL);
     rpm_object = read_access_data;
     old_rpm_object = rpm_object;
     while (rpm_object && apdu_len) {
@@ -211,7 +211,7 @@ static void PrintReadPropertyMultipleData(
 #if PRINT_ENABLED
         fprintf(stdout, "%s #%lu\r\n",
             bactext_object_type_name(rpm_data->object_type),
-            (unsigned long)rpm_data->object_instance);
+            (unsigned long) rpm_data->object_instance);
         fprintf(stdout, "{\r\n");
 #endif
         listOfProperties = rpm_data->listOfProperties;
@@ -219,11 +219,11 @@ static void PrintReadPropertyMultipleData(
 #if PRINT_ENABLED
             if (listOfProperties->propertyIdentifier < 512) {
                 fprintf(stdout, "    %s: ",
-                    bactext_property_name(listOfProperties->
-                        propertyIdentifier));
+                    bactext_property_name
+                    (listOfProperties->propertyIdentifier));
             } else {
                 fprintf(stdout, "    proprietary %u: ",
-                    (unsigned)listOfProperties->propertyIdentifier);
+                    (unsigned) listOfProperties->propertyIdentifier);
             }
 #endif
             if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
@@ -261,10 +261,10 @@ static void PrintReadPropertyMultipleData(
 #if PRINT_ENABLED
                 /* AccessError */
                 fprintf(stdout, "BACnet Error: %s: %s\r\n",
-                    bactext_error_class_name((int) listOfProperties->
-                        error.error_class),
-                    bactext_error_code_name((int) listOfProperties->
-                        error.error_code));
+                    bactext_error_class_name((int) listOfProperties->error.
+                        error_class),
+                    bactext_error_code_name((int) listOfProperties->error.
+                        error_code));
 #endif
             }
             listOfProperties = listOfProperties->next;

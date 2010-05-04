@@ -72,10 +72,10 @@ void ProcessPT(
         decode_tag_number_and_value(&data->serviceParameters[iLen],
         &tag_number, &len_value_type);
     iLen += tag_len;
-    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {    
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         /* Bail out early if wrong type */
         /* and signal unexpected error */
-        data->serviceParametersLen = 0; 
+        data->serviceParametersLen = 0;
         return;
     }
 
@@ -86,44 +86,45 @@ void ProcessPT(
     if (cBlockNumber < MY_MAX_BLOCK) {
         if (data->serviceNumber == MY_SVC_READ) {
             /*  Read Response is an unsigned int with 
-                0 for success or a non 0 error code
-                For a successful read the 0 success 
-                code is followed by the block number
-                and then the block contents which 
-                consist of 2 unsigned ints (in 0 to 255
-                range as they are really chars) a single 
-                precision real and a string which
-                will be up to 32 chars + a nul */
+               0 for success or a non 0 error code
+               For a successful read the 0 success 
+               code is followed by the block number
+               and then the block contents which 
+               consist of 2 unsigned ints (in 0 to 255
+               range as they are really chars) a single 
+               precision real and a string which
+               will be up to 32 chars + a nul */
 
             iLen = 0;
 
             /* Signal success */
-            iLen += encode_application_unsigned(&IOBufferPT[iLen], MY_ERR_OK);  
+            iLen += encode_application_unsigned(&IOBufferPT[iLen], MY_ERR_OK);
             /* Followed by the block number */
-            iLen += encode_application_unsigned(&IOBufferPT[iLen], 
-                cBlockNumber);       
+            iLen +=
+                encode_application_unsigned(&IOBufferPT[iLen], cBlockNumber);
             /* And Then the block contents */
-            iLen += encode_application_unsigned(&IOBufferPT[iLen], 
-                MyData[(int8_t)cBlockNumber].cMyByte1);      
             iLen +=
                 encode_application_unsigned(&IOBufferPT[iLen],
-                MyData[(int8_t)cBlockNumber].cMyByte2);
+                MyData[(int8_t) cBlockNumber].cMyByte1);
+            iLen +=
+                encode_application_unsigned(&IOBufferPT[iLen],
+                MyData[(int8_t) cBlockNumber].cMyByte2);
             iLen +=
                 encode_application_real(&IOBufferPT[iLen],
-                MyData[(int8_t)cBlockNumber].fMyReal);
-            characterstring_init_ansi(&bsTemp, 
-                (char *)MyData[(int8_t)cBlockNumber].sMyString);
+                MyData[(int8_t) cBlockNumber].fMyReal);
+            characterstring_init_ansi(&bsTemp,
+                (char *) MyData[(int8_t) cBlockNumber].sMyString);
             iLen +=
                 encode_application_character_string(&IOBufferPT[iLen],
                 &bsTemp);
-        } else {        
+        } else {
             /* Write operation */
             /*  Write block consists of the block number 
-                followed by the block contents as
-                described above for the read operation. 
-                The returned result is an unsigned
-                response which is 0 for success and 
-                a non 0 error code otherwise. */
+               followed by the block contents as
+               described above for the read operation. 
+               The returned result is an unsigned
+               response which is 0 for success and 
+               a non 0 error code otherwise. */
 
             tag_len =
                 decode_tag_number_and_value(&data->serviceParameters[iLen],
@@ -136,7 +137,7 @@ void ProcessPT(
             iLen +=
                 decode_unsigned(&data->serviceParameters[iLen], len_value_type,
                 &ulTemp);
-            MyData[(int8_t)cBlockNumber].cMyByte1 = (char) ulTemp;
+            MyData[(int8_t) cBlockNumber].cMyByte1 = (char) ulTemp;
 
             tag_len =
                 decode_tag_number_and_value(&data->serviceParameters[iLen],
@@ -149,7 +150,7 @@ void ProcessPT(
             iLen +=
                 decode_unsigned(&data->serviceParameters[iLen], len_value_type,
                 &ulTemp);
-            MyData[(int8_t)cBlockNumber].cMyByte2 = (char) ulTemp;
+            MyData[(int8_t) cBlockNumber].cMyByte2 = (char) ulTemp;
 
             tag_len =
                 decode_tag_number_and_value(&data->serviceParameters[iLen],
@@ -161,7 +162,7 @@ void ProcessPT(
             }
             iLen +=
                 decode_real(&data->serviceParameters[iLen],
-                &MyData[(int8_t)cBlockNumber].fMyReal);
+                &MyData[(int8_t) cBlockNumber].fMyReal);
 
             tag_len =
                 decode_tag_number_and_value(&data->serviceParameters[iLen],
@@ -174,16 +175,16 @@ void ProcessPT(
             decode_character_string(&data->serviceParameters[iLen],
                 len_value_type, &bsTemp);
             /* Only copy as much as we can accept */
-            strncpy((char *)MyData[(int8_t)cBlockNumber].sMyString, 
-                characterstring_value(&bsTemp), MY_MAX_STR);        
+            strncpy((char *) MyData[(int8_t) cBlockNumber].sMyString,
+                characterstring_value(&bsTemp), MY_MAX_STR);
             /* Make sure it is nul terminated */
-            MyData[(int8_t)cBlockNumber].sMyString[MY_MAX_STR] = '\0';  
+            MyData[(int8_t) cBlockNumber].sMyString[MY_MAX_STR] = '\0';
             /* Signal success */
-            iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_OK);      
+            iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_OK);
         }
     } else {
         /* Signal bad index */
-        iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_BAD_INDEX);   
+        iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_BAD_INDEX);
     }
     data->serviceParametersLen = iLen;
     data->serviceParameters = IOBufferPT;
@@ -260,17 +261,17 @@ void handler_conf_private_trans(
     }
 
     /*  Simple example with service number of 0 for 
-        read block and 1 for write block
-        We also only support our own vendor ID. 
-        In theory we could support others
-        for compatability purposes but these 
-        interfaces are rarely documented... */
-    if ((data.vendorID == BACNET_VENDOR_ID) && 
-        (data.serviceNumber <= MY_SVC_WRITE)) {  
+       read block and 1 for write block
+       We also only support our own vendor ID. 
+       In theory we could support others
+       for compatability purposes but these 
+       interfaces are rarely documented... */
+    if ((data.vendorID == BACNET_VENDOR_ID) &&
+        (data.serviceNumber <= MY_SVC_WRITE)) {
         /* We only try to understand our own IDs and service numbers */
         /* Will either return a result block or an app level status block */
-        ProcessPT(&data);       
-        if (data.serviceParametersLen == 0) {   
+        ProcessPT(&data);
+        if (data.serviceParametersLen == 0) {
             /* No respopnse means fatal error */
             error = true;
             error_class = ERROR_CLASS_SERVICES;

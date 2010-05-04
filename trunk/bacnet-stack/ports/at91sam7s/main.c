@@ -147,8 +147,7 @@ static inline void bacnet_init(
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, 
-        handler_who_has);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */

@@ -337,8 +337,7 @@ int Device_Encode_Property_APDU(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (property != PROP_OBJECT_LIST) &&
+    if ((apdu_len >= 0) && (property != PROP_OBJECT_LIST) &&
         (array_index != BACNET_ARRAY_ALL)) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -372,8 +371,8 @@ bool Device_Write_Property(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {

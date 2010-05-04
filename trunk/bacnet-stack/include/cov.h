@@ -126,7 +126,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DSCOV Data Sharing - Change of Value Service (DS-COV)
  * @ingroup DataShare
  * 13.1 Change of Value Reporting <br>
@@ -140,5 +139,4 @@ extern "C" {
  * devices or to operators or logging devices. Any object, proprietary or 
  * standard, may support COV reporting at the implementor's option.
  */
-
 #endif

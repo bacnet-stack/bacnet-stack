@@ -85,8 +85,8 @@ int bacapp_encode_device_obj_property_ref(
 
     /* Likewise, device id is optional so see if needed
      * (set type to non device to omit */
-     
-    if(value->deviceIndentifier.type == OBJECT_DEVICE) {
+
+    if (value->deviceIndentifier.type == OBJECT_DEVICE) {
         len =
             encode_context_object_id(&apdu[apdu_len], 3,
             (int) value->deviceIndentifier.type,
@@ -206,7 +206,7 @@ int bacapp_encode_device_obj_ref(
     /* Device id is optional so see if needed
      * (set type to non device to omit */
 
-    if(value->deviceIndentifier.type == OBJECT_DEVICE) {
+    if (value->deviceIndentifier.type == OBJECT_DEVICE) {
         len =
             encode_context_object_id(&apdu[apdu_len], 0,
             (int) value->deviceIndentifier.type,
@@ -264,8 +264,7 @@ int bacapp_decode_context_device_obj_ref(
 
     if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
         len++;
-        section_length =
-            bacapp_decode_device_obj_ref(&apdu[len], value);
+        section_length = bacapp_decode_device_obj_ref(&apdu[len], value);
 
         if (section_length == -1) {
             len = -1;
@@ -330,8 +329,8 @@ void testDevIdPropRef(
 void testDevIdRef(
     Test * pTest)
 {
-	BACNET_DEVICE_OBJECT_REFERENCE inData;
-	BACNET_DEVICE_OBJECT_REFERENCE outData;
+    BACNET_DEVICE_OBJECT_REFERENCE inData;
+    BACNET_DEVICE_OBJECT_REFERENCE outData;
     uint8_t buffer[MAX_APDU];
     int inLen;
     int outLen;

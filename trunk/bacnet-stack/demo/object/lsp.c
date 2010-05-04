@@ -188,7 +188,7 @@ char *Life_Safety_Point_Name(
 
 /* return apdu len, or -1 on error */
 int Life_Safety_Point_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -203,8 +203,7 @@ int Life_Safety_Point_Read_Property(
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -228,7 +227,8 @@ int Life_Safety_Point_Read_Property(
                 OBJECT_LIFE_SAFETY_POINT);
             break;
         case PROP_PRESENT_VALUE:
-            present_value = Life_Safety_Point_Present_Value(rpdata->object_instance);
+            present_value =
+                Life_Safety_Point_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -286,8 +286,7 @@ int Life_Safety_Point_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
@@ -313,15 +312,14 @@ bool Life_Safety_Point_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_MODE:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_ENUMERATED, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
                     object_index =
-                        Life_Safety_Point_Instance_To_Index
-                        (wp_data->object_instance);
+                        Life_Safety_Point_Instance_To_Index(wp_data->
+                        object_instance);
                     Life_Safety_Point_Mode[object_index] =
                         value.type.Enumerated;
                 } else {
@@ -332,14 +330,13 @@ bool Life_Safety_Point_Write_Property(
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_BOOLEAN, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Life_Safety_Point_Instance_To_Index
-                    (wp_data->object_instance);
+                    Life_Safety_Point_Instance_To_Index(wp_data->
+                    object_instance);
                 Life_Safety_Point_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }
@@ -373,7 +370,7 @@ void testLifeSafetyPoint(
     Life_Safety_Point_Init();
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_LIFE_SAFETY_POINT; 
+    rpdata.object_type = OBJECT_LIFE_SAFETY_POINT;
     rpdata.object_instance = 1;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
     rpdata.array_index = BACNET_ARRAY_ALL;
@@ -381,8 +378,7 @@ void testLifeSafetyPoint(
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == rpdata.object_type);
     ct_test(pTest, decoded_instance == rpdata.object_instance);
 

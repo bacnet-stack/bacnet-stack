@@ -124,10 +124,9 @@ uint8_t Send_COV_Subscribe(
             npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
             &npdu_data);
         /* encode the APDU portion of the packet */
-        len = cov_subscribe_encode_adpu(
-            &Handler_Transmit_Buffer[pdu_len],
-            invoke_id,
-            cov_data);
+        len =
+            cov_subscribe_encode_adpu(&Handler_Transmit_Buffer[pdu_len],
+            invoke_id, cov_data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
@@ -158,4 +157,3 @@ uint8_t Send_COV_Subscribe(
 
     return invoke_id;
 }
-

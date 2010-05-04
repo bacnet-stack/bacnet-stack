@@ -201,10 +201,10 @@ static void Binary_Output_Level_Sync(
 bool Binary_Output_Present_Value_Set(
     uint32_t instance,
     BACNET_BINARY_PV binary_value,
-    unsigned priority) /* 0..15 */
-{
+    unsigned priority)
+{       /* 0..15 */
     bool status = false;
-    
+
     if (instance < MAX_BINARY_OUTPUTS) {
         if (priority < BACNET_MAX_PRIORITY) {
             Binary_Output_Level[instance][priority] = (uint8_t) binary_value;
@@ -215,7 +215,7 @@ bool Binary_Output_Present_Value_Set(
             status = true;
         }
     }
-    
+
     return status;
 }
 
@@ -239,8 +239,7 @@ void Binary_Output_Out_Of_Service_Set(
     if (instance < MAX_BINARY_OUTPUTS) {
         Out_Of_Service[instance] = flag;
         seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
-                NV_SEEPROM_BO_OUT_OF_SERVICE), &Out_Of_Service[instance],
-            1);
+                NV_SEEPROM_BO_OUT_OF_SERVICE), &Out_Of_Service[instance], 1);
     }
 }
 
@@ -260,7 +259,7 @@ char *Binary_Output_Name(
 
 /* return apdu len, or -1 on error */
 int Binary_Output_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -278,9 +277,10 @@ int Binary_Output_Read_Property(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        /* object id, object name, object type are handled in Device object */
+            /* object id, object name, object type are handled in Device object */
         case PROP_PRESENT_VALUE:
-            present_value = Binary_Output_Present_Value(rpdata->object_instance);
+            present_value =
+                Binary_Output_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -298,12 +298,14 @@ int Binary_Output_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index = Binary_Output_Instance_To_Index(rpdata->object_instance);
+            object_index =
+                Binary_Output_Instance_To_Index(rpdata->object_instance);
             state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
-            object_index = Binary_Output_Instance_To_Index(rpdata->object_instance);
+            object_index =
+                Binary_Output_Instance_To_Index(rpdata->object_instance);
             apdu_len =
                 encode_application_enumerated(&apdu[0],
                 Polarity[object_index]);
@@ -343,7 +345,8 @@ int Binary_Output_Read_Property(
                     Binary_Output_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     present_value =
-                        Binary_Output_Level[object_index][rpdata->array_index - 1];
+                        Binary_Output_Level[object_index][rpdata->array_index -
+                        1];
                     if (present_value == BINARY_NULL) {
                         apdu_len = encode_application_null(&apdu[apdu_len]);
                     } else {
@@ -379,8 +382,7 @@ int Binary_Output_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -408,10 +410,9 @@ bool Binary_Output_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = WPValidateArgType(&value,
-                BACNET_APPLICATION_TAG_ENUMERATED,
-                &wp_data->error_class,
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 priority = wp_data->priority;
                 /* Command priority 6 is reserved for use by Minimum On/Off
@@ -422,8 +423,7 @@ bool Binary_Output_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     priority--;
-                    Binary_Output_Present_Value_Set(
-                        wp_data->object_instance, 
+                    Binary_Output_Present_Value_Set(wp_data->object_instance,
                         level, priority);
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -438,18 +438,16 @@ bool Binary_Output_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = WPValidateArgType(&value,
-                    BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class,
-                    &wp_data->error_code);
+                status =
+                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     level = BINARY_NULL;
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Binary_Output_Present_Value_Set(
-                            wp_data->object_instance, 
-                            level, priority);
+                        Binary_Output_Present_Value_Set(wp_data->
+                            object_instance, level, priority);
                     } else if (priority == 6) {
                         status = false;
                         /* Command priority 6 is reserved for use by Minimum On/Off
@@ -466,26 +464,22 @@ bool Binary_Output_Write_Property(
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value,
-                BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class,
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Binary_Output_Out_Of_Service_Set(
-                    wp_data->object_instance,
+                Binary_Output_Out_Of_Service_Set(wp_data->object_instance,
                     value.type.Boolean);
                 Binary_Output_Level_Sync(wp_data->object_instance);
             }
             break;
         case PROP_POLARITY:
-            status = WPValidateArgType(&value,
-                BACNET_APPLICATION_TAG_ENUMERATED,
-                &wp_data->error_class,
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
-                    Binary_Output_Polarity_Set(
-                        wp_data->object_instance,
+                    Binary_Output_Polarity_Set(wp_data->object_instance,
                         value.type.Enumerated);
                     Binary_Output_Level_Sync(wp_data->object_instance);
                 } else {

@@ -133,12 +133,13 @@ uint8_t tsm_transaction_idle_count(
 
 /* sets the invokeID */
 
-void tsm_invokeID_set(uint8_t invokeID)
+void tsm_invokeID_set(
+    uint8_t invokeID)
 {
-	if(invokeID == 0) {
-		invokeID = 1;
-	}
-	Current_Invoke_ID=invokeID;
+    if (invokeID == 0) {
+        invokeID = 1;
+    }
+    Current_Invoke_ID = invokeID;
 }
 
 /* gets the next free invokeID,

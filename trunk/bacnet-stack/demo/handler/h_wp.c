@@ -97,8 +97,10 @@ void handler_write_property(
     if (len > 0)
         fprintf(stderr,
             "WP: type=%lu instance=%lu property=%lu priority=%lu index=%ld\n",
-            (unsigned long)wp_data.object_type, (unsigned long)wp_data.object_instance,
-            (unsigned long)wp_data.object_property, (unsigned long)wp_data.priority, (long)wp_data.array_index);
+            (unsigned long) wp_data.object_type,
+            (unsigned long) wp_data.object_instance,
+            (unsigned long) wp_data.object_property,
+            (unsigned long) wp_data.priority, (long) wp_data.array_index);
     else
         fprintf(stderr, "WP: Unable to decode Request!\n");
 #endif
@@ -149,13 +151,13 @@ void handler_write_property(
  */
 
 bool WPValidateString(
-    BACNET_APPLICATION_DATA_VALUE *pValue,
+    BACNET_APPLICATION_DATA_VALUE * pValue,
     int iMaxLen,
     bool bEmptyAllowed,
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-	bool bResult;
+    bool bResult;
 
     /* Save on a bit of code duplication by pre selecting the most
      * common outcomes from the tests (not necessarily the most likely
@@ -164,21 +166,25 @@ bool WPValidateString(
     bResult = false;
     *pErrorClass = ERROR_CLASS_PROPERTY;
 
-    if(pValue->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-        if(characterstring_encoding(&pValue->type.Character_String) == CHARACTER_ANSI_X34) {
-            if((bEmptyAllowed == false) && (characterstring_length(&pValue->type.Character_String) == 0)) {
+    if (pValue->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+        if (characterstring_encoding(&pValue->type.Character_String) ==
+            CHARACTER_ANSI_X34) {
+            if ((bEmptyAllowed == false) &&
+                (characterstring_length(&pValue->type.Character_String) ==
+                    0)) {
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            } else if(characterstring_length(&pValue->type.Character_String) >= iMaxLen) {
+            } else if (characterstring_length(&pValue->type.
+                    Character_String) >= iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             } else
-	            bResult = true; /* It's all good! */
+                bResult = true; /* It's all good! */
         } else
             *pErrorCode = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
     } else
         *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
 
-    return(bResult);
+    return (bResult);
 }
 
 /** Perform simple validation of type of Write Property argument based
@@ -187,23 +193,23 @@ bool WPValidateString(
  */
 
 bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE *pValue,
+    BACNET_APPLICATION_DATA_VALUE * pValue,
     uint8_t ucExpectedTag,
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-	bool bResult;
+    bool bResult;
 
     /* 
      * start out assuming success and only set up error
      * response if validation fails.
      */
     bResult = true;
-    if(pValue->tag != ucExpectedTag) {
+    if (pValue->tag != ucExpectedTag) {
         bResult = false;
         *pErrorClass = ERROR_CLASS_PROPERTY;
         *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
     }
 
-    return(bResult);
+    return (bResult);
 }

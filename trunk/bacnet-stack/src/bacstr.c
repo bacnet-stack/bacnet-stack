@@ -206,7 +206,7 @@ bool bitstring_same(
     if (bitstring1 && bitstring1) {
         if ((bitstring1->bits_used == bitstring2->bits_used) &&
             (bitstring1->bits_used / 8 <= MAX_BITSTRING_BYTES)) {
-            bytes_used = (int)(bitstring1->bits_used / 8);
+            bytes_used = (int) (bitstring1->bits_used / 8);
             compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
 
             for (i = 0; i < bytes_used; i++) {

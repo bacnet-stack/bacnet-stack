@@ -178,8 +178,8 @@ bool apdu_service_supported(
  */
 bool apdu_service_supported_to_index(
     BACNET_SERVICES_SUPPORTED service_supported,
-    size_t *index, 
-    bool *bIsConfirmed )
+    size_t * index,
+    bool * bIsConfirmed)
 {
     int i = 0;
     bool found = false;

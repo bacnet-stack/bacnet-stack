@@ -122,7 +122,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DLBIP BACnet/IP DataLink Network Layer 
  * @ingroup DataLink
  * Implementation of the Network Layer using BACnet/IP as the transport, as
@@ -131,5 +130,4 @@ extern "C" {
  * DataLink level by serving as the implementation of the function templates.
  * 
  */
-
 #endif

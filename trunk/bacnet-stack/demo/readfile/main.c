@@ -136,7 +136,7 @@ static void AtomicReadFileAckHandler(
                     fprintf(stderr, "Unable to write data to file \"%s\".\n",
                         Local_File_Name);
                 } else if (octets_written == 0) {
-                    fprintf(stderr, "Received 0 byte octet string!.\n");                    
+                    fprintf(stderr, "Received 0 byte octet string!.\n");
                 } else {
                     printf("\r%u bytes",
                         (data.type.stream.fileStartPosition + octets_written));

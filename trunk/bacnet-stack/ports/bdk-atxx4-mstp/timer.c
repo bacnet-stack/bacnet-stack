@@ -52,11 +52,11 @@ uint32_t timer_elapsed_time(
 {
     uint32_t now = timer_milliseconds();
     uint32_t delta = 0;
-    
+
     if (t) {
         delta = now - t->start;
     }
-    
+
     return delta;
 }
 
@@ -94,13 +94,13 @@ bool timer_elapsed_milliseconds(
 * Notes: none
 *************************************************************************/
 bool timer_elapsed_seconds(
-    struct etimer *t,
+    struct etimer * t,
     uint32_t seconds)
 {
     uint32_t milliseconds = seconds;
 
     milliseconds *= 1000L;
-    
+
     return timer_elapsed_milliseconds(t, milliseconds);
 }
 
@@ -110,14 +110,14 @@ bool timer_elapsed_seconds(
 * Notes: none
 *************************************************************************/
 bool timer_elapsed_minutes(
-    struct etimer *t,
+    struct etimer * t,
     uint32_t minutes)
 {
     uint32_t milliseconds = minutes;
 
     milliseconds *= 1000L;
     milliseconds *= 60L;
-    
+
     return timer_elapsed_milliseconds(t, milliseconds);
 }
 
@@ -148,7 +148,7 @@ void timer_interval_start_seconds(
     uint32_t interval = seconds;
 
     interval *= 1000L;
-    timer_interval_start(t, interval);    
+    timer_interval_start(t, interval);
 }
 
 /*************************************************************************
@@ -164,7 +164,7 @@ void timer_interval_start_minutes(
 
     interval *= 1000L;
     interval *= 60L;
-    timer_interval_start(t, interval);    
+    timer_interval_start(t, interval);
 }
 
 /*************************************************************************
@@ -177,11 +177,11 @@ uint32_t timer_interval_elapsed(
 {
     uint32_t now = timer_milliseconds();
     uint32_t delta = 0;
-    
+
     if (t) {
         delta = now - t->start;
     }
-    
+
     return delta;
 }
 
@@ -191,14 +191,14 @@ uint32_t timer_interval_elapsed(
 * Notes: none
 *************************************************************************/
 uint32_t timer_interval(
-    struct itimer *t)
+    struct itimer * t)
 {
     uint32_t interval = 0;
-    
+
     if (t) {
         interval = t->interval;
     }
-    
+
     return interval;
 }
 
@@ -208,16 +208,16 @@ uint32_t timer_interval(
 * Notes: none
 *************************************************************************/
 bool timer_interval_expired(
-    struct itimer *t)
+    struct itimer * t)
 {
     bool expired = false;
-    
+
     if (t) {
         if (t->interval) {
             expired = timer_interval_elapsed(t) >= t->interval;
         }
     }
-    
+
     return expired;
 }
 
@@ -242,7 +242,7 @@ void timer_interval_no_expire(
 *************************************************************************/
 void timer_interval_reset(
     struct itimer *t)
-{    
+{
     if (t) {
         t->start += t->interval;
     }
@@ -269,7 +269,8 @@ void timer_interval_restart(
 
 static uint32_t Milliseconds;
 
-uint32_t timer_milliseconds(void)
+uint32_t timer_milliseconds(
+    void)
 {
     return Milliseconds;
 }
@@ -289,15 +290,15 @@ void testElapsedTimer(
 {
     struct etimer t;
     uint32_t test_time = 0;
-    
-    timer_milliseconds_set(test_time);    
+
+    timer_milliseconds_set(test_time);
     timer_elapsed_start(&t);
     ct_test(pTest, timer_elapsed_time(&t) == test_time);
     test_time = 0xffff;
-    timer_milliseconds_set(test_time);    
+    timer_milliseconds_set(test_time);
     ct_test(pTest, timer_elapsed_time(&t) == test_time);
     test_time = 0xffffffff;
-    timer_milliseconds_set(test_time);    
+    timer_milliseconds_set(test_time);
     ct_test(pTest, timer_elapsed_time(&t) == test_time);
 }
 
@@ -307,19 +308,19 @@ void testIntervalTimer(
     struct itimer t;
     uint32_t interval = 0;
     uint32_t test_time = 0;
-    
-    timer_milliseconds_set(test_time);    
+
+    timer_milliseconds_set(test_time);
     timer_interval_start(&t, interval);
     test_time = 0xffff;
-    timer_milliseconds_set(test_time);    
+    timer_milliseconds_set(test_time);
     ct_test(pTest, timer_interval(&t) == interval);
     ct_test(pTest, timer_interval_elapsed(&t) == test_time);
     test_time = 0xffffffff;
-    timer_milliseconds_set(test_time);    
+    timer_milliseconds_set(test_time);
     ct_test(pTest, timer_interval(&t) == interval);
     ct_test(pTest, timer_interval_elapsed(&t) == test_time);
     test_time = 0;
-    timer_milliseconds_set(test_time);    
+    timer_milliseconds_set(test_time);
     interval = 0xffff;
     timer_interval_start(&t, interval);
     ct_test(pTest, timer_interval(&t) == interval);
@@ -334,7 +335,7 @@ void testIntervalTimer(
     timer_interval_start_seconds(&t, interval);
     interval *= 1000L;
     ct_test(pTest, timer_interval(&t) == interval);
-    
+
 }
 
 
@@ -364,4 +365,3 @@ int main(
 }
 #endif
 #endif
-

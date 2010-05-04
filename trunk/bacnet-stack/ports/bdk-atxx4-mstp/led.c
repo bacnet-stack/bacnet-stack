@@ -151,8 +151,8 @@ void led_off_delay(
 void led_task(
     void)
 {
-    uint8_t i; /* loop counter */
-    
+    uint8_t i;  /* loop counter */
+
     for (i = 0; i < MAX_LEDS; i++) {
         if (timer_interval_expired(&Off_Delay_Timer[i])) {
             timer_interval_no_expire(&Off_Delay_Timer[i]);
@@ -169,8 +169,8 @@ void led_task(
 void led_init(
     void)
 {
-    uint8_t i; /* loop counter */
-    
+    uint8_t i;  /* loop counter */
+
     /* configure the port pins as outputs */
     BIT_SET(DDRC, DDC7);
     BIT_SET(DDRC, DDC6);
@@ -178,5 +178,5 @@ void led_init(
     BIT_SET(DDRD, DDD6);
     for (i = 0; i < MAX_LEDS; i++) {
         led_off(i);
-    }   
+    }
 }

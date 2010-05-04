@@ -63,7 +63,7 @@ extern "C" {
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
-    
+
     void handler_who_has(
         uint8_t * service_request,
         uint16_t service_len,
@@ -84,7 +84,7 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-        
+
     void handler_read_property_ack(
         uint8_t * service_request,
         uint16_t service_len,
@@ -98,14 +98,14 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     bool WPValidateString(
-        BACNET_APPLICATION_DATA_VALUE *pValue,
+        BACNET_APPLICATION_DATA_VALUE * pValue,
         int iMaxLen,
         bool bEmptyAllowed,
         BACNET_ERROR_CLASS * pErrorClass,
         BACNET_ERROR_CODE * pErrorCode);
 
     bool WPValidateArgType(
-        BACNET_APPLICATION_DATA_VALUE *pValue,
+        BACNET_APPLICATION_DATA_VALUE * pValue,
         uint8_t ucExpectedType,
         BACNET_ERROR_CLASS * pErrorClass,
         BACNET_ERROR_CODE * pErrorCode);
@@ -256,10 +256,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup MISCHNDLR Miscellaneous Handler Utilities
  * Various utilities and functions to support the Handlers.
  */
-
-
 #endif

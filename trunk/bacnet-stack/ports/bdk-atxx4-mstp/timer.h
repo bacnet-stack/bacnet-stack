@@ -46,12 +46,13 @@ extern "C" {
     /* these 3 functions are created in the hardware specific module */
     void timer_init(
         void);
-    uint32_t timer_milliseconds(void);
+    uint32_t timer_milliseconds(
+        void);
     uint32_t timer_milliseconds_set(
         uint32_t value);
 
     /* these functions are in the generic timer.c module */
-    
+
     /* elapsed timer */
     void timer_elapsed_start(
         struct etimer *t);

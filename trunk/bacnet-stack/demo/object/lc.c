@@ -199,7 +199,7 @@ void Load_Control_Init(
         Shed_Duration[i] = 0;
         Duty_Window[i] = 0;
         Load_Control_Enable[i] = true;
-        Full_Duty_Baseline[i] = 1.500;      /* kilowatts */
+        Full_Duty_Baseline[i] = 1.500;  /* kilowatts */
         Expected_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
         Expected_Shed_Level[i].value.level = 0;
         Actual_Shed_Level[i].type = BACNET_SHED_TYPE_LEVEL;
@@ -680,7 +680,7 @@ void Load_Control_State_Machine_Handler(
 
 /* return apdu len, or -1 on error */
 int Load_Control_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -692,8 +692,7 @@ int Load_Control_Read_Property(
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -933,7 +932,7 @@ bool Load_Control_Write_Property(
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    BACNET_DATE TempDate; /* build here in case of error in time half of datetime */
+    BACNET_DATE TempDate;       /* build here in case of error in time half of datetime */
 
     /* decode the some of the request */
     len =
@@ -980,23 +979,22 @@ bool Load_Control_Write_Property(
             break;
 
         case PROP_START_TIME:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_DATE, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_DATE,
+                &wp_data->error_class, &wp_data->error_code);
             if (!status) {
                 /* don't continue if we don't have a valid date */
                 break;
             }
             /* Hold the date until we are sure the time is also there */
             TempDate = value.type.Date;
-            len = bacapp_decode_application_data(wp_data->application_data + len,
+            len =
+                bacapp_decode_application_data(wp_data->application_data + len,
                 wp_data->application_data_len - len, &value);
             if (len) {
-                status = WPValidateArgType(&value, 
-                    BACNET_APPLICATION_TAG_TIME, 
-                    &wp_data->error_class, 
-                    &wp_data->error_code);
+                status =
+                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_TIME,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     /* Write time and date and set written flag */
                     Start_Time[object_index].date = TempDate;
@@ -1011,10 +1009,9 @@ bool Load_Control_Write_Property(
             break;
 
         case PROP_SHED_DURATION:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Shed_Duration[object_index] = value.type.Unsigned_Int;
                 Load_Control_Request_Written[object_index] = true;
@@ -1022,10 +1019,9 @@ bool Load_Control_Write_Property(
             break;
 
         case PROP_DUTY_WINDOW:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Duty_Window[object_index] = value.type.Unsigned_Int;
                 Load_Control_Request_Written[object_index] = true;
@@ -1033,10 +1029,9 @@ bool Load_Control_Write_Property(
             break;
 
         case PROP_SHED_LEVELS:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* re-write the size of the array? */
                 if (wp_data->array_index == 0) {
@@ -1059,10 +1054,9 @@ bool Load_Control_Write_Property(
             break;
 
         case PROP_ENABLE:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_BOOLEAN, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Load_Control_Enable[object_index] = value.type.Boolean;
             }
@@ -1477,7 +1471,7 @@ void testLoadControl(
     Load_Control_Init();
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_LOAD_CONTROL; 
+    rpdata.object_type = OBJECT_LOAD_CONTROL;
     rpdata.object_instance = 1;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
     rpdata.array_index = BACNET_ARRAY_ALL;
@@ -1485,8 +1479,7 @@ void testLoadControl(
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == rpdata.object_type);
     ct_test(pTest, decoded_instance == rpdata.object_instance);
 

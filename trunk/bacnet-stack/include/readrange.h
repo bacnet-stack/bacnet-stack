@@ -103,26 +103,27 @@ typedef enum {
 
 #define RR_OVERHEAD         16
 #define RR_1ST_SEQ_OVERHEAD 5
-#define RR_INDEX_OVERHEAD   3 /* or 5 if paranoid */ 
- 
+#define RR_INDEX_OVERHEAD   3   /* or 5 if paranoid */
+
 /** Define pointer to function type for handling ReadRange request.
    This function will take the following parameters:
   - 1. A pointer to a buffer of at least MAX_APDU bytes to build the response in.
   - 2. A pointer to a BACNET_READ_RANGE_DATA structure with all the request
       information in it. The function is responsible for applying the request
       to the property in question and returning the response. */
-   
-typedef int (*rr_handler_function) (
-    uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest);
+
+typedef int (
+    *rr_handler_function) (
+    uint8_t * apdu,
+    BACNET_READ_RANGE_DATA * pRequest);
 
 /** Structure to return the type of requests a given object property can
  * accept and the address of the function to handle the request */
- 
+
 typedef struct rrpropertyinfo {
     int RequestTypes;
     rr_handler_function Handler;
-    } RR_PROP_INFO;
+} RR_PROP_INFO;
 
 /** Function template for ReadRange information retrieval function.
  * A function template; @see device.c for assignment to object types.
@@ -131,9 +132,10 @@ typedef struct rrpropertyinfo {
  * @param pInfo [out]   Where to write the response to.
  * @return True on success, False on error or failure.
  */
-typedef bool (*rr_info_function) (
-    BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
-    RR_PROP_INFO *pInfo);         /* Where to write the response to */
+typedef bool(
+    *rr_info_function) (
+    BACNET_READ_RANGE_DATA * pRequest,  /* Info on the request */
+    RR_PROP_INFO * pInfo);      /* Where to write the response to */
 
 int rr_encode_apdu(
     uint8_t * apdu,
@@ -158,7 +160,7 @@ int rr_ack_decode_service_request(
 uint8_t Send_ReadRange_Request(
     uint32_t device_id, /* destination device */
     BACNET_READ_RANGE_DATA * read_access_data);
-    
+
 
 /** @defgroup Trend Trending BIBBs
  * These BIBBs prescribe the BACnet capabilities required to interoperably 
@@ -176,4 +178,3 @@ uint8_t Send_ReadRange_Request(
  */
 
 #endif
-

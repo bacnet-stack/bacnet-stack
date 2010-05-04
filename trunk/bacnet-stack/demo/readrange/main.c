@@ -281,15 +281,17 @@ int main(
             /* at least one second has passed */
             if (current_seconds != last_seconds) {
                 putchar('.');   /* Just to show that time is passing... */
-                tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+                tsm_timer_milliseconds(((current_seconds -
+                            last_seconds) * 1000));
                 address_cache_timer(current_seconds - last_seconds);
                 trend_log_timer(current_seconds - last_seconds);
                 last_seconds = current_seconds;
                 /* Change the analog input PVs for testing purposes */
-                for(iCount = 0; iCount < Analog_Input_Count(); iCount++) {
-                    Analog_Input_Present_Value_Set(iCount, iSecondsRun * (iCount + 1));
+                for (iCount = 0; iCount < Analog_Input_Count(); iCount++) {
+                    Analog_Input_Present_Value_Set(iCount,
+                        iSecondsRun * (iCount + 1));
                 }
-                    
+
                 iSecondsRun++;
             }
 #if defined(WIN32) || defined(__BORLANDC__)
@@ -326,7 +328,8 @@ int main(
             }
             /* at least one second has passed */
             if (current_seconds != last_seconds) {
-                tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+                tsm_timer_milliseconds(((current_seconds -
+                            last_seconds) * 1000));
                 address_cache_timer(current_seconds - last_seconds);
                 trend_log_timer(current_seconds - last_seconds);
                 last_seconds = current_seconds;
@@ -341,138 +344,162 @@ int main(
             if (found) {
                 if (invoke_id == 0) {   /* Safe to send a new request */
                     switch (iCount) {
- 				        case 0: /* Pass - should read up to 1st 10 */
-					        Request.RequestType     = RR_BY_POSITION;
-					        Request.Range.RefIndex  = 1;
-					        Request.Count           = 10;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 0:        /* Pass - should read up to 1st 10 */
+                            Request.RequestType = RR_BY_POSITION;
+                            Request.Range.RefIndex = 1;
+                            Request.Count = 10;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
 
-				        case 1: /* Pass - should read entries 2 and 3 */
-					        Request.RequestType     = RR_BY_POSITION;
-					        Request.Range.RefSeqNum = 3;
-					        Request.Count           = -2;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 1:        /* Pass - should read entries 2 and 3 */
+                            Request.RequestType = RR_BY_POSITION;
+                            Request.Range.RefSeqNum = 3;
+                            Request.Count = -2;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
 
-				        case 2: /* Fail - By Time not supported */
-					        Request.RequestType     = RR_BY_TIME;
-					        Request.Range.RefTime.date.year  = 2009;
-					        Request.Range.RefTime.date.month = 9;
-					        Request.Range.RefTime.date.day   = 23;
-					        Request.Range.RefTime.date.wday  = 0xFF;
-					        Request.Range.RefTime.time.hour  = 22;
-					        Request.Range.RefTime.time.min   = 23;
-					        Request.Range.RefTime.time.sec   = 24;
-					        Request.Range.RefTime.time.hundredths = 0;
-					        
-					        Request.Count           = 10;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 2:        /* Fail - By Time not supported */
+                            Request.RequestType = RR_BY_TIME;
+                            Request.Range.RefTime.date.year = 2009;
+                            Request.Range.RefTime.date.month = 9;
+                            Request.Range.RefTime.date.day = 23;
+                            Request.Range.RefTime.date.wday = 0xFF;
+                            Request.Range.RefTime.time.hour = 22;
+                            Request.Range.RefTime.time.min = 23;
+                            Request.Range.RefTime.time.sec = 24;
+                            Request.Range.RefTime.time.hundredths = 0;
 
-				        case 3: /* Fail - array not supported */
-					        Request.RequestType     = RR_BY_POSITION;
-					        Request.Range.RefIndex  = 1;
-					        Request.Count           = 10;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 1;
-					        break;
+                            Request.Count = 10;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
 
-				        case 4: /* Fail - By Sequence not supported */
-					        Request.RequestType     = RR_BY_SEQUENCE;
-					        Request.Range.RefSeqNum = 1;
-					        Request.Count           = 10;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 3:        /* Fail - array not supported */
+                            Request.RequestType = RR_BY_POSITION;
+                            Request.Range.RefIndex = 1;
+                            Request.Count = 10;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 1;
+                            break;
 
-				        case 5: /* Fail Bytime not supported and array not supported */
-					        Request.RequestType     = RR_BY_TIME;
-					        Request.Range.RefTime.date.year  = 2009;
-					        Request.Range.RefTime.date.month = 9;
-					        Request.Range.RefTime.date.day   = 23;
-					        Request.Range.RefTime.date.wday  = 0xFF; /* Day of week unspecified */
-					        Request.Range.RefTime.time.hour  = 22;
-					        Request.Range.RefTime.time.min   = 23;
-					        Request.Range.RefTime.time.sec   = 24;
-					        Request.Range.RefTime.time.hundredths = 0;
-					        
-					        Request.Count           = 10;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 1;
-					        break;
+                        case 4:        /* Fail - By Sequence not supported */
+                            Request.RequestType = RR_BY_SEQUENCE;
+                            Request.Range.RefSeqNum = 1;
+                            Request.Count = 10;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
 
-				        case 6: /* Pass - should try to return all entries */
-					        Request.RequestType     = RR_READ_ALL;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 5:        /* Fail Bytime not supported and array not supported */
+                            Request.RequestType = RR_BY_TIME;
+                            Request.Range.RefTime.date.year = 2009;
+                            Request.Range.RefTime.date.month = 9;
+                            Request.Range.RefTime.date.day = 23;
+                            Request.Range.RefTime.date.wday = 0xFF;     /* Day of week unspecified */
+                            Request.Range.RefTime.time.hour = 22;
+                            Request.Range.RefTime.time.min = 23;
+                            Request.Range.RefTime.time.sec = 24;
+                            Request.Range.RefTime.time.hundredths = 0;
 
-				        case 7: /* Fail - array not supported */
-					        Request.RequestType     = RR_READ_ALL;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 1;
-					        break;
+                            Request.Count = 10;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 1;
+                            break;
 
-				        case 8: /* Pass - should read 1st 1 */
-					        Request.RequestType     = RR_BY_POSITION;
-					        Request.Range.RefIndex  = 1;
-					        Request.Count           = 1;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 6:        /* Pass - should try to return all entries */
+                            Request.RequestType = RR_READ_ALL;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
 
-				        case 9: /* Pass - should read 1st 2 */
-					        Request.RequestType     = RR_BY_POSITION;
-					        Request.Range.RefIndex  = 1;
-					        Request.Count           = 2;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 7:        /* Fail - array not supported */
+                            Request.RequestType = RR_READ_ALL;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 1;
+                            break;
 
-				        case 10: /* Pass - should read 2nd and 3rd */
-					        Request.RequestType     = RR_BY_POSITION;
-					        Request.Range.RefIndex  = 2;
-					        Request.Count           = 2;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
+                        case 8:        /* Pass - should read 1st 1 */
+                            Request.RequestType = RR_BY_POSITION;
+                            Request.Range.RefIndex = 1;
+                            Request.Count = 1;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
 
-				        case 11: /* Pass - should read 2nd up to 11th */
-					        Request.RequestType     = RR_BY_POSITION;
-					        Request.Range.RefIndex  = 2;
-					        Request.Count           = 10;
-					        Request.object_type     = OBJECT_DEVICE;
-					        Request.object_instance = Target_Device_Object_Instance;
-					        Request.object_property = PROP_DEVICE_ADDRESS_BINDING;
-					        Request.array_index     = 0;
-					        break;
-                   }
+                        case 9:        /* Pass - should read 1st 2 */
+                            Request.RequestType = RR_BY_POSITION;
+                            Request.Range.RefIndex = 1;
+                            Request.Count = 2;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
+
+                        case 10:       /* Pass - should read 2nd and 3rd */
+                            Request.RequestType = RR_BY_POSITION;
+                            Request.Range.RefIndex = 2;
+                            Request.Count = 2;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
+
+                        case 11:       /* Pass - should read 2nd up to 11th */
+                            Request.RequestType = RR_BY_POSITION;
+                            Request.Range.RefIndex = 2;
+                            Request.Count = 10;
+                            Request.object_type = OBJECT_DEVICE;
+                            Request.object_instance =
+                                Target_Device_Object_Instance;
+                            Request.object_property =
+                                PROP_DEVICE_ADDRESS_BINDING;
+                            Request.array_index = 0;
+                            break;
+                    }
 
                     invoke_id =
                         Send_ReadRange_Request(Target_Device_Object_Instance,

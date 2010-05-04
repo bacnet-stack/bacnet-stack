@@ -72,7 +72,7 @@ int rr_encode_apdu(
     uint8_t invoke_id,
     BACNET_READ_RANGE_DATA * rrdata)
 {
-    int apdu_len = 0;       /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -180,14 +180,14 @@ int rr_decode_service_request(
         rrdata->array_index = BACNET_ARRAY_ALL; /* Assuming this is the most common outcome... */
         if (len < apdu_len) {
             TagLen =
-                (unsigned)decode_tag_number_and_value(&apdu[len], &tag_number,
+                (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             if (tag_number == 2) {
                 len += TagLen;
                 len +=
                     decode_unsigned(&apdu[len], len_value_type, &UnsignedTemp);
                 rrdata->array_index = UnsignedTemp;
-                rrdata->Overhead += RR_INDEX_OVERHEAD; /* Allow for this in the response */
+                rrdata->Overhead += RR_INDEX_OVERHEAD;  /* Allow for this in the response */
             }
         }
         /* And/or optional range selection- Tags 3, 6 and 7 */
@@ -240,7 +240,7 @@ int rr_decode_service_request(
                     len +=
                         decode_tag_number_and_value(&apdu[len], &tag_number,
                         &len_value_type);
-                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; /* Allow for this in the response */
+                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD;    /* Allow for this in the response */
                     break;
 
                 case 7:        /* ReadRange by time stamp */
@@ -265,7 +265,7 @@ int rr_decode_service_request(
                     len +=
                         decode_tag_number_and_value(&apdu[len], &tag_number,
                         &len_value_type);
-                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; /* Allow for this in the response */
+                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD;    /* Allow for this in the response */
                     break;
 
                 default:       /* If we don't recognise the tag then we do nothing here and try to return
@@ -301,7 +301,7 @@ int rr_ack_encode_apdu(
     BACNET_READ_RANGE_DATA * rrdata)
 {
     int len = 0;        /* length of each encoding */
-    int apdu_len = 0;       /* total length of the apdu, return value */
+    int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */

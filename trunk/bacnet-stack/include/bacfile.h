@@ -81,7 +81,7 @@ extern "C" {
 
 /* handling for read property service */
     int bacfile_read_property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
 /* handling for write property service */
     bool bacfile_write_property(

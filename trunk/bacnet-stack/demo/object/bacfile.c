@@ -185,7 +185,7 @@ static unsigned bacfile_file_size(
 
 /* return the number of bytes used, or -1 on error */
 int bacfile_read_property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     char text_string[32] = { "" };
@@ -194,8 +194,7 @@ int bacfile_read_property(
     BACNET_TIME btime;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -207,7 +206,8 @@ int bacfile_read_property(
                 rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            sprintf(text_string, "FILE %lu", (unsigned long)rpdata->object_instance);
+            sprintf(text_string, "FILE %lu",
+                (unsigned long) rpdata->object_instance);
             characterstring_init_ansi(&char_string, text_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -302,10 +302,9 @@ bool bacfile_write_property(
                property shall be logical TRUE only if no changes have been
                made to the file data by internal processes or through File
                Access Services since the last time the object was archived. */
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_BOOLEAN, 
-                    &wp_data->error_class, 
-                    &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Boolean) {
                     /* FIXME: do something to wp_data->object_instance */
@@ -318,10 +317,9 @@ bool bacfile_write_property(
             /* If the file size can be changed by writing to the file,
                and File_Access_Method is STREAM_ACCESS, then this property
                shall be writable. */
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_UNSIGNED_INT, 
-                    &wp_data->error_class, 
-                    &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* FIXME: do something with value.type.Unsigned
                    to wp_data->object_instance */

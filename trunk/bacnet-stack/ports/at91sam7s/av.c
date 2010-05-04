@@ -181,7 +181,7 @@ char *Analog_Value_Name(
 
 /* return apdu len, or -1 on error */
 int Analog_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
@@ -195,8 +195,7 @@ int Analog_Value_Read_Property(
 #endif
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -236,7 +235,8 @@ int Analog_Value_Read_Property(
             break;
         case PROP_OUT_OF_SERVICE:
 #if 0
-            object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+            object_index =
+                Analog_Value_Instance_To_Index(rpdata->object_instance);
             state = Analog_Value_Out_Of_Service[object_index];
 #endif
             apdu_len = encode_application_boolean(&apdu[0], false);
@@ -253,7 +253,8 @@ int Analog_Value_Read_Property(
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+                object_index =
+                    Analog_Value_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Present_Value[object_index][i] == ANALOG_LEVEL_NULL)
@@ -282,7 +283,8 @@ int Analog_Value_Read_Property(
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Present_Value[object_index][rpdata->array_index - 1];
+                            Present_Value[object_index][rpdata->array_index -
+                            1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
@@ -353,8 +355,8 @@ bool Analog_Value_Write_Property(
                     (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
                     level = (uint8_t) value.type.Real;
                     object_index =
-                        Analog_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                        Analog_Value_Instance_To_Index(wp_data->
+                        object_instance);
                     priority--;
                     Present_Value[object_index] = level;
                     /* Note: you could set the physical output here if we
@@ -420,4 +422,3 @@ bool Analog_Value_Write_Property(
 
     return status;
 }
-

@@ -677,8 +677,8 @@ static void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
             bip_dest.sin_addr.s_addr =
-                htonl(((~BBMD_Table[i].broadcast_mask.
-                        s_addr) | BBMD_Table[i].dest_address.s_addr));
+                htonl(((~BBMD_Table[i].broadcast_mask.s_addr) | BBMD_Table[i].
+                    dest_address.s_addr));
             bip_dest.sin_port = htons(BBMD_Table[i].dest_port);
             /* don't send to my broadcast address and same port */
             if ((bip_dest.sin_addr.s_addr == htonl(bip_get_broadcast_addr()))

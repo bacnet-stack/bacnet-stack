@@ -97,14 +97,11 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup RDMS Remote Device Management Services BIBBs
  * These device management BIBBs prescribe the BACnet capabilities required 
  * to interoperably perform the device management functions enumerated in 
  * 22.2.1.5 for the BACnet devices defined therein. 
- */
-
-/** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
+ *//** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
  * @ingroup RDMS
  * 16.1 DeviceCommunicationControl Service <br>
  * The DeviceCommunicationControl service is used by a client BACnet-user to 
@@ -118,5 +115,4 @@ extern "C" {
  * DeviceCommunicationControl or, if supported, ReinitializeDevice service, 
  * not by time.
  */
-
 #endif

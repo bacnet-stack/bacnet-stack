@@ -55,9 +55,9 @@ void handler_i_have(
 #if PRINT_ENABLED
         fprintf(stderr, "I-Have: %s %lu from %s %lu!\r\n",
             bactext_object_type_name(data.object_id.type),
-            (unsigned long)data.object_id.instance,
+            (unsigned long) data.object_id.instance,
             bactext_object_type_name(data.device_id.type),
-            (unsigned long)data.device_id.instance);
+            (unsigned long) data.device_id.instance);
 #endif
     } else {
 #if PRINT_ENABLED

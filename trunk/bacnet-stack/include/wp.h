@@ -102,7 +102,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DSWP Data Sharing - Write Property Service (DS-WP)
  * @ingroup DataShare
  * 15.9 WriteProperty Service <br>
@@ -114,5 +113,4 @@ extern "C" {
  * to modify a restricted property shall result in the return of an error of 
  * 'Error Class' PROPERTY and 'Error Code' WRITE_ACCESS_DENIED. 
  */
-
 #endif

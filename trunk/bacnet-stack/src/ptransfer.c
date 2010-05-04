@@ -93,7 +93,8 @@ int ptransfer_encode_apdu(
         apdu[3] = SERVICE_CONFIRMED_PRIVATE_TRANSFER;
         apdu_len = 4;
         len =
-            pt_encode_apdu(&apdu[apdu_len], (uint16_t)(MAX_APDU - apdu_len), private_data);
+            pt_encode_apdu(&apdu[apdu_len], (uint16_t) (MAX_APDU - apdu_len),
+            private_data);
         apdu_len += len;
     }
 
@@ -112,7 +113,8 @@ int uptransfer_encode_apdu(
         apdu[1] = SERVICE_UNCONFIRMED_PRIVATE_TRANSFER;
         apdu_len = 2;
         len =
-            pt_encode_apdu(&apdu[apdu_len], (uint16_t)(MAX_APDU - apdu_len), private_data);
+            pt_encode_apdu(&apdu[apdu_len], (uint16_t) (MAX_APDU - apdu_len),
+            private_data);
         apdu_len += len;
     }
 

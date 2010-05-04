@@ -51,12 +51,14 @@ static FIFO_BUFFER Receive_Buffer;
 
 static struct etimer Silence_Timer;
 
-bool rs485_silence_time_elapsed(uint32_t milliseconds)
+bool rs485_silence_time_elapsed(
+    uint32_t milliseconds)
 {
     return timer_elapsed_milliseconds(&Silence_Timer, milliseconds);
 }
 
-void rs485_silence_time_reset(void)
+void rs485_silence_time_reset(
+    void)
 {
     timer_elapsed_start(&Silence_Timer);
 }

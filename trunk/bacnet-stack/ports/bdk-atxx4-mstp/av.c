@@ -196,7 +196,7 @@ char *Analog_Value_Name(
 
 /* return apdu len, or -1 on error */
 int Analog_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
@@ -214,7 +214,7 @@ int Analog_Value_Read_Property(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        /* object id, object name, object type are handled in Device object */
+            /* object id, object name, object type are handled in Device object */
         case PROP_PRESENT_VALUE:
             real_value = Analog_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
@@ -233,7 +233,8 @@ int Analog_Value_Read_Property(
             break;
         case PROP_OUT_OF_SERVICE:
 #if 0
-            object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+            object_index =
+                Analog_Value_Instance_To_Index(rpdata->object_instance);
             state = Analog_Value_Out_Of_Service[object_index];
 #endif
             apdu_len = encode_application_boolean(&apdu[0], false);
@@ -272,14 +273,16 @@ int Analog_Value_Read_Property(
                     }
                 }
             } else {
-                object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+                object_index =
+                    Analog_Value_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Present_Value[object_index][rpdata->array_index - 1] ==
                         ANALOG_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Present_Value[object_index][rpdata->array_index - 1];
+                            Present_Value[object_index][rpdata->array_index -
+                            1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
@@ -336,13 +339,12 @@ bool Analog_Value_Write_Property(
     /* FIXME: len == 0: unable to decode? */
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = WPValidateArgType(&value,
-                BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class,
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                status = Analog_Value_Present_Value_Set(
-                    wp_data->object_instance,
+                status =
+                    Analog_Value_Present_Value_Set(wp_data->object_instance,
                     value.type.Real, wp_data->priority);
                 if (!status) {
                     if (wp_data->priority == 6) {
@@ -370,10 +372,9 @@ bool Analog_Value_Write_Property(
             break;
 #if 0
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value,
-                BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class,
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->object_instance);

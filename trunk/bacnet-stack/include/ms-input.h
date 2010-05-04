@@ -51,7 +51,7 @@ extern "C" {
         uint32_t instance);
 
     int Multistate_Input_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Multistate_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);

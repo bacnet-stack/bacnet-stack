@@ -82,7 +82,7 @@ void handler_atomic_read_file_ack(
                             pFile) != 1) {
 #if PRINT_ENABLED
                         fprintf(stderr, "Failed to write to %s (%lu)!\n",
-                            pFilename, (unsigned long)instance);
+                            pFilename, (unsigned long) instance);
 #endif
                     }
                     fclose(pFile);

@@ -69,7 +69,7 @@ extern "C" {
         uint32_t instance);
 
     int Analog_Input_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
     bool Analog_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
@@ -78,7 +78,7 @@ extern "C" {
     void Analog_Input_Present_Value_Set(
         uint32_t object_instance,
         float value);
-    
+
     void Analog_Input_Init(
         void);
 

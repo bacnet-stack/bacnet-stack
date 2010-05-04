@@ -62,12 +62,12 @@ static void PrintReadPropertyData(
         if (data->array_index == BACNET_ARRAY_ALL)
             fprintf(stderr, "%s #%lu %s\n",
                 bactext_object_type_name(data->object_type),
-                (unsigned long)data->object_instance,
+                (unsigned long) data->object_instance,
                 bactext_property_name(data->object_property));
         else
             fprintf(stderr, "%s #%lu %s[%d]\n",
                 bactext_object_type_name(data->object_type),
-                (unsigned long)data->object_instance,
+                (unsigned long) data->object_instance,
                 bactext_property_name(data->object_property),
                 data->array_index);
 #endif
@@ -160,23 +160,22 @@ int rp_ack_fully_decode_service_request(
 {
     int decoded_len = 0;        /* return value */
     BACNET_READ_PROPERTY_DATA rp1data;
-    BACNET_PROPERTY_REFERENCE *rp1_property;	/* single property */
+    BACNET_PROPERTY_REFERENCE *rp1_property;    /* single property */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
-    uint8_t * vdata;
+    uint8_t *vdata;
     int vlen, len;
 
     decoded_len = rp_ack_decode_service_request(apdu, apdu_len, &rp1data);
-    if ( decoded_len > 0 )
-    {
-    	/* Then we have to transfer to the BACNET_READ_ACCESS_DATA structure
-    	 * and decode the value(s) portion
-    	 */
-    	read_access_data->object_type = rp1data.object_type;
-    	read_access_data->object_instance = rp1data.object_instance;
+    if (decoded_len > 0) {
+        /* Then we have to transfer to the BACNET_READ_ACCESS_DATA structure
+         * and decode the value(s) portion
+         */
+        read_access_data->object_type = rp1data.object_type;
+        read_access_data->object_instance = rp1data.object_instance;
         rp1_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
         read_access_data->listOfProperties = rp1_property;
-        if ( rp1_property == NULL )
-        	return -1;		/* can't proceed if calloc failed. */
+        if (rp1_property == NULL)
+            return -1;  /* can't proceed if calloc failed. */
         rp1_property->propertyIdentifier = rp1data.object_property;
         rp1_property->propertyArrayIndex = rp1data.array_index;
         /* Is there no Error case possible here, as there is when decoding RPM? */
@@ -184,7 +183,7 @@ int rp_ack_fully_decode_service_request(
         /* rp_ack_decode_service_request() processing already removed the
          * Opening and Closing '3' Tags.
          * note: if this is an array, there will be
-           more than one element to decode */
+         more than one element to decode */
         vdata = rp1data.application_data;
         vlen = rp1data.application_data_len;
         value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
@@ -196,9 +195,7 @@ int rp_ack_fully_decode_service_request(
                     bacapp_decode_context_data(vdata, vlen, value,
                     rp1_property->propertyIdentifier);
             } else {
-                len =
-                    bacapp_decode_application_data(vdata, vlen,
-                    value);
+                len = bacapp_decode_application_data(vdata, vlen, value);
             }
             decoded_len += len;
             vlen -= len;
@@ -212,17 +209,15 @@ int rp_ack_fully_decode_service_request(
             } else {
                 /* nothing decoded and no closing tag, so malformed */
                 if (len == 0) {
-                	free( value );
-                	free( rp1_property );
+                    free(value);
+                    free(rp1_property);
                     read_access_data->listOfProperties = NULL;
                     return -1;
                 }
-                if ( vlen > 0 )		/* If more values */
-                {
-					old_value = value;
-					value =
-						calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
-					old_value->next = value;
+                if (vlen > 0) { /* If more values */
+                    old_value = value;
+                    value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+                    old_value->next = value;
                 }
             }
         }

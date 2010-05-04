@@ -109,8 +109,9 @@ void handler_alarm_ack(
 #if PRINT_ENABLED
     fprintf(stderr,
         "Alarm Ack Operation: Received acknowledge for object id %lu from %s for process id %lu for object %lu\n",
-        (unsigned long)data.eventObjectIdentifier.instance, data.ackSource.value,
-        (unsigned long)data.ackProcessIdentifier, (unsigned long)data.eventObjectIdentifier.instance);
+        (unsigned long) data.eventObjectIdentifier.instance,
+        data.ackSource.value, (unsigned long) data.ackProcessIdentifier,
+        (unsigned long) data.eventObjectIdentifier.instance);
 #endif
 
     len =

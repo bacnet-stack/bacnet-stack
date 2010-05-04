@@ -169,8 +169,7 @@ int Binary_Value_Encode_Property_APDU(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (array_index != BACNET_ARRAY_ALL)) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
@@ -207,8 +206,8 @@ bool Binary_Value_Write_Property(
                 if ((value.type.Enumerated == BINARY_ACTIVE) ||
                     (value.type.Enumerated == BINARY_INACTIVE)) {
                     object_index =
-                        Binary_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                        Binary_Value_Instance_To_Index(wp_data->
+                        object_instance);
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] =
                         (BACNET_BINARY_PV) value.type.Enumerated;

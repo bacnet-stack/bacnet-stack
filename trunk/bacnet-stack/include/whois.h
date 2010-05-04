@@ -67,7 +67,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DMDDB Device Management-Dynamic Device Binding (DM-DDB)
  * @ingroup RDMS
  * 16.10 Who-Is and I-Am Services <br>
@@ -87,5 +86,4 @@ extern "C" {
  * issuing the request is on the local network, or from the NPCI if the device 
  * is on a remote network.
  */
-
 #endif

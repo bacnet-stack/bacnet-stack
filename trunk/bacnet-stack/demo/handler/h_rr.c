@@ -49,38 +49,38 @@ int Encode_RR_payload(
     BACNET_READ_RANGE_DATA * pRequest)
 {
     int apdu_len = -1;
-    rr_info_function    info_fn_ptr = NULL;
+    rr_info_function info_fn_ptr = NULL;
     RR_PROP_INFO PropInfo;
 
     /* initialize the default return values */
     pRequest->error_class = ERROR_CLASS_SERVICES;
-    pRequest->error_code  = ERROR_CODE_OTHER;
-    
+    pRequest->error_code = ERROR_CODE_OTHER;
+
     /* handle each object type */
     info_fn_ptr = Device_Objects_RR_Info(pRequest->object_type);
-        
+
     if ((info_fn_ptr != NULL) && (info_fn_ptr(pRequest, &PropInfo) != false)) {
         /* We try and do some of the more generic error checking here to cut down on duplication of effort */
-             
-        if((pRequest->RequestType == RR_BY_POSITION) && (pRequest->Range.RefIndex == 0)) {/* First index is 1 so can't accept 0 */
-            pRequest->error_code  = ERROR_CODE_OTHER; /* I couldn't see anything more appropriate so... */
-        } else if(((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) && (pRequest->array_index != 0) && (pRequest->array_index != BACNET_ARRAY_ALL)) {
+
+        if ((pRequest->RequestType == RR_BY_POSITION) && (pRequest->Range.RefIndex == 0)) {     /* First index is 1 so can't accept 0 */
+            pRequest->error_code = ERROR_CODE_OTHER;    /* I couldn't see anything more appropriate so... */
+        } else if (((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) &&
+            (pRequest->array_index != 0) &&
+            (pRequest->array_index != BACNET_ARRAY_ALL)) {
             /* Array access attempted on a non array property */
-            pRequest->error_code  = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        } 
-        else if((pRequest->RequestType != RR_READ_ALL) && ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
+            pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        } else if ((pRequest->RequestType != RR_READ_ALL) &&
+            ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
             /* By Time or By Sequence not supported - By Position is always required */
-            pRequest->error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
-        }
-        else if((pRequest->Count == 0) && (pRequest->RequestType != RR_READ_ALL)) { /* Count cannot be zero */
-            pRequest->error_code  = ERROR_CODE_OTHER;        /* I couldn't see anything more appropriate so... */
-        }
-        else if(PropInfo.Handler != NULL) {
+            pRequest->error_code = ERROR_CODE_OTHER;    /* I couldn't see anything more appropriate so... */
+        } else if ((pRequest->Count == 0) && (pRequest->RequestType != RR_READ_ALL)) {  /* Count cannot be zero */
+            pRequest->error_code = ERROR_CODE_OTHER;    /* I couldn't see anything more appropriate so... */
+        } else if (PropInfo.Handler != NULL) {
             apdu_len = PropInfo.Handler(apdu, pRequest);
         }
     } else {
         /* Either we don't support RR for this property yet or it is not a list or array of lists */
-        pRequest->error_code  = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+        pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
     }
 
     return apdu_len;
@@ -119,7 +119,7 @@ void handler_read_range(
 #endif
         goto RR_ABORT;
     }
-    memset(&data, 0, sizeof(data)); /* start with blank canvas */
+    memset(&data, 0, sizeof(data));     /* start with blank canvas */
     len = rr_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
     if (len <= 0)

@@ -44,9 +44,9 @@ typedef struct BACnet_Reinitialize_Device_Data {
     BACNET_ERROR_CODE error_code;
 } BACNET_REINITIALIZE_DEVICE_DATA;
 
-typedef bool (
+typedef bool(
     *reinitialize_device_function) (
-    BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
+    BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
 
 
 #ifdef __cplusplus
@@ -83,7 +83,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DMRD Device Management-ReinitializeDevice (DM-RD)
  * @ingroup RDMS
  * 16.4 ReinitializeDevice Service <br>
@@ -98,5 +97,4 @@ extern "C" {
  * to executing the service.
  * 
  */
-
 #endif

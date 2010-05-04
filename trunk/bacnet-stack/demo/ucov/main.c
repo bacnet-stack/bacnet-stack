@@ -160,8 +160,7 @@ int main(
     }
     if (cov_data.monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
         fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            cov_data.monitoredObjectIdentifier.type,
-            MAX_BACNET_OBJECT_TYPE);
+            cov_data.monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {

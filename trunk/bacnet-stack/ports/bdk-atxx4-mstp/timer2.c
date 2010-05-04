@@ -59,7 +59,7 @@ uint32_t timer_milliseconds_set(
     uint32_t value)
 {
     uint8_t sreg = 0;   /* holds interrupts pending */
-    uint32_t old_value = 0;        /* return value */
+    uint32_t old_value = 0;     /* return value */
 
     sreg = SREG;
     __disable_interrupt();
@@ -75,9 +75,10 @@ uint32_t timer_milliseconds_set(
 * Returns: none
 * Notes: none
 *************************************************************************/
-uint32_t timer_milliseconds(void)
+uint32_t timer_milliseconds(
+    void)
 {
-    uint32_t timer_value = 0;      /* return value */
+    uint32_t timer_value = 0;   /* return value */
     uint8_t sreg = 0;   /* holds interrupts pending */
 
     sreg = SREG;
@@ -93,7 +94,8 @@ uint32_t timer_milliseconds(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void timer_init(void)
+void timer_init(
+    void)
 {
     /* Normal Operation */
     TCCR2A = 0;
