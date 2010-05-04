@@ -56,7 +56,7 @@ extern "C" {
         void);
 
     int Load_Control_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Load_Control_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);

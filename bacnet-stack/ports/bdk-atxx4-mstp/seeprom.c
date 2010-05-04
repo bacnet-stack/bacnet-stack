@@ -425,13 +425,13 @@ int seeprom_bytes_write_page(
 *   first byte of the same page.
 **************************************************************************/
 int seeprom_bytes_write(
-    uint16_t off, /* SEEPROM starting memory address */
-    uint8_t * buf, /* data to send */
-    int len) /* number of bytes of data */
-{
+    uint16_t off,       /* SEEPROM starting memory address */
+    uint8_t * buf,      /* data to send */
+    int len)
+{       /* number of bytes of data */
     int status = 0;
     int rv = 0;
-    
+
     while (len) {
         status = seeprom_bytes_write_page(off, buf, len);
         if (status <= 0) {

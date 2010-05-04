@@ -56,7 +56,7 @@ int iam_encode_pdu(
     int len = 0;
     int pdu_len = 0;
 
-	datalink_get_broadcast_address(dest);
+    datalink_get_broadcast_address(dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
@@ -75,7 +75,7 @@ int iam_encode_pdu(
  * @param buffer [in] The buffer to use for building and sending the message.
  */
 void Send_I_Am(
-    uint8_t * buffer )
+    uint8_t * buffer)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -126,15 +126,13 @@ int iam_unicast_encode_pdu(
     BACNET_ADDRESS my_address;
 
     /* The destination will be the same as the src, so copy it over. */
-    memcpy( dest, src, sizeof( BACNET_ADDRESS ) );
+    memcpy(dest, src, sizeof(BACNET_ADDRESS));
     dest->net = 0;
 
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    npdu_len =
-        npdu_encode_pdu(&buffer[0], dest, &my_address,
-        npdu_data);
+    npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
     /* encode the APDU portion of the packet */
     apdu_len =
         iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
@@ -157,7 +155,7 @@ int iam_unicast_encode_pdu(
  */
 void Send_I_Am_Unicast(
     uint8_t * buffer,
-    BACNET_ADDRESS * src )
+    BACNET_ADDRESS * src)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -186,4 +184,3 @@ void Send_I_Am_Unicast(
         fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
 #endif
 }
-

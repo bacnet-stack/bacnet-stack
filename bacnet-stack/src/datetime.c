@@ -412,8 +412,8 @@ bool datetime_wildcard_present(
     if (bdatetime) {
         if ((bdatetime->date.year == (1900 + 0xFF)) ||
             (bdatetime->date.month > 12) || (bdatetime->date.day > 31) ||
-            (bdatetime->time.hour == 0xFF) ||
-            (bdatetime->time.min == 0xFF) || (bdatetime->time.sec == 0xFF) ||
+            (bdatetime->time.hour == 0xFF) || (bdatetime->time.min == 0xFF) ||
+            (bdatetime->time.sec == 0xFF) ||
             (bdatetime->time.hundredths == 0xFF)) {
             wildcard_present = true;
         }
@@ -421,6 +421,7 @@ bool datetime_wildcard_present(
 
     return wildcard_present;
 }
+
 void datetime_date_wildcard_set(
     BACNET_DATE * bdate)
 {

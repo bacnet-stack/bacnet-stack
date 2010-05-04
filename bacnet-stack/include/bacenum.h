@@ -636,10 +636,10 @@ typedef enum {
     UNITS_SQUARE_METERS_PER_NEWTON = 185,
     UNITS_WATTS_PER_METER_PER_DEGREE_KELVIN = 189,
     UNITS_WATTS_PER_SQUARE_METER_DEGREE_KELVIN = 141,
-        /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
-        /* Enumerated values 256-65535 may be used by others subject to */
-        /* the procedures and constraints described in Clause 23. */
-        /* The last enumeration used in this version is 189. */
+    /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
+    /* Enumerated values 256-65535 may be used by others subject to */
+    /* the procedures and constraints described in Clause 23. */
+    /* The last enumeration used in this version is 189. */
     MAX_UNITS = 190
 } BACNET_ENGINEERING_UNITS;
 

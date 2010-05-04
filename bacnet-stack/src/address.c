@@ -149,8 +149,7 @@ struct Address_Cache_Entry *address_remove_oldest(
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->
-                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) == BAC_ADDR_IN_USE) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
@@ -169,10 +168,9 @@ struct Address_Cache_Entry *address_remove_oldest(
     /* Second pass - try in use and un bound as last resort */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->
-                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) ==
-            ((uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
+            ((uint8_t) (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
                 pCandidate = pMatch;
@@ -242,7 +240,7 @@ void address_file_init(
                         }
                     }
                     address_add((uint32_t) device_id, max_apdu, &src);
-                    address_set_device_TTL((uint32_t)device_id, 0, true); /* Mark as static entry */
+                    address_set_device_TTL((uint32_t) device_id, 0, true);      /* Mark as static entry */
                 }
             }
         }
@@ -498,10 +496,10 @@ bool address_bind_request(
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) == 0) {
             /* In use and awaiting binding */
-            pMatch->Flags = (uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
+            pMatch->Flags = (uint8_t) (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
             pMatch->device_id = device_id;
             /* No point in leaving bind requests in for long haul */
-            pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;   
+            pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
             /* now would be a good time to do a Who-Is request */
             return (false);
         }
@@ -511,7 +509,7 @@ bool address_bind_request(
     /* No free entries, See if we can squeeze it in by dropping an existing one */
     pMatch = address_remove_oldest();
     if (pMatch != NULL) {
-        pMatch->Flags = (uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
+        pMatch->Flags = (uint8_t) (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
         pMatch->device_id = device_id;
         /* No point in leaving bind requests in for long haul */
         pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
@@ -537,7 +535,7 @@ void address_add_binding(
             /* Clear bind request flag in case it was set */
             pMatch->Flags &= ~BAC_ADDR_BIND_REQ;
             /* Only update TTL if not static */
-            if ((pMatch->Flags & BAC_ADDR_STATIC) == 0) { 
+            if ((pMatch->Flags & BAC_ADDR_STATIC) == 0) {
                 /* and set it on a long fuse */
                 pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
             }
@@ -580,7 +578,8 @@ unsigned address_count(
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         /* Only count bound entries */
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) 
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
+            BAC_ADDR_IN_USE)
             count++;
 
         pMatch++;
@@ -660,47 +659,47 @@ int address_list_encode(
  * oct string to give 17 bytes (the minimum possible is 5 + 2 + 3 = 10).    *
  ****************************************************************************/
 
-#define ACACHE_MAX_ENC 17  /* Maximum size of encoded cache entry, see above */
+#define ACACHE_MAX_ENC 17       /* Maximum size of encoded cache entry, see above */
 
 int rr_address_list_encode(
-    uint8_t *apdu,
-    BACNET_READ_RANGE_DATA *pRequest)
+    uint8_t * apdu,
+    BACNET_READ_RANGE_DATA * pRequest)
 {
     int iLen = 0;
     int32_t iTemp = 0;
-    struct Address_Cache_Entry *pMatch = NULL; 
+    struct Address_Cache_Entry *pMatch = NULL;
     BACNET_OCTET_STRING MAC_Address;
-    uint32_t uiTotal = 0;               /* Number of bound entries in the cache */
-    uint32_t uiIndex = 0;               /* Current entry number */
-    uint32_t uiFirst = 0;               /* Entry number we started encoding from */
-    uint32_t uiLast = 0;                /* Entry number we finished encoding on */
-    uint32_t uiTarget = 0;              /* Last entry we are required to encode */
-    uint32_t uiRemaining = 0;           /* Amount of unused space in packet */
-    
+    uint32_t uiTotal = 0;       /* Number of bound entries in the cache */
+    uint32_t uiIndex = 0;       /* Current entry number */
+    uint32_t uiFirst = 0;       /* Entry number we started encoding from */
+    uint32_t uiLast = 0;        /* Entry number we finished encoding on */
+    uint32_t uiTarget = 0;      /* Last entry we are required to encode */
+    uint32_t uiRemaining = 0;   /* Amount of unused space in packet */
+
     /* Initialise result flags to all false */
-          bitstring_init(&pRequest->ResultFlags);
+    bitstring_init(&pRequest->ResultFlags);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, false);
-    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  false);
+    bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, false);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
     /* See how much space we have */
-    uiRemaining = (uint32_t)(MAX_APDU - pRequest->Overhead); 
+    uiRemaining = (uint32_t) (MAX_APDU - pRequest->Overhead);
 
     pRequest->ItemCount = 0;    /* Start out with nothing */
     uiTotal = address_count();  /* What do we have to work with here ? */
-    if(uiTotal == 0)            /* Bail out now if nowt */
-        return(0);
+    if (uiTotal == 0)   /* Bail out now if nowt */
+        return (0);
 
-    if(pRequest->RequestType == RR_READ_ALL) {
+    if (pRequest->RequestType == RR_READ_ALL) {
         /*
          * Read all the array or as much as will fit in the buffer by selecting
          * a range that covers the whole list and falling through to the next
          * section of code
          */
-        pRequest->Count = uiTotal;     /* Full list */
-        pRequest->Range.RefIndex = 1;  /* Starting at the beginning */
-        }
+        pRequest->Count = uiTotal;      /* Full list */
+        pRequest->Range.RefIndex = 1;   /* Starting at the beginning */
+    }
 
-    if(pRequest->Count < 0) { /* negative count means work from index backwards */
+    if (pRequest->Count < 0) {  /* negative count means work from index backwards */
         /*
          * Convert from end index/negative count to
          * start index/positive count and then process as
@@ -713,91 +712,97 @@ int rr_address_list_encode(
          * try to optimise the code unless you understand all the
          * implications of the data type conversions!
          */
-        
-        iTemp = pRequest->Range.RefIndex; /* pull out and convert to signed */
-        iTemp += pRequest->Count + 1;     /* Adjust backwards, remember count is -ve */
-        if(iTemp < 1) { /* if count is too much, return from 1 to start index */
+
+        iTemp = pRequest->Range.RefIndex;       /* pull out and convert to signed */
+        iTemp += pRequest->Count + 1;   /* Adjust backwards, remember count is -ve */
+        if (iTemp < 1) {        /* if count is too much, return from 1 to start index */
             pRequest->Count = pRequest->Range.RefIndex;
             pRequest->Range.RefIndex = 1;
-        }
-        else { /* Otherwise adjust the start index and make count +ve */
+        } else {        /* Otherwise adjust the start index and make count +ve */
             pRequest->Range.RefIndex = iTemp;
             pRequest->Count = -pRequest->Count;
         }
     }
-    
+
     /* From here on in we only have a starting point and a positive count */
-    
-    if(pRequest->Range.RefIndex > uiTotal)  /* Nothing to return as we are past the end of the list */
-        return(0);
-        
-    uiTarget = pRequest->Range.RefIndex + pRequest->Count - 1; /* Index of last required entry */
-    if(uiTarget > uiTotal)                                     /* Capped at end of list if necessary */
+
+    if (pRequest->Range.RefIndex > uiTotal)     /* Nothing to return as we are past the end of the list */
+        return (0);
+
+    uiTarget = pRequest->Range.RefIndex + pRequest->Count - 1;  /* Index of last required entry */
+    if (uiTarget > uiTotal)     /* Capped at end of list if necessary */
         uiTarget = uiTotal;
-        
-    pMatch  = Address_Cache;
+
+    pMatch = Address_Cache;
     uiIndex = 1;
-    while((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) != BAC_ADDR_IN_USE) /* Find first bound entry */
+    while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) != BAC_ADDR_IN_USE)  /* Find first bound entry */
         pMatch++;
-    
+
     /* Seek to start position */
-    while(uiIndex != pRequest->Range.RefIndex) {
-        if((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) { /* Only count bound entries */
+    while (uiIndex != pRequest->Range.RefIndex) {
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) == BAC_ADDR_IN_USE) {       /* Only count bound entries */
             pMatch++;
             uiIndex++;
-        }
-        else
+        } else
             pMatch++;
     }
-    
-    uiFirst = uiIndex; /* Record where we started from */
-    while(uiIndex <= uiTarget) {
-        if(uiRemaining < ACACHE_MAX_ENC) {
+
+    uiFirst = uiIndex;  /* Record where we started from */
+    while (uiIndex <= uiTarget) {
+        if (uiRemaining < ACACHE_MAX_ENC) {
             /*
              * Can't fit any more in! We just set the result flag to say there 
              * was more and drop out of the loop early
              */
-            bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true); 
+            bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS,
+                true);
             break;
-        }               
-            
-        iTemp  = (int32_t)encode_application_object_id(&apdu[iLen], 
-            OBJECT_DEVICE, 
+        }
+
+        iTemp =
+            (int32_t) encode_application_object_id(&apdu[iLen], OBJECT_DEVICE,
             pMatch->device_id);
-        iTemp += encode_application_unsigned(&apdu[iLen + iTemp],  
+        iTemp +=
+            encode_application_unsigned(&apdu[iLen + iTemp],
             pMatch->address.net);
-        
+
         /* pick the appropriate type of entry from the cache */
-        
-        if(pMatch->address.len != 0) {
-            octetstring_init(&MAC_Address, pMatch->address.adr, pMatch->address.len);
-            iTemp += encode_application_octet_string(&apdu[iLen + iTemp], &MAC_Address);
+
+        if (pMatch->address.len != 0) {
+            octetstring_init(&MAC_Address, pMatch->address.adr,
+                pMatch->address.len);
+            iTemp +=
+                encode_application_octet_string(&apdu[iLen + iTemp],
+                &MAC_Address);
+        } else {
+            octetstring_init(&MAC_Address, pMatch->address.mac,
+                pMatch->address.mac_len);
+            iTemp +=
+                encode_application_octet_string(&apdu[iLen + iTemp],
+                &MAC_Address);
         }
-        else {
-            octetstring_init(&MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
-            iTemp += encode_application_octet_string(&apdu[iLen + iTemp], &MAC_Address);
-        }
-        
-        uiRemaining -= iTemp; /* Reduce the remaining space */
-        iLen        += iTemp; /* and increase the length consumed */
-        
+
+        uiRemaining -= iTemp;   /* Reduce the remaining space */
+        iLen += iTemp;  /* and increase the length consumed */
+
         uiLast = uiIndex;       /* Record the last entry encoded */
-        uiIndex++;              /* and get ready for next one */
+        uiIndex++;      /* and get ready for next one */
         pMatch++;
         pRequest->ItemCount++;  /* Chalk up another one for the response count */
-                  
-        while((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) != BAC_ADDR_IN_USE) /* Find next bound entry */
+
+        while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) != BAC_ADDR_IN_USE)      /* Find next bound entry */
             pMatch++;
     }
-    
+
     /* Set remaining result flags if necessary */
-    if(uiFirst == 1)
-        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
-        
-    if(uiLast == uiTotal)
-        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM,  true);
-    
-    return(iLen);
+    if (uiFirst == 1)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM,
+            true);
+
+    if (uiLast == uiTotal)
+        bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
+
+    return (iLen);
 }
 
 /****************************************************************************

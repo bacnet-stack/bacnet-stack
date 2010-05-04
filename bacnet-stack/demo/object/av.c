@@ -207,7 +207,8 @@ char *Analog_Value_Name(
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_VALUES) {
-        sprintf(text_string, "ANALOG VALUE %lu", (unsigned long)object_instance);
+        sprintf(text_string, "ANALOG VALUE %lu",
+            (unsigned long) object_instance);
         return text_string;
     }
 
@@ -216,7 +217,7 @@ char *Analog_Value_Name(
 
 /* return apdu len, or -1 on error */
 int Analog_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -228,8 +229,7 @@ int Analog_Value_Read_Property(
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -268,7 +268,8 @@ int Analog_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+            object_index =
+                Analog_Value_Instance_To_Index(rpdata->object_instance);
             state = Analog_Value_Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -283,7 +284,8 @@ int Analog_Value_Read_Property(
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+                object_index =
+                    Analog_Value_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Analog_Value_Level[object_index][i] ==
@@ -306,14 +308,16 @@ int Analog_Value_Read_Property(
                     }
                 }
             } else {
-                object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+                object_index =
+                    Analog_Value_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Analog_Value_Level[object_index][rpdata->array_index - 1] ==
-                        ANALOG_LEVEL_NULL)
+                    if (Analog_Value_Level[object_index][rpdata->array_index -
+                            1] == ANALOG_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Analog_Value_Level[object_index][rpdata->array_index - 1];
+                            Analog_Value_Level[object_index][rpdata->
+                            array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
@@ -335,8 +339,7 @@ int Analog_Value_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -383,14 +386,14 @@ bool Analog_Value_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = WPValidateArgType(&value, 
-                    BACNET_APPLICATION_TAG_NULL, 
-                    &wp_data->error_class, 
-                    &wp_data->error_code);
+                status =
+                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     level = ANALOG_LEVEL_NULL;
                     object_index =
-                        Analog_Value_Instance_To_Index(wp_data->object_instance);
+                        Analog_Value_Instance_To_Index(wp_data->
+                        object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
@@ -410,10 +413,9 @@ bool Analog_Value_Write_Property(
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_BOOLEAN, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->object_instance);
@@ -449,7 +451,7 @@ void testAnalog_Value(
     Analog_Value_Init();
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_ANALOG_VALUE; 
+    rpdata.object_type = OBJECT_ANALOG_VALUE;
     rpdata.object_instance = 1;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
     rpdata.array_index = BACNET_ARRAY_ALL;
@@ -457,8 +459,7 @@ void testAnalog_Value(
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == rpdata.object_type);
     ct_test(pTest, decoded_instance == rpdata.object_instance);
 

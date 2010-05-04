@@ -351,7 +351,7 @@ void MSTP_Receive_Frame_FSM(
                 /* wait for the start of a frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 printf_receive_error("MSTP: Rx Header: SilenceTimer %u > %d\n",
-                    (unsigned)mstp_port->SilenceTimer(), Tframe_abort);
+                    (unsigned) mstp_port->SilenceTimer(), Tframe_abort);
             }
             /* Error */
             else if (mstp_port->ReceiveError == true) {
@@ -441,7 +441,7 @@ void MSTP_Receive_Frame_FSM(
                             if (mstp_port->DataLength) {
                                 printf_receive_error
                                     ("MSTP: Rx Header: FrameTooLong %u\n",
-                                    (unsigned)mstp_port->DataLength);
+                                    (unsigned) mstp_port->DataLength);
                                 /* indicate that a frame with an illegal or  */
                                 /* unacceptable data length has been received */
                                 mstp_port->ReceivedInvalidFrame = true;
@@ -449,7 +449,8 @@ void MSTP_Receive_Frame_FSM(
                             /* NoData */
                             else if (mstp_port->DataLength == 0) {
                                 printf_receive_data("%s",
-                                    mstptext_frame_type((unsigned)mstp_port->FrameType));
+                                    mstptext_frame_type((unsigned) mstp_port->
+                                        FrameType));
                                 if ((mstp_port->DestinationAddress ==
                                         mstp_port->This_Station)
                                     || (mstp_port->DestinationAddress ==
@@ -474,7 +475,7 @@ void MSTP_Receive_Frame_FSM(
                     /* the reception of a frame */
                     mstp_port->ReceivedInvalidFrame = true;
                     printf_receive_error("MSTP: Rx Data: BadIndex %u\n",
-                        (unsigned)mstp_port->Index);
+                        (unsigned) mstp_port->Index);
                     /* wait for the start of a frame. */
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 }
@@ -491,7 +492,7 @@ void MSTP_Receive_Frame_FSM(
                 mstp_port->ReceivedInvalidFrame = true;
                 printf_receive_error
                     ("MSTP: Rx Data: SilenceTimer %ums > %dms\n",
-                    (unsigned)mstp_port->SilenceTimer(), Tframe_abort);
+                    (unsigned) mstp_port->SilenceTimer(), Tframe_abort);
                 /* wait for the start of the next frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
             }
@@ -530,7 +531,7 @@ void MSTP_Receive_Frame_FSM(
                         mstp_port->DataCRC);
                     mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
                     printf_receive_data("%s",
-                        mstptext_frame_type((unsigned)mstp_port->FrameType));
+                        mstptext_frame_type((unsigned) mstp_port->FrameType));
                     /* STATE DATA CRC - no need for new state */
                     /* indicate the complete reception of a valid frame */
                     if (mstp_port->DataCRC == 0xF0B8) {
@@ -636,7 +637,7 @@ bool MSTP_Master_Node_FSM(
                     mstp_port->SourceAddress, mstp_port->DestinationAddress,
                     mstp_port->DataLength, mstp_port->FrameCount,
                     mstp_port->SilenceTimer(),
-                    mstptext_frame_type((unsigned)mstp_port->FrameType));
+                    mstptext_frame_type((unsigned) mstp_port->FrameType));
                 /* destined for me! */
                 if ((mstp_port->DestinationAddress == mstp_port->This_Station)
                     || (mstp_port->DestinationAddress ==
@@ -665,12 +666,12 @@ bool MSTP_Master_Node_FSM(
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                             /* indicate successful reception to the higher layers */
-                            (void)MSTP_Put_Receive(mstp_port);
+                            (void) MSTP_Put_Receive(mstp_port);
                             break;
                         case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                             /*mstp_port->ReplyPostponedTimer = 0; */
                             /* indicate successful reception to the higher layers  */
-                            (void)MSTP_Put_Receive(mstp_port);
+                            (void) MSTP_Put_Receive(mstp_port);
                             /* broadcast DER just remains IDLE */
                             if (mstp_port->DestinationAddress !=
                                 MSTP_BROADCAST_ADDRESS) {
@@ -703,7 +704,7 @@ bool MSTP_Master_Node_FSM(
             /* more data frames. These may be BACnet Data frames or */
             /* proprietary frames. */
             /* FIXME: We could wait for up to Tusage_delay */
-            length = (unsigned)MSTP_Get_Send(mstp_port, 0);
+            length = (unsigned) MSTP_Get_Send(mstp_port, 0);
             if (length < 1) {
                 /* NothingToSend */
                 mstp_port->FrameCount = mstp_port->Nmax_info_frames;
@@ -780,7 +781,7 @@ bool MSTP_Master_Node_FSM(
                                 /* ReceivedReply */
                                 /* or a proprietary type that indicates a reply */
                                 /* indicate successful reception to the higher layers */
-                                (void)MSTP_Put_Receive(mstp_port);
+                                (void) MSTP_Put_Receive(mstp_port);
                                 mstp_port->master_state =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                                 break;
@@ -1038,7 +1039,7 @@ bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
             /* FIXME: we could wait for up to Treply_delay */
-            length = (unsigned)MSTP_Get_Reply(mstp_port, 0);
+            length = (unsigned) MSTP_Get_Reply(mstp_port, 0);
             if (length > 0) {
                 /* Reply */
                 /* If a reply is available from the higher layers  */

@@ -96,13 +96,13 @@ void handler_reinitialize_device(
         goto RD_ABORT;
     }
     /* decode the service request only */
-    len = rd_decode_service_request(service_request, service_len, 
-        &rd_data.state,
+    len =
+        rd_decode_service_request(service_request, service_len, &rd_data.state,
         &rd_data.password);
 #if PRINT_ENABLED
     if (len > 0) {
         fprintf(stderr, "ReinitializeDevice: state=%u password=%s\n",
-            (unsigned) rd_data.state, 
+            (unsigned) rd_data.state,
             characterstring_value(&rd_data.password));
     } else {
         fprintf(stderr, "ReinitializeDevice: Unable to decode request!\n");
@@ -143,8 +143,7 @@ void handler_reinitialize_device(
                 service_data->invoke_id, SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
                 rd_data.error_class, rd_data.error_code);
 #if PRINT_ENABLED
-            fprintf(stderr,
-                "ReinitializeDevice: Sending Error.\n");
+            fprintf(stderr, "ReinitializeDevice: Sending Error.\n");
 #endif
         }
     }

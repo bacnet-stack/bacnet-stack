@@ -76,7 +76,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DMDOB Device Management-Dynamic Object Binding (DM-DOB)
  * @ingroup RDMS
  * 16.9 Who-Has and I-Have Services <br>

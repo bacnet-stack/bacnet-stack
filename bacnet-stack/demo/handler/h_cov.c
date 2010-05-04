@@ -344,9 +344,8 @@ static bool cov_send_request(
     value_list[1].next = NULL;
     switch (cov_subscription->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            Binary_Input_Encode_Value_List
-                (cov_subscription->monitoredObjectIdentifier.instance,
-                &value_list[0]);
+            Binary_Input_Encode_Value_List(cov_subscription->
+                monitoredObjectIdentifier.instance, &value_list[0]);
             break;
         default:
             goto COV_FAILED;
@@ -422,7 +421,7 @@ void handler_cov_task(
                 COV_Subscriptions[index].lifetime -= elapsed_seconds;
 #if 0
                 fprintf(stderr, "COVtask: subscription[%d].lifetime=%lu\n",
-                    index, (unsigned long)COV_Subscriptions[index].lifetime);
+                    index, (unsigned long) COV_Subscriptions[index].lifetime);
 #endif
             } else {
                 COV_Subscriptions[index].lifetime = 0;
@@ -463,8 +462,8 @@ static bool cov_subscribe(
 
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance
-                (cov_data->monitoredObjectIdentifier.instance)) {
+            if (Binary_Input_Valid_Instance(cov_data->
+                    monitoredObjectIdentifier.instance)) {
                 status =
                     cov_list_subscribe(src, cov_data, error_class, error_code);
             } else {

@@ -195,7 +195,7 @@ char *Multistate_Output_Name(
 
 /* return apdu len, or -1 on error */
 int Multistate_Output_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -207,8 +207,7 @@ int Multistate_Output_Read_Property(
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -234,7 +233,8 @@ int Multistate_Output_Read_Property(
                 OBJECT_MULTI_STATE_OUTPUT);
             break;
         case PROP_PRESENT_VALUE:
-            present_value = Multistate_Output_Present_Value(rpdata->object_instance);
+            present_value =
+                Multistate_Output_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_unsigned(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -266,7 +266,8 @@ int Multistate_Output_Read_Property(
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
-                    Multistate_Output_Instance_To_Index(rpdata->object_instance);
+                    Multistate_Output_Instance_To_Index(rpdata->
+                    object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Multistate_Output_Level[object_index][i] ==
@@ -291,15 +292,16 @@ int Multistate_Output_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Output_Instance_To_Index(rpdata->object_instance);
+                    Multistate_Output_Instance_To_Index(rpdata->
+                    object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Multistate_Output_Level[object_index][rpdata->array_index -
-                            1] == MULTISTATE_NULL)
+                    if (Multistate_Output_Level[object_index][rpdata->
+                            array_index - 1] == MULTISTATE_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         present_value =
-                            Multistate_Output_Level[object_index][rpdata->array_index -
-                            1];
+                            Multistate_Output_Level[object_index][rpdata->
+                            array_index - 1];
                         apdu_len =
                             encode_application_unsigned(&apdu[0],
                             present_value);
@@ -329,8 +331,7 @@ int Multistate_Output_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -369,8 +370,8 @@ bool Multistate_Output_Write_Property(
                     (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                     level = value.type.Unsigned_Int;
                     object_index =
-                        Multistate_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                        Multistate_Output_Instance_To_Index(wp_data->
+                        object_instance);
                     priority--;
                     Multistate_Output_Level[object_index][priority] =
                         (uint8_t) level;
@@ -391,15 +392,14 @@ bool Multistate_Output_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = WPValidateArgType(&value, 
-                    BACNET_APPLICATION_TAG_NULL, 
-                    &wp_data->error_class, 
-                    &wp_data->error_code);
+                status =
+                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     level = MULTISTATE_NULL;
                     object_index =
-                        Multistate_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                        Multistate_Output_Instance_To_Index(wp_data->
+                        object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
@@ -420,14 +420,13 @@ bool Multistate_Output_Write_Property(
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_BOOLEAN, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Multistate_Output_Instance_To_Index
-                    (wp_data->object_instance);
+                    Multistate_Output_Instance_To_Index(wp_data->
+                    object_instance);
                 Multistate_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }
@@ -461,7 +460,7 @@ void testMultistateOutput(
     Multistate_Output_Init();
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_MULTI_STATE_OUTPUT; 
+    rpdata.object_type = OBJECT_MULTI_STATE_OUTPUT;
     rpdata.object_instance = 1;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
     rpdata.array_index = BACNET_ARRAY_ALL;
@@ -469,8 +468,7 @@ void testMultistateOutput(
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == rpdata.object_type);
     ct_test(pTest, decoded_instance == rpdata.object_instance);
 

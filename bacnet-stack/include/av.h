@@ -49,7 +49,7 @@ extern "C" {
         uint32_t object_instance);
 
     int Analog_Value_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Analog_Value_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);

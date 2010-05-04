@@ -28,7 +28,7 @@
 /* WARNING!  This object is still BACnet DRAFT status! 
    If you need to implement in a real product, you will 
    need to modify the new OBJECT type and properties to
-   be in the proprietrary range to be BACnet compliant */ 
+   be in the proprietrary range to be BACnet compliant */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -152,7 +152,7 @@ int Lighting_Output_Decode_Lighting_Command(
         apdu_len += len;
         len =
             decode_enumerated(&apdu[apdu_len], len_value_type,
-            (uint32_t *)&data->operation);
+            (uint32_t *) & data->operation);
         apdu_len += len;
         /* Tag 1: level - OPTIONAL */
         if (decode_is_context_tag(&apdu[apdu_len], 1)) {
@@ -162,7 +162,7 @@ int Lighting_Output_Decode_Lighting_Command(
             apdu_len += len;
             len = decode_real(&apdu[apdu_len], &real_value);
             apdu_len += len;
-            data->level = (uint8_t)real_value;
+            data->level = (uint8_t) real_value;
             /* FIXME: are we going to flag errors in decoding values here? */
         }
         /* FIXME: finish me! */
@@ -359,7 +359,7 @@ char *Lighting_Output_Name(
 
 /* return apdu len, or -1 on error */
 int Lighting_Output_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
@@ -371,8 +371,7 @@ int Lighting_Output_Read_Property(
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -398,11 +397,13 @@ int Lighting_Output_Read_Property(
                 OBJECT_LIGHTING_OUTPUT);
             break;
         case PROP_PRESENT_VALUE:
-            real_value = Lighting_Output_Present_Value(rpdata->object_instance);
+            real_value =
+                Lighting_Output_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_PROGRESS_VALUE:
-            real_value = Lighting_Output_Progress_Value(rpdata->object_instance);
+            real_value =
+                Lighting_Output_Progress_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_LIGHTING_COMMAND:
@@ -423,7 +424,8 @@ int Lighting_Output_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index = Lighting_Output_Instance_To_Index(rpdata->object_instance);
+            object_index =
+                Lighting_Output_Instance_To_Index(rpdata->object_instance);
             state = Lighting_Output_Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -465,13 +467,13 @@ int Lighting_Output_Read_Property(
                 object_index =
                     Lighting_Output_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Lighting_Output_Level[object_index][rpdata->array_index - 1] ==
-                        LIGHTING_LEVEL_NULL)
+                    if (Lighting_Output_Level[object_index][rpdata->
+                            array_index - 1] == LIGHTING_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Lighting_Output_Level[object_index][rpdata->array_index -
-                            1];
+                            Lighting_Output_Level[object_index][rpdata->
+                            array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
@@ -494,8 +496,7 @@ int Lighting_Output_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -541,18 +542,17 @@ bool Lighting_Output_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = WPValidateArgType(&value, 
-                    BACNET_APPLICATION_TAG_NULL, 
-                    &wp_data->error_class, 
-                    &wp_data->error_code);
+                status =
+                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     level = LIGHTING_LEVEL_NULL;
                     object_index =
-                        Lighting_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                        Lighting_Output_Instance_To_Index(wp_data->
+                        object_instance);
                     status =
-                        Lighting_Output_Present_Value_Relinquish
-                        (wp_data->object_instance, wp_data->priority);
+                        Lighting_Output_Present_Value_Relinquish(wp_data->
+                        object_instance, wp_data->priority);
                     if (wp_data->priority == 6) {
                         /* Command priority 6 is reserved for use by Minimum On/Off
                            algorithm and may not be used for other purposes in any
@@ -574,14 +574,13 @@ bool Lighting_Output_Write_Property(
                 &Lighting_Command[wp_data->object_instance]);
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, 
-                BACNET_APPLICATION_TAG_BOOLEAN, 
-                &wp_data->error_class, 
-                &wp_data->error_code);
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Lighting_Output_Instance_To_Index
-                    (wp_data->object_instance);
+                    Lighting_Output_Instance_To_Index(wp_data->
+                    object_instance);
                 Lighting_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }
@@ -615,7 +614,7 @@ void testLightingOutput(
     Lighting_Output_Init();
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_LIGHTING_OUTPUT; 
+    rpdata.object_type = OBJECT_LIGHTING_OUTPUT;
     rpdata.object_instance = 1;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
     rpdata.array_index = BACNET_ARRAY_ALL;
@@ -623,8 +622,7 @@ void testLightingOutput(
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
+    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == rpdata.object_type);
     ct_test(pTest, decoded_instance == rpdata.object_instance);
 

@@ -92,7 +92,8 @@ void handler_lso(
 #if PRINT_ENABLED
     fprintf(stderr,
         "Life Safety Operation: Received operation %d from process id %lu for object %lu\n",
-        data.operation, (unsigned long)data.processId, (unsigned long)data.targetObject.instance);
+        data.operation, (unsigned long) data.processId,
+        (unsigned long) data.targetObject.instance);
 #endif
 
     len =

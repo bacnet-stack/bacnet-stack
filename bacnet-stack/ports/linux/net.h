@@ -98,8 +98,7 @@
 
 /* Local helper functions for this port */
 extern int bip_get_local_netmask(
-			struct in_addr *netmask );
+    struct in_addr *netmask);
 
 
 #endif
-

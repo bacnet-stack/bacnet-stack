@@ -163,8 +163,8 @@ extern "C" {
  */
     bool apdu_service_supported_to_index(
         BACNET_SERVICES_SUPPORTED service_supported,
-        size_t *index, 
-        bool *bIsConfirmed );
+        size_t * index,
+        bool * bIsConfirmed);
 
 
     void apdu_set_error_handler(

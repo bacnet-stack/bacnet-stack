@@ -106,7 +106,7 @@ typedef bool(
  * == 1) to indicate no more objects found.
  */
 typedef unsigned (
-    *object_iterate_function)(
+    *object_iterate_function) (
     unsigned current_index);
 
 
@@ -116,11 +116,12 @@ extern "C" {
 
     void Device_Init(
         void);
-    
+
     bool Device_Reinitialize(
-        BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
-    
-    BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void);
+        BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
+
+    BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
+        void);
 
     rr_info_function Device_Objects_RR_Info(
         BACNET_OBJECT_TYPE object_type);
@@ -146,7 +147,8 @@ extern "C" {
         int *object_type,
         uint32_t * instance);
 
-    unsigned Device_Count(void);
+    unsigned Device_Count(
+        void);
     uint32_t Device_Index_To_Instance(
         unsigned index);
     char *Device_Name(
@@ -221,19 +223,18 @@ extern "C" {
         uint32_t object_instance);
 
     int Device_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
     bool Device_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
-        
+
     bool DeviceGetRRInfo(
-        BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
-        RR_PROP_INFO *pInfo); /* Where to put the information */
+        BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
+        RR_PROP_INFO * pInfo);  /* Where to put the information */
 
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup ObjFrmwk Object Framework
  * The modules in this section describe the BACnet-stack's framework for 
  * BACnet-defined Objects (Device, Analog Input, etc). There are two submodules
@@ -243,15 +244,11 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
- */
-
-/** @defgroup ObjHelpers Object Helper Functions
+ *//** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk 
  * This section describes the function templates for the helper functions that
  * provide common object support. 
- */
-
-/** @defgroup ObjIntf Handler-to-Object Interface Functions
+ *//** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk 
  * This section describes the fairly limited set of functions that link the 
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are
@@ -266,6 +263,4 @@ extern "C" {
  *     eg Object_Read_Property() for the RP handler.
  *     
  */
-
-
 #endif

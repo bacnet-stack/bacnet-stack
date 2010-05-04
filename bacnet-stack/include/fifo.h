@@ -59,10 +59,10 @@ extern "C" {
 
     unsigned FIFO_Count(
         FIFO_BUFFER const *b);
-    
+
     bool FIFO_Full(
         FIFO_BUFFER const *b);
-    
+
     bool FIFO_Empty(
         FIFO_BUFFER const *b);
 

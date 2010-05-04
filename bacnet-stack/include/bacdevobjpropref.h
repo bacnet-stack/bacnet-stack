@@ -48,7 +48,7 @@ typedef struct {
  * to an object inside this Device.
  */
 typedef struct {
-    BACNET_OBJECT_ID deviceIndentifier;		/**< Optional, for external device. */
+    BACNET_OBJECT_ID deviceIndentifier;         /**< Optional, for external device. */
     BACNET_OBJECT_ID objectIdentifier;
 } BACNET_DEVICE_OBJECT_REFERENCE;
 

@@ -144,8 +144,7 @@ static void packet_statistics(
             if (dst > MSTP_Statistics[src].max_master) {
                 MSTP_Statistics[src].max_master = dst;
             }
-            if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER) &&
-                (old_src == src)) {
+            if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER) && (old_src == src)) {
                 /* Tusage_timeout */
                 delta = timeval_diff_ms(&old_tv, tv);
                 if (delta > MSTP_Statistics[src].tusage_timeout) {
@@ -212,9 +211,8 @@ static void packet_statistics_save(
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         /* check for masters or slaves */
-        if ((MSTP_Statistics[i].token_count) ||
-            (MSTP_Statistics[i].der_reply) ||
-            (MSTP_Statistics[i].pfm_count)) {
+        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
+            || (MSTP_Statistics[i].pfm_count)) {
             fprintf(stdout, "%u\t%u", i,
                 (unsigned) MSTP_Statistics[i].max_master);
             fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
@@ -379,6 +377,7 @@ size_t data_write(
     }
     return fwrite(ptr, size, nitems, pFile);
 }
+
 size_t data_write_header(
     const void *ptr,
     size_t size,
@@ -413,7 +412,7 @@ static void filename_create(
 static void write_global_header(
     const char *filename)
 {
-    static bool pipe_enable = true; /* don't write more than one header */
+    static bool pipe_enable = true;     /* don't write more than one header */
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
     uint16_t version_minor = 4; /* minor version number */
@@ -425,9 +424,12 @@ static void write_global_header(
     /* create a new file. */
     pFile = fopen(filename, "wb");
     if (pFile) {
-        (void) data_write_header(&magic_number, sizeof(magic_number), 1, pipe_enable);
-        (void) data_write_header(&version_major, sizeof(version_major), 1, pipe_enable);
-        (void) data_write_header(&version_minor, sizeof(version_minor), 1, pipe_enable);
+        (void) data_write_header(&magic_number, sizeof(magic_number), 1,
+            pipe_enable);
+        (void) data_write_header(&version_major, sizeof(version_major), 1,
+            pipe_enable);
+        (void) data_write_header(&version_minor, sizeof(version_minor), 1,
+            pipe_enable);
         (void) data_write_header(&thiszone, sizeof(thiszone), 1, pipe_enable);
         (void) data_write_header(&sigfigs, sizeof(sigfigs), 1, pipe_enable);
         (void) data_write_header(&snaplen, sizeof(snaplen), 1, pipe_enable);

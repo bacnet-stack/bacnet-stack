@@ -53,7 +53,7 @@ extern "C" {
         void);
 
     int Binary_Value_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Binary_Value_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);

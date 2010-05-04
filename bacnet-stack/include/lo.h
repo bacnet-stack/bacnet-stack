@@ -58,7 +58,7 @@ extern "C" {
 
     /* ReadProperty service support */
     int Lighting_Output_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
     /* WriteProperty service support */
     bool Lighting_Output_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);

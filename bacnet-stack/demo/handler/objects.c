@@ -94,7 +94,7 @@ OBJECT_DEVICE_T *objects_device_new(
             } else {
                 fprintf(stderr,
                     "Objects: Unable to allocate device %lu buffer\n",
-                    (unsigned long)device_instance);
+                    (unsigned long) device_instance);
             }
         }
     }
@@ -112,7 +112,7 @@ OBJECT_DEVICE_T *objects_device_delete(
         pDevice = Keylist_Data_Delete_By_Index(Device_List, index);
         if (pDevice) {
             fprintf(stderr, "Objects: removing device %lu",
-                (unsigned long)pDevice->Object_Identifier.instance);
+                (unsigned long) pDevice->Object_Identifier.instance);
             if (pDevice->Object_List) {
                 do {
                     pObject =

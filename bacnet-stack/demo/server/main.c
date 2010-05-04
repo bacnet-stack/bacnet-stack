@@ -55,7 +55,7 @@
 
 /* (Doxygen note: The next two lines pull all the following Javadoc 
  *  into the ServerDemo module.) */
-/** @addtogroup ServerDemo */ 
+/** @addtogroup ServerDemo */
 /*@{*/
 
 /** Buffer used for receiving */
@@ -184,4 +184,4 @@ int main(
     }
 }
 
-/* @} */      /* End group ServerDemo */
+              /* @} *//* End group ServerDemo */

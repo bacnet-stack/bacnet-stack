@@ -26,7 +26,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <sys/time.h>		/* for timeval */
+#include <sys/time.h>   /* for timeval */
 
 /* Timer Module */
 #ifndef MAX_MILLISECOND_TIMERS

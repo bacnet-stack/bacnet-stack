@@ -52,7 +52,7 @@ extern "C" {
         void);
 
     int Life_Safety_Point_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Life_Safety_Point_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);

@@ -79,7 +79,7 @@ struct special_property_list_t {
 typedef void (
     *rpm_object_property_lists_function) (
     BACNET_OBJECT_TYPE object_type,
-    struct special_property_list_t *pPropertyList);
+    struct special_property_list_t * pPropertyList);
 
 #ifdef __cplusplus
 extern "C" {
@@ -201,7 +201,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup DSRPM Data Sharing -Read Property Multiple Service (DS-RPM)
  * @ingroup DataShare
  * 15.7 ReadPropertyMultiple Service <br>
@@ -214,5 +213,4 @@ extern "C" {
  * A 'Read Access Specification' with the property identifier ALL can be used to 
  * learn the implemented properties of an object along with their values.
  */
-
 #endif

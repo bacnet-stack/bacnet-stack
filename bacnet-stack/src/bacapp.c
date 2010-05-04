@@ -517,7 +517,7 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             }
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
-        	/* Sequence of ReadAccessSpecification */
+            /* Sequence of ReadAccessSpecification */
             switch (tag_number) {
                 case 0:
                     tag = BACNET_APPLICATION_TAG_OBJECT_ID;
@@ -542,31 +542,31 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             break;
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
             switch (tag_number) {
-                case 0: /* Object ID */
-                case 3: /* Device ID */
-                    tag = BACNET_APPLICATION_TAG_OBJECT_ID; 
+                case 0:        /* Object ID */
+                case 3:        /* Device ID */
+                    tag = BACNET_APPLICATION_TAG_OBJECT_ID;
                     break;
-                case 1: /* Property ID */
+                case 1:        /* Property ID */
                     tag = BACNET_APPLICATION_TAG_ENUMERATED;
                     break;
-                case 2: /* Array index */
+                case 2:        /* Array index */
                     tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
                     break;
                 default:
                     break;
             }
             break;
-		case PROP_SUBORDINATE_LIST:
-			/* BACnetARRAY[N] of BACnetDeviceObjectReference */
-			switch (tag_number) {
-				case 0: /* Optional Device ID */
-				case 1: /* Object ID */
-					tag = BACNET_APPLICATION_TAG_OBJECT_ID;
-					break;
-				default:
-					break;
-			}
-			break;
+        case PROP_SUBORDINATE_LIST:
+            /* BACnetARRAY[N] of BACnetDeviceObjectReference */
+            switch (tag_number) {
+                case 0:        /* Optional Device ID */
+                case 1:        /* Object ID */
+                    tag = BACNET_APPLICATION_TAG_OBJECT_ID;
+                    break;
+                default:
+                    break;
+            }
+            break;
 
         default:
             break;
@@ -837,10 +837,11 @@ bool bacapp_print_value(
                 fprintf(stream, "%s", value->type.Boolean ? "TRUE" : "FALSE");
                 break;
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                fprintf(stream, "%lu", (unsigned long)value->type.Unsigned_Int);
+                fprintf(stream, "%lu",
+                    (unsigned long) value->type.Unsigned_Int);
                 break;
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                fprintf(stream, "%ld", (long)value->type.Signed_Int);
+                fprintf(stream, "%ld", (long) value->type.Signed_Int);
                 break;
             case BACNET_APPLICATION_TAG_REAL:
                 fprintf(stream, "%f", (double) value->type.Real);
@@ -890,14 +891,14 @@ bool bacapp_print_value(
                     case PROP_OBJECT_TYPE:
                         if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
                             fprintf(stream, "%s",
-                                bactext_object_type_name(value->type.
-                                    Enumerated));
+                                bactext_object_type_name(value->
+                                    type.Enumerated));
                         } else if (value->type.Enumerated < 128) {
                             fprintf(stream, "reserved %lu",
-                                (unsigned long)value->type.Enumerated);
+                                (unsigned long) value->type.Enumerated);
                         } else {
                             fprintf(stream, "proprietary %lu",
-                                (unsigned long)value->type.Enumerated);
+                                (unsigned long) value->type.Enumerated);
                         }
                         break;
                     case PROP_EVENT_STATE:
@@ -907,22 +908,22 @@ bool bacapp_print_value(
                     case PROP_UNITS:
                         if (value->type.Enumerated < 256) {
                             fprintf(stream, "%s",
-                                bactext_engineering_unit_name(value->
-                                    type.Enumerated));
+                                bactext_engineering_unit_name(value->type.
+                                    Enumerated));
                         } else {
                             fprintf(stream, "proprietary %lu",
-                                (unsigned long)value->type.Enumerated);
+                                (unsigned long) value->type.Enumerated);
                         }
                         break;
                     case PROP_POLARITY:
                         fprintf(stream, "%s",
-                        	bactext_binary_polarity_name(value->
-                                type.Enumerated));
+                            bactext_binary_polarity_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
                         fprintf(stream, "%s",
-                            bactext_binary_present_value_name(value->
-                                type.Enumerated));
+                            bactext_binary_present_value_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_RELIABILITY:
                         fprintf(stream, "%s",
@@ -930,8 +931,8 @@ bool bacapp_print_value(
                         break;
                     case PROP_SYSTEM_STATUS:
                         fprintf(stream, "%s",
-                            bactext_device_status_name(value->
-                                type.Enumerated));
+                            bactext_device_status_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_SEGMENTATION_SUPPORTED:
                         fprintf(stream, "%s",
@@ -942,7 +943,8 @@ bool bacapp_print_value(
                             bactext_node_type_name(value->type.Enumerated));
                         break;
                     default:
-                        fprintf(stream, "%lu", (unsigned long)value->type.Enumerated);
+                        fprintf(stream, "%lu",
+                            (unsigned long) value->type.Enumerated);
                         break;
                 }
                 break;
@@ -988,15 +990,15 @@ bool bacapp_print_value(
                 if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
                     fprintf(stream, "(%s, %lu)",
                         bactext_object_type_name(value->type.Object_Id.type),
-                        (unsigned long)value->type.Object_Id.instance);
+                        (unsigned long) value->type.Object_Id.instance);
                 } else if (value->type.Object_Id.type < 128) {
                     fprintf(stream, "(reserved %u, %lu)",
-                        (unsigned)value->type.Object_Id.type,
-                        (unsigned long)value->type.Object_Id.instance);
+                        (unsigned) value->type.Object_Id.type,
+                        (unsigned long) value->type.Object_Id.instance);
                 } else {
                     fprintf(stream, "(proprietary %u, %lu)",
-                        (unsigned)value->type.Object_Id.type,
-                        (unsigned long)value->type.Object_Id.instance);
+                        (unsigned) value->type.Object_Id.type,
+                        (unsigned long) value->type.Object_Id.instance);
                 }
                 break;
             default:
@@ -1294,15 +1296,15 @@ void testBACnetApplicationData_Safe(
 
             case BACNET_APPLICATION_TAG_OCTET_STRING:
                 {
-                    uint8_t test_octet[5] = {"Karg"};
+                    uint8_t test_octet[5] = { "Karg" };
                     octetstring_init(&input_value[i].type.Octet_String,
                         test_octet, sizeof(test_octet));
                 }
                 break;
 
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                characterstring_init_ansi(&input_value[i].type.
-                    Character_String, "Hello There!");
+                characterstring_init_ansi(&input_value[i].
+                    type.Character_String, "Hello There!");
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:

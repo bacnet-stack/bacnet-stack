@@ -1190,7 +1190,7 @@ int encode_context_unsigned(
         len = 4;
     }
 
-    len = encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
+    len = encode_tag(&apdu[0], tag_number, true, (uint32_t) len);
     len += encode_bacnet_unsigned(&apdu[len], value);
 
     return len;
@@ -1563,7 +1563,7 @@ int decode_bacnet_time_safe(
         btime->hundredths = 0;
         btime->min = 0;
         btime->sec = 0;
-        return (int)len_value;
+        return (int) len_value;
     } else {
         return decode_bacnet_time(apdu, btime);
     }
@@ -1696,7 +1696,7 @@ int decode_date_safe(
         bdate->month = 0;
         bdate->wday = 0;
         bdate->year = 0;
-        return (int)len_value;
+        return (int) len_value;
     } else {
         return decode_date(apdu, bdate);
     }
@@ -2010,7 +2010,8 @@ void testBACDCodeUnsignedValue(
     len = decode_unsigned(&array[len], len_value, &decoded_value);
     ct_test(pTest, decoded_value == value);
     if (decoded_value != value) {
-        printf("value=%lu decoded_value=%lu\n", (unsigned long)value, (unsigned long)decoded_value);
+        printf("value=%lu decoded_value=%lu\n", (unsigned long) value,
+            (unsigned long) decoded_value);
         print_apdu(&array[0], sizeof(array));
     }
     encode_application_unsigned(&encoded_array[0], decoded_value);
@@ -2078,14 +2079,16 @@ void testBACDCodeSignedValue(
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
     ct_test(pTest, decoded_value == value);
     if (decoded_value != value) {
-        printf("value=%ld decoded_value=%ld\n", (long)value, (long)decoded_value);
+        printf("value=%ld decoded_value=%ld\n", (long) value,
+            (long) decoded_value);
         print_apdu(&array[0], sizeof(array));
     }
     encode_application_signed(&encoded_array[0], decoded_value);
     diff = memcmp(&array[0], &encoded_array[0], sizeof(array));
     ct_test(pTest, diff == 0);
     if (diff) {
-        printf("value=%ld decoded_value=%ld\n", (long)value, (long)decoded_value);
+        printf("value=%ld decoded_value=%ld\n", (long) value,
+            (long) decoded_value);
         print_apdu(&array[0], sizeof(array));
         print_apdu(&encoded_array[0], sizeof(array));
     }

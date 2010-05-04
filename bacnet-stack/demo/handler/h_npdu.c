@@ -64,14 +64,14 @@ void npdu_handler(
                     (uint16_t) (pdu_len - apdu_offset));
             } else {
 #if PRINT_ENABLED
-                printf("NPDU: DNET=%u.  Discarded!\n", (unsigned)dest.net);
+                printf("NPDU: DNET=%u.  Discarded!\n", (unsigned) dest.net);
 #endif
             }
         }
     } else {
 #if PRINT_ENABLED
-        printf("NPDU: BACnet Protocol Version=%u.  Discarded!\n", 
-            (unsigned)pdu[0]);
+        printf("NPDU: BACnet Protocol Version=%u.  Discarded!\n",
+            (unsigned) pdu[0]);
 #endif
     }
 

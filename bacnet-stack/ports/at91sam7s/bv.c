@@ -154,7 +154,7 @@ char *Binary_Value_Name(
 
 /* return apdu len, or -1 on error */
 int Binary_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
@@ -164,8 +164,7 @@ int Binary_Value_Read_Property(
 
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) ||
-        (rpdata->application_data == NULL) ||
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -190,7 +189,8 @@ int Binary_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            present_value = Binary_Value_Present_Value(rpdata->object_instance);
+            present_value =
+                Binary_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -221,8 +221,7 @@ int Binary_Value_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = -1;
@@ -266,8 +265,8 @@ bool Binary_Value_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = value.type.Enumerated;
                     object_index =
-                        Binary_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                        Binary_Value_Instance_To_Index(wp_data->
+                        object_instance);
                     priority--;
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] = level;
@@ -312,4 +311,3 @@ bool Binary_Value_Write_Property(
 
     return status;
 }
-

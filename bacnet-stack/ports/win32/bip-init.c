@@ -74,10 +74,10 @@ static long gethostaddr(
         return -1;
     if (BIP_Debug) {
         printf("host: %s at %u.%u.%u.%u\n", host_name,
-            (unsigned)((uint8_t *) host_ent->h_addr)[0],
-            (unsigned)((uint8_t *) host_ent->h_addr)[1],
-            (unsigned)((uint8_t *) host_ent->h_addr)[2],
-            (unsigned)((uint8_t *) host_ent->h_addr)[3]);
+            (unsigned) ((uint8_t *) host_ent->h_addr)[0],
+            (unsigned) ((uint8_t *) host_ent->h_addr)[1],
+            (unsigned) ((uint8_t *) host_ent->h_addr)[2],
+            (unsigned) ((uint8_t *) host_ent->h_addr)[3]);
     }
     /* note: network byte order */
     return *(long *) host_ent->h_addr;

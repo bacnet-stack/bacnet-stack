@@ -74,16 +74,16 @@
  * @ingroup BACEPICS
  */
 typedef enum {
-	/** Initial state to establish a binding with the target device. */
-	INITIAL_BINDING,
-	/** Getting ALL properties and values at once with RPM. */
-	GET_ALL_REQUEST, GET_ALL_RESPONSE,
-	/** Getting ALL properties with array index = 0, just to get the list. */
-	GET_LIST_OF_ALL_REQUEST, GET_LIST_OF_ALL_RESPONSE,
-	/** Processing the properties individually with ReadProperty. */
-	GET_PROPERTY_REQUEST, GET_PROPERTY_RESPONSE,
-	/** Done with this Object; move onto the next. */
-	NEXT_OBJECT
+        /** Initial state to establish a binding with the target device. */
+    INITIAL_BINDING,
+        /** Getting ALL properties and values at once with RPM. */
+    GET_ALL_REQUEST, GET_ALL_RESPONSE,
+        /** Getting ALL properties with array index = 0, just to get the list. */
+    GET_LIST_OF_ALL_REQUEST, GET_LIST_OF_ALL_RESPONSE,
+        /** Processing the properties individually with ReadProperty. */
+    GET_PROPERTY_REQUEST, GET_PROPERTY_RESPONSE,
+        /** Done with this Object; move onto the next. */
+    NEXT_OBJECT
 } EPICS_STATES;
 
 

@@ -664,7 +664,8 @@ bool dlmstp_init(
 #if PRINT_ENABLED
     fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
     fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
-    fprintf(stderr, "MS/TP Max_Info_Frames: %u\n", (unsigned)MSTP_Port.Nmax_info_frames);
+    fprintf(stderr, "MS/TP Max_Info_Frames: %u\n",
+        (unsigned) MSTP_Port.Nmax_info_frames);
 #endif
     /* start the threads */
     hThread = _beginthread(dlmstp_millisecond_task, 4096, &arg_value);

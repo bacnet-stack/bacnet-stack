@@ -48,7 +48,7 @@
 
 /* forward prototype */
 int Device_Read_Property_Local(
-    BACNET_READ_PROPERTY_DATA *rpdata);
+    BACNET_READ_PROPERTY_DATA * rpdata);
 bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
@@ -62,55 +62,30 @@ static struct object_functions {
     read_property_function Object_Read_Property;
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
-} Object_Table[] =
-{
-    {OBJECT_DEVICE,
-        NULL,/* don't init - recursive! */
-        Device_Count,
-        Device_Index_To_Instance,
-        Device_Valid_Object_Instance_Number,
-        Device_Name,
-        Device_Read_Property_Local,
-        Device_Write_Property_Local,
-        Device_Property_Lists},
-    {OBJECT_ANALOG_INPUT,
-        Analog_Input_Init,
-        Analog_Input_Count,
-        Analog_Input_Index_To_Instance,
-        Analog_Input_Valid_Instance,
-        Analog_Input_Name,
-        Analog_Input_Read_Property,
-        NULL,
-        Analog_Input_Property_Lists},
-    {OBJECT_ANALOG_VALUE,
-        Analog_Value_Init,
-        Analog_Value_Count,
-        Analog_Value_Index_To_Instance,
-        Analog_Value_Valid_Instance,
-        Analog_Value_Name,
-        Analog_Value_Read_Property,
-        Analog_Value_Write_Property,
-        Analog_Value_Property_Lists},
-    {OBJECT_BINARY_INPUT,
-        Binary_Input_Init,
-        Binary_Input_Count,
-        Binary_Input_Index_To_Instance,
-        Binary_Input_Valid_Instance,
-        Binary_Input_Name,
-        Binary_Input_Read_Property,
-        NULL,
-        Binary_Input_Property_Lists},
-    {OBJECT_BINARY_OUTPUT,
-        Binary_Output_Init,
-        Binary_Output_Count,
-        Binary_Output_Index_To_Instance,
-        Binary_Output_Valid_Instance,
-        Binary_Output_Name,
-        Binary_Output_Read_Property,
-        Binary_Output_Write_Property,
-        Binary_Output_Property_Lists},
-
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+} Object_Table[] = {
+    {
+        OBJECT_DEVICE, NULL,    /* don't init - recursive! */
+    Device_Count, Device_Index_To_Instance,
+            Device_Valid_Object_Instance_Number, Device_Name,
+            Device_Read_Property_Local, Device_Write_Property_Local,
+            Device_Property_Lists}, {
+    OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
+            Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
+            Analog_Input_Name, Analog_Input_Read_Property, NULL,
+            Analog_Input_Property_Lists}, {
+    OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
+            Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
+            Analog_Value_Name, Analog_Value_Read_Property,
+            Analog_Value_Write_Property, Analog_Value_Property_Lists}, {
+    OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
+            Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
+            Binary_Input_Name, Binary_Input_Read_Property, NULL,
+            Binary_Input_Property_Lists}, {
+    OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
+            Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
+            Binary_Output_Name, Binary_Output_Read_Property,
+            Binary_Output_Write_Property, Binary_Output_Property_Lists}, {
+    MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 /* note: you really only need to define variables for
@@ -120,8 +95,7 @@ static struct object_functions {
 static uint32_t Object_Instance_Number;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-static BACNET_REINITIALIZED_STATE Reinitialize_State =
-    BACNET_REINIT_IDLE;
+static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
@@ -159,7 +133,7 @@ static const int Device_Properties_Proprietary[] = {
     -1
 };
 
-static struct object_functions * Device_Objects_Find_Functions(
+static struct object_functions *Device_Objects_Find_Functions(
     BACNET_OBJECT_TYPE Object_Type)
 {
     struct object_functions *pObject = NULL;
@@ -168,18 +142,18 @@ static struct object_functions * Device_Objects_Find_Functions(
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
         if (pObject->Object_Type == Object_Type) {
-            return(pObject);
+            return (pObject);
         }
 
         pObject++;
     }
 
-    return(NULL);
+    return (NULL);
 }
 
 static int Read_Property_Common(
     struct object_functions *pObject,
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = -1;
     BACNET_CHARACTER_STRING char_string;
@@ -199,9 +173,8 @@ static int Read_Property_Common(
                 rpdata->object_instance = Object_Instance_Number;
             }
             apdu_len =
-                encode_application_object_id(&apdu[0],
-                    rpdata->object_type,
-                    rpdata->object_instance);
+                encode_application_object_id(&apdu[0], rpdata->object_type,
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             if (pObject->Object_Name) {
@@ -212,8 +185,8 @@ static int Read_Property_Common(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(&apdu[0],
-                 rpdata->object_type);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         default:
             if (pObject->Object_Read_Property) {
@@ -228,7 +201,7 @@ static int Read_Property_Common(
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Device_Read_Property(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = -1;
     struct object_functions *pObject = NULL;
@@ -313,21 +286,22 @@ void Device_Objects_Property_List(
 
     pObject = Device_Objects_Find_Functions(object_type);
     if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
-        pObject->Object_RPM_List(
-            &pPropertyList->Required.pList,
-            &pPropertyList->Optional.pList,
-            &pPropertyList->Proprietary.pList);
+        pObject->Object_RPM_List(&pPropertyList->Required.pList,
+            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
     }
 
     /* Fetch the counts if available otherwise zero them */
-    pPropertyList->Required.count = pPropertyList->Required.pList == NULL
-        ? 0 : property_list_count(pPropertyList->Required.pList);
+    pPropertyList->Required.count =
+        pPropertyList->Required.pList ==
+        NULL ? 0 : property_list_count(pPropertyList->Required.pList);
 
-    pPropertyList->Optional.count = pPropertyList->Optional.pList == NULL
-        ? 0 : property_list_count(pPropertyList->Optional.pList);
+    pPropertyList->Optional.count =
+        pPropertyList->Optional.pList ==
+        NULL ? 0 : property_list_count(pPropertyList->Optional.pList);
 
-    pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
-        ? 0 : property_list_count(pPropertyList->Proprietary.pList);
+    pPropertyList->Proprietary.count =
+        pPropertyList->Proprietary.pList ==
+        NULL ? 0 : property_list_count(pPropertyList->Proprietary.pList);
 
     return;
 }
@@ -347,7 +321,8 @@ void Device_Property_Lists(
     return;
 }
 
-unsigned Device_Count(void)
+unsigned Device_Count(
+    void)
 {
     return 1;
 }
@@ -363,7 +338,7 @@ char *Device_Name(
 {
     uint8_t encoding = 0;
     uint8_t length = 0;
-    static char name[NV_EEPROM_DEVICE_NAME_SIZE+1] = "";
+    static char name[NV_EEPROM_DEVICE_NAME_SIZE + 1] = "";
     char *pName = NULL;
 
     if (object_instance == Object_Instance_Number) {
@@ -372,14 +347,12 @@ char *Device_Name(
         eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & name,
             NV_EEPROM_DEVICE_NAME_SIZE);
         if ((encoding >= MAX_CHARACTER_STRING_ENCODING) ||
-            (length > NV_EEPROM_DEVICE_NAME_SIZE) ||
-            (length < 1)) {
+            (length > NV_EEPROM_DEVICE_NAME_SIZE) || (length < 1)) {
             encoding = CHARACTER_ANSI_X34;
-            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
-                &encoding, 1);
+            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING, &encoding, 1);
             sprintf(name, "DEVICE-%lu", Object_Instance_Number);
-            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
-                (uint8_t *) & name[0], NV_EEPROM_DEVICE_NAME_SIZE);
+            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & name[0],
+                NV_EEPROM_DEVICE_NAME_SIZE);
             length = strlen(name);
             eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &length, 1);
         }
@@ -395,7 +368,7 @@ char *Device_Name(
 }
 
 bool Device_Reinitialize(
-    BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
+    BACNET_REINITIALIZE_DEVICE_DATA * rd_data)
 {
     bool status = false;
 
@@ -438,7 +411,7 @@ void Device_Init(
             (uint8_t *) & Object_Instance_Number,
             sizeof(Object_Instance_Number));
     }
-    (void)Device_Name(Object_Instance_Number);
+    (void) Device_Name(Object_Instance_Number);
 }
 
 /* methods to manipulate the data */
@@ -549,8 +522,7 @@ bool Device_Object_List_Identifier(
     /* initialize the default return values */
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Count &&
-            pObject->Object_Index_To_Instance) {
+        if (pObject->Object_Count && pObject->Object_Index_To_Instance) {
             object_index -= count;
             count = pObject->Object_Count();
             if (object_index < count) {
@@ -617,7 +589,7 @@ char *Device_Valid_Object_Id(
 
 /* return the length of the apdu encoded or -1 for error */
 int Device_Read_Property_Local(
-    BACNET_READ_PROPERTY_DATA *rpdata)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     int len = 0;        /* apdu len intermediate value */
@@ -652,8 +624,7 @@ int Device_Read_Property_Local(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_VENDOR_IDENTIFIER:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], BACNET_VENDOR_ID);
+            apdu_len = encode_application_unsigned(&apdu[0], BACNET_VENDOR_ID);
             break;
         case PROP_MODEL_NAME:
             characterstring_init_ansi(&char_string, "bdk-atxx4-mstp");
@@ -671,12 +642,10 @@ int Device_Read_Property_Local(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_PROTOCOL_VERSION:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], 1);
+            apdu_len = encode_application_unsigned(&apdu[0], 1);
             break;
         case PROP_PROTOCOL_REVISION:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], 5);
+            apdu_len = encode_application_unsigned(&apdu[0], 5);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             /* Note: list of services that are executed, not initiated. */
@@ -701,8 +670,7 @@ int Device_Read_Property_Local(
             i = 0;
             pObject = &Object_Table[i];
             while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-                if ((pObject->Object_Count) &&
-                    (pObject->Object_Count() > 0)) {
+                if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
                     bitstring_set_bit(&bit_string, pObject->Object_Type, true);
                 }
                 pObject++;
@@ -730,7 +698,8 @@ int Device_Read_Property_Local(
                         /* can we all fit into the APDU? */
                         if ((apdu_len + len) >= MAX_APDU) {
                             rpdata->error_class = ERROR_CLASS_SERVICES;
-                            rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                            rpdata->error_code =
+                                ERROR_CODE_NO_SPACE_FOR_OBJECT;
                             apdu_len = -1;
                             break;
                         }
@@ -743,8 +712,8 @@ int Device_Read_Property_Local(
                     }
                 }
             } else {
-                if (Device_Object_List_Identifier(rpdata->array_index, &object_type,
-                        &instance))
+                if (Device_Object_List_Identifier(rpdata->array_index,
+                        &object_type, &instance))
                     apdu_len =
                         encode_application_object_id(&apdu[0], object_type,
                         instance);
@@ -803,8 +772,7 @@ int Device_Read_Property_Local(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_OBJECT_LIST) &&
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -831,8 +799,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -892,18 +860,20 @@ bool Device_Write_Property_Local(
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH,
                             &small_length, 1);
                         pCharString =
-                            characterstring_value(&value.
-                            type.Character_String);
+                            characterstring_value(&value.type.
+                            Character_String);
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
                             (uint8_t *) pCharString, length);
                         status = true;
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+                        wp_data->error_code =
+                            ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
                     }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    wp_data->error_code =
+                        ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;

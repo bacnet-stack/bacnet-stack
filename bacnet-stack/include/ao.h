@@ -86,7 +86,7 @@ extern "C" {
         void);
 
     int Analog_Output_Read_Property(
-        BACNET_READ_PROPERTY_DATA *rpdata);
+        BACNET_READ_PROPERTY_DATA * rpdata);
     bool Analog_Output_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
