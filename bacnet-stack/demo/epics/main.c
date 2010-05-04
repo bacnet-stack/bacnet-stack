@@ -302,9 +302,9 @@ static void Init_Service_Handlers(
             else
                 fprintf(stream, " ");
             /* Tried with 8 per line, but with the comments, got way too long. */
-            if ( (i == (len-1) ) || ( (i % 4) == 3 ) )       // line break every 4
+            if ( (i == (len-1) ) || ( (i % 4) == 3 ) )       /* line break every 4 */
             {
-                fprintf(stream, "   -- ");		// EPICS comments begin with "--"
+                fprintf(stream, "   -- ");		/* EPICS comments begin with "--" */
                 /* Now rerun the same 4 bits, but print labels for true ones */
                 for ( j = i - (i%4); j <= i; j++)
                 {
@@ -606,7 +606,7 @@ static uint8_t Read_Properties(
 		if ( Using_Walked_List )
         {
             if (Walked_List_Length == 0) {
-//                printf("    %s: ", bactext_property_name( prop ) );
+/*                printf("    %s: ", bactext_property_name( prop ) ); */
                 array_index = 0;
             } else {
             	array_index = Walked_List_Index;
@@ -1010,14 +1010,14 @@ int main(
 				}
 				else
                     Property_List_Index++;
-//				if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST )
-//				{
-//					if ( !Using_Walked_List )		/* Just switched */
-//					{
-//                        Using_Walked_List = true;
-//                        Walked_List_Index = Walked_List_Length = 0;
-//					}
-//				}
+/*				if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST ) */
+/*				{ */
+/*					if ( !Using_Walked_List )		/* Just switched */ */
+/*					{ */
+/*                        Using_Walked_List = true; */
+/*                        Walked_List_Index = Walked_List_Length = 0; */
+/*					} */
+/*				} */
 				myState = GET_PROPERTY_REQUEST;		/* Go fetch next Property */
 			}
             else if (tsm_invoke_id_free(invoke_id)) {

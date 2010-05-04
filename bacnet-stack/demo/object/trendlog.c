@@ -1685,8 +1685,8 @@ void trend_log_timer(
                      * we don't miss a reading if we aren't called at the precise second
                      * when the match occurrs.
                      */
-//                if(((tNow % CurrentLog->ulLogInterval) >= (CurrentLog->ulIntervalOffset % CurrentLog->ulLogInterval)) &&
-//                   ((tNow - CurrentLog->tLastDataTime) >= CurrentLog->ulLogInterval)) {
+/*                if(((tNow % CurrentLog->ulLogInterval) >= (CurrentLog->ulIntervalOffset % CurrentLog->ulLogInterval)) && */
+/*                   ((tNow - CurrentLog->tLastDataTime) >= CurrentLog->ulLogInterval)) { */
                     if((tNow % CurrentLog->ulLogInterval) == (CurrentLog->ulIntervalOffset % CurrentLog->ulLogInterval)) {
                         /* Record value if time synchronised trigger condition is met
                          * and at least one period has elapsed.
