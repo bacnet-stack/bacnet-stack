@@ -57,9 +57,9 @@
 #include "bacepics.h"
 
 
-/* (Doxygen note: The next two lines pull all the following Javadoc 
+/* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the BACEPICS module.) */
-/** @addtogroup BACEPICS 
+/** @addtogroup BACEPICS
  * @{ */
 
 /* buffer used for receive */
@@ -270,7 +270,7 @@ static void Init_Service_Handlers(
  * the names of the active types.
  * These bitfields use opening and closing parentheses instead of braces.
  * We also limit the output to 4 bit fields per line.
- * 
+ *
  * @param stream [in] Normally stdout
  * @param value [in] The structure holding this property's value (union) and type.
  * @param property [in] Which property we are printing.
@@ -743,12 +743,12 @@ int CheckCommandLineArgs(
 
 /** Main function of the bacepics program.
  *
- * @see Device_Set_Object_Instance_Number, Keylist_Create, address_init, 
- *      dlenv_init, address_bind_request, Send_WhoIs, 
+ * @see Device_Set_Object_Instance_Number, Keylist_Create, address_init,
+ *      dlenv_init, address_bind_request, Send_WhoIs,
  *      tsm_timer_milliseconds, datalink_receive, npdu_handler,
- *      Send_Read_Property_Multiple_Request,  
- *      
- *  
+ *      Send_Read_Property_Multiple_Request,
+ *
+ *
  * @param argc [in] Arg count.
  * @param argv [in] Takes one or two arguments: an optional -v "Show Values"
  *                  switch, and the Device Instance #.
@@ -960,17 +960,19 @@ int main(
                             Property_List_Index++;
                             Using_Walked_List = false;
                         }
-                    } else
+                    } else {
                         Property_List_Index++;
-/*				if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST ) */
-/*				{ */
-/*					if ( !Using_Walked_List )		/* Just switched */ */
-/*					{ */
+                    }
+/*                if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST ) */
+/*                { */
+/*                    if ( !Using_Walked_List )
+/*                    { */
+                    /* Just switched */
 /*                        Using_Walked_List = true; */
 /*                        Walked_List_Index = Walked_List_Length = 0; */
-/*					} */
-/*				} */
-                        myState = GET_PROPERTY_REQUEST; /* Go fetch next Property */
+/*                    } */
+/*                } */
+                    myState = GET_PROPERTY_REQUEST; /* Go fetch next Property */
                 } else if (tsm_invoke_id_free(invoke_id)) {
                     invoke_id = 0;
                     if (Error_Detected) {
