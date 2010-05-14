@@ -7,6 +7,13 @@ code in it, and will contain up to 65535 packets.  A new file
 will be created at each 65535 packet interval.  The tool can
 be stopped by using Control-C.
 
+Wireshark is a protocol anaylzyer that can be downloaded from 
+wireshark.org.  Wireshark can open and view the files that
+are created from mstpcap.  Wireshark can also open a named
+pipe, and msptcap can send the capture data to the named pipe 
+for realtime viewing, while saving the capture data to a file.  
+See Named Pipe Usage below.
+
 Here is a sample of the tool running (use CTRL-C to quit).
 D:\code\bacnet-stack\bin>mstpcap COM3 38400
 Adjusted interface name to \\.\COM3
@@ -17,6 +24,8 @@ MAC     MaxMstr Tokens  Retries Treply  Tusage  Trpfm   Tder    Tpostpd
 0       0       525     0       32      0       0       0       0
 1       127     525     0       16      79      0       0       0
 
+Statistics
+----------
 The BACnet MS/TP capture tool also includes statistics which are
 listed for any MAC addresses found passing a token,
 or any MAC address replying to a DER message.
@@ -53,3 +62,23 @@ required to be less than 250ms.
 Note that the mstpcap tool may not have that good of
 resolution on Windows, so timing under 50ms may not be accurate.
 
+Name Pipe Usage
+---------------
+1. Launch the mstpcap with all command line options, include the named
+pipe.  On Linux, the named pipe can be any file.  On Windows the named 
+pipe must be located in a specific directory \\.\pipe\wireshark
+
+D:\code\bacnet-stack\bin>mstpcap COM3 38400 \\.\pipe\wireshark
+
+2. Run Wireshark.  Select "Capture" -> "Options" -> "Interface".  Copy the
+pipe name from the command console (i.e. Mark) and paste it into the 
+Interface box.  Select "Start" to begin the live capture.  Note that
+the capture cannot be restarted from Wireshark, but must be restarted from
+the command line each time you want to capture. 
+
+Non-Standard Baud Rates
+-----------------------
+If your serial adapter supports non-standard baud rates by using
+aliasing, you can pass the aliased buad rate as the baud rate 
+parameter.  76800 is a non-standard baud rate, and is not enumerated 
+on Windows Computers.
