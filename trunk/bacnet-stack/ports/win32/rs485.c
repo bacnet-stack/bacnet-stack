@@ -94,9 +94,10 @@ void strupper(
 {
     char *p;
     for (p = str; *p != '\0'; ++p) {
-        *p = toupper(*p);
+        *p = (char)toupper(*p);
     }
 }
+#pragma
 
 /****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in

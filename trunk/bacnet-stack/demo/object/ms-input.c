@@ -174,7 +174,7 @@ bool Multistate_Input_Present_Value_Set(
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         if (value < MULTISTATE_NUMBER_OF_STATES) {
-            Present_Value[index] = value;
+            Present_Value[index] = (uint8_t)value;
             status = true;
         }
     }

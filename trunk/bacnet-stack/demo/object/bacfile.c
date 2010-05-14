@@ -369,7 +369,7 @@ uint32_t bacfile_instance_from_tsm(
     BACNET_ADDRESS dest;        /* where the original packet was destined */
     uint8_t apdu[MAX_PDU] = { 0 };      /* original APDU packet */
     uint16_t apdu_len = 0;      /* original APDU packet length */
-    uint16_t len = 0;   /* apdu header length */
+    int len = 0;   /* apdu header length */
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint32_t object_instance = BACNET_MAX_INSTANCE + 1; /* return value */
     bool found = false;

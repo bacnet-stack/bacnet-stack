@@ -139,7 +139,7 @@ int ptransfer_decode_service_request(
             return -1;
         }
         len = decode_len;
-        private_data->vendorID = unsigned_value;
+        private_data->vendorID = (uint16_t)unsigned_value;
         /* Tag 1: serviceNumber */
         decode_len = decode_context_unsigned(&apdu[len], 1, &unsigned_value);
         if (decode_len < 0) {
@@ -279,7 +279,7 @@ int ptransfer_error_decode_service_request(
             return -1;
         }
         len += decode_len;
-        private_data->vendorID = unsigned_value;
+        private_data->vendorID = (uint16_t)unsigned_value;
         /* Tag 2: serviceNumber */
         decode_len = decode_context_unsigned(&apdu[len], 2, &unsigned_value);
         if (decode_len < 0) {

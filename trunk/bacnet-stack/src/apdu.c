@@ -211,7 +211,7 @@ bool apdu_service_supported_to_index(
 }
 
 /* Confirmed ACK Function Handlers */
-static void *Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
+static confirmed_ack_function Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
 void apdu_set_confirmed_simple_ack_handler(
     BACNET_CONFIRMED_SERVICE service_choice,
@@ -238,7 +238,7 @@ void apdu_set_confirmed_simple_ack_handler(
         case SERVICE_CONFIRMED_VT_CLOSE:
             /* Security Services */
         case SERVICE_CONFIRMED_REQUEST_KEY:
-            Confirmed_ACK_Function[service_choice] = (void *) pFunction;
+            Confirmed_ACK_Function[service_choice] = (confirmed_ack_function)pFunction;
             break;
         default:
             break;
@@ -269,7 +269,7 @@ void apdu_set_confirmed_ack_handler(
         case SERVICE_CONFIRMED_VT_DATA:
             /* Security Services */
         case SERVICE_CONFIRMED_AUTHENTICATE:
-            Confirmed_ACK_Function[service_choice] = (void *) pFunction;
+            Confirmed_ACK_Function[service_choice] = pFunction;
             break;
         default:
             break;
@@ -366,7 +366,7 @@ void apdu_handler(
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    uint16_t len = 0;   /* counts where we are in PDU */
+    int len = 0;   /* counts where we are in PDU */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t error_code = 0;
@@ -434,7 +434,7 @@ void apdu_handler(
                     case SERVICE_CONFIRMED_VT_CLOSE:
                         /* Security Services */
                     case SERVICE_CONFIRMED_REQUEST_KEY:
-                        if (Confirmed_ACK_Function[service_choice]) {
+                        if (Confirmed_ACK_Function[service_choice] != NULL) {
                             ((confirmed_simple_ack_function)
                                 Confirmed_ACK_Function[service_choice]) (src,
                                 invoke_id);
@@ -458,7 +458,7 @@ void apdu_handler(
                 }
                 service_choice = apdu[len++];
                 service_request = &apdu[len];
-                service_request_len = apdu_len - len;
+                service_request_len = apdu_len - (uint16_t)len;
                 switch (service_choice) {
                     case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
                     case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
@@ -478,9 +478,8 @@ void apdu_handler(
                     case SERVICE_CONFIRMED_VT_DATA:
                         /* Security Services */
                     case SERVICE_CONFIRMED_AUTHENTICATE:
-                        if (Confirmed_ACK_Function[service_choice]) {
-                            ((confirmed_ack_function)
-                                Confirmed_ACK_Function[service_choice])
+                        if (Confirmed_ACK_Function[service_choice] != NULL) {
+                            (Confirmed_ACK_Function[service_choice])
                                 (service_request, service_request_len, src,
                                 &service_ack_data);
                         }

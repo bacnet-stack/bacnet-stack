@@ -90,7 +90,7 @@ void dlenv_init(
 #endif
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
-        bip_set_port(strtol(pEnv, NULL, 0));
+        bip_set_port((uint16_t)strtol(pEnv, NULL, 0));
     } else {
         bip_set_port(0xBAC0);
     }
@@ -122,7 +122,7 @@ void dlenv_init(
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {
-        apdu_timeout_set(strtol(pEnv, NULL, 0));
+        apdu_timeout_set((uint16_t)strtol(pEnv, NULL, 0));
         fprintf(stderr, "BACNET_APDU_TIMEOUT=%s\r\n", pEnv);
     } else {
 #if defined(BACDL_MSTP)
@@ -160,8 +160,8 @@ void dlenv_init(
             fprintf(stderr,
                 "Registering with BBMD at %s:%ld for %ld seconds\n",
                 inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(bbmd_address, bbmd_port,
-                bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, (uint16_t)bbmd_port,
+                (uint16_t)bbmd_timetolive_seconds);
         }
     }
 #endif

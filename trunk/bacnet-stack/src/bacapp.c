@@ -316,7 +316,7 @@ bool bacapp_decode_application_data_safe(
 {
     /* The static variables that store the apdu buffer between function calls */
     static uint8_t *apdu = NULL;
-    static int32_t apdu_len_remaining = 0;
+    static uint32_t apdu_len_remaining = 0;
     static uint32_t apdu_len = 0;
     int len = 0;
     int tag_len = 0;
@@ -1084,10 +1084,10 @@ bool bacapp_parse_application_data(
                     datetime_set_date(&value->type.Date, (uint16_t) year,
                         (uint8_t) month, (uint8_t) day);
                 } else if (count == 4) {
-                    value->type.Date.year = year;
-                    value->type.Date.month = month;
-                    value->type.Date.day = day;
-                    value->type.Date.wday = wday;
+                    value->type.Date.year = (uint16_t)year;
+                    value->type.Date.month = (uint8_t)month;
+                    value->type.Date.day = (uint8_t)day;
+                    value->type.Date.wday = (uint8_t)wday;
                 } else {
                     status = false;
                 }
@@ -1097,18 +1097,18 @@ bool bacapp_parse_application_data(
                     sscanf(argv, "%d:%d:%d.%d", &hour, &min, &sec,
                     &hundredths);
                 if (count == 4) {
-                    value->type.Time.hour = hour;
-                    value->type.Time.min = min;
-                    value->type.Time.sec = sec;
-                    value->type.Time.hundredths = hundredths;
+                    value->type.Time.hour = (uint8_t)hour;
+                    value->type.Time.min = (uint8_t)min;
+                    value->type.Time.sec = (uint8_t)sec;
+                    value->type.Time.hundredths = (uint8_t)hundredths;
                 } else if (count == 3) {
-                    value->type.Time.hour = hour;
-                    value->type.Time.min = min;
-                    value->type.Time.sec = sec;
+                    value->type.Time.hour = (uint8_t)hour;
+                    value->type.Time.min = (uint8_t)min;
+                    value->type.Time.sec = (uint8_t)sec;
                     value->type.Time.hundredths = 0;
                 } else if (count == 2) {
-                    value->type.Time.hour = hour;
-                    value->type.Time.min = min;
+                    value->type.Time.hour = (uint8_t)hour;
+                    value->type.Time.min = (uint8_t)min;
                     value->type.Time.sec = 0;
                     value->type.Time.hundredths = 0;
                 } else {
@@ -1118,7 +1118,7 @@ bool bacapp_parse_application_data(
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 count = sscanf(argv, "%d:%d", &object_type, &instance);
                 if (count == 2) {
-                    value->type.Object_Id.type = object_type;
+                    value->type.Object_Id.type = (uint16_t)object_type;
                     value->type.Object_Id.instance = instance;
                 } else {
                     status = false;
