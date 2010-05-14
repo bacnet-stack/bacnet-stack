@@ -68,8 +68,13 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* target information converted from command line */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
+/* = { 6, { 127, 0, 0, 1, 0xBA, 0xC0, 0 }, 0 };  loopback address to talk to myself */
+
 /* any errors are picked up in main loop */
 static bool Error_Detected = false;
+static uint16_t Last_Error_Class = 0;
+static uint16_t Last_Error_Code = 0;
+static bool Has_RPM = true;			/* Assume device can do RPM, to start */
 static EPICS_STATES myState = INITIAL_BINDING;
 
 /* any valid RP or RPM data returned is put here */
@@ -104,6 +109,14 @@ static uint32_t Property_List_Index = 0;
 static int32_t Property_List[MAX_PROPS + 2];
 /* This normally points to Property_List. */
 static const int *pPropList = NULL;
+#define MINIMAL_PROPLIST_SIZE 4
+static int32_t MinimalPropList[MINIMAL_PROPLIST_SIZE] =
+{
+	    PROP_OBJECT_IDENTIFIER,
+	    PROP_OBJECT_NAME,
+	    PROP_OBJECT_TYPE,
+	    -1
+};
 
 /* When we have to walk through an array of things, like ObjectIDs or
  * Subordinate_Annotations, one RP call at a time, use these for indexing.
@@ -132,14 +145,14 @@ static void MyErrorHandler(
     (void) src;
     (void) invoke_id;
 #if PRINT_ERRORS
-    printf("-- BACnet Error: %s: %s\r\n",
-        bactext_error_class_name(error_class),
-        bactext_error_code_name(error_code));
-#else
-    (void) error_class;
-    (void) error_code;
+    if ( ShowValues )
+    	fprintf(stderr, "-- BACnet Error: %s: %s\r\n",
+    			bactext_error_class_name(error_class),
+    			bactext_error_code_name(error_code));
 #endif
     Error_Detected = true;
+    Last_Error_Class = error_class;
+    Last_Error_Code = error_code;
 }
 
 void MyAbortHandler(
@@ -154,13 +167,16 @@ void MyAbortHandler(
     (void) server;
 #if PRINT_ERRORS
     /* It is normal for this to fail, so don't print. */
-    if ((myState != GET_ALL_RESPONSE) && !IsLongArray)
-        printf("-- BACnet Abort: %s ",
+    if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues )
+    	fprintf(stderr, "-- BACnet Abort: %s \r\n",
             bactext_abort_reason_name(abort_reason));
-#else
-    (void) abort_reason;
 #endif
     Error_Detected = true;
+    Last_Error_Class = ERROR_CLASS_SERVICES;
+    if ( abort_reason < MAX_BACNET_ABORT_REASON )
+    	Last_Error_Code = (ERROR_CODE_ABORT_BUFFER_OVERFLOW -1) + abort_reason;
+    else
+    	Last_Error_Code = ERROR_CODE_ABORT_OTHER;
 }
 
 void MyRejectHandler(
@@ -172,11 +188,15 @@ void MyRejectHandler(
     (void) src;
     (void) invoke_id;
 #if PRINT_ERRORS
-    printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
-#else
-    (void) reject_reason;
+    if ( ShowValues )
+    	fprintf(stderr, "BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
 #endif
     Error_Detected = true;
+    Last_Error_Class = ERROR_CLASS_SERVICES;
+    if ( reject_reason < MAX_BACNET_REJECT_REASON )
+    	Last_Error_Code = (ERROR_CODE_REJECT_BUFFER_OVERFLOW -1) + reject_reason;
+    else
+    	Last_Error_Code = ERROR_CODE_REJECT_OTHER;
 }
 
 void MyReadPropertyAckHandler(
@@ -365,7 +385,7 @@ void PrintReadPropertyData(
     value = rpm_property->value;
     if (value == NULL) {
         /* Then we print the error information */
-        fprintf(stdout, "?  -- BACnet Error: %s: %s\r\n",
+    	fprintf(stderr, "?  -- BACnet Error: %s: %s\r\n",
             bactext_error_class_name((int) rpm_property->error.error_class),
             bactext_error_code_name((int) rpm_property->error.error_code));
         return;
@@ -546,8 +566,11 @@ static uint8_t Read_Properties(
 {
     uint8_t invoke_id = 0;
     struct special_property_list_t PropertyListStruct;
+    int i;
 
-    if (Property_List_Length == 0) {
+    if ( ( !Has_RPM && ( Property_List_Index == 0 ) ) ||
+    	 ( Property_List_Length == 0) )
+    {
         /* If we failed to get the Properties with RPM, just settle for what we
          * know is the fixed list of Required (only) properties.
          * In practice, this should only happen for simple devices that don't
@@ -558,9 +581,14 @@ static uint8_t Read_Properties(
         if (pPropList != NULL) {
             Property_List_Length = PropertyListStruct.Required.count;
         } else {
-            fprintf(stdout, "    -- No Properties available for %s \r\n",
-                bactext_object_type_name(pMyObject->type));
+       		fprintf(stdout, "    -- Just Minimal Properties: \r\n" );
+            pPropList = MinimalPropList;
+            Property_List_Length = MINIMAL_PROPLIST_SIZE -1;
         }
+        /* Copy this list for later one-by-one processing */
+        for ( i = 0; i < Property_List_Length; i++ )
+        	Property_List[i] = pPropList[i];
+        Property_List[i] = -1;		/* Just to be sure we terminate */
     } else
         pPropList = Property_List;
 
@@ -576,7 +604,7 @@ static uint8_t Read_Properties(
                 array_index = Walked_List_Index;
             }
         } else {
-            printf("    %s: ", bactext_property_name(prop));
+        	fprintf(stdout, "    %s: ", bactext_property_name(prop));
             array_index = BACNET_ARRAY_ALL;
 
             switch (prop) {
@@ -651,7 +679,7 @@ EPICS_STATES ProcessRPMData(
                     free(old_value);
                 }
             } else {
-                printf("    %s: ",
+            	fprintf(stdout, "    %s: ",
                     bactext_property_name(rpm_property->propertyIdentifier));
                 PrintReadPropertyData(rpm_property);
             }
@@ -741,6 +769,22 @@ int CheckCommandLineArgs(
     return 0;   /* All OK if we reach here */
 }
 
+/* Initialize fields for a new Object */
+void StartNextObject( BACNET_READ_ACCESS_DATA *rpm_object, BACNET_OBJECT_ID *pNewObject )
+{
+    BACNET_PROPERTY_REFERENCE *rpm_property;
+    Error_Detected = false;
+    Property_List_Index = Property_List_Length = 0;
+    rpm_object->object_type = pNewObject->type;
+    rpm_object->object_instance = pNewObject->instance;
+    rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+    rpm_object->listOfProperties = rpm_property;
+    assert(rpm_property);
+    rpm_property->propertyIdentifier = PROP_ALL;
+    /* Start with a count of the array size */
+    rpm_property->propertyArrayIndex = 0;
+}
+
 /** Main function of the bacepics program.
  *
  * @see Device_Set_Object_Instance_Number, Keylist_Create, address_init,
@@ -773,7 +817,6 @@ int main(
     BACNET_OBJECT_ID myObject;
     uint8_t buffer[MAX_PDU] = { 0 };
     BACNET_READ_ACCESS_DATA *rpm_object;
-    BACNET_PROPERTY_REFERENCE *rpm_property;
     KEY nextKey;
 
     CheckCommandLineArgs(argc, argv);   /* Won't return if there is an issue. */
@@ -784,6 +827,7 @@ int main(
     address_init();
     Init_Service_Handlers();
     dlenv_init();
+    /* bip_set_port( 0xBAC0 ); Set back to std BIP port */
     /* configure the timeout values */
     current_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
@@ -794,6 +838,10 @@ int main(
     if (!found) {
         Send_WhoIs(Target_Device_Object_Instance,
             Target_Device_Object_Instance);
+        /* In an Alternate universe, where we talk to ourselves:
+         * address_add_binding( Target_Device_Object_Instance, max_apdu,
+         *       &Target_Address);
+         */
     }
     printf("List of Objects in test device:\r\n");
     /* Print Opening brace, then kick off the Device Object */
@@ -830,36 +878,30 @@ int main(
                     /* increment timer - exit if timed out */
                     elapsed_seconds += (current_seconds - last_seconds);
                     if (elapsed_seconds > timeout_seconds) {
-                        printf("\rError: APDU Timeout!\r\n");
+                    	fprintf(stderr, "\rError: APDU Timeout!\r\n");
                         break;
                     }
                     /* else, loop back and try again */
                     continue;
                 } else
+                {
                     myState = GET_ALL_REQUEST;
+                    rpm_object = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
+                    assert(rpm_object);
+                }
                 break;
 
             case GET_ALL_REQUEST:
             case GET_LIST_OF_ALL_REQUEST:      /* differs in ArrayIndex only */
-                Error_Detected = false;
-                Property_List_Index = Property_List_Length = 0;
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
-                rpm_object = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
-                assert(rpm_object);
-                rpm_object->object_type = myObject.type;
-                rpm_object->object_instance = myObject.instance;
-                rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
-                rpm_object->listOfProperties = rpm_property;
-                assert(rpm_property);
-                rpm_property->propertyIdentifier = PROP_ALL;
-                if (myState == GET_LIST_OF_ALL_REQUEST)
-                    rpm_property->propertyArrayIndex = 0;       /* Get count of arrays */
-                else
-                    rpm_property->propertyArrayIndex = -1;      /* optional: None */
+            	StartNextObject( rpm_object, &myObject );
+            	/* Override the default and set the optional array index to "None" */
+            	if (myState == GET_ALL_REQUEST)
+                	rpm_object->listOfProperties->propertyArrayIndex = -1;
                 invoke_id =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
-                    Target_Device_Object_Instance, rpm_object);
+								Target_Device_Object_Instance, rpm_object);
                 if (invoke_id > 0) {
                     if (myState == GET_LIST_OF_ALL_REQUEST)
                         myState = GET_LIST_OF_ALL_RESPONSE;
@@ -895,19 +937,31 @@ int main(
                 } else if (tsm_invoke_id_free(invoke_id)) {
                     invoke_id = 0;
                     if (Error_Detected) {       /* The normal case for Device Object */
-                        /* Try again, just to get a list of properties. */
-                        if (myState == GET_ALL_RESPONSE)
-                            myState = GET_LIST_OF_ALL_REQUEST;
-                        /* Else it may be that RPM is not implemented. */
-                        else
+                    	/* Was it because the Device can't do RPM? */
+                    	if ( Last_Error_Code == ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE )
+                    	{
+                    		Has_RPM = false;
                             myState = GET_PROPERTY_REQUEST;
-                    } else
+                    	}
+                        /* Try again, just to get a list of properties. */
+                    	else if (myState == GET_ALL_RESPONSE)
+                            myState = GET_LIST_OF_ALL_REQUEST;
+                        /* Else drop back to RP. */
+                        else
+                        {
+                            myState = GET_PROPERTY_REQUEST;
+                        	StartNextObject( rpm_object, &myObject );
+                        }
+                    }
+                    else if ( Has_RPM )
                         myState = GET_ALL_REQUEST;      /* Let's try again */
+                    else
+                        myState = GET_PROPERTY_REQUEST;
                 } else if (tsm_invoke_id_failed(invoke_id)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
                     tsm_free_invoke_id(invoke_id);
                     invoke_id = 0;
-                    myState = GET_ALL_REQUEST;  /* Let's try again */
+                    myState = GET_ALL_REQUEST;      /* Let's try again */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     invoke_id = 0;
@@ -965,7 +1019,7 @@ int main(
                     }
 /*                if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST ) */
 /*                { */
-/*                    if ( !Using_Walked_List )
+/*                    if ( !Using_Walked_List ) */
 /*                    { */
                     /* Just switched */
 /*                        Using_Walked_List = true; */
@@ -975,6 +1029,7 @@ int main(
                     myState = GET_PROPERTY_REQUEST; /* Go fetch next Property */
                 } else if (tsm_invoke_id_free(invoke_id)) {
                     invoke_id = 0;
+                    myState = GET_PROPERTY_REQUEST;
                     if (Error_Detected) {
                         if (IsLongArray) {
                             /* Change to using a Walked List and retry this property */
@@ -985,10 +1040,10 @@ int main(
                             fprintf(stdout, "    -- Failed to get %s \r\n",
                                 bactext_property_name(pPropList
                                     [Property_List_Index]));
-                            Property_List_Index++;
+                            if ( ++Property_List_Index >= Property_List_Length )
+                                myState = NEXT_OBJECT;      /* Give up and move on to the next. */
                         }
                     }
-                    myState = GET_PROPERTY_REQUEST;
                 } else if (tsm_invoke_id_failed(invoke_id)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
                     tsm_free_invoke_id(invoke_id);
@@ -1029,7 +1084,13 @@ int main(
                            printf( "    -- Structured View %d \n", myObject.instance );
                          */
                     }
-                    myState = GET_ALL_REQUEST;
+                    if ( Has_RPM )
+                    	myState = GET_ALL_REQUEST;
+                    else
+                    {
+                        myState = GET_PROPERTY_REQUEST;
+                       	StartNextObject( rpm_object, &myObject );
+                    }
 
                 } while (myObject.type == OBJECT_DEVICE);
                 /* Else, don't re-do the Device Object; move to the next object. */
@@ -1045,7 +1106,7 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                printf("\rError: APDU Timeout!\r\n");
+            	fprintf(stderr, "\rError: APDU Timeout!\r\n");
                 break;
             }
         }
