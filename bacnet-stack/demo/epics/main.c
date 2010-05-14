@@ -69,6 +69,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
 /* = { 6, { 127, 0, 0, 1, 0xBA, 0xC0, 0 }, 0 };  loopback address to talk to myself */
+static uint16_t My_BIP_Port = 0;		/* If set, use this as the source port. */
+static bool Provided_Targ_MAC = false;
 
 /* any errors are picked up in main loop */
 static bool Error_Detected = false;
@@ -719,13 +721,19 @@ void PrintUsage(
 {
     printf("bacepics -- Generates Object and Property List for EPICS \r\n");
     printf("Usage: \r\n");
-    printf("  bacepics [-v] device-instance \r\n");
-    printf("    Use the -v option to show values instead of '?' \r\n\r\n");
+    printf("  bacepics [-v] [-p sport] [-t target_mac] device-instance \r\n");
+    printf("    -v: show values instead of '?' \r\n");
+    printf("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \r\n");
+    printf("        Allows you to communicate with a localhost target. \r\n");
+    printf("    -t: declare target's MAC instead of using Who-Is to bind to  \r\n");
+    printf("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \r\n");
+    printf("\r\n");
     printf("Insert the output in your EPICS file as the last section: \r\n");
     printf("\"List of Objects in test device:\"  \r\n");
     printf("before the final statement: \r\n");
     printf
         ("\"End of BACnet Protocol Implementation Conformance Statement\" \r\n");
+    printf("\r\n");
     exit(0);
 }
 
@@ -745,10 +753,41 @@ int CheckCommandLineArgs(
     for (i = 1; i < argc; i++) {
         char *anArg = argv[i];
         if (anArg[0] == '-') {
-            if (anArg[1] == 'v')
+        	switch ( anArg[1] )
+        	{
+        	case 'v':
                 ShowValues = true;
-            else
+                break;
+        	case 'p':
+        		if ( ++i < argc )
+        			My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
+        		/* Used strtol so sport can be either 0xBAC0 or 47808 */
+        		break;
+        	case 't':
+        		if ( ++i < argc )
+        		{
+        			uint8_t *mac = Target_Address.mac;
+        			/* The %hhx specifies unsigned char */
+        			Target_Address.mac_len = sscanf( argv[i],
+        					"%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac[0],
+        					&mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+        			if ( Target_Address.mac_len == 6 )	/* success */
+        			{
+        				Target_Address.net = 0;
+        				Target_Address.len = 0;		/* No src address */
+        				Provided_Targ_MAC = true;
+        				break;
+        			}
+        			else
+        				printf( "ERROR: invalid Target MAC %s \r\n", argv[i] );
+        			/* And fall through to PrintUsage */
+        		}
+        		/* Either break or fall through, as above */
+        		/* break; */
+        	default:
                 PrintUsage();
+                break;
+        	}
         } else {
             /* decode the Target Device Instance parameter */
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
@@ -824,24 +863,37 @@ int main(
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Object_List = Keylist_Create();
+    /* For BACnet/IP, we might have set a different port for "me", so
+     * (eg) we could talk to a BACnet/IP device on our same interface.
+     * My_BIP_Port will be non-zero in this case.
+     */
+    if ( My_BIP_Port > 0 )
+    	bip_set_port( My_BIP_Port );
     address_init();
     Init_Service_Handlers();
     dlenv_init();
-    /* bip_set_port( 0xBAC0 ); Set back to std BIP port */
+
     /* configure the timeout values */
     current_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
-    /* try to bind with the device */
+
+    if ( My_BIP_Port > 0 )
+    	bip_set_port( 0xBAC0 ); 	/* Set back to std BACnet/IP port */
+    /* try to bind with the target device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,
         &Target_Address);
     if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance,
-            Target_Device_Object_Instance);
-        /* In an Alternate universe, where we talk to ourselves:
-         * address_add_binding( Target_Device_Object_Instance, max_apdu,
-         *       &Target_Address);
-         */
+        if ( Provided_Targ_MAC ) {
+        	/* Update by adding the MAC address */
+        	if ( max_apdu == 0 )
+        		max_apdu = MAX_APDU;	/* Whatever set for this datalink. */
+            address_add_binding( Target_Device_Object_Instance, max_apdu,
+                    &Target_Address);
+        } else {
+			Send_WhoIs(Target_Device_Object_Instance,
+				Target_Device_Object_Instance);
+        }
     }
     printf("List of Objects in test device:\r\n");
     /* Print Opening brace, then kick off the Device Object */
