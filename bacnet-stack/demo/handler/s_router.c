@@ -78,7 +78,7 @@ void Send_Who_Is_Router_To_Network(
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
     /* encode the optional DNET portion of the packet */
     if (dnet >= 0) {
-        len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], dnet);
+        len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], (uint16_t)dnet);
         pdu_len += len;
 #if PRINT_ENABLED
         fprintf(stderr, "Send Who-Is-Router-To-Network message to %u\n", dnet);
@@ -122,7 +122,7 @@ void Send_I_Am_Router_To_Network(
     fprintf(stderr, "Send I-Am-Router-To-Network message to:\n");
 #endif
     while (DNET_list[index] != -1) {
-        dnet = DNET_list[index];
+        dnet = (uint16_t)DNET_list[index];
         len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], dnet);
         pdu_len += len;
         index++;

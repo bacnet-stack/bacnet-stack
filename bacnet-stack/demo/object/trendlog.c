@@ -1043,20 +1043,20 @@ void TL_Local_Time_To_BAC(
     struct tm *TempTime;
 
     TempTime = localtime(&SourceTime);
-
-    DestTime->date.year = TempTime->tm_year + 1900;
-    DestTime->date.month = TempTime->tm_mon + 1;
-    DestTime->date.day = TempTime->tm_mday;
+    
+    DestTime->date.year  = (uint16_t)(TempTime->tm_year + 1900);
+    DestTime->date.month = (uint8_t)(TempTime->tm_mon + 1);
+    DestTime->date.day   = (uint8_t)TempTime->tm_mday;
     /* BACnet is 1 to 7 = Monday to Sunday
      * Windows is days from Sunday 0 - 6 so we
      * have to adjust */
     if (TempTime->tm_wday == 0)
         DestTime->date.wday = 7;
     else
-        DestTime->date.wday = TempTime->tm_wday;
-    DestTime->time.hour = TempTime->tm_hour;
-    DestTime->time.min = TempTime->tm_min;
-    DestTime->time.sec = TempTime->tm_sec;
+        DestTime->date.wday  = (uint8_t)TempTime->tm_wday;
+    DestTime->time.hour  = (uint8_t)TempTime->tm_hour;
+    DestTime->time.min   = (uint8_t)TempTime->tm_min;
+    DestTime->time.sec   = (uint8_t)TempTime->tm_sec;
     DestTime->time.hundredths = 0;
 }
 
@@ -1489,7 +1489,7 @@ int TL_encode_entry(
     int iLen = 0;
     TL_DATA_REC *pSource = NULL;
     BACNET_BIT_STRING TempBits;
-    int iCount = 0;
+    uint8_t ucCount = 0;
     BACNET_DATE_TIME TempTime;
 
     /* Convert from BACnet 1 based to 0 based array index and then
@@ -1555,16 +1555,11 @@ int TL_encode_entry(
              * have limited to 32 bits maximum as allowed by the standard
              */
             bitstring_init(&TempBits);
-            bitstring_set_bits_used(&TempBits,
-                (pSource->Datum.Bits.ucLen >> 4) & 0x0F,
-                pSource->Datum.Bits.ucLen & 0x0F);
-            for (iCount = pSource->Datum.Bits.ucLen >> 4; iCount > 0; iCount--)
-                bitstring_set_octet(&TempBits, iCount - 1,
-                    pSource->Datum.Bits.ucStore[iCount - 1]);
-
-            iLen +=
-                encode_context_bitstring(&apdu[iLen], pSource->ucRecType,
-                &TempBits);
+            bitstring_set_bits_used(&TempBits, (pSource->Datum.Bits.ucLen >> 4) & 0x0F, pSource->Datum.Bits.ucLen & 0x0F);
+            for(ucCount = pSource->Datum.Bits.ucLen >> 4; ucCount > 0; ucCount--)
+                bitstring_set_octet(&TempBits, ucCount - 1, pSource->Datum.Bits.ucStore[ucCount-1]);
+                
+            iLen += encode_context_bitstring(&apdu[iLen], pSource->ucRecType, &TempBits);
             break;
 
         case TL_TYPE_NULL:
@@ -1631,7 +1626,8 @@ static int local_read_property(
             *error_code = rpdata.error_code;
         }
     }
-    if ((len >= 0) && (status != NULL)) {
+
+    if((len >= 0) && (status != NULL)){
         /* Fetch the status flags if required */
         rpdata.application_data = status;
         rpdata.application_data_len = MAX_APDU;
@@ -1642,9 +1638,6 @@ static int local_read_property(
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
         }
-    } else {
-        *error_class = rpdata.error_class;
-        *error_code = rpdata.error_code;
     }
 
     return (len);
@@ -1662,7 +1655,7 @@ void TL_fetch_property(
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
     int iLen;
-    int iCount;
+    uint8_t ucCount;
     TL_LOG_INFO *CurrentLog;
     TL_DATA_REC TempRec;
     uint8_t tag_number = 0;
@@ -1729,16 +1722,13 @@ void TL_fetch_property(
                     TempRec.Datum.Bits.ucLen |=
                         (8 - (bitstring_bits_used(&TempBits) % 8)) & 7;
                     /* Fetch the octets with the bits directly */
-                    for (iCount = 0; iCount < bitstring_bytes_used(&TempBits);
-                        iCount++)
-                        TempRec.Datum.Bits.ucStore[iCount] =
-                            bitstring_octet(&TempBits, iCount);
+                    for(ucCount = 0; ucCount < bitstring_bytes_used(&TempBits); ucCount++)
+                        TempRec.Datum.Bits.ucStore[ucCount] = bitstring_octet(&TempBits, ucCount);
                 } else {
                     /* We will only use the first 4 octets to save space */
                     TempRec.Datum.Bits.ucLen = 4 << 4;
-                    for (iCount = 0; iCount < 4; iCount++)
-                        TempRec.Datum.Bits.ucStore[iCount] =
-                            bitstring_octet(&TempBits, iCount);
+                    for(ucCount = 0; ucCount < 4; ucCount++)
+                        TempRec.Datum.Bits.ucStore[ucCount] = bitstring_octet(&TempBits, ucCount);
                 }
                 break;
 

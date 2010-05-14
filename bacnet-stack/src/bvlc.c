@@ -206,7 +206,7 @@ int bvlc_encode_write_bdt_init(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        BVLC_length = 4 + (entries * 10);
+        BVLC_length = 4 + (uint16_t)(entries * 10);
         encode_unsigned16(&pdu[2], BVLC_length);
         len = 4;
     }
@@ -245,7 +245,7 @@ static int bvlc_encode_read_bdt_ack_init(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        BVLC_length = 4 + (entries * 10);
+        BVLC_length = 4 + (uint16_t)(entries * 10);
         encode_unsigned16(&pdu[2], BVLC_length);
         len = 4;
     }
@@ -370,7 +370,7 @@ static int bvlc_encode_read_fdt_ack_init(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        BVLC_length = 4 + (entries * 10);
+        BVLC_length = 4 + (uint16_t)(entries * 10);
         encode_unsigned16(&pdu[2], BVLC_length);
         len = 4;
     }
@@ -408,7 +408,7 @@ static int bvlc_encode_read_fdt_ack(
             pdu_len += len;
             len = encode_unsigned16(&pdu[pdu_len], FD_Table[i].time_to_live);
             pdu_len += len;
-            seconds_remaining = FD_Table[i].seconds_remaining;
+            seconds_remaining = (uint16_t)FD_Table[i].seconds_remaining;
             len = encode_unsigned16(&pdu[pdu_len], seconds_remaining);
             pdu_len += len;
         }
@@ -455,7 +455,7 @@ int bvlc_encode_original_unicast_npdu(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        BVLC_length = 4 + npdu_length;
+        BVLC_length = 4 + (uint16_t)npdu_length;
         len = encode_unsigned16(&pdu[2], BVLC_length) + 2;
         for (i = 0; i < npdu_length; i++) {
             pdu[len] = npdu[i];
@@ -481,7 +481,7 @@ int bvlc_encode_original_broadcast_npdu(
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
-        BVLC_length = 4 + npdu_length;
+        BVLC_length = 4 + (uint16_t)npdu_length;
         len = encode_unsigned16(&pdu[2], BVLC_length) + 2;
         for (i = 0; i < npdu_length; i++) {
             pdu[len] = npdu[i];
@@ -507,7 +507,7 @@ static void bvlc_internet_to_bacnet_address(
         len = encode_unsigned32(&src->mac[0], address);
         port = ntohs(sin->sin_port);
         len += encode_unsigned16(&src->mac[4], port);
-        src->mac_len = len;
+        src->mac_len = (uint8_t)len;
         src->net = 0;
         src->len = 0;
     }
@@ -668,7 +668,7 @@ static void bvlc_bdt_forward_npdu(
     unsigned i = 0;     /* loop counter */
     struct sockaddr_in bip_dest = { 0 };
 
-    mtu_len = bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
+    mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
     /* loop through the BDT and send one to each entry, except us */
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (BBMD_Table[i].valid) {
@@ -710,7 +710,7 @@ static void bvlc_forward_npdu(
     uint16_t mtu_len = 0;
     struct sockaddr_in bip_dest = { 0 };
 
-    mtu_len = bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
+    mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
     bip_dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
     bip_dest.sin_port = htons(bip_get_port());
     bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
@@ -727,7 +727,7 @@ static void bvlc_fdt_forward_npdu(
     unsigned i = 0;     /* loop counter */
     struct sockaddr_in bip_dest = { 0 };
 
-    mtu_len = bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, max_npdu);
+    mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, max_npdu);
     /* loop through the FDT and send one to each entry */
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid && FD_Table[i].seconds_remaining) {
@@ -769,7 +769,7 @@ void bvlc_register_with_bbmd(
        Write Broadcast Distribution Table, or
        register with the BBMD as a Foreign Device */
     mtu_len =
-        bvlc_encode_register_foreign_device(&mtu[0], time_to_live_seconds);
+        (uint16_t)bvlc_encode_register_foreign_device(&mtu[0], time_to_live_seconds);
     bvlc_send_mpdu(&Remote_BBMD, &mtu[0], mtu_len);
 }
 
@@ -780,7 +780,7 @@ static void bvlc_send_result(
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
 
-    mtu_len = bvlc_encode_bvlc_result(&mtu[0], result_code);
+    mtu_len = (uint16_t)bvlc_encode_bvlc_result(&mtu[0], result_code);
     bvlc_send_mpdu(dest, mtu, mtu_len);
 
     return;
@@ -792,7 +792,7 @@ static int bvlc_send_bdt(
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
 
-    mtu_len = bvlc_encode_read_bdt_ack(&mtu[0], sizeof(mtu));
+    mtu_len = (uint16_t)bvlc_encode_read_bdt_ack(&mtu[0], sizeof(mtu));
     if (mtu_len) {
         bvlc_send_mpdu(dest, &mtu[0], mtu_len);
     }
@@ -806,7 +806,7 @@ static int bvlc_send_fdt(
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
 
-    mtu_len = bvlc_encode_read_fdt_ack(&mtu[0], sizeof(mtu));
+    mtu_len = (uint16_t)bvlc_encode_read_fdt_ack(&mtu[0], sizeof(mtu));
     if (mtu_len) {
         bvlc_send_mpdu(dest, &mtu[0], mtu_len);
     }
@@ -1194,11 +1194,11 @@ int bvlc_send_pdu(
     }
     bvlc_dest.sin_addr.s_addr = htonl(address.s_addr);
     bvlc_dest.sin_port = htons(port);
-    BVLC_length = pdu_len + 4 /*inclusive */ ;
+    BVLC_length = (uint16_t)pdu_len + 4 /*inclusive */ ;
     mtu_len = 2;
-    mtu_len += encode_unsigned16(&mtu[mtu_len], BVLC_length);
+    mtu_len += (uint16_t)encode_unsigned16(&mtu[mtu_len], BVLC_length);
     memcpy(&mtu[mtu_len], pdu, pdu_len);
-    mtu_len += pdu_len;
+    mtu_len += (uint16_t)pdu_len;
     return bvlc_send_mpdu(&bvlc_dest, mtu, mtu_len);
 }
 

@@ -222,7 +222,7 @@ void address_file_init(
                         &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                     src.mac_len = (uint8_t) count;
                     for (index = 0; index < MAX_MAC_LEN; index++) {
-                        src.mac[index] = mac[index];
+                        src.mac[index] = (uint8_t)mac[index];
                     }
                     src.net = (uint16_t) snet;
                     if (snet) {
@@ -231,7 +231,7 @@ void address_file_init(
                             &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                         src.len = (uint8_t) count;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
-                            src.adr[index] = mac[index];
+                            src.adr[index] = (uint8_t)mac[index];
                         }
                     } else {
                         src.len = 0;

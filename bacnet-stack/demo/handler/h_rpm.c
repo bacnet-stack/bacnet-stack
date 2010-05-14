@@ -222,7 +222,7 @@ void handler_read_property_multiple(
     apdu_len =
         rpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
         service_data->invoke_id);
-    do {
+    for(;;) {
         len =
             rpm_decode_object_id(&service_request[decode_len],
             service_len - decode_len, &object_type, &object_instance);
@@ -272,7 +272,7 @@ void handler_read_property_multiple(
             apdu_len += copy_len;
         }
         /* do each property of this object of the RPM request */
-        do {
+        for(;;) {
             len =
                 rpm_decode_object_property(&service_request[decode_len],
                 service_len - decode_len, &object_property, &array_index);
@@ -326,7 +326,7 @@ void handler_read_property_multiple(
                     /* handle the error code - but use the special property */
                     len =
                         RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                        npdu_len + apdu_len, MAX_APDU, object_type,
+                        (uint16_t)(npdu_len + apdu_len), MAX_APDU, object_type,
                         object_instance, object_property, array_index);
                     if (len > 0) {
                         apdu_len += len;
@@ -344,7 +344,7 @@ void handler_read_property_multiple(
                             special_object_property, index);
                         len =
                             RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                            npdu_len + apdu_len, MAX_APDU, object_type,
+                            (uint16_t)(npdu_len + apdu_len), MAX_APDU, object_type,
                             object_instance, object_property, array_index);
                         if (len > 0) {
                             apdu_len += len;
@@ -361,7 +361,7 @@ void handler_read_property_multiple(
                 /* handle an individual property */
                 len =
                     RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                    npdu_len + apdu_len, sizeof(Handler_Transmit_Buffer),
+                    (uint16_t)(npdu_len + apdu_len), sizeof(Handler_Transmit_Buffer),
                     object_type, object_instance, object_property,
                     array_index);
                 if (len > 0) {
@@ -374,11 +374,11 @@ void handler_read_property_multiple(
                     goto RPM_ABORT;
                 }
             }
-        } while (1);
+        }
         if (decode_len >= service_len) {
             break;
         }
-    } while (1);
+    }
     if (apdu_len > service_data->max_resp) {
         /* too big for the sender - send an abort */
         apdu_len =

@@ -39,6 +39,12 @@
 #include "bacenum.h"
 #include "config.h"
 
+#if defined(_MSC_VER)
+// Silence the warnings about unsafe versions of library functions
+// as we need to keep the code portable
+#pragma warning( disable : 4996)
+#endif
+
 /* This stack implements this version of BACnet */
 #define BACNET_PROTOCOL_VERSION 1
 #define BACNET_PROTOCOL_REVISION 5
@@ -50,7 +56,7 @@
 /* large BACnet Object Type */
 #define BACNET_MAX_OBJECT (0x3FF)
 /* Array index 0=size of array, n=array element n,  MAX=all array elements */
-#define BACNET_ARRAY_ALL (~0)
+#define BACNET_ARRAY_ALL (~(unsigned int)0)
 /* Priority Array for commandable objects */
 #define BACNET_NO_PRIORITY 0
 #define BACNET_MIN_PRIORITY 1

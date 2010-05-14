@@ -141,6 +141,8 @@ int Lighting_Output_Decode_Lighting_Command(
     uint32_t len_value_type = 0;
     float real_value = 0.0;
 
+    apdu_max_len = apdu_max_len;
+
     /* check for value pointers */
     if (apdu_len && data) {
         /* Tag 0: operation */
