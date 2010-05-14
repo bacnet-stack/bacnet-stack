@@ -40,11 +40,23 @@
  * each of those Objects.
  *
  * Usage:
- * 	./bacepics [-v] 1234
+ *  bacepics [-v] [-p sport] [-t target_mac] device-instance
+ *    -v: show values instead of '?'
+ *    -p: Use sport for "my" port, instead of 0xBAC0 (BACnet/IP only)
+ *        Allows you to communicate with a localhost target.
+ *    -t: declare target's MAC instead of using Who-Is to bind to
+ *        device-instance. Format is "C0:A8:00:18:BA:C0" (as usual)
  * 
- *  - where the device instance to be addressed is 1234,
- *  - and the optional -v prints values out rather than the '?' that
+ * Examples:
+ * 	./bacepics -v 1234
+ *    where the device instance to be addressed is 1234
+ *    and the optional -v prints values out rather than the '?' that
  *    the EPICS format for VTS3 wants.
+ * 	./bacepics -p 0xBAC1 -t "7F:0:0:1:BA:C0" 4194303
+ *    communicates with the BACnet device on localhost (127.0.0.1), using
+ *    port 47809 as "my" source port so it doesn't conflict with
+ *    the device's port 47808.
+ *
  *
  * The tool follows an optimal approach which will use efficient communication
  * means if available or else fall back to simple-minded methods.
