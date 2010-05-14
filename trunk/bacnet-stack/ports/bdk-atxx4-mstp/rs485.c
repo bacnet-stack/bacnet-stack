@@ -52,9 +52,9 @@ static FIFO_BUFFER Receive_Buffer;
 static struct etimer Silence_Timer;
 
 bool rs485_silence_time_elapsed(
-    uint32_t milliseconds)
+    uint16_t milliseconds)
 {
-    return timer_elapsed_milliseconds(&Silence_Timer, milliseconds);
+    return timer_elapsed_milliseconds_short(&Silence_Timer, milliseconds);
 }
 
 void rs485_silence_time_reset(
@@ -96,7 +96,7 @@ void rs485_turnaround_delay(
     /* wait a minimum  40 bit times since reception */
     /* at least 1 ms for errors: rounding, clock tick */
     turnaround_time = 1 + ((Tturnaround * 1000UL) / Baud_Rate);
-    while (!timer_elapsed_milliseconds(&Silence_Timer, turnaround_time)) {
+    while (!timer_elapsed_milliseconds_short(&Silence_Timer, turnaround_time)) {
         /* do nothing - wait for timer to increment */
     };
 }

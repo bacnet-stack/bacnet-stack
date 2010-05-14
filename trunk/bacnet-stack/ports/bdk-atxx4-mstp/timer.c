@@ -122,6 +122,46 @@ bool timer_elapsed_minutes(
 }
 
 /*************************************************************************
+* Description: Tests to see if time has elapsed
+* Returns: true if time has elapsed
+* Notes: none
+*************************************************************************/
+bool timer_elapsed_milliseconds_short(
+    struct etimer *t,
+    uint16_t value)
+{
+    uint32_t milliseconds;
+
+    milliseconds = value;
+    
+    return (timer_elapsed_time(t) >= milliseconds);
+}
+
+/*************************************************************************
+* Description: Tests to see if time has elapsed
+* Returns: true if time has elapsed
+* Notes: none
+*************************************************************************/
+bool timer_elapsed_seconds_short(
+    struct etimer *t,
+    uint16_t value)
+{
+    return timer_elapsed_seconds(t, value);
+}
+
+/*************************************************************************
+* Description: Tests to see if time has elapsed
+* Returns: true if time has elapsed
+* Notes: none
+*************************************************************************/
+bool timer_elapsed_minutes_short(
+    struct etimer *t,
+    uint16_t value)
+{
+    return timer_elapsed_minutes_short(t, value);
+}
+
+/*************************************************************************
 * Description: Starts an interval timer
 * Returns: nothing
 * Notes: none

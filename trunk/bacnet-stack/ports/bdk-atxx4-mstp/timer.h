@@ -69,7 +69,16 @@ extern "C" {
         uint32_t value);
     bool timer_elapsed_minutes(
         struct etimer *t,
-        uint32_t seconds);
+        uint32_t value);
+    bool timer_elapsed_milliseconds_short(
+        struct etimer *t,
+        uint16_t value);
+    bool timer_elapsed_seconds_short(
+        struct etimer *t,
+        uint16_t value);
+    bool timer_elapsed_minutes_short(
+        struct etimer *t,
+        uint16_t value);
 
     /* interval timer */
     void timer_interval_start(

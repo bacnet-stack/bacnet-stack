@@ -2,14 +2,14 @@ To Do List - BACnet Stack at SourceForge
 Here are some things to do:
 
 A. Finish demo/epics/main.c - EPICS demo. Use object property lists.
-B. Finish demo/object/lo.c - Lighting Output object demo
-C. Finish bvlc.c and use it instead of or in compliment to bip.c
-D. Complete client demo for ReadPropertyMultiple from rpm.c
+B. Update demo/object/lo.c - Lighting Output object demo - match addendum
+C. Add storage hooks to bvlc.c
+D. --- done.
 E. Add HTTP demo like bacnet4linux
 F. Add SubscribeCOVProperty support in server demo.
 G. Add hooks to increment Database_Revision property
-H. --- done.
-I. --- done.
+H. Enumerate negative integers for unique error codes
+I. Change core encode/decode to pass length for safe handling
 J. Change bip.c to not use extra buffer (shift data)
 K. Add Visual Studio 2005 makefiles or projects for demos.
 L. Add Code::Blocks projects for demos.
@@ -33,3 +33,5 @@ V. Change OBJECT_ID to only be 32 bits, and add macro handlers.
 W. Add #ifdef for all MAX_ defines so they can be overridden.
 X. Change WhoIs demo to list all I-Am's received such that duplicate
    IDs with different MAC addresses can be detected.
+Y. Add tsm_alloc to allocate memory and invoke ID for sending.
+Z. Make alternate TSM that handles segmentation.
