@@ -67,13 +67,13 @@ extern "C" {
     void Send_WhoHas_Name(
         int32_t low_limit,
         int32_t high_limit,
-        char *object_name);
+        const char *object_name);
 
     void Send_I_Have(
         uint32_t device_id,
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
-        char *object_name);
+        const char *object_name);
 
     int Send_UCOV_Notify(
         uint8_t * buffer,

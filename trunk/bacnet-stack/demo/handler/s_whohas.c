@@ -58,7 +58,7 @@
 void Send_WhoHas_Name(
     int32_t low_limit,
     int32_t high_limit,
-    char *object_name)
+    const char *object_name)
 {
     int len = 0;
     int pdu_len = 0;
