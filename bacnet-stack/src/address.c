@@ -809,7 +809,7 @@ int rr_address_list_encode(
  * Scan the cache and eliminate any expired entries. Should be called       *
  * periodically to ensure the cache is managed correctly. If this function  *
  * is never called at all the whole cache is effectivly rendered static and *
- * entries never expire unless explicetly deleted.                          *    
+ * entries never expire unless explictely deleted.                          *    
  ****************************************************************************/
 
 void address_cache_timer(
@@ -820,7 +820,7 @@ void address_cache_timer(
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if (((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) != 0)
-            && ((pMatch->Flags & BAC_ADDR_STATIC) != 0)) {      /* Check all entries holding a slot except statics */
+            && ((pMatch->Flags & BAC_ADDR_STATIC) == 0)) {      /* Check all entries holding a slot except statics */
             if (pMatch->TimeToLive >= uSeconds)
                 pMatch->TimeToLive -= uSeconds;
             else
