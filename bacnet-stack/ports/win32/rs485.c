@@ -269,8 +269,28 @@ uint32_t RS485_Get_Baud_Rate(
             return 57600;
         case CBR_115200:
             return 115200;
-        default:
+        case CBR_110:
+            return 110;
+        case CBR_300:
+            return 300;
+        case CBR_600:
+            return 600;
+        case CBR_1200:
+            return 1200;
+        case CBR_2400:
+            return 2400;
+        case CBR_4800:
+            return 4800;
+        case CBR_14400:
+            return 14400;
+        case CBR_56000:
+            return 56000;
+        case CBR_128000:
+            return 128000;
+        case CBR_256000:
+            return 256000;
         case CBR_9600:
+        default:
             return 9600;
     }
 }
@@ -301,6 +321,36 @@ bool RS485_Set_Baud_Rate(
             break;
         case 115200:
             RS485_Baud = CBR_115200;
+            break;
+        case 110:
+            RS485_Baud = CBR_110;
+            break;
+        case 300:
+            RS485_Baud = CBR_300;
+            break;
+        case 600:
+            RS485_Baud = CBR_600;
+            break;
+        case 1200:
+            RS485_Baud = CBR_1200;
+            break;
+        case 2400:
+            RS485_Baud = CBR_2400;
+            break;
+        case 4800:
+            RS485_Baud = CBR_4800;
+            break;
+        case 14400:
+            RS485_Baud = CBR_14400;
+            break;
+        case 56000:
+            RS485_Baud = CBR_56000;
+            break;
+        case 128000:
+            RS485_Baud = CBR_128000;
+            break;
+        case 256000:
+            RS485_Baud = CBR_256000;
             break;
         default:
             valid = false;
