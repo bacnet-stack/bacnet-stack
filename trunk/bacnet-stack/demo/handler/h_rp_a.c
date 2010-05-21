@@ -58,19 +58,6 @@ static void PrintReadPropertyData(
     bool print_brace = false;
 
     if (data) {
-#if 0
-        if (data->array_index == BACNET_ARRAY_ALL)
-            fprintf(stderr, "%s #%lu %s\n",
-                bactext_object_type_name(data->object_type),
-                (unsigned long) data->object_instance,
-                bactext_property_name(data->object_property));
-        else
-            fprintf(stderr, "%s #%lu %s[%d]\n",
-                bactext_object_type_name(data->object_type),
-                (unsigned long) data->object_instance,
-                bactext_property_name(data->object_property),
-                data->array_index);
-#endif
         application_data = data->application_data;
         application_data_len = data->application_data_len;
         /* FIXME: what if application_data_len is bigger than 255? */
