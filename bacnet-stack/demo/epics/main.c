@@ -392,16 +392,6 @@ void PrintReadPropertyData(
             bactext_error_code_name((int) rpm_property->error.error_code));
         return;
     }
-#if 0
-    if (data->array_index == BACNET_ARRAY_ALL)
-        fprintf(stderr, "%s #%u %s\n",
-            bactext_object_type_name(data->object_type), data->object_instance,
-            bactext_property_name(data->object_property));
-    else
-        fprintf(stderr, "%s #%u %s[%d]\n",
-            bactext_object_type_name(data->object_type), data->object_instance,
-            bactext_property_name(data->object_property), data->array_index);
-#endif
     if ((value != NULL) && (value->next != NULL)) {
         /* Then this is an array of values; open brace */
         fprintf(stdout, "{ ");
@@ -552,6 +542,19 @@ void PrintReadPropertyData(
 
 }
 
+/** Print the property identifier name to stdout,
+ *  handling the proprietary property numbers.
+ * @param propertyIdentifier [in] The property identifier number.
+ */
+void Print_Property_Identifier(uint32_t propertyIdentifier)
+{
+    if (propertyIdentifier < 512) {
+        fprintf(stdout, "%s", bactext_property_name(propertyIdentifier));
+    } else {
+        fprintf(stdout, "proprietary %lu", propertyIdentifier);
+    }
+}
+
 /** Send an RP request to read one property from the current Object.
  * Singly process large arrays too, like the Device Object's Object_List.
  * If GET_LIST_OF_ALL_RESPONSE failed, we will fall back to using just
@@ -600,17 +603,18 @@ static uint8_t Read_Properties(
         IsLongArray = false;
         if (Using_Walked_List) {
             if (Walked_List_Length == 0) {
-/*                printf("    %s: ", bactext_property_name( prop ) ); */
                 array_index = 0;
             } else {
                 array_index = Walked_List_Index;
             }
         } else {
-        	fprintf(stdout, "    %s: ", bactext_property_name(prop));
+        	fprintf(stdout, "    ");
+            Print_Property_Identifier(prop);
+            fprintf(stdout, ": ");
             array_index = BACNET_ARRAY_ALL;
 
             switch (prop) {
-                    /* These are all potentially long arrays, so they may abort */
+                /* These are all potentially long arrays, so they may abort */
                 case PROP_OBJECT_LIST:
                 case PROP_STATE_TEXT:
                 case PROP_STRUCTURED_OBJECT_LIST:
@@ -681,8 +685,9 @@ EPICS_STATES ProcessRPMData(
                     free(old_value);
                 }
             } else {
-            	fprintf(stdout, "    %s: ",
-                    bactext_property_name(rpm_property->propertyIdentifier));
+                fprintf(stdout, "    ");
+                Print_Property_Identifier(rpm_property->propertyIdentifier);
+                fprintf(stdout, ": ");
                 PrintReadPropertyData(rpm_property);
             }
             old_rpm_property = rpm_property;
@@ -1089,9 +1094,10 @@ int main(
                             Walked_List_Index = Walked_List_Length = 0;
                         } else {
                             /* OK, skip this one and try the next property. */
-                            fprintf(stdout, "    -- Failed to get %s \r\n",
-                                bactext_property_name(pPropList
-                                    [Property_List_Index]));
+                            fprintf(stdout, "    -- Failed to get ");
+                            Print_Property_Identifier(
+                                pPropList[Property_List_Index]);
+                            fprintf(stdout, " \r\n");
                             if ( ++Property_List_Index >= Property_List_Length )
                                 myState = NEXT_OBJECT;      /* Give up and move on to the next. */
                         }
