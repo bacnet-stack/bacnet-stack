@@ -546,12 +546,12 @@ void PrintReadPropertyData(
  *  handling the proprietary property numbers.
  * @param propertyIdentifier [in] The property identifier number.
  */
-void Print_Property_Identifier(uint32_t propertyIdentifier)
+void Print_Property_Identifier(unsigned propertyIdentifier)
 {
     if (propertyIdentifier < 512) {
         fprintf(stdout, "%s", bactext_property_name(propertyIdentifier));
     } else {
-        fprintf(stdout, "proprietary %lu", propertyIdentifier);
+        fprintf(stdout, "proprietary %u", propertyIdentifier);
     }
 }
 
