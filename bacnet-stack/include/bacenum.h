@@ -374,14 +374,20 @@ typedef enum {
     PROP_ZONE_TO = 323,
     /* enumerations 324-325 are used in Addendum i to ANSI/ASHRAE 135-2004 */
     PROP_BINARY_ACTIVE_VALUE = 324,
-    PROP_BINARY_INACTIVE_VALUE = 325
-        /* The special property identifiers all, optional, and required  */
-        /* are reserved for use in the ReadPropertyConditional and */
-        /* ReadPropertyMultiple services or services not defined in this standard. */
-        /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 512-4194303 may be used by others subject to the  */
+    PROP_BINARY_INACTIVE_VALUE = 325,
+    /* enumerations 342-344 are defined in Addendum 2008-w */
+	PROP_BIT_MASK = 342,
+	PROP_BIT_TEXT = 343,
+	PROP_IS_UTC   = 344
+
+	/* The special property identifiers all, optional, and required  */
+	/* are reserved for use in the ReadPropertyConditional and */
+	/* ReadPropertyMultiple services or services not defined in this standard. */
+	/* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
+	/* Enumerated values 512-4194303 may be used by others subject to the  */
         /* procedures and constraints described in Clause 23.  */
 } BACNET_PROPERTY_ID;
+
 /* do the MAX as define rather than enumeration for devices
    and compilers that want to use smaller datatype for enum */
 #define MAX_BACNET_PROPERTY_ID 4194303
@@ -898,8 +904,22 @@ typedef enum {
     OBJECT_ACCESS_RIGHTS = 34,
     OBJECT_ACCESS_USER = 35,
     OBJECT_ACCESS_ZONE = 36,
-    OBJECT_AUTHENTICATION_FACTOR_INPUT = 37,
-    MAX_ASHRAE_OBJECT_TYPE = 38,
+    OBJECT_AUTHENTICATION_FACTOR_INPUT = 37,	/* credential-data-input */
+	mysterious_OBJECT_TYPE = 38,	/* Can't find anything assigned to this */
+	OBJECT_BITSTRING_VALUE        = 39,		/* Addendum 2008-w */
+	OBJECT_CHARACTERSTRING_VALUE  = 40,
+	OBJECT_DATE_PATTERN_VALUE     = 41,
+	OBJECT_DATE_VALUE             = 42,
+	OBJECT_DATETIME_PATTERN_VALUE = 43,
+	OBJECT_DATETIME_VALUE         = 44,
+	OBJECT_INTEGER_VALUE          = 45,
+	OBJECT_LARGE_ANALOG_VALUE     = 46,
+	OBJECT_OCTETSTRING_VALUE      = 47,
+	OBJECT_POSITIVE_INTEGER_VALUE = 48,
+	OBJECT_TIME_PATTERN_VALUE     = 49,
+	OBJECT_TIME_VALUE             = 50,
+
+    MAX_ASHRAE_OBJECT_TYPE = 51,
     /* used for bit string loop */
     PROPRIETARY_BACNET_OBJECT_TYPE = 128,
     MAX_BACNET_OBJECT_TYPE = 1024
