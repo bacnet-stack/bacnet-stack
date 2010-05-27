@@ -236,7 +236,33 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_AUTHENTICATION_FACTOR_INPUT, "Authentication-Factor-Input"}
     ,
-    {0, NULL}
+    {mysterious_OBJECT_TYPE, "object-of-mystery"}
+	,
+	{OBJECT_BITSTRING_VALUE, "Bitstring-Value"}
+	,
+	{OBJECT_CHARACTERSTRING_VALUE, "Characterstring-Value"}
+	,
+	{OBJECT_DATE_PATTERN_VALUE, "Date-Pattern-Value"}
+	,
+	{OBJECT_DATE_VALUE, "Date-Value"}
+	,
+	{OBJECT_DATETIME_PATTERN_VALUE, "Datetime-Pattern-Value"}
+	,
+	{OBJECT_DATETIME_VALUE, "Datetime-Value"}
+	,
+	{OBJECT_INTEGER_VALUE, "Integer-Value"}
+	,
+	{OBJECT_LARGE_ANALOG_VALUE, "Large-Analog-Value"}
+	,
+	{OBJECT_OCTETSTRING_VALUE, "Octetstring-Value"}
+	,
+	{OBJECT_POSITIVE_INTEGER_VALUE, "Positive-Integer-Value"}
+	,
+	{OBJECT_TIME_PATTERN_VALUE, "Time-Pattern-Value"}
+	,
+	{OBJECT_TIME_VALUE, "Time-Value"}
+	,
+	{0, NULL}
 /* Enumerated values 0-127 are reserved for definition by ASHRAE.
    Enumerated values 128-1023 may be used by others subject to
    the procedures and constraints described in Clause 23. */
@@ -914,6 +940,13 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_BINARY_INACTIVE_VALUE, "binary-inactive-value"}
     ,
+	{PROP_BIT_MASK, "bit-mask"}
+	,
+	{PROP_BIT_TEXT, "bit-text"}
+	,
+	{PROP_IS_UTC, "is-utc"}
+	,
+
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the
