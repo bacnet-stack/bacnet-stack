@@ -76,6 +76,7 @@ static bool Provided_Targ_MAC = false;
 static bool Error_Detected = false;
 static uint16_t Last_Error_Class = 0;
 static uint16_t Last_Error_Code = 0;
+static uint16_t Error_Count = 0;	/* Counts errors we couldn't get around */
 static bool Has_RPM = true;			/* Assume device can do RPM, to start */
 static EPICS_STATES myState = INITIAL_BINDING;
 
@@ -504,6 +505,13 @@ void PrintReadPropertyData(
                  * screen these out here, unless ShowValues is true.  */
                 switch (rpm_property->propertyIdentifier) {
                     case PROP_DEVICE_ADDRESS_BINDING:
+                    	/* Make it VTS3-friendly and don't show "Null"
+                    	 * as a value. */
+                    	if ( value->tag == BACNET_APPLICATION_TAG_NULL ) {
+                            fprintf(stdout, "?");
+                            break;
+                        }
+                    	/* Else, fall through for normal processing. */
                     case PROP_DAYLIGHT_SAVINGS_STATUS:
                     case PROP_LOCAL_DATE:
                     case PROP_LOCAL_TIME:
@@ -1023,6 +1031,7 @@ int main(
                     /* Don't think we'll ever actually reach this point. */
                     invoke_id = 0;
                     myState = NEXT_OBJECT;      /* Give up and move on to the next. */
+                    Error_Count++;
                 }
                 break;
 
@@ -1098,6 +1107,7 @@ int main(
                             Print_Property_Identifier(
                                 pPropList[Property_List_Index]);
                             fprintf(stdout, " \r\n");
+                            Error_Count++;
                             if ( ++Property_List_Index >= Property_List_Length )
                                 myState = NEXT_OBJECT;      /* Give up and move on to the next. */
                         }
@@ -1111,6 +1121,7 @@ int main(
                     /* Don't think we'll ever actually reach this point. */
                     invoke_id = 0;
                     myState = NEXT_OBJECT;      /* Give up and move on to the next. */
+                    Error_Count++;
                 }
                 break;
 
@@ -1170,6 +1181,9 @@ int main(
         }
 
     } while (myObject.type < MAX_BACNET_OBJECT_TYPE);
+
+    if ( Error_Count > 0 )
+    	fprintf(stderr, "\r-- Found %d Errors \r\n", Error_Count );
 
     /* Closing brace for all Objects */
     printf("} \r\n");
