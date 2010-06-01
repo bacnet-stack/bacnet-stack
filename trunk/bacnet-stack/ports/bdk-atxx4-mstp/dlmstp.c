@@ -45,6 +45,8 @@
 #include "bytes.h"
 #include "bacaddr.h"
 #include "timer.h"
+#include "eeprom.h"
+#include "nvdata.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:
@@ -241,6 +243,11 @@ bool dlmstp_init(
     char *ifname)
 {
     ifname = ifname;
+
+    eeprom_bytes_read(NV_EEPROM_MAX_MASTER, &Nmax_master, 1);
+    if (Nmax_master > 127) {
+        Nmax_master = 127;
+    }
 
     return true;
 }
@@ -1303,11 +1310,7 @@ void dlmstp_set_max_master(
     if (max_master <= 127) {
         if (This_Station <= max_master) {
             Nmax_master = max_master;
-            /* FIXME: implement your data storage */
-            /* I2C_Write_Byte(
-               EEPROM_DEVICE_ADDRESS,
-               max_master,
-               EEPROM_MSTP_MAX_MASTER_ADDR); */
+            eeprom_bytes_write(NV_EEPROM_MAX_MASTER, &max_master, 1);
         }
     }
 
