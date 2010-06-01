@@ -211,7 +211,8 @@ typedef struct {
 #if defined(__GNUC__)
 #include <avr/eeprom.h>
 #define EEPROM_DECLARE(x) x __attribute__((section (".eeprom")))
-#if ((__GNUC__ < 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ < 3)))
+#if ((__GNUC__ < 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ < 3)) || \
+     ((__GNUC__ == 4) && (__GNUC_MINOR__ == 3) && (__GNUC_PATCHLEVEL__ < 4)))
     /* bug in WinAVR - not quite IAR compatible */
     #define __EEPUT _EEPUT
     #define __EEGET _EEGET
