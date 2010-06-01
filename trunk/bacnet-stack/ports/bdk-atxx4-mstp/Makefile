@@ -18,11 +18,12 @@ SIZE = avr-size
 AVRDUDE = avrdude
 LINT = splint
 
-SIZE_OPTIONS = -C --mcu=${MCU}
+SIZE_OPTIONS = -t
+#SIZE_OPTIONS = -C --mcu=${MCU}
 # programmer id--check the avrdude for complete list
 # of available opts.  These should include stk500,
 # avr910, avrisp, bsd, pony and more.  Set this to
-# one of the valid "-c PROGRAMMER-ID" values 
+# one of the valid "-c PROGRAMMER-ID" values
 # described in the avrdude info page.
 # jtag2fast = Atmel JTAG ICE mkII, running at 115200 Bd
 # jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
@@ -34,7 +35,7 @@ AVRDUDE_PROGRAMMERID = avrispmkII
 #AVRDUDE_PROGRAMMERID = dragon_isp
 #AVRDUDE_PROGRAMMERID = dragon_jtag
 #
-# port--serial or parallel port to which your 
+# port--serial or parallel port to which your
 # hardware programmer is attached
 # usb can just be usb
 AVRDUDE_PORT = usb
@@ -137,7 +138,7 @@ LIBRARY = lib$(TARGET).a
 COMMON = -mmcu=$(MCU)
 
 # define something from the Makefile or batch file
-DEFINES = 
+DEFINES =
 
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
@@ -195,7 +196,7 @@ LDFLAGS = $(COMMON)
 #dead code removal
 #LDFLAGS += -Wl,-nostartfiles,-nostdlib
 LDFLAGS += -Wl,--gc-sections,-static
-LDFLAGS += -Wl,--section-start=.bootloader=$(BOOTLOAD) 
+LDFLAGS += -Wl,--section-start=.bootloader=$(BOOTLOAD)
 LDFLAGS += -Wl,-Map=$(TARGET).map
 LDFLAGS += -Wl,-L=.,-l$(TARGET)
 
@@ -209,7 +210,7 @@ HEX_FUSE_FLAGS = -j .fuse
 HEX_FUSE_FLAGS += --change-section-lma .fuse=0 --no-change-warnings
 
 AVRDUDE_FLAGS = -c $(AVRDUDE_PROGRAMMERID)
-AVRDUDE_FLAGS += -p $(AVRDUDE_MCU) 
+AVRDUDE_FLAGS += -p $(AVRDUDE_MCU)
 AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 AVRDUDE_FLAGS += -B 8
 
@@ -217,7 +218,7 @@ AVRDUDE_FLAGS += -B 8
 # Fuse high byte (0=enable,1=disable):
 # 0x93 = 1 0 0 1   0 0 1 1
 # 0x17 = 0 0 0 1   0 1 1 1 - default
-#        ^ ^ ^ ^   ^ \+/ ^ 
+#        ^ ^ ^ ^   ^ \+/ ^
 #        | | | |   |  |  |---- BOOTRST (Enable Bootloader Reset Vector)
 #        | | | |   |  +------- BOOTSZ 1..0 (Select Boot Size)
 #        | | | |   |  +------- [00=4k, 01=2k, 10=1k, 11=512]
@@ -248,13 +249,13 @@ AVRDUDE_FLAGS += -B 8
 # Fuse extended byte (0=enable,1=disable):
 # 0xFC = 1 1 1 1   1 1 0 0
 # 0xFC = 1 1 1 1   1 1 1 1 - default
-#        ^ ^ ^ ^   ^ \-+-/ 
+#        ^ ^ ^ ^   ^ \-+-/
 #        | | | |   |   +------ BODLEVEL 2..0 (brownout trigger level)
 #        | | | |   |   +------ [100=4.3V, 101=2.7V, 110=1.8V, 111=disabled]
-#        | | | |   +---------- 
-#        | | | +-------------- 
-#        | | +---------------- 
-#        | +------------------ 
+#        | | | |   +----------
+#        | | | +--------------
+#        | | +----------------
+#        | +------------------
 #        +--------------------
 AVRDUDE_DEFAULT_FUSES = -U hfuse:w:0x17:m -U lfuse:w:0x62:m -U efuse:w:0xFF:m
 
@@ -286,7 +287,7 @@ all: $(LIBRARY) \
 $(TARGET_ELF): $(OBJECTS) $(LIBRARY)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
-%.hex: $(TARGET_ELF) 
+%.hex: $(TARGET_ELF)
 	$(OBJCOPY) -O ihex $(HEX_FLASH_FLAGS) $< $@
 
 %.eep: $(TARGET_ELF)
@@ -309,22 +310,22 @@ size: ${TARGET_ELF}
 	@${SIZE} ${SIZE_OPTIONS} ${TARGET_ELF}
 
 lint:
-	$(LINT) $(BFLAGS) $(CSRC) 
+	$(LINT) $(BFLAGS) $(CSRC)
 
-install: $(TARGET_ELF) 
+install: $(TARGET_ELF)
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_INSTALL)
-	
+
 writefuses:
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FUSES)	
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FUSES)
 
 bootloadfuses:
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BOOTL_FUSES)	
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BOOTL_FUSES)
 
 defaultfuses:
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_DEFAULT_FUSES)	
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_DEFAULT_FUSES)
 
 showfuses:
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_FUSES)	
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_FUSES)
 
 bootloader:
 	make -C bootloader all
