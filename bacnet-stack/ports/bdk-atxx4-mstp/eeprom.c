@@ -29,11 +29,6 @@
 
 /* Internal EEPROM of the AVR - http://supp.iar.com/Support/?note=45745 */
 
-#if defined(__GNUC__)
-    /* bug in WinAVR - not quite IAR compatible */
-#define __EEPUT _EEPUT
-#define __EEGET _EEGET
-#endif
 
 int eeprom_bytes_read(
     uint16_t eeaddr,    /* EEPROM starting memory address (offset of zero) */
