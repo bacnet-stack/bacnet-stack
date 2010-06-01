@@ -208,59 +208,59 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_ACCUMULATOR, "Accumulator"}
     ,
-    {OBJECT_PULSE_CONVERTER, "Pulse-Converter"}
+    {OBJECT_PULSE_CONVERTER, "Pulse Converter"}
     ,
-    {OBJECT_EVENT_LOG, "Event-Log"}
+    {OBJECT_EVENT_LOG, "Event Log"}
     ,
-    {OBJECT_GLOBAL_GROUP, "Global-Group"}
+    {OBJECT_GLOBAL_GROUP, "Global Group"}
     ,
-    {OBJECT_TREND_LOG_MULTIPLE, "Trend-Log-Multiple"}
+    {OBJECT_TREND_LOG_MULTIPLE, "Trend Log Multiple"}
     ,
-    {OBJECT_LOAD_CONTROL, "Load-Control"}
+    {OBJECT_LOAD_CONTROL, "Load Control"}
     ,
-    {OBJECT_STRUCTURED_VIEW, "Structured-View"}
+    {OBJECT_STRUCTURED_VIEW, "Structured View"}
     ,
-    {OBJECT_ACCESS_DOOR, "Access-Door"}
+    {OBJECT_ACCESS_DOOR, "Access Door"}
     ,
-    {OBJECT_LIGHTING_OUTPUT, "Lighting-Output"}
+    {OBJECT_LIGHTING_OUTPUT, "Lighting Output"}
     ,
-    {OBJECT_ACCESS_CREDENTIAL, "Access-Credential"}
+    {OBJECT_ACCESS_CREDENTIAL, "Access Credential"}
     ,
-    {OBJECT_ACCESS_POINT, "Access-Point"}
+    {OBJECT_ACCESS_POINT, "Access Point"}
     ,
-    {OBJECT_ACCESS_RIGHTS, "Access-Rights"}
+    {OBJECT_ACCESS_RIGHTS, "Access Rights"}
     ,
-    {OBJECT_ACCESS_USER, "Access-User"}
+    {OBJECT_ACCESS_USER, "Access User"}
     ,
-    {OBJECT_ACCESS_ZONE, "Access-Zone"}
+    {OBJECT_ACCESS_ZONE, "Access Zone"}
     ,
-    {OBJECT_AUTHENTICATION_FACTOR_INPUT, "Authentication-Factor-Input"}
+    {OBJECT_CREDENTIAL_DATA_INPUT, "Credential Data Input"}
     ,
-    {mysterious_OBJECT_TYPE, "object-of-mystery"}
+    {OBJECT_NETWORK_SECURITY, "Network Security"}
 	,
-	{OBJECT_BITSTRING_VALUE, "Bitstring-Value"}
+	{OBJECT_BITSTRING_VALUE, "Bitstring Value"}
 	,
-	{OBJECT_CHARACTERSTRING_VALUE, "Characterstring-Value"}
+	{OBJECT_CHARACTERSTRING_VALUE, "Characterstring Value"}
 	,
-	{OBJECT_DATE_PATTERN_VALUE, "Date-Pattern-Value"}
+	{OBJECT_DATE_PATTERN_VALUE, "Date Pattern Value"}
 	,
-	{OBJECT_DATE_VALUE, "Date-Value"}
+	{OBJECT_DATE_VALUE, "Date Value"}
 	,
-	{OBJECT_DATETIME_PATTERN_VALUE, "Datetime-Pattern-Value"}
+	{OBJECT_DATETIME_PATTERN_VALUE, "Datetime Pattern Value"}
 	,
-	{OBJECT_DATETIME_VALUE, "Datetime-Value"}
+	{OBJECT_DATETIME_VALUE, "Datetime Value"}
 	,
-	{OBJECT_INTEGER_VALUE, "Integer-Value"}
+	{OBJECT_INTEGER_VALUE, "Integer Value"}
 	,
-	{OBJECT_LARGE_ANALOG_VALUE, "Large-Analog-Value"}
+	{OBJECT_LARGE_ANALOG_VALUE, "Large Analog Value"}
 	,
-	{OBJECT_OCTETSTRING_VALUE, "Octetstring-Value"}
+	{OBJECT_OCTETSTRING_VALUE, "Octetstring Value"}
 	,
-	{OBJECT_POSITIVE_INTEGER_VALUE, "Positive-Integer-Value"}
+	{OBJECT_POSITIVE_INTEGER_VALUE, "Positive Integer Value"}
 	,
-	{OBJECT_TIME_PATTERN_VALUE, "Time-Pattern-Value"}
+	{OBJECT_TIME_PATTERN_VALUE, "Time Pattern Value"}
 	,
-	{OBJECT_TIME_VALUE, "Time-Value"}
+	{OBJECT_TIME_VALUE, "Time Value"}
 	,
 	{0, NULL}
 /* Enumerated values 0-127 are reserved for definition by ASHRAE.
