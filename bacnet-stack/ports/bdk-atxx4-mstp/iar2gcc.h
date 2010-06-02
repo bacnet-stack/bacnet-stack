@@ -35,7 +35,7 @@
 #define IAR2GCC_H
 
 #if !defined(F_CPU)
-#define F_CPU (7372800)
+#error You must define F_CPU - clock frequency!
 #endif
 
 /* IAR */
@@ -51,6 +51,10 @@ static inline void _delay_us(
         __delay_cycles(F_CPU / 1000000UL);
     } while (microseconds--);
 }
+#endif
+
+#if defined(__GNUC__)
+#include <util/delay.h>
 #endif
 
 /* Input/Output Registers */
