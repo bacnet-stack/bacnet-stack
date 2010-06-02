@@ -453,6 +453,25 @@ void datetime_wildcard_set(
     }
 }
 
+int bacapp_encode_datetime(
+    uint8_t * apdu,
+    BACNET_DATE_TIME * value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+
+    if (apdu && value) {
+        len = encode_application_date(&apdu[0], &value->date);
+        apdu_len += len;
+
+        len = encode_application_time(&apdu[apdu_len], &value->time);
+        apdu_len += len;
+    }
+    return apdu_len;
+}
+
+
 int bacapp_encode_context_datetime(
     uint8_t * apdu,
     uint8_t tag_number,
@@ -466,10 +485,7 @@ int bacapp_encode_context_datetime(
         len = encode_opening_tag(&apdu[apdu_len], tag_number);
         apdu_len += len;
 
-        len = encode_application_date(&apdu[apdu_len], &value->date);
-        apdu_len += len;
-
-        len = encode_application_time(&apdu[apdu_len], &value->time);
+        len = bacapp_encode_datetime(&apdu[apdu_len], value );
         apdu_len += len;
 
         len = encode_closing_tag(&apdu[apdu_len], tag_number);

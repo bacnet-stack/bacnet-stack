@@ -140,6 +140,10 @@ extern "C" {
     void datetime_time_wildcard_set(
         BACNET_TIME * btime);
 
+    int bacapp_encode_datetime(
+        uint8_t * apdu,
+        BACNET_DATE_TIME * value);
+
     int bacapp_encode_context_datetime(
         uint8_t * apdu,
         uint8_t tag_number,
