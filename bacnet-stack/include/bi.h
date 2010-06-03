@@ -74,6 +74,13 @@ extern "C" {
     bool Binary_Input_Active_Text_Set(
         uint32_t instance,
         char *new_name);
+    BACNET_POLARITY Binary_Input_Polarity(
+        uint32_t object_instance);
+    bool Binary_Input_Polarity_Set(
+        uint32_t object_instance,
+        BACNET_POLARITY polarity);
+    bool Binary_Input_Out_Of_Service(
+        uint32_t object_instance);
 
     bool Binary_Input_Change_Of_Value(
         uint32_t object_instance);
