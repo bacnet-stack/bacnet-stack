@@ -47,7 +47,7 @@
 
 /* This stack implements this version of BACnet */
 #define BACNET_PROTOCOL_VERSION 1
-#define BACNET_PROTOCOL_REVISION 5
+#define BACNET_PROTOCOL_REVISION 10
 
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
@@ -63,7 +63,7 @@
 #define BACNET_MAX_PRIORITY 16
 
 #define BACNET_BROADCAST_NETWORK 0xFFFF
-/* Any size MAC address should be allowed which is less than or 
+/* Any size MAC address should be allowed which is less than or
    equal to 7 bytes.  The IPv6 addresses are planned to be handled
    outside this area. */
 /* FIXME: mac[] only needs to be as big as our local datalink MAC */
