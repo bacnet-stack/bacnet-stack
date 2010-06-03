@@ -49,6 +49,8 @@ static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 static bool Out_Of_Service[MAX_BINARY_INPUTS];
 /* Change of Value flag */
 static bool Change_Of_Value[MAX_BINARY_INPUTS];
+/* Polarity of Input */
+static BACNET_POLARITY Polarity[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Input_Properties_Required[] = {
@@ -167,7 +169,7 @@ BACNET_BINARY_PV Binary_Input_Present_Value(
     return value;
 }
 
-static bool Binary_Input_Out_Of_Service(
+bool Binary_Input_Out_Of_Service(
     uint32_t object_instance)
 {
     bool value = false;
@@ -275,8 +277,8 @@ static void Binary_Input_Out_Of_Service_Set(
         if (Out_Of_Service[index] != value) {
             Change_Of_Value[index] = true;
         }
+        Out_Of_Service[index] = value;
     }
-    Out_Of_Service[index] = value;
 
     return;
 }
@@ -295,6 +297,31 @@ char *Binary_Input_Name(
     return NULL;
 }
 
+BACNET_POLARITY Binary_Input_Polarity(
+    uint32_t object_instance)
+{
+    BACNET_POLARITY polarity = POLARITY_NORMAL;
+
+    if (object_instance < MAX_BINARY_INPUTS) {
+        polarity = Polarity[object_instance];
+    }
+
+    return polarity;
+}
+
+bool Binary_Input_Polarity_Set(
+    uint32_t object_instance,
+    BACNET_POLARITY polarity)
+{
+    bool status = false;
+
+    if (object_instance < MAX_BINARY_INPUTS) {
+        Polarity[object_instance] = polarity;
+    }
+
+    return status;
+}
+
 /* return apdu length, or -1 on error */
 /* assumption - object already exists, and has been bounds checked */
 int Binary_Input_Read_Property(
@@ -303,7 +330,6 @@ int Binary_Input_Read_Property(
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    BACNET_POLARITY polarity = POLARITY_NORMAL;
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -361,7 +387,9 @@ int Binary_Input_Read_Property(
                 Binary_Input_Out_Of_Service(rpdata->object_instance));
             break;
         case PROP_POLARITY:
-            apdu_len = encode_application_enumerated(&apdu[0], polarity);
+            apdu_len =
+                encode_application_enumerated(&apdu[0],
+                Binary_Input_Polarity(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -416,6 +444,21 @@ bool Binary_Input_Write_Property(
             if (status) {
                 Binary_Input_Out_Of_Service_Set(wp_data->object_instance,
                     value.type.Boolean);
+            }
+            break;
+        case PROP_POLARITY:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class, &wp_data->error_code);
+            if (status) {
+                if (value.type.Enumerated < MAX_POLARITY) {
+                    Binary_Input_Polarity_Set(wp_data->object_instance,
+                        (BACNET_POLARITY) value.type.Enumerated);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:
