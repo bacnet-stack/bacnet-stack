@@ -143,15 +143,15 @@ DEFINES =
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
 # default is for debugging from AVR Studio
-OPTIMIZATION = -Os  $(OPTIMIZE_FLAGS)
-DEBUGGING =
+OPTIMIZATION = -O1  $(OPTIMIZE_FLAGS)
+DEBUGGING = -g
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
 DEBUGGING = -g
 endif
 ifeq (${BUILD},release)
 OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
-DEBUGGING =
+DEBUGGING = -DNDEBUG
 endif
 
 ## BACnet options

@@ -57,7 +57,10 @@ void init(
     PORTC = 0;
     DDRD = 0;
     PORTD = 0;
-    /* Configure the watchdog timer - Disabled for testing */
-    /* wdt_enable(WDTO_2S); */
+    /* Configure the watchdog timer - Disabled for debugging */
+#ifdef NDEBUG
+    wdt_enable(WDTO_2S);
+#else
     wdt_disable();
+#endif
 }
