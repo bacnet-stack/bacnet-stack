@@ -36,6 +36,7 @@
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
+#include "reject.h"
 #include "rp.h"
 /* device object has custom handler for all objects */
 #include "device.h"
@@ -103,9 +104,8 @@ void handler_read_property(
 #endif
     if (len < 0) {
         /* bad decoding - send an abort */
-        apdu_len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id, rpdata.error_code);
 #if PRINT_ENABLED
         fprintf(stderr, "RP: Bad Encoding.  Sending Abort!\n");
 #endif

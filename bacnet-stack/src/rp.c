@@ -88,18 +88,29 @@ int rp_decode_service_request(
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for value pointers */
-    if (apdu_len && rpdata) {
-        /* Tag 0: Object ID          */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+    if (rpdata != NULL) {
+        /* Must have at least 2 tags, an object id and a property identifier
+         * of at least 1 byte in length to have any chance of parsing */
+        if(apdu_len < 7) { 
+            rpdata->error_code = REJECT_REASON_MISSING_REQUIRED_PARAMETER;
             return -1;
+        }
+
+        /* Tag 0: Object ID          */
+        if (!decode_is_context_tag(&apdu[len++], 0)) {
+            rpdata->error_code = REJECT_REASON_INVALID_TAG;
+            return -1;
+        }
         len += decode_object_id(&apdu[len], &type, &rpdata->object_instance);
         rpdata->object_type = (BACNET_OBJECT_TYPE) type;
         /* Tag 1: Property ID */
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
             &len_value_type);
-        if (tag_number != 1)
+        if (tag_number != 1) {
+            rpdata->error_code = REJECT_REASON_INVALID_TAG;
             return -1;
+        }
         len += decode_enumerated(&apdu[len], len_value_type, &property);
         rpdata->object_property = (BACNET_PROPERTY_ID) property;
         /* Tag 2: Optional Array Index */
@@ -107,14 +118,22 @@ int rp_decode_service_request(
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
-            if (tag_number == 2) {
+            if ((tag_number == 2) && (len < apdu_len)) {
                 len +=
                     decode_unsigned(&apdu[len], len_value_type, &array_value);
                 rpdata->array_index = array_value;
-            } else
-                rpdata->array_index = BACNET_ARRAY_ALL;
+            } else {
+                rpdata->error_code = REJECT_REASON_INVALID_TAG;
+                return -1;
+            }
         } else
             rpdata->array_index = BACNET_ARRAY_ALL;
+    }
+    
+    if(len < apdu_len) {
+        /* If something left over now, we have an invalid request */
+        rpdata->error_code = REJECT_REASON_TOO_MANY_ARGUMENTS;
+        return -1;
     }
 
     return (int) len;
