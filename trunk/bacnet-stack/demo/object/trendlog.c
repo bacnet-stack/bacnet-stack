@@ -271,8 +271,8 @@ char *Trend_Log_Name(
 }
 
 
-/* return the length of the apdu encoded or -1 for error or
-   -2 for abort message */
+/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
+   BACNET_STATUS_ABORT for abort message */
 int Trend_Log_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
@@ -328,7 +328,7 @@ int Trend_Log_Read_Property(
             /* You can only read the buffer via the ReadRange service */
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_READ_ACCESS_DENIED;
-            apdu_len = -1;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
 
         case PROP_RECORD_COUNT:
@@ -429,7 +429,7 @@ int Trend_Log_Read_Property(
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = -1;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
     }
     /*  only array properties can have array options */
@@ -437,7 +437,7 @@ int Trend_Log_Read_Property(
         && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = -1;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

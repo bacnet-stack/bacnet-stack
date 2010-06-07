@@ -38,6 +38,25 @@
 
 /** @file reject.c  Encode/Decode Reject APDUs */
 
+/* Helper function to avoid needing additional entries in service data structures
+ * when passing back reject status.
+ * Convert from error code to reject code - assumes value is in range 
+ * ERROR_CODE_REJECT_BUFFER_OVERFLOW to ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE
+ * anything outside this range gets converted to REJECT_REASON_OTHER.
+ * Will need reworking if it is required to return proprietary reject codes.
+ */
+
+BACNET_REJECT_REASON reject_convert_error_code(
+    BACNET_ERROR_CODE error_code)
+{
+    BACNET_REJECT_REASON reject_code = REJECT_REASON_OTHER;
+
+    if((error_code > ERROR_CODE_NETWORK_DOWN) && (error_code <= ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE))
+        reject_code = (BACNET_REJECT_REASON)(error_code - ERROR_CODE_NETWORK_DOWN);
+
+    return(reject_code);
+}
+
 /* encode service */
 int reject_encode_apdu(
     uint8_t * apdu,
