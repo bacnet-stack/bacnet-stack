@@ -167,7 +167,7 @@ char *Analog_Input_Name(
     return NULL;
 }
 
-/* return apdu length, or -1 on error */
+/* return apdu length, or BACNET_STATUS_ERROR on error */
 /* assumption - object has already exists */
 int Analog_Input_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
@@ -237,14 +237,14 @@ int Analog_Input_Read_Property(
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = -1;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = -1;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

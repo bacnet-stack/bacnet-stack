@@ -41,6 +41,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_ABORT_REASON abort_convert_error_code(
+        BACNET_ERROR_CODE error_code);
+
     int abort_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
