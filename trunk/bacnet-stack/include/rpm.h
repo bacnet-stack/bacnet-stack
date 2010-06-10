@@ -40,6 +40,20 @@
 #include "bacdef.h"
 #include "bacapp.h"
 
+/*
+ * Bundle together commonly used data items for convenience when calling 
+ * rpm helper functions.
+ */
+
+typedef struct BACnet_RPM_Data {
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_PROPERTY_ID object_property;
+    int32_t array_index;
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
+} BACNET_RPM_DATA;
+
 struct BACnet_Read_Access_Data;
 typedef struct BACnet_Read_Access_Data {
     BACNET_OBJECT_TYPE object_type;
@@ -119,8 +133,7 @@ extern "C" {
     int rpm_decode_object_id(
         uint8_t * apdu,
         unsigned apdu_len,
-        BACNET_OBJECT_TYPE * object_type,
-        uint32_t * object_instance);
+        BACNET_RPM_DATA *rpmdata);
 
 /* is this the end of this object property list? */
     int rpm_decode_object_end(
@@ -131,8 +144,7 @@ extern "C" {
     int rpm_decode_object_property(
         uint8_t * apdu,
         unsigned apdu_len,
-        BACNET_PROPERTY_ID * object_property,
-        int32_t * array_index);
+        BACNET_RPM_DATA *rpmdata);
 
 /* RPM Ack - reply from server */
     int rpm_ack_encode_apdu_init(
@@ -141,8 +153,7 @@ extern "C" {
 
     int rpm_ack_encode_apdu_object_begin(
         uint8_t * apdu,
-        BACNET_OBJECT_TYPE object_type,
-        uint32_t object_instance);
+        BACNET_RPM_DATA *rpmdata);
 
     int rpm_ack_encode_apdu_object_property(
         uint8_t * apdu,
