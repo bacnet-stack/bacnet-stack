@@ -213,7 +213,7 @@ void handler_read_property_multiple(
         rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
         error = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
-        printf("RPM: Segmented message. Sending Abort!\r\n");
+        fprintf(stderr, "RPM: Segmented message. Sending Abort!\r\n");
 #endif
         goto RPM_FAILURE;
     }
@@ -244,7 +244,7 @@ void handler_read_property_multiple(
             len, sizeof(Handler_Transmit_Buffer));
         if (!copy_len) {
 #if PRINT_ENABLED
-        printf("RPM: Response too big!\r\n");
+        fprintf(stderr, "RPM: Response too big!\r\n");
 #endif
             rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             error = BACNET_STATUS_ABORT;

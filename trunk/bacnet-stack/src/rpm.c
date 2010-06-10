@@ -1,4 +1,3 @@
-#define TEST
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
  Copyright (C) 2005 Steve Karg
