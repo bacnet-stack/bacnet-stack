@@ -40,9 +40,8 @@
 
 /* Helper function to avoid needing additional entries in service data structures
  * when passing back reject status.
- * Convert from error code to reject code - assumes value is in range 
- * ERROR_CODE_REJECT_BUFFER_OVERFLOW to ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE
- * anything outside this range gets converted to REJECT_REASON_OTHER.
+ * Convert from error code to reject code.
+ * Anything not defined gets converted to REJECT_REASON_OTHER.
  * Will need reworking if it is required to return proprietary reject codes.
  */
 
@@ -51,8 +50,42 @@ BACNET_REJECT_REASON reject_convert_error_code(
 {
     BACNET_REJECT_REASON reject_code = REJECT_REASON_OTHER;
 
-    if((error_code > ERROR_CODE_NETWORK_DOWN) && (error_code <= ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE))
-        reject_code = (BACNET_REJECT_REASON)(error_code - ERROR_CODE_NETWORK_DOWN);
+    switch (error_code) {
+        case ERROR_CODE_REJECT_BUFFER_OVERFLOW:
+            reject_code = REJECT_REASON_BUFFER_OVERFLOW;
+            break;
+        case ERROR_CODE_REJECT_INCONSISTENT_PARAMETERS:
+            reject_code = REJECT_REASON_INCONSISTENT_PARAMETERS;
+            break;
+        case ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE:
+            reject_code = REJECT_REASON_INVALID_PARAMETER_DATA_TYPE;
+            break;
+        case ERROR_CODE_REJECT_INVALID_TAG:
+            reject_code = REJECT_REASON_INVALID_TAG;
+            break;
+        case ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER:
+            reject_code = REJECT_REASON_MISSING_REQUIRED_PARAMETER;
+            break;
+        case ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE:
+            reject_code = REJECT_REASON_PARAMETER_OUT_OF_RANGE;
+            break;
+        case ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS:
+            reject_code = REJECT_REASON_TOO_MANY_ARGUMENTS;
+            break;
+        case ERROR_CODE_REJECT_UNDEFINED_ENUMERATION:
+            reject_code = REJECT_REASON_UNDEFINED_ENUMERATION;
+            break;
+        case ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE:
+            reject_code = REJECT_REASON_UNRECOGNIZED_SERVICE;
+            break;
+        case ERROR_CODE_REJECT_PROPRIETARY:
+            reject_code = FIRST_PROPRIETARY_REJECT_REASON;
+            break;
+        case ERROR_CODE_REJECT_OTHER:
+        default:
+            reject_code = REJECT_REASON_OTHER;
+            break;
+    }
 
     return(reject_code);
 }
