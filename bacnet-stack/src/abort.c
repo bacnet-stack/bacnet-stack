@@ -39,19 +39,36 @@
 /** @file abort.c  Abort Encoding/Decoding */
 /* Helper function to avoid needing additional entries in service data structures
  * when passing back abort status.
- * Convert from error code to abort code - assumes value is in range 
- * ERROR_CODE_RESERVED1 to ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED
- * anything outside this range gets converted to ABORT_REASON_OTHER.
+ * Convert from error code to abort code.
+ * Anything not defined converts to ABORT_REASON_OTHER.
  * Will need reworking if it is required to return proprietary abort codes.
  */
-
 BACNET_ABORT_REASON abort_convert_error_code(
     BACNET_ERROR_CODE error_code)
 {
     BACNET_ABORT_REASON abort_code = ABORT_REASON_OTHER;
 
-    if((error_code > ERROR_CODE_RESERVED1) && (error_code <= ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED))
-        abort_code = (BACNET_ABORT_REASON)(error_code - ERROR_CODE_RESERVED1);
+    switch (error_code) {
+        case ERROR_CODE_ABORT_BUFFER_OVERFLOW:
+            abort_code = ABORT_REASON_BUFFER_OVERFLOW;
+            break;
+        case ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE:
+            abort_code = ABORT_REASON_INVALID_APDU_IN_THIS_STATE;
+            break;
+        case ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK:
+            abort_code = ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK;
+            break;
+        case ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED:
+            abort_code = ABORT_REASON_SEGMENTATION_NOT_SUPPORTED;
+            break;
+        case ERROR_CODE_ABORT_PROPRIETARY:
+            abort_code = FIRST_PROPRIETARY_ABORT_REASON;
+            break;
+        case ERROR_CODE_ABORT_OTHER:
+        default:
+            abort_code = ABORT_REASON_OTHER;
+            break;
+    }
 
     return(abort_code);
 }
