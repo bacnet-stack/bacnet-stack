@@ -169,8 +169,8 @@ bool Analog_Value_Present_Value_Set(
             Present_Value[index] = value;
             /* Note: you could set the physical output here if we
                are the highest priority.
-               However, if Out of Service is TRUE, then don't set the 
-               physical output.  This comment may apply to the 
+               However, if Out of Service is TRUE, then don't set the
+               physical output.  This comment may apply to the
                main loop (i.e. check out of service before changing output) */
             status = true;
         }
@@ -268,7 +268,7 @@ int Analog_Value_Read_Property(
                     else {
                         rpdata->error_class = ERROR_CLASS_SERVICES;
                         rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = -1;
+                        apdu_len = BACNET_STATUS_ERROR;
                         break;
                     }
                 }
@@ -289,7 +289,7 @@ int Analog_Value_Read_Property(
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = -1;
+                    apdu_len = BACNET_STATUS_ERROR;
                 }
             }
 
@@ -302,7 +302,7 @@ int Analog_Value_Read_Property(
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = -1;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
     }
     /*  only array properties can have array options */
@@ -313,7 +313,7 @@ int Analog_Value_Read_Property(
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = -1;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
