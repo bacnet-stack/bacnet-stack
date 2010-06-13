@@ -783,7 +783,7 @@ bool Trend_Log_Write_Property(
                 Device_Object_Instance_Number();
             /* Quick comparison if structures are packed ... */
             if (memcmp(&TempSource, &CurrentLog->Source,
-                    sizeof(BACNET_OBJECT_ID)) != 0) {
+                    sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE)) != 0) {
                 /* Clear buffer if property being logged is changed */
                 CurrentLog->ulRecordCount = 0;
                 CurrentLog->iIndex = 0;
