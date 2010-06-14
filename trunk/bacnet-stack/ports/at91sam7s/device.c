@@ -536,13 +536,13 @@ uint16_t Device_Vendor_Identifier(
 uint8_t Device_Protocol_Version(
     void)
 {
-    return 1;
+    return BACNET_PROTOCOL_VERSION;
 }
 
 uint8_t Device_Protocol_Revision(
     void)
 {
-    return 5;
+    return BACNET_PROTOCOL_REVISION;
 }
 
 BACNET_SEGMENTATION Device_Segmentation_Supported(
