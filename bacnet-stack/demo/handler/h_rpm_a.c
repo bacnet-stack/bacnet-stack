@@ -200,7 +200,7 @@ int rpm_ack_decode_service_request(
 }
 
 /* for debugging... */
-static void PrintReadPropertyMultipleData(
+void rpm_ack_print_data(
     BACNET_READ_ACCESS_DATA * rpm_data)
 {
     BACNET_PROPERTY_REFERENCE *listOfProperties;
@@ -275,17 +275,16 @@ static void PrintReadPropertyMultipleData(
     }
 }
 
-
 /** Handler for a ReadPropertyMultiple ACK.
  * @ingroup DSRPM
  * For each read property, print out the ACK'd data for debugging,
  * and free the request data items from linked property list.
- * 
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_read_property_multiple_ack(
     uint8_t * service_request,
@@ -315,7 +314,7 @@ void handler_read_property_multiple_ack(
 #endif
     if (len > 0) {
         while (rpm_data) {
-            PrintReadPropertyMultipleData(rpm_data);
+            rpm_ack_print_data(rpm_data);
             rpm_property = rpm_data->listOfProperties;
             while (rpm_property) {
                 value = rpm_property->value;
