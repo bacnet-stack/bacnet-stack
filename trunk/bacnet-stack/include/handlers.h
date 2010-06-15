@@ -172,6 +172,12 @@ extern "C" {
         uint8_t * apdu,
         int apdu_len,
         BACNET_READ_ACCESS_DATA * read_access_data);
+    /* print the RP Ack data to stdout */
+    void rp_ack_print_data(
+        BACNET_READ_PROPERTY_DATA * data);
+    /* print the RPM Ack data to stdout */
+    void rpm_ack_print_data(
+        BACNET_READ_ACCESS_DATA * rpm_data);
 
     /* Encodes the property APDU and returns the length,
        or sets the error, and returns -1 */

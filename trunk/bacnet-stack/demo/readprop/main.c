@@ -56,13 +56,14 @@
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
-/* global variables used in this file */
+/* converted command line arguments */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static uint32_t Target_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_OBJECT_TYPE Target_Object_Type = OBJECT_ANALOG_INPUT;
 static BACNET_PROPERTY_ID Target_Object_Property = PROP_ACKED_TRANSITIONS;
 static int32_t Target_Object_Index = BACNET_ARRAY_ALL;
-
+/* the invoke id is needed to filter incoming messages */
+static uint8_t Request_Invoke_ID = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
@@ -72,13 +73,13 @@ static void MyErrorHandler(
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name((int) error_class),
-        bactext_error_code_name((int) error_code));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Error: %s: %s\r\n",
+            bactext_error_class_name((int) error_class),
+            bactext_error_code_name((int) error_code));
+        Error_Detected = true;
+    }
 }
 
 void MyAbortHandler(
@@ -87,13 +88,13 @@ void MyAbortHandler(
     uint8_t abort_reason,
     bool server)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
     (void) server;
-    printf("BACnet Abort: %s\r\n",
-        bactext_abort_reason_name((int) abort_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Abort: %s\r\n",
+            bactext_abort_reason_name((int) abort_reason));
+        Error_Detected = true;
+    }
 }
 
 void MyRejectHandler(
@@ -101,12 +102,42 @@ void MyRejectHandler(
     uint8_t invoke_id,
     uint8_t reject_reason)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("BACnet Reject: %s\r\n",
-        bactext_reject_reason_name((int) reject_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Reject: %s\r\n",
+            bactext_reject_reason_name((int) reject_reason));
+        Error_Detected = true;
+    }
+}
+
+/** Handler for a ReadProperty ACK.
+ * @ingroup DSRP
+ * Doesn't actually do anything, except, for debugging, to
+ * print out the ACK data of a matching request.
+ *
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
+ */
+void My_Read_Property_Ack_Handler(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+{
+    int len = 0;
+    BACNET_READ_PROPERTY_DATA data;
+
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len = rp_ack_decode_service_request(
+            service_request, service_len, &data);
+        if (len > 0) {
+            rp_ack_print_data(&data);
+        }
+    }
 }
 
 static void Init_Service_Handlers(
@@ -127,7 +158,7 @@ static void Init_Service_Handlers(
         handler_read_property);
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property_ack);
+        My_Read_Property_Ack_Handler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -148,7 +179,6 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
-    uint8_t invoke_id = 0;
     bool found = false;
 
     if (argc < 5) {
@@ -252,16 +282,16 @@ int main(
                 &Target_Address);
         }
         if (found) {
-            if (invoke_id == 0) {
-                invoke_id =
+            if (Request_Invoke_ID == 0) {
+                Request_Invoke_ID =
                     Send_Read_Property_Request(Target_Device_Object_Instance,
                     Target_Object_Type, Target_Object_Instance,
                     Target_Object_Property, Target_Object_Index);
-            } else if (tsm_invoke_id_free(invoke_id))
+            } else if (tsm_invoke_id_free(Request_Invoke_ID))
                 break;
-            else if (tsm_invoke_id_failed(invoke_id)) {
+            else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                tsm_free_invoke_id(invoke_id);
+                tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* try again or abort? */
                 break;

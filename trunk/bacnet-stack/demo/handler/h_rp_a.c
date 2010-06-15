@@ -47,7 +47,7 @@
 /** For debugging...
  * @param [in] data portion of the ACK
  */
-static void PrintReadPropertyData(
+void rp_ack_print_data(
     BACNET_READ_PROPERTY_DATA * data)
 {
     BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
@@ -123,7 +123,7 @@ void handler_read_property_ack(
     fprintf(stderr, "Received Read-Property Ack!\n");
 #endif
     if (len > 0)
-        PrintReadPropertyData(&data);
+        rp_ack_print_data(&data);
 }
 
 /** Decode the received RP data into a linked list of the results, with the

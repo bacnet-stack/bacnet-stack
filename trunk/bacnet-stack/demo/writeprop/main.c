@@ -72,7 +72,10 @@ static BACNET_APPLICATION_DATA_VALUE
 /* 0 if not set, 1..16 if set */
 static uint8_t Target_Object_Property_Priority = 0;
 
+/* needed to filter incoming messages */
+static uint8_t Request_Invoke_ID = 0;
 static BACNET_ADDRESS Target_Address;
+/* needed for return value of main application */
 static bool Error_Detected = false;
 
 static void MyErrorHandler(
@@ -81,13 +84,13 @@ static void MyErrorHandler(
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name((int) error_class),
-        bactext_error_code_name((int) error_code));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Error: %s: %s\r\n",
+            bactext_error_class_name((int) error_class),
+            bactext_error_code_name((int) error_code));
+        Error_Detected = true;
+    }
 }
 
 void MyAbortHandler(
@@ -96,13 +99,13 @@ void MyAbortHandler(
     uint8_t abort_reason,
     bool server)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
     (void) server;
-    printf("BACnet Abort: %s\r\n",
-        bactext_abort_reason_name((int) abort_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Abort: %s\r\n",
+            bactext_abort_reason_name((int) abort_reason));
+        Error_Detected = true;
+    }
 }
 
 void MyRejectHandler(
@@ -110,21 +113,22 @@ void MyRejectHandler(
     uint8_t invoke_id,
     uint8_t reject_reason)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("BACnet Reject: %s\r\n",
-        bactext_reject_reason_name((int) reject_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Reject: %s\r\n",
+            bactext_reject_reason_name((int) reject_reason));
+        Error_Detected = true;
+    }
 }
 
 void MyWritePropertySimpleAckHandler(
     BACNET_ADDRESS * src,
     uint8_t invoke_id)
 {
-    (void) src;
-    (void) invoke_id;
-    printf("\r\nWriteProperty Acknowledged!\r\n");
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("\r\nWriteProperty Acknowledged!\r\n");
+    }
 }
 
 static void Init_Service_Handlers(
@@ -166,7 +170,6 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
-    uint8_t invoke_id = 0;
     bool found = false;
     char *value_string = NULL;
     bool status = false;
@@ -351,18 +354,18 @@ int main(
                 &Target_Address);
         }
         if (found) {
-            if (invoke_id == 0) {
-                invoke_id =
+            if (Request_Invoke_ID == 0) {
+                Request_Invoke_ID =
                     Send_Write_Property_Request(Target_Device_Object_Instance,
                     Target_Object_Type, Target_Object_Instance,
                     Target_Object_Property, &Target_Object_Property_Value[0],
                     Target_Object_Property_Priority,
                     Target_Object_Property_Index);
-            } else if (tsm_invoke_id_free(invoke_id))
+            } else if (tsm_invoke_id_free(Request_Invoke_ID))
                 break;
-            else if (tsm_invoke_id_failed(invoke_id)) {
+            else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                tsm_free_invoke_id(invoke_id);
+                tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* try again or abort? */
                 break;
