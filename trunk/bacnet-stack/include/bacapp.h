@@ -189,8 +189,9 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 #else
-#define bacapp_parse_application_data(x,y,z) {(void)x;(void)y;(void)z;}
-#define bacapp_print_value(x,y,z) {(void)x;(void)y;(void)z;}
+/* Provide harmless return values */
+#define bacapp_parse_application_data(x,y,z)   false
+#define bacapp_print_value(x,y,z) 			   false
 #endif
 
 #ifdef TEST
