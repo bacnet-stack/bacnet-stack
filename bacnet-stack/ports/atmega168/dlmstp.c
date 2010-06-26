@@ -162,13 +162,13 @@ static uint8_t This_Station;
 /* nodes. This may be used to allocate more or less of the available link */
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
-static uint8_t Nmax_info_frames;
+static uint8_t Nmax_info_frames = 1;
 /* This parameter represents the value of the Max_Master property of the */
 /* node's Device object. The value of Max_Master specifies the highest */
 /* allowable address for master nodes. The value of Max_Master shall be */
 /* less than or equal to 127. If Max_Master is not writable in a node, */
 /* its value shall be 127. */
-static uint8_t Nmax_master;
+static uint8_t Nmax_master = 127;
 /* An array of octets, used to store octets for transmitting */
 /* OutputBuffer is indexed from 0 to OutputBufferSize-1. */
 /* The MAX_PDU size of a frame is MAX_APDU + MAX_NPDU octets. */
@@ -188,13 +188,13 @@ static uint8_t TransmitPacketDest;
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
-#define Treply_timeout 295
+#define Treply_timeout 260
 
 /* The minimum time without a DataAvailable or ReceiveError event that a */
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
-#define Tusage_timeout 95
+#define Tusage_timeout 60
 
 /* The number of tokens received or used before a Poll For Master cycle */
 /* is executed: 50. */
@@ -218,6 +218,11 @@ static uint8_t TransmitPacketDest;
 /* The maximum idle time a sending node may allow to elapse between octets */
 /* of a frame the node is transmitting: 20 bit times. */
 #define Tframe_gap 20
+
+/* The maximum time after the end of the stop bit of the final */
+/* octet of a transmitted frame before a node must disable its */
+/* EIA-485 driver: 15 bit times. */
+#define Tpostdrive 15
 
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
@@ -588,9 +593,9 @@ static bool MSTP_Master_Node_FSM(
     /* When this counter reaches the value Nmax_info_frames, the node must */
     /* pass the token. */
     static uint8_t FrameCount;
-    /* "Next Station," the MAC address of the node to which This Station passes */
-    /* the token. If the Next_Station is unknown, Next_Station shall be equal to */
-    /* This_Station. */
+    /* "Next Station," the MAC address of the node to which This Station
+       passes the token. If the Next_Station is unknown, Next_Station shall
+       be equal to This_Station. */
     static uint8_t Next_Station;
     /* "Poll Station," the MAC address of the node to which This Station last */
     /* sent a Poll For Master. This is used during token maintenance. */
@@ -598,10 +603,10 @@ static bool MSTP_Master_Node_FSM(
     /* A counter of transmission retries used for Token and Poll For Master */
     /* transmission. */
     static unsigned RetryCount;
-    /* The number of tokens received by this node. When this counter reaches the */
-    /* value Npoll, the node polls the address range between TS and NS for */
-    /* additional master nodes. TokenCount is set to zero at the end of the */
-    /* polling process. */
+    /* The number of tokens received by this node. When this counter reaches */
+    /* the value Npoll, the node polls the address range between TS and NS */
+    /* for additional master nodes. TokenCount is set to zero at the end of */
+    /* the polling process. */
     static unsigned TokenCount;
     /* next-x-station calculations */
     uint8_t next_poll_station = 0;
@@ -613,8 +618,11 @@ static bool MSTP_Master_Node_FSM(
     bool transition_now = false;
 
     /* some calculations that several states need */
+    /* (PS+1) modulo (Nmax_master+1) */
     next_poll_station = (Poll_Station + 1) % (Nmax_master + 1);
+    /* (TS+1) modulo (Nmax_master+1) */
     next_this_station = (This_Station + 1) % (Nmax_master + 1);
+    /* (NS +1) modulo (Nmax_master+1) */
     next_next_station = (Next_Station + 1) % (Nmax_master + 1);
     switch (Master_State) {
         case MSTP_MASTER_STATE_INITIALIZE:
@@ -669,7 +677,7 @@ static bool MSTP_Master_Node_FSM(
                         MSTP_Flag.ReceivePacketPending = true;
                         break;
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                        /* indicate successful reception to the higher layers  */
+                        /* indicate successful reception to higher layers */
                         MSTP_Flag.ReceivePacketPending = true;
                         /* broadcast DER just remains IDLE */
                         if (DestinationAddress != MSTP_BROADCAST_ADDRESS) {
@@ -722,8 +730,10 @@ static bool MSTP_Master_Node_FSM(
                 FrameCount = Nmax_info_frames;
                 Master_State = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                 /* Any retry of the data frame shall await the next entry */
-                /* to the USE_TOKEN state. (Because of the length of the timeout,  */
-                /* this transition will cause the token to be passed regardless */
+                /* to the USE_TOKEN state. */
+                /* (Because of the length of the timeout,  */
+                /* this transition will cause the token to be */
+                /* passed regardless */
                 /* of the initial value of FrameCount.) */
                 transition_now = true;
             } else {
@@ -747,8 +757,10 @@ static bool MSTP_Master_Node_FSM(
                                 break;
                             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                                 /* ReceivedReply */
-                                /* or a proprietary type that indicates a reply */
-                                /* indicate successful reception to the higher layers */
+                                /* or a proprietary type that indicates
+                                   a reply */
+                                /* indicate successful reception to
+                                   the higher layers */
                                 MSTP_Flag.ReceivePacketPending = true;
                                 Master_State =
                                     MSTP_MASTER_STATE_DONE_WITH_TOKEN;
@@ -786,28 +798,40 @@ static bool MSTP_Master_Node_FSM(
             }
             /* Npoll changed in Errata SSPC-135-2004 */
             else if (TokenCount < (Npoll - 1)) {
-                if ((MSTP_Flag.SoleMaster == true) &&
-                    (Next_Station != next_this_station)) {
+                if (MSTP_Flag.SoleMaster == true) {
                     /* SoleMaster */
                     /* there are no other known master nodes to */
-                    /* which the token may be sent (true master-slave operation).  */
+                    /* which the token may be sent
+                       (true master-slave operation).  */
                     FrameCount = 0;
                     TokenCount++;
                     Master_State = MSTP_MASTER_STATE_USE_TOKEN;
                     transition_now = true;
                 } else {
-                    /* SendToken */
-                    /* Npoll changed in Errata SSPC-135-2004 */
-                    /* The comparison of NS and TS+1 eliminates the Poll For Master  */
-                    /* if there are no addresses between TS and NS, since there is no  */
-                    /* address at which a new master node may be found in that case. */
-                    TokenCount++;
-                    /* transmit a Token frame to NS */
-                    MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
-                        This_Station, NULL, 0);
-                    RetryCount = 0;
-                    EventCount = 0;
-                    Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
+                    if (Next_Station == This_Station) {
+                        /* NextStationUnknown - added in Addendum 135-2008v-1 */
+                        Poll_Station = next_this_station;
+                        MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, 
+                            Poll_Station, This_Station, NULL, 0);
+                        RetryCount = 0;
+                        Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
+                    } else if (Next_Station == next_this_station) {
+                        /* SendToken */
+                        /* Npoll changed in Errata SSPC-135-2004 */
+                        /* The comparison of NS and TS+1
+                           eliminates the Poll For Master
+                           if there are no addresses between
+                           TS and NS, since there is no
+                           address at which a new master node
+                           may be found in that case. */
+                        TokenCount++;
+                        /* transmit a Token frame to NS */
+                        MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                            This_Station, NULL, 0);
+                        RetryCount = 0;
+                        EventCount = 0;
+                        Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
+                    }
                 }
             } else if (next_poll_station == Next_Station) {
                 if (MSTP_Flag.SoleMaster == true) {
@@ -880,10 +904,11 @@ static bool MSTP_Master_Node_FSM(
                 }
             }
             break;
-            /* The NO_TOKEN state is entered if Timer_Silence() becomes greater  */
-            /* than Tno_token, indicating that there has been no network activity */
-            /* for that period of time. The timeout is continued to determine  */
-            /* whether or not this node may create a token. */
+            /* The NO_TOKEN state is entered if Silence Timer
+               becomes greater than Tno_token, indicating that
+               there has been no network activity for that period
+               of time. The timeout is continued to determine
+               whether or not this node may create a token. */
         case MSTP_MASTER_STATE_NO_TOKEN:
             my_timeout = Tno_token + (Tslot * This_Station);
             if (Timer_Silence() < my_timeout) {
