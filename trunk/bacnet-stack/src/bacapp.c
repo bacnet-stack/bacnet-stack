@@ -957,7 +957,7 @@ bool bacapp_print_value(
                 } else {
                     fprintf(stream, "%u, ", (unsigned) value->type.Date.day);
                 }
-                if (value->type.Date.year == 255) {
+                if (value->type.Date.year == 2155) {
                     fprintf(stream, "(unspecified), ");
                 } else {
                     fprintf(stream, "%u", (unsigned) value->type.Date.year);

@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2003-2007 Steve Karg
+ Copyright (C) 2003-2010 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -585,10 +585,13 @@ bool MSTP_Master_Node_FSM(
     static MSTP_MASTER_STATE master_state = MSTP_MASTER_STATE_INITIALIZE;
 
     /* some calculations that several states need */
+    /* (PS+1) modulo (Nmax_master+1) */
     next_poll_station =
         (mstp_port->Poll_Station + 1) % (mstp_port->Nmax_master + 1);
+    /* (TS+1) modulo (Nmax_master+1) */
     next_this_station =
         (mstp_port->This_Station + 1) % (mstp_port->Nmax_master + 1);
+    /* (NS +1) modulo (Nmax_master+1) */
     next_next_station =
         (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
     if (mstp_port->master_state != master_state) {
@@ -816,8 +819,7 @@ bool MSTP_Master_Node_FSM(
                 transition_now = true;
             } else if (mstp_port->TokenCount < (Npoll - 1)) {
                 /* Npoll changed in Errata SSPC-135-2004 */
-                if ((mstp_port->SoleMaster == true) &&
-                    (mstp_port->Next_Station != next_this_station)) {
+                if (mstp_port->SoleMaster == true) {
                     /* SoleMaster */
                     /* there are no other known master nodes to */
                     /* which the token may be sent (true master-slave operation).  */
@@ -826,19 +828,30 @@ bool MSTP_Master_Node_FSM(
                     mstp_port->master_state = MSTP_MASTER_STATE_USE_TOKEN;
                     transition_now = true;
                 } else {
-                    /* SendToken */
-                    /* Npoll changed in Errata SSPC-135-2004 */
-                    /* The comparison of NS and TS+1 eliminates the Poll For Master  */
-                    /* if there are no addresses between TS and NS, since there is no  */
-                    /* address at which a new master node may be found in that case. */
-                    mstp_port->TokenCount++;
-                    /* transmit a Token frame to NS */
-                    MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TOKEN,
-                        mstp_port->Next_Station, mstp_port->This_Station, NULL,
-                        0);
-                    mstp_port->RetryCount = 0;
-                    mstp_port->EventCount = 0;
-                    mstp_port->master_state = MSTP_MASTER_STATE_PASS_TOKEN;
+                    if (mstp_port->Next_Station == mstp_port->This_Station) {
+                        /* NextStationUnknown - added in Addendum 135-2008v-1 */
+                        mstp_port->Poll_Station = next_this_station;
+                        MSTP_Create_And_Send_Frame(mstp_port,
+                            FRAME_TYPE_POLL_FOR_MASTER, mstp_port->Poll_Station,
+                            mstp_port->This_Station, NULL, 0);
+                        mstp_port->RetryCount = 0;
+                        mstp_port->master_state =
+                        MSTP_MASTER_STATE_POLL_FOR_MASTER;
+                    } else if (mstp_port->Next_Station == next_this_station) {
+                        /* SendToken */
+                        /* Npoll changed in Errata SSPC-135-2004 */
+                        /* The comparison of NS and TS+1 eliminates the Poll For Master  */
+                        /* if there are no addresses between TS and NS, since there is no  */
+                        /* address at which a new master node may be found in that case. */
+                        mstp_port->TokenCount++;
+                        /* transmit a Token frame to NS */
+                        MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TOKEN,
+                            mstp_port->Next_Station, mstp_port->This_Station, NULL,
+                            0);
+                        mstp_port->RetryCount = 0;
+                        mstp_port->EventCount = 0;
+                        mstp_port->master_state = MSTP_MASTER_STATE_PASS_TOKEN;
+                    }
                 }
             } else if (next_poll_station == mstp_port->Next_Station) {
                 if (mstp_port->SoleMaster == true) {
