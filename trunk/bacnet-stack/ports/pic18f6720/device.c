@@ -332,10 +332,6 @@ int Device_Encode_Property_APDU(
                 encode_application_unsigned(&apdu[0],
                 Device_Protocol_Revision());
             break;
-            /* BACnet Legacy Support */
-        case PROP_PROTOCOL_CONFORMANCE_CLASS:
-            apdu_len = encode_application_unsigned(&apdu[0], 1);
-            break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             /* Note: list of services that are executed, not initiated. */
             bitstring_init(&bit_string);
