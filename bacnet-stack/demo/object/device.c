@@ -359,7 +359,6 @@ static const int Device_Properties_Optional[] = {
     PROP_UTC_OFFSET,
     PROP_LOCAL_DATE,
     PROP_DAYLIGHT_SAVINGS_STATUS,
-    PROP_PROTOCOL_CONFORMANCE_CLASS,
     PROP_LOCATION,
     PROP_ACTIVE_COV_SUBSCRIPTIONS,
     -1
@@ -1049,10 +1048,6 @@ static int Device_Read_Property_Local(
             apdu_len =
                 encode_application_unsigned(&apdu[0],
                 Device_Protocol_Revision());
-            break;
-            /* BACnet Legacy Support */
-        case PROP_PROTOCOL_CONFORMANCE_CLASS:
-            apdu_len = encode_application_unsigned(&apdu[0], 1);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             /* Note: list of services that are executed, not initiated. */
