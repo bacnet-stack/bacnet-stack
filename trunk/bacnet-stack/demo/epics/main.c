@@ -1134,14 +1134,8 @@ int main(
                 /* Advance to the next object, as long as it's not the Device object */
                 do {
                     Object_List_Index++;
-                    nextKey = Keylist_Key(Object_List, Object_List_Index);
-                    /* If done with all Objects, signal end of this while loop */
-                    if ((nextKey == 0) ||
-                        (Object_List_Index >= Object_List_Length)) {
-                        /* Closing brace for the last Object */
-                        printf("  } \r\n");
-                        myObject.type = MAX_BACNET_OBJECT_TYPE;
-                    } else {
+                    if (Object_List_Index < Keylist_Count(Object_List)) {
+                        nextKey = Keylist_Key(Object_List, Object_List_Index);
                         /* Closing brace for the previous Object */
                         printf("  }, \r\n");
                         myObject.type = KEY_DECODE_TYPE(nextKey);
@@ -1152,6 +1146,11 @@ int main(
                            if ( myObject.type == OBJECT_STRUCTURED_VIEW )
                            printf( "    -- Structured View %d \n", myObject.instance );
                          */
+                    } else {
+                        /* Closing brace for the last Object */
+                        printf("  } \r\n");
+                        /* done with all Objects, signal end of this while loop */
+                        myObject.type = MAX_BACNET_OBJECT_TYPE;
                     }
                     if ( Has_RPM )
                     	myState = GET_ALL_REQUEST;
