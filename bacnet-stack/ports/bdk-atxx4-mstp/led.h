@@ -39,6 +39,9 @@ extern "C" {
 
     void led_on(
         uint8_t index);
+    void led_on_interval(
+        uint8_t index,
+        uint16_t interval_ms);
     void led_off(
         uint8_t index);
     void led_off_delay(

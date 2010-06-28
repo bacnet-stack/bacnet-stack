@@ -119,10 +119,9 @@ bool rs485_byte_available(
     bool data_available = false;        /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
-        led_on(LED_1);
+        led_on_interval(LED_1, 1);
         *data_register = FIFO_Get(&Receive_Buffer);
         data_available = true;
-        led_off_delay(LED_1, 10);
     }
 
     return data_available;

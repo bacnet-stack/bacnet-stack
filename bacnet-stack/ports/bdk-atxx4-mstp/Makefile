@@ -30,8 +30,8 @@ SIZE_OPTIONS = -t
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
 #AVRDUDE_PROGRAMMERID = avr109
-#AVRDUDE_PROGRAMMERID = jtag2fast
-AVRDUDE_PROGRAMMERID = avrispmkII
+AVRDUDE_PROGRAMMERID = jtag2fast
+#AVRDUDE_PROGRAMMERID = avrispmkII
 #AVRDUDE_PROGRAMMERID = dragon_isp
 #AVRDUDE_PROGRAMMERID = dragon_jtag
 #
@@ -143,7 +143,7 @@ DEFINES =
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
 # default is for debugging from AVR Studio
-OPTIMIZATION = -O1  $(OPTIMIZE_FLAGS)
+OPTIMIZATION = -O0  $(OPTIMIZE_FLAGS)
 DEBUGGING = -g
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0

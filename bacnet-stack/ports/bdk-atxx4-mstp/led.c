@@ -144,6 +144,21 @@ void led_off_delay(
 }
 
 /*************************************************************************
+* Description: Turn on, and delay before going off.
+* Returns: none
+* Notes: none
+*************************************************************************/
+void led_on_interval(
+    uint8_t index,
+    uint16_t interval_ms)
+{
+    if (index < MAX_LEDS) {
+        led_on(index);
+        timer_interval_start(&Off_Delay_Timer[index], interval_ms);
+    }
+}
+
+/*************************************************************************
 * Description: Task for blinking LED
 * Returns: none
 * Notes: none
