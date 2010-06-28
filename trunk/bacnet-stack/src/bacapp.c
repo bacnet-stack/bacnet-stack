@@ -300,13 +300,13 @@ int bacapp_decode_application_data(
 ** Usage: Similar to strtok. Call function the first time with new_apdu and new_adu_len set to apdu buffer
 ** to be processed. Subsequent calls should pass in NULL.
 **
-** Returns true if a application message is correctly parsed. 
+** Returns true if a application message is correctly parsed.
 ** Returns false if no more application messages are available.
 **
 ** This function is NOT thread safe.
 **
 ** Notes: The _safe suffix is there because the function should be relatively safe against buffer overruns.
-** 
+**
 */
 
 bool bacapp_decode_application_data_safe(
