@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2009-2010 Steve Karg
+ Copyright (C) 2009 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -407,8 +407,8 @@ static void MSTP_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination,        /* destination address */
     uint8_t source,     /* source address */
-    uint8_t * pdu,      /* any data to be sent - may be null */
-    uint16_t pdu_len)
+    uint8_t * data,     /* any data to be sent - may be null */
+    uint16_t data_len)
 {       /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
@@ -424,24 +424,24 @@ static void MSTP_Send_Frame(
     crc8 = CRC_Calc_Header(buffer[3], crc8);
     buffer[4] = source;
     crc8 = CRC_Calc_Header(buffer[4], crc8);
-    buffer[5] = HI_BYTE(pdu_len);
+    buffer[5] = HI_BYTE(data_len);
     crc8 = CRC_Calc_Header(buffer[5], crc8);
-    buffer[6] = LO_BYTE(pdu_len);
+    buffer[6] = LO_BYTE(data_len);
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
     rs485_turnaround_delay();
     rs485_rts_enable(true);
     rs485_bytes_send(buffer, 8);
     /* send any data */
-    if (pdu_len) {
+    if (data_len) {
         /* calculate CRC for any data */
-        for (i = 0; i < pdu_len; i++) {
-            crc16 = CRC_Calc_Data(pdu[i], crc16);
+        for (i = 0; i < data_len; i++) {
+            crc16 = CRC_Calc_Data(data[i], crc16);
         }
         crc16 = ~crc16;
         buffer[0] = (crc16 & 0x00FF);
         buffer[1] = ((crc16 & 0xFF00) >> 8);
-        rs485_bytes_send(pdu, pdu_len);
+        rs485_bytes_send(data, data_len);
         rs485_bytes_send(buffer, 2);
     }
     rs485_rts_enable(false);
@@ -724,11 +724,8 @@ static bool MSTP_Master_Node_FSM(
     bool transition_now = false;
 
     /* some calculations that several states need */
-    /* (PS+1) modulo (Nmax_master+1) */
     next_poll_station = (Poll_Station + 1) % (Nmax_master + 1);
-    /* (TS+1) modulo (Nmax_master+1) */
     next_this_station = (This_Station + 1) % (Nmax_master + 1);
-    /* (NS +1) modulo (Nmax_master+1) */
     next_next_station = (Next_Station + 1) % (Nmax_master + 1);
     log_master_state(Master_State);
     switch (Master_State) {
@@ -926,7 +923,8 @@ static bool MSTP_Master_Node_FSM(
             }
             /* Npoll changed in Errata SSPC-135-2004 */
             else if (TokenCount < (Npoll - 1)) {
-                if (MSTP_Flag.SoleMaster == true) {
+                if ((MSTP_Flag.SoleMaster == true) &&
+                    (Next_Station != next_this_station)) {
                     /* SoleMaster */
                     /* there are no other known master nodes to */
                     /* which the token may be sent
@@ -936,30 +934,21 @@ static bool MSTP_Master_Node_FSM(
                     Master_State = MSTP_MASTER_STATE_USE_TOKEN;
                     transition_now = true;
                 } else {
-                    if (Next_Station == This_Station) {
-                        /* NextStationUnknown - added in Addendum 135-2008v-1 */
-                        Poll_Station = next_this_station;
-                        MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, 
-                            Poll_Station, This_Station, NULL, 0);
-                        RetryCount = 0;
-                        Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
-                    } else if (Next_Station == next_this_station) {
-                        /* SendToken */
-                        /* Npoll changed in Errata SSPC-135-2004 */
-                        /* The comparison of NS and TS+1
-                           eliminates the Poll For Master
-                           if there are no addresses between
-                           TS and NS, since there is no
-                           address at which a new master node
-                           may be found in that case. */
-                        TokenCount++;
-                        /* transmit a Token frame to NS */
-                        MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
-                            This_Station, NULL, 0);
-                        RetryCount = 0;
-                        EventCount = 0;
-                        Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
-                    }
+                    /* SendToken */
+                    /* Npoll changed in Errata SSPC-135-2004 */
+                    /* The comparison of NS and TS+1
+                       eliminates the Poll For Master
+                       if there are no addresses between
+                       TS and NS, since there is no
+                       address at which a new master node
+                       may be found in that case. */
+                    TokenCount++;
+                    /* transmit a Token frame to NS */
+                    MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                        This_Station, NULL, 0);
+                    RetryCount = 0;
+                    EventCount = 0;
+                    Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
                 }
             } else if (next_poll_station == Next_Station) {
                 if (MSTP_Flag.SoleMaster == true) {

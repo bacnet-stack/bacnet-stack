@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2007-2010 Steve Karg
+ Copyright (C) 2007 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -159,13 +159,13 @@ static uint8_t This_Station;
 /* nodes. This may be used to allocate more or less of the available link */
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
-static uint8_t Nmax_info_frames = 1;
+static uint8_t Nmax_info_frames;
 /* This parameter represents the value of the Max_Master property of the */
 /* node's Device object. The value of Max_Master specifies the highest */
 /* allowable address for master nodes. The value of Max_Master shall be */
 /* less than or equal to 127. If Max_Master is not writable in a node, */
 /* its value shall be 127. */
-static uint8_t Nmax_master = 127;
+static uint8_t Nmax_master;
 /* An array of octets, used to store octets for transmitting */
 /* OutputBuffer is indexed from 0 to OutputBufferSize-1. */
 /* The MAX_PDU size of a frame is MAX_APDU + MAX_NPDU octets. */
@@ -191,7 +191,7 @@ static uint8_t TransmitPacketDest;
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
-#define Tusage_timeout 60
+#define Tusage_timeout 25
 
 /* The number of tokens received or used before a Poll For Master cycle */
 /* is executed: 50. */
@@ -241,7 +241,7 @@ static uint8_t TransmitPacketDest;
 bool dlmstp_init(
     char *ifname)
 {
-    ifname = ifname;
+    (void) ifname;
     /* initialize hardware */
     RS485_Initialize();
 
@@ -403,8 +403,8 @@ static void MSTP_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination,        /* destination address */
     uint8_t source,     /* source address */
-    uint8_t * pdu,      /* any data to be sent - may be null */
-    uint16_t pdu_len)
+    uint8_t * data,     /* any data to be sent - may be null */
+    uint16_t data_len)
 {       /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
@@ -420,24 +420,24 @@ static void MSTP_Send_Frame(
     crc8 = CRC_Calc_Header(buffer[3], crc8);
     buffer[4] = source;
     crc8 = CRC_Calc_Header(buffer[4], crc8);
-    buffer[5] = HI_BYTE(pdu_len);
+    buffer[5] = HI_BYTE(data_len);
     crc8 = CRC_Calc_Header(buffer[5], crc8);
-    buffer[6] = LO_BYTE(pdu_len);
+    buffer[6] = LO_BYTE(data_len);
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
     RS485_Turnaround_Delay();
     RS485_Transmitter_Enable(true);
     RS485_Send_Data(buffer, 8);
     /* send any data */
-    if (pdu_len) {
+    if (data_len) {
         /* calculate CRC for any data */
-        for (i = 0; i < pdu_len; i++) {
-            crc16 = CRC_Calc_Data(pdu[i], crc16);
+        for (i = 0; i < data_len; i++) {
+            crc16 = CRC_Calc_Data(data[i], crc16);
         }
         crc16 = ~crc16;
         buffer[0] = (crc16 & 0x00FF);
         buffer[1] = ((crc16 & 0xFF00) >> 8);
-        RS485_Send_Data(pdu, pdu_len);
+        RS485_Send_Data(data, data_len);
         RS485_Send_Data(buffer, 2);
     }
     RS485_Transmitter_Enable(false);
@@ -704,11 +704,8 @@ static bool MSTP_Master_Node_FSM(
     bool transition_now = false;
 
     /* some calculations that several states need */
-    /* (PS+1) modulo (Nmax_master+1) */
     next_poll_station = (Poll_Station + 1) % (Nmax_master + 1);
-    /* (TS+1) modulo (Nmax_master+1) */
     next_this_station = (This_Station + 1) % (Nmax_master + 1);
-    /* (NS +1) modulo (Nmax_master+1) */
     next_next_station = (Next_Station + 1) % (Nmax_master + 1);
     switch (Master_State) {
         case MSTP_MASTER_STATE_INITIALIZE:
@@ -905,7 +902,8 @@ static bool MSTP_Master_Node_FSM(
             }
             /* Npoll changed in Errata SSPC-135-2004 */
             else if (TokenCount < (Npoll - 1)) {
-                if (MSTP_Flag.SoleMaster == true) {
+                if ((MSTP_Flag.SoleMaster == true) &&
+                    (Next_Station != next_this_station)) {
                     /* SoleMaster */
                     /* there are no other known master nodes to */
                     /* which the token may be sent
@@ -915,30 +913,21 @@ static bool MSTP_Master_Node_FSM(
                     Master_State = MSTP_MASTER_STATE_USE_TOKEN;
                     transition_now = true;
                 } else {
-                    if (Next_Station == This_Station) {
-                        /* NextStationUnknown - added in Addendum 135-2008v-1 */
-                        Poll_Station = next_this_station;
-                        MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, 
-                            Poll_Station, This_Station, NULL, 0);
-                        RetryCount = 0;
-                        Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
-                    } else if (Next_Station == next_this_station) {
-                        /* SendToken */
-                        /* Npoll changed in Errata SSPC-135-2004 */
-                        /* The comparison of NS and TS+1
-                           eliminates the Poll For Master
-                           if there are no addresses between
-                           TS and NS, since there is no
-                           address at which a new master node
-                           may be found in that case. */
-                        TokenCount++;
-                        /* transmit a Token frame to NS */
-                        MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
-                            This_Station, NULL, 0);
-                        RetryCount = 0;
-                        EventCount = 0;
-                        Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
-                    }
+                    /* SendToken */
+                    /* Npoll changed in Errata SSPC-135-2004 */
+                    /* The comparison of NS and TS+1
+                       eliminates the Poll For Master
+                       if there are no addresses between
+                       TS and NS, since there is no
+                       address at which a new master node
+                       may be found in that case. */
+                    TokenCount++;
+                    /* transmit a Token frame to NS */
+                    MSTP_Send_Frame(FRAME_TYPE_TOKEN, Next_Station,
+                        This_Station, NULL, 0);
+                    RetryCount = 0;
+                    EventCount = 0;
+                    Master_State = MSTP_MASTER_STATE_PASS_TOKEN;
                 }
             } else if (next_poll_station == Next_Station) {
                 if (MSTP_Flag.SoleMaster == true) {
@@ -1012,7 +1001,7 @@ static bool MSTP_Master_Node_FSM(
                 }
             }
             break;
-            /* The NO_TOKEN state is entered if Silence Timer
+            /* The NO_TOKEN state is entered if Timer_Silence()
                becomes greater than Tno_token, indicating that
                there has been no network activity for that period
                of time. The timeout is continued to determine
