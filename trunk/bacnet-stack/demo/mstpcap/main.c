@@ -83,6 +83,7 @@ struct mstp_statistics {
 };
 
 static struct mstp_statistics MSTP_Statistics[256];
+static uint32_t Invalid_Frame_Count;
 
 static uint32_t timeval_diff_ms(
     struct timeval *old,
@@ -202,6 +203,7 @@ static void packet_statistics_save(
     void)
 {
     unsigned i; /* loop counter */
+    unsigned node_count = 0;
 
     fprintf(stdout, "\r\n");
     /* separate with tabs (8) keep words under 8 characters */
@@ -213,6 +215,7 @@ static void packet_statistics_save(
         /* check for masters or slaves */
         if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
             || (MSTP_Statistics[i].pfm_count)) {
+            node_count++;
             fprintf(stdout, "%u\t%u", i,
                 (unsigned) MSTP_Statistics[i].max_master);
             fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
@@ -227,6 +230,9 @@ static void packet_statistics_save(
             fprintf(stdout, "\r\n");
         }
     }
+    fprintf(stdout, "Node Count: %u\r\n", node_count);
+    fprintf(stdout, "Invalid Frame Count: %lu\r\n", 
+        (long unsigned int)Invalid_Frame_Count);
 }
 
 static void packet_statistics_clear(
@@ -244,6 +250,7 @@ static void packet_statistics_clear(
         MSTP_Statistics[i].der_reply = 0;
         MSTP_Statistics[i].reply_postponed = 0;
     }
+    Invalid_Frame_Count = 0;
 }
 
 static uint16_t Timer_Silence(
@@ -460,7 +467,9 @@ static void write_received_packet(
         gettimeofday(&tv, NULL);
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
-        packet_statistics(&tv, mstp_port);
+        if (mstp_port->ReceivedValidFrame) {
+            packet_statistics(&tv, mstp_port);
+        }
         (void) data_write(&ts_sec, sizeof(ts_sec), 1);
         (void) data_write(&ts_usec, sizeof(ts_usec), 1);
         if (mstp_port->DataLength) {
@@ -611,13 +620,14 @@ int main(
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
-            mstp_port->ReceivedValidFrame = false;
             write_received_packet(mstp_port);
+            mstp_port->ReceivedValidFrame = false;
             packet_count++;
         } else if (mstp_port->ReceivedInvalidFrame) {
-            mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
             write_received_packet(mstp_port);
+            Invalid_Frame_Count++;
+            mstp_port->ReceivedInvalidFrame = false;
             packet_count++;
         }
         if (!(packet_count % 100)) {
