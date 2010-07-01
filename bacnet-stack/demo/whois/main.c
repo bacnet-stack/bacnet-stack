@@ -113,12 +113,14 @@ static void print_address_cache(
     BACNET_ADDRESS address;
     uint32_t device_id = 0;
     unsigned max_apdu = 0;
+    unsigned total_addresses = 0;
 
     printf(";%-7s %-20s %-5s %-20s %-4s\n", "Device", "MAC", "SNET", "SADR",
         "APDU");
     printf(";------- -------------------- ----- -------------------- ----\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
+            total_addresses++;
             printf(" %-7u ", device_id);
             for (j = 0; j < MAX_MAC_LEN; j++) {
                 if (j < address.mac_len) {
@@ -158,6 +160,7 @@ static void print_address_cache(
             printf("\n");
         }
     }
+    printf(";\n; Total Devices: %u\n", total_addresses);
 }
 
 int main(
