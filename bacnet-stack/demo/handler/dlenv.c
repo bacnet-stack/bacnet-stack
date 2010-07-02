@@ -38,16 +38,84 @@
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 
-/** Initialize the DataLink configuration from Environment variables, 
+/* timer used to renew Foreign Device Registration */
+static uint16_t BBMD_Timer_Seconds;
+
+/** Register as a Foreign Device
+ * @ingroup DataLink
+ * The Environment Variables depend on defines BACDL_BIP and BBMD_ENABLED:
+ *     - BACNET_BBMD_PORT - 0..65534, defaults to 47808
+ *     - BACNET_BBMD_TIMETOLIVE - 0..65535 seconds, defaults to 60000
+ *     - BACNET_BBMD_ADDRESS - dotted IPv4 address
+ */
+void dlenv_register_as_foreign_device(void)
+{
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    char *pEnv = NULL;
+    long bbmd_timetolive_seconds = 60000;
+    long bbmd_port = 0xBAC0;
+    long bbmd_address = 0;
+
+    pEnv = getenv("BACNET_BBMD_PORT");
+    if (pEnv) {
+        bbmd_port = strtol(pEnv, NULL, 0);
+        if (bbmd_port > 0xFFFF) {
+            bbmd_port = 0xBAC0;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
+    if (pEnv) {
+        bbmd_timetolive_seconds = strtol(pEnv, NULL, 0);
+        if (bbmd_timetolive_seconds > 0xFFFF) {
+            bbmd_timetolive_seconds = 0xFFFF;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD_ADDRESS");
+    if (pEnv) {
+        bbmd_address = bip_getaddrbyname(pEnv);
+        if (bbmd_address) {
+            struct in_addr addr;
+            addr.s_addr = bbmd_address;
+            fprintf(stderr,
+                "Registering with BBMD at %s:%ld for %ld seconds\n",
+                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, (uint16_t)bbmd_port,
+                (uint16_t)bbmd_timetolive_seconds);
+            BBMD_Timer_Seconds = bbmd_timetolive_seconds;
+        }
+    }
+#endif
+}
+
+/** Datalink maintenance timer
+ * @ingroup DataLink
+ *
+ * Call this function to renew Foreign Device Registration
+ */
+void dlenv_maintenance_timer(uint16_t elapsed_seconds)
+{
+    if (BBMD_Timer_Seconds) {
+        if (BBMD_Timer_Seconds <= elapsed_seconds) {
+            BBMD_Timer_Seconds = 0;
+        } else {
+            BBMD_Timer_Seconds -= elapsed_seconds;
+        }
+        if (BBMD_Timer_Seconds == 0) {
+            dlenv_register_as_foreign_device();
+        }
+    }
+}
+
+/** Initialize the DataLink configuration from Environment variables,
  * or else to defaults.
  * @ingroup DataLink
  * The items configured depend on which BACDL_ the code is built for,
- * eg, BACDL_BIP. 
- * 
+ * eg, BACDL_BIP.
+ *
  * For most items, checks first for an environment variable, and, if
  * found, uses that to set the item's value.  Otherwise, will set
- * to a default value. 
- * 
+ * to a default value.
+ *
  * The Environment Variables, by BACDL_ type, are:
  * - BACDL_ALL: (the general-purpose solution)
  *   - BACNET_DATALINK to set which BACDL_ type we are using.
@@ -70,11 +138,6 @@ void dlenv_init(
     void)
 {
     char *pEnv = NULL;
-#if defined(BACDL_BIP) && BBMD_ENABLED
-    long bbmd_port = 0xBAC0;
-    long bbmd_address = 0;
-    long bbmd_timetolive_seconds = 60000;
-#endif
 
 #if defined(BACDL_ALL)
     pEnv = getenv("BACNET_DATALINK");
@@ -143,33 +206,5 @@ void dlenv_init(
     if (pEnv) {
         tsm_invokeID_set((uint8_t) strtol(pEnv, NULL, 0));
     }
-#if defined(BACDL_BIP) && BBMD_ENABLED
-    pEnv = getenv("BACNET_BBMD_PORT");
-    if (pEnv) {
-        bbmd_port = strtol(pEnv, NULL, 0);
-        if (bbmd_port > 0xFFFF) {
-            bbmd_port = 0xBAC0;
-        }
-    }
-    pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
-    if (pEnv) {
-        bbmd_timetolive_seconds = strtol(pEnv, NULL, 0);
-        if (bbmd_timetolive_seconds > 0xFFFF) {
-            bbmd_timetolive_seconds = 0xFFFF;
-        }
-    }
-    pEnv = getenv("BACNET_BBMD_ADDRESS");
-    if (pEnv) {
-        bbmd_address = bip_getaddrbyname(pEnv);
-        if (bbmd_address) {
-            struct in_addr addr;
-            addr.s_addr = bbmd_address;
-            fprintf(stderr,
-                "Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(bbmd_address, (uint16_t)bbmd_port,
-                (uint16_t)bbmd_timetolive_seconds);
-        }
-    }
-#endif
+    dlenv_register_as_foreign_device();
 }
