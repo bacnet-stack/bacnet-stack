@@ -31,6 +31,8 @@ extern "C" {
 
     void dlenv_init(
         void);
+    void dlenv_register_as_foreign_device(void);
+    void dlenv_maintenance_timer(uint16_t elapsed_seconds);
 
 #ifdef __cplusplus
 }

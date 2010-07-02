@@ -53,7 +53,7 @@
 
 /** @file server/main.c  Example server application using the BACnet Stack. */
 
-/* (Doxygen note: The next two lines pull all the following Javadoc 
+/* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the ServerDemo module.) */
 /** @addtogroup ServerDemo */
 /*@{*/
@@ -116,12 +116,12 @@ static void cleanup(
 
 /** Main function of server demo.
  *
- * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am, 
+ * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
  *      datalink_receive, npdu_handler,
- *      dcc_timer_seconds, bvlc_maintenance_timer, 
- *      Load_Control_State_Machine_Handler, handler_cov_task, 
+ *      dcc_timer_seconds, bvlc_maintenance_timer,
+ *      Load_Control_State_Machine_Handler, handler_cov_task,
  *      tsm_timer_milliseconds
- *  
+ *
  * @param argc [in] Arg count.
  * @param argv [in] Takes one argument: the Device Instance #.
  * @return 0 on success.
@@ -173,6 +173,7 @@ int main(
 #if defined(BACDL_BIP) && BBMD_ENABLED
             bvlc_maintenance_timer(elapsed_seconds);
 #endif
+            dlenv_maintenance_timer(elapsed_seconds);
             Load_Control_State_Machine_Handler();
             elapsed_milliseconds = elapsed_seconds * 1000;
             handler_cov_task(elapsed_seconds);
