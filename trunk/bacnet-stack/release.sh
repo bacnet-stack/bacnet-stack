@@ -3,7 +3,6 @@
 
 PROJECT=bacnet
 SVN_MODULE=bacnet-stack
-CHANGELOG=ChangeLog
 FRS_URL=skarg,bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet/bacnet-stack
 
 if [ -z "$1" ]
@@ -18,10 +17,10 @@ fi
 # convert 0.0.0 to 0-0-0
 DOTTED_VERSION="$1"
 DASHED_VERSION="$(echo "$1" | sed 's/[\.*]/-/g')"
-
 echo "Creating the release files for version ${DOTTED_VERSION}"
 
-echo "Creating the ${PROJECT} change log..."
+CHANGELOG=ChangeLog-${DOTTED_VERSION}
+echo "Creating the ${PROJECT} change log ${CHANGELOG}"
 rm ${CHANGELOG}
 svn update
 svn log --xml --verbose | xsltproc svn2cl.xsl - > ${CHANGELOG}
@@ -39,7 +38,7 @@ SVN_BASE_URL=https://${PROJECT}.svn.sourceforge.net/svnroot/${PROJECT}
 SVN_TRUNK_NAME=${SVN_BASE_URL}/trunk/${SVN_MODULE}
 SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${TAGGED_NAME}
 echo "Setting a tag on the ${SVN_MODULE} module called ${TAGGED_NAME}"
-svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m "Created version ${ARCHIVE_NAME}" 
+svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m "Created version ${ARCHIVE_NAME}"
 echo "done."
 
 echo "Getting a clean version out of subversion for Linux gzip"
