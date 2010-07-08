@@ -158,7 +158,7 @@ bool timer_elapsed_minutes_short(
     struct etimer *t,
     uint16_t value)
 {
-    return timer_elapsed_minutes_short(t, value);
+    return timer_elapsed_minutes(t, value);
 }
 
 /*************************************************************************
