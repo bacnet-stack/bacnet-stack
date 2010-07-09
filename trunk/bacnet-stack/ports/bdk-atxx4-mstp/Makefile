@@ -30,8 +30,8 @@ SIZE_OPTIONS = -t
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
 #AVRDUDE_PROGRAMMERID = avr109
-AVRDUDE_PROGRAMMERID = jtag2fast
-#AVRDUDE_PROGRAMMERID = avrispmkII
+#AVRDUDE_PROGRAMMERID = jtag2fast
+AVRDUDE_PROGRAMMERID = avrispmkII
 #AVRDUDE_PROGRAMMERID = dragon_isp
 #AVRDUDE_PROGRAMMERID = dragon_jtag
 #
@@ -214,7 +214,6 @@ AVRDUDE_FLAGS += -p $(AVRDUDE_MCU)
 AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
 AVRDUDE_FLAGS += -B 8
 
-
 # Fuse high byte (0=enable,1=disable):
 # 0x93 = 1 0 0 1   0 0 1 1
 # 0x17 = 0 0 0 1   0 1 1 1 - default
@@ -278,6 +277,7 @@ TARGET_ELF=$(TARGET).elf
 
 all: $(LIBRARY) \
 	$(TARGET_ELF) \
+	$(TARGET).bin \
 	$(TARGET).hex \
 	$(TARGET).eep \
 	$(TARGET).lst \
@@ -289,6 +289,9 @@ $(TARGET_ELF): $(OBJECTS) $(LIBRARY)
 
 %.hex: $(TARGET_ELF)
 	$(OBJCOPY) -O ihex $(HEX_FLASH_FLAGS) $< $@
+
+%.bin:  $(TARGET_ELF)
+	$(OBJCOPY) --output-target=binary $(HEX_FLASH_FLAGS) $< $@
 
 %.eep: $(TARGET_ELF)
 	-$(OBJCOPY) $(HEX_EEPROM_FLAGS) -O ihex $< $@ || exit 0
