@@ -122,7 +122,7 @@ LDFLAGS = $(COMMON)
 #dead code removal
 #LDFLAGS += -Wl,-nostartfiles,-nostdlib
 LDFLAGS += -Wl,--gc-sections,-static
-LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
+LDFLAGS += -Wl,-Map=$(TARGET).map,-L.,-l$(TARGET)
 #LDFLAGS += -Wl,-Map=$(TARGET).map
 
 ## Intel Hex file production flags

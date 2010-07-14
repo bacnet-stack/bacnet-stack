@@ -107,7 +107,7 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 LDFLAGS = $(COMMON)
 #dead code removal
 LDFLAGS += -Wl,--gc-sections,-static
-LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
+LDFLAGS += -Wl,-Map=$(TARGET).map,-L.,-l$(TARGET)
 #LDFLAGS += -Wl,-Map=$(TARGET).map
 
 ## Intel Hex file production flags
