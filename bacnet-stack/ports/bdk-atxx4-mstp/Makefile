@@ -198,7 +198,7 @@ LDFLAGS = $(COMMON)
 LDFLAGS += -Wl,--gc-sections,-static
 LDFLAGS += -Wl,--section-start=.bootloader=$(BOOTLOAD)
 LDFLAGS += -Wl,-Map=$(TARGET).map
-LDFLAGS += -Wl,-L=.,-l$(TARGET)
+LDFLAGS += -Wl,-L.,-l$(TARGET)
 
 ## Intel Hex file production flags
 HEX_FLASH_FLAGS = -R .eeprom -R .fuse -R .lock -R .signature

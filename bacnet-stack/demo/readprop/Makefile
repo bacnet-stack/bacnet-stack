@@ -1,6 +1,6 @@
 #Makefile to build BACnet Application using GCC compiler
 
-# tools - only if you need them.  
+# tools - only if you need them.
 # Most platforms have this already defined
 # CC = gcc
 
@@ -28,11 +28,11 @@ INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR)
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_BIN = ${TARGET}
-LIBRARIES=-lc,-lgcc,-lm,-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARIES=-lc,-lgcc,-lm,-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_BIN = ${TARGET}.exe
-LIBRARY1=-L=$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 LIBRARY2=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
 LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif

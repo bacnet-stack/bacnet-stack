@@ -18,12 +18,12 @@ LINT = splint
 # programmer id--check the avrdude for complete list
 # # of available opts.  These should include stk500,
 # # avr910, avrisp, bsd, pony and more.  Set this to
-# # one of the valid "-c PROGRAMMER-ID" values 
+# # one of the valid "-c PROGRAMMER-ID" values
 # # described in the avrdude info page.
-# # 
+# #
 AVRDUDE_PROGRAMMERID = avrispmkII
 #
-# # port--serial or parallel port to which your 
+# # port--serial or parallel port to which your
 # # hardware programmer is attached
 # #
 AVRDUDE_PORT = /dev/ttyUSB0
@@ -142,7 +142,7 @@ LDFLAGS = $(COMMON)
 #dead code removal
 #LDFLAGS += -Wl,-nostartfiles,-nostdlib
 LDFLAGS += -Wl,--gc-sections,-static
-LDFLAGS += -Wl,-Map=$(TARGET).map,-L=.,-l$(TARGET)
+LDFLAGS += -Wl,-Map=$(TARGET).map,-L.,-l$(TARGET)
 #LDFLAGS += -Wl,-Map=$(TARGET).map
 
 ## Intel Hex file production flags
@@ -188,7 +188,7 @@ size: ${TARGET_ELF}
 	@${SIZE} ${TARGET_ELF}
 
 lint:
-	$(LINT) $(BFLAGS) $(CSRC) 
+	$(LINT) $(BFLAGS) $(CSRC)
 
 install: $(TARGET_ELF)
 	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)   \

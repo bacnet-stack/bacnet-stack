@@ -34,7 +34,7 @@ LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 #  -Wl,<options> Pass comma-separated <options> on to the linker
-LIBRARIES=-lc,-lgcc,-lm,-L=.,-l$(TARGET)
+LIBRARIES=-lc,-lgcc,-lm,-L.,-l$(TARGET)
 LDFLAGS = -nostartfiles
 LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
 # dead code removal
