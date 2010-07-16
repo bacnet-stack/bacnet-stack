@@ -160,7 +160,7 @@ static uint8_t This_Station;
 /* nodes. This may be used to allocate more or less of the available link */
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
-static uint8_t Nmax_info_frames = 1;
+#define Nmax_info_frames 1
 /* This parameter represents the value of the Max_Master property of the */
 /* node's Device object. The value of Max_Master specifies the highest */
 /* allowable address for master nodes. The value of Max_Master shall be */
@@ -1281,16 +1281,7 @@ uint8_t dlmstp_mac_address(
 void dlmstp_set_max_info_frames(
     uint8_t max_info_frames)
 {
-    if (max_info_frames >= 1) {
-        Nmax_info_frames = max_info_frames;
-        /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS,
-           (uint8_t)max_info_frames,
-           EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
-    }
-
-    return;
+    /* not writable - fixed at 1 */
 }
 
 uint8_t dlmstp_max_info_frames(
