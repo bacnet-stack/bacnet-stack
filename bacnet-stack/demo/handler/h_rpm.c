@@ -174,14 +174,14 @@ static int RPM_Encode_Property(
  *   - if decoding fails
  *   - if the response would be too large
  * - the result from each included read request, if it succeeds
- * - an Error if processing fails for all, or individual errors if only some fail, 
+ * - an Error if processing fails for all, or individual errors if only some fail,
  *   or there isn't enough room in the APDU to fit the data.
- * 
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_read_property_multiple(
     uint8_t * service_request,
@@ -227,7 +227,7 @@ void handler_read_property_multiple(
         len =
             rpm_decode_object_id(&service_request[decode_len],
             service_len - decode_len, &rpmdata);
-        if (len >= 0) { /* Got one so skip to next stage */ 
+        if (len >= 0) { /* Got one so skip to next stage */
             decode_len += len;
         } else { /* bad encoding - skip to error/reject/abort handling */
 #if PRINT_ENABLED
@@ -265,7 +265,6 @@ void handler_read_property_multiple(
                 error = len;
                 goto RPM_FAILURE;
             }
-
             decode_len += len;
             /* handle the special properties */
             if ((rpmdata.object_property == PROP_ALL) ||
@@ -276,27 +275,31 @@ void handler_read_property_multiple(
                 unsigned index = 0;
                 BACNET_PROPERTY_ID special_object_property;
 
-                special_object_property = rpmdata.object_property;
-                Device_Objects_Property_List(rpmdata.object_type, &property_list);
-                property_count =
-                    RPM_Object_Property_Count(&property_list,
-                    special_object_property);
-                if (property_count == 0) {
-                    /* handle the error code - but use the special property */
+                if (rpmdata.array_index != BACNET_ARRAY_ALL) {
+                    /*  No array index options for this special property.
+                        Encode error for this object property response */
                     len =
-                        RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                        (uint16_t)(npdu_len + apdu_len), MAX_APDU, &rpmdata);
-                    if (len > 0) {
-                        apdu_len += len;
-                    } else {
-                        error = len;
+                        rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
+                        ERROR_CLASS_PROPERTY,
+                        ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY);
+                    copy_len =
+                        memcopy(&Handler_Transmit_Buffer[0],
+                            &Temp_Buf[0], npdu_len + apdu_len,
+                            len, sizeof(Handler_Transmit_Buffer));
+                    if (copy_len == 0) {
+                        rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        error = BACNET_STATUS_ABORT;
                         goto RPM_FAILURE;
                     }
+                    apdu_len += len;
                 } else {
-                    for (index = 0; index < property_count; index++) {
-                        rpmdata.object_property =
-                            RPM_Object_Property(&property_list,
-                            special_object_property, index);
+                    special_object_property = rpmdata.object_property;
+                    Device_Objects_Property_List(rpmdata.object_type, &property_list);
+                    property_count =
+                        RPM_Object_Property_Count(&property_list,
+                        special_object_property);
+                    if (property_count == 0) {
+                        /* handle the error code - but use the special property */
                         len =
                             RPM_Encode_Property(&Handler_Transmit_Buffer[0],
                             (uint16_t)(npdu_len + apdu_len), MAX_APDU, &rpmdata);
@@ -305,6 +308,21 @@ void handler_read_property_multiple(
                         } else {
                             error = len;
                             goto RPM_FAILURE;
+                        }
+                    } else {
+                        for (index = 0; index < property_count; index++) {
+                            rpmdata.object_property =
+                                RPM_Object_Property(&property_list,
+                                special_object_property, index);
+                            len =
+                                RPM_Encode_Property(&Handler_Transmit_Buffer[0],
+                                (uint16_t)(npdu_len + apdu_len), MAX_APDU, &rpmdata);
+                            if (len > 0) {
+                                apdu_len += len;
+                            } else {
+                                error = len;
+                                goto RPM_FAILURE;
+                            }
                         }
                     }
                 }
@@ -358,7 +376,7 @@ void handler_read_property_multiple(
     RPM_FAILURE:
     if (error) {
         if (error == BACNET_STATUS_ABORT) {
-            /* Kludge alert! At the moment we assume any abort is due to 
+            /* Kludge alert! At the moment we assume any abort is due to
              * to space issues due to segmentation or lack thereof. I wanted to show the proper
              * handling via the abort_convert_error_code() so I put the error code
              * in here, if you are sure all aborts properly set up the error_code then
@@ -375,7 +393,7 @@ void handler_read_property_multiple(
         } else if (error == BACNET_STATUS_ERROR){
             apdu_len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
                 rpmdata.error_class, rpmdata.error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Error!\n");
