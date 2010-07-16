@@ -115,10 +115,10 @@ static const int *pPropList = NULL;
 #define MINIMAL_PROPLIST_SIZE 4
 static int32_t MinimalPropList[MINIMAL_PROPLIST_SIZE] =
 {
-	    PROP_OBJECT_IDENTIFIER,
-	    PROP_OBJECT_NAME,
-	    PROP_OBJECT_TYPE,
-	    -1
+        PROP_OBJECT_IDENTIFIER,
+        PROP_OBJECT_NAME,
+        PROP_OBJECT_TYPE,
+        -1
 };
 
 /* When we have to walk through an array of things, like ObjectIDs or
@@ -149,9 +149,9 @@ static void MyErrorHandler(
     (void) invoke_id;
 #if PRINT_ERRORS
     if ( ShowValues )
-    	fprintf(stderr, "-- BACnet Error: %s: %s\r\n",
-    			bactext_error_class_name(error_class),
-    			bactext_error_code_name(error_code));
+        fprintf(stderr, "-- BACnet Error: %s: %s\r\n",
+                bactext_error_class_name(error_class),
+                bactext_error_code_name(error_code));
 #endif
     Error_Detected = true;
     Last_Error_Class = error_class;
@@ -171,15 +171,15 @@ void MyAbortHandler(
 #if PRINT_ERRORS
     /* It is normal for this to fail, so don't print. */
     if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues )
-    	fprintf(stderr, "-- BACnet Abort: %s \r\n",
+        fprintf(stderr, "-- BACnet Abort: %s \r\n",
             bactext_abort_reason_name(abort_reason));
 #endif
     Error_Detected = true;
     Last_Error_Class = ERROR_CLASS_SERVICES;
     if ( abort_reason < MAX_BACNET_ABORT_REASON )
-    	Last_Error_Code = (ERROR_CODE_ABORT_BUFFER_OVERFLOW -1) + abort_reason;
+        Last_Error_Code = (ERROR_CODE_ABORT_BUFFER_OVERFLOW -1) + abort_reason;
     else
-    	Last_Error_Code = ERROR_CODE_ABORT_OTHER;
+        Last_Error_Code = ERROR_CODE_ABORT_OTHER;
 }
 
 void MyRejectHandler(
@@ -192,14 +192,14 @@ void MyRejectHandler(
     (void) invoke_id;
 #if PRINT_ERRORS
     if ( ShowValues )
-    	fprintf(stderr, "BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
+        fprintf(stderr, "BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
 #endif
     Error_Detected = true;
     Last_Error_Class = ERROR_CLASS_SERVICES;
     if ( reject_reason < MAX_BACNET_REJECT_REASON )
-    	Last_Error_Code = (ERROR_CODE_REJECT_BUFFER_OVERFLOW -1) + reject_reason;
+        Last_Error_Code = (ERROR_CODE_REJECT_BUFFER_OVERFLOW -1) + reject_reason;
     else
-    	Last_Error_Code = ERROR_CODE_REJECT_OTHER;
+        Last_Error_Code = ERROR_CODE_REJECT_OTHER;
 }
 
 void MyReadPropertyAckHandler(
@@ -388,7 +388,7 @@ void PrintReadPropertyData(
     value = rpm_property->value;
     if (value == NULL) {
         /* Then we print the error information */
-    	fprintf(stderr, "?  -- BACnet Error: %s: %s\r\n",
+        fprintf(stderr, "?  -- BACnet Error: %s: %s\r\n",
             bactext_error_class_name((int) rpm_property->error.error_class),
             bactext_error_code_name((int) rpm_property->error.error_code));
         return;
@@ -505,13 +505,13 @@ void PrintReadPropertyData(
                  * screen these out here, unless ShowValues is true.  */
                 switch (rpm_property->propertyIdentifier) {
                     case PROP_DEVICE_ADDRESS_BINDING:
-                    	/* Make it VTS3-friendly and don't show "Null"
-                    	 * as a value. */
-                    	if ( value->tag == BACNET_APPLICATION_TAG_NULL ) {
+                        /* Make it VTS3-friendly and don't show "Null"
+                         * as a value. */
+                        if ( value->tag == BACNET_APPLICATION_TAG_NULL ) {
                             fprintf(stdout, "?");
                             break;
                         }
-                    	/* Else, fall through for normal processing. */
+                        /* Else, fall through for normal processing. */
                     case PROP_DAYLIGHT_SAVINGS_STATUS:
                     case PROP_LOCAL_DATE:
                     case PROP_LOCAL_TIME:
@@ -582,7 +582,7 @@ static uint8_t Read_Properties(
     int i;
 
     if ( ( !Has_RPM && ( Property_List_Index == 0 ) ) ||
-    	 ( Property_List_Length == 0) )
+         ( Property_List_Length == 0) )
     {
         /* If we failed to get the Properties with RPM, just settle for what we
          * know is the fixed list of Required (only) properties.
@@ -594,13 +594,13 @@ static uint8_t Read_Properties(
         if (pPropList != NULL) {
             Property_List_Length = PropertyListStruct.Required.count;
         } else {
-       		fprintf(stdout, "    -- Just Minimal Properties: \r\n" );
+            fprintf(stdout, "    -- Just Minimal Properties: \r\n" );
             pPropList = MinimalPropList;
             Property_List_Length = MINIMAL_PROPLIST_SIZE -1;
         }
         /* Copy this list for later one-by-one processing */
         for ( i = 0; i < Property_List_Length; i++ )
-        	Property_List[i] = pPropList[i];
+            Property_List[i] = pPropList[i];
         Property_List[i] = -1;		/* Just to be sure we terminate */
     } else
         pPropList = Property_List;
@@ -616,7 +616,7 @@ static uint8_t Read_Properties(
                 array_index = Walked_List_Index;
             }
         } else {
-        	fprintf(stdout, "    ");
+            fprintf(stdout, "    ");
             Print_Property_Identifier(prop);
             fprintf(stdout, ": ");
             array_index = BACNET_ARRAY_ALL;
@@ -766,41 +766,41 @@ int CheckCommandLineArgs(
     for (i = 1; i < argc; i++) {
         char *anArg = argv[i];
         if (anArg[0] == '-') {
-        	switch ( anArg[1] )
-        	{
-        	case 'v':
+            switch ( anArg[1] )
+            {
+            case 'v':
                 ShowValues = true;
                 break;
-        	case 'p':
-        		if ( ++i < argc )
-        			My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
-        		/* Used strtol so sport can be either 0xBAC0 or 47808 */
-        		break;
-        	case 't':
-        		if ( ++i < argc )
-        		{
-        			uint8_t *mac = Target_Address.mac;
-        			/* The %hhx specifies unsigned char */
-        			Target_Address.mac_len = sscanf( argv[i],
-        					"%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac[0],
-        					&mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-        			if ( Target_Address.mac_len == 6 )	/* success */
-        			{
-        				Target_Address.net = 0;
-        				Target_Address.len = 0;		/* No src address */
-        				Provided_Targ_MAC = true;
-        				break;
-        			}
-        			else
-        				printf( "ERROR: invalid Target MAC %s \r\n", argv[i] );
-        			/* And fall through to PrintUsage */
-        		}
-        		/* Either break or fall through, as above */
-        		/* break; */
-        	default:
+            case 'p':
+                if ( ++i < argc )
+                    My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
+                /* Used strtol so sport can be either 0xBAC0 or 47808 */
+                break;
+            case 't':
+                if ( ++i < argc )
+                {
+                    uint8_t *mac = Target_Address.mac;
+                    /* The %hhx specifies unsigned char */
+                    Target_Address.mac_len = sscanf( argv[i],
+                            "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac[0],
+                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+                    if ( Target_Address.mac_len == 6 )	/* success */
+                    {
+                        Target_Address.net = 0;
+                        Target_Address.len = 0;		/* No src address */
+                        Provided_Targ_MAC = true;
+                        break;
+                    }
+                    else
+                        printf( "ERROR: invalid Target MAC %s \r\n", argv[i] );
+                    /* And fall through to PrintUsage */
+                }
+                /* Either break or fall through, as above */
+                /* break; */
+            default:
                 PrintUsage();
                 break;
-        	}
+            }
         } else {
             /* decode the Target Device Instance parameter */
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
@@ -833,8 +833,7 @@ void StartNextObject( BACNET_READ_ACCESS_DATA *rpm_object, BACNET_OBJECT_ID *pNe
     rpm_object->listOfProperties = rpm_property;
     assert(rpm_property);
     rpm_property->propertyIdentifier = PROP_ALL;
-    /* Start with a count of the array size */
-    rpm_property->propertyArrayIndex = 0;
+    rpm_property->propertyArrayIndex = BACNET_ARRAY_ALL;
 }
 
 /** Main function of the bacepics program.
@@ -881,7 +880,7 @@ int main(
      * My_BIP_Port will be non-zero in this case.
      */
     if ( My_BIP_Port > 0 )
-    	bip_set_port( My_BIP_Port );
+        bip_set_port( My_BIP_Port );
     address_init();
     Init_Service_Handlers();
     dlenv_init();
@@ -891,21 +890,21 @@ int main(
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
 
     if ( My_BIP_Port > 0 )
-    	bip_set_port( 0xBAC0 ); 	/* Set back to std BACnet/IP port */
+        bip_set_port( 0xBAC0 ); 	/* Set back to std BACnet/IP port */
     /* try to bind with the target device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,
         &Target_Address);
     if (!found) {
         if ( Provided_Targ_MAC ) {
-        	/* Update by adding the MAC address */
-        	if ( max_apdu == 0 )
-        		max_apdu = MAX_APDU;	/* Whatever set for this datalink. */
+            /* Update by adding the MAC address */
+            if ( max_apdu == 0 )
+                max_apdu = MAX_APDU;	/* Whatever set for this datalink. */
             address_add_binding( Target_Device_Object_Instance, max_apdu,
                     &Target_Address);
         } else {
-			Send_WhoIs(Target_Device_Object_Instance,
-				Target_Device_Object_Instance);
+            Send_WhoIs(Target_Device_Object_Instance,
+                Target_Device_Object_Instance);
         }
     }
     printf("List of Objects in test device:\r\n");
@@ -943,7 +942,7 @@ int main(
                     /* increment timer - exit if timed out */
                     elapsed_seconds += (current_seconds - last_seconds);
                     if (elapsed_seconds > timeout_seconds) {
-                    	fprintf(stderr, "\rError: APDU Timeout!\r\n");
+                        fprintf(stderr, "\rError: APDU Timeout!\r\n");
                         break;
                     }
                     /* else, loop back and try again */
@@ -960,13 +959,10 @@ int main(
             case GET_LIST_OF_ALL_REQUEST:      /* differs in ArrayIndex only */
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
-            	StartNextObject( rpm_object, &myObject );
-            	/* Override the default and set the optional array index to "None" */
-            	if (myState == GET_ALL_REQUEST)
-                	rpm_object->listOfProperties->propertyArrayIndex = -1;
+                StartNextObject( rpm_object, &myObject );
                 invoke_id =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
-								Target_Device_Object_Instance, rpm_object);
+                                Target_Device_Object_Instance, rpm_object);
                 if (invoke_id > 0) {
                     if (myState == GET_LIST_OF_ALL_REQUEST)
                         myState = GET_LIST_OF_ALL_RESPONSE;
@@ -1002,20 +998,20 @@ int main(
                 } else if (tsm_invoke_id_free(invoke_id)) {
                     invoke_id = 0;
                     if (Error_Detected) {       /* The normal case for Device Object */
-                    	/* Was it because the Device can't do RPM? */
-                    	if ( Last_Error_Code == ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE )
-                    	{
-                    		Has_RPM = false;
+                        /* Was it because the Device can't do RPM? */
+                        if ( Last_Error_Code == ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE )
+                        {
+                            Has_RPM = false;
                             myState = GET_PROPERTY_REQUEST;
-                    	}
+                        }
                         /* Try again, just to get a list of properties. */
-                    	else if (myState == GET_ALL_RESPONSE)
+                        else if (myState == GET_ALL_RESPONSE)
                             myState = GET_LIST_OF_ALL_REQUEST;
                         /* Else drop back to RP. */
                         else
                         {
                             myState = GET_PROPERTY_REQUEST;
-                        	StartNextObject( rpm_object, &myObject );
+                            StartNextObject( rpm_object, &myObject );
                         }
                     }
                     else if ( Has_RPM )
@@ -1153,11 +1149,11 @@ int main(
                         myObject.type = MAX_BACNET_OBJECT_TYPE;
                     }
                     if ( Has_RPM )
-                    	myState = GET_ALL_REQUEST;
+                        myState = GET_ALL_REQUEST;
                     else
                     {
                         myState = GET_PROPERTY_REQUEST;
-                       	StartNextObject( rpm_object, &myObject );
+                        StartNextObject( rpm_object, &myObject );
                     }
 
                 } while (myObject.type == OBJECT_DEVICE);
@@ -1174,7 +1170,7 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-            	fprintf(stderr, "\rError: APDU Timeout!\r\n");
+                fprintf(stderr, "\rError: APDU Timeout!\r\n");
                 break;
             }
         }
@@ -1182,7 +1178,7 @@ int main(
     } while (myObject.type < MAX_BACNET_OBJECT_TYPE);
 
     if ( Error_Count > 0 )
-    	fprintf(stderr, "\r-- Found %d Errors \r\n", Error_Count );
+        fprintf(stderr, "\r-- Found %d Errors \r\n", Error_Count );
 
     /* Closing brace for all Objects */
     printf("} \r\n");
