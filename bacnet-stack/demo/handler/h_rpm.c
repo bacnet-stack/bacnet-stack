@@ -163,7 +163,6 @@ static int RPM_Encode_Property(
     return apdu_len;
 }
 
-
 /** Handler for a ReadPropertyMultiple Service request.
  * @ingroup DSRPM
  * This handler will be invoked by apdu_handler() if it has been enabled
@@ -278,6 +277,19 @@ void handler_read_property_multiple(
                 if (rpmdata.array_index != BACNET_ARRAY_ALL) {
                     /*  No array index options for this special property.
                         Encode error for this object property response */
+                    len =
+                        rpm_ack_encode_apdu_object_property(&Temp_Buf[0],
+                        rpmdata.object_property, rpmdata.array_index);
+                    copy_len =
+                        memcopy(&Handler_Transmit_Buffer[0],
+                            &Temp_Buf[0], npdu_len + apdu_len,
+                            len, sizeof(Handler_Transmit_Buffer));
+                    if (copy_len == 0) {
+                        rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        error = BACNET_STATUS_ABORT;
+                        goto RPM_FAILURE;
+                    }
+                    apdu_len += len;
                     len =
                         rpm_ack_encode_apdu_object_property_error(&Temp_Buf[0],
                         ERROR_CLASS_PROPERTY,
