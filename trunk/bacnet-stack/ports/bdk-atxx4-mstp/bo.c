@@ -69,7 +69,6 @@ static const int Binary_Output_Properties_Required[] = {
 };
 
 static const int Binary_Output_Properties_Optional[] = {
-    PROP_DESCRIPTION,
     PROP_ACTIVE_TEXT,
     PROP_INACTIVE_TEXT,
     -1
