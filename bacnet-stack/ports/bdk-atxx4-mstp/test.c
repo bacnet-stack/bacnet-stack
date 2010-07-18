@@ -39,9 +39,24 @@ static uint8_t MSTP_MAC_Address;
 void test_init(
     void)
 {
+#ifdef MSTP_MONITOR
+    serial_baud_rate_set(115200);
+#else
+    serial_baud_rate_set(9600);
+#endif
     timer_interval_start_seconds(&Test_Timer, 1);
 }
 
+#ifdef MSTP_MONITOR
+void test_task(
+    void)
+{
+    if (timer_interval_expired(&Test_Timer)) {
+        timer_interval_reset(&Test_Timer);
+        MSTP_MAC_Address = MSTP_MAC_Address;
+    }
+}
+#else
 void test_task(
     void)
 {
@@ -81,3 +96,4 @@ void test_task(
         serial_byte_transmit_complete();
     }
 }
+#endif
