@@ -61,6 +61,8 @@ CSRC = main.c \
 	eeprom.c \
 	seeprom.c \
 	dlmstp.c \
+	test.c \
+	bacnet.c \
 	device.c \
 	ai.c \
 	av.c \
@@ -156,7 +158,7 @@ endif
 
 ## BACnet options
 BFLAGS = -DBACDL_MSTP
-BFLAGS += -DMAX_APDU=128
+BFLAGS += -DMAX_APDU=256
 BFLAGS += -DBIG_ENDIAN=0
 BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 #BFLAGS += -DCRC_USE_TABLE

@@ -1,6 +1,6 @@
-/************************************************************************
+/**************************************************************************
 *
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -20,51 +20,22 @@
 * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*************************************************************************/
+*********************************************************************/
+#ifndef TEST_H
+#define TEST_H
 
-#include <stdbool.h>
 #include <stdint.h>
-#include "hardware.h"
-#include "init.h"
-#include "stack.h"
-#include "timer.h"
-#include "input.h"
-#include "led.h"
-#include "adc.h"
-#include "nvdata.h"
-#include "timer.h"
-#include "rs485.h"
-#include "serial.h"
-#include "bacnet.h"
-#include "test.h"
 
-/* local version override */
-const char *BACnet_Version = "1.0";
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
-/* For porting to IAR, see:
-   http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
+    void test_init(
+        void);
+    void test_task(
+        void);
 
-int main(
-    void)
-{
-    init();
-    adc_init();
-    led_init();
-    input_init();
-    timer_init();
-    seeprom_init();
-    rs485_init();
-    serial_init();
-    bacnet_init();
-    test_init();
-    /* Enable global interrupts */
-    __enable_interrupt();
-    for (;;) {
-        wdt_reset();
-        input_task();
-        bacnet_task();
-        led_task();
-        test_task();
-    }
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */
+#endif
