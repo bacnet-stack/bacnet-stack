@@ -108,6 +108,9 @@ ISR(USART0_RX_vect)
     if (BIT_CHECK(UCSR0A, RXC0)) {
         /* data is available */
         data_byte = UDR0;
+#ifdef MSTP_MONITOR
+        UDR1 = data_byte;
+#endif
         (void) FIFO_Put(&Receive_Buffer, data_byte);
         timer_elapsed_start(&Silence_Timer);
     }
@@ -144,6 +147,9 @@ void rs485_bytes_send(
     while (nbytes) {
         /* Send the data byte */
         UDR0 = *buffer;
+#ifdef MSTP_MONITOR
+        UDR1 = *buffer;
+#endif
         while (!BIT_CHECK(UCSR0A, UDRE0)) {
             /* do nothing - wait until Tx buffer is empty */
         }

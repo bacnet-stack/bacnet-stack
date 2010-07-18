@@ -31,6 +31,7 @@
 #include "nvdata.h"
 #include "rs485.h"
 #include "input.h"
+#include "adc.h"
 /* BACnet Stack includes */
 #include "datalink.h"
 #include "npdu.h"

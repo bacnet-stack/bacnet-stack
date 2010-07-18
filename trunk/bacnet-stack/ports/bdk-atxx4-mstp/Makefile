@@ -155,6 +155,10 @@ ifeq (${BUILD},release)
 OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
 DEBUGGING = -DNDEBUG
 endif
+ifeq (${BUILD},monitor)
+OPTIMIZATION = -Os $(OPTIMIZE_FLAGS)
+DEBUGGING = -DNDEBUG -DMSTP_MONITOR
+endif
 
 ## BACnet options
 BFLAGS = -DBACDL_MSTP
@@ -271,7 +275,7 @@ AVRDUDE_WRITE_FLASH = -e -U flash:w:$(TARGET).hex
 AVRDUDE_INSTALL = $(AVRDUDE_WRITE_FLASH)
 #AVRDUDE_INSTALL += $(AVRDUDE_WRITE_FUSES)
 
-## Objects that must be built in order to link
+## Objects not in library that must be built in order to link
 OBJECTS = $(COBJ) $(DEMOOBJ)
 
 ## Build
