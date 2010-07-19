@@ -97,7 +97,8 @@ uint8_t Send_Atomic_Write_File_Stream(
                max_apdu in the address binding table. */
             if ((unsigned) pdu_len <= max_apdu) {
                 tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                    &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+                    &npdu_data, &Handler_Transmit_Buffer[0],
+                    (uint16_t) pdu_len);
                 bytes_sent =
                     datalink_send_pdu(&dest, &npdu_data,
                     &Handler_Transmit_Buffer[0], pdu_len);

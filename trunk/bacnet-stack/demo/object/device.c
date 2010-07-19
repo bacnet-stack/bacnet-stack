@@ -808,7 +808,7 @@ bool Device_Object_List_Identifier(
                  * look for the index to instance to get the ID */
                 if (pObject->Object_Iterator) {
                     /* First find the first object */
-                    temp_index = pObject->Object_Iterator(~(unsigned)0);
+                    temp_index = pObject->Object_Iterator(~(unsigned) 0);
                     /* Then step through the objects to find the nth */
                     while (object_index != 0) {
                         temp_index = pObject->Object_Iterator(temp_index);
@@ -1101,7 +1101,8 @@ static int Device_Read_Property_Local(
                         /* can we all fit into the APDU? */
                         if ((apdu_len + len) >= MAX_APDU) {
                             /* Abort response */
-                            rpdata->error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            rpdata->error_code =
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
@@ -1240,8 +1241,8 @@ static bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -1274,8 +1275,8 @@ static bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t) value.type.
-                    Unsigned_Int);
+                Device_Set_Vendor_Identifier((uint16_t) value.
+                    type.Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
@@ -1302,8 +1303,8 @@ static bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Object_Name(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Object_Name(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1312,8 +1313,8 @@ static bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_LOC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Location(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Location(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1323,8 +1324,8 @@ static bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_DESC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Description(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Description(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1333,8 +1334,8 @@ static bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_MOD_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Model_Name(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Model_Name(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1346,8 +1347,8 @@ static bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames((uint8_t) value.type.
-                        Unsigned_Int);
+                    dlmstp_set_max_info_frames((uint8_t) value.
+                        type.Unsigned_Int);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

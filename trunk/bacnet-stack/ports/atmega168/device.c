@@ -224,11 +224,12 @@ int Device_Encode_Property_APDU(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_PROTOCOL_VERSION:
-            apdu_len = encode_application_unsigned(&apdu[0],
-                BACNET_PROTOCOL_VERSION);
+            apdu_len =
+                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_VERSION);
             break;
         case PROP_PROTOCOL_REVISION:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len =
+                encode_application_unsigned(&apdu[0],
                 BACNET_PROTOCOL_REVISION);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
@@ -373,8 +374,8 @@ bool Device_Write_Property(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {

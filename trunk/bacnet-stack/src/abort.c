@@ -70,7 +70,7 @@ BACNET_ABORT_REASON abort_convert_error_code(
             break;
     }
 
-    return(abort_code);
+    return (abort_code);
 }
 
 /* encode service */

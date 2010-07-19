@@ -87,7 +87,7 @@ BACNET_REJECT_REASON reject_convert_error_code(
             break;
     }
 
-    return(reject_code);
+    return (reject_code);
 }
 
 /* encode service */

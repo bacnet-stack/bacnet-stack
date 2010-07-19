@@ -316,8 +316,8 @@ int Analog_Value_Read_Property(
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Analog_Value_Level[object_index][rpdata->
-                            array_index - 1];
+                            Analog_Value_Level[object_index]
+                            [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
@@ -392,8 +392,8 @@ bool Analog_Value_Write_Property(
                 if (status) {
                     level = ANALOG_LEVEL_NULL;
                     object_index =
-                        Analog_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Analog_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;

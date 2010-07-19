@@ -230,11 +230,12 @@ int Device_Encode_Property_APDU(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_PROTOCOL_VERSION:
-            apdu_len = encode_application_unsigned(&apdu[0],
-                BACNET_PROTOCOL_VERSION);
+            apdu_len =
+                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_VERSION);
             break;
         case PROP_PROTOCOL_REVISION:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len =
+                encode_application_unsigned(&apdu[0],
                 BACNET_PROTOCOL_REVISION);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:

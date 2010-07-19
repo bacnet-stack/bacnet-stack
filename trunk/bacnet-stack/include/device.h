@@ -157,7 +157,7 @@ extern "C" {
     uint16_t Device_Vendor_Identifier(
         void);
     void Device_Set_Vendor_Identifier(
-            uint16_t vendor_id);
+        uint16_t vendor_id);
 
     const char *Device_Model_Name(
         void);
@@ -237,11 +237,11 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
- *//** @defgroup ObjHelpers Object Helper Functions
+    *//** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk
  * This section describes the function templates for the helper functions that
  * provide common object support.
- *//** @defgroup ObjIntf Handler-to-Object Interface Functions
+    *//** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk
  * This section describes the fairly limited set of functions that link the
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are

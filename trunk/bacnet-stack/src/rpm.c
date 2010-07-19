@@ -197,14 +197,14 @@ int rpm_encode_apdu(
 int rpm_decode_object_id(
     uint8_t * apdu,
     unsigned apdu_len,
-    BACNET_RPM_DATA *rpmdata)
+    BACNET_RPM_DATA * rpmdata)
 {
     unsigned len = 0;
     uint16_t type = 0;  /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && rpmdata) {
-        if(apdu_len < 5) { /* Must be at least 2 tags and an object id */
+        if (apdu_len < 5) {     /* Must be at least 2 tags and an object id */
             rpmdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
             return BACNET_STATUS_REJECT;
         }
@@ -251,7 +251,7 @@ int rpm_decode_object_end(
 int rpm_decode_object_property(
     uint8_t * apdu,
     unsigned apdu_len,
-    BACNET_RPM_DATA *rpmdata)
+    BACNET_RPM_DATA * rpmdata)
 {
     unsigned len = 0;
     unsigned option_len = 0;
@@ -267,7 +267,7 @@ int rpm_decode_object_property(
             rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             return BACNET_STATUS_REJECT;
         }
-        
+
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
             &len_value_type);
@@ -279,12 +279,12 @@ int rpm_decode_object_property(
         if ((len + len_value_type) >= apdu_len) {
             rpmdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
             return BACNET_STATUS_REJECT;
-        }    
+        }
         len += decode_enumerated(&apdu[len], len_value_type, &property);
         rpmdata->object_property = (BACNET_PROPERTY_ID) property;
 
         /* Tag 1: Optional propertyArrayIndex */
-        rpmdata->array_index = BACNET_ARRAY_ALL; /* Assume most probable outcome */
+        rpmdata->array_index = BACNET_ARRAY_ALL;        /* Assume most probable outcome */
         if (IS_CONTEXT_SPECIFIC(apdu[len]) && !IS_CLOSING_TAG(apdu[len])) {
             option_len =
                 (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -293,9 +293,10 @@ int rpm_decode_object_property(
                 len += option_len;
                 /* Should be at least the unsigned array index + 1 tag left */
                 if ((len + len_value_type) >= apdu_len) {
-                    rpmdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+                    rpmdata->error_code =
+                        ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
                     return BACNET_STATUS_REJECT;
-                }    
+                }
                 len +=
                     decode_unsigned(&apdu[len], len_value_type, &array_value);
                 rpmdata->array_index = array_value;
@@ -324,7 +325,7 @@ int rpm_ack_encode_apdu_init(
 
 int rpm_ack_encode_apdu_object_begin(
     uint8_t * apdu,
-    BACNET_RPM_DATA *rpmdata)
+    BACNET_RPM_DATA * rpmdata)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
 
@@ -620,8 +621,7 @@ void testReadPropertyMultiple(
     ct_test(pTest, service_request_len > 0);
 
     test_len =
-        rpm_decode_object_id(service_request, service_request_len,
-        &rpmdata);
+        rpm_decode_object_id(service_request, service_request_len, &rpmdata);
     ct_test(pTest, test_len > 0);
     ct_test(pTest, rpmdata.object_type == OBJECT_DEVICE);
     ct_test(pTest, rpmdata.object_instance == 123);
@@ -725,8 +725,7 @@ void testReadPropertyMultipleAck(
     /* object beginning */
     rpmdata.object_type = OBJECT_DEVICE;
     rpmdata.object_instance = 123;
-    apdu_len +=
-        rpm_ack_encode_apdu_object_begin(&apdu[apdu_len], &rpmdata);
+    apdu_len += rpm_ack_encode_apdu_object_begin(&apdu[apdu_len], &rpmdata);
     /* reply property */
     apdu_len +=
         rpm_ack_encode_apdu_object_property(&apdu[apdu_len],
@@ -760,8 +759,7 @@ void testReadPropertyMultipleAck(
     /* object beginning */
     rpmdata.object_type = OBJECT_ANALOG_INPUT;
     rpmdata.object_instance = 33;
-    apdu_len +=
-        rpm_ack_encode_apdu_object_begin(&apdu[apdu_len], &rpmdata);
+    apdu_len += rpm_ack_encode_apdu_object_begin(&apdu[apdu_len], &rpmdata);
     /* reply property */
     apdu_len +=
         rpm_ack_encode_apdu_object_property(&apdu[apdu_len],

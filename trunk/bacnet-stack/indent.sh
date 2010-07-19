@@ -1,9 +1,15 @@
 #!/bin/sh
 # indent uses a local indent.pro file if it exists
 # File must be in consistent unix format before indenting
+
+#DOS2UNIX=/usr/bin/dos2unix
+DOS2UNIX=/usr/bin/fromdos
+INDENT=/usr/bin/indent
+REMOVE=/bin/rm
+
 # exit silently if utility is not installed
-[ -x /usr/bin/indent ] || exit 0
-[ -x /usr/bin/dos2unix ] || exit 0
+[ -x ${INDENT} ] || exit 0
+[ -x ${DOS2UNIX} ] || exit 0
 
 INDENTRC=".indent.pro"
 if [ ! -e ${INDENTRC} ] 
@@ -16,22 +22,22 @@ directory=${1-`pwd`}
 for filename in $( find $directory -name '*.c' )
 do
   echo Fixing DOS/Unix $filename
-  /usr/bin/dos2unix $filename
+  ${DOS2UNIX} $filename
   echo Indenting $filename
-  /usr/bin/indent $filename
+  ${INDENT} $filename
 done
 
 for filename in $( find $directory -name '*.h' )
 do
   echo Fixing DOS/Unix $filename
-  /usr/bin/dos2unix $filename
+  ${DOS2UNIX} $filename
   echo Indenting $filename
-  /usr/bin/indent $filename
+  ${INDENT} $filename
 done
 
 for filename in $( find $directory -name '*~' )
 do
   echo Removing backup $filename
-  rm $filename
+  ${REMOVE} $filename
 done
 

@@ -75,7 +75,7 @@ void handler_read_property(
     int apdu_len = -1;
     int npdu_len = -1;
     BACNET_NPDU_DATA npdu_data;
-    bool error = true; /* assume that there is an error */
+    bool error = true;  /* assume that there is an error */
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
 
@@ -85,7 +85,7 @@ void handler_read_property(
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
         &npdu_data);
-    if (service_data->segmented_message) { /* we don't support segmentation - send an abort */
+    if (service_data->segmented_message) {      /* we don't support segmentation - send an abort */
         rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
         len = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
@@ -136,7 +136,7 @@ void handler_read_property(
         }
     }
 
-    RP_FAILURE:
+  RP_FAILURE:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             /* Kludge alert! At the moment we assume any abort is due to 
@@ -153,7 +153,7 @@ void handler_read_property(
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Abort!\n");
 #endif
-        } else if (len == BACNET_STATUS_ERROR){
+        } else if (len == BACNET_STATUS_ERROR) {
             apdu_len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
@@ -161,9 +161,11 @@ void handler_read_property(
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Error!\n");
 #endif
-        } else if (len == BACNET_STATUS_REJECT){
-            apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id, reject_convert_error_code(rpdata.error_code));
+        } else if (len == BACNET_STATUS_REJECT) {
+            apdu_len =
+                reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
+                reject_convert_error_code(rpdata.error_code));
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Reject!\n");
 #endif

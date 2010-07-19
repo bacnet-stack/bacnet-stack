@@ -449,8 +449,8 @@ void MSTP_Receive_Frame_FSM(
                             /* NoData */
                             else if (mstp_port->DataLength == 0) {
                                 printf_receive_data("%s",
-                                    mstptext_frame_type((unsigned) mstp_port->
-                                        FrameType));
+                                    mstptext_frame_type((unsigned)
+                                        mstp_port->FrameType));
                                 if ((mstp_port->DestinationAddress ==
                                         mstp_port->This_Station)
                                     || (mstp_port->DestinationAddress ==
@@ -714,7 +714,8 @@ bool MSTP_Master_Node_FSM(
                 uint8_t frame_type = mstp_port->OutputBuffer[2];
                 uint8_t destination = mstp_port->OutputBuffer[3];
                 RS485_Send_Frame(mstp_port,
-                    (uint8_t *) & mstp_port->OutputBuffer[0], (uint16_t)length);
+                    (uint8_t *) & mstp_port->OutputBuffer[0],
+                    (uint16_t) length);
                 mstp_port->FrameCount++;
                 switch (frame_type) {
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
@@ -1049,7 +1050,8 @@ bool MSTP_Master_Node_FSM(
                 /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 RS485_Send_Frame(mstp_port,
-                    (uint8_t *) & mstp_port->OutputBuffer[0], (uint16_t)length);
+                    (uint8_t *) & mstp_port->OutputBuffer[0],
+                    (uint16_t) length);
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
             } else {
                 /* DeferredReply */

@@ -469,13 +469,13 @@ int Lighting_Output_Read_Property(
                 object_index =
                     Lighting_Output_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Lighting_Output_Level[object_index][rpdata->
-                            array_index - 1] == LIGHTING_LEVEL_NULL)
+                    if (Lighting_Output_Level[object_index][rpdata->array_index
+                            - 1] == LIGHTING_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Lighting_Output_Level[object_index][rpdata->
-                            array_index - 1];
+                            Lighting_Output_Level[object_index]
+                            [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
@@ -550,11 +550,11 @@ bool Lighting_Output_Write_Property(
                 if (status) {
                     level = LIGHTING_LEVEL_NULL;
                     object_index =
-                        Lighting_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Lighting_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     status =
-                        Lighting_Output_Present_Value_Relinquish(wp_data->
-                        object_instance, wp_data->priority);
+                        Lighting_Output_Present_Value_Relinquish
+                        (wp_data->object_instance, wp_data->priority);
                     if (wp_data->priority == 6) {
                         /* Command priority 6 is reserved for use by Minimum On/Off
                            algorithm and may not be used for other purposes in any
@@ -581,8 +581,8 @@ bool Lighting_Output_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Lighting_Output_Instance_To_Index(wp_data->
-                    object_instance);
+                    Lighting_Output_Instance_To_Index
+                    (wp_data->object_instance);
                 Lighting_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }

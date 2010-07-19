@@ -132,8 +132,8 @@ void My_Read_Property_Ack_Handler(
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
-        len = rp_ack_decode_service_request(
-            service_request, service_len, &data);
+        len =
+            rp_ack_decode_service_request(service_request, service_len, &data);
         if (len > 0) {
             rp_ack_print_data(&data);
         }
