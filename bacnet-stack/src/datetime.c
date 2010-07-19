@@ -485,7 +485,7 @@ int bacapp_encode_context_datetime(
         len = encode_opening_tag(&apdu[apdu_len], tag_number);
         apdu_len += len;
 
-        len = bacapp_encode_datetime(&apdu[apdu_len], value );
+        len = bacapp_encode_datetime(&apdu[apdu_len], value);
         apdu_len += len;
 
         len = encode_closing_tag(&apdu[apdu_len], tag_number);

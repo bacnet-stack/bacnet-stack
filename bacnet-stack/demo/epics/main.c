@@ -69,15 +69,15 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
 /* = { 6, { 127, 0, 0, 1, 0xBA, 0xC0, 0 }, 0 };  loopback address to talk to myself */
-static uint16_t My_BIP_Port = 0;		/* If set, use this as the source port. */
+static uint16_t My_BIP_Port = 0;        /* If set, use this as the source port. */
 static bool Provided_Targ_MAC = false;
 
 /* any errors are picked up in main loop */
 static bool Error_Detected = false;
 static uint16_t Last_Error_Class = 0;
 static uint16_t Last_Error_Code = 0;
-static uint16_t Error_Count = 0;	/* Counts errors we couldn't get around */
-static bool Has_RPM = true;			/* Assume device can do RPM, to start */
+static uint16_t Error_Count = 0;        /* Counts errors we couldn't get around */
+static bool Has_RPM = true;     /* Assume device can do RPM, to start */
 static EPICS_STATES myState = INITIAL_BINDING;
 
 /* any valid RP or RPM data returned is put here */
@@ -113,12 +113,11 @@ static int32_t Property_List[MAX_PROPS + 2];
 /* This normally points to Property_List. */
 static const int *pPropList = NULL;
 #define MINIMAL_PROPLIST_SIZE 4
-static int32_t MinimalPropList[MINIMAL_PROPLIST_SIZE] =
-{
-        PROP_OBJECT_IDENTIFIER,
-        PROP_OBJECT_NAME,
-        PROP_OBJECT_TYPE,
-        -1
+static int32_t MinimalPropList[MINIMAL_PROPLIST_SIZE] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    -1
 };
 
 /* When we have to walk through an array of things, like ObjectIDs or
@@ -148,10 +147,10 @@ static void MyErrorHandler(
     (void) src;
     (void) invoke_id;
 #if PRINT_ERRORS
-    if ( ShowValues )
+    if (ShowValues)
         fprintf(stderr, "-- BACnet Error: %s: %s\r\n",
-                bactext_error_class_name(error_class),
-                bactext_error_code_name(error_code));
+            bactext_error_class_name(error_class),
+            bactext_error_code_name(error_code));
 #endif
     Error_Detected = true;
     Last_Error_Class = error_class;
@@ -170,14 +169,15 @@ void MyAbortHandler(
     (void) server;
 #if PRINT_ERRORS
     /* It is normal for this to fail, so don't print. */
-    if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues )
+    if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues)
         fprintf(stderr, "-- BACnet Abort: %s \r\n",
             bactext_abort_reason_name(abort_reason));
 #endif
     Error_Detected = true;
     Last_Error_Class = ERROR_CLASS_SERVICES;
-    if ( abort_reason < MAX_BACNET_ABORT_REASON )
-        Last_Error_Code = (ERROR_CODE_ABORT_BUFFER_OVERFLOW -1) + abort_reason;
+    if (abort_reason < MAX_BACNET_ABORT_REASON)
+        Last_Error_Code =
+            (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
     else
         Last_Error_Code = ERROR_CODE_ABORT_OTHER;
 }
@@ -191,13 +191,15 @@ void MyRejectHandler(
     (void) src;
     (void) invoke_id;
 #if PRINT_ERRORS
-    if ( ShowValues )
-        fprintf(stderr, "BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
+    if (ShowValues)
+        fprintf(stderr, "BACnet Reject: %s\r\n",
+            bactext_reject_reason_name(reject_reason));
 #endif
     Error_Detected = true;
     Last_Error_Class = ERROR_CLASS_SERVICES;
-    if ( reject_reason < MAX_BACNET_REJECT_REASON )
-        Last_Error_Code = (ERROR_CODE_REJECT_BUFFER_OVERFLOW -1) + reject_reason;
+    if (reject_reason < MAX_BACNET_REJECT_REASON)
+        Last_Error_Code =
+            (ERROR_CODE_REJECT_BUFFER_OVERFLOW - 1) + reject_reason;
     else
         Last_Error_Code = ERROR_CODE_REJECT_OTHER;
 }
@@ -507,7 +509,7 @@ void PrintReadPropertyData(
                     case PROP_DEVICE_ADDRESS_BINDING:
                         /* Make it VTS3-friendly and don't show "Null"
                          * as a value. */
-                        if ( value->tag == BACNET_APPLICATION_TAG_NULL ) {
+                        if (value->tag == BACNET_APPLICATION_TAG_NULL) {
                             fprintf(stdout, "?");
                             break;
                         }
@@ -554,7 +556,8 @@ void PrintReadPropertyData(
  *  handling the proprietary property numbers.
  * @param propertyIdentifier [in] The property identifier number.
  */
-void Print_Property_Identifier(unsigned propertyIdentifier)
+void Print_Property_Identifier(
+    unsigned propertyIdentifier)
 {
     if (propertyIdentifier < 512) {
         fprintf(stdout, "%s", bactext_property_name(propertyIdentifier));
@@ -581,9 +584,8 @@ static uint8_t Read_Properties(
     struct special_property_list_t PropertyListStruct;
     int i;
 
-    if ( ( !Has_RPM && ( Property_List_Index == 0 ) ) ||
-         ( Property_List_Length == 0) )
-    {
+    if ((!Has_RPM && (Property_List_Index == 0)) ||
+        (Property_List_Length == 0)) {
         /* If we failed to get the Properties with RPM, just settle for what we
          * know is the fixed list of Required (only) properties.
          * In practice, this should only happen for simple devices that don't
@@ -594,14 +596,14 @@ static uint8_t Read_Properties(
         if (pPropList != NULL) {
             Property_List_Length = PropertyListStruct.Required.count;
         } else {
-            fprintf(stdout, "    -- Just Minimal Properties: \r\n" );
+            fprintf(stdout, "    -- Just Minimal Properties: \r\n");
             pPropList = MinimalPropList;
-            Property_List_Length = MINIMAL_PROPLIST_SIZE -1;
+            Property_List_Length = MINIMAL_PROPLIST_SIZE - 1;
         }
         /* Copy this list for later one-by-one processing */
-        for ( i = 0; i < Property_List_Length; i++ )
+        for (i = 0; i < Property_List_Length; i++)
             Property_List[i] = pPropList[i];
-        Property_List[i] = -1;		/* Just to be sure we terminate */
+        Property_List[i] = -1;  /* Just to be sure we terminate */
     } else
         pPropList = Property_List;
 
@@ -622,7 +624,7 @@ static uint8_t Read_Properties(
             array_index = BACNET_ARRAY_ALL;
 
             switch (prop) {
-                /* These are all potentially long arrays, so they may abort */
+                    /* These are all potentially long arrays, so they may abort */
                 case PROP_OBJECT_LIST:
                 case PROP_STATE_TEXT:
                 case PROP_STRUCTURED_OBJECT_LIST:
@@ -736,10 +738,13 @@ void PrintUsage(
     printf("Usage: \r\n");
     printf("  bacepics [-v] [-p sport] [-t target_mac] device-instance \r\n");
     printf("    -v: show values instead of '?' \r\n");
-    printf("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \r\n");
+    printf
+        ("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \r\n");
     printf("        Allows you to communicate with a localhost target. \r\n");
-    printf("    -t: declare target's MAC instead of using Who-Is to bind to  \r\n");
-    printf("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \r\n");
+    printf
+        ("    -t: declare target's MAC instead of using Who-Is to bind to  \r\n");
+    printf
+        ("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \r\n");
     printf("\r\n");
     printf("Insert the output in your EPICS file as the last section: \r\n");
     printf("\"List of Objects in test device:\"  \r\n");
@@ -766,40 +771,38 @@ int CheckCommandLineArgs(
     for (i = 1; i < argc; i++) {
         char *anArg = argv[i];
         if (anArg[0] == '-') {
-            switch ( anArg[1] )
-            {
-            case 'v':
-                ShowValues = true;
-                break;
-            case 'p':
-                if ( ++i < argc )
-                    My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
-                /* Used strtol so sport can be either 0xBAC0 or 47808 */
-                break;
-            case 't':
-                if ( ++i < argc )
-                {
-                    uint8_t *mac = Target_Address.mac;
-                    /* The %hhx specifies unsigned char */
-                    Target_Address.mac_len = sscanf( argv[i],
-                            "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac[0],
-                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                    if ( Target_Address.mac_len == 6 )	/* success */
-                    {
-                        Target_Address.net = 0;
-                        Target_Address.len = 0;		/* No src address */
-                        Provided_Targ_MAC = true;
-                        break;
+            switch (anArg[1]) {
+                case 'v':
+                    ShowValues = true;
+                    break;
+                case 'p':
+                    if (++i < argc)
+                        My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
+                    /* Used strtol so sport can be either 0xBAC0 or 47808 */
+                    break;
+                case 't':
+                    if (++i < argc) {
+                        uint8_t *mac = Target_Address.mac;
+                        /* The %hhx specifies unsigned char */
+                        Target_Address.mac_len =
+                            sscanf(argv[i], "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+                            &mac[0], &mac[1], &mac[2], &mac[3], &mac[4],
+                            &mac[5]);
+                        if (Target_Address.mac_len == 6) {      /* success */
+                            Target_Address.net = 0;
+                            Target_Address.len = 0;     /* No src address */
+                            Provided_Targ_MAC = true;
+                            break;
+                        } else
+                            printf("ERROR: invalid Target MAC %s \r\n",
+                                argv[i]);
+                        /* And fall through to PrintUsage */
                     }
-                    else
-                        printf( "ERROR: invalid Target MAC %s \r\n", argv[i] );
-                    /* And fall through to PrintUsage */
-                }
-                /* Either break or fall through, as above */
-                /* break; */
-            default:
-                PrintUsage();
-                break;
+                    /* Either break or fall through, as above */
+                    /* break; */
+                default:
+                    PrintUsage();
+                    break;
             }
         } else {
             /* decode the Target Device Instance parameter */
@@ -822,7 +825,9 @@ int CheckCommandLineArgs(
 }
 
 /* Initialize fields for a new Object */
-void StartNextObject( BACNET_READ_ACCESS_DATA *rpm_object, BACNET_OBJECT_ID *pNewObject )
+void StartNextObject(
+    BACNET_READ_ACCESS_DATA * rpm_object,
+    BACNET_OBJECT_ID * pNewObject)
 {
     BACNET_PROPERTY_REFERENCE *rpm_property;
     Error_Detected = false;
@@ -879,8 +884,8 @@ int main(
      * (eg) we could talk to a BACnet/IP device on our same interface.
      * My_BIP_Port will be non-zero in this case.
      */
-    if ( My_BIP_Port > 0 )
-        bip_set_port( My_BIP_Port );
+    if (My_BIP_Port > 0)
+        bip_set_port(My_BIP_Port);
     address_init();
     Init_Service_Handlers();
     dlenv_init();
@@ -889,19 +894,19 @@ int main(
     current_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
 
-    if ( My_BIP_Port > 0 )
-        bip_set_port( 0xBAC0 ); 	/* Set back to std BACnet/IP port */
+    if (My_BIP_Port > 0)
+        bip_set_port(0xBAC0);   /* Set back to std BACnet/IP port */
     /* try to bind with the target device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,
         &Target_Address);
     if (!found) {
-        if ( Provided_Targ_MAC ) {
+        if (Provided_Targ_MAC) {
             /* Update by adding the MAC address */
-            if ( max_apdu == 0 )
-                max_apdu = MAX_APDU;	/* Whatever set for this datalink. */
-            address_add_binding( Target_Device_Object_Instance, max_apdu,
-                    &Target_Address);
+            if (max_apdu == 0)
+                max_apdu = MAX_APDU;    /* Whatever set for this datalink. */
+            address_add_binding(Target_Device_Object_Instance, max_apdu,
+                &Target_Address);
         } else {
             Send_WhoIs(Target_Device_Object_Instance,
                 Target_Device_Object_Instance);
@@ -947,8 +952,7 @@ int main(
                     }
                     /* else, loop back and try again */
                     continue;
-                } else
-                {
+                } else {
                     myState = GET_ALL_REQUEST;
                     rpm_object = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
                     assert(rpm_object);
@@ -959,10 +963,10 @@ int main(
             case GET_LIST_OF_ALL_REQUEST:      /* differs in ArrayIndex only */
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
-                StartNextObject( rpm_object, &myObject );
+                StartNextObject(rpm_object, &myObject);
                 invoke_id =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
-                                Target_Device_Object_Instance, rpm_object);
+                    Target_Device_Object_Instance, rpm_object);
                 if (invoke_id > 0) {
                     if (myState == GET_LIST_OF_ALL_REQUEST)
                         myState = GET_LIST_OF_ALL_RESPONSE;
@@ -999,8 +1003,8 @@ int main(
                     invoke_id = 0;
                     if (Error_Detected) {       /* The normal case for Device Object */
                         /* Was it because the Device can't do RPM? */
-                        if ( Last_Error_Code == ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE )
-                        {
+                        if (Last_Error_Code ==
+                            ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE) {
                             Has_RPM = false;
                             myState = GET_PROPERTY_REQUEST;
                         }
@@ -1008,13 +1012,11 @@ int main(
                         else if (myState == GET_ALL_RESPONSE)
                             myState = GET_LIST_OF_ALL_REQUEST;
                         /* Else drop back to RP. */
-                        else
-                        {
+                        else {
                             myState = GET_PROPERTY_REQUEST;
-                            StartNextObject( rpm_object, &myObject );
+                            StartNextObject(rpm_object, &myObject);
                         }
-                    }
-                    else if ( Has_RPM )
+                    } else if (Has_RPM)
                         myState = GET_ALL_REQUEST;      /* Let's try again */
                     else
                         myState = GET_PROPERTY_REQUEST;
@@ -1022,7 +1024,7 @@ int main(
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
                     tsm_free_invoke_id(invoke_id);
                     invoke_id = 0;
-                    myState = GET_ALL_REQUEST;      /* Let's try again */
+                    myState = GET_ALL_REQUEST;  /* Let's try again */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     invoke_id = 0;
@@ -1060,8 +1062,9 @@ int main(
                     (invoke_id ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData(Read_Property_Multiple_Data.
-                        rpm_data->listOfProperties);
+                    PrintReadPropertyData
+                        (Read_Property_Multiple_Data.rpm_data->
+                        listOfProperties);
                     if (tsm_invoke_id_free(invoke_id)) {
                         invoke_id = 0;
                     } else {
@@ -1088,7 +1091,7 @@ int main(
 /*                        Walked_List_Index = Walked_List_Length = 0; */
 /*                    } */
 /*                } */
-                    myState = GET_PROPERTY_REQUEST; /* Go fetch next Property */
+                    myState = GET_PROPERTY_REQUEST;     /* Go fetch next Property */
                 } else if (tsm_invoke_id_free(invoke_id)) {
                     invoke_id = 0;
                     myState = GET_PROPERTY_REQUEST;
@@ -1100,12 +1103,12 @@ int main(
                         } else {
                             /* OK, skip this one and try the next property. */
                             fprintf(stdout, "    -- Failed to get ");
-                            Print_Property_Identifier(
-                                pPropList[Property_List_Index]);
+                            Print_Property_Identifier(pPropList
+                                [Property_List_Index]);
                             fprintf(stdout, " \r\n");
                             Error_Count++;
-                            if ( ++Property_List_Index >= Property_List_Length )
-                                myState = NEXT_OBJECT;      /* Give up and move on to the next. */
+                            if (++Property_List_Index >= Property_List_Length)
+                                myState = NEXT_OBJECT;  /* Give up and move on to the next. */
                         }
                     }
                 } else if (tsm_invoke_id_failed(invoke_id)) {
@@ -1148,12 +1151,11 @@ int main(
                         /* done with all Objects, signal end of this while loop */
                         myObject.type = MAX_BACNET_OBJECT_TYPE;
                     }
-                    if ( Has_RPM )
+                    if (Has_RPM)
                         myState = GET_ALL_REQUEST;
-                    else
-                    {
+                    else {
                         myState = GET_PROPERTY_REQUEST;
-                        StartNextObject( rpm_object, &myObject );
+                        StartNextObject(rpm_object, &myObject);
                     }
 
                 } while (myObject.type == OBJECT_DEVICE);
@@ -1177,8 +1179,8 @@ int main(
 
     } while (myObject.type < MAX_BACNET_OBJECT_TYPE);
 
-    if ( Error_Count > 0 )
-        fprintf(stderr, "\r-- Found %d Errors \r\n", Error_Count );
+    if (Error_Count > 0)
+        fprintf(stderr, "\r-- Found %d Errors \r\n", Error_Count);
 
     /* Closing brace for all Objects */
     printf("} \r\n");
@@ -1186,4 +1188,4 @@ int main(
     return 0;
 }
 
-            /*@}*//* End group BACEPICS */
+                  /*@} *//* End group BACEPICS */

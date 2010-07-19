@@ -127,13 +127,13 @@ bool timer_elapsed_minutes(
 * Notes: none
 *************************************************************************/
 bool timer_elapsed_milliseconds_short(
-    struct etimer *t,
+    struct etimer * t,
     uint16_t value)
 {
     uint32_t milliseconds;
 
     milliseconds = value;
-    
+
     return (timer_elapsed_time(t) >= milliseconds);
 }
 
@@ -143,7 +143,7 @@ bool timer_elapsed_milliseconds_short(
 * Notes: none
 *************************************************************************/
 bool timer_elapsed_seconds_short(
-    struct etimer *t,
+    struct etimer * t,
     uint16_t value)
 {
     return timer_elapsed_seconds(t, value);
@@ -155,7 +155,7 @@ bool timer_elapsed_seconds_short(
 * Notes: none
 *************************************************************************/
 bool timer_elapsed_minutes_short(
-    struct etimer *t,
+    struct etimer * t,
     uint16_t value)
 {
     return timer_elapsed_minutes(t, value);

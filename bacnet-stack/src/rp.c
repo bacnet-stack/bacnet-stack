@@ -91,7 +91,7 @@ int rp_decode_service_request(
     if (rpdata != NULL) {
         /* Must have at least 2 tags, an object id and a property identifier
          * of at least 1 byte in length to have any chance of parsing */
-        if(apdu_len < 7) { 
+        if (apdu_len < 7) {
             rpdata->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
             return BACNET_STATUS_REJECT;
         }
@@ -129,8 +129,8 @@ int rp_decode_service_request(
         } else
             rpdata->array_index = BACNET_ARRAY_ALL;
     }
-    
-    if(len < apdu_len) {
+
+    if (len < apdu_len) {
         /* If something left over now, we have an invalid request */
         rpdata->error_code = ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS;
         return BACNET_STATUS_REJECT;

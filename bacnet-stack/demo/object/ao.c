@@ -367,8 +367,8 @@ int Analog_Output_Read_Property(
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
                         real_value =
-                            Analog_Output_Level[object_index][rpdata->
-                            array_index - 1];
+                            Analog_Output_Level[object_index]
+                            [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
                     }
@@ -442,11 +442,11 @@ bool Analog_Output_Write_Property(
                 if (status) {
                     level = AO_LEVEL_NULL;
                     object_index =
-                        Analog_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Analog_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     status =
-                        Analog_Output_Present_Value_Relinquish(wp_data->
-                        object_instance, wp_data->priority);
+                        Analog_Output_Present_Value_Relinquish
+                        (wp_data->object_instance, wp_data->priority);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

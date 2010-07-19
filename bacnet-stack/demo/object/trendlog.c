@@ -731,9 +731,9 @@ bool Trend_Log_Write_Property(
             if (wp_data->application_data_len != 0) {
                 iOffset += len;
                 len =
-                    bacapp_decode_context_data(&wp_data->
-                    application_data[iOffset], wp_data->application_data_len,
-                    &value, PROP_LOG_DEVICE_OBJECT_PROPERTY);
+                    bacapp_decode_context_data(&wp_data->application_data
+                    [iOffset], wp_data->application_data_len, &value,
+                    PROP_LOG_DEVICE_OBJECT_PROPERTY);
                 if ((len == 0) || ((value.context_tag != 2) &&
                         (value.context_tag != 3))) {
                     /* Bad decode or wrong tag */
@@ -750,8 +750,8 @@ bool Trend_Log_Write_Property(
                     if (wp_data->application_data_len != 0) {
                         iOffset += len;
                         len =
-                            bacapp_decode_context_data(&wp_data->
-                            application_data[iOffset],
+                            bacapp_decode_context_data
+                            (&wp_data->application_data[iOffset],
                             wp_data->application_data_len, &value,
                             PROP_LOG_DEVICE_OBJECT_PROPERTY);
                         if ((len == 0) || (value.context_tag != 3)) {
@@ -1043,20 +1043,20 @@ void TL_Local_Time_To_BAC(
     struct tm *TempTime;
 
     TempTime = localtime(&SourceTime);
-    
-    DestTime->date.year  = (uint16_t)(TempTime->tm_year + 1900);
-    DestTime->date.month = (uint8_t)(TempTime->tm_mon + 1);
-    DestTime->date.day   = (uint8_t)TempTime->tm_mday;
+
+    DestTime->date.year = (uint16_t) (TempTime->tm_year + 1900);
+    DestTime->date.month = (uint8_t) (TempTime->tm_mon + 1);
+    DestTime->date.day = (uint8_t) TempTime->tm_mday;
     /* BACnet is 1 to 7 = Monday to Sunday
      * Windows is days from Sunday 0 - 6 so we
      * have to adjust */
     if (TempTime->tm_wday == 0)
         DestTime->date.wday = 7;
     else
-        DestTime->date.wday  = (uint8_t)TempTime->tm_wday;
-    DestTime->time.hour  = (uint8_t)TempTime->tm_hour;
-    DestTime->time.min   = (uint8_t)TempTime->tm_min;
-    DestTime->time.sec   = (uint8_t)TempTime->tm_sec;
+        DestTime->date.wday = (uint8_t) TempTime->tm_wday;
+    DestTime->time.hour = (uint8_t) TempTime->tm_hour;
+    DestTime->time.min = (uint8_t) TempTime->tm_min;
+    DestTime->time.sec = (uint8_t) TempTime->tm_sec;
     DestTime->time.hundredths = 0;
 }
 
@@ -1093,8 +1093,8 @@ int rr_trend_log_encode(
     pRequest->ItemCount = 0;    /* Start out with nothing */
 
     /* Bail out now if nowt - should never happen for a Trend Log but ... */
-    if (LogInfo[Trend_Log_Instance_To_Index(pRequest->object_instance)].
-        ulRecordCount == 0)
+    if (LogInfo[Trend_Log_Instance_To_Index(pRequest->
+                object_instance)].ulRecordCount == 0)
         return (0);
 
     if ((pRequest->RequestType == RR_BY_POSITION) ||
@@ -1555,11 +1555,17 @@ int TL_encode_entry(
              * have limited to 32 bits maximum as allowed by the standard
              */
             bitstring_init(&TempBits);
-            bitstring_set_bits_used(&TempBits, (pSource->Datum.Bits.ucLen >> 4) & 0x0F, pSource->Datum.Bits.ucLen & 0x0F);
-            for(ucCount = pSource->Datum.Bits.ucLen >> 4; ucCount > 0; ucCount--)
-                bitstring_set_octet(&TempBits, ucCount - 1, pSource->Datum.Bits.ucStore[ucCount-1]);
-                
-            iLen += encode_context_bitstring(&apdu[iLen], pSource->ucRecType, &TempBits);
+            bitstring_set_bits_used(&TempBits,
+                (pSource->Datum.Bits.ucLen >> 4) & 0x0F,
+                pSource->Datum.Bits.ucLen & 0x0F);
+            for (ucCount = pSource->Datum.Bits.ucLen >> 4; ucCount > 0;
+                ucCount--)
+                bitstring_set_octet(&TempBits, ucCount - 1,
+                    pSource->Datum.Bits.ucStore[ucCount - 1]);
+
+            iLen +=
+                encode_context_bitstring(&apdu[iLen], pSource->ucRecType,
+                &TempBits);
             break;
 
         case TL_TYPE_NULL:
@@ -1627,7 +1633,7 @@ static int local_read_property(
         }
     }
 
-    if((len >= 0) && (status != NULL)){
+    if ((len >= 0) && (status != NULL)) {
         /* Fetch the status flags if required */
         rpdata.application_data = status;
         rpdata.application_data_len = MAX_APDU;
@@ -1722,13 +1728,16 @@ void TL_fetch_property(
                     TempRec.Datum.Bits.ucLen |=
                         (8 - (bitstring_bits_used(&TempBits) % 8)) & 7;
                     /* Fetch the octets with the bits directly */
-                    for(ucCount = 0; ucCount < bitstring_bytes_used(&TempBits); ucCount++)
-                        TempRec.Datum.Bits.ucStore[ucCount] = bitstring_octet(&TempBits, ucCount);
+                    for (ucCount = 0;
+                        ucCount < bitstring_bytes_used(&TempBits); ucCount++)
+                        TempRec.Datum.Bits.ucStore[ucCount] =
+                            bitstring_octet(&TempBits, ucCount);
                 } else {
                     /* We will only use the first 4 octets to save space */
                     TempRec.Datum.Bits.ucLen = 4 << 4;
-                    for(ucCount = 0; ucCount < 4; ucCount++)
-                        TempRec.Datum.Bits.ucStore[ucCount] = bitstring_octet(&TempBits, ucCount);
+                    for (ucCount = 0; ucCount < 4; ucCount++)
+                        TempRec.Datum.Bits.ucStore[ucCount] =
+                            bitstring_octet(&TempBits, ucCount);
                 }
                 break;
 

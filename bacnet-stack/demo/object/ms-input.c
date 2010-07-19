@@ -174,7 +174,7 @@ bool Multistate_Input_Present_Value_Set(
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         if (value < MULTISTATE_NUMBER_OF_STATES) {
-            Present_Value[index] = (uint8_t)value;
+            Present_Value[index] = (uint8_t) value;
             status = true;
         }
     }
@@ -400,8 +400,8 @@ int Multistate_Input_Read_Property(
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
                 object_index =
-                    Multistate_Input_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Input_Instance_To_Index
+                    (rpdata->object_instance);
                 for (i = 0; i < MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
@@ -422,8 +422,8 @@ int Multistate_Input_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Input_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Input_Instance_To_Index
+                    (rpdata->object_instance);
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
@@ -478,8 +478,8 @@ bool Multistate_Input_Write_Property(
             if (status) {
                 if (Out_Of_Service[object_index]) {
                     status =
-                        Multistate_Input_Present_Value_Set(wp_data->
-                        object_instance, value.type.Unsigned_Int);
+                        Multistate_Input_Present_Value_Set
+                        (wp_data->object_instance, value.type.Unsigned_Int);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -497,8 +497,8 @@ bool Multistate_Input_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Multistate_Input_Instance_To_Index(wp_data->
-                    object_instance);
+                    Multistate_Input_Instance_To_Index
+                    (wp_data->object_instance);
                 Out_Of_Service[object_index] = value.type.Boolean;
             }
             break;

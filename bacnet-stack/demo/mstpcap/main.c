@@ -231,8 +231,8 @@ static void packet_statistics_save(
         }
     }
     fprintf(stdout, "Node Count: %u\r\n", node_count);
-    fprintf(stdout, "Invalid Frame Count: %lu\r\n", 
-        (long unsigned int)Invalid_Frame_Count);
+    fprintf(stdout, "Invalid Frame Count: %lu\r\n",
+        (long unsigned int) Invalid_Frame_Count);
 }
 
 static void packet_statistics_clear(

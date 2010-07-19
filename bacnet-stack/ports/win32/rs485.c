@@ -94,9 +94,10 @@ void strupper(
 {
     char *p;
     for (p = str; *p != '\0'; ++p) {
-        *p = (char)toupper(*p);
+        *p = (char) toupper(*p);
     }
 }
+
 #pragma
 
 /****************************************************************************

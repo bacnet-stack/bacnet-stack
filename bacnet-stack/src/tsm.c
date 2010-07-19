@@ -73,7 +73,7 @@ static uint8_t tsm_find_invokeID_index(
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == invokeID) {
-            index = (uint8_t)i;
+            index = (uint8_t) i;
             break;
         }
     }
@@ -89,7 +89,7 @@ static uint8_t tsm_find_first_free_index(
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == 0) {
-            index = (uint8_t)i;
+            index = (uint8_t) i;
             break;
         }
     }
@@ -238,7 +238,7 @@ bool tsm_get_transaction_pdu(
             /* FIXME: we may want to free the transaction so it doesn't timeout */
             /* retrieve the transaction */
             /* FIXME: bounds check the pdu_len? */
-            *apdu_len = (uint16_t)TSM_List[index].apdu_len;
+            *apdu_len = (uint16_t) TSM_List[index].apdu_len;
             for (j = 0; j < *apdu_len; j++) {
                 apdu[j] = TSM_List[index].apdu[j];
             }

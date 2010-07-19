@@ -126,7 +126,7 @@ int dlmstp_send_pdu(
             Transmit_Packet.frame_type =
                 FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
         }
-        Transmit_Packet.pdu_len = (uint16_t)pdu_len;
+        Transmit_Packet.pdu_len = (uint16_t) pdu_len;
         for (i = 0; i < pdu_len; i++) {
             Transmit_Packet.pdu[i] = pdu[i];
         }
@@ -180,7 +180,7 @@ static void dlmstp_receive_fsm_task(
     (void) pArg;
     (void) SetThreadPriority(GetCurrentThread(),
         THREAD_PRIORITY_TIME_CRITICAL);
-    for(;;) {
+    for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
             (MSTP_Port.ReceivedInvalidFrame == false)) {
@@ -206,7 +206,7 @@ static void dlmstp_master_fsm_task(
     (void) pArg;
     (void) SetThreadPriority(GetCurrentThread(),
         THREAD_PRIORITY_TIME_CRITICAL);
-    for(;;) {
+    for (;;) {
         switch (MSTP_Port.master_state) {
             case MSTP_MASTER_STATE_IDLE:
                 dwMilliseconds = Tno_token;
@@ -349,7 +349,7 @@ bool dlmstp_compare_data_expecting_reply(
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
     offset =
-        (uint16_t)npdu_decode(&request_pdu[0], NULL, &request.address,
+        (uint16_t) npdu_decode(&request_pdu[0], NULL, &request.address,
         &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
@@ -367,7 +367,8 @@ bool dlmstp_compare_data_expecting_reply(
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
     offset =
-        (uint16_t)npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+        (uint16_t) npdu_decode(&reply_pdu[0], &reply.address, NULL,
+        &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }

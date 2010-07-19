@@ -149,7 +149,8 @@ struct Address_Cache_Entry *address_remove_oldest(
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->
+                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) == BAC_ADDR_IN_USE) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
@@ -168,7 +169,8 @@ struct Address_Cache_Entry *address_remove_oldest(
     /* Second pass - try in use and un bound as last resort */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->
+                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) ==
             ((uint8_t) (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
@@ -222,7 +224,7 @@ void address_file_init(
                         &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                     src.mac_len = (uint8_t) count;
                     for (index = 0; index < MAX_MAC_LEN; index++) {
-                        src.mac[index] = (uint8_t)mac[index];
+                        src.mac[index] = (uint8_t) mac[index];
                     }
                     src.net = (uint16_t) snet;
                     if (snet) {
@@ -231,7 +233,7 @@ void address_file_init(
                             &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                         src.len = (uint8_t) count;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
-                            src.adr[index] = (uint8_t)mac[index];
+                            src.adr[index] = (uint8_t) mac[index];
                         }
                     } else {
                         src.len = 0;

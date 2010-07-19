@@ -274,7 +274,7 @@ int cov_notify_decode_service_request(
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
                 len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-                value->priority = (uint8_t)decoded_value;
+                value->priority = (uint8_t) decoded_value;
             } else {
                 value->priority = BACNET_NO_PRIORITY;
             }
