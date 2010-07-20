@@ -1,6 +1,9 @@
 #!/bin/sh
 # splint is a static code checker
-[ -x /usr/bin/splint ] || exit 0
+
+SPLINT=/usr/bin/splint
+
+[ -x ${SPLINT} ] || exit 0
 
 INCLUDES="-Iinclude -Iports/linux"
 SETTINGS="-castfcnptr -fullinitblock -initallelements -weak +posixlib"
@@ -14,6 +17,6 @@ directory=${1-`pwd`}/src
 for filename in $( find $directory -name '*.c' )
 do
   echo splinting ${filename}
-  /usr/bin/splint ${filename}
+  ${SPLINT} ${filename}
 done
 
