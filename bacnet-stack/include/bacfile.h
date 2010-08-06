@@ -78,6 +78,8 @@ extern "C" {
 
     void bacfile_init(
         void);
+    uint32_t bacfile_file_size(
+        uint32_t instance);
 
 /* handling for read property service */
     int bacfile_read_property(
