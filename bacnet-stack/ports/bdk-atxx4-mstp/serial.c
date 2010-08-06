@@ -165,6 +165,9 @@ bool serial_baud_rate_set(
 static void serial_usart_init(
     void)
 {
+    /* enable the internal pullup on RXD1 */
+    BIT_CLEAR(DDRD, DDD2);
+    BIT_SET(PORTD, PD2);
     /* enable Transmit and Receive */
     UCSR1B = _BV(TXEN1) | _BV(RXEN1);
     /* Set USART Control and Status Register n C */

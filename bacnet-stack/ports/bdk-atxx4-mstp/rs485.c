@@ -214,6 +214,9 @@ bool rs485_baud_rate_set(
 static void rs485_usart_init(
     void)
 {
+    /* enable the internal pullup on RXD0 */
+    BIT_CLEAR(DDRD, DDD0);
+    BIT_SET(PORTD, PD0);
     /* enable Transmit and Receive */
     UCSR0B = _BV(TXEN0) | _BV(RXEN0);
     /* Set USART Control and Status Register n C */
