@@ -125,13 +125,6 @@ static inline void printf_master(
 /*           least significant octet first */
 /* (pad): (optional) at most one octet of padding: X'FF' */
 
-/* The number of tokens received or used before a Poll For Master cycle */
-/* is executed: 50. */
-#define Npoll 50
-
-/* The number of retries on sending Token: 1. */
-#define Nretry_token 1
-
 /* The minimum number of DataAvailable or ReceiveError events that must be */
 /* seen by a receiving node in order to declare the line "active": 4. */
 #define Nmin_octets 4
@@ -144,15 +137,6 @@ static inline void printf_master(
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
 #define Tframe_abort 95
 
-/* The maximum idle time a sending node may allow to elapse between octets */
-/* of a frame the node is transmitting: 20 bit times. */
-#define Tframe_gap 20
-
-/* The maximum time after the end of the stop bit of the final */
-/* octet of a transmitted frame before a node must disable its */
-/* EIA-485 driver: 15 bit times. */
-#define Tpostdrive 15
-
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
@@ -164,15 +148,6 @@ static inline void printf_master(
 /* at the active input port of an MS/TP repeater after which the repeater */
 /* will enter the IDLE state: 29 bit times < Troff < 40 bit times. */
 #define Troff 30
-
-/* The width of the time slot within which a node may generate a token: */
-/* 10 milliseconds. */
-#define Tslot 10
-
-/* The maximum time a node may wait after reception of the token or */
-/* a Poll For Master frame before sending the first octet of a frame: */
-/* 15 milliseconds. */
-#define Tusage_delay 15
 
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */

@@ -73,7 +73,8 @@ typedef enum {
     MSTP_RECEIVE_STATE_IDLE = 0,
     MSTP_RECEIVE_STATE_PREAMBLE = 1,
     MSTP_RECEIVE_STATE_HEADER = 2,
-    MSTP_RECEIVE_STATE_DATA = 3
+    MSTP_RECEIVE_STATE_DATA = 3,
+    MSTP_RECEIVE_STATE_SKIP_DATA = 4
 } MSTP_RECEIVE_STATE;
 
 /* master node FSM states */
@@ -104,6 +105,31 @@ typedef enum {
 /* 40 bits is 4 octets including a start and stop bit with each octet */
 #define Tturnaround  (40UL)
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
+
+/* The number of tokens received or used before a Poll For Master cycle */
+/* is executed: 50. */
+#define Npoll 50
+
+/* The number of retries on sending Token: 1. */
+#define Nretry_token 1
+
+/* The maximum idle time a sending node may allow to elapse between octets */
+/* of a frame the node is transmitting: 20 bit times. */
+#define Tframe_gap 20
+
+/* The maximum time after the end of the stop bit of the final */
+/* octet of a transmitted frame before a node must disable its */
+/* EIA-485 driver: 15 bit times. */
+#define Tpostdrive 15
+
+/* The width of the time slot within which a node may generate a token: */
+/* 10 milliseconds. */
+#define Tslot 10
+
+/* The maximum time a node may wait after reception of the token or */
+/* a Poll For Master frame before sending the first octet of a frame: */
+/* 15 milliseconds. */
+#define Tusage_delay 15
 
 #define DEFAULT_MAX_INFO_FRAMES 1
 #define DEFAULT_MAX_MASTER 127
