@@ -39,8 +39,8 @@
 
 /** Handler for Who-Has requests, with broadcast I-Have response.
  * Will respond if the device Object ID matches, and we have
- * the Object or Object Name requested. 
- * 
+ * the Object or Object Name requested.
+ *
  * @ingroup DMDOB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
@@ -77,7 +77,8 @@ void handler_who_has(
                     Device_Valid_Object_Name(object_name, &object_type,
                     &object_instance);
                 if (found)
-                    Send_I_Have(Device_Object_Instance_Number(), object_type,
+                    Send_I_Have(Device_Object_Instance_Number(),
+                        (BACNET_OBJECT_TYPE)object_type,
                         object_instance, object_name);
             } else {
                 /* valid object in my device? */
@@ -86,7 +87,7 @@ void handler_who_has(
                     data.object.identifier.instance);
                 if (object_name)
                     Send_I_Have(Device_Object_Instance_Number(),
-                        data.object.identifier.type,
+                        (BACNET_OBJECT_TYPE)data.object.identifier.type,
                         data.object.identifier.instance, object_name);
             }
         }
