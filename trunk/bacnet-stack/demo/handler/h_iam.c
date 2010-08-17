@@ -31,6 +31,7 @@
 #include "bacdcode.h"
 #include "iam.h"
 #include "address.h"
+#include "handlers.h"
 
 /** @file h_iam.c  Handles I-Am requests. */
 
@@ -77,8 +78,8 @@ void handler_i_am_add(
 
 /** Handler for I-Am responses (older binding-update-only version).
  * Will update the responder's binding, but if already in our cache.
- * @note This handler is deprecated, in favor of handler_i_am_add(). 
- * 
+ * @note This handler is deprecated, in favor of handler_i_am_add().
+ *
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.

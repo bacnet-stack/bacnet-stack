@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <string.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -42,12 +41,13 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "client.h"
 
 /** @file s_rd.c  Send a Reinitialize Device request. */
 
 /** Sends a Reinitialize Device (RD) request.
  * @ingroup DMRD
- * 
+ *
  * @param device_id [in] The index to the device address in our address cache.
  * @param state [in] Specifies the desired state of the device after reinitialization.
  * @param password [in] Optional password, up to 20 chars.

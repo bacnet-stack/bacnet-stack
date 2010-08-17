@@ -35,6 +35,7 @@
 #include "bacenum.h"
 #include "bacdcode.h"
 #include "bacdef.h"
+#include "reject.h"
 
 /** @file reject.c  Encode/Decode Reject APDUs */
 

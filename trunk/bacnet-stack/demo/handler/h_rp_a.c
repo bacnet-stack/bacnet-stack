@@ -26,7 +26,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"

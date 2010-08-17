@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <string.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -42,13 +41,14 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "client.h"
 
 /** @file s_whohas.c  Send Who-Has requests. */
 
 /** Send a Who-Has request for a device which has a named Object.
  * @ingroup DMDOB
  * If low_limit and high_limit both are -1, then the device ID range is unlimited.
- * If low_limit and high_limit have the same non-negative value, then only 
+ * If low_limit and high_limit have the same non-negative value, then only
  * that device will respond.
  * Otherwise, low_limit must be less than high_limit for a range.
  * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
@@ -97,7 +97,7 @@ void Send_WhoHas_Name(
 /** Send a Who-Has request for a device which has a specific Object type and ID.
  * @ingroup DMDOB
  * If low_limit and high_limit both are -1, then the device ID range is unlimited.
- * If low_limit and high_limit have the same non-negative value, then only 
+ * If low_limit and high_limit have the same non-negative value, then only
  * that device will respond.
  * Otherwise, low_limit must be less than high_limit for a range.
  * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1

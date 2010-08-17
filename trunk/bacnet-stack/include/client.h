@@ -39,6 +39,7 @@
 #include "lso.h"
 #include "alarm_ack.h"
 #include "ptransfer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -53,6 +54,11 @@ extern "C" {
     void Send_I_Am_Unicast(
         uint8_t * buffer,
         BACNET_ADDRESS * src);
+    int iam_unicast_encode_pdu(
+        uint8_t * buffer,
+        BACNET_ADDRESS * src,
+        BACNET_ADDRESS * dest,
+        BACNET_NPDU_DATA * npdu_data);
 
     void Send_WhoIs(
         int32_t low_limit,
@@ -101,6 +107,11 @@ extern "C" {
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data,
         BACNET_COV_DATA * cov_data);
+    uint8_t Send_COV_Subscribe(
+        uint32_t device_id,
+        BACNET_SUBSCRIBE_COV_DATA * cov_data);
+
+
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Read_Property_Request(

@@ -35,6 +35,7 @@
 #include "bacenum.h"
 #include "bacdcode.h"
 #include "bacdef.h"
+#include "whois.h"
 
 /** @file whois.c  Encode/Decode Who-Is requests  */
 

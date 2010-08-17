@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <string.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -42,6 +41,7 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "client.h"
 
 /** @file s_ts.c  Send TimeSync requests. */
 

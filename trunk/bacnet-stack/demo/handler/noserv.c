@@ -33,19 +33,20 @@
 #include "apdu.h"
 #include "npdu.h"
 #include "reject.h"
+#include "handlers.h"
 
 /** @file noserv.c  Handles an unrecognized/unsupported service. */
 
-/** Handler to be invoked when a Service request is received for which no 
+/** Handler to be invoked when a Service request is received for which no
  *  handler has been defined.
  * @ingroup MISCHNDLR
  * This handler builds a Reject response packet, and sends it.
- * 
+ *
  * @param service_request [in] The contents of the service request (unused).
  * @param service_len [in] The length of the service_request (unused).
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_unrecognized_service(
     uint8_t * service_request,

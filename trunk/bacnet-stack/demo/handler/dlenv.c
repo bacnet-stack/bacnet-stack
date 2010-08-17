@@ -33,7 +33,7 @@
 #include "apdu.h"
 #include "datalink.h"
 #include "handlers.h"
-#include "client.h"
+#include "dlenv.h"
 #include "tsm.h"
 
 /** @file dlenv.c  Initialize the DataLink configuration. */

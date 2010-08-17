@@ -27,12 +27,13 @@
 #include <errno.h>
 #include "event.h"
 #include "datalink.h"
+#include "client.h"
 
 /** @file s_uevent.c  Send an Unconfirmed Event Notification. */
 
 /** Sends an Unconfirmed Alarm/Event Notification.
  * @ingroup EVNOTFCN
- *  
+ *
  * @param buffer [in,out] The buffer to build the message in for sending.
  * @param data [in] The information about the Event to be sent.
  * @param dest [in] The destination address information (may be a broadcast).

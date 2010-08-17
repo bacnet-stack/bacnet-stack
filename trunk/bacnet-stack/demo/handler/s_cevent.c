@@ -33,16 +33,17 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "client.h"
 
 /** @file s_cevent.c  Send a ConfirmedEventNotification Request. */
 
 /** Sends an Confirmed Alarm/Event Notification.
  * @ingroup EVNOTFCN
- *  
+ *
  * @param device_id [in] ID of the destination device
  * @param data [in] The information about the Event to be sent.
  * @return invoke id of outgoing message, or 0 if communication is disabled,
- *         or no tsm slot is available. 
+ *         or no tsm slot is available.
  */
 uint8_t Send_CEvent_Notify(
     uint32_t device_id,

@@ -37,6 +37,7 @@
 /* special for this module */
 #include "cov.h"
 #include "bactext.h"
+#include "handlers.h"
 
 #ifndef MAX_COV_PROPERTIES
 #define MAX_COV_PROPERTIES 2
@@ -48,10 +49,10 @@
 /** Handler for an Unconfirmed COV Notification.
  * @ingroup DSCOV
  * Decodes the received list of Properties to update,
- * and print them out with the subscription information. 
+ * and print them out with the subscription information.
  * @note Nothing is specified in BACnet about what to do with the
  *       information received from Unconfirmed COV Notifications.
- * 
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message (unused)
@@ -69,7 +70,7 @@ void handler_ucov_notification(
 
     /* src not needed for this application */
     src = src;
-    /* create linked list to store data if more 
+    /* create linked list to store data if more
        than one property value is expected */
     pProperty_value = &property_value[0];
     while (pProperty_value) {

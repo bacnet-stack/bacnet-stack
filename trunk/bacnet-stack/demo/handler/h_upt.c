@@ -35,6 +35,7 @@
 #include "npdu.h"
 #include "abort.h"
 #include "ptransfer.h"
+#include "handlers.h"
 
 /** @file h_upt.c  Handles Unconfirmed Private Transfer requests. */
 

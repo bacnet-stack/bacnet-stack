@@ -51,6 +51,7 @@
 #if defined(BACFILE)
 #include "bacfile.h"
 #endif
+#include "handlers.h"
 
 /** @file h_cov.c  Handles Change of Value (COV) services. */
 
@@ -186,7 +187,7 @@ static int cov_encode_subscription(
  *  @param apdu [out] Buffer in which the APDU contents are built.
  *  @param max_apdu [in] Max length of the APDU buffer.
  *  @return How many bytes were encoded in the buffer, or -2 if the response
- *          would not fit within the buffer. 
+ *          would not fit within the buffer.
  */
 int handler_cov_encode_subscriptions(
     uint8_t * apdu,
@@ -214,7 +215,7 @@ int handler_cov_encode_subscriptions(
     return apdu_len;
 }
 
-/** Handler to initialize the COV list, clearing and disabling each entry. 
+/** Handler to initialize the COV list, clearing and disabling each entry.
  * @ingroup DSCOV
  */
 void handler_cov_init(
@@ -383,7 +384,7 @@ static bool cov_send_request(
     return status;
 }
 
-/** Handler to check the list of subscribed objects for any that have changed 
+/** Handler to check the list of subscribed objects for any that have changed
  *  and so need to have notifications sent.
  * @ingroup DSCOV
  * This handler will be invoked by the main program every second or so.
@@ -396,12 +397,12 @@ static bool cov_send_request(
  *    (eg, check with Binary_Input_Change_Of_Value() )
  *  - If changed,
  *    - Clear the COV (eg, Binary_Input_Change_Of_Value_Clear() )
- *    - Send the notice with cov_send_request() 
- *      - Will be confirmed or unconfirmed, as per the subscription.  
- *      
+ *    - Send the notice with cov_send_request()
+ *      - Will be confirmed or unconfirmed, as per the subscription.
+ *
  * @note worst case tasking: MS/TP with the ability to send only
  *        one notification per task cycle.
- *        
+ *
  * @param elapsed_seconds [in] How many seconds have elapsed since last called.
  */
 void handler_cov_task(
@@ -490,13 +491,13 @@ static bool cov_subscribe(
  *   - the message is segmented
  *   - if decoding fails
  * - an ACK, if cov_subscribe() succeeds
- * - an Error if cov_subscribe() fails 
- * 
+ * - an Error if cov_subscribe() fails
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_cov_subscribe(
     uint8_t * service_request,

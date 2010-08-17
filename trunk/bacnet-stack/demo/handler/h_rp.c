@@ -40,6 +40,7 @@
 #include "rp.h"
 /* device object has custom handler for all objects */
 #include "device.h"
+#include "handlers.h"
 
 /** @file h_rp.c  Handles Read Property requests. */
 
@@ -54,14 +55,14 @@
  *   - if decoding fails
  *   - if the response would be too large
  * - the result from Device_Read_Property(), if it succeeds
- * - an Error if Device_Read_Property() fails 
+ * - an Error if Device_Read_Property() fails
  *   or there isn't enough room in the APDU to fit the data.
- * 
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_read_property(
     uint8_t * service_request,
@@ -139,7 +140,7 @@ void handler_read_property(
   RP_FAILURE:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
-            /* Kludge alert! At the moment we assume any abort is due to 
+            /* Kludge alert! At the moment we assume any abort is due to
              * to space issues due to segmentation or lack thereof. I wanted to show the proper
              * handling via the abort_convert_error_code() so I put the error code
              * in here, if you are sure all aborts properly set up the error_code then

@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <string.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -42,12 +41,13 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "client.h"
 
 /** @file s_ihave.c  Send an I-Have (property) message. */
 
 /** Broadcast an I Have message.
  * @ingroup DMDOB
- * 
+ *
  * @param device_id [in] My device ID.
  * @param object_type [in] The BACNET_OBJECT_TYPE that I Have.
  * @param object_instance [in] The Object ID that I Have.

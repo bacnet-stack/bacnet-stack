@@ -37,6 +37,7 @@
 #include "abort.h"
 #include "readrange.h"
 #include "device.h"
+#include "handlers.h"
 
 /** @file h_rr.c  Handles Read Range requests. */
 
@@ -44,7 +45,7 @@ static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
-int Encode_RR_payload(
+static int Encode_RR_payload(
     uint8_t * apdu,
     BACNET_READ_RANGE_DATA * pRequest)
 {

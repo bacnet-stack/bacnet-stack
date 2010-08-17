@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <string.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -41,14 +40,15 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "client.h"
 
 /** @file s_dcc.c  Send a Device Communication Control (DCC) request. */
 
 /** Sends a Device Communication Control (DCC) request.
  * @ingroup DMDCC
- * 
+ *
  * @param device_id [in] The index to the device address in our address cache.
- * @param timeDuration [in] If non-zero, the minutes that the remote device 
+ * @param timeDuration [in] If non-zero, the minutes that the remote device
  *            shall ignore all APDUs except DCC and, if supported, RD APDUs.
  * @param state [in] Choice to Enable or Disable communication.
  * @param password [in] Optional password, up to 20 chars.

@@ -39,6 +39,7 @@
 #include "device.h"
 #include "bacdcode.h"
 #include "address.h"
+#include "iam.h"
 
 /** @file iam.c  Encode/Decode I-Am service */
 

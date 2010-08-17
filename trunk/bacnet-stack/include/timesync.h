@@ -42,7 +42,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* encode service */
+    /* encode service */
     int timesync_utc_encode_apdu(
         uint8_t * apdu,
         BACNET_DATE * my_date,
@@ -51,7 +51,12 @@ extern "C" {
         uint8_t * apdu,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
-/* decode the service request only */
+    int timesync_encode_apdu_service(
+        uint8_t * apdu,
+        BACNET_UNCONFIRMED_SERVICE service,
+        BACNET_DATE * my_date,
+        BACNET_TIME * my_time);
+    /* decode the service request only */
     int timesync_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,

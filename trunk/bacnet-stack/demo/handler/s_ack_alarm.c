@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <string.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -43,6 +42,7 @@
 #include "handlers.h"
 #include "txbuf.h"
 #include "alarm_ack.h"
+#include "client.h"
 
 /** @file s_ack_alarm.c  Send an Alarm Acknowledgment. */
 
