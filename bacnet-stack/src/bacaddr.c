@@ -36,6 +36,7 @@
 #include <stdbool.h>
 #include "config.h"
 #include "bacdef.h"
+#include "bacaddr.h"
 
 /** @file bacaddr.c  BACnet Address structure utilities */
 

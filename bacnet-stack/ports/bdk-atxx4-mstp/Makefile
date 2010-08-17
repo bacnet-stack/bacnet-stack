@@ -31,9 +31,9 @@ SIZE_OPTIONS = -t
 # avr109 = bootloader
 #AVRDUDE_PROGRAMMERID = avr109
 #AVRDUDE_PROGRAMMERID = jtag2fast
-AVRDUDE_PROGRAMMERID = avrispmkII
+#AVRDUDE_PROGRAMMERID = avrispmkII
 #AVRDUDE_PROGRAMMERID = dragon_isp
-#AVRDUDE_PROGRAMMERID = dragon_jtag
+AVRDUDE_PROGRAMMERID = dragon_jtag
 #
 # port--serial or parallel port to which your
 # hardware programmer is attached

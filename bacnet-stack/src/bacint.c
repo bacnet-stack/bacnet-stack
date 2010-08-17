@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "config.h"
+#include "bacint.h"
 
 /** @file bacint.c  Encode/Decode Integer Types */
 

@@ -182,7 +182,7 @@ bool Multistate_Input_Present_Value_Set(
     return status;
 }
 
-char *Multistate_Input_Description(
+static char *Multistate_Input_Description(
     uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
@@ -268,7 +268,7 @@ bool Multistate_Input_Name_Set(
     return status;
 }
 
-char *Multistate_Input_State_Text(
+static char *Multistate_Input_State_Text(
     uint32_t object_instance,
     uint32_t state_index)
 {

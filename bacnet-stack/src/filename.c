@@ -33,6 +33,7 @@
 ####COPYRIGHTEND####*/
 #include <stdio.h>
 #include <string.h>
+#include "filename.h"
 
 /** @file filename.c  Function for filename manipulation */
 

@@ -45,6 +45,8 @@ extern "C" {
         void);
     uint32_t Analog_Value_Index_To_Instance(
         unsigned index);
+    unsigned Analog_Value_Instance_To_Index(
+        uint32_t object_instance);
     char *Analog_Value_Name(
         uint32_t object_instance);
 

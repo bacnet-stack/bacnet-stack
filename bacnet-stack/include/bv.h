@@ -46,6 +46,8 @@ extern "C" {
         void);
     uint32_t Binary_Value_Index_To_Instance(
         unsigned index);
+    unsigned Binary_Value_Instance_To_Index(
+        uint32_t object_instance);
     char *Binary_Value_Name(
         uint32_t object_instance);
 

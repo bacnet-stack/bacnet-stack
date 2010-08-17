@@ -214,7 +214,7 @@ int bvlc_encode_write_bdt_init(
     return len;
 }
 
-int bvlc_encode_read_bdt(
+static int bvlc_encode_read_bdt(
     uint8_t * pdu)
 {
     int len = 0;
@@ -339,7 +339,7 @@ static int bvlc_encode_register_foreign_device(
     return len;
 }
 
-int bvlc_encode_read_fdt(
+static int bvlc_encode_read_fdt(
     uint8_t * pdu)
 {
     int len = 0;
@@ -417,7 +417,7 @@ static int bvlc_encode_read_fdt_ack(
     return pdu_len;
 }
 
-int bvlc_encode_delete_fdt_entry(
+static int bvlc_encode_delete_fdt_entry(
     uint8_t * pdu,
     struct in_addr *address,
     uint16_t port)
@@ -440,7 +440,7 @@ int bvlc_encode_delete_fdt_entry(
     return len;
 }
 
-int bvlc_encode_original_unicast_npdu(
+static int bvlc_encode_original_unicast_npdu(
     uint8_t * pdu,
     uint8_t * npdu,
     unsigned npdu_length)
@@ -466,7 +466,7 @@ int bvlc_encode_original_unicast_npdu(
     return len;
 }
 
-int bvlc_encode_original_broadcast_npdu(
+static int bvlc_encode_original_broadcast_npdu(
     uint8_t * pdu,
     uint8_t * npdu,
     unsigned npdu_length)
@@ -587,9 +587,9 @@ static bool bvlc_register_foreign_device(
                 (FD_Table[i].dest_port == ntohs(sin->sin_port))) {
                 status = true;
                 FD_Table[i].time_to_live = time_to_live;
-                /*  Upon receipt of a BVLL Register-Foreign-Device message, 
-                   a BBMD shall start a timer with a value equal to the 
-                   Time-to-Live parameter supplied plus a fixed grace 
+                /*  Upon receipt of a BVLL Register-Foreign-Device message,
+                   a BBMD shall start a timer with a value equal to the
+                   Time-to-Live parameter supplied plus a fixed grace
                    period of 30 seconds. */
                 FD_Table[i].seconds_remaining = time_to_live + 30;
                 break;

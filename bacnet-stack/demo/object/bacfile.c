@@ -42,6 +42,7 @@
 #include "rp.h"
 #include "wp.h"
 #include "handlers.h"
+#include "bacfile.h"
 
 typedef struct {
     uint32_t instance;
@@ -164,7 +165,7 @@ static long fsize(
     return (size);
 }
 
-static unsigned bacfile_file_size(
+unsigned bacfile_file_size(
     uint32_t object_instance)
 {
     char *pFilename = NULL;
