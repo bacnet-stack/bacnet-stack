@@ -118,6 +118,10 @@ extern "C" {
     uint32_t dlmstp_baud_rate(
         void);
 
+    void dlmstp_fill_bacnet_address(
+        BACNET_ADDRESS * src,
+        uint8_t mstp_address);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
