@@ -58,6 +58,24 @@ extern "C" {
         int32_t low_limit,
         int32_t high_limit);
 
+    void Send_WhoIs_Global(
+        int32_t low_limit,
+        int32_t high_limit);
+
+    void Send_WhoIs_Local(
+        int32_t low_limit,
+        int32_t high_limit);
+
+    void Send_WhoIs_Remote(
+        BACNET_ADDRESS * target_address,
+        int32_t low_limit,
+        int32_t high_limit);
+
+    void Send_WhoIs_To_Network(
+        BACNET_ADDRESS * target_address,
+        int32_t low_limit,
+        int32_t high_limit);
+
     void Send_WhoHas_Object(
         int32_t low_limit,
         int32_t high_limit,

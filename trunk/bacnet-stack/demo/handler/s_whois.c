@@ -39,16 +39,147 @@
 #include "datalink.h"
 #include "dcc.h"
 #include "whois.h"
+#include "bacenum.h"
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
 
 /** @file s_whois.c  Send a Who-Is request. */
 
-/** Send a Who-Is request for a specific device, a range, or any device.
+/** Send a Who-Is request to a remote network for a specific device, a range,
+ * or any device.
+ * If low_limit and high_limit both are -1, then the range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit.
+ * @param target_address [in] BACnet address of target router
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ */
+void Send_WhoIs_To_Network(
+    BACNET_ADDRESS * target_address,
+    int32_t low_limit,
+    int32_t high_limit)
+{
+    int len = 0;
+    int pdu_len = 0;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0],target_address, NULL, &npdu_data);
+    /* encode the APDU portion of the packet */
+    len =
+        whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len], low_limit,
+        high_limit);
+    pdu_len += len;
+    bytes_sent =
+        datalink_send_pdu(target_address, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",
+            strerror(errno));
+#endif
+}
+
+/** Send a global Who-Is request for a specific device, a range, or any device.
+ * If low_limit and high_limit both are -1, then the range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit.
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ */
+void Send_WhoIs_Global(
+    int32_t low_limit,
+    int32_t high_limit)
+{
+    BACNET_ADDRESS dest;
+
+    if (!dcc_communication_enabled())
+        return;
+
+    /* Who-Is is a global broadcast */
+    datalink_get_broadcast_address(&dest);
+
+    Send_WhoIs_To_Network(&dest, low_limit, high_limit);
+}
+
+/** Send a local Who-Is request for a specific device, a range, or any device.
  * @ingroup DMDDB
  * If low_limit and high_limit both are -1, then the range is unlimited.
- * If low_limit and high_limit have the same non-negative value, then only 
+ * If low_limit and high_limit have the same non-negative value, then only
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit.
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ */
+void Send_WhoIs_Local(
+    int32_t low_limit,
+    int32_t high_limit)
+{
+    BACNET_ADDRESS dest;
+
+    if (!dcc_communication_enabled())
+        return;
+
+    /* Who-Is is a global broadcast */
+    datalink_get_broadcast_address(&dest);
+    /* encode the NPDU portion of the packet */
+
+    /* I added this to make it a local broadcast */
+    dest.net = 0;
+
+    /* Not sure why this happens but values are backwards so they need to be reversed */
+
+    char temp[6];
+    temp[0] = dest.mac[3];
+    temp[1] = dest.mac[2];
+    temp[2] = dest.mac[1];
+    temp[3] = dest.mac[0];
+    temp[4] = dest.mac[5];
+    temp[5] = dest.mac[4];
+
+    int loop;
+
+    for(loop = 0; loop < 6; loop++)
+    {
+       dest.mac[loop] = temp[loop];
+    }
+
+    Send_WhoIs_To_Network(&dest, low_limit, high_limit);
+}
+
+/** Send a Who-Is request to a remote network for a specific device, a range,
+ * or any device.
+ * If low_limit and high_limit both are -1, then the range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit.
+ * @param target_address [in] BACnet address of target router
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ */
+void Send_WhoIs_Remote(
+    BACNET_ADDRESS * target_address,
+    int32_t low_limit,
+    int32_t high_limit)
+{
+    if (!dcc_communication_enabled())
+        return;
+
+	 Send_WhoIs_To_Network(target_address, low_limit, high_limit);
+}
+
+/** Send a global Who-Is request for a specific device, a range, or any device.
+ * This was the original Who-Is broadcast but the code was moved to the more
+ * descriptive Send_WhoIs_Global when Send_WhoIs_Local and Send_WhoIsRemote was
+ * added.
+ * If low_limit and high_limit both are -1, then the range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only
  * that device will respond.
  * Otherwise, low_limit must be less than high_limit.
  * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
@@ -58,32 +189,6 @@ void Send_WhoIs(
     int32_t low_limit,
     int32_t high_limit)
 {
-    int len = 0;
-    int pdu_len = 0;
-    BACNET_ADDRESS dest;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
-
-    if (!dcc_communication_enabled())
-        return;
-
-    /* Who-Is is a global broadcast */
-    datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
-    /* encode the APDU portion of the packet */
-    len =
-        whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len], low_limit,
-        high_limit);
-    pdu_len += len;
-    bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",
-            strerror(errno));
-#endif
+    Send_WhoIs_Global(low_limit, high_limit);
 }
+
