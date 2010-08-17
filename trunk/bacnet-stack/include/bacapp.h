@@ -99,7 +99,7 @@ struct BACnet_Property_Reference;
 typedef struct BACnet_Property_Reference {
     BACNET_PROPERTY_ID propertyIdentifier;
     int32_t propertyArrayIndex; /* optional */
-    /* either value or error, but not both. 
+    /* either value or error, but not both.
        Use NULL value to indicate error */
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_ACCESS_ERROR error;
@@ -122,6 +122,11 @@ extern "C" {
 #endif /* __cplusplus */
     int bacapp_encode_data(
         uint8_t * apdu,
+        BACNET_APPLICATION_DATA_VALUE * value);
+    int bacapp_decode_data(
+        uint8_t * apdu,
+        uint8_t tag_data_type,
+        uint32_t len_value_type,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     int bacapp_decode_application_data(
