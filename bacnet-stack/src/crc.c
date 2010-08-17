@@ -35,6 +35,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "crc.h"
 
 /** @file crc.c  Calculate CRCs */
 
