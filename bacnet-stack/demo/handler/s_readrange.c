@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <string.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -43,6 +42,7 @@
 #include "handlers.h"
 #include "txbuf.h"
 #include "readrange.h"
+#include "client.h"
 
 /** @file s_readrange.c  Send a ReadRange request. */
 

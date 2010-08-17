@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "config.h"
-#include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"

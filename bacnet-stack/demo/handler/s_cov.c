@@ -40,6 +40,7 @@
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
+#include "client.h"
 
 /** @file s_cov.c  Send a Change of Value (COV) update or a Subscribe COV request. */
 
@@ -66,7 +67,7 @@ int ucov_notify_encode_pdu(
 
 /** Sends an Unconfirmed COV Notification.
  * @ingroup DSCOV
- *  
+ *
  * @param buffer [in,out] The buffer to build the message in for sending.
  * @param cov_data [in]  The COV update information to be encoded.
  * @return Size of the message sent (bytes), or a negative value on error.
@@ -88,7 +89,7 @@ int Send_UCOV_Notify(
 
 /** Sends a COV Subscription request.
  * @ingroup DSCOV
- *  
+ *
  * @param device_id [in] ID of the destination device
  * @param cov_data [in]  The COV subscription information to be encoded.
  * @return invoke id of outgoing message, or 0 if communication is disabled or

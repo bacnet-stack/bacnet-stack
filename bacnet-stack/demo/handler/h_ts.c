@@ -30,6 +30,7 @@
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "timesync.h"
+#include "handlers.h"
 
 /** @file h_ts.c  Handles TimeSync requests. */
 

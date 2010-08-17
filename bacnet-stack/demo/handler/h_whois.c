@@ -36,6 +36,7 @@
 #include "device.h"
 #include "client.h"
 #include "txbuf.h"
+#include "handlers.h"
 
 /** @file h_whois.c  Handles Who-Is requests. */
 

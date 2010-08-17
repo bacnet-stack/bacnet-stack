@@ -37,6 +37,7 @@
 #include "abort.h"
 #include "event.h"
 #include "getevent.h"
+#include "handlers.h"
 
 /** @file h_getevent.c  Handles Get Event Information request. */
 

@@ -31,6 +31,8 @@
 #include "bits.h"
 #include "npdu.h"
 #include "apdu.h"
+#include "handlers.h"
+#include "client.h"
 
 #if PRINT_ENABLED
 #include <stdio.h>

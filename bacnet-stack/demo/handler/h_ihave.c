@@ -31,6 +31,7 @@
 #include "bacdcode.h"
 #include "bactext.h"
 #include "ihave.h"
+#include "handlers.h"
 
 /** @file h_ihave.c  Handles incoming I-Have messages. */
 

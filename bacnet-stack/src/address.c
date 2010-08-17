@@ -135,7 +135,7 @@ void address_remove_device(
  *****************************************************************************/
 
 
-struct Address_Cache_Entry *address_remove_oldest(
+static struct Address_Cache_Entry *address_remove_oldest(
     void)
 {
     struct Address_Cache_Entry *pMatch;
@@ -198,7 +198,7 @@ note: useful for MS/TP Slave static binding
 */
 static const char *Address_Cache_Filename = "address_cache";
 
-void address_file_init(
+static void address_file_init(
     const char *pFilename)
 {
     FILE *pFile = NULL; /* stream pointer */
@@ -404,7 +404,7 @@ void address_add(
     /* Note: Previously this function would ignore bind request
        marked entries and in fact would probably overwrite the first
        bind request entry blindly with the device info which may
-       have nothing to do with that bind request. Now it honours the 
+       have nothing to do with that bind request. Now it honours the
        bind request if it exists */
 
     /* existing device or bind request outstanding - update address */
@@ -603,7 +603,7 @@ int address_list_encode(
     struct Address_Cache_Entry *pMatch;
     BACNET_OCTET_STRING MAC_Address;
 
-    /* FIXME: I really shouild check the length remaining here but it is 
+    /* FIXME: I really shouild check the length remaining here but it is
        fairly pointless until we have the true length remaining in
        the packet to work with as at the moment it is just MAX_APDU */
     apdu_len = apdu_len;
@@ -707,7 +707,7 @@ int rr_address_list_encode(
          * start index/positive count and then process as
          * normal. This assumes that the order to return items
          * is always first to last, if this is not true we will
-         * have to handle this differently. 
+         * have to handle this differently.
          *
          * Note: We need to be careful about how we convert these
          * values due to the mix of signed and unsigned types - don't
@@ -753,7 +753,7 @@ int rr_address_list_encode(
     while (uiIndex <= uiTarget) {
         if (uiRemaining < ACACHE_MAX_ENC) {
             /*
-             * Can't fit any more in! We just set the result flag to say there 
+             * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
              */
             bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS,
@@ -811,7 +811,7 @@ int rr_address_list_encode(
  * Scan the cache and eliminate any expired entries. Should be called       *
  * periodically to ensure the cache is managed correctly. If this function  *
  * is never called at all the whole cache is effectivly rendered static and *
- * entries never expire unless explictely deleted.                          *    
+ * entries never expire unless explictely deleted.                          *
  ****************************************************************************/
 
 void address_cache_timer(

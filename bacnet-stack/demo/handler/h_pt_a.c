@@ -44,13 +44,13 @@
 #if defined(BACFILE)
 #include "bacfile.h"
 #endif
+#include "handlers.h"
 
 /** @file h_pt_a.c  Handles Confirmed Private Transfer Acknowledgment. */
 
 extern uint8_t IOBufferPT[300]; /* Somewhere to build the encoded result block for Private Transfers */
 
-
-void DecodeBlock(
+static void DecodeBlock(
     char cBlockNum,
     uint8_t * pData)
 {
@@ -116,9 +116,7 @@ void DecodeBlock(
     printf("  String      : %s\n\n", Response.sMyString);
 }
 
-
-
-void ProcessPTA(
+static void ProcessPTA(
     BACNET_PRIVATE_TRANSFER_DATA * data)
 {
     int iLen;   /* Index to current location in data */

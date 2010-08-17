@@ -38,6 +38,7 @@
 #include "wp.h"
 /* device object has the handling for all objects */
 #include "device.h"
+#include "handlers.h"
 
 /** @file h_wp.c  Handles Write Property requests. */
 
@@ -51,14 +52,14 @@
  *   - the message is segmented
  *   - if decoding fails
  * - an ACK if Device_Write_Property() succeeds
- * - an Error if Device_Write_Property() fails 
+ * - an Error if Device_Write_Property() fails
  *   or there isn't enough room in the APDU to fit the data.
- * 
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_write_property(
     uint8_t * service_request,
@@ -200,7 +201,7 @@ bool WPValidateArgType(
 {
     bool bResult;
 
-    /* 
+    /*
      * start out assuming success and only set up error
      * response if validation fails.
      */

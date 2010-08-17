@@ -39,6 +39,7 @@
 #include "rd.h"
 /* custom handling in device object */
 #include "device.h"
+#include "handlers.h"
 
 /** @file h_rd.c  Handles Reinitialize Device requests. */
 
@@ -50,17 +51,17 @@
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - an Error if 
+ * - an Error if
  *   - the RD password is incorrect
  *   - the Reinitialize Device operation fails
  * - a Reject if the request state is invalid
  * - else tries to send a simple ACK for the RD on success.
- * 
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_reinitialize_device(
     uint8_t * service_request,

@@ -39,6 +39,7 @@
 #include "iam.h"
 /* some demo stuff needed */
 #include "handlers.h"
+#include "client.h"
 
 /** @file s_iam.c  Send an I-Am message. */
 
@@ -71,7 +72,7 @@ int iam_encode_pdu(
 
 /** Broadcast an I Am message.
  * @ingroup DMDDB
- * 
+ *
  * @param buffer [in] The buffer to use for building and sending the message.
  */
 void Send_I_Am(
@@ -108,7 +109,7 @@ void Send_I_Am(
 /** Encode an I Am message to be unicast directly back to the src.
  *
  * @param buffer [in,out] The buffer to use for building the message.
- * @param src [in] The source address information. If the src address is not 
+ * @param src [in] The source address information. If the src address is not
  *                 given, the dest address will be a broadcast address.
  * @param dest [out] The destination address information.
  * @param npdu_data [out] The NPDU structure describing the message.

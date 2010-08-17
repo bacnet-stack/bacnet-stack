@@ -37,6 +37,7 @@
 #include "abort.h"
 #include "reject.h"
 #include "dcc.h"
+#include "handlers.h"
 
 /** @file h_dcc.c  Handles Device Communication Control request. */
 
@@ -78,12 +79,12 @@ void handler_dcc_password_set(
  * - an Error if the DCC password is incorrect
  * - else tries to send a simple ACK for the DCC on success,
  *   and sets the DCC state requested.
- * 
+ *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message
- * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information 
- *                          decoded from the APDU header of this message. 
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ *                          decoded from the APDU header of this message.
  */
 void handler_device_communication_control(
     uint8_t * service_request,

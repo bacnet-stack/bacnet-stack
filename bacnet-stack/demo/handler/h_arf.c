@@ -42,6 +42,7 @@
 #if defined(BACFILE)
 #include "bacfile.h"
 #endif
+#include "handlers.h"
 
 /** @file h_arf.c  Handles Atomic Read File request. */
 

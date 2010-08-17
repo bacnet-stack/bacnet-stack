@@ -44,6 +44,7 @@
 #endif
 #include "mydata.h"
 #include "ptransfer.h"
+#include "handlers.h"
 
 /** @file h_pt.c  Handles Confirmed Private Transfer requests. */
 
@@ -85,13 +86,13 @@ void ProcessPT(
     cBlockNumber = (char) ulTemp;
     if (cBlockNumber < MY_MAX_BLOCK) {
         if (data->serviceNumber == MY_SVC_READ) {
-            /*  Read Response is an unsigned int with 
+            /*  Read Response is an unsigned int with
                0 for success or a non 0 error code
-               For a successful read the 0 success 
+               For a successful read the 0 success
                code is followed by the block number
-               and then the block contents which 
+               and then the block contents which
                consist of 2 unsigned ints (in 0 to 255
-               range as they are really chars) a single 
+               range as they are really chars) a single
                precision real and a string which
                will be up to 32 chars + a nul */
 
@@ -119,11 +120,11 @@ void ProcessPT(
                 &bsTemp);
         } else {
             /* Write operation */
-            /*  Write block consists of the block number 
+            /*  Write block consists of the block number
                followed by the block contents as
-               described above for the read operation. 
+               described above for the read operation.
                The returned result is an unsigned
-               response which is 0 for success and 
+               response which is 0 for success and
                a non 0 error code otherwise. */
 
             tag_len =
@@ -260,11 +261,11 @@ void handler_conf_private_trans(
         goto CPT_ABORT;
     }
 
-    /*  Simple example with service number of 0 for 
+    /*  Simple example with service number of 0 for
        read block and 1 for write block
-       We also only support our own vendor ID. 
+       We also only support our own vendor ID.
        In theory we could support others
-       for compatability purposes but these 
+       for compatability purposes but these
        interfaces are rarely documented... */
     if ((data.vendorID == BACNET_VENDOR_ID) &&
         (data.serviceNumber <= MY_SVC_WRITE)) {
