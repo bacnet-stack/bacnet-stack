@@ -45,7 +45,7 @@ DEBUGGING = -g
 endif
 # put all the flags together
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
-LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES)
+LFLAGS = -Wl,$(LIBRARIES)
 
 SRCS = main.c
 
@@ -70,6 +70,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
 clean:
-	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET} $(TARGET).map
+	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET}
 
 include: .depend

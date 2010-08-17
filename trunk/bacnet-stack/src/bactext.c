@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include "indtext.h"
 #include "bacenum.h"
+#include "bactext.h"
 
 /** @file bactext.c  Lookup or Translate BACnet Name Text */
 

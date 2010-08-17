@@ -46,6 +46,8 @@ extern "C" {
         void);
     uint32_t Life_Safety_Point_Index_To_Instance(
         unsigned index);
+    unsigned Life_Safety_Point_Instance_To_Index(
+        uint32_t object_instance);
     char *Life_Safety_Point_Name(
         uint32_t object_instance);
     void Life_Safety_Point_Init(

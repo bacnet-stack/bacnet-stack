@@ -40,7 +40,7 @@
 /** @file ptransfer.c  Encode/Decode Private Transfer data */
 
 /* encode service */
-int pt_encode_apdu(
+static int pt_encode_apdu(
     uint8_t * apdu,
     uint16_t max_apdu,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)

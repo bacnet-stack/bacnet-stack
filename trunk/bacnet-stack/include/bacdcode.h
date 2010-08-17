@@ -67,6 +67,10 @@ extern "C" {
     int decode_tag_number(
         uint8_t * apdu,
         uint8_t * tag_number);
+    int decode_tag_number_safe(
+        uint8_t * apdu,
+        uint32_t apdu_len_remaining,
+        uint8_t * tag_number);
     int decode_tag_number_and_value(
         uint8_t * apdu,
         uint8_t * tag_number,
@@ -88,6 +92,10 @@ extern "C" {
     bool decode_is_context_tag(
         uint8_t * apdu,
         uint8_t tag_number);
+    bool decode_is_context_tag_with_length(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        int *tag_length);
     /* returns true if the tag is an opening tag */
     bool decode_is_opening_tag(
         uint8_t * apdu);

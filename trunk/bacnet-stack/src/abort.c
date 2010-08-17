@@ -35,6 +35,7 @@
 #include "bacenum.h"
 #include "bacdcode.h"
 #include "bacdef.h"
+#include "abort.h"
 
 /** @file abort.c  Abort Encoding/Decoding */
 /* Helper function to avoid needing additional entries in service data structures

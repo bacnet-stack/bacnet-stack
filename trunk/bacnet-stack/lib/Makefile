@@ -1,6 +1,6 @@
 #Makefile to build BACnet Library with GCC
 
-# tools - only if you need them.  
+# tools - only if you need them.
 # Most platforms have this already defined
 # CC = gcc
 # AR = ar
@@ -30,6 +30,7 @@ BACNET_INCLUDE = ../include
 INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
 OPTIMIZATION = -Os
 DEBUGGING =
+WARNINGS = -Wall -Wmissing-prototypes
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
 DEBUGGING = -g
@@ -37,7 +38,7 @@ ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 DEFINES += -DBIP_DEBUG
 endif
 endif
-CFLAGS  = -Wall $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
+CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
 CORE_SRC = \
 	$(BACNET_CORE)/apdu.c \

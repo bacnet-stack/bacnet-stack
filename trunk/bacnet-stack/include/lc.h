@@ -49,11 +49,15 @@ extern "C" {
         void);
     uint32_t Load_Control_Index_To_Instance(
         unsigned index);
+    unsigned Load_Control_Instance_To_Index(
+        uint32_t object_instance);
     char *Load_Control_Name(
         uint32_t object_instance);
 
     void Load_Control_Init(
         void);
+    void Load_Control_State_Machine(
+        int object_index);
 
     int Load_Control_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);

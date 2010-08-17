@@ -46,6 +46,8 @@ extern "C" {
         void);
     uint32_t Multistate_Output_Index_To_Instance(
         unsigned index);
+    unsigned Multistate_Output_Instance_To_Index(
+        uint32_t object_instance);
     char *Multistate_Output_Name(
         uint32_t object_instance);
 

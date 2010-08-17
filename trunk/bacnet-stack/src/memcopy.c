@@ -32,6 +32,7 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 #include <stddef.h>
+#include "memcopy.h"
 
 /** @file memcopy.c  Custom memcopy function */
 
