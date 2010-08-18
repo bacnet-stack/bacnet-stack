@@ -40,8 +40,8 @@
 #include "config.h"
 
 #if defined(_MSC_VER)
-// Silence the warnings about unsafe versions of library functions
-// as we need to keep the code portable
+/* Silence the warnings about unsafe versions of library functions */
+/* as we need to keep the code portable */
 #pragma warning( disable : 4996)
 #endif
 
