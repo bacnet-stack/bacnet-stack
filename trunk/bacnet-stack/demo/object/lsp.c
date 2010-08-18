@@ -318,8 +318,8 @@ bool Life_Safety_Point_Write_Property(
             if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
                     object_index =
-                        Life_Safety_Point_Instance_To_Index
-                        (wp_data->object_instance);
+                        Life_Safety_Point_Instance_To_Index(wp_data->
+                        object_instance);
                     Life_Safety_Point_Mode[object_index] =
                         value.type.Enumerated;
                 } else {
@@ -335,8 +335,8 @@ bool Life_Safety_Point_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Life_Safety_Point_Instance_To_Index
-                    (wp_data->object_instance);
+                    Life_Safety_Point_Instance_To_Index(wp_data->
+                    object_instance);
                 Life_Safety_Point_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }

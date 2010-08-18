@@ -891,8 +891,8 @@ bool bacapp_print_value(
                     case PROP_OBJECT_TYPE:
                         if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
                             fprintf(stream, "%s",
-                                bactext_object_type_name(value->type.
-                                    Enumerated));
+                                bactext_object_type_name(value->
+                                    type.Enumerated));
                         } else if (value->type.Enumerated < 128) {
                             fprintf(stream, "reserved %lu",
                                 (unsigned long) value->type.Enumerated);
@@ -908,8 +908,8 @@ bool bacapp_print_value(
                     case PROP_UNITS:
                         if (value->type.Enumerated < 256) {
                             fprintf(stream, "%s",
-                                bactext_engineering_unit_name(value->
-                                    type.Enumerated));
+                                bactext_engineering_unit_name(value->type.
+                                    Enumerated));
                         } else {
                             fprintf(stream, "proprietary %lu",
                                 (unsigned long) value->type.Enumerated);
@@ -917,13 +917,13 @@ bool bacapp_print_value(
                         break;
                     case PROP_POLARITY:
                         fprintf(stream, "%s",
-                            bactext_binary_polarity_name(value->
-                                type.Enumerated));
+                            bactext_binary_polarity_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
                         fprintf(stream, "%s",
-                            bactext_binary_present_value_name(value->
-                                type.Enumerated));
+                            bactext_binary_present_value_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_RELIABILITY:
                         fprintf(stream, "%s",
@@ -931,8 +931,8 @@ bool bacapp_print_value(
                         break;
                     case PROP_SYSTEM_STATUS:
                         fprintf(stream, "%s",
-                            bactext_device_status_name(value->
-                                type.Enumerated));
+                            bactext_device_status_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_SEGMENTATION_SUPPORTED:
                         fprintf(stream, "%s",
@@ -1303,8 +1303,8 @@ void testBACnetApplicationData_Safe(
                 break;
 
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                characterstring_init_ansi(&input_value[i].type.
-                    Character_String, "Hello There!");
+                characterstring_init_ansi(&input_value[i].
+                    type.Character_String, "Hello There!");
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:

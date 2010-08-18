@@ -190,7 +190,7 @@ bool apdu_service_supported_to_index(
         for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
             if (confirmed_service_supported[i] == service_supported) {
                 found = true;
-                *index = (size_t)i;
+                *index = (size_t) i;
                 *bIsConfirmed = true;
                 break;
             }
@@ -201,7 +201,7 @@ bool apdu_service_supported_to_index(
             for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
                 if (unconfirmed_service_supported[i] == service_supported) {
                     found = true;
-                    *index = (size_t)i;
+                    *index = (size_t) i;
                     break;
                 }
             }
@@ -380,7 +380,8 @@ void apdu_handler(
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                len = (int)apdu_decode_confirmed_service_request(&apdu[0],
+                len =
+                    (int) apdu_decode_confirmed_service_request(&apdu[0],
                     apdu_len, &service_data, &service_choice, &service_request,
                     &service_request_len);
                 /* When network communications are completely disabled,

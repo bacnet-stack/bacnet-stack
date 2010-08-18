@@ -1062,9 +1062,8 @@ int main(
                     (invoke_id ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData
-                        (Read_Property_Multiple_Data.rpm_data->
-                        listOfProperties);
+                    PrintReadPropertyData(Read_Property_Multiple_Data.
+                        rpm_data->listOfProperties);
                     if (tsm_invoke_id_free(invoke_id)) {
                         invoke_id = 0;
                     } else {
@@ -1188,4 +1187,4 @@ int main(
     return 0;
 }
 
-                  /*@} *//* End group BACEPICS */
+                         /*@} *//* End group BACEPICS */

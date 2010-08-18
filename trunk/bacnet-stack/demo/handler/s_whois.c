@@ -69,15 +69,16 @@ void Send_WhoIs_To_Network(
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0],target_address, NULL, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address, NULL,
+        &npdu_data);
     /* encode the APDU portion of the packet */
     len =
         whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len], low_limit,
         high_limit);
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(target_address, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        datalink_send_pdu(target_address, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",
@@ -145,9 +146,8 @@ void Send_WhoIs_Local(
 
     int loop;
 
-    for(loop = 0; loop < 6; loop++)
-    {
-       dest.mac[loop] = temp[loop];
+    for (loop = 0; loop < 6; loop++) {
+        dest.mac[loop] = temp[loop];
     }
 
     Send_WhoIs_To_Network(&dest, low_limit, high_limit);
@@ -171,7 +171,7 @@ void Send_WhoIs_Remote(
     if (!dcc_communication_enabled())
         return;
 
-	 Send_WhoIs_To_Network(target_address, low_limit, high_limit);
+    Send_WhoIs_To_Network(target_address, low_limit, high_limit);
 }
 
 /** Send a global Who-Is request for a specific device, a range, or any device.
@@ -191,4 +191,3 @@ void Send_WhoIs(
 {
     Send_WhoIs_Global(low_limit, high_limit);
 }
-
