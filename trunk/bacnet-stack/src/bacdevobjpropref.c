@@ -342,8 +342,8 @@ void testDevIdRef(
     inData.deviceIndentifier.instance = 0x4343;
     inData.deviceIndentifier.type = 28;
 
-    inLen = bacapp_encode_device_obj_property_ref(buffer, &inData);
-    outLen = bacapp_decode_device_obj_property_ref(buffer, &outData);
+    inLen = bacapp_encode_device_obj_ref(buffer, &inData);
+    outLen = bacapp_decode_device_obj_ref(buffer, &outData);
 
     ct_test(pTest, outLen == inLen);
 
