@@ -135,6 +135,15 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * object_value,
         uint8_t priority,
         int32_t array_index);
+    uint8_t Send_Write_Property_Request_Data(
+        uint32_t device_id,
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID object_property,
+        uint8_t * application_data,
+        int application_data_len,
+        uint8_t priority,
+        int32_t array_index);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Reinitialize_Device_Request(

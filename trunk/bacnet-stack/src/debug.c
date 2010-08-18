@@ -41,6 +41,7 @@
 
 /** @file debug.c  Debug print function */
 
+#if DEBUG_ENABLED
 void debug_printf(
     const char *format,
     ...)
@@ -54,3 +55,4 @@ void debug_printf(
 
     return;
 }
+#endif

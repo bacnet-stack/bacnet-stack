@@ -200,6 +200,8 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
     void handler_cov_task(
         uint32_t elapsed_seconds);
+    void handler_cov_init(
+        void);
     int handler_cov_encode_subscriptions(
         uint8_t * apdu,
         int max_apdu);
