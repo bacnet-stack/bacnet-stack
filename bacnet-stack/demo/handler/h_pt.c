@@ -55,7 +55,7 @@ DATABLOCK MyData[MYMAXBLOCK];
 
 uint8_t IOBufferPT[MAX_APDU];   /* Buffer for building response in  */
 
-void ProcessPT(
+static void ProcessPT(
     BACNET_PRIVATE_TRANSFER_DATA * data)
 {
     int iLen;   /* Index to current location in data */
