@@ -265,8 +265,8 @@ bool Binary_Value_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = value.type.Enumerated;
                     object_index =
-                        Binary_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                        Binary_Value_Instance_To_Index(wp_data->
+                        object_instance);
                     priority--;
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] = level;
