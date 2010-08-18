@@ -60,6 +60,8 @@ extern "C" {
         void);
     uint32_t bacfile_index_to_instance(
         unsigned find_index);
+    unsigned bacfile_instance_to_index(
+        uint32_t instance);
     uint32_t bacfile_instance(
         char *filename);
     /* this is one way to match up the invoke ID with */
@@ -81,11 +83,11 @@ extern "C" {
     uint32_t bacfile_file_size(
         uint32_t instance);
 
-/* handling for read property service */
+    /* handling for read property service */
     int bacfile_read_property(
         BACNET_READ_PROPERTY_DATA * rpdata);
 
-/* handling for write property service */
+    /* handling for write property service */
     bool bacfile_write_property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
