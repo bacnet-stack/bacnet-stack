@@ -26,6 +26,8 @@
 #include <stdbool.h>
 #include "hardware.h"
 #include "timer.h"
+/* me */
+#include "input.h"
 
 static uint8_t Address_Switch;
 static uint8_t Buttons;

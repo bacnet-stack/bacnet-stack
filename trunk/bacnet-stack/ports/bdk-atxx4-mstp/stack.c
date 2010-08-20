@@ -23,6 +23,8 @@
 *
 *********************************************************************/
 #include "hardware.h"
+/* me */
+#include "stack.h"
 
 /* stack checking */
 extern uint8_t _end;

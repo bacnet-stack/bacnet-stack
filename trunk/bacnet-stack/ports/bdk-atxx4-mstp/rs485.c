@@ -29,6 +29,8 @@
 #include "timer.h"
 #include "led.h"
 #include "nvdata.h"
+/* me */
+#include "rs485.h"
 
 /* baud rate */
 static uint32_t Baud_Rate = 9600;

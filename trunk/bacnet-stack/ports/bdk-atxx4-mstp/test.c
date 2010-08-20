@@ -30,6 +30,8 @@
 #include "serial.h"
 #include "input.h"
 #include "bo.h"
+/* me */
+#include "test.h"
 
 /* timer for test task */
 static struct itimer Test_Timer;

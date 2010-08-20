@@ -218,7 +218,7 @@ bool Binary_Output_Present_Value_Set(
     return status;
 }
 
-void Binary_Output_Polarity_Set(
+static void Binary_Output_Polarity_Set(
     uint32_t instance,
     BACNET_POLARITY polarity)
 {
@@ -231,7 +231,7 @@ void Binary_Output_Polarity_Set(
     }
 }
 
-void Binary_Output_Out_Of_Service_Set(
+static void Binary_Output_Out_Of_Service_Set(
     uint32_t instance,
     bool flag)
 {
