@@ -45,6 +45,8 @@
 #include "av.h"
 #include "bi.h"
 #include "bo.h"
+/* me */
+#include "bacnet.h"
 
 /* MAC Address of MS/TP */
 static uint8_t MSTP_MAC_Address;

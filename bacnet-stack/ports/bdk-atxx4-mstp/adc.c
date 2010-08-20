@@ -24,6 +24,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
+/* me */
+#include "adc.h"
 
 /* prescale select bits */
 #if   (F_CPU >> 1) < 1000000
@@ -73,8 +75,8 @@ void adc_init(
     /*  ADEN = Enable
        ADSC = Start conversion
        ADIF = Interrupt Flag
-       ADIE = Interrupt Enable    
-       ADATE = Auto Trigger Enable    
+       ADIE = Interrupt Enable
+       ADATE = Auto Trigger Enable
      */
     ADCSRA |= (1 << ADEN) | (1 << ADIE) | (1 << ADIF) | (1 << ADATE);
     /* trigger selection bits
@@ -85,7 +87,7 @@ void adc_init(
        1 0 0 Timer/Counter0 Overflow
        1 0 1 Timer/Counter1 Compare Match B
        1 1 0 Timer/Counter1 Overflow
-       1 1 1 Timer/Counter1 Capture Event        
+       1 1 1 Timer/Counter1 Capture Event
      */
     ADCSRB |= (0 << ADTS2) | (0 << ADTS1) | (0 << ADTS0);
     /* start the conversions */

@@ -17,6 +17,7 @@ OBJDUMP = avr-objdump
 SIZE = avr-size
 AVRDUDE = avrdude
 LINT = splint
+LINT_MCU = __AVR_ATmega644p__
 
 SIZE_OPTIONS = -t
 #SIZE_OPTIONS = -C --mcu=${MCU}
@@ -188,6 +189,7 @@ CFLAGS += -fshort-enums
 # warnings
 CFLAGS += -Wall
 CFLAGS += -Wstrict-prototypes
+CFLAGS += -Wmissing-prototypes
 # put it all together
 CFLAGS += -gdwarf-2 $(BFLAGS) $(OPTIMIZATION)
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
@@ -319,7 +321,7 @@ size: ${TARGET_ELF}
 	@${SIZE} ${SIZE_OPTIONS} ${TARGET_ELF}
 
 lint:
-	$(LINT) $(BFLAGS) $(CSRC)
+	$(LINT) -exportlocal -D$(LINT_MCU) $(BFLAGS) $(CSRC)
 
 install: $(TARGET_ELF)
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_INSTALL)

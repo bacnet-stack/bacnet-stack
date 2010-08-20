@@ -1348,6 +1348,7 @@ void dlmstp_get_broadcast_address(
     return;
 }
 
+#ifdef TEST_MSTP_STATE_TEXT
 char *dlmstp_receive_state_text(
     void)
 {
@@ -1366,7 +1367,9 @@ char *dlmstp_receive_state_text(
 
     return "unknown";
 }
+#endif
 
+#ifdef TEST_MSTP_STATE_TEXT
 char *dlmstp_master_state_text(
     void)
 {
@@ -1395,3 +1398,4 @@ char *dlmstp_master_state_text(
 
     return "unknown";
 }
+#endif

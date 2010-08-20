@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "hardware.h"
+/* me */
 #include "seeprom.h"
 
 /* the SEEPROM chip select bits A2, A1, and A0 are grounded */
@@ -276,7 +277,7 @@ int seeprom_bytes_read(
 * RETURN: number of bytes written, or -1 on error
 * NOTES: only writes from offset to end of page.
 **************************************************************************/
-int seeprom_bytes_write_page(
+static int seeprom_bytes_write_page(
     uint16_t eeaddr,    /* SEEPROM starting memory address */
     uint8_t * buf,      /* data to send */
     int len)
@@ -413,14 +414,14 @@ int seeprom_bytes_write_page(
 /*************************************************************************
 * DESCRIPTION: Write some data and wait until it is sent
 * RETURN: number of bytes written, or -1 on error
-* NOTES: 
-*   When the word address, internally generated, 
+* NOTES:
+*   When the word address, internally generated,
 *   reaches the page boundary, the following
-*   byte is placed at the beginning of the same 
+*   byte is placed at the beginning of the same
 *   page. If more than 64 data words are
-*   transmitted to the EEPROM, the data word 
+*   transmitted to the EEPROM, the data word
 *   address will “roll over” and previous data will be
-*   overwritten. The address “roll over” during write 
+*   overwritten. The address “roll over” during write
 *   is from the last byte of the current page to the
 *   first byte of the same page.
 **************************************************************************/
