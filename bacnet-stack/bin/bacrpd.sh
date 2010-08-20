@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PROG=`basename $0`
-OPTIONAL=1
+OPTIONAL=0
 
 usage()
 {
