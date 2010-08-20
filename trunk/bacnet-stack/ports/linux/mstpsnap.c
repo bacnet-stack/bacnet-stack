@@ -45,6 +45,7 @@
 #include "rs485.h"
 #include "crc.h"
 #include "mstp.h"
+#include "dlmstp.h"
 #include "mstptext.h"
 #include "bacint.h"
 
