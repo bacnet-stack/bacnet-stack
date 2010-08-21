@@ -35,28 +35,27 @@
 #ifndef _BAC_DEV_PROP_REF_H_
 #define _BAC_DEV_PROP_REF_H_
 
-
-typedef struct {
+typedef struct BACnet_Object_Property_Reference {
     BACNET_OBJECT_ID objectIdentifier;
     BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t arrayIndex;
-    BACNET_OBJECT_ID deviceIndentifier;
+    uint32_t arrayIndex;        /* Optional */
+} BACNET_OBJECT_PROPERTY_REFERENCE;
+
+typedef struct BACnet_Device_Object_Property_Reference {
+    BACNET_OBJECT_ID deviceIndentifier; /* Optional (0, 0) */
+    BACNET_OBJECT_PROPERTY_REFERENCE objectPropertyRef;
 } BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE;
 
-/** BACnetDeviceObjectReference structure.
- * If the optional deviceIdentifier is not provided, then this refers
- * to an object inside this Device.
- */
-typedef struct {
-    BACNET_OBJECT_ID deviceIndentifier;         /**< Optional, for external device. */
+typedef struct BACnet_Device_Object_Reference {
+    BACNET_OBJECT_ID deviceIndentifier; /* Optional (0, 0) */
     BACNET_OBJECT_ID objectIdentifier;
 } BACNET_DEVICE_OBJECT_REFERENCE;
-
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    /* BACnetDeviceObjectPropertyReference */
 
     int bacapp_encode_device_obj_property_ref(
         uint8_t * apdu,
@@ -76,6 +75,27 @@ extern "C" {
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
+    /* BACnetObjectPropertyReference */
+
+    int bacapp_encode_obj_property_ref(
+        uint8_t * apdu,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
+
+    int bacapp_encode_context_obj_property_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
+
+    int bacapp_decode_obj_property_ref(
+        uint8_t * apdu,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
+
+    int bacapp_decode_context_obj_property_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
+
+    /* BACnetDeviceObjectReference */
 
     int bacapp_encode_device_obj_ref(
         uint8_t * apdu,

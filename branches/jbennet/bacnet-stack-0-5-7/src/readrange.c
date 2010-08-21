@@ -75,8 +75,8 @@ int rr_encode_apdu(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);     /* + flag 'SA' if we accept many segments */
+        apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_READ_RANGE; /* service choice */
         apdu_len = 4;
@@ -162,8 +162,10 @@ int rr_decode_service_request(
     /* check for value pointers */
     if (apdu_len && rrdata) {
         /* Tag 0: Object ID */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+        if (!decode_is_context_tag(&apdu[len], 0) ||
+            decode_is_closing_tag(&apdu[len]))
             return -1;
+        len++;
         len += decode_object_id(&apdu[len], &type, &rrdata->object_instance);
         rrdata->object_type = (BACNET_OBJECT_TYPE) type;
         /* Tag 1: Property ID */
@@ -370,7 +372,8 @@ int rr_ack_decode_service_request(
 
     /* FIXME: check apdu_len against the len during decode   */
     /* Tag 0: Object ID */
-    if (!decode_is_context_tag(&apdu[0], 0))
+    if (!decode_is_context_tag(&apdu[len], 0) ||
+        decode_is_closing_tag(&apdu[len]))
         return -1;
     len = 1;
     len += decode_object_id(&apdu[len], &object, &rrdata->object_instance);
@@ -433,7 +436,9 @@ int rr_ack_decode_service_request(
             }
         }
     } else {
-        return -1;
+        /* assume empty packet !? */
+        if (rrdata->ItemCount != 0)     /* otherwise, exit with an error */
+            return -1;
     }
     if (len < apdu_len) {       /* Still something left to look at? */
         /* Tag 6: Item count */

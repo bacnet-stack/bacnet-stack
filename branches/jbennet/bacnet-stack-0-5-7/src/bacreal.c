@@ -100,7 +100,8 @@ int decode_context_real(
     uint32_t len_value;
     int len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_real(&apdu[len], real_value);

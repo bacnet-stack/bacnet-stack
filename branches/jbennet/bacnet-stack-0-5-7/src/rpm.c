@@ -50,8 +50,8 @@ int rpm_encode_apdu_init(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);     /* + flag 'SA' if we accept many segments */
+        apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_READ_PROP_MULTIPLE; /* service choice */
         apdu_len = 4;
@@ -209,10 +209,12 @@ int rpm_decode_object_id(
             return BACNET_STATUS_REJECT;
         }
         /* Tag 0: Object ID */
-        if (!decode_is_context_tag(&apdu[len++], 0)) {
+        if (!decode_is_context_tag(&apdu[len], 0) ||
+            decode_is_closing_tag(&apdu[len])) {
             rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             return BACNET_STATUS_REJECT;
         }
+        len++;
         len += decode_object_id(&apdu[len], &type, &rpmdata->object_instance);
         rpmdata->object_type = (BACNET_OBJECT_TYPE) type;
         /* Tag 1: sequence of ReadAccessSpecification */
@@ -233,7 +235,7 @@ int rpm_decode_object_end(
     int len = 0;        /* total length of the apdu, return value */
 
     if (apdu && apdu_len) {
-        if (decode_is_closing_tag_number(apdu, 1) == true)
+        if (decode_is_closing_tag_number(apdu, 1))
             len = 1;
     }
 
@@ -424,8 +426,10 @@ int rpm_ack_decode_object_id(
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {
         /* Tag 0: objectIdentifier */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+        if (!decode_is_context_tag(&apdu[len], 0) ||
+            decode_is_closing_tag(&apdu[len]))
             return -1;
+        len++;
         len += decode_object_id(&apdu[len], &type, object_instance);
         if (object_type)
             *object_type = (BACNET_OBJECT_TYPE) type;

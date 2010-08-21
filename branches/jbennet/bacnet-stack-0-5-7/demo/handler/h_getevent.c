@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacerror.h"
@@ -37,21 +36,24 @@
 #include "abort.h"
 #include "event.h"
 #include "getevent.h"
-
+#include "session.h"
+#include "handlers.h"
+#include "handlers-data-core.h"
 /** @file h_getevent.c  Handles Get Event Information request. */
 
-static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
-
 void handler_get_event_information_set(
+    struct bacnet_session_object *sess,
     BACNET_OBJECT_TYPE object_type,
     get_event_info_function pFunction)
 {
     if (object_type < MAX_BACNET_OBJECT_TYPE) {
-        Get_Event_Info[object_type] = pFunction;
+        get_bacnet_session_handler_data(sess)->Get_Event_Info[object_type] =
+            pFunction;
     }
 }
 
 void handler_get_event_information(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -69,9 +71,10 @@ void handler_get_event_information(
     unsigned i = 0, j = 0;      /* counter */
     BACNET_GET_EVENT_INFORMATION_DATA getevent_data;
     int valid_event = 0;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -103,6 +106,9 @@ void handler_get_event_information(
 #endif
         goto GET_EVENT_ABORT;
     }
+
+    /* assume that there is an error */
+    error = true;
     len =
         getevent_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
         sizeof(Handler_Transmit_Buffer) - pdu_len, service_data->invoke_id);
@@ -112,9 +118,11 @@ void handler_get_event_information(
     }
     pdu_len += len;
     for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
-        if (Get_Event_Info[i]) {
+        if (get_bacnet_session_handler_data(sess)->Get_Event_Info[i]) {
             for (j = 0; j < 0xffff; j++) {
-                valid_event = Get_Event_Info[i] (j, &getevent_data);
+                valid_event =
+                    get_bacnet_session_handler_data(sess)->Get_Event_Info[i]
+                    (j, &getevent_data);
                 if (valid_event > 0) {
                     getevent_data.next = NULL;
                     len =
@@ -139,6 +147,7 @@ void handler_get_event_information(
         error = true;
         goto GET_EVENT_ERROR;
     }
+    pdu_len += len;
 #if PRINT_ENABLED
     fprintf(stderr, "GetEventInformation: Sending Ack!\n");
 #endif
@@ -167,8 +176,8 @@ void handler_get_event_information(
   GET_EVENT_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

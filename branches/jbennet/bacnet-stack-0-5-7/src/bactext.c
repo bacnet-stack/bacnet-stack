@@ -148,6 +148,22 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     {BACNET_APPLICATION_TAG_RESERVE2, "Reserved 2"}
     ,
     {BACNET_APPLICATION_TAG_RESERVE3, "Reserved 3"}
+
+    /* Some special constructed types */
+    , {BACNET_APPLICATION_TAG_DATERANGE, "DateRange"}
+    , {BACNET_APPLICATION_TAG_DATETIME, "DateTime"}
+    , {BACNET_APPLICATION_TAG_TIMESTAMP, "TimeStamp"}
+    , {BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE,
+        "DeviceObjectPropertyReference"}
+    , {BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE, "DeviceObjectReference"}
+    , {BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE,
+        "ObjectPropertyReference"}
+    , {BACNET_APPLICATION_TAG_DESTINATION, "Destination"}
+    , {BACNET_APPLICATION_TAG_RECIPIENT, "Recipient"}
+    , {BACNET_APPLICATION_TAG_COV_SUBSCRIPTION, "COVSubscription"}
+    , {BACNET_APPLICATION_TAG_CALENDAR_ENTRY, "CalendarEntry"}
+    , {BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, "WeeklySchedule"}
+    , {BACNET_APPLICATION_TAG_SPECIAL_EVENT, "SpecialEvent"}
     ,
     {0, NULL}
 };
@@ -282,6 +298,57 @@ bool bactext_object_type_index(
     return indtext_by_istring(bacnet_object_type_names, search_name,
         found_index);
 }
+
+INDTEXT_DATA bacnet_notify_type_names[] = {
+    {NOTIFY_ALARM, "Alarm"}
+    ,
+    {NOTIFY_EVENT, "Event"}
+    ,
+    {NOTIFY_ACK_NOTIFICATION, "Ack notification"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_notify_type_name(
+    unsigned index)
+{
+    return indtext_by_index_default(bacnet_notify_type_names, index,
+        ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_event_type_names[] = {
+    {EVENT_CHANGE_OF_BITSTRING, "Change of bitstring"}
+    ,
+    {EVENT_CHANGE_OF_STATE, "Change of state"}
+    ,
+    {EVENT_CHANGE_OF_VALUE, "Change of value"}
+    ,
+    {EVENT_COMMAND_FAILURE, "Command failure"}
+    ,
+    {EVENT_FLOATING_LIMIT, "Floating limit"}
+    ,
+    {EVENT_OUT_OF_RANGE, "Out of range"}
+    ,
+    {EVENT_CHANGE_OF_LIFE_SAFETY, "Change of life safety"}
+    ,
+    {EVENT_EXTENDED, "Extended"}
+    ,
+    {EVENT_BUFFER_READY, "Buffer ready"}
+    ,
+    {EVENT_UNSIGNED_RANGE, "Unsigned range"}
+    ,
+    {EVENT_ACCESS_EVENT, "Access event"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_event_type_name(
+    unsigned index)
+{
+    return indtext_by_index_split_default(bacnet_event_type_names, index, 64,
+        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+}
+
 
 INDTEXT_DATA bacnet_property_names[] = {
 /* FIXME: use the enumerations from bacenum.h */
@@ -958,6 +1025,13 @@ const char *bactext_property_name(
 {
     return indtext_by_index_split_default(bacnet_property_names, index, 512,
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
+}
+
+const char *bactext_property_known_name(
+    unsigned index)
+{
+    return indtext_by_index_split_default(bacnet_property_names, index, 512,
+        ASHRAE_Reserved_String, NULL);
 }
 
 unsigned bactext_property_id(
@@ -1982,4 +2056,27 @@ const char *bactext_node_type_name(
 {
     return indtext_by_index_default(bacnet_node_type_names, index,
         ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_character_string_encoding_names[] = {
+    {CHARACTER_ANSI_X34, "ANSIX34/UTF8"}
+    ,
+    {CHARACTER_MS_DBCS, "DBCS"}
+    ,
+    {CHARACTER_JISC_6226, "JISC6226"}
+    ,
+    {CHARACTER_UCS4, "UCS4"}
+    ,
+    {CHARACTER_UCS2, "UCS2"}
+    ,
+    {CHARACTER_ISO8859, "ISO8859"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_character_string_encoding_name(
+    unsigned index)
+{
+    return indtext_by_index_default(bacnet_character_string_encoding_names,
+        index, ASHRAE_Reserved_String);
 }

@@ -28,12 +28,13 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "whohas.h"
 #include "device.h"
 #include "client.h"
+#include "handlers.h"
+#include "bacnet-session.h"
 
 /** @file h_whohas.c  Handles Who-Has requests. */
 
@@ -47,6 +48,7 @@
  * @param src [in] The BACNET_ADDRESS of the message's source.
  */
 void handler_who_has(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)
@@ -56,7 +58,7 @@ void handler_who_has(
     bool directed_to_me = false;
     int object_type = 0;
     uint32_t object_instance = 0;
-    char *object_name = NULL;
+    const char *object_name = NULL;
     bool found = false;
 
     (void) src;
@@ -64,8 +66,10 @@ void handler_who_has(
     if (len > 0) {
         if ((data.low_limit == -1) || (data.high_limit == -1))
             directed_to_me = true;
-        else if ((Device_Object_Instance_Number() >= (uint32_t) data.low_limit)
-            && (Device_Object_Instance_Number() <= (uint32_t) data.high_limit))
+        else if ((Device_Object_Instance_Number(sess) >=
+                (uint32_t) data.low_limit)
+            && (Device_Object_Instance_Number(sess) <=
+                (uint32_t) data.high_limit))
             directed_to_me = true;
         if (directed_to_me) {
             /* do we have such an object?  If so, send an I-Have.
@@ -74,18 +78,18 @@ void handler_who_has(
                 /* valid name in my device? */
                 object_name = characterstring_value(&data.object.name);
                 found =
-                    Device_Valid_Object_Name(object_name, &object_type,
+                    Device_Valid_Object_Name(sess, object_name, &object_type,
                     &object_instance);
                 if (found)
-                    Send_I_Have(Device_Object_Instance_Number(), object_type,
-                        object_instance, object_name);
+                    Send_I_Have(sess, Device_Object_Instance_Number(sess),
+                        object_type, object_instance, object_name);
             } else {
                 /* valid object in my device? */
                 object_name =
-                    Device_Valid_Object_Id(data.object.identifier.type,
+                    Device_Valid_Object_Id(sess, data.object.identifier.type,
                     data.object.identifier.instance);
                 if (object_name)
-                    Send_I_Have(Device_Object_Instance_Number(),
+                    Send_I_Have(sess, Device_Object_Instance_Number(sess),
                         data.object.identifier.type,
                         data.object.identifier.instance, object_name);
             }

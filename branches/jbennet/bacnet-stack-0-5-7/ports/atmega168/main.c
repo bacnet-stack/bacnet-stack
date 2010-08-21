@@ -158,10 +158,12 @@ int main(
         task_milliseconds();
         /* other tasks */
         /* BACnet handling */
-        pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &PDUBuffer[0],
+            sizeof(PDUBuffer), 0);
         if (pdu_len) {
             LED_NPDU_ON();
-            npdu_handler(&src, &PDUBuffer[0], pdu_len);
+            npdu_handler(sess, &src, &PDUBuffer[0], pdu_len);
             LED_NPDU_OFF();
         }
     }

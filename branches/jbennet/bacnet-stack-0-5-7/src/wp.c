@@ -109,8 +109,10 @@ int wp_decode_service_request(
     /* check for value pointers */
     if (apdu_len && wpdata) {
         /* Tag 0: Object ID          */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+        if (!decode_is_context_tag(&apdu[len], 0) ||
+            decode_is_closing_tag(&apdu[len]))
             return -1;
+        len++;
         len += decode_object_id(&apdu[len], &type, &wpdata->object_instance);
         wpdata->object_type = (BACNET_OBJECT_TYPE) type;
         /* Tag 1: Property ID */

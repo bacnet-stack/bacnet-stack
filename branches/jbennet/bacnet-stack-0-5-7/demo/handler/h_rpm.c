@@ -29,23 +29,23 @@
 #include <stdio.h>
 #include <string.h>
 #include "config.h"
-#include "txbuf.h"
 #include "memcopy.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
-#include "reject.h"
-#include "bacerror.h"
 #include "rpm.h"
+#include "handlers.h"
+#include "session.h"
+#include "bacerror.h"
+#include "reject.h"
+#include "handlers-data-core.h"
 #include "handlers.h"
 /* device object has custom handler for all objects */
 #include "device.h"
 
 /** @file h_rpm.c  Handles Read Property Multiple requests. */
-
-static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
 static BACNET_PROPERTY_ID RPM_Object_Property(
     struct special_property_list_t *pPropertyList,
@@ -103,6 +103,7 @@ static unsigned RPM_Object_Property_Count(
 /** Encode the RPM property returning the length of the encoding,
    or 0 if there is no room to fit the encoding.  */
 static int RPM_Encode_Property(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     uint16_t offset,
     uint16_t max_apdu,
@@ -112,6 +113,7 @@ static int RPM_Encode_Property(
     size_t copy_len = 0;
     int apdu_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
+    uint8_t Temp_Buf[MAX_APDU];
 
     len =
         rpm_ack_encode_apdu_object_property(&Temp_Buf[0],
@@ -131,7 +133,7 @@ static int RPM_Encode_Property(
     rpdata.array_index = rpmdata->array_index;
     rpdata.application_data = &Temp_Buf[0];
     rpdata.application_data_len = sizeof(Temp_Buf);
-    len = Device_Read_Property(&rpdata);
+    len = Device_Read_Property(sess, &rpdata);
     if (len < 0) {
         if ((len == BACNET_STATUS_ABORT) || (len == BACNET_STATUS_REJECT)) {
             /* pass on aborts and rejects for now */
@@ -183,6 +185,7 @@ static int RPM_Encode_Property(
  *                          decoded from the APDU header of this message.
  */
 void handler_read_property_multiple(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -199,11 +202,13 @@ void handler_read_property_multiple(
     int apdu_len = 0;
     int npdu_len = 0;
     int error = 0;
+    uint8_t Temp_Buf[MAX_APDU];
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* jps_debug - see if we are utilizing all the buffer */
     /* memset(&Handler_Transmit_Buffer[0], 0xff, sizeof(Handler_Transmit_Buffer)); */
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -308,7 +313,7 @@ void handler_read_property_multiple(
                     apdu_len += len;
                 } else {
                     special_object_property = rpmdata.object_property;
-                    Device_Objects_Property_List(rpmdata.object_type,
+                    Device_Objects_Property_List(sess, rpmdata.object_type,
                         &property_list);
                     property_count =
                         RPM_Object_Property_Count(&property_list,
@@ -316,7 +321,8 @@ void handler_read_property_multiple(
                     if (property_count == 0) {
                         /* handle the error code - but use the special property */
                         len =
-                            RPM_Encode_Property(&Handler_Transmit_Buffer[0],
+                            RPM_Encode_Property(sess,
+                            &Handler_Transmit_Buffer[0],
                             (uint16_t) (npdu_len + apdu_len), MAX_APDU,
                             &rpmdata);
                         if (len > 0) {
@@ -331,9 +337,10 @@ void handler_read_property_multiple(
                                 RPM_Object_Property(&property_list,
                                 special_object_property, index);
                             len =
-                                RPM_Encode_Property(&Handler_Transmit_Buffer
-                                [0], (uint16_t) (npdu_len + apdu_len),
-                                MAX_APDU, &rpmdata);
+                                RPM_Encode_Property(sess,
+                                &Handler_Transmit_Buffer[0],
+                                (uint16_t) (npdu_len + apdu_len), MAX_APDU,
+                                &rpmdata);
                             if (len > 0) {
                                 apdu_len += len;
                             } else {
@@ -346,7 +353,7 @@ void handler_read_property_multiple(
             } else {
                 /* handle an individual property */
                 len =
-                    RPM_Encode_Property(&Handler_Transmit_Buffer[0],
+                    RPM_Encode_Property(sess, &Handler_Transmit_Buffer[0],
                     (uint16_t) (npdu_len + apdu_len),
                     sizeof(Handler_Transmit_Buffer), &rpmdata);
                 if (len > 0) {
@@ -429,6 +436,6 @@ void handler_read_property_multiple(
 
     pdu_len = apdu_len + npdu_len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 }

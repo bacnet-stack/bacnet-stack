@@ -39,6 +39,9 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -59,6 +62,7 @@ static int32_t Target_Object_Instance_Max = BACNET_MAX_INSTANCE;
 static bool Error_Detected = false;
 
 void MyAbortHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t abort_reason,
@@ -74,6 +78,7 @@ void MyAbortHandler(
 }
 
 void MyRejectHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t reject_reason)
@@ -87,39 +92,42 @@ void MyRejectHandler(
 }
 
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* Note: this applications doesn't need to handle who-is 
        it is confusing for the user! */
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the reply (request) coming back */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        handler_i_am_add);
     /* handle any errors coming back */
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+    apdu_set_abort_handler(sess, MyAbortHandler);
+    apdu_set_reject_handler(sess, MyRejectHandler);
 }
 
 static void print_address_cache(
-    void)
+    struct bacnet_session_object *sess)
 {
     int i, j;
     BACNET_ADDRESS address;
     uint32_t device_id = 0;
     unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
     unsigned total_addresses = 0;
 
     printf(";%-7s %-20s %-5s %-20s %-4s\n", "Device", "MAC", "SNET", "SADR",
         "APDU");
     printf(";------- -------------------- ----- -------------------- ----\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
-        if (address_get_by_index(i, &device_id, &max_apdu, &address)) {
+        if (address_get_by_index(sess, i, &device_id, &max_apdu, &segmentation,
+                &address)) {
             total_addresses++;
             printf(" %-7u ", device_id);
             for (j = 0; j < MAX_MAC_LEN; j++) {
@@ -177,6 +185,7 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
+    struct bacnet_session_object *sess = NULL;
 
     if (argc < 2) {
         printf("Usage: %s device-instance | "
@@ -229,24 +238,26 @@ int main(
         }
     }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    Init_Service_Handlers();
-    address_init();
-    dlenv_init();
+    sess = create_bacnet_session();
+    Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
+    Init_Service_Handlers(sess);
+    address_init(sess);
+    dlenv_init(sess);
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = apdu_timeout() / 1000;
+    timeout_seconds = apdu_timeout(sess) / 1000;
     /* send the request */
-    Send_WhoIs(Target_Object_Instance_Min, Target_Object_Instance_Max);
+    Send_WhoIs(sess, Target_Object_Instance_Min, Target_Object_Instance_Max);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
         current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
         /* process */
         if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         if (Error_Detected)
             break;
@@ -263,7 +274,9 @@ int main(
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
-    print_address_cache();
+    print_address_cache(sess);
+    /* perform memory desallocation */
+    bacnet_destroy_session(sess);
 
     return 0;
 }

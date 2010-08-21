@@ -752,14 +752,16 @@ typedef enum {
     EVENT_CHANGE_OF_LIFE_SAFETY = 8,
     EVENT_EXTENDED = 9,
     EVENT_BUFFER_READY = 10,
-    EVENT_UNSIGNED_RANGE = 11
+    EVENT_UNSIGNED_RANGE = 11,
+    /* -- context tag 12 is reserved for future addenda  */
+    EVENT_ACCESS_EVENT = 13
         /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
         /* Enumerated values 64-65535 may be used by others subject to  */
         /* the procedures and constraints described in Clause 23.  */
         /* It is expected that these enumerated values will correspond to  */
         /* the use of the complex-event-type CHOICE [6] of the  */
         /* BACnetNotificationParameters production. */
-        /* The last enumeration used in this version is 11. */
+        /* The last enumeration used in this version is 13. */
 } BACNET_EVENT_TYPE;
 
 typedef enum {
@@ -975,7 +977,26 @@ typedef enum {
     BACNET_APPLICATION_TAG_RESERVE1 = 13,
     BACNET_APPLICATION_TAG_RESERVE2 = 14,
     BACNET_APPLICATION_TAG_RESERVE3 = 15,
-    MAX_BACNET_APPLICATION_TAG = 16
+    MAX_BACNET_APPLICATION_TAG = 16,
+
+    /* Extra stuff */
+    BACNET_APPLICATION_TAG_EMPTYLIST,   /* Means : "nothing", an empty list, not even a null character */
+
+    BACNET_APPLICATION_TAG_WEEKNDAY,    /* BACnetWeeknday */
+    BACNET_APPLICATION_TAG_DATERANGE,   /* BACnetDateRange */
+    BACNET_APPLICATION_TAG_DATETIME,    /* BACnetDateTime */
+    BACNET_APPLICATION_TAG_TIMESTAMP,   /* BACnetTimeStamp */
+    BACNET_APPLICATION_TAG_ERROR,       /* Error Class, Error Code */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE,    /* BACnetDeviceObjectPropertyReference */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE,     /* BACnetDeviceObjectReference */
+    BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE,   /* BACnetObjectPropertyReference */
+    BACNET_APPLICATION_TAG_DESTINATION, /* BACnetDestination (Recipient_List) */
+    BACNET_APPLICATION_TAG_RECIPIENT,   /* BACnetRecipient */
+    BACNET_APPLICATION_TAG_COV_SUBSCRIPTION,    /* BACnetCOVSubscription */
+    BACNET_APPLICATION_TAG_CALENDAR_ENTRY,      /* BACnetCalendarEntry */
+    BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,     /* BACnetWeeklySchedule */
+    BACNET_APPLICATION_TAG_SPECIAL_EVENT,       /* BACnetSpecialEvent */
+
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -1217,6 +1238,18 @@ typedef enum {
     /* X'80' to X'FF': Available for vendor proprietary messages */
     NETWORK_MESSAGE_INVALID = 0x100
 } BACNET_NETWORK_MESSAGE_TYPE;
+
+
+typedef enum {
+    REINITIALIZED_STATE_COLD_START = 0,
+    REINITIALIZED_STATE_WARM_START = 1,
+    REINITIALIZED_STATE_START_BACKUP = 2,
+    REINITIALIZED_STATE_END_BACKUP = 3,
+    REINITIALIZED_STATE_START_RESTORE = 4,
+    REINITIALIZED_STATE_END_RESTORE = 5,
+    REINITIALIZED_STATE_ABORT_RESTORE = 6,
+    REINITIALIZED_STATE_IDLE = 255
+} BACNET_REINITIALIZED_STATE_OF_DEVICE;
 
 typedef enum {
     ABORT_REASON_OTHER = 0,

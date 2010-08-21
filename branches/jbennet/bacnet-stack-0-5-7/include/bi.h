@@ -42,65 +42,87 @@ extern "C" {
         const int **pProprietary);
 
     bool Binary_Input_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Binary_Input_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Binary_Input_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     unsigned Binary_Input_Instance_To_Index(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Input_Object_Instance_Add(
+        struct bacnet_session_object *sess,
         uint32_t instance);
 
     char *Binary_Input_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     bool Binary_Input_Name_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         char *new_name);
 
     char *Binary_Input_Description(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Input_Description_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         char *new_name);
 
     char *Binary_Input_Inactive_Text(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Input_Inactive_Text_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         char *new_name);
     char *Binary_Input_Active_Text(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Input_Active_Text_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         char *new_name);
     BACNET_POLARITY Binary_Input_Polarity(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     bool Binary_Input_Polarity_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         BACNET_POLARITY polarity);
     bool Binary_Input_Out_Of_Service(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
 
     bool Binary_Input_Change_Of_Value(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     void Binary_Input_Change_Of_Value_Clear(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     bool Binary_Input_Encode_Value_List(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
 
     int Binary_Input_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Binary_Input_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
     void Binary_Input_Init(
-        void);
+        struct bacnet_session_object *sess);
     BACNET_BINARY_PV Binary_Input_Present_Value(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
 
     bool Binary_Input_Present_Value_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         BACNET_BINARY_PV value);
 

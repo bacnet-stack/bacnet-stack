@@ -16,6 +16,7 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/datetime.c \
 	$(SRC_DIR)/timesync.c \
+        $(SRC_DIR)/session.c \
 	ctest.c
 
 TARGET = timesync

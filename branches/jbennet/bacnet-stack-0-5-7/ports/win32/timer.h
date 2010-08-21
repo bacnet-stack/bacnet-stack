@@ -27,7 +27,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #define STRICT 1
 #include <windows.h>
 #if defined(__BORLANDC__)

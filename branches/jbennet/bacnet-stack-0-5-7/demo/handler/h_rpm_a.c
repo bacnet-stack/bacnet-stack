@@ -28,7 +28,6 @@
 #include <assert.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -41,7 +40,7 @@
 #include "rpm.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
+#include "bacnet-session.h"
 
 /** @file h_rpm_a.c  Handles Read Property Multiple Acknowledgments. */
 
@@ -287,6 +286,7 @@ void rpm_ack_print_data(
  *                          decoded from the APDU header of this message.
  */
 void handler_read_property_multiple_ack(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,

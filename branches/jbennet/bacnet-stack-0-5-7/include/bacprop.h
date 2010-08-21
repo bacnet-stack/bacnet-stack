@@ -39,20 +39,33 @@
 #include "bacenum.h"
 
 typedef struct {
+    signed object_id;   /* known object type, -1 for 'any' */
     signed prop_id;     /* index number that matches the text */
     signed tag_id;      /* text pair - use NULL to end the list */
+    bool writable;      /* writable flag according to specification */
 } PROP_TAG_DATA;
+
+typedef struct {
+    int PropertyId;     /* BACNET_PROPERTY_ID */
+    int MinimumLength;  /* Minimum String Lenght as of ASHRAE 135-2008 table K-X4 */
+} PROP_MINIMUM_LENGTH;
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    signed bacprop_tag_by_index_default(
-        PROP_TAG_DATA * data_list,
-        signed index,
-        signed default_ret);
+    /*/ Returns minimum recommended character-string length for displaying properties */
+    int bacprop_minimum_character_string_length(
+        signed prop);
 
+    /*/ Returns a known (Object, Property) application tag type */
     signed bacprop_property_tag(
+        BACNET_OBJECT_TYPE type,
+        signed prop);
+
+    /*/ Returns true if a known (Object, Property) is writable */
+    bool bacprop_property_tag_writeable(
         BACNET_OBJECT_TYPE type,
         signed prop);
 

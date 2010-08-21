@@ -28,17 +28,18 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
 #include "ptransfer.h"
-
+#include "handlers.h"
+#include "bacnet-session.h"
 /** @file h_upt.c  Handles Unconfirmed Private Transfer requests. */
 
 void handler_unconfirmed_private_transfer(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)

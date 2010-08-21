@@ -59,14 +59,16 @@ extern "C" {
 #endif /* __cplusplus */
 
     bool dlmstp_init(
+        struct bacnet_session_object *session_object,
         char *ifname);
     void dlmstp_reset(
-        void);
+        struct bacnet_session_object *session_object);
     void dlmstp_cleanup(
-        void);
+        struct bacnet_session_object *session_object);
 
     /* returns number of bytes sent on success, negative on failure */
     int dlmstp_send_pdu(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * dest,  /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
         uint8_t * pdu,  /* any data to be sent - may be null */
@@ -74,6 +76,7 @@ extern "C" {
 
     /* returns the number of octets in the PDU, or zero on failure */
     uint16_t dlmstp_receive(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * pdu,  /* PDU data */
         uint16_t max_pdu,       /* amount of space available in the PDU  */
@@ -87,9 +90,10 @@ extern "C" {
     /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
     /* node, its value shall be 1. */
     void dlmstp_set_max_info_frames(
+        struct bacnet_session_object *session_object,
         uint8_t max_info_frames);
     uint8_t dlmstp_max_info_frames(
-        void);
+        struct bacnet_session_object *session_object);
 
     /* This parameter represents the value of the Max_Master property of the */
     /* node's Device object. The value of Max_Master specifies the highest */
@@ -97,26 +101,31 @@ extern "C" {
     /* less than or equal to 127. If Max_Master is not writable in a node, */
     /* its value shall be 127. */
     void dlmstp_set_max_master(
+        struct bacnet_session_object *session_object,
         uint8_t max_master);
     uint8_t dlmstp_max_master(
-        void);
+        struct bacnet_session_object *session_object);
 
     /* MAC address 0-127 */
     void dlmstp_set_mac_address(
+        struct bacnet_session_object *session_object,
         uint8_t my_address);
     uint8_t dlmstp_mac_address(
-        void);
+        struct bacnet_session_object *session_object);
 
     void dlmstp_get_my_address(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * my_address);
     void dlmstp_get_broadcast_address(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * dest); /* destination address */
 
     /* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
     void dlmstp_set_baud_rate(
+        struct bacnet_session_object *session_object,
         uint32_t baud);
     uint32_t dlmstp_baud_rate(
-        void);
+        struct bacnet_session_object *session_object);
 
 #ifdef __cplusplus
 }

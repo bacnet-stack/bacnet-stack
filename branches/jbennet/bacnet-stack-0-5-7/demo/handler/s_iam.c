@@ -39,6 +39,7 @@
 #include "iam.h"
 /* some demo stuff needed */
 #include "handlers.h"
+#include "session.h"
 
 /** @file s_iam.c  Send an I-Am message. */
 
@@ -49,6 +50,7 @@
  * @return The length of the message in buffer[].
  */
 int iam_encode_pdu(
+    struct bacnet_session_object *sess,
     uint8_t * buffer,
     BACNET_ADDRESS * dest,
     BACNET_NPDU_DATA * npdu_data)
@@ -56,14 +58,14 @@ int iam_encode_pdu(
     int len = 0;
     int pdu_len = 0;
 
-    datalink_get_broadcast_address(dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
     /* encode the APDU portion of the packet */
     len =
-        iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
-        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+        iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(sess),
+        MAX_APDU, Device_Segmentation_Supported(),
+        Device_Vendor_Identifier(sess));
     pdu_len += len;
 
     return pdu_len;
@@ -75,6 +77,7 @@ int iam_encode_pdu(
  * @param buffer [in] The buffer to use for building and sending the message.
  */
 void Send_I_Am(
+    struct bacnet_session_object *sess,
     uint8_t * buffer)
 {
     int pdu_len = 0;
@@ -90,14 +93,16 @@ void Send_I_Am(
        they can never re-enable DCC because they can't
        find the device with WhoIs/I-Am */
     /* are we are forbidden to send? */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return 0;
 #endif
-
+    /* I-Am is a global broadcast */
+    sess->datalink_get_broadcast_address(sess, &dest);
     /* encode the data */
-    pdu_len = iam_encode_pdu(buffer, &dest, &npdu_data);
+    pdu_len = iam_encode_pdu(sess, buffer, &dest, &npdu_data);
     /* send data */
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
+    bytes_sent =
+        sess->datalink_send_pdu(sess, &dest, &npdu_data, &buffer[0], pdu_len);
 
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
@@ -115,8 +120,8 @@ void Send_I_Am(
  * @return The length of the message in buffer[].
  */
 int iam_unicast_encode_pdu(
+    struct bacnet_session_object *sess,
     uint8_t * buffer,
-    BACNET_ADDRESS * src,
     BACNET_ADDRESS * dest,
     BACNET_NPDU_DATA * npdu_data)
 {
@@ -125,18 +130,15 @@ int iam_unicast_encode_pdu(
     int pdu_len = 0;
     BACNET_ADDRESS my_address;
 
-    /* The destination will be the same as the src, so copy it over. */
-    memcpy(dest, src, sizeof(BACNET_ADDRESS));
-    dest->net = 0;
-
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
     /* encode the APDU portion of the packet */
     apdu_len =
-        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
-        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(sess),
+        MAX_APDU, Device_Segmentation_Supported(),
+        Device_Vendor_Identifier(sess));
     pdu_len = npdu_len + apdu_len;
 
     return pdu_len;
@@ -154,11 +156,11 @@ int iam_unicast_encode_pdu(
  * @param src [in] The source address information from service handler.
  */
 void Send_I_Am_Unicast(
+    struct bacnet_session_object *sess,
     uint8_t * buffer,
-    BACNET_ADDRESS * src)
+    BACNET_ADDRESS * dest)
 {
     int pdu_len = 0;
-    BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
@@ -170,14 +172,15 @@ void Send_I_Am_Unicast(
        they can never re-enable DCC because they can't
        find the device with WhoIs/I-Am */
     /* are we are forbidden to send? */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return 0;
 #endif
 
     /* encode the data */
-    pdu_len = iam_unicast_encode_pdu(buffer, src, &dest, &npdu_data);
+    pdu_len = iam_unicast_encode_pdu(sess, buffer, dest, &npdu_data);
     /* send data */
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
+    bytes_sent =
+        sess->datalink_send_pdu(sess, dest, &npdu_data, &buffer[0], pdu_len);
 
 #if PRINT_ENABLED
     if (bytes_sent <= 0)

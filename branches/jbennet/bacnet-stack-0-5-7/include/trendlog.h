@@ -129,33 +129,42 @@ extern "C" {
         const int **pProprietary);
 
     bool Trend_Log_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Trend_Log_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Trend_Log_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     unsigned Trend_Log_Instance_To_Index(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Trend_Log_Object_Instance_Add(
+        struct bacnet_session_object *sess,
         uint32_t instance);
 
     char *Trend_Log_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
 
     int Trend_Log_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Trend_Log_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
     void Trend_Log_Init(
-        void);
+        struct bacnet_session_object *sess);
 
     void TL_Insert_Status_Rec(
+        struct bacnet_session_object *sess,
         int iLog,
         BACNET_LOG_STATUS eStatus,
         bool bState);
 
     bool TL_Is_Enabled(
+        struct bacnet_session_object *sess,
         int iLog);
 
     time_t TL_BAC_Time_To_Local(
@@ -166,31 +175,38 @@ extern "C" {
         time_t SourceTime);
 
     int TL_encode_entry(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         int iLog,
         int iEntry);
 
     int TL_encode_by_position(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         BACNET_READ_RANGE_DATA * pRequest);
 
     int TL_encode_by_sequence(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         BACNET_READ_RANGE_DATA * pRequest);
 
     int TL_encode_by_time(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         BACNET_READ_RANGE_DATA * pRequest);
 
     bool TrendLogGetRRInfo(
+        struct bacnet_session_object *sess,
         BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
         RR_PROP_INFO * pInfo);  /* Where to put the information */
 
     int rr_trend_log_encode(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         BACNET_READ_RANGE_DATA * pRequest);
 
     void trend_log_timer(
+        struct bacnet_session_object *sess,
         uint16_t uSeconds);
 
 #ifdef __cplusplus

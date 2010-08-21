@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
@@ -37,6 +36,8 @@
 /* special for this module */
 #include "cov.h"
 #include "bactext.h"
+#include "handlers.h"
+#include "bacnet-session.h"
 
 #ifndef MAX_COV_PROPERTIES
 #define MAX_COV_PROPERTIES 2
@@ -57,6 +58,7 @@
  * @param src [in] BACNET_ADDRESS of the source of the message (unused)
  */
 void handler_ucov_notification(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)

@@ -96,6 +96,7 @@ void Binary_Input_Property_Lists(
 /* more complex, and then you need validate that the */
 /* given instance exists */
 bool Binary_Input_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     if (object_instance < MAX_BINARY_INPUTS) {
@@ -108,7 +109,7 @@ bool Binary_Input_Valid_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Binary_Input_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_BINARY_INPUTS;
 }
@@ -117,13 +118,14 @@ unsigned Binary_Input_Count(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Binary_Input_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
 }
 
 void Binary_Input_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
     static bool initialized = false;
     unsigned i;
@@ -144,6 +146,7 @@ void Binary_Input_Init(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Binary_Input_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_INPUTS;
@@ -156,12 +159,13 @@ unsigned Binary_Input_Instance_To_Index(
 }
 
 BACNET_BINARY_PV Binary_Input_Present_Value(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned index = 0;
 
-    index = Binary_Input_Instance_To_Index(object_instance);
+    index = Binary_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_BINARY_INPUTS) {
         value = Present_Value[index];
     }
@@ -170,12 +174,13 @@ BACNET_BINARY_PV Binary_Input_Present_Value(
 }
 
 bool Binary_Input_Out_Of_Service(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     bool value = false;
     unsigned index = 0;
 
-    index = Binary_Input_Instance_To_Index(object_instance);
+    index = Binary_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_BINARY_INPUTS) {
         value = Out_Of_Service[index];
     }
@@ -184,12 +189,13 @@ bool Binary_Input_Out_Of_Service(
 }
 
 bool Binary_Input_Change_Of_Value(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     bool status = false;
     unsigned index;
 
-    index = Binary_Input_Instance_To_Index(object_instance);
+    index = Binary_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_BINARY_INPUTS) {
         status = Change_Of_Value[index];
     }
@@ -198,11 +204,12 @@ bool Binary_Input_Change_Of_Value(
 }
 
 void Binary_Input_Change_Of_Value_Clear(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index;
 
-    index = Binary_Input_Instance_To_Index(object_instance);
+    index = Binary_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_BINARY_INPUTS) {
         Change_Of_Value[index] = false;
     }
@@ -211,6 +218,7 @@ void Binary_Input_Change_Of_Value_Clear(
 }
 
 bool Binary_Input_Encode_Value_List(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE * value_list)
 {
@@ -219,7 +227,7 @@ bool Binary_Input_Encode_Value_List(
     value_list->value.context_specific = false;
     value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
     value_list->value.type.Enumerated =
-        Binary_Input_Present_Value(object_instance);
+        Binary_Input_Present_Value(sess, object_instance);
     value_list->priority = BACNET_NO_PRIORITY;
 
     value_list = value_list->next;
@@ -235,7 +243,7 @@ bool Binary_Input_Encode_Value_List(
         false);
     bitstring_set_bit(&value_list->value.type.Bit_String,
         STATUS_FLAG_OVERRIDDEN, false);
-    if (Binary_Input_Out_Of_Service(object_instance)) {
+    if (Binary_Input_Out_Of_Service(sess, object_instance)) {
         bitstring_set_bit(&value_list->value.type.Bit_String,
             STATUS_FLAG_OUT_OF_SERVICE, true);
     } else {
@@ -248,13 +256,14 @@ bool Binary_Input_Encode_Value_List(
 }
 
 bool Binary_Input_Present_Value_Set(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     BACNET_BINARY_PV value)
 {
     unsigned index = 0;
     bool status = false;
 
-    index = Binary_Input_Instance_To_Index(object_instance);
+    index = Binary_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_BINARY_INPUTS) {
         if (Present_Value[index] != value) {
             Change_Of_Value[index] = true;
@@ -267,12 +276,13 @@ bool Binary_Input_Present_Value_Set(
 }
 
 static void Binary_Input_Out_Of_Service_Set(
+    struct bacnet_session_object *sess,
     uint32_t object_instance,
     bool value)
 {
     unsigned index = 0;
 
-    index = Binary_Input_Instance_To_Index(object_instance);
+    index = Binary_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_BINARY_INPUTS) {
         if (Out_Of_Service[index] != value) {
             Change_Of_Value[index] = true;
@@ -284,6 +294,7 @@ static void Binary_Input_Out_Of_Service_Set(
 }
 
 char *Binary_Input_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
@@ -298,6 +309,7 @@ char *Binary_Input_Name(
 }
 
 BACNET_POLARITY Binary_Input_Polarity(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     BACNET_POLARITY polarity = POLARITY_NORMAL;
@@ -310,6 +322,7 @@ BACNET_POLARITY Binary_Input_Polarity(
 }
 
 bool Binary_Input_Polarity_Set(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     BACNET_POLARITY polarity)
 {
@@ -325,6 +338,7 @@ bool Binary_Input_Polarity_Set(
 /* return apdu length, or BACNET_STATUS_ERROR on error */
 /* assumption - object already exists, and has been bounds checked */
 int Binary_Input_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
@@ -346,8 +360,8 @@ int Binary_Input_Read_Property(
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             /* note: object name must be unique in our device */
-            characterstring_init_ansi(&char_string,
-                Binary_Input_Name(rpdata->object_instance));
+            characterstring_init_ansi(&char_string, Binary_Input_Name(sess,
+                    rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -359,7 +373,7 @@ int Binary_Input_Read_Property(
             /* note: you need to look up the actual value */
             apdu_len =
                 encode_application_enumerated(&apdu[0],
-                Binary_Input_Present_Value(rpdata->object_instance));
+                Binary_Input_Present_Value(sess, rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
@@ -367,7 +381,7 @@ int Binary_Input_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            if (Binary_Input_Out_Of_Service(rpdata->object_instance)) {
+            if (Binary_Input_Out_Of_Service(sess, rpdata->object_instance)) {
                 bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                     true);
             } else {
@@ -384,12 +398,12 @@ int Binary_Input_Read_Property(
         case PROP_OUT_OF_SERVICE:
             apdu_len =
                 encode_application_boolean(&apdu[0],
-                Binary_Input_Out_Of_Service(rpdata->object_instance));
+                Binary_Input_Out_Of_Service(sess, rpdata->object_instance));
             break;
         case PROP_POLARITY:
             apdu_len =
                 encode_application_enumerated(&apdu[0],
-                Binary_Input_Polarity(rpdata->object_instance));
+                Binary_Input_Polarity(sess, rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -409,6 +423,7 @@ int Binary_Input_Read_Property(
 
 /* returns true if successful */
 bool Binary_Input_Write_Property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -428,7 +443,8 @@ bool Binary_Input_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated <= MAX_BINARY_PV) {
-                    Binary_Input_Present_Value_Set(wp_data->object_instance,
+                    Binary_Input_Present_Value_Set(sess,
+                        wp_data->object_instance,
                         (BACNET_BINARY_PV) value.type.Enumerated);
                 } else {
                     status = false;
@@ -442,7 +458,7 @@ bool Binary_Input_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Binary_Input_Out_Of_Service_Set(wp_data->object_instance,
+                Binary_Input_Out_Of_Service_Set(sess, wp_data->object_instance,
                     value.type.Boolean);
             }
             break;
@@ -452,7 +468,7 @@ bool Binary_Input_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
-                    Binary_Input_Polarity_Set(wp_data->object_instance,
+                    Binary_Input_Polarity_Set(sess, wp_data->object_instance,
                         (BACNET_POLARITY) value.type.Enumerated);
                 } else {
                     status = false;

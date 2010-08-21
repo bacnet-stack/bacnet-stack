@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacerror.h"
@@ -36,11 +35,31 @@
 #include "npdu.h"
 #include "abort.h"
 #include "wp.h"
+#include "session.h"
+#include "handlers.h"
+#include "handlers-data-core.h"
 /* device object has the handling for all objects */
 #include "device.h"
 
 /** @file h_wp.c  Handles Write Property requests. */
 
+#if 0
+#include "../../notes.h"
+#pragma __NOTE("Handler DATA")
+
+static write_property_function Write_Property[MAX_BACNET_OBJECT_TYPE];
+#endif
+
+void handler_write_property_object_set(
+    struct bacnet_session_object *sess,
+    BACNET_OBJECT_TYPE object_type,
+    write_property_function pFunction)
+{
+    if (object_type < MAX_BACNET_OBJECT_TYPE) {
+        get_bacnet_session_handler_data(sess)->Write_Property[object_type] =
+            pFunction;
+    }
+}
 
 /** Handler for a WriteProperty Service request.
  * @ingroup DSWP
@@ -61,6 +80,7 @@
  *                          decoded from the APDU header of this message. 
  */
 void handler_write_property(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -72,9 +92,10 @@ void handler_write_property(
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -114,7 +135,7 @@ void handler_write_property(
 #endif
         goto WP_ABORT;
     }
-    if (Device_Write_Property(&wp_data)) {
+    if (Device_Write_Property(sess, &wp_data)) {
         len =
             encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
@@ -133,8 +154,8 @@ void handler_write_property(
   WP_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "WP: Failed to send PDU (%s)!\n", strerror(errno));
@@ -174,7 +195,7 @@ bool WPValidateString(
                     0)) {
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
             } else if (characterstring_length(&pValue->
-                    type.Character_String) >= iMaxLen) {
+                    type.Character_String) >= (size_t) iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             } else

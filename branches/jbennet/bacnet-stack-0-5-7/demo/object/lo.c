@@ -473,8 +473,7 @@ int Lighting_Output_Read_Property(
                             - 1] == LIGHTING_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
-                        real_value =
-                            Lighting_Output_Level[object_index]
+                        real_value = Lighting_Output_Level[object_index]
                             [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);

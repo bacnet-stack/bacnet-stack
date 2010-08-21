@@ -26,7 +26,6 @@
 #include <stdint.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -39,7 +38,7 @@
 #include "readrange.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
+#include "bacnet-session.h"
 
 /** @file h_rr_a.c  Handles Read Range Acknowledgments. */
 
@@ -93,6 +92,7 @@ static void PrintReadRangeData(
 }
 
 void handler_read_range_ack(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,

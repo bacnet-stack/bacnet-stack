@@ -47,6 +47,9 @@
 #include "datalink.h"
 #include "whois.h"
 #include "rp.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -138,6 +141,7 @@ static bool ShowValues = false; /* Show value instead of '?' */
 #endif
 
 static void MyErrorHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
@@ -158,6 +162,7 @@ static void MyErrorHandler(
 }
 
 void MyAbortHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t abort_reason,
@@ -183,6 +188,7 @@ void MyAbortHandler(
 }
 
 void MyRejectHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t reject_reason)
@@ -205,8 +211,9 @@ void MyRejectHandler(
 }
 
 void MyReadPropertyAckHandler(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
-    uint16_t service_len,
+    uint32_t service_len,
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
@@ -233,8 +240,9 @@ void MyReadPropertyAckHandler(
 }
 
 void MyReadPropertyMultipleAckHandler(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
-    uint16_t service_len,
+    uint32_t service_len,
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
@@ -262,30 +270,33 @@ void MyReadPropertyMultipleAckHandler(
 }
 
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the data coming back from confirmed requests */
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_ack_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         MyReadPropertyAckHandler);
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+    apdu_set_confirmed_ack_handler(sess, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
         MyReadPropertyMultipleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+    apdu_set_error_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
+        MyErrorHandler);
+    apdu_set_abort_handler(sess, MyAbortHandler);
+    apdu_set_reject_handler(sess, MyRejectHandler);
 }
 
 
@@ -577,6 +588,7 @@ void Print_Property_Identifier(
  *         of the property list.
  */
 static uint8_t Read_Properties(
+    struct bacnet_session_object *sess,
     uint32_t device_instance,
     BACNET_OBJECT_ID * pMyObject)
 {
@@ -591,7 +603,8 @@ static uint8_t Read_Properties(
          * In practice, this should only happen for simple devices that don't
          * implement RPM or have really limited MAX_APDU size.
          */
-        Device_Objects_Property_List(pMyObject->type, &PropertyListStruct);
+        Device_Objects_Property_List(sess, pMyObject->type,
+            &PropertyListStruct);
         pPropList = PropertyListStruct.Required.pList;
         if (pPropList != NULL) {
             Property_List_Length = PropertyListStruct.Required.count;
@@ -635,8 +648,8 @@ static uint8_t Read_Properties(
             }
         }
         invoke_id =
-            Send_Read_Property_Request(device_instance, pMyObject->type,
-            pMyObject->instance, prop, array_index);
+            Send_Read_Property_Request(sess, NULL, device_instance,
+            pMyObject->type, pMyObject->instance, prop, array_index);
 
     }
 
@@ -864,6 +877,7 @@ int main(
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -872,43 +886,45 @@ int main(
     bool found = false;
     BACNET_OBJECT_ID myObject;
     uint8_t buffer[MAX_PDU] = { 0 };
-    BACNET_READ_ACCESS_DATA *rpm_object;
+    BACNET_READ_ACCESS_DATA *rpm_object = NULL;
     KEY nextKey;
+    struct bacnet_session_object *sess = NULL;
 
     CheckCommandLineArgs(argc, argv);   /* Won't return if there is an issue. */
 
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+    sess = create_bacnet_session();
+    Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
     Object_List = Keylist_Create();
     /* For BACnet/IP, we might have set a different port for "me", so
      * (eg) we could talk to a BACnet/IP device on our same interface.
      * My_BIP_Port will be non-zero in this case.
      */
     if (My_BIP_Port > 0)
-        bip_set_port(My_BIP_Port);
-    address_init();
-    Init_Service_Handlers();
-    dlenv_init();
+        bip_set_port(sess, My_BIP_Port);
+    address_init(sess);
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
 
     /* configure the timeout values */
     current_seconds = time(NULL);
-    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    timeout_seconds = (apdu_timeout(sess) / 1000) * apdu_retries(sess);
 
     if (My_BIP_Port > 0)
-        bip_set_port(0xBAC0);   /* Set back to std BACnet/IP port */
+        bip_set_port(sess, 0xBAC0);     /* Set back to std BACnet/IP port */
     /* try to bind with the target device */
     found =
-        address_bind_request(Target_Device_Object_Instance, &max_apdu,
-        &Target_Address);
+        address_bind_request(sess, Target_Device_Object_Instance, &max_apdu,
+        &segmentation, &Target_Address);
     if (!found) {
         if (Provided_Targ_MAC) {
             /* Update by adding the MAC address */
             if (max_apdu == 0)
                 max_apdu = MAX_APDU;    /* Whatever set for this datalink. */
-            address_add_binding(Target_Device_Object_Instance, max_apdu,
-                &Target_Address);
+            address_add_binding(sess, Target_Device_Object_Instance, max_apdu,
+                segmentation, &Target_Address);
         } else {
-            Send_WhoIs(Target_Device_Object_Instance,
+            Send_WhoIs(sess, Target_Device_Object_Instance,
                 Target_Device_Object_Instance);
         }
     }
@@ -925,7 +941,8 @@ int main(
         current_seconds = time(NULL);
         /* Has at least one second passed ? */
         if (current_seconds != last_seconds) {
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds(sess,
+                ((current_seconds - last_seconds) * 1000));
         }
 
         /* OK to proceed; see what we are up to now */
@@ -933,16 +950,17 @@ int main(
             case INITIAL_BINDING:
                 /* returns 0 bytes on timeout */
                 pdu_len =
-                    datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+                    sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU,
+                    timeout);
 
                 /* process; normally is some initial error */
                 if (pdu_len) {
-                    npdu_handler(&src, &Rx_Buf[0], pdu_len);
+                    npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
                 }
                 /* will wait until the device is bound, or timeout and quit */
                 found =
-                    address_bind_request(Target_Device_Object_Instance,
-                    &max_apdu, &Target_Address);
+                    address_bind_request(sess, Target_Device_Object_Instance,
+                    &max_apdu, &segmentation, &Target_Address);
                 if (!found) {
                     /* increment timer - exit if timed out */
                     elapsed_seconds += (current_seconds - last_seconds);
@@ -965,8 +983,8 @@ int main(
                 last_seconds = current_seconds;
                 StartNextObject(rpm_object, &myObject);
                 invoke_id =
-                    Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
-                    Target_Device_Object_Instance, rpm_object);
+                    Send_Read_Property_Multiple_Request(sess, NULL, buffer,
+                    MAX_PDU, Target_Device_Object_Instance, rpm_object);
                 if (invoke_id > 0) {
                     if (myState == GET_LIST_OF_ALL_REQUEST)
                         myState = GET_LIST_OF_ALL_RESPONSE;
@@ -979,11 +997,12 @@ int main(
             case GET_LIST_OF_ALL_RESPONSE:
                 /* returns 0 bytes on timeout */
                 pdu_len =
-                    datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+                    sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU,
+                    timeout);
 
                 /* process */
                 if (pdu_len) {
-                    npdu_handler(&src, &Rx_Buf[0], pdu_len);
+                    npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
                 }
 
                 if ((Read_Property_Multiple_Data.new_data) &&
@@ -993,13 +1012,13 @@ int main(
                     myState =
                         ProcessRPMData(Read_Property_Multiple_Data.rpm_data,
                         myState);
-                    if (tsm_invoke_id_free(invoke_id)) {
+                    if (tsm_invoke_id_free(sess, invoke_id)) {
                         invoke_id = 0;
                     } else {
                         assert(false);  /* How can this be? */
                         invoke_id = 0;
                     }
-                } else if (tsm_invoke_id_free(invoke_id)) {
+                } else if (tsm_invoke_id_free(sess, invoke_id)) {
                     invoke_id = 0;
                     if (Error_Detected) {       /* The normal case for Device Object */
                         /* Was it because the Device can't do RPM? */
@@ -1020,9 +1039,10 @@ int main(
                         myState = GET_ALL_REQUEST;      /* Let's try again */
                     else
                         myState = GET_PROPERTY_REQUEST;
-                } else if (tsm_invoke_id_failed(invoke_id)) {
+                } else if (tsm_invoke_id_failed(sess, invoke_id)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                    tsm_free_invoke_id(invoke_id);
+                    tsm_free_invoke_id_check(sess, invoke_id, &Target_Address,
+                        true);
                     invoke_id = 0;
                     myState = GET_ALL_REQUEST;  /* Let's try again */
                 } else if (Error_Detected) {
@@ -1040,7 +1060,8 @@ int main(
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
                 invoke_id =
-                    Read_Properties(Target_Device_Object_Instance, &myObject);
+                    Read_Properties(sess, Target_Device_Object_Instance,
+                    &myObject);
                 if (invoke_id == 0) {
                     /* Reached the end of the list. */
                     myState = NEXT_OBJECT;      /* Move on to the next. */
@@ -1051,11 +1072,12 @@ int main(
             case GET_PROPERTY_RESPONSE:
                 /* returns 0 bytes on timeout */
                 pdu_len =
-                    datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+                    sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU,
+                    timeout);
 
                 /* process */
                 if (pdu_len) {
-                    npdu_handler(&src, &Rx_Buf[0], pdu_len);
+                    npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
                 }
 
                 if ((Read_Property_Multiple_Data.new_data) &&
@@ -1065,7 +1087,7 @@ int main(
                     PrintReadPropertyData
                         (Read_Property_Multiple_Data.rpm_data->
                         listOfProperties);
-                    if (tsm_invoke_id_free(invoke_id)) {
+                    if (tsm_invoke_id_free(sess, invoke_id)) {
                         invoke_id = 0;
                     } else {
                         assert(false);  /* How can this be? */
@@ -1092,7 +1114,7 @@ int main(
 /*                    } */
 /*                } */
                     myState = GET_PROPERTY_REQUEST;     /* Go fetch next Property */
-                } else if (tsm_invoke_id_free(invoke_id)) {
+                } else if (tsm_invoke_id_free(sess, invoke_id)) {
                     invoke_id = 0;
                     myState = GET_PROPERTY_REQUEST;
                     if (Error_Detected) {
@@ -1111,9 +1133,10 @@ int main(
                                 myState = NEXT_OBJECT;  /* Give up and move on to the next. */
                         }
                     }
-                } else if (tsm_invoke_id_failed(invoke_id)) {
+                } else if (tsm_invoke_id_failed(sess, invoke_id)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                    tsm_free_invoke_id(invoke_id);
+                    tsm_free_invoke_id_check(sess, invoke_id, &Target_Address,
+                        true);
                     invoke_id = 0;
                     myState = GET_PROPERTY_REQUEST;     /* Let's try again, same Property */
                 } else if (Error_Detected) {
@@ -1185,7 +1208,10 @@ int main(
     /* Closing brace for all Objects */
     printf("} \r\n");
 
+    /* perform memory desallocation */
+    bacnet_destroy_session(sess);
+
     return 0;
 }
 
-                  /*@} *//* End group BACEPICS */
+                                                            /*@} *//* End group BACEPICS */

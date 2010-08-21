@@ -34,6 +34,7 @@
 
 #include "assert.h"
 #include "timestamp.h"
+#include "bacdcode.h"
 
 /** @file timestamp.c  Encode/Decode BACnet Timestamps  */
 

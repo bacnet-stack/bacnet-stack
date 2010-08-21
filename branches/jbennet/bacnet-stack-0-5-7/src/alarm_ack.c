@@ -33,7 +33,7 @@
 ####COPYRIGHTEND####*/
 
 #include "alarm_ack.h"
-
+#include "bacdcode.h"
 /** @file alarm_ack.c  Handles Event Notifications (ACKs) */
 
 /***************************************************

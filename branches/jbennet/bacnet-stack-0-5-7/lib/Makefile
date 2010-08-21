@@ -32,7 +32,7 @@ OPTIMIZATION = -Os
 DEBUGGING =
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
-DEBUGGING = -g
+DEBUGGING = -ggdb3
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 DEFINES += -DBIP_DEBUG
 endif
@@ -84,10 +84,14 @@ CORE_SRC = \
 	$(BACNET_CORE)/getevent.c \
 	$(BACNET_CORE)/readrange.c \
 	$(BACNET_CORE)/timestamp.c \
-	$(BACNET_CORE)/version.c
+        $(BACNET_CORE)/session.c \
+        $(BACNET_CORE)/segmentack.c \
+	$(BACNET_CORE)/datalink.c \
+        $(BACNET_CORE)/version.c
 
 HANDLER_SRC = \
 	$(BACNET_HANDLER)/dlenv.c \
+        $(BACNET_HANDLER)/handlers.c \
 	$(BACNET_HANDLER)/txbuf.c \
 	$(BACNET_HANDLER)/noserv.c \
 	$(BACNET_HANDLER)/h_npdu.c \

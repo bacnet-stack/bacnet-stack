@@ -41,24 +41,29 @@ extern "C" {
         const int **pOptional,
         const int **pProprietary);
     void Load_Control_State_Machine_Handler(
-        void);
+        struct bacnet_session_object *sess);
 
     bool Load_Control_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Load_Control_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Load_Control_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     char *Load_Control_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
 
     void Load_Control_Init(
-        void);
+        struct bacnet_session_object *sess);
 
     int Load_Control_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Load_Control_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST

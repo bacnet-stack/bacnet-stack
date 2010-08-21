@@ -38,6 +38,8 @@
 #include <memory.h>
 #include "keylist.h"
 #include "objects.h"
+#include "handlers.h"
+#include "bacnet-session.h"
 
 /** @file objects.c  Manage Device Objects. */
 

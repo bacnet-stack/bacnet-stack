@@ -39,6 +39,8 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
+struct bacnet_session_object;
+
 typedef struct _confirmed_service_data {
     bool segmented_message;
     bool more_follows;
@@ -70,6 +72,7 @@ extern "C" {
 /* UTC_Time_Synchronization */
     typedef void (
         *unconfirmed_function) (
+        struct bacnet_session_object * session_object,
         uint8_t * service_request,
         uint16_t len,
         BACNET_ADDRESS * src);
@@ -92,6 +95,7 @@ extern "C" {
 /* Authenticate, Request_Key */
     typedef void (
         *confirmed_function) (
+        struct bacnet_session_object * session_object,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
@@ -100,20 +104,23 @@ extern "C" {
 /* generic confirmed simple ack function handler */
     typedef void (
         *confirmed_simple_ack_function) (
+        struct bacnet_session_object * session_object,
         BACNET_ADDRESS * src,
         uint8_t invoke_id);
 
 /* generic confirmed ack function handler */
     typedef void (
         *confirmed_ack_function) (
+        struct bacnet_session_object * session_object,
         uint8_t * service_request,
-        uint16_t service_len,
+        uint32_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
 /* generic error reply function */
     typedef void (
         *error_function) (
+        struct bacnet_session_object * session_object,
         BACNET_ADDRESS * src,
         uint8_t invoke_id,
         BACNET_ERROR_CLASS error_class,
@@ -122,6 +129,7 @@ extern "C" {
 /* generic abort reply function */
     typedef void (
         *abort_function) (
+        struct bacnet_session_object * session_object,
         BACNET_ADDRESS * src,
         uint8_t invoke_id,
         uint8_t abort_reason,
@@ -130,32 +138,39 @@ extern "C" {
 /* generic reject reply function */
     typedef void (
         *reject_function) (
+        struct bacnet_session_object * session_object,
         BACNET_ADDRESS * src,
         uint8_t invoke_id,
         uint8_t reject_reason);
 
     void apdu_set_confirmed_ack_handler(
+        struct bacnet_session_object *session_object,
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_ack_function pFunction);
 
     void apdu_set_confirmed_simple_ack_handler(
+        struct bacnet_session_object *session_object,
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_simple_ack_function pFunction);
 
 /* configure reject for confirmed services that are not supported */
     void apdu_set_unrecognized_service_handler_handler(
+        struct bacnet_session_object *session_object,
         confirmed_function pFunction);
 
     void apdu_set_confirmed_handler(
+        struct bacnet_session_object *session_object,
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_function pFunction);
 
     void apdu_set_unconfirmed_handler(
+        struct bacnet_session_object *session_object,
         BACNET_UNCONFIRMED_SERVICE service_choice,
         unconfirmed_function pFunction);
 
 /* returns true if the service is supported by a handler */
     bool apdu_service_supported(
+        struct bacnet_session_object *session_object,
         BACNET_SERVICES_SUPPORTED service_supported);
 
 /* Function to translate a SERVICE_SUPPORTED_ enum to its SERVICE_CONFIRMED_
@@ -168,13 +183,16 @@ extern "C" {
 
 
     void apdu_set_error_handler(
+        struct bacnet_session_object *session_object,
         BACNET_CONFIRMED_SERVICE service_choice,
         error_function pFunction);
 
     void apdu_set_abort_handler(
+        struct bacnet_session_object *session_object,
         abort_function pFunction);
 
     void apdu_set_reject_handler(
+        struct bacnet_session_object *session_object,
         reject_function pFunction);
 
     uint16_t apdu_decode_confirmed_service_request(
@@ -186,15 +204,18 @@ extern "C" {
         uint16_t * service_request_len);
 
     uint16_t apdu_timeout(
-        void);
+        struct bacnet_session_object *session_object);
     void apdu_timeout_set(
+        struct bacnet_session_object *session_object,
         uint16_t value);
     uint8_t apdu_retries(
-        void);
+        struct bacnet_session_object *session_object);
     void apdu_retries_set(
+        struct bacnet_session_object *session_object,
         uint8_t value);
 
     void apdu_handler(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * apdu, /* APDU data */
         uint16_t pdu_len);      /* for confirmed messages */

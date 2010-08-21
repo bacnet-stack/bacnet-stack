@@ -42,13 +42,33 @@
 #include "tsm.h"
 #include "dcc.h"
 #include "iam.h"
-
+#include "session.h"
 /** @file apdu.c  Handles APDU services */
 
+
+#if 0
 /* APDU Timeout in Milliseconds */
 static uint16_t Timeout_Milliseconds = 3000;
 /* Number of APDU Retries */
 static uint8_t Number_Of_Retries = 3;
+/* Confirmed Function Handlers */
+/* If they are not set, they are handled by a reject message */
+static confirmed_function Confirmed_Function[MAX_BACNET_CONFIRMED_SERVICE];
+/* Allow the APDU handler to automatically reject */
+static confirmed_function Unrecognized_Service_Handler;
+/* Unconfirmed Function Handlers */
+/* If they are not set, they are not handled */
+static unconfirmed_function
+    Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE];
+/* Confirmed ACK Function Handlers */
+static void *Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
+/* Error Function Handler */
+static error_function Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
+/* Abort Function Handler */
+static abort_function Abort_Function;
+/* Reject Function Handler */
+static reject_function Reject_Function;
+#endif
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
@@ -100,41 +120,33 @@ static BACNET_SERVICES_SUPPORTED
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION
 };
 
-/* Confirmed Function Handlers */
-/* If they are not set, they are handled by a reject message */
-static confirmed_function Confirmed_Function[MAX_BACNET_CONFIRMED_SERVICE];
-
 void apdu_set_confirmed_handler(
+    struct bacnet_session_object *session_object,
     BACNET_CONFIRMED_SERVICE service_choice,
     confirmed_function pFunction)
 {
     if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
-        Confirmed_Function[service_choice] = pFunction;
+        session_object->APDU_Confirmed_Function[service_choice] = pFunction;
 }
-
-/* Allow the APDU handler to automatically reject */
-static confirmed_function Unrecognized_Service_Handler;
 
 void apdu_set_unrecognized_service_handler_handler(
+    struct bacnet_session_object *session_object,
     confirmed_function pFunction)
 {
-    Unrecognized_Service_Handler = pFunction;
+    session_object->APDU_Unrecognized_Service_Handler = pFunction;
 }
 
-/* Unconfirmed Function Handlers */
-/* If they are not set, they are not handled */
-static unconfirmed_function
-    Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE];
-
 void apdu_set_unconfirmed_handler(
+    struct bacnet_session_object *session_object,
     BACNET_UNCONFIRMED_SERVICE service_choice,
     unconfirmed_function pFunction)
 {
     if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE)
-        Unconfirmed_Function[service_choice] = pFunction;
+        session_object->APDU_Unconfirmed_Function[service_choice] = pFunction;
 }
 
 bool apdu_service_supported(
+    struct bacnet_session_object *session_object,
     BACNET_SERVICES_SUPPORTED service_supported)
 {
     int i = 0;
@@ -145,7 +157,7 @@ bool apdu_service_supported(
         /* is it a confirmed service? */
         for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
             if (confirmed_service_supported[i] == service_supported) {
-                if (Confirmed_Function[i] != NULL)
+                if (session_object->APDU_Confirmed_Function[i] != NULL)
                     status = true;
                 found = true;
                 break;
@@ -156,7 +168,7 @@ bool apdu_service_supported(
             /* is it an unconfirmed service? */
             for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
                 if (unconfirmed_service_supported[i] == service_supported) {
-                    if (Unconfirmed_Function[i] != NULL)
+                    if (session_object->APDU_Unconfirmed_Function[i] != NULL)
                         status = true;
                     break;
                 }
@@ -190,7 +202,7 @@ bool apdu_service_supported_to_index(
         for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
             if (confirmed_service_supported[i] == service_supported) {
                 found = true;
-                *index = (size_t)i;
+                *index = (size_t) i;
                 *bIsConfirmed = true;
                 break;
             }
@@ -201,7 +213,7 @@ bool apdu_service_supported_to_index(
             for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
                 if (unconfirmed_service_supported[i] == service_supported) {
                     found = true;
-                    *index = (size_t)i;
+                    *index = (size_t) i;
                     break;
                 }
             }
@@ -210,11 +222,8 @@ bool apdu_service_supported_to_index(
     return found;
 }
 
-/* Confirmed ACK Function Handlers */
-static confirmed_ack_function
-    Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
-
 void apdu_set_confirmed_simple_ack_handler(
+    struct bacnet_session_object *session_object,
     BACNET_CONFIRMED_SERVICE service_choice,
     confirmed_simple_ack_function pFunction)
 {
@@ -239,8 +248,8 @@ void apdu_set_confirmed_simple_ack_handler(
         case SERVICE_CONFIRMED_VT_CLOSE:
             /* Security Services */
         case SERVICE_CONFIRMED_REQUEST_KEY:
-            Confirmed_ACK_Function[service_choice] =
-                (confirmed_ack_function) pFunction;
+            session_object->APDU_Confirmed_ACK_Function[service_choice] =
+                (void *) pFunction;
             break;
         default:
             break;
@@ -248,6 +257,7 @@ void apdu_set_confirmed_simple_ack_handler(
 }
 
 void apdu_set_confirmed_ack_handler(
+    struct bacnet_session_object *session_object,
     BACNET_CONFIRMED_SERVICE service_choice,
     confirmed_ack_function pFunction)
 {
@@ -271,37 +281,35 @@ void apdu_set_confirmed_ack_handler(
         case SERVICE_CONFIRMED_VT_DATA:
             /* Security Services */
         case SERVICE_CONFIRMED_AUTHENTICATE:
-            Confirmed_ACK_Function[service_choice] = pFunction;
+            session_object->APDU_Confirmed_ACK_Function[service_choice] =
+                (void *) pFunction;
             break;
         default:
             break;
     }
 }
 
-static error_function Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
-
 void apdu_set_error_handler(
+    struct bacnet_session_object *session_object,
     BACNET_CONFIRMED_SERVICE service_choice,
     error_function pFunction)
 {
     if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
-        Error_Function[service_choice] = pFunction;
+        session_object->APDU_Error_Function[service_choice] = pFunction;
 }
-
-static abort_function Abort_Function;
 
 void apdu_set_abort_handler(
+    struct bacnet_session_object *session_object,
     abort_function pFunction)
 {
-    Abort_Function = pFunction;
+    session_object->APDU_Abort_Function = pFunction;
 }
 
-static reject_function Reject_Function;
-
 void apdu_set_reject_handler(
+    struct bacnet_session_object *session_object,
     reject_function pFunction)
 {
-    Reject_Function = pFunction;
+    session_object->APDU_Reject_Function = pFunction;
 }
 
 uint16_t apdu_decode_confirmed_service_request(
@@ -334,41 +342,162 @@ uint16_t apdu_decode_confirmed_service_request(
 }
 
 uint16_t apdu_timeout(
-    void)
+    struct bacnet_session_object * session_object)
 {
-    return Timeout_Milliseconds;
+    return session_object->APDU_Timeout_Milliseconds;
 }
 
 void apdu_timeout_set(
+    struct bacnet_session_object *session_object,
     uint16_t milliseconds)
 {
-    Timeout_Milliseconds = milliseconds;
+    session_object->APDU_Timeout_Milliseconds = milliseconds;
 }
 
 uint8_t apdu_retries(
-    void)
+    struct bacnet_session_object *session_object)
 {
-    return Number_Of_Retries;
+    return session_object->APDU_Number_Of_Retries;
 }
 
 void apdu_retries_set(
+    struct bacnet_session_object *session_object,
     uint8_t value)
 {
-    Number_Of_Retries = value;
+    session_object->APDU_Number_Of_Retries = value;
+}
+
+void invoke_complex_ack_service_request(
+    struct bacnet_session_object *session_object,
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_ack_data,
+    uint8_t service_choice,
+    uint8_t * service_request,
+    uint32_t service_request_len)
+{
+    switch (service_choice) {
+        case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
+        case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
+        case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
+            /* File Access Services */
+        case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
+        case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
+            /* Object Access Services */
+        case SERVICE_CONFIRMED_CREATE_OBJECT:
+        case SERVICE_CONFIRMED_READ_PROPERTY:
+        case SERVICE_CONFIRMED_READ_PROP_CONDITIONAL:
+        case SERVICE_CONFIRMED_READ_PROP_MULTIPLE:
+        case SERVICE_CONFIRMED_READ_RANGE:
+        case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
+            /* Virtual Terminal Services */
+        case SERVICE_CONFIRMED_VT_OPEN:
+        case SERVICE_CONFIRMED_VT_DATA:
+            /* Security Services */
+        case SERVICE_CONFIRMED_AUTHENTICATE:
+            if (session_object->APDU_Confirmed_ACK_Function[service_choice]) {
+                ((confirmed_ack_function)
+                    session_object->APDU_Confirmed_ACK_Function
+                    [service_choice])
+                    (session_object, service_request, service_request_len, src,
+                    service_ack_data);
+            }
+            tsm_free_invoke_id_check(session_object, invoke_id, src, true);
+            break;
+        default:
+            break;
+    }
+}
+
+/* Handler for normal message without segmentation, or segmented complete message reassembled all-in-one */
+void apdu_handler_complex_ack(
+    struct bacnet_session_object *session_object,
+    BACNET_ADDRESS * src,
+    uint8_t * apdu,     /* APDU data */
+    uint32_t apdu_len)
+{
+    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
+    uint8_t invoke_id = 0;
+    uint8_t service_choice = 0;
+    uint8_t *service_request = NULL;
+    uint32_t service_request_len = 0;
+    uint32_t len = 0;   /* counts where we are in PDU */
+
+    service_ack_data.segmented_message = (apdu[0] & BIT3) ? true : false;
+    service_ack_data.more_follows = (apdu[0] & BIT2) ? true : false;
+    invoke_id = service_ack_data.invoke_id = apdu[1];
+    len = 2;
+    if (service_ack_data.segmented_message) {
+        service_ack_data.sequence_number = apdu[len++];
+        service_ack_data.proposed_window_number = apdu[len++];
+    }
+
+    service_choice = apdu[len++];
+    service_request = &apdu[len];
+    service_request_len = apdu_len - len;
+    /* invoke callback */
+    invoke_complex_ack_service_request(session_object, src, invoke_id,
+        &service_ack_data, service_choice, service_request,
+        service_request_len);
+}
+
+/** Handler for messages with segmentation :
+   - store new packet if sequence number is ok
+   - NACK packet if sequence number is not ok
+   - call the final functions with reassembled data when last packet ok is received
+*/
+void apdu_handler_complex_ack_segment(
+    struct bacnet_session_object *session_object,
+    BACNET_ADDRESS * src,
+    uint8_t * apdu,     /* APDU data */
+    uint32_t apdu_len)
+{
+    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
+    uint8_t invoke_id = 0;
+    uint8_t service_choice = 0;
+    uint8_t *service_request = NULL;
+    uint32_t service_request_len = 0;
+    uint32_t len = 0;   /* counts where we are in PDU */
+    bool segment_ok;
+
+    service_ack_data.segmented_message = (apdu[0] & BIT3) ? true : false;
+    service_ack_data.more_follows = (apdu[0] & BIT2) ? true : false;
+    invoke_id = service_ack_data.invoke_id = apdu[1];
+    len = 2;
+    if (service_ack_data.segmented_message) {
+        service_ack_data.sequence_number = apdu[len++];
+        service_ack_data.proposed_window_number = apdu[len++];
+    }
+
+    service_choice = apdu[len++];
+    service_request = &apdu[len];
+    service_request_len = apdu_len - len;
+
+    /* new segment : memorize it */
+    segment_ok =
+        tsm_set_segmentedcomplexack_received(session_object, src,
+        &service_ack_data, &service_request, &service_request_len);
+    /* last segment  */
+    if (segment_ok && !service_ack_data.more_follows) {
+        invoke_complex_ack_service_request(session_object, src, invoke_id,
+            &service_ack_data, service_choice, service_request,
+            service_request_len);
+        /*tsm_free_invoke_id_and_cleanup(session_object,invoke_id); // NB: NE FONCTIONNE PAS ! (déjà un free avant) */
+    }
 }
 
 void apdu_handler(
+    struct bacnet_session_object *session_object,
     BACNET_ADDRESS * src,
     uint8_t * apdu,     /* APDU data */
     uint16_t apdu_len)
 {
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
-    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
     uint8_t invoke_id = 0;
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    int len = 0;        /* counts where we are in PDU */
+    uint16_t len = 0;   /* counts where we are in PDU */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t error_code = 0;
@@ -380,35 +509,40 @@ void apdu_handler(
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                len = (int)apdu_decode_confirmed_service_request(&apdu[0],
+                len = apdu_decode_confirmed_service_request(&apdu[0],   /* APDU data */
                     apdu_len, &service_data, &service_choice, &service_request,
                     &service_request_len);
                 /* When network communications are completely disabled,
                    only DeviceCommunicationControl and ReinitializeDevice APDUs
                    shall be processed and no messages shall be initiated. */
-                if (dcc_communication_disabled() &&
+                if (dcc_communication_disabled(session_object) &&
                     ((service_choice !=
                             SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL)
                         && (service_choice !=
                             SERVICE_CONFIRMED_REINITIALIZE_DEVICE)))
                     break;
                 if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
-                    (Confirmed_Function[service_choice]))
-                    Confirmed_Function[service_choice] (service_request,
-                        service_request_len, src, &service_data);
-                else if (Unrecognized_Service_Handler)
-                    Unrecognized_Service_Handler(service_request,
-                        service_request_len, src, &service_data);
+                    (session_object->APDU_Confirmed_Function[service_choice]))
+                    session_object->APDU_Confirmed_Function[service_choice]
+                        (session_object, service_request, service_request_len,
+                        src, &service_data);
+                else if (session_object->APDU_Unrecognized_Service_Handler)
+                    session_object->APDU_Unrecognized_Service_Handler
+                        (session_object, service_request, service_request_len,
+                        src, &service_data);
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
-                if (dcc_communication_disabled())
+                if (dcc_communication_disabled(session_object))
                     break;
                 service_choice = apdu[1];
                 service_request = &apdu[2];
                 service_request_len = apdu_len - 2;
                 if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) {
-                    if (Unconfirmed_Function[service_choice])
-                        Unconfirmed_Function[service_choice] (service_request,
+                    if (session_object->APDU_Unconfirmed_Function
+                        [service_choice])
+                        session_object->APDU_Unconfirmed_Function
+                            [service_choice]
+                            (session_object, service_request,
                             service_request_len, src);
                 }
                 break;
@@ -436,65 +570,40 @@ void apdu_handler(
                     case SERVICE_CONFIRMED_VT_CLOSE:
                         /* Security Services */
                     case SERVICE_CONFIRMED_REQUEST_KEY:
-                        if (Confirmed_ACK_Function[service_choice] != NULL) {
+                        if (session_object->APDU_Confirmed_ACK_Function
+                            [service_choice]) {
                             ((confirmed_simple_ack_function)
-                                Confirmed_ACK_Function[service_choice]) (src,
-                                invoke_id);
+                                session_object->APDU_Confirmed_ACK_Function
+                                [service_choice])
+                                (session_object, src, invoke_id);
                         }
-                        tsm_free_invoke_id(invoke_id);
+                        tsm_free_invoke_id_check(session_object, invoke_id,
+                            src, true);
                         break;
                     default:
                         break;
                 }
                 break;
             case PDU_TYPE_COMPLEX_ACK:
-                service_ack_data.segmented_message =
-                    (apdu[0] & BIT3) ? true : false;
-                service_ack_data.more_follows =
-                    (apdu[0] & BIT2) ? true : false;
-                invoke_id = service_ack_data.invoke_id = apdu[1];
-                len = 2;
-                if (service_ack_data.segmented_message) {
-                    service_ack_data.sequence_number = apdu[len++];
-                    service_ack_data.proposed_window_number = apdu[len++];
-                }
-                service_choice = apdu[len++];
-                service_request = &apdu[len];
-                service_request_len = apdu_len - (uint16_t) len;
-                switch (service_choice) {
-                    case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
-                    case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
-                    case SERVICE_CONFIRMED_GET_EVENT_INFORMATION:
-                        /* File Access Services */
-                    case SERVICE_CONFIRMED_ATOMIC_READ_FILE:
-                    case SERVICE_CONFIRMED_ATOMIC_WRITE_FILE:
-                        /* Object Access Services */
-                    case SERVICE_CONFIRMED_CREATE_OBJECT:
-                    case SERVICE_CONFIRMED_READ_PROPERTY:
-                    case SERVICE_CONFIRMED_READ_PROP_CONDITIONAL:
-                    case SERVICE_CONFIRMED_READ_PROP_MULTIPLE:
-                    case SERVICE_CONFIRMED_READ_RANGE:
-                    case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
-                        /* Virtual Terminal Services */
-                    case SERVICE_CONFIRMED_VT_OPEN:
-                    case SERVICE_CONFIRMED_VT_DATA:
-                        /* Security Services */
-                    case SERVICE_CONFIRMED_AUTHENTICATE:
-                        if (Confirmed_ACK_Function[service_choice] != NULL) {
-                            (Confirmed_ACK_Function[service_choice])
-                                (service_request, service_request_len, src,
-                                &service_ack_data);
-                        }
-                        tsm_free_invoke_id(invoke_id);
-                        break;
-                    default:
-                        break;
+                {
+                    bool segmented_message_reception =
+                        (apdu[0] & BIT3) ? true : false;
+                    if (segmented_message_reception)
+                        apdu_handler_complex_ack_segment(session_object, src,
+                            apdu, apdu_len);
+                    else
+                        apdu_handler_complex_ack(session_object, src, apdu,
+                            apdu_len);
+                    break;
                 }
                 break;
             case PDU_TYPE_SEGMENT_ACK:
+
+                /* we don't care : we don't support segmented message sending */
+
                 /* FIXME: what about a denial of service attack here?
                    we could check src to see if that matched the tsm */
-                tsm_free_invoke_id(invoke_id);
+                /*tsm_free_invoke_id(session_object,invoke_id); */
                 break;
             case PDU_TYPE_ERROR:
                 invoke_id = apdu[1];
@@ -528,27 +637,30 @@ void apdu_handler(
                     }
                 }
                 if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
-                    if (Error_Function[service_choice])
-                        Error_Function[service_choice] (src, invoke_id,
+                    if (session_object->APDU_Error_Function[service_choice])
+                        session_object->APDU_Error_Function[service_choice]
+                            (session_object, src, invoke_id,
                             (BACNET_ERROR_CLASS) error_class,
                             (BACNET_ERROR_CODE) error_code);
                 }
-                tsm_free_invoke_id(invoke_id);
+                tsm_free_invoke_id_check(session_object, invoke_id, src, true);
                 break;
             case PDU_TYPE_REJECT:
                 invoke_id = apdu[1];
                 reason = apdu[2];
-                if (Reject_Function)
-                    Reject_Function(src, invoke_id, reason);
-                tsm_free_invoke_id(invoke_id);
+                if (session_object->APDU_Reject_Function)
+                    session_object->APDU_Reject_Function(session_object, src,
+                        invoke_id, reason);
+                tsm_free_invoke_id_check(session_object, invoke_id, src, true);
                 break;
             case PDU_TYPE_ABORT:
                 server = apdu[0] & 0x01;
                 invoke_id = apdu[1];
                 reason = apdu[2];
-                if (Abort_Function)
-                    Abort_Function(src, invoke_id, reason, server);
-                tsm_free_invoke_id(invoke_id);
+                if (session_object->APDU_Abort_Function)
+                    session_object->APDU_Abort_Function(session_object, src,
+                        invoke_id, reason, server);
+                tsm_free_invoke_id_check(session_object, invoke_id, src, true);
                 break;
             default:
                 break;

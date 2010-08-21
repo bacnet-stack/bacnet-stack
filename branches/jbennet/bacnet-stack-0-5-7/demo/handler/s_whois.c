@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -41,7 +40,7 @@
 #include "whois.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
+#include "session.h"
 
 /** @file s_whois.c  Send a Who-Is request. */
 
@@ -55,6 +54,7 @@
  * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
  */
 void Send_WhoIs(
+    struct bacnet_session_object *sess,
     int32_t low_limit,
     int32_t high_limit)
 {
@@ -63,12 +63,13 @@ void Send_WhoIs(
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return;
 
     /* Who-Is is a global broadcast */
-    datalink_get_broadcast_address(&dest);
+    sess->datalink_get_broadcast_address(sess, &dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
@@ -79,8 +80,8 @@ void Send_WhoIs(
         high_limit);
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",

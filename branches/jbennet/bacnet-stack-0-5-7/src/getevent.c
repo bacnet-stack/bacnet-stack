@@ -49,8 +49,8 @@ int getevent_encode_apdu(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);     /* + flag 'SA' if we accept many segments */
+        apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_GET_EVENT_INFORMATION;
         apdu_len = 4;
@@ -58,7 +58,7 @@ int getevent_encode_apdu(
         if (lastReceivedObjectIdentifier) {
             len =
                 encode_context_object_id(&apdu[apdu_len], 0,
-                (int) lastReceivedObjectIdentifier->type,
+                lastReceivedObjectIdentifier->type,
                 lastReceivedObjectIdentifier->instance);
             apdu_len += len;
         }
@@ -78,8 +78,10 @@ int getevent_decode_service_request(
     /* check for value pointers */
     if (apdu_len && lastReceivedObjectIdentifier) {
         /* Tag 0: Object ID - optional */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+        if (!decode_is_context_tag(&apdu[len], 0) ||
+            decode_is_closing_tag(&apdu[len]))
             return -1;
+        len++;
         len +=
             decode_object_id(&apdu[len], &lastReceivedObjectIdentifier->type,
             &lastReceivedObjectIdentifier->instance);
@@ -203,9 +205,21 @@ int getevent_ack_decode_service_request(
             return -1;
         }
         len++;
-        while (event_data) {
+        /* Closing tag ? empty message */
+        if (decode_is_closing_tag_number(&apdu[len], 0)) {
+            len +=
+                decode_tag_number_and_value(&apdu[len], &tag_number,
+                &len_value);
+            event_data->next = NULL;
+            /* Mark invalid type/instance */
+            event_data->objectIdentifier.type = ~0;
+            event_data->objectIdentifier.instance = ~0;
+        }
+
+        for (; event_data; event_data = event_data->next) {
             /* Tag 0: objectIdentifier */
-            if (decode_is_context_tag(&apdu[len], 0)) {
+            if (decode_is_context_tag(&apdu[len], 0) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
@@ -217,17 +231,19 @@ int getevent_ack_decode_service_request(
                 return -1;
             }
             /* Tag 1: eventState */
-            if (decode_is_context_tag(&apdu[len], 1)) {
+            if (decode_is_context_tag(&apdu[len], 1) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
                 len += decode_enumerated(&apdu[len], len_value, &enum_value);
-                event_data->eventState = enum_value;
+                event_data->eventState = (BACNET_EVENT_STATE) enum_value;
             } else {
                 return -1;
             }
             /* Tag 2: acknowledgedTransitions */
-            if (decode_is_context_tag(&apdu[len], 2)) {
+            if (decode_is_context_tag(&apdu[len], 2) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
@@ -258,17 +274,20 @@ int getevent_ack_decode_service_request(
                 return -1;
             }
             /* Tag 4: notifyType */
-            if (decode_is_context_tag(&apdu[len], 4)) {
+            if (decode_is_context_tag(&apdu[len], 4) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
-                len += decode_enumerated(&apdu[len], len_value, &enum_value);
-                event_data->notifyType = enum_value;
+                len +=
+                    decode_enumerated(&apdu[apdu_len], len_value, &enum_value);
+                event_data->notifyType = (BACNET_NOTIFY_TYPE) enum_value;
             } else {
                 return -1;
             }
             /* Tag 5: eventEnable */
-            if (decode_is_context_tag(&apdu[len], 5)) {
+            if (decode_is_context_tag(&apdu[len], 5) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
@@ -301,22 +320,17 @@ int getevent_ack_decode_service_request(
             } else {
                 return -1;
             }
+            /* Closing tag ? */
             if (decode_is_closing_tag_number(&apdu[len], 0)) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
                 event_data->next = NULL;
             }
-            event_data = event_data->next;
         }
-        if (decode_is_context_tag(&apdu[len], 1)) {
-            len +=
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value);
-            if (len_value == 1)
-                *moreEvents = decode_context_boolean(&apdu[len++]);
-            else
-                *moreEvents = false;
+        if (decode_is_context_tag(&apdu[len], 1) &&
+            !decode_is_closing_tag(&apdu[len])) {
+            len += decode_context_boolean2(&apdu[len], 1, moreEvents);
         } else {
             return -1;
         }

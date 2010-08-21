@@ -37,7 +37,7 @@ extern "C" {
 #endif /* __cplusplus */
 
     void Binary_Output_Init(
-        void);
+        struct bacnet_session_object *sess);
 
     void Binary_Output_Property_Lists(
         const int **pRequired,
@@ -45,52 +45,69 @@ extern "C" {
         const int **pProprietary);
 
     bool Binary_Output_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Binary_Output_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Binary_Output_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     unsigned Binary_Output_Instance_To_Index(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Output_Object_Instance_Add(
+        struct bacnet_session_object *sess,
         uint32_t instance);
 
     char *Binary_Output_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     bool Binary_Output_Name_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         char *new_name);
 
     char *Binary_Output_Description(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Output_Description_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         char *new_name);
 
     char *Binary_Output_Inactive_Text(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Output_Inactive_Text_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         char *new_name);
     char *Binary_Output_Active_Text(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Output_Active_Text_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         char *new_name);
 
     int Binary_Output_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Binary_Output_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_BINARY_PV Binary_Output_Present_Value(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Binary_Output_Present_Value_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         BACNET_BINARY_PV binary_value,
         unsigned priority);
     bool Binary_Output_Present_Value_Relinquish(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         unsigned priority);
 

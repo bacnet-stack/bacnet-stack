@@ -61,15 +61,16 @@ static void Init_Service_Handlers(
     void)
 {
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
 }
 
@@ -141,7 +142,7 @@ int main(
     (void) argc;
     (void) argv;
     Device_Set_Object_Instance_Number(126);
-    Init_Service_Handlers();
+    Init_Service_Handlers(sess);
     RTOS_Initialize();
     /* init the physical layer */
 #ifdef BACDL_MSTP
@@ -154,10 +155,11 @@ int main(
         /* input */
 
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
         /* process */
         if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         /* output */
 

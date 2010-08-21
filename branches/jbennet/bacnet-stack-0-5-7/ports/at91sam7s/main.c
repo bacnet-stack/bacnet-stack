@@ -143,25 +143,28 @@ static inline void bacnet_init(
 #endif
     Device_Set_Object_Instance_Number(22222);
     /* initialize objects */
-    Device_Init();
+    Device_Init(sess);
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_HAS,
+        handler_who_has);
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
         handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(sess,
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 }
 
@@ -245,10 +248,11 @@ int main(
         IdleCount++;
         /* BACnet handling */
         pdu_len =
-            datalink_receive(&src, &Receive_PDU[0], sizeof(Receive_PDU), 0);
+            sess->datalink_receive(sess, &src, &Receive_PDU[0],
+            sizeof(Receive_PDU), 0);
         if (pdu_len) {
             pPIO->PIO_CODR = LED3;
-            npdu_handler(&src, &Receive_PDU[0], pdu_len);
+            npdu_handler(sess, &src, &Receive_PDU[0], pdu_len);
         }
     }
 }

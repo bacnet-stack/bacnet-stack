@@ -55,6 +55,9 @@ typedef struct BACnet_Write_Property_Data {
     BACNET_ERROR_CODE error_code;
 } BACNET_WRITE_PROPERTY_DATA;
 
+/* Forward declaration of session object */
+struct bacnet_session_object;
+
 /** Attempts to write a new value to one property for this object type
  *  of a given instance.
  * A function template; @see device.c for assignment to object types.
@@ -67,6 +70,7 @@ typedef struct BACnet_Write_Property_Data {
  */
 typedef bool(
     *write_property_function) (
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus

@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -39,8 +38,7 @@
 #include "datalink.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
-
+#include "session.h"
 /** @file s_router.c  Send BACnet Router requests. */
 
 static void npdu_encode_npdu_network(
@@ -62,6 +60,7 @@ static void npdu_encode_npdu_network(
 
 /* find a specific router, or use -1 for limit if you want unlimited */
 void Send_Who_Is_Router_To_Network(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * dst,
     int dnet)
 {
@@ -69,6 +68,7 @@ void Send_Who_Is_Router_To_Network(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     npdu_encode_npdu_network(&npdu_data,
         NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, false,
@@ -91,8 +91,8 @@ void Send_Who_Is_Router_To_Network(
 #endif
     }
     bytes_sent =
-        datalink_send_pdu(dst, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, dst, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,
@@ -104,6 +104,7 @@ void Send_Who_Is_Router_To_Network(
 /* pDNET_list: list of networks for which I am a router,
    terminated with -1 */
 void Send_I_Am_Router_To_Network(
+    struct bacnet_session_object *sess,
     const int DNET_list[])
 {
     int len = 0;
@@ -113,6 +114,7 @@ void Send_I_Am_Router_To_Network(
     BACNET_NPDU_DATA npdu_data;
     uint16_t dnet = 0;
     unsigned index = 0;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     npdu_encode_npdu_network(&npdu_data,
         NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, false,
@@ -134,10 +136,10 @@ void Send_I_Am_Router_To_Network(
     }
     /* I-Am-Router-To-Network shall always be transmitted with
        a broadcast MAC address. */
-    datalink_get_broadcast_address(&dest);
+    sess->datalink_get_broadcast_address(sess, &dest);
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,
@@ -148,6 +150,7 @@ void Send_I_Am_Router_To_Network(
 
 /* */
 void Send_Initialize_Routing_Table(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * dst,
     BACNET_ROUTER_PORT * router_port_list)
 {
@@ -158,6 +161,7 @@ void Send_Initialize_Routing_Table(
     uint8_t number_of_ports = 0;
     BACNET_ROUTER_PORT *router_port;
     uint8_t i = 0;      /* counter */
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE, true,
         MESSAGE_PRIORITY_NORMAL);
@@ -189,8 +193,8 @@ void Send_Initialize_Routing_Table(
     fprintf(stderr, "Send Initialize-Routing-Table message\n");
 #endif
     bytes_sent =
-        datalink_send_pdu(dst, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, dst, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,
@@ -201,12 +205,14 @@ void Send_Initialize_Routing_Table(
 
 /* */
 void Send_Initialize_Routing_Table_Ack(
+    struct bacnet_session_object *sess,
     BACNET_ROUTER_PORT * router_port_list)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
 
     /* FIXME: is this parameter needed? */
@@ -217,10 +223,10 @@ void Send_Initialize_Routing_Table_Ack(
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
     /* encode the optional DNET list portion of the packet */
-    datalink_get_broadcast_address(&dest);
+    sess->datalink_get_broadcast_address(sess, &dest);
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,

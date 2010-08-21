@@ -28,14 +28,14 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "whois.h"
 #include "iam.h"
 #include "device.h"
 #include "client.h"
-#include "txbuf.h"
+#include "handlers.h"
+#include "bacnet-session.h"
 
 /** @file h_whois.c  Handles Who-Is requests. */
 
@@ -46,6 +46,7 @@
  * @param src [in] The BACNET_ADDRESS of the message's source.
  */
 void handler_who_is(
+    struct bacnet_session_object *session_object,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)
@@ -53,57 +54,26 @@ void handler_who_is(
     int len = 0;
     int32_t low_limit = 0;
     int32_t high_limit = 0;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     (void) src;
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
     if (len == 0)
-        Send_I_Am(&Handler_Transmit_Buffer[0]);
+        Send_I_Am_Unicast(session_object, &Handler_Transmit_Buffer[0], src);
     else if (len != -1) {
         /* is my device id within the limits? */
-        if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
-                (Device_Object_Instance_Number() <= (uint32_t) high_limit))
+        if (((Device_Object_Instance_Number(session_object) >=
+                    (uint32_t) low_limit) &&
+                (Device_Object_Instance_Number(session_object) <=
+                    (uint32_t) high_limit))
             ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
                 (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-            Send_I_Am(&Handler_Transmit_Buffer[0]);
-    }
-
-    return;
-}
-
-/** Handler for Who-Is requests, with Unicast I-Am response (per Addendum 135-2004q).
- * @ingroup DMDDB
- * @param service_request [in] The received message to be handled.
- * @param service_len [in] Length of the service_request message.
- * @param src [in] The BACNET_ADDRESS of the message's source.
- */
-void handler_who_is_unicast(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src)
-{
-    int len = 0;
-    int32_t low_limit = 0;
-    int32_t high_limit = 0;
-
-    (void) src;
-    len =
-        whois_decode_service_request(service_request, service_len, &low_limit,
-        &high_limit);
-    if (len == 0)
-        Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
-    else if (len != -1) {
-        /* is my device id within the limits? */
-        if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
-                (Device_Object_Instance_Number() <= (uint32_t) high_limit))
-            ||
-            /* BACnet wildcard is the max instance number - everyone responds */
-            ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-            Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+            Send_I_Am_Unicast(session_object, &Handler_Transmit_Buffer[0],
+                src);
     }
 
     return;

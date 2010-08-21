@@ -99,7 +99,7 @@ void Analog_Output_Property_Lists(
 }
 
 void Analog_Output_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
     unsigned i, j;
 
@@ -121,6 +121,7 @@ void Analog_Output_Init(
 /* more complex, and then you need validate that the */
 /* given instance exists */
 bool Analog_Output_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     if (object_instance < MAX_ANALOG_OUTPUTS)
@@ -132,7 +133,7 @@ bool Analog_Output_Valid_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Analog_Output_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_ANALOG_OUTPUTS;
 }
@@ -141,6 +142,7 @@ unsigned Analog_Output_Count(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Analog_Output_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
@@ -150,6 +152,7 @@ uint32_t Analog_Output_Index_To_Instance(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Analog_Output_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_ANALOG_OUTPUTS;
@@ -161,13 +164,14 @@ unsigned Analog_Output_Instance_To_Index(
 }
 
 float Analog_Output_Present_Value(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     float value = AO_RELINQUISH_DEFAULT;
     unsigned index = 0;
     unsigned i = 0;
 
-    index = Analog_Output_Instance_To_Index(object_instance);
+    index = Analog_Output_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
             if (Analog_Output_Level[index][i] != AO_LEVEL_NULL) {
@@ -181,13 +185,14 @@ float Analog_Output_Present_Value(
 }
 
 unsigned Analog_Output_Present_Value_Priority(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = 0; /* instance to index conversion */
     unsigned i = 0;     /* loop counter */
     unsigned priority = 0;      /* return value */
 
-    index = Analog_Output_Instance_To_Index(object_instance);
+    index = Analog_Output_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
             if (Analog_Output_Level[index][i] != AO_LEVEL_NULL) {
@@ -201,6 +206,7 @@ unsigned Analog_Output_Present_Value_Priority(
 }
 
 bool Analog_Output_Present_Value_Set(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     float value,
     unsigned priority)
@@ -208,7 +214,7 @@ bool Analog_Output_Present_Value_Set(
     unsigned index = 0;
     bool status = false;
 
-    index = Analog_Output_Instance_To_Index(object_instance);
+    index = Analog_Output_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */ ) &&
@@ -228,13 +234,14 @@ bool Analog_Output_Present_Value_Set(
 }
 
 bool Analog_Output_Present_Value_Relinquish(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     unsigned priority)
 {
     unsigned index = 0;
     bool status = false;
 
-    index = Analog_Output_Instance_To_Index(object_instance);
+    index = Analog_Output_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */ )) {
@@ -254,6 +261,7 @@ bool Analog_Output_Present_Value_Relinquish(
 
 /* note: the object name must be unique within this device */
 char *Analog_Output_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
@@ -269,6 +277,7 @@ char *Analog_Output_Name(
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Analog_Output_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
@@ -294,8 +303,8 @@ int Analog_Output_Read_Property(
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Output_Name(rpdata->object_instance));
+            characterstring_init_ansi(&char_string, Analog_Output_Name(sess,
+                    rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -304,7 +313,8 @@ int Analog_Output_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_OUTPUT);
             break;
         case PROP_PRESENT_VALUE:
-            real_value = Analog_Output_Present_Value(rpdata->object_instance);
+            real_value =
+                Analog_Output_Present_Value(sess, rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -321,7 +331,7 @@ int Analog_Output_Read_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             object_index =
-                Analog_Output_Instance_To_Index(rpdata->object_instance);
+                Analog_Output_Instance_To_Index(sess, rpdata->object_instance);
             state = Analog_Output_Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -337,7 +347,8 @@ int Analog_Output_Read_Property(
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
-                    Analog_Output_Instance_To_Index(rpdata->object_instance);
+                    Analog_Output_Instance_To_Index(sess,
+                    rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Analog_Output_Level[object_index][i] == AO_LEVEL_NULL)
@@ -360,14 +371,14 @@ int Analog_Output_Read_Property(
                 }
             } else {
                 object_index =
-                    Analog_Output_Instance_To_Index(rpdata->object_instance);
+                    Analog_Output_Instance_To_Index(sess,
+                    rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Analog_Output_Level[object_index][rpdata->array_index -
                             1] == AO_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
-                        real_value =
-                            Analog_Output_Level[object_index]
+                        real_value = Analog_Output_Level[object_index]
                             [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
@@ -402,6 +413,7 @@ int Analog_Output_Read_Property(
 
 /* returns true if successful */
 bool Analog_Output_Write_Property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -423,8 +435,9 @@ bool Analog_Output_Write_Property(
                    algorithm and may not be used for other purposes in any
                    object. */
                 status =
-                    Analog_Output_Present_Value_Set(wp_data->object_instance,
-                    value.type.Real, wp_data->priority);
+                    Analog_Output_Present_Value_Set(sess,
+                    wp_data->object_instance, value.type.Real,
+                    wp_data->priority);
                 if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
@@ -442,11 +455,11 @@ bool Analog_Output_Write_Property(
                 if (status) {
                     level = AO_LEVEL_NULL;
                     object_index =
-                        Analog_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                        Analog_Output_Instance_To_Index(sess,
+                        wp_data->object_instance);
                     status =
-                        Analog_Output_Present_Value_Relinquish
-                        (wp_data->object_instance, wp_data->priority);
+                        Analog_Output_Present_Value_Relinquish(sess,
+                        wp_data->object_instance, wp_data->priority);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -460,7 +473,8 @@ bool Analog_Output_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Analog_Output_Instance_To_Index(wp_data->object_instance);
+                    Analog_Output_Instance_To_Index(sess,
+                    wp_data->object_instance);
                 Analog_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }

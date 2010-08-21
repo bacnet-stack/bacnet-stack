@@ -53,14 +53,18 @@ extern "C" {
         const int **pOptional,
         const int **pProprietary);
     char *bacfile_name(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool bacfile_valid_instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     uint32_t bacfile_count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t bacfile_index_to_instance(
+        struct bacnet_session_object *sess,
         unsigned find_index);
     uint32_t bacfile_instance(
+        struct bacnet_session_object *sess,
         char *filename);
     /* this is one way to match up the invoke ID with */
     /* the file ID from the AtomicReadFile request. */
@@ -68,23 +72,28 @@ extern "C" {
     /* invokeID and file instance in a list or table */
     /* when the request was sent */
     uint32_t bacfile_instance_from_tsm(
+        struct bacnet_session_object *sess,
         uint8_t invokeID);
 
     /* handler ACK helper */
     bool bacfile_read_data(
+        struct bacnet_session_object *sess,
         BACNET_ATOMIC_READ_FILE_DATA * data);
     bool bacfile_write_stream_data(
+        struct bacnet_session_object *sess,
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
     void bacfile_init(
-        void);
+        struct bacnet_session_object *sess);
 
 /* handling for read property service */
     int bacfile_read_property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
 /* handling for write property service */
     bool bacfile_write_property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus

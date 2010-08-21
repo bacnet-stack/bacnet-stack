@@ -35,6 +35,8 @@
 #include "handlers.h"
 #include "client.h"
 #include "tsm.h"
+#include "session.h"
+#include "dlenv.h"
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 
@@ -49,7 +51,7 @@ static uint16_t BBMD_Timer_Seconds;
  *     - BACNET_BBMD_ADDRESS - dotted IPv4 address
  */
 void dlenv_register_as_foreign_device(
-    void)
+    struct bacnet_session_object *sess)
 {
 #if defined(BACDL_BIP) && BBMD_ENABLED
     char *pEnv = NULL;
@@ -80,7 +82,7 @@ void dlenv_register_as_foreign_device(
             fprintf(stderr,
                 "Registering with BBMD at %s:%ld for %ld seconds\n",
                 inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(bbmd_address, (uint16_t) bbmd_port,
+            bvlc_register_with_bbmd(sess, bbmd_address, (uint16_t) bbmd_port,
                 (uint16_t) bbmd_timetolive_seconds);
             BBMD_Timer_Seconds = bbmd_timetolive_seconds;
         }
@@ -94,6 +96,7 @@ void dlenv_register_as_foreign_device(
  * Call this function to renew Foreign Device Registration
  */
 void dlenv_maintenance_timer(
+    struct bacnet_session_object *sess,
     uint16_t elapsed_seconds)
 {
     if (BBMD_Timer_Seconds) {
@@ -103,7 +106,7 @@ void dlenv_maintenance_timer(
             BBMD_Timer_Seconds -= elapsed_seconds;
         }
         if (BBMD_Timer_Seconds == 0) {
-            dlenv_register_as_foreign_device();
+            dlenv_register_as_foreign_device(sess);
         }
     }
 }
@@ -137,17 +140,19 @@ void dlenv_maintenance_timer(
  *   - BACNET_MSTP_MAC
  */
 void dlenv_init(
-    void)
+    struct bacnet_session_object *sess)
 {
     char *pEnv = NULL;
 
 #if defined(BACDL_ALL)
     pEnv = getenv("BACNET_DATALINK");
     if (pEnv) {
-        datalink_set(pEnv));
+        datalink_set(sess, pEnv));
     } else {
-        datalink_set(NULL);
+        datalink_set(sess, NULL);
     }
+#else
+    datalink_set(sess, NULL);
 #endif
 #if defined(BACDL_BIP)
 #if defined(BIP_DEBUG)
@@ -155,7 +160,7 @@ void dlenv_init(
 #endif
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
-        bip_set_port((uint16_t) strtol(pEnv, NULL, 0));
+        bip_set_port(sess, (uint16_t) strtol(pEnv, NULL, 0));
     } else {
         /* BIP_Port is statically initialized to 0xBAC0,
          * so if it is different, then it was programmatically altered,
@@ -163,8 +168,8 @@ void dlenv_init(
          * Unless it is set below 1024, since:
          * "The range for well-known ports managed by the IANA is 0-1023."
          */
-        if (bip_get_port() < 1024)
-            bip_set_port(0xBAC0);
+        if (bip_get_port(sess) < 1024)
+            bip_set_port(sess, 0xBAC0);
     }
 #elif defined(BACDL_MSTP)
     pEnv = getenv("BACNET_MAX_INFO_FRAMES");
@@ -194,19 +199,20 @@ void dlenv_init(
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {
-        apdu_timeout_set((uint16_t) strtol(pEnv, NULL, 0));
+        apdu_timeout_set(sess, (uint16_t) strtol(pEnv, NULL, 0));
         fprintf(stderr, "BACNET_APDU_TIMEOUT=%s\r\n", pEnv);
     } else {
 #if defined(BACDL_MSTP)
-        apdu_timeout_set(60000);
+        apdu_timeout_set(sess, 60000);
 #endif
     }
-    if (!datalink_init(getenv("BACNET_IFACE"))) {
+    if (!sess->datalink_init ||
+        !sess->datalink_init(sess, getenv("BACNET_IFACE"))) {
         exit(1);
     }
     pEnv = getenv("BACNET_INVOKE_ID");
     if (pEnv) {
-        tsm_invokeID_set((uint8_t) strtol(pEnv, NULL, 0));
+        tsm_invokeID_set(sess, (uint8_t) strtol(pEnv, NULL, 0));
     }
-    dlenv_register_as_foreign_device();
+    dlenv_register_as_foreign_device(sess);
 }

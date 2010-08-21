@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include "bacenum.h"
 #include "bacdcode.h"
+#include "bacerror.h"
 #include "bacdef.h"
 
 /** @file bacerror.c  Encode/Decode BACnet Errors */

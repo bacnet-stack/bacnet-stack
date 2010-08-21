@@ -95,6 +95,7 @@ void BACfile_Property_Lists(
 
 
 char *bacfile_name(
+    struct bacnet_session_object *sess,
     uint32_t instance)
 {
     uint32_t index = 0;
@@ -113,13 +114,14 @@ char *bacfile_name(
 }
 
 bool bacfile_valid_instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
-    return bacfile_name(object_instance) ? true : false;
+    return bacfile_name(sess, object_instance) ? true : false;
 }
 
 uint32_t bacfile_count(
-    void)
+    struct bacnet_session_object * sess)
 {
     uint32_t index = 0;
 
@@ -132,6 +134,7 @@ uint32_t bacfile_count(
 }
 
 uint32_t bacfile_index_to_instance(
+    struct bacnet_session_object * sess,
     unsigned find_index)
 {
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
@@ -165,13 +168,14 @@ static long fsize(
 }
 
 static unsigned bacfile_file_size(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     char *pFilename = NULL;
     FILE *pFile = NULL;
     unsigned file_size = 0;
 
-    pFilename = bacfile_name(object_instance);
+    pFilename = bacfile_name(sess, object_instance);
     if (pFilename) {
         pFile = fopen(pFilename, "rb");
         if (pFile) {
@@ -185,6 +189,7 @@ static unsigned bacfile_file_size(
 
 /* return the number of bytes used, or -1 on error */
 int bacfile_read_property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
@@ -216,8 +221,8 @@ int bacfile_read_property(
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_FILE);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                bacfile_name(rpdata->object_instance));
+            characterstring_init_ansi(&char_string, bacfile_name(sess,
+                    rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -228,8 +233,8 @@ int bacfile_read_property(
             break;
         case PROP_FILE_SIZE:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                bacfile_file_size(rpdata->object_instance));
+                encode_application_unsigned(&apdu[0], bacfile_file_size(sess,
+                    rpdata->object_instance));
             break;
         case PROP_MODIFICATION_DATE:
             /* FIXME: get the actual value instead of April Fool's Day */
@@ -276,13 +281,14 @@ int bacfile_read_property(
 
 /* returns true if successful */
 bool bacfile_write_property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    if (!bacfile_valid_instance(wp_data->object_instance)) {
+    if (!bacfile_valid_instance(sess, wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
@@ -335,6 +341,7 @@ bool bacfile_write_property(
 }
 
 uint32_t bacfile_instance(
+    struct bacnet_session_object * sess,
     char *filename)
 {
     uint32_t index = 0;
@@ -359,6 +366,7 @@ uint32_t bacfile_instance(
 /* invokeID and file instance in a list or table */
 /* when the request was sent */
 uint32_t bacfile_instance_from_tsm(
+    struct bacnet_session_object * sess,
     uint8_t invokeID)
 {
     BACNET_NPDU_DATA npdu_data = { 0 }; /* dummy for getting npdu length */
@@ -375,7 +383,7 @@ uint32_t bacfile_instance_from_tsm(
     bool found = false;
 
     found =
-        tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
+        tsm_get_transaction_pdu(sess, invokeID, &dest, &npdu_data, &apdu[0],
         &apdu_len);
     if (found) {
         if (!npdu_data.network_layer_message && npdu_data.data_expecting_reply
@@ -401,6 +409,7 @@ uint32_t bacfile_instance_from_tsm(
 #endif
 
 bool bacfile_read_data(
+    struct bacnet_session_object * sess,
     BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     char *pFilename = NULL;
@@ -408,7 +417,7 @@ bool bacfile_read_data(
     FILE *pFile = NULL;
     size_t len = 0;
 
-    pFilename = bacfile_name(data->object_instance);
+    pFilename = bacfile_name(sess, data->object_instance);
     if (pFilename) {
         found = true;
         pFile = fopen(pFilename, "rb");
@@ -436,13 +445,14 @@ bool bacfile_read_data(
 }
 
 bool bacfile_write_stream_data(
+    struct bacnet_session_object * sess,
     BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     char *pFilename = NULL;
     bool found = false;
     FILE *pFile = NULL;
 
-    pFilename = bacfile_name(data->object_instance);
+    pFilename = bacfile_name(sess, data->object_instance);
     if (pFilename) {
         found = true;
         /* open the file as a clean slate when starting at 0 */
@@ -464,6 +474,6 @@ bool bacfile_write_stream_data(
 }
 
 void bacfile_init(
-    void)
+    struct bacnet_session_object *sess)
 {
 }

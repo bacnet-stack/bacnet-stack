@@ -48,6 +48,9 @@
 #include "txbuf.h"
 #include "lc.h"
 #include "version.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* include the device object */
 #include "device.h"
 
@@ -61,46 +64,52 @@
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
+/** One server session .. we might have others on different ports */
+struct bacnet_session_object *Default_Session = NULL;
+
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_HAS,
+        handler_who_has);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
         handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
 #if defined(BACFILE)
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_ATOMIC_READ_FILE,
         handler_atomic_read_file);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
         handler_atomic_write_file);
 #endif
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        handler_timesync_utc);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        handler_timesync);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
+    apdu_set_unconfirmed_handler(sess,
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(sess,
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_SUBSCRIBE_COV,
         handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_COV_NOTIFICATION,
         handler_ucov_notification);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(sess,
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 }
 
@@ -111,7 +120,11 @@ static void Init_Service_Handlers(
 static void cleanup(
     void)
 {
-    datalink_cleanup();
+    if (Default_Session) {
+        Default_Session->datalink_cleanup(Default_Session);
+        bacnet_destroy_session(Default_Session);
+        Default_Session = NULL;
+    }
 }
 
 /** Main function of server demo.
@@ -139,45 +152,49 @@ int main(
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
+    struct bacnet_session_object *sess = NULL;
+    /* allocates default session data */
+    sess = Default_Session = create_bacnet_session();
 
     /* allow the device ID to be set */
     if (argc > 1)
-        Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
+        Device_Set_Object_Instance_Number(sess, strtol(argv[1], NULL, 0));
     printf("BACnet Server Demo\n" "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
-        Device_Object_Instance_Number(), MAX_APDU);
-    Init_Service_Handlers();
-    dlenv_init();
+        Device_Object_Instance_Number(sess), MAX_APDU);
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
     atexit(cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     /* broadcast an I-Am on startup */
-    Send_I_Am(&Handler_Transmit_Buffer[0]);
+    Send_I_Am(sess, &Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {
         /* input */
         current_seconds = time(NULL);
 
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
 
         /* process */
         if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {
             last_seconds = current_seconds;
-            dcc_timer_seconds(elapsed_seconds);
+            dcc_timer_seconds(sess, elapsed_seconds);
 #if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
+            bvlc_maintenance_timer(sess, elapsed_seconds);
 #endif
-            dlenv_maintenance_timer(elapsed_seconds);
-            Load_Control_State_Machine_Handler();
+            dlenv_maintenance_timer(sess, elapsed_seconds);
+            Load_Control_State_Machine_Handler(sess);
             elapsed_milliseconds = elapsed_seconds * 1000;
-            handler_cov_task(elapsed_seconds);
-            tsm_timer_milliseconds(elapsed_milliseconds);
+            handler_cov_task(sess, elapsed_seconds);
+            tsm_timer_milliseconds(sess, elapsed_milliseconds);
         }
         /* output */
 
@@ -185,4 +202,4 @@ int main(
     }
 }
 
-                      /* @} *//* End group ServerDemo */
+                                                                      /* @} *//* End group ServerDemo */

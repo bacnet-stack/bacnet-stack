@@ -64,6 +64,7 @@ extern "C" {
 
     int ucov_notify_encode_apdu(
         uint8_t * apdu,
+        int max_apdu_len,
         BACNET_COV_DATA * data);
 
     int ucov_notify_decode_apdu(
@@ -77,6 +78,7 @@ extern "C" {
 
     int ccov_notify_encode_apdu(
         uint8_t * apdu,
+        int max_apdu_len,
         uint8_t invoke_id,
         BACNET_COV_DATA * data);
 

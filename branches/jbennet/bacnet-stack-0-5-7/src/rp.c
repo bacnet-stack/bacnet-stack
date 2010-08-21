@@ -49,8 +49,8 @@ int rp_encode_apdu(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);     /* + flag 'SA' if we accept many segments */
+        apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
         apdu_len = 4;
@@ -88,7 +88,7 @@ int rp_decode_service_request(
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for value pointers */
-    if (rpdata != NULL) {
+    if (apdu_len && rpdata) {
         /* Must have at least 2 tags, an object id and a property identifier
          * of at least 1 byte in length to have any chance of parsing */
         if (apdu_len < 7) {
@@ -97,10 +97,12 @@ int rp_decode_service_request(
         }
 
         /* Tag 0: Object ID          */
-        if (!decode_is_context_tag(&apdu[len++], 0)) {
+        if (!decode_is_context_tag(&apdu[len], 0) ||
+            decode_is_closing_tag(&apdu[len])) {
             rpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             return BACNET_STATUS_REJECT;
         }
+        len++;
         len += decode_object_id(&apdu[len], &type, &rpdata->object_instance);
         rpdata->object_type = (BACNET_OBJECT_TYPE) type;
         /* Tag 1: Property ID */
@@ -253,7 +255,8 @@ int rp_ack_decode_service_request(
 
     /* FIXME: check apdu_len against the len during decode   */
     /* Tag 0: Object ID */
-    if (!decode_is_context_tag(&apdu[0], 0))
+    if (!decode_is_context_tag(&apdu[len], 0) ||
+        decode_is_closing_tag(&apdu[len]))
         return -1;
     len = 1;
     len += decode_object_id(&apdu[len], &object, &rpdata->object_instance);

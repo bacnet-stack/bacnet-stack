@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -41,37 +40,136 @@
 #include "timesync.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
+#include "session.h"
 
-/** @file s_ts.c  Send TimeSync requests. */
-
-void Send_TimeSync(
+void Send_TimeSync_Unicast(
+    struct bacnet_session_object *sess,
+    int deviceId,
     BACNET_DATE * bdate,
     BACNET_TIME * btime)
 {
     int len = 0;
     int pdu_len = 0;
+    unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
     BACNET_ADDRESS dest;
+    BACNET_ADDRESS my_address;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return;
 
     /* we could use unicast or broadcast */
-    datalink_get_broadcast_address(&dest);
+    /*sess->datalink_get_broadcast_address(sess, &dest); */
+
+    /* is the device bound? */
+    if (!address_get_by_device(sess, deviceId, &max_apdu, &segmentation,
+            &dest))
+        return;
+    sess->datalink_get_my_address(sess, &my_address);
+
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
     /* encode the APDU portion of the packet */
     len =
         timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
     pdu_len += len;
     /* send it out the datalink */
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send Time-Synchronization Request (%s)!\n",
+            strerror(errno));
+#endif
+}
+
+void Send_TimeSyncUTC_Unicast(
+    struct bacnet_session_object *sess,
+    int deviceId,
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
+{
+    int pdu_len = 0;
+    unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
+    BACNET_ADDRESS dest;
+    BACNET_ADDRESS my_address;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+
+    if (!dcc_communication_enabled(sess))
+        return;
+
+    /* we could use unicast or broadcast */
+    /*sess->datalink_get_broadcast_address(sess, &dest); */
+
+    /* is the device bound? */
+    if (!address_get_by_device(sess, deviceId, &max_apdu, &segmentation,
+            &dest))
+        return;
+    sess->datalink_get_my_address(sess, &my_address);
+
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
+    /* encode the APDU portion of the packet */
+    pdu_len =
+        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0], bdate, btime);
+    bytes_sent =
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr,
+            "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
+            strerror(errno));
+#endif
+}
+
+void Send_TimeSync(
+    struct bacnet_session_object *sess,
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
+{
+    int len = 0;
+    int pdu_len = 0;
+    unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
+    BACNET_ADDRESS dest;
+    BACNET_ADDRESS my_address;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+
+    if (!dcc_communication_enabled(sess))
+        return;
+
+    sess->datalink_get_broadcast_address(sess, &dest);
+    sess->datalink_get_my_address(sess, &my_address);
+
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
+    /* encode the APDU portion of the packet */
+    len =
+        timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
+    pdu_len += len;
+    /* send it out the datalink */
+    bytes_sent =
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Time-Synchronization Request (%s)!\n",
@@ -80,29 +178,36 @@ void Send_TimeSync(
 }
 
 void Send_TimeSyncUTC(
+    struct bacnet_session_object *sess,
     BACNET_DATE * bdate,
     BACNET_TIME * btime)
 {
     int pdu_len = 0;
+    unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
     BACNET_ADDRESS dest;
+    BACNET_ADDRESS my_address;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return;
 
-    /* we could use unicast or broadcast */
-    datalink_get_broadcast_address(&dest);
+    sess->datalink_get_broadcast_address(sess, &dest);
+    sess->datalink_get_my_address(sess, &my_address);
+
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
     /* encode the APDU portion of the packet */
     pdu_len =
         timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0], bdate, btime);
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,

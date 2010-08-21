@@ -119,6 +119,7 @@ void Trend_Log_Property_Lists(
 /* more complex, and then you need validate that the */
 /* given instance exists */
 bool Trend_Log_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     if (object_instance < MAX_TREND_LOGS) {
@@ -131,7 +132,7 @@ bool Trend_Log_Valid_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Trend_Log_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_TREND_LOGS;
 }
@@ -140,6 +141,7 @@ unsigned Trend_Log_Count(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Trend_Log_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
@@ -149,6 +151,7 @@ uint32_t Trend_Log_Index_To_Instance(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Trend_Log_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_TREND_LOGS;
@@ -165,7 +168,7 @@ unsigned Trend_Log_Instance_To_Index(
  * Should be called whenever we reset the device or power it up
  */
 void Trend_Log_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
     static bool initialized = false;
     int iLog;
@@ -221,7 +224,7 @@ void Trend_Log_Init(
             LogInfo[iLog].bStopWhenFull = false;
             LogInfo[iLog].bTrigger = false;
             LogInfo[iLog].LoggingType = LOGGING_TYPE_POLLED;
-            LogInfo[iLog].Source.arrayIndex = 0;
+            LogInfo[iLog].Source.objectPropertyRef.arrayIndex = 0;
             LogInfo[iLog].ucTimeFlags = 0;
             LogInfo[iLog].ulIntervalOffset = 0;
             LogInfo[iLog].iIndex = 0;
@@ -230,12 +233,16 @@ void Trend_Log_Init(
             LogInfo[iLog].ulTotalRecordCount = 10000;
 
             LogInfo[iLog].Source.deviceIndentifier.instance =
-                Device_Object_Instance_Number();
+                Device_Object_Instance_Number(sess);
             LogInfo[iLog].Source.deviceIndentifier.type = OBJECT_DEVICE;
-            LogInfo[iLog].Source.objectIdentifier.instance = iLog;
-            LogInfo[iLog].Source.objectIdentifier.type = OBJECT_ANALOG_INPUT;
-            LogInfo[iLog].Source.arrayIndex = BACNET_ARRAY_ALL;
-            LogInfo[iLog].Source.propertyIdentifier = PROP_PRESENT_VALUE;
+            LogInfo[iLog].Source.objectPropertyRef.objectIdentifier.instance =
+                iLog;
+            LogInfo[iLog].Source.objectPropertyRef.objectIdentifier.type =
+                OBJECT_ANALOG_INPUT;
+            LogInfo[iLog].Source.objectPropertyRef.arrayIndex =
+                BACNET_ARRAY_ALL;
+            LogInfo[iLog].Source.objectPropertyRef.propertyIdentifier =
+                PROP_PRESENT_VALUE;
 
             datetime_set_values(&LogInfo[iLog].StartTime, 2009, 1, 1, 0, 0, 0,
                 0);
@@ -258,6 +265,7 @@ void Trend_Log_Init(
  * is not we need to convert to index before proceeding.
  */
 char *Trend_Log_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
@@ -274,6 +282,7 @@ char *Trend_Log_Name(
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
    BACNET_STATUS_ABORT for abort message */
 int Trend_Log_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
@@ -288,7 +297,7 @@ int Trend_Log_Read_Property(
         return 0;
     }
     apdu = rpdata->application_data;
-    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(rpdata->object_instance)];        /* Pin down which log to look at */
+    CurrentLog = &LogInfo[Trend_Log_Instance_To_Index(sess, rpdata->object_instance)];  /* Pin down which log to look at */
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -298,8 +307,8 @@ int Trend_Log_Read_Property(
 
         case PROP_DESCRIPTION:
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string,
-                Trend_Log_Name(rpdata->object_instance));
+            characterstring_init_ansi(&char_string, Trend_Log_Name(sess,
+                    rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -445,6 +454,7 @@ int Trend_Log_Read_Property(
 
 /* returns true if successful */
 bool Trend_Log_Write_Property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -458,7 +468,7 @@ bool Trend_Log_Write_Property(
     int log_index;
 
     /* Pin down which log to look at */
-    log_index = Trend_Log_Instance_To_Index(wp_data->object_instance);
+    log_index = Trend_Log_Instance_To_Index(sess, wp_data->object_instance);
     CurrentLog = &LogInfo[log_index];
 
     /* decode the some of the request */
@@ -487,22 +497,22 @@ bool Trend_Log_Write_Property(
 
                 /* Only trigger this validation on a potential change of state */
                 if (CurrentLog->bEnable != value.type.Boolean) {
-                    bEffectiveEnable = TL_Is_Enabled(log_index);
+                    bEffectiveEnable = TL_Is_Enabled(sess, log_index);
                     CurrentLog->bEnable = value.type.Boolean;
                     /* To do: what actions do we need to take on writing ? */
                     if (value.type.Boolean == false) {
                         if (bEffectiveEnable == true) {
                             /* Only insert record if we really were 
                                enabled i.e. times and enable flags */
-                            TL_Insert_Status_Rec(log_index,
+                            TL_Insert_Status_Rec(sess, log_index,
                                 LOG_STATUS_LOG_DISABLED, true);
                         }
                     } else {
-                        if (TL_Is_Enabled(log_index)) {
+                        if (TL_Is_Enabled(sess, log_index)) {
                             /* Have really gone from disabled to enabled as 
                              * enable flag and times were correct
                              */
-                            TL_Insert_Status_Rec(log_index,
+                            TL_Insert_Status_Rec(sess, log_index,
                                 LOG_STATUS_LOG_DISABLED, false);
                         }
                     }
@@ -527,7 +537,7 @@ bool Trend_Log_Write_Property(
                          * disable the log and record the fact - see 135-2008 12.25.12
                          */
                         CurrentLog->bEnable = false;
-                        TL_Insert_Status_Rec(log_index,
+                        TL_Insert_Status_Rec(sess, log_index,
                             LOG_STATUS_LOG_DISABLED, true);
                     }
                 }
@@ -552,8 +562,8 @@ bool Trend_Log_Write_Property(
                     /* Time to clear down the log */
                     CurrentLog->ulRecordCount = 0;
                     CurrentLog->iIndex = 0;
-                    TL_Insert_Status_Rec(log_index, LOG_STATUS_BUFFER_PURGED,
-                        true);
+                    TL_Insert_Status_Rec(sess, log_index,
+                        LOG_STATUS_BUFFER_PURGED, true);
                 }
             }
             break;
@@ -610,7 +620,7 @@ bool Trend_Log_Write_Property(
                     break;
                 }
                 /* First record the current enable state of the log */
-                bEffectiveEnable = TL_Is_Enabled(log_index);
+                bEffectiveEnable = TL_Is_Enabled(sess, log_index);
                 CurrentLog->StartTime.date = TempDate;  /* Safe to copy the date now */
                 CurrentLog->StartTime.time = value.type.Time;
 
@@ -625,15 +635,15 @@ bool Trend_Log_Write_Property(
                         TL_BAC_Time_To_Local(&CurrentLog->StartTime);
                 }
 
-                if (bEffectiveEnable != TL_Is_Enabled(log_index)) {
+                if (bEffectiveEnable != TL_Is_Enabled(sess, log_index)) {
                     /* Enable status has changed because of time update */
                     if (bEffectiveEnable == true) {
                         /* Say we went from enabled to disabled */
-                        TL_Insert_Status_Rec(log_index,
+                        TL_Insert_Status_Rec(sess, log_index,
                             LOG_STATUS_LOG_DISABLED, true);
                     } else {
                         /* Say we went from disabled to enabled */
-                        TL_Insert_Status_Rec(log_index,
+                        TL_Insert_Status_Rec(sess, log_index,
                             LOG_STATUS_LOG_DISABLED, false);
                     }
                 }
@@ -662,7 +672,7 @@ bool Trend_Log_Write_Property(
                     break;
                 }
                 /* First record the current enable state of the log */
-                bEffectiveEnable = TL_Is_Enabled(log_index);
+                bEffectiveEnable = TL_Is_Enabled(sess, log_index);
                 CurrentLog->StopTime.date = TempDate;   /* Safe to copy the date now */
                 CurrentLog->StopTime.time = value.type.Time;
 
@@ -677,15 +687,15 @@ bool Trend_Log_Write_Property(
                         TL_BAC_Time_To_Local(&CurrentLog->StopTime);
                 }
 
-                if (bEffectiveEnable != TL_Is_Enabled(log_index)) {
+                if (bEffectiveEnable != TL_Is_Enabled(sess, log_index)) {
                     /* Enable status has changed because of time update */
                     if (bEffectiveEnable == true) {
                         /* Say we went from enabled to disabled */
-                        TL_Insert_Status_Rec(log_index,
+                        TL_Insert_Status_Rec(sess, log_index,
                             LOG_STATUS_LOG_DISABLED, true);
                     } else {
                         /* Say we went from disabled to enabled */
-                        TL_Insert_Status_Rec(log_index,
+                        TL_Insert_Status_Rec(sess, log_index,
                             LOG_STATUS_LOG_DISABLED, false);
                     }
                 }
@@ -694,7 +704,7 @@ bool Trend_Log_Write_Property(
 
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
             memset(&TempSource, 0, sizeof(TempSource)); /* Start with clean sheet */
-            TempSource.arrayIndex = BACNET_ARRAY_ALL;   /* Need this so if no array index set we read properties in full */
+            TempSource.objectPropertyRef.arrayIndex = BACNET_ARRAY_ALL; /* Need this so if no array index set we read properties in full */
 
             /* First up is the object ID */
             len =
@@ -709,7 +719,8 @@ bool Trend_Log_Write_Property(
                 break;
             }
 
-            TempSource.objectIdentifier = value.type.Object_Id;
+            TempSource.objectPropertyRef.objectIdentifier =
+                value.type.Object_Id;
             wp_data->application_data_len -= len;
             iOffset = len;
             /* Second up is the property id */
@@ -724,7 +735,8 @@ bool Trend_Log_Write_Property(
                 break;
             }
 
-            TempSource.propertyIdentifier = value.type.Enumerated;
+            TempSource.objectPropertyRef.propertyIdentifier =
+                value.type.Enumerated;
             wp_data->application_data_len -= len;
 
             /* If there is still more to come */
@@ -744,7 +756,8 @@ bool Trend_Log_Write_Property(
 
                 if (value.context_tag == 2) {
                     /* Got an index so deal with it */
-                    TempSource.arrayIndex = value.type.Unsigned_Int;
+                    TempSource.objectPropertyRef.arrayIndex =
+                        value.type.Unsigned_Int;
                     wp_data->application_data_len -= len;
                     /* Still some remaining so fetch potential device ID */
                     if (wp_data->application_data_len != 0) {
@@ -767,7 +780,7 @@ bool Trend_Log_Write_Property(
                     /* Got a device ID so deal with it */
                     TempSource.deviceIndentifier = value.type.Object_Id;
                     if ((TempSource.deviceIndentifier.instance !=
-                            Device_Object_Instance_Number()) ||
+                            Device_Object_Instance_Number(sess)) ||
                         (TempSource.deviceIndentifier.type != OBJECT_DEVICE)) {
                         /* Not our ID so can't handle it at the moment */
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -780,14 +793,14 @@ bool Trend_Log_Write_Property(
             /* Make sure device ID is set to ours in case not supplied */
             TempSource.deviceIndentifier.type = OBJECT_DEVICE;
             TempSource.deviceIndentifier.instance =
-                Device_Object_Instance_Number();
+                Device_Object_Instance_Number(sess);
             /* Quick comparison if structures are packed ... */
             if (memcmp(&TempSource, &CurrentLog->Source,
                     sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE)) != 0) {
                 /* Clear buffer if property being logged is changed */
                 CurrentLog->ulRecordCount = 0;
                 CurrentLog->iIndex = 0;
-                TL_Insert_Status_Rec(log_index, LOG_STATUS_BUFFER_PURGED,
+                TL_Insert_Status_Rec(sess, log_index, LOG_STATUS_BUFFER_PURGED,
                     true);
             }
             CurrentLog->Source = TempSource;
@@ -870,12 +883,13 @@ bool Trend_Log_Write_Property(
 }
 
 bool TrendLogGetRRInfo(
+    struct bacnet_session_object * sess,
     BACNET_READ_RANGE_DATA * pRequest,  /* Info on the request */
     RR_PROP_INFO * pInfo)
 {       /* Where to put the information */
     int log_index;
 
-    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    log_index = Trend_Log_Instance_To_Index(sess, pRequest->object_instance);
     if (log_index >= MAX_TREND_LOGS) {
         pRequest->error_class = ERROR_CLASS_OBJECT;
         pRequest->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -899,6 +913,7 @@ bool TrendLogGetRRInfo(
  *****************************************************************************/
 
 void TL_Insert_Status_Rec(
+    struct bacnet_session_object *sess,
     int iLog,
     BACNET_LOG_STATUS eStatus,
     bool bState)
@@ -946,6 +961,7 @@ void TL_Insert_Status_Rec(
  *****************************************************************************/
 
 bool TL_Is_Enabled(
+    struct bacnet_session_object *sess,
     int iLog)
 {
     TL_LOG_INFO *CurrentLog;
@@ -1082,6 +1098,7 @@ void TL_Local_Time_To_BAC(
 #define TL_MAX_ENC 23   /* Maximum size of encoded log entry, see above */
 
 int rr_trend_log_encode(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     BACNET_READ_RANGE_DATA * pRequest)
 {
@@ -1093,17 +1110,17 @@ int rr_trend_log_encode(
     pRequest->ItemCount = 0;    /* Start out with nothing */
 
     /* Bail out now if nowt - should never happen for a Trend Log but ... */
-    if (LogInfo[Trend_Log_Instance_To_Index(pRequest->
-                object_instance)].ulRecordCount == 0)
+    if (LogInfo[Trend_Log_Instance_To_Index(sess,
+                pRequest->object_instance)].ulRecordCount == 0)
         return (0);
 
     if ((pRequest->RequestType == RR_BY_POSITION) ||
         (pRequest->RequestType == RR_READ_ALL))
-        return (TL_encode_by_position(apdu, pRequest));
+        return (TL_encode_by_position(sess, apdu, pRequest));
     else if (pRequest->RequestType == RR_BY_SEQUENCE)
-        return (TL_encode_by_sequence(apdu, pRequest));
+        return (TL_encode_by_sequence(sess, apdu, pRequest));
 
-    return (TL_encode_by_time(apdu, pRequest));
+    return (TL_encode_by_time(sess, apdu, pRequest));
 }
 
 /****************************************************************************
@@ -1113,6 +1130,7 @@ int rr_trend_log_encode(
  ****************************************************************************/
 
 int TL_encode_by_position(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     BACNET_READ_RANGE_DATA * pRequest)
 {
@@ -1129,7 +1147,7 @@ int TL_encode_by_position(
 
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead;
-    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    log_index = Trend_Log_Instance_To_Index(sess, pRequest->object_instance);
     CurrentLog = &LogInfo[log_index];
     if (pRequest->RequestType == RR_READ_ALL) {
         /*
@@ -1188,7 +1206,7 @@ int TL_encode_by_position(
             break;
         }
 
-        iTemp = TL_encode_entry(&apdu[iLen], log_index, uiIndex);
+        iTemp = TL_encode_entry(sess, &apdu[iLen], log_index, uiIndex);
 
         uiRemaining -= iTemp;   /* Reduce the remaining space */
         iLen += iTemp;  /* and increase the length consumed */
@@ -1217,6 +1235,7 @@ int TL_encode_by_position(
  ****************************************************************************/
 
 int TL_encode_by_sequence(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     BACNET_READ_RANGE_DATA * pRequest)
 {
@@ -1239,7 +1258,7 @@ int TL_encode_by_sequence(
 
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead;
-    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    log_index = Trend_Log_Instance_To_Index(sess, pRequest->object_instance);
     CurrentLog = &LogInfo[log_index];
     /* Figure out the sequence number for the first record, last is ulTotalRecordCount */
     uiFirstSeq =
@@ -1322,7 +1341,7 @@ int TL_encode_by_sequence(
             break;
         }
 
-        iTemp = TL_encode_entry(&apdu[iLen], log_index, uiIndex);
+        iTemp = TL_encode_entry(sess, &apdu[iLen], log_index, uiIndex);
 
         uiRemaining -= iTemp;   /* Reduce the remaining space */
         iLen += iTemp;  /* and increase the length consumed */
@@ -1353,6 +1372,7 @@ int TL_encode_by_sequence(
  ****************************************************************************/
 
 int TL_encode_by_time(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     BACNET_READ_RANGE_DATA * pRequest)
 {
@@ -1371,7 +1391,7 @@ int TL_encode_by_time(
 
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead;
-    log_index = Trend_Log_Instance_To_Index(pRequest->object_instance);
+    log_index = Trend_Log_Instance_To_Index(sess, pRequest->object_instance);
     CurrentLog = &LogInfo[log_index];
 
     tRefTime = TL_BAC_Time_To_Local(&pRequest->Range.RefTime);
@@ -1454,7 +1474,7 @@ int TL_encode_by_time(
             break;
         }
 
-        iTemp = TL_encode_entry(&apdu[iLen], log_index, uiIndex);
+        iTemp = TL_encode_entry(sess, &apdu[iLen], log_index, uiIndex);
 
         uiRemaining -= iTemp;   /* Reduce the remaining space */
         iLen += iTemp;  /* and increase the length consumed */
@@ -1482,6 +1502,7 @@ int TL_encode_by_time(
 
 
 int TL_encode_entry(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     int iLog,
     int iEntry)
@@ -1608,6 +1629,7 @@ int TL_encode_entry(
 }
 
 static int local_read_property(
+    struct bacnet_session_object *sess,
     uint8_t * value,
     uint8_t * status,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * Source,
@@ -1621,12 +1643,13 @@ static int local_read_property(
         /* configure our storage */
         rpdata.application_data = value;
         rpdata.application_data_len = MAX_APDU;
-        rpdata.object_type = Source->objectIdentifier.type;
-        rpdata.object_instance = Source->objectIdentifier.instance;
-        rpdata.object_property = Source->propertyIdentifier;
-        rpdata.array_index = Source->arrayIndex;
+        rpdata.object_type = Source->objectPropertyRef.objectIdentifier.type;
+        rpdata.object_instance =
+            Source->objectPropertyRef.objectIdentifier.instance;
+        rpdata.object_property = Source->objectPropertyRef.propertyIdentifier;
+        rpdata.array_index = Source->objectPropertyRef.arrayIndex;
         /* Try to fetch the required property */
-        len = Device_Read_Property(&rpdata);
+        len = Device_Read_Property(sess, &rpdata);
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
@@ -1639,7 +1662,7 @@ static int local_read_property(
         rpdata.application_data_len = MAX_APDU;
         rpdata.object_property = PROP_STATUS_FLAGS;
         rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Device_Read_Property(&rpdata);
+        len = Device_Read_Property(sess, &rpdata);
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
@@ -1654,6 +1677,7 @@ static int local_read_property(
  ****************************************************************************/
 
 void TL_fetch_property(
+    struct bacnet_session_object *sess,
     int iLog)
 {
     uint8_t ValueBuf[MAX_APDU]; /* This is a big buffer in case someone selects the device object list for example */
@@ -1677,7 +1701,7 @@ void TL_fetch_property(
     TempRec.ucStatus = 0;
 
     iLen =
-        local_read_property(ValueBuf, StatusBuf, &LogInfo[iLog].Source,
+        local_read_property(sess, ValueBuf, StatusBuf, &LogInfo[iLog].Source,
         &error_class, &error_code);
     if (iLen < 0) {
         /* Insert error code into log */
@@ -1777,6 +1801,7 @@ void TL_fetch_property(
  ****************************************************************************/
 
 void trend_log_timer(
+    struct bacnet_session_object *sess,
     uint16_t uSeconds)
 {
     TL_LOG_INFO *CurrentLog = NULL;
@@ -1789,7 +1814,7 @@ void trend_log_timer(
     tNow = time(NULL);
     for (iCount = 0; iCount < MAX_TREND_LOGS; iCount++) {
         CurrentLog = &LogInfo[iCount];
-        if (TL_Is_Enabled(iCount)) {
+        if (TL_Is_Enabled(sess, iCount)) {
             if (CurrentLog->LoggingType == LOGGING_TYPE_POLLED) {
                 /* For polled logs we first need to see if they are clock
                  * aligned or not.
@@ -1809,7 +1834,7 @@ void trend_log_timer(
                         /* Record value if time synchronised trigger condition is met
                          * and at least one period has elapsed.
                          */
-                        TL_fetch_property(iCount);
+                        TL_fetch_property(sess, iCount);
                     } else if ((tNow - CurrentLog->tLastDataTime) >
                         CurrentLog->ulLogInterval) {
                         /* Also record value if we have waited more than a period
@@ -1817,7 +1842,7 @@ void trend_log_timer(
                          * soon as possible after a power down if we have been off for
                          * more than a single period. 
                          */
-                        TL_fetch_property(iCount);
+                        TL_fetch_property(sess, iCount);
                     }
                 } else if (((tNow - CurrentLog->tLastDataTime) >=
                         CurrentLog->ulLogInterval) ||
@@ -1825,7 +1850,7 @@ void trend_log_timer(
                     /* If not aligned take a reading when we have either waited long
                      * enough or a trigger is set.
                      */
-                    TL_fetch_property(iCount);
+                    TL_fetch_property(sess, iCount);
                 }
 
                 CurrentLog->bTrigger = false;   /* Clear this every time */
@@ -1834,7 +1859,7 @@ void trend_log_timer(
                  * then reset the trigger to wait for the next event
                  */
                 if (CurrentLog->bTrigger == true) {
-                    TL_fetch_property(iCount);
+                    TL_fetch_property(sess, iCount);
                     CurrentLog->bTrigger = false;
                 }
             }

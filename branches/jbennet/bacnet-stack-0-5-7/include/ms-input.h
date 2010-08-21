@@ -42,46 +42,59 @@ extern "C" {
         const int **pProprietary);
 
     bool Multistate_Input_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Multistate_Input_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Multistate_Input_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     unsigned Multistate_Input_Instance_To_Index(
+        struct bacnet_session_object *sess,
         uint32_t instance);
 
     int Multistate_Input_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Multistate_Input_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     /* optional API */
     bool Multistate_Input_Object_Instance_Add(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     char *Multistate_Input_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     bool Multistate_Input_Name_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         char *new_name);
     uint32_t Multistate_Input_Present_Value(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     bool Multistate_Input_Present_Value_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         uint32_t value);
     bool Multistate_Input_Description_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         char *text_string);
     bool Multistate_Input_State_Text_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         uint32_t state_index,
         char *new_name);
     bool Multistate_Input_Max_States_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         uint32_t max_states_requested);
 
     void Multistate_Input_Init(
-        void);
+        struct bacnet_session_object *sess);
 
 
 #ifdef TEST

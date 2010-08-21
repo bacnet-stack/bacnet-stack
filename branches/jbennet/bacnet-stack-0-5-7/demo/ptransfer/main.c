@@ -124,32 +124,36 @@ void MyRejectHandler(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
 
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_PRIVATE_TRANSFER,
         handler_conf_private_trans);
     /* handle the data coming back from confirmed requests */
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_ack_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property_ack);
 
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
+    apdu_set_confirmed_ack_handler(sess, SERVICE_CONFIRMED_PRIVATE_TRANSFER,
         handler_conf_private_trans_ack);
 
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
-    apdu_set_error_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyErrorHandler);
+    apdu_set_error_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
+        MyErrorHandler);
+    apdu_set_error_handler(sess, SERVICE_CONFIRMED_PRIVATE_TRANSFER,
+        MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -216,14 +220,14 @@ int main(
     if (Target_Mode)
         Device_Set_Object_Instance_Number(Target_Device_Object_Instance);
     else
-        Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+        Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
 
-    address_init();
-    Init_Service_Handlers();
-    dlenv_init();
+    address_init(sess);
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    timeout_seconds = (apdu_timeout(sess) / 1000) * apdu_retries(sess);
 
     if (Target_Mode) {
         printf("Entering server mode. press q to quit program\r\n\r\n");
@@ -235,18 +239,20 @@ int main(
             }
 
             /* returns 0 bytes on timeout */
-            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+            pdu_len =
+                sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU,
+                timeout);
 
             /* process */
             if (pdu_len) {
-                npdu_handler(&src, &Rx_Buf[0], pdu_len);
+                npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
             }
             /* at least one second has passed */
             if (current_seconds != last_seconds) {
                 putchar('.');   /* Just to show that time is passing... */
                 last_seconds = current_seconds;
-                tsm_timer_milliseconds(((current_seconds -
-                            last_seconds) * 1000));
+                tsm_timer_milliseconds(sess,
+                    ((current_seconds - last_seconds) * 1000));
             }
 
             if (_kbhit()) {
@@ -261,10 +267,10 @@ int main(
 
         /* try to bind with the device */
         found =
-            address_bind_request(Target_Device_Object_Instance, &max_apdu,
-            &Target_Address);
+            address_bind_request(sess, Target_Device_Object_Instance,
+            &max_apdu, &segmentation, &Target_Address);
         if (!found) {
-            Send_WhoIs(Target_Device_Object_Instance,
+            Send_WhoIs(sess, Target_Device_Object_Instance,
                 Target_Device_Object_Instance);
         }
         /* loop forever */
@@ -273,16 +279,18 @@ int main(
             current_seconds = time(NULL);
 
             /* returns 0 bytes on timeout */
-            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+            pdu_len =
+                sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU,
+                timeout);
 
             /* process */
             if (pdu_len) {
-                npdu_handler(&src, &Rx_Buf[0], pdu_len);
+                npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
             }
             /* at least one second has passed */
             if (current_seconds != last_seconds)
-                tsm_timer_milliseconds(((current_seconds -
-                            last_seconds) * 1000));
+                tsm_timer_milliseconds(sess,
+                    ((current_seconds - last_seconds) * 1000));
             if (Error_Detected)
                 break;
             /* wait until the device is bound, or timeout and quit */
@@ -347,7 +355,7 @@ int main(
 
                             break;
                     }
-                } else if (tsm_invoke_id_free(invoke_id)) {
+                } else if (tsm_invoke_id_free(sess, invoke_id)) {
                     if (iCount != MY_MAX_BLOCK) {
                         iCount++;
                         invoke_id = 0;
@@ -359,9 +367,10 @@ int main(
                         if (iType > 2)
                             break;
                     }
-                } else if (tsm_invoke_id_failed(invoke_id)) {
+                } else if (tsm_invoke_id_failed(sess, invoke_id)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                    tsm_free_invoke_id(invoke_id);
+                    tsm_free_invoke_id_check(sess, invoke_id, &Target_Address,
+                        true);
                     Error_Detected = true;
                     /* try again or abort? */
                     break;
@@ -379,6 +388,8 @@ int main(
             last_seconds = current_seconds;
         }
     }
+    /* perform memory desallocation */
+    bacnet_destroy_session(sess);
 
     if (Error_Detected)
         return 1;

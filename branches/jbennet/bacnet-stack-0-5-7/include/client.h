@@ -39,43 +39,54 @@
 #include "lso.h"
 #include "alarm_ack.h"
 #include "ptransfer.h"
+
+struct ClientSubscribeInvoker;  /* forward */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /* unconfirmed requests */
     void Send_I_Am(
+        struct bacnet_session_object *sess,
         uint8_t * buffer);
+    void Send_I_Am_Unicast(
+        struct bacnet_session_object *sess,
+        uint8_t * buffer,
+        BACNET_ADDRESS * dest);
     int iam_encode_pdu(
+        struct bacnet_session_object *sess,
         uint8_t * buffer,
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data);
-    void Send_I_Am_Unicast(
-        uint8_t * buffer,
-        BACNET_ADDRESS * src);
 
     void Send_WhoIs(
+        struct bacnet_session_object *sess,
         int32_t low_limit,
         int32_t high_limit);
 
     void Send_WhoHas_Object(
+        struct bacnet_session_object *sess,
         int32_t low_limit,
         int32_t high_limit,
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
 
     void Send_WhoHas_Name(
+        struct bacnet_session_object *sess,
         int32_t low_limit,
         int32_t high_limit,
         const char *object_name);
 
     void Send_I_Have(
+        struct bacnet_session_object *sess,
         uint32_t device_id,
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         const char *object_name);
 
     int Send_UCOV_Notify(
+        struct bacnet_session_object *sess,
         uint8_t * buffer,
         BACNET_COV_DATA * cov_data);
     int ucov_notify_encode_pdu(
@@ -86,19 +97,37 @@ extern "C" {
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Read_Property_Request(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,     /* destination device */
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_PROPERTY_ID object_property,
         int32_t array_index);
     uint8_t Send_Read_Property_Multiple_Request(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint8_t * pdu,
         size_t max_pdu,
         uint32_t device_id,     /* destination device */
         BACNET_READ_ACCESS_DATA * read_access_data);
 
+    uint8_t Send_COV_Subscribe(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
+        uint32_t device_id,
+        BACNET_SUBSCRIBE_COV_DATA * cov_data);
+
+    uint8_t Send_COVP_Subscribe(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
+        uint32_t device_id,
+        BACNET_SUBSCRIBE_COV_DATA * cov_data);
+
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Write_Property_Request(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,     /* destination device */
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
@@ -109,66 +138,104 @@ extern "C" {
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Reinitialize_Device_Request(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         BACNET_REINITIALIZED_STATE state,
         char *password);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Device_Communication_Control_Request(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         uint16_t timeDuration,  /* 0=optional */
         BACNET_COMMUNICATION_ENABLE_DISABLE state,
         char *password);        /* NULL=optional */
 
+    void Send_TimeSync_Unicast(
+        struct bacnet_session_object *sess,
+        int deviceId,
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
     void Send_TimeSync(
+        struct bacnet_session_object *sess,
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
+    void Send_TimeSyncUTC_Unicast(
+        struct bacnet_session_object *sess,
+        int deviceId,
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
     void Send_TimeSyncUTC(
+        struct bacnet_session_object *sess,
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
 
     uint8_t Send_Atomic_Read_File_Stream(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         uint32_t file_instance,
         int fileStartPosition,
         unsigned requestedOctetCount);
     uint8_t Send_Atomic_Write_File_Stream(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         uint32_t file_instance,
         int fileStartPosition,
         BACNET_OCTET_STRING * fileData);
 
     int Send_UEvent_Notify(
-        uint8_t * buffer,
+        struct bacnet_session_object *sess,
         BACNET_EVENT_NOTIFICATION_DATA * data,
         BACNET_ADDRESS * dest);
 
     uint8_t Send_CEvent_Notify(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         BACNET_EVENT_NOTIFICATION_DATA * data);
 
     void Send_Who_Is_Router_To_Network(
+        struct bacnet_session_object *sess,
         BACNET_ADDRESS * dst,
         int dnet);
     void Send_I_Am_Router_To_Network(
+        struct bacnet_session_object *sess,
         const int DNET_list[]);
     void Send_Initialize_Routing_Table(
+        struct bacnet_session_object *sess,
         BACNET_ADDRESS * dst,
         BACNET_ROUTER_PORT * router_port_list);
     void Send_Initialize_Routing_Table_Ack(
+        struct bacnet_session_object *sess,
         BACNET_ROUTER_PORT * router_port_list);
 
     uint8_t Send_Life_Safety_Operation_Data(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         BACNET_LSO_DATA * data);
     uint8_t Send_Alarm_Acknowledgement(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         BACNET_ALARM_ACK_DATA * data);
 
     void Send_UnconfirmedPrivateTransfer(
+        struct bacnet_session_object *sess,
         BACNET_ADDRESS * dest,
         BACNET_PRIVATE_TRANSFER_DATA * private_data);
 
+   /** Invokes GetEventInformation Service 
+       @param object_id NULL in initial conditions, object id for events continuation. */
+    uint8_t Send_Get_Event_Information_Request(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *subscriber,
+        uint32_t device_id,
+        BACNET_OBJECT_ID * object_id /* continuation after objet */ );
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

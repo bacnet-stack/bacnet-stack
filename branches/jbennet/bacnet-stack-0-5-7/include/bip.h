@@ -39,7 +39,6 @@
 #include <stddef.h>
 #include "bacdef.h"
 #include "npdu.h"
-#include "net.h"
 
 /* specific defines for BACnet/IP over Ethernet */
 #define MAX_HEADER (1 + 1 + 2)
@@ -49,6 +48,9 @@
 
 extern bool BIP_Debug;
 
+/* Forward session object */
+struct bacnet_session_object;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -57,25 +59,33 @@ extern "C" {
     /* on Linux, ifname is eth0, ath0, arc0, and others.
        on Windows, ifname is the dotted ip address of the interface */
     bool bip_init(
+        struct bacnet_session_object *session_object,
+        char *ifname);
+    bool bip_init6(
+        struct bacnet_session_object *session_object,
         char *ifname);
 
     /* normal functions... */
     void bip_cleanup(
-        void);
+        struct bacnet_session_object *session_object);
     void bip_set_socket(
+        struct bacnet_session_object *session_object,
         int sock_fd);
     int bip_socket(
-        void);
+        struct bacnet_session_object *session_object);
     bool bip_valid(
-        void);
+        struct bacnet_session_object *session_object);
     void bip_get_broadcast_address(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * dest); /* destination address */
     void bip_get_my_address(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * my_address);
 
     /* function to send a packet out the BACnet/IP socket */
     /* returns zero on success, non-zero on failure */
     int bip_send_pdu(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * dest,  /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
         uint8_t * pdu,  /* any data to be sent - may be null */
@@ -84,6 +94,7 @@ extern "C" {
     /* receives a BACnet/IP packet */
     /* returns the number of octets in the PDU, or zero on failure */
     uint16_t bip_receive(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * pdu,  /* PDU data */
         uint16_t max_pdu,       /* amount of space available in the PDU  */
@@ -91,24 +102,27 @@ extern "C" {
 
     /* use host byte order for setting */
     void bip_set_port(
+        struct bacnet_session_object *session_object,
         uint16_t port);
     /* returns host byte order */
     uint16_t bip_get_port(
-        void);
+        struct bacnet_session_object *session_object);
 
     /* use network byte order for setting */
     void bip_set_addr(
+        struct bacnet_session_object *session_object,
         uint32_t net_address);
     /* returns host byte order */
     uint32_t bip_get_addr(
-        void);
+        struct bacnet_session_object *session_object);
 
     /* use network byte order for setting */
     void bip_set_broadcast_addr(
+        struct bacnet_session_object *session_object,
         uint32_t net_address);
     /* returns host byte order */
     uint32_t bip_get_broadcast_addr(
-        void);
+        struct bacnet_session_object *session_object);
 
     /* gets an IP address by name, where name can be a
        string that is an IP address in dotted form, or

@@ -27,6 +27,9 @@
 #include <errno.h>
 #include "event.h"
 #include "datalink.h"
+#include "client.h"
+#include "session.h"
+#include "handlers.h"
 
 /** @file s_uevent.c  Send an Unconfirmed Event Notification. */
 
@@ -39,7 +42,7 @@
  * @return Size of the message sent (bytes), or a negative value on error.
  */
 int Send_UEvent_Notify(
-    uint8_t * buffer,
+    struct bacnet_session_object *sess,
     BACNET_EVENT_NOTIFICATION_DATA * data,
     BACNET_ADDRESS * dest)
 {
@@ -47,15 +50,18 @@ int Send_UEvent_Notify(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(buffer, dest, NULL, &npdu_data);
+    pdu_len = npdu_encode_pdu(Handler_Transmit_Buffer, dest, NULL, &npdu_data);
     /* encode the APDU portion of the packet */
-    len = uevent_notify_encode_apdu(&buffer[pdu_len], data);
+    len = uevent_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len], data);
     pdu_len += len;
     /* send the data */
-    bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
+    bytes_sent =
+        sess->datalink_send_pdu(sess, dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 
     return bytes_sent;
 }

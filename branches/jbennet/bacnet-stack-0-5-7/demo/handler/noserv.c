@@ -27,12 +27,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "reject.h"
+#include "handlers.h"
+#include "session.h"
 
 /** @file noserv.c  Handles an unrecognized/unsupported service. */
 
@@ -48,6 +49,7 @@
  *                          decoded from the APDU header of this message. 
  */
 void handler_unrecognized_service(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -58,12 +60,13 @@ void handler_unrecognized_service(
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     (void) service_request;
     (void) service_len;
 
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -75,8 +78,8 @@ void handler_unrecognized_service(
     pdu_len += len;
     /* send the data */
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent > 0)
         fprintf(stderr, "Sent Reject!\n");

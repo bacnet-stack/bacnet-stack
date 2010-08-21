@@ -35,7 +35,8 @@
 #ifndef _TIMESTAMP_H_
 #define _TIMESTAMP_H_
 
-#include "bacdcode.h"
+/*#include "bacdcode.h" */
+#include "datetime.h"
 
 typedef enum {
     TIME_STAMP_TIME = 0,
@@ -45,7 +46,7 @@ typedef enum {
 
 typedef uint8_t TYPE_BACNET_TIMESTAMP_TYPE;
 
-typedef struct {
+typedef struct BACnet_Timestamp {
     TYPE_BACNET_TIMESTAMP_TYPE tag;
     union {
         BACNET_TIME time;
