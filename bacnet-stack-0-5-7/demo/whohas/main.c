@@ -43,6 +43,9 @@
 #include "net.h"
 #include "datalink.h"
 #include "whohas.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -61,6 +64,7 @@ static char *Target_Object_Name = NULL;
 static bool Error_Detected = false;
 
 void MyAbortHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t abort_reason,
@@ -75,6 +79,7 @@ void MyAbortHandler(
 }
 
 void MyRejectHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t reject_reason)
@@ -87,24 +92,26 @@ void MyRejectHandler(
 }
 
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the reply (request) coming back */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_HAVE, handler_i_have);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_HAVE,
+        handler_i_have);
     /* handle any errors coming back */
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+    apdu_set_abort_handler(sess, MyAbortHandler);
+    apdu_set_reject_handler(sess, MyRejectHandler);
 }
 
 int main(
@@ -120,6 +127,7 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
+    struct bacnet_session_object *sess = NULL;
 
     if (argc < 2) {
         /* note: priority 16 and 0 should produce the same end results... */
@@ -150,26 +158,28 @@ int main(
         }
     }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    Init_Service_Handlers();
-    dlenv_init();
+    Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = apdu_timeout() / 1000;
+    timeout_seconds = apdu_timeout(sess) / 1000;
     /* send the request */
     if (argc < 3)
-        Send_WhoHas_Name(-1, -1, Target_Object_Name);
+        Send_WhoHas_Name(sess, -1, -1, Target_Object_Name);
     else
-        Send_WhoHas_Object(-1, -1, Target_Object_Type, Target_Object_Instance);
+        Send_WhoHas_Object(sess, -1, -1, Target_Object_Type,
+            Target_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
         current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
         /* process */
         if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         if (Error_Detected)
             break;
@@ -180,6 +190,8 @@ int main(
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
+    /* perform memory desallocation */
+    bacnet_destroy_session(sess);
 
     return 0;
 }

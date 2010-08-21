@@ -82,7 +82,8 @@ bool bitstring_bit(
     uint8_t byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
 
-    if (bit_number < (MAX_BITSTRING_BYTES * 8)) {
+    if (bit_number < (MAX_BITSTRING_BYTES * 8)
+        && bit_number < (bit_string->bits_used)) {
         bit_mask = bit_mask << (bit_number - (byte_number * 8));
         if (bit_string->value[byte_number] & bit_mask) {
             value = true;

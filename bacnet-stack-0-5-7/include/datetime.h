@@ -68,6 +68,19 @@ typedef struct BACnet_DateTime {
     BACNET_TIME time;
 } BACNET_DATE_TIME;
 
+/* range of dates */
+typedef struct BACnet_Date_Range {
+    BACNET_DATE startdate;
+    BACNET_DATE enddate;
+} BACNET_DATE_RANGE;
+
+/* week and days */
+typedef struct BACnet_Weeknday {
+    uint8_t month;      /* 1=Jan 13=odd 14=even FF=any */
+    uint8_t weekofmonth;        /* 1=days 1-7, 2=days 8-14, 3=days 15-21, 4=days 22-28, 5=days 29-31, 6=last 7 days, FF=any week */
+    uint8_t dayofweek;  /* 1=Monday-7=Sunday, FF=any */
+} BACNET_WEEKNDAY;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

@@ -26,11 +26,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bactext.h"
 #include "ihave.h"
+#include "handlers.h"
+#include "bacnet-session.h"
 
 /** @file h_ihave.c  Handles incoming I-Have messages. */
 
@@ -41,6 +42,7 @@
  * @param src [in] The BACNET_ADDRESS of the message's source.
  */
 void handler_i_have(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)

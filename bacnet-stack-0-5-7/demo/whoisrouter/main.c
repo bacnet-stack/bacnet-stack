@@ -39,6 +39,9 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* some demo stuff needed */
 #define DEBUG_ENABLED 0
 #include "debug.h"
@@ -61,6 +64,7 @@ static BACNET_ADDRESS Target_Router_Address;
 static bool Error_Detected = false;
 
 static void MyAbortHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t abort_reason,
@@ -75,6 +79,7 @@ static void MyAbortHandler(
 }
 
 static void MyRejectHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t reject_reason)
@@ -87,6 +92,7 @@ static void MyRejectHandler(
 }
 
 static void My_Router_Handler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     BACNET_NPDU_DATA * npdu_data,
     uint8_t * npdu,     /* PDU data */
@@ -133,6 +139,7 @@ static void My_Router_Handler(
 }
 
 void My_NPDU_Handler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,      /* PDU data */
     uint16_t pdu_len)
@@ -143,7 +150,7 @@ void My_NPDU_Handler(
 
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
-        My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
+        My_Router_Handler(sess, src, &npdu_data, &pdu[apdu_offset],
             (uint16_t) (pdu_len - apdu_offset));
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
@@ -151,7 +158,7 @@ void My_NPDU_Handler(
             /* only handle the version that we know how to handle */
             /* and we are not a router, so ignore messages with
                routing information cause they are not for us */
-            apdu_handler(src, &pdu[apdu_offset],
+            apdu_handler(sess, src, &pdu[apdu_offset],
                 (uint16_t) (pdu_len - apdu_offset));
         } else {
             if (dest.net) {
@@ -167,24 +174,26 @@ void My_NPDU_Handler(
 }
 
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the reply (request) coming back */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        handler_i_am_add);
     /* handle any errors coming back */
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+    apdu_set_abort_handler(sess, MyAbortHandler);
+    apdu_set_reject_handler(sess, MyRejectHandler);
 }
 
 
@@ -253,6 +262,7 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
+    struct bacnet_session_object *sess = NULL;
 
     if (argc < 2) {
         printf("Usage: %s DNET [MAC]\r\n", filename_remove_path(argv[0]));
@@ -283,28 +293,30 @@ int main(
     if (argc > 2) {
         address_parse(&Target_Router_Address, argc - 2, &argv[2]);
     } else {
-        datalink_get_broadcast_address(&Target_Router_Address);
+        sess->datalink_get_broadcast_address(sess, &Target_Router_Address);
     }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    Init_Service_Handlers();
-    address_init();
-    dlenv_init();
+    sess = create_bacnet_session();
+    Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
+    Init_Service_Handlers(sess);
+    address_init(sess);
+    dlenv_init(sess);
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = apdu_timeout() / 1000;
+    timeout_seconds = apdu_timeout(sess) / 1000;
     /* send the request */
-    Send_Who_Is_Router_To_Network(&Target_Router_Address,
+    Send_Who_Is_Router_To_Network(sess, &Target_Router_Address,
         Target_Router_Network);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
         current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
         /* process */
         if (pdu_len) {
-            My_NPDU_Handler(&src, &Rx_Buf[0], pdu_len);
+            My_NPDU_Handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         if (Error_Detected)
             break;
@@ -312,7 +324,7 @@ int main(
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {
 #if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
+            bvlc_maintenance_timer(sess, elapsed_seconds);
 #endif
         }
         total_seconds += elapsed_seconds;
@@ -321,6 +333,8 @@ int main(
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
+    /* perform memory desallocation */
+    bacnet_destroy_session(sess);
 
     return 0;
 }

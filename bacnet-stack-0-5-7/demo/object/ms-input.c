@@ -94,7 +94,7 @@ void Multistate_Input_Property_Lists(
 }
 
 void Multistate_Input_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
     unsigned i;
 
@@ -110,6 +110,7 @@ void Multistate_Input_Init(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Multistate_Input_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_MULTISTATE_INPUTS;
@@ -124,6 +125,7 @@ unsigned Multistate_Input_Instance_To_Index(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Multistate_Input_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
@@ -132,17 +134,18 @@ uint32_t Multistate_Input_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Multistate_Input_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_MULTISTATE_INPUTS;
 }
 
 bool Multistate_Input_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         return true;
     }
@@ -151,12 +154,13 @@ bool Multistate_Input_Valid_Instance(
 }
 
 uint32_t Multistate_Input_Present_Value(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     uint32_t value = 0;
     unsigned index = 0; /* offset from instance lookup */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         value = Present_Value[index];
     }
@@ -165,13 +169,14 @@ uint32_t Multistate_Input_Present_Value(
 }
 
 bool Multistate_Input_Present_Value_Set(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     uint32_t value)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         if (value < MULTISTATE_NUMBER_OF_STATES) {
             Present_Value[index] = (uint8_t) value;
@@ -183,12 +188,13 @@ bool Multistate_Input_Present_Value_Set(
 }
 
 char *Multistate_Input_Description(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         pName = Object_Description[index];
     }
@@ -197,6 +203,7 @@ char *Multistate_Input_Description(
 }
 
 bool Multistate_Input_Description_Set(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     char *new_name)
 {
@@ -204,7 +211,7 @@ bool Multistate_Input_Description_Set(
     size_t i = 0;       /* loop counter */
     bool status = false;        /* return value */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         status = true;
         if (new_name) {
@@ -225,12 +232,13 @@ bool Multistate_Input_Description_Set(
 }
 
 char *Multistate_Input_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         pName = Object_Name[index];
     }
@@ -240,6 +248,7 @@ char *Multistate_Input_Name(
 
 /* note: the object name must be unique within this device */
 bool Multistate_Input_Name_Set(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     char *new_name)
 {
@@ -247,7 +256,7 @@ bool Multistate_Input_Name_Set(
     size_t i = 0;       /* loop counter */
     bool status = false;        /* return value */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
         status = true;
         /* FIXME: check to see if there is a matching name */
@@ -269,13 +278,14 @@ bool Multistate_Input_Name_Set(
 }
 
 char *Multistate_Input_State_Text(
+    struct bacnet_session_object *sess,
     uint32_t object_instance,
     uint32_t state_index)
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if ((index < MAX_MULTISTATE_INPUTS) &&
         (state_index < MULTISTATE_NUMBER_OF_STATES)) {
         pName = State_Text[index][state_index];
@@ -286,6 +296,7 @@ char *Multistate_Input_State_Text(
 
 /* note: the object name must be unique within this device */
 bool Multistate_Input_State_Text_Set(
+    struct bacnet_session_object * sess,
     uint32_t object_instance,
     uint32_t state_index,
     char *new_name)
@@ -294,7 +305,7 @@ bool Multistate_Input_State_Text_Set(
     size_t i = 0;       /* loop counter */
     bool status = false;        /* return value */
 
-    index = Multistate_Input_Instance_To_Index(object_instance);
+    index = Multistate_Input_Instance_To_Index(sess, object_instance);
     if ((index < MAX_MULTISTATE_INPUTS) &&
         (state_index < MULTISTATE_NUMBER_OF_STATES)) {
         status = true;
@@ -318,6 +329,7 @@ bool Multistate_Input_State_Text_Set(
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Multistate_Input_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
@@ -344,14 +356,14 @@ int Multistate_Input_Read_Property(
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string,
-                Multistate_Input_Name(rpdata->object_instance));
+            characterstring_init_ansi(&char_string, Multistate_Input_Name(sess,
+                    rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Multistate_Input_Description(rpdata->object_instance));
+                Multistate_Input_Description(sess, rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -362,7 +374,7 @@ int Multistate_Input_Read_Property(
             break;
         case PROP_PRESENT_VALUE:
             present_value =
-                Multistate_Input_Present_Value(rpdata->object_instance);
+                Multistate_Input_Present_Value(sess, rpdata->object_instance);
             apdu_len = encode_application_unsigned(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -381,7 +393,8 @@ int Multistate_Input_Read_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             object_index =
-                Multistate_Input_Instance_To_Index(rpdata->object_instance);
+                Multistate_Input_Instance_To_Index(sess,
+                rpdata->object_instance);
             state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -400,12 +413,12 @@ int Multistate_Input_Read_Property(
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
                 object_index =
-                    Multistate_Input_Instance_To_Index
-                    (rpdata->object_instance);
+                    Multistate_Input_Instance_To_Index(sess,
+                    rpdata->object_instance);
                 for (i = 0; i < MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
-                        Multistate_Input_State_Text(rpdata->object_instance,
-                            i));
+                        Multistate_Input_State_Text(sess,
+                            rpdata->object_instance, i));
                     /* FIXME: this might go beyond MAX_APDU length! */
                     len =
                         encode_application_character_string(&apdu[apdu_len],
@@ -422,12 +435,12 @@ int Multistate_Input_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Input_Instance_To_Index
-                    (rpdata->object_instance);
+                    Multistate_Input_Instance_To_Index(sess,
+                    rpdata->object_instance);
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     characterstring_init_ansi(&char_string,
-                        Multistate_Input_State_Text(rpdata->object_instance,
-                            rpdata->array_index - 1));
+                        Multistate_Input_State_Text(sess,
+                            rpdata->object_instance, rpdata->array_index - 1));
                     apdu_len =
                         encode_application_character_string(&apdu[0],
                         &char_string);
@@ -457,6 +470,7 @@ int Multistate_Input_Read_Property(
 
 /* returns true if successful */
 bool Multistate_Input_Write_Property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -478,8 +492,8 @@ bool Multistate_Input_Write_Property(
             if (status) {
                 if (Out_Of_Service[object_index]) {
                     status =
-                        Multistate_Input_Present_Value_Set
-                        (wp_data->object_instance, value.type.Unsigned_Int);
+                        Multistate_Input_Present_Value_Set(sess,
+                        wp_data->object_instance, value.type.Unsigned_Int);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -497,8 +511,8 @@ bool Multistate_Input_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Multistate_Input_Instance_To_Index
-                    (wp_data->object_instance);
+                    Multistate_Input_Instance_To_Index(sess,
+                    wp_data->object_instance);
                 Out_Of_Service[object_index] = value.type.Boolean;
             }
             break;

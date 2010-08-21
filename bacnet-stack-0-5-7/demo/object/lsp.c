@@ -96,7 +96,7 @@ void Life_Safety_Point_Property_Lists(
 }
 
 void Life_Safety_Point_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
     static bool initialized = false;
     unsigned i;
@@ -120,6 +120,7 @@ void Life_Safety_Point_Init(
 /* more complex, and then you need validate that the */
 /* given instance exists */
 bool Life_Safety_Point_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     if (object_instance < MAX_LIFE_SAFETY_POINTS)
@@ -131,7 +132,7 @@ bool Life_Safety_Point_Valid_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Life_Safety_Point_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_LIFE_SAFETY_POINTS;
 }
@@ -140,6 +141,7 @@ unsigned Life_Safety_Point_Count(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Life_Safety_Point_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
@@ -149,6 +151,7 @@ uint32_t Life_Safety_Point_Index_To_Instance(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Life_Safety_Point_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_LIFE_SAFETY_POINTS;
@@ -160,12 +163,13 @@ unsigned Life_Safety_Point_Instance_To_Index(
 }
 
 static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     BACNET_LIFE_SAFETY_STATE present_value = LIFE_SAFETY_STATE_QUIET;
     unsigned index = 0;
 
-    index = Life_Safety_Point_Instance_To_Index(object_instance);
+    index = Life_Safety_Point_Instance_To_Index(sess, object_instance);
     if (index < MAX_LIFE_SAFETY_POINTS)
         present_value = Life_Safety_Point_State[index];
 
@@ -174,6 +178,7 @@ static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
 
 /* note: the object name must be unique within this device */
 char *Life_Safety_Point_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
@@ -188,6 +193,7 @@ char *Life_Safety_Point_Name(
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Life_Safety_Point_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
@@ -217,7 +223,7 @@ int Life_Safety_Point_Read_Property(
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Life_Safety_Point_Name(rpdata->object_instance));
+                Life_Safety_Point_Name(sess, rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -228,7 +234,7 @@ int Life_Safety_Point_Read_Property(
             break;
         case PROP_PRESENT_VALUE:
             present_value =
-                Life_Safety_Point_Present_Value(rpdata->object_instance);
+                Life_Safety_Point_Present_Value(sess, rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -245,7 +251,8 @@ int Life_Safety_Point_Read_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             object_index =
-                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
+                Life_Safety_Point_Instance_To_Index(sess,
+                rpdata->object_instance);
             state = Life_Safety_Point_Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -256,7 +263,8 @@ int Life_Safety_Point_Read_Property(
             break;
         case PROP_MODE:
             object_index =
-                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
+                Life_Safety_Point_Instance_To_Index(sess,
+                rpdata->object_instance);
             mode = Life_Safety_Point_Mode[object_index];
             apdu_len = encode_application_enumerated(&apdu[0], mode);
             break;
@@ -269,13 +277,15 @@ int Life_Safety_Point_Read_Property(
             break;
         case PROP_SILENCED:
             object_index =
-                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
+                Life_Safety_Point_Instance_To_Index(sess,
+                rpdata->object_instance);
             silenced_state = Life_Safety_Point_Silenced_State[object_index];
             apdu_len = encode_application_enumerated(&apdu[0], silenced_state);
             break;
         case PROP_OPERATION_EXPECTED:
             object_index =
-                Life_Safety_Point_Instance_To_Index(rpdata->object_instance);
+                Life_Safety_Point_Instance_To_Index(sess,
+                rpdata->object_instance);
             operation = Life_Safety_Point_Operation[object_index];
             apdu_len = encode_application_enumerated(&apdu[0], operation);
             break;
@@ -297,6 +307,7 @@ int Life_Safety_Point_Read_Property(
 
 /* returns true if successful */
 bool Life_Safety_Point_Write_Property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -318,8 +329,8 @@ bool Life_Safety_Point_Write_Property(
             if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
                     object_index =
-                        Life_Safety_Point_Instance_To_Index
-                        (wp_data->object_instance);
+                        Life_Safety_Point_Instance_To_Index(sess,
+                        wp_data->object_instance);
                     Life_Safety_Point_Mode[object_index] =
                         value.type.Enumerated;
                 } else {
@@ -335,8 +346,8 @@ bool Life_Safety_Point_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Life_Safety_Point_Instance_To_Index
-                    (wp_data->object_instance);
+                    Life_Safety_Point_Instance_To_Index(sess,
+                    wp_data->object_instance);
                 Life_Safety_Point_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }

@@ -162,12 +162,14 @@ static void Read_Properties(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Init();
+    Device_Init(sess);
     handler_read_property_object_set(OBJECT_DEVICE,
         Device_Encode_Property_APDU, Device_Valid_Object_Instance_Number);
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, LocalIAmHandler);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        LocalIAmHandler);
 
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
@@ -175,10 +177,10 @@ static void Init_Service_Handlers(
         (handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle the data coming back from confirmed requests */
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_ack_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property_ack);
 }
 
@@ -243,18 +245,19 @@ int main(
     signal(SIGTERM, sig_handler);
     /* setup this BACnet Server device */
     Device_Set_Object_Instance_Number(111);
-    Init_Service_Handlers();
-    dlenv_init();
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
     /* loop forever */
     for (;;) {
         /* input */
         new_time = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
 
         /* process */
         if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         if (new_time > start_time) {
             tsm_timer_milliseconds(new_time - start_time * 1000);

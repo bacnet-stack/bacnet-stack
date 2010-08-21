@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacerror.h"
@@ -36,15 +35,16 @@
 #include "npdu.h"
 #include "abort.h"
 #include "readrange.h"
+#include "session.h"
+#include "handlers.h"
 #include "device.h"
 
 /** @file h_rr.c  Handles Read Range requests. */
 
-static uint8_t Temp_Buf[MAX_APDU] = { 0 };
-
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Encode_RR_payload(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     BACNET_READ_RANGE_DATA * pRequest)
 {
@@ -57,9 +57,10 @@ int Encode_RR_payload(
     pRequest->error_code = ERROR_CODE_OTHER;
 
     /* handle each object type */
-    info_fn_ptr = Device_Objects_RR_Info(pRequest->object_type);
+    info_fn_ptr = Device_Objects_RR_Info(sess, pRequest->object_type);
 
-    if ((info_fn_ptr != NULL) && (info_fn_ptr(pRequest, &PropInfo) != false)) {
+    if ((info_fn_ptr != NULL) &&
+        (info_fn_ptr(sess, pRequest, &PropInfo) != false)) {
         /* We try and do some of the more generic error checking here to cut down on duplication of effort */
 
         if ((pRequest->RequestType == RR_BY_POSITION) && (pRequest->Range.RefIndex == 0)) {     /* First index is 1 so can't accept 0 */
@@ -76,7 +77,7 @@ int Encode_RR_payload(
         } else if ((pRequest->Count == 0) && (pRequest->RequestType != RR_READ_ALL)) {  /* Count cannot be zero */
             pRequest->error_code = ERROR_CODE_OTHER;    /* I couldn't see anything more appropriate so... */
         } else if (PropInfo.Handler != NULL) {
-            apdu_len = PropInfo.Handler(apdu, pRequest);
+            apdu_len = PropInfo.Handler(sess, apdu, pRequest);
         }
     } else {
         /* Either we don't support RR for this property yet or it is not a list or array of lists */
@@ -87,11 +88,13 @@ int Encode_RR_payload(
 }
 
 void handler_read_range(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
+    uint8_t Temp_Buf[MAX_APDU] = { 0 };
     BACNET_READ_RANGE_DATA data;
     int len = 0;
     int pdu_len = 0;
@@ -99,11 +102,12 @@ void handler_read_range(
     bool error = false;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     data.error_class = ERROR_CLASS_OBJECT;
     data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -138,7 +142,7 @@ void handler_read_range(
 
     /* assume that there is an error */
     error = true;
-    len = Encode_RR_payload(&Temp_Buf[0], &data);
+    len = Encode_RR_payload(sess, &Temp_Buf[0], &data);
     if (len >= 0) {
         /* encode the APDU portion of the packet */
         data.application_data = &Temp_Buf[0];
@@ -175,8 +179,8 @@ void handler_read_range(
   RR_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

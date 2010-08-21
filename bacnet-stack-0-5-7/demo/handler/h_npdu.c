@@ -31,6 +31,8 @@
 #include "bits.h"
 #include "npdu.h"
 #include "apdu.h"
+#include "handlers.h"
+#include "bacnet-session.h"
 
 #if PRINT_ENABLED
 #include <stdio.h>
@@ -39,6 +41,7 @@
 /** @file h_npdu.c  Handles messages at the NPDU level of the BACnet stack. */
 
 void npdu_handler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,      /* PDU data */
     uint16_t pdu_len)
@@ -60,7 +63,7 @@ void npdu_handler(
                 /* only handle the version that we know how to handle */
                 /* and we are not a router, so ignore messages with
                    routing information cause they are not for us */
-                apdu_handler(src, &pdu[apdu_offset],
+                apdu_handler(sess, src, &pdu[apdu_offset],
                     (uint16_t) (pdu_len - apdu_offset));
             } else {
 #if PRINT_ENABLED

@@ -26,11 +26,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "iam.h"
 #include "address.h"
+#include "handlers.h"
+#include "bacnet-session.h"
 
 /** @file h_iam.c  Handles I-Am requests. */
 
@@ -42,6 +43,7 @@
  * @param src [in] The BACNET_ADDRESS of the message's source.
  */
 void handler_i_am_add(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)
@@ -65,7 +67,7 @@ void handler_i_am_add(
             (unsigned long) device_id, src->mac[0], src->mac[1], src->mac[2],
             src->mac[3], src->mac[4], src->mac[5]);
 #endif
-        address_add(device_id, max_apdu, src);
+        address_add(sess, device_id, max_apdu, segmentation, src);
     } else {
 #if PRINT_ENABLED
         fprintf(stderr, "!\n");
@@ -84,6 +86,7 @@ void handler_i_am_add(
  * @param src [in] The BACNET_ADDRESS of the message's source.
  */
 void handler_i_am_bind(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)
@@ -99,7 +102,7 @@ void handler_i_am_bind(
         iam_decode_service_request(service_request, &device_id, &max_apdu,
         &segmentation, &vendor_id);
     /* only add address if requested to bind */
-    address_add_binding(device_id, max_apdu, src);
+    address_add_binding(sess, device_id, max_apdu, segmentation, src);
 
     return;
 }

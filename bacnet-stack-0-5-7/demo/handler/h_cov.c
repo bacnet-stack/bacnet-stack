@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacaddr.h"
@@ -48,26 +47,15 @@
 #include "lc.h"
 #include "lsp.h"
 #include "mso.h"
+#include "session.h"
+#include "handlers-data-core.h"
+#include "bacnet-session.h"
+#include "handlers.h"
+#include "cov-core.h"
+
 #if defined(BACFILE)
 #include "bacfile.h"
 #endif
-
-/** @file h_cov.c  Handles Change of Value (COV) services. */
-
-/* note: This COV service only monitors the properties
-   of an object that have been specified in the standard.  */
-typedef struct BACnet_COV_Subscription {
-    bool valid;
-    BACNET_ADDRESS dest;
-    uint32_t subscriberProcessIdentifier;
-    BACNET_OBJECT_ID monitoredObjectIdentifier;
-    bool issueConfirmedNotifications;   /* optional */
-    uint32_t lifetime;  /* optional */
-    bool send_requested;
-} BACNET_COV_SUBSCRIPTION;
-
-#define MAX_COV_SUBCRIPTIONS 32
-static BACNET_COV_SUBSCRIPTION COV_Subscriptions[MAX_COV_SUBCRIPTIONS];
 
 /*
 BACnetCOVSubscription ::= SEQUENCE {
@@ -99,7 +87,7 @@ COVIncrement [4] REAL OPTIONAL
 static int cov_encode_subscription(
     uint8_t * apdu,
     int max_apdu,
-    BACNET_COV_SUBSCRIPTION * cov_subscription)
+    BACNET_MY_COV_SUBSCRIPTION * cov_subscription)
 {
     int len = 0;
     int apdu_len = 0;
@@ -189,6 +177,7 @@ static int cov_encode_subscription(
  *          would not fit within the buffer. 
  */
 int handler_cov_encode_subscriptions(
+    struct bacnet_session_object *sess,
     uint8_t * apdu,
     int max_apdu)
 {
@@ -198,10 +187,13 @@ int handler_cov_encode_subscriptions(
 
     if (apdu) {
         for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
-            if (COV_Subscriptions[index].valid) {
+            if (get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                [index].valid) {
                 len =
                     cov_encode_subscription(&apdu[apdu_len],
-                    max_apdu - apdu_len, &COV_Subscriptions[index]);
+                    max_apdu - apdu_len,
+                    &get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index]);
                 apdu_len += len;
                 /* TODO: too late here to notice that we overran the buffer */
                 if (apdu_len > max_apdu) {
@@ -218,24 +210,33 @@ int handler_cov_encode_subscriptions(
  * @ingroup DSCOV
  */
 void handler_cov_init(
-    void)
+    struct bacnet_session_object *sess)
 {
     unsigned index = 0;
 
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
-        COV_Subscriptions[index].valid = false;
-        COV_Subscriptions[index].dest.mac_len = 0;
-        COV_Subscriptions[index].subscriberProcessIdentifier = 0;
-        COV_Subscriptions[index].monitoredObjectIdentifier.type =
+        get_bacnet_session_handler_data(sess)->COV_Subscriptions[index].valid =
+            false;
+        get_bacnet_session_handler_data(sess)->COV_Subscriptions[index].
+            dest.mac_len = 0;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].subscriberProcessIdentifier = 0;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].monitoredObjectIdentifier.type =
             OBJECT_ANALOG_INPUT;
-        COV_Subscriptions[index].monitoredObjectIdentifier.instance = 0;
-        COV_Subscriptions[index].issueConfirmedNotifications = false;
-        COV_Subscriptions[index].lifetime = 0;
-        COV_Subscriptions[index].send_requested = false;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].monitoredObjectIdentifier.instance = 0;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].issueConfirmedNotifications = false;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].lifetime = 0;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].send_requested = false;
     }
 }
 
 static bool cov_list_subscribe(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     BACNET_SUBSCRIBE_COV_DATA * cov_data,
     BACNET_ERROR_CLASS * error_class,
@@ -251,22 +252,32 @@ static bool cov_list_subscribe(
 
     /* existing? - match Object ID and Process ID */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
-        if (COV_Subscriptions[index].valid) {
-            if ((COV_Subscriptions[index].monitoredObjectIdentifier.type ==
+        if (get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].valid) {
+            if ((get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].monitoredObjectIdentifier.type ==
                     cov_data->monitoredObjectIdentifier.type) &&
-                (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
-                    cov_data->monitoredObjectIdentifier.instance) &&
-                (COV_Subscriptions[index].subscriberProcessIdentifier ==
+                (get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].monitoredObjectIdentifier.instance ==
+                    cov_data->monitoredObjectIdentifier.instance)
+                &&
+                (get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].subscriberProcessIdentifier ==
                     cov_data->subscriberProcessIdentifier)) {
                 existing_entry = true;
                 if (cov_data->cancellationRequest) {
-                    COV_Subscriptions[index].valid = false;
+                    get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                        [index].valid = false;
                 } else {
-                    bacnet_address_copy(&COV_Subscriptions[index].dest, src);
-                    COV_Subscriptions[index].issueConfirmedNotifications =
+                    bacnet_address_copy(&get_bacnet_session_handler_data
+                        (sess)->COV_Subscriptions[index].dest, src);
+                    get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                        [index].issueConfirmedNotifications =
                         cov_data->issueConfirmedNotifications;
-                    COV_Subscriptions[index].lifetime = cov_data->lifetime;
-                    COV_Subscriptions[index].send_requested = true;
+                    get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                        [index].lifetime = cov_data->lifetime;
+                    get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                        [index].send_requested = true;
                 }
                 break;
             }
@@ -280,18 +291,26 @@ static bool cov_list_subscribe(
         (!cov_data->cancellationRequest)) {
         index = first_invalid_index;
         found = true;
-        COV_Subscriptions[index].valid = true;
-        bacnet_address_copy(&COV_Subscriptions[index].dest, src);
-        COV_Subscriptions[index].monitoredObjectIdentifier.type =
+        get_bacnet_session_handler_data(sess)->COV_Subscriptions[index].valid =
+            true;
+        bacnet_address_copy(&get_bacnet_session_handler_data
+            (sess)->COV_Subscriptions[index].dest, src);
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].monitoredObjectIdentifier.type =
             cov_data->monitoredObjectIdentifier.type;
-        COV_Subscriptions[index].monitoredObjectIdentifier.instance =
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].monitoredObjectIdentifier.instance =
             cov_data->monitoredObjectIdentifier.instance;
-        COV_Subscriptions[index].subscriberProcessIdentifier =
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].subscriberProcessIdentifier =
             cov_data->subscriberProcessIdentifier;
-        COV_Subscriptions[index].issueConfirmedNotifications =
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].issueConfirmedNotifications =
             cov_data->issueConfirmedNotifications;
-        COV_Subscriptions[index].lifetime = cov_data->lifetime;
-        COV_Subscriptions[index].send_requested = true;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].lifetime = cov_data->lifetime;
+        get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].send_requested = true;
     } else if (!existing_entry) {
         if (first_invalid_index < 0) {
             /* Out of resources */
@@ -309,7 +328,8 @@ static bool cov_list_subscribe(
 }
 
 static bool cov_send_request(
-    BACNET_COV_SUBSCRIPTION * cov_subscription)
+    struct bacnet_session_object *sess,
+    BACNET_MY_COV_SUBSCRIPTION * cov_subscription)
 {
     int len = 0;
     int pdu_len = 0;
@@ -320,11 +340,12 @@ static bool cov_send_request(
     bool status = false;        /* return value */
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list[2];
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
 #if PRINT_ENABLED
     fprintf(stderr, "COVnotification: requested\n");
 #endif
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &cov_subscription->dest,
@@ -332,7 +353,7 @@ static bool cov_send_request(
     /* load the COV data structure for outgoing message */
     cov_data.subscriberProcessIdentifier =
         cov_subscription->subscriberProcessIdentifier;
-    cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
+    cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number(sess);
     cov_data.monitoredObjectIdentifier.type =
         cov_subscription->monitoredObjectIdentifier.type;
     cov_data.monitoredObjectIdentifier.instance =
@@ -344,35 +365,35 @@ static bool cov_send_request(
     value_list[1].next = NULL;
     switch (cov_subscription->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            Binary_Input_Encode_Value_List
-                (cov_subscription->monitoredObjectIdentifier.instance,
+            Binary_Input_Encode_Value_List(sess,
+                cov_subscription->monitoredObjectIdentifier.instance,
                 &value_list[0]);
             break;
         default:
             goto COV_FAILED;
     }
     if (cov_subscription->issueConfirmedNotifications) {
-        invoke_id = tsm_next_free_invokeID();
+        invoke_id = tsm_next_free_invokeID(sess);
         if (invoke_id) {
             len =
                 ccov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                invoke_id, &cov_data);
+                MAX_PDU - pdu_len, invoke_id, &cov_data);
         } else {
             goto COV_FAILED;
         }
     } else {
         len =
             ucov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            &cov_data);
+            MAX_PDU - pdu_len, &cov_data);
     }
     pdu_len += len;
     if (cov_subscription->issueConfirmedNotifications) {
-        tsm_set_confirmed_unsegmented_transaction(invoke_id,
+        tsm_set_confirmed_unsegmented_transaction(sess, invoke_id,
             &cov_subscription->dest, &npdu_data, &Handler_Transmit_Buffer[0],
             (uint16_t) pdu_len);
     }
     bytes_sent =
-        datalink_send_pdu(&cov_subscription->dest, &npdu_data,
+        sess->datalink_send_pdu(sess, &cov_subscription->dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent > 0) {
         status = true;
@@ -405,6 +426,7 @@ static bool cov_send_request(
  * @param elapsed_seconds [in] How many seconds have elapsed since last called.
  */
 void handler_cov_task(
+    struct bacnet_session_object *sess,
     uint32_t elapsed_seconds)
 {
     int index;
@@ -415,45 +437,65 @@ void handler_cov_task(
 
     /* existing? - match Object ID and Process ID */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
-        if (COV_Subscriptions[index].valid) {
+        if (get_bacnet_session_handler_data(sess)->
+            COV_Subscriptions[index].valid) {
             /* handle timeouts */
-            lifetime_seconds = COV_Subscriptions[index].lifetime;
+            lifetime_seconds =
+                get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                [index].lifetime;
             if (lifetime_seconds >= elapsed_seconds) {
-                COV_Subscriptions[index].lifetime -= elapsed_seconds;
+                get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].lifetime -= elapsed_seconds;
 #if 0
-                fprintf(stderr, "COVtask: subscription[%d].lifetime=%lu\n",
-                    index, (unsigned long) COV_Subscriptions[index].lifetime);
+                fprintf(stderr, "COVtask: subscription[%d].lifetime=%d\n",
+                    index,
+                    get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].lifetime);
 #endif
             } else {
-                COV_Subscriptions[index].lifetime = 0;
+                get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].lifetime = 0;
             }
-            if (COV_Subscriptions[index].lifetime == 0) {
-                COV_Subscriptions[index].valid = false;
+            if (get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                [index].lifetime == 0) {
+                get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].valid = false;
             }
             /* handle COV notifications */
             object_id.type =
-                COV_Subscriptions[index].monitoredObjectIdentifier.type;
+                get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                [index].monitoredObjectIdentifier.type;
             object_id.instance =
-                COV_Subscriptions[index].monitoredObjectIdentifier.instance;
+                get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                [index].monitoredObjectIdentifier.instance;
             switch (object_id.type) {
                 case OBJECT_BINARY_INPUT:
-                    if (Binary_Input_Change_Of_Value(object_id.instance)) {
-                        COV_Subscriptions[index].send_requested = true;
-                        Binary_Input_Change_Of_Value_Clear(object_id.instance);
+                    if (Binary_Input_Change_Of_Value(sess, object_id.instance)) {
+                        get_bacnet_session_handler_data
+                            (sess)->COV_Subscriptions[index].send_requested =
+                            true;
+                        Binary_Input_Change_Of_Value_Clear(sess,
+                            object_id.instance);
                     }
                     break;
                 default:
                     break;
             }
-            if (COV_Subscriptions[index].send_requested) {
-                status = cov_send_request(&COV_Subscriptions[index]);
-                COV_Subscriptions[index].send_requested = false;
+            if (get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                [index].send_requested) {
+                status =
+                    cov_send_request(sess,
+                    &get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index]);
+                get_bacnet_session_handler_data(sess)->COV_Subscriptions
+                    [index].send_requested = false;
             }
         }
     }
 }
 
 static bool cov_subscribe(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     BACNET_SUBSCRIBE_COV_DATA * cov_data,
     BACNET_ERROR_CLASS * error_class,
@@ -463,10 +505,11 @@ static bool cov_subscribe(
 
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance
-                (cov_data->monitoredObjectIdentifier.instance)) {
+            if (Binary_Input_Valid_Instance(sess,
+                    cov_data->monitoredObjectIdentifier.instance)) {
                 status =
-                    cov_list_subscribe(src, cov_data, error_class, error_code);
+                    cov_list_subscribe(sess, src, cov_data, error_class,
+                    error_code);
             } else {
                 *error_class = ERROR_CLASS_OBJECT;
                 *error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -499,6 +542,7 @@ static bool cov_subscribe(
  *                          decoded from the APDU header of this message. 
  */
 void handler_cov_subscribe(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -513,9 +557,10 @@ void handler_cov_subscribe(
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -548,7 +593,7 @@ void handler_cov_subscribe(
 #endif
         goto COV_ABORT;
     }
-    success = cov_subscribe(src, &cov_data, &error_class, &error_code);
+    success = cov_subscribe(sess, src, &cov_data, &error_class, &error_code);
     if (success) {
         len =
             encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
@@ -568,8 +613,8 @@ void handler_cov_subscribe(
   COV_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "SubscribeCOV: Failed to send PDU (%s)!\n",

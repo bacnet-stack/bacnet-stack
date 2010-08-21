@@ -115,7 +115,8 @@ int lso_decode_service_request(
         /*
          ** This is an optional parameter, so dont fail if it doesnt exist
          */
-        if (decode_is_context_tag(&apdu[len], 3)) {
+        if (decode_is_context_tag(&apdu[len], 3) &&
+            !decode_is_closing_tag(&apdu[len])) {
             if ((section_length =
                     decode_context_object_id(&apdu[len], 3,
                         &data->targetObject.type,

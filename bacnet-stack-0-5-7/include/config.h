@@ -40,10 +40,18 @@
     USE_INADDR - uses INADDR_BROADCAST for broadcast and binds using INADDR_ANY 
     USE_CLASSADDR = uses IN_CLASSx_HOST where x=A,B,C or D for broadcast
 */
+/* Use BVLC functions (e.g. register as foreign client) */
+#if !defined(BVLC_ENABLED)
+#define BVLC_ENABLED 1
+#endif
+/* Use BBMD functions (e.g. acts as a BBMD)*/
 #if !defined(BBMD_ENABLED)
-#define BBMD_ENABLED 1
+#define BBMD_ENABLED 0
 #endif
 #endif
+
+/* Optional use macro-receive/send function */
+/*#define WITH_MACRO_LINK_FUNCTIONS  */
 
 /* Define your processor architecture as 
    Big Endian (PowerPC,68K,Sparc) or Little Endian (Intel,AVR)
@@ -54,11 +62,22 @@
 
 /* Define your Vendor Identifier assigned by ASHRAE */
 #if !defined(BACNET_VENDOR_ID)
-#define BACNET_VENDOR_ID 260
+#define BACNET_VENDOR_ID 414
 #endif
 #if !defined(BACNET_VENDOR_NAME)
-#define BACNET_VENDOR_NAME "BACnet Stack at SourceForge"
+#define BACNET_VENDOR_NAME "Areal"
 #endif
+
+/* Définir un APDU avantageux */
+#define MAX_APDU 1476
+/* Nombre d'adresses à mémoriser */
+#define MAX_ADDRESS_CACHE 1024
+/*#define BACFILE */
+/* Fonctions */
+#define WITH_SESSION_SYNCHRONISATION
+#define WITH_SESSION_LOG
+/* TSM Spécifique */
+#define MAX_TSM_TRANSACTIONS 255
 
 /* Max number of bytes in an APDU. */
 /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
@@ -86,6 +105,13 @@
 #if !defined(MAX_TSM_TRANSACTIONS)
 #define MAX_TSM_TRANSACTIONS 255
 #endif
+
+/* for segmented messages, this is the number of segments accepted */
+/* (max memory allocated for one message : MAX_APDU * MAX_SEGMENTS) */
+#if !defined(MAX_SEGMENTS_ACCEPTED)
+#define MAX_SEGMENTS_ACCEPTED 1024
+#endif
+
 /* The address cache is used for binding to BACnet devices */
 /* The number of entries corresponds to the number of */
 /* devices that might respond to an I-Am on the network. */
@@ -133,6 +159,7 @@
 #define BACAPP_DATE
 #define BACAPP_TIME
 #define BACAPP_OBJECT_ID
+#define BACAPP_TYPES_EXTRA
 #endif
 
 /*

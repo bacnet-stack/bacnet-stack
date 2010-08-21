@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacerror.h"
@@ -40,6 +39,9 @@
 #include "rp.h"
 /* device object has custom handler for all objects */
 #include "device.h"
+#include "session.h"
+#include "handlers.h"
+#include "handlers-data-core.h"
 
 /** @file h_rp.c  Handles Read Property requests. */
 
@@ -64,6 +66,7 @@
  *                          decoded from the APDU header of this message. 
  */
 void handler_read_property(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -78,9 +81,10 @@ void handler_read_property(
     bool error = true;  /* assume that there is an error */
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -114,7 +118,7 @@ void handler_read_property(
     rpdata.application_data = &Handler_Transmit_Buffer[npdu_len + apdu_len];
     rpdata.application_data_len =
         sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
-    len = Device_Read_Property(&rpdata);
+    len = Device_Read_Property(sess, &rpdata);
     if (len >= 0) {
         apdu_len += len;
         len =
@@ -174,8 +178,8 @@ void handler_read_property(
 
     pdu_len = npdu_len + apdu_len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

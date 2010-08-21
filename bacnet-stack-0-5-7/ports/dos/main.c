@@ -69,17 +69,19 @@ static void bacnet_init(
     Device_Set_Object_Instance_Number(11111);
 #ifndef DLMSTP_TEST
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         handler_reinitialize_device);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(sess,
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 #endif
 }
@@ -102,10 +104,10 @@ int main(
             DCC_Timer = 1000;
         }
         /* BACnet handling */
-        pdu_len = datalink_receive(&src, &pdu[0], MAX_MPDU, 0);
+        pdu_len = sess->datalink_receive(sess, &src, &pdu[0], MAX_MPDU, 0);
         if (pdu_len) {
 #ifndef DLMSTP_TEST
-            npdu_handler(&src, &pdu[0], pdu_len);
+            npdu_handler(sess, &src, &pdu[0], pdu_len);
 #endif
         }
     }

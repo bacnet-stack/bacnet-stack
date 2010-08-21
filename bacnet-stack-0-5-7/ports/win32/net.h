@@ -26,7 +26,9 @@
 #ifndef NET_H
 #define NET_H
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #define STRICT 1
 
 #include <windows.h>
@@ -35,6 +37,7 @@
 #include <iphlpapi.h>
 #endif
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <sys/timeb.h>
 
 #ifdef _MSC_VER

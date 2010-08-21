@@ -41,21 +41,26 @@ extern "C" {
         const int **pOptional,
         const int **pProprietary);
     bool Multistate_Output_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Multistate_Output_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Multistate_Output_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     char *Multistate_Output_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
 
     void Multistate_Output_Init(
-        void);
+        struct bacnet_session_object *sess);
 
     int Multistate_Output_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Multistate_Output_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST

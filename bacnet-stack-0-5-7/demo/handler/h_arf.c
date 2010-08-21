@@ -28,13 +28,15 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
 #include "arf.h"
+#include "session.h"
+#include "bacnet-session.h"
+#include "handlers.h"
 /* demo objects */
 #include "device.h"
 #include "ai.h"
@@ -98,6 +100,7 @@ shall be TRUE, otherwise FALSE.
 
 #if defined(BACFILE)
 void handler_atomic_read_file(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -112,12 +115,13 @@ void handler_atomic_read_file(
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
 #if PRINT_ENABLED
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
 #endif
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -144,12 +148,12 @@ void handler_atomic_read_file(
         goto ARF_ABORT;
     }
     if (data.object_type == OBJECT_FILE) {
-        if (!bacfile_valid_instance(data.object_instance)) {
+        if (!bacfile_valid_instance(sess, data.object_instance)) {
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (data.type.stream.requestedOctetCount <
                 octetstring_capacity(&data.fileData)) {
-                if (bacfile_read_data(&data)) {
+                if (bacfile_read_data(sess, &data)) {
 #if PRINT_ENABLED
                     fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
                         data.type.stream.fileStartPosition,
@@ -196,8 +200,8 @@ void handler_atomic_read_file(
   ARF_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0) {
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

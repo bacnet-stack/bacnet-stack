@@ -43,6 +43,9 @@
 #include "net.h"
 #include "datalink.h"
 #include "whois.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -51,20 +54,22 @@
 #include "dlenv.h"
 
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is 
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
 }
 
@@ -77,6 +82,7 @@ int main(
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
     uint8_t tag;
+    struct bacnet_session_object *sess = NULL;
 
     if (argc < 7) {
         /* note: priority 16 and 0 should produce the same end results... */
@@ -189,10 +195,12 @@ int main(
         return 1;
     }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    Init_Service_Handlers();
-    dlenv_init();
-    Send_UCOV_Notify(&Handler_Transmit_Buffer[0], &cov_data);
+    sess = create_bacnet_session();
+    Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
+    Send_UCOV_Notify(sess, &Handler_Transmit_Buffer[0], &cov_data);
+    bacnet_destroy_session(sess);
 
     return 0;
 }

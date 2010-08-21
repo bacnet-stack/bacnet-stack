@@ -45,65 +45,81 @@ extern "C" {
 #endif /* __cplusplus */
 
     void address_init(
-        void);
+        struct bacnet_session_object *sess);
 
     void address_init_partial(
-        void);
+        struct bacnet_session_object *sess);
 
     void address_add(
+        struct bacnet_session_object *sess,
         uint32_t device_id,
         unsigned max_apdu,
+        uint8_t segmentation,
         BACNET_ADDRESS * src);
 
     void address_remove_device(
+        struct bacnet_session_object *sess,
         uint32_t device_id);
 
     bool address_get_by_device(
+        struct bacnet_session_object *sess,
         uint32_t device_id,
         unsigned *max_apdu,
+        uint8_t * segmentation,
         BACNET_ADDRESS * src);
 
     bool address_get_by_index(
+        struct bacnet_session_object *sess,
         unsigned index,
         uint32_t * device_id,
         unsigned *max_apdu,
+        uint8_t * segmentation,
         BACNET_ADDRESS * src);
 
     bool address_get_device_id(
+        struct bacnet_session_object *sess,
         BACNET_ADDRESS * src,
         uint32_t * device_id);
 
     unsigned address_count(
-        void);
+        struct bacnet_session_object *sess);
 
     bool address_match(
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src);
 
     bool address_bind_request(
+        struct bacnet_session_object *sess,
         uint32_t device_id,
         unsigned *max_apdu,
+        uint8_t * segmentation,
         BACNET_ADDRESS * src);
 
     void address_add_binding(
+        struct bacnet_session_object *sess,
         uint32_t device_id,
         unsigned max_apdu,
+        uint8_t segmentation,
         BACNET_ADDRESS * src);
 
     int address_list_encode(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         unsigned apdu_len);
 
     int rr_address_list_encode(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         BACNET_READ_RANGE_DATA * pRequest);
 
     void address_set_device_TTL(
+        struct bacnet_session_object *sess,
         uint32_t device_id,
         uint32_t TimeOut,
         bool StaticFlag);
 
     void address_cache_timer(
+        struct bacnet_session_object *sess,
         uint16_t uSeconds);
 
 #ifdef __cplusplus

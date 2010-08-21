@@ -43,6 +43,9 @@
 #include "net.h"
 #include "datalink.h"
 #include "whois.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -64,6 +67,7 @@ static bool Error_Detected = false;
 static uint8_t Current_Invoke_ID = 0;
 
 static void Atomic_Read_File_Error_Handler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
@@ -79,6 +83,7 @@ static void Atomic_Read_File_Error_Handler(
 }
 
 void MyAbortHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t abort_reason,
@@ -94,6 +99,7 @@ void MyAbortHandler(
 }
 
 void MyRejectHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t reject_reason)
@@ -107,6 +113,7 @@ void MyRejectHandler(
 }
 
 static void LocalIAmHandler(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)
@@ -123,7 +130,7 @@ static void LocalIAmHandler(
         iam_decode_service_request(service_request, &device_id, &max_apdu,
         &segmentation, &vendor_id);
     if (len != -1) {
-        address_add(device_id, max_apdu, src);
+        address_add(sess, device_id, max_apdu, segmentation, src);
     } else
         fprintf(stderr, "!\n");
 
@@ -131,26 +138,28 @@ static void LocalIAmHandler(
 }
 
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, LocalIAmHandler);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        LocalIAmHandler);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+    apdu_set_error_handler(sess, SERVICE_CONFIRMED_ATOMIC_READ_FILE,
         Atomic_Read_File_Error_Handler);
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+    apdu_set_abort_handler(sess, MyAbortHandler);
+    apdu_set_reject_handler(sess, MyRejectHandler);
 }
 
 int main(
@@ -163,6 +172,7 @@ int main(
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -200,38 +210,42 @@ int main(
         Target_File_Requested_Octet_Count = strtol(argv[4], NULL, 0);
     }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    address_init();
-    Init_Service_Handlers();
-    dlenv_init();
+    struct bacnet_session_object *sess = create_bacnet_session();
+    Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
+    address_init(sess);
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    timeout_seconds = (apdu_timeout(sess) / 1000) * apdu_retries(sess);
     /* try to bind with the device */
-    Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
+    Send_WhoIs(sess, Target_Device_Object_Instance,
+        Target_Device_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
         current_seconds = time(NULL);
 
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
 
         /* process */
         if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds(sess,
+                ((current_seconds - last_seconds) * 1000));
         if (End_Of_File_Detected || Error_Detected) {
             printf("\r\n");
             break;
         }
         /* wait until the device is bound, or timeout and quit */
         found =
-            address_bind_request(Target_Device_Object_Instance, &max_apdu,
-            &Target_Address);
+            address_bind_request(sess, Target_Device_Object_Instance,
+            &max_apdu, &segmentation, &Target_Address);
         if (found) {
             if (Target_File_Requested_Octet_Count) {
                 requestedOctetCount = Target_File_Requested_Octet_Count;
@@ -256,7 +270,7 @@ int main(
             }
             /* has the previous invoke id expired or returned?
                note: invoke ID = 0 is invalid, so it will be idle */
-            if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id)) {
+            if ((invoke_id == 0) || tsm_invoke_id_free(sess, invoke_id)) {
                 if (invoke_id != 0)
                     fileStartPosition += requestedOctetCount;
                 /* we'll read the file in chunks
@@ -275,13 +289,14 @@ int main(
                     End_Of_File_Detected = true;
                 printf("\rSending %d bytes", (fileStartPosition + len));
                 invoke_id =
-                    Send_Atomic_Write_File_Stream
-                    (Target_Device_Object_Instance,
-                    Target_File_Object_Instance, fileStartPosition, &fileData);
+                    Send_Atomic_Write_File_Stream(sess, NULL,
+                    Target_Device_Object_Instance, Target_File_Object_Instance,
+                    fileStartPosition, &fileData);
                 Current_Invoke_ID = invoke_id;
-            } else if (tsm_invoke_id_failed(invoke_id)) {
+            } else if (tsm_invoke_id_failed(sess, invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                tsm_free_invoke_id(invoke_id);
+                tsm_free_invoke_id_check(sess, invoke_id, &Target_Address,
+                    true);
                 Error_Detected = true;
                 /* try again or abort? */
                 break;
@@ -298,6 +313,9 @@ int main(
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
+    /* perform memory desallocation */
+    bacnet_destroy_session(sess);
+
 
     if (Error_Detected)
         return 1;

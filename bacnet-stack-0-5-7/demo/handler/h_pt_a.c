@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
@@ -41,6 +40,9 @@
 #include "ao.h"
 #include "ptransfer.h"
 #include "mydata.h"
+#include "handlers.h"
+#include "bacnet-session.h"
+
 #if defined(BACFILE)
 #include "bacfile.h"
 #endif
@@ -189,6 +191,7 @@ void ProcessPTA(
  */
 
 void handler_conf_private_trans_ack(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,

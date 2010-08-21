@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -41,7 +40,7 @@
 #include "ihave.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
+#include "session.h"
 
 /** @file s_ihave.c  Send an I-Have (property) message. */
 
@@ -54,6 +53,7 @@
  * @param object_name [in] The Name of the Object I Have.
  */
 void Send_I_Have(
+    struct bacnet_session_object *sess,
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
@@ -65,12 +65,13 @@ void Send_I_Have(
     int bytes_sent = 0;
     BACNET_I_HAVE_DATA data;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return;
     /* Who-Has is a global broadcast */
-    datalink_get_broadcast_address(&dest);
+    sess->datalink_get_broadcast_address(sess, &dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
@@ -85,8 +86,8 @@ void Send_I_Have(
     pdu_len += len;
     /* send the data */
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Have Reply (%s)!\n",

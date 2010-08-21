@@ -39,28 +39,32 @@
 #include "bacenum.h"
 #include "bacstr.h"
 
+struct bacnet_session_object;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /* return the status */
     BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(
-        void);
+        struct bacnet_session_object *session_object);
     bool dcc_communication_enabled(
-        void);
+        struct bacnet_session_object *session_object);
     bool dcc_communication_disabled(
-        void);
+        struct bacnet_session_object *session_object);
     bool dcc_communication_initiation_disabled(
-        void);
+        struct bacnet_session_object *session_object);
 /* return the time */
     uint32_t dcc_duration_seconds(
-        void);
+        struct bacnet_session_object *session_object);
 /* called every second or so.  If more than one second,
   then seconds should be the number of seconds to tick away */
     void dcc_timer_seconds(
+        struct bacnet_session_object *session_object,
         uint32_t seconds);
 /* setup the communication values */
     bool dcc_set_status_duration(
+        struct bacnet_session_object *session_object,
         BACNET_COMMUNICATION_ENABLE_DISABLE status,
         uint16_t minutes);
 
@@ -101,7 +105,7 @@ extern "C" {
  * These device management BIBBs prescribe the BACnet capabilities required 
  * to interoperably perform the device management functions enumerated in 
  * 22.2.1.5 for the BACnet devices defined therein. 
-    *//** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
+                                                                                                                                                                                                                                                                                                                                                                                              *//** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
  * @ingroup RDMS
  * 16.1 DeviceCommunicationControl Service <br>
  * The DeviceCommunicationControl service is used by a client BACnet-user to 

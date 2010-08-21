@@ -94,14 +94,16 @@ int whohas_decode_service_request(
 
     if (apdu_len && data) {
         /* optional limits - must be used as a pair */
-        if (decode_is_context_tag(&apdu[len], 0)) {
+        if (decode_is_context_tag(&apdu[len], 0) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             if (decoded_value <= BACNET_MAX_INSTANCE)
                 data->low_limit = decoded_value;
-            if (!decode_is_context_tag(&apdu[len], 1))
+            if (!decode_is_context_tag(&apdu[len], 1) ||
+                decode_is_closing_tag(&apdu[len]))
                 return -1;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -114,7 +116,8 @@ int whohas_decode_service_request(
             data->high_limit = -1;
         }
         /* object id */
-        if (decode_is_context_tag(&apdu[len], 2)) {
+        if (decode_is_context_tag(&apdu[len], 2) &&
+            !decode_is_closing_tag(&apdu[len])) {
             data->object_name = false;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -125,7 +128,8 @@ int whohas_decode_service_request(
             data->object.identifier.type = decoded_type;
         }
         /* object name */
-        else if (decode_is_context_tag(&apdu[len], 3)) {
+        else if (decode_is_context_tag(&apdu[len], 3) &&
+            !decode_is_closing_tag(&apdu[len])) {
             data->object_name = true;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,

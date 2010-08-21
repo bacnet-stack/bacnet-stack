@@ -37,7 +37,10 @@
 #include "bacstr.h"
 #include "datetime.h"
 
+struct ClientSubscribeInvoker;
 struct BACnet_Read_Range_Data;
+struct bacnet_session_object;
+
 typedef struct BACnet_Read_Range_Data {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
@@ -105,6 +108,10 @@ typedef enum {
 #define RR_1ST_SEQ_OVERHEAD 5
 #define RR_INDEX_OVERHEAD   3   /* or 5 if paranoid */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /** Define pointer to function type for handling ReadRange request.
    This function will take the following parameters:
   - 1. A pointer to a buffer of at least MAX_APDU bytes to build the response in.
@@ -112,63 +119,68 @@ typedef enum {
       information in it. The function is responsible for applying the request
       to the property in question and returning the response. */
 
-typedef int (
-    *rr_handler_function) (
-    uint8_t * apdu,
-    BACNET_READ_RANGE_DATA * pRequest);
+    typedef int (
+        *rr_handler_function) (
+        struct bacnet_session_object * sess,
+        uint8_t * apdu,
+        BACNET_READ_RANGE_DATA * pRequest);
 
 /** Structure to return the type of requests a given object property can
  * accept and the address of the function to handle the request */
 
-typedef struct rrpropertyinfo {
-    int RequestTypes;
-    rr_handler_function Handler;
-} RR_PROP_INFO;
+    typedef struct rrpropertyinfo {
+        int RequestTypes;
+        rr_handler_function Handler;
+    } RR_PROP_INFO;
 
 /** Function template for ReadRange information retrieval function.
  * A function template; @see device.c for assignment to object types.
  * @ingroup ObjHelpers 
+ * @param sess [in]	Current session object.
  * @param pRequest [in]	Info on the request.
  * @param pInfo [out]   Where to write the response to.
  * @return True on success, False on error or failure.
  */
-typedef bool(
-    *rr_info_function) (
-    BACNET_READ_RANGE_DATA * pRequest,  /* Info on the request */
-    RR_PROP_INFO * pInfo);      /* Where to write the response to */
+    typedef bool(
+        *rr_info_function) (
+        struct bacnet_session_object * sess,
+        BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
+        RR_PROP_INFO * pInfo);  /* Where to write the response to */
 
-int rr_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_READ_RANGE_DATA * rrdata);
 
-int rr_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_READ_RANGE_DATA * rrdata);
 
-int rr_ack_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_ack_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_READ_RANGE_DATA * rrdata);
 
-int rr_ack_decode_service_request(
-    uint8_t * apdu,
-    int apdu_len,       /* total length of the apdu */
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_ack_decode_service_request(
+        uint8_t * apdu,
+        int apdu_len,   /* total length of the apdu */
+        BACNET_READ_RANGE_DATA * rrdata);
 
-uint8_t Send_ReadRange_Request(
-    uint32_t device_id, /* destination device */
-    BACNET_READ_RANGE_DATA * read_access_data);
+    uint8_t Send_ReadRange_Request(
+        struct bacnet_session_object *sess,
+        struct ClientSubscribeInvoker *invoker,
+        uint32_t device_id,     /* destination device */
+        BACNET_READ_RANGE_DATA * read_access_data);
 
-
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 /** @defgroup Trend Trending BIBBs
  * These BIBBs prescribe the BACnet capabilities required to interoperably 
  * perform the trending functions enumerated in clause 22.2.1.4 for the 
  * BACnet devices defined therein.
- */
-
-/** @defgroup TrendReadRange Trending -Read Range Service (eg, in T-VMT)
+                                                                                              *//** @defgroup TrendReadRange Trending -Read Range Service (eg, in T-VMT)
  * @ingroup Trend
  * 15.8 ReadRange Service <br>
  * The ReadRange service is used by a client BACnet-user to read a specific 
@@ -176,5 +188,4 @@ uint8_t Send_ReadRange_Request(
  * specified object property. 
  * The service may be used with any list or array of lists property.
  */
-
 #endif

@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -41,7 +40,7 @@
 #include "whohas.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
+#include "session.h"
 
 /** @file s_whohas.c  Send Who-Has requests. */
 
@@ -56,6 +55,7 @@
  * @param object_name [in] The Name of the desired Object.
  */
 void Send_WhoHas_Name(
+    struct bacnet_session_object *sess,
     int32_t low_limit,
     int32_t high_limit,
     const char *object_name)
@@ -66,12 +66,13 @@ void Send_WhoHas_Name(
     int bytes_sent = 0;
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return;
     /* Who-Has is a global broadcast */
-    datalink_get_broadcast_address(&dest);
+    sess->datalink_get_broadcast_address(sess, &dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
@@ -85,8 +86,8 @@ void Send_WhoHas_Name(
     pdu_len += len;
     /* send the data */
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
@@ -106,6 +107,7 @@ void Send_WhoHas_Name(
  * @param object_instance [in] The ID of the desired Object.
  */
 void Send_WhoHas_Object(
+    struct bacnet_session_object *sess,
     int32_t low_limit,
     int32_t high_limit,
     BACNET_OBJECT_TYPE object_type,
@@ -117,12 +119,13 @@ void Send_WhoHas_Object(
     int bytes_sent = 0;
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return;
     /* Who-Has is a global broadcast */
-    datalink_get_broadcast_address(&dest);
+    sess->datalink_get_broadcast_address(sess, &dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
@@ -136,8 +139,8 @@ void Send_WhoHas_Object(
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",

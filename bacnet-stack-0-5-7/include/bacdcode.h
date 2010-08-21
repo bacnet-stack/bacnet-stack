@@ -43,6 +43,10 @@
 #include "bacint.h"
 #include "bacreal.h"
 #include "bits.h"
+#include "bacothertypes.h"
+
+struct BACnet_Destination;
+struct BACnet_Recipient;
 
 #ifdef __cplusplus
 extern "C" {
@@ -375,6 +379,101 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_DATE * bdate);
+
+    int decode_daterange(
+        uint8_t * apdu,
+        BACNET_DATE_RANGE * bdaterange);
+    int decode_weeknday(
+        uint8_t * apdu,
+        BACNET_WEEKNDAY * bweeknday);
+    int encode_daterange(
+        uint8_t * apdu,
+        BACNET_DATE_RANGE * bdaterange);
+    int encode_weeknday(
+        uint8_t * apdu,
+        BACNET_WEEKNDAY * bweeknday);
+    int decode_context_daterange(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_DATE_RANGE * bdaterange);
+    int decode_context_weeknday(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_WEEKNDAY * bweeknday);
+    int encode_context_daterange(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_DATE_RANGE * bdaterange);
+    int encode_context_weeknday(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_WEEKNDAY * bweeknday);
+
+    /* recipient address */
+    int encode_recipient(
+        uint8_t * apdu,
+        struct BACnet_Recipient *destination);
+    /* BACnetDestination : one item of a recipient_list property */
+    int encode_destination(
+        uint8_t * apdu,
+        int max_apdu_len,
+        struct BACnet_Destination *destination);
+    /* encode a simple BACnetDateTime value */
+    int encode_application_datetime(
+        uint8_t * apdu,
+        BACNET_DATE_TIME * datetime);
+    /* decode a simple BACnetDateTime value */
+    int decode_application_datetime(
+        uint8_t * apdu,
+        BACNET_DATE_TIME * datetime);
+    /* BACnetCOVSubscription */
+    int encode_cov_subscription(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_COV_SUBSCRIPTION * covs);
+    /*/ BACnetCalendarEntry */
+    int encode_calendar_entry(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_CALENDAR_ENTRY * entry);
+    /*/ BACnetDailySchedule x7 */
+    int encode_weekly_schedule(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_WEEKLY_SCHEDULE * week);
+    int encode_special_event(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_SPECIAL_EVENT * special);
+    /* recipient address */
+    int decode_recipient(
+        uint8_t * apdu,
+        BACNET_RECIPIENT * destination);
+    /* BACnetDestination : one item of a recipient_list property */
+    int decode_destination(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_DESTINATION * destination);
+    /* BACnetCOVSubscription */
+    int decode_cov_subscription(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_COV_SUBSCRIPTION * covs);
+    int decode_calendar_entry(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_CALENDAR_ENTRY * entry);
+    /*/ BACnetDailySchedule x7 / weekly-schedule */
+    int decode_weekly_schedule(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_WEEKLY_SCHEDULE * week);
+    /*/ BACnetSpecialEvent */
+    int decode_special_event(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_SPECIAL_EVENT * special);
+
 
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */

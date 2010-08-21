@@ -44,54 +44,63 @@ extern "C" {
 #endif /* __cplusplus */
 
     void handler_unrecognized_service(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * dest,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void npdu_handler(
+        struct bacnet_session_object *sess,
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * pdu,  /* PDU data */
         uint16_t pdu_len);      /* length PDU  */
 
     void handler_who_is(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
-
     void handler_who_is_unicast(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_who_has(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_i_am_add(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_i_am_bind(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_read_property(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_read_property_ack(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
     void handler_write_property(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
@@ -111,57 +120,70 @@ extern "C" {
         BACNET_ERROR_CODE * pErrorCode);
 
     void handler_atomic_read_file(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_atomic_read_file_ack(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
     void handler_atomic_write_file(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_reinitialize_device(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_device_communication_control(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+    void handler_dcc_password_set(
+        struct bacnet_session_object *sess,
+        char *new_password);
 
     void handler_i_have(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_timesync(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_timesync_utc(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_read_property_multiple(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_read_property_multiple_ack(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
@@ -183,6 +205,7 @@ extern "C" {
        or sets the error, and returns -1 */
     /* resides in h_rp.c */
     int Encode_Property_APDU(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
@@ -192,67 +215,80 @@ extern "C" {
         BACNET_ERROR_CODE * error_code);
 
     void handler_cov_subscribe(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
     void handler_cov_task(
+        struct bacnet_session_object *sess,
         uint32_t elapsed_seconds);
     int handler_cov_encode_subscriptions(
+        struct bacnet_session_object *sess,
         uint8_t * apdu,
         int max_apdu);
 
     void handler_ucov_notification(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_lso(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_alarm_ack(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_conf_private_trans(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_conf_private_trans_ack(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
     void handler_unconfirmed_private_transfer(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
     void handler_read_range(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_read_range_ack(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
     void handler_get_event_information_set(
+        struct bacnet_session_object *sess,
         BACNET_OBJECT_TYPE object_type,
         get_event_info_function pFunction);
 
     void handler_get_event_information(
+        struct bacnet_session_object *sess,
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,

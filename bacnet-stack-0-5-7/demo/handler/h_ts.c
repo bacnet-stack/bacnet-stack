@@ -26,10 +26,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "timesync.h"
+#include "bacnet-session.h"
+#include "handlers.h"
 
 /** @file h_ts.c  Handles TimeSync requests. */
 
@@ -52,6 +53,7 @@ static void show_bacnet_date_time(
 #endif
 
 void handler_timesync(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)
@@ -66,7 +68,8 @@ void handler_timesync(
         timesync_decode_service_request(service_request, service_len, &bdate,
         &btime);
 #if PRINT_ENABLED
-    fprintf(stderr, "Received TimeSyncronization Request\r\n");
+    fprintf(stderr,
+        "Received TimeSyncronization Request (decoded len = %d)\r\n", len);
     show_bacnet_date_time(&bdate, &btime);
 #endif
     /* FIXME: set the time? */
@@ -75,6 +78,7 @@ void handler_timesync(
 }
 
 void handler_timesync_utc(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src)
@@ -89,7 +93,8 @@ void handler_timesync_utc(
         timesync_decode_service_request(service_request, service_len, &bdate,
         &btime);
 #if PRINT_ENABLED
-    fprintf(stderr, "Received TimeSyncronization Request\r\n");
+    fprintf(stderr,
+        "Received TimeSyncronization Request (decoded len = %d)\r\n", len);
     show_bacnet_date_time(&bdate, &btime);
 #endif
     /* FIXME: set the time? */

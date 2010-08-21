@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
@@ -36,6 +35,7 @@
 #include "abort.h"
 #include "alarm_ack.h"
 #include "handlers.h"
+#include "session.h"
 
 /** @file h_alarm_ack.c  Handles Alarm Acknowledgment. */
 
@@ -56,6 +56,7 @@
  *                          decoded from the APDU header of this message. 
  */
 void handler_alarm_ack(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -67,9 +68,10 @@ void handler_alarm_ack(
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -124,8 +126,8 @@ void handler_alarm_ack(
   AA_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Alarm Acknowledge: " "Failed to send PDU (%s)!\n",

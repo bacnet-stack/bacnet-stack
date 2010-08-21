@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -41,15 +40,17 @@
 #include "whois.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
 #include "lso.h"
-
+#include "session.h"
+#include "clientsubscribeinvoker.h"
 /** @file s_lso.c  Send BACnet Life Safety Operation message. */
 
 /* returns the invoke ID for confirmed request, or zero on failure */
 
 
 uint8_t Send_Life_Safety_Operation_Data(
+    struct bacnet_session_object *sess,
+    struct ClientSubscribeInvoker *subscriber,
     uint32_t device_id,
     BACNET_LSO_DATA * data)
 {
@@ -62,18 +63,28 @@ uint8_t Send_Life_Safety_Operation_Data(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+    uint8_t segmentation = 0;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return 0;
 
     /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
+    status =
+        address_get_by_device(sess, device_id, &max_apdu, &segmentation,
+        &dest);
     /* is there a tsm available? */
     if (status)
-        invoke_id = tsm_next_free_invokeID();
+        invoke_id = tsm_next_free_invokeID(sess);
     if (invoke_id) {
+        /* if a client subscriber is provided, then associate the invokeid with that client
+           otherwise another thread might receive a message with this invokeid before we return
+           from this function */
+        if (subscriber && subscriber->SubscribeInvokeId) {
+            subscriber->SubscribeInvokeId(invoke_id, subscriber->context);
+        }
         /* encode the NPDU portion of the packet */
-        datalink_get_my_address(&my_address);
+        sess->datalink_get_my_address(sess, &my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
         pdu_len =
             npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
@@ -88,10 +99,10 @@ uint8_t Send_Life_Safety_Operation_Data(
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned) pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
+            tsm_set_confirmed_unsegmented_transaction(sess, invoke_id, &dest,
                 &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t) pdu_len);
             bytes_sent =
-                datalink_send_pdu(&dest, &npdu_data,
+                sess->datalink_send_pdu(sess, &dest, &npdu_data,
                 &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
@@ -99,7 +110,7 @@ uint8_t Send_Life_Safety_Operation_Data(
                     strerror(errno));
 #endif
         } else {
-            tsm_free_invoke_id(invoke_id);
+            tsm_free_invoke_id_check(sess, invoke_id, NULL, false);
             invoke_id = 0;
 #if PRINT_ENABLED
             fprintf(stderr,

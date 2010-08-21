@@ -41,6 +41,9 @@
 #include "bacdef.h"
 #include "npdu.h"
 
+/* Forward session structure definition */
+struct bacnet_session_object;
+
 #ifdef __cplusplus
 extern "C" {
 
@@ -48,27 +51,45 @@ extern "C" {
 
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
     void bvlc_maintenance_timer(
+        struct bacnet_session_object *session_object,
         time_t seconds);
 #else
 #define bvlc_maintenance_timer(x)
 #endif
     /* registers with a bbmd as a foreign device */
     void bvlc_register_with_bbmd(
+        struct bacnet_session_object *session_object,
         long bbmd_address,      /* in network byte order */
         uint16_t bbmd_port,
         uint16_t time_to_live_seconds);
+    /* Send a registration message with bbmd, no context memorized */
+    void bvlc_send_register_with_bbmd(
+        struct bacnet_session_object *session_object,
+        BACNET_ADDRESS * dest,
+        uint16_t time_to_live_seconds);
 
     uint16_t bvlc_receive(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * src,   /* returns the source address */
         uint8_t * npdu, /* returns the NPDU */
         uint16_t max_npdu,      /* amount of space available in the NPDU  */
         unsigned timeout);      /* number of milliseconds to wait for a packet */
 
     int bvlc_send_pdu(
+        struct bacnet_session_object *session_object,
         BACNET_ADDRESS * dest,  /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
         uint8_t * pdu,  /* any data to be sent - may be null */
         unsigned pdu_len);
+
+    int bvlc_send_pdu_function_to_address(
+        struct bacnet_session_object *session_object,
+        BACNET_ADDRESS * dest,  /* destination address */
+        uint8_t bvlc_function_code,     /*Function code, like BVLC_ORIGINAL_UNICAST_NPDU */
+        BACNET_NPDU_DATA * npdu_data,   /* network information */
+        uint8_t * pdu,  /* any data to be sent - may be null */
+        unsigned pdu_len);
+
 
 #ifdef __cplusplus
 }

@@ -40,8 +40,8 @@
 #include "config.h"
 
 #if defined(_MSC_VER)
-// Silence the warnings about unsafe versions of library functions
-// as we need to keep the code portable
+/* Silence the warnings about unsafe versions of library functions */
+/* as we need to keep the code portable */
 #pragma warning( disable : 4996)
 #endif
 
@@ -67,7 +67,10 @@
    equal to 7 bytes.  The IPv6 addresses are planned to be handled
    outside this area. */
 /* FIXME: mac[] only needs to be as big as our local datalink MAC */
-#define MAX_MAC_LEN 7
+/* Changed to 18 as BTL 2.9 Guideline, to support IPV6 addresses here. 
+   Because no "virtual" address layer implemented, to re-index longer
+   addresses with 6 or 7 bytes maximum. */
+#define MAX_MAC_LEN 18
 struct BACnet_Device_Address {
     /* mac_len = 0 if global address */
     uint8_t mac_len;

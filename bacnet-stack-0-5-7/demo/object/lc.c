@@ -184,7 +184,7 @@ void Load_Control_Property_Lists(
 }
 
 void Load_Control_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
     unsigned i, j;
 
@@ -218,6 +218,7 @@ void Load_Control_Init(
 /* more complex, and then you need validate that the */
 /* given instance exists */
 bool Load_Control_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     if (object_instance < MAX_LOAD_CONTROLS)
@@ -229,7 +230,7 @@ bool Load_Control_Valid_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Load_Control_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_LOAD_CONTROLS;
 }
@@ -238,6 +239,7 @@ unsigned Load_Control_Count(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Load_Control_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
@@ -247,6 +249,7 @@ uint32_t Load_Control_Index_To_Instance(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Load_Control_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_LOAD_CONTROLS;
@@ -258,12 +261,13 @@ unsigned Load_Control_Instance_To_Index(
 }
 
 static BACNET_SHED_STATE Load_Control_Present_Value(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     BACNET_SHED_STATE value = BACNET_SHED_INACTIVE;
     unsigned index = 0;
 
-    index = Load_Control_Instance_To_Index(object_instance);
+    index = Load_Control_Instance_To_Index(sess, object_instance);
     if (index < MAX_LOAD_CONTROLS) {
         value = Present_Value[index];
     }
@@ -273,6 +277,7 @@ static BACNET_SHED_STATE Load_Control_Present_Value(
 
 /* note: the object name must be unique within this device */
 char *Load_Control_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
@@ -315,6 +320,7 @@ struct tm {
 
 /* convert the shed level request into an Analog Output Present_Value */
 static float Requested_Shed_Level_Value(
+    struct bacnet_session_object *sess,
     int object_index)
 {
     unsigned shed_level_index = 0;
@@ -391,6 +397,7 @@ static void Shed_Level_Default_Set(
 }
 
 static bool Able_To_Meet_Shed_Request(
+    struct bacnet_session_object *sess,
     int object_index)
 {
     float level = 0.0;
@@ -401,12 +408,12 @@ static bool Able_To_Meet_Shed_Request(
 
     /* This demo is going to use the Analog Outputs as their Load */
     object_instance = object_index;
-    priority = Analog_Output_Present_Value_Priority(object_instance);
+    priority = Analog_Output_Present_Value_Priority(sess, object_instance);
     /* we are controlling at Priority 4 - can we control the output? */
     if (priority >= 4) {
         /* is the level able to be lowered? */
-        requested_level = Requested_Shed_Level_Value(object_index);
-        level = Analog_Output_Present_Value(object_instance);
+        requested_level = Requested_Shed_Level_Value(sess, object_index);
+        level = Analog_Output_Present_Value(sess, object_instance);
         if (level >= requested_level) {
             status = true;
         }
@@ -446,6 +453,7 @@ static void Print_Load_Control_State(
 #endif
 
 void Load_Control_State_Machine(
+    struct bacnet_session_object *sess,
     int object_index)
 {
     unsigned i = 0;     /* loop counter */
@@ -531,11 +539,11 @@ void Load_Control_State_Machine(
                     " is after Start Time\n", object_index);
 #endif
                 /* AbleToMeetShed */
-                if (Able_To_Meet_Shed_Request(object_index)) {
+                if (Able_To_Meet_Shed_Request(sess, object_index)) {
                     Shed_Level_Copy(&Expected_Shed_Level[object_index],
                         &Requested_Shed_Level[object_index]);
-                    Analog_Output_Present_Value_Set(object_index,
-                        Requested_Shed_Level_Value(object_index), 4);
+                    Analog_Output_Present_Value_Set(sess, object_index,
+                        Requested_Shed_Level_Value(sess, object_index), 4);
                     Shed_Level_Copy(&Actual_Shed_Level[object_index],
                         &Requested_Shed_Level[object_index]);
                     Load_Control_State[object_index] = SHED_COMPLIANT;
@@ -575,7 +583,7 @@ void Load_Control_State_Machine(
                 Load_Control_State[object_index] = SHED_REQUEST_PENDING;
                 break;
             }
-            if (Able_To_Meet_Shed_Request(object_index)) {
+            if (Able_To_Meet_Shed_Request(sess, object_index)) {
                 /* CanNowComplyWithShed */
 #if PRINT_ENABLED_DEBUG
                 printf("Load Control[%d]:Able to meet Shed Request\n",
@@ -583,8 +591,8 @@ void Load_Control_State_Machine(
 #endif
                 Shed_Level_Copy(&Expected_Shed_Level[object_index],
                     &Requested_Shed_Level[object_index]);
-                Analog_Output_Present_Value_Set(object_index,
-                    Requested_Shed_Level_Value(object_index), 4);
+                Analog_Output_Present_Value_Set(sess, object_index,
+                    Requested_Shed_Level_Value(sess, object_index), 4);
                 Shed_Level_Copy(&Actual_Shed_Level[object_index],
                     &Requested_Shed_Level[object_index]);
                 Load_Control_State[object_index] = SHED_COMPLIANT;
@@ -603,7 +611,7 @@ void Load_Control_State_Machine(
                     object_index);
 #endif
                 datetime_wildcard_set(&Start_Time[i]);
-                Analog_Output_Present_Value_Relinquish(object_index, 4);
+                Analog_Output_Present_Value_Relinquish(sess, object_index, 4);
                 Load_Control_State[object_index] = SHED_INACTIVE;
                 break;
             }
@@ -618,7 +626,7 @@ void Load_Control_State_Machine(
                 Load_Control_State[object_index] = SHED_REQUEST_PENDING;
                 break;
             }
-            if (!Able_To_Meet_Shed_Request(object_index)) {
+            if (!Able_To_Meet_Shed_Request(sess, object_index)) {
                 /* CanNoLongerComplyWithShed */
 #if PRINT_ENABLED_DEBUG
                 printf("Load Control[%d]:Not able to meet Shed Request\n",
@@ -652,7 +660,7 @@ void Load_Control_State_Machine(
 
 /* call every second or so */
 void Load_Control_State_Machine_Handler(
-    void)
+    struct bacnet_session_object *sess)
 {
     unsigned i = 0;
     static bool initialized = false;
@@ -666,7 +674,7 @@ void Load_Control_State_Machine_Handler(
     }
     Update_Current_Time(&Current_Time);
     for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-        Load_Control_State_Machine(i);
+        Load_Control_State_Machine(sess, i);
         if (Load_Control_State[i] != Load_Control_State_Previously[i]) {
 #if PRINT_ENABLED_DEBUG
             Print_Load_Control_State(i);
@@ -680,6 +688,7 @@ void Load_Control_State_Machine_Handler(
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Load_Control_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
@@ -697,7 +706,8 @@ int Load_Control_Read_Property(
         return 0;
     }
     apdu = rpdata->application_data;
-    object_index = Load_Control_Instance_To_Index(rpdata->object_instance);
+    object_index =
+        Load_Control_Instance_To_Index(sess, rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -706,8 +716,8 @@ int Load_Control_Read_Property(
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Load_Control_Name(rpdata->object_instance));
+            characterstring_init_ansi(&char_string, Load_Control_Name(sess,
+                    rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -716,7 +726,8 @@ int Load_Control_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_LOAD_CONTROL);
             break;
         case PROP_PRESENT_VALUE:
-            enumeration = Load_Control_Present_Value(rpdata->object_instance);
+            enumeration =
+                Load_Control_Present_Value(sess, rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], enumeration);
             break;
         case PROP_STATUS_FLAGS:
@@ -926,6 +937,7 @@ int Load_Control_Read_Property(
 
 /* returns true if successful */
 bool Load_Control_Write_Property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -940,7 +952,8 @@ bool Load_Control_Write_Property(
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     /* FIXME: len == 0: unable to decode? */
-    object_index = Load_Control_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        Load_Control_Instance_To_Index(sess, wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_REQUESTED_SHED_LEVEL:
             len =

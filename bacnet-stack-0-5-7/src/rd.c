@@ -84,7 +84,8 @@ int rd_decode_service_request(
     /* check for value pointers */
     if (apdu_len) {
         /* Tag 0: reinitializedStateOfDevice */
-        if (!decode_is_context_tag(&apdu[len], 0))
+        if (!decode_is_context_tag(&apdu[len], 0) ||
+            decode_is_closing_tag(&apdu[len]))
             return -1;
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -94,7 +95,8 @@ int rd_decode_service_request(
             *state = (BACNET_REINITIALIZED_STATE) value;
         /* Tag 1: password - optional */
         if (len < apdu_len) {
-            if (!decode_is_context_tag(&apdu[len], 1))
+            if (!decode_is_context_tag(&apdu[len], 1) ||
+                decode_is_closing_tag(&apdu[len]))
                 return -1;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,

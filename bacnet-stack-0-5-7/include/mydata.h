@@ -1,3 +1,5 @@
+#ifndef __MY_PT_DATA_H_
+#define __MY_PT_DATA_H_
 /* Sample data structure for confirmed private transfer
    We have a simple data structure which can be written to
    and read from by sending a confirmed private transfer
@@ -19,3 +21,5 @@ typedef struct MyData {
     float fMyReal;
     int8_t sMyString[MY_MAX_STR + 1];   /* A little extra for the nul */
 } DATABLOCK;
+
+#endif /*__MY_PT_DATA_H_ */

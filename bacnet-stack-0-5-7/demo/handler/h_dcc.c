@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacerror.h"
@@ -37,15 +36,18 @@
 #include "abort.h"
 #include "reject.h"
 #include "dcc.h"
+#include "handlers.h"
+#include "session.h"
 
 /** @file h_dcc.c  Handles Device Communication Control request. */
 
-static char My_Password[32] = "filister";
+static char My_Password[32] = "dcc_command_password";
 
 /** Sets (non-volatile hold) the password to be used for DCC requests.
  * @param new_password [in] The new DCC password, of up to 31 characters.
  */
 void handler_dcc_password_set(
+    struct bacnet_session_object *sess,
     char *new_password)
 {
     size_t i = 0;       /* loop counter */
@@ -86,6 +88,7 @@ void handler_dcc_password_set(
  *                          decoded from the APDU header of this message. 
  */
 void handler_device_communication_control(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -99,9 +102,10 @@ void handler_device_communication_control(
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     /* encode the NPDU portion of the reply packet */
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -154,6 +158,7 @@ void handler_device_communication_control(
             "Sending Reject - undefined enumeration\n");
 #endif
     } else {
+#pragma __NOTE("Vérifier l'encodage du mot de passe")
         if (characterstring_ansi_same(&password, My_Password)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
@@ -163,7 +168,7 @@ void handler_device_communication_control(
             fprintf(stderr,
                 "DeviceCommunicationControl: " "Sending Simple Ack!\n");
 #endif
-            dcc_set_status_duration(state, timeDuration);
+            dcc_set_status_duration(sess, state, timeDuration);
         } else {
             len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -180,8 +185,8 @@ void handler_device_communication_control(
   DCC_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,

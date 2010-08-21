@@ -26,7 +26,6 @@
 #include <stdint.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -37,10 +36,10 @@
 #include "datalink.h"
 #include "arf.h"
 #include "bacfile.h"
+#include "bacnet-session.h"
+#include "handlers.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
-
 /** @file h_arf_a.c  Handles Acknowledgment of Atomic Read  File response. */
 
 /* We performed an AtomicReadFile Request, */
@@ -50,6 +49,7 @@
 /* use the description as the file name. */
 #if defined(BACFILE)
 void handler_atomic_read_file_ack(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -63,7 +63,7 @@ void handler_atomic_read_file_ack(
 
     (void) src;
     /* get the file instance from the tsm data before freeing it */
-    instance = bacfile_instance_from_tsm(service_data->invoke_id);
+    instance = bacfile_instance_from_tsm(sess, service_data->invoke_id);
     len = arf_ack_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
     fprintf(stderr, "Received Read-File Ack!\n");
@@ -71,7 +71,7 @@ void handler_atomic_read_file_ack(
     if ((len > 0) && (instance <= BACNET_MAX_INSTANCE)) {
         /* write the data received to the file specified */
         if (data.access == FILE_STREAM_ACCESS) {
-            pFilename = bacfile_name(instance);
+            pFilename = bacfile_name(sess, instance);
             if (pFilename) {
                 pFile = fopen(pFilename, "rb");
                 if (pFile) {

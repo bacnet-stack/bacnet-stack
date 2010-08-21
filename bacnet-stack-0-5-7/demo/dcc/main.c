@@ -44,6 +44,9 @@
 #include "datalink.h"
 #include "whois.h"
 #include "dcc.h"
+#include "bacnet-session.h"
+#include "handlers-data.h"
+#include "session.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -65,6 +68,7 @@ static char *Communication_Password = NULL;
 static bool Error_Detected = false;
 
 static void MyErrorHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
@@ -79,6 +83,7 @@ static void MyErrorHandler(
 }
 
 void MyAbortHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t abort_reason,
@@ -93,6 +98,7 @@ void MyAbortHandler(
 }
 
 void MyRejectHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     uint8_t reject_reason)
@@ -105,6 +111,7 @@ void MyRejectHandler(
 }
 
 void MyDeviceCommunicationControlSimpleAckHandler(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * src,
     uint8_t invoke_id)
 {
@@ -114,33 +121,36 @@ void MyDeviceCommunicationControlSimpleAckHandler(
 }
 
 static void Init_Service_Handlers(
-    void)
+    struct bacnet_session_object *sess)
 {
-    Device_Init();
+    Device_Init(sess);
     /* we need to handle who-is
        to support dynamic device binding to us */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_WHO_IS,
+        handler_who_is);
     /* handle i-am to support binding to other devices */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
+    apdu_set_unconfirmed_handler(sess, SERVICE_UNCONFIRMED_I_AM,
+        handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(sess,
+        handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+    apdu_set_confirmed_handler(sess, SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(sess,
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* handle the ack coming back */
-    apdu_set_confirmed_simple_ack_handler
-        (SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_simple_ack_handler(sess,
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         MyDeviceCommunicationControlSimpleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-        MyErrorHandler);
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+    apdu_set_error_handler(sess,
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL, MyErrorHandler);
+    apdu_set_abort_handler(sess, MyAbortHandler);
+    apdu_set_reject_handler(sess, MyRejectHandler);
 }
 
 int main(
@@ -153,12 +163,14 @@ int main(
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     uint8_t invoke_id = 0;
     bool found = false;
+    struct bacnet_session_object *sess = NULL;
 
     if (argc < 3) {
         printf("Usage: %s device-instance state timeout [password]\r\n"
@@ -187,48 +199,53 @@ int main(
     }
 
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    address_init();
-    Init_Service_Handlers();
-    dlenv_init();
+    sess = create_bacnet_session();
+    Device_Set_Object_Instance_Number(sess, BACNET_MAX_INSTANCE);
+    address_init(sess);
+    Init_Service_Handlers(sess);
+    dlenv_init(sess);
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    timeout_seconds = (apdu_timeout(sess) / 1000) * apdu_retries(sess);
     /* try to bind with the device */
-    Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
+    Send_WhoIs(sess, Target_Device_Object_Instance,
+        Target_Device_Object_Instance);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
         current_seconds = time(NULL);
 
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len =
+            sess->datalink_receive(sess, &src, &Rx_Buf[0], MAX_MPDU, timeout);
 
         /* process */
         if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            npdu_handler(sess, &src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds(sess,
+                ((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
         found =
-            address_bind_request(Target_Device_Object_Instance, &max_apdu,
-            &Target_Address);
+            address_bind_request(sess, Target_Device_Object_Instance,
+            &max_apdu, &segmentation, &Target_Address);
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =
-                    Send_Device_Communication_Control_Request
-                    (Target_Device_Object_Instance,
+                    Send_Device_Communication_Control_Request(sess, NULL,
+                    Target_Device_Object_Instance,
                     Communication_Timeout_Minutes, Communication_State,
                     Communication_Password);
-            } else if (tsm_invoke_id_free(invoke_id))
+            } else if (tsm_invoke_id_free(sess, invoke_id))
                 break;
-            else if (tsm_invoke_id_failed(invoke_id)) {
+            else if (tsm_invoke_id_failed(sess, invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                tsm_free_invoke_id(invoke_id);
+                tsm_free_invoke_id_check(sess, invoke_id, &Target_Address,
+                    true);
                 /* try again or abort? */
                 break;
             }
@@ -243,6 +260,8 @@ int main(
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
+    /* perform memory desallocation */
+    bacnet_destroy_session(sess);
 
     return 0;
 }

@@ -48,6 +48,7 @@ Unconfirmed COV Notification
 */
 static int notify_encode_adpu(
     uint8_t * apdu,
+    int max_apdu_len,
     BACNET_COV_DATA * data)
 {
     int len = 0;        /* length of each encoding */
@@ -100,7 +101,8 @@ static int notify_encode_adpu(
             len = encode_opening_tag(&apdu[apdu_len], 2);
             apdu_len += len;
             len =
-                bacapp_encode_application_data(&apdu[apdu_len], &value->value);
+                bacapp_encode_application_data(&apdu[apdu_len],
+                max_apdu_len - apdu_len, &value->value);
             apdu_len += len;
             len = encode_closing_tag(&apdu[apdu_len], 2);
             apdu_len += len;
@@ -124,6 +126,7 @@ static int notify_encode_adpu(
 
 int ccov_notify_encode_apdu(
     uint8_t * apdu,
+    int max_apdu_len,
     uint8_t invoke_id,
     BACNET_COV_DATA * data)
 {
@@ -136,7 +139,8 @@ int ccov_notify_encode_apdu(
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_COV_NOTIFICATION;
         apdu_len = 4;
-        len = notify_encode_adpu(&apdu[apdu_len], data);
+        len =
+            notify_encode_adpu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
         apdu_len += len;
     }
 
@@ -145,6 +149,7 @@ int ccov_notify_encode_apdu(
 
 int ucov_notify_encode_apdu(
     uint8_t * apdu,
+    int max_apdu_len,
     BACNET_COV_DATA * data)
 {
     int len = 0;        /* length of each encoding */
@@ -154,7 +159,8 @@ int ucov_notify_encode_apdu(
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
         apdu_len = 2;
-        len = notify_encode_adpu(&apdu[apdu_len], data);
+        len =
+            notify_encode_adpu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
         apdu_len += len;
     }
 
@@ -169,6 +175,7 @@ int cov_notify_decode_service_request(
     BACNET_COV_DATA * data)
 {
     int len = 0;        /* return value */
+    int decoded_len = 0;        /* for intermediate result */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
@@ -178,7 +185,8 @@ int cov_notify_decode_service_request(
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
-        if (decode_is_context_tag(&apdu[len], 0)) {
+        if (decode_is_context_tag(&apdu[len], 0) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -188,7 +196,8 @@ int cov_notify_decode_service_request(
             return -1;
         }
         /* tag 1 - initiatingDeviceIdentifier */
-        if (decode_is_context_tag(&apdu[len], 1)) {
+        if (decode_is_context_tag(&apdu[len], 1) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -202,7 +211,8 @@ int cov_notify_decode_service_request(
             return -1;
         }
         /* tag 2 - monitoredObjectIdentifier */
-        if (decode_is_context_tag(&apdu[len], 2)) {
+        if (decode_is_context_tag(&apdu[len], 2) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -214,7 +224,8 @@ int cov_notify_decode_service_request(
             return -1;
         }
         /* tag 3 - timeRemaining */
-        if (decode_is_context_tag(&apdu[len], 3)) {
+        if (decode_is_context_tag(&apdu[len], 3) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -233,7 +244,8 @@ int cov_notify_decode_service_request(
         value = data->listOfValues;
         while (value != NULL) {
             /* tag 0 - propertyIdentifier */
-            if (decode_is_context_tag(&apdu[len], 0)) {
+            if (decode_is_context_tag(&apdu[len], 0) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
@@ -243,7 +255,8 @@ int cov_notify_decode_service_request(
                 return -1;
             }
             /* tag 1 - propertyArrayIndex OPTIONAL */
-            if (decode_is_context_tag(&apdu[len], 1)) {
+            if (decode_is_context_tag(&apdu[len], 1) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
@@ -258,18 +271,29 @@ int cov_notify_decode_service_request(
             }
             /* a tag number of 2 is not extended so only one octet */
             len++;
-            len +=
-                bacapp_decode_application_data(&apdu[len], apdu_len - len,
-                &value->value);
-            /* FIXME: check the return value; abort if no valid data? */
-            /* FIXME: there might be more than one data element in here! */
+
+            /* complex or multiple values decoding until a closing tag 2 is found */
+            decoded_len =
+                bacapp_decode_known_property_until_tag(&apdu[len],
+                apdu_len - len, &value->value, value->propertyIdentifier, 2);
+            if (decoded_len < 0)
+                return -1;      /* decoding error */
+            /* Jump over the decoded data : we shall land on the closing tag */
+            len += decoded_len;
+
+            /*
+               len +=
+               bacapp_decode_application_data(&apdu[len], apdu_len - len,
+               &value->value);
+             */
             if (!decode_is_closing_tag_number(&apdu[len], 2)) {
                 return -1;
             }
             /* a tag number of 2 is not extended so only one octet */
             len++;
             /* tag 3 - priority OPTIONAL */
-            if (decode_is_context_tag(&apdu[len], 3)) {
+            if (decode_is_context_tag(&apdu[len], 3) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
@@ -286,9 +310,11 @@ int cov_notify_decode_service_request(
             value = value->next;
             /* out of room to store more values */
             if (value == NULL) {
-                return -1;
+                break;  /* DO ignore remaining values, DON'T drop the message */
             }
         }
+        /* Mark the ending of the values */
+        value->next = NULL;
     }
 
     return len;
@@ -375,7 +401,8 @@ int cov_subscribe_decode_service_request(
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
-        if (decode_is_context_tag(&apdu[len], 0)) {
+        if (decode_is_context_tag(&apdu[len], 0) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -384,7 +411,8 @@ int cov_subscribe_decode_service_request(
         } else
             return -1;
         /* tag 1 - monitoredObjectIdentifier */
-        if (decode_is_context_tag(&apdu[len], 1)) {
+        if (decode_is_context_tag(&apdu[len], 1) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -397,7 +425,8 @@ int cov_subscribe_decode_service_request(
         /* optional parameters - if missing, means cancellation */
         if ((unsigned) len < apdu_len) {
             /* tag 2 - issueConfirmedNotifications - optional */
-            if (decode_is_context_tag(&apdu[len], 2)) {
+            if (decode_is_context_tag(&apdu[len], 2) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 data->cancellationRequest = false;
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -409,7 +438,8 @@ int cov_subscribe_decode_service_request(
                 data->cancellationRequest = true;
             }
             /* tag 3 - lifetime - optional */
-            if (decode_is_context_tag(&apdu[len], 3)) {
+            if (decode_is_context_tag(&apdu[len], 3) &&
+                !decode_is_closing_tag(&apdu[len])) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value);
@@ -522,7 +552,8 @@ int cov_subscribe_property_decode_service_request(
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
-        if (decode_is_context_tag(&apdu[len], 0)) {
+        if (decode_is_context_tag(&apdu[len], 0) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -531,7 +562,8 @@ int cov_subscribe_property_decode_service_request(
         } else
             return -1;
         /* tag 1 - monitoredObjectIdentifier */
-        if (decode_is_context_tag(&apdu[len], 1)) {
+        if (decode_is_context_tag(&apdu[len], 1) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -542,7 +574,8 @@ int cov_subscribe_property_decode_service_request(
         } else
             return -2;
         /* tag 2 - issueConfirmedNotifications - optional */
-        if (decode_is_context_tag(&apdu[len], 2)) {
+        if (decode_is_context_tag(&apdu[len], 2) &&
+            !decode_is_closing_tag(&apdu[len])) {
             data->cancellationRequest = false;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -553,7 +586,8 @@ int cov_subscribe_property_decode_service_request(
         } else
             data->cancellationRequest = true;
         /* tag 3 - lifetime - optional */
-        if (decode_is_context_tag(&apdu[len], 3)) {
+        if (decode_is_context_tag(&apdu[len], 3) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -567,7 +601,8 @@ int cov_subscribe_property_decode_service_request(
         /* a tag number of 4 is not extended so only one octet */
         len++;
         /* the propertyIdentifier is tag 0 */
-        if (decode_is_context_tag(&apdu[len], 0)) {
+        if (decode_is_context_tag(&apdu[len], 0) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -577,7 +612,8 @@ int cov_subscribe_property_decode_service_request(
         } else
             return -4;
         /* the optional array index is tag 1 */
-        if (decode_is_context_tag(&apdu[len], 1)) {
+        if (decode_is_context_tag(&apdu[len], 1) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -592,7 +628,8 @@ int cov_subscribe_property_decode_service_request(
         /* a tag number of 4 is not extended so only one octet */
         len++;
         /* tag 5 - covIncrement - optional */
-        if (decode_is_context_tag(&apdu[len], 5)) {
+        if (decode_is_context_tag(&apdu[len], 5) &&
+            !decode_is_closing_tag(&apdu[len])) {
             data->covIncrementPresent = true;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,

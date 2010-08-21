@@ -52,6 +52,8 @@ typedef struct BACnet_Read_Property_Data {
 
 /* Forward declaration of RPM-style data structure */
 struct BACnet_Read_Access_Data;
+/* Forward declaration of session object */
+struct bacnet_session_object;
 
 /** Reads one property for this object type of a given instance.
  * A function template; @see device.c for assignment to object types.
@@ -64,6 +66,7 @@ struct BACnet_Read_Access_Data;
  */
 typedef int (
     *read_property_function) (
+    struct bacnet_session_object * sess,
     BACNET_READ_PROPERTY_DATA * rp_data);
 
 #ifdef __cplusplus
@@ -135,7 +138,7 @@ extern "C" {
  * These BIBBs prescribe the BACnet capabilities required to interoperably 
  * perform the data sharing functions enumerated in 22.2.1.1 for the BACnet 
  * devices defined therein.
-    *//** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
+                                                                                                                                                                                                                                                                                                                                                                                              *//** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
  * @ingroup DataShare
  * 15.5 ReadProperty Service <br>
  * The ReadProperty service is used by a client BACnet-user to request the 

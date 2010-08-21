@@ -56,6 +56,8 @@ typedef enum {
     UNSIGNED_VALUE,
     LIFE_SAFETY_MODE,
     LIFE_SAFETY_STATE,
+    RESTART_REASON,     /* Added 135-2008 */
+    DOOR_ALARM_STATE,
 } BACNET_PROPERTY_STATE_TYPE;
 
 typedef struct {

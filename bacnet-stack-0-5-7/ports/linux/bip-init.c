@@ -51,6 +51,12 @@ long bip_getaddrbyname(
     const char *host_name)
 {
     struct hostent *host_ent;
+    long addr_numeric;
+
+    /* Supports dotted notation indifferently */
+    addr_numeric = inet_addr(host_name);
+    if (addr_numeric != INADDR_NONE)
+        return addr_numeric;
 
     if ((host_ent = gethostbyname(host_name)) == NULL)
         return 0;
@@ -103,6 +109,7 @@ static int get_local_address_ioctl(
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
 static void bip_set_interface(
+    struct bacnet_session_object *sess,
     char *ifname)
 {
     struct in_addr local_address;
@@ -114,7 +121,7 @@ static void bip_set_interface(
     if (rv < 0) {
         local_address.s_addr = 0;
     }
-    bip_set_addr(local_address.s_addr);
+    bip_set_addr(sess, local_address.s_addr);
     if (BIP_Debug) {
         fprintf(stderr, "Interface: %s\n", ifname);
         fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
@@ -124,12 +131,12 @@ static void bip_set_interface(
     if (rv < 0) {
         broadcast_address.s_addr = ~0;
     }
-    bip_set_broadcast_addr(broadcast_address.s_addr);
+    bip_set_broadcast_addr(sess, broadcast_address.s_addr);
     if (BIP_Debug) {
         fprintf(stderr, "IP Broadcast Address: %s\n",
             inet_ntoa(broadcast_address));
-        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", bip_get_port(),
-            bip_get_port());
+        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", bip_get_port(sess),
+            bip_get_port(sess));
     }
 }
 
@@ -152,6 +159,7 @@ static void bip_set_interface(
  *         else False if the socket functions fail.
  */
 bool bip_init(
+    struct bacnet_session_object *sess,
     char *ifname)
 {
     int status = 0;     /* return from socket lib calls */
@@ -160,12 +168,12 @@ bool bip_init(
     int sock_fd = -1;
 
     if (ifname)
-        bip_set_interface(ifname);
+        bip_set_interface(sess, ifname);
     else
-        bip_set_interface("eth0");
+        bip_set_interface(sess, "eth0");
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    bip_set_socket(sock_fd);
+    bip_set_socket(sess, sock_fd);
     if (sock_fd < 0)
         return false;
     /* Allow us to use the same socket for sending and receiving */
@@ -176,7 +184,7 @@ bool bip_init(
         sizeof(sockopt));
     if (status < 0) {
         close(sock_fd);
-        bip_set_socket(-1);
+        bip_set_socket(sess, -1);
         return status;
     }
     /* allow us to send a broadcast */
@@ -185,19 +193,19 @@ bool bip_init(
         sizeof(sockopt));
     if (status < 0) {
         close(sock_fd);
-        bip_set_socket(-1);
+        bip_set_socket(sess, -1);
         return false;
     }
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = htons(bip_get_port());
+    sin.sin_port = htons(bip_get_port(sess));
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     status =
         bind(sock_fd, (const struct sockaddr *) &sin, sizeof(struct sockaddr));
     if (status < 0) {
         close(sock_fd);
-        bip_set_socket(-1);
+        bip_set_socket(sess, -1);
         return false;
     }
 

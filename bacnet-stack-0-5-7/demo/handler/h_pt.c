@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "apdu.h"
@@ -44,18 +43,15 @@
 #endif
 #include "mydata.h"
 #include "ptransfer.h"
-
+#include "session.h"
+#include "handlers.h"
+#include "handlers-data-core.h"
 /** @file h_pt.c  Handles Confirmed Private Transfer requests. */
 
-#define MYMAXSTR 32
-#define MYMAXBLOCK 8
-
-DATABLOCK MyData[MYMAXBLOCK];
-
-uint8_t IOBufferPT[MAX_APDU];   /* Buffer for building response in  */
-
 void ProcessPT(
-    BACNET_PRIVATE_TRANSFER_DATA * data)
+    struct bacnet_session_object *sess,
+    BACNET_PRIVATE_TRANSFER_DATA * data,
+    uint8_t * IOBufferPT)
 {
     int iLen;   /* Index to current location in data */
     char cBlockNumber;
@@ -105,15 +101,19 @@ void ProcessPT(
             /* And Then the block contents */
             iLen +=
                 encode_application_unsigned(&IOBufferPT[iLen],
-                MyData[(int8_t) cBlockNumber].cMyByte1);
+                get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                    cBlockNumber].cMyByte1);
             iLen +=
                 encode_application_unsigned(&IOBufferPT[iLen],
-                MyData[(int8_t) cBlockNumber].cMyByte2);
+                get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                    cBlockNumber].cMyByte2);
             iLen +=
                 encode_application_real(&IOBufferPT[iLen],
-                MyData[(int8_t) cBlockNumber].fMyReal);
-            characterstring_init_ansi(&bsTemp,
-                (char *) MyData[(int8_t) cBlockNumber].sMyString);
+                get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                    cBlockNumber].fMyReal);
+            characterstring_init_ansi(&bsTemp, (char *)
+                get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                    cBlockNumber].sMyString);
             iLen +=
                 encode_application_character_string(&IOBufferPT[iLen],
                 &bsTemp);
@@ -137,7 +137,8 @@ void ProcessPT(
             iLen +=
                 decode_unsigned(&data->serviceParameters[iLen], len_value_type,
                 &ulTemp);
-            MyData[(int8_t) cBlockNumber].cMyByte1 = (char) ulTemp;
+            get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                cBlockNumber].cMyByte1 = (char) ulTemp;
 
             tag_len =
                 decode_tag_number_and_value(&data->serviceParameters[iLen],
@@ -150,7 +151,8 @@ void ProcessPT(
             iLen +=
                 decode_unsigned(&data->serviceParameters[iLen], len_value_type,
                 &ulTemp);
-            MyData[(int8_t) cBlockNumber].cMyByte2 = (char) ulTemp;
+            get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                cBlockNumber].cMyByte2 = (char) ulTemp;
 
             tag_len =
                 decode_tag_number_and_value(&data->serviceParameters[iLen],
@@ -162,7 +164,8 @@ void ProcessPT(
             }
             iLen +=
                 decode_real(&data->serviceParameters[iLen],
-                &MyData[(int8_t) cBlockNumber].fMyReal);
+                &get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                    cBlockNumber].fMyReal);
 
             tag_len =
                 decode_tag_number_and_value(&data->serviceParameters[iLen],
@@ -175,10 +178,13 @@ void ProcessPT(
             decode_character_string(&data->serviceParameters[iLen],
                 len_value_type, &bsTemp);
             /* Only copy as much as we can accept */
-            strncpy((char *) MyData[(int8_t) cBlockNumber].sMyString,
-                characterstring_value(&bsTemp), MY_MAX_STR);
+            strncpy((char *)
+                get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                    cBlockNumber].sMyString, characterstring_value(&bsTemp),
+                MY_MAX_STR);
             /* Make sure it is nul terminated */
-            MyData[(int8_t) cBlockNumber].sMyString[MY_MAX_STR] = '\0';
+            get_bacnet_session_handler_data(sess)->PT_MyData[(int8_t)
+                cBlockNumber].sMyString[MY_MAX_STR] = '\0';
             /* Signal success */
             iLen = encode_application_unsigned(&IOBufferPT[0], MY_ERR_OK);
         }
@@ -202,6 +208,7 @@ void ProcessPT(
 
 
 void handler_conf_private_trans(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
@@ -216,6 +223,8 @@ void handler_conf_private_trans(
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
+    uint8_t IOBufferPT[MAX_APDU];       /* Buffer for building response in  */
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
     len = 0;
     pdu_len = 0;
@@ -230,7 +239,7 @@ void handler_conf_private_trans(
     /* encode the NPDU portion of the response packet as it will be needed */
     /* no matter what the outcome. */
 
-    datalink_get_my_address(&my_address);
+    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -270,7 +279,7 @@ void handler_conf_private_trans(
         (data.serviceNumber <= MY_SVC_WRITE)) {
         /* We only try to understand our own IDs and service numbers */
         /* Will either return a result block or an app level status block */
-        ProcessPT(&data);
+        ProcessPT(sess, &data, &IOBufferPT[0]);
         if (data.serviceParametersLen == 0) {
             /* No respopnse means fatal error */
             error = true;
@@ -301,8 +310,8 @@ void handler_conf_private_trans(
   CPT_ABORT:
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, src, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 
 #if PRINT_ENABLED
     if (bytes_sent <= 0) {

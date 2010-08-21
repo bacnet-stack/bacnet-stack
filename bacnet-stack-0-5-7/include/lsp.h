@@ -41,20 +41,25 @@ extern "C" {
         const int **pOptional,
         const int **pProprietary);
     bool Life_Safety_Point_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Life_Safety_Point_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Life_Safety_Point_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     char *Life_Safety_Point_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     void Life_Safety_Point_Init(
-        void);
+        struct bacnet_session_object *sess);
 
     int Life_Safety_Point_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Life_Safety_Point_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST

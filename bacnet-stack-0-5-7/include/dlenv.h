@@ -25,15 +25,19 @@
 #ifndef DLENV_H
 #define DLENV_H
 
+/* forward declaration of session type */
+struct bacnet_session_object;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
     void dlenv_init(
-        void);
+        struct bacnet_session_object *sess);
     void dlenv_register_as_foreign_device(
-        void);
+        struct bacnet_session_object *sess);
     void dlenv_maintenance_timer(
+        struct bacnet_session_object *sess,
         uint16_t elapsed_seconds);
 
 #ifdef __cplusplus

@@ -41,21 +41,26 @@ extern "C" {
         const int **pOptional,
         const int **pProprietary);
     bool Binary_Value_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Binary_Value_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Binary_Value_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     char *Binary_Value_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
 
     void Binary_Value_Init(
-        void);
+        struct bacnet_session_object *sess);
 
     int Binary_Value_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Binary_Value_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST

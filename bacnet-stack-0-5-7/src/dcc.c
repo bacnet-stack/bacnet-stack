@@ -36,9 +36,11 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 #include "dcc.h"
+#include "session.h"
 
 /** @file dcc.c  Enable/Disable Device Communication Control (DCC) */
 
+#if 0
 /* note: the disable and time are not expected to survive
    over a power cycle or reinitialization. */
 /* note: time duration is given in Minutes, but in order to be accurate,
@@ -47,26 +49,27 @@ static uint32_t DCC_Time_Duration_Seconds = 0;
 static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable =
     COMMUNICATION_ENABLE;
 /* password is optionally supported */
+#endif /* 0 */
 
 BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(
-    void)
+    struct bacnet_session_object *session_object)
 {
-    return DCC_Enable_Disable;
+    return session_object->DCC_Enable_Disable;
 }
 
 bool dcc_communication_enabled(
-    void)
+    struct bacnet_session_object * session_object)
 {
-    return (DCC_Enable_Disable == COMMUNICATION_ENABLE);
+    return (session_object->DCC_Enable_Disable == COMMUNICATION_ENABLE);
 }
 
 /* When network communications are completely disabled,
    only DeviceCommunicationControl and ReinitializeDevice APDUs
    shall be processed and no messages shall be initiated.*/
 bool dcc_communication_disabled(
-    void)
+    struct bacnet_session_object * session_object)
 {
-    return (DCC_Enable_Disable == COMMUNICATION_DISABLE);
+    return (session_object->DCC_Enable_Disable == COMMUNICATION_DISABLE);
 }
 
 /* When the initiation of communications is disabled,
@@ -79,34 +82,37 @@ bool dcc_communication_disabled(
    the Who-Is request does not contain an address range or
    the device is included in the address range. */
 bool dcc_communication_initiation_disabled(
-    void)
+    struct bacnet_session_object * session_object)
 {
-    return (DCC_Enable_Disable == COMMUNICATION_DISABLE_INITIATION);
+    return (session_object->DCC_Enable_Disable ==
+        COMMUNICATION_DISABLE_INITIATION);
 }
 
 uint32_t dcc_duration_seconds(
-    void)
+    struct bacnet_session_object * session_object)
 {
-    return DCC_Time_Duration_Seconds;
+    return session_object->DCC_Time_Duration_Seconds;
 }
 
 /* called every second or so.  If more than one second,
   then seconds should be the number of seconds to tick away */
 void dcc_timer_seconds(
+    struct bacnet_session_object *session_object,
     uint32_t seconds)
 {
-    if (DCC_Time_Duration_Seconds) {
-        if (DCC_Time_Duration_Seconds > seconds)
-            DCC_Time_Duration_Seconds -= seconds;
+    if (session_object->DCC_Time_Duration_Seconds) {
+        if (session_object->DCC_Time_Duration_Seconds > seconds)
+            session_object->DCC_Time_Duration_Seconds -= seconds;
         else
-            DCC_Time_Duration_Seconds = 0;
+            session_object->DCC_Time_Duration_Seconds = 0;
         /* just expired - do something */
-        if (DCC_Time_Duration_Seconds == 0)
-            DCC_Enable_Disable = COMMUNICATION_ENABLE;
+        if (session_object->DCC_Time_Duration_Seconds == 0)
+            session_object->DCC_Enable_Disable = COMMUNICATION_ENABLE;
     }
 }
 
 bool dcc_set_status_duration(
+    struct bacnet_session_object *session_object,
     BACNET_COMMUNICATION_ENABLE_DISABLE status,
     uint16_t minutes)
 {
@@ -114,11 +120,11 @@ bool dcc_set_status_duration(
 
     /* valid? */
     if (status < MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
-        DCC_Enable_Disable = status;
+        session_object->DCC_Enable_Disable = status;
         if (status == COMMUNICATION_ENABLE)
-            DCC_Time_Duration_Seconds = 0;
+            session_object->DCC_Time_Duration_Seconds = 0;
         else
-            DCC_Time_Duration_Seconds = minutes * 60;
+            session_object->DCC_Time_Duration_Seconds = minutes * 60;
         valid = true;
     }
 
@@ -178,7 +184,8 @@ int dcc_decode_service_request(
     /* check for value pointers */
     if (apdu_len) {
         /* Tag 0: timeDuration --optional-- */
-        if (decode_is_context_tag(&apdu[len], 0)) {
+        if (decode_is_context_tag(&apdu[len], 0) &&
+            !decode_is_closing_tag(&apdu[len])) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
@@ -188,7 +195,8 @@ int dcc_decode_service_request(
         } else if (timeDuration)
             *timeDuration = 0;
         /* Tag 1: enable_disable */
-        if (!decode_is_context_tag(&apdu[len], 1))
+        if (!decode_is_context_tag(&apdu[len], 1) &&
+            !decode_is_closing_tag(&apdu[len]))
             return -1;
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -198,7 +206,8 @@ int dcc_decode_service_request(
             *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE) value32;
         /* Tag 2: password --optional-- */
         if (len < apdu_len) {
-            if (!decode_is_context_tag(&apdu[len], 2))
+            if (!decode_is_context_tag(&apdu[len], 2) &&
+                !decode_is_closing_tag(&apdu[len]))
                 return -1;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,

@@ -28,7 +28,6 @@
 #include <string.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -41,11 +40,11 @@
 #include "ptransfer.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
-
+#include "session.h"
 /** @file s_upt.c  Send an Unconfirmed Private Transfer request. */
 
 void Send_UnconfirmedPrivateTransfer(
+    struct bacnet_session_object *sess,
     BACNET_ADDRESS * dest,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
@@ -53,8 +52,9 @@ void Send_UnconfirmedPrivateTransfer(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled(sess))
         return;
 
     /* encode the NPDU portion of the packet */
@@ -67,8 +67,8 @@ void Send_UnconfirmedPrivateTransfer(
         private_data);
     pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+        sess->datalink_send_pdu(sess, dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,

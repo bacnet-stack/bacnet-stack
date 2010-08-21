@@ -97,7 +97,7 @@ void Multistate_Output_Property_Lists(
 }
 
 void Multistate_Output_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
     unsigned i, j;
     static bool initialized = false;
@@ -120,6 +120,7 @@ void Multistate_Output_Init(
 /* more complex, and then you need validate that the */
 /* given instance exists */
 bool Multistate_Output_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     if (object_instance < MAX_MULTISTATE_OUTPUTS)
@@ -131,7 +132,7 @@ bool Multistate_Output_Valid_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Multistate_Output_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_MULTISTATE_OUTPUTS;
 }
@@ -140,6 +141,7 @@ unsigned Multistate_Output_Count(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Multistate_Output_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
@@ -149,6 +151,7 @@ uint32_t Multistate_Output_Index_To_Instance(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Multistate_Output_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_MULTISTATE_OUTPUTS;
@@ -160,13 +163,14 @@ unsigned Multistate_Output_Instance_To_Index(
 }
 
 static uint32_t Multistate_Output_Present_Value(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     uint32_t value = MULTISTATE_RELINQUISH_DEFAULT;
     unsigned index = 0;
     unsigned i = 0;
 
-    index = Multistate_Output_Instance_To_Index(object_instance);
+    index = Multistate_Output_Instance_To_Index(sess, object_instance);
     if (index < MAX_MULTISTATE_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
             if (Multistate_Output_Level[index][i] != MULTISTATE_NULL) {
@@ -181,6 +185,7 @@ static uint32_t Multistate_Output_Present_Value(
 
 /* note: the object name must be unique within this device */
 char *Multistate_Output_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
@@ -195,6 +200,7 @@ char *Multistate_Output_Name(
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Multistate_Output_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int len = 0;
@@ -223,7 +229,7 @@ int Multistate_Output_Read_Property(
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
-                Multistate_Output_Name(rpdata->object_instance));
+                Multistate_Output_Name(sess, rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -234,7 +240,7 @@ int Multistate_Output_Read_Property(
             break;
         case PROP_PRESENT_VALUE:
             present_value =
-                Multistate_Output_Present_Value(rpdata->object_instance);
+                Multistate_Output_Present_Value(sess, rpdata->object_instance);
             apdu_len = encode_application_unsigned(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -253,7 +259,8 @@ int Multistate_Output_Read_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             object_index =
-                Multistate_Output_Instance_To_Index(rpdata->object_instance);
+                Multistate_Output_Instance_To_Index(sess,
+                rpdata->object_instance);
             state = Multistate_Output_Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -266,8 +273,8 @@ int Multistate_Output_Read_Property(
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
-                    Multistate_Output_Instance_To_Index
-                    (rpdata->object_instance);
+                    Multistate_Output_Instance_To_Index(sess,
+                    rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Multistate_Output_Level[object_index][i] ==
@@ -292,15 +299,14 @@ int Multistate_Output_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Output_Instance_To_Index
-                    (rpdata->object_instance);
+                    Multistate_Output_Instance_To_Index(sess,
+                    rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Multistate_Output_Level[object_index]
                         [rpdata->array_index - 1] == MULTISTATE_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
-                        present_value =
-                            Multistate_Output_Level[object_index]
+                        present_value = Multistate_Output_Level[object_index]
                             [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_unsigned(&apdu[0],
@@ -343,6 +349,7 @@ int Multistate_Output_Read_Property(
 
 /* returns true if successful */
 bool Multistate_Output_Write_Property(
+    struct bacnet_session_object * sess,
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -370,8 +377,8 @@ bool Multistate_Output_Write_Property(
                     (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                     level = value.type.Unsigned_Int;
                     object_index =
-                        Multistate_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                        Multistate_Output_Instance_To_Index(sess,
+                        wp_data->object_instance);
                     priority--;
                     Multistate_Output_Level[object_index][priority] =
                         (uint8_t) level;
@@ -398,8 +405,8 @@ bool Multistate_Output_Write_Property(
                 if (status) {
                     level = MULTISTATE_NULL;
                     object_index =
-                        Multistate_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                        Multistate_Output_Instance_To_Index(sess,
+                        wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
@@ -425,8 +432,8 @@ bool Multistate_Output_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Multistate_Output_Instance_To_Index
-                    (wp_data->object_instance);
+                    Multistate_Output_Instance_To_Index(sess,
+                    wp_data->object_instance);
                 Multistate_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }

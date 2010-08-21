@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include "config.h"
 #include "config.h"
-#include "txbuf.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "address.h"
@@ -40,7 +39,7 @@
 #include "rp.h"
 /* some demo stuff needed */
 #include "handlers.h"
-#include "txbuf.h"
+#include "bacnet-session.h"
 
 /** @file h_rp_a.c  Handles Read Property Acknowledgments. */
 
@@ -108,6 +107,7 @@ void rp_ack_print_data(
  *                          decoded from the APDU header of this message.
  */
 void handler_read_property_ack(
+    struct bacnet_session_object *sess,
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,

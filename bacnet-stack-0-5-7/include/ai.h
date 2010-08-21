@@ -40,47 +40,61 @@ extern "C" {
         const int **pProprietary);
 
     bool Analog_Input_Valid_Instance(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     unsigned Analog_Input_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Analog_Input_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     unsigned Analog_Input_Instance_To_Index(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Analog_Input_Object_Instance_Add(
+        struct bacnet_session_object *sess,
         uint32_t instance);
 
     char *Analog_Input_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     bool Analog_Input_Name_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         char *new_name);
 
     char *Analog_Input_Description(
+        struct bacnet_session_object *sess,
         uint32_t instance);
     bool Analog_Input_Description_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         char *new_name);
 
     bool Analog_Input_Units_Set(
+        struct bacnet_session_object *sess,
         uint32_t instance,
         uint16_t units);
     uint16_t Analog_Input_Units(
+        struct bacnet_session_object *sess,
         uint32_t instance);
 
     int Analog_Input_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
     bool Analog_Input_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     float Analog_Input_Present_Value(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
     void Analog_Input_Present_Value_Set(
+        struct bacnet_session_object *sess,
         uint32_t object_instance,
         float value);
 
     void Analog_Input_Init(
-        void);
+        struct bacnet_session_object *sess);
 
 #ifdef TEST
 #include "ctest.h"

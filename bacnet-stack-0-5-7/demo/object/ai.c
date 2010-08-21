@@ -84,11 +84,12 @@ void Analog_Input_Property_Lists(
 /* more complex, and then you need validate that the */
 /* given instance exists */
 bool Analog_Input_Valid_Instance(
+    struct bacnet_session_object * sess,
     uint32_t object_instance)
 {
     unsigned int index;
 
-    index = Analog_Input_Instance_To_Index(object_instance);
+    index = Analog_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_INPUTS)
         return true;
 
@@ -98,7 +99,7 @@ bool Analog_Input_Valid_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Analog_Input_Count(
-    void)
+    struct bacnet_session_object *sess)
 {
     return MAX_ANALOG_INPUTS;
 }
@@ -107,6 +108,7 @@ unsigned Analog_Input_Count(
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
 uint32_t Analog_Input_Index_To_Instance(
+    struct bacnet_session_object * sess,
     unsigned index)
 {
     return index;
@@ -116,6 +118,7 @@ uint32_t Analog_Input_Index_To_Instance(
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
 unsigned Analog_Input_Instance_To_Index(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     unsigned index = MAX_ANALOG_INPUTS;
@@ -127,12 +130,13 @@ unsigned Analog_Input_Instance_To_Index(
 }
 
 float Analog_Input_Present_Value(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     float value = 0.0;
     unsigned int index;
 
-    index = Analog_Input_Instance_To_Index(object_instance);
+    index = Analog_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_INPUTS) {
         value = Present_Value[index];
     }
@@ -141,24 +145,26 @@ float Analog_Input_Present_Value(
 }
 
 void Analog_Input_Present_Value_Set(
+    struct bacnet_session_object *sess,
     uint32_t object_instance,
     float value)
 {
     unsigned int index;
 
-    index = Analog_Input_Instance_To_Index(object_instance);
+    index = Analog_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_INPUTS) {
         Present_Value[index] = value;
     }
 }
 
 char *Analog_Input_Name(
+    struct bacnet_session_object *sess,
     uint32_t object_instance)
 {
     static char text_string[32] = "";   /* okay for single thread */
     unsigned int index;
 
-    index = Analog_Input_Instance_To_Index(object_instance);
+    index = Analog_Input_Instance_To_Index(sess, object_instance);
     if (index < MAX_ANALOG_INPUTS) {
         sprintf(text_string, "ANALOG INPUT %lu", (unsigned long) index);
         return text_string;
@@ -170,6 +176,7 @@ char *Analog_Input_Name(
 /* return apdu length, or BACNET_STATUS_ERROR on error */
 /* assumption - object has already exists */
 int Analog_Input_Read_Property(
+    struct bacnet_session_object *sess,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
@@ -190,8 +197,8 @@ int Analog_Input_Read_Property(
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Input_Name(rpdata->object_instance));
+            characterstring_init_ansi(&char_string, Analog_Input_Name(sess,
+                    rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -202,7 +209,7 @@ int Analog_Input_Read_Property(
         case PROP_PRESENT_VALUE:
             apdu_len =
                 encode_application_real(&apdu[0],
-                Analog_Input_Present_Value(rpdata->object_instance));
+                Analog_Input_Present_Value(sess, rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -251,7 +258,7 @@ int Analog_Input_Read_Property(
 }
 
 void Analog_Input_Init(
-    void)
+    struct bacnet_session_object *sess)
 {
 }
 

@@ -64,7 +64,13 @@ extern "C" {
     bool bactext_object_type_index(
         const char *search_name,
         unsigned *found_index);
+    const char *bactext_notify_type_name(
+        unsigned index);
+    const char *bactext_event_type_name(
+        unsigned index);
     const char *bactext_property_name(
+        unsigned index);
+    const char *bactext_property_known_name(
         unsigned index);
     bool bactext_property_index(
         const char *search_name,
@@ -107,7 +113,8 @@ extern "C" {
         unsigned index);
     const char *bactext_node_type_name(
         unsigned index);
-
+    const char *bactext_character_string_encoding_name(
+        unsigned index);
     const char *bactext_event_transition_name(
         unsigned index);
     bool bactext_event_transition_index(

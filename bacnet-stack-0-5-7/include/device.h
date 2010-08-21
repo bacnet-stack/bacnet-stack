@@ -44,7 +44,7 @@
  */
 typedef void (
     *object_init_function) (
-    void);
+    struct bacnet_session_object * sess);
 
 /** Counts the number of objects of this type.
  * @ingroup ObjHelpers
@@ -52,7 +52,7 @@ typedef void (
  */
 typedef unsigned (
     *object_count_function) (
-    void);
+    struct bacnet_session_object * sess);
 
 /** Maps an object index position to its corresponding BACnet object instance number.
  * @ingroup ObjHelpers
@@ -62,6 +62,7 @@ typedef unsigned (
 typedef uint32_t(
     *object_index_to_instance_function)
         (
+    struct bacnet_session_object * sess,
     unsigned index);
 
 /** Provides the BACnet Object_Name for a given object instance of this type.
@@ -74,6 +75,7 @@ typedef uint32_t(
 typedef char *(
     *object_name_function)
      (
+    struct bacnet_session_object * sess,
     uint32_t object_instance);
 
 /** Look in the table of objects of this type, and see if this is a valid
@@ -84,6 +86,7 @@ typedef char *(
  */
 typedef bool(
     *object_valid_instance_function) (
+    struct bacnet_session_object * sess,
     uint32_t object_instance);
 
 /** Helper function to step through an array of objects and find either the
@@ -98,6 +101,7 @@ typedef bool(
  */
 typedef unsigned (
     *object_iterate_function) (
+    struct bacnet_session_object * sess,
     unsigned current_index);
 
 
@@ -105,16 +109,15 @@ typedef unsigned (
 extern "C" {
 #endif /* __cplusplus */
 
-    void Device_Init(
-        void);
-
     bool Device_Reinitialize(
+        struct bacnet_session_object *sess,
         BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
 
     BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
-        void);
+        struct bacnet_session_object *sess);
 
     rr_info_function Device_Objects_RR_Info(
+        struct bacnet_session_object *sess,
         BACNET_OBJECT_TYPE object_type);
 
     void Device_Property_Lists(
@@ -122,75 +125,105 @@ extern "C" {
         const int **pOptional,
         const int **pProprietary);
     void Device_Objects_Property_List(
+        struct bacnet_session_object *sess,
         BACNET_OBJECT_TYPE object_type,
         struct special_property_list_t *pPropertyList);
 
     uint32_t Device_Object_Instance_Number(
-        void);
+        struct bacnet_session_object *sess);
     bool Device_Set_Object_Instance_Number(
+        struct bacnet_session_object *sess,
         uint32_t object_id);
     bool Device_Valid_Object_Instance_Number(
+        struct bacnet_session_object *sess,
         uint32_t object_id);
     unsigned Device_Object_List_Count(
-        void);
+        struct bacnet_session_object *sess);
     bool Device_Object_List_Identifier(
+        struct bacnet_session_object *sess,
         unsigned array_index,
         int *object_type,
         uint32_t * instance);
 
+    void Device_Init(
+        struct bacnet_session_object *sess);
+
     unsigned Device_Count(
-        void);
+        struct bacnet_session_object *sess);
     uint32_t Device_Index_To_Instance(
+        struct bacnet_session_object *sess,
         unsigned index);
     char *Device_Name(
+        struct bacnet_session_object *sess,
         uint32_t object_instance);
 
     BACNET_DEVICE_STATUS Device_System_Status(
-        void);
+        struct bacnet_session_object *sess);
     int Device_Set_System_Status(
+        struct bacnet_session_object *sess,
         BACNET_DEVICE_STATUS status,
         bool local);
 
     const char *Device_Vendor_Name(
-        void);
+        struct bacnet_session_object *sess);
 
     uint16_t Device_Vendor_Identifier(
-        void);
+        struct bacnet_session_object *sess);
     void Device_Set_Vendor_Identifier(
+        struct bacnet_session_object *sess,
         uint16_t vendor_id);
 
     const char *Device_Model_Name(
-        void);
+        struct bacnet_session_object *sess);
     bool Device_Set_Model_Name(
+        struct bacnet_session_object *sess,
         const char *name,
         size_t length);
 
     const char *Device_Firmware_Revision(
-        void);
+        struct bacnet_session_object *sess);
 
     const char *Device_Application_Software_Version(
-        void);
+        struct bacnet_session_object *sess);
     bool Device_Set_Application_Software_Version(
+        struct bacnet_session_object *sess,
         const char *name,
         size_t length);
 
     bool Device_Set_Object_Name(
+        struct bacnet_session_object *sess,
         const char *name,
         size_t length);
     const char *Device_Object_Name(
-        void);
+        struct bacnet_session_object *sess);
 
     const char *Device_Description(
-        void);
+        struct bacnet_session_object *sess);
     bool Device_Set_Description(
+        struct bacnet_session_object *sess,
         const char *name,
         size_t length);
 
     const char *Device_Location(
-        void);
+        struct bacnet_session_object *sess);
     bool Device_Set_Location(
+        struct bacnet_session_object *sess,
         const char *name,
         size_t length);
+
+    void Device_Get_Local_Time(
+        struct bacnet_session_object *sess,
+        BACNET_TIME * Local_Time);
+
+    void Device_Get_Local_Date(
+        struct bacnet_session_object *sess,
+        BACNET_DATE * Local_Date);
+
+    int32_t Device_Get_UTC_Offset(
+        struct bacnet_session_object *sess);
+
+    bool Device_Get_Daylight_Savings_Status(
+        struct bacnet_session_object *sess);
 
     /* some stack-centric constant values - no set methods */
     uint8_t Device_Protocol_Version(
@@ -201,26 +234,32 @@ extern "C" {
         void);
 
     uint32_t Device_Database_Revision(
-        void);
+        struct bacnet_session_object *sess);
     void Device_Set_Database_Revision(
+        struct bacnet_session_object *sess,
         uint32_t revision);
     void Device_Inc_Database_Revision(
-        void);
+        struct bacnet_session_object *sess);
 
     bool Device_Valid_Object_Name(
+        struct bacnet_session_object *sess,
         const char *object_name,
         int *object_type,
         uint32_t * object_instance);
-    char *Device_Valid_Object_Id(
+    const char *Device_Valid_Object_Id(
+        struct bacnet_session_object *sess,
         int object_type,
         uint32_t object_instance);
 
     int Device_Read_Property(
+        struct bacnet_session_object *sess,
         BACNET_READ_PROPERTY_DATA * rpdata);
     bool Device_Write_Property(
+        struct bacnet_session_object *sess,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     bool DeviceGetRRInfo(
+        struct bacnet_session_object *sess,
         BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
         RR_PROP_INFO * pInfo);  /* Where to put the information */
 
@@ -237,11 +276,11 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
-    *//** @defgroup ObjHelpers Object Helper Functions
+                                                                                                                                                                                                                                                                                                                                                                                              *//** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk
  * This section describes the function templates for the helper functions that
  * provide common object support.
-    *//** @defgroup ObjIntf Handler-to-Object Interface Functions
+                                                                                                                                                                                                                                                                                                                                                                                              *//** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk
  * This section describes the fairly limited set of functions that link the
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are

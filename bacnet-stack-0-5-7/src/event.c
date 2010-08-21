@@ -511,7 +511,8 @@ int event_notify_decode_service_request(
         }
         /* tag 7 - messageText */
 
-        if (decode_is_context_tag(&apdu[len], 7)) {
+        if (decode_is_context_tag(&apdu[len], 7) &&
+            !decode_is_closing_tag(&apdu[len])) {
             if (data->messageText != NULL) {
                 if ((section_length =
                         decode_context_character_string(&apdu[len], 7,
@@ -640,7 +641,8 @@ int event_notify_decode_service_request(
                         len++;
 
                         if (decode_is_context_tag(&apdu[len],
-                                CHANGE_OF_VALUE_BITS)) {
+                                CHANGE_OF_VALUE_BITS)
+                            && !decode_is_closing_tag(&apdu[len])) {
 
                             if (-1 == (section_length =
                                     decode_context_bitstring(&apdu[len], 0,
@@ -654,7 +656,8 @@ int event_notify_decode_service_request(
                             data->notificationParams.changeOfValue.tag =
                                 CHANGE_OF_VALUE_BITS;
                         } else if (decode_is_context_tag(&apdu[len],
-                                CHANGE_OF_VALUE_REAL)) {
+                                CHANGE_OF_VALUE_REAL) &&
+                            !decode_is_closing_tag(&apdu[len])) {
                             if (-1 == (section_length =
                                     decode_context_real(&apdu[len], 1,
                                         &data->

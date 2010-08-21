@@ -389,10 +389,10 @@ bool datetime_wildcard(
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if ((bdatetime->date.year == (1900 + 0xFF)) &&
-            (bdatetime->date.month == 0xFF) && (bdatetime->date.day == 0xFF) &&
-            (bdatetime->date.wday == 0xFF) && (bdatetime->time.hour == 0xFF) &&
-            (bdatetime->time.min == 0xFF) && (bdatetime->time.sec == 0xFF) &&
+        if ((bdatetime->date.year == (0xFF)) && (bdatetime->date.month == 0xFF)
+            && (bdatetime->date.day == 0xFF) && (bdatetime->date.wday == 0xFF)
+            && (bdatetime->time.hour == 0xFF) && (bdatetime->time.min == 0xFF)
+            && (bdatetime->time.sec == 0xFF) &&
             (bdatetime->time.hundredths == 0xFF)) {
             wildcard_present = true;
         }
@@ -410,10 +410,9 @@ bool datetime_wildcard_present(
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if ((bdatetime->date.year == (1900 + 0xFF)) ||
-            (bdatetime->date.month > 12) || (bdatetime->date.day > 31) ||
-            (bdatetime->time.hour == 0xFF) || (bdatetime->time.min == 0xFF) ||
-            (bdatetime->time.sec == 0xFF) ||
+        if ((bdatetime->date.year == (0xFF)) || (bdatetime->date.month > 12) ||
+            (bdatetime->date.day > 31) || (bdatetime->time.hour == 0xFF) ||
+            (bdatetime->time.min == 0xFF) || (bdatetime->time.sec == 0xFF) ||
             (bdatetime->time.hundredths == 0xFF)) {
             wildcard_present = true;
         }
@@ -426,7 +425,7 @@ void datetime_date_wildcard_set(
     BACNET_DATE * bdate)
 {
     if (bdate) {
-        bdate->year = 1900 + 0xFF;
+        bdate->year = 0xFF;
         bdate->month = 0xFF;
         bdate->day = 0xFF;
         bdate->wday = 0xFF;
