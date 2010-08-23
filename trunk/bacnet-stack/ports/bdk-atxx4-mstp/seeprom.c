@@ -1,6 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+* Used algorithm and code from Joerg Wunsch and Ruwan Jayanetti.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -420,8 +421,8 @@ static int seeprom_bytes_write_page(
 *   byte is placed at the beginning of the same
 *   page. If more than 64 data words are
 *   transmitted to the EEPROM, the data word
-*   address will “roll over” and previous data will be
-*   overwritten. The address “roll over” during write
+*   address will "roll over" and previous data will be
+*   overwritten. The address "roll over" during write
 *   is from the last byte of the current page to the
 *   first byte of the same page.
 **************************************************************************/
@@ -462,6 +463,8 @@ void seeprom_init(
     TWSR = 0;
     TWCR = _BV(TWEN) | _BV(TWEA);
     /* bit rate */
+    /* SCL freq = F_CPU/(16+2*TWBR*4^TWPS) */
+    /* since TWPS in TWSR is set to zero, 4^TWPS resolves to 1 */
     TWBR = (F_CPU / SEEPROM_I2C_CLOCK - 16) / 2;
     /* my address */
     TWAR = 0;
