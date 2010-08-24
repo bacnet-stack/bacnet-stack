@@ -396,9 +396,29 @@ void PrintReadPropertyData(
         return;
     }
     if ((value != NULL) && (value->next != NULL)) {
-        /* Then this is an array of values; open brace */
-        fprintf(stdout, "{ ");
-        print_brace = true;     /* remember to close it */
+        /* Then this is an array of values.
+         * But are we showing Values?  We (VTS3) want ? instead of {?,?} to show up. */
+    	switch( rpm_property->propertyIdentifier )
+    	{
+			/* Screen the Properties that can be arrays or Sequences */
+			case PROP_PRESENT_VALUE:
+			case PROP_PRIORITY_ARRAY:
+                if (!ShowValues) {
+                    fprintf(stdout, "? \r\n");
+                    /* We want the Values freed below, but don't want to
+                     * print anything for them.  To achieve this, swap
+                     * out the Property for a non-existent Property
+                     * and catch that below.  */
+                    rpm_property->propertyIdentifier = PROP_PROTOCOL_CONFORMANCE_CLASS;
+                    break;
+                }
+                /* Else, fall through to normal processing. */
+			default:
+				/* Normal array: open brace */
+				fprintf(stdout, "{ ");
+				print_brace = true;     /* remember to close it */
+				break;
+    	}
     }
 
     if (!Using_Walked_List)
@@ -422,7 +442,7 @@ void PrintReadPropertyData(
                             Object_List_Length = value->type.Unsigned_Int;
                         break;
                     } else
-                        assert(Walked_List_Index ==
+                        assert(Walked_List_Index == (uint32_t)
                             rpm_property->propertyArrayIndex);
                 } else {
                     Walked_List_Index++;
@@ -442,8 +462,8 @@ void PrintReadPropertyData(
                 }
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
-                    if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(false);  /* Something not right here */
+                    if ( value->tag != BACNET_APPLICATION_TAG_OBJECT_ID)  {
+                        assert(value->tag == BACNET_APPLICATION_TAG_OBJECT_ID);  /* Something not right here */
                         break;
                     }
                     /* Store the object list so we can interrogate
@@ -470,7 +490,7 @@ void PrintReadPropertyData(
                 } else if (rpm_property->propertyIdentifier ==
                     PROP_SUBORDINATE_LIST) {
                     if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(false);  /* Something not right here */
+                        assert(value->tag == BACNET_APPLICATION_TAG_OBJECT_ID);  /* Something not right here */
                         break;
                     }
                     /* TODO: handle Sequence of { Device ObjID, Object ID }, */
@@ -501,6 +521,10 @@ void PrintReadPropertyData(
                 PrettyPrintPropertyValue(stdout, value,
                     rpm_property->propertyIdentifier);
                 break;
+
+            /* Our special non-existent case; do nothing further here. */
+            case PROP_PROTOCOL_CONFORMANCE_CLASS:
+            	break;
 
             default:
                 /* Some properties are presented just as '?' in an EPICS;
@@ -582,7 +606,7 @@ static uint8_t Read_Properties(
 {
     uint8_t invoke_id = 0;
     struct special_property_list_t PropertyListStruct;
-    int i;
+    uint i;
 
     if ((!Has_RPM && (Property_List_Index == 0)) ||
         (Property_List_Length == 0)) {
@@ -858,9 +882,7 @@ int main(
     int argc,
     char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src;  /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
@@ -876,7 +898,8 @@ int main(
     KEY nextKey;
 
     CheckCommandLineArgs(argc, argv);   /* Won't return if there is an issue. */
-
+    memset(&src, 0, sizeof( BACNET_ADDRESS));
+    
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Object_List = Keylist_Create();
@@ -964,6 +987,7 @@ int main(
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
                 StartNextObject(rpm_object, &myObject);
+                
                 invoke_id =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
                     Target_Device_Object_Instance, rpm_object);
@@ -1062,8 +1086,9 @@ int main(
                     (invoke_id ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData(Read_Property_Multiple_Data.
-                        rpm_data->listOfProperties);
+                    PrintReadPropertyData
+                        (Read_Property_Multiple_Data.rpm_data->
+                        listOfProperties);
                     if (tsm_invoke_id_free(invoke_id)) {
                         invoke_id = 0;
                     } else {
@@ -1140,9 +1165,9 @@ int main(
                         myObject.instance = KEY_DECODE_ID(nextKey);
                         /* Opening brace for the new Object */
                         printf("  { \r\n");
-                        /* Test code:
+                        /* Test code: 
                            if ( myObject.type == OBJECT_STRUCTURED_VIEW )
-                           printf( "    -- Structured View %d \n", myObject.instance );
+                        	   printf( "    -- Structured View %d \n", myObject.instance );
                          */
                     } else {
                         /* Closing brace for the last Object */
@@ -1187,4 +1212,6 @@ int main(
     return 0;
 }
 
-                         /*@} *//* End group BACEPICS */
+/*@} */
+
+/* End group BACEPICS */
