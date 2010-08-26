@@ -26,14 +26,33 @@
 #include "hardware.h"
 #include "timer.h"
 
-/* Timer2 Prescaling: 1, 8, 32, 64, 128, 256, or 1024 */
-#define TIMER2_PRESCALER 128
-/* Count: Timer counts up to 0xFF and then signals overflow */
-#define TIMER2_TICKS (F_CPU/TIMER2_PRESCALER/1000)
-#if (TIMER2_TICKS > 0xFF)
-#error Timer2 Prescaler value is too small
+#ifndef F_CPU
+#error "F_CPU must be defined for Timer configuration."
 #endif
-#define TIMER2_COUNT (0xFF-TIMER2_TICKS)
+/* Timer2 Prescaling: 1, 8, 32, 64, 128, 256, or 1024 */
+#define TIMER_TICKS(p) (F_CPU/(p)/1000)
+#define TIMER_TICKS_MAX 0xff
+/* adjust the prescaler for the processor clock */
+#if (TIMER_TICKS(1) <= TIMER_TICKS_MAX)
+#define TIMER2_PRESCALER 1
+#elif (TIMER_TICKS(8) <= TIMER_TICKS_MAX)
+#define TIMER2_PRESCALER 8
+#elif (TIMER_TICKS(32) <= TIMER_TICKS_MAX)
+#define TIMER2_PRESCALER 32
+#elif (TIMER_TICKS(64) <= TIMER_TICKS_MAX)
+#define TIMER2_PRESCALER 64
+#elif (TIMER_TICKS(128) <= TIMER_TICKS_MAX)
+#define TIMER2_PRESCALER 128
+#elif (TIMER_TICKS(256) <= TIMER_TICKS_MAX)
+#define TIMER2_PRESCALER 256
+#elif (TIMER_TICKS(1024) <= TIMER_TICKS_MAX)
+#define TIMER2_PRESCALER 1024
+#else
+#error "TIMER2: F_CPU too large for timer prescaler."
+#endif
+#define TIMER2_TICKS TIMER_TICKS(TIMER2_PRESCALER)
+/* Timer counts up from count to TIMER_TICKS_MAX and then signals overflow */
+#define TIMER2_COUNT (TIMER_TICKS_MAX-TIMER2_TICKS)
 
 /* counter for the the timer which wraps every 49.7 days */
 static volatile uint32_t Millisecond_Counter;
