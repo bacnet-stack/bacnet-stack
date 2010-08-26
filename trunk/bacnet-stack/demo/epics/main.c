@@ -398,11 +398,11 @@ void PrintReadPropertyData(
     if ((value != NULL) && (value->next != NULL)) {
         /* Then this is an array of values.
          * But are we showing Values?  We (VTS3) want ? instead of {?,?} to show up. */
-    	switch( rpm_property->propertyIdentifier )
-    	{
-			/* Screen the Properties that can be arrays or Sequences */
-			case PROP_PRESENT_VALUE:
-			case PROP_PRIORITY_ARRAY:
+        switch( rpm_property->propertyIdentifier )
+        {
+            /* Screen the Properties that can be arrays or Sequences */
+            case PROP_PRESENT_VALUE:
+            case PROP_PRIORITY_ARRAY:
                 if (!ShowValues) {
                     fprintf(stdout, "? \r\n");
                     /* We want the Values freed below, but don't want to
@@ -413,12 +413,12 @@ void PrintReadPropertyData(
                     break;
                 }
                 /* Else, fall through to normal processing. */
-			default:
-				/* Normal array: open brace */
-				fprintf(stdout, "{ ");
-				print_brace = true;     /* remember to close it */
-				break;
-    	}
+            default:
+                /* Normal array: open brace */
+                fprintf(stdout, "{ ");
+                print_brace = true;     /* remember to close it */
+                break;
+        }
     }
 
     if (!Using_Walked_List)
@@ -524,7 +524,7 @@ void PrintReadPropertyData(
 
             /* Our special non-existent case; do nothing further here. */
             case PROP_PROTOCOL_CONFORMANCE_CLASS:
-            	break;
+                break;
 
             default:
                 /* Some properties are presented just as '?' in an EPICS;
@@ -606,7 +606,7 @@ static uint8_t Read_Properties(
 {
     uint8_t invoke_id = 0;
     struct special_property_list_t PropertyListStruct;
-    uint i;
+    unsigned int i;
 
     if ((!Has_RPM && (Property_List_Index == 0)) ||
         (Property_List_Length == 0)) {
@@ -899,7 +899,7 @@ int main(
 
     CheckCommandLineArgs(argc, argv);   /* Won't return if there is an issue. */
     memset(&src, 0, sizeof( BACNET_ADDRESS));
-    
+
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Object_List = Keylist_Create();
@@ -970,7 +970,10 @@ int main(
                     /* increment timer - exit if timed out */
                     elapsed_seconds += (current_seconds - last_seconds);
                     if (elapsed_seconds > timeout_seconds) {
-                        fprintf(stderr, "\rError: APDU Timeout!\r\n");
+                        fprintf(stderr,
+                            "\rError: Unable to bind"
+                            " after waiting %ld seconds.\r\n",
+                            (long int)elapsed_seconds);
                         break;
                     }
                     /* else, loop back and try again */
@@ -983,15 +986,17 @@ int main(
                 break;
 
             case GET_ALL_REQUEST:
-            case GET_LIST_OF_ALL_REQUEST:      /* differs in ArrayIndex only */
+            case GET_LIST_OF_ALL_REQUEST:
+                /* "list" differs in ArrayIndex only */
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
                 StartNextObject(rpm_object, &myObject);
-                
+
                 invoke_id =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
                     Target_Device_Object_Instance, rpm_object);
                 if (invoke_id > 0) {
+                    elapsed_seconds = 0;
                     if (myState == GET_LIST_OF_ALL_REQUEST)
                         myState = GET_LIST_OF_ALL_RESPONSE;
                     else
@@ -1023,9 +1028,12 @@ int main(
                         assert(false);  /* How can this be? */
                         invoke_id = 0;
                     }
+                    elapsed_seconds = 0;
                 } else if (tsm_invoke_id_free(invoke_id)) {
+                    elapsed_seconds = 0;
                     invoke_id = 0;
-                    if (Error_Detected) {       /* The normal case for Device Object */
+                    if (Error_Detected) {
+            /* The normal case for Device Object */
                         /* Was it because the Device can't do RPM? */
                         if (Last_Error_Code ==
                             ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE) {
@@ -1048,9 +1056,11 @@ int main(
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
                     tsm_free_invoke_id(invoke_id);
                     invoke_id = 0;
+                    elapsed_seconds = 0;
                     myState = GET_ALL_REQUEST;  /* Let's try again */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
+                    elapsed_seconds = 0;
                     invoke_id = 0;
                     myState = NEXT_OBJECT;      /* Give up and move on to the next. */
                     Error_Count++;
@@ -1063,6 +1073,7 @@ int main(
                 Error_Detected = false;
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
+                elapsed_seconds = 0;
                 invoke_id =
                     Read_Properties(Target_Device_Object_Instance, &myObject);
                 if (invoke_id == 0) {
@@ -1095,6 +1106,7 @@ int main(
                         assert(false);  /* How can this be? */
                         invoke_id = 0;
                     }
+                    elapsed_seconds = 0;
                     /* Advance the property (or Array List) index */
                     if (Using_Walked_List) {
                         Walked_List_Index++;
@@ -1118,6 +1130,7 @@ int main(
                     myState = GET_PROPERTY_REQUEST;     /* Go fetch next Property */
                 } else if (tsm_invoke_id_free(invoke_id)) {
                     invoke_id = 0;
+                    elapsed_seconds = 0;
                     myState = GET_PROPERTY_REQUEST;
                     if (Error_Detected) {
                         if (IsLongArray) {
@@ -1138,10 +1151,12 @@ int main(
                 } else if (tsm_invoke_id_failed(invoke_id)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
                     tsm_free_invoke_id(invoke_id);
+                    elapsed_seconds = 0;
                     invoke_id = 0;
                     myState = GET_PROPERTY_REQUEST;     /* Let's try again, same Property */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
+                    elapsed_seconds = 0;
                     invoke_id = 0;
                     myState = NEXT_OBJECT;      /* Give up and move on to the next. */
                     Error_Count++;
@@ -1165,9 +1180,9 @@ int main(
                         myObject.instance = KEY_DECODE_ID(nextKey);
                         /* Opening brace for the new Object */
                         printf("  { \r\n");
-                        /* Test code: 
+                        /* Test code:
                            if ( myObject.type == OBJECT_STRUCTURED_VIEW )
-                        	   printf( "    -- Structured View %d \n", myObject.instance );
+                               printf( "    -- Structured View %d \n", myObject.instance );
                          */
                     } else {
                         /* Closing brace for the last Object */
@@ -1196,7 +1211,8 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                fprintf(stderr, "\rError: APDU Timeout!\r\n");
+                fprintf(stderr, "\rError: APDU Timeout! (%lds)\r\n",
+                    (long int)elapsed_seconds);
                 break;
             }
         }
