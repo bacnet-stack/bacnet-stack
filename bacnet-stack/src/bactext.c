@@ -776,6 +776,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_SYSTEM_FAILURE_VALUE, "system-failure-value"}
     ,
+    /* enumerations 244-311 are used in Addendum j to ANSI/ASHRAE 135-2004 */
     {PROP_ABSENTEE_LIMIT, "absentee-limit"}
     ,
     {PROP_ACCESS_ALARM_EVENTS, "access-alarm-events"}
@@ -791,13 +792,11 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_ACCESS_EVENT_TIME, "access-event-time"}
     ,
-    {PROP_ACCESS_RULES, "access-rules"}
+    {PROP_ACCESS_TRANSACTION_EVENTS, "access-transaction–events"}
     ,
-    {PROP_ACCESS_RULES_ENABLE, "access-rules-enable"}
+    {PROP_ACCOMPANIMENT, "accompaniment"}
     ,
-    {PROP_ACCESS_TRANSACTION_EVENTS, "access-transaction-events"}
-    ,
-    {PROP_ACCOMPANIED, "accompanied"}
+    {PROP_ACCOMPANIMENT_TIME, "accompaniment-time"}
     ,
     {PROP_ACTIVATION_TIME, "activation-time"}
     ,
@@ -805,13 +804,13 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_ASSIGNED_ACCESS_RIGHTS, "assigned-access-rights"}
     ,
-    {PROP_AUTHENTICATION_FACTOR_INPUT_LIST, "authentication-factor-input-list"}
-    ,
     {PROP_AUTHENTICATION_FACTORS, "authentication-factors"}
     ,
     {PROP_AUTHENTICATION_POLICY_LIST, "authentication-policy-list"}
     ,
     {PROP_AUTHENTICATION_POLICY_NAMES, "authentication-policy-names"}
+    ,
+    {PROP_AUTHORIZATION_STATUS, "authentication-status"}
     ,
     {PROP_AUTHORIZATION_MODE, "authorization-mode"}
     ,
@@ -841,10 +840,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_FAILED_ATTEMPTS_TIME, "failed-attempts-time"}
     ,
-    {PROP_FORMAT_CLASS_SUPPORTED, "format-class-supported"}
-    ,
-    {PROP_FORMAT_TYPE, "format-type"}
-    ,
     {PROP_LAST_ACCESS_EVENT, "last-access-event"}
     ,
     {PROP_LAST_ACCESS_POINT, "last-access-point"}
@@ -859,9 +854,9 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_LAST_USE_TIME, "last-use-time"}
     ,
-    {PROP_LOCKDOWN, "lockdown"}
+    {PROP_LOCKOUT, "lockout"}
     ,
-    {PROP_LOCKDOWN_RELINQUISH_TIME, "lockdown-relinquish-time"}
+    {PROP_LOCKOUT_RELINQUISH_TIME, "lockout-relinquish-time"}
     ,
     {PROP_MASTER_EXEMPTION, "master-exemption"}
     ,
@@ -869,21 +864,25 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_MEMBERS, "members"}
     ,
-    {PROP_MASTER_POINT, "muster-point"}
+    {PROP_MUSTER_POINT, "muster-point"}
+    ,
+    {PROP_NEGATIVE_ACCESS_RULES, "negative-access-rules"}
     ,
     {PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
         "number-of-authentication-policies"}
     ,
     {PROP_OCCUPANCY_COUNT, "occupancy-count"}
     ,
+    {PROP_OCCUPANCY_COUNT_ADJUST, "occupancy-count-adjust"}
+    ,
     {PROP_OCCUPANCY_COUNT_ENABLE, "occupancy-count-enable"}
     ,
     {PROP_OCCUPANCY_COUNT_EXEMPTION, "occupancy-count-exemption"}
     ,
-    {PROP_OCCUPANCY_LOWER_THRESHOLD, "occupancy-lower-threshold"}
+    {PROP_OCCUPANCY_LOWER_LIMIT, "occupancy-lower-limit"}
     ,
-    {PROP_OCCUPANCY_LOWER_THRESHOLD_ENFORCED,
-        "occupancy-lower-threshold-enforced"}
+    {PROP_OCCUPANCY_LOWER_LIMIT_ENFORCED,
+        "occupancy-lower-limit-enforced"}
     ,
     {PROP_OCCUPANCY_STATE, "occupancy-state"}
     ,
@@ -895,13 +894,17 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_PASSBACK_MODE, "passback-mode"}
     ,
+    PROP_USER_INFORMATION_REFERENCE = 311,
+
     {PROP_PASSBACK_TIMEOUT, "passback-timeout"}
     ,
     {PROP_POSITIVE_ACCESS_RULES, "positive-access-rules"}
     ,
-    {PROP_READ_STATUS, "read-status"}
-    ,
     {PROP_REASON_FOR_DISABLE, "reason-for-disable"}
+    ,
+    {PROP_SUPPORTED_FORMATS, "supported-formats"}
+    ,
+    {PROP_SUPPORTED_FORMAT_CLASSES, "supported-format-classes"}
     ,
     {PROP_THREAT_AUTHORITY, "threat-authority"}
     ,
@@ -913,6 +916,9 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_USER_EXTERNAL_IDENTIFIER, "user-external-identifier"}
     ,
+    {PROP_USER_INFORMATION_REFERENCE, "user-information-reference"}
+    ,
+    /* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
     {PROP_CHARACTER_SET, "character-set"}
     ,
     {PROP_STRICT_CHARACTER_MODE, "strict-character-mode"}
@@ -941,6 +947,9 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_BINARY_INACTIVE_VALUE, "binary-inactive-value"}
     ,
+    /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
+	{PROP_VERIFICATION-TIME, "verification-time"}
+	,
     {PROP_BIT_MASK, "bit-mask"}
     ,
     {PROP_BIT_TEXT, "bit-text"}
