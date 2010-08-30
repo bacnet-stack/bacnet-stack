@@ -185,4 +185,6 @@ int main(
     }
 }
 
-                              /* @} *//* End group ServerDemo */
+/* @} */
+
+/* End group ServerDemo */

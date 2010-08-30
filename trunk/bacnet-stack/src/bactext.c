@@ -792,7 +792,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_ACCESS_EVENT_TIME, "access-event-time"}
     ,
-    {PROP_ACCESS_TRANSACTION_EVENTS, "access-transaction–events"}
+    {PROP_ACCESS_TRANSACTION_EVENTS, "access-transaction-events"}
     ,
     {PROP_ACCOMPANIMENT, "accompaniment"}
     ,
@@ -877,7 +877,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_OCCUPANCY_COUNT_ENABLE, "occupancy-count-enable"}
     ,
-    {PROP_OCCUPANCY_COUNT_EXEMPTION, "occupancy-count-exemption"}
+    {PROP_OCCUPANCY_EXEMPTION, "occupancy-exemption"}
     ,
     {PROP_OCCUPANCY_LOWER_LIMIT, "occupancy-lower-limit"}
     ,
@@ -894,8 +894,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_PASSBACK_MODE, "passback-mode"}
     ,
-    PROP_USER_INFORMATION_REFERENCE = 311,
-
     {PROP_PASSBACK_TIMEOUT, "passback-timeout"}
     ,
     {PROP_POSITIVE_ACCESS_RULES, "positive-access-rules"}
@@ -937,8 +935,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_USES_REMAINING, "uses-remaining"}
     ,
-    {PROP_VENDOR_FORMAT_IDENTIFIER, "vendor-format-identifier"}
-    ,
     {PROP_ZONE_FROM, "zone-from"}
     ,
     {PROP_ZONE_TO, "zone-to"}
@@ -948,7 +944,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_BINARY_INACTIVE_VALUE, "binary-inactive-value"}
     ,
     /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
-	{PROP_VERIFICATION-TIME, "verification-time"}
+	{PROP_VERIFICATION_TIME, "verification-time"}
 	,
     {PROP_BIT_MASK, "bit-mask"}
     ,
