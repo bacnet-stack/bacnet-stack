@@ -82,16 +82,16 @@ void test_task(
         /* echo the character */
         serial_byte_send(data_register);
         if (data_register == '0') {
-            Binary_Output_Present_Value_Set(0, 0, BINARY_INACTIVE);
-            Binary_Output_Present_Value_Set(1, 0, BINARY_INACTIVE);
+            Binary_Output_Present_Value_Set(0, BINARY_INACTIVE, 0);
+            Binary_Output_Present_Value_Set(1, BINARY_INACTIVE, 0);
         }
         if (data_register == '1') {
-            Binary_Output_Present_Value_Set(0, 0, BINARY_ACTIVE);
-            Binary_Output_Present_Value_Set(1, 0, BINARY_ACTIVE);
+            Binary_Output_Present_Value_Set(0, BINARY_ACTIVE, 0);
+            Binary_Output_Present_Value_Set(1, BINARY_ACTIVE, 0);
         }
         if (data_register == '2') {
-            Binary_Output_Present_Value_Set(0, 0, BINARY_NULL);
-            Binary_Output_Present_Value_Set(1, 0, BINARY_NULL);
+            Binary_Output_Present_Value_Set(0, BINARY_NULL, 0);
+            Binary_Output_Present_Value_Set(1, BINARY_NULL, 0);
         }
         serial_byte_send('\r');
         serial_byte_send('\n');

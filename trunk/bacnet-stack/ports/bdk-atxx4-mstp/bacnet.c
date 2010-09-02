@@ -32,6 +32,7 @@
 #include "rs485.h"
 #include "input.h"
 #include "adc.h"
+#include "led.h"
 /* BACnet Stack includes */
 #include "datalink.h"
 #include "npdu.h"
@@ -143,6 +144,16 @@ void bacnet_task(
             binary_value = BINARY_ACTIVE;
         }
         Binary_Input_Present_Value_Set(i, binary_value);
+    }
+    if (Binary_Output_Present_Value(0) == BINARY_ACTIVE) {
+        led_on(LED_3);
+    } else {
+        led_off(LED_3);
+    }
+    if (Binary_Output_Present_Value(1) == BINARY_ACTIVE) {
+        led_on(LED_4);
+    } else {
+        led_off(LED_4);
     }
     /* handle the communication timer */
     if (timer_interval_expired(&DCC_Timer)) {
