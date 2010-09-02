@@ -202,6 +202,7 @@ int rpm_ack_decode_service_request(
 void rpm_ack_print_data(
     BACNET_READ_ACCESS_DATA * rpm_data)
 {
+    BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
     BACNET_PROPERTY_REFERENCE *listOfProperties;
     BACNET_APPLICATION_DATA_VALUE *value;
     bool array_value = false;
@@ -240,9 +241,18 @@ void rpm_ack_print_data(
                     array_value = false;
                 }
 #endif
+                object_value.object_type =
+                    rpm_data->object_type;
+                object_value.object_instance =
+                    rpm_data->object_instance;
                 while (value) {
-                    bacapp_print_value(stdout, value,
-                        listOfProperties->propertyIdentifier);
+                    object_value.object_property =
+                        listOfProperties->propertyIdentifier;
+                    object_value.array_index =
+                        listOfProperties->propertyArrayIndex;
+                    object_value.value =
+                        listOfProperties->value;
+                    bacapp_print_value(stdout, &object_value);
 #if PRINT_ENABLED
                     if (value->next) {
                         fprintf(stdout, ",\r\n        ");

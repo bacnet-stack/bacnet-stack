@@ -117,6 +117,16 @@ typedef struct BACnet_Property_Value {
     struct BACnet_Property_Value *next;
 } BACNET_PROPERTY_VALUE;
 
+/* used for printing values */
+struct BACnet_Object_Property_Value;
+typedef struct BACnet_Object_Property_Value {
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_PROPERTY_ID object_property;
+    int32_t array_index;
+    BACNET_APPLICATION_DATA_VALUE *value;
+} BACNET_OBJECT_PROPERTY_VALUE;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -191,12 +201,11 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * value);
     bool bacapp_print_value(
         FILE * stream,
-        BACNET_APPLICATION_DATA_VALUE * value,
-        BACNET_PROPERTY_ID property);
+        BACNET_OBJECT_PROPERTY_VALUE * value);
 #else
 /* Provide harmless return values */
 #define bacapp_parse_application_data(x,y,z)   false
-#define bacapp_print_value(x,y,z) 			   false
+#define bacapp_print_value(x,y) 			   false
 #endif
 
 #ifdef TEST

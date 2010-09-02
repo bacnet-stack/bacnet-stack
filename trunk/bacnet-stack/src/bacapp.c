@@ -820,15 +820,20 @@ int bacapp_data_len(
 #ifdef BACAPP_PRINT_ENABLED
 bool bacapp_print_value(
     FILE * stream,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    BACNET_PROPERTY_ID property)
+    BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     bool status = true; /*return value */
     size_t len = 0, i = 0;
     char *char_str;
     uint8_t *octet_str;
+    BACNET_APPLICATION_DATA_VALUE *value;
+    BACNET_PROPERTY_ID property = PROP_ALL;
+    BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
 
-    if (value) {
+    if (object_value && object_value->value) {
+        value = object_value->value;
+        property = object_value->object_property;
+        object_type = object_value->object_type;
         switch (value->tag) {
             case BACNET_APPLICATION_TAG_NULL:
                 fprintf(stream, "Null");
@@ -921,9 +926,14 @@ bool bacapp_print_value(
                                 Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
-                        fprintf(stream, "%s",
-                            bactext_binary_present_value_name(value->type.
-                                Enumerated));
+                        if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
+                            fprintf(stream, "%s",
+                                bactext_binary_present_value_name(
+                                    value->type.Enumerated));
+                        } else {
+                            fprintf(stream, "%lu",
+                                (unsigned long) value->type.Enumerated);
+                        }
                         break;
                     case PROP_RELIABILITY:
                         fprintf(stream, "%s",
