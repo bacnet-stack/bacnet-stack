@@ -49,6 +49,7 @@
 void rp_ack_print_data(
     BACNET_READ_PROPERTY_DATA * data)
 {
+    BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
     BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
     int len = 0;
     uint8_t *application_data;
@@ -72,7 +73,12 @@ void rp_ack_print_data(
 #endif
                 print_brace = true;
             }
-            bacapp_print_value(stdout, &value, data->object_property);
+            object_value.object_type = data->object_type;
+            object_value.object_instance = data->object_instance;
+            object_value.object_property = data->object_property;
+            object_value.array_index = data->array_index;
+            object_value.value = &value;
+            bacapp_print_value(stdout, &object_value);
             if (len) {
                 if (len < application_data_len) {
                     application_data += len;

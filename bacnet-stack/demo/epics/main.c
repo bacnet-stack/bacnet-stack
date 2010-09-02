@@ -304,12 +304,15 @@ static void Init_Service_Handlers(
 
 bool PrettyPrintPropertyValue(
     FILE * stream,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    BACNET_PROPERTY_ID property)
+    BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
+    BACNET_APPLICATION_DATA_VALUE * value = NULL;
     bool status = true; /*return value */
     size_t len = 0, i = 0, j = 0;
+    BACNET_PROPERTY_ID property = PROP_ALL;
 
+    value = object_value->value;
+    property = object_value->object_property;
     if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) &&
         ((property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) ||
             (property == PROP_PROTOCOL_SERVICES_SUPPORTED))) {
@@ -359,7 +362,7 @@ bool PrettyPrintPropertyValue(
     } else if (value != NULL) {
         assert(false);  /* How did I get here?  Fix your code. */
         /* Meanwhile, a fallback plan */
-        status = bacapp_print_value(stdout, value, property);
+        status = bacapp_print_value(stdout, object_value);
     } else
         fprintf(stream, "? \r\n");
 
@@ -376,8 +379,11 @@ bool PrettyPrintPropertyValue(
  *                          Value, and Error information.
  */
 void PrintReadPropertyData(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
     BACNET_PROPERTY_REFERENCE * rpm_property)
 {
+    BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     bool print_brace = false;
     KEY object_list_element;
@@ -395,6 +401,8 @@ void PrintReadPropertyData(
             bactext_error_code_name((int) rpm_property->error.error_code));
         return;
     }
+    object_value.object_type = object_type;
+    object_value.object_instance = object_instance;
     if ((value != NULL) && (value->next != NULL)) {
         /* Then this is an array of values.
          * But are we showing Values?  We (VTS3) want ? instead of {?,?} to show up. */
@@ -425,6 +433,9 @@ void PrintReadPropertyData(
         Walked_List_Index = Walked_List_Length = 0;     /* In case we need this. */
     /* value(s) loop until there is no "next" ... */
     while (value != NULL) {
+        object_value.object_property = rpm_property->propertyIdentifier;
+        object_value.array_index = rpm_property->propertyArrayIndex;
+        object_value.value = value;
         switch (rpm_property->propertyIdentifier) {
                 /* These are all arrays, so they open and close with braces */
             case PROP_OBJECT_LIST:
@@ -500,8 +511,7 @@ void PrintReadPropertyData(
                 /* If the object is a Sequence, it needs its own bracketing braces */
                 if (isSequence)
                     fprintf(stdout, "{");
-                bacapp_print_value(stdout, value,
-                    rpm_property->propertyIdentifier);
+                bacapp_print_value(stdout, &object_value);
                 if (isSequence)
                     fprintf(stdout, "}");
 
@@ -518,8 +528,7 @@ void PrintReadPropertyData(
 
             case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
             case PROP_PROTOCOL_SERVICES_SUPPORTED:
-                PrettyPrintPropertyValue(stdout, value,
-                    rpm_property->propertyIdentifier);
+                PrettyPrintPropertyValue(stdout, &object_value);
                 break;
 
             /* Our special non-existent case; do nothing further here. */
@@ -552,8 +561,7 @@ void PrintReadPropertyData(
                         }
                         /* Else, fall through and print value: */
                     default:
-                        bacapp_print_value(stdout, value,
-                            rpm_property->propertyIdentifier);
+                        bacapp_print_value(stdout, &object_value);
                         break;
                 }
                 if (value->next != NULL) {
@@ -722,7 +730,10 @@ EPICS_STATES ProcessRPMData(
                 fprintf(stdout, "    ");
                 Print_Property_Identifier(rpm_property->propertyIdentifier);
                 fprintf(stdout, ": ");
-                PrintReadPropertyData(rpm_property);
+                PrintReadPropertyData(
+                    rpm_data->object_type,
+                    rpm_data->object_instance,
+                    rpm_property);
             }
             old_rpm_property = rpm_property;
             rpm_property = rpm_property->next;
@@ -1097,9 +1108,10 @@ int main(
                     (invoke_id ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData
-                        (Read_Property_Multiple_Data.rpm_data->
-                        listOfProperties);
+                    PrintReadPropertyData(
+                        Read_Property_Multiple_Data.rpm_data->object_type,
+                        Read_Property_Multiple_Data.rpm_data->object_instance,
+                        Read_Property_Multiple_Data.rpm_data->listOfProperties);
                     if (tsm_invoke_id_free(invoke_id)) {
                         invoke_id = 0;
                     } else {
