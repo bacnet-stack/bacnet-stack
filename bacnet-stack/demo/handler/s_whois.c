@@ -123,6 +123,8 @@ void Send_WhoIs_Local(
     int32_t high_limit)
 {
     BACNET_ADDRESS dest;
+    char temp[6];
+    int loop;
 
     if (!dcc_communication_enabled())
         return;
@@ -136,7 +138,6 @@ void Send_WhoIs_Local(
 
     /* Not sure why this happens but values are backwards so they need to be reversed */
 
-    char temp[6];
     temp[0] = dest.mac[3];
     temp[1] = dest.mac[2];
     temp[2] = dest.mac[1];
@@ -144,7 +145,6 @@ void Send_WhoIs_Local(
     temp[4] = dest.mac[5];
     temp[5] = dest.mac[4];
 
-    int loop;
 
     for (loop = 0; loop < 6; loop++) {
         dest.mac[loop] = temp[loop];
