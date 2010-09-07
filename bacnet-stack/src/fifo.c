@@ -52,7 +52,15 @@
 unsigned FIFO_Count(
     FIFO_BUFFER const *b)
 {
-    return (b ? (b->head - b->tail) : 0);
+    unsigned head, tail; /* used to avoid volatile decision */
+
+    if (b) {
+        head = b->head;
+        tail = b->tail;
+        return head-tail;
+    } else {
+        return 0;
+    }
 }
 
 /****************************************************************************
