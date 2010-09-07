@@ -56,6 +56,8 @@
 
 /* counter for the the timer which wraps every 49.7 days */
 static volatile uint32_t Millisecond_Counter;
+/* forward prototype */
+ISR(TIMER2_OVF_vect);
 
 /*************************************************************************
 * Description: Timer Interrupt Service Routine - Timer Overflowed!

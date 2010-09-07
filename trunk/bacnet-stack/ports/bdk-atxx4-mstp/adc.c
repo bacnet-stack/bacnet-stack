@@ -49,6 +49,8 @@
 
 /* we could have array of ADC results */
 static volatile uint8_t Sample_Result;
+/* forward prototype */
+ISR(ADC_vect);
 
 ISR(ADC_vect)
 {

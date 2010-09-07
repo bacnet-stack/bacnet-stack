@@ -97,16 +97,12 @@ bool led_state(
     switch (index) {
         case LED_1:
             return (BIT_CHECK(PIND, PD7));
-            break;
         case LED_2:
             return (BIT_CHECK(PIND, PD6));
-            break;
         case LED_3:
             return (BIT_CHECK(PINC, PC7));
-            break;
         case LED_4:
             return (BIT_CHECK(PINC, PC6));
-            break;
         default:
             break;
     }

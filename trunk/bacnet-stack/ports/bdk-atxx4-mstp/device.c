@@ -389,6 +389,12 @@ bool Device_Reinitialize(
     return status;
 }
 
+BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
+    void)
+{
+    return Reinitialize_State;
+}
+
 void Device_Init(
     void)
 {
@@ -579,7 +585,7 @@ char *Device_Valid_Object_Id(
     char *name = NULL;  /* return value */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
     if ((pObject) && (pObject->Object_Name)) {
         name = pObject->Object_Name(object_instance);
     }
@@ -656,7 +662,7 @@ int Device_Read_Property_Local(
             for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
                 /* automatic lookup based on handlers set */
                 bitstring_set_bit(&bit_string, (uint8_t) i,
-                    apdu_service_supported(i));
+                    apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -902,6 +908,8 @@ bool Device_Write_Property_Local(
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
+    /* not using len at this time */
+    len = len;
 
     return status;
 }

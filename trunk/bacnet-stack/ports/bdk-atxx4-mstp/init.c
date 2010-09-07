@@ -23,6 +23,7 @@
 *
 *********************************************************************/
 #include "hardware.h"
+#include "watchdog.h"
 /* me */
 #include "init.h"
 
@@ -61,8 +62,8 @@ void init(
     PORTD = 0;
     /* Configure the watchdog timer - Disabled for debugging */
 #ifdef NDEBUG
-    wdt_enable(WDTO_2S);
+    watchdog_init(WDTO_2S);
 #else
-    wdt_disable();
+    watchdog_init(0);
 #endif
 }

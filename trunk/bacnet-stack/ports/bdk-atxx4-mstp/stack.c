@@ -26,6 +26,30 @@
 /* me */
 #include "stack.h"
 
+#if defined(__ICCAVR__)
+void stack_init(
+    void)
+{
+
+}
+unsigned stack_size(
+    void)
+{
+    return 0;
+}
+
+uint8_t stack_byte(
+    unsigned offset)
+{
+    return 0;
+}
+
+unsigned stack_unused(
+    void)
+{
+    return 0;
+}
+#else
 /* stack checking */
 extern uint8_t _end;
 extern uint8_t __stack;
@@ -80,3 +104,4 @@ unsigned stack_unused(
     }
     return count;
 }
+#endif

@@ -234,8 +234,6 @@ typedef struct {
 
 /* watchdog */
 #if defined(__ICCAVR__)
-#include <intrinsics.h>
-#define watchdog_reset __watchdog_reset
 #define WDTO_15MS   0
 #define WDTO_30MS   1
 #define WDTO_60MS   2

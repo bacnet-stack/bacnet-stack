@@ -28,11 +28,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#if defined(__GNUC__) && (__GNUC__ > 4) && (__GNUC_MINOR__ > 2)
-#include <math.h>       /* for NAN */
-#else
-#define NAN __builtin_nan("")
-#endif
 
 #include "bacdef.h"
 #include "bacdcode.h"
@@ -42,6 +37,7 @@
 #include "wp.h"
 #include "av.h"
 #include "handlers.h"
+#include "hardware.h"
 
 #ifndef MAX_ANALOG_VALUES
 #define MAX_ANALOG_VALUES 2
@@ -141,7 +137,7 @@ unsigned Analog_Value_Instance_To_Index(
 float Analog_Value_Present_Value(
     uint32_t object_instance)
 {
-    float value = NAN;
+    float value = 0;
     unsigned index = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
@@ -328,8 +324,8 @@ bool Analog_Value_Write_Property(
     unsigned int object_index = 0;
     unsigned int priority = 0;
 #endif
-    int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    int len = 0;
 
     /* decode the some of the request */
     len =
@@ -358,16 +354,6 @@ bool Analog_Value_Write_Property(
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
                 }
-#if 0
-            } else if (value.tag == BACNET_APPLICATION_TAG_NULL) {
-                if (Analog_Value_Present_Value_Set(wp_data->object_instance,
-                        NAN, wp_data->priority)) {
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-#endif
             }
             break;
 #if 0
@@ -387,6 +373,8 @@ bool Analog_Value_Write_Property(
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
+    /* not using len at this time */
+    len = len;
 
     return status;
 }

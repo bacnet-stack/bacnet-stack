@@ -138,9 +138,9 @@ static BACNET_BINARY_PV Present_Value(
 
     if (index < MAX_BINARY_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            current_value = Binary_Output_Level[index][i];
+            current_value = (BACNET_BINARY_PV)Binary_Output_Level[index][i];
             if (current_value != BINARY_NULL) {
-                value = Binary_Output_Level[index][i];
+                value = (BACNET_BINARY_PV)Binary_Output_Level[index][i];
                 break;
             }
         }
@@ -321,7 +321,8 @@ int Binary_Output_Read_Property(
                     Binary_Output_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
-                    present_value = Binary_Output_Level[object_index][i];
+                    present_value = (BACNET_BINARY_PV)
+                        Binary_Output_Level[object_index][i];
                     if (present_value == BINARY_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
                     } else {
@@ -343,7 +344,7 @@ int Binary_Output_Read_Property(
                 object_index =
                     Binary_Output_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    present_value =
+                    present_value = (BACNET_BINARY_PV)
                         Binary_Output_Level[object_index][rpdata->array_index -
                         1];
                     if (present_value == BINARY_NULL) {
@@ -479,7 +480,7 @@ bool Binary_Output_Write_Property(
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
                     Binary_Output_Polarity_Set(wp_data->object_instance,
-                        value.type.Enumerated);
+                        (BACNET_POLARITY)value.type.Enumerated);
                     Binary_Output_Level_Sync(wp_data->object_instance);
                 } else {
                     status = false;
@@ -493,6 +494,8 @@ bool Binary_Output_Write_Property(
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
+    /* not using len at this time */
+    len = len;
 
     return status;
 }
