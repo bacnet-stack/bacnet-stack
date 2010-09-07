@@ -61,6 +61,7 @@ CSRC = main.c \
 	led.c \
 	eeprom.c \
 	seeprom.c \
+	watchdog.c \
 	dlmstp.c \
 	test.c \
 	bacnet.c \
