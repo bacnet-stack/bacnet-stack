@@ -184,10 +184,13 @@ void handler_device_communication_control(
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
+    if (bytes_sent <= 0) {
         fprintf(stderr,
             "DeviceCommunicationControl: " "Failed to send PDU (%s)!\n",
             strerror(errno));
+    }
+#else
+    bytes_sent = bytes_sent;
 #endif
 
     return;
