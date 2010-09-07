@@ -38,9 +38,10 @@
 #include "serial.h"
 #include "bacnet.h"
 #include "test.h"
+#include "watchdog.h"
 
 /* local version override */
-const char *BACnet_Version = "1.0";
+char *BACnet_Version = "1.0";
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
@@ -61,7 +62,7 @@ int main(
     /* Enable global interrupts */
     __enable_interrupt();
     for (;;) {
-        wdt_reset();
+        watchdog_reset();
         input_task();
         bacnet_task();
         led_task();
