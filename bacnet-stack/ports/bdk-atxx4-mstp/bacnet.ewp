@@ -1008,12 +1008,12 @@
         <debug>0</debug>
         <option>
           <name>GGEnhancedCore</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>Variant Memory</name>
           <version>0</version>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ExePath</name>
@@ -1046,7 +1046,7 @@
         </option>
         <option>
           <name>LCEnableBitDefs</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>LCHeapSize</name>
@@ -1054,7 +1054,7 @@
         </option>
         <option>
           <name>SCCStackSize</name>
-          <state>0x20</state>
+          <state>0x200</state>
         </option>
         <option>
           <name>SCExtCStack</name>
@@ -1062,7 +1062,7 @@
         </option>
         <option>
           <name>SCRStackSize</name>
-          <state>16</state>
+          <state>32</state>
         </option>
         <option>
           <name>SCExtRStack</name>
@@ -1110,42 +1110,46 @@
         </option>
         <option>
           <name>GGEepromUtil</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GGEepromUtilSize</name>
-          <state>0</state>
+          <state>2048</state>
         </option>
         <option>
           <name>New Variant Processor</name>
           <version>30</version>
-          <state>0</state>
+          <state>103</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
           <version>0</version>
-          <state>4</state>
+          <state>1</state>
         </option>
         <option>
           <name>RTDescription</name>
-          <state></state>
+          <state>Use the normal configuration of the C/EC++</state>
+          <state>runtime library. No locale interface,</state>
+          <state>C locale, no file descriptor support,</state>
+          <state>no multibytes in printf and scanf, and</state>
+          <state>no hex floats in strtod.</state>
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state></state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state></state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.r90</state>
         </option>
         <option>
           <name>Input variant</name>
           <version>0</version>
-          <state>2</state>
+          <state>0</state>
         </option>
         <option>
           <name>Input description</name>
-          <state></state>
+          <state>Full formatting.</state>
         </option>
         <option>
           <name>Output variant</name>
@@ -1154,12 +1158,12 @@
         </option>
         <option>
           <name>Output description</name>
-          <state></state>
+          <state> specifier a or A, no specifier n, no float or long long.</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
           <version>0</version>
-          <state>4</state>
+          <state>1</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -1235,6 +1239,17 @@
         <option>
           <name>CCDefines</name>
           <state>NDEBUG</state>
+          <state>BACDL_MSTP</state>
+          <state>MAX_APDU=256</state>
+          <state>BIG_ENDIAN=0</state>
+          <state>MAX_TSM_TRANSACTIONS=0</state>
+          <state>BACAPP_BOOLEAN</state>
+          <state>BACAPP_REAL</state>
+          <state>BACAPP_OBJECT_ID</state>
+          <state>BACAPP_UNSIGNED</state>
+          <state>BACAPP_ENUMERATED</state>
+          <state>BACAPP_CHARACTER_STRING</state>
+          <state>WRITE_PROPERTY</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1390,7 +1405,7 @@
         </option>
         <option>
           <name>CCRequirePrototypes</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCCompilerRuntimeInfo</name>
@@ -1398,7 +1413,8 @@
         </option>
         <option>
           <name>newCCIncludePaths</name>
-          <state></state>
+          <state>$PROJ_DIR$</state>
+          <state>$PROJ_DIR$\..\..\include</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1406,7 +1422,8 @@
         </option>
         <option>
           <name>CCStdIncludePaths</name>
-          <state>###Uninitialized###</state>
+          <state>$TOOLKIT_DIR$\INC\</state>
+          <state>$TOOLKIT_DIR$\INC\DLIB\</state>
         </option>
         <option>
           <name>CCEepromSize</name>
@@ -1427,7 +1444,7 @@
         </option>
         <option>
           <name>CCOutputFile</name>
-          <state></state>
+          <state>$FILE_BNAME$.r90</state>
         </option>
         <option>
           <name>CCLangSelect</name>
@@ -1689,7 +1706,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state></state>
+          <state>bacnet.a90</state>
         </option>
         <option>
           <name>OutputFormat</name>
