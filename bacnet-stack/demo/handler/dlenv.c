@@ -122,14 +122,26 @@ void dlenv_maintenance_timer(
  * - BACDL_ALL: (the general-purpose solution)
  *   - BACNET_DATALINK to set which BACDL_ type we are using.
  * - (Any):
- *   - BACNET_APDU_TIMEOUT
- *   - BACNET_IFACE
+ *   - BACNET_APDU_TIMEOUT - set this value in milliseconds to change
+ *     the APDU timeout.  APDU Timeout is how much time a client
+ *     waits for a response from a BACnet device.
+ *   - BACNET_IFACE - set this value to dotted IP address (Windows) of
+ *     the interface (see ipconfig command on Windows) for which you
+ *     want to bind.  On Linux, set this to the /dev interface
+ *     (i.e. eth0, arc0).  Default is eth0 on Linux, and the default
+ *     interface on Windows.  Hence, if there is only a single network
+ *     interface on Windows, the applications will choose it, and this
+ *     setting will not be needed.
  * - BACDL_BIP: (BACnet/IP)
- *   - BACNET_IP_PORT
+ *   - BACNET_IP_PORT - UDP/IP port number (0..65534) used for BACnet/IP
+ *     communications.  Default is 47808 (0xBAC0).
  *   - with BBMD_ENABLED also:
- *     - BACNET_BBMD_PORT
- *     - BACNET_BBMD_TIMETOLIVE
- *     - BACNET_BBMD_ADDRESS
+ *     - BACNET_BBMD_PORT - UDP/IP port number (0..65534) used for Foreign
+ *       Device Registration.  Defaults to 47808 (0xBAC0).
+ *     - BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device
+ *       Registration (0..65535). Defaults to 60000 seconds.
+ *     - BACNET_BBMD_ADDRESS - dotted IPv4 address of the BBMD or Foreign
+ *       Device Registrar.
  * - BACDL_MSTP: (BACnet MS/TP)
  *   - BACNET_MAX_INFO_FRAMES
  *   - BACNET_MAX_MASTER
