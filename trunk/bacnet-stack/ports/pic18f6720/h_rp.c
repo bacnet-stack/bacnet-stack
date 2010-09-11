@@ -183,7 +183,7 @@ void handler_read_property(
             break;
     }
     if (error) {
-        if (len == -2) {
+        if (len == BACNET_STATUS_ABORT) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
             len =
                 abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],

@@ -286,9 +286,9 @@ int Device_Encode_Property_APDU(
                     /* assume next one is the same size as this one */
                     /* can we all fit into the APDU? */
                     if ((apdu_len + len) >= MAX_APDU) {
-                        *error_class = ERROR_CLASS_SERVICES;
-                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = -1;
+                        *error_code = 
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
@@ -301,7 +301,7 @@ int Device_Encode_Property_APDU(
                 else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = -1;
+                    apdu_len = BACNET_STATUS_ERROR;
                 }
             }
             break;
@@ -335,7 +335,7 @@ int Device_Encode_Property_APDU(
         (array_index != BACNET_ARRAY_ALL)) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = -1;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

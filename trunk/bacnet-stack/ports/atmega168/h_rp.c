@@ -141,7 +141,7 @@ void handler_read_property(
     } else {
         switch (property_len) {
                 /* BACnet APDU too small to fit data, so proper response is Abort */
-            case -2:
+            case BACNET_STATUS_ABORT:
                 len =
                     abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
