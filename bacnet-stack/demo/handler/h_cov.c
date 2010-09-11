@@ -35,6 +35,7 @@
 #include "apdu.h"
 #include "npdu.h"
 #include "abort.h"
+#include "reject.h"
 #include "cov.h"
 #include "tsm.h"
 /* demo objects */
@@ -507,28 +508,29 @@ void handler_cov_subscribe(
     BACNET_SUBSCRIBE_COV_DATA cov_data;
     int len = 0;
     int pdu_len = 0;
+    int npdu_len = 0;
+    int apdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool success = false;
     int bytes_sent = 0;
-    BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
+    bool error = false;
 
+    /* initialize a common abort code */
+    cov_data.error_code = ABORT_REASON_SEGMENTATION_NOT_SUPPORTED;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len =
+    npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
         &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
         fprintf(stderr, "SubscribeCOV: Segmented message.  Sending Abort!\n");
 #endif
+        error = true;
         goto COV_ABORT;
     }
     len =
@@ -539,34 +541,56 @@ void handler_cov_subscribe(
         fprintf(stderr, "SubscribeCOV: Unable to decode Request!\n");
 #endif
     if (len < 0) {
-        /* bad decoding - send an abort */
-        len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "SubscribeCOV: Bad decoding.  Sending Abort!\n");
-#endif
+        error = true;
         goto COV_ABORT;
     }
-    success = cov_subscribe(src, &cov_data, &error_class, &error_code);
+    cov_data.error_class = ERROR_CLASS_OBJECT;
+    cov_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    success = cov_subscribe(src, &cov_data, 
+        &cov_data.error_class, &cov_data.error_code);
     if (success) {
-        len =
-            encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+        apdu_len =
+            encode_simple_ack(&Handler_Transmit_Buffer[npdu_len],
             service_data->invoke_id, SERVICE_CONFIRMED_SUBSCRIBE_COV);
 #if PRINT_ENABLED
         fprintf(stderr, "SubscribeCOV: Sending Simple Ack!\n");
 #endif
     } else {
-        len =
-            bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_SUBSCRIBE_COV,
-            error_class, error_code);
+        len = BACNET_STATUS_ERROR;
+        error = true;
 #if PRINT_ENABLED
         fprintf(stderr, "SubscribeCOV: Sending Error!\n");
 #endif
     }
   COV_ABORT:
-    pdu_len += len;
+    if (error) {
+        if (len == BACNET_STATUS_ABORT) {
+            apdu_len =
+                abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
+                abort_convert_error_code(cov_data.error_code), true);
+#if PRINT_ENABLED
+            fprintf(stderr, "SubscribeCOV: Sending Abort!\n");
+#endif
+        } else if (len == BACNET_STATUS_ERROR) {
+            apdu_len =
+                bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id, SERVICE_CONFIRMED_SUBSCRIBE_COV,
+                cov_data.error_class, cov_data.error_code);
+#if PRINT_ENABLED
+            fprintf(stderr, "SubscribeCOV: Sending Error!\n");
+#endif
+        } else if (len == BACNET_STATUS_REJECT) {
+            apdu_len =
+                reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
+                reject_convert_error_code(cov_data.error_code));
+#if PRINT_ENABLED
+            fprintf(stderr, "SubscribeCOV: Sending Reject!\n");
+#endif
+        }
+    }
+    pdu_len = npdu_len + apdu_len;
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
@@ -574,6 +598,8 @@ void handler_cov_subscribe(
     if (bytes_sent <= 0)
         fprintf(stderr, "SubscribeCOV: Failed to send PDU (%s)!\n",
             strerror(errno));
+#else
+    bytes_sent = bytes_sent;
 #endif
 
     return;
