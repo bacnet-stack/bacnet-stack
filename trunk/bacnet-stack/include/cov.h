@@ -56,6 +56,8 @@ typedef struct BACnet_Subscribe_COV_Data {
     BACNET_PROPERTY_REFERENCE monitoredProperty;
     bool covIncrementPresent;   /* true if present */
     float covIncrement; /* optional */
+    BACNET_ERROR_CLASS error_class;
+    BACNET_ERROR_CODE error_code;
 } BACNET_SUBSCRIBE_COV_DATA;
 
 #ifdef __cplusplus

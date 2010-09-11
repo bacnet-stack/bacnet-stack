@@ -381,8 +381,10 @@ int cov_subscribe_decode_service_request(
                 &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             data->subscriberProcessIdentifier = decoded_value;
-        } else
-            return -1;
+        } else {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
         /* tag 1 - monitoredObjectIdentifier */
         if (decode_is_context_tag(&apdu[len], 1)) {
             len +=
@@ -392,8 +394,10 @@ int cov_subscribe_decode_service_request(
                 decode_object_id(&apdu[len], &decoded_type,
                 &data->monitoredObjectIdentifier.instance);
             data->monitoredObjectIdentifier.type = decoded_type;
-        } else
-            return -1;
+        } else {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
         /* optional parameters - if missing, means cancellation */
         if ((unsigned) len < apdu_len) {
             /* tag 2 - issueConfirmedNotifications - optional */
@@ -415,8 +419,9 @@ int cov_subscribe_decode_service_request(
                     &len_value);
                 len += decode_unsigned(&apdu[len], len_value, &decoded_value);
                 data->lifetime = decoded_value;
-            } else
+            } else {
                 data->lifetime = 0;
+            }
         } else {
             data->cancellationRequest = true;
         }
@@ -528,8 +533,10 @@ int cov_subscribe_property_decode_service_request(
                 &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             data->subscriberProcessIdentifier = decoded_value;
-        } else
-            return -1;
+        } else {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
         /* tag 1 - monitoredObjectIdentifier */
         if (decode_is_context_tag(&apdu[len], 1)) {
             len +=
@@ -539,8 +546,10 @@ int cov_subscribe_property_decode_service_request(
                 decode_object_id(&apdu[len], &decoded_type,
                 &data->monitoredObjectIdentifier.instance);
             data->monitoredObjectIdentifier.type = decoded_type;
-        } else
-            return -2;
+        } else {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
         /* tag 2 - issueConfirmedNotifications - optional */
         if (decode_is_context_tag(&apdu[len], 2)) {
             data->cancellationRequest = false;
@@ -550,8 +559,9 @@ int cov_subscribe_property_decode_service_request(
             data->issueConfirmedNotifications =
                 decode_context_boolean(&apdu[len]);
             len++;
-        } else
+        } else {
             data->cancellationRequest = true;
+        }
         /* tag 3 - lifetime - optional */
         if (decode_is_context_tag(&apdu[len], 3)) {
             len +=
@@ -559,11 +569,14 @@ int cov_subscribe_property_decode_service_request(
                 &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             data->lifetime = decoded_value;
-        } else
+        } else {
             data->lifetime = 0;
+        }
         /* tag 4 - monitoredPropertyIdentifier */
-        if (!decode_is_opening_tag_number(&apdu[len], 4))
-            return -3;
+        if (!decode_is_opening_tag_number(&apdu[len], 4)) {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
         /* a tag number of 4 is not extended so only one octet */
         len++;
         /* the propertyIdentifier is tag 0 */
@@ -574,8 +587,10 @@ int cov_subscribe_property_decode_service_request(
             len += decode_enumerated(&apdu[len], len_value, &property);
             data->monitoredProperty.propertyIdentifier =
                 (BACNET_PROPERTY_ID) property;
-        } else
-            return -4;
+        } else {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
         /* the optional array index is tag 1 */
         if (decode_is_context_tag(&apdu[len], 1)) {
             len +=
@@ -587,8 +602,10 @@ int cov_subscribe_property_decode_service_request(
             data->monitoredProperty.propertyArrayIndex = BACNET_ARRAY_ALL;
         }
 
-        if (!decode_is_closing_tag_number(&apdu[len], 4))
-            return -5;
+        if (!decode_is_closing_tag_number(&apdu[len], 4)) {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
         /* a tag number of 4 is not extended so only one octet */
         len++;
         /* tag 5 - covIncrement - optional */
@@ -598,8 +615,9 @@ int cov_subscribe_property_decode_service_request(
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
             len += decode_real(&apdu[len], &data->covIncrement);
-        } else
+        } else {
             data->covIncrementPresent = false;
+        }
     }
 
     return len;
@@ -620,8 +638,9 @@ int ccov_notify_decode_apdu(
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -2;
