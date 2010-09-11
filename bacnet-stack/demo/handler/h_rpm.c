@@ -382,10 +382,9 @@ void handler_read_property_multiple(
 
     if (apdu_len > service_data->max_resp) {
         /* too big for the sender - send an abort */
-        apdu_len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        rpmdata.error_code =
+            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+        error = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
         fprintf(stderr, "RPM: Message too large.  Sending Abort!\n");
 #endif
@@ -395,13 +394,6 @@ void handler_read_property_multiple(
   RPM_FAILURE:
     if (error) {
         if (error == BACNET_STATUS_ABORT) {
-            /* Kludge alert! At the moment we assume any abort is due to
-             * to space issues due to segmentation or lack thereof. I wanted to show the proper
-             * handling via the abort_convert_error_code() so I put the error code
-             * in here, if you are sure all aborts properly set up the error_code then
-             * remove this next line
-             */
-            rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             apdu_len =
                 abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                 service_data->invoke_id,
