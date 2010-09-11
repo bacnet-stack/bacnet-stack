@@ -698,10 +698,10 @@ int Device_Read_Property_Local(
                         /* assume next one is the same size as this one */
                         /* can we all fit into the APDU? */
                         if ((apdu_len + len) >= MAX_APDU) {
-                            rpdata->error_class = ERROR_CLASS_SERVICES;
+                            /* Abort response */
                             rpdata->error_code =
-                                ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                            apdu_len = BACNET_STATUS_ERROR;
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
                     } else {
