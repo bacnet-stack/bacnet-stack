@@ -80,14 +80,16 @@ void handler_read_property(
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
 
+    /* configure default error code as an abort since it is common */
+    rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
         &npdu_data);
-    if (service_data->segmented_message) {      /* we don't support segmentation - send an abort */
-        rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+    if (service_data->segmented_message) {      
+        /* we don't support segmentation - send an abort */
         len = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
         fprintf(stderr, "RP: Segmented message.  Sending Abort!\n");
@@ -124,7 +126,6 @@ void handler_read_property(
         apdu_len += len;
         if (apdu_len > service_data->max_resp) {
             /* too big for the sender - send an abort */
-            rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             len = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Message too large.\n");
@@ -140,13 +141,6 @@ void handler_read_property(
   RP_FAILURE:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
-            /* Kludge alert! At the moment we assume any abort is due to
-             * to space issues due to segmentation or lack thereof. I wanted to show the proper
-             * handling via the abort_convert_error_code() so I put the error code
-             * in here, if you are sure all aborts properly set up the error_code then
-             * remove this next line
-             */
-            rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             apdu_len =
                 abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                 service_data->invoke_id,
