@@ -1,6 +1,6 @@
 #Makefile to build BACnet Application for the Linux Port
 
-# tools - only if you need them.  
+# tools - only if you need them.
 # Most platforms have this already defined
 # CC = gcc
 
@@ -37,7 +37,8 @@ OPTIMIZATION = -O0
 DEBUGGING = -g
 endif
 # put all the flags together
-CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES) -fdata-sections -ffunction-sections
+CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
+CFLAGS += -fdata-sections -ffunction-sections
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES),--gc-sections
 
 SRCS = main.c \

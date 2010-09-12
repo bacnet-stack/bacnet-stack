@@ -600,7 +600,6 @@ int main(
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
-    mstp_port->Lurking = true;
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
     atexit(cleanup);
@@ -623,15 +622,19 @@ int main(
             write_received_packet(mstp_port);
             mstp_port->ReceivedValidFrame = false;
             packet_count++;
+        } else if (mstp_port->ReceivedValidFrameNotForUs) {
+            write_received_packet(mstp_port);
+            mstp_port->ReceivedValidFrameNotForUs = false;
+            packet_count++;
         } else if (mstp_port->ReceivedInvalidFrame) {
-            fprintf(stderr, "ReceivedInvalidFrame\n");
             write_received_packet(mstp_port);
             Invalid_Frame_Count++;
             mstp_port->ReceivedInvalidFrame = false;
             packet_count++;
         }
         if (!(packet_count % 100)) {
-            fprintf(stdout, "\r%hu packets", packet_count);
+            fprintf(stdout, "\r%hu packets, %hu invalid frames",
+                packet_count, Invalid_Frame_Count);
         }
         if (packet_count >= 65535) {
             packet_statistics_save();

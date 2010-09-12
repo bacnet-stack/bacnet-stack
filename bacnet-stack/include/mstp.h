@@ -37,15 +37,19 @@ struct mstp_port_struct_t {
     MSTP_MASTER_STATE master_state;
     /* A Boolean flag set to TRUE by the Receive State Machine  */
     /* if an error is detected during the reception of a frame.  */
-    /* Set to FALSE by the main state machine. */
+    /* Set to FALSE by the Master or Slave Node state machine. */
     unsigned ReceiveError:1;
     /* There is data in the buffer */
     unsigned DataAvailable:1;
     unsigned ReceivedInvalidFrame:1;
     /* A Boolean flag set to TRUE by the Receive State Machine  */
     /* if a valid frame is received.  */
-    /* Set to FALSE by the main state machine. */
+    /* Set to FALSE by the Master or Slave Node state machine. */
     unsigned ReceivedValidFrame:1;
+    /* A Boolean flag set to TRUE by the Receive State Machine  */
+    /* if a valid frame is received but it is not addressed to us.  */
+    /* Set to FALSE by the Master or Slave Node state machine. */
+    unsigned ReceivedValidFrameNotForUs:1;
     /* A Boolean flag set to TRUE by the master machine if this node is the */
     /* only known master node. */
     unsigned SoleMaster:1;
@@ -76,7 +80,7 @@ struct mstp_port_struct_t {
     uint8_t HeaderCRCActual;
     /* Used as an index by the Receive State Machine, up to a maximum value of */
     /* InputBufferSize. */
-    uint16_t Index;
+    uint32_t Index;
     /* An array of octets, used to store octets as they are received. */
     /* InputBuffer is indexed from 0 to InputBufferSize-1. */
     /* The maximum size of a frame is 501 octets. */
@@ -121,10 +125,6 @@ struct mstp_port_struct_t {
 
     /* Used to store the Source Address of a received frame. */
     uint8_t SourceAddress;
-    /* The addresses are compared and frames that are not
-       addressed to us are discarded *unless* Lurking is
-       set to true. */
-    bool Lurking;
 
     /* The number of tokens received by this node. When this counter reaches the */
     /* value Npoll, the node polls the address range between TS and NS for */
