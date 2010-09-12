@@ -237,8 +237,8 @@ AVRDUDE_FLAGS += -B 8
 #        +-------------------- OCDEN (Enable OCD)
 #
 # Fuse low byte (0=enable,1=disable):
-# 0xD7 = 1 1 0 1   0 1 1 1
-# 0xC7 = 1 1 0 0   0 1 1 1
+# 0xD7 = 1 1 0 1   0 1 1 1 - v3 board
+# 0xE7 = 1 1 1 0   0 1 1 1 - v1,v2 board
 # 0x62 = 0 1 1 0   0 0 1 0 - default
 #        ^ ^ \+/   \--+--/
 #        | |  |       +------- CKSEL 3..0 (Select Clock Source)
@@ -249,7 +249,7 @@ AVRDUDE_FLAGS += -B 8
 #        | |  |       +------- [0010=Calibrated Internal RC Oscillator]
 #        | |  |       +------- [0000=External Clock]
 #        | |  +--------------- SUT 1..0 (Start up Time selection)
-#        | |  +--------------- [CKSEL0=0:14CK+ 00=4.1ms,01=65ms,10=0ms,11=4.1ms]
+#        | |  +--------------- [CKSEL0=0:14CK+ 00=4.1ms,01=65ms,10=BOD,11=4.1ms]
 #        | |  +--------------- [CKSEL0=1:14CK+ 00=65ms,01=BOD,10=4.1ms,11=65ms]
 #        | +------------------ CKOUT (clock output on CKOUT pin)
 #        +-------------------- CKDIV8 (divide clock by 8)
@@ -268,6 +268,8 @@ AVRDUDE_FLAGS += -B 8
 AVRDUDE_DEFAULT_FUSES = -U hfuse:w:0x17:m -U lfuse:w:0x62:m -U efuse:w:0xFF:m
 
 AVRDUDE_WRITE_FUSES = -U hfuse:w:0x93:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
+
+AVRDUDE_WRITE_FUSES_V2 = -U hfuse:w:0x93:m -U lfuse:w:0xE7:m -U efuse:w:0xFC:m
 
 AVRDUDE_BOOTL_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
 
@@ -329,6 +331,9 @@ install: $(TARGET_ELF)
 
 writefuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FUSES)
+
+writefusesv2:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FUSES_V2)
 
 bootloadfuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_BOOTL_FUSES)
