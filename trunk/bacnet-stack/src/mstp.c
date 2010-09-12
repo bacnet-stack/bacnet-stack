@@ -398,48 +398,50 @@ void MSTP_Receive_Frame_FSM(
                         /* wait for the start of the next frame. */
                         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                     } else {
-                        /* Note: proposed change to BACnet MSTP state machine!
-                           If we don't decode data that is not for us, we could
-                           get confused about the start if the Preamble 55 FF
-                           is part of the data. */
-                        /* Data */
-                        if ((mstp_port->DataLength) &&
-                            (mstp_port->DataLength <=
-                                mstp_port->InputBufferSize)) {
-                            /* Data - decode anyway to keep from false  */
-                            mstp_port->Index = 0;
-                            mstp_port->DataCRC = 0xFFFF;
-                            /* receive the data portion of the frame. */
-                            mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
-                        } else {
-                            /* FrameTooLong */
-                            if (mstp_port->DataLength) {
-                                printf_receive_error
-                                    ("MSTP: Rx Header: FrameTooLong %u\n",
-                                    (unsigned) mstp_port->DataLength);
-                                /* indicate that a frame with an illegal or  */
-                                /* unacceptable data length has been received */
-                                mstp_port->ReceivedInvalidFrame = true;
-                            }
+                        if (mstp_port->DataLength == 0) {
                             /* NoData */
-                            else if (mstp_port->DataLength == 0) {
-                                printf_receive_data("%s",
-                                    mstptext_frame_type((unsigned)
-                                        mstp_port->FrameType));
-                                if ((mstp_port->DestinationAddress ==
-                                        mstp_port->This_Station)
-                                    || (mstp_port->DestinationAddress ==
-                                        MSTP_BROADCAST_ADDRESS)
-                                    || (mstp_port->Lurking)) {
-                                    /* ForUs */
-                                    /* indicate that a frame with no data has been received */
-                                    mstp_port->ReceivedValidFrame = true;
-                                } else {
-                                    /* NotForUs - drop */
-                                }
+                            printf_receive_data("%s",
+                                mstptext_frame_type((unsigned)
+                                    mstp_port->FrameType));
+                            if ((mstp_port->DestinationAddress ==
+                                    mstp_port->This_Station)
+                                || (mstp_port->DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS)) {
+                                /* ForUs */
+                                /* indicate that a frame with no data has been received */
+                                mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                mstp_port->ReceivedValidFrameNotForUs = true;
                             }
                             /* wait for the start of the next frame. */
                             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                        } else {
+                            /* receive the data portion of the frame. */
+                            if ((mstp_port->DestinationAddress ==
+                                    mstp_port->This_Station)
+                                || (mstp_port->DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS)) {
+                                if (mstp_port->DataLength <=
+                                    mstp_port->InputBufferSize) {
+                                    /* Data */
+                                    mstp_port->receive_state =
+                                        MSTP_RECEIVE_STATE_DATA;
+                                } else {
+                                    /* FrameTooLong */
+                                    printf_receive_error
+                                        ("MSTP: Rx Header: FrameTooLong %u\n",
+                                        (unsigned) mstp_port->DataLength);
+                                    mstp_port->receive_state =
+                                        MSTP_RECEIVE_STATE_SKIP_DATA;
+                                }
+                            } else {
+                                /* NotForUs */
+                                mstp_port->receive_state =
+                                    MSTP_RECEIVE_STATE_SKIP_DATA;
+                            }
+                            mstp_port->Index = 0;
+                            mstp_port->DataCRC = 0xFFFF;
                         }
                     }
                 }
@@ -461,6 +463,7 @@ void MSTP_Receive_Frame_FSM(
             break;
             /* In the DATA state, the node waits for the data portion of a frame. */
         case MSTP_RECEIVE_STATE_DATA:
+        case MSTP_RECEIVE_STATE_SKIP_DATA:
             /* Timeout */
             if (mstp_port->SilenceTimer() > Tframe_abort) {
                 /* indicate that an error has occurred during the reception of a frame */
@@ -487,8 +490,10 @@ void MSTP_Receive_Frame_FSM(
                     mstp_port->DataCRC =
                         CRC_Calc_Data(mstp_port->DataRegister,
                         mstp_port->DataCRC);
-                    mstp_port->InputBuffer[mstp_port->Index] =
-                        mstp_port->DataRegister;
+                    if (mstp_port->Index < mstp_port->InputBufferSize) {
+                        mstp_port->InputBuffer[mstp_port->Index] =
+                            mstp_port->DataRegister;
+                    }
                     mstp_port->Index++;
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
                 } else if (mstp_port->Index == mstp_port->DataLength) {
@@ -510,22 +515,22 @@ void MSTP_Receive_Frame_FSM(
                     /* STATE DATA CRC - no need for new state */
                     /* indicate the complete reception of a valid frame */
                     if (mstp_port->DataCRC == 0xF0B8) {
-                        if ((mstp_port->DestinationAddress ==
-                                mstp_port->This_Station)
-                            || (mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS)
-                            || (mstp_port->Lurking)) {
+                        if (mstp_port->receive_state ==
+                            MSTP_RECEIVE_STATE_DATA) {
                             /* ForUs */
-                            /* indicate that a frame with no data has been received */
                             mstp_port->ReceivedValidFrame = true;
                         } else {
-                            /* NotForUs - drop */
+                            /* NotForUs */
+                            mstp_port->ReceivedValidFrameNotForUs = true;
                         }
                     } else {
                         mstp_port->ReceivedInvalidFrame = true;
                         printf_receive_error("MSTP: Rx Data: BadCRC [%02X]\n",
                             mstp_port->DataRegister);
                     }
+                    mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+                } else {
+                    mstp_port->ReceivedInvalidFrame = true;
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 }
                 mstp_port->DataAvailable = false;
@@ -1095,12 +1100,12 @@ void MSTP_Init(
         mstp_port->Poll_Station = mstp_port->This_Station;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
+        mstp_port->ReceivedValidFrameNotForUs = false;
         mstp_port->RetryCount = 0;
         mstp_port->SilenceTimerReset();
         mstp_port->SoleMaster = false;
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
-        mstp_port->Lurking = false;
     }
 }
 
