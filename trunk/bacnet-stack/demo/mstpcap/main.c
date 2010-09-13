@@ -467,7 +467,8 @@ static void write_received_packet(
         gettimeofday(&tv, NULL);
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
-        if (mstp_port->ReceivedValidFrame) {
+        if ((mstp_port->ReceivedValidFrame) ||
+            (mstp_port->ReceivedValidFrameNotForUs)) {
             packet_statistics(&tv, mstp_port);
         }
         (void) data_write(&ts_sec, sizeof(ts_sec), 1);
