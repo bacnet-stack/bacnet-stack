@@ -87,6 +87,7 @@ CORESRC = $(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/memcopy.c \
+	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
