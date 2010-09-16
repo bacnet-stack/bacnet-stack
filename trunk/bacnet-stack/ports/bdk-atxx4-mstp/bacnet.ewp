@@ -2042,6 +2042,9 @@
       <name>$PROJ_DIR$\..\..\src\reject.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\src\ringbuf.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\src\rp.c</name>
     </file>
     <file>
