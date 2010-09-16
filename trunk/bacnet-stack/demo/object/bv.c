@@ -353,8 +353,8 @@ bool Binary_Value_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     object_index =
-                        Binary_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Binary_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     Binary_Value_Level[object_index][priority] = level;
                     /* Note: you could set the physical output here if we
@@ -380,8 +380,8 @@ bool Binary_Value_Write_Property(
                 if (status) {
                     level = BINARY_NULL;
                     object_index =
-                        Binary_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Binary_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;

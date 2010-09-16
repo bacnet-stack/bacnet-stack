@@ -200,11 +200,8 @@ bool dlmstp_init(
     (void) ifname;
     /* initialize hardware */
     RS485_Initialize();
-    Ringbuf_Init(
-        &PDU_Queue,
-        (uint8_t *)&PDU_Buffer,
-        sizeof(struct mstp_pdu_packet),
-        MSTP_PDU_PACKET_COUNT);
+    Ringbuf_Init(&PDU_Queue, (uint8_t *) & PDU_Buffer,
+        sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
 
     return true;
 }
@@ -529,32 +526,34 @@ static void MSTP_Receive_Frame_FSM(
                         /* wait for the start of the next frame. */
                         Receive_State = MSTP_RECEIVE_STATE_IDLE;
                     } else {
-                            if (DataLength == 0) {
-                                /* NoData */
-                                if ((DestinationAddress == This_Station) ||
-                                    (DestinationAddress ==
-                                        MSTP_BROADCAST_ADDRESS)) {
-                                    /* ForUs */
-                                    /* indicate that a frame with
-                                       no data has been received */
-                                    MSTP_Flag.ReceivedValidFrame = true;
-                                } else {
+                        if (DataLength == 0) {
+                            /* NoData */
+                            if ((DestinationAddress == This_Station) ||
+                                (DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS)) {
+                                /* ForUs */
+                                /* indicate that a frame with
+                                   no data has been received */
+                                MSTP_Flag.ReceivedValidFrame = true;
+                            } else {
                                 /* NotForUs */
                                 MSTP_Flag.ReceivedValidFrameNotForUs = true;
-                                }
+                            }
                             /* wait for the start of the next frame. */
                             Receive_State = MSTP_RECEIVE_STATE_IDLE;
                         } else {
                             /* receive the data portion of the frame. */
                             if ((DestinationAddress == This_Station) ||
-                                (DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
+                                (DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS)) {
                                 if (DataLength <= InputBufferSize) {
                                     /* Data */
                                     Receive_State = MSTP_RECEIVE_STATE_DATA;
-                            } else {
-                                /* FrameTooLong */
-                                    Receive_State = MSTP_RECEIVE_STATE_SKIP_DATA;
-                            }
+                                } else {
+                                    /* FrameTooLong */
+                                    Receive_State =
+                                        MSTP_RECEIVE_STATE_SKIP_DATA;
+                                }
                             } else {
                                 /* NotForUs */
                                 Receive_State = MSTP_RECEIVE_STATE_SKIP_DATA;
@@ -599,7 +598,7 @@ static void MSTP_Receive_Frame_FSM(
                     /* DataOctet */
                     DataCRC = CRC_Calc_Data(DataRegister, DataCRC);
                     if (Index < InputBufferSize) {
-                    InputBuffer[Index] = DataRegister;
+                        InputBuffer[Index] = DataRegister;
                     }
                     Index++;
                 } else if (Index == DataLength) {
@@ -767,8 +766,7 @@ static bool MSTP_Master_Node_FSM(
                 transition_now = true;
             } else {
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *)Ringbuf_Pop_Front(
-                    &PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -1089,12 +1087,11 @@ static bool MSTP_Master_Node_FSM(
             /* Note: we could wait for up to Treply_delay */
             matched = false;
             if (!Ringbuf_Empty(&PDU_Queue)) {
-                pkt = (struct mstp_pdu_packet *)Ringbuf_Get_Front(
-                    &PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],
-                    DataLength, SourceAddress, &pkt->buffer[0],
-                    pkt->length, pkt->destination_mac);
+                    DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
+                    pkt->destination_mac);
             }
             if (matched) {
                 /* Reply */
@@ -1105,8 +1102,7 @@ static bool MSTP_Master_Node_FSM(
                 /* then call MSTP_Send_Frame to transmit the reply frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *)Ringbuf_Pop_Front(
-                    &PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -1151,7 +1147,7 @@ int dlmstp_send_pdu(
     struct mstp_pdu_packet *pkt;
     uint16_t i = 0;
 
-    pkt = (struct mstp_pdu_packet *)Ringbuf_Alloc(&PDU_Queue);
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
         for (i = 0; i < pdu_len; i++) {

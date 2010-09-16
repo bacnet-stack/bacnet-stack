@@ -634,8 +634,8 @@ int main(
             packet_count++;
         }
         if (!(packet_count % 100)) {
-            fprintf(stdout, "\r%hu packets, %hu invalid frames",
-                packet_count, Invalid_Frame_Count);
+            fprintf(stdout, "\r%hu packets, %hu invalid frames", packet_count,
+                Invalid_Frame_Count);
         }
         if (packet_count >= 65535) {
             packet_statistics_save();
@@ -645,4 +645,3 @@ int main(
         }
     }
 }
-

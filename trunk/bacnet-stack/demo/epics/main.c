@@ -304,9 +304,9 @@ static void Init_Service_Handlers(
 
 bool PrettyPrintPropertyValue(
     FILE * stream,
-    BACNET_OBJECT_PROPERTY_VALUE *object_value)
+    BACNET_OBJECT_PROPERTY_VALUE * object_value)
 {
-    BACNET_APPLICATION_DATA_VALUE * value = NULL;
+    BACNET_APPLICATION_DATA_VALUE *value = NULL;
     bool status = true; /*return value */
     size_t len = 0, i = 0, j = 0;
     BACNET_PROPERTY_ID property = PROP_ALL;
@@ -383,7 +383,7 @@ void PrintReadPropertyData(
     uint32_t object_instance,
     BACNET_PROPERTY_REFERENCE * rpm_property)
 {
-    BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
+    BACNET_OBJECT_PROPERTY_VALUE object_value;  /* for bacapp printing */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     bool print_brace = false;
     KEY object_list_element;
@@ -406,9 +406,8 @@ void PrintReadPropertyData(
     if ((value != NULL) && (value->next != NULL)) {
         /* Then this is an array of values.
          * But are we showing Values?  We (VTS3) want ? instead of {?,?} to show up. */
-        switch( rpm_property->propertyIdentifier )
-        {
-            /* Screen the Properties that can be arrays or Sequences */
+        switch (rpm_property->propertyIdentifier) {
+                /* Screen the Properties that can be arrays or Sequences */
             case PROP_PRESENT_VALUE:
             case PROP_PRIORITY_ARRAY:
                 if (!ShowValues) {
@@ -417,7 +416,8 @@ void PrintReadPropertyData(
                      * print anything for them.  To achieve this, swap
                      * out the Property for a non-existent Property
                      * and catch that below.  */
-                    rpm_property->propertyIdentifier = PROP_PROTOCOL_CONFORMANCE_CLASS;
+                    rpm_property->propertyIdentifier =
+                        PROP_PROTOCOL_CONFORMANCE_CLASS;
                     break;
                 }
                 /* Else, fall through to normal processing. */
@@ -473,8 +473,8 @@ void PrintReadPropertyData(
                 }
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
-                    if ( value->tag != BACNET_APPLICATION_TAG_OBJECT_ID)  {
-                        assert(value->tag == BACNET_APPLICATION_TAG_OBJECT_ID);  /* Something not right here */
+                    if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
+                        assert(value->tag == BACNET_APPLICATION_TAG_OBJECT_ID); /* Something not right here */
                         break;
                     }
                     /* Store the object list so we can interrogate
@@ -501,7 +501,7 @@ void PrintReadPropertyData(
                 } else if (rpm_property->propertyIdentifier ==
                     PROP_SUBORDINATE_LIST) {
                     if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag == BACNET_APPLICATION_TAG_OBJECT_ID);  /* Something not right here */
+                        assert(value->tag == BACNET_APPLICATION_TAG_OBJECT_ID); /* Something not right here */
                         break;
                     }
                     /* TODO: handle Sequence of { Device ObjID, Object ID }, */
@@ -531,7 +531,7 @@ void PrintReadPropertyData(
                 PrettyPrintPropertyValue(stdout, &object_value);
                 break;
 
-            /* Our special non-existent case; do nothing further here. */
+                /* Our special non-existent case; do nothing further here. */
             case PROP_PROTOCOL_CONFORMANCE_CLASS:
                 break;
 
@@ -730,10 +730,8 @@ EPICS_STATES ProcessRPMData(
                 fprintf(stdout, "    ");
                 Print_Property_Identifier(rpm_property->propertyIdentifier);
                 fprintf(stdout, ": ");
-                PrintReadPropertyData(
-                    rpm_data->object_type,
-                    rpm_data->object_instance,
-                    rpm_property);
+                PrintReadPropertyData(rpm_data->object_type,
+                    rpm_data->object_instance, rpm_property);
             }
             old_rpm_property = rpm_property;
             rpm_property = rpm_property->next;
@@ -893,7 +891,7 @@ int main(
     int argc,
     char *argv[])
 {
-    BACNET_ADDRESS src;  /* address where message came from */
+    BACNET_ADDRESS src; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
@@ -909,7 +907,7 @@ int main(
     KEY nextKey;
 
     CheckCommandLineArgs(argc, argv);   /* Won't return if there is an issue. */
-    memset(&src, 0, sizeof( BACNET_ADDRESS));
+    memset(&src, 0, sizeof(BACNET_ADDRESS));
 
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
@@ -984,7 +982,7 @@ int main(
                         fprintf(stderr,
                             "\rError: Unable to bind"
                             " after waiting %ld seconds.\r\n",
-                            (long int)elapsed_seconds);
+                            (long int) elapsed_seconds);
                         break;
                     }
                     /* else, loop back and try again */
@@ -1044,7 +1042,7 @@ int main(
                     elapsed_seconds = 0;
                     invoke_id = 0;
                     if (Error_Detected) {
-            /* The normal case for Device Object */
+                        /* The normal case for Device Object */
                         /* Was it because the Device can't do RPM? */
                         if (Last_Error_Code ==
                             ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE) {
@@ -1108,10 +1106,11 @@ int main(
                     (invoke_id ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData(
-                        Read_Property_Multiple_Data.rpm_data->object_type,
+                    PrintReadPropertyData(Read_Property_Multiple_Data.
+                        rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.rpm_data->listOfProperties);
+                        Read_Property_Multiple_Data.rpm_data->
+                        listOfProperties);
                     if (tsm_invoke_id_free(invoke_id)) {
                         invoke_id = 0;
                     } else {
@@ -1194,7 +1193,7 @@ int main(
                         printf("  { \r\n");
                         /* Test code:
                            if ( myObject.type == OBJECT_STRUCTURED_VIEW )
-                               printf( "    -- Structured View %d \n", myObject.instance );
+                           printf( "    -- Structured View %d \n", myObject.instance );
                          */
                     } else {
                         /* Closing brace for the last Object */
@@ -1224,7 +1223,7 @@ int main(
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
                 fprintf(stderr, "\rError: APDU Timeout! (%lds)\r\n",
-                    (long int)elapsed_seconds);
+                    (long int) elapsed_seconds);
                 break;
             }
         }

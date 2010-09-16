@@ -88,7 +88,7 @@ void handler_read_property(
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
         &npdu_data);
-    if (service_data->segmented_message) {      
+    if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED

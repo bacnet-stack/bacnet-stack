@@ -266,8 +266,8 @@ int Multistate_Output_Read_Property(
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
-                    Multistate_Output_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Multistate_Output_Level[object_index][i] ==
@@ -292,8 +292,8 @@ int Multistate_Output_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Output_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Multistate_Output_Level[object_index]
                         [rpdata->array_index - 1] == MULTISTATE_NULL)
@@ -369,8 +369,8 @@ bool Multistate_Output_Write_Property(
                     (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                     level = value.type.Unsigned_Int;
                     object_index =
-                        Multistate_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Multistate_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     Multistate_Output_Level[object_index][priority] =
                         (uint8_t) level;
@@ -397,8 +397,8 @@ bool Multistate_Output_Write_Property(
                 if (status) {
                     level = MULTISTATE_NULL;
                     object_index =
-                        Multistate_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Multistate_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
@@ -424,8 +424,8 @@ bool Multistate_Output_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Multistate_Output_Instance_To_Index(wp_data->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (wp_data->object_instance);
                 Multistate_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }

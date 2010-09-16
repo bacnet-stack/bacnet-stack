@@ -32,6 +32,7 @@ void stack_init(
 {
 
 }
+
 unsigned stack_size(
     void)
 {

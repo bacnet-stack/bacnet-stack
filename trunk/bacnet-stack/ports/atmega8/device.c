@@ -286,7 +286,7 @@ int Device_Encode_Property_APDU(
                     /* assume next one is the same size as this one */
                     /* can we all fit into the APDU? */
                     if ((apdu_len + len) >= MAX_APDU) {
-                        *error_code = 
+                        *error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
