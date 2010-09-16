@@ -28,11 +28,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void watchdog_reset(void);
-void watchdog_init(unsigned milliseconds);
+    void watchdog_reset(
+        void);
+    void watchdog_init(
+        unsigned milliseconds);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #endif

@@ -122,7 +122,8 @@ extern "C" {
         BACNET_ADDRESS * src,
         uint8_t mstp_address);
 
-    bool dlmstp_sole_master(void);
+    bool dlmstp_sole_master(
+        void);
 
 #ifdef __cplusplus
 }

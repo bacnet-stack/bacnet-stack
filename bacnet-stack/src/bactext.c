@@ -944,8 +944,8 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_BINARY_INACTIVE_VALUE, "binary-inactive-value"}
     ,
     /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
-	{PROP_VERIFICATION_TIME, "verification-time"}
-	,
+    {PROP_VERIFICATION_TIME, "verification-time"}
+    ,
     {PROP_BIT_MASK, "bit-mask"}
     ,
     {PROP_BIT_TEXT, "bit-text"}

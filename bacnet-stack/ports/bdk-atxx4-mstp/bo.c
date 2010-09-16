@@ -138,9 +138,9 @@ static BACNET_BINARY_PV Present_Value(
 
     if (index < MAX_BINARY_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            current_value = (BACNET_BINARY_PV)Binary_Output_Level[index][i];
+            current_value = (BACNET_BINARY_PV) Binary_Output_Level[index][i];
             if (current_value != BINARY_NULL) {
-                value = (BACNET_BINARY_PV)Binary_Output_Level[index][i];
+                value = (BACNET_BINARY_PV) Binary_Output_Level[index][i];
                 break;
             }
         }
@@ -446,8 +446,8 @@ bool Binary_Output_Write_Property(
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Binary_Output_Present_Value_Set(wp_data->
-                            object_instance, level, priority);
+                        Binary_Output_Present_Value_Set
+                            (wp_data->object_instance, level, priority);
                     } else if (priority == 6) {
                         status = false;
                         /* Command priority 6 is reserved for use by Minimum On/Off
@@ -480,7 +480,7 @@ bool Binary_Output_Write_Property(
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
                     Binary_Output_Polarity_Set(wp_data->object_instance,
-                        (BACNET_POLARITY)value.type.Enumerated);
+                        (BACNET_POLARITY) value.type.Enumerated);
                     Binary_Output_Level_Sync(wp_data->object_instance);
                 } else {
                     status = false;

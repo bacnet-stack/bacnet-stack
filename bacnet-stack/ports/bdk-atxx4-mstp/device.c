@@ -585,7 +585,7 @@ char *Device_Valid_Object_Id(
     char *name = NULL;  /* return value */
     struct object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
+    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) object_type);
     if ((pObject) && (pObject->Object_Name)) {
         name = pObject->Object_Name(object_instance);
     }
@@ -662,7 +662,7 @@ int Device_Read_Property_Local(
             for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
                 /* automatic lookup based on handlers set */
                 bitstring_set_bit(&bit_string, (uint8_t) i,
-                    apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
+                    apdu_service_supported((BACNET_SERVICES_SUPPORTED) i));
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -808,8 +808,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -869,8 +869,8 @@ bool Device_Write_Property_Local(
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH,
                             &small_length, 1);
                         pCharString =
-                            characterstring_value(&value.type.
-                            Character_String);
+                            characterstring_value(&value.
+                            type.Character_String);
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
                             (uint8_t *) pCharString, length);
                         status = true;

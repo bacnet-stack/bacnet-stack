@@ -149,7 +149,8 @@ static struct Address_Cache_Entry *address_remove_oldest(
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->
+                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) == BAC_ADDR_IN_USE) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
@@ -168,7 +169,8 @@ static struct Address_Cache_Entry *address_remove_oldest(
     /* Second pass - try in use and un bound as last resort */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->
+                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) ==
             ((uint8_t) (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */

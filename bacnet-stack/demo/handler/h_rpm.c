@@ -227,10 +227,10 @@ void handler_read_property_multiple(
         len =
             rpm_decode_object_id(&service_request[decode_len],
             service_len - decode_len, &rpmdata);
-        if (len >= 0) { 
+        if (len >= 0) {
             /* Got one so skip to next stage */
             decode_len += len;
-        } else {        
+        } else {
             /* bad encoding - skip to error/reject/abort handling */
 #if PRINT_ENABLED
             fprintf(stderr, "RPM: Bad Encoding.\n");
@@ -260,7 +260,7 @@ void handler_read_property_multiple(
             len =
                 rpm_decode_object_property(&service_request[decode_len],
                 service_len - decode_len, &rpmdata);
-            if (len < 0) {      
+            if (len < 0) {
                 /* bad encoding - skip to error/reject/abort handling */
 #if PRINT_ENABLED
                 fprintf(stderr, "RPM: Bad Encoding.\n");
@@ -378,7 +378,7 @@ void handler_read_property_multiple(
                 break;  /* finished with this property list */
             }
         }
-        if (decode_len >= service_len)  {
+        if (decode_len >= service_len) {
             /* Reached the end so finish up */
             break;
         }
@@ -386,8 +386,7 @@ void handler_read_property_multiple(
 
     if (apdu_len > service_data->max_resp) {
         /* too big for the sender - send an abort */
-        rpmdata.error_code =
-            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+        rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
         error = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
         fprintf(stderr, "RPM: Message too large.  Sending Abort!\n");

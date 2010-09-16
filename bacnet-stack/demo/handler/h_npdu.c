@@ -55,7 +55,7 @@ void npdu_handler(
         if (npdu_data.network_layer_message) {
             /*FIXME: network layer message received!  Handle it! */
 #if PRINT_ENABLED
-            fprintf(stderr,"NPDU: Network Layer Message discarded!\n");
+            fprintf(stderr, "NPDU: Network Layer Message discarded!\n");
 #endif
         } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {

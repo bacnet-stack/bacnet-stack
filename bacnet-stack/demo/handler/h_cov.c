@@ -346,8 +346,9 @@ static bool cov_send_request(
     value_list[1].next = NULL;
     switch (cov_subscription->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            Binary_Input_Encode_Value_List(cov_subscription->
-                monitoredObjectIdentifier.instance, &value_list[0]);
+            Binary_Input_Encode_Value_List
+                (cov_subscription->monitoredObjectIdentifier.instance,
+                &value_list[0]);
             break;
         default:
             goto COV_FAILED;
@@ -464,8 +465,8 @@ static bool cov_subscribe(
 
     switch (cov_data->monitoredObjectIdentifier.type) {
         case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance(cov_data->
-                    monitoredObjectIdentifier.instance)) {
+            if (Binary_Input_Valid_Instance
+                (cov_data->monitoredObjectIdentifier.instance)) {
                 status =
                     cov_list_subscribe(src, cov_data, error_class, error_code);
             } else {
@@ -546,8 +547,9 @@ void handler_cov_subscribe(
     }
     cov_data.error_class = ERROR_CLASS_OBJECT;
     cov_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    success = cov_subscribe(src, &cov_data, 
-        &cov_data.error_class, &cov_data.error_code);
+    success =
+        cov_subscribe(src, &cov_data, &cov_data.error_class,
+        &cov_data.error_code);
     if (success) {
         apdu_len =
             encode_simple_ack(&Handler_Transmit_Buffer[npdu_len],

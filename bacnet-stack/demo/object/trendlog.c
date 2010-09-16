@@ -731,9 +731,9 @@ bool Trend_Log_Write_Property(
             if (wp_data->application_data_len != 0) {
                 iOffset += len;
                 len =
-                    bacapp_decode_context_data(&wp_data->
-                    application_data[iOffset], wp_data->application_data_len,
-                    &value, PROP_LOG_DEVICE_OBJECT_PROPERTY);
+                    bacapp_decode_context_data(&wp_data->application_data
+                    [iOffset], wp_data->application_data_len, &value,
+                    PROP_LOG_DEVICE_OBJECT_PROPERTY);
                 if ((len == 0) || ((value.context_tag != 2) &&
                         (value.context_tag != 3))) {
                     /* Bad decode or wrong tag */
@@ -750,8 +750,8 @@ bool Trend_Log_Write_Property(
                     if (wp_data->application_data_len != 0) {
                         iOffset += len;
                         len =
-                            bacapp_decode_context_data(&wp_data->
-                            application_data[iOffset],
+                            bacapp_decode_context_data
+                            (&wp_data->application_data[iOffset],
                             wp_data->application_data_len, &value,
                             PROP_LOG_DEVICE_OBJECT_PROPERTY);
                         if ((len == 0) || (value.context_tag != 3)) {
@@ -1093,8 +1093,8 @@ int rr_trend_log_encode(
     pRequest->ItemCount = 0;    /* Start out with nothing */
 
     /* Bail out now if nowt - should never happen for a Trend Log but ... */
-    if (LogInfo[Trend_Log_Instance_To_Index(pRequest->object_instance)].
-        ulRecordCount == 0)
+    if (LogInfo[Trend_Log_Instance_To_Index(pRequest->
+                object_instance)].ulRecordCount == 0)
         return (0);
 
     if ((pRequest->RequestType == RR_BY_POSITION) ||

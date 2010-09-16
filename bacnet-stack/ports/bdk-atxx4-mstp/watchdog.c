@@ -26,33 +26,36 @@
 
 #if defined(__ICCAVR__)
 #include <intrinsics.h>
-static inline void wdt_enable(int value)
+static inline void wdt_enable(
+    int value)
 {
     __disable_interrupt();
     __watchdog_reset();
     /* Start timed equence */
-    WDTCSR |= (1<<WDCE) | (1<<WDE);
+    WDTCSR |= (1 << WDCE) | (1 << WDE);
     /* Set new prescaler(time-out) value = 64K cycles (~0.5 s) */
-    WDTCSR = (1<<WDE) | (value);
+    WDTCSR = (1 << WDE) | (value);
     /* we aren't ready to enable interrupts here
-    __enable_interrupt(); */
+       __enable_interrupt(); */
 }
 
-static inline void wdt_disable(void)
+static inline void wdt_disable(
+    void)
 {
     __disable_interrupt();
     __watchdog_reset();
     /* Clear WDRF in MCUSR */
-    MCUSR &= ~(1<<WDRF);
+    MCUSR &= ~(1 << WDRF);
     /* Write logical one to WDCE and WDE */
     /* Keep old prescaler setting to prevent unintentional time-out */
-    WDTCSR |= (1<<WDCE) | (1<<WDE);
+    WDTCSR |= (1 << WDCE) | (1 << WDE);
     /* Turn off WDT */
     WDTCSR = 0x00;
     __enable_interrupt();
 }
 
-static inline wdt_reset(void)
+static inline wdt_reset(
+    void)
 {
     __watchdog_reset();
 }
@@ -63,7 +66,8 @@ static inline wdt_reset(void)
 * Returns: none
 * Notes: none
 **************************************************************************/
-void watchdog_reset(void)
+void watchdog_reset(
+    void)
 {
     wdt_reset();
 }
@@ -73,7 +77,8 @@ void watchdog_reset(void)
 * Returns: none
 * Notes: none
 **************************************************************************/
-void watchdog_init(unsigned milliseconds)
+void watchdog_init(
+    unsigned milliseconds)
 {
     unsigned value = WDTO_15MS;
     if (milliseconds) {
