@@ -282,9 +282,9 @@ int rpm_decode_object_property(
         }
         len += decode_enumerated(&apdu[len], len_value_type, &property);
         rpmdata->object_property = (BACNET_PROPERTY_ID) property;
-
+        /* Assume most probable outcome */
+        rpmdata->array_index = BACNET_ARRAY_ALL;
         /* Tag 1: Optional propertyArrayIndex */
-        rpmdata->array_index = BACNET_ARRAY_ALL;        /* Assume most probable outcome */
         if (IS_CONTEXT_SPECIFIC(apdu[len]) && !IS_CLOSING_TAG(apdu[len])) {
             option_len =
                 (unsigned) decode_tag_number_and_value(&apdu[len], &tag_number,
