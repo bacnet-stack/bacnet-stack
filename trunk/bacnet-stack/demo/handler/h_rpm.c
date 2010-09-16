@@ -190,8 +190,8 @@ void handler_read_property_multiple(
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     int len = 0;
-    int copy_len = 0;
-    int decode_len = 0;
+    uint16_t copy_len = 0;
+    uint16_t decode_len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent;
@@ -227,9 +227,11 @@ void handler_read_property_multiple(
         len =
             rpm_decode_object_id(&service_request[decode_len],
             service_len - decode_len, &rpmdata);
-        if (len >= 0) { /* Got one so skip to next stage */
+        if (len >= 0) { 
+            /* Got one so skip to next stage */
             decode_len += len;
-        } else {        /* bad encoding - skip to error/reject/abort handling */
+        } else {        
+            /* bad encoding - skip to error/reject/abort handling */
 #if PRINT_ENABLED
             fprintf(stderr, "RPM: Bad Encoding.\n");
 #endif
@@ -242,7 +244,7 @@ void handler_read_property_multiple(
         copy_len =
             memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0], apdu_len,
             len, sizeof(Handler_Transmit_Buffer));
-        if (!copy_len) {
+        if (copy_len == 0) {
 #if PRINT_ENABLED
             fprintf(stderr, "RPM: Response too big!\r\n");
 #endif
@@ -258,7 +260,8 @@ void handler_read_property_multiple(
             len =
                 rpm_decode_object_property(&service_request[decode_len],
                 service_len - decode_len, &rpmdata);
-            if (len < 0) {      /* bad encoding - skip to error/reject/abort handling */
+            if (len < 0) {      
+                /* bad encoding - skip to error/reject/abort handling */
 #if PRINT_ENABLED
                 fprintf(stderr, "RPM: Bad Encoding.\n");
 #endif
@@ -357,7 +360,6 @@ void handler_read_property_multiple(
                     goto RPM_FAILURE;
                 }
             }
-
             if (decode_is_closing_tag_number(&service_request[decode_len], 1)) {
                 /* Reached end of property list so cap the result list */
                 decode_len++;
@@ -365,7 +367,7 @@ void handler_read_property_multiple(
                 copy_len =
                     memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
                     apdu_len, len, sizeof(Handler_Transmit_Buffer));
-                if (!copy_len) {
+                if (copy_len == 0) {
                     rpmdata.error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     error = BACNET_STATUS_ABORT;
@@ -376,8 +378,10 @@ void handler_read_property_multiple(
                 break;  /* finished with this property list */
             }
         }
-        if (service_len == decode_len)  /* Reached the end so finish up */
+        if (decode_len >= service_len)  {
+            /* Reached the end so finish up */
             break;
+        }
     }
 
     if (apdu_len > service_data->max_resp) {
