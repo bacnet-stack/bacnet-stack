@@ -188,6 +188,6 @@ void led_init(
     BIT_SET(DDRD, DDD7);
     BIT_SET(DDRD, DDD6);
     for (i = 0; i < MAX_LEDS; i++) {
-        led_off(i);
+        led_on_interval(i, 500);
     }
 }
