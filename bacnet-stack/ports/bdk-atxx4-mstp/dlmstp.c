@@ -1,6 +1,6 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
- Copyright (C) 2009 Steve Karg
+ Copyright (C) 2010 Steve Karg
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -718,7 +718,6 @@ static bool MSTP_Master_Node_FSM(
                 /* LostToken */
                 /* assume that the token has been lost */
                 EventCount = 0; /* Addendum 135-2004d-8 */
-                Master_State = MSTP_MASTER_STATE_NO_TOKEN;
                 /* set the receive frame flags to false in case we received
                    some bytes and had a timeout for some reason */
                 MSTP_Flag.ReceivedValidFrame = false;
