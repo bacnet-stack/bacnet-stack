@@ -88,6 +88,7 @@ DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
 # core BACnet stack files
 CORESRC =  \
 	$(BACNET_CORE)/fifo.c \
+	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/crc.c \
 	$(BACNET_CORE)/apdu.c \
