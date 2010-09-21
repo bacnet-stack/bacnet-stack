@@ -122,7 +122,7 @@ void bacnet_task(
     uint8_t mstp_mac_address;
     uint16_t pdu_len;
     BACNET_ADDRESS src; /* source address */
-    uint8_t value;
+    uint16_t value;
     bool button_value;
     uint8_t i;
     BACNET_BINARY_PV binary_value = BINARY_INACTIVE;
@@ -136,7 +136,7 @@ void bacnet_task(
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
     /* handle the inputs */
-    value = adc_result(7);
+    value = adc_result_10bit(7);
     Analog_Input_Present_Value_Set(0, value);
     for (i = 0; i < 5; i++) {
         button_value = input_button_value(i);
