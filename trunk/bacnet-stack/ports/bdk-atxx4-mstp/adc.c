@@ -47,40 +47,102 @@
 #error  "ADC: F_CPU too large for accuracy."
 #endif
 
-/* we could have array of ADC results */
-static volatile uint8_t Sample_Result;
+/* Array of ADC results */
+#define ADC_CHANNELS_MAX 8
+static volatile uint16_t Sample_Result[ADC_CHANNELS_MAX];
+static volatile uint8_t Enabled_Channels;
+
 /* forward prototype */
 ISR(ADC_vect);
 
 ISR(ADC_vect)
 {
-    /* since we configured as ADLAR=1, get value from ADCH */
-    Sample_Result = ADCH;
+    uint8_t index;
+    uint16_t value = 0;
+
+    /* determine which conversion finished */
+    index = BITMASK_CHECK(ADMUX,((1<<MUX2)|(1<<MUX1)|(1<<MUX0)));
+    /* read the results */
+    value = ADCL;
+    value |= (ADCH << 8);
+    Sample_Result[index] = value;
+    /* clear the mux */
+    BITMASK_CLEAR(ADMUX, ((1<<MUX2)|(1<<MUX1)|(1<<MUX0)));
+    /* find the next channel */
+    while (Enabled_Channels) {
+       index = (index+1)%ADC_CHANNELS_MAX;
+       if (BIT_CHECK(Enabled_Channels, index)) {
+          break;
+       }
+    }
+    /* configure the next channel */
+    BITMASK_SET(ADMUX, ((index)<<MUX0));
+    /* Start the next conversion */
+    BIT_SET(ADCSRA, ADSC);
 }
 
-uint8_t adc_result(
-    uint8_t channel)
-{       /* 0..7 = ADC0..ADC7, respectively */
-    return Sample_Result;
+void adc_enable(
+    uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
+{
+    if (Enabled_Channels) {
+        /* ADC interupt is already started */
+        BIT_SET(Enabled_Channels, index);
+    } else {
+        if (index < ADC_CHANNELS_MAX) {
+            /* not running yet */
+            BIT_SET(Enabled_Channels, index);
+            /* clear the mux */
+            BITMASK_CLEAR(ADMUX, ((1<<MUX2)|(1<<MUX1)|(1<<MUX0)));
+            /* configure the channel */
+            BITMASK_SET(ADMUX, ((index)<<MUX0));
+            /* Start the next conversion */
+            BIT_SET(ADCSRA, ADSC);
+        }
+    }
+}
+
+uint8_t adc_result_8bit(
+    uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
+{
+    uint8_t result = 0;
+
+    if (index < ADC_CHANNELS_MAX) {
+        adc_enable(index);
+        result = (uint8_t)(Sample_Result[index]>>2);
+    }
+
+    return result;
+}
+
+uint16_t adc_result_10bit(
+    uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
+{
+    uint16_t result = 0;
+
+    if (index < ADC_CHANNELS_MAX) {
+        adc_enable(index);
+        result = Sample_Result[index];
+    }
+
+    return result;
 }
 
 void adc_init(
     void)
 {
-    /*  set prescaler */
-    ADCSRA |= ADPS_8BIT;
     /* Initial channel selection */
     /* ADLAR = Left Adjust Result
        REFSx = hardware setup: cap on AREF
-     */
-    ADMUX = 7 /* channel */  | (1 << ADLAR) | (0 << REFS1) | (1 << REFS0);
+      */
+    ADMUX = (0 << ADLAR) | (0 << REFS1) | (1 << REFS0);
     /*  ADEN = Enable
        ADSC = Start conversion
        ADIF = Interrupt Flag
        ADIE = Interrupt Enable
        ADATE = Auto Trigger Enable
      */
-    ADCSRA |= (1 << ADEN) | (1 << ADIE) | (1 << ADIF) | (1 << ADATE);
+    ADCSRA = (1 << ADEN) | (1 << ADIE) |
+        (0 << ADIF) | (0 << ADATE) | ADPS_10BIT;
     /* trigger selection bits
        0 0 0 Free Running mode
        0 0 1 Analog Comparator
@@ -91,9 +153,7 @@ void adc_init(
        1 1 0 Timer/Counter1 Overflow
        1 1 1 Timer/Counter1 Capture Event
      */
-    ADCSRB |= (0 << ADTS2) | (0 << ADTS1) | (0 << ADTS0);
-    /* start the conversions */
-    ADCSRA |= (1 << ADSC);
+    ADCSRB = (0 << ADTS2) | (0 << ADTS1) | (0 << ADTS0);
     /* Clear the Power Reduction bit */
     BIT_CLEAR(PRR, PRADC);
 }

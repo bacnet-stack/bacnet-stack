@@ -30,8 +30,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    uint8_t adc_result(
-        uint8_t channel);
+    void adc_enable(
+        uint8_t index); /* 0..7 = ADC0..ADC7, respectively */
+    uint8_t adc_result_8bit(
+        uint8_t index);  /* 0..7 = ADC0..ADC7, respectively */
+    uint16_t adc_result_10bit(
+        uint8_t index);  /* 0..7 = ADC0..ADC7, respectively */
     void adc_init(
         void);
 
