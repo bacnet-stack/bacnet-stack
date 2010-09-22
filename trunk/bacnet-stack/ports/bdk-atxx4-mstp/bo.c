@@ -33,6 +33,7 @@
 #include "bacenum.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "hardware.h"
 #include "led.h"
 #include "nvdata.h"
 #include "bo.h"
@@ -198,7 +199,7 @@ BACNET_POLARITY Binary_Output_Polarity(
     BACNET_POLARITY polarity = POLARITY_NORMAL;
 
     if (instance < MAX_BINARY_OUTPUTS) {
-        polarity = Polarity[instance];
+        polarity = (BACNET_POLARITY)Polarity[instance];
     }
 
     return polarity;
