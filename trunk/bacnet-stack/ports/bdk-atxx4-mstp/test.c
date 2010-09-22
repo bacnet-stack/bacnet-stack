@@ -30,6 +30,8 @@
 #include "serial.h"
 #include "input.h"
 #include "bo.h"
+#include "rs485.h"
+#include "dlmstp.h"
 /* me */
 #include "test.h"
 
@@ -65,6 +67,7 @@ void test_task(
     char buffer[32] = "BACnet: 0000000\r\n";
     uint8_t nbytes = 17;
     uint8_t data_register = 0;
+    char string_buffer[32] = "";
 
     if (timer_interval_expired(&Test_Timer)) {
         timer_interval_reset(&Test_Timer);
@@ -81,17 +84,41 @@ void test_task(
     if (serial_byte_get(&data_register)) {
         /* echo the character */
         serial_byte_send(data_register);
-        if (data_register == '0') {
-            Binary_Output_Present_Value_Set(0, BINARY_INACTIVE, 0);
-            Binary_Output_Present_Value_Set(1, BINARY_INACTIVE, 0);
-        }
-        if (data_register == '1') {
-            Binary_Output_Present_Value_Set(0, BINARY_ACTIVE, 0);
-            Binary_Output_Present_Value_Set(1, BINARY_ACTIVE, 0);
-        }
-        if (data_register == '2') {
-            Binary_Output_Present_Value_Set(0, BINARY_NULL, 0);
-            Binary_Output_Present_Value_Set(1, BINARY_NULL, 0);
+        switch (data_register) {
+            case '0':
+                Binary_Output_Present_Value_Set(0, BINARY_INACTIVE, 0);
+                Binary_Output_Present_Value_Set(1, BINARY_INACTIVE, 0);
+                break;
+            case '1':
+                Binary_Output_Present_Value_Set(0, BINARY_ACTIVE, 0);
+                Binary_Output_Present_Value_Set(1, BINARY_ACTIVE, 0);
+                break;
+            case '2':
+                Binary_Output_Present_Value_Set(0, BINARY_NULL, 0);
+                Binary_Output_Present_Value_Set(1, BINARY_NULL, 0);
+                break;
+            case '3':
+                rs485_baud_rate_set(38400);
+                break;
+            case '5':
+                rs485_baud_rate_set(57600);
+                break;
+            case '7':
+                rs485_baud_rate_set(76800);
+                break;
+            case '9':
+                rs485_baud_rate_set(9600);
+                break;
+            case 'b':
+                sprintf(string_buffer, "\r\n%lubps",
+                    (unsigned long)rs485_baud_rate());
+                break;
+            case 'm':
+                sprintf(string_buffer, "\r\nMax:%u",
+                    (unsigned)dlmstp_max_master());
+                break;
+            default:
+                break;
         }
         serial_byte_send('\r');
         serial_byte_send('\n');
