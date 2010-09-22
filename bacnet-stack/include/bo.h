@@ -93,6 +93,10 @@ extern "C" {
     bool Binary_Output_Present_Value_Relinquish(
         uint32_t instance,
         unsigned priority);
+    BACNET_POLARITY Binary_Output_Polarity(
+        uint32_t instance);
+    bool Binary_Output_Out_Of_Service(
+        uint32_t instance);
 
 
 #ifdef TEST

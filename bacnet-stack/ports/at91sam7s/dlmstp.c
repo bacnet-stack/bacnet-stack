@@ -1181,8 +1181,11 @@ uint16_t dlmstp_receive(
         (MSTP_Flag.ReceivedInvalidFrame == false)) {
         MSTP_Receive_Frame_FSM();
     }
-    /* only do master state machine while rx is idle */
+    if (MSTP_Flag.ReceivedValidFrameNotForUs) {
+        MSTP_Flag.ReceivedValidFrameNotForUs = false;
+    }
     if (Receive_State == MSTP_RECEIVE_STATE_IDLE) {
+        /* only do master state machine while rx is idle */
         while (MSTP_Master_Node_FSM()) {
             /* do nothing while some states fast transition */
         };

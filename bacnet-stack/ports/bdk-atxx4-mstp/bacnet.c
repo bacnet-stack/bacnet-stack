@@ -126,7 +126,8 @@ void bacnet_task(
     bool button_value;
     uint8_t i;
     BACNET_BINARY_PV binary_value = BINARY_INACTIVE;
-
+    BACNET_POLARITY polarity;
+    bool out_of_service;
 
     mstp_mac_address = input_address();
     if (MSTP_MAC_Address != mstp_mac_address) {
@@ -145,15 +146,33 @@ void bacnet_task(
         }
         Binary_Input_Present_Value_Set(i, binary_value);
     }
-    if (Binary_Output_Present_Value(0) == BINARY_ACTIVE) {
-        led_on(LED_3);
-    } else {
-        led_off(LED_3);
-    }
-    if (Binary_Output_Present_Value(1) == BINARY_ACTIVE) {
-        led_on(LED_4);
-    } else {
-        led_off(LED_4);
+    /* Binary Output */
+    for (i = 0; i < 2; i++) {
+        out_of_service = Binary_Output_Out_Of_Service(i);
+        if (!out_of_service) {
+            binary_value = Binary_Output_Present_Value(i);
+            polarity = Binary_Output_Polarity(i);
+            if (polarity != POLARITY_NORMAL) {
+                if (binary_value == BINARY_ACTIVE) {
+                    binary_value = BINARY_INACTIVE;
+                } else {
+                    binary_value = BINARY_ACTIVE;
+                }
+            }
+            if (binary_value == BINARY_ACTIVE) {
+                if (i == 0) {
+                    led_on(LED_2);
+                } else {
+                    led_on(LED_3);
+                }
+            } else {
+                if (i == 0) {
+                    led_off(LED_2);
+                } else {
+                    led_off(LED_3);
+                }
+            }
+        }
     }
     /* handle the communication timer */
     if (timer_interval_expired(&DCC_Timer)) {

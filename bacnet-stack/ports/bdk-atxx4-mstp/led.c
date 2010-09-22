@@ -37,16 +37,16 @@ void led_on(
     uint8_t index)
 {
     switch (index) {
-        case LED_1:
+        case 0:
             BIT_SET(PORTD, PD7);
             break;
-        case LED_2:
+        case 1:
             BIT_SET(PORTD, PD6);
             break;
-        case LED_3:
+        case 2:
             BIT_SET(PORTC, PC7);
             break;
-        case LED_4:
+        case 3:
             BIT_SET(PORTC, PC6);
             break;
         default:
@@ -66,16 +66,16 @@ void led_off(
     uint8_t index)
 {
     switch (index) {
-        case LED_1:
+        case 0:
             BIT_CLEAR(PORTD, PD7);
             break;
-        case LED_2:
+        case 1:
             BIT_CLEAR(PORTD, PD6);
             break;
-        case LED_3:
+        case 2:
             BIT_CLEAR(PORTC, PC7);
             break;
-        case LED_4:
+        case 3:
             BIT_CLEAR(PORTC, PC6);
             break;
         default:
@@ -95,13 +95,13 @@ bool led_state(
     uint8_t index)
 {
     switch (index) {
-        case LED_1:
+        case 0:
             return (BIT_CHECK(PIND, PD7));
-        case LED_2:
+        case 1:
             return (BIT_CHECK(PIND, PD6));
-        case LED_3:
+        case 2:
             return (BIT_CHECK(PINC, PC7));
-        case LED_4:
+        case 3:
             return (BIT_CHECK(PINC, PC6));
         default:
             break;

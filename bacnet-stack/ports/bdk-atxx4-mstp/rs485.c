@@ -126,7 +126,7 @@ bool rs485_byte_available(
     bool data_available = false;        /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
-        led_on_interval(LED_1, 1);
+        led_on_interval(LED_4, 1);
         *data_register = FIFO_Get(&Receive_Buffer);
         data_available = true;
     }
@@ -144,7 +144,7 @@ void rs485_bytes_send(
     uint8_t * buffer,   /* data to send */
     uint16_t nbytes)
 {       /* number of bytes of data */
-    led_on(LED_2);
+    led_on(LED_5);
     while (!BIT_CHECK(UCSR0A, UDRE0)) {
         /* do nothing - wait until Tx buffer is empty */
     }
@@ -168,7 +168,7 @@ void rs485_bytes_send(
     /* Clear the Transmit Complete flag by writing a one to it. */
     BIT_SET(UCSR0A, TXC0);
     timer_elapsed_start(&Silence_Timer);
-    led_off_delay(LED_2, 1);
+    led_off_delay(LED_5, 1);
 
     return;
 }

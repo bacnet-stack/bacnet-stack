@@ -31,10 +31,10 @@ SIZE_OPTIONS = -t
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
 #AVRDUDE_PROGRAMMERID = avr109
-#AVRDUDE_PROGRAMMERID = jtag2fast
+AVRDUDE_PROGRAMMERID = jtag2fast
 #AVRDUDE_PROGRAMMERID = avrispmkII
 #AVRDUDE_PROGRAMMERID = dragon_isp
-AVRDUDE_PROGRAMMERID = dragon_jtag
+#AVRDUDE_PROGRAMMERID = dragon_jtag
 #
 # port--serial or parallel port to which your
 # hardware programmer is attached
@@ -274,7 +274,7 @@ AVRDUDE_WRITE_FUSES_V2 = -U hfuse:w:0x93:m -U lfuse:w:0xE7:m -U efuse:w:0xFC:m
 
 AVRDUDE_BOOTL_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
 
-AVRDUDE_READ_FUSES = -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
+AVRDUDE_READ_FUSES = -U hfuse:r:-:h -U lfuse:r:-:h -U efuse:r:-:h
 
 AVRDUDE_WRITE_FLASH = -e -U flash:w:$(TARGET).hex
 

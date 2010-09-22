@@ -50,13 +50,13 @@ int main(
     void)
 {
     init();
-    adc_init();
-    led_init();
-    input_init();
     timer_init();
+    adc_init();
+    input_init();
     seeprom_init();
     rs485_init();
     serial_init();
+    led_init();
     bacnet_init();
     test_init();
     /* Enable global interrupts */

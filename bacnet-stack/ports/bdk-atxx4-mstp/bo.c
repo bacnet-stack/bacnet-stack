@@ -159,44 +159,6 @@ BACNET_BINARY_PV Binary_Output_Present_Value(
     return Present_Value(index);
 }
 
-static void Binary_Output_Level_Sync(
-    uint32_t instance)
-{
-    BACNET_BINARY_PV pv;
-
-    if (instance < MAX_BINARY_OUTPUTS) {
-        if (Out_Of_Service[instance]) {
-            return;
-        }
-        pv = Present_Value(instance);
-        if (Polarity[instance] == POLARITY_REVERSE) {
-            if (pv == BINARY_INACTIVE) {
-                pv = BINARY_ACTIVE;
-            } else if (pv == BINARY_ACTIVE) {
-                pv = BINARY_INACTIVE;
-            }
-        }
-        switch (instance) {
-            case 0:
-                if (pv == BINARY_INACTIVE) {
-                    led_off(LED_3);
-                } else if (pv == BINARY_ACTIVE) {
-                    led_on(LED_3);
-                }
-                break;
-            case 1:
-                if (pv == BINARY_INACTIVE) {
-                    led_off(LED_4);
-                } else if (pv == BINARY_ACTIVE) {
-                    led_on(LED_4);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-}
-
 bool Binary_Output_Present_Value_Set(
     uint32_t instance,
     BACNET_BINARY_PV binary_value,
@@ -210,7 +172,6 @@ bool Binary_Output_Present_Value_Set(
             seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
                     NV_SEEPROM_BO_PRIORITY_ARRAY_1 + priority),
                 &Binary_Output_Level[instance][priority], 1);
-            Binary_Output_Level_Sync(instance);
             status = true;
         }
     }
@@ -231,6 +192,18 @@ static void Binary_Output_Polarity_Set(
     }
 }
 
+BACNET_POLARITY Binary_Output_Polarity(
+    uint32_t instance)
+{
+    BACNET_POLARITY polarity = POLARITY_NORMAL;
+
+    if (instance < MAX_BINARY_OUTPUTS) {
+        polarity = Polarity[instance];
+    }
+
+    return polarity;
+}
+
 static void Binary_Output_Out_Of_Service_Set(
     uint32_t instance,
     bool flag)
@@ -240,6 +213,18 @@ static void Binary_Output_Out_Of_Service_Set(
         seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
                 NV_SEEPROM_BO_OUT_OF_SERVICE), &Out_Of_Service[instance], 1);
     }
+}
+
+bool Binary_Output_Out_Of_Service(
+    uint32_t instance)
+{
+    bool flag = false;
+
+    if (instance < MAX_BINARY_OUTPUTS) {
+        flag = Out_Of_Service[instance];
+    }
+
+    return flag;
 }
 
 /* note: the object name must be unique within this device */
@@ -470,7 +455,6 @@ bool Binary_Output_Write_Property(
             if (status) {
                 Binary_Output_Out_Of_Service_Set(wp_data->object_instance,
                     value.type.Boolean);
-                Binary_Output_Level_Sync(wp_data->object_instance);
             }
             break;
         case PROP_POLARITY:
@@ -481,7 +465,6 @@ bool Binary_Output_Write_Property(
                 if (value.type.Enumerated < MAX_POLARITY) {
                     Binary_Output_Polarity_Set(wp_data->object_instance,
                         (BACNET_POLARITY) value.type.Enumerated);
-                    Binary_Output_Level_Sync(wp_data->object_instance);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -522,7 +505,6 @@ void Binary_Output_Init(
                     NV_SEEPROM_BO_PRIORITY_ARRAY_1 + j),
                 &Binary_Output_Level[i][j], 1);
         }
-        Binary_Output_Level_Sync(i);
     }
 
     return;
