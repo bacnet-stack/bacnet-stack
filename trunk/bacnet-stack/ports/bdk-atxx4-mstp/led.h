@@ -27,12 +27,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define LED_1 0
-#define LED_2 1
-#define LED_3 2
-#define LED_4 3
-#define MAX_LEDS 4
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

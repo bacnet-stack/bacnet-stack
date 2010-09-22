@@ -36,6 +36,7 @@
 #include "rs485.h"
 #include "npdu.h"
 #include "bits.h"
+#include "ringbuf.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1

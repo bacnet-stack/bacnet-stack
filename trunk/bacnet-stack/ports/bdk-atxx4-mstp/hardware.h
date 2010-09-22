@@ -55,4 +55,10 @@
 #define SEEPROM_I2C_ADDRESS 0xA0
 #define SEEPROM_I2C_CLOCK 400000L
 
+#define LED_2 2
+#define LED_3 3
+#define LED_4 1
+#define LED_5 0
+#define MAX_LEDS 4
+
 #endif
