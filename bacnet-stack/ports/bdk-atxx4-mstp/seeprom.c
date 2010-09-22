@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "hardware.h"
+#include "timer.h"
 /* me */
 #include "seeprom.h"
 
@@ -97,6 +98,26 @@
 #define MAX_ITER        200
 
 /*************************************************************************
+* DESCRIPTION: Wait for interrupt flag to indicate transmit is complete
+* RETURN: true on success, or false on error
+* NOTES: none
+**************************************************************************/
+static bool twi_wait_for_transmission(void)
+{
+    uint8_t timeout = 255;
+
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0) {
+        if (!(timeout--)) {
+            return false;
+        }
+        continue;
+    }
+
+    return true;
+}
+
+/*************************************************************************
 * DESCRIPTION: Return bytes from SEEPROM memory at address
 * RETURN: number of bytes read, or -1 on error
 * NOTES: none
@@ -125,8 +146,7 @@ int seeprom_bytes_read(
   begin:
     /* send start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
@@ -147,8 +167,7 @@ int seeprom_bytes_read(
     TWDR = sla | TW_WRITE;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_SLA_ACK:
@@ -169,8 +188,7 @@ int seeprom_bytes_read(
     TWDR = (eeaddr >> 8);
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -188,8 +206,7 @@ int seeprom_bytes_read(
     TWDR = eeaddr;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -206,8 +223,7 @@ int seeprom_bytes_read(
     /* Note [12] Next cycle(s): master receiver mode */
     /* send repeated start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_START:
@@ -224,8 +240,7 @@ int seeprom_bytes_read(
     TWDR = sla | TW_READ;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MR_SLA_ACK:
@@ -247,7 +262,7 @@ int seeprom_bytes_read(
         /* clear int to start transmission */
         TWCR = twcr;
         /* wait for transmission */
-        while ((TWCR & _BV(TWINT)) == 0);
+        twi_wait_for_transmission();
         twst = TWSR & TW_STATUS_MASK;
         switch (twst) {
             case TW_MR_DATA_NACK:
@@ -308,8 +323,9 @@ static int seeprom_bytes_write_page(
     }
   begin:
     /* Note [15] */
-    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN); /* send start condition */
-    while ((TWCR & _BV(TWINT)) == 0);   /* wait for transmission */
+    /* send start condition */
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN); 
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
@@ -327,8 +343,7 @@ static int seeprom_bytes_write_page(
     TWDR = sla | TW_WRITE;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_SLA_ACK:
@@ -348,8 +363,7 @@ static int seeprom_bytes_write_page(
     TWDR = (eeaddr >> 8);
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -367,9 +381,7 @@ static int seeprom_bytes_write_page(
     TWDR = eeaddr;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) {
-    };
+    twi_wait_for_transmission();
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -386,8 +398,7 @@ static int seeprom_bytes_write_page(
         TWDR = *buf;
         /* start transmission */
         TWCR = _BV(TWINT) | _BV(TWEN);
-        /* wait for transmission */
-        while ((TWCR & _BV(TWINT)) == 0);
+        twi_wait_for_transmission();
         twst = TWSR & TW_STATUS_MASK;
         switch (twst) {
             case TW_MT_DATA_NACK:
