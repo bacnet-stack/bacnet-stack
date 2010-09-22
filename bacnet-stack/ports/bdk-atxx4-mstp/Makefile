@@ -226,6 +226,7 @@ AVRDUDE_FLAGS += -B 8
 
 # Fuse high byte (0=enable,1=disable):
 # 0x93 = 1 0 0 1   0 0 1 1
+# 0x17 = 0 0 0 1   0 0 1 1 - v1,v2 board
 # 0x17 = 0 0 0 1   0 1 1 1 - default
 #        ^ ^ ^ ^   ^ \+/ ^
 #        | | | |   |  |  |---- BOOTRST (Enable Bootloader Reset Vector)
@@ -239,7 +240,7 @@ AVRDUDE_FLAGS += -B 8
 #
 # Fuse low byte (0=enable,1=disable):
 # 0xD7 = 1 1 0 1   0 1 1 1 - v3 board
-# 0xE7 = 1 1 1 0   0 1 1 1 - v1,v2 board
+# 0xE6 = 1 1 1 0   0 1 1 0 - v1,v2 board
 # 0x62 = 0 1 1 0   0 0 1 0 - default
 #        ^ ^ \+/   \--+--/
 #        | |  |       +------- CKSEL 3..0 (Select Clock Source)
@@ -270,7 +271,7 @@ AVRDUDE_DEFAULT_FUSES = -U hfuse:w:0x17:m -U lfuse:w:0x62:m -U efuse:w:0xFF:m
 
 AVRDUDE_WRITE_FUSES = -U hfuse:w:0x93:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
 
-AVRDUDE_WRITE_FUSES_V2 = -U hfuse:w:0x93:m -U lfuse:w:0xE7:m -U efuse:w:0xFC:m
+AVRDUDE_WRITE_FUSES_V2 = -U hfuse:w:0x13:m -U lfuse:w:0xE6:m -U efuse:w:0xFC:m
 
 AVRDUDE_BOOTL_FUSES = -U hfuse:w:0x92:m -U lfuse:w:0xD7:m -U efuse:w:0xFC:m
 
