@@ -33,7 +33,9 @@ static uint8_t Address_Switch;
 static uint8_t Buttons;
 static struct itimer Debounce_Timer;
 
+#ifndef BDK_V1_HACK
 #define BDK_V1_HACK 0
+#endif
 
 #if BDK_V1_HACK
 /* version 1 BDK workaournd for floating inputs */
