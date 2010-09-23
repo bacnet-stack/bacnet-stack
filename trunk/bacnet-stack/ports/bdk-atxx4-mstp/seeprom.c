@@ -1,7 +1,6 @@
 /**************************************************************************
 *
 * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
-* Used algorithm and code from Joerg Wunsch and Ruwan Jayanetti.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -26,8 +25,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "hardware.h"
-#include "timer.h"
-/* me */
 #include "seeprom.h"
 
 /* the SEEPROM chip select bits A2, A1, and A0 are grounded */
@@ -98,26 +95,6 @@
 #define MAX_ITER        200
 
 /*************************************************************************
-* DESCRIPTION: Wait for interrupt flag to indicate transmit is complete
-* RETURN: true on success, or false on error
-* NOTES: none
-**************************************************************************/
-static bool twi_wait_for_transmission(void)
-{
-    uint8_t timeout = 255;
-
-    /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0) {
-        if (!(timeout--)) {
-            return false;
-        }
-        continue;
-    }
-
-    return true;
-}
-
-/*************************************************************************
 * DESCRIPTION: Return bytes from SEEPROM memory at address
 * RETURN: number of bytes read, or -1 on error
 * NOTES: none
@@ -146,7 +123,8 @@ int seeprom_bytes_read(
   begin:
     /* send start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
@@ -167,7 +145,8 @@ int seeprom_bytes_read(
     TWDR = sla | TW_WRITE;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_SLA_ACK:
@@ -188,7 +167,8 @@ int seeprom_bytes_read(
     TWDR = (eeaddr >> 8);
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -206,7 +186,8 @@ int seeprom_bytes_read(
     TWDR = eeaddr;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -223,7 +204,8 @@ int seeprom_bytes_read(
     /* Note [12] Next cycle(s): master receiver mode */
     /* send repeated start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_START:
@@ -240,7 +222,8 @@ int seeprom_bytes_read(
     TWDR = sla | TW_READ;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MR_SLA_ACK:
@@ -262,7 +245,7 @@ int seeprom_bytes_read(
         /* clear int to start transmission */
         TWCR = twcr;
         /* wait for transmission */
-        twi_wait_for_transmission();
+        while ((TWCR & _BV(TWINT)) == 0);
         twst = TWSR & TW_STATUS_MASK;
         switch (twst) {
             case TW_MR_DATA_NACK:
@@ -293,7 +276,7 @@ int seeprom_bytes_read(
 * RETURN: number of bytes written, or -1 on error
 * NOTES: only writes from offset to end of page.
 **************************************************************************/
-static int seeprom_bytes_write_page(
+int seeprom_bytes_write_page(
     uint16_t eeaddr,    /* SEEPROM starting memory address */
     uint8_t * buf,      /* data to send */
     int len)
@@ -323,9 +306,8 @@ static int seeprom_bytes_write_page(
     }
   begin:
     /* Note [15] */
-    /* send start condition */
-    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN); 
-    twi_wait_for_transmission();
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN); /* send start condition */
+    while ((TWCR & _BV(TWINT)) == 0);   /* wait for transmission */
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
@@ -343,7 +325,8 @@ static int seeprom_bytes_write_page(
     TWDR = sla | TW_WRITE;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_SLA_ACK:
@@ -363,7 +346,8 @@ static int seeprom_bytes_write_page(
     TWDR = (eeaddr >> 8);
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -381,7 +365,9 @@ static int seeprom_bytes_write_page(
     TWDR = eeaddr;
     /* clear interrupt to start transmission */
     TWCR = _BV(TWINT) | _BV(TWEN);
-    twi_wait_for_transmission();
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0) {
+    };
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_MT_DATA_ACK:
@@ -398,7 +384,8 @@ static int seeprom_bytes_write_page(
         TWDR = *buf;
         /* start transmission */
         TWCR = _BV(TWINT) | _BV(TWEN);
-        twi_wait_for_transmission();
+        /* wait for transmission */
+        while ((TWCR & _BV(TWINT)) == 0);
         twst = TWSR & TW_STATUS_MASK;
         switch (twst) {
             case TW_MT_DATA_NACK:
@@ -426,14 +413,14 @@ static int seeprom_bytes_write_page(
 /*************************************************************************
 * DESCRIPTION: Write some data and wait until it is sent
 * RETURN: number of bytes written, or -1 on error
-* NOTES:
-*   When the word address, internally generated,
+* NOTES: 
+*   When the word address, internally generated, 
 *   reaches the page boundary, the following
-*   byte is placed at the beginning of the same
+*   byte is placed at the beginning of the same 
 *   page. If more than 64 data words are
-*   transmitted to the EEPROM, the data word
-*   address will "roll over" and previous data will be
-*   overwritten. The address "roll over" during write
+*   transmitted to the EEPROM, the data word 
+*   address will “roll over” and previous data will be
+*   overwritten. The address “roll over” during write 
 *   is from the last byte of the current page to the
 *   first byte of the same page.
 **************************************************************************/
@@ -474,8 +461,6 @@ void seeprom_init(
     TWSR = 0;
     TWCR = _BV(TWEN) | _BV(TWEA);
     /* bit rate */
-    /* SCL freq = F_CPU/(16+2*TWBR*4^TWPS) */
-    /* since TWPS in TWSR is set to zero, 4^TWPS resolves to 1 */
     TWBR = (F_CPU / SEEPROM_I2C_CLOCK - 16) / 2;
     /* my address */
     TWAR = 0;

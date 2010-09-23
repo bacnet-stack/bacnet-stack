@@ -61,25 +61,25 @@ void test_task(
     }
 }
 #else
+char Send_Buffer[32];
+
 void test_task(
     void)
 {
-    char buffer[32] = "BACnet: 0000000\r\n";
-    uint8_t nbytes = 17;
     uint8_t data_register = 0;
-    char string_buffer[32] = "";
 
     if (timer_interval_expired(&Test_Timer)) {
         timer_interval_reset(&Test_Timer);
+        sprintf(Send_Buffer, "BACnet: 0000000\r\n");
         MSTP_MAC_Address = input_address();
-        buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';
-        buffer[9] = (MSTP_MAC_Address & BIT1) ? '1' : '0';
-        buffer[10] = (MSTP_MAC_Address & BIT2) ? '1' : '0';
-        buffer[11] = (MSTP_MAC_Address & BIT3) ? '1' : '0';
-        buffer[12] = (MSTP_MAC_Address & BIT4) ? '1' : '0';
-        buffer[13] = (MSTP_MAC_Address & BIT5) ? '1' : '0';
-        buffer[14] = (MSTP_MAC_Address & BIT6) ? '1' : '0';
-        serial_bytes_send((uint8_t *) buffer, nbytes);
+        Send_Buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';
+        Send_Buffer[9] = (MSTP_MAC_Address & BIT1) ? '1' : '0';
+        Send_Buffer[10] = (MSTP_MAC_Address & BIT2) ? '1' : '0';
+        Send_Buffer[11] = (MSTP_MAC_Address & BIT3) ? '1' : '0';
+        Send_Buffer[12] = (MSTP_MAC_Address & BIT4) ? '1' : '0';
+        Send_Buffer[13] = (MSTP_MAC_Address & BIT5) ? '1' : '0';
+        Send_Buffer[14] = (MSTP_MAC_Address & BIT6) ? '1' : '0';
+        serial_bytes_send((uint8_t *) Send_Buffer, 17);
     }
     if (serial_byte_get(&data_register)) {
         /* echo the character */
@@ -110,11 +110,11 @@ void test_task(
                 rs485_baud_rate_set(9600);
                 break;
             case 'b':
-                sprintf(string_buffer, "\r\n%lubps",
+                sprintf(Send_Buffer, "\r\n%lubps",
                     (unsigned long)rs485_baud_rate());
                 break;
             case 'm':
-                sprintf(string_buffer, "\r\nMax:%u",
+                sprintf(Send_Buffer, "\r\nMax:%u",
                     (unsigned)dlmstp_max_master());
                 break;
             default:

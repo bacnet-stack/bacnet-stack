@@ -31,10 +31,10 @@ SIZE_OPTIONS = -t
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
 #AVRDUDE_PROGRAMMERID = avr109
-AVRDUDE_PROGRAMMERID = jtag2fast
+#AVRDUDE_PROGRAMMERID = jtag2fast
 #AVRDUDE_PROGRAMMERID = avrispmkII
 #AVRDUDE_PROGRAMMERID = dragon_isp
-#AVRDUDE_PROGRAMMERID = dragon_jtag
+AVRDUDE_PROGRAMMERID = dragon_jtag
 #
 # port--serial or parallel port to which your
 # hardware programmer is attached
@@ -165,7 +165,7 @@ endif
 
 ## BACnet options
 BFLAGS = -DBACDL_MSTP
-BFLAGS += -DMAX_APDU=256
+BFLAGS += -DMAX_APDU=128
 BFLAGS += -DBIG_ENDIAN=0
 BFLAGS += -DMAX_TSM_TRANSACTIONS=0
 #BFLAGS += -DCRC_USE_TABLE
