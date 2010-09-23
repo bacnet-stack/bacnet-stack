@@ -1,6 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+* Used algorithm and code from Joerg Wunsch and Ruwan Jayanetti.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -25,6 +26,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "hardware.h"
+/* me */
 #include "seeprom.h"
 
 /* the SEEPROM chip select bits A2, A1, and A0 are grounded */
@@ -88,7 +90,7 @@
  * complete, but low enough to properly abort an infinite loop in case
  * a slave is broken or not present at all.  With 100 kHz TWI clock,
  * transfering the start condition and SLA+R/W packet takes about 10
- * µs.  The longest write period is supposed to not exceed ~ 10 ms.
+ * s.  The longest write period is supposed to not exceed ~ 10 ms.
  * Thus, normal operation should not require more than 100 iterations
  * to get the device to respond to a selection.
  */
@@ -276,7 +278,7 @@ int seeprom_bytes_read(
 * RETURN: number of bytes written, or -1 on error
 * NOTES: only writes from offset to end of page.
 **************************************************************************/
-int seeprom_bytes_write_page(
+static int seeprom_bytes_write_page(
     uint16_t eeaddr,    /* SEEPROM starting memory address */
     uint8_t * buf,      /* data to send */
     int len)
@@ -413,14 +415,14 @@ int seeprom_bytes_write_page(
 /*************************************************************************
 * DESCRIPTION: Write some data and wait until it is sent
 * RETURN: number of bytes written, or -1 on error
-* NOTES: 
-*   When the word address, internally generated, 
+* NOTES:
+*   When the word address, internally generated,
 *   reaches the page boundary, the following
-*   byte is placed at the beginning of the same 
+*   byte is placed at the beginning of the same
 *   page. If more than 64 data words are
-*   transmitted to the EEPROM, the data word 
-*   address will “roll over” and previous data will be
-*   overwritten. The address “roll over” during write 
+*   transmitted to the EEPROM, the data word
+*   address will "roll over" and previous data will be
+*   overwritten. The address "roll over" during write
 *   is from the last byte of the current page to the
 *   first byte of the same page.
 **************************************************************************/
@@ -461,6 +463,8 @@ void seeprom_init(
     TWSR = 0;
     TWCR = _BV(TWEN) | _BV(TWEA);
     /* bit rate */
+    /* SCL freq = F_CPU/(16+2*TWBR*4^TWPS) */
+    /* since TWPS in TWSR is set to zero, 4^TWPS resolves to 1 */
     TWBR = (F_CPU / SEEPROM_I2C_CLOCK - 16) / 2;
     /* my address */
     TWAR = 0;
