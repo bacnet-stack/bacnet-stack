@@ -99,7 +99,6 @@ void watchdog_init(
         }
         wdt_enable(value);
     } else {
-		MCUSR = 0;
         wdt_disable();
     }
 }

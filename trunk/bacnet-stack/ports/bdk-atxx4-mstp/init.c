@@ -30,7 +30,9 @@
 void init(
     void)
 {
-    /* Initialize the Clock Prescaler for ATmega48/88/168 */
+    /* clear the MCU Status Register */
+    MCUSR = 0;
+    /* Initialize the Clock Prescaler */
     /* The default CLKPSx bits are factory set to 0011 */
     /* Enbable the Clock Prescaler */
     CLKPR = _BV(CLKPCE);
