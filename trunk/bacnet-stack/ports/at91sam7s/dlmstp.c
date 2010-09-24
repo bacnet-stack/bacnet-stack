@@ -622,9 +622,6 @@ static void MSTP_Receive_Frame_FSM(
                         MSTP_Flag.ReceivedInvalidFrame = true;
                     }
                     Receive_State = MSTP_RECEIVE_STATE_IDLE;
-                } else {
-                    MSTP_Flag.ReceivedInvalidFrame = true;
-                    Receive_State = MSTP_RECEIVE_STATE_IDLE;
                 }
             }
             break;
