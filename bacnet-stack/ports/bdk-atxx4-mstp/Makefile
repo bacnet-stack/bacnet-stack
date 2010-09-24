@@ -147,8 +147,8 @@ DEFINES =
 
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
-# default is for debugging from AVR Studio
-OPTIMIZATION = -O0  $(OPTIMIZE_FLAGS)
+# default is for building from AVR Studio
+OPTIMIZATION = -Os  $(OPTIMIZE_FLAGS)
 DEBUGGING = -g
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
