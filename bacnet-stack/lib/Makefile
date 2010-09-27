@@ -33,7 +33,7 @@ DEBUGGING =
 WARNINGS = -Wall -Wmissing-prototypes
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
-DEBUGGING = -g
+DEBUGGING = -g -DDEBUG_ENABLED=1
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 DEFINES += -DBIP_DEBUG
 endif

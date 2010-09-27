@@ -43,16 +43,19 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#if DEBUG_ENABLED
     void debug_printf(
         const char *format,
         ...);
+#if DEBUG_ENABLED
+    /* Nothing more here */
 #else
-    static void debug_printf(
+    /* If your compiler supports it, this is more compact: 
+    inline void debug_printf(
         const char *format,
         ...) {
         format = format;
     }
+    */
 #endif
 #ifdef __cplusplus
 }
