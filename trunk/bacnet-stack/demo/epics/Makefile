@@ -41,7 +41,7 @@ DEBUGGING =
 OPTIMIZATION = -Os
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
-DEBUGGING = -g
+DEBUGGING = -g -DDEBUG_ENABLED=1
 endif
 # put all the flags together
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)

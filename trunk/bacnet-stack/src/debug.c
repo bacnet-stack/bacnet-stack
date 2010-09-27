@@ -55,4 +55,10 @@ void debug_printf(
 
     return;
 }
+#else
+void debug_printf(
+    const char *format,
+    ...) {
+    format = format;
+}
 #endif

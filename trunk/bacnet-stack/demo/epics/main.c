@@ -903,7 +903,7 @@ int main(
     bool found = false;
     BACNET_OBJECT_ID myObject;
     uint8_t buffer[MAX_PDU] = { 0 };
-    BACNET_READ_ACCESS_DATA *rpm_object;
+    BACNET_READ_ACCESS_DATA *rpm_object = NULL;
     KEY nextKey;
 
     CheckCommandLineArgs(argc, argv);   /* Won't return if there is an issue. */
