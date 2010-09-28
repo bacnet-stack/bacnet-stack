@@ -178,7 +178,7 @@ int npdu_encode_pdu(
         /* destined for a remote network, i.e., if DNET is present. */
         /* This is a one-octet field that is initialized to a value of 0xff. */
         if (dest && dest->net) {
-            npdu[len] = npdu_data->hop_count;
+            npdu[len] = npdu_data->hop_count -1;
             len++;
         }
         if (npdu_data->network_layer_message) {
@@ -243,6 +243,27 @@ void npdu_encode_npdu_data(
     }
 }
 
+/** Decode the NPDU portion of a received message, particularly the NCPI byte.
+ *  The Network Layer Protocol Control Information byte is described 
+ *  in section 6.2.2 of the BACnet standard.
+ * @param npdu [in] Buffer holding the received NPDU header bytes (must be at least 2)
+ * @param dest [out] Returned with routing destination information if the NPDU 
+ *                   has any and if this points to non-null storage for it. 
+ *                   If dest->net and dest->len are 0 on return, there is no
+ *                   routing destination information.
+ * @param src  [out] Returned with routing source information if the NPDU 
+ *                   has any and if this points to non-null storage for it. 
+ *                   If src->net and src->len are 0 on return, there is no
+ *                   routing source information.
+ *                   This src describes the original source of the message when
+ *                   it had to be routed to reach this BACnet Device.
+ * @param npdu_data [out] Returns a filled-out structure with information
+ * 					 decoded from the NCPI and other NPDU bytes.
+ * @return On success, returns the number of bytes which were decoded from the 
+ * 		   NPDU section; if this is a  network layer message, there may be more
+ *         bytes left in the NPDU; if not a network msg, the APDU follows.
+ *         If 0 or negative, there were problems with the data or arguments.
+ */
 int npdu_decode(
     uint8_t * npdu,
     BACNET_ADDRESS * dest,
@@ -370,7 +391,8 @@ int npdu_decode(
             if (npdu_data->network_message_type >= 0x80)
                 len += decode_unsigned16(&npdu[len], &npdu_data->vendor_id);
         } else {
-            /* FIXME: another value for this? */
+            /* Since npdu_data->network_layer_message is false,
+             * it doesn't much matter what we set here; this is safe: */
             npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;
         }
     }
