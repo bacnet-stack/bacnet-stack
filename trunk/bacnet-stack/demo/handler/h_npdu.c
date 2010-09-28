@@ -40,6 +40,26 @@
 
 /** @file h_npdu.c  Handles messages at the NPDU level of the BACnet stack. */
 
+/** Handler for the NPDU portion of a received packet.
+ *  Aside from error-checking, if the NPDU doesn't contain routing info,
+ *  this handler doesn't do much besides stepping over the NPDU header
+ *  and passing the remaining bytes to the apdu_handler.
+ *  @note The routing (except src) and NCPI information, including 
+ *  npdu_data->data_expecting_reply, are discarded.
+ *  
+ * @param src  [out] Returned with routing source information if the NPDU 
+ *                   has any and if this points to non-null storage for it. 
+ *                   If src->net and src->len are 0 on return, there is no
+ *                   routing source information.
+ *                   This src describes the original source of the message when
+ *                   it had to be routed to reach this BACnet Device, and this
+ *                   is passed down into the apdu_handler; however, I don't 
+ *                   think this project's code has any use for the src info  
+ *                   on return from this handler, since the response has 
+ *                   already been sent via the apdu_handler.
+ *  @param pdu [in]  Buffer containing the NPDU and APDU of the received packet.
+ *  @param pdu_len [in] The size of the received message in the pdu[] buffer.
+ */
 void npdu_handler(
     BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,      /* PDU data */

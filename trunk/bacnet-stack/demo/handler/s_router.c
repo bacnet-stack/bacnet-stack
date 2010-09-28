@@ -56,7 +56,7 @@ static void npdu_encode_npdu_network(
         npdu_data->network_message_type = network_message_type; /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
-        npdu_data->hop_count = 255;
+        npdu_data->hop_count = 15;		/* Set a generous but reasonable upper bound */
     }
 }
 
@@ -101,8 +101,10 @@ void Send_Who_Is_Router_To_Network(
 #endif
 }
 
-/* pDNET_list: list of networks for which I am a router,
-   terminated with -1 */
+/** Broadcast an I-am-router-to-network message, giving the list of networks we can reach.
+ * The message will be sent to our normal DataLink Layer interface, not the routed backend.
+ * @param DNET_list [in] list of BACnet network numbers for which I am a router, terminated with -1
+ */
 void Send_I_Am_Router_To_Network(
     const int DNET_list[])
 {
@@ -121,7 +123,7 @@ void Send_I_Am_Router_To_Network(
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
     /* encode the optional DNET list portion of the packet */
 #if PRINT_ENABLED
-    fprintf(stderr, "Send I-Am-Router-To-Network message to:\n");
+    fprintf(stderr, "Sending I-Am-Router-To-Network message for networks:\n");
 #endif
     while (DNET_list[index] != -1) {
         dnet = (uint16_t) DNET_list[index];
@@ -129,7 +131,7 @@ void Send_I_Am_Router_To_Network(
         pdu_len += len;
         index++;
 #if PRINT_ENABLED
-        fprintf(stderr, "%u\n", dnet);
+        fprintf(stderr, "  %u\n", dnet);
 #endif
     }
     /* I-Am-Router-To-Network shall always be transmitted with
