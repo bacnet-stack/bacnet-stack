@@ -39,6 +39,9 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
+/** Use a hop count default that is generous but reasonable. */
+#define DFLT_HOP_COUNT 15
+
 /* an NPDU structure keeps the parameter stack to a minimum */
 typedef struct bacnet_npdu_data_t {
     uint8_t protocol_version;
@@ -52,14 +55,17 @@ typedef struct bacnet_npdu_data_t {
     uint8_t hop_count;
 } BACNET_NPDU_DATA;
 
-/* Port Info structure used by Routers */
 struct router_port_t;
+/** The info[] string has no agreed-upon purpose, hence it is useless. 
+ * Keeping it short here. This size could be 0-255. */
+#define ROUTER_PORT_INFO_LEN 2
+/** Port Info structure used by Routers for their routing table. */
 typedef struct router_port_t {
-    uint16_t dnet;
-    uint8_t id;
-    uint8_t info[256];  /* size could be 1-255 */
-    uint8_t info_len;
-    struct router_port_t *next; /* linked list */
+    uint16_t dnet;		/**< The DNET number that identifies this port. */
+    uint8_t id;			/**< Either 0 or some ill-defined, meaningless value. */
+    uint8_t info[ROUTER_PORT_INFO_LEN];  /**< Info like 'modem dialing string' */
+    uint8_t info_len;	/**< Length of info[]. */
+    struct router_port_t *next; 	/**< Point to next in linked list */
 } BACNET_ROUTER_PORT;
 
 #ifdef __cplusplus

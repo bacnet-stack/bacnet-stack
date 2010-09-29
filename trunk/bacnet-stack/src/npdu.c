@@ -43,6 +43,10 @@
 
 /** @file npdu.c  Encode/Decode NPDUs - Network Protocol Data Units */
 
+/** Copy the npdu_data structure information from src to dest.
+ * @param dest [out] The 'to' structure
+ * @param src   [in] The 'from' structure 
+ */
 void npdu_copy_data(
     BACNET_NPDU_DATA * dest,
     BACNET_NPDU_DATA * src)
@@ -98,6 +102,33 @@ ABORT.request                  Yes          No         Yes        No
 ABORT.indication               Yes         Yes         Yes        No
 */
 
+
+/** Encode the NPDU portion of a message to be sent, based on the npdu_data
+ *  and associated data.
+ *  If this is to be a Network Layer Control Message, there are probably
+ *  more bytes which will need to be encoded following the ones encoded here.
+ *  The Network Layer Protocol Control Information byte is described 
+ *  in section 6.2.2 of the BACnet standard.
+ * @param npdu [out] Buffer which will hold the encoded NPDU header bytes.
+ * 					 The size isn't given, but it must be at least 2 bytes
+ *                   for the simplest case, and should always be at least 24
+ *                   bytes to accommodate the maximal case (all fields loaded).
+ * @param dest [in] The routing destination information if the message must
+ *                   be routed to reach its destination. 
+ *                   If dest->net and dest->len are 0, there is no
+ *                   routing destination information.
+ * @param src  [in] The routing source information if the message was routed
+ *                   from another BACnet network.
+ *                   If src->net and src->len are 0, there is no
+ *                   routing source information.
+ *                   This src describes the original source of the message when
+ *                   it had to be routed to reach this BACnet Device.
+ * @param npdu_data [in] The structure which describes how the NCPI and other 
+ *                   NPDU bytes should be encoded.
+ * @return On success, returns the number of bytes which were encoded into the 
+ * 		   NPDU section.
+ *         If 0 or negative, there were problems with the data or encoding.
+ */
 int npdu_encode_pdu(
     uint8_t * npdu,
     BACNET_ADDRESS * dest,
@@ -227,6 +258,17 @@ described in 6.2.2.
 whether (TRUE) or not (FALSE) a reply service primitive
 is expected for the service being issued.
 */
+
+/** Initialize an npdu_data structure to good defaults.
+ * The name is a misnomer, as it doesn't do any actual encoding here.
+ * @see npdu_encode_npdu_network if you need to set a network layer msg.
+ * 
+ * @param npdu_data [out] Returns a filled-out structure with information
+ * 					 provided by the other arguments and good defaults.
+ * @param data_expecting_reply [in] True if message should have a reply.
+ * @param priority [in] One of the 4 priorities defined in section 6.2.2,
+ *                      like B'11' = Life Safety message
+ */
 void npdu_encode_npdu_data(
     BACNET_NPDU_DATA * npdu_data,
     bool data_expecting_reply,
@@ -239,7 +281,7 @@ void npdu_encode_npdu_data(
         npdu_data->network_message_type = NETWORK_MESSAGE_INVALID;      /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
-        npdu_data->hop_count = 255;
+        npdu_data->hop_count = DFLT_HOP_COUNT;
     }
 }
 

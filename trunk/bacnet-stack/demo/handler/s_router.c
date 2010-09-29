@@ -41,8 +41,21 @@
 #include "txbuf.h"
 #include "client.h"
 
-/** @file s_router.c  Send BACnet Router requests. */
+/** @file s_router.c  Methods to send various BACnet Router Network Layer Messages. */
 
+/** Initialize an npdu_data structure with given parameters and good defaults,
+ * and add the Network Layer Message fields.
+ * The name is a misnomer, as it doesn't do any actual encoding here.
+ * @see npdu_encode_npdu_data for a simpler version to use when sending an
+ *           APDU instead of a Network Layer Message.
+ * 
+ * @param npdu_data [out] Returns a filled-out structure with information
+ * 					 provided by the other arguments and good defaults.
+ * @param network_message_type [in] The type of Network Layer Message.
+ * @param data_expecting_reply [in] True if message should have a reply.
+ * @param priority [in] One of the 4 priorities defined in section 6.2.2,
+ *                      like B'11' = Life Safety message
+ */
 static void npdu_encode_npdu_network(
     BACNET_NPDU_DATA * npdu_data,
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
@@ -56,7 +69,7 @@ static void npdu_encode_npdu_network(
         npdu_data->network_message_type = network_message_type; /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
-        npdu_data->hop_count = 15;		/* Set a generous but reasonable upper bound */
+        npdu_data->hop_count = DFLT_HOP_COUNT;		
     }
 }
 
