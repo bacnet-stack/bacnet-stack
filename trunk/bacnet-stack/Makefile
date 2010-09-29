@@ -1,6 +1,6 @@
 all: library readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov timesync epics readpropm mstpcap \
-	whoisrouter iamrouter initrouter 
+	whoisrouter iamrouter initrouter gateway
 	@echo "utilities are in the bin directory"
 
 clean: lib/Makefile\
@@ -20,7 +20,8 @@ clean: lib/Makefile\
 	demo/whoisrouter/Makefile \
 	demo/iamrouter/Makefile \
 	demo/initrouter/Makefile \
-	demo/mstpcap/Makefile
+	demo/mstpcap/Makefile \
+	demo/gateway/Makefile
 	make -C lib clean
 	make -C demo/readprop clean
 	make -C demo/readpropm clean
@@ -39,6 +40,7 @@ clean: lib/Makefile\
 	make -C demo/iamrouter clean
 	make -C demo/initrouter clean
 	make -C demo/mstpcap clean
+	make -C demo/gateway clean
 
 library: lib/Makefile
 	make -C lib all
@@ -106,6 +108,8 @@ at91sam7s: ports/at91sam7s/makefile
 bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 	make -C ports/bdk-atxx4-mstp clean all
 
+gateway: demo/gateway/Makefile
+	( cd demo/gateway ; make ; cp bacgateway ../../bin )
 
 
 
