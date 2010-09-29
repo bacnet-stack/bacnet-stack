@@ -92,6 +92,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/txbuf.c \
 	$(BACNET_HANDLER)/noserv.c \
 	$(BACNET_HANDLER)/h_npdu.c \
+	$(BACNET_HANDLER)/h_routed_npdu.c \
 	$(BACNET_HANDLER)/h_whois.c \
 	$(BACNET_HANDLER)/h_iam.c  \
 	$(BACNET_HANDLER)/h_rp.c \

@@ -54,6 +54,11 @@ extern "C" {
         uint8_t * pdu,  /* PDU data */
         uint16_t pdu_len);      /* length PDU  */
 
+    void routing_npdu_handler(
+        BACNET_ADDRESS * src,
+        uint8_t * pdu,      
+        uint16_t pdu_len);
+
     void handler_who_is(
         uint8_t * service_request,
         uint16_t service_len,
