@@ -27,7 +27,7 @@
 
 #if !defined(F_CPU)
     /* The processor clock frequency */
-#define F_CPU 18430000UL
+#define F_CPU 18432000UL
 #endif
 
 #if defined(__ICCAVR__)
