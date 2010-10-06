@@ -69,7 +69,7 @@ void handler_i_am_add(
         address_add(device_id, max_apdu, src);
     } else {
 #if PRINT_ENABLED
-        fprintf(stderr, "!\n");
+        fprintf(stderr, ", but unable to decode it.\n");
 #endif
     }
 
