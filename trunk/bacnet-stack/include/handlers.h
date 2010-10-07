@@ -56,6 +56,7 @@ extern "C" {
 
     void routing_npdu_handler(
         BACNET_ADDRESS * src,
+        int * DNET_list,
         uint8_t * pdu,      
         uint16_t pdu_len);
 
