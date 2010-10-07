@@ -1989,3 +1989,39 @@ const char *bactext_node_type_name(
     return indtext_by_index_default(bacnet_node_type_names, index,
         ASHRAE_Reserved_String);
 }
+
+INDTEXT_DATA network_layer_msg_names[] = {
+    {NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, "Who-Is-Router-To-Network"}
+    ,
+    {NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, "I-Am-Router-To-Network"}
+    ,
+    {NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK, "I-Could-Be-Router-To-Network"}
+    ,
+    {NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, "Reject-Message-to-Network"}
+    ,
+    {NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK, "Router-Busy-To-Network"}
+    ,
+    {NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK, "Router-Available-To-Network"}
+    ,
+    {NETWORK_MESSAGE_INIT_RT_TABLE, "Initialize-Routing-Table"}
+    ,
+    {NETWORK_MESSAGE_INIT_RT_TABLE_ACK, "Initialize-Routing-Table-Ack"}
+    ,
+    {NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK, "Est-Conn-Ntwk"}	
+    , /* Terse since unused */
+    {NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK, "Dsc-Conn-Ntwk"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_network_layer_msg_name(
+    unsigned index)
+{
+	if ( index <= 0x7F )
+		return indtext_by_index_default(network_layer_msg_names, index,
+				ASHRAE_Reserved_String);
+	else if ( index < NETWORK_MESSAGE_INVALID )
+		return Vendor_Proprietary_String;
+	else
+		return "Invalid Network Layer Message";
+}

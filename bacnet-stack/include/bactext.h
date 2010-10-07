@@ -120,6 +120,9 @@ extern "C" {
         const char *search_name,
         unsigned *found_index);
 
+    const char *bactext_network_layer_msg_name(
+        unsigned index);
+    
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
