@@ -45,7 +45,6 @@
 /** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet stack, 
  * including routing and network control messages. */
 
-extern int DNET_list[];
 
 /** Handler to manage the Network Layer Control Messages received in a packet.
  *  This handler is called if the NCPI bit 7 indicates that this packet is a
@@ -54,12 +53,15 @@ extern int DNET_list[];
  * 
  * @param npdu_data [in] Contains a filled-out structure with information
  * 					 decoded from the NCPI and other NPDU bytes.
+ * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
+ * 					 Normally just one valid entry; terminated with a -1 value.
  *  @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  				 bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
 static void network_control_handler(
     BACNET_NPDU_DATA * npdu_data,
+    int * DNET_list,
     uint8_t * npdu,     
     uint16_t npdu_len)
 {
@@ -130,9 +132,18 @@ static void network_control_handler(
              * NETWORK_MESSAGE_INIT_RT_TABLE_ACK and a list of all our
              * reachable networks.
              */
-            if ( (npdu_len > 0) && (npdu[0] == 0) ) {
-                BACNET_ROUTER_PORT * router_port_list = NULL;
-                Send_Initialize_Routing_Table_Ack(router_port_list);
+            if ( npdu_len > 0) {
+            	/* If Number of Ports is 0, send our "full" table */
+            	if (npdu[0] == 0) 
+            		Send_Initialize_Routing_Table_Ack( DNET_list );
+            	else {
+            		/* If they sent us a list, just politely ACK it
+            		 * with no routing list of our own.  But we don't DO
+            		 * anything with the info, either.
+            		 */
+            		int listTerminator = -1;
+            		Send_Initialize_Routing_Table_Ack( &listTerminator );
+            	}
                 break;
             }
             /* Else, fall through to do nothing. */
@@ -155,6 +166,7 @@ static void network_control_handler(
 static void routed_apdu_handler(
     BACNET_ADDRESS * src,       
     BACNET_ADDRESS * dest,
+    int * DNET_list,
     uint8_t * apdu,      
     uint16_t apdu_len)
 {       
@@ -186,11 +198,14 @@ static void routed_apdu_handler(
  *                   think this project's code has any use for the src info  
  *                   on return from this handler, since the response has 
  *                   already been sent via the apdu_handler.
+ * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
+ * 					 Normally just one valid entry; terminated with a -1 value.
  *  @param pdu [in]  Buffer containing the NPDU and APDU of the received packet.
  *  @param pdu_len [in] The size of the received message in the pdu[] buffer.
  */
 void routing_npdu_handler(
     BACNET_ADDRESS * src,
+    int * DNET_list,
     uint8_t * pdu,      
     uint16_t pdu_len)
 {       
@@ -207,7 +222,7 @@ void routing_npdu_handler(
 #endif
         } else if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
-                network_control_handler( &npdu_data, &pdu[apdu_offset],
+                network_control_handler( &npdu_data, DNET_list, &pdu[apdu_offset],
         							 (uint16_t) (pdu_len - apdu_offset));
             } else {
                 /* The DNET is set, but we don't support downstream routers,
@@ -221,7 +236,7 @@ void routing_npdu_handler(
                 			 (uint16_t) (pdu_len - apdu_offset));
             } else {
                 /* Handle the routed variety differently */
-                routed_apdu_handler(src, &dest, &pdu[apdu_offset],
+                routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
                 			 (uint16_t) (pdu_len - apdu_offset));
             }
         }

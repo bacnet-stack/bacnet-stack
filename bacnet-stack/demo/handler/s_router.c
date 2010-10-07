@@ -36,6 +36,7 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
+#include "bactext.h"
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
@@ -73,45 +74,123 @@ static void npdu_encode_npdu_network(
     }
 }
 
-/* find a specific router, or use -1 for limit if you want unlimited */
-void Send_Who_Is_Router_To_Network(
-    BACNET_ADDRESS * dst,
-    int dnet)
+
+/** Function to encode and send any supported Network Layer Message.
+ * The payload for the message is encoded from information in the iArgs[] array.
+ * The contents of iArgs are are, per message type:
+ * - NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK: Single int for DNET requested
+ * - NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK: Array of DNET(s) to send,
+ * 		terminated with -1
+ * 
+ * @param network_message_type [in] The type of message to be sent.
+ * @param dst [in/out] If not NULL, contains the destination for the message.
+ * @param iArgs [in] An optional array of values whose meaning depends on 
+ *                   the type of message.
+ * @return Number of bytes sent, or <=0 if no message was sent.
+ */
+int Send_Network_Layer_Message( 
+	    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+	    BACNET_ADDRESS * dst,
+	    int * iArgs )
 {
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
+    int *pVal = iArgs;		/* Start with first value */
     BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS bcastDest;
+    
+    /* If dst was NULL, get our (local net) broadcast MAC address. */
+    if ( dst == NULL ) {
+		datalink_get_broadcast_address(&bcastDest);
+    	dst = &bcastDest;
+    }
 
     npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, false,
-        MESSAGE_PRIORITY_NORMAL);
-    /* fixme: should dnet/dlen/dadr be set in NPDU?  */
+    		network_message_type, false,
+    		MESSAGE_PRIORITY_NORMAL);
+    
+    /* We don't need src information, since a message can't originate from
+     * our downstream BACnet network.
+     */
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
-    /* encode the optional DNET portion of the packet */
-    if (dnet >= 0) {
-        len =
-            encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
-            (uint16_t) dnet);
-        pdu_len += len;
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], dst, NULL, &npdu_data);
+    
+    /* Now encode the optional payload bytes, per message type */
+    switch ( network_message_type )
+    {
+    case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
+        if (*pVal >= 0) {
+            len =
+                encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
+                (uint16_t) *pVal);
+            pdu_len += len;
+        } 
+        /* else, don't encode a DNET */
+        break;
+        
+    case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
+    	while ( *pVal >= 0 ) {
+            len =
+                encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
+                (uint16_t) *pVal);
+            pdu_len += len;
+    		pVal++;
+    	}
+    	break;
+    	
+    default:
 #if PRINT_ENABLED
-        fprintf(stderr, "Send Who-Is-Router-To-Network message to %u\n", dnet);
-#endif
-    } else {
-#if PRINT_ENABLED
-        fprintf(stderr, "Send Who-Is-Router-To-Network message\n");
-#endif
+    	fprintf(stderr, "Not sent: %s message unsupported \n", 
+         		bactext_network_layer_msg_name( network_message_type ) );
+  #endif
+    	return 0;
+    	break;		/* Will never reach this line */
     }
+    
+#if PRINT_ENABLED
+    if ( dst != NULL )
+        fprintf(stderr, "Sending %s message to BACnet network %u \n", 
+        		bactext_network_layer_msg_name( network_message_type ),
+        	     dst->net );
+    else
+        fprintf(stderr, "Sending %s message to local BACnet network \n", 
+         		bactext_network_layer_msg_name( network_message_type ) );
+#endif
+
+    /* Now send the message */
     bytes_sent =
         datalink_send_pdu(dst, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
+    if (bytes_sent <= 0) {
+    	int wasErrno = errno;	/* preserve the errno */
         fprintf(stderr,
-            "Failed to Send Who-Is-Router-To-Network Request (%s)!\n",
-            strerror(errno));
+            "Failed to send %s message (%s)!\n",
+            bactext_network_layer_msg_name( network_message_type ),
+            strerror(wasErrno));
+    }
 #endif
+	return bytes_sent;
+}
+
+
+/** Finds a specific router, or all reachable BACnet networks.
+ * The response(s) will come in I-am-router-to-network message(s).
+ * 
+ * @param dst [in] If NULL, request will be broadcast to the local BACnet
+ *                 network.  Optionally may designate a particular router
+ *                 destination to respond.
+ * @param dnet [in] Which BACnet network to request for; if -1, no DNET
+ *                 will be sent and the receiving router(s) will send
+ *                 their full list of reachable BACnet networks.
+ */
+void Send_Who_Is_Router_To_Network(
+    BACNET_ADDRESS * dst,
+    int dnet)
+{
+	Send_Network_Layer_Message( NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK,
+		    					dst, &dnet );
 }
 
 /** Broadcast an I-am-router-to-network message, giving the list of networks we can reach.
@@ -121,44 +200,9 @@ void Send_Who_Is_Router_To_Network(
 void Send_I_Am_Router_To_Network(
     const int DNET_list[])
 {
-    int len = 0;
-    int pdu_len = 0;
-    BACNET_ADDRESS dest;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
-    uint16_t dnet = 0;
-    unsigned index = 0;
-
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, false,
-        MESSAGE_PRIORITY_NORMAL);
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
-    /* encode the optional DNET list portion of the packet */
-#if PRINT_ENABLED
-    fprintf(stderr, "Sending I-Am-Router-To-Network message for networks:\n");
-#endif
-    while (DNET_list[index] != -1) {
-        dnet = (uint16_t) DNET_list[index];
-        len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], dnet);
-        pdu_len += len;
-        index++;
-#if PRINT_ENABLED
-        fprintf(stderr, "  %u\n", dnet);
-#endif
-    }
-    /* I-Am-Router-To-Network shall always be transmitted with
-       a broadcast MAC address. */
-    datalink_get_broadcast_address(&dest);
-    bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Failed to send I-Am-Router-To-Network message (%s)!\n",
-            strerror(errno));
-#endif
+    /* Use a NULL dst here since we want a broadcast MAC address. */
+	Send_Network_Layer_Message( NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
+		    					NULL, (int *) DNET_list );
 }
 
 /* */
@@ -216,16 +260,16 @@ void Send_Initialize_Routing_Table(
 
 /* */
 void Send_Initialize_Routing_Table_Ack(
-    BACNET_ROUTER_PORT * router_port_list)
+		const int DNET_list[] )
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-
+    // BACNET_ROUTER_PORT * router_port_list;
 
     /* FIXME: is this parameter needed? */
-    router_port_list = router_port_list;
+//    router_port_list = router_port_list;
     /* setup packet for sending */
     npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
         false, MESSAGE_PRIORITY_NORMAL);
