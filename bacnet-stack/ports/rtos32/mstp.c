@@ -474,7 +474,7 @@ void MSTP_Receive_Frame_FSM(
                             }
                             /* NoData */
                             else if (mstp_port->DataLength == 0) {
-                                /* CHEAT: it is very difficult to respond to 
+                                /* CHEAT: it is very difficult to respond to
                                    poll for master in the Master Node state machine
                                    before Tusage_timeout, so we will do it here. */
                                 if ((mstp_port->FrameType ==
@@ -784,7 +784,7 @@ bool MSTP_Master_Node_FSM(
                         case FRAME_TYPE_POLL_FOR_MASTER:
                             /* CHEAT: we cheat a little and this is really handled in the
                                receive state machine since it is difficult to respond
-                               quick enough (i.e. faster than Tusage_timeout of the 
+                               quick enough (i.e. faster than Tusage_timeout of the
                                other node which could be 20ms). */
                             MSTP_Create_And_Send_Frame(mstp_port,
                                 FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
@@ -938,6 +938,17 @@ bool MSTP_Master_Node_FSM(
                 /* then this node may send another information frame  */
                 /* before passing the token.  */
                 mstp_port->master_state = MSTP_MASTER_STATE_USE_TOKEN;
+            } else if ((mstp_port->SoleMaster == false) &&
+                (mstp_port->Next_Station == mstp_port->This_Station)) {
+                /* NextStationUnknown - added in Addendum 135-2008v-1 */
+                /*  then the next station to which the token
+                    should be sent is unknown - so PollForMaster */
+                mstp_port->Poll_Station = next_this_station;
+                MSTP_Create_And_Send_Frame(mstp_port,
+                    FRAME_TYPE_POLL_FOR_MASTER, mstp_port->Poll_Station,
+                    mstp_port->This_Station, NULL, 0);
+                mstp_port->RetryCount = 0;
+                mstp_port->master_state = MSTP_MASTER_STATE_POLL_FOR_MASTER;
             }
             /* Npoll changed in Errata SSPC-135-2004 */
             else if (mstp_port->TokenCount < (Npoll - 1)) {
