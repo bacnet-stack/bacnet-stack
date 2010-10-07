@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <project>
-  <fileVersion>1</fileVersion>
+  <fileVersion>2</fileVersion>
   <configuration>
     <name>Debug</name>
     <toolchain>
@@ -10,9 +10,9 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>5</archiveVersion>
+      <archiveVersion>9</archiveVersion>
       <data>
-        <version>7</version>
+        <version>8</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -127,8 +127,8 @@
         </option>
         <option>
           <name>New Variant Processor</name>
-          <version>24</version>
-          <state>45</state>
+          <version>30</version>
+          <state>57</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
@@ -175,11 +175,6 @@
           <state>1</state>
         </option>
         <option>
-          <name>GeneralMisraRules</name>
-          <version>0</version>
-          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
-        </option>
-        <option>
           <name>GeneralEnableMisra</name>
           <state>0</state>
         </option>
@@ -211,13 +206,27 @@
           <name>GGNoMULInstruction</name>
           <state>0</state>
         </option>
+        <option>
+          <name>GeneralMisraVer</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>GeneralMisraRules04</name>
+          <version>0</version>
+          <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+        </option>
+        <option>
+          <name>GeneralMisraRules98</name>
+          <version>0</version>
+          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCAVR</name>
-      <archiveVersion>4</archiveVersion>
+      <archiveVersion>5</archiveVersion>
       <data>
-        <version>13</version>
+        <version>14</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -449,11 +458,6 @@
           <state>0</state>
         </option>
         <option>
-          <name>CompilerMisraRules</name>
-          <version>0</version>
-          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
-        </option>
-        <option>
           <name>CompilerMisraOverride</name>
           <state>0</state>
         </option>
@@ -480,6 +484,16 @@
         <option>
           <name>OCCAdditionalCommandLineOptionsSlave</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>CompilerMisraRules04</name>
+          <version>0</version>
+          <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+        </option>
+        <option>
+          <name>CompilerMisraRules98</name>
+          <version>0</version>
+          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
         </option>
       </data>
     </settings>
@@ -986,19 +1000,19 @@
     <debug>0</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>5</archiveVersion>
+      <archiveVersion>9</archiveVersion>
       <data>
-        <version>7</version>
+        <version>8</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
           <name>GGEnhancedCore</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>Variant Memory</name>
           <version>0</version>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>ExePath</name>
@@ -1031,7 +1045,7 @@
         </option>
         <option>
           <name>LCEnableBitDefs</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>LCHeapSize</name>
@@ -1039,7 +1053,7 @@
         </option>
         <option>
           <name>SCCStackSize</name>
-          <state>0x20</state>
+          <state>0x200</state>
         </option>
         <option>
           <name>SCExtCStack</name>
@@ -1047,7 +1061,7 @@
         </option>
         <option>
           <name>SCRStackSize</name>
-          <state>16</state>
+          <state>32</state>
         </option>
         <option>
           <name>SCExtRStack</name>
@@ -1095,42 +1109,46 @@
         </option>
         <option>
           <name>GGEepromUtil</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GGEepromUtilSize</name>
-          <state>0</state>
+          <state>512</state>
         </option>
         <option>
           <name>New Variant Processor</name>
-          <version>24</version>
-          <state>0</state>
+          <version>30</version>
+          <state>57</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
           <version>0</version>
-          <state>4</state>
+          <state>1</state>
         </option>
         <option>
           <name>RTDescription</name>
-          <state>Use the legacy C runtime library.</state>
+          <state>Use the normal configuration of the C/EC++</state>
+          <state>runtime library. No locale interface,</state>
+          <state>C locale, no file descriptor support,</state>
+          <state>no multibytes in printf and scanf, and</state>
+          <state>no hex floats in strtod.</state>
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state></state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\CLIB\cl0t.r90</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.r90</state>
         </option>
         <option>
           <name>Input variant</name>
           <version>0</version>
-          <state>2</state>
+          <state>0</state>
         </option>
         <option>
           <name>Input description</name>
-          <state>No float.</state>
+          <state>Full formatting.</state>
         </option>
         <option>
           <name>Output variant</name>
@@ -1139,17 +1157,12 @@
         </option>
         <option>
           <name>Output description</name>
-          <state>No float, no field width, no precision.</state>
+          <state> specifier a or A, no specifier n, no float or long long.</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
           <version>0</version>
-          <state>4</state>
-        </option>
-        <option>
-          <name>GeneralMisraRules</name>
-          <version>0</version>
-          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
+          <state>1</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -1183,13 +1196,27 @@
           <name>GGNoMULInstruction</name>
           <state>0</state>
         </option>
+        <option>
+          <name>GeneralMisraVer</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>GeneralMisraRules04</name>
+          <version>0</version>
+          <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+        </option>
+        <option>
+          <name>GeneralMisraRules98</name>
+          <version>0</version>
+          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCAVR</name>
-      <archiveVersion>4</archiveVersion>
+      <archiveVersion>5</archiveVersion>
       <data>
-        <version>13</version>
+        <version>14</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1211,6 +1238,16 @@
         <option>
           <name>CCDefines</name>
           <state>NDEBUG</state>
+          <state>BACDL_MSTP</state>
+          <state>MAX_APDU=50</state>
+          <state>BIG_ENDIAN=0</state>
+          <state>MAX_TSM_TRANSACTIONS=0</state>
+          <state>BACAPP_REAL</state>
+          <state>BACAPP_UNSIGNED</state>
+          <state>BACAPP_ENUMERATED</state>
+          <state>BACAPP_CHARACTER_STRING</state>
+          <state>BACAPP_OBJECT_ID</state>
+          <state>WRITE_PROPERTY</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -1250,7 +1287,7 @@
         </option>
         <option>
           <name>CCDiagSuppress</name>
-          <state></state>
+          <state>Pe550</state>
         </option>
         <option>
           <name>CCDiagRemark</name>
@@ -1374,7 +1411,8 @@
         </option>
         <option>
           <name>newCCIncludePaths</name>
-          <state></state>
+          <state>$PROJ_DIR$</state>
+          <state>$PROJ_DIR$\..\..\include</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1383,7 +1421,7 @@
         <option>
           <name>CCStdIncludePaths</name>
           <state>$TOOLKIT_DIR$\INC\</state>
-          <state>$TOOLKIT_DIR$\INC\CLIB\</state>
+          <state>$TOOLKIT_DIR$\INC\DLIB\</state>
         </option>
         <option>
           <name>CCEepromSize</name>
@@ -1409,11 +1447,6 @@
         <option>
           <name>CCLangSelect</name>
           <state>0</state>
-        </option>
-        <option>
-          <name>CompilerMisraRules</name>
-          <version>0</version>
-          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
         </option>
         <option>
           <name>CompilerMisraOverride</name>
@@ -1442,6 +1475,16 @@
         <option>
           <name>OCCAdditionalCommandLineOptionsSlave</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>CompilerMisraRules04</name>
+          <version>0</version>
+          <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+        </option>
+        <option>
+          <name>CompilerMisraRules98</name>
+          <version>0</version>
+          <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
         </option>
       </data>
     </settings>
@@ -1727,7 +1770,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\src\template\lnk0t.xcl</state>
+          <state>$TOOLKIT_DIR$\src\template\cfgm168.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -1845,7 +1888,7 @@
         </option>
         <option>
           <name>ExtraOutputFile</name>
-          <state>templproj.a90</state>
+          <state>bacnet.a90</state>
         </option>
         <option>
           <name>ExtraOutputFormat</name>
@@ -1985,6 +2028,9 @@
     <name>$PROJ_DIR$\dlmstp.c</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\..\..\demo\handler\h_npdu.c</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\h_rp.c</name>
   </file>
   <file>
@@ -2009,12 +2055,6 @@
     <name>$PROJ_DIR$\..\..\demo\handler\noserv.c</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\..\..\demo\handler\s_iam.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\demo\handler\h_npdu.c</name>
-  </file>
-  <file>
     <name>$PROJ_DIR$\..\..\src\npdu.c</name>
   </file>
   <file>
@@ -2030,10 +2070,13 @@
     <name>$PROJ_DIR$\rs485.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\timer.c</name>
+    <name>$PROJ_DIR$\..\..\demo\handler\s_iam.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\stack.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\timer.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\timer.h</name>
