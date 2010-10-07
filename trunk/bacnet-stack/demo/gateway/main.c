@@ -61,7 +61,6 @@
 /** @file gateway/main.c  Example virtual gateway application using the BACnet Stack. */
 
 /* Prototypes */
-extern void routing_npdu_handler( BACNET_ADDRESS * src, uint8_t * pdu, uint16_t pdu_len);
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the GatewayDemo module.) */
@@ -203,7 +202,7 @@ int main(
 
         /* process */
         if (pdu_len) {
-        	routing_npdu_handler(&src, &Rx_Buf[0], pdu_len);
+        	routing_npdu_handler(&src, DNET_list, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
         elapsed_seconds = current_seconds - last_seconds;
