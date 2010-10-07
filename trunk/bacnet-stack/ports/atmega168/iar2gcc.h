@@ -43,7 +43,9 @@
 #include <inavr.h>
 #include <ioavr.h>
 /* BitValue is used alot in GCC examples */
+#ifndef _BV
 #define _BV(bit_num) (1 << (bit_num))
+#endif
 
 /* inline function */
 static inline void _delay_us(

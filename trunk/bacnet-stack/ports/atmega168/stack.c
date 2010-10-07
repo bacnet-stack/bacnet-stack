@@ -22,6 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
+#include <stdint.h>
 #include "hardware.h"
 
 /* stack checking */
