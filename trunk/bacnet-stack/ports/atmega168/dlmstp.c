@@ -783,6 +783,17 @@ static bool MSTP_Master_Node_FSM(
                 /* before passing the token.  */
                 Master_State = MSTP_MASTER_STATE_USE_TOKEN;
                 transition_now = true;
+            } else if ((MSTP_Flag.SoleMaster == false) &&
+                (Next_Station == This_Station)) {
+                /* NextStationUnknown - added in Addendum 135-2008v-1 */
+                /*  then the next station to which the token
+                    should be sent is unknown - so PollForMaster */
+                Poll_Station = next_this_station;
+                MSTP_Send_Frame(
+                    FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
+                    This_Station, NULL, 0);
+                RetryCount = 0;
+                Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
             }
             /* Npoll changed in Errata SSPC-135-2004 */
             else if (TokenCount < (Npoll - 1)) {
