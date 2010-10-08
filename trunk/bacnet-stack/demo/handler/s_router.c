@@ -41,6 +41,7 @@
 #include "handlers.h"
 #include "txbuf.h"
 #include "client.h"
+#include "debug.h"
 
 /** @file s_router.c  Methods to send various BACnet Router Network Layer Messages. */
 
@@ -81,6 +82,14 @@ static void npdu_encode_npdu_network(
  * - NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK: Single int for DNET requested
  * - NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK: Array of DNET(s) to send,
  * 		terminated with -1
+ * - NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK: array of 2 ints,
+ *      first is reason, second is DNET of interest
+ * - NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK: same as I-Am-Router msg
+ * - NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK: same as I-Am-Router msg
+ * - NETWORK_MESSAGE_INIT_RT_TABLE and NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
+ *      Array of DNET(s) to process as "Ports", terminated with -1.  Each DNET 
+ *      will be expanded to a BACNET_ROUTER_PORT (with simple defaults for
+ *      most fields) and encoded.   
  * 
  * @param network_message_type [in] The type of message to be sent.
  * @param dst [in/out] If not NULL, contains the destination for the message.
@@ -97,8 +106,12 @@ int Send_Network_Layer_Message(
     int pdu_len = 0;
     int bytes_sent = 0;
     int *pVal = iArgs;		/* Start with first value */
+    bool data_expecting_reply = false;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS bcastDest;
+    
+    if ( iArgs == NULL )
+        return 0;           /* Can't do anything here */
     
     /* If dst was NULL, get our (local net) broadcast MAC address. */
     if ( dst == NULL ) {
@@ -106,8 +119,10 @@ int Send_Network_Layer_Message(
     	dst = &bcastDest;
     }
 
+    if ( network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE )
+        data_expecting_reply = true;    /* DER in this one case */
     npdu_encode_npdu_network(&npdu_data,
-    		network_message_type, false,
+    		network_message_type, data_expecting_reply,
     		MESSAGE_PRIORITY_NORMAL);
     
     /* We don't need src information, since a message can't originate from
@@ -130,6 +145,8 @@ int Send_Network_Layer_Message(
         break;
         
     case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
+    case NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK:
+    case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
     	while ( *pVal >= 0 ) {
             len =
                 encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
@@ -139,24 +156,60 @@ int Send_Network_Layer_Message(
     	}
     	break;
     	
+    case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
+        /* Encode the Reason byte, then the DNET */
+        Handler_Transmit_Buffer[pdu_len++] = (uint8_t) *pVal;
+        pVal++;
+        len =
+            encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
+            (uint16_t) *pVal);
+        pdu_len += len;
+        break;
+
+    case NETWORK_MESSAGE_INIT_RT_TABLE:
+    case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
+        /* First, count the number of Ports we will encode */
+        len = 0;                /* Re-purpose len as our counter here */
+        while ( *pVal >= 0 ) {
+            len++;
+            pVal++;
+        }
+        Handler_Transmit_Buffer[pdu_len++] = (uint8_t) len;
+        
+        if ( len > 0 ) {
+            uint8_t portID = 1;
+            pVal = iArgs;       /* Reset to beginning */
+            /* Now encode each (virtual) BACNET_ROUTER_PORT.
+             * We will simply use a positive index for PortID,
+             * and have no PortInfo. 
+             */
+            while ( *pVal >= 0 ) {
+                len =
+                    encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
+                                        (uint16_t) *pVal);
+                pdu_len += len;
+                Handler_Transmit_Buffer[pdu_len++] = portID++;
+                Handler_Transmit_Buffer[pdu_len++] = 0;
+                debug_printf( "  Sending Routing Table entry for %u \n", *pVal );
+                pVal++;
+            }
+        }
+        break;
+        
     default:
-#if PRINT_ENABLED
-    	fprintf(stderr, "Not sent: %s message unsupported \n", 
+        debug_printf("Not sent: %s message unsupported \n", 
          		bactext_network_layer_msg_name( network_message_type ) );
-  #endif
     	return 0;
     	break;		/* Will never reach this line */
     }
     
-#if PRINT_ENABLED
     if ( dst != NULL )
-        fprintf(stderr, "Sending %s message to BACnet network %u \n", 
+        debug_printf("Sending %s message to BACnet network %u \n", 
         		bactext_network_layer_msg_name( network_message_type ),
         	     dst->net );
     else
-        fprintf(stderr, "Sending %s message to local BACnet network \n", 
+        debug_printf("Sending %s message to local BACnet network \n", 
          		bactext_network_layer_msg_name( network_message_type ) );
-#endif
 
     /* Now send the message */
     bytes_sent =
@@ -165,8 +218,7 @@ int Send_Network_Layer_Message(
 #if PRINT_ENABLED
     if (bytes_sent <= 0) {
     	int wasErrno = errno;	/* preserve the errno */
-        fprintf(stderr,
-            "Failed to send %s message (%s)!\n",
+    	debug_printf("Failed to send %s message (%s)!\n",
             bactext_network_layer_msg_name( network_message_type ),
             strerror(wasErrno));
     }
@@ -193,9 +245,12 @@ void Send_Who_Is_Router_To_Network(
 		    					dst, &dnet );
 }
 
-/** Broadcast an I-am-router-to-network message, giving the list of networks we can reach.
- * The message will be sent to our normal DataLink Layer interface, not the routed backend.
- * @param DNET_list [in] list of BACnet network numbers for which I am a router, terminated with -1
+/** Broadcast an I-am-router-to-network message, giving the list of networks 
+ * we can reach.
+ * The message will be sent to our normal DataLink Layer interface, 
+ * not the routed backend.
+ * @param DNET_list [in] List of BACnet network numbers for which I am a router, 
+ *                       terminated with -1
  */
 void Send_I_Am_Router_To_Network(
     const int DNET_list[])
@@ -205,85 +260,74 @@ void Send_I_Am_Router_To_Network(
 		    					NULL, (int *) DNET_list );
 }
 
-/* */
-void Send_Initialize_Routing_Table(
+/** Finds a specific router, or all reachable BACnet networks.
+ * The response(s) will come in I-am-router-to-network message(s).
+ * 
+ * @param dst [in] If NULL, request will be broadcast to the local BACnet
+ *                 network.  Otherwise, designates a particular router
+ *                 destination.
+ * @param reject_reason [in] One of the BACNET_NETWORK_REJECT_REASONS codes.
+ * @param dnet [in] Which BACnet network orginated the message.
+ */
+void Send_Reject_Message_To_Network(
     BACNET_ADDRESS * dst,
-    BACNET_ROUTER_PORT * router_port_list)
+    uint8_t reject_reason,
+    int dnet)
 {
-    int len = 0;
-    int pdu_len = 0;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
-    uint8_t number_of_ports = 0;
-    BACNET_ROUTER_PORT *router_port;
-    uint8_t i = 0;      /* counter */
-
-    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE, true,
-        MESSAGE_PRIORITY_NORMAL);
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
-    /* encode the optional port_info list portion of the packet */
-    router_port = router_port_list;
-    while (router_port) {
-        number_of_ports++;
-        router_port = router_port->next;
-    }
-    Handler_Transmit_Buffer[pdu_len++] = number_of_ports;
-    if (number_of_ports) {
-        router_port = router_port_list;
-        while (router_port) {
-            len =
-                encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
-                router_port->dnet);
-            pdu_len += len;
-            Handler_Transmit_Buffer[pdu_len++] = router_port->id;
-            Handler_Transmit_Buffer[pdu_len++] = router_port->info_len;
-            for (i = 0; i < router_port->info_len; i++) {
-                Handler_Transmit_Buffer[pdu_len++] = router_port->info[i];
-            }
-            router_port = router_port->next;
-        }
-    }
-#if PRINT_ENABLED
-    fprintf(stderr, "Send Initialize-Routing-Table message\n");
-#endif
-    bytes_sent =
-        datalink_send_pdu(dst, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Failed to send Initialize-Routing-Table message (%s)!\n",
-            strerror(errno));
-#endif
+    int iArgs[2];
+    iArgs[0] = reject_reason;
+    iArgs[1] = dnet;
+    Send_Network_Layer_Message( NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK,
+                                dst, iArgs );
+    debug_printf("  Reject Reason=%d, DNET=%u\n", reject_reason, dnet );
 }
 
-/* */
-void Send_Initialize_Routing_Table_Ack(
-		const int DNET_list[] )
-{
-    int pdu_len = 0;
-    BACNET_ADDRESS dest;
-    int bytes_sent = 0;
-    BACNET_NPDU_DATA npdu_data;
-    // BACNET_ROUTER_PORT * router_port_list;
 
-    /* FIXME: is this parameter needed? */
-//    router_port_list = router_port_list;
-    /* setup packet for sending */
-    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
-        false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], NULL, NULL, &npdu_data);
-    /* encode the optional DNET list portion of the packet */
-    datalink_get_broadcast_address(&dest);
-    bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
-#if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Failed to Send Initialize-Routing-Table-Ack message (%s)!\n",
-            strerror(errno));
-#endif
+/** Send an Initialize Routing Table message, built from an optional DNET[] 
+ * array.
+ * There are two cases here:
+ * 1) We are requesting a destination router's Routing Table.
+ *    In that case, DNET[] should just have one entry of -1 (no routing table 
+ *    is sent).
+ * 2) We are sending out our Routing Table for some reason (normally bcast it).
+ *    
+ * @param dst [in] If NULL, msg will be broadcast to the local BACnet network.
+ *                 Optionally may designate a particular router destination, 
+ *                 especially when requesting a Routing Table.
+ * @param DNET_list [in] List of BACnet network numbers for which I am a router, 
+ *                       terminated with -1.  Will be just -1 when we are 
+ *                       requesting a routing table.
+ */
+void Send_Initialize_Routing_Table(
+    BACNET_ADDRESS * dst,
+    const int DNET_list[])
+{
+    /* Use a NULL dst here since we want a broadcast MAC address. */
+    Send_Network_Layer_Message( NETWORK_MESSAGE_INIT_RT_TABLE,
+                                dst, (int *) DNET_list );
+}
+
+
+/** Sends our Routing Table, built from our DNET[] array, as an ACK.
+ * There are two cases here:
+ * 1) We are responding to a NETWORK_MESSAGE_INIT_RT_TABLE requesting our table.
+ *    We will normally broadcast that response.
+ * 2) We are ACKing the receipt of a NETWORK_MESSAGE_INIT_RT_TABLE containing a
+ *    routing table, and then we will want to respond to that dst router.  
+ *    In that case, DNET[] should just have one entry of -1 (no routing table 
+ *    is sent).
+ *    
+ * @param dst [in] If NULL, Ack will be broadcast to the local BACnet network.
+ *                 Optionally may designate a particular router destination, 
+ *                 especially when ACKing receipt of this message type.
+ * @param DNET_list [in] List of BACnet network numbers for which I am a router, 
+ *                       terminated with -1.  May be just -1 when no table 
+ *                       should be sent.
+ */
+void Send_Initialize_Routing_Table_Ack(
+    BACNET_ADDRESS * dst,
+    const int DNET_list[])
+{
+    Send_Network_Layer_Message( NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
+                                dst, (int *) DNET_list );
 }
