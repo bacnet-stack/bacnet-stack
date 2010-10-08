@@ -194,10 +194,15 @@ extern "C" {
         int dnet);
     void Send_I_Am_Router_To_Network(
         const int DNET_list[]);
+    void Send_Reject_Message_To_Network(
+        BACNET_ADDRESS * dst,
+        uint8_t reject_reason,
+        int dnet);
     void Send_Initialize_Routing_Table(
         BACNET_ADDRESS * dst,
-        BACNET_ROUTER_PORT * router_port_list);
+        const int DNET_list[]);
     void Send_Initialize_Routing_Table_Ack(
+        BACNET_ADDRESS * dst,
     	const int DNET_list[]);
 
     uint8_t Send_Life_Safety_Operation_Data(

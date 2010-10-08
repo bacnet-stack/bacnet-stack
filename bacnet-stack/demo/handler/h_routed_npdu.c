@@ -36,6 +36,7 @@
 #include "apdu.h"
 #include "handlers.h"
 #include "client.h"
+#include "bactext.h"
 #include "debug.h"
 
 #if PRINT_ENABLED
@@ -51,17 +52,21 @@
  *  network layer message and there is no further DNET to pass it to.  
  *  The NCPI has already been decoded into the npdu_data structure. 
  * 
- * @param npdu_data [in] Contains a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU bytes.
+ * @param src  [in] The routing source information, if any. 
+ *                   If src->net and src->len are 0, there is no
+ *                   routing source information.
  * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
  * 					 Normally just one valid entry; terminated with a -1 value.
+ * @param npdu_data [in] Contains a filled-out structure with information
+ * 					 decoded from the NCPI and other NPDU bytes.
  *  @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  				 bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
 static void network_control_handler(
-    BACNET_NPDU_DATA * npdu_data,
+    BACNET_ADDRESS * src,
     int * DNET_list,
+    BACNET_NPDU_DATA * npdu_data,
     uint8_t * npdu,     
     uint16_t npdu_len)
 {
@@ -101,7 +106,9 @@ static void network_control_handler(
              * -- Unless we act upon NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK
              * later for congestion control - then it could matter.
              */
-            debug_printf("I-Am Router to Network for Networks: ");
+            debug_printf("%s for Networks: ", 
+                    bactext_network_layer_msg_name( 
+                            NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK ) );
             while (npdu_len) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
                 debug_printf("%hu", dnet);
@@ -119,7 +126,9 @@ static void network_control_handler(
         case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
             if ( npdu_len >= 3 ) {
                 decode_unsigned16(&npdu[1], &dnet);
-                debug_printf("Received 'Reject Message to Network' for Network: ");
+                debug_printf("Received %s for Network: ",
+                        bactext_network_layer_msg_name( 
+                                NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK ) );
                 debug_printf("%hu,  Reason code: %d \n", dnet, npdu[0] );
             }
             break;
@@ -133,22 +142,23 @@ static void network_control_handler(
              * reachable networks.
              */
             if ( npdu_len > 0) {
-            	/* If Number of Ports is 0, send our "full" table */
+            	/* If Number of Ports is 0, broadcast our "full" table */
             	if (npdu[0] == 0) 
-            		Send_Initialize_Routing_Table_Ack( DNET_list );
+            		Send_Initialize_Routing_Table_Ack( NULL, DNET_list );
             	else {
             		/* If they sent us a list, just politely ACK it
             		 * with no routing list of our own.  But we don't DO
             		 * anything with the info, either.
             		 */
             		int listTerminator = -1;
-            		Send_Initialize_Routing_Table_Ack( &listTerminator );
+            		Send_Initialize_Routing_Table_Ack( src, &listTerminator );
             	}
                 break;
             }
             /* Else, fall through to do nothing. */
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
-            /* Do nothing - don't support upstream traffic congestion control */
+            /* Do nothing with the routing table info, since don't support 
+             * upstream traffic congestion control */
             break;
         case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
         case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
@@ -156,9 +166,9 @@ static void network_control_handler(
             break;
         default:
             /* An unrecognized message is bad; send an error response. */
-#if PRINT_ENABLED
-            fprintf(stderr, "NPDU: Network Layer Message discarded!\n");
-#endif
+            Send_Reject_Message_To_Network( src, 
+                    NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, DNET_list[0] );
+                    /* Sending our DNET doesn't make a lot of sense, does it? */
             break;
     }
 }
@@ -170,11 +180,14 @@ static void routed_apdu_handler(
     uint8_t * apdu,      
     uint16_t apdu_len)
 {       
-    /* Handle the normal, non-routed variety for right now in development */
-    apdu_handler(src, apdu, apdu_len);
-#if PRINT_ENABLED
-    printf("NPDU: DNET=%u.  Discarded!\n", (unsigned) dest->net);
-#endif
+    int dnet = DNET_list[0];
+    if ((dest->net == dnet) || (dest->net == BACNET_BROADCAST_NETWORK)) {
+        /* Handle the normal, non-routed variety for right now in development */
+        apdu_handler(src, apdu, apdu_len);
+    } else {
+        /* We don't know how to reach this one */
+        Send_Reject_Message_To_Network( src, NETWORK_REJECT_NO_ROUTE, dest->net );
+    }
 }
 
 /** Handler for the NPDU portion of a received packet, which may have routing.
@@ -217,13 +230,12 @@ void routing_npdu_handler(
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
         apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
         if ( apdu_offset <= 0 ) {
-#if PRINT_ENABLED
-			printf("NPDU: Decoding failed; Discarded!\n");
-#endif
+            debug_printf("NPDU: Decoding failed; Discarded!\n");
         } else if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
-                network_control_handler( &npdu_data, DNET_list, &pdu[apdu_offset],
-        							 (uint16_t) (pdu_len - apdu_offset));
+                network_control_handler( src, DNET_list, &npdu_data, 
+                                          &pdu[apdu_offset],
+                                          (uint16_t) (pdu_len - apdu_offset));
             } else {
                 /* The DNET is set, but we don't support downstream routers,
                  * so we just silently drop this network layer message,
@@ -242,10 +254,9 @@ void routing_npdu_handler(
         }
     } else {
         /* Should we send NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK? */
-#if PRINT_ENABLED
-        printf("NPDU: Unsupported BACnet Protocol Version=%u.  Discarded!\n",
-            (unsigned) pdu[0]);
-#endif
+        debug_printf(
+                "NPDU: Unsupported BACnet Protocol Version=%u.  Discarded!\n",
+                (unsigned) pdu[0]);
     }
 
     return;
