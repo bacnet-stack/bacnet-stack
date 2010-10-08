@@ -3,20 +3,18 @@ Here are some things to do:
 
 A. Finish demo/epics/main.c - EPICS demo. Use object property lists.
 B. Update demo/object/lo.c - Lighting Output object demo - match addendum
-C. Add storage hooks to bvlc.c
-D. --- done.
+C. Add storage hooks to bvlc.c for BDT and FDT.
+D. Merge blvc.c network variable storage (ntohl, htonl) to bip.c.
 E. Add HTTP demo like bacnet4linux
 F. Add SubscribeCOVProperty support in server demo.
 G. Add hooks to increment Database_Revision property
-H. Enumerate negative integers for unique error codes
+H. -- DONE
 I. Change core encode/decode to pass length for safe handling
 J. Change bip.c to not use extra buffer (shift data)
-K. Add Visual Studio 2005 makefiles or projects for demos.
+K. Add Visual Studio makefiles, projects, or solutions for demos.
 L. Add Code::Blocks projects for demos.
 M. Add function headers to each module and function with
-    doc-tags for some document generator like doxygen, robodoc,
-    or Natural Docs.  Wikipedia has a comparison of generators at:
-    http://en.wikipedia.org/wiki/Comparison_of_documentation_generators
+   doc-tags for document generator doxygen (in progress).
 N. Add option to address module that use file store address cache
    instead of having to send who-is for each query.
    This will make scripting cleaner/effecient.
