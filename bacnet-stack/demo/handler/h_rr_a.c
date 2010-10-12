@@ -76,7 +76,7 @@ static void PrintReadRangeData(
             object_value.array_index = data->array_index;
             object_value.value = &value;
             bacapp_print_value(stdout, &object_value);
-            if (len) {
+            if (len > 0) {
                 if (len < application_data_len) {
                     application_data += len;
                     application_data_len -= len;
@@ -84,10 +84,12 @@ static void PrintReadRangeData(
 #if PRINT_ENABLED
                     fprintf(stdout, ",");
 #endif
-                } else
+                } else {
                     break;
-            } else
+                }
+            } else {
                 break;
+            }
         }
 #if PRINT_ENABLED
         if (print_brace)

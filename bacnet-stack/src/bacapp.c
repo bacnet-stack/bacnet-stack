@@ -801,19 +801,25 @@ int bacapp_data_len(
                     bacapp_decode_application_data(&apdu[apdu_len],
                     max_apdu_len - apdu_len, &application_value);
             }
+            if (len < 0) {
+                /* error: len indicates an error */
+                total_len = len;
+                break;
+            }
+                
             apdu_len += len;
             if (opening_tag_number_counter) {
                 if (len > 0) {
                     total_len += len;
                 } else {
                     /* error: len is not incrementing */
-                    total_len = -1;
+                    total_len = BACNET_STATUS_ERROR;
                     break;
                 }
             }
             if ((unsigned) apdu_len > max_apdu_len) {
                 /* error: exceeding our buffer limit */
-                total_len = -1;
+                total_len = BACNET_STATUS_ERROR;
                 break;
             }
         }

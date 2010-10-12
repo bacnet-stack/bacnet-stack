@@ -125,6 +125,11 @@ int rpm_ack_decode_service_request(
                             bacapp_decode_application_data(apdu, apdu_len,
                             value);
                     }
+                    if (len <= 0) {
+                        /* problem decoding */
+                        /* calling function will free the memory */
+                        return BACNET_STATUS_ERROR;
+                    }
                     decoded_len += len;
                     apdu_len -= len;
                     apdu += len;
@@ -134,10 +139,6 @@ int rpm_ack_decode_service_request(
                         apdu++;
                         break;
                     } else {
-                        /* nothing decoded and no closing tag, so malformed */
-                        if (len == 0) {
-                            return -1;
-                        }
                         old_value = value;
                         value =
                             calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
