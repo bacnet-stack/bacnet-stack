@@ -1345,7 +1345,12 @@ static bool Device_Write_Property_Local(
         bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
-    /* FIXME: len == 0: unable to decode? */
+    if (len < 0) {
+        /* error while decoding - a value larger than we can handle */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             status =
