@@ -325,7 +325,7 @@ int decode_tag_number(
     return len;
 }
 
-/* Same as function above, but will safely fail is packet has been truncated */
+/* Same as function above, but will safely fail if packet has been truncated */
 int decode_tag_number_safe(
     uint8_t * apdu,
     uint32_t apdu_len_remaining,
@@ -350,7 +350,6 @@ int decode_tag_number_safe(
     }
     return len;
 }
-
 
 bool decode_is_opening_tag(
     uint8_t * apdu)
@@ -580,7 +579,7 @@ int decode_context_boolean2(
         }
         len++;
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -694,7 +693,7 @@ int decode_context_bitstring(
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_bitstring(&apdu[len], len_value, bit_string);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -804,7 +803,7 @@ int decode_context_object_id(
     if (decode_is_context_tag_with_length(&apdu[len], tag_number, &len)) {
         len += decode_object_id(&apdu[len], object_type, instance);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -977,7 +976,7 @@ int decode_context_octet_string(
             len += len_value;
         }
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
 
     return len;
@@ -1087,7 +1086,7 @@ int decode_context_character_string(
             len += len_value;
         }
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
 
     return len;
@@ -1140,7 +1139,7 @@ int decode_context_unsigned(
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_unsigned(&apdu[len], len_value, value);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -1246,7 +1245,7 @@ int decode_context_enumerated(
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_enumerated(&apdu[len], len_value, value);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -1350,7 +1349,7 @@ int decode_context_signed(
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_signed(&apdu[len], len_value, value);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -1581,7 +1580,7 @@ int decode_application_time(
         len++;
         len += decode_bacnet_time(&apdu[len], btime);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -1597,7 +1596,7 @@ int decode_context_bacnet_time(
     if (decode_is_context_tag_with_length(&apdu[len], tag_number, &len)) {
         len += decode_bacnet_time(&apdu[len], btime);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -1626,7 +1625,7 @@ int encode_bacnet_date(
         /*
          ** Don't try and guess what the user meant here. Just fail
          */
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
 
 
@@ -1715,7 +1714,7 @@ int decode_application_date(
         len++;
         len += decode_date(&apdu[len], bdate);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -1730,7 +1729,7 @@ int decode_context_date(
     if (decode_is_context_tag_with_length(&apdu[len], tag_number, &len)) {
         len += decode_date(&apdu[len], bdate);
     } else {
-        len = -1;
+        len = BACNET_STATUS_ERROR;
     }
     return len;
 }
@@ -2389,7 +2388,7 @@ void testUnsignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     inLen = encode_context_unsigned(apdu, large_context_tag, in);
     outLen = decode_context_unsigned(apdu, large_context_tag, &out);
@@ -2397,7 +2396,7 @@ void testUnsignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     /* 16 bit number */
     in = 0xdead;
@@ -2413,7 +2412,7 @@ void testUnsignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     /* 8 bit number */
     in = 0xde;
     inLen = encode_context_unsigned(apdu, 10, in);
@@ -2428,7 +2427,7 @@ void testUnsignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     /* 4 bit number */
     in = 0xd;
     inLen = encode_context_unsigned(apdu, 10, in);
@@ -2443,7 +2442,7 @@ void testUnsignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     /* 2 bit number */
     in = 0x2;
     inLen = encode_context_unsigned(apdu, 10, in);
@@ -2458,7 +2457,7 @@ void testUnsignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
 }
 
@@ -2484,7 +2483,7 @@ void testSignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     inLen = encode_context_signed(apdu, large_context_tag, in);
     outLen = decode_context_signed(apdu, large_context_tag, &out);
@@ -2492,7 +2491,7 @@ void testSignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     /* 16 bit number */
     in = 0xdead;
@@ -2508,7 +2507,7 @@ void testSignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     /* 8 bit number */
     in = 0xde;
@@ -2524,7 +2523,7 @@ void testSignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     /* 4 bit number */
     in = 0xd;
@@ -2540,7 +2539,7 @@ void testSignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     /* 2 bit number */
     in = 0x2;
@@ -2556,7 +2555,7 @@ void testSignedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
 }
 
@@ -2581,7 +2580,7 @@ void testEnumeratedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     inLen = encode_context_enumerated(apdu, large_context_tag, in);
     outLen = decode_context_enumerated(apdu, large_context_tag, &out);
@@ -2589,7 +2588,7 @@ void testEnumeratedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     /* 16 bit number */
     in = 0xdead;
@@ -2605,7 +2604,7 @@ void testEnumeratedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     /* 8 bit number */
     in = 0xde;
     inLen = encode_context_enumerated(apdu, 10, in);
@@ -2620,7 +2619,7 @@ void testEnumeratedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     /* 4 bit number */
     in = 0xd;
     inLen = encode_context_enumerated(apdu, 10, in);
@@ -2635,7 +2634,7 @@ void testEnumeratedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     /* 2 bit number */
     in = 0x2;
     inLen = encode_context_enumerated(apdu, 10, in);
@@ -2650,7 +2649,7 @@ void testEnumeratedContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
 void testFloatContextDecodes(
@@ -2674,7 +2673,7 @@ void testFloatContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     inLen = encode_context_real(apdu, large_context_tag, in);
     outLen = decode_context_real(apdu, large_context_tag, &out);
@@ -2682,7 +2681,7 @@ void testFloatContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     in = 0.0f;
     inLen = encode_context_real(apdu, 10, in);
@@ -2698,7 +2697,7 @@ void testFloatContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
 void testDoubleContextDecodes(
@@ -2722,7 +2721,7 @@ void testDoubleContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     inLen = encode_context_double(apdu, large_context_tag, in);
     outLen = decode_context_double(apdu, large_context_tag, &out);
@@ -2730,7 +2729,7 @@ void testDoubleContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     in = 0.0;
     inLen = encode_context_double(apdu, 10, in);
@@ -2746,7 +2745,7 @@ void testDoubleContextDecodes(
 
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in == out);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
 void testObjectIDContextDecodes(
@@ -2775,7 +2774,7 @@ void testObjectIDContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in_type == out_type);
     ct_test(pTest, in_id == out_id);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     inLen = encode_context_object_id(apdu, large_context_tag, in_type, in_id);
     outLen =
@@ -2787,7 +2786,7 @@ void testObjectIDContextDecodes(
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in_type == out_type);
     ct_test(pTest, in_id == out_id);
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
 void testCharacterStringContextDecodes(
@@ -2809,7 +2808,7 @@ void testCharacterStringContextDecodes(
     outLen = decode_context_character_string(apdu, 10, &out);
     outLen2 = decode_context_character_string(apdu, 9, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.length == out.length);
     ct_test(pTest, in.encoding == out.encoding);
@@ -2820,7 +2819,7 @@ void testCharacterStringContextDecodes(
     outLen2 =
         decode_context_character_string(apdu, large_context_tag - 1, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.length == out.length);
     ct_test(pTest, in.encoding == out.encoding);
@@ -2851,7 +2850,7 @@ void testBitStringContextDecodes(
     outLen = decode_context_bitstring(apdu, 10, &out);
     outLen2 = decode_context_bitstring(apdu, 9, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.bits_used == out.bits_used);
     ct_test(pTest, memcmp(in.value, out.value, MAX_BITSTRING_BYTES) == 0);
@@ -2860,7 +2859,7 @@ void testBitStringContextDecodes(
     outLen = decode_context_bitstring(apdu, large_context_tag, &out);
     outLen2 = decode_context_bitstring(apdu, large_context_tag - 1, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.bits_used == out.bits_used);
     ct_test(pTest, memcmp(in.value, out.value, MAX_BITSTRING_BYTES) == 0);
@@ -2887,7 +2886,7 @@ void testOctetStringContextDecodes(
     outLen = decode_context_octet_string(apdu, 10, &out);
     outLen2 = decode_context_octet_string(apdu, 9, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.length == out.length);
     ct_test(pTest, octetstring_value_same(&in, &out));
@@ -2896,7 +2895,7 @@ void testOctetStringContextDecodes(
     outLen = decode_context_octet_string(apdu, large_context_tag, &out);
     outLen2 = decode_context_octet_string(apdu, large_context_tag - 1, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.length == out.length);
     ct_test(pTest, octetstring_value_same(&in, &out));
@@ -2924,7 +2923,7 @@ void testTimeContextDecodes(
     outLen = decode_context_bacnet_time(apdu, 10, &out);
     outLen2 = decode_context_bacnet_time(apdu, 9, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.hour == out.hour);
     ct_test(pTest, in.hundredths == out.hundredths);
@@ -2935,7 +2934,7 @@ void testTimeContextDecodes(
     outLen = decode_context_bacnet_time(apdu, large_context_tag, &out);
     outLen2 = decode_context_bacnet_time(apdu, large_context_tag - 1, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.hour == out.hour);
     ct_test(pTest, in.hundredths == out.hundredths);
@@ -2967,7 +2966,7 @@ void testDateContextDecodes(
     outLen = decode_context_date(apdu, 10, &out);
     outLen2 = decode_context_date(apdu, 9, &out);
 
-    ct_test(pTest, outLen2 == -1);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, in.day == out.day);
     ct_test(pTest, in.month == out.month);
