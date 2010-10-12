@@ -79,7 +79,7 @@ void rp_ack_print_data(
             object_value.array_index = data->array_index;
             object_value.value = &value;
             bacapp_print_value(stdout, &object_value);
-            if (len) {
+            if (len > 0) {
                 if (len < application_data_len) {
                     application_data += len;
                     application_data_len -= len;
@@ -87,10 +87,12 @@ void rp_ack_print_data(
 #if PRINT_ENABLED
                     fprintf(stdout, ",");
 #endif
-                } else
+                } else {
                     break;
-            } else
+                }
+            } else {
                 break;
+            }
         }
 #if PRINT_ENABLED
         if (print_brace)
@@ -166,8 +168,10 @@ int rp_ack_fully_decode_service_request(
         read_access_data->object_instance = rp1data.object_instance;
         rp1_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
         read_access_data->listOfProperties = rp1_property;
-        if (rp1_property == NULL)
-            return -1;  /* can't proceed if calloc failed. */
+        if (rp1_property == NULL) {
+            /* can't proceed if calloc failed. */
+            return BACNET_STATUS_ERROR;  
+        }
         rp1_property->propertyIdentifier = rp1data.object_property;
         rp1_property->propertyArrayIndex = rp1data.array_index;
         /* Is there no Error case possible here, as there is when decoding RPM? */
@@ -189,6 +193,18 @@ int rp_ack_fully_decode_service_request(
             } else {
                 len = bacapp_decode_application_data(vdata, vlen, value);
             }
+            if (len < 0) {
+                /* unable to decode the data */
+                while (value) {
+                    /* free the linked list of values */
+                    old_value = value;
+                    value = value->next;
+                    free(old_value);
+                }
+                free(rp1_property);
+                read_access_data->listOfProperties = NULL;
+                return len;
+            }
             decoded_len += len;
             vlen -= len;
             vdata += len;
@@ -199,14 +215,20 @@ int rp_ack_fully_decode_service_request(
                 vdata++;
                 break;
             } else {
-                /* nothing decoded and no closing tag, so malformed */
                 if (len == 0) {
-                    free(value);
+                    /* nothing decoded and no closing tag, so malformed */
+                    while (value) {
+                        /* free the linked list of values */
+                        old_value = value;
+                        value = value->next;
+                        free(old_value);
+                    }
                     free(rp1_property);
                     read_access_data->listOfProperties = NULL;
-                    return -1;
+                    return BACNET_STATUS_ERROR;
                 }
-                if (vlen > 0) { /* If more values */
+                if (vlen > 0) { 
+                    /* If more values */
                     old_value = value;
                     value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                     old_value->next = value;
