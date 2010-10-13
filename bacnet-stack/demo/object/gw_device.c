@@ -21,7 +21,7 @@
  *---------------------------------------------------------------------
  */
 
-/** @file gw_device.c  [Description of this file]. */
+/** @file gw_device.c  Functions that extend the Device object to support routing. */
 
 #include <stdbool.h>
 #include <stdint.h>

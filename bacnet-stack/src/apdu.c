@@ -357,6 +357,15 @@ void apdu_retries_set(
     Number_Of_Retries = value;
 }
 
+/** Process the APDU header and invoke the appropriate service handler
+ * to manage the received request.
+ * Almost all requests and ACKs invoke this function.
+ * @ingroup MISCHNDLR
+ * 
+ * @param src [in] The BACNET_ADDRESS of the message's source.
+ * @param apdu [in] The apdu portion of the request, to be processed.
+ * @param apdu_len [in] The total (remaining) length of the apdu.
+ */
 void apdu_handler(
     BACNET_ADDRESS * src,
     uint8_t * apdu,     /* APDU data */

@@ -297,8 +297,8 @@ static void Init_Service_Handlers(
  * We also limit the output to 4 bit fields per line.
  *
  * @param stream [in] Normally stdout
- * @param value [in] The structure holding this property's value (union) and type.
- * @param property [in] Which property we are printing.
+ * @param object_value [in] The structure holding this property's description
+ *                          and value.
  * @return True if success.  Or otherwise.
  */
 
@@ -375,6 +375,8 @@ bool PrettyPrintPropertyValue(
  * through a list (Using_Walked_List is True) to show just one value of the
  * array per call.
  *
+ * @param object_type [in] The BACnet Object type of this object.
+ * @param object_instance [in] The ID number for this object.
  * @param rpm_property [in] Points to structure holding the Property,
  *                          Value, and Error information.
  */

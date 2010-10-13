@@ -231,11 +231,13 @@ static void routed_apdu_handler(
  *  - Decoding of the NCPI byte
  *  - Further processing by network_control_handler() if this is a  network 
  *    layer message.
- *  - Further processing if it contains an APDU
+ *  - Further processing by routed_apdu_handler() if it contains an APDU
  *    - Normally (no routing) by apdu_handler()
- *    - With Routing (a further destination was indicated) by 
+ *    - With Routing (a further destination was indicated) by the decoded
+ *      destination.
  *  - Errors in decoding.
- *  @note The npdu_data->data_expecting_reply status is discarded.
+ * @note The npdu_data->data_expecting_reply status is discarded.
+ * @ingroup NMRC
  *  
  * @param src  [out] Returned with routing source information if the NPDU 
  *                   has any and if this points to non-null storage for it. 
