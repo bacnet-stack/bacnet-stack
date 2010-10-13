@@ -185,6 +185,17 @@ extern "C" {
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
+    int bacapp_decode_data_len(
+        uint8_t * apdu,
+        uint8_t tag_data_type,
+        uint32_t len_value_type);
+    int bacapp_decode_application_data_len(
+        uint8_t * apdu,
+        unsigned max_apdu_len);
+    int bacapp_decode_context_data_len(
+        uint8_t * apdu,
+        unsigned max_apdu_len,
+        BACNET_PROPERTY_ID property);
 
 #if PRINT_ENABLED
 #define BACAPP_PRINT_ENABLED
