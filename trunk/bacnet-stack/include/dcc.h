@@ -97,11 +97,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-/** @defgroup RDMS Remote Device Management Services BIBBs
+/** @defgroup RDMS  Device and Network Management Service BIBBs
  * These device management BIBBs prescribe the BACnet capabilities required 
  * to interoperably perform the device management functions enumerated in 
  * 22.2.1.5 for the BACnet devices defined therein. 
- *//** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
+ * 
+ * The network management BIBBs prescribe the BACnet capabilities required to 
+ * interoperably perform network management functions.
+ */
+
+/** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
  * @ingroup RDMS
  * 16.1 DeviceCommunicationControl Service <br>
  * The DeviceCommunicationControl service is used by a client BACnet-user to 
@@ -115,4 +120,20 @@ extern "C" {
  * DeviceCommunicationControl or, if supported, ReinitializeDevice service, 
  * not by time.
  */
+
+/** @defgroup NMRC Network Management-Router Configuration (NM-RC)
+ * @ingroup RDMS
+ * The A device may query and change the configuration of routers and 
+ * half-routers.
+ * The B device responds to router management commands and must meet the 
+ * requirements for BACnet Routers as stated in Clause 6.
+ * 
+ * 6.4 Network Layer Protocol Messages <br>
+ * This subclause describes the format and purpose of the ten BACnet network 
+ * layer protocol messages. These messages provide the basis for router 
+ * auto-configuration, router table maintenance, and network layer congestion 
+ * control.
+ */
+
+
 #endif

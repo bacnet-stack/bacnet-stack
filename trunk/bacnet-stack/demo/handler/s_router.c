@@ -229,6 +229,7 @@ int Send_Network_Layer_Message(
 
 /** Finds a specific router, or all reachable BACnet networks.
  * The response(s) will come in I-am-router-to-network message(s).
+ * @ingroup NMRC
  * 
  * @param dst [in] If NULL, request will be broadcast to the local BACnet
  *                 network.  Optionally may designate a particular router
@@ -249,6 +250,8 @@ void Send_Who_Is_Router_To_Network(
  * we can reach.
  * The message will be sent to our normal DataLink Layer interface, 
  * not the routed backend.
+ * @ingroup NMRC
+ * 
  * @param DNET_list [in] List of BACnet network numbers for which I am a router, 
  *                       terminated with -1
  */
@@ -262,6 +265,7 @@ void Send_I_Am_Router_To_Network(
 
 /** Finds a specific router, or all reachable BACnet networks.
  * The response(s) will come in I-am-router-to-network message(s).
+ * @ingroup NMRC
  * 
  * @param dst [in] If NULL, request will be broadcast to the local BACnet
  *                 network.  Otherwise, designates a particular router
@@ -290,6 +294,7 @@ void Send_Reject_Message_To_Network(
  *    In that case, DNET[] should just have one entry of -1 (no routing table 
  *    is sent).
  * 2) We are sending out our Routing Table for some reason (normally bcast it).
+ * @ingroup NMRC
  *    
  * @param dst [in] If NULL, msg will be broadcast to the local BACnet network.
  *                 Optionally may designate a particular router destination, 
@@ -316,6 +321,7 @@ void Send_Initialize_Routing_Table(
  *    routing table, and then we will want to respond to that dst router.  
  *    In that case, DNET[] should just have one entry of -1 (no routing table 
  *    is sent).
+ * @ingroup NMRC
  *    
  * @param dst [in] If NULL, Ack will be broadcast to the local BACnet network.
  *                 Optionally may designate a particular router destination, 
