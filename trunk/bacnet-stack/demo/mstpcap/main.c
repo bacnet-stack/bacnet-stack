@@ -242,6 +242,7 @@ static void packet_statistics_clear(
 
     for (i = 0; i < 256; i++) {
         MSTP_Statistics[i].token_count = 0;
+        MSTP_Statistics[i].pfm_count = 0;
         MSTP_Statistics[i].token_retries = 0;
         MSTP_Statistics[i].tusage_timeout = 0;
         MSTP_Statistics[i].max_master = 0;
