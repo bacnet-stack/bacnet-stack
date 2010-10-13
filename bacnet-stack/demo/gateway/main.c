@@ -76,13 +76,46 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 int DNET_list[2] = {
 		VIRTUAL_DNET, -1		/* Need -1 terminator */
 };
+
+
+
+/** Initialize the Device Objects and each of the child Object instances.
+ * @param first_object_instance Set the first (gateway) Device to this 
+            instance number, and subsequent devices to incremented values.
+ */
+void Devices_Init(
+		uint32_t first_object_instance )
+{
+    int i;
+    char nameText[MAX_DEV_NAME_LEN];
+    char descText[MAX_DEV_DESC_LEN];
+    
+    /* Gateway Device has already been initialized. 
+     * But give it a better Description. */
+    Routed_Device_Set_Description(DEV_DESCR_GATEWAY, strlen(DEV_DESCR_GATEWAY));
+    
+    /* Now initialize the remote Device objects. */
+    for ( i = 1; i < MAX_NUM_DEVICES; i++ )
+    {
+    	snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d", 
+    			  DEV_NAME_BASE, i+1);
+       	snprintf( descText, MAX_DEV_DESC_LEN, "%s %d", 
+       			  DEV_DESCR_REMOTE, i);
+    		
+    	Add_Routed_Device( (first_object_instance+i), nameText, descText );
+    }
+    
+}
+
+
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
 static void Init_Service_Handlers(
 	uint32_t first_object_instance )
 {
-    Devices_Init( first_object_instance );
+    Routing_Device_Init( first_object_instance );
+
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
@@ -118,6 +151,59 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 }
+
+/** Initialize the BACnet Device Addresses for each Device object.
+ * The gateway has already gotten the normal address (eg, PC's IP for BIP) and
+ * the remote devices get
+ * - For BIP, the IP address reversed, and 4th byte equal to index.
+ * (Eg, 11.22.33.44 for the gateway becomes 44.33.22.01 for the first remote 
+ * device.) This is sure to be unique! The port number stays the same.
+ * - For MS/TP, [Steve inserts a good idea here]
+ */
+void Initialize_Device_Addresses( )
+{
+    int i = 0;		/* First entry is Gateway Device */
+    DEVICE_OBJECT_DATA* pDev;
+    uint16_t myPort;
+    /* Setup info for the main gateway device first */
+#if defined(BACDL_BIP)
+    struct in_addr *netPtr;			/* Lets us cast to this type */
+    uint8_t *gatewayMac = NULL;
+    uint32_t myAddr = ntohl( bip_get_addr() );	
+    pDev = Get_Routed_Device_Object( i );
+    gatewayMac = pDev->bacDevAddr.mac;		/* Keep pointer to the main MAC */
+    memcpy( pDev->bacDevAddr.mac, &myAddr, 4 );
+    myPort = ntohs( bip_get_port() );
+    memcpy( &pDev->bacDevAddr.mac[4], &myPort, 2 );
+    pDev->bacDevAddr.mac_len = 6;
+#elif defined(BACDL_MSTP)
+    /* Todo: */
+    pDev->bacDevAddr.mac_len = 2;
+#else 
+#error "No support for this Data Link Layer type "
+#endif
+    
+    for (i = 1; i < MAX_NUM_DEVICES; i++ ) {
+        pDev = Get_Routed_Device_Object( i );
+        if ( pDev == NULL )
+        	continue;
+#if defined(BACDL_BIP)
+        netPtr = (struct in_addr *) pDev->bacDevAddr.mac;
+        pDev->bacDevAddr.mac[0] = gatewayMac[3];
+        pDev->bacDevAddr.mac[1] = gatewayMac[2];
+        pDev->bacDevAddr.mac[2] = gatewayMac[1];
+        pDev->bacDevAddr.mac[3] = i;
+        memcpy( &pDev->bacDevAddr.mac[4], &myPort, 2 );
+        pDev->bacDevAddr.mac_len = 6;
+        printf( " - Routed device %d at %s \n", i, inet_ntoa( *netPtr ) );
+#elif defined(BACDL_MSTP)
+        /* Todo: set MS/TP net and port #s */
+        pDev->bacDevAddr.mac_len = 2;
+#endif
+        
+    }
+}
+
 
 /** Handler registered with atexit() inside main function to, well, cleanup.
  * Especially if we don't end normally.
@@ -175,8 +261,9 @@ int main(
         first_object_instance, MAX_APDU);
     Init_Service_Handlers( first_object_instance );
     dlenv_init();
-    atexit(cleanup);
+    Devices_Init( first_object_instance );
     Initialize_Device_Addresses( );
+    atexit(cleanup);
 
 //	/* initialize vmac table and router device */
 //	device = vmac_initialize(99, 2001);

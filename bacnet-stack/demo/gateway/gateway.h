@@ -37,7 +37,6 @@
  */
 
 /* Device configuration definitions. */
-#define NUM_DEVICES 3	/* Gateway + two remote devices */
 #define FIRST_DEVICE_NUMBER 260001
 #define VIRTUAL_DNET  2709		/* your choice of number here */
 #define DEV_NAME_BASE "Gateway Demo Device"

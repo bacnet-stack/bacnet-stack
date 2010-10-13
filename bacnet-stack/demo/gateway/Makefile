@@ -59,7 +59,7 @@ endif
 CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES) 
 LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES) $(LINK_OPTIMIZATION)
 
-SRCS = main.c device.c 
+SRCS = main.c 
 
 OBJS = ${SRCS:.c=.o}
 

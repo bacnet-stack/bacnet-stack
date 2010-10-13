@@ -1,6 +1,9 @@
+# Main Makefile for BACnet-stack project
+
+# Including "routing" in this list to add routing functionality
 all: library readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov timesync epics readpropm mstpcap \
-	whoisrouter iamrouter initrouter gateway
+	routing
 	@echo "utilities are in the bin directory"
 
 clean: lib/Makefile\
@@ -87,17 +90,9 @@ whois: demo/whois/Makefile
 mstpcap: demo/mstpcap/Makefile
 	( cd demo/mstpcap ; make clean all; cp mstpcap ../../bin )
 
-whoisrouter: demo/whoisrouter/Makefile
-	( cd demo/whoisrouter ; make ; cp bacwir ../../bin )
-
-iamrouter: demo/iamrouter/Makefile
-	( cd demo/iamrouter ; make ; cp baciamr ../../bin )
-
-initrouter: demo/initrouter/Makefile
-	( cd demo/initrouter ; make ; cp bacinitr ../../bin )
-
+# Add "ports" to the build, if desired
 ports:	atmega168 bdk-atxx4-mstp at91sam7s
-	echo "Built the ports"
+	@echo "Built the ports"
 
 atmega168: ports/atmega168/Makefile
 	make -C ports/atmega168 clean all
@@ -107,6 +102,20 @@ at91sam7s: ports/at91sam7s/makefile
 
 bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 	make -C ports/bdk-atxx4-mstp clean all
+
+# Build these demo projects if you want to test routing capability
+# Also enable BACROUTE_ENABLE in lib/Makefile and BAC_ROUTING in config.h 
+routing: whoisrouter iamrouter initrouter gateway 
+	@echo "Built routing demos"
+
+whoisrouter: demo/whoisrouter/Makefile
+	( cd demo/whoisrouter ; make ; cp bacwir ../../bin )
+
+iamrouter: demo/iamrouter/Makefile
+	( cd demo/iamrouter ; make ; cp baciamr ../../bin )
+
+initrouter: demo/initrouter/Makefile
+	( cd demo/initrouter ; make ; cp bacinitr ../../bin )
 
 gateway: demo/gateway/Makefile
 	( cd demo/gateway ; make ; cp bacgateway ../../bin )

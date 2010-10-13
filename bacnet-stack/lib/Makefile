@@ -15,6 +15,9 @@ BACNET_DEFINES=-DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
 #BACDL_DEFINE=-DBACDL_ARCNET=1
 #BACDL_DEFINE=-DBACDL_MSTP=1
 BACDL_DEFINE=-DBACDL_BIP=1
+# Enable (or else don't define it) Routing functionality 
+#   (also enable BAC_ROUTING in config.h and "routes" in main Makefile)
+BACROUTE_ENABLE=y
 
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 # directories
@@ -92,7 +95,6 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/txbuf.c \
 	$(BACNET_HANDLER)/noserv.c \
 	$(BACNET_HANDLER)/h_npdu.c \
-	$(BACNET_HANDLER)/h_routed_npdu.c \
 	$(BACNET_HANDLER)/h_whois.c \
 	$(BACNET_HANDLER)/h_iam.c  \
 	$(BACNET_HANDLER)/h_rp.c \
@@ -128,7 +130,6 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_uevent.c  \
 	$(BACNET_HANDLER)/s_whohas.c \
 	$(BACNET_HANDLER)/s_whois.c  \
-	$(BACNET_HANDLER)/s_router.c  \
 	$(BACNET_HANDLER)/s_upt.c \
 	$(BACNET_HANDLER)/s_wp.c
 
@@ -192,7 +193,16 @@ ifdef BACDL_ALL
 PORT_SRC = ${PORT_ALL_SRC}
 endif
 
-SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC}
+ifdef BACROUTE_ENABLE
+ROUTING_SRC = \
+	$(BACNET_HANDLER)/h_routed_npdu.c \
+	$(BACNET_HANDLER)/s_router.c  \
+	$(BACNET_OBJECT)/gw_device.c 
+else
+ROUTING_SRC = 
+endif
+
+SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC} ${ROUTING_SRC}
 
 OBJS = ${SRCS:.c=.o}
 
