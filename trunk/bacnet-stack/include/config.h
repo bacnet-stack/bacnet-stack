@@ -45,6 +45,19 @@
 #endif
 #endif
 
+/* Enable the Gateway (Routing) functionality here, if desired. */
+#if !defined(BAC_ROUTING)
+#define BAC_ROUTING 1
+#endif
+#if !defined(MAX_NUM_DEVICES)
+#if BAC_ROUTING
+#define MAX_NUM_DEVICES 3	/* Eg, Gateway + two remote devices */
+#else
+#define MAX_NUM_DEVICES 1	/* Just the one normal BACnet Device Object */
+#endif
+#endif
+
+
 /* Define your processor architecture as 
    Big Endian (PowerPC,68K,Sparc) or Little Endian (Intel,AVR)
    ARM and MIPS can be either - what is your setup? */

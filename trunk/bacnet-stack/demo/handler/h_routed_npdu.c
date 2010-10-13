@@ -35,6 +35,7 @@
 #include "npdu.h"
 #include "apdu.h"
 #include "handlers.h"
+#include "device.h"
 #include "client.h"
 #include "bactext.h"
 #include "debug.h"
@@ -173,6 +174,22 @@ static void network_control_handler(
     }
 }
 
+/** An APDU pre-handler that makes sure that the subsequent APDU handler call 
+ * operates on the right Device Object(s), as addressed by the destination 
+ * (routing) information.
+ * 
+ * @note Even when the destination is "routed" to our virtual BACnet network,
+ * the src information does not need to change to reflect that (as it normally
+ * would for a routed message) because the reply will be sent from the level 
+ * of the gateway Device.
+ * 
+ * @param src [in] The BACNET_ADDRESS of the message's source.
+ * @param dest [in] The BACNET_ADDRESS of the message's destination.
+ * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
+ * 					 Normally just one valid entry; terminated with a -1 value.
+ * @param apdu [in] The apdu portion of the request, to be processed.
+ * @param apdu_len [in] The total (remaining) length of the apdu.
+ */ 
 static void routed_apdu_handler(
     BACNET_ADDRESS * src,       
     BACNET_ADDRESS * dest,
@@ -180,11 +197,30 @@ static void routed_apdu_handler(
     uint8_t * apdu,      
     uint16_t apdu_len)
 {       
-    int dnet = DNET_list[0];
-    if ((dest->net == dnet) || (dest->net == BACNET_BROADCAST_NETWORK)) {
-        /* Handle the normal, non-routed variety for right now in development */
+    int dnet = DNET_list[0];	/* Get the DNET of our virtual network */
+    int i;
+    
+    /* First, see if it's for the main Gateway Device, either because 
+     * there's no routing info or else its a BACnet broadcast.
+     */
+    if ( (dest->net == 0 ) || (dest->net == BACNET_BROADCAST_NETWORK)) {
+        /* Handle like a normal, non-routed access of the Gateway Device.
+         * But first, make sure our internal access is pointing at
+         * that Device in our table by telling it "no routing info" : */
+        Lookup_Routed_Device_Address( 0, 0, NULL );
         apdu_handler(src, apdu, apdu_len);
-    } else {
+    }
+    /* Now check for our virtual DNET or BACnet broadcast, and check
+     * against each of our virtually routed Devices.
+     * If we get a match, have it handle the APDU.
+     * For broadcasts, all Devices get a chance at it.
+     */
+    if ((dest->net == dnet) || (dest->net == BACNET_BROADCAST_NETWORK)) {
+    	for ( i = 1; i < MAX_NUM_DEVICES; i++ ) {
+            if ( Lookup_Routed_Device_Address( i, dest->len, dest->adr ) )
+            	apdu_handler(src, apdu, apdu_len);
+    	}
+    } else if ( dest->net != 0 )  {
         /* We don't know how to reach this one */
         Send_Reject_Message_To_Network( src, NETWORK_REJECT_NO_ROUTE, dest->net );
     }
@@ -242,15 +278,8 @@ void routing_npdu_handler(
                  * since only routers can handle it (even if for our DNET) */
             }
         } else if (apdu_offset <= pdu_len) {
-            if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
-                /* Handle the normal, non-routed variety */
-                apdu_handler(src, &pdu[apdu_offset],
-                			 (uint16_t) (pdu_len - apdu_offset));
-            } else {
-                /* Handle the routed variety differently */
-                routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
-                			 (uint16_t) (pdu_len - apdu_offset));
-            }
+			routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
+						 (uint16_t) (pdu_len - apdu_offset));
         }
     } else {
         /* Should we send NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK? */

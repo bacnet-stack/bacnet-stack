@@ -68,10 +68,14 @@
 long int timezone;
 #endif
 
-/* forward prototypes */
-static int Device_Read_Property_Local(
+/* local forward (semi-private) and external prototypes */
+int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA * rpdata);
-static bool Device_Write_Property_Local(
+bool Device_Write_Property_Local(
+    BACNET_WRITE_PROPERTY_DATA * wp_data);
+extern int Routed_Device_Read_Property_Local(
+    BACNET_READ_PROPERTY_DATA * rpdata);
+extern bool Routed_Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 /** Defines the group of object helper functions for any supported Object. 
@@ -387,14 +391,6 @@ void Device_Property_Lists(
    properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
-
-/* String Lengths - excluding any nul terminator */
-
-#define MAX_DEV_NAME_LEN 32
-#define MAX_DEV_LOC_LEN  64
-#define MAX_DEV_MOD_LEN  32
-#define MAX_DEV_VER_LEN  16
-#define MAX_DEV_DESC_LEN 64
 
 static uint32_t Object_Instance_Number = 260001;
 static char My_Object_Name[MAX_DEV_NAME_LEN + 1] = "SimpleServer";
@@ -950,7 +946,7 @@ int    tm_isdst Daylight Savings flag.
 
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
    BACNET_STATUS_ABORT for abort message */
-static int Device_Read_Property_Local(
+int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
@@ -1220,7 +1216,7 @@ int Device_Read_Property(
 }
 
 /* returns true if successful */
-static bool Device_Write_Property_Local(
+bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
@@ -1483,6 +1479,44 @@ bool DeviceGetRRInfo(
 
     return status;
 }
+
+
+#if BAC_ROUTING
+/****************************************************************************
+ ************* BACnet Routing Functionality (Optional) **********************
+ ****************************************************************************
+ * The supporting functions are located in gw_device.c, except for those
+ * that need access to local data in this file.
+ ****************************************************************************/
+
+/** Initialize the first of our array of Devices with the main Device's 
+ * information, and then swap out some of the Device object functions and
+ * replace with ones appropriate for routing.
+ * @ingroup ObjIntf
+ * @param first_object_instance Set the first (gateway) Device to this 
+            instance number.
+ */
+void Routing_Device_Init(
+	uint32_t first_object_instance )
+{
+    struct object_functions *pDevObject = NULL;
+
+    /* First, do the usual Device_Init() functions: */
+    Device_Init();
+    /* Initialize with our preset strings */
+    Add_Routed_Device( first_object_instance, My_Object_Name, Description );
+    
+    /* Now substitute our routed versions of the main object functions. */
+    pDevObject = &Object_Table[0];
+    pDevObject->Object_Index_To_Instance = Routed_Device_Index_To_Instance;
+    pDevObject->Object_Valid_Instance = Routed_Device_Valid_Object_Instance_Number;
+    pDevObject->Object_Name = Routed_Device_Name;
+    pDevObject->Object_Read_Property = Routed_Device_Read_Property_Local;
+    pDevObject->Object_Write_Property = Routed_Device_Write_Property_Local;
+}
+
+#endif		/* BAC_ROUTING */
+
 
 #ifdef TEST
 #include <assert.h>

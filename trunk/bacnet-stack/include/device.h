@@ -101,6 +101,59 @@ typedef unsigned (
     unsigned current_index);
 
 
+/* String Lengths - excluding any nul terminator */
+#define MAX_DEV_NAME_LEN 32
+#define MAX_DEV_LOC_LEN  64
+#define MAX_DEV_MOD_LEN  32
+#define MAX_DEV_VER_LEN  16
+#define MAX_DEV_DESC_LEN 64
+
+/** Structure to define the Object Properties common to all Objects. */
+typedef struct commonBacObj_s
+{
+
+	/** The BACnet type of this object (ie, what class is this object from?).
+	 * This property, of type BACnetObjectType, indicates membership in a
+	 * particular object type class. Each inherited class will be of one type.
+	 */
+	BACNET_OBJECT_TYPE mObject_Type;
+	
+	/** The instance number for this class instance. */
+	uint32_t Object_Instance_Number;
+	
+	/** Object Name; must be unique.
+	 * This property, of type CharacterString, shall represent a name for
+	 * the object that is unique within the BACnet Device that maintains it.
+	 */
+	char Object_Name[MAX_DEV_NAME_LEN];
+	
+} COMMON_BAC_OBJECT;
+
+
+/** Structure to define the Properties of Device Objects which distinguish 
+ *  one instance from another.
+ *  This structure only defines fields for properties that are unique to
+ *  a given Device object.  The rest may be fixed in device.c or hard-coded 
+ *  into the read-property encoding.
+ *  This may be useful for implementations which manage multiple Devices,
+ *  eg, a Gateway.
+ */
+typedef struct devObj_s
+{
+	/** The BACnet Device Address for this device; ->len depends on DLL type. */
+	BACNET_ADDRESS 		bacDevAddr;
+	
+	/** Structure for the Object Properties common to all Objects. */
+	COMMON_BAC_OBJECT	bacObj;
+	
+	/** Device Description. */
+	char Description[MAX_DEV_DESC_LEN];
+
+	/** The upcounter that shows if the Device ID or object structure has changed. */
+	uint32_t Database_Revision;
+} DEVICE_OBJECT_DATA;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -224,7 +277,46 @@ extern "C" {
         BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
         RR_PROP_INFO * pInfo);  /* Where to put the information */
 
+/* Prototypes for Routing functionality in the Device Object.
+ * Enable by defining BAC_ROUTING in config.h and including gw_device.c
+ * in the build (lib/Makefile).
+ */
+    void Routing_Device_Init(
+    	uint32_t first_object_instance );
 
+    uint16_t Add_Routed_Device( 
+		uint32_t Object_Instance, 
+		const char * Object_Name, 
+		const char * Description );
+    DEVICE_OBJECT_DATA * Get_Routed_Device_Object( 
+    	int idx );
+    bool Lookup_Routed_Device_Address( 
+    		int idx, 
+    		uint8_t address_len,        
+    		uint8_t * mac_adress );
+    
+    uint32_t Routed_Device_Index_To_Instance(
+        unsigned index);
+    bool Routed_Device_Valid_Object_Instance_Number(
+        uint32_t object_id);
+    char *Routed_Device_Name(
+        uint32_t object_instance);
+    uint32_t Routed_Device_Object_Instance_Number(
+        void);
+    bool Routed_Device_Set_Object_Instance_Number(
+        uint32_t object_id);
+
+    bool Routed_Device_Set_Object_Name(
+        const char *name,
+        size_t length);
+    bool Routed_Device_Set_Description(
+        const char *name,
+        size_t length);
+    void Routed_Device_Inc_Database_Revision(
+        void);
+
+
+    
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
