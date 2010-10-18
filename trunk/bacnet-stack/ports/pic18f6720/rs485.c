@@ -78,7 +78,7 @@ void RS485_Send_Frame(
     else if (RS485_Baud_Rate == 19200)
         turnaround_time = 2;
     else
-        turnaround_time = 1;
+        turnaround_time = 2;
 
     while (mstp_port->SilenceTimer < turnaround_time) {
         /* The line has not been silent long enough, so wait. */

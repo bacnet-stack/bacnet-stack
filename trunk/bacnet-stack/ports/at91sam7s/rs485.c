@@ -167,7 +167,7 @@ void RS485_Turnaround_Delay(
     /* delay after reception before trasmitting - per MS/TP spec */
     /* wait a minimum  40 bit times since reception */
     /* at least 1 ms for errors: rounding, clock tick */
-    turnaround_time = 1 + ((Tturnaround * 1000UL) / RS485_Baud);
+    turnaround_time = 2 + ((Tturnaround * 1000UL) / RS485_Baud);
     while (Timer_Silence() < turnaround_time) {
         /* do nothing - wait for timer to increment */
     };
@@ -241,7 +241,7 @@ bool RS485_ReceiveError(
 }
 
 /****************************************************************************
-* DESCRIPTION: Return true if data is available 
+* DESCRIPTION: Return true if data is available
 * RETURN:      true if data is available, with the data in the parameter set
 * ALGORITHM:   none
 * NOTES:       none
