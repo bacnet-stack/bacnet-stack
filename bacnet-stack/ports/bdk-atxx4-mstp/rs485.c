@@ -94,15 +94,26 @@ static void rs485_receiver_enable(
 void rs485_turnaround_delay(
     void)
 {
-    uint16_t turnaround_time;
+    uint8_t nbytes = 4;
 
     /* delay after reception before trasmitting - per MS/TP spec */
-    /* wait a minimum  40 bit times since reception */
-    /* at least 1 ms for errors: rounding, clock tick */
-    turnaround_time = 1 + ((Tturnaround * 1000UL) / Baud_Rate);
-    while (!timer_elapsed_milliseconds_short(&Silence_Timer, turnaround_time)) {
-        /* do nothing - wait for timer to increment */
-    };
+    /*  Transmit 4 dummy bytes with RS485 driver off.
+        This equals the 40 bit times (1 start, 8 data, 1 stop). */
+    rs485_rts_enable(false);
+    while (nbytes) {
+        /* Send the data byte */
+        UDR0 = 0xff;
+        while (!BIT_CHECK(UCSR0A, UDRE0)) {
+            /* do nothing - wait until Tx buffer is empty */
+        }
+        nbytes--;
+    }
+    while (!BIT_CHECK(UCSR0A, TXC0)) {
+        /* do nothing - wait until the entire frame in the
+           Transmit Shift Register has been shifted out */
+    }
+    /* Clear the Transmit Complete flag by writing a one to it. */
+    BIT_SET(UCSR0A, TXC0);
 }
 
 ISR(USART0_RX_vect)

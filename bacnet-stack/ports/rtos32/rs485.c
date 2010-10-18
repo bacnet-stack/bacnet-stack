@@ -172,6 +172,7 @@ void RS485_Send_Frame(
 {       /* number of bytes of data (up to 501) */
     bool status = true; /* return value */
 
+    /* fixme: wait turnaround time */
     RS485_TRANSMIT_ENABLE(RS485_Port);
     SendBlock(RS485_Port, (char *) buffer, nbytes);
     /* need to wait at least 9600 baud * 512 bytes = 54mS */
@@ -179,8 +180,8 @@ void RS485_Send_Frame(
     while (!(LineStatus(RS485_Port) & TX_SHIFT_EMPTY))
         RTKScheduler();
     RS485_RECEIVE_ENABLE(RS485_Port);
-    /* SilenceTimer is cleared by the Receive State Machine when 
-       activity is detected and by the SendFrame procedure as each 
+    /* SilenceTimer is cleared by the Receive State Machine when
+       activity is detected and by the SendFrame procedure as each
        octet is transmitted. */
     mstp_port->SilenceTimer = 0;
 #if PRINT_ENABLED_RS485

@@ -44,18 +44,6 @@ static uint8_t LED3_Off_Timer;
 /* baud rate */
 static uint32_t RS485_Baud = 9600;
 
-/* The minimum time after the end of the stop bit of the final octet of a */
-/* received frame before a node may enable its EIA-485 driver: 40 bit times. */
-/* At 9600 baud, 40 bit times would be about 4.166 milliseconds */
-/* At 19200 baud, 40 bit times would be about 2.083 milliseconds */
-/* At 38400 baud, 40 bit times would be about 1.041 milliseconds */
-/* At 57600 baud, 40 bit times would be about 0.694 milliseconds */
-/* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
-/* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
-/* 40 bits is 4 octets including a start and stop bit with each octet */
-#define Tturnaround  (40UL)
-/* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
-
 /****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
 *              receive mode.
@@ -138,26 +126,6 @@ bool RS485_Set_Baud_Rate(
 }
 
 /****************************************************************************
-* DESCRIPTION: Waits on the SilenceTimer for 40 bits.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Turnaround_Delay(
-    void)
-{
-    uint16_t turnaround_time;
-
-    /* delay after reception before trasmitting - per MS/TP spec */
-    /* wait a minimum  40 bit times since reception */
-    /* at least 1 ms for errors: rounding, clock tick */
-    turnaround_time = 1 + ((Tturnaround * 1000UL) / RS485_Baud);
-    while (Timer_Silence() < turnaround_time) {
-        /* do nothing - wait for timer to increment */
-    };
-}
-
-/****************************************************************************
 * DESCRIPTION: Enable or disable the transmitter
 * RETURN:      none
 * ALGORITHM:   none
@@ -171,6 +139,35 @@ void RS485_Transmitter_Enable(
     } else {
         BIT_CLEAR(PORTD, PD2);
     }
+}
+
+/****************************************************************************
+* DESCRIPTION: Waits on the SilenceTimer for 40 bits.
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Turnaround_Delay(
+    void)
+{
+    uint8_t nbytes = 4;
+
+    RS485_Transmitter_Enable(false);
+    while (nbytes) {
+        while (!BIT_CHECK(UCSR0A, UDRE0)) {
+            /* do nothing - wait until Tx buffer is empty */
+        }
+        /* Send the data byte */
+        UDR0 = 0xff;
+        nbytes--;
+    }
+    /* was the frame sent? */
+    while (!BIT_CHECK(UCSR0A, TXC0)) {
+        /* do nothing - wait until the entire frame in the
+           Transmit Shift Register has been shifted out */
+    }
+    /* Clear the Transmit Complete flag by writing a one to it. */
+    BIT_SET(UCSR0A, TXC0);
 }
 
 /****************************************************************************
@@ -252,7 +249,6 @@ void RS485_Send_Data(
     /* per MSTP spec, sort of */
     Timer_Silence_Reset();
 }
-
 
 /****************************************************************************
 * DESCRIPTION: Return true if a framing or overrun error is present

@@ -184,7 +184,7 @@ void RS485_Send_Frame(
         else if (baud == 19200)
             turnaround_time = 2;
         else
-            turnaround_time = 1;
+            turnaround_time = 2;
         while (mstp_port->SilenceTimer() < turnaround_time) {
             /* do nothing - wait for timer to increment */
             sched_yield();
