@@ -26,6 +26,8 @@
 #include "timer.h"
 
 /* generic elapsed timer handling */
+/* interval not to exceed 49.7 days */
+/* interval of 1ms may be 0 to 1ms */
 
 /*************************************************************************
 * Description: Sets the start time for an elapsed timer
