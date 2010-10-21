@@ -249,7 +249,7 @@ void rpm_ack_print_data(
                         listOfProperties->propertyIdentifier;
                     object_value.array_index =
                         listOfProperties->propertyArrayIndex;
-                    object_value.value = listOfProperties->value;
+                    object_value.value = value;
                     bacapp_print_value(stdout, &object_value);
 #if PRINT_ENABLED
                     if (value->next) {
