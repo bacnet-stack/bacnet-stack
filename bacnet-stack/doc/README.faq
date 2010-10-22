@@ -122,7 +122,7 @@ The correct solution is to use BVLC (BACnet Virtual Link Control) where the clie
 You can do one of the following:
 
    1. Use QEMU or Bochs or VMWare or some other virtual machine to simulate another computer, and run server or client on a virtual computer.
-   2. Use the BACnet/IP BACnet Virtual Link Control (BVLC) features. The client demo applications are configured to use environment variables to establish a BBMD connection as a foreign device. Set the BACNET_BBMD_PORT and BACNET_BBMD_ADDRESS of the BBMD, and use a non-standard BACNET_IP_PORT value. Note that the demo/server application is configured as a BBMD.
+   2. Use the BACnet/IP BACnet Virtual Link Control (BVLC) features. The client demo applications are configured to use environment variables to establish a BBMD connection as a foreign device. Set the BACNET_BBMD_PORT and BACNET_BBMD_ADDRESS of the BBMD, and use a non-standard BACNET_IP_PORT value. Note that the demo/server application is configured as a BBMD, and there are helper scripts /bin/bvlc.sh or bin/bvlc.bat to assist.
    3. Write npdu router code to route from BACnet/IP to another datalink layer. Make server application on one datalink layer and make client applications on another datalink layer.
    4. Add external BACnet router or BACnet devices. Run a BACnet demo/server on another PC.
 
