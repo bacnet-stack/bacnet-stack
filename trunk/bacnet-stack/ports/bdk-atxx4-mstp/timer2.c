@@ -30,7 +30,8 @@
 #error "F_CPU must be defined for Timer configuration."
 #endif
 /* Timer2 Prescaling: 1, 8, 32, 64, 128, 256, or 1024 */
-#define TIMER_TICKS(p) (F_CPU/(p)/1000)
+#define TIMER_MICROSECONDS 1000
+#define TIMER_TICKS(p) ((((F_CPU)/(p)/1000)*(TIMER_MICROSECONDS))/1000)
 #define TIMER_TICKS_MAX 0xff
 /* adjust the prescaler for the processor clock */
 #if (TIMER_TICKS(1) <= TIMER_TICKS_MAX)
@@ -60,11 +61,11 @@ static volatile uint32_t Millisecond_Counter;
 ISR(TIMER2_OVF_vect);
 
 /*************************************************************************
-* Description: Timer Interrupt Service Routine - Timer Overflowed!
-* Returns: none
-* Notes: Global interupts must be enabled
+* Description: Timer Interrupt Handler
+* Returns: nothing
+* Notes: none
 *************************************************************************/
-ISR(TIMER2_OVF_vect)
+static inline void timer_interrupt_handler(void)
 {
     /* Set the counter for the next interrupt */
     TCNT2 = TIMER2_COUNT;
@@ -72,40 +73,31 @@ ISR(TIMER2_OVF_vect)
 }
 
 /*************************************************************************
-* Description: sets the current time count with a value
+* Description: Timer Interrupt Service Routine - Timer Overflowed!
 * Returns: none
-* Notes: none
+* Notes: Global interupts must be enabled
 *************************************************************************/
-uint32_t timer_milliseconds_set(
-    uint32_t value)
+ISR(TIMER2_OVF_vect)
 {
-    uint8_t sreg = 0;   /* holds interrupts pending */
-    uint32_t old_value = 0;     /* return value */
-
-    sreg = SREG;
-    __disable_interrupt();
-    old_value = Millisecond_Counter;
-    Millisecond_Counter = value;
-    SREG = sreg;
-
-    return old_value;
+    timer_interrupt_handler();
 }
 
 /*************************************************************************
 * Description: returns the current millisecond count
 * Returns: none
-* Notes: none
+* Notes: This method only disables the timer overflow interrupt.
 *************************************************************************/
 uint32_t timer_milliseconds(
     void)
 {
-    uint32_t timer_value = 0;   /* return value */
-    uint8_t sreg = 0;   /* holds interrupts pending */
+    uint32_t timer_value;   /* return value */
 
-    sreg = SREG;
-    __disable_interrupt();
+    /* Disable the overflow interrupt.
+       Prevents value corruption that would happen if interrupted */
+    BIT_CLEAR(TIMSK2, TOIE2);
     timer_value = Millisecond_Counter;
-    SREG = sreg;
+    /* Enable the overflow interrupt */
+    BIT_SET(TIMSK2, TOIE2);
 
     return timer_value;
 }
@@ -149,8 +141,8 @@ void timer_init(
 #else
 #error Timer2 Prescale: Invalid Value
 #endif
-    /* Clear any TOV Flag set when the timer overflowed */
-    BIT_CLEAR(TIFR2, TOV2);
+    /* Clear any TOV Flag set when the timer overflowed - by setting! */
+    BIT_SET(TIFR2, TOV2);
     /* Initial value */
     TCNT2 = TIMER2_COUNT;
     /* Enable the overflow interrupt */

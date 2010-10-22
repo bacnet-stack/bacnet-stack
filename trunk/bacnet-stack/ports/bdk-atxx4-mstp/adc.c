@@ -86,7 +86,9 @@ void adc_enable(
 {
     if (Enabled_Channels) {
         /* ADC interupt is already started */
+        BIT_CLEAR(ADCSRA, ADIE);
         BIT_SET(Enabled_Channels, index);
+        BIT_SET(ADCSRA, ADIE);
     } else {
         if (index < ADC_CHANNELS_MAX) {
             /* not running yet */
@@ -108,7 +110,9 @@ uint8_t adc_result_8bit(
 
     if (index < ADC_CHANNELS_MAX) {
         adc_enable(index);
+        BIT_CLEAR(ADCSRA, ADIE);
         result = (uint8_t)(Sample_Result[index]>>2);
+        BIT_SET(ADCSRA, ADIE);
     }
 
     return result;
@@ -121,7 +125,9 @@ uint16_t adc_result_10bit(
 
     if (index < ADC_CHANNELS_MAX) {
         adc_enable(index);
+        BIT_CLEAR(ADCSRA, ADIE);
         result = Sample_Result[index];
+        BIT_SET(ADCSRA, ADIE);
     }
 
     return result;
