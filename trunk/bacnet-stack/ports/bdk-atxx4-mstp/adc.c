@@ -86,9 +86,7 @@ void adc_enable(
 {
     if (Enabled_Channels) {
         /* ADC interupt is already started */
-        BIT_CLEAR(ADCSRA, ADIE);
         BIT_SET(Enabled_Channels, index);
-        BIT_SET(ADCSRA, ADIE);
     } else {
         if (index < ADC_CHANNELS_MAX) {
             /* not running yet */
@@ -110,9 +108,7 @@ uint8_t adc_result_8bit(
 
     if (index < ADC_CHANNELS_MAX) {
         adc_enable(index);
-        BIT_CLEAR(ADCSRA, ADIE);
         result = (uint8_t)(Sample_Result[index]>>2);
-        BIT_SET(ADCSRA, ADIE);
     }
 
     return result;
@@ -125,9 +121,7 @@ uint16_t adc_result_10bit(
 
     if (index < ADC_CHANNELS_MAX) {
         adc_enable(index);
-        BIT_CLEAR(ADCSRA, ADIE);
         result = Sample_Result[index];
-        BIT_SET(ADCSRA, ADIE);
     }
 
     return result;
@@ -143,12 +137,12 @@ void adc_init(
     ADMUX = (0 << ADLAR) | (0 << REFS1) | (1 << REFS0);
     /*  ADEN = Enable
        ADSC = Start conversion
-       ADIF = Interrupt Flag
+       ADIF = Interrupt Flag - write 1 to clear!
        ADIE = Interrupt Enable
        ADATE = Auto Trigger Enable
      */
     ADCSRA = (1 << ADEN) | (1 << ADIE) |
-        (0 << ADIF) | (0 << ADATE) | ADPS_10BIT;
+        (1 << ADIF) | (0 << ADATE) | ADPS_10BIT;
     /* trigger selection bits
        0 0 0 Free Running mode
        0 0 1 Analog Comparator
