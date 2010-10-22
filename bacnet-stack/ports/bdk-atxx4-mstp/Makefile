@@ -144,6 +144,11 @@ COMMON = -mmcu=$(MCU)
 
 # define something from the Makefile or batch file
 DEFINES =
+# various SEEPROM sizes
+ifeq (${SEEPROM},128)
+DEFINES += -DSEEPROM_PAGE_SIZE=64
+DEFINES += -DSEEPROM_WORD_ADDRESS_16BIT=1
+endif
 
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
