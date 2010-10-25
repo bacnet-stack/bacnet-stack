@@ -385,6 +385,7 @@ int bacapp_decode_data_len(
                 break;
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             case BACNET_APPLICATION_TAG_SIGNED_INT:
+            case BACNET_APPLICATION_TAG_REAL:
             case BACNET_APPLICATION_TAG_DOUBLE:
             case BACNET_APPLICATION_TAG_OCTET_STRING:
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
