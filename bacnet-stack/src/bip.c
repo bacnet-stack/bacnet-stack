@@ -45,11 +45,11 @@
 /** @file bip.c  Configuration and Operations for BACnet/IP */
 
 static int BIP_Socket = -1;
-/* port to use - stored in host byte order */
-static uint16_t BIP_Port = 0xBAC0;
-/* IP Address - stored in host byte order */
+/* port to use - stored in network byte order */
+static uint16_t BIP_Port = 0; /* this will force initialization in demos */
+/* IP Address - stored in network byte order */
 static struct in_addr BIP_Address;
-/* Broadcast Address - stored in host byte order */
+/* Broadcast Address - stored in network byte order */
 static struct in_addr BIP_Broadcast_Address;
 
 /** Setter for the BACnet/IP socket handle.
@@ -91,60 +91,56 @@ void bip_cleanup(
     return;
 }
 
-/* set using network byte order */
 void bip_set_addr(
-    uint32_t net_address)
+    uint32_t net_address) /* in network byte order */
 {
-    BIP_Address.s_addr = ntohl(net_address);
+    BIP_Address.s_addr = net_address;
 }
 
 /* returns host byte order */
 uint32_t bip_get_addr(
     void)
 {
-    return BIP_Address.s_addr;
+    return ntohl(BIP_Address.s_addr);
 }
 
-/* set using network byte order */
 void bip_set_broadcast_addr(
-    uint32_t net_address)
+    uint32_t net_address) /* in network byte order */
 {
-    BIP_Broadcast_Address.s_addr = ntohl(net_address);
+    BIP_Broadcast_Address.s_addr = net_address;
 }
 
 /* returns host byte order */
 uint32_t bip_get_broadcast_addr(
     void)
 {
-    return BIP_Broadcast_Address.s_addr;
+    return ntohl(BIP_Broadcast_Address.s_addr);
 }
 
-/* set using host byte order */
+
 void bip_set_port(
-    uint16_t port)
+    uint16_t port) /* in host byte order */
 {
-    BIP_Port = port;
+    BIP_Port = htons(port);
 }
 
 /* returns host byte order */
 uint16_t bip_get_port(
     void)
 {
-    return BIP_Port;
+    return ntohs(BIP_Port);
 }
 
 static int bip_decode_bip_address(
-    uint8_t * pdu,      /* buffer to extract encoded address */
-    struct in_addr *address,    /* in host format */
-    uint16_t * port)
+    BACNET_ADDRESS * bac_addr,
+    struct in_addr *address,    /* in network format */
+    uint16_t * port)            /* in network format */
 {
     int len = 0;
-    uint32_t raw_address = 0;
 
-    if (pdu) {
-        (void) decode_unsigned32(&pdu[0], &raw_address);
-        address->s_addr = raw_address;
-        (void) decode_unsigned16(&pdu[4], port);
+    if (bac_addr) {
+        memcpy (&address->s_addr, &bac_addr->mac[0], 4);
+        memcpy (port, &bac_addr->mac[4], 2);
         len = 6;
     }
 
@@ -188,14 +184,14 @@ int bip_send_pdu(
         port = BIP_Port;
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     } else if (dest->mac_len == 6) {
-        bip_decode_bip_address(&dest->mac[0], &address, &port);
+        bip_decode_bip_address(dest, &address, &port);
         mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
     } else {
         /* invalid address */
         return -1;
     }
-    bip_dest.sin_addr.s_addr = htonl(address.s_addr);
-    bip_dest.sin_port = htons(port);
+    bip_dest.sin_addr.s_addr = address.s_addr;
+    bip_dest.sin_port = port;
     memset(&(bip_dest.sin_zero), '\0', 8);
     mtu_len = 2;
     mtu_len +=
@@ -270,17 +266,17 @@ uint16_t bip_receive(
     if ((pdu[1] == BVLC_ORIGINAL_UNICAST_NPDU) ||
         (pdu[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
-        if ((sin.sin_addr.s_addr == htonl(BIP_Address.s_addr)) &&
-            (sin.sin_port == htons(BIP_Port))) {
+        if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
+            (sin.sin_port == BIP_Port)) {
             pdu_len = 0;
 #if PRINT_ENABLED
             fprintf(stderr, "BIP: src is me. Discarded!\n");
 #endif
         } else {
-            /* copy the source address - into host format */
+            /* data in src->mac[] is in network format */
             src->mac_len = 6;
-            (void) encode_unsigned32(&src->mac[0], htonl(sin.sin_addr.s_addr));
-            (void) encode_unsigned16(&src->mac[4], htons(sin.sin_port));
+            memcpy (&src->mac[0], &sin.sin_addr.s_addr, 4);
+            memcpy (&src->mac[4], &sin.sin_port, 2);
             /* FIXME: check destination address */
             /* see if it is broadcast or for us */
             /* decode the length of the PDU - length is inclusive of BVLC */
@@ -312,18 +308,17 @@ uint16_t bip_receive(
             }
         }
     } else if (pdu[1] == BVLC_FORWARDED_NPDU) {
-        // next 2 lines - moved data is always in the network format
-        *(uint32_t *)&sin.sin_addr.s_addr = *(uint32_t *)&pdu[4];
-        *(uint16_t *)&sin.sin_port = *(uint16_t *)&pdu[8];
-        if ((sin.sin_addr.s_addr == htonl(BIP_Address.s_addr)) &&
-            (sin.sin_port == htons(BIP_Port))) {
+        memcpy (&sin.sin_addr.s_addr, &pdu[4], 4);
+        memcpy (&sin.sin_port, &pdu[8], 2);
+        if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
+            (sin.sin_port == BIP_Port)) {
             /* ignore messages from me */
             pdu_len = 0;
         } else {
-            /* copy the real source address - into host format */
+            /* data in src->mac[] is in network format */
             src->mac_len = 6;
-            (void) encode_unsigned32(&src->mac[0], htonl(sin.sin_addr.s_addr));
-            (void) encode_unsigned16(&src->mac[4], htons(sin.sin_port));
+            memcpy (&src->mac[0], &sin.sin_addr.s_addr, 4);
+            memcpy (&src->mac[4], &sin.sin_port, 2);
             /* FIXME: check destination address */
             /* see if it is broadcast or for us */
             /* decode the length of the PDU - length is inclusive of BVLC */
@@ -355,14 +350,16 @@ void bip_get_my_address(
 {
     int i = 0;
 
-    my_address->mac_len = 6;
-    (void) encode_unsigned32(&my_address->mac[0], htonl(BIP_Address.s_addr));
-    (void) encode_unsigned16(&my_address->mac[4], htons(BIP_Port));
-    my_address->net = 0;        /* local only, no routing */
-    my_address->len = 0;        /* no SLEN */
-    for (i = 0; i < MAX_MAC_LEN; i++) {
-        /* no SADR */
-        my_address->adr[i] = 0;
+    if (my_address) {
+	    my_address->mac_len = 6;
+	    memcpy (&my_address->mac[0], &BIP_Address.s_addr, 4);
+	    memcpy (&my_address->mac[4], &BIP_Port, 2);
+	    my_address->net = 0;        /* local only, no routing */
+        my_address->len = 0;        /* no SLEN */
+        for (i = 0; i < MAX_MAC_LEN; i++) {
+            /* no SADR */
+            my_address->adr[i] = 0;
+        }
     }
 
     return;
@@ -375,9 +372,8 @@ void bip_get_broadcast_address(
 
     if (dest) {
         dest->mac_len = 6;
-        (void) encode_unsigned32(&dest->mac[0],
-            htonl(BIP_Broadcast_Address.s_addr));
-        (void) encode_unsigned16(&dest->mac[4], htons(BIP_Port));
+        memcpy (&dest->mac[0], &BIP_Broadcast_Address.s_addr, 4);
+        memcpy (&dest->mac[4], &BIP_Port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0;  /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {
