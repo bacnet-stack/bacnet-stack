@@ -797,6 +797,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\object\ms-input.c"
+				>
+			</File>
+			<File
 				RelativePath="..\object\mso.c"
 				>
 			</File>
@@ -930,6 +934,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\timesync.c"
+				>
+			</File>
+			<File
+				RelativePath="..\object\trendlog.c"
 				>
 			</File>
 			<File
