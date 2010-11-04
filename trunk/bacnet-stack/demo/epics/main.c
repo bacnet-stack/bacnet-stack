@@ -919,7 +919,7 @@ int main(
      * My_BIP_Port will be non-zero in this case.
      */
     if (My_BIP_Port > 0)
-        bip_set_port(My_BIP_Port);
+        bip_set_port(htons(My_BIP_Port));
     address_init();
     Init_Service_Handlers();
     dlenv_init();
@@ -929,7 +929,7 @@ int main(
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
 
     if (My_BIP_Port > 0)
-        bip_set_port(0xBAC0);   /* Set back to std BACnet/IP port */
+        bip_set_port(htons(0xBAC0));   /* Set back to std BACnet/IP port */
     /* try to bind with the target device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,

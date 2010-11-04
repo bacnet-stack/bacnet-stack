@@ -169,11 +169,11 @@ void Initialize_Device_Addresses( )
 #if defined(BACDL_BIP)
     struct in_addr *netPtr;			/* Lets us cast to this type */
     uint8_t *gatewayMac = NULL;
-    uint32_t myAddr = ntohl( bip_get_addr() );	
+    uint32_t myAddr = bip_get_addr();	
     pDev = Get_Routed_Device_Object( i );
     gatewayMac = pDev->bacDevAddr.mac;		/* Keep pointer to the main MAC */
     memcpy( pDev->bacDevAddr.mac, &myAddr, 4 );
-    myPort = ntohs( bip_get_port() );
+    myPort = bip_get_port();
     memcpy( &pDev->bacDevAddr.mac[4], &myPort, 2 );
     pDev->bacDevAddr.mac_len = 6;
 #elif defined(BACDL_MSTP)

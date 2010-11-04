@@ -128,8 +128,8 @@ static void bip_set_interface(
     if (BIP_Debug) {
         fprintf(stderr, "IP Broadcast Address: %s\n",
             inet_ntoa(broadcast_address));
-        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", bip_get_port(),
-            bip_get_port());
+        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", ntohs(bip_get_port()),
+            ntohs(bip_get_port()));
     }
 }
 
@@ -191,7 +191,7 @@ bool bip_init(
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = htons(bip_get_port());
+    sin.sin_port = bip_get_port();
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     status =
         bind(sock_fd, (const struct sockaddr *) &sin, sizeof(struct sockaddr));

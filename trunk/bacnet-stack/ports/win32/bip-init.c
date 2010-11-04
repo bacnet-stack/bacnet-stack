@@ -191,12 +191,12 @@ void bip_set_interface(
         bip_set_addr(inet_addr(ifname));
     }
     if (BIP_Debug) {
-        address.s_addr = htonl(bip_get_addr());
+        address.s_addr = bip_get_addr();
         fprintf(stderr, "Interface: %s\n", ifname);
     }
     /* setup local broadcast address */
     if (bip_get_broadcast_addr() == 0) {
-        address.s_addr = htonl(bip_get_addr());
+        address.s_addr = bip_get_addr();
         set_broadcast_address(address.s_addr);
     }
 }
@@ -339,7 +339,7 @@ bool bip_init(
     if (ifname)
         bip_set_interface(ifname);
     /* has address been set? */
-    address.s_addr = htonl(bip_get_addr());
+    address.s_addr = bip_get_addr();
     if (address.s_addr == 0) {
         address.s_addr = gethostaddr();
         if (address.s_addr == (unsigned) -1) {
@@ -358,11 +358,11 @@ bool bip_init(
         set_broadcast_address(address.s_addr);
     }
     if (BIP_Debug) {
-        broadcast_address.s_addr = htonl(bip_get_broadcast_addr());
+        broadcast_address.s_addr = bip_get_broadcast_addr();
         fprintf(stderr, "IP Broadcast Address: %s\n",
             inet_ntoa(broadcast_address));
-        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", bip_get_port(),
-            bip_get_port());
+        fprintf(stderr, "UDP Port: 0x%04X [%hu]\n", ntohs(bip_get_port()),
+            ntohs(bip_get_port()));
     }
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -424,13 +424,13 @@ bool bip_init(
        note: already in network byte order */
     sin.sin_addr.s_addr = address.s_addr;
 #endif
-    sin.sin_port = htons(bip_get_port());
+    sin.sin_port = bip_get_port();
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     rv = bind(sock_fd, (const struct sockaddr *) &sin,
         sizeof(struct sockaddr));
     if (rv < 0) {
         fprintf(stderr, "bip: failed to bind to %s port %hu\n",
-            inet_ntoa(sin.sin_addr), bip_get_port());
+            inet_ntoa(sin.sin_addr), ntohs(bip_get_port()));
         close(sock_fd);
         bip_set_socket(-1);
         return false;

@@ -89,24 +89,24 @@ extern "C" {
         uint16_t max_pdu,       /* amount of space available in the PDU  */
         unsigned timeout);      /* milliseconds to wait for a packet */
 
-    /* use host byte order for setting */
+    /* use network byte order for setting */
     void bip_set_port(
         uint16_t port);
-    /* returns host byte order */
+    /* returns network byte order */
     uint16_t bip_get_port(
         void);
 
     /* use network byte order for setting */
     void bip_set_addr(
         uint32_t net_address);
-    /* returns host byte order */
+    /* returns network byte order */
     uint32_t bip_get_addr(
         void);
 
     /* use network byte order for setting */
     void bip_set_broadcast_addr(
         uint32_t net_address);
-    /* returns host byte order */
+    /* returns network byte order */
     uint32_t bip_get_broadcast_addr(
         void);
 
