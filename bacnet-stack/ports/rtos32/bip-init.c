@@ -258,7 +258,7 @@ bool bip_init(
     RTIP_To_Network_Address(TargetIP, &my_addr);
     bip_set_addr(my_addr.s_addr);
     set_broadcast_address(my_addr.s_addr);
-    bip_set_port(0xBAC0);
+    bip_set_port(htons((0xBAC0));
 
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);
@@ -269,7 +269,7 @@ bool bip_init(
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = htons(bip_get_port());
+    sin.sin_port = bip_get_port();
     memset(&(sin.sin_zero), '\0', 8);
     rv = bind(sock_fd, (const struct sockaddr *) &sin,
         sizeof(struct sockaddr));

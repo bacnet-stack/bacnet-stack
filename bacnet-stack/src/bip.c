@@ -97,11 +97,11 @@ void bip_set_addr(
     BIP_Address.s_addr = net_address;
 }
 
-/* returns host byte order */
+/* returns network byte order */
 uint32_t bip_get_addr(
     void)
 {
-    return ntohl(BIP_Address.s_addr);
+    return BIP_Address.s_addr;
 }
 
 void bip_set_broadcast_addr(
@@ -110,25 +110,25 @@ void bip_set_broadcast_addr(
     BIP_Broadcast_Address.s_addr = net_address;
 }
 
-/* returns host byte order */
+/* returns network byte order */
 uint32_t bip_get_broadcast_addr(
     void)
 {
-    return ntohl(BIP_Broadcast_Address.s_addr);
+    return BIP_Broadcast_Address.s_addr;
 }
 
 
 void bip_set_port(
-    uint16_t port) /* in host byte order */
+    uint16_t port) /* in network byte order */
 {
-    BIP_Port = htons(port);
+    BIP_Port = port;
 }
 
-/* returns host byte order */
+/* returns network byte order */
 uint16_t bip_get_port(
     void)
 {
-    return ntohs(BIP_Port);
+    return BIP_Port;
 }
 
 static int bip_decode_bip_address(

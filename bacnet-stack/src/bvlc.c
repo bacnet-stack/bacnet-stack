@@ -682,13 +682,13 @@ static void bvlc_bdt_forward_npdu(
                         s_addr) | BBMD_Table[i].dest_address.s_addr));
             bip_dest.sin_port = htons(BBMD_Table[i].dest_port);
             /* don't send to my broadcast address and same port */
-            if ((bip_dest.sin_addr.s_addr == htonl(bip_get_broadcast_addr()))
-                && (bip_dest.sin_port == htons(bip_get_port()))) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr())
+                && (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* don't send to my ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == htonl(bip_get_addr())) &&
-                (bip_dest.sin_port == htons(bip_get_port()))) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_addr()) &&
+                (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
@@ -713,8 +713,8 @@ static void bvlc_forward_npdu(
 
     mtu_len =
         (uint16_t) bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
-    bip_dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
-    bip_dest.sin_port = htons(bip_get_port());
+    bip_dest.sin_addr.s_addr = bip_get_broadcast_addr();
+    bip_dest.sin_port = bip_get_port();
     bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
     debug_printf("BVLC: Sent Forwarded-NPDU as local broadcast.\n");
 }
@@ -737,8 +737,8 @@ static void bvlc_fdt_forward_npdu(
             bip_dest.sin_addr.s_addr = htonl(FD_Table[i].dest_address.s_addr);
             bip_dest.sin_port = htons(FD_Table[i].dest_port);
             /* don't send to my ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == htonl(bip_get_addr())) &&
-                (bip_dest.sin_port == htons(bip_get_port()))) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_addr()) &&
+                (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* don't send to src ip address and same port */
@@ -992,8 +992,8 @@ uint16_t bvlc_receive(
             npdu_len -= 6;
             /*  Broadcast locally if received via unicast from a BDT member */
             if (bvlc_bdt_member_mask_is_unicast(&sin)) {
-                dest.sin_addr.s_addr = htonl(bip_get_broadcast_addr());
-                dest.sin_port = htons(bip_get_port());
+                dest.sin_addr.s_addr = bip_get_broadcast_addr();
+                dest.sin_port = bip_get_port();
                 bvlc_send_mpdu(&dest, &npdu[4 + 6], npdu_len);
             }
             /* use the original addr from the BVLC for src */
@@ -1102,8 +1102,8 @@ uint16_t bvlc_receive(
         case BVLC_ORIGINAL_UNICAST_NPDU:
             debug_printf("BVLC: Received Original-Unicast-NPDU.\n");
             /* ignore messages from me */
-            if ((sin.sin_addr.s_addr == htonl(bip_get_addr())) &&
-                (sin.sin_port == htons(bip_get_port()))) {
+            if ((sin.sin_addr.s_addr == bip_get_addr()) &&
+                (sin.sin_port == bip_get_port())) {
                 npdu_len = 0;
             } else {
                 bvlc_internet_to_bacnet_address(src, &sin);
@@ -1182,8 +1182,8 @@ int bvlc_send_pdu(
             port = ntohs(Remote_BBMD.sin_port);
             debug_printf("BVLC: Sent Distribute-Broadcast-to-Network.\n");
         } else {
-            address.s_addr = bip_get_broadcast_addr();
-            port = bip_get_port();
+            address.s_addr = ntohl(bip_get_broadcast_addr());
+            port = ntohs(bip_get_port());
             mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
             debug_printf("BVLC: Sent Original-Broadcast-NPDU.\n");
         }
