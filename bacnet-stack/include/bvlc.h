@@ -54,8 +54,8 @@ extern "C" {
 #endif
     /* registers with a bbmd as a foreign device */
     void bvlc_register_with_bbmd(
-        long bbmd_address,      /* in network byte order */
-        uint16_t bbmd_port,
+        uint32_t bbmd_address,  /* in network byte order */
+        uint16_t bbmd_port,     /* in network byte order */
         uint16_t time_to_live_seconds);
 
     uint16_t bvlc_receive(

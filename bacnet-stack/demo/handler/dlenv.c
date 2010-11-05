@@ -80,7 +80,7 @@ void dlenv_register_as_foreign_device(
             fprintf(stderr,
                 "Registering with BBMD at %s:%ld for %ld seconds\n",
                 inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(bbmd_address, (uint16_t) bbmd_port,
+            bvlc_register_with_bbmd(bbmd_address, htons((uint16_t) bbmd_port),
                 (uint16_t) bbmd_timetolive_seconds);
             BBMD_Timer_Seconds = bbmd_timetolive_seconds;
         }

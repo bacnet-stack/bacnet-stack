@@ -55,11 +55,11 @@ typedef struct {
     /* true if valid entry - false if not */
     bool valid;
     /* BACnet/IP address */
-    struct in_addr dest_address;
+    struct in_addr dest_address;   /* in network format */
     /* BACnet/IP port number - not always 47808=BAC0h */
-    uint16_t dest_port;
-    /* Broadcast Distribution Mask - stored in host byte order */
-    struct in_addr broadcast_mask;
+    uint16_t dest_port;            /* in network format */
+    /* Broadcast Distribution Mask */
+    struct in_addr broadcast_mask; /* in tework format */
 } BBMD_TABLE_ENTRY;
 
 #define MAX_BBMD_ENTRIES 128
@@ -123,18 +123,18 @@ void bvlc_maintenance_timer(
    In the case of B/IP networks, six octets consisting of the four-octet
    IP address followed by a two-octet UDP port number (both of
    which shall be transmitted most significant octet first).
-   Note: for local storage, the storage order is host byte order.
+   Note: for local storage, the storage order is NETWORK byte order.
    Note: BACnet unsigned is encoded as most significant octet. */
 static int bvlc_encode_bip_address(
     uint8_t * pdu,      /* buffer to store encoding */
-    struct in_addr *address,    /* in host format */
-    uint16_t port)
+    struct in_addr *address,    /* in network format */
+    uint16_t port)              /* in network format */
 {
     int len = 0;
 
     if (pdu) {
-        encode_unsigned32(&pdu[0], address->s_addr);
-        encode_unsigned16(&pdu[4], port);
+        memcpy (&pdu[0], &address->s_addr, 4);
+        memcpy (&pdu[4], &port, 2);
         len = 6;
     }
 
@@ -143,16 +143,14 @@ static int bvlc_encode_bip_address(
 
 static int bvlc_decode_bip_address(
     uint8_t * pdu,      /* buffer to extract encoded address */
-    struct in_addr *address,    /* in host format */
-    uint16_t * port)
+    struct in_addr *address,    /* in network format */
+    uint16_t * port)            /* in network format */
 {
     int len = 0;
-    uint32_t raw_address = 0;
 
     if (pdu) {
-        (void) decode_unsigned32(&pdu[0], &raw_address);
-        address->s_addr = raw_address;
-        (void) decode_unsigned16(&pdu[4], port);
+        memcpy(&address->s_addr, &pdu[0], 4);
+        memcpy(port, &pdu[4], 2);
         len = 6;
     }
 
@@ -163,14 +161,15 @@ static int bvlc_decode_bip_address(
 static int bvlc_encode_address_entry(
     uint8_t * pdu,
     struct in_addr *address,
-    uint16_t port,
+    uint16_t port,           /* in network byte order */
     struct in_addr *mask)
 {
     int len = 0;
 
     if (pdu) {
         len = bvlc_encode_bip_address(pdu, address, port);
-        len += encode_unsigned32(&pdu[len], mask->s_addr);
+        memcpy(&pdu[len], &mask->s_addr, 4);
+        len += 4;
     }
 
     return len;
@@ -294,8 +293,6 @@ static int bvlc_encode_forwarded_npdu(
     unsigned npdu_length)
 {
     int len = 0;
-    struct in_addr address;
-    uint16_t port;
 
     unsigned i; /* for loop counter */
 
@@ -307,9 +304,7 @@ static int bvlc_encode_forwarded_npdu(
            length field itself, most significant octet first. */
         encode_unsigned16(&pdu[2], (uint16_t) (4 + 6 + npdu_length));
         len = 4;
-        address.s_addr = ntohl(sin->sin_addr.s_addr);
-        port = ntohs(sin->sin_port);
-        len += bvlc_encode_bip_address(&pdu[len], &address, port);
+        len += bvlc_encode_bip_address(&pdu[len], &sin->sin_addr, sin->sin_port);
         for (i = 0; i < npdu_length; i++) {
             pdu[len] = npdu[i];
             len++;
@@ -498,16 +493,11 @@ static void bvlc_internet_to_bacnet_address(
     BACNET_ADDRESS * src,       /* returns the BACnet source address */
     struct sockaddr_in *sin)
 {       /* source address in network order */
-    int len = 0;
-    uint32_t address;
-    uint16_t port;
 
     if (src && sin) {
-        address = ntohl(sin->sin_addr.s_addr);
-        len = encode_unsigned32(&src->mac[0], address);
-        port = ntohs(sin->sin_port);
-        len += encode_unsigned16(&src->mac[4], port);
-        src->mac_len = (uint8_t) len;
+        memcpy(&src->mac[0], &sin->sin_addr.s_addr, 4);
+        memcpy(&src->mac[4], &sin->sin_port, 2);
+        src->mac_len = (uint8_t) 6;
         src->net = 0;
         src->len = 0;
     }
@@ -517,20 +507,15 @@ static void bvlc_internet_to_bacnet_address(
 
 /* copy the source internet address to the BACnet address */
 /* FIXME: IPv6? */
-void bvlc_bacnet_to_internet_address(
+static void bvlc_bacnet_to_internet_address(
     struct sockaddr_in *sin,    /* source address in network order */
     BACNET_ADDRESS * src)
 {       /* returns the BACnet source address */
-    int len = 0;
-    uint32_t address;
-    uint16_t port;
 
     if (src && sin) {
         if (src->mac_len == 6) {
-            len = decode_unsigned32(&src->mac[0], &address);
-            len += decode_unsigned16(&src->mac[4], &port);
-            sin->sin_addr.s_addr = htonl(address);
-            sin->sin_port = htons(port);
+            memcpy(&sin->sin_addr.s_addr, &src->mac[0], 4);
+            memcpy(&sin->sin_port, &src->mac[4], 2);
         }
     }
 
@@ -548,13 +533,11 @@ static bool bvlc_create_bdt(
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (npdu_length >= 10) {
             BBMD_Table[i].valid = true;
-            BBMD_Table[i].dest_address.s_addr =
-                ntohl(*(long *) &npdu[pdu_offset]);
+            BBMD_Table[i].dest_address.s_addr = *(long *) &npdu[pdu_offset]; /* FIXME: dangerous casting */
             pdu_offset += 4;
-            BBMD_Table[i].dest_port = ntohs(*(short *) &npdu[pdu_offset]);
+            BBMD_Table[i].dest_port = *(short *) &npdu[pdu_offset]; /* FIXME: dangerous casting */
             pdu_offset += 2;
-            BBMD_Table[i].broadcast_mask.s_addr =
-                ntohl(*(long *) &npdu[pdu_offset]);
+            BBMD_Table[i].broadcast_mask.s_addr = *(long *) &npdu[pdu_offset]; /* FIXME: dangerous casting */
             pdu_offset += 4;
             npdu_length -= 10;
         } else {
@@ -582,9 +565,8 @@ static bool bvlc_register_foreign_device(
     /* am I here already?  If so, update my time to live... */
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid) {
-            if ((FD_Table[i].dest_address.s_addr ==
-                    ntohl(sin->sin_addr.s_addr)) &&
-                (FD_Table[i].dest_port == ntohs(sin->sin_port))) {
+            if ((FD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr) &&
+                (FD_Table[i].dest_port == sin->sin_port)) {
                 status = true;
                 FD_Table[i].time_to_live = time_to_live;
                 /*  Upon receipt of a BVLL Register-Foreign-Device message,
@@ -599,8 +581,8 @@ static bool bvlc_register_foreign_device(
     if (!status) {
         for (i = 0; i < MAX_FD_ENTRIES; i++) {
             if (!FD_Table[i].valid) {
-                FD_Table[i].dest_address.s_addr = ntohl(sin->sin_addr.s_addr);
-                FD_Table[i].dest_port = ntohs(sin->sin_port);
+                FD_Table[i].dest_address.s_addr = sin->sin_addr.s_addr;
+                FD_Table[i].dest_port = sin->sin_port;
                 FD_Table[i].time_to_live = time_to_live;
                 FD_Table[i].seconds_remaining = time_to_live + 30;
                 FD_Table[i].valid = true;
@@ -678,9 +660,9 @@ static void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
             bip_dest.sin_addr.s_addr =
-                htonl(((~BBMD_Table[i].broadcast_mask.
-                        s_addr) | BBMD_Table[i].dest_address.s_addr));
-            bip_dest.sin_port = htons(BBMD_Table[i].dest_port);
+                ((~BBMD_Table[i].broadcast_mask.
+                        s_addr) | BBMD_Table[i].dest_address.s_addr);
+            bip_dest.sin_port = BBMD_Table[i].dest_port;
             /* don't send to my broadcast address and same port */
             if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr())
                 && (bip_dest.sin_port == bip_get_port())) {
@@ -734,8 +716,8 @@ static void bvlc_fdt_forward_npdu(
     /* loop through the FDT and send one to each entry */
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid && FD_Table[i].seconds_remaining) {
-            bip_dest.sin_addr.s_addr = htonl(FD_Table[i].dest_address.s_addr);
-            bip_dest.sin_port = htons(FD_Table[i].dest_port);
+            bip_dest.sin_addr.s_addr = FD_Table[i].dest_address.s_addr;
+            bip_dest.sin_port = FD_Table[i].dest_port;
             /* don't send to my ip address and same port */
             if ((bip_dest.sin_addr.s_addr == bip_get_addr()) &&
                 (bip_dest.sin_port == bip_get_port())) {
@@ -756,8 +738,8 @@ static void bvlc_fdt_forward_npdu(
 }
 
 void bvlc_register_with_bbmd(
-    long bbmd_address,  /* in network byte order */
-    uint16_t bbmd_port, /* in host byte order */
+    uint32_t bbmd_address,  /* in network byte order */
+    uint16_t bbmd_port,     /* in network byte order */
     uint16_t time_to_live_seconds)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
@@ -766,7 +748,7 @@ void bvlc_register_with_bbmd(
     /* Store the BBMD address and port so that we
        won't broadcast locally. */
     Remote_BBMD.sin_addr.s_addr = bbmd_address;
-    Remote_BBMD.sin_port = htons(bbmd_port);
+    Remote_BBMD.sin_port = bbmd_port;
     /* In order for their broadcasts to get here,
        we need to register our address with the remote BBMD using
        Write Broadcast Distribution Table, or
@@ -828,8 +810,8 @@ static bool bvlc_bdt_member_mask_is_unicast(
         if (BBMD_Table[i].valid) {
             /* find the source address in the table */
             if ((BBMD_Table[i].dest_address.s_addr ==
-                    htonl(sin->sin_addr.s_addr)) &&
-                (BBMD_Table[i].dest_port == htons(sin->sin_port))) {
+                    sin->sin_addr.s_addr) &&
+                (BBMD_Table[i].dest_port == sin->sin_port)) {
                 /* unicast mask? */
                 if (BBMD_Table[i].broadcast_mask.s_addr == 0xFFFFFFFFL) {
                     unicast = true;
@@ -997,8 +979,8 @@ uint16_t bvlc_receive(
                 bvlc_send_mpdu(&dest, &npdu[4 + 6], npdu_len);
             }
             /* use the original addr from the BVLC for src */
-            dest.sin_addr.s_addr = htonl(original_sin.sin_addr.s_addr);
-            dest.sin_port = htons(original_sin.sin_port);
+            dest.sin_addr.s_addr = original_sin.sin_addr.s_addr;
+            dest.sin_port = original_sin.sin_port;
             bvlc_fdt_forward_npdu(&dest, &npdu[4 + 6], npdu_len);
             debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
                 inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
@@ -1166,7 +1148,7 @@ int bvlc_send_pdu(
     struct sockaddr_in bvlc_dest = { 0 };
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
-    /* addr and port in host format */
+    /* addr and port in network format */
     struct in_addr address;
     uint16_t port = 0;
     uint16_t BVLC_length = 0;
@@ -1178,12 +1160,12 @@ int bvlc_send_pdu(
         /* if we are a foreign device */
         if (Remote_BBMD.sin_port) {
             mtu[1] = BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK;
-            address.s_addr = ntohl(Remote_BBMD.sin_addr.s_addr);
-            port = ntohs(Remote_BBMD.sin_port);
+            address.s_addr = Remote_BBMD.sin_addr.s_addr;
+            port = Remote_BBMD.sin_port;
             debug_printf("BVLC: Sent Distribute-Broadcast-to-Network.\n");
         } else {
-            address.s_addr = ntohl(bip_get_broadcast_addr());
-            port = ntohs(bip_get_port());
+            address.s_addr = bip_get_broadcast_addr();
+            port = bip_get_port();
             mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
             debug_printf("BVLC: Sent Original-Broadcast-NPDU.\n");
         }
@@ -1196,8 +1178,8 @@ int bvlc_send_pdu(
         /* invalid address */
         return -1;
     }
-    bvlc_dest.sin_addr.s_addr = htonl(address.s_addr);
-    bvlc_dest.sin_port = htons(port);
+    bvlc_dest.sin_addr.s_addr = address.s_addr;
+    bvlc_dest.sin_port = port;
     BVLC_length = (uint16_t) pdu_len + 4 /*inclusive */ ;
     mtu_len = 2;
     mtu_len += (uint16_t) encode_unsigned16(&mtu[mtu_len], BVLC_length);
