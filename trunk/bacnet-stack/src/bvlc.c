@@ -533,13 +533,13 @@ static bool bvlc_create_bdt(
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (npdu_length >= 10) {
             BBMD_Table[i].valid = true;
-            BBMD_Table[i].dest_address.s_addr = *(long *) &npdu[pdu_offset]; /* FIXME: dangerous casting */
+            memcpy(&BBMD_Table[i].dest_address.s_addr, &npdu[pdu_offset], 4);
             pdu_offset += 4;
-            BBMD_Table[i].dest_port = *(short *) &npdu[pdu_offset]; /* FIXME: dangerous casting */
+            memcpy(&BBMD_Table[i].dest_port, &npdu[pdu_offset], 2);
             pdu_offset += 2;
-            BBMD_Table[i].broadcast_mask.s_addr = *(long *) &npdu[pdu_offset]; /* FIXME: dangerous casting */
+            memcpy(&BBMD_Table[i].broadcast_mask.s_addr, &npdu[pdu_offset], 4);
             pdu_offset += 4;
-            npdu_length -= 10;
+            npdu_length -= (4+2+4);
         } else {
             BBMD_Table[i].valid = false;
             BBMD_Table[i].dest_address.s_addr = 0;
