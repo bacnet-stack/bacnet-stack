@@ -299,6 +299,11 @@ extern "C" {
         BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
         RR_PROP_INFO * pInfo);  /* Where to put the information */
 
+    int Device_Read_Property_Local(
+        BACNET_READ_PROPERTY_DATA * rpdata);
+    bool Device_Write_Property_Local(
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
+
 /* Prototypes for Routing functionality in the Device Object.
  * Enable by defining BAC_ROUTING in config.h and including gw_device.c
  * in the build (lib/Makefile).
@@ -336,10 +341,6 @@ extern "C" {
         size_t length);
     void Routed_Device_Inc_Database_Revision(
         void);
-    int Device_Read_Property_Local(
-        BACNET_READ_PROPERTY_DATA * rpdata);
-    bool Device_Write_Property_Local(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 
     
