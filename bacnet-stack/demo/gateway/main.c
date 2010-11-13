@@ -67,6 +67,12 @@
 /** @addtogroup GatewayDemo */
 /*@{*/
 
+/* All included BACnet objects */
+object_functions_t Object_Table[] = {
+	{DEVICE_OBJ_FUNCTIONS},
+	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
+
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 

@@ -100,6 +100,28 @@ typedef unsigned (
     *object_iterate_function) (
     unsigned current_index);
 
+/** Defines the group of object helper functions for any supported Object. 
+ * @ingroup ObjHelpers 
+ * Each Object must provide some implementation of each of these helpers
+ * in order to properly support the handlers.  Eg, the ReadProperty handler
+ * handler_read_property() relies on the instance of Object_Read_Property
+ * for each Object type.
+ * In both appearance and operation, this group of functions acts like
+ * they are member functions of a C++ Object base class.
+ */
+typedef struct object_functions {
+    BACNET_OBJECT_TYPE Object_Type;
+    object_init_function Object_Init;
+    object_count_function Object_Count;
+    object_index_to_instance_function Object_Index_To_Instance;
+    object_valid_instance_function Object_Valid_Instance;
+    object_name_function Object_Name;
+    read_property_function Object_Read_Property;
+    write_property_function Object_Write_Property;
+    rpm_property_lists_function Object_RPM_List;
+    rr_info_function Object_RR_Info;
+    object_iterate_function Object_Iterator;
+} object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
 #define MAX_DEV_NAME_LEN 32
@@ -314,12 +336,23 @@ extern "C" {
         size_t length);
     void Routed_Device_Inc_Database_Revision(
         void);
+    int Device_Read_Property_Local(
+        BACNET_READ_PROPERTY_DATA * rpdata);
+    bool Device_Write_Property_Local(
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 
     
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#define DEVICE_OBJ_FUNCTIONS \
+    OBJECT_DEVICE, NULL, Device_Count, Device_Index_To_Instance, \
+    Device_Valid_Object_Instance_Number, Device_Name, \
+    Device_Read_Property_Local, Device_Write_Property_Local, \
+    Device_Property_Lists, DeviceGetRRInfo, NULL
+
 /** @defgroup ObjFrmwk Object Framework
  * The modules in this section describe the BACnet-stack's framework for
  * BACnet-defined Objects (Device, Analog Input, etc). There are two submodules

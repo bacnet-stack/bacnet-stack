@@ -43,22 +43,6 @@
 #include "handlers.h"
 #include "datalink.h"
 #include "address.h"
-/* include the objects */
-#include "device.h"
-#include "ai.h"
-#include "ao.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
-#include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#include "ms-input.h"
-#include "trendlog.h"
-#if defined(BACFILE)
-#include "bacfile.h"    /* object list dependency */
-#endif
 /* os specfic includes */
 #include "timer.h"
 
@@ -78,98 +62,9 @@ extern int Routed_Device_Read_Property_Local(
 extern bool Routed_Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-/** Defines the group of object helper functions for any supported Object. 
- * @ingroup ObjHelpers 
- * Each Object must provide some implementation of each of these helpers
- * in order to properly support the handlers.  Eg, the ReadProperty handler
- * handler_read_property() relies on the instance of Object_Read_Property
- * for each Object type.
- * In both appearance and operation, this group of functions acts like
- * they are member functions of a C++ Object base class.
- */
-static struct object_functions {
-    BACNET_OBJECT_TYPE Object_Type;
-    object_init_function Object_Init;
-    object_count_function Object_Count;
-    object_index_to_instance_function Object_Index_To_Instance;
-    object_valid_instance_function Object_Valid_Instance;
-    object_name_function Object_Name;
-    read_property_function Object_Read_Property;
-    write_property_function Object_Write_Property;
-    rpm_property_lists_function Object_RPM_List;
-    rr_info_function Object_RR_Info;
-    object_iterate_function Object_Iterator;
-} Object_Table[] = {
-    {
-    OBJECT_DEVICE, NULL, Device_Count, Device_Index_To_Instance,
-            Device_Valid_Object_Instance_Number, Device_Name,
-            Device_Read_Property_Local, Device_Write_Property_Local,
-            Device_Property_Lists, DeviceGetRRInfo, NULL}, {
-    OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
-            Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
-            Analog_Input_Name, Analog_Input_Read_Property, NULL,
-            Analog_Input_Property_Lists, NULL, NULL}, {
-    OBJECT_ANALOG_OUTPUT, Analog_Output_Init, Analog_Output_Count,
-            Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance,
-            Analog_Output_Name, Analog_Output_Read_Property,
-            Analog_Output_Write_Property, Analog_Output_Property_Lists,
-            NULL, NULL}, {
-    OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
-            Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
-            Analog_Value_Name, Analog_Value_Read_Property,
-            Analog_Value_Write_Property, Analog_Value_Property_Lists, NULL,
-            NULL}, {
-    OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
-            Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
-            Binary_Input_Name, Binary_Input_Read_Property, NULL,
-            Binary_Input_Property_Lists, NULL, NULL}, {
-    OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
-            Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
-            Binary_Output_Name, Binary_Output_Read_Property,
-            Binary_Output_Write_Property, Binary_Output_Property_Lists,
-            NULL, NULL}, {
-    OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count,
-            Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance,
-            Binary_Value_Name, Binary_Value_Read_Property,
-            Binary_Value_Write_Property, Binary_Value_Property_Lists, NULL,
-            NULL}, {
-    OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Init,
-            Life_Safety_Point_Count, Life_Safety_Point_Index_To_Instance,
-            Life_Safety_Point_Valid_Instance, Life_Safety_Point_Name,
-            Life_Safety_Point_Read_Property,
-            Life_Safety_Point_Write_Property,
-            Life_Safety_Point_Property_Lists, NULL, NULL}, {
-    OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
-            Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
-            Load_Control_Name, Load_Control_Read_Property,
-            Load_Control_Write_Property, Load_Control_Property_Lists, NULL,
-            NULL}, {
-    OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init,
-            Multistate_Output_Count, Multistate_Output_Index_To_Instance,
-            Multistate_Output_Valid_Instance, Multistate_Output_Name,
-            Multistate_Output_Read_Property,
-            Multistate_Output_Write_Property,
-            Multistate_Output_Property_Lists, NULL, NULL}, {
-    OBJECT_MULTI_STATE_INPUT, Multistate_Input_Init,
-            Multistate_Input_Count, Multistate_Input_Index_To_Instance,
-            Multistate_Input_Valid_Instance, Multistate_Input_Name,
-            Multistate_Input_Read_Property,
-            Multistate_Input_Write_Property,
-            Multistate_Input_Property_Lists, NULL, NULL}, {
-    OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count,
-            Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance,
-            Trend_Log_Name, Trend_Log_Read_Property,
-            Trend_Log_Write_Property, Trend_Log_Property_Lists,
-            TrendLogGetRRInfo, NULL},
-#if defined(BACFILE)
-    {
-    OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
-            bacfile_valid_instance, bacfile_name, bacfile_read_property,
-            bacfile_write_property, BACfile_Property_Lists, NULL},
-#endif
-    {
-    MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
-};
+/* Defined in user application;
+   object functions for all included BACnet objects */
+extern object_functions_t Object_Table[];
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.

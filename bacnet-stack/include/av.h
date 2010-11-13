@@ -75,4 +75,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#define ANALOG_VALUE_OBJ_FUNCTIONS \
+    OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count, \
+    Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance, \
+    Analog_Value_Name, Analog_Value_Read_Property, \
+    Analog_Value_Write_Property, Analog_Value_Property_Lists, NULL, \
+    NULL
+
 #endif

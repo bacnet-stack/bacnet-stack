@@ -50,6 +50,40 @@
 #include "version.h"
 /* include the device object */
 #include "device.h"
+#include "ai.h"
+#include "ao.h"
+#include "av.h"
+#include "bi.h"
+#include "bo.h"
+#include "bv.h"
+#include "lc.h"
+#include "lsp.h"
+#include "mso.h"
+#include "ms-input.h"
+#include "trendlog.h"
+#if defined(BACFILE)
+#include "bacfile.h"
+#endif
+
+/* All included BACnet objects */
+object_functions_t Object_Table[] = {
+    {DEVICE_OBJ_FUNCTIONS},
+    {ANALOG_INPUT_OBJ_FUNCTIONS},
+    {ANALOG_OUTPUT_OBJ_FUNCTIONS},
+    {ANALOG_VALUE_OBJ_FUNCTIONS},
+    {BINARY_INPUT_OBJ_FUNCTIONS},
+    {BINARY_OUTPUT_OBJ_FUNCTIONS},
+    {BINARY_VALUE_OBJ_FUNCTIONS},
+    {LIFE_SAFETY_POINT_OBJ_FUNCTIONS},
+    {LOAD_CONTROL_OBJ_FUNCTIONS},
+    {MULTI_STATE_OUTPUT_OBJ_FUNCTIONS},
+    {MULTI_STATE_INPUT_OBJ_FUNCTIONS},
+    {TRENDLOG_OBJ_FUNCTIONS},
+#if defined(BACFILE)
+    {FILE_OBJ_FUNCTIONS},
+#endif
+	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
 
 /** @file server/main.c  Example server application using the BACnet Stack. */
 
