@@ -56,6 +56,12 @@
 #define MAX_PROPERTY_VALUES 64
 #endif
 
+/* All included BACnet objects */
+object_functions_t Object_Table[] = {
+	{DEVICE_OBJ_FUNCTIONS},
+	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
+
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 

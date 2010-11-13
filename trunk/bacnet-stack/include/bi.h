@@ -113,4 +113,11 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#define BINARY_INPUT_OBJ_FUNCTIONS \
+    OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count, \
+    Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance, \
+    Binary_Input_Name, Binary_Input_Read_Property, NULL, \
+    Binary_Input_Property_Lists, NULL, NULL
+
 #endif
