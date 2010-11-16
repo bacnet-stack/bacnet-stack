@@ -1,25 +1,27 @@
-/*
- * $HeadURL: https://svn.eaton.com/svn/PCM-tk/trunk/PCM-tk/etn_source/tbd/gw_device.c $
- *---------------------------------------------------------------------
- * $Author: brennant $
- * $Date: Oct 13, 2010 $
- *---------------------------------------------------------------------
- * Copyright (c) 2010 Eaton Corporation, All Rights Reserved.
- *
- * This software is the confidential and proprietary information of
- * Eaton Corporation (Confidential Information).  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Eaton Corporation.
- *
- * EATON CORPORATION MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE
- * SUITABILITY OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING
- * FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. EATON
- * CORPORATION SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY
- * LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS
- * SOFTWARE OR ITS DERIVATIVES.
- *---------------------------------------------------------------------
- */
+/**************************************************************************
+*
+* Copyright (C) 2005,2010 Steve Karg <skarg@users.sourceforge.net>
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to deal in the Software without restriction, including
+* without limitation the rights to use, copy, modify, merge, publish,
+* distribute, sublicense, and/or sell copies of the Software, and to
+* permit persons to whom the Software is furnished to do so, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
+*********************************************************************/
 
 /** @file gw_device.c  Functions that extend the Device object to support routing. */
 
