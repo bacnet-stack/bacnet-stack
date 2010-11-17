@@ -156,6 +156,25 @@ DEVICE_OBJECT_DATA * Get_Routed_Device_Object(
 		return NULL;
 }
 
+/** Return the BACnet addreess for the indicated entry.
+ * @param idx [in] Index into Devices[] array being requested.
+ *                 0 is for the main, gateway Device entry.
+ *                 -1 is a special case meaning "whichever iCurrent_Device_Idx
+ *                 is currently set to"
+ * @return Pointer to the requested Device Object BACnet address, or NULL if the idx 
+ *         is for an invalid row entry (eg, after the last good Device).
+ */
+BACNET_ADDRESS * Get_Routed_Device_Address(
+		int idx )
+{
+	if ( idx == -1 )
+		return &Devices[iCurrent_Device_Idx].bacDevAddr;
+	else if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) )
+		return &Devices[idx].bacDevAddr;
+	else
+		return NULL;
+}
+
 /** See if the Gateway or Routed Device at the given idx matches
  * the given MAC address.
  * Has the desirable side-effect of setting iCurrent_Device_Idx to the
