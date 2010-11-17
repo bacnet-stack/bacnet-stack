@@ -308,6 +308,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\demo\handler\h_routed_npdu.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\demo\handler\h_rp.c"
 				>
 			</File>
