@@ -164,7 +164,7 @@ int npdu_encode_pdu(
         /* 1 =  SNET, SLEN, and SADR present */
         /* SLEN = 0 Invalid */
         /* SLEN > 0 specifies length of SADR field */
-        if (src && src->net)
+        if (src && src->net && src->len)
             npdu[1] |= BIT3;
         /* Bit 2: The value of this bit corresponds to the */
         /* data_expecting_reply parameter in the N-UNITDATA primitives. */
@@ -194,7 +194,7 @@ int npdu_encode_pdu(
                 }
             }
         }
-        if (src && src->net) {
+        if (src && src->net && src->len) { /* Only insert if valid */
             len += encode_unsigned16(&npdu[len], src->net);
             npdu[len++] = src->len;
             /* SLEN = 0 denotes broadcast MAC SADR and SADR field is absent */
