@@ -57,6 +57,20 @@
 /* include the device object */
 #include "device.h"
 //#include "vmac.h"
+#include "ai.h"
+#include "ao.h"
+#include "av.h"
+#include "bi.h"
+#include "bo.h"
+#include "bv.h"
+#include "lc.h"
+#include "lsp.h"
+#include "mso.h"
+#include "ms-input.h"
+#include "trendlog.h"
+#if defined(BACFILE)
+#include "bacfile.h"
+#endif
 
 /** @file gateway/main.c  Example virtual gateway application using the BACnet Stack. */
 
@@ -70,7 +84,21 @@
 /* All included BACnet objects */
 object_functions_t Object_Table[] = {
 	{DEVICE_OBJ_FUNCTIONS},
-	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    {ANALOG_INPUT_OBJ_FUNCTIONS},
+    {ANALOG_OUTPUT_OBJ_FUNCTIONS},
+    {ANALOG_VALUE_OBJ_FUNCTIONS},
+    {BINARY_INPUT_OBJ_FUNCTIONS},
+    {BINARY_OUTPUT_OBJ_FUNCTIONS},
+    {BINARY_VALUE_OBJ_FUNCTIONS},
+    {LIFE_SAFETY_POINT_OBJ_FUNCTIONS},
+    {LOAD_CONTROL_OBJ_FUNCTIONS},
+    {MULTI_STATE_OUTPUT_OBJ_FUNCTIONS},
+    {MULTI_STATE_INPUT_OBJ_FUNCTIONS},
+    {TRENDLOG_OBJ_FUNCTIONS},
+#if defined(BACFILE)
+    {FILE_OBJ_FUNCTIONS},
+#endif
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 /** Buffer used for receiving */
@@ -103,10 +131,17 @@ void Devices_Init(
     /* Now initialize the remote Device objects. */
     for ( i = 1; i < MAX_NUM_DEVICES; i++ )
     {
+#ifdef _MSC_VER
+    	_snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d", 
+    			  DEV_NAME_BASE, i+1);
+       	_snprintf( descText, MAX_DEV_DESC_LEN, "%s %d", 
+       			  DEV_DESCR_REMOTE, i);
+#else
     	snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d", 
     			  DEV_NAME_BASE, i+1);
        	snprintf( descText, MAX_DEV_DESC_LEN, "%s %d", 
        			  DEV_DESCR_REMOTE, i);
+#endif
     		
     	Add_Routed_Device( (first_object_instance+i), nameText, descText );
     }
@@ -201,6 +236,9 @@ void Initialize_Device_Addresses( )
         pDev->bacDevAddr.mac[3] = i;
         memcpy( &pDev->bacDevAddr.mac[4], &myPort, 2 );
         pDev->bacDevAddr.mac_len = 6;
+        pDev->bacDevAddr.net = VIRTUAL_DNET;
+        memcpy( &pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6 );
+        pDev->bacDevAddr.len = 6;
         printf( " - Routed device %d at %s \n", i, inet_ntoa( *netPtr ) );
 #elif defined(BACDL_MSTP)
         /* Todo: set MS/TP net and port #s */
