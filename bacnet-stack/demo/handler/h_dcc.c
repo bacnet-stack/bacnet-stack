@@ -38,6 +38,7 @@
 #include "reject.h"
 #include "dcc.h"
 #include "handlers.h"
+#include "device.h"
 
 /** @file h_dcc.c  Handles Device Communication Control request. */
 
@@ -102,7 +103,11 @@ void handler_device_communication_control(
     BACNET_ADDRESS my_address;
 
     /* encode the NPDU portion of the reply packet */
+#if BAC_ROUTING
+    my_address = *Get_Routed_Device_Address(-1);
+#else
     datalink_get_my_address(&my_address);
+#endif
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,

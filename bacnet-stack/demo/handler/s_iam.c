@@ -56,14 +56,23 @@ int iam_encode_pdu(
 {
     int len = 0;
     int pdu_len = 0;
+#if BAC_ROUTING
+    BACNET_ADDRESS my_address;
 
+    my_address = *Get_Routed_Device_Address(-1);
+#endif
     datalink_get_broadcast_address(dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+#if BAC_ROUTING
+    pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
+    /* encode the APDU portion of the packet */
+    len = iam_encode_apdu(&buffer[pdu_len], Routed_Device_Object_Instance_Number(),
+#else
     pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
     /* encode the APDU portion of the packet */
-    len =
-        iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
+    len = iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
+#endif
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len += len;
 
@@ -128,18 +137,24 @@ int iam_unicast_encode_pdu(
     int apdu_len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS my_address;
-
     /* The destination will be the same as the src, so copy it over. */
     memcpy(dest, src, sizeof(BACNET_ADDRESS));
     dest->net = 0;
 
+#if BAC_ROUTING
+    my_address = *Get_Routed_Device_Address(-1);
+#else
     datalink_get_my_address(&my_address);
+#endif
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
     /* encode the APDU portion of the packet */
-    apdu_len =
-        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
+#if BAC_ROUTING
+    apdu_len = iam_encode_apdu(&buffer[npdu_len], Routed_Device_Object_Instance_Number(),
+#else
+    apdu_len = iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
+#endif
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len = npdu_len + apdu_len;
 
