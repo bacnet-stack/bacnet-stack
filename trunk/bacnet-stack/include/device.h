@@ -317,6 +317,8 @@ extern "C" {
 		const char * Description );
     DEVICE_OBJECT_DATA * Get_Routed_Device_Object( 
     	int idx );
+    BACNET_ADDRESS * Get_Routed_Device_Address(
+		int idx );
     bool Lookup_Routed_Device_Address( 
     		int idx, 
     		uint8_t address_len,        
