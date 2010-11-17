@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+# Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BACnet Stack Library", "BACnet Stack Library\BACnet Stack Library.vcproj", "{E9A65567-B028-4278-881D-674604B2E126}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BACnet Object Definitions", "BACnet Object Definitions\BACnet Object Definitions.vcproj", "{6A8668E1-F08E-496B-B624-D6C05001806D}"
@@ -12,6 +12,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "Server\Server.vcp
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Who-Is", "Who-Is\Who-Is.vcproj", "{A6287B6E-0BCE-43FA-ADFB-9263DB069BA4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E9A65567-B028-4278-881D-674604B2E126} = {E9A65567-B028-4278-881D-674604B2E126}
+		{6A8668E1-F08E-496B-B624-D6C05001806D} = {6A8668E1-F08E-496B-B624-D6C05001806D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gateway", "gateway\gateway.vcproj", "{2386A9AF-7EE8-4226-B7D4-1EB54FFA27F0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E9A65567-B028-4278-881D-674604B2E126} = {E9A65567-B028-4278-881D-674604B2E126}
 		{6A8668E1-F08E-496B-B624-D6C05001806D} = {6A8668E1-F08E-496B-B624-D6C05001806D}
@@ -39,6 +45,10 @@ Global
 		{A6287B6E-0BCE-43FA-ADFB-9263DB069BA4}.Debug|Win32.Build.0 = Debug|Win32
 		{A6287B6E-0BCE-43FA-ADFB-9263DB069BA4}.Release|Win32.ActiveCfg = Release|Win32
 		{A6287B6E-0BCE-43FA-ADFB-9263DB069BA4}.Release|Win32.Build.0 = Release|Win32
+		{2386A9AF-7EE8-4226-B7D4-1EB54FFA27F0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2386A9AF-7EE8-4226-B7D4-1EB54FFA27F0}.Debug|Win32.Build.0 = Debug|Win32
+		{2386A9AF-7EE8-4226-B7D4-1EB54FFA27F0}.Release|Win32.ActiveCfg = Release|Win32
+		{2386A9AF-7EE8-4226-B7D4-1EB54FFA27F0}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
