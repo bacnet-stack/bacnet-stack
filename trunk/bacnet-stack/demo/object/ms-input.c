@@ -43,10 +43,11 @@
 #define MAX_MULTISTATE_INPUTS 1
 #endif
 
-/* how many states? 0-253 is 254 states */
+/* how many states? 1 to 254 states - 0 is not allowed. */
 #ifndef MULTISTATE_NUMBER_OF_STATES
 #define MULTISTATE_NUMBER_OF_STATES (254)
 #endif
+
 /* Here is our Present Value */
 static uint8_t Present_Value[MAX_MULTISTATE_INPUTS];
 /* Writable out-of-service allows others to manipulate our Present Value */
@@ -100,7 +101,7 @@ void Multistate_Input_Init(
 
     /* initialize all the analog output priority arrays to NULL */
     for (i = 0; i < MAX_MULTISTATE_INPUTS; i++) {
-        Present_Value[i] = 0;
+        Present_Value[i] = 1;
     }
 
     return;
@@ -153,7 +154,7 @@ bool Multistate_Input_Valid_Instance(
 uint32_t Multistate_Input_Present_Value(
     uint32_t object_instance)
 {
-    uint32_t value = 0;
+    uint32_t value = 1;
     unsigned index = 0; /* offset from instance lookup */
 
     index = Multistate_Input_Instance_To_Index(object_instance);
@@ -173,7 +174,7 @@ bool Multistate_Input_Present_Value_Set(
 
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
-        if (value < MULTISTATE_NUMBER_OF_STATES) {
+        if ((value > 0) && (value <= MULTISTATE_NUMBER_OF_STATES)) {
             Present_Value[index] = (uint8_t) value;
             status = true;
         }
@@ -277,7 +278,9 @@ static char *Multistate_Input_State_Text(
 
     index = Multistate_Input_Instance_To_Index(object_instance);
     if ((index < MAX_MULTISTATE_INPUTS) &&
-        (state_index < MULTISTATE_NUMBER_OF_STATES)) {
+        (state_index > 0) &&
+        (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
+        state_index--;
         pName = State_Text[index][state_index];
     }
 
@@ -296,7 +299,9 @@ bool Multistate_Input_State_Text_Set(
 
     index = Multistate_Input_Instance_To_Index(object_instance);
     if ((index < MAX_MULTISTATE_INPUTS) &&
-        (state_index < MULTISTATE_NUMBER_OF_STATES)) {
+        (state_index > 0) &&
+        (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
+        state_index--;
         status = true;
         if (new_name) {
             for (i = 0; i < sizeof(State_Text[index][state_index]); i++) {
@@ -402,7 +407,7 @@ int Multistate_Input_Read_Property(
                 object_index =
                     Multistate_Input_Instance_To_Index
                     (rpdata->object_instance);
-                for (i = 0; i < MULTISTATE_NUMBER_OF_STATES; i++) {
+                for (i = 1; i <= MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
                             i));
@@ -427,7 +432,7 @@ int Multistate_Input_Read_Property(
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
-                            rpdata->array_index - 1));
+                            rpdata->array_index));
                     apdu_len =
                         encode_application_character_string(&apdu[0],
                         &char_string);

@@ -48,7 +48,7 @@
 
 /* NULL part of the array */
 #define MULTISTATE_NULL (255)
-/* how many states? 0-253 is 254 states */
+/* how many states? 1 to 254 states, 0 is not allowed */
 #define MULTISTATE_NUMBER_OF_STATES (254)
 /* Here is our Priority Array.*/
 static uint8_t
@@ -371,6 +371,7 @@ bool Multistate_Output_Write_Property(
                    object. */
                 if (priority && (priority <= BACNET_MAX_PRIORITY) &&
                     (priority != 6 /* reserved */ ) &&
+                    (value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                     level = value.type.Unsigned_Int;
                     object_index =
