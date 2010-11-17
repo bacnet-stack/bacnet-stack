@@ -326,7 +326,11 @@ static bool cov_send_request(
 #if PRINT_ENABLED
     fprintf(stderr, "COVnotification: requested\n");
 #endif
+#if BAC_ROUTING
+    my_address = *Get_Routed_Device_Address(-1);
+#else
     datalink_get_my_address(&my_address);
+#endif
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &cov_subscription->dest,
@@ -334,7 +338,11 @@ static bool cov_send_request(
     /* load the COV data structure for outgoing message */
     cov_data.subscriberProcessIdentifier =
         cov_subscription->subscriberProcessIdentifier;
+#if BAC_ROUTING
     cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
+#else
+    cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
+#endif
     cov_data.monitoredObjectIdentifier.type =
         cov_subscription->monitoredObjectIdentifier.type;
     cov_data.monitoredObjectIdentifier.instance =
@@ -520,7 +528,11 @@ void handler_cov_subscribe(
     /* initialize a common abort code */
     cov_data.error_code = ABORT_REASON_SEGMENTATION_NOT_SUPPORTED;
     /* encode the NPDU portion of the packet */
+#if BAC_ROUTING
+    my_address = *Get_Routed_Device_Address(-1);
+#else
     datalink_get_my_address(&my_address);
+#endif
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,

@@ -65,8 +65,13 @@ void handler_who_has(
     if (len > 0) {
         if ((data.low_limit == -1) || (data.high_limit == -1))
             directed_to_me = true;
+#if BAC_ROUTING
+        else if ((Routed_Device_Object_Instance_Number() >= (uint32_t) data.low_limit)
+            && (Routed_Device_Object_Instance_Number() <= (uint32_t) data.high_limit))
+#else
         else if ((Device_Object_Instance_Number() >= (uint32_t) data.low_limit)
             && (Device_Object_Instance_Number() <= (uint32_t) data.high_limit))
+#endif
             directed_to_me = true;
         if (directed_to_me) {
             /* do we have such an object?  If so, send an I-Have.
@@ -78,7 +83,11 @@ void handler_who_has(
                     Device_Valid_Object_Name(object_name, &object_type,
                     &object_instance);
                 if (found)
+#if BAC_ROUTING
+                    Send_I_Have(Routed_Device_Object_Instance_Number(),
+#else
                     Send_I_Have(Device_Object_Instance_Number(),
+#endif
                         (BACNET_OBJECT_TYPE) object_type, object_instance,
                         object_name);
             } else {
@@ -87,7 +96,11 @@ void handler_who_has(
                     Device_Valid_Object_Id(data.object.identifier.type,
                     data.object.identifier.instance);
                 if (object_name)
+#if BAC_ROUTING
+                    Send_I_Have(Routed_Device_Object_Instance_Number(),
+#else
                     Send_I_Have(Device_Object_Instance_Number(),
+#endif
                         (BACNET_OBJECT_TYPE) data.object.identifier.type,
                         data.object.identifier.instance, object_name);
             }

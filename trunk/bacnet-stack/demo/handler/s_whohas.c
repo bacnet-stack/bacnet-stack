@@ -66,7 +66,11 @@ void Send_WhoHas_Name(
     int bytes_sent = 0;
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
+#if BAC_ROUTING
+    BACNET_ADDRESS my_address;
 
+    my_address = *Get_Routed_Device_Address(-1);
+#endif
     /* if we are forbidden to send, don't send! */
     if (!dcc_communication_enabled())
         return;
@@ -74,8 +78,13 @@ void Send_WhoHas_Name(
     datalink_get_broadcast_address(&dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+#if BAC_ROUTING
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+#else
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
+#endif
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
     data.high_limit = high_limit;
@@ -117,7 +126,11 @@ void Send_WhoHas_Object(
     int bytes_sent = 0;
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
+#if BAC_ROUTING
+    BACNET_ADDRESS my_address;
 
+    my_address = *Get_Routed_Device_Address(-1);
+#endif
     /* if we are forbidden to send, don't send! */
     if (!dcc_communication_enabled())
         return;
@@ -125,8 +138,13 @@ void Send_WhoHas_Object(
     datalink_get_broadcast_address(&dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+#if BAC_ROUTING
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+#else
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
+#endif
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
     data.high_limit = high_limit;

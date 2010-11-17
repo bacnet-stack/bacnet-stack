@@ -80,7 +80,11 @@ uint8_t Send_Atomic_Write_File_Stream(
         status = octetstring_copy(&data.fileData, fileData);
         if (status) {
             /* encode the NPDU portion of the packet */
+#if BAC_ROUTING
+            my_address = *Get_Routed_Device_Address(-1);
+#else
             datalink_get_my_address(&my_address);
+#endif
             npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
             pdu_len =
                 npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
