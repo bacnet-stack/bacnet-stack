@@ -339,7 +339,7 @@ static bool cov_send_request(
     cov_data.subscriberProcessIdentifier =
         cov_subscription->subscriberProcessIdentifier;
 #if BAC_ROUTING
-    cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
+    cov_data.initiatingDeviceIdentifier = Routed_Device_Object_Instance_Number();
 #else
     cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
 #endif

@@ -328,6 +328,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\demo\handler\h_rr.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\demo\handler\h_ts.c"
 				>
 			</File>
@@ -401,6 +405,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\src\rd.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\src\readrange.c"
 				>
 			</File>
 			<File
