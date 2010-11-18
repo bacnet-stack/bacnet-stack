@@ -117,6 +117,8 @@ static void Init_Service_Handlers(
         handler_read_property_multiple);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
         handler_write_property);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
+        handler_read_range);
 #if defined(BACFILE)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
         handler_atomic_read_file);
