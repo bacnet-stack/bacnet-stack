@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include "event.h"
+#include "device.h"
 #include "datalink.h"
 #include "tsm.h"
 #include "dcc.h"
