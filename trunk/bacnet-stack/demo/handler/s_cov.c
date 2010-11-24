@@ -52,20 +52,15 @@ int ucov_notify_encode_pdu(
 {
     int len = 0;
     int pdu_len = 0;
-#if BAC_ROUTING
     BACNET_ADDRESS my_address;
+    datalink_get_my_address(&my_address);
 
-    my_address = *Get_Routed_Device_Address(-1);
-#endif
     /* unconfirmed is a broadcast */
     datalink_get_broadcast_address(dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-#if BAC_ROUTING
     pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
-#else
-    pdu_len = npdu_encode_pdu(&buffer[0], dest, NULL, npdu_data);
-#endif
+
     /* encode the APDU portion of the packet */
     len = ucov_notify_encode_apdu(&buffer[pdu_len], cov_data);
     pdu_len += len;
