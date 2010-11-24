@@ -204,11 +204,7 @@ void handler_read_property_multiple(
     /* jps_debug - see if we are utilizing all the buffer */
     /* memset(&Handler_Transmit_Buffer[0], 0xff, sizeof(Handler_Transmit_Buffer)); */
     /* encode the NPDU portion of the packet */
-#if BAC_ROUTING
-    my_address = *Get_Routed_Device_Address(-1);
-#else
     datalink_get_my_address(&my_address);
-#endif
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,

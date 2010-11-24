@@ -197,30 +197,16 @@ static void routed_apdu_handler(
     uint8_t * apdu,      
     uint16_t apdu_len)
 {       
-    int dnet = DNET_list[0];	/* Get the DNET of our virtual network */
-    int i;
+    int cursor = 0;				/* Starting hint */
+    bool bGotOne = false;
     
-    /* First, see if it's for the main Gateway Device, either because 
-     * there's no routing info or else its a BACnet broadcast.
-     */
-    if ( (dest->net == 0 ) || (dest->net == BACNET_BROADCAST_NETWORK)) {
-        /* Handle like a normal, non-routed access of the Gateway Device.
-         * But first, make sure our internal access is pointing at
-         * that Device in our table by telling it "no routing info" : */
-        Lookup_Routed_Device_Address( 0, 0, NULL );
-        apdu_handler(src, apdu, apdu_len);
+   	while ( Routed_Device_GetNext( dest, DNET_list, &cursor ) ) {
+			apdu_handler(src, apdu, apdu_len);
+			bGotOne = true;
+			if ( cursor < 0 )	/* If no more matches, */
+				break;			/* We don't need to keep looking */
     }
-    /* Now check for our virtual DNET or BACnet broadcast, and check
-     * against each of our virtually routed Devices.
-     * If we get a match, have it handle the APDU.
-     * For broadcasts, all Devices get a chance at it.
-     */
-    if ((dest->net == dnet) || (dest->net == BACNET_BROADCAST_NETWORK)) {
-    	for ( i = 1; i < MAX_NUM_DEVICES; i++ ) {
-            if ( Lookup_Routed_Device_Address( i, dest->len, dest->adr ) )
-            	apdu_handler(src, apdu, apdu_len);
-    	}
-    } else if ( dest->net != 0 )  {
+    if ( !bGotOne )  {
         /* We don't know how to reach this one */
         Send_Reject_Message_To_Network( src, NETWORK_REJECT_NO_ROUTE, dest->net );
     }
@@ -237,6 +223,7 @@ static void routed_apdu_handler(
  *      destination.
  *  - Errors in decoding.
  * @note The npdu_data->data_expecting_reply status is discarded.
+ * @see npdu_handler
  * @ingroup NMRC
  *  
  * @param src  [out] Returned with routing source information if the NPDU 

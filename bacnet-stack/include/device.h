@@ -319,10 +319,18 @@ extern "C" {
     	int idx );
     BACNET_ADDRESS * Get_Routed_Device_Address(
 		int idx );
-    bool Lookup_Routed_Device_Address( 
+    
+    void routed_get_my_address(
+        BACNET_ADDRESS * my_address);
+
+    bool Routed_Device_Address_Lookup( 
     		int idx, 
     		uint8_t address_len,        
     		uint8_t * mac_adress );
+    bool Routed_Device_GetNext( 
+    	    BACNET_ADDRESS * dest,
+    	    int * DNET_list,
+    		int * cursor );
     
     uint32_t Routed_Device_Index_To_Instance(
         unsigned index);

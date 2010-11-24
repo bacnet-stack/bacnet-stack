@@ -118,11 +118,7 @@ void handler_atomic_read_file(
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
 #endif
     /* encode the NPDU portion of the packet */
-#if BAC_ROUTING
-    my_address = *Get_Routed_Device_Address(-1);
-#else
     datalink_get_my_address(&my_address);
-#endif
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -174,7 +170,7 @@ void handler_atomic_read_file(
                     service_data->invoke_id,
                     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
-                fprintf(stderr, "Too Big To Send (%d >= %d). Sending Abort!\n",
+                fprintf(stderr, "Too Big To Send (%d >= %zu). Sending Abort!\n",
                     data.type.stream.requestedOctetCount,
                     octetstring_capacity(&data.fileData));
 #endif
