@@ -65,21 +65,14 @@ void Send_WhoIs_To_Network(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-#if BAC_ROUTING
     BACNET_ADDRESS my_address;
 
-    my_address = *Get_Routed_Device_Address(-1);
-#endif
+    datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
 
-#if BAC_ROUTING
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address, &my_address, &npdu_data);
-#else
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address, NULL, &npdu_data);
-#endif
     /* encode the APDU portion of the packet */
     len =
         whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len], low_limit,

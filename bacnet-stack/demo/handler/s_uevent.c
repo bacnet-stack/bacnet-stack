@@ -49,18 +49,12 @@ int Send_UEvent_Notify(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-#if BAC_ROUTING
     BACNET_ADDRESS my_address;
 
-    my_address = *Get_Routed_Device_Address(-1);
-#endif
+    datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-#if BAC_ROUTING
     pdu_len = npdu_encode_pdu(buffer, dest, &my_address, &npdu_data);
-#else
-    pdu_len = npdu_encode_pdu(buffer, dest, NULL, &npdu_data);
-#endif
     /* encode the APDU portion of the packet */
     len = uevent_notify_encode_apdu(&buffer[pdu_len], data);
     pdu_len += len;

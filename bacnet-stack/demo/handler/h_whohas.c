@@ -83,11 +83,7 @@ void handler_who_has(
                     Device_Valid_Object_Name(object_name, &object_type,
                     &object_instance);
                 if (found)
-#if BAC_ROUTING
-                    Send_I_Have(Routed_Device_Object_Instance_Number(),
-#else
                     Send_I_Have(Device_Object_Instance_Number(),
-#endif
                         (BACNET_OBJECT_TYPE) object_type, object_instance,
                         object_name);
             } else {
@@ -96,11 +92,7 @@ void handler_who_has(
                     Device_Valid_Object_Id(data.object.identifier.type,
                     data.object.identifier.instance);
                 if (object_name)
-#if BAC_ROUTING
-                    Send_I_Have(Routed_Device_Object_Instance_Number(),
-#else
                     Send_I_Have(Device_Object_Instance_Number(),
-#endif
                         (BACNET_OBJECT_TYPE) data.object.identifier.type,
                         data.object.identifier.instance, object_name);
             }

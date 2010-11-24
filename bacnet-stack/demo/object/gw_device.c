@@ -175,6 +175,8 @@ BACNET_ADDRESS * Get_Routed_Device_Address(
 		return NULL;
 }
 
+
+
 /** Get the currently active BACnet address.
  * This is an implementation of the datalink_get_my_address() template for 
  * devices with routing.
@@ -459,11 +461,11 @@ bool Routed_Device_Write_Property_Local(
 
 /* methods to manipulate the data */
 
-/** Return the Object Instance number for our (single) Device Object.
- * This is a key function, widely invoked by the handler code, since
- * it provides "our" (ie, local) address.
- * @ingroup ObjIntf
- * @return The Instance number used in the BACNET_OBJECT_ID for the Device.
+/** Return the Object Instance number for the currently active Device Object.
+ * This is an overload of the important, widely used 
+ * Device_Object_Instance_Number() function.
+ * 
+ * @return The Instance number of the currently active Device.
  */
 uint32_t Routed_Device_Object_Instance_Number(
     void)

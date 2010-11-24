@@ -54,25 +54,19 @@ void Send_TimeSync(
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-#if BAC_ROUTING
     BACNET_ADDRESS my_address;
 
-    my_address = *Get_Routed_Device_Address(-1);
-#endif
     if (!dcc_communication_enabled())
         return;
 
     /* we could use unicast or broadcast */
     datalink_get_broadcast_address(&dest);
+    datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-#if BAC_ROUTING
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
-#else
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
-#endif
+
     /* encode the APDU portion of the packet */
     len =
         timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
@@ -96,25 +90,19 @@ void Send_TimeSyncUTC(
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
-#if BAC_ROUTING
     BACNET_ADDRESS my_address;
 
-    my_address = *Get_Routed_Device_Address(-1);
-#endif
     if (!dcc_communication_enabled())
         return;
 
     /* we could use unicast or broadcast */
     datalink_get_broadcast_address(&dest);
+    datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-#if BAC_ROUTING
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
-#else
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, NULL, &npdu_data);
-#endif
+
     /* encode the APDU portion of the packet */
     pdu_len =
         timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0], bdate, btime);
