@@ -144,7 +144,7 @@ static void AtomicReadFileAckHandler(
                 } else if (octets_written == 0) {
                     fprintf(stderr, "Received 0 byte octet string!.\n");
                 } else {
-                    printf("\r%u bytes",
+                    printf("\r%zu bytes",
                         (data.type.stream.fileStartPosition + octets_written));
                 }
                 fflush(pFile);

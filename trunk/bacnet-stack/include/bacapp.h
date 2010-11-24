@@ -197,10 +197,8 @@ extern "C" {
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
 
-#if PRINT_ENABLED
-#define BACAPP_PRINT_ENABLED
-#else
-#ifdef TEST
+#ifndef BACAPP_PRINT_ENABLED    
+#if PRINT_ENABLED || defined TEST
 #define BACAPP_PRINT_ENABLED
 #endif
 #endif

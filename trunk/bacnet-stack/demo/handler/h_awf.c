@@ -96,11 +96,7 @@ void handler_atomic_write_file(
     fprintf(stderr, "Received AtomicWriteFile Request!\n");
 #endif
     /* encode the NPDU portion of the packet */
-#if BAC_ROUTING
-    my_address = *Get_Routed_Device_Address(-1);
-#else
     datalink_get_my_address(&my_address);
-#endif
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
@@ -132,7 +128,7 @@ void handler_atomic_write_file(
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (bacfile_write_stream_data(&data)) {
 #if PRINT_ENABLED
-                fprintf(stderr, "AWF: Stream offset %d, %d bytes\n",
+                fprintf(stderr, "AWF: Stream offset %d, %zu bytes\n",
                     data.type.stream.fileStartPosition,
                     octetstring_length(&data.fileData));
 #endif

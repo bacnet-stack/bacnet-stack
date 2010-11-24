@@ -156,7 +156,7 @@ DEVICE_OBJECT_DATA * Get_Routed_Device_Object(
 		return NULL;
 }
 
-/** Return the BACnet addreess for the indicated entry.
+/** Return the BACnet address for the indicated entry.
  * @param idx [in] Index into Devices[] array being requested.
  *                 0 is for the main, gateway Device entry.
  *                 -1 is a special case meaning "whichever iCurrent_Device_Idx
@@ -175,6 +175,21 @@ BACNET_ADDRESS * Get_Routed_Device_Address(
 		return NULL;
 }
 
+/** Get the currently active BACnet address.
+ * This is an implementation of the datalink_get_my_address() template for 
+ * devices with routing.
+ * 
+ * @param my_address [out] Points to the currently active Device Object's
+ * 							BACnet address.
+ */
+void routed_get_my_address(
+    BACNET_ADDRESS * my_address)
+
+{
+	my_address = &Devices[iCurrent_Device_Idx].bacDevAddr;
+}
+
+
 /** See if the Gateway or Routed Device at the given idx matches
  * the given MAC address.
  * Has the desirable side-effect of setting iCurrent_Device_Idx to the
@@ -192,7 +207,7 @@ BACNET_ADDRESS * Get_Routed_Device_Address(
  *         meaning MAC broadcast, so it's an automatic match). 
  *         Else False if no match or invalid idx is given.
  */
-bool Lookup_Routed_Device_Address( 
+bool Routed_Device_Address_Lookup( 
 		int idx, 
 		uint8_t address_len,       
 		uint8_t * mac_adress )
@@ -206,7 +221,7 @@ bool Lookup_Routed_Device_Address(
 			/* Automatic match */
 			iCurrent_Device_Idx = idx;
 			result = true;
-		} else {
+		} else if ( mac_adress != NULL ) {
 		    for (i = 0; i < address_len; i++) {
 		        if (pDev->bacDevAddr.mac[i] != mac_adress[i])
 		            break;
@@ -219,6 +234,88 @@ bool Lookup_Routed_Device_Address(
 	}
 	return result;
 }
+
+
+/** Find the next Gateway or Routed Device at the given MAC address, 
+ * starting the search at the "cursor".
+ * Has the desirable side-effect of setting internal iCurrent_Device_Idx 
+ * if a match is found, for use in the subsequent routing handling 
+ * functions.
+ * 
+ * @param dest [in] The BACNET_ADDRESS of the message's destination.
+ * 		   If the Length of the mac_adress[] field is 0, then this is a MAC 
+ * 		   broadcast.  Otherwise, size is determined
+ *         by the DLL type (eg, 6 for BIP and 2 for MSTP).
+ * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
+ * 					 Normally just one valid entry; terminated with a -1 value.
+ * @param cursor [in,out] The concept of the cursor is that it is a starting
+ * 		   "hint" for the search; on return, it is updated to provide the
+ * 		   cursor value to use with a subsequent GetNext call, or it 
+ *         equals -1 if there are no further matches.
+ *         Set it to 0 on entry to access the main, gateway Device entry, or
+ *         to start looping through the routed devices.
+ *         Otherwise, its returned value is implementation-dependent and the 
+ *         calling function should not alter or interpret it.
+ * 
+ * @return True if the MAC addresses match (or the address_len is 0, 
+ *         meaning MAC broadcast, so it's an automatic match). 
+ *         Else False if no match or invalid idx is given; the cursor will
+ *         be returned as -1 in these cases.
+ */
+bool Routed_Device_GetNext( 
+	    BACNET_ADDRESS * dest,
+	    int * DNET_list,
+		int * cursor )
+{
+    int dnet = DNET_list[0];	/* Get the DNET of our virtual network */
+    int idx = *cursor;
+    bool bSuccess = false;
+    
+    /* First, see if it's a BACnet broadcast. 
+     * For broadcasts, all Devices get a chance at it.
+     */
+    if (dest->net == BACNET_BROADCAST_NETWORK) {
+    	/* Just take the entry indexed by the cursor */
+    	bSuccess = Routed_Device_Address_Lookup( idx++, 
+    					dest->len, dest->adr );
+    }
+    /* Or see if it's for the main Gateway Device, because 
+     * there's no routing info.
+     */
+    else if (dest->net == 0)  {
+        /* Handle like a normal, non-routed access of the Gateway Device.
+         * But first, make sure our internal access is pointing at
+         * that Device in our table by telling it "no routing info" : */
+    	bSuccess = Routed_Device_Address_Lookup( 0, 
+    					dest->len, dest->adr );
+    	/* Next step: no more matches: */
+    	idx = -1;
+    }
+    /* Or if is our virtual DNET, check
+     * against each of our virtually routed Devices.
+     * If we get a match, have it handle the APDU.
+     * For broadcasts, all Devices get a chance at it.
+     */
+    else if (dest->net == dnet)  {
+    	if ( idx == 0 )		/* Step over this case (starting point) */
+    		idx = 1;
+    	while (idx < MAX_NUM_DEVICES) {
+        	bSuccess = Routed_Device_Address_Lookup( idx++, 
+        					dest->len, dest->adr );
+        	if ( bSuccess )
+				break;			/* We don't need to keep looking */
+    	}
+    } 
+
+    if ( !bSuccess )
+    	*cursor = -1;
+    else if ( idx == MAX_NUM_DEVICES )		/* No more to GetNext */
+    	*cursor = -1;
+    else
+    	*cursor = idx;
+    return bSuccess;
+}
+
 
 /* methods to override the normal Device objection functions */
 

@@ -46,6 +46,8 @@
  *  and passing the remaining bytes to the apdu_handler.
  *  @note The routing (except src) and NCPI information, including 
  *  npdu_data->data_expecting_reply, are discarded.
+ * @see routing_npdu_handler
+ *  
  * @ingroup MISCHNDLR
  *  
  * @param src  [out] Returned with routing source information if the NPDU 

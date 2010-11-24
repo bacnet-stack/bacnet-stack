@@ -47,7 +47,7 @@
 
 /* Enable the Gateway (Routing) functionality here, if desired. */
 #if !defined(BAC_ROUTING)
-#define BAC_ROUTING 0
+#define BAC_ROUTING 1
 #endif
 #if !defined(MAX_NUM_DEVICES)
 #if BAC_ROUTING

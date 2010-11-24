@@ -141,11 +141,7 @@ int iam_unicast_encode_pdu(
     memcpy(dest, src, sizeof(BACNET_ADDRESS));
     dest->net = 0;
 
-#if BAC_ROUTING
-    my_address = *Get_Routed_Device_Address(-1);
-#else
     datalink_get_my_address(&my_address);
-#endif
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);

@@ -77,11 +77,7 @@ uint8_t Send_Write_Property_Request_Data(
         invoke_id = tsm_next_free_invokeID();
     if (invoke_id) {
         /* encode the NPDU portion of the packet */
-#if BAC_ROUTING
-        my_address = *Get_Routed_Device_Address(-1);
-#else
         datalink_get_my_address(&my_address);
-#endif
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
         pdu_len =
             npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
