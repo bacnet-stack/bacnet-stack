@@ -9,39 +9,6 @@
 TARGET = bacnet
 LIBRARY = lib$(TARGET).a
 
-# configuration
-BACNET_DEFINES=-DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
-#BACDL_DEFINE=-DBACDL_ETHERNET=1
-#BACDL_DEFINE=-DBACDL_ARCNET=1
-#BACDL_DEFINE=-DBACDL_MSTP=1
-BACDL_DEFINE=-DBACDL_BIP=1
-# Enable (or else don't define it) Routing functionality 
-#   (also enable BAC_ROUTING in config.h and "routes" in main Makefile)
-BACROUTE_ENABLE=y
-
-DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
-# directories
-BACNET_PORT = linux
-BACNET_PORT_DIR = ../ports/${BACNET_PORT}
-
-BACNET_OBJECT = ../demo/object
-BACNET_HANDLER = ../demo/handler
-BACNET_CORE = ../src
-BACNET_INCLUDE = ../include
-# compiler configuration
-#STANDARDS = -std=c99
-INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
-OPTIMIZATION = -Os
-DEBUGGING =
-WARNINGS = -Wall -Wmissing-prototypes
-ifeq (${BUILD},debug)
-OPTIMIZATION = -O0
-DEBUGGING = -g -DDEBUG_ENABLED=1
-ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-DEFINES += -DBIP_DEBUG
-endif
-endif
-CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
 CORE_SRC = \
 	$(BACNET_CORE)/apdu.c \
@@ -193,7 +160,8 @@ ifdef BACDL_ALL
 PORT_SRC = ${PORT_ALL_SRC}
 endif
 
-ifdef BACROUTE_ENABLE
+
+ifneq (,$(findstring BAC_ROUTING=1,$(BACNET_DEFINES)))
 ROUTING_SRC = \
 	$(BACNET_HANDLER)/h_routed_npdu.c \
 	$(BACNET_HANDLER)/s_router.c  \
