@@ -65,7 +65,7 @@ void handler_who_has(
     if (len > 0) {
         if ((data.low_limit == -1) || (data.high_limit == -1))
             directed_to_me = true;
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
         else if ((Routed_Device_Object_Instance_Number() >= (uint32_t) data.low_limit)
             && (Routed_Device_Object_Instance_Number() <= (uint32_t) data.high_limit))
 #else

@@ -81,7 +81,7 @@
 #endif
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
 #define datalink_get_my_address routed_get_my_address
 #else
 #define datalink_get_my_address bip_get_my_address

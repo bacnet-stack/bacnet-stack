@@ -78,7 +78,7 @@ bool Routed_Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 
-#if !BAC_ROUTING
+#if !defined(BAC_ROUTING)
 #warning This file should not be included in the build unless BAC_ROUTING is enabled.
 #endif
 

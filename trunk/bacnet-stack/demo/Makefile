@@ -36,7 +36,7 @@ LFLAGS = -Wl,$(LIBRARIES)
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov timesync epics readpropm mstpcap
 
-ifneq (,$(findstring BAC_ROUTING=1,$(BACNET_DEFINES)))
+ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
 	SUBDIRS += whoisrouter iamrouter initrouter gateway
 endif
 

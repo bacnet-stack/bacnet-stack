@@ -353,7 +353,7 @@ uint32_t Device_Index_To_Instance(
 uint32_t Device_Object_Instance_Number(
     void)
 {
-#if BAC_ROUTING	
+#ifdef BAC_ROUTING	
 	return Routed_Device_Object_Instance_Number();
 #else	
     return Object_Instance_Number;
@@ -1380,7 +1380,7 @@ bool DeviceGetRRInfo(
 }
 
 
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
 /****************************************************************************
  ************* BACnet Routing Functionality (Optional) **********************
  ****************************************************************************

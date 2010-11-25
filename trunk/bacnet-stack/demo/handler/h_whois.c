@@ -63,7 +63,7 @@ void handler_who_is(
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     else if (len != -1) {
         /* is my device id within the limits? */
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
         if (((Routed_Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
                 (Routed_Device_Object_Instance_Number() <= (uint32_t) high_limit))
             ||
@@ -107,7 +107,7 @@ void handler_who_is_unicast(
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     else if (len != -1) {
         /* is my device id within the limits? */
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
         if (((Routed_Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
                 (Routed_Device_Object_Instance_Number() <= (uint32_t) high_limit))
             ||

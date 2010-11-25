@@ -7,8 +7,8 @@
 
 # configuration
 BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
-# for now 1 and 0 are used to build or not to build the routing demo
-BACNET_DEFINES += -DBAC_ROUTING=1
+# un-comment the next line to build the routing demo application
+#BACNET_DEFINES += -DBAC_ROUTING
 
 #BACDL_DEFINE=-DBACDL_ETHERNET=1
 #BACDL_DEFINE=-DBACDL_ARCNET=1

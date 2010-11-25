@@ -161,7 +161,7 @@ PORT_SRC = ${PORT_ALL_SRC}
 endif
 
 
-ifneq (,$(findstring BAC_ROUTING=1,$(BACNET_DEFINES)))
+ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
 ROUTING_SRC = \
 	$(BACNET_HANDLER)/h_routed_npdu.c \
 	$(BACNET_HANDLER)/s_router.c  \
