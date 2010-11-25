@@ -1,124 +1,56 @@
-# Main Makefile for BACnet-stack project
+# Main Makefile for BACnet-stack project with GCC
 
-# Including "routing" in this list to add routing functionality
-all: library readprop writeprop readfile writefile reinit server dcc \
-	whohas whois ucov timesync epics readpropm mstpcap \
-	routing
-	@echo "utilities are in the bin directory"
+# tools - only if you need them.
+# Most platforms have this already defined
+# CC = gcc
+# AR = ar
 
-clean: lib/Makefile\
-	demo/readprop/Makefile \
-	demo/readpropm/Makefile \
-	demo/writeprop/Makefile \
-	demo/readfile/Makefile \
-	demo/writefile/Makefile \
-	demo/reinit/Makefile \
-	demo/server/Makefile \
-	demo/dcc/Makefile \
-	demo/whohas/Makefile \
-	demo/whois/Makefile \
-	demo/ucov/Makefile \
-	demo/timesync/Makefile \
-	demo/epics/Makefile \
-	demo/whoisrouter/Makefile \
-	demo/iamrouter/Makefile \
-	demo/initrouter/Makefile \
-	demo/mstpcap/Makefile \
-	demo/gateway/Makefile
-	make -C lib clean
-	make -C demo/readprop clean
-	make -C demo/readpropm clean
-	make -C demo/writeprop clean
-	make -C demo/readfile clean
-	make -C demo/writefile clean
-	make -C demo/reinit clean
-	make -C demo/server clean
-	make -C demo/dcc clean
-	make -C demo/whohas clean
-	make -C demo/whois clean
-	make -C demo/ucov clean
-	make -C demo/timesync clean
-	make -C demo/epics clean
-	make -C demo/whoisrouter clean
-	make -C demo/iamrouter clean
-	make -C demo/initrouter clean
-	make -C demo/mstpcap clean
-	make -C demo/gateway clean
+# configuration
+BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
+# for now 1 and 0 are used to build or not to build the routing demo
+BACNET_DEFINES += -DBAC_ROUTING=1
 
-library: lib/Makefile
-	make -C lib all
+#BACDL_DEFINE=-DBACDL_ETHERNET=1
+#BACDL_DEFINE=-DBACDL_ARCNET=1
+#BACDL_DEFINE=-DBACDL_MSTP=1
+BACDL_DEFINE=-DBACDL_BIP=1
 
-readprop: demo/readprop/Makefile
-	( cd demo/readprop ; make ; cp bacrp ../../bin )
+DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE) -DWEAK_FUNC=
 
-readpropm: demo/readpropm/Makefile
-	( cd demo/readpropm ; make ; cp bacrpm ../../bin )
+# directories
+BACNET_PORT = linux
+BACNET_PORT_DIR = ../ports/${BACNET_PORT}
 
-writeprop: demo/writeprop/Makefile
-	( cd demo/writeprop ; make ; cp bacwp ../../bin )
+BACNET_OBJECT = ../demo/object
+BACNET_HANDLER = ../demo/handler
+BACNET_CORE = ../src
+BACNET_INCLUDE = ../include
+# compiler configuration
+#STANDARDS = -std=c99
+INCLUDES = -I$(BACNET_INCLUDE) -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
+OPTIMIZATION = -Os
+DEBUGGING =
+WARNINGS = -Wall -Wmissing-prototypes
+ifeq (${BUILD},debug)
+OPTIMIZATION = -O0
+DEBUGGING = -g -DDEBUG_ENABLED=1
+ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
+DEFINES += -DBIP_DEBUG
+endif
+endif
+CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
-readfile: demo/readfile/Makefile
-	( cd demo/readfile ; make ; cp bacarf ../../bin )
+.EXPORT_ALL_VARIABLES:
 
-writefile: demo/writefile/Makefile
-	( cd demo/writefile ; make ; cp bacawf ../../bin )
+all: library demos
+.PHONY : all library demos clean
 
-reinit: demo/reinit/Makefile
-	( cd demo/reinit ; make ; cp bacrd ../../bin )
+library:
+	$(MAKE) -C lib all
 
-server: demo/server/Makefile
-	( cd demo/server ; make ; cp bacserv ../../bin )
+demos:
+	$(MAKE) -C demo all
 
-dcc: demo/dcc/Makefile
-	( cd demo/dcc ; make ; cp bacdcc ../../bin )
-
-whohas: demo/whohas/Makefile
-	( cd demo/whohas ; make ; cp bacwh ../../bin )
-
-timesync: demo/timesync/Makefile
-	( cd demo/timesync ; make ; cp bacts ../../bin )
-
-epics: demo/epics/Makefile
-	( cd demo/epics ; make ; cp bacepics ../../bin )
-
-ucov: demo/ucov/Makefile
-	( cd demo/ucov ; make ; cp bacucov ../../bin )
-
-whois: demo/whois/Makefile
-	( cd demo/whois ; make ; cp bacwi ../../bin )
-
-mstpcap: demo/mstpcap/Makefile
-	( cd demo/mstpcap ; make clean all; cp mstpcap ../../bin )
-
-# Add "ports" to the build, if desired
-ports:	atmega168 bdk-atxx4-mstp at91sam7s
-	@echo "Built the ports"
-
-atmega168: ports/atmega168/Makefile
-	make -C ports/atmega168 clean all
-
-at91sam7s: ports/at91sam7s/makefile
-	make -C ports/at91sam7s clean all
-
-bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
-	make -C ports/bdk-atxx4-mstp clean all
-
-# Build these demo projects if you want to test routing capability
-# Also enable BACROUTE_ENABLE in lib/Makefile and BAC_ROUTING in config.h 
-routing: whoisrouter iamrouter initrouter gateway 
-	@echo "Built routing demos"
-
-whoisrouter: demo/whoisrouter/Makefile
-	( cd demo/whoisrouter ; make ; cp bacwir ../../bin )
-
-iamrouter: demo/iamrouter/Makefile
-	( cd demo/iamrouter ; make ; cp baciamr ../../bin )
-
-initrouter: demo/initrouter/Makefile
-	( cd demo/initrouter ; make ; cp bacinitr ../../bin )
-
-gateway: demo/gateway/Makefile
-	( cd demo/gateway ; make ; cp bacgateway ../../bin )
-
-
-
+clean:
+	$(MAKE) -C lib clean
+	$(MAKE) -C demo clean

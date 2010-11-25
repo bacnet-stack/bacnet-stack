@@ -46,9 +46,6 @@
 #endif
 
 /* Enable the Gateway (Routing) functionality here, if desired. */
-#if !defined(BAC_ROUTING)
-#define BAC_ROUTING 1
-#endif
 #if !defined(MAX_NUM_DEVICES)
 #if BAC_ROUTING
 #define MAX_NUM_DEVICES 3	/* Eg, Gateway + two remote devices */
