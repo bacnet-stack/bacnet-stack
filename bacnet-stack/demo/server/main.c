@@ -214,6 +214,7 @@ int main(
             elapsed_milliseconds = elapsed_seconds * 1000;
             handler_cov_task(elapsed_seconds);
             tsm_timer_milliseconds(elapsed_milliseconds);
+            trend_log_timer(elapsed_seconds);
         }
         /* output */
 

@@ -241,7 +241,7 @@ void Trend_Log_Init(
                 0);
             LogInfo[iLog].tStartTime =
                 TL_BAC_Time_To_Local(&LogInfo[iLog].StartTime);
-            datetime_set_values(&LogInfo[iLog].StopTime, 2009, 12, 22, 23, 59,
+            datetime_set_values(&LogInfo[iLog].StopTime, 2020, 12, 22, 23, 59,
                 59, 99);
             LogInfo[iLog].tStopTime =
                 TL_BAC_Time_To_Local(&LogInfo[iLog].StopTime);
