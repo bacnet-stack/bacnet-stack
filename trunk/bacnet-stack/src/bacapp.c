@@ -394,7 +394,7 @@ int bacapp_decode_data_len(
             case BACNET_APPLICATION_TAG_DATE:
             case BACNET_APPLICATION_TAG_TIME:
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                len = len_value_type;
+                len = (int)len_value_type;
                 break;
             default:
                 break;
