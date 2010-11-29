@@ -6,15 +6,17 @@
 # AR = ar
 
 # configuration
-BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
+# If BACNET_DEFINES has not already been set, configure to your needs here
+BACNET_DEFINES ?= -DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
 # un-comment the next line to build the routing demo application
 #BACNET_DEFINES += -DBAC_ROUTING
 
 #BACDL_DEFINE=-DBACDL_ETHERNET=1
 #BACDL_DEFINE=-DBACDL_ARCNET=1
 #BACDL_DEFINE=-DBACDL_MSTP=1
-BACDL_DEFINE=-DBACDL_BIP=1
+BACDL_DEFINE?=-DBACDL_BIP=1
 
+# Define WEAK_FUNC for [...somebody help here; I can't find any uses of it]
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE) -DWEAK_FUNC=
 
 # directories
@@ -40,6 +42,8 @@ endif
 endif
 CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
+# Export the variables defined here to all subprocesses
+# (see http://www.gnu.org/software/automake/manual/make/Special-Targets.html)
 .EXPORT_ALL_VARIABLES:
 
 all: library demos
