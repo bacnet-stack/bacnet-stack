@@ -54,16 +54,3 @@ clean :
 		$(MAKE) -C $$dir clean; \
 	done
 
-# Add "ports" to the build, if desired
-ports:	atmega168 bdk-atxx4-mstp at91sam7s
-	@echo "Built the ports"
-
-atmega168: ports/atmega168/Makefile
-	make -C ports/atmega168 clean all
-
-at91sam7s: ports/at91sam7s/makefile
-	make -C ports/at91sam7s clean all
-
-bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
-	make -C ports/bdk-atxx4-mstp clean all
-

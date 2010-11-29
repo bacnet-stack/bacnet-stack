@@ -51,6 +51,21 @@ library:
 demos:
 	$(MAKE) -C demo all
 
+# Add "ports" to the build, if desired
+ports:	atmega168 bdk-atxx4-mstp at91sam7s
+	@echo "Built the ARM7 and AVR ports"
+
+atmega168: ports/atmega168/Makefile
+	$(MAKE) -C ports/atmega168 clean all
+
+at91sam7s: ports/at91sam7s/makefile
+	$(MAKE) -C ports/at91sam7s clean all
+
+bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
+	$(MAKE) -C ports/bdk-atxx4-mstp clean all
+
 clean:
 	$(MAKE) -C lib clean
 	$(MAKE) -C demo clean
+
+
