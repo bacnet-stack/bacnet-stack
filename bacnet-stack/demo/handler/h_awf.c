@@ -128,7 +128,7 @@ void handler_atomic_write_file(
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (bacfile_write_stream_data(&data)) {
 #if PRINT_ENABLED
-                fprintf(stderr, "AWF: Stream offset %d, %zu bytes\n",
+                fprintf(stderr, "AWF: Stream offset %d, %d bytes\n",
                     data.type.stream.fileStartPosition,
                     octetstring_length(&data.fileData));
 #endif

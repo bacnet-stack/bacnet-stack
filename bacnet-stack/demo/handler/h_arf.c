@@ -170,7 +170,7 @@ void handler_atomic_read_file(
                     service_data->invoke_id,
                     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
-                fprintf(stderr, "Too Big To Send (%d >= %zu). Sending Abort!\n",
+                fprintf(stderr, "Too Big To Send (%d >= %d). Sending Abort!\n",
                     data.type.stream.requestedOctetCount,
                     octetstring_capacity(&data.fileData));
 #endif
