@@ -4,11 +4,14 @@
 # Most platforms have this already defined
 # CC = gcc
 # AR = ar
+# MAKE = make
+# SIZE = size
+#
+# Assumes rm and cp are available
 
 # target
 TARGET = bacnet
 LIBRARY = lib$(TARGET).a
-
 
 CORE_SRC = \
 	$(BACNET_CORE)/apdu.c \
@@ -90,6 +93,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_iam.c  \
 	$(BACNET_HANDLER)/s_cov.c  \
 	$(BACNET_HANDLER)/s_rd.c \
+	$(BACNET_HANDLER)/s_router.c \
 	$(BACNET_HANDLER)/s_rp.c  \
 	$(BACNET_HANDLER)/s_rpm.c  \
 	$(BACNET_HANDLER)/s_ts.c \
@@ -165,9 +169,9 @@ ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
 ROUTING_SRC = \
 	$(BACNET_HANDLER)/h_routed_npdu.c \
 	$(BACNET_HANDLER)/s_router.c  \
-	$(BACNET_OBJECT)/gw_device.c 
+	$(BACNET_OBJECT)/gw_device.c
 else
-ROUTING_SRC = 
+ROUTING_SRC =
 endif
 
 SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC} ${ROUTING_SRC}

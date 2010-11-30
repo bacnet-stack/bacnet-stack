@@ -4,6 +4,10 @@
 # Most platforms have this already defined
 # CC = gcc
 # AR = ar
+# MAKE = make
+# SIZE = size
+#
+# Assumes rm and cp are available
 
 # configuration
 # If BACNET_DEFINES has not already been set, configure to your needs here
@@ -71,5 +75,3 @@ bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 clean:
 	$(MAKE) -C lib clean
 	$(MAKE) -C demo clean
-
-
