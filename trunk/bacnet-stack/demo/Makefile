@@ -1,3 +1,11 @@
+# tools - only if you need them.
+# Most platforms have this already defined
+# CC = gcc
+# AR = ar
+# MAKE = make
+# SIZE = size
+#
+# Assumes rm and cp are available
 
 # Directories
 BACNET_PORT = linux
@@ -34,23 +42,16 @@ LFLAGS = -Wl,$(LIBRARIES)
 .EXPORT_ALL_VARIABLES:
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
-	whohas whois ucov timesync epics readpropm mstpcap
+	whohas whois ucov timesync epics readpropm mstpcap \
+	whoisrouter iamrouter initrouter
 
 ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
-	SUBDIRS += whoisrouter iamrouter initrouter gateway
+	SUBDIRS += gateway
 endif
 
+TARGETS = all clean
 
-.PHONY : all $(SUBDIRS) clean
+$(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
-all : $(SUBDIRS)
-	@echo "utilities are in the bin directory"
-
-$(SUBDIRS) :
-	$(MAKE) -C $@
-
-clean :
-	for dir in $(SUBDIRS); do \
-		$(MAKE) -C $$dir clean; \
-	done
-
+$(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
+	$(MAKE) -b -C $(subst ., , $@)

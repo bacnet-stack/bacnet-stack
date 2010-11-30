@@ -1,8 +1,10 @@
 @echo off
-echo Build with MinGW: mingw.sourceforge.net
-echo and Yagarto Tools: www.yagarto.de
+echo Build with MinGW and MSYS: mingw.sourceforge.net
+rem set PATH=C:\MinGW\msys\1.0\bin;C:\MinGW\bin
 set CC=gcc
 set AR=ar
+set MAKE=make
+set SIZE=size
 make BACNET_PORT=win32 BUILD=release clean all
 
 rem Build for MinGW debug
