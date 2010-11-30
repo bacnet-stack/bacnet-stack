@@ -3,6 +3,11 @@
 # tools - only if you need them.
 # Most platforms have this already defined
 # CC = gcc
+# AR = ar
+# MAKE = make
+# SIZE = size
+#
+# Assumes rm and cp are available
 
 # Executable file name
 TARGET = bacrp
@@ -23,7 +28,7 @@ ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 lib: ${BACNET_LIB_TARGET}
 
 ${BACNET_LIB_TARGET}:
-	( cd ${BACNET_LIB_DIR} ; make clean ; make )
+	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) )
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
@@ -33,6 +38,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
 clean:
-	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET}
+	rm -rf core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET}
 
 include: .depend
