@@ -454,6 +454,42 @@ uint8_t characterstring_encoding(
     return encoding;
 }
 
+/* returns true if string is printable */
+/* used to assist in the requirement that
+   "The set of characters used in the Object_Name shall be
+   restricted to printable characters." */
+/* printable character: a character that represents a printable
+symbol as opposed to a device control character. These
+include, but are not limited to, upper- and lowercase letters,
+punctuation marks, and mathematical symbols. The exact set
+depends upon the character set being used. In ANSI X3.4 the
+printable characters are represented by single octets in the range
+X'20' - X'7E'.*/
+bool characterstring_printable(
+    BACNET_CHARACTER_STRING * char_string)
+{
+    bool status = false; /* return value */
+    size_t i;   /* counter */
+
+    if (char_string) {
+        if (char_string->encoding == CHARACTER_ANSI_X34) {
+            status = true;
+            for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
+                if (i < char_string->length) {
+                    if ((char_string->value[i] < 0x20) ||
+                        (char_string->value[i] > 0x7E)) {
+                        status = false;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
 /* returns false if the string exceeds capacity
    initialize by using value=NULL */
 bool octetstring_init(
