@@ -33,12 +33,12 @@
 #include <time.h>       /* for time */
 #include <errno.h>
 #include <assert.h>
+#include "config.h"
 #include "bactext.h"
 #include "iam.h"
 #include "arf.h"
 #include "tsm.h"
 #include "address.h"
-#include "config.h"
 #include "bacdef.h"
 #include "npdu.h"
 #include "apdu.h"
@@ -270,7 +270,15 @@ void MyReadPropertyMultipleAckHandler(
 static void Init_Service_Handlers(
     void)
 {
+	uint32_t Object_Instance;
     Device_Init();
+#if BAC_ROUTING
+    /* Put this client Device into the Routing table (first entry) */
+    Object_Instance = Device_Object_Instance_Number();
+    Add_Routed_Device( Object_Instance, Device_Object_Name(),
+    				   Device_Description() );
+#endif    
+    
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
@@ -777,7 +785,8 @@ void PrintUsage(
 {
     printf("bacepics -- Generates Object and Property List for EPICS \r\n");
     printf("Usage: \r\n");
-    printf("  bacepics [-v] [-p sport] [-t target_mac] device-instance \r\n");
+    printf
+    	("  bacepics [-v] [-p sport] [-t target_mac [-n dnet]] device-instance \r\n");
     printf("    -v: show values instead of '?' \r\n");
     printf
         ("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \r\n");
@@ -786,6 +795,10 @@ void PrintUsage(
         ("    -t: declare target's MAC instead of using Who-Is to bind to  \r\n");
     printf
         ("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \r\n");
+    printf
+        ("        Use \"7F:00:00:01:BA:C0\" for loopback testing \r\n");
+    printf
+        ("    -n: specify target's DNET if not local BACnet network  \r\n");
     printf("\r\n");
     printf("Insert the output in your EPICS file as the last section: \r\n");
     printf("\"List of Objects in test device:\"  \r\n");
@@ -820,6 +833,13 @@ int CheckCommandLineArgs(
                     if (++i < argc)
                         My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
                     /* Used strtol so sport can be either 0xBAC0 or 47808 */
+                    break;
+                case 'n':				/* Destination Network Number */
+                	if ( Target_Address.mac_len == 0 )
+                        fprintf(stderr, "Must provide a Target MAC before DNET \r\n");
+                    if (++i < argc)
+                    	Target_Address.net = (uint16_t) strtol(argv[i], NULL, 0);
+                    /* Used strtol so dest.net can be either 0x1234 or 4660 */
                     break;
                 case 't':
                     if (++i < argc) {
@@ -952,10 +972,6 @@ int main(
                 Target_Device_Object_Instance);
         }
     }
-    printf("List of Objects in test device:\r\n");
-    /* Print Opening brace, then kick off the Device Object */
-    printf("{ \r\n");
-    printf("  { \r\n"); /* And opening brace for the first object */
     myObject.type = OBJECT_DEVICE;
     myObject.instance = Target_Device_Object_Instance;
     myState = INITIAL_BINDING;
@@ -988,14 +1004,21 @@ int main(
                     elapsed_seconds += (current_seconds - last_seconds);
                     if (elapsed_seconds > timeout_seconds) {
                         fprintf(stderr,
-                            "\rError: Unable to bind"
+                            "\rError: Unable to bind to %u"
                             " after waiting %ld seconds.\r\n",
+                            Target_Device_Object_Instance,
                             (long int) elapsed_seconds);
                         break;
                     }
                     /* else, loop back and try again */
                     continue;
                 } else {
+                	/* Print out the header information */
+                    printf("List of Objects in device %u: \r\n", 
+                    			Target_Device_Object_Instance);
+                    /* Print Opening brace, then kick off the Device Object */
+                    printf("{ \r\n");
+                    printf("  { \r\n"); /* And opening brace for the first object */
                     myState = GET_ALL_REQUEST;
                     rpm_object = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
                     assert(rpm_object);
@@ -1241,8 +1264,9 @@ int main(
     if (Error_Count > 0)
         fprintf(stderr, "\r-- Found %d Errors \r\n", Error_Count);
 
-    /* Closing brace for all Objects */
-    printf("} \r\n");
+    /* Closing brace for all Objects, if we got any */
+    if (myState != INITIAL_BINDING)
+    	printf("} \r\n");
 
     return 0;
 }
