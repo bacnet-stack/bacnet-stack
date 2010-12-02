@@ -127,8 +127,14 @@ uint16_t Add_Routed_Device(
     	iCurrent_Device_Idx = i;
     	pDev->bacObj.mObject_Type = OBJECT_DEVICE;
     	pDev->bacObj.Object_Instance_Number = Object_Instance;
-    	Routed_Device_Set_Object_Name( sObject_Name, strlen( sObject_Name ));
-    	Routed_Device_Set_Description( sDescription, strlen( sDescription ));
+    	if ( sObject_Name != NULL )
+    		Routed_Device_Set_Object_Name( sObject_Name, strlen( sObject_Name ));
+    	else
+    		Routed_Device_Set_Object_Name( "No Name", strlen( "No Name" ));
+    	if ( sDescription != NULL )
+    		Routed_Device_Set_Description( sDescription, strlen( sDescription ));
+    	else
+    		Routed_Device_Set_Description( "No Descr", strlen( "No Descr" ));
     	pDev->Database_Revision = 0;		/* Reset/Initialize now */
     	return i;
     }
