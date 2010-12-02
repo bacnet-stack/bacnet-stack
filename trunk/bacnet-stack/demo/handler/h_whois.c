@@ -44,7 +44,7 @@
  * @ingroup DMDDB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
- * @param src [in] The BACNET_ADDRESS of the message's source.
+ * @param src [in] The BACNET_ADDRESS of the message's source (ignored).
  */
 void handler_who_is(
     uint8_t * service_request,
@@ -63,21 +63,12 @@ void handler_who_is(
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     else if (len != -1) {
         /* is my device id within the limits? */
-#ifdef BAC_ROUTING
-        if (((Routed_Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
-                (Routed_Device_Object_Instance_Number() <= (uint32_t) high_limit))
-            ||
-            /* BACnet wildcard is the max instance number - everyone responds */
-            ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-#else
         if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
                 (Device_Object_Instance_Number() <= (uint32_t) high_limit))
             ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
                 (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-#endif
             Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
 
@@ -88,7 +79,8 @@ void handler_who_is(
  * @ingroup DMDDB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
- * @param src [in] The BACNET_ADDRESS of the message's source.
+ * @param src [in] The BACNET_ADDRESS of the message's source that the
+ *                 response will be sent back to.
  */
 void handler_who_is_unicast(
     uint8_t * service_request,
@@ -99,7 +91,6 @@ void handler_who_is_unicast(
     int32_t low_limit = 0;
     int32_t high_limit = 0;
 
-    (void) src;
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
@@ -107,23 +98,111 @@ void handler_who_is_unicast(
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     else if (len != -1) {
         /* is my device id within the limits? */
-#ifdef BAC_ROUTING
-        if (((Routed_Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
-                (Routed_Device_Object_Instance_Number() <= (uint32_t) high_limit))
-            ||
-            /* BACnet wildcard is the max instance number - everyone responds */
-            ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-#else
         if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
                 (Device_Object_Instance_Number() <= (uint32_t) high_limit))
             ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
                 (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-#endif
             Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     }
 
     return;
 }
+
+
+#ifdef BAC_ROUTING
+/** Local function to check Who-Is requests against our Device IDs.
+ * Will check the gateway (root Device) and all virtual routed
+ * Devices against the range and respond for each that matches.
+ *  
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source.
+ * @param is_unicast [in] True if should send unicast response(s)
+ * 			back to the src, else False if should broadcast response(s). 
+ */
+static void check_who_is_for_routing(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src,
+    bool is_unicast )
+{
+    int len = 0;
+    int32_t low_limit = 0;
+    int32_t high_limit = 0;
+    int32_t dev_instance;
+    int cursor = 0;				/* Starting hint */
+    int my_list[2] = {0, -1};	/* Not really used, so dummy values */	
+    BACNET_ADDRESS bcast_net;
+    
+    len =
+        whois_decode_service_request(service_request, service_len, &low_limit,
+        &high_limit);
+    if (len == -1) {
+    	/* Invalid; just leave */
+    	return;
+    }
+    /* If len == 0, then high_limit is untouched and still == 0 */
+    /* BACnet wildcard is the max instance number - everyone responds */
+    if ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
+        (BACNET_MAX_INSTANCE <= (uint32_t) high_limit))
+    	high_limit = 0;		
+    	/* This is the "always accept" case we will test for below */
+
+    /* Go through all devices, starting with the root gateway Device */
+    memset( &bcast_net, 0, sizeof(BACNET_ADDRESS));
+    bcast_net.net = BACNET_BROADCAST_NETWORK;	/* That's all we have to set */
+    
+   	while ( Routed_Device_GetNext( &bcast_net, my_list, &cursor ) ) {
+   		dev_instance = Device_Object_Instance_Number();
+   		if ( (high_limit == 0) || 
+   			 ((dev_instance >= low_limit) && (dev_instance <= high_limit))) {
+   			if ( is_unicast )
+   				Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+   			else
+   	           Send_I_Am(&Handler_Transmit_Buffer[0]);
+   		}
+     }
+
+}
+
+
+/** Handler for Who-Is requests in the virtual routing setup, 
+ * with broadcast I-Am response(s).
+ * Will check the gateway (root Device) and all virtual routed
+ * Devices against the range and respond for each that matches.
+ *  
+ * @ingroup DMDDB
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source (ignored).
+ */
+void handler_who_is_bcast_for_routing(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
+{
+	check_who_is_for_routing(service_request, service_len, src, false );
+}
+
+
+/** Handler for Who-Is requests in the virtual routing setup, 
+ * with unicast I-Am response(s) returned to the src.
+ * Will check the gateway (root Device) and all virtual routed
+ * Devices against the range and respond for each that matches.
+ *  
+ * @ingroup DMDDB
+ * @param service_request [in] The received message to be handled.
+ * @param service_len [in] Length of the service_request message.
+ * @param src [in] The BACNET_ADDRESS of the message's source that the
+ *                 response will be sent back to.
+ */
+void handler_who_is_unicast_for_routing(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
+{
+	check_who_is_for_routing(service_request, service_len, src, true );
+}
+#endif			/* BAC_ROUTING */

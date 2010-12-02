@@ -200,6 +200,12 @@ static void routed_apdu_handler(
     int cursor = 0;				/* Starting hint */
     bool bGotOne = false;
     
+    if (!Routed_Device_Is_Valid_Network( dest->net, DNET_list ) ) {
+        /* We don't know how to reach this one */
+        Send_Reject_Message_To_Network( src, NETWORK_REJECT_NO_ROUTE, dest->net );
+        return;
+    }
+
    	while ( Routed_Device_GetNext( dest, DNET_list, &cursor ) ) {
 			apdu_handler(src, apdu, apdu_len);
 			bGotOne = true;
@@ -207,8 +213,7 @@ static void routed_apdu_handler(
 				break;			/* We don't need to keep looking */
     }
     if ( !bGotOne )  {
-        /* We don't know how to reach this one */
-        Send_Reject_Message_To_Network( src, NETWORK_REJECT_NO_ROUTE, dest->net );
+    	/* Just silently drop this packet. */
     }
 }
 
@@ -267,8 +272,10 @@ void routing_npdu_handler(
                  * since only routers can handle it (even if for our DNET) */
             }
         } else if (apdu_offset <= pdu_len) {
-			routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
-						 (uint16_t) (pdu_len - apdu_offset));
+        	if ( (dest.net == 0) || (npdu_data.hop_count > 1) )
+        		routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
+        							(uint16_t) (pdu_len - apdu_offset));
+        	/* Else, hop_count bottomed out and we discard this one. */
         }
     } else {
         /* Should we send NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK? */
