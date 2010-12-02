@@ -53,7 +53,7 @@ object_functions_t Object_Table[] = {
 };
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+/* static uint8_t Rx_Buf[MAX_MPDU] = { 0 }; */
 
 /* global variables used in this file */
 #define MAX_ROUTER_DNETS 64

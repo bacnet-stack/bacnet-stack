@@ -157,9 +157,13 @@ static void Init_Service_Handlers(
 {
     Routing_Device_Init( first_object_instance );
 
-    /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
+    /* we need to handle who-is to support dynamic device binding 
+     * For the gateway, we want the routing handlers, and we will use the
+     * unicast variety so we can get back through switches to different subnets */
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, 
+    								handler_who_is_unicast_for_routing);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, 
+    								handler_who_has_for_routing);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -225,7 +229,9 @@ void Initialize_Device_Addresses( )
 #else 
 #error "No support for this Data Link Layer type "
 #endif
-    
+    /* broadcast an I-Am on startup */
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
+
     for (i = 1; i < MAX_NUM_DEVICES; i++ ) {
         pDev = Get_Routed_Device_Object( i );
         if ( pDev == NULL )
@@ -241,12 +247,15 @@ void Initialize_Device_Addresses( )
         pDev->bacDevAddr.net = VIRTUAL_DNET;
         memcpy( &pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6 );
         pDev->bacDevAddr.len = 6;
-        printf( " - Routed device %d at %s \n", i, inet_ntoa( *netPtr ) );
+        printf( " - Routed device [%d] ID %u at %s \n", i, 
+        		pDev->bacObj.Object_Instance_Number, inet_ntoa( *netPtr ) );
 #elif defined(BACDL_MSTP)
         /* Todo: set MS/TP net and port #s */
         pDev->bacDevAddr.mac_len = 2;
 #endif
-        
+        /* broadcast an I-Am for each routed Device now */
+        Send_I_Am(&Handler_Transmit_Buffer[0]);
+
     }
 }
 
@@ -318,8 +327,6 @@ int main(
 
     /* configure the timeout values */
     last_seconds = time(NULL);
-    /* broadcast an I-Am on startup */
-    Send_I_Am(&Handler_Transmit_Buffer[0]);
     
     /* broadcast an I-am-router-to-network on startup */
     printf( "Remote Network DNET Number %d \n", DNET_list[0] );

@@ -142,6 +142,7 @@ uint16_t Add_Routed_Device(
  *                 0 is for the main, gateway Device entry.
  *                 -1 is a special case meaning "whichever iCurrent_Device_Idx
  *                 is currently set to"
+ *                 If valid idx, will set iCurrent_Device_Idx with the idx
  * @return Pointer to the requested Device Object data, or NULL if the idx 
  *         is for an invalid row entry (eg, after the last good Device).
  */
@@ -150,8 +151,10 @@ DEVICE_OBJECT_DATA * Get_Routed_Device_Object(
 {
 	if ( idx == -1 )
 		return &Devices[iCurrent_Device_Idx];
-	else if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) )
+	else if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) ) {
+		iCurrent_Device_Idx = idx;
 		return &Devices[idx];
+	}
 	else
 		return NULL;
 }
@@ -161,6 +164,7 @@ DEVICE_OBJECT_DATA * Get_Routed_Device_Object(
  *                 0 is for the main, gateway Device entry.
  *                 -1 is a special case meaning "whichever iCurrent_Device_Idx
  *                 is currently set to"
+ *                 If valid idx, will set iCurrent_Device_Idx with the idx
  * @return Pointer to the requested Device Object BACnet address, or NULL if the idx 
  *         is for an invalid row entry (eg, after the last good Device).
  */
@@ -169,8 +173,10 @@ BACNET_ADDRESS * Get_Routed_Device_Address(
 {
 	if ( idx == -1 )
 		return &Devices[iCurrent_Device_Idx].bacDevAddr;
-	else if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) )
+	else if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) ) {
+		iCurrent_Device_Idx = idx;
 		return &Devices[idx].bacDevAddr;
+	}
 	else
 		return NULL;
 }
@@ -188,7 +194,10 @@ void routed_get_my_address(
     BACNET_ADDRESS * my_address)
 
 {
-	my_address = &Devices[iCurrent_Device_Idx].bacDevAddr;
+    if (my_address) {
+    	memcpy(my_address, &Devices[iCurrent_Device_Idx].bacDevAddr, 
+    				sizeof( BACNET_ADDRESS ));
+    }
 }
 
 
@@ -259,8 +268,8 @@ bool Routed_Device_Address_Lookup(
  *         Otherwise, its returned value is implementation-dependent and the 
  *         calling function should not alter or interpret it.
  * 
- * @return True if the MAC addresses match (or the address_len is 0, 
- *         meaning MAC broadcast, so it's an automatic match). 
+ * @return True if the MAC addresses match (or if BACNET_BROADCAST_NETWORK and
+ * 		   the dest->len is 0, meaning MAC bcast, so it's an automatic match). 
  *         Else False if no match or invalid idx is given; the cursor will
  *         be returned as -1 in these cases.
  */
@@ -273,10 +282,16 @@ bool Routed_Device_GetNext(
     int idx = *cursor;
     bool bSuccess = false;
     
-    /* First, see if it's a BACnet broadcast. 
+    /* First, see if the index is out of range.
+     * Eg, last call to GetNext may have been the last successful one.
+     */
+    if ( (idx < 0) || (idx >= MAX_NUM_DEVICES) )
+    	idx = -1;
+    
+    /* Next, see if it's a BACnet broadcast. 
      * For broadcasts, all Devices get a chance at it.
      */
-    if (dest->net == BACNET_BROADCAST_NETWORK) {
+    else if (dest->net == BACNET_BROADCAST_NETWORK) {
     	/* Just take the entry indexed by the cursor */
     	bSuccess = Routed_Device_Address_Lookup( idx++, 
     					dest->len, dest->adr );
@@ -315,6 +330,42 @@ bool Routed_Device_GetNext(
     	*cursor = -1;
     else
     	*cursor = idx;
+    return bSuccess;
+}
+
+
+/** Check if the destination network is reachable - is it our virtual network,
+ *  or local or else broadcast.
+ * 
+ * @param dest_net [in] The BACnet network number of a message's destination.
+ * 		   Success if it is our virtual network number, or 0 (local for the 
+ * 			gateway, or 0xFFFF for a broadcast network number.
+ * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
+ * 					 Normally just one valid entry; terminated with a -1 value.
+ * @return True if matches our virtual network, or is for the local network 
+ * 			Device (the gateway), or is BACNET_BROADCAST_NETWORK, which is
+ * 		    an automatic match. 
+ *         Else False if not a reachable network.
+ */
+bool Routed_Device_Is_Valid_Network( 
+	    uint16_t dest_net,
+	    int * DNET_list )
+{
+    int dnet = DNET_list[0];	/* Get the DNET of our virtual network */
+    bool bSuccess = false;
+    
+    /* First, see if it's a BACnet broadcast (automatic pass). */
+    if ( dest_net == BACNET_BROADCAST_NETWORK)
+    	bSuccess = true;
+    /* Or see if it's for the main Gateway Device, because 
+     * there's no routing info.
+     */
+    else if (dest_net == 0)  
+    	bSuccess = true;
+    /* Or see if matches our virtual DNET */
+    else if (dest_net == dnet)  
+    	bSuccess = true;
+
     return bSuccess;
 }
 

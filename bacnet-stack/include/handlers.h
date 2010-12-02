@@ -70,7 +70,22 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
+    void handler_who_is_bcast_for_routing(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
+
+    void handler_who_is_unicast_for_routing(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
+
     void handler_who_has(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src);
+
+    void handler_who_has_for_routing(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
