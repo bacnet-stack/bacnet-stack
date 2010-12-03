@@ -799,6 +799,7 @@ void PrintUsage(
         ("        Use \"7F:00:00:01:BA:C0\" for loopback testing \r\n");
     printf
         ("    -n: specify target's DNET if not local BACnet network  \r\n");
+    printf("        or on routed Virtual Network \r\n");
     printf("\r\n");
     printf("Insert the output in your EPICS file as the last section: \r\n");
     printf("\"List of Objects in test device:\"  \r\n");
@@ -962,14 +963,23 @@ int main(
         &Target_Address);
     if (!found) {
         if (Provided_Targ_MAC) {
-            /* Update by adding the MAC address */
-            if (max_apdu == 0)
-                max_apdu = MAX_APDU;    /* Whatever set for this datalink. */
-            address_add_binding(Target_Device_Object_Instance, max_apdu,
-                &Target_Address);
+            if ( Target_Address.net > 0 ) {
+                /* We specified a DNET; call Who-Is to find the full
+                 * routed path to this Device */
+                Send_WhoIs_Remote(&Target_Address,
+                                    Target_Device_Object_Instance,
+                                    Target_Device_Object_Instance);
+
+            } else {
+                /* Update by adding the MAC address */
+                if (max_apdu == 0)
+                    max_apdu = MAX_APDU;    /* Whatever set for this datalink. */
+                address_add_binding(Target_Device_Object_Instance, max_apdu,
+                                    &Target_Address);
+            }
         } else {
             Send_WhoIs(Target_Device_Object_Instance,
-                Target_Device_Object_Instance);
+                        Target_Device_Object_Instance);
         }
     }
     myObject.type = OBJECT_DEVICE;
@@ -1216,10 +1226,13 @@ int main(
                     Object_List_Index++;
                     if (Object_List_Index < Keylist_Count(Object_List)) {
                         nextKey = Keylist_Key(Object_List, Object_List_Index);
-                        /* Closing brace for the previous Object */
-                        printf("  }, \r\n");
                         myObject.type = KEY_DECODE_TYPE(nextKey);
                         myObject.instance = KEY_DECODE_ID(nextKey);
+                        /* Don't re-list the Device Object among its objects */
+                        if (myObject.type == OBJECT_DEVICE)
+                            continue;       
+                        /* Closing brace for the previous Object */
+                        printf("  }, \r\n");
                         /* Opening brace for the new Object */
                         printf("  { \r\n");
                         /* Test code:
