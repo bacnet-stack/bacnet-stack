@@ -34,6 +34,7 @@
 #include "whois.h"
 #include "iam.h"
 #include "device.h"
+
 #include "client.h"
 #include "txbuf.h"
 #include "handlers.h"
@@ -170,6 +171,7 @@ static void check_who_is_for_routing(
 
 /** Handler for Who-Is requests in the virtual routing setup, 
  * with broadcast I-Am response(s).
+ * @ingroup DMDDB
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.
  *  

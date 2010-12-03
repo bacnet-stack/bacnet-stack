@@ -52,6 +52,7 @@
  *  This handler is called if the NCPI bit 7 indicates that this packet is a
  *  network layer message and there is no further DNET to pass it to.  
  *  The NCPI has already been decoded into the npdu_data structure. 
+ * @ingroup MISCHNDLR
  * 
  * @param src  [in] The routing source information, if any. 
  *                   If src->net and src->len are 0, there is no
