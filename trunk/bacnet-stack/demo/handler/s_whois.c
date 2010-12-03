@@ -112,7 +112,6 @@ void Send_WhoIs_Global(
 }
 
 /** Send a local Who-Is request for a specific device, a range, or any device.
- * @ingroup DMDDB
  * If low_limit and high_limit both are -1, then the range is unlimited.
  * If low_limit and high_limit have the same non-negative value, then only
  * that device will respond.
@@ -157,6 +156,7 @@ void Send_WhoIs_Local(
 
 /** Send a Who-Is request to a remote network for a specific device, a range,
  * or any device.
+ * @ingroup DMDDB
  * If low_limit and high_limit both are -1, then the range is unlimited.
  * If low_limit and high_limit have the same non-negative value, then only
  * that device will respond.
@@ -177,6 +177,7 @@ void Send_WhoIs_Remote(
 }
 
 /** Send a global Who-Is request for a specific device, a range, or any device.
+ * @ingroup DMDDB
  * This was the original Who-Is broadcast but the code was moved to the more
  * descriptive Send_WhoIs_Global when Send_WhoIs_Local and Send_WhoIsRemote was
  * added.
