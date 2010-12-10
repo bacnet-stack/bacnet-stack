@@ -303,6 +303,26 @@ void timer_interval_restart(
     }
 }
 
+/*************************************************************************
+* Description: Return the elapsed time
+* Returns: number of milliseconds elapsed
+* Notes: only up to 255ms elapsed
+**************************************************************************/
+uint8_t timer_milliseconds_delta(uint8_t start)
+{
+    return (timer_milliseconds_byte() - start);
+}
+
+/*************************************************************************
+* Description: Mark the start of a delta timer
+* Returns: mark timer starting tick
+* Notes: only up to 255ms elapsed
+**************************************************************************/
+uint8_t timer_milliseconds_mark(void)
+{
+    return timer_milliseconds_byte();
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
