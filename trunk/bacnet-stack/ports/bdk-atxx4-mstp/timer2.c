@@ -57,6 +57,7 @@
 
 /* counter for the the timer which wraps every 49.7 days */
 static volatile uint32_t Millisecond_Counter;
+static volatile uint8_t Millisecond_Counter_Byte;
 /* forward prototype */
 ISR(TIMER2_OVF_vect);
 
@@ -70,6 +71,7 @@ static inline void timer_interrupt_handler(void)
     /* Set the counter for the next interrupt */
     TCNT2 = TIMER2_COUNT;
     Millisecond_Counter++;
+    Millisecond_Counter_Byte++;
 }
 
 /*************************************************************************
@@ -100,6 +102,17 @@ uint32_t timer_milliseconds(
     BIT_SET(TIMSK2, TOIE2);
 
     return timer_value;
+}
+
+/*************************************************************************
+* Description: returns the current millisecond count
+* Returns: none
+* Notes: This method only disables the timer overflow interrupt.
+*************************************************************************/
+uint8_t timer_milliseconds_byte(
+    void)
+{
+    return Millisecond_Counter;
 }
 
 /*************************************************************************
