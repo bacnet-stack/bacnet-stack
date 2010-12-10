@@ -48,8 +48,8 @@ extern "C" {
         void);
     uint32_t timer_milliseconds(
         void);
-    uint32_t timer_milliseconds_set(
-        uint32_t value);
+    uint8_t timer_milliseconds_byte(
+        void);
 
     /* these functions are in the generic timer.c module */
 
@@ -102,6 +102,10 @@ extern "C" {
         struct itimer *t);
     void timer_interval_restart(
         struct itimer *t);
+
+    /* special for 8-bit microcontrollers - limited to 255ms */
+    uint8_t timer_milliseconds_delta(uint8_t start);
+    uint8_t timer_milliseconds_mark(void);
 
 #ifdef __cplusplus
 }
