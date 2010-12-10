@@ -88,12 +88,10 @@ uint16_t Timer_Silence(
     void)
 {
     uint16_t timer;
-    uint8_t sreg;
 
-    sreg = SREG;
-    __disable_interrupt();
+    BIT_CLEAR(TIMSK0, TOIE0);
     timer = SilenceTime;
-    SREG = sreg;
+    BIT_SET(TIMSK0, TOIE0);
 
     return timer;
 }
@@ -102,10 +100,7 @@ uint16_t Timer_Silence(
 void Timer_Silence_Reset(
     void)
 {
-    uint8_t sreg;
-
-    sreg = SREG;
-    __disable_interrupt();
+    BIT_CLEAR(TIMSK0, TOIE0);
     SilenceTime = 0;
-    SREG = sreg;
+    BIT_SET(TIMSK0, TOIE0);
 }
