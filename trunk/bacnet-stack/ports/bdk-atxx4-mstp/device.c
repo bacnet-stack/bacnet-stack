@@ -52,7 +52,7 @@ int Device_Read_Property_Local(
 bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-static struct object_functions {
+static struct my_object_functions {
     BACNET_OBJECT_TYPE Object_Type;
     object_init_function Object_Init;
     object_count_function Object_Count;
@@ -133,10 +133,10 @@ static const int Device_Properties_Proprietary[] = {
     -1
 };
 
-static struct object_functions *Device_Objects_Find_Functions(
+static struct my_object_functions *Device_Objects_Find_Functions(
     BACNET_OBJECT_TYPE Object_Type)
 {
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
@@ -152,7 +152,7 @@ static struct object_functions *Device_Objects_Find_Functions(
 }
 
 static int Read_Property_Common(
-    struct object_functions *pObject,
+    struct my_object_functions *pObject,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = -1;
@@ -204,7 +204,7 @@ int Device_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     /* initialize the default return values */
     pObject = Device_Objects_Find_Functions(rpdata->object_type);
@@ -228,7 +228,7 @@ bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     /* initialize the default return values */
     pObject = Device_Objects_Find_Functions(wp_data->object_type);
@@ -273,7 +273,7 @@ void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
 {
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     pPropertyList->Required.pList = NULL;
     pPropertyList->Optional.pList = NULL;
@@ -398,7 +398,7 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
 void Device_Init(
     void)
 {
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
@@ -496,7 +496,7 @@ unsigned Device_Object_List_Count(
     void)
 {
     unsigned count = 0; /* number of objects */
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     /* initialize the default return values */
     pObject = &Object_Table[0];
@@ -518,7 +518,7 @@ bool Device_Object_List_Identifier(
     bool status = false;
     unsigned count = 0;
     unsigned object_index = 0;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     /* array index zero is length - so invalid */
     if (array_index == 0) {
@@ -583,7 +583,7 @@ char *Device_Valid_Object_Id(
     uint32_t object_instance)
 {
     char *name = NULL;  /* return value */
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) object_type);
     if ((pObject) && (pObject->Object_Name)) {
@@ -606,7 +606,7 @@ int Device_Read_Property_Local(
     uint32_t instance = 0;
     unsigned count = 0;
     uint8_t *apdu = NULL;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
