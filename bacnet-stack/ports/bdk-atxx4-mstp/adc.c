@@ -66,6 +66,7 @@ ISR(ADC_vect)
     value = ADCL;
     value |= (ADCH << 8);
     Sample_Result[index] = value;
+    __enable_interrupt();
     /* clear the mux */
     BITMASK_CLEAR(ADMUX, ((1<<MUX2)|(1<<MUX1)|(1<<MUX0)));
     /* find the next channel */
@@ -105,10 +106,14 @@ uint8_t adc_result_8bit(
     uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
 {
     uint8_t result = 0;
+    uint8_t sreg;
 
     if (index < ADC_CHANNELS_MAX) {
         adc_enable(index);
+        sreg = SREG;
+        __disable_interrupt();
         result = (uint8_t)(Sample_Result[index]>>2);
+        SREG = sreg;
     }
 
     return result;
@@ -118,10 +123,14 @@ uint16_t adc_result_10bit(
     uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
 {
     uint16_t result = 0;
+    uint8_t sreg;
 
     if (index < ADC_CHANNELS_MAX) {
         adc_enable(index);
+        sreg = SREG;
+        __disable_interrupt();
         result = Sample_Result[index];
+        SREG = sreg;
     }
 
     return result;
