@@ -1054,7 +1054,7 @@
         </option>
         <option>
           <name>SCCStackSize</name>
-          <state>0x200</state>
+          <state>0x400</state>
         </option>
         <option>
           <name>SCExtCStack</name>
@@ -1240,7 +1240,7 @@
           <name>CCDefines</name>
           <state>NDEBUG</state>
           <state>BACDL_MSTP</state>
-          <state>MAX_APDU=256</state>
+          <state>MAX_APDU=128</state>
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>BACAPP_BOOLEAN</state>
@@ -1357,7 +1357,7 @@
         </option>
         <option>
           <name>CCDebugInfo</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCNoErrorMsg</name>
@@ -1706,7 +1706,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state>bacnet.a90</state>
+          <state>bacnet.d90</state>
         </option>
         <option>
           <name>OutputFormat</name>
@@ -1864,7 +1864,7 @@
         </option>
         <option>
           <name>DebugInformation</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>RuntimeControl</name>

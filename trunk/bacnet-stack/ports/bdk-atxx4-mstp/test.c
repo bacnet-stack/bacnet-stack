@@ -49,6 +49,52 @@ void test_init(
     serial_baud_rate_set(9600);
 #endif
     timer_interval_start_seconds(&Test_Timer, 1);
+    /* configure a port pin as output */
+    BIT_SET(DDRB, DDB0);
+}
+
+/*************************************************************************
+* Description: Turn on a pin
+* Returns: none
+* Notes: none
+*************************************************************************/
+static inline void test_pin_on(void)
+{
+    BIT_SET(PORTB, PB0);
+}
+
+/*************************************************************************
+* Description: Turn off a pin
+* Returns: none
+* Notes: none
+*************************************************************************/
+static inline void test_pin_off(void)
+{
+    BIT_CLEAR(PORTB, PB0);
+}
+
+/*************************************************************************
+* Description: Get the state of the test pin
+* Returns: true if on, false if off.
+* Notes: none
+*************************************************************************/
+static inline bool test_pin_state(void)
+{
+    return (BIT_CHECK(PINB, PB0));
+}
+
+/*************************************************************************
+* Description: Toggle the test pin
+* Returns: none
+* Notes: none
+*************************************************************************/
+static inline void test_pin_toggle(void)
+{
+    if (test_pin_state()) {
+        test_pin_off();
+    } else {
+        test_pin_on();
+    }
 }
 
 #ifdef MSTP_MONITOR
@@ -124,5 +170,6 @@ void test_task(
         serial_byte_send('\n');
         serial_byte_transmit_complete();
     }
+    test_pin_toggle();
 }
 #endif
