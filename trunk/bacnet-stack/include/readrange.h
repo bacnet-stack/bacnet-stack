@@ -37,6 +37,10 @@
 #include "bacstr.h"
 #include "datetime.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 struct BACnet_Read_Range_Data;
 typedef struct BACnet_Read_Range_Data {
     BACNET_OBJECT_TYPE object_type;
@@ -161,6 +165,9 @@ uint8_t Send_ReadRange_Request(
     uint32_t device_id, /* destination device */
     BACNET_READ_RANGE_DATA * read_access_data);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 /** @defgroup Trend Trending BIBBs
  * These BIBBs prescribe the BACnet capabilities required to interoperably 
