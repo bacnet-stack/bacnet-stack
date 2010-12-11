@@ -59,7 +59,7 @@ int Device_Read_Property_Local(
 bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-static struct object_functions {
+static struct my_object_functions {
     BACNET_OBJECT_TYPE Object_Type;
     object_init_function Object_Init;
     object_count_function Object_Count;
@@ -154,7 +154,7 @@ int Device_Read_Property(
 {
     int apdu_len = BACNET_STATUS_ERROR;
     unsigned index = 0;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
     bool found = false;
 
     /* initialize the default return values */
@@ -192,7 +192,7 @@ bool Device_Write_Property(
 {
     bool status = false;
     unsigned index = 0;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
     bool found = false;
 
     /* initialize the default return values */
@@ -250,7 +250,7 @@ void Device_Objects_Property_List(
 {
     rpm_property_lists_function object_property_list = NULL;
     unsigned index = 0;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
     bool found = false;
 
     pPropertyList->Required.pList = NULL;
@@ -301,7 +301,7 @@ unsigned Device_Object_List_Count(
 {
     unsigned count = 0; /* number of objects */
     unsigned index = 0; /* loop counter */
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     /* initialize the default return values */
     pObject = &Object_Table[0];
@@ -325,7 +325,7 @@ bool Device_Object_List_Identifier(
     unsigned count = 0;
     unsigned object_index = 0;
     unsigned index = 0; /* loop counter */
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     /* array index zero is length - so invalid */
     if (array_index == 0) {
@@ -392,7 +392,7 @@ char *Device_Valid_Object_Id(
 {
     char *name = NULL;  /* return value */
     unsigned index = 0; /* loop counter */
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
@@ -455,7 +455,7 @@ void Device_Init(
     void)
 {
     unsigned index = 0; /* loop counter */
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
 
     Reinitialize_State = BACNET_REINIT_IDLE;
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
@@ -572,7 +572,7 @@ int Device_Read_Property_Local(
     BACNET_TIME local_time;
     BACNET_DATE local_date;
     uint8_t *apdu = NULL;
-    struct object_functions *pObject = NULL;
+    struct my_object_functions *pObject = NULL;
     bool found = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
