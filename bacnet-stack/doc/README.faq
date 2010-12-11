@@ -8,7 +8,7 @@ A-1b: It fits on a ATmega168 (16K bytes flash, 1024 bytes RAM) - see ports/atmeg
 
 With full optimization, the statistics on the demo are: IAR Atmel AVR C/C++ Compiler V5.10A/W32
 12 732 bytes of CODE memory (+ 36 range fill )
-955 bytes of DATA memory (+ 24 absolute ) (includes CStack=0×200)
+955 bytes of DATA memory (+ 24 absolute ) (includes CStack=512)
 
 avr-gcc (GCC) 4.2.2 (WinAVR 20071221rc1)
 Program: 15790 bytes (96.4% Full)
@@ -16,10 +16,16 @@ Data: 414 bytes (40.4% Full) (does not include CStack=0×262)
 
 A-1c: It fits easily on an ATmega644p (64K bytes flash, 4096 bytes RAM) - see ports/bdk-atxx4-mstp/ project. The BACnet Capabilities of an Application Specific Controller include WhoIs, I-Am, WhoHas, I-Have, ReadProperty, ReadPropertyMultiple, WriteProperty, and DeviceCommunicationControl support. The BACnet objects include a Device object, 2 Analog Input objects, 2 Analog Value objects, 5 Binary Input objects, and 2 Binary Output objects. Two LEDs are controlled by Binary Output objects. All required object properties can be retrieved using ReadProperty or ReadPropertyMultiple. Most of the Present_Value properties of the objects can be written.  The Object_Identifier, Object_Name, Max_Info_Frames, Max_Master, and baud rate (property 9600) of the Device object can be written using WriteProperty.  The APDU size is 256 bytes.
 
+With full optimization, the statistics on this port are:
 avr-gcc (GCC) 4.3.4
 Program (.text+.data): 34172 bytes (52.1% Full)
 Data (.data+.bss+.noinit):  2501 (61.1% Full) (not including CStack=1594 bytes)
 CStack usage (from painting): 772 bytes
+
+IAR C/C++ Compiler V5.40.2.50249/W32 for Atmel AVR
+IAR Universal Linker V4.61L/W32
+ 28 770 bytes of CODE memory (+             8 range fill )
+  3 250 bytes of DATA memory (+ 44 absolute ) (includes CStack=1024)
 
 Q-2: The homepage used to say that the MS/TP code does not work. Still true?
 

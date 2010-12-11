@@ -50,6 +50,12 @@ int main(
     void)
 {
     init();
+    /* Configure the watchdog timer - Disabled for debugging */
+#ifdef NDEBUG
+    watchdog_init(2000);
+#else
+    watchdog_init(0);
+#endif
     timer_init();
     adc_init();
     input_init();
