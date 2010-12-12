@@ -23,7 +23,7 @@ ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 lib: ${BACNET_LIB_TARGET}
 
 ${BACNET_LIB_TARGET}:
-	( cd ${BACNET_LIB_DIR} ; make clean ; make )
+	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) )
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@

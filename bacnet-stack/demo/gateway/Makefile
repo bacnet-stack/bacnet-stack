@@ -9,7 +9,7 @@ TARGET = bacgateway
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-SRCS = main.c 
+SRCS = main.c
 
 OBJS = ${SRCS:.c=.o}
 
@@ -23,7 +23,7 @@ ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 lib: ${BACNET_LIB_TARGET}
 
 ${BACNET_LIB_TARGET}:
-	( cd ${BACNET_LIB_DIR} ; make clean ; make )
+	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) )
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
