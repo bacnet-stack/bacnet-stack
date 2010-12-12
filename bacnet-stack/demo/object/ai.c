@@ -182,7 +182,7 @@ int Analog_Input_Read_Property(
         return 0;
     }
     apdu = rpdata->application_data;
-    switch (rpdata->object_property) {
+    switch ((int)rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,

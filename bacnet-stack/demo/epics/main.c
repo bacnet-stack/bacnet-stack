@@ -64,8 +64,8 @@
 
 /* All included BACnet objects */
 object_functions_t Object_Table[] = {
-	{DEVICE_OBJ_FUNCTIONS},
-	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    {DEVICE_OBJ_FUNCTIONS},
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 /* buffer used for receive */
@@ -270,15 +270,16 @@ void MyReadPropertyMultipleAckHandler(
 static void Init_Service_Handlers(
     void)
 {
-	uint32_t Object_Instance;
     Device_Init();
+
 #if BAC_ROUTING
+    uint32_t Object_Instance;
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
     Add_Routed_Device( Object_Instance, Device_Object_Name(),
-    				   Device_Description() );
-#endif    
-    
+                       Device_Description() );
+#endif
+
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
@@ -786,7 +787,7 @@ void PrintUsage(
     printf("bacepics -- Generates Object and Property List for EPICS \r\n");
     printf("Usage: \r\n");
     printf
-    	("  bacepics [-v] [-p sport] [-t target_mac [-n dnet]] device-instance \r\n");
+        ("  bacepics [-v] [-p sport] [-t target_mac [-n dnet]] device-instance \r\n");
     printf("    -v: show values instead of '?' \r\n");
     printf
         ("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \r\n");
@@ -835,22 +836,31 @@ int CheckCommandLineArgs(
                         My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
                     /* Used strtol so sport can be either 0xBAC0 or 47808 */
                     break;
-                case 'n':				/* Destination Network Number */
-                	if ( Target_Address.mac_len == 0 )
+                case 'n':
+                    /* Destination Network Number */
+                    if ( Target_Address.mac_len == 0 )
                         fprintf(stderr, "Must provide a Target MAC before DNET \r\n");
                     if (++i < argc)
-                    	Target_Address.net = (uint16_t) strtol(argv[i], NULL, 0);
+                        Target_Address.net = (uint16_t) strtol(argv[i], NULL, 0);
                     /* Used strtol so dest.net can be either 0x1234 or 4660 */
                     break;
                 case 't':
                     if (++i < argc) {
-                        uint8_t *mac = Target_Address.mac;
-                        /* The %hhx specifies unsigned char */
-                        Target_Address.mac_len =
-                            sscanf(argv[i], "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+                        /* decoded MAC addresses */
+                        unsigned mac[6];
+                        /* number of successful decodes */
+                        int count;
+                        /* loop counter */
+                        unsigned j;
+                        count =
+                            sscanf(argv[i], "%x:%x:%x:%x:%x:%x",
                             &mac[0], &mac[1], &mac[2], &mac[3], &mac[4],
                             &mac[5]);
-                        if (Target_Address.mac_len == 6) {      /* success */
+                        if (count == 6) {      /* success */
+                            Target_Address.mac_len = count;
+                            for (j = 0; j < 6; j++) {
+                                Target_Address.mac[j] = (uint8_t) mac[j];
+                            }
                             Target_Address.net = 0;
                             Target_Address.len = 0;     /* No src address */
                             Provided_Targ_MAC = true;
@@ -1023,9 +1033,9 @@ int main(
                     /* else, loop back and try again */
                     continue;
                 } else {
-                	/* Print out the header information */
-                    printf("List of Objects in device %u: \r\n", 
-                    			Target_Device_Object_Instance);
+                    /* Print out the header information */
+                    printf("List of Objects in device %u: \r\n",
+                                Target_Device_Object_Instance);
                     /* Print Opening brace, then kick off the Device Object */
                     printf("{ \r\n");
                     printf("  { \r\n"); /* And opening brace for the first object */
@@ -1230,7 +1240,7 @@ int main(
                         myObject.instance = KEY_DECODE_ID(nextKey);
                         /* Don't re-list the Device Object among its objects */
                         if (myObject.type == OBJECT_DEVICE)
-                            continue;       
+                            continue;
                         /* Closing brace for the previous Object */
                         printf("  }, \r\n");
                         /* Opening brace for the new Object */
@@ -1279,7 +1289,7 @@ int main(
 
     /* Closing brace for all Objects, if we got any */
     if (myState != INITIAL_BINDING)
-    	printf("} \r\n");
+        printf("} \r\n");
 
     return 0;
 }
