@@ -66,7 +66,7 @@
 #endif
 
 /* All included BACnet objects */
-object_functions_t Object_Table[] = {
+static object_functions_t Object_Table[] = {
     {DEVICE_OBJ_FUNCTIONS},
     {ANALOG_INPUT_OBJ_FUNCTIONS},
     {ANALOG_OUTPUT_OBJ_FUNCTIONS},
@@ -101,6 +101,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static void Init_Service_Handlers(
     void)
 {
+    Device_Initialize_Object_Functions(&Object_Table[0]);
     Device_Init();
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);

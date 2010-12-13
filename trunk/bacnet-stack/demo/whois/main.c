@@ -50,7 +50,7 @@
 #include "dlenv.h"
 
 /* All included BACnet objects */
-object_functions_t Object_Table[] = {
+static object_functions_t Object_Table[] = {
 	{DEVICE_OBJ_FUNCTIONS},
 	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
@@ -95,8 +95,9 @@ void MyRejectHandler(
 static void Init_Service_Handlers(
     void)
 {
+    Device_Initialize_Object_Functions(&Object_Table[0]);
     Device_Init();
-    /* Note: this applications doesn't need to handle who-is 
+    /* Note: this applications doesn't need to handle who-is
        it is confusing for the user! */
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */

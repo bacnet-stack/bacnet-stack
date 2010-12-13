@@ -22,7 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-/** 
+/**
  * Code for this project began with code from the demo/server project and
  * Paul Chapman's vmac project.
  */
@@ -82,7 +82,7 @@
 /*@{*/
 
 /* All included BACnet objects */
-object_functions_t Object_Table[] = {
+static object_functions_t Object_Table[] = {
 	{DEVICE_OBJ_FUNCTIONS},
     {ANALOG_INPUT_OBJ_FUNCTIONS},
     {ANALOG_OUTPUT_OBJ_FUNCTIONS},
@@ -114,7 +114,7 @@ int DNET_list[2] = {
 
 
 /** Initialize the Device Objects and each of the child Object instances.
- * @param first_object_instance Set the first (gateway) Device to this 
+ * @param first_object_instance Set the first (gateway) Device to this
             instance number, and subsequent devices to incremented values.
  */
 void Devices_Init(
@@ -123,29 +123,29 @@ void Devices_Init(
     int i;
     char nameText[MAX_DEV_NAME_LEN];
     char descText[MAX_DEV_DESC_LEN];
-    
-    /* Gateway Device has already been initialized. 
+
+    /* Gateway Device has already been initialized.
      * But give it a better Description. */
     Routed_Device_Set_Description(DEV_DESCR_GATEWAY, strlen(DEV_DESCR_GATEWAY));
-    
+
     /* Now initialize the remote Device objects. */
     for ( i = 1; i < MAX_NUM_DEVICES; i++ )
     {
 #ifdef _MSC_VER
-    	_snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d", 
+    	_snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d",
     			  DEV_NAME_BASE, i+1);
-       	_snprintf( descText, MAX_DEV_DESC_LEN, "%s %d", 
+       	_snprintf( descText, MAX_DEV_DESC_LEN, "%s %d",
        			  DEV_DESCR_REMOTE, i);
 #else
-    	snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d", 
+    	snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d",
     			  DEV_NAME_BASE, i+1);
-       	snprintf( descText, MAX_DEV_DESC_LEN, "%s %d", 
+       	snprintf( descText, MAX_DEV_DESC_LEN, "%s %d",
        			  DEV_DESCR_REMOTE, i);
 #endif
-    		
+
     	Add_Routed_Device( (first_object_instance+i), nameText, descText );
     }
-    
+
 }
 
 
@@ -155,14 +155,15 @@ void Devices_Init(
 static void Init_Service_Handlers(
 	uint32_t first_object_instance )
 {
+    Device_Initialize_Object_Functions(&Object_Table[0]);
     Routing_Device_Init( first_object_instance );
 
-    /* we need to handle who-is to support dynamic device binding 
+    /* we need to handle who-is to support dynamic device binding
      * For the gateway, we want the routing handlers, and we will use the
      * unicast variety so we can get back through switches to different subnets */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, 
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
     								handler_who_is_unicast_for_routing);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, 
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS,
     								handler_who_has_for_routing);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
@@ -203,7 +204,7 @@ static void Init_Service_Handlers(
  * The gateway has already gotten the normal address (eg, PC's IP for BIP) and
  * the remote devices get
  * - For BIP, the IP address reversed, and 4th byte equal to index.
- * (Eg, 11.22.33.44 for the gateway becomes 44.33.22.01 for the first remote 
+ * (Eg, 11.22.33.44 for the gateway becomes 44.33.22.01 for the first remote
  * device.) This is sure to be unique! The port number stays the same.
  * - For MS/TP, [Steve inserts a good idea here]
  */
@@ -216,7 +217,7 @@ void Initialize_Device_Addresses( )
 #if defined(BACDL_BIP)
     struct in_addr *netPtr;			/* Lets us cast to this type */
     uint8_t *gatewayMac = NULL;
-    uint32_t myAddr = bip_get_addr();	
+    uint32_t myAddr = bip_get_addr();
     pDev = Get_Routed_Device_Object( i );
     gatewayMac = pDev->bacDevAddr.mac;		/* Keep pointer to the main MAC */
     memcpy( pDev->bacDevAddr.mac, &myAddr, 4 );
@@ -226,7 +227,7 @@ void Initialize_Device_Addresses( )
 #elif defined(BACDL_MSTP)
     /* Todo: */
     pDev->bacDevAddr.mac_len = 2;
-#else 
+#else
 #error "No support for this Data Link Layer type "
 #endif
     /* broadcast an I-Am on startup */
@@ -247,7 +248,7 @@ void Initialize_Device_Addresses( )
         pDev->bacDevAddr.net = VIRTUAL_DNET;
         memcpy( &pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6 );
         pDev->bacDevAddr.len = 6;
-        printf( " - Routed device [%d] ID %u at %s \n", i, 
+        printf( " - Routed device [%d] ID %u at %s \n", i,
         		pDev->bacObj.Object_Instance_Number, inet_ntoa( *netPtr ) );
 #elif defined(BACDL_MSTP)
         /* Todo: set MS/TP net and port #s */
@@ -327,11 +328,11 @@ int main(
 
     /* configure the timeout values */
     last_seconds = time(NULL);
-    
+
     /* broadcast an I-am-router-to-network on startup */
     printf( "Remote Network DNET Number %d \n", DNET_list[0] );
     Send_I_Am_Router_To_Network( DNET_list );
-    
+
     /* loop forever */
     for (;;) {
         /* input */

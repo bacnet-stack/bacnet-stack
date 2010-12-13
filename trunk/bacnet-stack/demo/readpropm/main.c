@@ -55,7 +55,7 @@
 #include "dlenv.h"
 
 /* All included BACnet objects */
-object_functions_t Object_Table[] = {
+static object_functions_t Object_Table[] = {
 	{DEVICE_OBJ_FUNCTIONS},
 	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
@@ -194,6 +194,7 @@ void My_Read_Property_Multiple_Ack_Handler(
 static void Init_Service_Handlers(
     void)
 {
+    Device_Initialize_Object_Functions(&Object_Table[0]);
     Device_Init();
     /* we need to handle who-is
        to support dynamic device binding to us */
