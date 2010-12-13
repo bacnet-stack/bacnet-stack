@@ -100,8 +100,8 @@ typedef unsigned (
     *object_iterate_function) (
     unsigned current_index);
 
-/** Defines the group of object helper functions for any supported Object. 
- * @ingroup ObjHelpers 
+/** Defines the group of object helper functions for any supported Object.
+ * @ingroup ObjHelpers
  * Each Object must provide some implementation of each of these helpers
  * in order to properly support the handlers.  Eg, the ReadProperty handler
  * handler_read_property() relies on the instance of Object_Read_Property
@@ -134,45 +134,45 @@ typedef struct object_functions {
 typedef struct commonBacObj_s
 {
 
-	/** The BACnet type of this object (ie, what class is this object from?).
-	 * This property, of type BACnetObjectType, indicates membership in a
-	 * particular object type class. Each inherited class will be of one type.
-	 */
-	BACNET_OBJECT_TYPE mObject_Type;
-	
-	/** The instance number for this class instance. */
-	uint32_t Object_Instance_Number;
-	
-	/** Object Name; must be unique.
-	 * This property, of type CharacterString, shall represent a name for
-	 * the object that is unique within the BACnet Device that maintains it.
-	 */
-	char Object_Name[MAX_DEV_NAME_LEN];
-	
+    /** The BACnet type of this object (ie, what class is this object from?).
+     * This property, of type BACnetObjectType, indicates membership in a
+     * particular object type class. Each inherited class will be of one type.
+     */
+    BACNET_OBJECT_TYPE mObject_Type;
+
+    /** The instance number for this class instance. */
+    uint32_t Object_Instance_Number;
+
+    /** Object Name; must be unique.
+     * This property, of type CharacterString, shall represent a name for
+     * the object that is unique within the BACnet Device that maintains it.
+     */
+    char Object_Name[MAX_DEV_NAME_LEN];
+
 } COMMON_BAC_OBJECT;
 
 
-/** Structure to define the Properties of Device Objects which distinguish 
+/** Structure to define the Properties of Device Objects which distinguish
  *  one instance from another.
  *  This structure only defines fields for properties that are unique to
- *  a given Device object.  The rest may be fixed in device.c or hard-coded 
+ *  a given Device object.  The rest may be fixed in device.c or hard-coded
  *  into the read-property encoding.
  *  This may be useful for implementations which manage multiple Devices,
  *  eg, a Gateway.
  */
 typedef struct devObj_s
 {
-	/** The BACnet Device Address for this device; ->len depends on DLL type. */
-	BACNET_ADDRESS 		bacDevAddr;
-	
-	/** Structure for the Object Properties common to all Objects. */
-	COMMON_BAC_OBJECT	bacObj;
-	
-	/** Device Description. */
-	char Description[MAX_DEV_DESC_LEN];
+    /** The BACnet Device Address for this device; ->len depends on DLL type. */
+    BACNET_ADDRESS 		bacDevAddr;
 
-	/** The upcounter that shows if the Device ID or object structure has changed. */
-	uint32_t Database_Revision;
+    /** Structure for the Object Properties common to all Objects. */
+    COMMON_BAC_OBJECT	bacObj;
+
+    /** Device Description. */
+    char Description[MAX_DEV_DESC_LEN];
+
+    /** The upcounter that shows if the Device ID or object structure has changed. */
+    uint32_t Database_Revision;
 } DEVICE_OBJECT_DATA;
 
 
@@ -182,6 +182,8 @@ extern "C" {
 
     void Device_Init(
         void);
+    void Device_Initialize_Object_Functions(
+        object_functions_t *object_table);
 
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
@@ -309,31 +311,31 @@ extern "C" {
  * in the build (lib/Makefile).
  */
     void Routing_Device_Init(
-    	uint32_t first_object_instance );
+        uint32_t first_object_instance );
 
-    uint16_t Add_Routed_Device( 
-		uint32_t Object_Instance, 
-		const char * Object_Name, 
-		const char * Description );
-    DEVICE_OBJECT_DATA * Get_Routed_Device_Object( 
-    	int idx );
+    uint16_t Add_Routed_Device(
+        uint32_t Object_Instance,
+        const char * Object_Name,
+        const char * Description );
+    DEVICE_OBJECT_DATA * Get_Routed_Device_Object(
+        int idx );
     BACNET_ADDRESS * Get_Routed_Device_Address(
-		int idx );
-    
+        int idx );
+
     void routed_get_my_address(
         BACNET_ADDRESS * my_address);
 
-    bool Routed_Device_Address_Lookup( 
-    		int idx, 
-    		uint8_t address_len,        
-    		uint8_t * mac_adress );
-    bool Routed_Device_GetNext( 
-    	    BACNET_ADDRESS * dest,
-    	    int * DNET_list,
-    		int * cursor );
-    bool Routed_Device_Is_Valid_Network( 
-    	    uint16_t dest_net,
-    	    int * DNET_list );
+    bool Routed_Device_Address_Lookup(
+            int idx,
+            uint8_t address_len,
+            uint8_t * mac_adress );
+    bool Routed_Device_GetNext(
+            BACNET_ADDRESS * dest,
+            int * DNET_list,
+            int * cursor );
+    bool Routed_Device_Is_Valid_Network(
+            uint16_t dest_net,
+            int * DNET_list );
 
     uint32_t Routed_Device_Index_To_Instance(
         unsigned index);
@@ -356,7 +358,7 @@ extern "C" {
         void);
 
 
-    
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

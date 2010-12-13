@@ -64,14 +64,14 @@ extern bool Routed_Device_Write_Property_Local(
 
 /* Defined in user application;
    object functions for all included BACnet objects */
-extern object_functions_t Object_Table[];
+static object_functions_t *Object_Table;
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
- * @ingroup ObjHelpers 
+ * @ingroup ObjHelpers
  * @param Object_Type [in] The type of BACnet Object the handler wants to access.
  * @return Pointer to the group of object helper functions that implement this
- *         type of Object. 
+ *         type of Object.
  */
 static struct object_functions *Device_Objects_Find_Functions(
     BACNET_OBJECT_TYPE Object_Type)
@@ -93,11 +93,11 @@ static struct object_functions *Device_Objects_Find_Functions(
 
 /** Try to find a rr_info_function helper function for the requested object type.
  * @ingroup ObjIntf
- * 
+ *
  * @param object_type [in] The type of BACnet Object the handler wants to access.
- * @return Pointer to the object helper function that implements the 
- *         ReadRangeInfo function, Object_RR_Info, for this type of Object on 
- *         success, else a NULL pointer if the type of Object isn't supported 
+ * @return Pointer to the object helper function that implements the
+ *         ReadRangeInfo function, Object_RR_Info, for this type of Object on
+ *         success, else a NULL pointer if the type of Object isn't supported
  *         or doesn't have a ReadRangeInfo function.
  */
 rr_info_function Device_Objects_RR_Info(
@@ -209,9 +209,9 @@ bool Device_Reinitialize(
             default:
                 break;
         }
-        /* Note: you could use a mix of state 
+        /* Note: you could use a mix of state
            and password to multiple things */
-        /* note: you probably want to restart *after* the 
+        /* note: you probably want to restart *after* the
            simple ack has been sent from the return handler
            so just set a flag from here */
         status = true;
@@ -308,7 +308,7 @@ static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 static BACNET_TIME Local_Time;  /* rely on OS, if there is one */
 static BACNET_DATE Local_Date;  /* rely on OS, if there is one */
 /* NOTE: BACnet UTC Offset is inverse of common practice.
-   If your UTC offset is -5hours of GMT, 
+   If your UTC offset is -5hours of GMT,
    then BACnet UTC offset is +5hours.
    BACnet UTC offset is expressed in minutes. */
 static int32_t UTC_Offset = 5 * 60;
@@ -353,11 +353,11 @@ uint32_t Device_Index_To_Instance(
 uint32_t Device_Object_Instance_Number(
     void)
 {
-#ifdef BAC_ROUTING	
+#ifdef BAC_ROUTING
 	return Routed_Device_Object_Instance_Number();
-#else	
+#else
     return Object_Instance_Number;
-#endif    
+#endif
 }
 
 bool Device_Set_Object_Instance_Number(
@@ -466,7 +466,7 @@ int Device_Set_System_Status(
                 break;
 
                 /* Don't allow outsider set this - it should probably
-                 * be set if the device config is incomplete or 
+                 * be set if the device config is incomplete or
                  * corrupted or perhaps after some sort of operator
                  * wipe operation.
                  */
@@ -632,7 +632,7 @@ void Device_Set_Database_Revision(
     Database_Revision = revision;
 }
 
-/* 
+/*
  * Shortcut for incrementing database revision as this is potentially
  * the most common operation if changing object names and ids is
  * implemented.
@@ -798,16 +798,16 @@ static void Update_Current_Time(
 #endif
 /*
 struct tm
-    
-int    tm_sec   Seconds [0,60]. 
-int    tm_min   Minutes [0,59]. 
-int    tm_hour  Hour [0,23]. 
-int    tm_mday  Day of month [1,31]. 
-int    tm_mon   Month of year [0,11]. 
-int    tm_year  Years since 1900. 
-int    tm_wday  Day of week [0,6] (Sunday =0). 
-int    tm_yday  Day of year [0,365]. 
-int    tm_isdst Daylight Savings flag. 
+
+int    tm_sec   Seconds [0,60].
+int    tm_min   Minutes [0,59].
+int    tm_hour  Hour [0,23].
+int    tm_mday  Day of month [1,31].
+int    tm_mon   Month of year [0,11].
+int    tm_year  Years since 1900.
+int    tm_wday  Day of week [0,6] (Sunday =0).
+int    tm_yday  Day of year [0,365].
+int    tm_isdst Daylight Savings flag.
 */
 #if defined(_MSC_VER)
     time(&tTemp);
@@ -1081,7 +1081,7 @@ int Device_Read_Property_Local(
 /** Looks up the requested Object and Property, and encodes its Value in an APDU.
  * @ingroup ObjIntf
  * If the Object or Property can't be found, sets the error class and code.
- * 
+ *
  * @param rpdata [in,out] Structure with the desired Object and Property info
  * 				on entry, and APDU message on return.
  * @return The length of the APDU on success, else BACNET_STATUS_ERROR
@@ -1285,7 +1285,7 @@ bool Device_Write_Property_Local(
  *  if allowed.
  * If the Object or Property can't be found, sets the error class and code.
  * @ingroup ObjIntf
- * 
+ *
  * @param wp_data [in,out] Structure with the desired Object and Property info
  *              and new Value on entry, and APDU message on return.
  * @return True on success, else False if there is an error.
@@ -1321,6 +1321,17 @@ bool Device_Write_Property(
     return (status);
 }
 
+/** Initialize the group of object helper functions for any supported Object.
+ * @ingroup ObjIntf
+ * @param object_table [in,out] array of structure with object functions.
+ *  Each Child Object must provide some implementation of each of these
+ *  functions in order to properly support the default handlers.
+ */
+void Device_Initialize_Object_Functions(
+    object_functions_t *object_table)
+{
+    Object_Table = object_table;
+}
 
 /** Initialize the Device Object and each of its child Object instances.
  * @ingroup ObjIntf
@@ -1388,11 +1399,11 @@ bool DeviceGetRRInfo(
  * that need access to local data in this file.
  ****************************************************************************/
 
-/** Initialize the first of our array of Devices with the main Device's 
+/** Initialize the first of our array of Devices with the main Device's
  * information, and then swap out some of the Device object functions and
  * replace with ones appropriate for routing.
  * @ingroup ObjIntf
- * @param first_object_instance Set the first (gateway) Device to this 
+ * @param first_object_instance Set the first (gateway) Device to this
             instance number.
  */
 void Routing_Device_Init(
@@ -1404,7 +1415,7 @@ void Routing_Device_Init(
     Device_Init();
     /* Initialize with our preset strings */
     Add_Routed_Device( first_object_instance, My_Object_Name, Description );
-    
+
     /* Now substitute our routed versions of the main object functions. */
     pDevObject = &Object_Table[0];
     pDevObject->Object_Index_To_Instance = Routed_Device_Index_To_Instance;

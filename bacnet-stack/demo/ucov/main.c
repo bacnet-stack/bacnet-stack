@@ -51,7 +51,7 @@
 #include "dlenv.h"
 
 /* All included BACnet objects */
-object_functions_t Object_Table[] = {
+static object_functions_t Object_Table[] = {
 	{DEVICE_OBJ_FUNCTIONS},
 	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
@@ -59,8 +59,9 @@ object_functions_t Object_Table[] = {
 static void Init_Service_Handlers(
     void)
 {
+    Device_Initialize_Object_Functions(&Object_Table[0]);
     Device_Init();
-    /* we need to handle who-is 
+    /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* handle i-am to support binding to other devices */
