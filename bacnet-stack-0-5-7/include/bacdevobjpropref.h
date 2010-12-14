@@ -35,6 +35,11 @@
 #ifndef _BAC_DEV_PROP_REF_H_
 #define _BAC_DEV_PROP_REF_H_
 
+typedef struct BACnet_Property_Ref {
+    BACNET_PROPERTY_ID propertyIdentifier;
+    uint32_t arrayIndex;        /* Optional */
+} BACNET_PROPERTY_REF;
+
 typedef struct BACnet_Object_Property_Reference {
     BACNET_OBJECT_ID objectIdentifier;
     BACNET_PROPERTY_ID propertyIdentifier;
@@ -54,6 +59,26 @@ typedef struct BACnet_Device_Object_Reference {
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    /* BACnetPropertyReference */
+    int bacapp_encode_property_ref(
+        uint8_t * apdu,
+        BACNET_PROPERTY_REF * value);
+
+    int bacapp_encode_context_property_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_PROPERTY_REF * value);
+
+    int bacapp_decode_property_ref(
+        uint8_t * apdu,
+        BACNET_PROPERTY_REF * value);
+
+    int bacapp_decode_context_property_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_PROPERTY_REF * value);
+
 
     /* BACnetDeviceObjectPropertyReference */
 

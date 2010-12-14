@@ -49,11 +49,11 @@ int getevent_encode_apdu(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);     /* + flag 'SA' if we accept many segments */
-        apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU);
-        apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_GET_EVENT_INFORMATION;
-        apdu_len = 4;
+        /*apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);      */
+        /*apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU); */
+        /*apdu[2] = invoke_id; */
+        /*apdu[3] = SERVICE_CONFIRMED_GET_EVENT_INFORMATION; */
+        /*apdu_len = 4; */
         /* encode optional parameter */
         if (lastReceivedObjectIdentifier) {
             len =
@@ -214,6 +214,7 @@ int getevent_ack_decode_service_request(
             /* Mark invalid type/instance */
             event_data->objectIdentifier.type = ~0;
             event_data->objectIdentifier.instance = ~0;
+            event_data = NULL;
         }
 
         for (; event_data; event_data = event_data->next) {

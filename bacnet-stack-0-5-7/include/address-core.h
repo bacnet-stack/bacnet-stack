@@ -8,6 +8,7 @@ struct Address_Cache_Entry {
     uint32_t device_id;
     unsigned max_apdu;
     uint8_t segmentation;
+    uint32_t maxsegments;
     BACNET_ADDRESS address;
     uint32_t TimeToLive;
 };

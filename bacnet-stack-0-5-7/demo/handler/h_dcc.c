@@ -158,7 +158,7 @@ void handler_device_communication_control(
             "Sending Reject - undefined enumeration\n");
 #endif
     } else {
-#pragma __NOTE("Vérifier l'encodage du mot de passe")
+
         if (characterstring_ansi_same(&password, My_Password)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],

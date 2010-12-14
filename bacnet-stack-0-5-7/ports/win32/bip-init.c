@@ -415,6 +415,20 @@ bool bip_init(
         return false;
     }
 #endif
+
+/* Not an obviously interesting option, but we might want to be able to receive as much packets as possible. */
+#if 1
+    /* Get a biger receive buffer, just in case we receive a huge number of alarms, events or notifications */
+    /* otherwise packets are seen in wireshark but dropped by UDP/IP stack. Such a behaviour might be in favor */
+    /* of tools based on cimetrics bacstac that capture packets at very-low level, but that is the only advantage. */
+    /* Depends on the operating system. Value may be limited to 64k. */
+    value = 65536 * 2;
+    rv = setsockopt(sock_fd, SOL_SOCKET, SO_RCVBUF, (char *) &value,
+        sizeof(value));
+    if (rv < 0) {
+        fprintf(stderr, "bip: failed to set SO_RCVBUF socket option.\n");
+    }
+#endif
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
 #if defined(USE_INADDR) && USE_INADDR

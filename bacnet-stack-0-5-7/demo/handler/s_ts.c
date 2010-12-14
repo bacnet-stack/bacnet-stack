@@ -52,6 +52,7 @@ void Send_TimeSync_Unicast(
     int pdu_len = 0;
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
@@ -66,7 +67,7 @@ void Send_TimeSync_Unicast(
 
     /* is the device bound? */
     if (!address_get_by_device(sess, deviceId, &max_apdu, &segmentation,
-            &dest))
+            &maxsegments, &dest))
         return;
     sess->datalink_get_my_address(sess, &my_address);
 
@@ -96,9 +97,11 @@ void Send_TimeSyncUTC_Unicast(
     BACNET_DATE * bdate,
     BACNET_TIME * btime)
 {
+    int len = 0;
     int pdu_len = 0;
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
@@ -113,7 +116,7 @@ void Send_TimeSyncUTC_Unicast(
 
     /* is the device bound? */
     if (!address_get_by_device(sess, deviceId, &max_apdu, &segmentation,
-            &dest))
+            &maxsegments, &dest))
         return;
     sess->datalink_get_my_address(sess, &my_address);
 
@@ -123,8 +126,10 @@ void Send_TimeSyncUTC_Unicast(
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
         &npdu_data);
     /* encode the APDU portion of the packet */
-    pdu_len =
-        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0], bdate, btime);
+    len =
+        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate,
+        btime);
+    pdu_len += len;
     bytes_sent =
         sess->datalink_send_pdu(sess, &dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
@@ -145,6 +150,7 @@ void Send_TimeSync(
     int pdu_len = 0;
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
@@ -185,6 +191,7 @@ void Send_TimeSyncUTC(
     int pdu_len = 0;
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;

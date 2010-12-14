@@ -54,7 +54,7 @@ extern "C" {
         struct bacnet_session_object *session_object,
         time_t seconds);
 #else
-#define bvlc_maintenance_timer(x)
+#define bvlc_maintenance_timer(s,x)
 #endif
     /* registers with a bbmd as a foreign device */
     void bvlc_register_with_bbmd(

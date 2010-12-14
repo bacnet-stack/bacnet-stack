@@ -55,13 +55,14 @@ uint8_t Send_CEvent_Notify(
     int pdu_len = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
+    BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     BACNET_ADDRESS dest;
-    BACNET_ADDRESS my_address;
     unsigned max_apdu = 0;
     bool status = false;
     uint8_t invoke_id = 0;
     uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
 
     if (!dcc_communication_enabled(sess))
         return 0;
@@ -69,7 +70,7 @@ uint8_t Send_CEvent_Notify(
     /* is the device bound? */
     status =
         address_get_by_device(sess, device_id, &max_apdu, &segmentation,
-        &dest);
+        &maxsegments, &dest);
     /* is there a tsm available? */
     if (status)
         invoke_id = tsm_next_free_invokeID(sess);
@@ -81,43 +82,31 @@ uint8_t Send_CEvent_Notify(
             subscriber->SubscribeInvokeId(invoke_id, subscriber->context);
         }
         /* encode the NPDU portion of the packet */
-        sess->datalink_get_my_address(sess, &my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len =
-            npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
-            &npdu_data);
+        apdu_init_fixed_header(&apdu_fixed_header,
+            PDU_TYPE_CONFIRMED_SERVICE_REQUEST, invoke_id,
+            SERVICE_CONFIRMED_EVENT_NOTIFICATION, max_apdu);
         /* encode the APDU portion of the packet */
         len =
             cevent_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             invoke_id, data);
         pdu_len += len;
-        /* will it fit in the sender?
-           note: if there is a bottleneck router in between
-           us and the destination, we won't know unless
-           we have a way to check for that and update the
-           max_apdu in the address binding table. */
-        if ((unsigned) pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(sess, invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t) pdu_len);
-            bytes_sent =
-                sess->datalink_send_pdu(sess, &dest, &npdu_data,
-                &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-            if (bytes_sent <= 0) {
-                fprintf(stderr,
-                    "Failed to Send ConfirmedEventNotification Request (%s)!\n",
-                    strerror(errno));
-            }
-#endif
-        } else {
-            tsm_free_invoke_id_check(sess, invoke_id, NULL, false);
+
+        /* Send data to the peer device, respecting APDU sizes, destination size,
+           and segmented or unsegmented data sending possibilities */
+        bytes_sent =
+            tsm_set_confirmed_transaction(sess, invoke_id, &dest, &npdu_data,
+            &apdu_fixed_header, &Handler_Transmit_Buffer[0], pdu_len);
+
+        if (bytes_sent <= 0)
             invoke_id = 0;
 #if PRINT_ENABLED
+        if (bytes_sent <= 0) {
             fprintf(stderr,
-                "Failed to Send ConfirmedEventNotification Request "
-                "(exceeds destination maximum APDU)!\n");
-#endif
+                "Failed to Send ConfirmedEventNotification Request (%s)!\n",
+                strerror(errno));
         }
+#endif
     }
 
     return invoke_id;

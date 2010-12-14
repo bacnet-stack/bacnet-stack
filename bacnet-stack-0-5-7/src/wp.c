@@ -36,50 +36,68 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 #include "wp.h"
+#include "apdu.h"
 
 /** @file wp.c  Encode/Decode BACnet Write Property APDUs  */
 
 /* encode service */
 int wp_encode_apdu(
     uint8_t * apdu,
-    uint8_t invoke_id,
+    int max_apdu_len,
     BACNET_WRITE_PROPERTY_DATA * wpdata)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
     int len = 0;        /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
-        apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_WRITE_PROPERTY;     /* service choice */
-        apdu_len = 4;
+        /* check context oid */
+        if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
+            return -1;
         len =
             encode_context_object_id(&apdu[apdu_len], 0, wpdata->object_type,
             wpdata->object_instance);
         apdu_len += len;
+        /* check prop id */
+        if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
+            return -1;
         len =
             encode_context_enumerated(&apdu[apdu_len], 1,
             wpdata->object_property);
         apdu_len += len;
         /* optional array index; ALL is -1 which is assumed when missing */
         if (wpdata->array_index != BACNET_ARRAY_ALL) {
+            /* check index */
+            if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
+                return -1;
             len =
                 encode_context_unsigned(&apdu[apdu_len], 2,
                 wpdata->array_index);
             apdu_len += len;
         }
+        /* check value tag */
+        if (!check_write_apdu_space(apdu_len, max_apdu_len, 1))
+            return -1;
         /* propertyValue */
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
+        /* check value length */
+        if (!check_write_apdu_space(apdu_len, max_apdu_len,
+                wpdata->application_data_len))
+            return -1;
         for (len = 0; len < wpdata->application_data_len; len++) {
             apdu[apdu_len + len] = wpdata->application_data[len];
         }
         apdu_len += wpdata->application_data_len;
+        /* check tag */
+        if (!check_write_apdu_space(apdu_len, max_apdu_len, 1))
+            return -1;
         len = encode_closing_tag(&apdu[apdu_len], 3);
         apdu_len += len;
         /* optional priority - 0 if not set, 1..16 if set */
         if (wpdata->priority != BACNET_NO_PRIORITY) {
+            /* check priority */
+            if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
+                return -1;
             len =
                 encode_context_unsigned(&apdu[apdu_len], 4, wpdata->priority);
             apdu_len += len;
@@ -104,7 +122,6 @@ int wp_decode_service_request(
     uint16_t type = 0;  /* for decoding */
     uint32_t property = 0;      /* for decoding */
     uint32_t unsigned_value = 0;
-    int i = 0;  /* loop counter */
 
     /* check for value pointers */
     if (apdu_len && wpdata) {
@@ -144,10 +161,15 @@ int wp_decode_service_request(
             (BACNET_PROPERTY_ID) property);
         /* a tag number of 3 is not extended so only one octet */
         len++;
+#if 0
         /* copy the data from the APDU */
         for (i = 0; i < wpdata->application_data_len; i++) {
             wpdata->application_data[i] = apdu[len + i];
         }
+#endif
+        /* make received data point on the source buffer, instead of making a copy */
+        wpdata->application_data = &apdu[len];
+
         /* add on the data length */
         len += wpdata->application_data_len;
         if (!decode_is_closing_tag_number(&apdu[len], 3))
@@ -223,10 +245,16 @@ void testWritePropertyTag(
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
+    BACNET_APDU_FIXED_HEADER fixed_pdu_header;
 
     wpdata.application_data_len =
         bacapp_encode_application_data(&wpdata.application_data[0], value);
-    len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
+    apdu_init_fixed_header(&fixed_pdu_header,
+        PDU_TYPE_CONFIRMED_SERVICE_REQUEST, invoke_id,
+        SERVICE_CONFIRMED_WRITE_PROPERTY);
+    len +=
+        fixed_header_encode_pdu(&apdu[len], sizeof(apdu), &fixed_pdu_header);
+    len += wp_encode_apdu(&apdu[len], sizeof(apdu) - len, &wpdata);
     ct_test(pTest, len != 0);
     /* decode the data */
     apdu_len = len;

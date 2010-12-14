@@ -41,6 +41,102 @@
 
 /** @file bacdevobjpropref.c  BACnet Application Device Object (Property) Reference */
 
+int bacapp_encode_context_property_ref(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    BACNET_PROPERTY_REF * value)
+{
+    int len;
+    int apdu_len = 0;
+
+    len = encode_opening_tag(&apdu[apdu_len], tag_number);
+    apdu_len += len;
+
+    len = bacapp_encode_property_ref(&apdu[apdu_len], value);
+    apdu_len += len;
+
+    len = encode_closing_tag(&apdu[apdu_len], tag_number);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+int bacapp_encode_property_ref(
+    uint8_t * apdu,
+    BACNET_PROPERTY_REF * value)
+{
+    int len;
+    int apdu_len = 0;
+
+    len =
+        encode_context_enumerated(&apdu[apdu_len], 0,
+        value->propertyIdentifier);
+    apdu_len += len;
+
+    if (value->arrayIndex > 0) {
+        len = encode_context_unsigned(&apdu[apdu_len], 1, value->arrayIndex);
+        apdu_len += len;
+    }
+    return apdu_len;
+}
+
+int bacapp_decode_property_ref(
+    uint8_t * apdu,
+    BACNET_PROPERTY_REF * value)
+{
+    int len;
+    int apdu_len = 0;
+    uint32_t enumValue;
+
+    if (-1 == (len =
+            decode_context_enumerated(&apdu[apdu_len], 0, &enumValue))) {
+        return -1;
+    }
+    value->propertyIdentifier = (BACNET_PROPERTY_ID) enumValue;
+    apdu_len += len;
+
+    if (decode_is_context_tag(&apdu[apdu_len], 1) &&
+        !decode_is_closing_tag(&apdu[apdu_len])) {
+        if (-1 == (len =
+                decode_context_unsigned(&apdu[apdu_len], 1,
+                    &value->arrayIndex))) {
+            return -1;
+        }
+        apdu_len += len;
+    } else {
+        value->arrayIndex = 0;
+    }
+    return apdu_len;
+}
+
+int bacapp_decode_context_property_ref(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    BACNET_PROPERTY_REF * value)
+{
+    int len = 0;
+    int section_length;
+
+    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
+        len++;
+        section_length = bacapp_decode_property_ref(&apdu[len], value);
+
+        if (section_length == -1) {
+            len = -1;
+        } else {
+            len += section_length;
+            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
+                len++;
+            } else {
+                len = -1;
+            }
+        }
+    } else {
+        len = -1;
+    }
+    return len;
+}
+
 int bacapp_encode_context_device_obj_property_ref(
     uint8_t * apdu,
     uint8_t tag_number,

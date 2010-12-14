@@ -41,24 +41,40 @@
 
 struct bacnet_session_object;
 
+typedef struct _confirmed_service_ack_data {
+    uint8_t invoke_id;
+    uint8_t sequence_number;
+    uint8_t proposed_window_number;
+    bool segmented_message;
+    bool more_follows;
+} BACNET_CONFIRMED_SERVICE_ACK_DATA;
+
 typedef struct _confirmed_service_data {
+    uint8_t invoke_id;
+    uint8_t sequence_number;
+    uint8_t proposed_window_number;
     bool segmented_message;
     bool more_follows;
     bool segmented_response_accepted;
     int max_segs;
     int max_resp;
-    uint8_t invoke_id;
-    uint8_t sequence_number;
-    uint8_t proposed_window_number;
 } BACNET_CONFIRMED_SERVICE_DATA;
 
-typedef struct _confirmed_service_ack_data {
-    bool segmented_message;
-    bool more_follows;
-    uint8_t invoke_id;
-    uint8_t sequence_number;
-    uint8_t proposed_window_number;
-} BACNET_CONFIRMED_SERVICE_ACK_DATA;
+/* 20.1.2.11 Fixed part of PDU Confirmed-Request and Complex-ACK headers*/
+typedef struct BACnet_Apdu_Fixed_Header {
+    /* pdu type Confirmed Request or Complex ACK */
+    uint8_t pdu_type;
+    union {
+        /* Data for pdu type PDU_TYPE_CONFIRMED_SERVICE_REQUEST */
+        struct _confirmed_service_data request_data;
+        /* Data for pdu type PDU_TYPE_COMPLEX_ACK */
+        struct _confirmed_service_ack_data ack_data;
+        /* Common data for both types */
+        struct _confirmed_service_ack_data common_data;
+    } service_data;
+    /* Service number */
+    uint8_t service_choice;
+} BACNET_APDU_FIXED_HEADER;
 
 #ifdef __cplusplus
 extern "C" {
@@ -201,11 +217,28 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data,
         uint8_t * service_choice,
         uint8_t ** service_request,
-        uint16_t * service_request_len);
+        uint32_t * service_request_len);
+
+    int apdu_encode_fixed_header(
+        uint8_t * apdu,
+        int max_apdu_length,
+        BACNET_APDU_FIXED_HEADER * fixed_pdu_header);
+
+    void apdu_init_fixed_header(
+        BACNET_APDU_FIXED_HEADER * fixed_pdu_header,
+        uint8_t pdu_type,
+        uint8_t invoke_id,
+        uint8_t service,
+        int max_apdu);
 
     uint16_t apdu_timeout(
         struct bacnet_session_object *session_object);
     void apdu_timeout_set(
+        struct bacnet_session_object *session_object,
+        uint16_t value);
+    uint16_t apdu_segment_timeout(
+        struct bacnet_session_object *session_object);
+    void apdu_segment_timeout_set(
         struct bacnet_session_object *session_object,
         uint16_t value);
     uint8_t apdu_retries(

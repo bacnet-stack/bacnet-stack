@@ -769,7 +769,7 @@ uint8_t Device_Protocol_Revision(
 BACNET_SEGMENTATION Device_Segmentation_Supported(
     void)
 {
-    return SEGMENTATION_RECEIVE;
+    return SEGMENTATION_BOTH;   /*RECEIVE; */
 }
 
 uint32_t Device_Database_Revision(
@@ -1220,7 +1220,8 @@ static int Device_Read_Property_Local(
             break;
         case PROP_APDU_SEGMENT_TIMEOUT:
             apdu_len =
-                encode_application_unsigned(&apdu[0], apdu_timeout(sess));
+                encode_application_unsigned(&apdu[0],
+                apdu_segment_timeout(sess));
             break;
         case PROP_NUMBER_OF_APDU_RETRIES:
             apdu_len =

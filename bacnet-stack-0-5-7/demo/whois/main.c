@@ -120,6 +120,7 @@ static void print_address_cache(
     uint32_t device_id = 0;
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     unsigned total_addresses = 0;
 
     printf(";%-7s %-20s %-5s %-20s %-4s\n", "Device", "MAC", "SNET", "SADR",
@@ -127,7 +128,7 @@ static void print_address_cache(
     printf(";------- -------------------- ----- -------------------- ----\n");
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         if (address_get_by_index(sess, i, &device_id, &max_apdu, &segmentation,
-                &address)) {
+                &maxsegments, &address)) {
             total_addresses++;
             printf(" %-7u ", device_id);
             for (j = 0; j < MAX_MAC_LEN; j++) {
@@ -265,7 +266,7 @@ int main(
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {
 #if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
+            bvlc_maintenance_timer(sess, elapsed_seconds);
 #endif
         }
         total_seconds += elapsed_seconds;

@@ -130,7 +130,7 @@ static void LocalIAmHandler(
         iam_decode_service_request(service_request, &device_id, &max_apdu,
         &segmentation, &vendor_id);
     if (len != -1) {
-        address_add(sess, device_id, max_apdu, segmentation, src);
+        address_add(sess, device_id, max_apdu, segmentation, 0, src);
     } else
         fprintf(stderr, "!\n");
 
@@ -173,6 +173,7 @@ int main(
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -245,7 +246,7 @@ int main(
         /* wait until the device is bound, or timeout and quit */
         found =
             address_bind_request(sess, Target_Device_Object_Instance,
-            &max_apdu, &segmentation, &Target_Address);
+            &max_apdu, &segmentation, &maxsegments, &Target_Address);
         if (found) {
             if (Target_File_Requested_Octet_Count) {
                 requestedOctetCount = Target_File_Requested_Octet_Count;

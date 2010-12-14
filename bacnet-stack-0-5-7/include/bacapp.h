@@ -102,6 +102,7 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_CALENDAR_ENTRY Calendar_Entry;
         BACNET_WEEKLY_SCHEDULE Weekly_Schedule;
         BACNET_SPECIAL_EVENT Special_Event;
+        BACNET_READ_ACCESS_SPECIFICATION Read_Access_Specification;
 #endif
 #if defined (BACAPP_OBJECT_ID)
         BACNET_OBJECT_ID Object_Id;
@@ -143,7 +144,7 @@ extern "C" {
 
     int bacapp_decode_application_data(
         uint8_t * apdu,
-        unsigned max_apdu_len,
+        int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     bool bacapp_decode_application_data_safe(
@@ -158,7 +159,7 @@ extern "C" {
 
     int bacapp_decode_context_data(
         uint8_t * apdu,
-        unsigned max_apdu_len,
+        int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
@@ -192,7 +193,7 @@ extern "C" {
     /* read a well-known value, or fallback to read app data / context data */
     int bacapp_decode_known_property(
         uint8_t * apdu,
-        unsigned max_apdu_len,
+        int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID prop);
     /* Loop through many well-known values */
@@ -219,7 +220,7 @@ extern "C" {
        such as the value received in a WriteProperty request */
     int bacapp_data_len(
         uint8_t * apdu,
-        unsigned max_apdu_len,
+        int max_apdu_len,
         BACNET_PROPERTY_ID property);
 
     /* Decoding a Log-buffer of a trend-log */

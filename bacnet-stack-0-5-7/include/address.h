@@ -55,6 +55,7 @@ extern "C" {
         uint32_t device_id,
         unsigned max_apdu,
         uint8_t segmentation,
+        uint32_t maxsegments,
         BACNET_ADDRESS * src);
 
     void address_remove_device(
@@ -66,6 +67,7 @@ extern "C" {
         uint32_t device_id,
         unsigned *max_apdu,
         uint8_t * segmentation,
+        uint32_t * maxsegments,
         BACNET_ADDRESS * src);
 
     bool address_get_by_index(
@@ -74,6 +76,7 @@ extern "C" {
         uint32_t * device_id,
         unsigned *max_apdu,
         uint8_t * segmentation,
+        uint32_t * maxsegments,
         BACNET_ADDRESS * src);
 
     bool address_get_device_id(
@@ -93,6 +96,7 @@ extern "C" {
         uint32_t device_id,
         unsigned *max_apdu,
         uint8_t * segmentation,
+        uint32_t * maxsegments,
         BACNET_ADDRESS * src);
 
     void address_add_binding(
@@ -100,6 +104,7 @@ extern "C" {
         uint32_t device_id,
         unsigned max_apdu,
         uint8_t segmentation,
+        uint32_t maxsegments,
         BACNET_ADDRESS * src);
 
     int address_list_encode(
@@ -117,6 +122,11 @@ extern "C" {
         uint32_t device_id,
         uint32_t TimeOut,
         bool StaticFlag);
+
+    void address_set_device_maxsegments(
+        struct bacnet_session_object *sess,
+        uint32_t device_id,
+        uint32_t maxsegments);
 
     void address_cache_timer(
         struct bacnet_session_object *sess,

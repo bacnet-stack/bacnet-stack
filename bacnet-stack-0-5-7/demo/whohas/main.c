@@ -59,7 +59,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* global variables used in this file */
 static BACNET_OBJECT_TYPE Target_Object_Type = MAX_BACNET_OBJECT_TYPE;
 static uint32_t Target_Object_Instance = BACNET_MAX_INSTANCE;
-static char *Target_Object_Name = NULL;
+static BACNET_CHARACTER_STRING Target_Object_Name;
 
 static bool Error_Detected = false;
 
@@ -142,7 +142,8 @@ int main(
     }
     /* decode the command line parameters */
     if (argc < 3) {
-        Target_Object_Name = argv[1];
+        characterstring_init(&Target_Object_Name, CHARACTER_ANSI_X34, argv[1],
+            strlen(argv[1]));
     } else {
         Target_Object_Type = strtol(argv[1], NULL, 0);
         Target_Object_Instance = strtol(argv[2], NULL, 0);
@@ -166,7 +167,7 @@ int main(
     timeout_seconds = apdu_timeout(sess) / 1000;
     /* send the request */
     if (argc < 3)
-        Send_WhoHas_Name(sess, -1, -1, Target_Object_Name);
+        Send_WhoHas_Name(sess, -1, -1, &Target_Object_Name);
     else
         Send_WhoHas_Object(sess, -1, -1, Target_Object_Type,
             Target_Object_Instance);

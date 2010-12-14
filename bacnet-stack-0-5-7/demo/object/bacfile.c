@@ -373,10 +373,10 @@ uint32_t bacfile_instance_from_tsm(
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
-    uint16_t service_request_len = 0;
+    uint32_t service_request_len = 0;
     BACNET_ADDRESS dest;        /* where the original packet was destined */
     uint8_t apdu[MAX_PDU] = { 0 };      /* original APDU packet */
-    uint16_t apdu_len = 0;      /* original APDU packet length */
+    uint32_t apdu_len = 0;      /* original APDU packet length */
     int len = 0;        /* apdu header length */
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint32_t object_instance = BACNET_MAX_INSTANCE + 1; /* return value */

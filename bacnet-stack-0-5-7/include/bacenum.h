@@ -996,6 +996,7 @@ typedef enum {
     BACNET_APPLICATION_TAG_CALENDAR_ENTRY,      /* BACnetCalendarEntry */
     BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,     /* BACnetWeeklySchedule */
     BACNET_APPLICATION_TAG_SPECIAL_EVENT,       /* BACnetSpecialEvent */
+    BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,   /* BACnetReadAccessSpecification */
 
 } BACNET_APPLICATION_TAG;
 

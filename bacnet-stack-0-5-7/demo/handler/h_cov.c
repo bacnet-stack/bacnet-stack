@@ -334,22 +334,26 @@ static bool cov_send_request(
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
+    BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
     uint8_t invoke_id = 0;
     bool status = false;        /* return value */
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list[2];
-    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+    uint8_t Handler_Transmit_Buffer[MAX_PDU_SEND] = { 0 };
 
 #if PRINT_ENABLED
     fprintf(stderr, "COVnotification: requested\n");
 #endif
-    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &cov_subscription->dest,
-        &my_address, &npdu_data);
+    /* in confirmed mode, all these operations are automatically done at TSM level */
+    if (!cov_subscription->issueConfirmedNotifications) {
+        sess->datalink_get_my_address(sess, &my_address);
+        pdu_len =
+            npdu_encode_pdu(&Handler_Transmit_Buffer[0],
+            &cov_subscription->dest, &my_address, &npdu_data);
+    }
     /* load the COV data structure for outgoing message */
     cov_data.subscriberProcessIdentifier =
         cov_subscription->subscriberProcessIdentifier;
@@ -377,27 +381,32 @@ static bool cov_send_request(
         if (invoke_id) {
             len =
                 ccov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                MAX_PDU - pdu_len, invoke_id, &cov_data);
+                MAX_PDU_SEND - pdu_len, invoke_id, &cov_data);
         } else {
             goto COV_FAILED;
         }
     } else {
         len =
             ucov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            MAX_PDU - pdu_len, &cov_data);
+            MAX_PDU_SEND - pdu_len, &cov_data);
     }
     pdu_len += len;
     if (cov_subscription->issueConfirmedNotifications) {
-        tsm_set_confirmed_unsegmented_transaction(sess, invoke_id,
-            &cov_subscription->dest, &npdu_data, &Handler_Transmit_Buffer[0],
-            (uint16_t) pdu_len);
+        apdu_init_fixed_header(&apdu_fixed_header,
+            PDU_TYPE_CONFIRMED_SERVICE_REQUEST, invoke_id,
+            SERVICE_CONFIRMED_COV_NOTIFICATION, MAX_APDU);
+        /* Send data to the peer device, respecting APDU sizes, destination size,
+           and segmented or unsegmented data sending possibilities */
+        bytes_sent =
+            tsm_set_confirmed_transaction(sess, invoke_id,
+            &cov_subscription->dest, &npdu_data, &apdu_fixed_header,
+            &Handler_Transmit_Buffer[0], pdu_len);
+    } else {
+        bytes_sent =
+            sess->datalink_send_pdu(sess, &cov_subscription->dest, &npdu_data,
+            &Handler_Transmit_Buffer[0], pdu_len);
     }
-    bytes_sent =
-        sess->datalink_send_pdu(sess, &cov_subscription->dest, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
-    if (bytes_sent > 0) {
-        status = true;
-    }
+    status = (bytes_sent > 0);
 
   COV_FAILED:
 

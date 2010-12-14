@@ -2474,13 +2474,150 @@ int decode_context_calendar_entry(
     return len;
 }
 
-/*///////////////////////////////////////////////////////////////// */
+/* ReadAccessSpecification */
+/*typedef struct BACnet_Read_Access_Specification { */
+/*    BACNET_OBJECT_ID objectIdentifier; */
+/*    BACNET_PROPERTY_REFERENCE listOfPropertyReferences[MAX_LIST_OF_PROPERTY_REFERENCES]; */
+/*} BACNET_READ_ACCESS_SPECIFICATION; */
 /*
       ReadAccessSpecification ::= SEQUENCE { 
        objectIdentifier  [0] BACnetObjectIdentifier, 
        listOfPropertyReferences [1] SEQUENCE OF BACnetPropertyReference 
        }
 */
+
+/* ReadAccessSpecification */
+int encode_read_access_specification(
+    uint8_t * apdu,
+    int max_apdu_len,
+    BACNET_READ_ACCESS_SPECIFICATION * entry)
+{
+    int len;
+    int apdu_len = 0;
+    int i;
+
+    /* objectIdentifier  [0] BACnetObjectIdentifier */
+    len =
+        encode_context_object_id(&apdu[apdu_len], 0,
+        (int) entry->objectIdentifier.type, entry->objectIdentifier.instance);
+    apdu_len += len;
+    /* listOfPropertyReferences [1] SEQUENCE */
+    apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
+    for (i = 0; i < MAX_LIST_OF_PROPERTY_REFERENCES; i++) {
+        /* test for empty marker */
+        if (entry->listOfPropertyReferences[i].propertyIdentifier ==
+            EMPTY_PROPERTY_REFERENCE_ID)
+            break;
+        apdu_len +=
+            bacapp_encode_property_ref(&apdu[apdu_len],
+            &entry->listOfPropertyReferences[i]);
+    }
+    apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
+    return apdu_len;
+}
+
+/* ReadAccessSpecification */
+int encode_context_read_access_specification(
+    uint8_t * apdu,
+    int max_apdu_len,
+    uint8_t tag_number,
+    BACNET_READ_ACCESS_SPECIFICATION * entry)
+{
+    int apdu_len = 0;
+    apdu_len += encode_opening_tag(&apdu[apdu_len], tag_number);
+    apdu_len +=
+        encode_read_access_specification(&apdu[apdu_len],
+        max_apdu_len - apdu_len, entry);
+    apdu_len += encode_closing_tag(&apdu[apdu_len], tag_number);
+    return apdu_len;
+}
+
+/* ReadAccessSpecification */
+int decode_read_access_specification(
+    uint8_t * apdu,
+    int max_apdu_len,
+    BACNET_READ_ACCESS_SPECIFICATION * entry)
+{
+    int apdu_len = 0;
+    int len;
+    int item_number = 0;
+    BACNET_PROPERTY_REF dummy_ref;
+
+    /* objectIdentifier  [0] BACnetObjectIdentifier */
+    len =
+        decode_context_object_id(&apdu[apdu_len], 0,
+        &entry->objectIdentifier.type, &entry->objectIdentifier.instance);
+    if (len < 0)
+        return -1;
+    apdu_len += len;
+    /* listOfPropertyReferences [1] SEQUENCE */
+    if (decode_is_context_tag_with_length(&apdu[apdu_len], 1, &len)
+        && !decode_is_closing_tag(&apdu[apdu_len])) {
+        apdu_len += len;
+        /* Decode all property reference values seen */
+        while (apdu_len < max_apdu_len) {
+            /* Mark item as "empty" */
+            if (item_number < MAX_LIST_OF_PROPERTY_REFERENCES)
+                entry->listOfPropertyReferences[item_number].
+                    propertyIdentifier = EMPTY_PROPERTY_REFERENCE_ID;
+            /* check closing tag */
+            if (decode_is_closing_tag_number(&apdu[apdu_len], 1))
+                break;
+            /* read sequence item */
+            len =
+                bacapp_decode_property_ref(&apdu[apdu_len],
+                (item_number <
+                    MAX_LIST_OF_PROPERTY_REFERENCES) ? &entry->
+                listOfPropertyReferences[item_number] : &dummy_ref);
+            if (len < 0)
+                return -1;
+            apdu_len += len;
+            item_number++;
+        }
+    } else
+        return -1;
+    if ((apdu_len < max_apdu_len) &&
+        decode_is_closing_tag_number(&apdu[apdu_len], 1)) {
+        apdu_len++;
+    } else
+        return -1;
+    return apdu_len;
+}
+
+/* ReadAccessSpecification */
+int decode_context_read_access_specification(
+    uint8_t * apdu,
+    int max_apdu_len,
+    uint8_t tag_number,
+    BACNET_READ_ACCESS_SPECIFICATION * entry)
+{
+    int len = 0;
+    int section_length;
+    if (max_apdu_len <= 0)
+        return -1;
+    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
+        len++;
+        section_length =
+            decode_read_access_specification(&apdu[len], max_apdu_len - len,
+            entry);
+
+        if (section_length == -1) {
+            len = -1;
+        } else {
+            len += section_length;
+            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
+                len++;
+            } else {
+                len = -1;
+            }
+        }
+    } else {
+        len = -1;
+    }
+    return len;
+}
+
+
 /*
         BACnetScale ::= CHOICE { 
          floatScale [0] REAL, 
@@ -2704,14 +2841,14 @@ int encode_time_value(
     int len = 0;
     int apdu_len = 0;
     BACNET_APPLICATION_DATA_VALUE tmpvalue = { 0 };
-    if (max_apdu_len <= 5)      /* application time : 5 bytes */
+    /* application time : 5 bytes */
+    if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
         return -1;
     len = encode_application_time(&apdu[apdu_len], &timevalue->Time);
     if (len < 0)
         return -1;
     apdu_len += len;
-    if (apdu_len >= max_apdu_len)
-        return -1;
+
     /* Copy plain value to bacnet-short-app-value type */
     tmpvalue.tag = timevalue->Value.tag;
     switch (tmpvalue.tag) {
@@ -2744,7 +2881,16 @@ int encode_time_value(
     return apdu_len;
 }
 
-/*/ Encodes a : [x] SEQUENCE OF BACnetTimeValue into a fixed-size buffer */
+/* room checks to prevent buffer overflows */
+bool check_write_apdu_space(
+    int apdu_len,
+    int max_apdu,
+    int space_needed)
+{
+    return (apdu_len + space_needed) < max_apdu;
+}
+
+/* Encodes a : [x] SEQUENCE OF BACnetTimeValue into a fixed-size buffer */
 static int encode_context_time_values(
     uint8_t * apdu,
     int max_apdu_len,
@@ -2757,10 +2903,11 @@ static int encode_context_time_values(
     int len = 0;
     BACNET_TIME t0 = { 0 };
 
-    if (max_apdu_len <= 0)
-        return -1;
     /* day-schedule [x] SEQUENCE OF BACnetTimeValue */
+    if (!check_write_apdu_space(apdu_len, max_apdu_len, 1))
+        return -1;
     apdu_len += encode_opening_tag(&apdu[apdu_len], tag_number);
+
     for (j = 0; j < max_time_values; j++)
         /* Encode only non-null values (NULL,00:00:00.00) */
         if (daySchedule[j].Value.tag != BACNET_APPLICATION_TAG_NULL ||
@@ -2772,7 +2919,8 @@ static int encode_context_time_values(
                 return -1;
             apdu_len += len;
         }
-    if (apdu_len >= max_apdu_len)
+    /* close tag */
+    if (!check_write_apdu_space(apdu_len, max_apdu_len, 1))
         return -1;
     apdu_len += encode_closing_tag(&apdu[apdu_len], tag_number);
     return apdu_len;
@@ -2982,7 +3130,7 @@ int decode_weekly_schedule(
     return apdu_len;
 }
 
-/*/ BACnetDailySchedule x7 */
+/* BACnetDailySchedule x7 */
 int encode_weekly_schedule(
     uint8_t * apdu,
     int max_apdu_len,
@@ -2992,6 +3140,7 @@ int encode_weekly_schedule(
     int apdu_len = 0;
     int len = 0;
     for (j = 0; j < 7; j++) {
+        /* not enough room to write data */
         len =
             encode_daily_schedule(&apdu[apdu_len], max_apdu_len - apdu_len,
             &week->weeklySchedule[j]);

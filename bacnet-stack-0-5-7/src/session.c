@@ -5,22 +5,33 @@
 #include <stdlib.h>
 #include "session.h"
 
-/*/ Allocate a new BACnet session */
+/* Allocate a new BACnet session */
 struct bacnet_session_object *bacnet_allocate_session(
     )
 {
     struct bacnet_session_object *session =
         (struct bacnet_session_object *) calloc(1,
         sizeof(struct bacnet_session_object));
-    /* Initialize data // */
+    /* Initialize default data values, timeouts, etc.. */
     /* XXX */
+    /* APDU */
+    session->APDU_Timeout_Milliseconds = 3000;
+    session->APDU_Segment_Timeout_Milliseconds = 2000;
+    session->APDU_Number_Of_Retries = 3;
     return session;
 }
 
-/*/ Destroy a BACnet session object */
+/* Destroy a BACnet session object */
 void bacnet_destroy_session(
     struct bacnet_session_object *session_object)
 {
+    /* Destroy allocated data */
+#if (MAX_TSM_TRANSACTIONS)
+    int ix;
+    for (ix = 0; ix < MAX_TSM_TRANSACTIONS; ix++) {
+        free_blob(&session_object->TSM_List[ix]);
+    }
+#endif
     free(session_object);
 }
 

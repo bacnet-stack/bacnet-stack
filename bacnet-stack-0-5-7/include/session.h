@@ -77,16 +77,20 @@ struct bacnet_session_object {
 
 #if (MAX_TSM_TRANSACTIONS)
     /* TSM ---------------------------------------------------- */
-    /*/ Current InvokeID */
+    /* Current InvokeID */
     uint8_t TSM_Current_InvokeID;
-    /*/ State machine values */
+    /* State machine values */
     BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS];
+    /* Indirection of state machine data with peer unique id values */
+    BACNET_TSM_INDIRECT_DATA TSM_Peer_Ids[MAX_TSM_PEERS];
 #endif
 
     /* APDU ---------------------------------------------------- */
 
     /* APDU Timeout in Milliseconds */
     uint16_t APDU_Timeout_Milliseconds; /* = 3000; */
+    /* APDU Segmnet Timeout in Milliseconds */
+    uint16_t APDU_Segment_Timeout_Milliseconds; /* = 3000; */
     /* Number of APDU Retries */
     uint8_t APDU_Number_Of_Retries;     /* = 3; */
 

@@ -58,7 +58,7 @@ void Send_WhoHas_Name(
     struct bacnet_session_object *sess,
     int32_t low_limit,
     int32_t high_limit,
-    const char *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     int len = 0;
     int pdu_len = 0;
@@ -81,12 +81,67 @@ void Send_WhoHas_Name(
     data.low_limit = low_limit;
     data.high_limit = high_limit;
     data.object_name = true;
-    characterstring_init_ansi(&data.object.name, object_name);
+    /* Copy character string structure */
+    data.object.name = *object_name;
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
     /* send the data */
     bytes_sent =
         sess->datalink_send_pdu(sess, &dest, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
+            strerror(errno));
+#endif
+}
+
+/** Send a Who-Has request for a named Object in a specific device.
+ * @ingroup DMDOB
+ * If low_limit and high_limit both are -1, then the device ID range is unlimited.
+ * If low_limit and high_limit have the same non-negative value, then only 
+ * that device will respond.
+ * Otherwise, low_limit must be less than high_limit for a range.
+ * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
+ * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
+ * @param object_name [in] The Name of the desired Object.
+ */
+void Send_WhoHas_Name_Unicast(
+    struct bacnet_session_object *sess,
+    int32_t low_limit,
+    int32_t high_limit,
+    BACNET_CHARACTER_STRING * bacname,
+    BACNET_ADDRESS * dest)
+{
+    int len = 0;
+    int pdu_len = 0;
+    BACNET_ADDRESS my_address;
+    int bytes_sent = 0;
+    BACNET_WHO_HAS_DATA data;
+    BACNET_NPDU_DATA npdu_data;
+    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+
+    /* if we are forbidden to send, don't send! */
+    if (!dcc_communication_enabled(sess))
+        return;
+
+    sess->datalink_get_my_address(sess, &my_address);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, &my_address,
+        &npdu_data);
+    /* encode the APDU portion of the packet */
+    data.low_limit = low_limit;
+    data.high_limit = high_limit;
+    data.object_name = true;
+    /* Copy character string structure */
+    data.object.name = *bacname;
+    len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
+    pdu_len += len;
+    /* send the data */
+    bytes_sent =
+        sess->datalink_send_pdu(sess, dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)

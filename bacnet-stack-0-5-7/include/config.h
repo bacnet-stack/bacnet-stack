@@ -46,7 +46,7 @@
 #endif
 /* Use BBMD functions (e.g. acts as a BBMD)*/
 #if !defined(BBMD_ENABLED)
-#define BBMD_ENABLED 0
+#define BBMD_ENABLED 1 
 #endif
 #endif
 
@@ -67,6 +67,10 @@
 #if !defined(BACNET_VENDOR_NAME)
 #define BACNET_VENDOR_NAME "Areal"
 #endif
+
+/* Force bigger string names support */
+#define MAX_CHARACTER_STRING_BYTES  1470
+#define MAX_OCTET_STRING_BYTES      1470
 
 /* Définir un APDU avantageux */
 #define MAX_APDU 1476
@@ -104,6 +108,12 @@
 /* requests available. */
 #if !defined(MAX_TSM_TRANSACTIONS)
 #define MAX_TSM_TRANSACTIONS 255
+#endif
+
+/* for confirmed segmented messages, this is the number of peer
+   segmented requests we can stand at the same time. */
+#if !defined(MAX_TSM_PEERS)
+#define MAX_TSM_PEERS 16
 #endif
 
 /* for segmented messages, this is the number of segments accepted */
