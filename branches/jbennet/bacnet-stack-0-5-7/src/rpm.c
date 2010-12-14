@@ -43,6 +43,7 @@
 /** @file rpm.c  Encode/Decode Read Property Multiple and RPM ACKs  */
 
 /* encode the initial portion of the service */
+#if 0
 int rpm_encode_apdu_init(
     uint8_t * apdu,
     uint8_t invoke_id)
@@ -59,6 +60,7 @@ int rpm_encode_apdu_init(
 
     return apdu_len;
 }
+#endif
 
 int rpm_encode_apdu_object_begin(
     uint8_t * apdu,
@@ -120,14 +122,14 @@ int rpm_encode_apdu(
     uint8_t apdu_temp[16];      /* temp for data before copy */
     BACNET_PROPERTY_REFERENCE *rpm_property;    /* current property */
 
-    len = rpm_encode_apdu_init(&apdu_temp[0], invoke_id);
-    len =
-        (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len, (size_t) len,
-        (size_t) max_apdu);
-    if (len == 0) {
-        return 0;
-    }
-    apdu_len += len;
+    /*len = rpm_encode_apdu_init(&apdu_temp[0], invoke_id); */
+    /*len = */
+    /*    (int) memcopy(&apdu[0], &apdu_temp[0], (size_t) apdu_len, (size_t) len, */
+    /*    (size_t) max_apdu); */
+    /*if (len == 0) { */
+    /*    return 0; */
+    /*} */
+    /*apdu_len += len; */
     rpm_object = read_access_data;
     while (rpm_object) {
         len =

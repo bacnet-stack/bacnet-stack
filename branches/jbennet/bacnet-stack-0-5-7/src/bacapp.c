@@ -61,7 +61,8 @@ int bacapp_encode_application_data(
         switch (value->tag) {
 #if defined (BACAPP_NULL)
             case BACNET_APPLICATION_TAG_NULL:
-                if (max_apdu_len < 1)   /* Check for overflow */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 1))
                     return -1;
                 apdu[0] = value->tag;
                 apdu_len++;
@@ -69,7 +70,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                if (max_apdu_len < 1)   /* Check for overflow */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 1))
                     return -1;
                 apdu_len =
                     encode_application_boolean(&apdu[0], value->type.Boolean);
@@ -77,7 +79,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                if (max_apdu_len < 5)   /* Worst case limit */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
                     return -1;
                 apdu_len =
                     encode_application_unsigned(&apdu[0],
@@ -86,7 +89,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                if (max_apdu_len < 5)   /* Worst case limit */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
                     return -1;
                 apdu_len =
                     encode_application_signed(&apdu[0],
@@ -95,14 +99,16 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                if (max_apdu_len < 5)
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
                     return -1;
                 apdu_len = encode_application_real(&apdu[0], value->type.Real);
                 break;
 #endif
 #if defined (BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                if (max_apdu_len < 10)
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 10))
                     return -1;
                 apdu_len =
                     encode_application_double(&apdu[0], value->type.Double);
@@ -110,6 +116,10 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 1))
+                    return -1;
+
                 if (max_apdu_len <
                     2 + (int) octetstring_length(&value->type.Octet_String))
                     return -1;
@@ -142,7 +152,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
-                if (max_apdu_len < 5)   /* Worst case limit */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
                     return -1;
                 apdu_len =
                     encode_application_enumerated(&apdu[0],
@@ -151,7 +162,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_DATE)
             case BACNET_APPLICATION_TAG_DATE:
-                if (max_apdu_len < 5)   /* Worst case limit */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
                     return -1;
                 apdu_len =
                     encode_application_date(&apdu[0], &value->type.Date);
@@ -159,7 +171,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_TIME)
             case BACNET_APPLICATION_TAG_TIME:
-                if (max_apdu_len < 5)   /* Worst case limit */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
                     return -1;
                 apdu_len =
                     encode_application_time(&apdu[0], &value->type.Time);
@@ -167,7 +180,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined (BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                if (max_apdu_len < 5)   /* Worst case limit */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 5))
                     return -1;
                 apdu_len =
                     encode_application_object_id(&apdu[0],
@@ -182,46 +196,53 @@ int bacapp_encode_application_data(
                 break;
 
             case BACNET_APPLICATION_TAG_DATERANGE:     /* BACnetDateRange */
-                if (max_apdu_len < 10)
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 10))
                     return -1;
                 apdu_len = encode_daterange(&apdu[0], &value->type.Date_Range);
                 break;
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:      /* BACnetDeviceObjectPropertyReference */
-                if (max_apdu_len < 20)  /* Worst case */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 20))
                     return -1;
                 apdu_len =
                     bacapp_encode_device_obj_property_ref(&apdu[0],
                     &value->type.Device_Object_Property_Reference);
                 break;
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:       /* BACnetDeviceObjectReference */
-                if (max_apdu_len < 10)  /* Worst case */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 10))
                     return -1;
                 apdu_len =
                     bacapp_encode_device_obj_ref(&apdu[0],
                     &value->type.Device_Object_Reference);
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:     /* BACnetObjectPropertyReference */
-                if (max_apdu_len < 15)  /* Worst case */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 15))
                     return -1;
                 apdu_len =
                     bacapp_encode_obj_property_ref(&apdu[0],
                     &value->type.Object_Property_Reference);
                 break;
             case BACNET_APPLICATION_TAG_DATETIME:      /* BACnetDateTime */
-                if (max_apdu_len < 10)
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 10))
                     return -1;
                 apdu_len =
                     encode_application_datetime(&apdu[0],
                     &value->type.Date_Time);
                 break;
             case BACNET_APPLICATION_TAG_TIMESTAMP:     /* BACnetTimeStamp */
-                if (max_apdu_len < 12)  /* Worst case */
+                /* Check for overflow */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 12))
                     return -1;
                 apdu_len =
                     bacapp_encode_timestamp(&apdu[0], &value->type.TimeStamp);
                 break;
             case BACNET_APPLICATION_TAG_RECIPIENT:     /* BACnetRecipient */
-                if (max_apdu_len < 20)  /* ~ limit on max MAC address ? - XXX */
+                /* ~ limit on max MAC address ? - XXX */
+                if (!check_write_apdu_space(apdu_len, max_apdu_len, 20))
                     return -1;
                 apdu_len = encode_recipient(&apdu[0], &value->type.Recipient);
                 break;
@@ -249,6 +270,11 @@ int bacapp_encode_application_data(
                 apdu_len =
                     encode_destination(&apdu[0], max_apdu_len,
                     &value->type.Destination);
+                break;
+            case BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION:     /* BACnetReadAccessSpecification */
+                apdu_len =
+                    encode_read_access_specification(&apdu[0], max_apdu_len,
+                    &value->type.Read_Access_Specification);
                 break;
 #endif
 
@@ -379,7 +405,7 @@ int bacapp_decode_data(
 
 int bacapp_decode_application_data(
     uint8_t * apdu,
-    unsigned max_apdu_len,
+    int max_apdu_len,
     BACNET_APPLICATION_DATA_VALUE * value)
 {
     int len = 0;
@@ -387,7 +413,7 @@ int bacapp_decode_application_data(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
 
-    /* FIXME: use max_apdu_len! */
+    /* @@@ XXX TODO FIXME: use max_apdu_len! */
     max_apdu_len = max_apdu_len;
     if (apdu && value && !IS_CONTEXT_SPECIFIC(*apdu)) {
         value->context_specific = false;
@@ -752,11 +778,11 @@ void copy_app_to_short_app_value(
 void bacapp_desallocate_values(
     BACNET_APPLICATION_DATA_VALUE * value)
 {
-    if (!value)
-        return;
-    if (value->next)
-        bacapp_desallocate_values(value->next);
-    free(value);
+    BACNET_APPLICATION_DATA_VALUE *v_next;
+    for (; value; value = v_next) {
+        v_next = value->next;
+        free(value);
+    }
 }
 
 /* auto alloc-and-copy data */
@@ -787,7 +813,7 @@ BACNET_APPLICATION_DATA_VALUE *bacapp_allocate_new_value(
 
 int bacapp_decode_context_data_complex(
     uint8_t * apdu,
-    unsigned max_apdu_len,
+    int max_apdu_len,
     uint8_t tag_number,
     BACNET_APPLICATION_DATA_VALUE * value,
     BACNET_PROPERTY_ID prop)
@@ -812,7 +838,8 @@ int bacapp_decode_context_data_complex(
 #endif
 
     /* If it's closed : leave */
-    while (!decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
+    while (!decode_is_closing_tag_number(&apdu[apdu_len], tag_number) &&
+        (apdu_len < max_apdu_len)) {
         /* Context ou pas ! */
         if (IS_CONTEXT_SPECIFIC(apdu[apdu_len])) {
             /* open a new tag area */
@@ -868,7 +895,7 @@ int bacapp_decode_context_data_complex(
 
 int bacapp_decode_context_data(
     uint8_t * apdu,
-    unsigned max_apdu_len,
+    int max_apdu_len,
     BACNET_APPLICATION_DATA_VALUE * value,
     BACNET_PROPERTY_ID property)
 {
@@ -887,7 +914,7 @@ int bacapp_decode_context_data(
             &len_value_type);
         apdu_len = tag_len;
         /* Empty construct : (closing tag) => returns NULL value */
-        if (tag_len && (unsigned int) tag_len <= max_apdu_len &&
+        if (tag_len && tag_len <= max_apdu_len &&
             !decode_is_closing_tag_number(&apdu[0], tag_number)) {
             value->context_tag = tag_number;
 
@@ -927,7 +954,7 @@ int bacapp_decode_context_data(
 /*/ Generic property decoding */
 int bacapp_decode_generic_property(
     uint8_t * apdu,
-    unsigned max_apdu_len,
+    int max_apdu_len,
     BACNET_APPLICATION_DATA_VALUE * value,
     BACNET_PROPERTY_ID prop)
 {
@@ -980,7 +1007,7 @@ int decode_priority_value(
 /* reverse operations in bacapp_encode_application_data */
 int bacapp_decode_known_property(
     uint8_t * apdu,
-    unsigned max_apdu_len,
+    int max_apdu_len,
     BACNET_APPLICATION_DATA_VALUE * value,
     BACNET_PROPERTY_ID prop)
 {
@@ -1135,7 +1162,12 @@ int bacapp_decode_known_property(
 
             /* Properties using : ReadAccessSpecification */
         case PROP_LIST_OF_GROUP_MEMBERS:
-            /* XXX - TODO */
+            value->tag = BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION;
+            if ((len =
+                    decode_read_access_specification(&apdu[0], max_apdu_len,
+                        &value->type.Read_Access_Specification)) > 0)
+                return len;
+            break;
 
             /* BACnetAddressBinding */
         case PROP_DEVICE_ADDRESS_BINDING:
@@ -1361,7 +1393,7 @@ bool bacapp_copy(
    such as the value received in a WriteProperty request */
 int bacapp_data_len(
     uint8_t * apdu,
-    unsigned max_apdu_len,
+    int max_apdu_len,
     BACNET_PROPERTY_ID property)
 {
     int len = 0;
@@ -1413,7 +1445,7 @@ int bacapp_data_len(
                     break;
                 }
             }
-            if ((unsigned) apdu_len > max_apdu_len) {
+            if (apdu_len > max_apdu_len) {
                 /* error: exceeding our buffer limit */
                 total_len = -1;
                 break;

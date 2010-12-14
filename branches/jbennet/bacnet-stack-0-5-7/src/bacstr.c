@@ -244,23 +244,23 @@ bool characterstring_init(
         char_string->encoding = encoding;
         /* save a byte at the end for NULL -
            note: assumes printable characters */
-        if (length <= CHARACTER_STRING_CAPACITY) {
-            if (value) {
-                for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
-                    if (i < length) {
-                        char_string->value[char_string->length] = value[i];
-                        char_string->length++;
-                    } else {
-                        char_string->value[i] = 0;
-                    }
-                }
-            } else {
-                for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
+        if (length > CHARACTER_STRING_CAPACITY)
+            length = CHARACTER_STRING_CAPACITY;
+        if (value) {
+            for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
+                if (i < length) {
+                    char_string->value[char_string->length] = value[i];
+                    char_string->length++;
+                } else {
                     char_string->value[i] = 0;
                 }
             }
-            status = true;
+        } else {
+            for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
+                char_string->value[i] = 0;
+            }
         }
+        status = true;
     }
 
     return status;

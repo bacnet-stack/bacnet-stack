@@ -917,6 +917,8 @@ uint16_t bvlc_receive(
     int received_bytes = 0;
     uint16_t result_code = 0;
     uint16_t i = 0;
+    bool status = false;        /* return value */
+    uint16_t time_to_live;
 
     /* Make sure the socket is open */
     if (bip_socket(session_object) < 0) {

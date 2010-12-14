@@ -473,7 +473,34 @@ extern "C" {
         uint8_t * apdu,
         int max_apdu_len,
         BACNET_SPECIAL_EVENT * special);
+    /* ReadAccessSpecification */
+    int encode_read_access_specification(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_READ_ACCESS_SPECIFICATION * entry);
+    /* ReadAccessSpecification */
+    int encode_context_read_access_specification(
+        uint8_t * apdu,
+        int max_apdu_len,
+        uint8_t tag_number,
+        BACNET_READ_ACCESS_SPECIFICATION * entry);
+    /* ReadAccessSpecification */
+    int decode_read_access_specification(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_READ_ACCESS_SPECIFICATION * entry);
+    /* ReadAccessSpecification */
+    int decode_context_read_access_specification(
+        uint8_t * apdu,
+        int max_apdu_len,
+        uint8_t tag_number,
+        BACNET_READ_ACCESS_SPECIFICATION * entry);
 
+    /* room checks to prevent buffer overflows */
+    bool check_write_apdu_space(
+        int apdu_len,
+        int max_apdu,
+        int space_needed);
 
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */

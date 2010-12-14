@@ -63,8 +63,8 @@ static Address_Cache_Entry Address_Cache[MAX_ADDRESS_CACHE];
 #define BAC_ADDR_SHORT_TTL 8    /* Oppertunistaclly added address with short TTL */
 #define BAC_ADDR_RESERVED  128  /* Freed up but held for caller to fill */
 
-#define BAC_ADDR_SECS_1HOUR 3600        /* 60x60 */
-#define BAC_ADDR_SECS_1DAY  86400       /* 60x60x24 */
+#define BAC_ADDR_SECS_1HOUR (1000*3600) /* 60x60 */
+#define BAC_ADDR_SECS_1DAY  (1000*86400)        /* 60x60x24 */
 
 #define BAC_ADDR_LONG_TIME  BAC_ADDR_SECS_1DAY
 #define BAC_ADDR_SHORT_TIME BAC_ADDR_SECS_1HOUR
@@ -190,7 +190,7 @@ struct Address_Cache_Entry *address_remove_oldest(
 
 
 /* File format:
-DeviceID MAC SNET SADR MAX-APDU SEGMENTATION
+DeviceID MAC SNET SADR MAX-APDU SEGMENTATION MAX-SEGMENTS
 4194303 05 0 0 50
 55555 C0:A8:00:18:BA:C0 26001 19 50
 note: useful for MS/TP Slave static binding
@@ -206,6 +206,7 @@ void address_file_init(
     long device_id = 0;
     int snet = 0;
     int segmentation = 0;
+    int maxsegments = 0;
     unsigned max_apdu = 0;
     unsigned mac[6];
     int count = 0;
@@ -218,9 +219,9 @@ void address_file_init(
         while (fgets(line, (int) sizeof(line), pFile) != NULL) {
             /* ignore comments */
             if (line[0] != ';') {
-                if (sscanf(line, "%ld %s %d %s %u %d", &device_id,
+                if (sscanf(line, "%ld %s %d %s %u %d %d", &device_id,
                         &mac_string[0], &snet, &sadr_string[0], &max_apdu,
-                        &segmentation) >= 5) {
+                        &segmentation, &maxsegments) >= 6) {
                     count =
                         sscanf(mac_string, "%x:%x:%x:%x:%x:%x", &mac[0],
                         &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
@@ -244,7 +245,7 @@ void address_file_init(
                         }
                     }
                     address_add(sess, (uint32_t) device_id, max_apdu,
-                        segmentation, &src);
+                        segmentation, maxsegments, &src);
                     address_set_device_TTL(sess, device_id, 0, true);   /* Mark as static entry */
                 }
             }
@@ -328,7 +329,7 @@ void address_set_device_TTL(
     while (pMatch <= &sess->Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
             (pMatch->device_id == device_id)) {
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {     /* If bound then we have either static or normaal */
+            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {     /* If bound then we have either static or normal */
                 if (StaticFlag) {
                     pMatch->Flags |= BAC_ADDR_STATIC;
                     pMatch->TimeToLive = BAC_ADDR_FOREVER;
@@ -345,12 +346,32 @@ void address_set_device_TTL(
     }
 }
 
+void address_set_device_maxsegments(
+    struct bacnet_session_object *sess,
+    uint32_t device_id,
+    uint32_t maxsegments)
+{
+    struct Address_Cache_Entry *pMatch;
+
+    pMatch = sess->Address_Cache;
+    while (pMatch <= &sess->Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
+            (pMatch->device_id == device_id)) {
+            pMatch->maxsegments = maxsegments;
+            break;      /* Exit now if found at all - bound or unbound */
+        }
+        pMatch++;
+    }
+}
+
+
 
 bool address_get_by_device(
     struct bacnet_session_object *sess,
     uint32_t device_id,
     unsigned *max_apdu,
     uint8_t * segmentation,
+    uint32_t * maxsegments,
     BACNET_ADDRESS * src)
 {
     struct Address_Cache_Entry *pMatch;
@@ -364,7 +385,7 @@ bool address_get_by_device(
                 *src = pMatch->address;
                 *max_apdu = pMatch->max_apdu;
                 *segmentation = pMatch->segmentation;
-                found = true;   /* Prove we found it */
+                *maxsegments = pMatch->maxsegments, found = true;       /* Prove we found it */
             }
             break;      /* Exit now if found at all - bound or unbound */
         }
@@ -406,6 +427,7 @@ void address_add(
     uint32_t device_id,
     unsigned max_apdu,
     uint8_t segmentation,
+    uint32_t maxsegments,
     BACNET_ADDRESS * src)
 {
     bool found = false; /* return value */
@@ -425,6 +447,7 @@ void address_add(
             pMatch->address = *src;
             pMatch->max_apdu = max_apdu;
             pMatch->segmentation = segmentation;
+            pMatch->maxsegments = maxsegments;
 
             /* Pick the right time to live */
 
@@ -453,6 +476,7 @@ void address_add(
                 pMatch->device_id = device_id;
                 pMatch->max_apdu = max_apdu;
                 pMatch->segmentation = segmentation;
+                pMatch->maxsegments = maxsegments;
                 pMatch->address = *src;
                 pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;       /* Opportunistic entry so leave on short fuse */
                 found = true;
@@ -470,6 +494,7 @@ void address_add(
             pMatch->device_id = device_id;
             pMatch->max_apdu = max_apdu;
             pMatch->segmentation = segmentation;
+            pMatch->maxsegments = maxsegments;
             pMatch->address = *src;
             pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;   /* Opportunistic entry so leave on short fuse */
         }
@@ -484,6 +509,7 @@ bool address_bind_request(
     uint32_t device_id,
     unsigned *max_apdu,
     uint8_t * segmentation,
+    uint32_t * maxsegments,
     BACNET_ADDRESS * src)
 {
     bool found = false; /* return value */
@@ -499,6 +525,7 @@ bool address_bind_request(
                 *src = pMatch->address;
                 *max_apdu = pMatch->max_apdu;
                 *segmentation = pMatch->segmentation;
+                *maxsegments = pMatch->maxsegments;
                 if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) != 0) {        /* Was picked up opportunistacilly */
                     pMatch->Flags &= ~BAC_ADDR_SHORT_TTL;       /* Convert to normal entry  */
                     pMatch->TimeToLive = BAC_ADDR_LONG_TIME;    /* And give it a decent time to live */
@@ -540,6 +567,7 @@ void address_add_binding(
     uint32_t device_id,
     unsigned max_apdu,
     uint8_t segmentation,
+    uint32_t maxsegments,
     BACNET_ADDRESS * src)
 {
     struct Address_Cache_Entry *pMatch;
@@ -552,6 +580,7 @@ void address_add_binding(
             pMatch->address = *src;
             pMatch->max_apdu = max_apdu;
             pMatch->segmentation = segmentation;
+            pMatch->maxsegments = maxsegments;
             pMatch->Flags &= ~BAC_ADDR_BIND_REQ;        /* Clear bind request flag in case it was set */
             if ((pMatch->Flags & BAC_ADDR_STATIC) == 0) /* Only update TTL if not static */
                 pMatch->TimeToLive = BAC_ADDR_LONG_TIME;        /* and set it on a long fuse */
@@ -568,6 +597,7 @@ bool address_get_by_index(
     uint32_t * device_id,
     unsigned *max_apdu,
     uint8_t * segmentation,
+    uint32_t * maxsegments,
     BACNET_ADDRESS * src)
 {
     struct Address_Cache_Entry *pMatch;
@@ -581,6 +611,7 @@ bool address_get_by_index(
             *device_id = pMatch->device_id;
             *max_apdu = pMatch->max_apdu;
             *segmentation = pMatch->segmentation;
+            *maxsegments = pMatch->maxsegments;
             found = true;
         }
     }

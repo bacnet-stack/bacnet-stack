@@ -46,13 +46,13 @@ int lso_encode_adpu(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu && data) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
-        apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION;
-        apdu_len = 4;
-        /* tag 0 - requestingProcessId */
-        len = encode_context_unsigned(&apdu[apdu_len], 0, data->processId);
+        /*apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);     /* + flag 'SA' if we accept many segments */ */
+            /*apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU); */
+            /*apdu[2] = invoke_id; */
+            /*apdu[3] = SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION; */
+            /*apdu_len = 4; */
+            /* tag 0 - requestingProcessId */
+            len = encode_context_unsigned(&apdu[apdu_len], 0, data->processId);
         apdu_len += len;
         /* tag 1 - requestingSource */
         len =
@@ -66,13 +66,14 @@ int lso_encode_adpu(
         apdu_len += len;
         /*
            Object ID
+           (0,0) means : global operation, no object.
          */
-
-        len =
-            encode_context_object_id(&apdu[apdu_len], 3,
-            (int) data->targetObject.type, data->targetObject.instance);
-
-        apdu_len += len;
+        if (data->targetObject.type != 0 || data->targetObject.instance != 0) {
+            len =
+                encode_context_object_id(&apdu[apdu_len], 3,
+                (int) data->targetObject.type, data->targetObject.instance);
+            apdu_len += len;
+        }
     }
 
     return apdu_len;

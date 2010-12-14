@@ -878,6 +878,7 @@ int main(
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -915,14 +916,14 @@ int main(
     /* try to bind with the target device */
     found =
         address_bind_request(sess, Target_Device_Object_Instance, &max_apdu,
-        &segmentation, &Target_Address);
+        &segmentation, &maxsegments, &Target_Address);
     if (!found) {
         if (Provided_Targ_MAC) {
             /* Update by adding the MAC address */
             if (max_apdu == 0)
                 max_apdu = MAX_APDU;    /* Whatever set for this datalink. */
             address_add_binding(sess, Target_Device_Object_Instance, max_apdu,
-                segmentation, &Target_Address);
+                segmentation, maxsegments, &Target_Address);
         } else {
             Send_WhoIs(sess, Target_Device_Object_Instance,
                 Target_Device_Object_Instance);
@@ -960,7 +961,7 @@ int main(
                 /* will wait until the device is bound, or timeout and quit */
                 found =
                     address_bind_request(sess, Target_Device_Object_Instance,
-                    &max_apdu, &segmentation, &Target_Address);
+                    &max_apdu, &segmentation, &maxsegments, &Target_Address);
                 if (!found) {
                     /* increment timer - exit if timed out */
                     elapsed_seconds += (current_seconds - last_seconds);
@@ -1214,4 +1215,4 @@ int main(
     return 0;
 }
 
-                                                            /*@} *//* End group BACEPICS */
+                                                                                                      /*@} *//* End group BACEPICS */

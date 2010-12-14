@@ -61,7 +61,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_COLDSTART;
-static char *Reinitialize_Password = NULL;
+static BACNET_CHARACTER_STRING Reinitialize_Password;
+static bool Has_Reinitialize_Password = false;
 
 static bool Error_Detected = false;
 
@@ -158,6 +159,7 @@ int main(
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -181,8 +183,11 @@ int main(
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Reinitialize_State = strtol(argv[2], NULL, 0);
     /* optional password */
-    if (argc > 3)
-        Reinitialize_Password = argv[3];
+    if (argc > 3) {
+        characterstring_init(&Reinitialize_Password, CHARACTER_ANSI_X34,
+            argv[3], strlen(argv[3]));
+        Has_Reinitialize_Password = true;
+    }
 
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
@@ -224,13 +229,13 @@ int main(
         /* wait until the device is bound, or timeout and quit */
         found =
             address_bind_request(sess, Target_Device_Object_Instance,
-            &max_apdu, &segmentation, &Target_Address);
+            &max_apdu, &segmentation, &maxsegments, &Target_Address);
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =
                     Send_Reinitialize_Device_Request(sess, NULL,
                     Target_Device_Object_Instance, Reinitialize_State,
-                    Reinitialize_Password);
+                    Has_Reinitialize_Password ? &Reinitialize_Password : NULL);
             } else if (tsm_invoke_id_free(sess, invoke_id))
                 break;
             else if (tsm_invoke_id_failed(sess, invoke_id)) {

@@ -76,7 +76,14 @@ extern "C" {
         struct bacnet_session_object *sess,
         int32_t low_limit,
         int32_t high_limit,
-        const char *object_name);
+        BACNET_CHARACTER_STRING * bacname);
+
+    void Send_WhoHas_Name_Unicast(
+        struct bacnet_session_object *sess,
+        int32_t low_limit,
+        int32_t high_limit,
+        BACNET_CHARACTER_STRING * bacname,
+        BACNET_ADDRESS * dest);
 
     void Send_I_Have(
         struct bacnet_session_object *sess,
@@ -142,7 +149,7 @@ extern "C" {
         struct ClientSubscribeInvoker *subscriber,
         uint32_t device_id,
         BACNET_REINITIALIZED_STATE state,
-        char *password);
+        BACNET_CHARACTER_STRING * password_string);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Device_Communication_Control_Request(
@@ -151,7 +158,7 @@ extern "C" {
         uint32_t device_id,
         uint16_t timeDuration,  /* 0=optional */
         BACNET_COMMUNICATION_ENABLE_DISABLE state,
-        char *password);        /* NULL=optional */
+        BACNET_CHARACTER_STRING * password_string);     /* NULL=optional */
 
     void Send_TimeSync_Unicast(
         struct bacnet_session_object *sess,

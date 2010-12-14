@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include "bacdcode.h"
 #include "bacapp.h"
+#include "apdu.h"
 
 /** @note: write property can have application tagged data, or context tagged data,
    or even complex data types (i.e. opening and closing tag around data).
@@ -48,7 +49,7 @@ typedef struct BACnet_Write_Property_Data {
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
     int32_t array_index;        /* use BACNET_ARRAY_ALL when not setting */
-    uint8_t application_data[MAX_APDU];
+    uint8_t *application_data;  /* why should we copy buffer here ? we copy the pointer */
     int application_data_len;
     uint8_t priority;   /* use BACNET_NO_PRIORITY if no priority */
     BACNET_ERROR_CLASS error_class;
@@ -80,7 +81,7 @@ extern "C" {
     /* encode service */
     int wp_encode_apdu(
         uint8_t * apdu,
-        uint8_t invoke_id,
+        int max_apdu_len,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     /* decode the service request only */

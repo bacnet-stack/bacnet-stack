@@ -94,7 +94,7 @@ void handler_read_range(
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-    uint8_t Temp_Buf[MAX_APDU] = { 0 };
+    uint8_t Temp_Buf[MAX_PDU_SEND] = { 0 };
     BACNET_READ_RANGE_DATA data;
     int len = 0;
     int pdu_len = 0;
@@ -102,7 +102,7 @@ void handler_read_range(
     bool error = false;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
-    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+    uint8_t Handler_Transmit_Buffer[MAX_PDU_SEND] = { 0 };
 
     data.error_class = ERROR_CLASS_OBJECT;
     data.error_code = ERROR_CODE_UNKNOWN_OBJECT;

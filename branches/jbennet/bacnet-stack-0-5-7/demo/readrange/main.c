@@ -205,6 +205,8 @@ int main(
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -290,7 +292,8 @@ int main(
                 putchar('.');   /* Just to show that time is passing... */
                 tsm_timer_milliseconds(sess,
                     ((current_seconds - last_seconds) * 1000));
-                address_cache_timer(current_seconds - last_seconds);
+                address_cache_timer(sess,
+                    ((current_seconds - last_seconds) * 1000));
                 trend_log_timer(current_seconds - last_seconds);
                 last_seconds = current_seconds;
                 /* Change the analog input PVs for testing purposes */
@@ -316,7 +319,7 @@ int main(
         /* try to bind with the device */
         found =
             address_bind_request(sess, Target_Device_Object_Instance,
-            &max_apdu, &segmentation, &Target_Address);
+            &max_apdu, &segmentation, &maxsegments, &Target_Address);
         if (!found) {
             Send_WhoIs(sess, Target_Device_Object_Instance,
                 Target_Device_Object_Instance);
@@ -339,7 +342,8 @@ int main(
             if (current_seconds != last_seconds) {
                 tsm_timer_milliseconds(sess,
                     ((current_seconds - last_seconds) * 1000));
-                address_cache_timer(current_seconds - last_seconds);
+                address_cache_timer(sess,
+                    ((current_seconds - last_seconds) * 1000));
                 trend_log_timer(current_seconds - last_seconds);
                 last_seconds = current_seconds;
             }
@@ -349,7 +353,7 @@ int main(
             if (!found)
                 found =
                     address_bind_request(Target_Device_Object_Instance,
-                    &max_apdu, &Target_Address);
+                    &max_apdu, &segmentation, &maxsegments, &Target_Address);
             if (found) {
                 if (invoke_id == 0) {   /* Safe to send a new request */
                     switch (iCount) {

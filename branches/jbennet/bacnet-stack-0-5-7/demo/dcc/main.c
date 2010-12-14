@@ -63,7 +63,8 @@ static BACNET_ADDRESS Target_Address;
 static uint16_t Communication_Timeout_Minutes = 0;
 static BACNET_COMMUNICATION_ENABLE_DISABLE Communication_State =
     COMMUNICATION_ENABLE;
-static char *Communication_Password = NULL;
+static BACNET_CHARACTER_STRING Communication_Password;
+static bool Has_Communication_Password = false;
 
 static bool Error_Detected = false;
 
@@ -164,6 +165,7 @@ int main(
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
     uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -189,8 +191,11 @@ int main(
     Communication_State = strtol(argv[2], NULL, 0);
     Communication_Timeout_Minutes = strtol(argv[3], NULL, 0);
     /* optional password */
-    if (argc > 4)
-        Communication_Password = argv[4];
+    if (argc > 4) {
+        characterstring_init(&Communication_Password, CHARACTER_ANSI_X34,
+            argv[4], strlen(argv[4]));
+        Has_Communication_Password = true;
+    }
 
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
@@ -232,14 +237,15 @@ int main(
         /* wait until the device is bound, or timeout and quit */
         found =
             address_bind_request(sess, Target_Device_Object_Instance,
-            &max_apdu, &segmentation, &Target_Address);
+            &max_apdu, &segmentation, &maxsegments, &Target_Address);
         if (found) {
             if (invoke_id == 0) {
                 invoke_id =
                     Send_Device_Communication_Control_Request(sess, NULL,
                     Target_Device_Object_Instance,
                     Communication_Timeout_Minutes, Communication_State,
-                    Communication_Password);
+                    Has_Communication_Password ? &Communication_Password :
+                    NULL);
             } else if (tsm_invoke_id_free(sess, invoke_id))
                 break;
             else if (tsm_invoke_id_failed(sess, invoke_id)) {

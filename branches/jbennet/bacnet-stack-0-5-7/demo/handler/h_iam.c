@@ -67,7 +67,7 @@ void handler_i_am_add(
             (unsigned long) device_id, src->mac[0], src->mac[1], src->mac[2],
             src->mac[3], src->mac[4], src->mac[5]);
 #endif
-        address_add(sess, device_id, max_apdu, segmentation, src);
+        address_add(sess, device_id, max_apdu, segmentation, 0, src);
     } else {
 #if PRINT_ENABLED
         fprintf(stderr, "!\n");
@@ -102,7 +102,7 @@ void handler_i_am_bind(
         iam_decode_service_request(service_request, &device_id, &max_apdu,
         &segmentation, &vendor_id);
     /* only add address if requested to bind */
-    address_add_binding(sess, device_id, max_apdu, segmentation, src);
+    address_add_binding(sess, device_id, max_apdu, segmentation, 0, src);
 
     return;
 }

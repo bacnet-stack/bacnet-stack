@@ -51,9 +51,23 @@ typedef enum {
     TSM_STATE_IDLE,
     TSM_STATE_AWAIT_CONFIRMATION,
     TSM_STATE_AWAIT_RESPONSE,
-    TSM_STATE_SEGMENTED_REQUEST,
-    TSM_STATE_SEGMENTED_CONFIRMATION
+    TSM_STATE_SEGMENTED_REQUEST_CLIENT,
+    TSM_STATE_SEGMENTED_REQUEST_SERVER,
+    TSM_STATE_SEGMENTED_CONFIRMATION,
+    TSM_STATE_SEGMENTED_RESPONSE
 } BACNET_TSM_STATE;
+
+/* Indirect data state : */
+typedef struct BACnet_TSM_Indirect_Data {
+    /* the address we received data from */
+    BACNET_ADDRESS PeerAddress;
+    /* the peer unique id */
+    uint8_t PeerInvokeID;
+    /* the unique id to use within our internal states.
+       zero means : "unused slot". */
+    uint8_t InternalInvokeID;
+} BACNET_TSM_INDIRECT_DATA;
+
 
 /* 5.4.1 Variables And Parameters */
 /* The following variables are defined for each instance of  */
@@ -69,7 +83,7 @@ typedef struct BACnet_TSM_Data {
     uint8_t LastSequenceNumber;
     /* stores the sequence number of the first segment of */
     /* a sequence of segments that fill a window */
-    uint8_t InitialSequenceNumber;
+    uint32_t InitialSequenceNumber;
     /* stores the current window size */
     uint8_t ActualWindowSize;
     /* stores the window size proposed by the segment sender */
@@ -87,9 +101,16 @@ typedef struct BACnet_TSM_Data {
     BACNET_ADDRESS dest;
     /* the network layer info */
     BACNET_NPDU_DATA npdu_data;
+    /* APDU header informations */
+    BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     /* copy of the APDU, should we need to send it again */
-    uint8_t apdu[MAX_PDU];
-    unsigned apdu_len;
+    uint8_t *apdu;      /*[MAX_PDU]; */
+    /* exact length of apdu data buffer to send */
+    uint32_t apdu_len;
+    /* calculated max APDU length / packet */
+    uint32_t apdu_maximum_length;
+    /* calculated max APDU length / total */
+    uint32_t maximum_transmittable_length;
     /* Multiple APDU segments blob memorized here */
     uint8_t *apdu_blob;
     /* Size of allocated Multiple APDU segments blob */
@@ -106,25 +127,35 @@ typedef struct BACnet_TSM_Data {
 extern "C" {
 #endif /* __cplusplus */
 
-    /*/ Free allocated blob data */
+    /* Free allocated blob data */
     void free_blob(
         BACNET_TSM_DATA * data);
-    /*/ keeps allocated blob data, but reset data & current size */
+    /* keeps allocated blob data, but reset data & current size */
     void reset_blob(
         BACNET_TSM_DATA * data);
-    /*/ add new data to current blob (allocate extra space if necessary) */
+    /* add new data to current blob (allocate extra space if necessary) */
     void add_blob_data(
         BACNET_TSM_DATA * data,
         uint8_t * pdata,
         uint32_t data_len);
-    /*/ gets current blob data */
+    /* gets current blob data received */
     uint8_t *get_blob_data(
         BACNET_TSM_DATA * data,
         uint32_t * data_len);
-    /*/ allocate new data if necessary, keeps existing bytes */
+    /* allocate new data if necessary, keeps existing bytes */
     void ensure_extra_blob_size(
         BACNET_TSM_DATA * data,
         uint32_t allocation_unit);
+    /* Copy new data to current APDU sending blob data */
+    void copy_apdu_blob_data(
+        BACNET_TSM_DATA * data,
+        uint8_t * bdata,
+        uint32_t data_len);
+    /* gets current APDU blob data to send */
+    uint8_t *get_apdu_blob_data_segment(
+        BACNET_TSM_DATA * data,
+        int segment_number,
+        uint32_t * data_len);
 
     uint8_t tsm_transaction_idle_count(
         struct bacnet_session_object *session_object);
@@ -137,6 +168,17 @@ extern "C" {
         uint8_t invokeID,
         BACNET_ADDRESS * peer_address,
         bool cleanup_segmented_data);
+    /* error pdu received */
+    void tsm_error_received(
+        struct bacnet_session_object *session_object,
+        uint8_t invokeID,
+        BACNET_ADDRESS * peer_address);
+    /* reject pdu received */
+    void tsm_reject_received(
+        struct bacnet_session_object *session_object,
+        uint8_t invokeID,
+        BACNET_ADDRESS * peer_address);
+
     /* also cleanup segmented data */
     /*void tsm_free_invoke_id_and_cleanup( */
     /*    struct bacnet_session_object * session_object, */
@@ -145,14 +187,55 @@ extern "C" {
 /* use these in tandem */
     uint8_t tsm_next_free_invokeID(
         struct bacnet_session_object *session_object);
-/* returns the same invoke ID that was given */
-    void tsm_set_confirmed_unsegmented_transaction(
+
+    /** Associates a Peer address and invoke ID with our TSM 
+    @returns An internal InvokeID unique number, 0 in case of error. */
+    uint8_t tsm_get_peer_id(
+        struct bacnet_session_object *session_object,
+        BACNET_ADDRESS * src,
+        int invokeID);
+    /** Clear TSM Peer data */
+    void tsm_clear_peer_id(
+        struct bacnet_session_object *session_object,
+        int InternalInvokeID);
+
+
+/** Initiate confirmed segmented or unsegmented transaction state, and send first packet.
+   @param pdu Service request part of pdu packet.
+   @param pdu_len Length of "Service request" part of pdu packet.
+   @param apdu_offset Offset of APDU data within pdu packet.
+   @param session_object Current session context.
+   @param invokeID Current TSM invokeID.
+   @param dest BACnet Address of peer device.
+   @result bytes_sent to destination (complete packet or first packet only in segmented case)
+*/
+    int tsm_set_confirmed_transaction(
         struct bacnet_session_object *session_object,
         uint8_t invokeID,
         BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * ndpu_data,
-        uint8_t * apdu,
-        uint16_t apdu_len);
+        BACNET_NPDU_DATA * npdu_data,
+        BACNET_APDU_FIXED_HEADER * fixed_pdu_header,
+        uint8_t * pdu,
+        uint32_t pdu_len);
+/** Initiate confirmed segmented or unsegmented transaction state, and send first packet.
+   @param pdu Service request part of pdu packet.
+   @param pdu_len Length of "Service request" part of pdu packet.
+   @param apdu_offset Offset of APDU data within pdu packet.
+   @param session_object Current session context.
+   @param dest BACnet Address of peer device.
+   @param confirmed_service_data In reply of a confirmed service, the request values.
+   @result bytes_sent to destination (complete packet or first packet only in segmented case)
+*/
+    int tsm_set_complexack_transaction(
+        struct bacnet_session_object *session_object,
+        BACNET_ADDRESS * dest,
+        BACNET_NPDU_DATA * npdu_data,
+        BACNET_APDU_FIXED_HEADER * fixed_pdu_header,
+        BACNET_CONFIRMED_SERVICE_DATA * confirmed_service_data,
+        uint8_t * pdu,
+        uint32_t pdu_len);
+
+
 /* returns true if transaction is found */
     bool tsm_get_transaction_pdu(
         struct bacnet_session_object *session_object,
@@ -160,9 +243,12 @@ extern "C" {
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * ndpu_data,
         uint8_t * apdu,
-        uint16_t * apdu_len);
+        uint32_t * apdu_len);
 
     bool tsm_invoke_id_free(
+        struct bacnet_session_object *session_object,
+        uint8_t invokeID);
+    int tsm_invoke_id_timing(
         struct bacnet_session_object *session_object,
         uint8_t invokeID);
     bool tsm_invoke_id_failed(
@@ -174,6 +260,25 @@ extern "C" {
         struct bacnet_session_object *session_object,
         uint8_t invokeID);
 
+    bool tsm_set_simpleack_received(
+        struct bacnet_session_object *session_object,
+        uint8_t invoke_id,
+        BACNET_ADDRESS * src);
+
+    bool tsm_set_complexack_received(
+        struct bacnet_session_object *session_object,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
+
+    /** We received a segment of a ConfirmedService packet, check TSM state and reassemble the full packet */
+    bool tsm_set_segmented_confirmed_service_received(
+        struct bacnet_session_object *session_object,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_DATA * service_data,
+        uint8_t * internal_invoke_id,
+        uint8_t ** pservice_request,    /* IN/OUT */
+        uint32_t * pservice_request_len /* IN/OUT */
+        );
     bool tsm_set_segmentedcomplexack_received(
         struct bacnet_session_object *session_object,
         BACNET_ADDRESS * src,
@@ -181,7 +286,14 @@ extern "C" {
         uint8_t ** pservice_request,    /* IN/OUT */
         uint32_t * pservice_request_len /* IN/OUT */
         );
-
+    void tsm_segmentack_received(
+        struct bacnet_session_object *session_object,
+        uint8_t invoke_id,
+        uint8_t sequence_number,
+        uint8_t actual_window_size,
+        bool nak,
+        bool server,
+        BACNET_ADDRESS * src);
 
 #ifdef __cplusplus
 }

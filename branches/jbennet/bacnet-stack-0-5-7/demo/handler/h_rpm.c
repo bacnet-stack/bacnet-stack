@@ -106,7 +106,7 @@ static int RPM_Encode_Property(
     struct bacnet_session_object *sess,
     uint8_t * apdu,
     uint16_t offset,
-    uint16_t max_apdu,
+    uint32_t max_apdu,
     BACNET_RPM_DATA * rpmdata)
 {
     int len = 0;
@@ -196,36 +196,19 @@ void handler_read_property_multiple(
     int decode_len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
+    BACNET_APDU_FIXED_HEADER apdu_fixed_header;
     int bytes_sent;
     BACNET_ADDRESS my_address;
     BACNET_RPM_DATA rpmdata;
     int apdu_len = 0;
     int npdu_len = 0;
     int error = 0;
-    uint8_t Temp_Buf[MAX_APDU];
-    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+    uint8_t Temp_Buf[MAX_PDU_SEND];
+    uint8_t Handler_Transmit_Buffer[MAX_PDU_SEND] = { 0 };
 
-    /* jps_debug - see if we are utilizing all the buffer */
-    /* memset(&Handler_Transmit_Buffer[0], 0xff, sizeof(Handler_Transmit_Buffer)); */
-    /* encode the NPDU portion of the packet */
-    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    npdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-        &npdu_data);
-    if (service_data->segmented_message) {
-        rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-        error = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-        fprintf(stderr, "RPM: Segmented message. Sending Abort!\r\n");
-#endif
-        goto RPM_FAILURE;
-    }
-    /* decode apdu request & encode apdu reply
-       encode complex ack, invoke id, service choice */
-    apdu_len =
-        rpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
-        service_data->invoke_id);
+
+    /* decode apdu request & encode apdu reply */
     for (;;) {
         /* Start by looking for an object ID */
         len =
@@ -250,7 +233,7 @@ void handler_read_property_multiple(
 #if PRINT_ENABLED
             fprintf(stderr, "RPM: Response too big!\r\n");
 #endif
-            rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            rpmdata.error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
             error = BACNET_STATUS_ABORT;
             goto RPM_FAILURE;
         }
@@ -290,8 +273,7 @@ void handler_read_property_multiple(
                         npdu_len + apdu_len, len,
                         sizeof(Handler_Transmit_Buffer));
                     if (copy_len == 0) {
-                        rpmdata.error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpmdata.error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
                         error = BACNET_STATUS_ABORT;
                         goto RPM_FAILURE;
                     }
@@ -305,8 +287,7 @@ void handler_read_property_multiple(
                         npdu_len + apdu_len, len,
                         sizeof(Handler_Transmit_Buffer));
                     if (copy_len == 0) {
-                        rpmdata.error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpmdata.error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
                         error = BACNET_STATUS_ABORT;
                         goto RPM_FAILURE;
                     }
@@ -323,8 +304,8 @@ void handler_read_property_multiple(
                         len =
                             RPM_Encode_Property(sess,
                             &Handler_Transmit_Buffer[0],
-                            (uint16_t) (npdu_len + apdu_len), MAX_APDU,
-                            &rpmdata);
+                            (uint16_t) (npdu_len + apdu_len),
+                            sizeof(Handler_Transmit_Buffer), &rpmdata);
                         if (len > 0) {
                             apdu_len += len;
                         } else {
@@ -339,8 +320,8 @@ void handler_read_property_multiple(
                             len =
                                 RPM_Encode_Property(sess,
                                 &Handler_Transmit_Buffer[0],
-                                (uint16_t) (npdu_len + apdu_len), MAX_APDU,
-                                &rpmdata);
+                                (uint16_t) (npdu_len + apdu_len),
+                                sizeof(Handler_Transmit_Buffer), &rpmdata);
                             if (len > 0) {
                                 apdu_len += len;
                             } else {
@@ -372,8 +353,7 @@ void handler_read_property_multiple(
                     memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
                     apdu_len, len, sizeof(Handler_Transmit_Buffer));
                 if (!copy_len) {
-                    rpmdata.error_code =
-                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpmdata.error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
                     error = BACNET_STATUS_ABORT;
                     goto RPM_FAILURE;
                 } else {
@@ -386,28 +366,25 @@ void handler_read_property_multiple(
             break;
     }
 
-    if (apdu_len > service_data->max_resp) {
-        /* too big for the sender - send an abort */
-        apdu_len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
-#if PRINT_ENABLED
-        fprintf(stderr, "RPM: Message too large.  Sending Abort!\n");
-#endif
-        goto RPM_FAILURE;
-    }
+    apdu_init_fixed_header(&apdu_fixed_header, PDU_TYPE_COMPLEX_ACK,
+        service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+        service_data->max_resp);
+    /* begin sending all data, if possible */
+    bytes_sent =
+        tsm_set_complexack_transaction(sess, src, &npdu_data,
+        &apdu_fixed_header, service_data, &Handler_Transmit_Buffer[0],
+        apdu_len);
+    error = false;
 
   RPM_FAILURE:
     if (error) {
+        /* explicitely send error messages */
+        sess->datalink_get_my_address(sess, &my_address);
+        npdu_len =
+            npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+            &npdu_data);
+
         if (error == BACNET_STATUS_ABORT) {
-            /* Kludge alert! At the moment we assume any abort is due to
-             * to space issues due to segmentation or lack thereof. I wanted to show the proper
-             * handling via the abort_convert_error_code() so I put the error code
-             * in here, if you are sure all aborts properly set up the error_code then
-             * remove this next line
-             */
-            rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             apdu_len =
                 abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                 service_data->invoke_id,
@@ -432,10 +409,10 @@ void handler_read_property_multiple(
             fprintf(stderr, "RP: Sending Reject!\n");
 #endif
         }
+        pdu_len = apdu_len + npdu_len;
+        bytes_sent =
+            sess->datalink_send_pdu(sess, src, &npdu_data,
+            &Handler_Transmit_Buffer[0], pdu_len);
     }
 
-    pdu_len = apdu_len + npdu_len;
-    bytes_sent =
-        sess->datalink_send_pdu(sess, src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
 }

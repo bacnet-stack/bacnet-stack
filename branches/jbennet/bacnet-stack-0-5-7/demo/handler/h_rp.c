@@ -78,25 +78,16 @@ void handler_read_property(
     int apdu_len = -1;
     int npdu_len = -1;
     BACNET_NPDU_DATA npdu_data;
+    BACNET_APDU_FIXED_HEADER apdu_fixed_header;
+
     bool error = true;  /* assume that there is an error */
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
-    uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+    uint8_t Handler_Transmit_Buffer[MAX_PDU_SEND] = { 0 };
 
     /* encode the NPDU portion of the packet */
-    sess->datalink_get_my_address(sess, &my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    npdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-        &npdu_data);
-    if (service_data->segmented_message) {      /* we don't support segmentation - send an abort */
-        rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-        len = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-        fprintf(stderr, "RP: Segmented message.  Sending Abort!\n");
-#endif
-        goto RP_FAILURE;
-    }
+
     len = rp_decode_service_request(service_request, service_len, &rpdata);
 #if PRINT_ENABLED
     if (len <= 0) {
@@ -111,37 +102,41 @@ void handler_read_property(
 #endif
         goto RP_FAILURE;
     }
+
+    apdu_init_fixed_header(&apdu_fixed_header, PDU_TYPE_COMPLEX_ACK,
+        service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+        service_data->max_resp);
     apdu_len =
-        rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
+        rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
         service_data->invoke_id, &rpdata);
+    pdu_len += apdu_len;
     /* configure our storage */
-    rpdata.application_data = &Handler_Transmit_Buffer[npdu_len + apdu_len];
+    rpdata.application_data = &Handler_Transmit_Buffer[pdu_len];
     rpdata.application_data_len =
-        sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
+        sizeof(Handler_Transmit_Buffer) - pdu_len -
+        1 /*HACK: -1 for closing tag */ ;
     len = Device_Read_Property(sess, &rpdata);
     if (len >= 0) {
-        apdu_len += len;
+        pdu_len += len;
         len =
             rp_ack_encode_apdu_object_property_end(&Handler_Transmit_Buffer
-            [npdu_len + apdu_len]);
-        apdu_len += len;
-        if (apdu_len > service_data->max_resp) {
-            /* too big for the sender - send an abort */
-            rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-            len = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Message too large.\n");
-#endif
-        } else {
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Ack!\n");
-#endif
-            error = false;
-        }
+            [pdu_len]);
+        pdu_len += len;
+        /* begin sending all data, if possible */
+        bytes_sent =
+            tsm_set_complexack_transaction(sess, src, &npdu_data,
+            &apdu_fixed_header, service_data, &Handler_Transmit_Buffer[0],
+            pdu_len);
+        error = false;
     }
 
   RP_FAILURE:
     if (error) {
+        /* explicitely send error messages */
+        sess->datalink_get_my_address(sess, &my_address);
+        npdu_len =
+            npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+            &npdu_data);
         if (len == BACNET_STATUS_ABORT) {
             /* Kludge alert! At the moment we assume any abort is due to 
              * to space issues due to segmentation or lack thereof. I wanted to show the proper
@@ -174,16 +169,16 @@ void handler_read_property(
             fprintf(stderr, "RP: Sending Reject!\n");
 #endif
         }
-    }
-
-    pdu_len = npdu_len + apdu_len;
-    bytes_sent =
-        sess->datalink_send_pdu(sess, src, &npdu_data,
-        &Handler_Transmit_Buffer[0], pdu_len);
+        pdu_len = npdu_len + apdu_len;
+        bytes_sent =
+            sess->datalink_send_pdu(sess, src, &npdu_data,
+            &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+        if (bytes_sent <= 0)
+            fprintf(stderr, "Failed to send Error PDU (%s)!\n",
+                strerror(errno));
 #endif
+    }
 
     return;
 }

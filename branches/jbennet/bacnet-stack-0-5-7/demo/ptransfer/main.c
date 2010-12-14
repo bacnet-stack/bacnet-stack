@@ -168,6 +168,8 @@ int main(
     uint16_t pdu_len = 0;
     unsigned timeout = 100;     /* milliseconds */
     unsigned max_apdu = 0;
+    uint8_t segmentation = 0;
+    uint32_t maxsegments = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -268,7 +270,7 @@ int main(
         /* try to bind with the device */
         found =
             address_bind_request(sess, Target_Device_Object_Instance,
-            &max_apdu, &segmentation, &Target_Address);
+            &max_apdu, &segmentation, &maxsegments, &Target_Address);
         if (!found) {
             Send_WhoIs(sess, Target_Device_Object_Instance,
                 Target_Device_Object_Instance);

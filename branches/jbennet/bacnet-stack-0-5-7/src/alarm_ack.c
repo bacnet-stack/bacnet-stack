@@ -50,12 +50,11 @@ int alarm_ack_encode_apdu(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
-        apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM;  /* service choice */
-        apdu_len = 4;
-
+        /*apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST | ((MAX_SEGMENTS_ACCEPTED > 1) ? 0x02 : 0x00);   */
+        /*apdu[1] = encode_max_segs_max_apdu(MAX_SEGMENTS_ACCEPTED, MAX_APDU); */
+        /*apdu[2] = invoke_id; */
+        /*apdu[3] = SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM;  */
+        /*apdu_len = 4; */
         len = alarm_ack_encode_service_request(&apdu[apdu_len], data);
         apdu_len += len;
     }

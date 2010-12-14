@@ -51,7 +51,6 @@ struct BACnet_Recipient;
 /*BACnetPrescale */
 /*BACnetAccumulatorRecord */
 /*BACnetAccumulatorRecord */
-/*ReadAccessSpecification */
 
 /*/ One small value for the BACnetTimeValue */
 typedef struct BACnet_Short_Application_Data_Value {
@@ -186,5 +185,17 @@ typedef struct BACnet_Access_Error {
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
 } BACNET_ACCESS_ERROR;
+
+/* arbitrary value : maximum list of property references to be read on a single object */
+#define MAX_LIST_OF_PROPERTY_REFERENCES 100
+/* empty value marker */
+#define EMPTY_PROPERTY_REFERENCE_ID ((BACNET_PROPERTY_ID)(~0))
+
+/* ReadAccessSpecification */
+typedef struct BACnet_Read_Access_Specification {
+    BACNET_OBJECT_ID objectIdentifier;
+                     BACNET_PROPERTY_REF
+        listOfPropertyReferences[MAX_LIST_OF_PROPERTY_REFERENCES];
+} BACNET_READ_ACCESS_SPECIFICATION;
 
 #endif /*BACOTHERTYPES_H */

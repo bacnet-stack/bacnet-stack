@@ -79,7 +79,7 @@ uint16_t apdu_decode_confirmed_service_request(
     BACNET_CONFIRMED_SERVICE_DATA * service_data,
     uint8_t * service_choice,
     uint8_t ** service_request,
-    uint16_t * service_request_len)
+    uint32_t * service_request_len)
 {
     uint16_t len = 0;   /* counts where we are in PDU */
 
@@ -110,7 +110,7 @@ void apdu_handler(
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
-    uint16_t service_request_len = 0;
+    uint32_t service_request_len = 0;
     uint16_t len = 0;   /* counts where we are in PDU */
 
     if (apdu) {
