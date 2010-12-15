@@ -70,6 +70,28 @@ extern "C" {
         uint8_t * pdu,  /* any data to be sent - may be null */
         unsigned pdu_len);
 
+#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
+    int bvlc_encode_write_bdt_init(
+        uint8_t * pdu,
+        unsigned entries);
+    int bvlc_encode_read_bdt(
+        uint8_t * pdu);
+    int bvlc_encode_read_fdt(
+        uint8_t * pdu);
+    int bvlc_encode_delete_fdt_entry(
+        uint8_t * pdu,
+        uint32_t address,  /* in network byte order */
+        uint16_t port);   /* in network byte order */
+    int bvlc_encode_original_unicast_npdu(
+        uint8_t * pdu,
+        uint8_t * npdu,
+        unsigned npdu_length);
+    int bvlc_encode_original_broadcast_npdu(
+        uint8_t * pdu,
+        uint8_t * npdu,
+        unsigned npdu_length);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
