@@ -56,7 +56,9 @@
 #include "version.h"
 /* include the device object */
 #include "device.h"
-//#include "vmac.h"
+#ifdef BACNET_TEST_VMAC
+#include "vmac.h"
+#endif
 #include "ai.h"
 #include "ao.h"
 #include "av.h"
@@ -297,10 +299,11 @@ int main(
     uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
 	uint32_t first_object_instance = FIRST_DEVICE_NUMBER;
-
+#ifdef BACNET_TEST_VMAC
     /* Router data */
-//	BACNET_DEVICE_PROFILE* device;
-//	BACNET_VMAC_ADDRESS adr;
+	BACNET_DEVICE_PROFILE* device;
+    BACNET_VMAC_ADDRESS adr;
+#endif
 
     /* allow the device ID to be set */
     if (argc > 1) {
@@ -321,11 +324,11 @@ int main(
     Initialize_Device_Addresses( );
     atexit(cleanup);
 
-//	/* initialize vmac table and router device */
-//	device = vmac_initialize(99, 2001);
-//
-//	debug_printf(device->name, "ROUTER:%u", vmac_get_subnet());
-
+#ifdef BACNET_TEST_VMAC
+	/* initialize vmac table and router device */
+    device = vmac_initialize(99, 2001);
+    debug_printf(device->name, "ROUTER:%u", vmac_get_subnet());
+#endif
     /* configure the timeout values */
     last_seconds = time(NULL);
 
