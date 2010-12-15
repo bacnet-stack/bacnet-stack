@@ -119,6 +119,24 @@ void bvlc_maintenance_timer(
 }
 #endif
 
+/* copy the source internet address to the BACnet address */
+/* FIXME: IPv6? */
+static void bvlc_internet_to_bacnet_address(
+    BACNET_ADDRESS * src,       /* returns the BACnet source address */
+    struct sockaddr_in *sin)
+{       /* source address in network order */
+
+    if (src && sin) {
+        memcpy(&src->mac[0], &sin->sin_addr.s_addr, 4);
+        memcpy(&src->mac[4], &sin->sin_port, 2);
+        src->mac_len = (uint8_t) 6;
+        src->net = 0;
+        src->len = 0;
+    }
+
+    return;
+}
+
 /* Addressing within B/IP Networks
    In the case of B/IP networks, six octets consisting of the four-octet
    IP address followed by a two-octet UDP port number (both of
@@ -192,6 +210,7 @@ static int bvlc_encode_bvlc_result(
     return 6;
 }
 
+#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
 int bvlc_encode_write_bdt_init(
     uint8_t * pdu,
     unsigned entries)
@@ -212,8 +231,10 @@ int bvlc_encode_write_bdt_init(
 
     return len;
 }
+#endif
 
-static int bvlc_encode_read_bdt(
+#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
+int bvlc_encode_read_bdt(
     uint8_t * pdu)
 {
     int len = 0;
@@ -230,6 +251,7 @@ static int bvlc_encode_read_bdt(
 
     return len;
 }
+#endif
 
 static int bvlc_encode_read_bdt_ack_init(
     uint8_t * pdu,
@@ -334,7 +356,8 @@ static int bvlc_encode_register_foreign_device(
     return len;
 }
 
-static int bvlc_encode_read_fdt(
+#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
+int bvlc_encode_read_fdt(
     uint8_t * pdu)
 {
     int len = 0;
@@ -351,6 +374,7 @@ static int bvlc_encode_read_fdt(
 
     return len;
 }
+#endif
 
 static int bvlc_encode_read_fdt_ack_init(
     uint8_t * pdu,
@@ -412,30 +436,33 @@ static int bvlc_encode_read_fdt_ack(
     return pdu_len;
 }
 
-static int bvlc_encode_delete_fdt_entry(
+#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
+int bvlc_encode_delete_fdt_entry(
     uint8_t * pdu,
-    struct in_addr *address,
-    uint16_t port)
+    uint32_t address,   /* in network byte order */
+    uint16_t port)   /* in network byte order */
 {
     int len = 0;
 
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
-        pdu[1] = BVLC_READ_FOREIGN_DEVICE_TABLE;
+        pdu[1] = BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY;
         /* The 2-octet BVLC Length field is the length, in octets,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
         encode_unsigned16(&pdu[2], 10);
         /* FDT Entry */
-        encode_unsigned32(&pdu[4], address->s_addr);
+        encode_unsigned32(&pdu[4], address);
         encode_unsigned16(&pdu[8], port);
         len = 10;
     }
 
     return len;
 }
+#endif
 
-static int bvlc_encode_original_unicast_npdu(
+#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
+int bvlc_encode_original_unicast_npdu(
     uint8_t * pdu,
     uint8_t * npdu,
     unsigned npdu_length)
@@ -460,8 +487,10 @@ static int bvlc_encode_original_unicast_npdu(
 
     return len;
 }
+#endif
 
-static int bvlc_encode_original_broadcast_npdu(
+#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
+int bvlc_encode_original_broadcast_npdu(
     uint8_t * pdu,
     uint8_t * npdu,
     unsigned npdu_length)
@@ -486,41 +515,7 @@ static int bvlc_encode_original_broadcast_npdu(
 
     return len;
 }
-
-/* copy the source internet address to the BACnet address */
-/* FIXME: IPv6? */
-static void bvlc_internet_to_bacnet_address(
-    BACNET_ADDRESS * src,       /* returns the BACnet source address */
-    struct sockaddr_in *sin)
-{       /* source address in network order */
-
-    if (src && sin) {
-        memcpy(&src->mac[0], &sin->sin_addr.s_addr, 4);
-        memcpy(&src->mac[4], &sin->sin_port, 2);
-        src->mac_len = (uint8_t) 6;
-        src->net = 0;
-        src->len = 0;
-    }
-
-    return;
-}
-
-/* copy the source internet address to the BACnet address */
-/* FIXME: IPv6? */
-static void bvlc_bacnet_to_internet_address(
-    struct sockaddr_in *sin,    /* source address in network order */
-    BACNET_ADDRESS * src)
-{       /* returns the BACnet source address */
-
-    if (src && sin) {
-        if (src->mac_len == 6) {
-            memcpy(&sin->sin_addr.s_addr, &src->mac[0], 4);
-            memcpy(&sin->sin_port, &src->mac[4], 2);
-        }
-    }
-
-    return;
-}
+#endif
 
 static bool bvlc_create_bdt(
     uint8_t * npdu,
@@ -1192,6 +1187,23 @@ int bvlc_send_pdu(
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+
+/* copy the source internet address to the BACnet address */
+/* FIXME: IPv6? */
+static void bvlc_bacnet_to_internet_address(
+    struct sockaddr_in *sin,    /* source address in network order */
+    BACNET_ADDRESS * src)
+{       /* returns the BACnet source address */
+
+    if (src && sin) {
+        if (src->mac_len == 6) {
+            memcpy(&sin->sin_addr.s_addr, &src->mac[0], 4);
+            memcpy(&sin->sin_port, &src->mac[4], 2);
+        }
+    }
+
+    return;
+}
 
 void testBIPAddress(
     Test * pTest)
