@@ -787,10 +787,9 @@ static bool MSTP_Master_Node_FSM(
                 (Next_Station == This_Station)) {
                 /* NextStationUnknown - added in Addendum 135-2008v-1 */
                 /*  then the next station to which the token
-                    should be sent is unknown - so PollForMaster */
+                   should be sent is unknown - so PollForMaster */
                 Poll_Station = next_this_station;
-                MSTP_Send_Frame(
-                    FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
+                MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
                     This_Station, NULL, 0);
                 RetryCount = 0;
                 Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;

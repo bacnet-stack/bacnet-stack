@@ -41,28 +41,28 @@
 extern "C" {
 #endif /* __cplusplus */
 
-struct BACnet_Read_Range_Data;
-typedef struct BACnet_Read_Range_Data {
-    BACNET_OBJECT_TYPE object_type;
-    uint32_t object_instance;
-    BACNET_PROPERTY_ID object_property;
-    uint32_t array_index;
-    uint8_t *application_data;
-    int application_data_len;
-    BACNET_BIT_STRING ResultFlags;      /**<  FIRST_ITEM, LAST_ITEM, MORE_ITEMS. */
-    int RequestType;    /**< Index, sequence or time based request. */
-    int Overhead;        /**< How much space the baggage takes in the response. */
-    uint32_t ItemCount;
-    uint32_t FirstSequence;
-    union {     /**< Pick the appropriate data type. */
-        uint32_t RefIndex;
-        uint32_t RefSeqNum;
-        BACNET_DATE_TIME RefTime;
-    } Range;
-    int32_t Count;      /**< SIGNED value as +ve vs -ve  is important. */
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
-} BACNET_READ_RANGE_DATA;
+    struct BACnet_Read_Range_Data;
+    typedef struct BACnet_Read_Range_Data {
+        BACNET_OBJECT_TYPE object_type;
+        uint32_t object_instance;
+        BACNET_PROPERTY_ID object_property;
+        uint32_t array_index;
+        uint8_t *application_data;
+        int application_data_len;
+        BACNET_BIT_STRING ResultFlags;  /**<  FIRST_ITEM, LAST_ITEM, MORE_ITEMS. */
+        int RequestType;/**< Index, sequence or time based request. */
+        int Overhead;    /**< How much space the baggage takes in the response. */
+        uint32_t ItemCount;
+        uint32_t FirstSequence;
+        union { /**< Pick the appropriate data type. */
+            uint32_t RefIndex;
+            uint32_t RefSeqNum;
+            BACNET_DATE_TIME RefTime;
+        } Range;
+        int32_t Count;  /**< SIGNED value as +ve vs -ve  is important. */
+        BACNET_ERROR_CLASS error_class;
+        BACNET_ERROR_CODE error_code;
+    } BACNET_READ_RANGE_DATA;
 
 /** Defines to indicate which type of read range request it is.
    Not really a bit map but we do it like this to allow quick
@@ -75,11 +75,11 @@ typedef struct BACnet_Read_Range_Data {
 #define RR_ARRAY_OF_LISTS 16   /**< For info functionality indicates array of lists if set */
 
 /** Bit String Enumerations */
-typedef enum {
-    RESULT_FLAG_FIRST_ITEM = 0,
-    RESULT_FLAG_LAST_ITEM = 1,
-    RESULT_FLAG_MORE_ITEMS = 2
-} BACNET_RESULT_FLAGS;
+    typedef enum {
+        RESULT_FLAG_FIRST_ITEM = 0,
+        RESULT_FLAG_LAST_ITEM = 1,
+        RESULT_FLAG_MORE_ITEMS = 2
+    } BACNET_RESULT_FLAGS;
 
 /** Defines for ReadRange packet overheads to allow us to determine how
  * much space is left for actual payload:
@@ -116,18 +116,18 @@ typedef enum {
       information in it. The function is responsible for applying the request
       to the property in question and returning the response. */
 
-typedef int (
-    *rr_handler_function) (
-    uint8_t * apdu,
-    BACNET_READ_RANGE_DATA * pRequest);
+    typedef int (
+        *rr_handler_function) (
+        uint8_t * apdu,
+        BACNET_READ_RANGE_DATA * pRequest);
 
 /** Structure to return the type of requests a given object property can
  * accept and the address of the function to handle the request */
 
-typedef struct rrpropertyinfo {
-    int RequestTypes;
-    rr_handler_function Handler;
-} RR_PROP_INFO;
+    typedef struct rrpropertyinfo {
+        int RequestTypes;
+        rr_handler_function Handler;
+    } RR_PROP_INFO;
 
 /** Function template for ReadRange information retrieval function.
  * A function template; @see device.c for assignment to object types.
@@ -136,46 +136,43 @@ typedef struct rrpropertyinfo {
  * @param pInfo [out]   Where to write the response to.
  * @return True on success, False on error or failure.
  */
-typedef bool(
-    *rr_info_function) (
-    BACNET_READ_RANGE_DATA * pRequest,  /* Info on the request */
-    RR_PROP_INFO * pInfo);      /* Where to write the response to */
+    typedef bool(
+        *rr_info_function) (
+        BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
+        RR_PROP_INFO * pInfo);  /* Where to write the response to */
 
-int rr_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_READ_RANGE_DATA * rrdata);
 
-int rr_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_decode_service_request(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_READ_RANGE_DATA * rrdata);
 
-int rr_ack_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_ack_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_READ_RANGE_DATA * rrdata);
 
-int rr_ack_decode_service_request(
-    uint8_t * apdu,
-    int apdu_len,       /* total length of the apdu */
-    BACNET_READ_RANGE_DATA * rrdata);
+    int rr_ack_decode_service_request(
+        uint8_t * apdu,
+        int apdu_len,   /* total length of the apdu */
+        BACNET_READ_RANGE_DATA * rrdata);
 
-uint8_t Send_ReadRange_Request(
-    uint32_t device_id, /* destination device */
-    BACNET_READ_RANGE_DATA * read_access_data);
+    uint8_t Send_ReadRange_Request(
+        uint32_t device_id,     /* destination device */
+        BACNET_READ_RANGE_DATA * read_access_data);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 /** @defgroup Trend Trending BIBBs
  * These BIBBs prescribe the BACnet capabilities required to interoperably 
  * perform the trending functions enumerated in clause 22.2.1.4 for the 
  * BACnet devices defined therein.
- */
-
-/** @defgroup TrendReadRange Trending -Read Range Service (eg, in T-VMT)
+ *//** @defgroup TrendReadRange Trending -Read Range Service (eg, in T-VMT)
  * @ingroup Trend
  * 15.8 ReadRange Service <br>
  * The ReadRange service is used by a client BACnet-user to read a specific 
@@ -183,5 +180,4 @@ uint8_t Send_ReadRange_Request(
  * specified object property. 
  * The service may be used with any list or array of lists property.
  */
-
 #endif

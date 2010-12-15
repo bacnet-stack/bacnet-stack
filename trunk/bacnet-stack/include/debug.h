@@ -50,12 +50,12 @@ extern "C" {
     /* Nothing more here */
 #else
     /* If your compiler supports it, this is more compact: 
-    inline void debug_printf(
-        const char *format,
-        ...) {
-        format = format;
-    }
-    */
+       inline void debug_printf(
+       const char *format,
+       ...) {
+       format = format;
+       }
+     */
 #endif
 #ifdef __cplusplus
 }

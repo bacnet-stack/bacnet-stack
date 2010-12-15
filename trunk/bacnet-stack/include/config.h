@@ -48,9 +48,9 @@
 /* Enable the Gateway (Routing) functionality here, if desired. */
 #if !defined(MAX_NUM_DEVICES)
 #ifdef BAC_ROUTING
-#define MAX_NUM_DEVICES 3	/* Eg, Gateway + two remote devices */
+#define MAX_NUM_DEVICES 3       /* Eg, Gateway + two remote devices */
 #else
-#define MAX_NUM_DEVICES 1	/* Just the one normal BACnet Device Object */
+#define MAX_NUM_DEVICES 1       /* Just the one normal BACnet Device Object */
 #endif
 #endif
 

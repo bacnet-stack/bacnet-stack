@@ -61,11 +61,11 @@ struct router_port_t;
 #define ROUTER_PORT_INFO_LEN 2
 /** Port Info structure used by Routers for their routing table. */
 typedef struct router_port_t {
-    uint16_t dnet;		/**< The DNET number that identifies this port. */
-    uint8_t id;			/**< Either 0 or some ill-defined, meaningless value. */
+    uint16_t dnet;              /**< The DNET number that identifies this port. */
+    uint8_t id;                 /**< Either 0 or some ill-defined, meaningless value. */
     uint8_t info[ROUTER_PORT_INFO_LEN];  /**< Info like 'modem dialing string' */
-    uint8_t info_len;	/**< Length of info[]. */
-    struct router_port_t *next; 	/**< Point to next in linked list */
+    uint8_t info_len;   /**< Length of info[]. */
+    struct router_port_t *next;         /**< Point to next in linked list */
 } BACNET_ROUTER_PORT;
 
 #ifdef __cplusplus

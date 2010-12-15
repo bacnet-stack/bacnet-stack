@@ -114,32 +114,30 @@ uint16_t iCurrent_Device_Idx = 0;
  * @return The index of this instance in the Devices[] array,
  *         or -1 if there isn't enough room to add this Device.
  */
-uint16_t Add_Routed_Device( 
-		uint32_t Object_Instance, 
-		const char * sObject_Name, 
-		const char * sDescription )
+uint16_t Add_Routed_Device(
+    uint32_t Object_Instance,
+    const char *sObject_Name,
+    const char *sDescription)
 {
-	int i = Num_Managed_Devices;
-	if ( i < MAX_NUM_DEVICES )
-    {
-    	DEVICE_OBJECT_DATA *pDev = &Devices[i];
-    	Num_Managed_Devices++;
-    	iCurrent_Device_Idx = i;
-    	pDev->bacObj.mObject_Type = OBJECT_DEVICE;
-    	pDev->bacObj.Object_Instance_Number = Object_Instance;
-    	if ( sObject_Name != NULL )
-    		Routed_Device_Set_Object_Name( sObject_Name, strlen( sObject_Name ));
-    	else
-    		Routed_Device_Set_Object_Name( "No Name", strlen( "No Name" ));
-    	if ( sDescription != NULL )
-    		Routed_Device_Set_Description( sDescription, strlen( sDescription ));
-    	else
-    		Routed_Device_Set_Description( "No Descr", strlen( "No Descr" ));
-    	pDev->Database_Revision = 0;		/* Reset/Initialize now */
-    	return i;
-    }
-	else
-		return -1;
+    int i = Num_Managed_Devices;
+    if (i < MAX_NUM_DEVICES) {
+        DEVICE_OBJECT_DATA *pDev = &Devices[i];
+        Num_Managed_Devices++;
+        iCurrent_Device_Idx = i;
+        pDev->bacObj.mObject_Type = OBJECT_DEVICE;
+        pDev->bacObj.Object_Instance_Number = Object_Instance;
+        if (sObject_Name != NULL)
+            Routed_Device_Set_Object_Name(sObject_Name, strlen(sObject_Name));
+        else
+            Routed_Device_Set_Object_Name("No Name", strlen("No Name"));
+        if (sDescription != NULL)
+            Routed_Device_Set_Description(sDescription, strlen(sDescription));
+        else
+            Routed_Device_Set_Description("No Descr", strlen("No Descr"));
+        pDev->Database_Revision = 0;    /* Reset/Initialize now */
+        return i;
+    } else
+        return -1;
 }
 
 
@@ -152,17 +150,16 @@ uint16_t Add_Routed_Device(
  * @return Pointer to the requested Device Object data, or NULL if the idx 
  *         is for an invalid row entry (eg, after the last good Device).
  */
-DEVICE_OBJECT_DATA * Get_Routed_Device_Object( 
-		int idx )
+DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
+    int idx)
 {
-	if ( idx == -1 )
-		return &Devices[iCurrent_Device_Idx];
-	else if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) ) {
-		iCurrent_Device_Idx = idx;
-		return &Devices[idx];
-	}
-	else
-		return NULL;
+    if (idx == -1)
+        return &Devices[iCurrent_Device_Idx];
+    else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+        iCurrent_Device_Idx = idx;
+        return &Devices[idx];
+    } else
+        return NULL;
 }
 
 /** Return the BACnet address for the indicated entry.
@@ -174,17 +171,16 @@ DEVICE_OBJECT_DATA * Get_Routed_Device_Object(
  * @return Pointer to the requested Device Object BACnet address, or NULL if the idx 
  *         is for an invalid row entry (eg, after the last good Device).
  */
-BACNET_ADDRESS * Get_Routed_Device_Address(
-		int idx )
+BACNET_ADDRESS *Get_Routed_Device_Address(
+    int idx)
 {
-	if ( idx == -1 )
-		return &Devices[iCurrent_Device_Idx].bacDevAddr;
-	else if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) ) {
-		iCurrent_Device_Idx = idx;
-		return &Devices[idx].bacDevAddr;
-	}
-	else
-		return NULL;
+    if (idx == -1)
+        return &Devices[iCurrent_Device_Idx].bacDevAddr;
+    else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+        iCurrent_Device_Idx = idx;
+        return &Devices[idx].bacDevAddr;
+    } else
+        return NULL;
 }
 
 
@@ -198,11 +194,10 @@ BACNET_ADDRESS * Get_Routed_Device_Address(
  */
 void routed_get_my_address(
     BACNET_ADDRESS * my_address)
-
 {
     if (my_address) {
-    	memcpy(my_address, &Devices[iCurrent_Device_Idx].bacDevAddr, 
-    				sizeof( BACNET_ADDRESS ));
+        memcpy(my_address, &Devices[iCurrent_Device_Idx].bacDevAddr,
+            sizeof(BACNET_ADDRESS));
     }
 }
 
@@ -224,32 +219,32 @@ void routed_get_my_address(
  *         meaning MAC broadcast, so it's an automatic match). 
  *         Else False if no match or invalid idx is given.
  */
-bool Routed_Device_Address_Lookup( 
-		int idx, 
-		uint8_t address_len,       
-		uint8_t * mac_adress )
+bool Routed_Device_Address_Lookup(
+    int idx,
+    uint8_t address_len,
+    uint8_t * mac_adress)
 {
-	bool result = false;
-	DEVICE_OBJECT_DATA *pDev = &Devices[idx];
-	int i;
+    bool result = false;
+    DEVICE_OBJECT_DATA *pDev = &Devices[idx];
+    int i;
 
-	if ( (idx >= 0) && (idx < MAX_NUM_DEVICES) ) {
-		if ( address_len == 0 ) {
-			/* Automatic match */
-			iCurrent_Device_Idx = idx;
-			result = true;
-		} else if ( mac_adress != NULL ) {
-		    for (i = 0; i < address_len; i++) {
-		        if (pDev->bacDevAddr.mac[i] != mac_adress[i])
-		            break;
-		    }
-		    if ( i == address_len ) {		/* Success! */
-				iCurrent_Device_Idx = idx;
-				result = true;
-		    }
-		}
-	}
-	return result;
+    if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+        if (address_len == 0) {
+            /* Automatic match */
+            iCurrent_Device_Idx = idx;
+            result = true;
+        } else if (mac_adress != NULL) {
+            for (i = 0; i < address_len; i++) {
+                if (pDev->bacDevAddr.mac[i] != mac_adress[i])
+                    break;
+            }
+            if (i == address_len) {     /* Success! */
+                iCurrent_Device_Idx = idx;
+                result = true;
+            }
+        }
+    }
+    return result;
 }
 
 
@@ -279,63 +274,61 @@ bool Routed_Device_Address_Lookup(
  *         Else False if no match or invalid idx is given; the cursor will
  *         be returned as -1 in these cases.
  */
-bool Routed_Device_GetNext( 
-	    BACNET_ADDRESS * dest,
-	    int * DNET_list,
-		int * cursor )
+bool Routed_Device_GetNext(
+    BACNET_ADDRESS * dest,
+    int *DNET_list,
+    int *cursor)
 {
-    int dnet = DNET_list[0];	/* Get the DNET of our virtual network */
+    int dnet = DNET_list[0];    /* Get the DNET of our virtual network */
     int idx = *cursor;
     bool bSuccess = false;
-    
+
     /* First, see if the index is out of range.
      * Eg, last call to GetNext may have been the last successful one.
      */
-    if ( (idx < 0) || (idx >= MAX_NUM_DEVICES) )
-    	idx = -1;
-    
+    if ((idx < 0) || (idx >= MAX_NUM_DEVICES))
+        idx = -1;
+
     /* Next, see if it's a BACnet broadcast. 
      * For broadcasts, all Devices get a chance at it.
      */
     else if (dest->net == BACNET_BROADCAST_NETWORK) {
-    	/* Just take the entry indexed by the cursor */
-    	bSuccess = Routed_Device_Address_Lookup( idx++, 
-    					dest->len, dest->adr );
+        /* Just take the entry indexed by the cursor */
+        bSuccess = Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
     }
     /* Or see if it's for the main Gateway Device, because 
      * there's no routing info.
      */
-    else if (dest->net == 0)  {
+    else if (dest->net == 0) {
         /* Handle like a normal, non-routed access of the Gateway Device.
          * But first, make sure our internal access is pointing at
          * that Device in our table by telling it "no routing info" : */
-    	bSuccess = Routed_Device_Address_Lookup( 0, 
-    					dest->len, dest->adr );
-    	/* Next step: no more matches: */
-    	idx = -1;
+        bSuccess = Routed_Device_Address_Lookup(0, dest->len, dest->adr);
+        /* Next step: no more matches: */
+        idx = -1;
     }
     /* Or if is our virtual DNET, check
      * against each of our virtually routed Devices.
      * If we get a match, have it handle the APDU.
      * For broadcasts, all Devices get a chance at it.
      */
-    else if (dest->net == dnet)  {
-    	if ( idx == 0 )		/* Step over this case (starting point) */
-    		idx = 1;
-    	while (idx < MAX_NUM_DEVICES) {
-        	bSuccess = Routed_Device_Address_Lookup( idx++, 
-        					dest->len, dest->adr );
-        	if ( bSuccess )
-				break;			/* We don't need to keep looking */
-    	}
-    } 
+    else if (dest->net == dnet) {
+        if (idx == 0)   /* Step over this case (starting point) */
+            idx = 1;
+        while (idx < MAX_NUM_DEVICES) {
+            bSuccess =
+                Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
+            if (bSuccess)
+                break;  /* We don't need to keep looking */
+        }
+    }
 
-    if ( !bSuccess )
-    	*cursor = -1;
-    else if ( idx == MAX_NUM_DEVICES )		/* No more to GetNext */
-    	*cursor = -1;
+    if (!bSuccess)
+        *cursor = -1;
+    else if (idx == MAX_NUM_DEVICES)    /* No more to GetNext */
+        *cursor = -1;
     else
-    	*cursor = idx;
+        *cursor = idx;
     return bSuccess;
 }
 
@@ -353,24 +346,24 @@ bool Routed_Device_GetNext(
  * 		    an automatic match. 
  *         Else False if not a reachable network.
  */
-bool Routed_Device_Is_Valid_Network( 
-	    uint16_t dest_net,
-	    int * DNET_list )
+bool Routed_Device_Is_Valid_Network(
+    uint16_t dest_net,
+    int *DNET_list)
 {
-    int dnet = DNET_list[0];	/* Get the DNET of our virtual network */
+    int dnet = DNET_list[0];    /* Get the DNET of our virtual network */
     bool bSuccess = false;
-    
+
     /* First, see if it's a BACnet broadcast (automatic pass). */
-    if ( dest_net == BACNET_BROADCAST_NETWORK)
-    	bSuccess = true;
+    if (dest_net == BACNET_BROADCAST_NETWORK)
+        bSuccess = true;
     /* Or see if it's for the main Gateway Device, because 
      * there's no routing info.
      */
-    else if (dest_net == 0)  
-    	bSuccess = true;
+    else if (dest_net == 0)
+        bSuccess = true;
     /* Or see if matches our virtual DNET */
-    else if (dest_net == dnet)  
-    	bSuccess = true;
+    else if (dest_net == dnet)
+        bSuccess = true;
 
     return bSuccess;
 }
@@ -396,20 +389,20 @@ uint32_t Routed_Device_Index_To_Instance(
 bool Routed_Device_Valid_Object_Instance_Number(
     uint32_t object_id)
 {
-	bool bResult = false;
-	DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+    bool bResult = false;
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
     /* BACnet allows for a wildcard instance number */
-	if (object_id == BACNET_MAX_INSTANCE)
-		bResult = true;
-	if ( pDev->bacObj.Object_Instance_Number == object_id ) 
-		bResult = true;
-	return bResult;
+    if (object_id == BACNET_MAX_INSTANCE)
+        bResult = true;
+    if (pDev->bacObj.Object_Instance_Number == object_id)
+        bResult = true;
+    return bResult;
 }
 
 char *Routed_Device_Name(
     uint32_t object_instance)
 {
-	DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
     if (object_instance == pDev->bacObj.Object_Instance_Number) {
         return pDev->bacObj.Object_Name;
     }
@@ -429,7 +422,7 @@ int Routed_Device_Read_Property_Local(
     int apdu_len = 0;   /* return value */
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
-	DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -440,7 +433,7 @@ int Routed_Device_Read_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_DEVICE,
-                		pDev->bacObj.Object_Instance_Number);
+                pDev->bacObj.Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string, pDev->bacObj.Object_Name);
@@ -457,11 +450,11 @@ int Routed_Device_Read_Property_Local(
                 encode_application_unsigned(&apdu[0], pDev->Database_Revision);
             break;
         default:
-            apdu_len = Device_Read_Property_Local( rpdata);
+            apdu_len = Device_Read_Property_Local(rpdata);
             break;
     }
 
-	return ( apdu_len );
+    return (apdu_len);
 }
 
 bool Routed_Device_Write_Property_Local(
@@ -489,8 +482,8 @@ bool Routed_Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Routed_Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Routed_Device_Set_Object_Instance_Number(value.
+                            type.Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -504,13 +497,13 @@ bool Routed_Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Routed_Device_Set_Object_Name(characterstring_value(&value.
-                        type.Character_String),
+                Routed_Device_Set_Object_Name(characterstring_value
+                    (&value.type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
         default:
-            status = Device_Write_Property_Local( wp_data);
+            status = Device_Write_Property_Local(wp_data);
             break;
     }
     return status;
@@ -537,7 +530,7 @@ bool Routed_Device_Set_Object_Instance_Number(
 
     if (object_id <= BACNET_MAX_INSTANCE) {
         /* Make the change and update the database revision */
-    	Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number = object_id;
+        Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number = object_id;
         Routed_Device_Inc_Database_Revision();
     } else
         status = false;
@@ -558,7 +551,7 @@ bool Routed_Device_Set_Object_Name(
     size_t length)
 {
     bool status = false;        /*return value */
-	DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
     if (length < MAX_DEV_NAME_LEN) {
         /* Make the change and update the database revision */
@@ -576,7 +569,7 @@ bool Routed_Device_Set_Description(
     size_t length)
 {
     bool status = false;        /*return value */
-	DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
     if (length < MAX_DEV_DESC_LEN) {
         memmove(pDev->Description, name, length);
@@ -596,8 +589,6 @@ bool Routed_Device_Set_Description(
 void Routed_Device_Inc_Database_Revision(
     void)
 {
-	DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
-	pDev->Database_Revision++;
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+    pDev->Database_Revision++;
 }
-
-

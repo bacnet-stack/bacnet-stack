@@ -131,8 +131,7 @@ typedef struct object_functions {
 #define MAX_DEV_DESC_LEN 64
 
 /** Structure to define the Object Properties common to all Objects. */
-typedef struct commonBacObj_s
-{
+typedef struct commonBacObj_s {
 
     /** The BACnet type of this object (ie, what class is this object from?).
      * This property, of type BACnetObjectType, indicates membership in a
@@ -160,13 +159,12 @@ typedef struct commonBacObj_s
  *  This may be useful for implementations which manage multiple Devices,
  *  eg, a Gateway.
  */
-typedef struct devObj_s
-{
+typedef struct devObj_s {
     /** The BACnet Device Address for this device; ->len depends on DLL type. */
-    BACNET_ADDRESS 		bacDevAddr;
+    BACNET_ADDRESS bacDevAddr;
 
     /** Structure for the Object Properties common to all Objects. */
-    COMMON_BAC_OBJECT	bacObj;
+    COMMON_BAC_OBJECT bacObj;
 
     /** Device Description. */
     char Description[MAX_DEV_DESC_LEN];
@@ -183,7 +181,7 @@ extern "C" {
     void Device_Init(
         void);
     void Device_Initialize_Object_Functions(
-        object_functions_t *object_table);
+        object_functions_t * object_table);
 
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
@@ -311,31 +309,31 @@ extern "C" {
  * in the build (lib/Makefile).
  */
     void Routing_Device_Init(
-        uint32_t first_object_instance );
+        uint32_t first_object_instance);
 
     uint16_t Add_Routed_Device(
         uint32_t Object_Instance,
-        const char * Object_Name,
-        const char * Description );
-    DEVICE_OBJECT_DATA * Get_Routed_Device_Object(
-        int idx );
-    BACNET_ADDRESS * Get_Routed_Device_Address(
-        int idx );
+        const char *Object_Name,
+        const char *Description);
+    DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
+        int idx);
+    BACNET_ADDRESS *Get_Routed_Device_Address(
+        int idx);
 
     void routed_get_my_address(
         BACNET_ADDRESS * my_address);
 
     bool Routed_Device_Address_Lookup(
-            int idx,
-            uint8_t address_len,
-            uint8_t * mac_adress );
+        int idx,
+        uint8_t address_len,
+        uint8_t * mac_adress);
     bool Routed_Device_GetNext(
-            BACNET_ADDRESS * dest,
-            int * DNET_list,
-            int * cursor );
+        BACNET_ADDRESS * dest,
+        int *DNET_list,
+        int *cursor);
     bool Routed_Device_Is_Valid_Network(
-            uint16_t dest_net,
-            int * DNET_list );
+        uint16_t dest_net,
+        int *DNET_list);
 
     uint32_t Routed_Device_Index_To_Instance(
         unsigned index);
@@ -362,13 +360,11 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #define DEVICE_OBJ_FUNCTIONS \
     OBJECT_DEVICE, NULL, Device_Count, Device_Index_To_Instance, \
     Device_Valid_Object_Instance_Number, Device_Name, \
     Device_Read_Property_Local, Device_Write_Property_Local, \
     Device_Property_Lists, DeviceGetRRInfo, NULL
-
 /** @defgroup ObjFrmwk Object Framework
  * The modules in this section describe the BACnet-stack's framework for
  * BACnet-defined Objects (Device, Analog Input, etc). There are two submodules
@@ -378,11 +374,11 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
- *//** @defgroup ObjHelpers Object Helper Functions
+    *//** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk
  * This section describes the function templates for the helper functions that
  * provide common object support.
- *//** @defgroup ObjIntf Handler-to-Object Interface Functions
+    *//** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk
  * This section describes the fairly limited set of functions that link the
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are

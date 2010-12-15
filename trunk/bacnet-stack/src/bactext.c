@@ -1995,7 +1995,8 @@ INDTEXT_DATA network_layer_msg_names[] = {
     ,
     {NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, "I-Am-Router-To-Network"}
     ,
-    {NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK, "I-Could-Be-Router-To-Network"}
+    {NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK,
+            "I-Could-Be-Router-To-Network"}
     ,
     {NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, "Reject-Message-to-Network"}
     ,
@@ -2007,8 +2008,8 @@ INDTEXT_DATA network_layer_msg_names[] = {
     ,
     {NETWORK_MESSAGE_INIT_RT_TABLE_ACK, "Initialize-Routing-Table-Ack"}
     ,
-    {NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK, "Est-Conn-Ntwk"}	
-    , /* Terse since unused */
+    {NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK, "Est-Conn-Ntwk"}
+    ,   /* Terse since unused */
     {NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK, "Dsc-Conn-Ntwk"}
     ,
     {0, NULL}
@@ -2017,11 +2018,11 @@ INDTEXT_DATA network_layer_msg_names[] = {
 const char *bactext_network_layer_msg_name(
     unsigned index)
 {
-	if ( index <= 0x7F )
-		return indtext_by_index_default(network_layer_msg_names, index,
-				ASHRAE_Reserved_String);
-	else if ( index < NETWORK_MESSAGE_INVALID )
-		return Vendor_Proprietary_String;
-	else
-		return "Invalid Network Layer Message";
+    if (index <= 0x7F)
+        return indtext_by_index_default(network_layer_msg_names, index,
+            ASHRAE_Reserved_String);
+    else if (index < NETWORK_MESSAGE_INVALID)
+        return Vendor_Proprietary_String;
+    else
+        return "Invalid Network Layer Message";
 }

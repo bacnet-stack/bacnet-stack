@@ -99,12 +99,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #define ANALOG_OUTPUT_OBJ_FUNCTIONS \
     OBJECT_ANALOG_OUTPUT, Analog_Output_Init, Analog_Output_Count, \
     Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance, \
     Analog_Output_Name, Analog_Output_Read_Property, \
     Analog_Output_Write_Property, Analog_Output_Property_Lists, \
     NULL, NULL
-
 #endif

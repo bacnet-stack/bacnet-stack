@@ -185,10 +185,10 @@ extern "C" {
         uint32_t device_id,
         BACNET_EVENT_NOTIFICATION_DATA * data);
 
-    int Send_Network_Layer_Message( 
-		BACNET_NETWORK_MESSAGE_TYPE network_message_type,
-		BACNET_ADDRESS * dst,
-		int * iArgs );
+    int Send_Network_Layer_Message(
+        BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+        BACNET_ADDRESS * dst,
+        int *iArgs);
     void Send_Who_Is_Router_To_Network(
         BACNET_ADDRESS * dst,
         int dnet);
@@ -203,7 +203,7 @@ extern "C" {
         const int DNET_list[]);
     void Send_Initialize_Routing_Table_Ack(
         BACNET_ADDRESS * dst,
-    	const int DNET_list[]);
+        const int DNET_list[]);
 
     uint8_t Send_Life_Safety_Operation_Data(
         uint32_t device_id,

@@ -799,7 +799,7 @@ bool MSTP_Master_Node_FSM(
                 (mstp_port->Next_Station == mstp_port->This_Station)) {
                 /* NextStationUnknown - added in Addendum 135-2008v-1 */
                 /*  then the next station to which the token
-                    should be sent is unknown - so PollForMaster */
+                   should be sent is unknown - so PollForMaster */
                 mstp_port->Poll_Station = next_this_station;
                 MSTP_Create_And_Send_Frame(mstp_port,
                     FRAME_TYPE_POLL_FOR_MASTER, mstp_port->Poll_Station,

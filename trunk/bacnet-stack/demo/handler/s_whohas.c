@@ -77,7 +77,8 @@ void Send_WhoHas_Name(
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
 
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
@@ -131,7 +132,8 @@ void Send_WhoHas_Object(
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
 
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;

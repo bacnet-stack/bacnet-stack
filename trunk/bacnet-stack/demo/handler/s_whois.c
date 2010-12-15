@@ -72,7 +72,8 @@ void Send_WhoIs_To_Network(
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
 
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address, &my_address, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address,
+        &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
     len =
         whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len], low_limit,

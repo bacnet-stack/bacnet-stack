@@ -277,8 +277,8 @@ static void Init_Service_Handlers(
     uint32_t Object_Instance;
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
-    Add_Routed_Device( Object_Instance, Device_Object_Name(),
-                       Device_Description() );
+    Add_Routed_Device(Object_Instance, Device_Object_Name(),
+        Device_Description());
 #endif
 
     /* we need to handle who-is
@@ -797,10 +797,8 @@ void PrintUsage(
         ("    -t: declare target's MAC instead of using Who-Is to bind to  \r\n");
     printf
         ("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \r\n");
-    printf
-        ("        Use \"7F:00:00:01:BA:C0\" for loopback testing \r\n");
-    printf
-        ("    -n: specify target's DNET if not local BACnet network  \r\n");
+    printf("        Use \"7F:00:00:01:BA:C0\" for loopback testing \r\n");
+    printf("    -n: specify target's DNET if not local BACnet network  \r\n");
     printf("        or on routed Virtual Network \r\n");
     printf("\r\n");
     printf("Insert the output in your EPICS file as the last section: \r\n");
@@ -839,10 +837,12 @@ int CheckCommandLineArgs(
                     break;
                 case 'n':
                     /* Destination Network Number */
-                    if ( Target_Address.mac_len == 0 )
-                        fprintf(stderr, "Must provide a Target MAC before DNET \r\n");
+                    if (Target_Address.mac_len == 0)
+                        fprintf(stderr,
+                            "Must provide a Target MAC before DNET \r\n");
                     if (++i < argc)
-                        Target_Address.net = (uint16_t) strtol(argv[i], NULL, 0);
+                        Target_Address.net =
+                            (uint16_t) strtol(argv[i], NULL, 0);
                     /* Used strtol so dest.net can be either 0x1234 or 4660 */
                     break;
                 case 't':
@@ -854,10 +854,9 @@ int CheckCommandLineArgs(
                         /* loop counter */
                         unsigned j;
                         count =
-                            sscanf(argv[i], "%x:%x:%x:%x:%x:%x",
-                            &mac[0], &mac[1], &mac[2], &mac[3], &mac[4],
-                            &mac[5]);
-                        if (count == 6) {      /* success */
+                            sscanf(argv[i], "%x:%x:%x:%x:%x:%x", &mac[0],
+                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+                        if (count == 6) {       /* success */
                             Target_Address.mac_len = count;
                             for (j = 0; j < 6; j++) {
                                 Target_Address.mac[j] = (uint8_t) mac[j];
@@ -967,30 +966,30 @@ int main(
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
 
     if (My_BIP_Port > 0)
-        bip_set_port(htons(0xBAC0));   /* Set back to std BACnet/IP port */
+        bip_set_port(htons(0xBAC0));    /* Set back to std BACnet/IP port */
     /* try to bind with the target device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,
         &Target_Address);
     if (!found) {
         if (Provided_Targ_MAC) {
-            if ( Target_Address.net > 0 ) {
+            if (Target_Address.net > 0) {
                 /* We specified a DNET; call Who-Is to find the full
                  * routed path to this Device */
                 Send_WhoIs_Remote(&Target_Address,
-                                    Target_Device_Object_Instance,
-                                    Target_Device_Object_Instance);
+                    Target_Device_Object_Instance,
+                    Target_Device_Object_Instance);
 
             } else {
                 /* Update by adding the MAC address */
                 if (max_apdu == 0)
-                    max_apdu = MAX_APDU;    /* Whatever set for this datalink. */
+                    max_apdu = MAX_APDU;        /* Whatever set for this datalink. */
                 address_add_binding(Target_Device_Object_Instance, max_apdu,
-                                    &Target_Address);
+                    &Target_Address);
             }
         } else {
             Send_WhoIs(Target_Device_Object_Instance,
-                        Target_Device_Object_Instance);
+                Target_Device_Object_Instance);
         }
     }
     myObject.type = OBJECT_DEVICE;
@@ -1036,7 +1035,7 @@ int main(
                 } else {
                     /* Print out the header information */
                     printf("List of Objects in device %u: \r\n",
-                                Target_Device_Object_Instance);
+                        Target_Device_Object_Instance);
                     /* Print Opening brace, then kick off the Device Object */
                     printf("{ \r\n");
                     printf("  { \r\n"); /* And opening brace for the first object */
@@ -1158,11 +1157,11 @@ int main(
                     (invoke_id ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData(Read_Property_Multiple_Data.
-                        rpm_data->object_type,
+                    PrintReadPropertyData
+                        (Read_Property_Multiple_Data.rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.rpm_data->
-                        listOfProperties);
+                        Read_Property_Multiple_Data.
+                        rpm_data->listOfProperties);
                     if (tsm_invoke_id_free(invoke_id)) {
                         invoke_id = 0;
                     } else {

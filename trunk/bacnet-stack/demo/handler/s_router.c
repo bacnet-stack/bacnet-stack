@@ -71,7 +71,7 @@ static void npdu_encode_npdu_network(
         npdu_data->network_message_type = network_message_type; /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
-        npdu_data->hop_count = DFLT_HOP_COUNT;		
+        npdu_data->hop_count = DFLT_HOP_COUNT;
     }
 }
 
@@ -97,119 +97,117 @@ static void npdu_encode_npdu_network(
  *                   the type of message.
  * @return Number of bytes sent, or <=0 if no message was sent.
  */
-int Send_Network_Layer_Message( 
-	    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
-	    BACNET_ADDRESS * dst,
-	    int * iArgs )
+int Send_Network_Layer_Message(
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+    BACNET_ADDRESS * dst,
+    int *iArgs)
 {
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
-    int *pVal = iArgs;		/* Start with first value */
+    int *pVal = iArgs;  /* Start with first value */
     bool data_expecting_reply = false;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS bcastDest;
-    
-    if ( iArgs == NULL )
-        return 0;           /* Can't do anything here */
-    
+
+    if (iArgs == NULL)
+        return 0;       /* Can't do anything here */
+
     /* If dst was NULL, get our (local net) broadcast MAC address. */
-    if ( dst == NULL ) {
-		datalink_get_broadcast_address(&bcastDest);
-    	dst = &bcastDest;
+    if (dst == NULL) {
+        datalink_get_broadcast_address(&bcastDest);
+        dst = &bcastDest;
     }
 
-    if ( network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE )
+    if (network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE)
         data_expecting_reply = true;    /* DER in this one case */
-    npdu_encode_npdu_network(&npdu_data,
-    		network_message_type, data_expecting_reply,
-    		MESSAGE_PRIORITY_NORMAL);
-    
+    npdu_encode_npdu_network(&npdu_data, network_message_type,
+        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+
     /* We don't need src information, since a message can't originate from
      * our downstream BACnet network.
      */
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], dst, NULL, &npdu_data);
-    
-    /* Now encode the optional payload bytes, per message type */
-    switch ( network_message_type )
-    {
-    case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
-        if (*pVal >= 0) {
-            len =
-                encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
-                (uint16_t) *pVal);
-            pdu_len += len;
-        } 
-        /* else, don't encode a DNET */
-        break;
-        
-    case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
-    case NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK:
-    case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
-    	while ( *pVal >= 0 ) {
-            len =
-                encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
-                (uint16_t) *pVal);
-            pdu_len += len;
-    		pVal++;
-    	}
-    	break;
-    	
-    case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
-        /* Encode the Reason byte, then the DNET */
-        Handler_Transmit_Buffer[pdu_len++] = (uint8_t) *pVal;
-        pVal++;
-        len =
-            encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
-            (uint16_t) *pVal);
-        pdu_len += len;
-        break;
 
-    case NETWORK_MESSAGE_INIT_RT_TABLE:
-    case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
-        /* First, count the number of Ports we will encode */
-        len = 0;                /* Re-purpose len as our counter here */
-        while ( *pVal >= 0 ) {
-            len++;
-            pVal++;
-        }
-        Handler_Transmit_Buffer[pdu_len++] = (uint8_t) len;
-        
-        if ( len > 0 ) {
-            uint8_t portID = 1;
-            pVal = iArgs;       /* Reset to beginning */
-            /* Now encode each (virtual) BACNET_ROUTER_PORT.
-             * We will simply use a positive index for PortID,
-             * and have no PortInfo. 
-             */
-            while ( *pVal >= 0 ) {
+    /* Now encode the optional payload bytes, per message type */
+    switch (network_message_type) {
+        case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
+            if (*pVal >= 0) {
                 len =
                     encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
-                                        (uint16_t) *pVal);
+                    (uint16_t) * pVal);
                 pdu_len += len;
-                Handler_Transmit_Buffer[pdu_len++] = portID++;
-                Handler_Transmit_Buffer[pdu_len++] = 0;
-                debug_printf( "  Sending Routing Table entry for %u \n", *pVal );
+            }
+            /* else, don't encode a DNET */
+            break;
+
+        case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
+        case NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK:
+        case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
+            while (*pVal >= 0) {
+                len =
+                    encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
+                    (uint16_t) * pVal);
+                pdu_len += len;
                 pVal++;
             }
-        }
-        break;
-        
-    default:
-        debug_printf("Not sent: %s message unsupported \n", 
-         		bactext_network_layer_msg_name( network_message_type ) );
-    	return 0;
-    	break;		/* Will never reach this line */
+            break;
+
+        case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
+            /* Encode the Reason byte, then the DNET */
+            Handler_Transmit_Buffer[pdu_len++] = (uint8_t) * pVal;
+            pVal++;
+            len =
+                encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
+                (uint16_t) * pVal);
+            pdu_len += len;
+            break;
+
+        case NETWORK_MESSAGE_INIT_RT_TABLE:
+        case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
+            /* First, count the number of Ports we will encode */
+            len = 0;    /* Re-purpose len as our counter here */
+            while (*pVal >= 0) {
+                len++;
+                pVal++;
+            }
+            Handler_Transmit_Buffer[pdu_len++] = (uint8_t) len;
+
+            if (len > 0) {
+                uint8_t portID = 1;
+                pVal = iArgs;   /* Reset to beginning */
+                /* Now encode each (virtual) BACNET_ROUTER_PORT.
+                 * We will simply use a positive index for PortID,
+                 * and have no PortInfo. 
+                 */
+                while (*pVal >= 0) {
+                    len =
+                        encode_unsigned16(&Handler_Transmit_Buffer[pdu_len],
+                        (uint16_t) * pVal);
+                    pdu_len += len;
+                    Handler_Transmit_Buffer[pdu_len++] = portID++;
+                    Handler_Transmit_Buffer[pdu_len++] = 0;
+                    debug_printf("  Sending Routing Table entry for %u \n",
+                        *pVal);
+                    pVal++;
+                }
+            }
+            break;
+
+        default:
+            debug_printf("Not sent: %s message unsupported \n",
+                bactext_network_layer_msg_name(network_message_type));
+            return 0;
+            break;      /* Will never reach this line */
     }
-    
-    if ( dst != NULL )
-        debug_printf("Sending %s message to BACnet network %u \n", 
-        		bactext_network_layer_msg_name( network_message_type ),
-        	     dst->net );
+
+    if (dst != NULL)
+        debug_printf("Sending %s message to BACnet network %u \n",
+            bactext_network_layer_msg_name(network_message_type), dst->net);
     else
-        debug_printf("Sending %s message to local BACnet network \n", 
-         		bactext_network_layer_msg_name( network_message_type ) );
+        debug_printf("Sending %s message to local BACnet network \n",
+            bactext_network_layer_msg_name(network_message_type));
 
     /* Now send the message */
     bytes_sent =
@@ -217,13 +215,13 @@ int Send_Network_Layer_Message(
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0) {
-    	int wasErrno = errno;	/* preserve the errno */
-    	debug_printf("Failed to send %s message (%s)!\n",
-            bactext_network_layer_msg_name( network_message_type ),
+        int wasErrno = errno;   /* preserve the errno */
+        debug_printf("Failed to send %s message (%s)!\n",
+            bactext_network_layer_msg_name(network_message_type),
             strerror(wasErrno));
     }
 #endif
-	return bytes_sent;
+    return bytes_sent;
 }
 
 
@@ -242,8 +240,8 @@ void Send_Who_Is_Router_To_Network(
     BACNET_ADDRESS * dst,
     int dnet)
 {
-	Send_Network_Layer_Message( NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK,
-		    					dst, &dnet );
+    Send_Network_Layer_Message(NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, dst,
+        &dnet);
 }
 
 /** Broadcast an I-am-router-to-network message, giving the list of networks 
@@ -259,8 +257,8 @@ void Send_I_Am_Router_To_Network(
     const int DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
-	Send_Network_Layer_Message( NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
-		    					NULL, (int *) DNET_list );
+    Send_Network_Layer_Message(NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, NULL,
+        (int *) DNET_list);
 }
 
 /** Finds a specific router, or all reachable BACnet networks.
@@ -281,9 +279,9 @@ void Send_Reject_Message_To_Network(
     int iArgs[2];
     iArgs[0] = reject_reason;
     iArgs[1] = dnet;
-    Send_Network_Layer_Message( NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK,
-                                dst, iArgs );
-    debug_printf("  Reject Reason=%d, DNET=%u\n", reject_reason, dnet );
+    Send_Network_Layer_Message(NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, dst,
+        iArgs);
+    debug_printf("  Reject Reason=%d, DNET=%u\n", reject_reason, dnet);
 }
 
 
@@ -308,8 +306,8 @@ void Send_Initialize_Routing_Table(
     const int DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
-    Send_Network_Layer_Message( NETWORK_MESSAGE_INIT_RT_TABLE,
-                                dst, (int *) DNET_list );
+    Send_Network_Layer_Message(NETWORK_MESSAGE_INIT_RT_TABLE, dst,
+        (int *) DNET_list);
 }
 
 
@@ -334,6 +332,6 @@ void Send_Initialize_Routing_Table_Ack(
     BACNET_ADDRESS * dst,
     const int DNET_list[])
 {
-    Send_Network_Layer_Message( NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
-                                dst, (int *) DNET_list );
+    Send_Network_Layer_Message(NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst,
+        (int *) DNET_list);
 }

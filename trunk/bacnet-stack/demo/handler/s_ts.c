@@ -65,7 +65,8 @@ void Send_TimeSync(
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
 
     /* encode the APDU portion of the packet */
     len =
@@ -101,7 +102,8 @@ void Send_TimeSyncUTC(
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
 
     /* encode the APDU portion of the packet */
     pdu_len =

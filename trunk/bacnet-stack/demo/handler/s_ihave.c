@@ -75,7 +75,9 @@ void Send_I_Have(
     datalink_get_broadcast_address(&dest);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        &npdu_data);
 
     /* encode the APDU portion of the packet */
     data.device_id.type = OBJECT_DEVICE;

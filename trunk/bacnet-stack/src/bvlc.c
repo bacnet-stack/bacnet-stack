@@ -55,11 +55,11 @@ typedef struct {
     /* true if valid entry - false if not */
     bool valid;
     /* BACnet/IP address */
-    struct in_addr dest_address;   /* in network format */
+    struct in_addr dest_address;        /* in network format */
     /* BACnet/IP port number - not always 47808=BAC0h */
-    uint16_t dest_port;            /* in network format */
+    uint16_t dest_port; /* in network format */
     /* Broadcast Distribution Mask */
-    struct in_addr broadcast_mask; /* in tework format */
+    struct in_addr broadcast_mask;      /* in tework format */
 } BBMD_TABLE_ENTRY;
 
 #define MAX_BBMD_ENTRIES 128
@@ -146,13 +146,13 @@ static void bvlc_internet_to_bacnet_address(
 static int bvlc_encode_bip_address(
     uint8_t * pdu,      /* buffer to store encoding */
     struct in_addr *address,    /* in network format */
-    uint16_t port)              /* in network format */
-{
+    uint16_t port)
+{       /* in network format */
     int len = 0;
 
     if (pdu) {
-        memcpy (&pdu[0], &address->s_addr, 4);
-        memcpy (&pdu[4], &port, 2);
+        memcpy(&pdu[0], &address->s_addr, 4);
+        memcpy(&pdu[4], &port, 2);
         len = 6;
     }
 
@@ -162,8 +162,8 @@ static int bvlc_encode_bip_address(
 static int bvlc_decode_bip_address(
     uint8_t * pdu,      /* buffer to extract encoded address */
     struct in_addr *address,    /* in network format */
-    uint16_t * port)            /* in network format */
-{
+    uint16_t * port)
+{       /* in network format */
     int len = 0;
 
     if (pdu) {
@@ -179,7 +179,7 @@ static int bvlc_decode_bip_address(
 static int bvlc_encode_address_entry(
     uint8_t * pdu,
     struct in_addr *address,
-    uint16_t port,           /* in network byte order */
+    uint16_t port,      /* in network byte order */
     struct in_addr *mask)
 {
     int len = 0;
@@ -326,7 +326,8 @@ static int bvlc_encode_forwarded_npdu(
            length field itself, most significant octet first. */
         encode_unsigned16(&pdu[2], (uint16_t) (4 + 6 + npdu_length));
         len = 4;
-        len += bvlc_encode_bip_address(&pdu[len], &sin->sin_addr, sin->sin_port);
+        len +=
+            bvlc_encode_bip_address(&pdu[len], &sin->sin_addr, sin->sin_port);
         for (i = 0; i < npdu_length; i++) {
             pdu[len] = npdu[i];
             len++;
@@ -440,8 +441,8 @@ static int bvlc_encode_read_fdt_ack(
 int bvlc_encode_delete_fdt_entry(
     uint8_t * pdu,
     uint32_t address,   /* in network byte order */
-    uint16_t port)   /* in network byte order */
-{
+    uint16_t port)
+{       /* in network byte order */
     int len = 0;
 
     if (pdu) {
@@ -534,7 +535,7 @@ static bool bvlc_create_bdt(
             pdu_offset += 2;
             memcpy(&BBMD_Table[i].broadcast_mask.s_addr, &npdu[pdu_offset], 4);
             pdu_offset += 4;
-            npdu_length -= (4+2+4);
+            npdu_length -= (4 + 2 + 4);
         } else {
             BBMD_Table[i].valid = false;
             BBMD_Table[i].dest_address.s_addr = 0;
@@ -655,8 +656,8 @@ static void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
             bip_dest.sin_addr.s_addr =
-                ((~BBMD_Table[i].broadcast_mask.
-                        s_addr) | BBMD_Table[i].dest_address.s_addr);
+                ((~BBMD_Table[i].broadcast_mask.s_addr) | BBMD_Table[i].
+                dest_address.s_addr);
             bip_dest.sin_port = BBMD_Table[i].dest_port;
             /* don't send to my broadcast address and same port */
             if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr())
@@ -733,8 +734,8 @@ static void bvlc_fdt_forward_npdu(
 }
 
 void bvlc_register_with_bbmd(
-    uint32_t bbmd_address,  /* in network byte order */
-    uint16_t bbmd_port,     /* in network byte order */
+    uint32_t bbmd_address,      /* in network byte order */
+    uint16_t bbmd_port, /* in network byte order */
     uint16_t time_to_live_seconds)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
@@ -804,8 +805,7 @@ static bool bvlc_bdt_member_mask_is_unicast(
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (BBMD_Table[i].valid) {
             /* find the source address in the table */
-            if ((BBMD_Table[i].dest_address.s_addr ==
-                    sin->sin_addr.s_addr) &&
+            if ((BBMD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr) &&
                 (BBMD_Table[i].dest_port == sin->sin_port)) {
                 /* unicast mask? */
                 if (BBMD_Table[i].broadcast_mask.s_addr == 0xFFFFFFFFL) {

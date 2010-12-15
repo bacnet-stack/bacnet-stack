@@ -58,7 +58,8 @@ void test_init(
 * Returns: none
 * Notes: none
 *************************************************************************/
-static inline void test_pin_on(void)
+static inline void test_pin_on(
+    void)
 {
     BIT_SET(PORTB, PB0);
 }
@@ -68,7 +69,8 @@ static inline void test_pin_on(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-static inline void test_pin_off(void)
+static inline void test_pin_off(
+    void)
 {
     BIT_CLEAR(PORTB, PB0);
 }
@@ -78,7 +80,8 @@ static inline void test_pin_off(void)
 * Returns: true if on, false if off.
 * Notes: none
 *************************************************************************/
-static inline bool test_pin_state(void)
+static inline bool test_pin_state(
+    void)
 {
     return (BIT_CHECK(PINB, PB0));
 }
@@ -88,7 +91,8 @@ static inline bool test_pin_state(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-static inline void test_pin_toggle(void)
+static inline void test_pin_toggle(
+    void)
 {
     if (test_pin_state()) {
         test_pin_off();
@@ -157,11 +161,11 @@ void test_task(
                 break;
             case 'b':
                 sprintf(Send_Buffer, "\r\n%lubps",
-                    (unsigned long)rs485_baud_rate());
+                    (unsigned long) rs485_baud_rate());
                 break;
             case 'm':
                 sprintf(Send_Buffer, "\r\nMax:%u",
-                    (unsigned)dlmstp_max_master());
+                    (unsigned) dlmstp_max_master());
                 break;
             default:
                 break;
