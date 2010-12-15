@@ -127,44 +127,44 @@ static void check_who_is_for_routing(
     uint8_t * service_request,
     uint16_t service_len,
     BACNET_ADDRESS * src,
-    bool is_unicast )
+    bool is_unicast)
 {
     int len = 0;
     int32_t low_limit = 0;
     int32_t high_limit = 0;
     int32_t dev_instance;
-    int cursor = 0;				/* Starting hint */
-    int my_list[2] = {0, -1};	/* Not really used, so dummy values */	
+    int cursor = 0;     /* Starting hint */
+    int my_list[2] = { 0, -1 }; /* Not really used, so dummy values */
     BACNET_ADDRESS bcast_net;
-    
+
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
     if (len == -1) {
-    	/* Invalid; just leave */
-    	return;
+        /* Invalid; just leave */
+        return;
     }
     /* If len == 0, then high_limit is untouched and still == 0 */
     /* BACnet wildcard is the max instance number - everyone responds */
     if ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
         (BACNET_MAX_INSTANCE <= (uint32_t) high_limit))
-    	high_limit = 0;		
-    	/* This is the "always accept" case we will test for below */
+        high_limit = 0;
+    /* This is the "always accept" case we will test for below */
 
     /* Go through all devices, starting with the root gateway Device */
-    memset( &bcast_net, 0, sizeof(BACNET_ADDRESS));
-    bcast_net.net = BACNET_BROADCAST_NETWORK;	/* That's all we have to set */
-    
-   	while ( Routed_Device_GetNext( &bcast_net, my_list, &cursor ) ) {
-   		dev_instance = Device_Object_Instance_Number();
-   		if ( (high_limit == 0) || 
-   			 ((dev_instance >= low_limit) && (dev_instance <= high_limit))) {
-   			if ( is_unicast )
-   				Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
-   			else
-   	           Send_I_Am(&Handler_Transmit_Buffer[0]);
-   		}
-     }
+    memset(&bcast_net, 0, sizeof(BACNET_ADDRESS));
+    bcast_net.net = BACNET_BROADCAST_NETWORK;   /* That's all we have to set */
+
+    while (Routed_Device_GetNext(&bcast_net, my_list, &cursor)) {
+        dev_instance = Device_Object_Instance_Number();
+        if ((high_limit == 0) || ((dev_instance >= low_limit) &&
+                (dev_instance <= high_limit))) {
+            if (is_unicast)
+                Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
+            else
+                Send_I_Am(&Handler_Transmit_Buffer[0]);
+        }
+    }
 
 }
 
@@ -185,7 +185,7 @@ void handler_who_is_bcast_for_routing(
     uint16_t service_len,
     BACNET_ADDRESS * src)
 {
-	check_who_is_for_routing(service_request, service_len, src, false );
+    check_who_is_for_routing(service_request, service_len, src, false);
 }
 
 
@@ -205,6 +205,6 @@ void handler_who_is_unicast_for_routing(
     uint16_t service_len,
     BACNET_ADDRESS * src)
 {
-	check_who_is_for_routing(service_request, service_len, src, true );
+    check_who_is_for_routing(service_request, service_len, src, true);
 }
-#endif			/* BAC_ROUTING */
+#endif /* BAC_ROUTING */

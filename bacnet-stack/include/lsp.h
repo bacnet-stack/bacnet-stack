@@ -68,7 +68,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #define LIFE_SAFETY_POINT_OBJ_FUNCTIONS \
     OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Init, \
     Life_Safety_Point_Count, Life_Safety_Point_Index_To_Instance, \
@@ -76,5 +75,4 @@ extern "C" {
     Life_Safety_Point_Read_Property, \
     Life_Safety_Point_Write_Property, \
     Life_Safety_Point_Property_Lists, NULL, NULL
-
 #endif

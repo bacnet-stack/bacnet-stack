@@ -259,25 +259,16 @@ bool bip_init(
     bip_set_addr(my_addr.s_addr);
     set_broadcast_address(my_addr.s_addr);
     bip_set_port(htons((0xBAC0));
-
-    /* assumes that the driver has already been initialized */
-    sock_fd = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);
-    bip_set_socket(sock_fd);
-    if (sock_fd < 0)
+        /* assumes that the driver has already been initialized */
+        sock_fd = socket(AF_INET, SOCK_DGRAM, IPROTO_UDP);
+        bip_set_socket(sock_fd); if (sock_fd < 0)
         return false;
+        /* bind the socket to the local port number and IP address */
+        sin.sin_family = AF_INET; sin.sin_addr.s_addr = htonl(INADDR_ANY);
+        sin.sin_port = bip_get_port(); memset(&(sin.sin_zero), '\0', 8);
+        rv =
+        bind(sock_fd, (const struct sockaddr *) &sin, sizeof(struct sockaddr));
+        if (rv < 0) {
+        close(sock_fd); bip_set_socket(-1); return false;}
 
-    /* bind the socket to the local port number and IP address */
-    sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = bip_get_port();
-    memset(&(sin.sin_zero), '\0', 8);
-    rv = bind(sock_fd, (const struct sockaddr *) &sin,
-        sizeof(struct sockaddr));
-    if (rv < 0) {
-        close(sock_fd);
-        bip_set_socket(-1);
-        return false;
-    }
-
-    return true;
-}
+    return true;}

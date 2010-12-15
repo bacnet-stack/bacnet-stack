@@ -80,8 +80,8 @@ extern "C" {
         uint8_t * pdu);
     int bvlc_encode_delete_fdt_entry(
         uint8_t * pdu,
-        uint32_t address,  /* in network byte order */
-        uint16_t port);   /* in network byte order */
+        uint32_t address,       /* in network byte order */
+        uint16_t port); /* in network byte order */
     int bvlc_encode_original_unicast_npdu(
         uint8_t * pdu,
         uint8_t * npdu,

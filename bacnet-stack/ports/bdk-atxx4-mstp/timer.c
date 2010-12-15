@@ -308,7 +308,8 @@ void timer_interval_restart(
 * Returns: number of milliseconds elapsed
 * Notes: only up to 255ms elapsed
 **************************************************************************/
-uint8_t timer_milliseconds_delta(uint8_t start)
+uint8_t timer_milliseconds_delta(
+    uint8_t start)
 {
     return (timer_milliseconds_byte() - start);
 }
@@ -318,7 +319,8 @@ uint8_t timer_milliseconds_delta(uint8_t start)
 * Returns: mark timer starting tick
 * Notes: only up to 255ms elapsed
 **************************************************************************/
-uint8_t timer_milliseconds_mark(void)
+uint8_t timer_milliseconds_mark(
+    void)
 {
     return timer_milliseconds_byte();
 }

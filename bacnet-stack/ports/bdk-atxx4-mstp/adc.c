@@ -61,30 +61,30 @@ ISR(ADC_vect)
     uint16_t value = 0;
 
     /* determine which conversion finished */
-    index = BITMASK_CHECK(ADMUX,((1<<MUX2)|(1<<MUX1)|(1<<MUX0)));
+    index = BITMASK_CHECK(ADMUX, ((1 << MUX2) | (1 << MUX1) | (1 << MUX0)));
     /* read the results */
     value = ADCL;
     value |= (ADCH << 8);
     Sample_Result[index] = value;
     __enable_interrupt();
     /* clear the mux */
-    BITMASK_CLEAR(ADMUX, ((1<<MUX2)|(1<<MUX1)|(1<<MUX0)));
+    BITMASK_CLEAR(ADMUX, ((1 << MUX2) | (1 << MUX1) | (1 << MUX0)));
     /* find the next channel */
     while (Enabled_Channels) {
-       index = (index+1)%ADC_CHANNELS_MAX;
-       if (BIT_CHECK(Enabled_Channels, index)) {
-          break;
-       }
+        index = (index + 1) % ADC_CHANNELS_MAX;
+        if (BIT_CHECK(Enabled_Channels, index)) {
+            break;
+        }
     }
     /* configure the next channel */
-    BITMASK_SET(ADMUX, ((index)<<MUX0));
+    BITMASK_SET(ADMUX, ((index) << MUX0));
     /* Start the next conversion */
     BIT_SET(ADCSRA, ADSC);
 }
 
 void adc_enable(
-    uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
-{
+    uint8_t index)
+{       /* 0..7 = ADC0..ADC7, respectively */
     if (Enabled_Channels) {
         /* ADC interupt is already started */
         BIT_SET(Enabled_Channels, index);
@@ -93,9 +93,9 @@ void adc_enable(
             /* not running yet */
             BIT_SET(Enabled_Channels, index);
             /* clear the mux */
-            BITMASK_CLEAR(ADMUX, ((1<<MUX2)|(1<<MUX1)|(1<<MUX0)));
+            BITMASK_CLEAR(ADMUX, ((1 << MUX2) | (1 << MUX1) | (1 << MUX0)));
             /* configure the channel */
-            BITMASK_SET(ADMUX, ((index)<<MUX0));
+            BITMASK_SET(ADMUX, ((index) << MUX0));
             /* Start the next conversion */
             BIT_SET(ADCSRA, ADSC);
         }
@@ -103,8 +103,8 @@ void adc_enable(
 }
 
 uint8_t adc_result_8bit(
-    uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
-{
+    uint8_t index)
+{       /* 0..7 = ADC0..ADC7, respectively */
     uint8_t result = 0;
     uint8_t sreg;
 
@@ -112,7 +112,7 @@ uint8_t adc_result_8bit(
         adc_enable(index);
         sreg = SREG;
         __disable_interrupt();
-        result = (uint8_t)(Sample_Result[index]>>2);
+        result = (uint8_t) (Sample_Result[index] >> 2);
         SREG = sreg;
     }
 
@@ -120,8 +120,8 @@ uint8_t adc_result_8bit(
 }
 
 uint16_t adc_result_10bit(
-    uint8_t index) /* 0..7 = ADC0..ADC7, respectively */
-{
+    uint8_t index)
+{       /* 0..7 = ADC0..ADC7, respectively */
     uint16_t result = 0;
     uint8_t sreg;
 
@@ -142,7 +142,7 @@ void adc_init(
     /* Initial channel selection */
     /* ADLAR = Left Adjust Result
        REFSx = hardware setup: cap on AREF
-      */
+     */
     ADMUX = (0 << ADLAR) | (0 << REFS1) | (1 << REFS0);
     /*  ADEN = Enable
        ADSC = Start conversion
@@ -150,8 +150,8 @@ void adc_init(
        ADIE = Interrupt Enable
        ADATE = Auto Trigger Enable
      */
-    ADCSRA = (1 << ADEN) | (1 << ADIE) |
-        (1 << ADIF) | (0 << ADATE) | ADPS_10BIT;
+    ADCSRA =
+        (1 << ADEN) | (1 << ADIE) | (1 << ADIF) | (0 << ADATE) | ADPS_10BIT;
     /* trigger selection bits
        0 0 0 Free Running mode
        0 0 1 Analog Comparator

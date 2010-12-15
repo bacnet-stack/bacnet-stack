@@ -61,7 +61,9 @@ void Send_UnconfirmedPrivateTransfer(
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, &my_address,
+        &npdu_data);
 
     /* encode the APDU portion of the packet */
     len =

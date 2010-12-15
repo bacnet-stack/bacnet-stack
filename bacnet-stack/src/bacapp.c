@@ -288,8 +288,9 @@ int bacapp_decode_application_data(
         if (tag_len) {
             len += tag_len;
             value->tag = tag_number;
-            decode_len = bacapp_decode_data(&apdu[len], tag_number,
-                len_value_type, value);
+            decode_len =
+                bacapp_decode_data(&apdu[len], tag_number, len_value_type,
+                value);
             if (value->tag != MAX_BACNET_APPLICATION_TAG) {
                 len += decode_len;
             } else {
@@ -394,7 +395,7 @@ int bacapp_decode_data_len(
             case BACNET_APPLICATION_TAG_DATE:
             case BACNET_APPLICATION_TAG_TIME:
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                len = (int)len_value_type;
+                len = (int) len_value_type;
                 break;
             default:
                 break;
@@ -422,8 +423,8 @@ int bacapp_decode_application_data_len(
             &len_value_type);
         if (tag_len) {
             len += tag_len;
-            decode_len = bacapp_decode_data_len(&apdu[len], tag_number,
-                len_value_type);
+            decode_len =
+                bacapp_decode_data_len(&apdu[len], tag_number, len_value_type);
             len += decode_len;
         }
     }
@@ -996,8 +997,8 @@ bool bacapp_print_value(
                     case PROP_OBJECT_TYPE:
                         if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
                             fprintf(stream, "%s",
-                                bactext_object_type_name(value->type.
-                                    Enumerated));
+                                bactext_object_type_name(value->
+                                    type.Enumerated));
                         } else if (value->type.Enumerated < 128) {
                             fprintf(stream, "reserved %lu",
                                 (unsigned long) value->type.Enumerated);
@@ -1013,8 +1014,8 @@ bool bacapp_print_value(
                     case PROP_UNITS:
                         if (value->type.Enumerated < 256) {
                             fprintf(stream, "%s",
-                                bactext_engineering_unit_name(value->
-                                    type.Enumerated));
+                                bactext_engineering_unit_name(value->type.
+                                    Enumerated));
                         } else {
                             fprintf(stream, "proprietary %lu",
                                 (unsigned long) value->type.Enumerated);
@@ -1022,14 +1023,14 @@ bool bacapp_print_value(
                         break;
                     case PROP_POLARITY:
                         fprintf(stream, "%s",
-                            bactext_binary_polarity_name(value->
-                                type.Enumerated));
+                            bactext_binary_polarity_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
                         if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
                             fprintf(stream, "%s",
-                                bactext_binary_present_value_name(value->type.
-                                    Enumerated));
+                                bactext_binary_present_value_name(value->
+                                    type.Enumerated));
                         } else {
                             fprintf(stream, "%lu",
                                 (unsigned long) value->type.Enumerated);
@@ -1041,8 +1042,8 @@ bool bacapp_print_value(
                         break;
                     case PROP_SYSTEM_STATUS:
                         fprintf(stream, "%s",
-                            bactext_device_status_name(value->
-                                type.Enumerated));
+                            bactext_device_status_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_SEGMENTATION_SUPPORTED:
                         fprintf(stream, "%s",
@@ -1413,8 +1414,8 @@ void testBACnetApplicationData_Safe(
                 break;
 
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                characterstring_init_ansi(&input_value[i].type.
-                    Character_String, "Hello There!");
+                characterstring_init_ansi(&input_value[i].
+                    type.Character_String, "Hello There!");
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:

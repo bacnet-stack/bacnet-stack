@@ -98,7 +98,7 @@ void rs485_turnaround_delay(
 
     /* delay after reception before trasmitting - per MS/TP spec */
     /*  Transmit 4 dummy bytes with RS485 driver off.
-        This equals the 40 bit times (1 start, 8 data, 1 stop). */
+       This equals the 40 bit times (1 start, 8 data, 1 stop). */
     rs485_rts_enable(false);
     while (nbytes) {
         /* Send the data byte */

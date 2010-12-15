@@ -82,7 +82,7 @@ static object_functions_t Object_Table[] = {
 #if defined(BACFILE)
     {FILE_OBJ_FUNCTIONS},
 #endif
-	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 /** @file server/main.c  Example server application using the BACnet Stack. */

@@ -65,7 +65,8 @@ int iam_encode_pdu(
     pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
+    len =
+        iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len += len;
 
@@ -139,8 +140,9 @@ int iam_unicast_encode_pdu(
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
     /* encode the APDU portion of the packet */
-    apdu_len = iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
-    					MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    apdu_len =
+        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
+        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len = npdu_len + apdu_len;
 
     return pdu_len;

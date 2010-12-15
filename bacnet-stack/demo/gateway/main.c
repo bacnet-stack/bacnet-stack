@@ -85,7 +85,7 @@
 
 /* All included BACnet objects */
 static object_functions_t Object_Table[] = {
-	{DEVICE_OBJ_FUNCTIONS},
+    {DEVICE_OBJ_FUNCTIONS},
     {ANALOG_INPUT_OBJ_FUNCTIONS},
     {ANALOG_OUTPUT_OBJ_FUNCTIONS},
     {ANALOG_VALUE_OBJ_FUNCTIONS},
@@ -110,7 +110,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
  *  Only one entry since we don't support downstream routers.
  */
 int DNET_list[2] = {
-		VIRTUAL_DNET, -1		/* Need -1 terminator */
+    VIRTUAL_DNET, -1    /* Need -1 terminator */
 };
 
 
@@ -120,7 +120,7 @@ int DNET_list[2] = {
             instance number, and subsequent devices to incremented values.
  */
 void Devices_Init(
-		uint32_t first_object_instance )
+    uint32_t first_object_instance)
 {
     int i;
     char nameText[MAX_DEV_NAME_LEN];
@@ -128,24 +128,20 @@ void Devices_Init(
 
     /* Gateway Device has already been initialized.
      * But give it a better Description. */
-    Routed_Device_Set_Description(DEV_DESCR_GATEWAY, strlen(DEV_DESCR_GATEWAY));
+    Routed_Device_Set_Description(DEV_DESCR_GATEWAY,
+        strlen(DEV_DESCR_GATEWAY));
 
     /* Now initialize the remote Device objects. */
-    for ( i = 1; i < MAX_NUM_DEVICES; i++ )
-    {
+    for (i = 1; i < MAX_NUM_DEVICES; i++) {
 #ifdef _MSC_VER
-    	_snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d",
-    			  DEV_NAME_BASE, i+1);
-       	_snprintf( descText, MAX_DEV_DESC_LEN, "%s %d",
-       			  DEV_DESCR_REMOTE, i);
+        _snprintf(nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, i + 1);
+        _snprintf(descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, i);
 #else
-    	snprintf( nameText, MAX_DEV_NAME_LEN, "%s %d",
-    			  DEV_NAME_BASE, i+1);
-       	snprintf( descText, MAX_DEV_DESC_LEN, "%s %d",
-       			  DEV_DESCR_REMOTE, i);
+        snprintf(nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, i + 1);
+        snprintf(descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, i);
 #endif
 
-    	Add_Routed_Device( (first_object_instance+i), nameText, descText );
+        Add_Routed_Device((first_object_instance + i), nameText, descText);
     }
 
 }
@@ -155,18 +151,18 @@ void Devices_Init(
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
 static void Init_Service_Handlers(
-	uint32_t first_object_instance )
+    uint32_t first_object_instance)
 {
     Device_Initialize_Object_Functions(&Object_Table[0]);
-    Routing_Device_Init( first_object_instance );
+    Routing_Device_Init(first_object_instance);
 
     /* we need to handle who-is to support dynamic device binding
      * For the gateway, we want the routing handlers, and we will use the
      * unicast variety so we can get back through switches to different subnets */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-    								handler_who_is_unicast_for_routing);
+        handler_who_is_unicast_for_routing);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS,
-    								handler_who_has_for_routing);
+        handler_who_has_for_routing);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -210,21 +206,22 @@ static void Init_Service_Handlers(
  * device.) This is sure to be unique! The port number stays the same.
  * - For MS/TP, [Steve inserts a good idea here]
  */
-void Initialize_Device_Addresses( )
+void Initialize_Device_Addresses(
+    )
 {
-    int i = 0;		/* First entry is Gateway Device */
-    DEVICE_OBJECT_DATA* pDev;
+    int i = 0;  /* First entry is Gateway Device */
+    DEVICE_OBJECT_DATA *pDev;
     uint16_t myPort;
     /* Setup info for the main gateway device first */
 #if defined(BACDL_BIP)
-    struct in_addr *netPtr;			/* Lets us cast to this type */
+    struct in_addr *netPtr;     /* Lets us cast to this type */
     uint8_t *gatewayMac = NULL;
     uint32_t myAddr = bip_get_addr();
-    pDev = Get_Routed_Device_Object( i );
-    gatewayMac = pDev->bacDevAddr.mac;		/* Keep pointer to the main MAC */
-    memcpy( pDev->bacDevAddr.mac, &myAddr, 4 );
+    pDev = Get_Routed_Device_Object(i);
+    gatewayMac = pDev->bacDevAddr.mac;  /* Keep pointer to the main MAC */
+    memcpy(pDev->bacDevAddr.mac, &myAddr, 4);
     myPort = bip_get_port();
-    memcpy( &pDev->bacDevAddr.mac[4], &myPort, 2 );
+    memcpy(&pDev->bacDevAddr.mac[4], &myPort, 2);
     pDev->bacDevAddr.mac_len = 6;
 #elif defined(BACDL_MSTP)
     /* Todo: */
@@ -235,23 +232,23 @@ void Initialize_Device_Addresses( )
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 
-    for (i = 1; i < MAX_NUM_DEVICES; i++ ) {
-        pDev = Get_Routed_Device_Object( i );
-        if ( pDev == NULL )
-        	continue;
+    for (i = 1; i < MAX_NUM_DEVICES; i++) {
+        pDev = Get_Routed_Device_Object(i);
+        if (pDev == NULL)
+            continue;
 #if defined(BACDL_BIP)
         netPtr = (struct in_addr *) pDev->bacDevAddr.mac;
         pDev->bacDevAddr.mac[0] = gatewayMac[3];
         pDev->bacDevAddr.mac[1] = gatewayMac[2];
         pDev->bacDevAddr.mac[2] = gatewayMac[1];
         pDev->bacDevAddr.mac[3] = i;
-        memcpy( &pDev->bacDevAddr.mac[4], &myPort, 2 );
+        memcpy(&pDev->bacDevAddr.mac[4], &myPort, 2);
         pDev->bacDevAddr.mac_len = 6;
         pDev->bacDevAddr.net = VIRTUAL_DNET;
-        memcpy( &pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6 );
+        memcpy(&pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6);
         pDev->bacDevAddr.len = 6;
-        printf( " - Routed device [%d] ID %u at %s \n", i,
-        		pDev->bacObj.Object_Instance_Number, inet_ntoa( *netPtr ) );
+        printf(" - Routed device [%d] ID %u at %s \n", i,
+            pDev->bacObj.Object_Instance_Number, inet_ntoa(*netPtr));
 #elif defined(BACDL_MSTP)
         /* Todo: set MS/TP net and port #s */
         pDev->bacDevAddr.mac_len = 2;
@@ -298,34 +295,35 @@ int main(
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
-	uint32_t first_object_instance = FIRST_DEVICE_NUMBER;
+    uint32_t first_object_instance = FIRST_DEVICE_NUMBER;
 #ifdef BACNET_TEST_VMAC
     /* Router data */
-	BACNET_DEVICE_PROFILE* device;
+    BACNET_DEVICE_PROFILE *device;
     BACNET_VMAC_ADDRESS adr;
 #endif
 
     /* allow the device ID to be set */
     if (argc > 1) {
-    	first_object_instance = strtol(argv[1], NULL, 0);
-    	if ( ( first_object_instance == 0 ) ||
-    		 ( first_object_instance >= BACNET_MAX_INSTANCE ) ) {
-    		printf( "Error: Invalid Object Instance %s \n", argv[1] );
-    		printf( "Provide a number from 1 to %ul \n", BACNET_MAX_INSTANCE -1 );
-    		exit(1);
-    	}
+        first_object_instance = strtol(argv[1], NULL, 0);
+        if ((first_object_instance == 0) ||
+            (first_object_instance >= BACNET_MAX_INSTANCE)) {
+            printf("Error: Invalid Object Instance %s \n", argv[1]);
+            printf("Provide a number from 1 to %ul \n",
+                BACNET_MAX_INSTANCE - 1);
+            exit(1);
+        }
     }
     printf("BACnet Router Demo\n" "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
         first_object_instance, MAX_APDU);
-    Init_Service_Handlers( first_object_instance );
+    Init_Service_Handlers(first_object_instance);
     dlenv_init();
-    Devices_Init( first_object_instance );
-    Initialize_Device_Addresses( );
+    Devices_Init(first_object_instance);
+    Initialize_Device_Addresses();
     atexit(cleanup);
 
 #ifdef BACNET_TEST_VMAC
-	/* initialize vmac table and router device */
+    /* initialize vmac table and router device */
     device = vmac_initialize(99, 2001);
     debug_printf(device->name, "ROUTER:%u", vmac_get_subnet());
 #endif
@@ -333,8 +331,8 @@ int main(
     last_seconds = time(NULL);
 
     /* broadcast an I-am-router-to-network on startup */
-    printf( "Remote Network DNET Number %d \n", DNET_list[0] );
-    Send_I_Am_Router_To_Network( DNET_list );
+    printf("Remote Network DNET Number %d \n", DNET_list[0]);
+    Send_I_Am_Router_To_Network(DNET_list);
 
     /* loop forever */
     for (;;) {
@@ -346,7 +344,7 @@ int main(
 
         /* process */
         if (pdu_len) {
-        	routing_npdu_handler(&src, DNET_list, &Rx_Buf[0], pdu_len);
+            routing_npdu_handler(&src, DNET_list, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
         elapsed_seconds = current_seconds - last_seconds;

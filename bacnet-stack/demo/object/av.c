@@ -396,8 +396,8 @@ bool Analog_Value_Write_Property(
                 if (status) {
                     level = ANALOG_LEVEL_NULL;
                     object_index =
-                        Analog_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                        Analog_Value_Instance_To_Index(wp_data->
+                        object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;

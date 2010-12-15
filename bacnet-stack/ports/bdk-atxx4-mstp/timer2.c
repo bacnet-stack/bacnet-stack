@@ -66,7 +66,8 @@ ISR(TIMER2_OVF_vect);
 * Returns: nothing
 * Notes: none
 *************************************************************************/
-static inline void timer_interrupt_handler(void)
+static inline void timer_interrupt_handler(
+    void)
 {
     /* Set the counter for the next interrupt */
     TCNT2 = TIMER2_COUNT;
@@ -92,7 +93,7 @@ ISR(TIMER2_OVF_vect)
 uint32_t timer_milliseconds(
     void)
 {
-    uint32_t timer_value;   /* return value */
+    uint32_t timer_value;       /* return value */
 
     /* Disable the overflow interrupt.
        Prevents value corruption that would happen if interrupted */

@@ -50,8 +50,8 @@
 
 /* All included BACnet objects */
 static object_functions_t Object_Table[] = {
-	{DEVICE_OBJ_FUNCTIONS},
-	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    {DEVICE_OBJ_FUNCTIONS},
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 /* buffer used for receive */
@@ -61,12 +61,12 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static BACNET_ADDRESS Target_Router_Address;
 /* static BACNET_ROUTER_PORT *Target_Router_Port_List; */
 
-#define VIRTUAL_DNET  2709		/* your choice of number here */
+#define VIRTUAL_DNET  2709      /* your choice of number here */
 /** The list of DNETs that our router can reach.
  *  Only one entry since we don't support downstream routers.
  */
 int DNET_list[2] = {
-		VIRTUAL_DNET, -1		/* Need -1 terminator */
+    VIRTUAL_DNET, -1    /* Need -1 terminator */
 };
 
 static bool Error_Detected = false;
@@ -333,8 +333,7 @@ int main(
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_Initialize_Routing_Table(&Target_Router_Address,
-    								DNET_list);
+    Send_Initialize_Routing_Table(&Target_Router_Address, DNET_list);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */

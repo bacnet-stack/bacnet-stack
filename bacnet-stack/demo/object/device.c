@@ -354,7 +354,7 @@ uint32_t Device_Object_Instance_Number(
     void)
 {
 #ifdef BAC_ROUTING
-	return Routed_Device_Object_Instance_Number();
+    return Routed_Device_Object_Instance_Number();
 #else
     return Object_Instance_Number;
 #endif
@@ -1141,8 +1141,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -1175,8 +1175,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t) value.
-                    type.Unsigned_Int);
+                Device_Set_Vendor_Identifier((uint16_t) value.type.
+                    Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
@@ -1203,8 +1203,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Object_Name(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Object_Name(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1213,8 +1213,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_LOC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Location(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Location(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1224,8 +1224,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_DESC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Description(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Description(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1234,8 +1234,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_MOD_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Model_Name(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Model_Name(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1247,8 +1247,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames((uint8_t) value.
-                        type.Unsigned_Int);
+                    dlmstp_set_max_info_frames((uint8_t) value.type.
+                        Unsigned_Int);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1328,7 +1328,7 @@ bool Device_Write_Property(
  *  functions in order to properly support the default handlers.
  */
 void Device_Initialize_Object_Functions(
-    object_functions_t *object_table)
+    object_functions_t * object_table)
 {
     Object_Table = object_table;
 }
@@ -1407,25 +1407,26 @@ bool DeviceGetRRInfo(
             instance number.
  */
 void Routing_Device_Init(
-	uint32_t first_object_instance )
+    uint32_t first_object_instance)
 {
     struct object_functions *pDevObject = NULL;
 
     /* First, do the usual Device_Init() functions: */
     Device_Init();
     /* Initialize with our preset strings */
-    Add_Routed_Device( first_object_instance, My_Object_Name, Description );
+    Add_Routed_Device(first_object_instance, My_Object_Name, Description);
 
     /* Now substitute our routed versions of the main object functions. */
     pDevObject = &Object_Table[0];
     pDevObject->Object_Index_To_Instance = Routed_Device_Index_To_Instance;
-    pDevObject->Object_Valid_Instance = Routed_Device_Valid_Object_Instance_Number;
+    pDevObject->Object_Valid_Instance =
+        Routed_Device_Valid_Object_Instance_Number;
     pDevObject->Object_Name = Routed_Device_Name;
     pDevObject->Object_Read_Property = Routed_Device_Read_Property_Local;
     pDevObject->Object_Write_Property = Routed_Device_Write_Property_Local;
 }
 
-#endif		/* BAC_ROUTING */
+#endif /* BAC_ROUTING */
 
 
 #ifdef TEST

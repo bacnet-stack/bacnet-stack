@@ -91,11 +91,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #define ANALOG_INPUT_OBJ_FUNCTIONS \
     OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count, \
     Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance, \
     Analog_Input_Name, Analog_Input_Read_Property, NULL, \
     Analog_Input_Property_Lists, NULL, NULL
-
 #endif

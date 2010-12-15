@@ -104,8 +104,10 @@ extern "C" {
         struct itimer *t);
 
     /* special for 8-bit microcontrollers - limited to 255ms */
-    uint8_t timer_milliseconds_delta(uint8_t start);
-    uint8_t timer_milliseconds_mark(void);
+    uint8_t timer_milliseconds_delta(
+        uint8_t start);
+    uint8_t timer_milliseconds_mark(
+        void);
 
 #ifdef __cplusplus
 }

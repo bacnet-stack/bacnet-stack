@@ -42,8 +42,8 @@
  *  or object ID, if the Device has a match.
  *  @param data [in] The decoded who-has payload from the request. 
  */
-static void match_name_or_object( 
-		BACNET_WHO_HAS_DATA * data)
+static void match_name_or_object(
+    BACNET_WHO_HAS_DATA * data)
 {
     char *object_name = NULL;
     int object_type = 0;
@@ -98,10 +98,10 @@ void handler_who_has(
         if ((data.low_limit == -1) || (data.high_limit == -1))
             directed_to_me = true;
         else if ((Device_Object_Instance_Number() >= (uint32_t) data.low_limit)
-             && (Device_Object_Instance_Number() <= (uint32_t) data.high_limit))
+            && (Device_Object_Instance_Number() <= (uint32_t) data.high_limit))
             directed_to_me = true;
         if (directed_to_me) {
-        	match_name_or_object(&data);
+            match_name_or_object(&data);
         }
     }
 }
@@ -126,23 +126,23 @@ void handler_who_has_for_routing(
     int len = 0;
     BACNET_WHO_HAS_DATA data;
     int32_t dev_instance;
-    int cursor = 0;				/* Starting hint */
-    int my_list[2] = {0, -1};	/* Not really used, so dummy values */	
+    int cursor = 0;     /* Starting hint */
+    int my_list[2] = { 0, -1 }; /* Not really used, so dummy values */
     BACNET_ADDRESS bcast_net;
 
     (void) src;
     len = whohas_decode_service_request(service_request, service_len, &data);
     if (len > 0) {
         /* Go through all devices, starting with the root gateway Device */
-        memset( &bcast_net, 0, sizeof(BACNET_ADDRESS));
-        bcast_net.net = BACNET_BROADCAST_NETWORK;	/* That's all we have to set */
-       	while ( Routed_Device_GetNext( &bcast_net, my_list, &cursor ) ) {
-       		dev_instance = Device_Object_Instance_Number();
-       		if ( (data.low_limit == -1) || (data.high_limit == -1) || 
-       			 ((dev_instance >= data.low_limit) && 
-       			  (dev_instance <= data.high_limit)))
-            	match_name_or_object(&data);
+        memset(&bcast_net, 0, sizeof(BACNET_ADDRESS));
+        bcast_net.net = BACNET_BROADCAST_NETWORK;       /* That's all we have to set */
+        while (Routed_Device_GetNext(&bcast_net, my_list, &cursor)) {
+            dev_instance = Device_Object_Instance_Number();
+            if ((data.low_limit == -1) || (data.high_limit == -1) ||
+                ((dev_instance >= data.low_limit) &&
+                    (dev_instance <= data.high_limit)))
+                match_name_or_object(&data);
         }
     }
 }
-#endif		/* BAC_ROUTING */
+#endif /* BAC_ROUTING */

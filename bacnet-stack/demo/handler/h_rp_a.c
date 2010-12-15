@@ -170,7 +170,7 @@ int rp_ack_fully_decode_service_request(
         read_access_data->listOfProperties = rp1_property;
         if (rp1_property == NULL) {
             /* can't proceed if calloc failed. */
-            return BACNET_STATUS_ERROR;  
+            return BACNET_STATUS_ERROR;
         }
         rp1_property->propertyIdentifier = rp1data.object_property;
         rp1_property->propertyArrayIndex = rp1data.array_index;
@@ -227,7 +227,7 @@ int rp_ack_fully_decode_service_request(
                     read_access_data->listOfProperties = NULL;
                     return BACNET_STATUS_ERROR;
                 }
-                if (vlen > 0) { 
+                if (vlen > 0) {
                     /* If more values */
                     old_value = value;
                     value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));

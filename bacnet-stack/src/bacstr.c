@@ -468,7 +468,7 @@ X'20' - X'7E'.*/
 bool characterstring_printable(
     BACNET_CHARACTER_STRING * char_string)
 {
-    bool status = false; /* return value */
+    bool status = false;        /* return value */
     size_t i;   /* counter */
 
     if (char_string) {

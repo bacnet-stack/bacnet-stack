@@ -813,8 +813,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -874,8 +874,8 @@ bool Device_Write_Property_Local(
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH,
                             &small_length, 1);
                         pCharString =
-                            characterstring_value(&value.
-                            type.Character_String);
+                            characterstring_value(&value.type.
+                            Character_String);
                         eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
                             (uint8_t *) pCharString, length);
                         status = true;
