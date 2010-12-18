@@ -193,8 +193,8 @@ bool Device_Reinitialize(
     if (characterstring_ansi_same(&rd_data->password, "Jesus")) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
-                break;
             case BACNET_REINIT_WARMSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
                 break;
             case BACNET_REINIT_STARTBACKUP:
                 break;
