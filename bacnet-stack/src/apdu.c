@@ -361,7 +361,7 @@ void apdu_retries_set(
  * to manage the received request.
  * Almost all requests and ACKs invoke this function.
  * @ingroup MISCHNDLR
- * 
+ *
  * @param src [in] The BACNET_ADDRESS of the message's source.
  * @param apdu [in] The apdu portion of the request, to be processed.
  * @param apdu_len [in] The total (remaining) length of the apdu.
@@ -396,7 +396,8 @@ void apdu_handler(
                 /* When network communications are completely disabled,
                    only DeviceCommunicationControl and ReinitializeDevice APDUs
                    shall be processed and no messages shall be initiated. */
-                if (dcc_communication_disabled() &&
+                if ((dcc_communication_disabled() ||
+                     dcc_communication_initiation_disabled()) &&
                     ((service_choice !=
                             SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL)
                         && (service_choice !=
@@ -411,11 +412,19 @@ void apdu_handler(
                         service_request_len, src, &service_data);
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
+                /* When network communications are completely disabled,
+                   only DeviceCommunicationControl and ReinitializeDevice APDUs
+                   shall be processed and no messages shall be initiated. */
                 if (dcc_communication_disabled())
                     break;
                 service_choice = apdu[1];
                 service_request = &apdu[2];
                 service_request_len = apdu_len - 2;
+                /* When network communications have initiation disabled,
+                   WhoIs will be processed and I-Am initiated as response. */
+                if (dcc_communication_initiation_disabled() &&
+                    (service_choice != SERVICE_UNCONFIRMED_WHO_IS))
+                    break;
                 if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) {
                     if (Unconfirmed_Function[service_choice])
                         Unconfirmed_Function[service_choice] (service_request,
