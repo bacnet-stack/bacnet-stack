@@ -357,6 +357,58 @@ void apdu_retries_set(
     Number_Of_Retries = value;
 }
 
+
+/* When network communications are completely disabled,
+   only DeviceCommunicationControl and ReinitializeDevice APDUs
+   shall be processed and no messages shall be initiated. */
+static bool apdu_confirmed_dcc_disabled(
+    uint8_t service_choice)
+{
+    bool status = false;
+
+    if (dcc_communication_disabled() ||
+        dcc_communication_initiation_disabled()) {
+        switch (service_choice) {
+            case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+            case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+                break;
+            default:
+                status = true;
+                break;
+        }
+    }
+
+    return status;
+}
+
+/* When network communications are completely disabled,
+   only DeviceCommunicationControl and ReinitializeDevice APDUs
+   shall be processed and no messages shall be initiated. */
+/* If the request is valid and the 'Enable/Disable' parameter is
+   DISABLE_INITIATION, the responding BACnet-user shall
+   discontinue the initiation of messages except for I-Am
+   requests issued in accordance with the Who-Is service procedure.*/
+static bool apdu_unconfirmed_dcc_disabled(
+    uint8_t service_choice)
+{
+    bool status = false;
+
+    if (dcc_communication_disabled()) {
+        status = true;
+    } else if (dcc_communication_initiation_disabled()) {
+        /* WhoIs will be processed and I-Am initiated as response. */
+        switch (service_choice) {
+            case SERVICE_UNCONFIRMED_WHO_IS:
+                break;
+            default:
+                status = true;
+                break;
+        }
+    }
+
+    return status;
+}
+
 /** Process the APDU header and invoke the appropriate service handler
  * to manage the received request.
  * Almost all requests and ACKs invoke this function.
@@ -393,16 +445,12 @@ void apdu_handler(
                     (int) apdu_decode_confirmed_service_request(&apdu[0],
                     apdu_len, &service_data, &service_choice, &service_request,
                     &service_request_len);
-                /* When network communications are completely disabled,
-                   only DeviceCommunicationControl and ReinitializeDevice APDUs
-                   shall be processed and no messages shall be initiated. */
-                if ((dcc_communication_disabled() ||
-                     dcc_communication_initiation_disabled()) &&
-                    ((service_choice !=
-                            SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL)
-                        && (service_choice !=
-                            SERVICE_CONFIRMED_REINITIALIZE_DEVICE)))
+                if (apdu_confirmed_dcc_disabled(service_choice)) {
+                    /* When network communications are completely disabled,
+                       only DeviceCommunicationControl and ReinitializeDevice APDUs
+                       shall be processed and no messages shall be initiated. */
                     break;
+                }
                 if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
                     (Confirmed_Function[service_choice]))
                     Confirmed_Function[service_choice] (service_request,
@@ -412,19 +460,17 @@ void apdu_handler(
                         service_request_len, src, &service_data);
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
-                /* When network communications are completely disabled,
-                   only DeviceCommunicationControl and ReinitializeDevice APDUs
-                   shall be processed and no messages shall be initiated. */
-                if (dcc_communication_disabled())
-                    break;
                 service_choice = apdu[1];
                 service_request = &apdu[2];
                 service_request_len = apdu_len - 2;
-                /* When network communications have initiation disabled,
-                   WhoIs will be processed and I-Am initiated as response. */
-                if (dcc_communication_initiation_disabled() &&
-                    (service_choice != SERVICE_UNCONFIRMED_WHO_IS))
+                if (apdu_unconfirmed_dcc_disabled(service_choice)) {
+                    /* When network communications are disabled,
+                       only DeviceCommunicationControl and ReinitializeDevice APDUs
+                       shall be processed and no messages shall be initiated.
+                       If communications have been initiation disabled, then
+                       WhoIs may be processed. */
                     break;
+                }
                 if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) {
                     if (Unconfirmed_Function[service_choice])
                         Unconfirmed_Function[service_choice] (service_request,
