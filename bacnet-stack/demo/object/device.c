@@ -36,8 +36,9 @@
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "apdu.h"
-#include "wp.h" /* write property handling */
-#include "rp.h" /* read property handling */
+#include "wp.h" /* WriteProperty handling */
+#include "rp.h" /* ReadProperty handling */
+#include "dcc.h" /* DeviceCommunicationControl handling */
 #include "version.h"
 #include "device.h"     /* me */
 #include "handlers.h"

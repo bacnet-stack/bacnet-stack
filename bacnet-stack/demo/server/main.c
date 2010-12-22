@@ -213,7 +213,9 @@ int main(
             dlenv_maintenance_timer(elapsed_seconds);
             Load_Control_State_Machine_Handler();
             elapsed_milliseconds = elapsed_seconds * 1000;
-            handler_cov_task(elapsed_seconds);
+            if (dcc_communication_enabled()) {
+                handler_cov_task(elapsed_seconds);
+            }
             tsm_timer_milliseconds(elapsed_milliseconds);
             trend_log_timer(elapsed_seconds);
         }
