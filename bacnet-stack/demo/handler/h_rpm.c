@@ -243,7 +243,7 @@ void handler_read_property_multiple(
         len = rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], &rpmdata);
         copy_len =
             memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0], apdu_len,
-            len, sizeof(Handler_Transmit_Buffer));
+            len, MAX_APDU);
         if (copy_len == 0) {
 #if PRINT_ENABLED
             fprintf(stderr, "RPM: Response too big!\r\n");
@@ -285,9 +285,8 @@ void handler_read_property_multiple(
                         rpm_ack_encode_apdu_object_property(&Temp_Buf[0],
                         rpmdata.object_property, rpmdata.array_index);
                     copy_len =
-                        memcopy(&Handler_Transmit_Buffer[0], &Temp_Buf[0],
-                        npdu_len + apdu_len, len,
-                        sizeof(Handler_Transmit_Buffer));
+                        memcopy(&Handler_Transmit_Buffer[npdu_len],
+                        &Temp_Buf[0], apdu_len, len, MAX_APDU);
                     if (copy_len == 0) {
                         rpmdata.error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -300,9 +299,8 @@ void handler_read_property_multiple(
                         ERROR_CLASS_PROPERTY,
                         ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY);
                     copy_len =
-                        memcopy(&Handler_Transmit_Buffer[0], &Temp_Buf[0],
-                        npdu_len + apdu_len, len,
-                        sizeof(Handler_Transmit_Buffer));
+                        memcopy(&Handler_Transmit_Buffer[npdu_len],
+                        &Temp_Buf[0], apdu_len, len, MAX_APDU);
                     if (copy_len == 0) {
                         rpmdata.error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -320,8 +318,9 @@ void handler_read_property_multiple(
                     if (property_count == 0) {
                         /* handle the error code - but use the special property */
                         len =
-                            RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                            (uint16_t) (npdu_len + apdu_len), MAX_APDU,
+                            RPM_Encode_Property(
+                            &Handler_Transmit_Buffer[npdu_len],
+                            (uint16_t) apdu_len, MAX_APDU,
                             &rpmdata);
                         if (len > 0) {
                             apdu_len += len;
@@ -335,8 +334,9 @@ void handler_read_property_multiple(
                                 RPM_Object_Property(&property_list,
                                 special_object_property, index);
                             len =
-                                RPM_Encode_Property(&Handler_Transmit_Buffer
-                                [0], (uint16_t) (npdu_len + apdu_len),
+                                RPM_Encode_Property(
+                                &Handler_Transmit_Buffer[npdu_len],
+                                (uint16_t) apdu_len,
                                 MAX_APDU, &rpmdata);
                             if (len > 0) {
                                 apdu_len += len;
@@ -350,9 +350,9 @@ void handler_read_property_multiple(
             } else {
                 /* handle an individual property */
                 len =
-                    RPM_Encode_Property(&Handler_Transmit_Buffer[0],
-                    (uint16_t) (npdu_len + apdu_len),
-                    sizeof(Handler_Transmit_Buffer), &rpmdata);
+                    RPM_Encode_Property(&Handler_Transmit_Buffer[npdu_len],
+                    (uint16_t) apdu_len,
+                    MAX_APDU, &rpmdata);
                 if (len > 0) {
                     apdu_len += len;
                 } else {
@@ -366,7 +366,7 @@ void handler_read_property_multiple(
                 len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
                 copy_len =
                     memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
-                    apdu_len, len, sizeof(Handler_Transmit_Buffer));
+                    apdu_len, len, MAX_APDU);
                 if (copy_len == 0) {
                     rpmdata.error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
