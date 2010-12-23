@@ -364,7 +364,7 @@ void testReadPropertyAck(
     BACNET_READ_PROPERTY_DATA test_data;
     BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
     uint32_t object_instance = 0;
-    uint32_t object = 0;
+    uint16_t object = 0;
 
     rpdata.object_type = OBJECT_DEVICE;
     rpdata.object_instance = 1;

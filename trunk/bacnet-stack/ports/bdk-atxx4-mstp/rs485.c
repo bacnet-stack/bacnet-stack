@@ -127,7 +127,6 @@ ISR(USART0_RX_vect)
         UDR1 = data_byte;
 #endif
         (void) FIFO_Put(&Receive_Buffer, data_byte);
-        timer_elapsed_start(&Silence_Timer);
     }
 }
 

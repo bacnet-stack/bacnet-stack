@@ -155,7 +155,7 @@ static int Read_Property_Common(
     struct my_object_functions *pObject,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
-    int apdu_len = -1;
+    int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
     char *pString = "";
     uint8_t *apdu = NULL;
@@ -199,7 +199,7 @@ static int Read_Property_Common(
 }
 
 /* Encodes the property APDU and returns the length,
-   or sets the error, and returns -1 */
+   or sets the error, and returns BACNET_STATUS_ERROR */
 int Device_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
@@ -330,6 +330,7 @@ unsigned Device_Count(
 uint32_t Device_Index_To_Instance(
     unsigned index)
 {
+    index = index;
     return Object_Instance_Number;
 }
 
@@ -593,7 +594,7 @@ char *Device_Valid_Object_Id(
     return name;
 }
 
-/* return the length of the apdu encoded or -1 for error */
+/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error */
 int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
