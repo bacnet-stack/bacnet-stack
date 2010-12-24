@@ -48,15 +48,16 @@ int bacapp_decode_property_state(
     uint32_t len_value_type;
     int section_length;
     uint32_t enumValue;
+    uint8_t tagnum;
 
     section_length =
-        decode_tag_number_and_value(&apdu[len], (uint8_t *) & value->tag,
+        decode_tag_number_and_value(&apdu[len], &tagnum,
         &len_value_type);
 
     if (-1 == section_length) {
         return -1;
     }
-
+    value->tag = tagnum;
     len += section_length;
     switch (value->tag) {
         case BOOLEAN_VALUE:
