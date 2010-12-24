@@ -875,19 +875,6 @@ int event_notify_decode_service_request(
 BACNET_EVENT_NOTIFICATION_DATA data;
 BACNET_EVENT_NOTIFICATION_DATA data2;
 
-void testBitstring(
-    Test * pTest,
-    BACNET_BIT_STRING * bs1,
-    BACNET_BIT_STRING * bs2)
-{
-
-    int i;
-    ct_test(pTest, bs1->bits_used == bs2->bits_used);
-    for (i = 0; i < MAX_BITSTRING_BYTES; i++) {
-        ct_test(pTest, bs1->value[i] == bs2->value[i]);
-    }
-}
-
 void testBaseEventState(
     Test * pTest)
 {
@@ -1033,10 +1020,10 @@ void testEventEventState(
         data.notificationParams.changeOfState.newState.state.units ==
         data2.notificationParams.changeOfState.newState.state.units);
 
-    testBitstring(pTest, &data.notificationParams.changeOfState.statusFlags,
-        &data2.notificationParams.changeOfState.statusFlags);
+    ct_test(pTest, bitstring_same(
+        &data.notificationParams.changeOfState.statusFlags,
+        &data2.notificationParams.changeOfState.statusFlags));
 
-
         /**********************************************************************************/
         /**********************************************************************************/
         /**********************************************************************************/
@@ -1045,8 +1032,8 @@ void testEventEventState(
         /**********************************************************************************/
         /**********************************************************************************/
 
-    /* 
-     ** Same, but timestamp of 
+    /*
+     ** Same, but timestamp of
      */
     data.timeStamp.tag = TIME_STAMP_DATETIME;
     data.timeStamp.value.dateTime.time.hour = 1;
@@ -1123,13 +1110,13 @@ void testEventEventState(
     ct_test(pTest, inLen == outLen);
     testBaseEventState(pTest);
 
-    testBitstring(pTest,
+    ct_test(pTest, bitstring_same(
         &data.notificationParams.changeOfBitstring.referencedBitString,
-        &data2.notificationParams.changeOfBitstring.referencedBitString);
+        &data2.notificationParams.changeOfBitstring.referencedBitString));
 
-    testBitstring(pTest,
+    ct_test(pTest, bitstring_same(
         &data.notificationParams.changeOfBitstring.statusFlags,
-        &data2.notificationParams.changeOfBitstring.statusFlags);
+        &data2.notificationParams.changeOfBitstring.statusFlags));
 
         /**********************************************************************************/
         /**********************************************************************************/
@@ -1167,8 +1154,9 @@ void testEventEventState(
     ct_test(pTest, inLen == outLen);
     testBaseEventState(pTest);
 
-    testBitstring(pTest, &data.notificationParams.changeOfValue.statusFlags,
-        &data2.notificationParams.changeOfValue.statusFlags);
+    ct_test(pTest, bitstring_same(
+        &data.notificationParams.changeOfValue.statusFlags,
+        &data2.notificationParams.changeOfValue.statusFlags));
 
     ct_test(pTest,
         data.notificationParams.changeOfValue.tag ==
@@ -1207,16 +1195,17 @@ void testEventEventState(
     ct_test(pTest, inLen == outLen);
     testBaseEventState(pTest);
 
-    testBitstring(pTest, &data.notificationParams.changeOfValue.statusFlags,
-        &data2.notificationParams.changeOfValue.statusFlags);
+    ct_test(pTest, bitstring_same(
+        &data.notificationParams.changeOfValue.statusFlags,
+        &data2.notificationParams.changeOfValue.statusFlags));
 
     ct_test(pTest,
         data.notificationParams.changeOfValue.tag ==
         data2.notificationParams.changeOfValue.tag);
 
-    testBitstring(pTest,
+    ct_test(pTest, bitstring_same(
         &data.notificationParams.changeOfValue.newValue.changedBits,
-        &data2.notificationParams.changeOfValue.newValue.changedBits);
+        &data2.notificationParams.changeOfValue.newValue.changedBits));
 
         /**********************************************************************************/
         /**********************************************************************************/
@@ -1265,8 +1254,9 @@ void testEventEventState(
     ct_test(pTest,
         data.notificationParams.floatingLimit.errorLimit ==
         data2.notificationParams.floatingLimit.errorLimit);
-    testBitstring(pTest, &data.notificationParams.floatingLimit.statusFlags,
-        &data2.notificationParams.floatingLimit.statusFlags);
+    ct_test(pTest, bitstring_same(
+        &data.notificationParams.floatingLimit.statusFlags,
+        &data2.notificationParams.floatingLimit.statusFlags));
 
 
         /**********************************************************************************/
@@ -1316,8 +1306,9 @@ void testEventEventState(
     ct_test(pTest,
         data.notificationParams.outOfRange.exceedingValue ==
         data2.notificationParams.outOfRange.exceedingValue);
-    testBitstring(pTest, &data.notificationParams.outOfRange.statusFlags,
-        &data2.notificationParams.outOfRange.statusFlags);
+    ct_test(pTest, bitstring_same(
+        &data.notificationParams.outOfRange.statusFlags,
+        &data2.notificationParams.outOfRange.statusFlags));
 
         /**********************************************************************************/
         /**********************************************************************************/
@@ -1370,9 +1361,9 @@ void testEventEventState(
         data.notificationParams.changeOfLifeSafety.operationExpected ==
         data2.notificationParams.changeOfLifeSafety.operationExpected);
 
-    testBitstring(pTest,
+    ct_test(pTest, bitstring_same(
         &data.notificationParams.changeOfLifeSafety.statusFlags,
-        &data2.notificationParams.changeOfLifeSafety.statusFlags);
+        &data2.notificationParams.changeOfLifeSafety.statusFlags));
 
         /**********************************************************************************/
         /**********************************************************************************/
@@ -1417,8 +1408,9 @@ void testEventEventState(
         data.notificationParams.unsignedRange.exceededLimit ==
         data2.notificationParams.unsignedRange.exceededLimit);
 
-    testBitstring(pTest, &data.notificationParams.unsignedRange.statusFlags,
-        &data2.notificationParams.unsignedRange.statusFlags);
+    ct_test(pTest, bitstring_same(
+        &data.notificationParams.unsignedRange.statusFlags,
+        &data2.notificationParams.unsignedRange.statusFlags));
 
         /**********************************************************************************/
         /**********************************************************************************/
