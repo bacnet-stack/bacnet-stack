@@ -2271,13 +2271,13 @@ void testBACDCodeObject(
     uint8_t encoded_array[4] = {
         0
     };
-    BACNET_OBJECT_TYPE type = OBJECT_BINARY_INPUT;
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_OUTPUT;
+    uint16_t type = OBJECT_BINARY_INPUT;
+    uint16_t decoded_type = OBJECT_ANALOG_OUTPUT;
     uint32_t instance = 123;
     uint32_t decoded_instance = 0;
 
     encode_bacnet_object_id(&encoded_array[0], type, instance);
-    decode_object_id(&encoded_array[0], (uint16_t *) & decoded_type,
+    decode_object_id(&encoded_array[0], &decoded_type,
         &decoded_instance);
     ct_test(pTest, decoded_type == type);
     ct_test(pTest, decoded_instance == instance);
@@ -2287,7 +2287,7 @@ void testBACDCodeObject(
     for (type = 0; type < 1024; type++) {
         for (instance = 0; instance <= BACNET_MAX_INSTANCE; instance += 1024) {
             encode_bacnet_object_id(&encoded_array[0], type, instance);
-            decode_object_id(&encoded_array[0], (uint16_t *) & decoded_type,
+            decode_object_id(&encoded_array[0], &decoded_type,
                 &decoded_instance);
             ct_test(pTest, decoded_type == type);
             ct_test(pTest, decoded_instance == instance);

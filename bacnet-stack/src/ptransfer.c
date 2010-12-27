@@ -389,24 +389,22 @@ int ptransfer_decode_apdu(
 int uptransfer_decode_apdu(
     uint8_t * apdu,
     unsigned apdu_len,
-    uint8_t * invoke_id,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) {
         return -1;
-    /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
-    /* invoke id - filled in by net layer */
-    *invoke_id = apdu[2];
-    if (apdu[3] != SERVICE_UNCONFIRMED_PRIVATE_TRANSFER)
+    }
+    if (apdu[1] != SERVICE_UNCONFIRMED_PRIVATE_TRANSFER) {
         return -1;
-    offset = 4;
-
+    }
+    offset = 2;
     if (apdu_len > offset) {
         len =
             ptransfer_decode_service_request(&apdu[offset], apdu_len - offset,
@@ -484,7 +482,7 @@ void test_Private_Transfer_Ack(
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
-    uint8_t private_data_chunk[32] = { "I Love You, Patricia!" };
+    char private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
 
@@ -535,7 +533,7 @@ void test_Private_Transfer_Error(
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
-    uint8_t private_data_chunk[32] = { "I Love You, Patricia!" };
+    char private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
 
@@ -582,7 +580,7 @@ void test_Private_Transfer_Request(
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
     int private_data_len = 0;
-    uint8_t private_data_chunk[32] = { "I Love You, Patricia!" };
+    char private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
     BACNET_PRIVATE_TRANSFER_DATA private_data;
@@ -623,10 +621,9 @@ void test_Unconfirmed_Private_Transfer_Request(
     uint8_t test_value[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
-    uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
     int private_data_len = 0;
-    uint8_t private_data_chunk[32] = { "I Love You, Patricia!" };
+    char private_data_chunk[32] = { "I Love You, Patricia!" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
     BACNET_PRIVATE_TRANSFER_DATA private_data;
@@ -642,11 +639,11 @@ void test_Unconfirmed_Private_Transfer_Request(
     private_data.serviceParameters = &test_value[0];
     private_data.serviceParametersLen = private_data_len;
 
-    len = uptransfer_encode_apdu(&apdu[0], invoke_id, &private_data);
+    len = uptransfer_encode_apdu(&apdu[0], &private_data);
     ct_test(pTest, len != 0);
     apdu_len = len;
     len =
-        ptransfer_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
+        uptransfer_decode_apdu(&apdu[0], apdu_len, &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_data.vendorID == private_data.vendorID);
     ct_test(pTest, test_data.serviceNumber == private_data.serviceNumber);

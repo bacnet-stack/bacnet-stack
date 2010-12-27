@@ -1089,8 +1089,6 @@ static void Load_Control_WriteProperty_Request_Shed_Percent(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1104,7 +1102,7 @@ static void Load_Control_WriteProperty_Request_Shed_Percent(
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 #endif
@@ -1117,8 +1115,6 @@ static void Load_Control_WriteProperty_Request_Shed_Level(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1132,7 +1128,7 @@ static void Load_Control_WriteProperty_Request_Shed_Level(
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 
@@ -1145,8 +1141,6 @@ static void Load_Control_WriteProperty_Request_Shed_Amount(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1160,7 +1154,7 @@ static void Load_Control_WriteProperty_Request_Shed_Amount(
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 #endif
@@ -1173,8 +1167,6 @@ static void Load_Control_WriteProperty_Enable(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1189,7 +1181,7 @@ static void Load_Control_WriteProperty_Enable(
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 
@@ -1201,8 +1193,6 @@ static void Load_Control_WriteProperty_Shed_Duration(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1216,7 +1206,7 @@ static void Load_Control_WriteProperty_Shed_Duration(
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 
@@ -1228,8 +1218,6 @@ static void Load_Control_WriteProperty_Duty_Window(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1243,7 +1231,7 @@ static void Load_Control_WriteProperty_Duty_Window(
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 
@@ -1255,8 +1243,6 @@ static void Load_Control_WriteProperty_Start_Time_Wildcards(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1277,7 +1263,7 @@ static void Load_Control_WriteProperty_Start_Time_Wildcards(
         bacapp_encode_data(&wp_data.application_data[len], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
     wp_data.application_data_len += len;
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 
@@ -1296,8 +1282,6 @@ static void Load_Control_WriteProperty_Start_Time(
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_WRITE_PROPERTY_DATA wp_data;
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
 
     wp_data.object_type = OBJECT_LOAD_CONTROL;
     wp_data.object_instance = instance;
@@ -1318,7 +1302,7 @@ static void Load_Control_WriteProperty_Start_Time(
         bacapp_encode_data(&wp_data.application_data[len], &value);
     ct_test(pTest, wp_data.application_data_len > 0);
     wp_data.application_data_len += len;
-    status = Load_Control_Write_Property(&wp_data, &error_class, &error_code);
+    status = Load_Control_Write_Property(&wp_data);
     ct_test(pTest, status == true);
 }
 

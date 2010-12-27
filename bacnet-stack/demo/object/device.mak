@@ -2,7 +2,8 @@
 CC      = gcc
 SRC_DIR = ../../src
 TEST_DIR = ../../test
-INCLUDES = -I../../include -I$(TEST_DIR) -I.
+PORTS_DIR = ../../ports/linux
+INCLUDES = -I../../include -I$(TEST_DIR) -I$(PORTS_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0
 DEFINES += -DTEST -DBACDL_TEST
 DEFINES += -DBACAPP_ALL
@@ -21,6 +22,8 @@ SRCS = device.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/apdu.c \
+	$(SRC_DIR)/address.c \
+	$(SRC_DIR)/bacaddr.c \
 	$(SRC_DIR)/dcc.c \
 	$(SRC_DIR)/version.c \
 	$(TEST_DIR)/ctest.c
@@ -28,19 +31,19 @@ SRCS = device.c \
 TARGET = device
 
 all: ${TARGET}
- 
+
 OBJS = ${SRCS:.c=.o}
 
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
 	rm -rf core ${TARGET} $(OBJS)
 
