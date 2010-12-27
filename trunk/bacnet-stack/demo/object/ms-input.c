@@ -525,6 +525,20 @@ bool Multistate_Input_Write_Property(
 #include <string.h>
 #include "ctest.h"
 
+bool WPValidateArgType(
+    BACNET_APPLICATION_DATA_VALUE * pValue,
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+    pValue=pValue;
+    ucExpectedTag=ucExpectedTag;
+    pErrorClass=pErrorClass;
+    pErrorCode=pErrorCode;
+
+    return false;
+}
+
 void testMultistateInput(
     Test * pTest)
 {

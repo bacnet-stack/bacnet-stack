@@ -1435,6 +1435,46 @@ void Routing_Device_Init(
 #include <string.h>
 #include "ctest.h"
 
+bool WPValidateArgType(
+    BACNET_APPLICATION_DATA_VALUE * pValue,
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+    pValue=pValue;
+    ucExpectedTag=ucExpectedTag;
+    pErrorClass=pErrorClass;
+    pErrorCode=pErrorCode;
+
+    return false;
+}
+
+bool WPValidateString(
+    BACNET_APPLICATION_DATA_VALUE * pValue,
+    int iMaxLen,
+    bool bEmptyAllowed,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+    pValue=pValue;
+    iMaxLen=iMaxLen;
+    bEmptyAllowed=bEmptyAllowed;
+    pErrorClass=pErrorClass;
+    pErrorCode=pErrorCode;
+
+    return false;
+}
+
+int handler_cov_encode_subscriptions(
+    uint8_t * apdu,
+    int max_apdu)
+{
+    apdu=apdu;
+    max_apdu=max_apdu;
+
+    return 0;
+}
+
 void testDevice(
     Test * pTest)
 {

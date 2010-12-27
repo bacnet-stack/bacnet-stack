@@ -1,9 +1,10 @@
 LOGFILE = test.log
 
-all: abort address arf awf bacapp bacdcode bacerror bacint \
-	bacstr cov crc datetime dcc fifo getevent filename iam ihave \
-	indtext keylist key lso npdu rd reject ringbuf rp \
-	rpm sbuf timesync whohas whois wp event
+all: abort address arf awf bacapp bacdcode bacerror bacint bacstr \
+	cov crc datetime dcc event filename fifo getevent iam ihave \
+	indtext keylist key memcopy npdu ptransfer \
+	rd reject ringbuf rp rpm sbuf timesync \
+	whohas whois wp objects
 
 clean:
 	rm ${LOGFILE}
@@ -121,16 +122,6 @@ key: logfile test/key.mak
 	( ./test/key >> ${LOGFILE} )
 	make -C test -f key.mak clean
 
-lso: logfile test/lso.mak
-	make -C test -f lso.mak clean all
-	( ./test/lso >> ${LOGFILE} )
-	make -C test -f lso.mak clean
-
-mstp: logfile test/mstp.mak
-	make -C test -f mstp.mak clean all
-	( ./test/mstp >> ${LOGFILE} )
-	make -C test -f mstp.mak clean
-
 memcopy: logfile test/memcopy.mak
 	make -C test -f memcopy.mak clean all
 	( ./test/memcopy >> ${LOGFILE} )
@@ -196,7 +187,8 @@ wp: logfile test/wp.mak
 	( ./test/wp >> ${LOGFILE} )
 	make -C test -f wp.mak clean
 
-# Objects
+objects: ai ao av bi bo bv device lc lo lso lsp mso
+
 ai: logfile demo/object/ai.mak
 	make -C demo/object -f ai.mak clean all
 	( ./demo/object/analog_input >> ${LOGFILE} )
@@ -218,7 +210,7 @@ bi: logfile demo/object/bi.mak
 
 bo: logfile demo/object/bo.mak
 	make -C demo/object -f bo.mak clean all
-	( ./demo/object/binar_output >> ${LOGFILE} )
+	( ./demo/object/binary_output >> ${LOGFILE} )
 	make -C demo/object -f bo.mak clean
 
 bv: logfile demo/object/bv.mak
@@ -240,6 +232,11 @@ lo: logfile demo/object/lo.mak
 	make -C demo/object -f lo.mak clean all
 	( ./demo/object/lighting_output >> ${LOGFILE} )
 	make -C demo/object -f lo.mak clean
+
+lso: logfile test/lso.mak
+	make -C test -f lso.mak clean all
+	( ./test/lso >> ${LOGFILE} )
+	make -C test -f lso.mak clean
 
 lsp: logfile demo/object/lsp.mak
 	make -C demo/object -f lsp.mak clean all

@@ -329,8 +329,8 @@ void testDevIdPropRef(
 void testDevIdRef(
     Test * pTest)
 {
-    BACNET_DEVICE_OBJECT_REFERENCE inData;
-    BACNET_DEVICE_OBJECT_REFERENCE outData;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE inData;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE outData;
     uint8_t buffer[MAX_APDU];
     int inLen;
     int outLen;

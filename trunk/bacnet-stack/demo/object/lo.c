@@ -25,8 +25,8 @@
 
 /* Lighting Output Objects - customize for your use */
 
-/* WARNING!  This object is still BACnet DRAFT status! 
-   If you need to implement in a real product, you will 
+/* WARNING!  This object is still BACnet DRAFT status!
+   If you need to implement in a real product, you will
    need to modify the new OBJECT type and properties to
    be in the proprietrary range to be BACnet compliant */
 
@@ -605,6 +605,20 @@ bool Lighting_Output_Write_Property(
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+
+bool WPValidateArgType(
+    BACNET_APPLICATION_DATA_VALUE * pValue,
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+    pValue=pValue;
+    ucExpectedTag=ucExpectedTag;
+    pErrorClass=pErrorClass;
+    pErrorCode=pErrorCode;
+
+    return false;
+}
 
 void testLightingOutput(
     Test * pTest)
