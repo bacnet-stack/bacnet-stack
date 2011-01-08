@@ -192,8 +192,57 @@ void Ringbuf_Init(
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
-
+#include <limits.h>
 #include "ctest.h"
+
+/* test the ring buffer */
+void testRingAroundBuffer(
+    Test * pTest,
+    RING_BUFFER *test_buffer,
+    uint8_t * data_element,
+    unsigned element_size,
+    unsigned element_count)
+{
+    uint8_t *test_data;
+    unsigned index;
+    unsigned data_index;
+    unsigned count;
+    unsigned dummy;
+    bool status;
+
+    ct_test(pTest, Ringbuf_Empty(test_buffer));
+    /* test the ring around the buffer */
+    for (index = 0; index < element_count; index++) {
+        for (count = 1; count < 4; count++) {
+            dummy = index * count;
+            for (data_index = 0; data_index < element_size; data_index++) {
+                data_element[data_index] = dummy;
+            }
+            status = Ringbuf_Put(test_buffer, data_element);
+            ct_test(pTest, status == true);
+        }
+
+        for (count = 1; count < 4; count++) {
+            dummy = index * count;
+            test_data = Ringbuf_Get_Front(test_buffer);
+            ct_test(pTest, test_data);
+            if (test_data) {
+                for (data_index = 0; data_index < element_size; data_index++) {
+                    ct_test(pTest, test_data[data_index] == dummy);
+                }
+            }
+
+            test_data = Ringbuf_Pop_Front(test_buffer);
+            ct_test(pTest, test_data);
+            if (test_data) {
+                for (data_index = 0; data_index < element_size; data_index++) {
+                    ct_test(pTest, test_data[data_index] == dummy);
+                }
+            }
+        }
+    }
+    ct_test(pTest, Ringbuf_Empty(test_buffer));
+}
 
 /* test the ring buffer */
 void testRingBuf(
@@ -207,8 +256,6 @@ void testRingBuf(
     uint8_t *test_data;
     unsigned index;
     unsigned data_index;
-    unsigned count;
-    unsigned dummy;
     bool status;
 
     Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
@@ -272,38 +319,23 @@ void testRingBuf(
     }
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
-    /* test the ring around the buffer */
-    for (index = 0; index < element_count; index++) {
-        for (count = 1; count < 4; count++) {
-            dummy = index * count;
-            for (data_index = 0; data_index < element_size; data_index++) {
-                data_element[data_index] = dummy;
-            }
-            status = Ringbuf_Put(&test_buffer, data_element);
-            ct_test(pTest, status == true);
-        }
+    testRingAroundBuffer(
+        pTest,
+        &test_buffer,
+        data_element,
+        element_size,
+        element_count);
 
-        for (count = 1; count < 4; count++) {
-            dummy = index * count;
-            test_data = Ringbuf_Get_Front(&test_buffer);
-            ct_test(pTest, test_data);
-            if (test_data) {
-                for (data_index = 0; data_index < element_size; data_index++) {
-                    ct_test(pTest, test_data[data_index] == dummy);
-                }
-            }
+    /* adjust the internal index of Ringbuf to test unsigned wrapping */
+    test_buffer.head = UINT_MAX-1;
+    test_buffer.tail = UINT_MAX-1;
 
-            test_data = Ringbuf_Pop_Front(&test_buffer);
-            ct_test(pTest, test_data);
-            if (test_data) {
-                for (data_index = 0; data_index < element_size; data_index++) {
-                    ct_test(pTest, test_data[data_index] == dummy);
-                }
-            }
-        }
-    }
-    ct_test(pTest, Ringbuf_Empty(&test_buffer));
-
+    testRingAroundBuffer(
+        pTest,
+        &test_buffer,
+        data_element,
+        element_size,
+        element_count);
 
     return;
 }
