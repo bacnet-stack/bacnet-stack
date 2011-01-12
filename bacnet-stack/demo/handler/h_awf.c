@@ -156,7 +156,7 @@ void handler_atomic_write_file(
     if (error) {
         len =
             bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+            service_data->invoke_id, SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
             error_class, error_code);
     }
   AWF_ABORT:
