@@ -55,6 +55,7 @@
 
 /* Local includes */
 #include "mstp.h"
+#include "rs485.h"
 
 /* Posix serial programming reference:
 http://www.easysw.com/~mike/serial/serial.html */
@@ -168,7 +169,7 @@ bool RS485_Set_Baud_Rate(
 
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
-    struct mstp_port_struct_t *mstp_port,       /* port specific data */
+    volatile struct mstp_port_struct_t *mstp_port,       /* port specific data */
     uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 {       /* number of bytes of data (up to 501) */
@@ -209,7 +210,7 @@ void RS485_Send_Frame(
 
 /* called by timer, interrupt(?) or other thread */
 void RS485_Check_UART_Data(
-    struct mstp_port_struct_t *mstp_port)
+    volatile struct mstp_port_struct_t *mstp_port)
 {
     uint8_t buf[1];
     int count;

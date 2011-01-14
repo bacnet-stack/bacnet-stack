@@ -61,7 +61,7 @@ static uint8_t RxBuffer[MAX_MPDU];
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
-static uint8_t Treply_timeout = 260;
+static uint16_t Treply_timeout = 260;
 /* The minimum time without a DataAvailable or ReceiveError event that a */
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
@@ -82,7 +82,7 @@ static void Timer_Silence_Reset(
     SilenceTime = 0;
 }
 
-void dlmstp_millisecond_timer(
+static void dlmstp_millisecond_timer(
     void)
 {
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
@@ -106,7 +106,7 @@ void get_abstime(
     abstime->tv_sec += seconds;
 }
 
-void dlmstp_reinit(
+static void dlmstp_reinit(
     void)
 {
     /*RS485_Reinit(); */
@@ -348,7 +348,7 @@ uint16_t MSTP_Get_Send(
     return pdu_len;
 }
 
-bool dlmstp_compare_data_expecting_reply(
+static bool dlmstp_compare_data_expecting_reply(
     uint8_t * request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
