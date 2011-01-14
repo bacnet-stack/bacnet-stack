@@ -53,6 +53,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
+#include "rs485.h"
 
 /* details from Serial Communications in Win32 at MSDN */
 
@@ -89,7 +90,7 @@ static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-void strupper(
+static void strupper(
     char *str)
 {
     char *p;
