@@ -28,7 +28,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#ifdef __BORLANDC__
 #include <process.h>
+#endif
 #include "bacdef.h"
 #include "bacaddr.h"
 #include "mstp.h"
@@ -82,13 +84,13 @@ static void Timer_Silence_Reset(
     SilenceTime = 0;
 }
 
-void dlmstp_millisecond_timer(
+static void dlmstp_millisecond_timer(
     void)
 {
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
 
-void dlmstp_reinit(
+static void dlmstp_reinit(
     void)
 {
     /*RS485_Reinit(); */
@@ -321,7 +323,7 @@ uint16_t MSTP_Get_Send(
     return pdu_len;
 }
 
-bool dlmstp_compare_data_expecting_reply(
+static bool dlmstp_compare_data_expecting_reply(
     uint8_t * request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,

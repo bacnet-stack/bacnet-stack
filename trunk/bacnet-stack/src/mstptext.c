@@ -35,6 +35,7 @@
 #include "mstp.h"
 #include "indtext.h"
 #include "bacenum.h"
+#include "mstptext.h"
 
 /** @file mstptext.c  Text mapping functions for BACnet MS/TP */
 
