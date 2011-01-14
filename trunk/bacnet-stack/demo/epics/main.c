@@ -74,16 +74,22 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* target information converted from command line */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
-/* = { 6, { 127, 0, 0, 1, 0xBA, 0xC0, 0 }, 0 };  loopback address to talk to myself */
-static uint16_t My_BIP_Port = 0;        /* If set, use this as the source port. */
+/* loopback address to talk to myself */
+/* = { 6, { 127, 0, 0, 1, 0xBA, 0xC0, 0 }, 0 }; */
+#if defined(BACDL_BIP)
+/* If set, use this as the source port. */
+static uint16_t My_BIP_Port = 0;
+#endif
 static bool Provided_Targ_MAC = false;
 
 /* any errors are picked up in main loop */
 static bool Error_Detected = false;
 static uint16_t Last_Error_Class = 0;
 static uint16_t Last_Error_Code = 0;
-static uint16_t Error_Count = 0;        /* Counts errors we couldn't get around */
-static bool Has_RPM = true;     /* Assume device can do RPM, to start */
+/* Counts errors we couldn't get around */
+static uint16_t Error_Count = 0;
+/* Assume device can do RPM, to start */
+static bool Has_RPM = true;
 static EPICS_STATES myState = INITIAL_BINDING;
 
 /* any valid RP or RPM data returned is put here */
@@ -831,9 +837,12 @@ int CheckCommandLineArgs(
                     ShowValues = true;
                     break;
                 case 'p':
-                    if (++i < argc)
+                    if (++i < argc) {
+#if defined(BACDL_BIP)
                         My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
                     /* Used strtol so sport can be either 0xBAC0 or 47808 */
+#endif
+                    }
                     break;
                 case 'n':
                     /* Destination Network Number */
@@ -951,12 +960,15 @@ int main(
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Object_List = Keylist_Create();
+#if defined(BACDL_BIP)
     /* For BACnet/IP, we might have set a different port for "me", so
      * (eg) we could talk to a BACnet/IP device on our same interface.
      * My_BIP_Port will be non-zero in this case.
      */
-    if (My_BIP_Port > 0)
+    if (My_BIP_Port > 0) {
         bip_set_port(htons(My_BIP_Port));
+    }
+#endif
     address_init();
     Init_Service_Handlers();
     dlenv_init();
@@ -965,8 +977,11 @@ int main(
     current_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
 
-    if (My_BIP_Port > 0)
+#if defined(BACDL_BIP)
+    if (My_BIP_Port > 0) {
         bip_set_port(htons(0xBAC0));    /* Set back to std BACnet/IP port */
+    }
+#endif
     /* try to bind with the target device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,
