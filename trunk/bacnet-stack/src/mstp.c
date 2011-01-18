@@ -135,13 +135,13 @@ static inline void printf_master(
 /* not to exceed 100 milliseconds.) */
 /* At 9600 baud, 60 bit times would be about 6.25 milliseconds */
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
+#ifndef Tframe_abort
 #define Tframe_abort 95
+#endif
 
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
-/* note: we always send a reply postponed since a message other than
-   the reply may be in the transmit queue */
 #define Treply_delay 10
 
 /* Repeater turnoff delay. The duration of a continuous logical one state */
@@ -153,13 +153,17 @@ static inline void printf_master(
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
-#define Treply_timeout 260
+#ifndef Treply_timeout
+#define Treply_timeout 295
+#endif
 
 /* The minimum time without a DataAvailable or ReceiveError event that a */
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
-#define Tusage_timeout 25
+#ifndef Tusage_timeout
+#define Tusage_timeout 95
+#endif
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) {if (x < 0xFF) x++;}
