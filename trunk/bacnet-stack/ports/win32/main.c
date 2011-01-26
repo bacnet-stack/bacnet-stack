@@ -53,7 +53,31 @@
 #include "lc.h"
 #include "lsp.h"
 #include "mso.h"
+#include "ms-input.h"
+#include "trendlog.h"
+#if defined(BACFILE)
 #include "bacfile.h"
+#endif
+
+/* All included BACnet objects */
+static object_functions_t Object_Table[] = {
+    {DEVICE_OBJ_FUNCTIONS},
+    {ANALOG_INPUT_OBJ_FUNCTIONS},
+    {ANALOG_OUTPUT_OBJ_FUNCTIONS},
+    {ANALOG_VALUE_OBJ_FUNCTIONS},
+    {BINARY_INPUT_OBJ_FUNCTIONS},
+    {BINARY_OUTPUT_OBJ_FUNCTIONS},
+    {BINARY_VALUE_OBJ_FUNCTIONS},
+    {LIFE_SAFETY_POINT_OBJ_FUNCTIONS},
+    {LOAD_CONTROL_OBJ_FUNCTIONS},
+    {MULTI_STATE_OUTPUT_OBJ_FUNCTIONS},
+    {MULTI_STATE_INPUT_OBJ_FUNCTIONS},
+    {TRENDLOG_OBJ_FUNCTIONS},
+#if defined(BACFILE)
+    {FILE_OBJ_FUNCTIONS},
+#endif
+	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -165,6 +189,9 @@ static void LocalIAmHandler(
 static void Init_Service_Handlers(
     void)
 {
+	Device_Initialize_Object_Functions(&Object_Table[0]);
+    Device_Init();
+
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, LocalIAmHandler);
@@ -181,6 +208,31 @@ static void Init_Service_Handlers(
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property_ack);
+#if defined(BACFILE)
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
+        handler_atomic_read_file);
+#endif
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
+        handler_cov_subscribe);
+
+// Adding these handlers require the project(s) to change.
+//#if defined(BACFILE)
+//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
+//        handler_atomic_write_file);
+//#endif
+//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
+//        handler_read_range);
+//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+//        handler_reinitialize_device);
+//    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+//        handler_timesync_utc);
+//    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
+//        handler_timesync);
+//    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
+//        handler_ucov_notification);
+//    /* handle communication so we can shutup when asked */
+//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+//        handler_device_communication_control);
 }
 
 static void print_address(
@@ -234,7 +286,6 @@ int main(
     (void) argc;
     (void) argv;
     Device_Set_Object_Instance_Number(4194300);
-    Device_Init();
     address_init();
     Init_Service_Handlers();
     dlenv_init();
