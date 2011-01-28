@@ -360,14 +360,16 @@ void apdu_retries_set(
 
 /* When network communications are completely disabled,
    only DeviceCommunicationControl and ReinitializeDevice APDUs
-   shall be processed and no messages shall be initiated. */
+   shall be processed and no messages shall be initiated.
+   When the initiation of communications is disabled, 
+   all APDUs shall be processed and responses returned as 
+   required... */
 static bool apdu_confirmed_dcc_disabled(
     uint8_t service_choice)
 {
     bool status = false;
 
-    if (dcc_communication_disabled() ||
-        dcc_communication_initiation_disabled()) {
+    if (dcc_communication_disabled()) {
         switch (service_choice) {
             case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
             case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
@@ -394,6 +396,8 @@ static bool apdu_unconfirmed_dcc_disabled(
     bool status = false;
 
     if (dcc_communication_disabled()) {
+        /* there are no Unconfirmed messages that 
+           can be processed in this state */
         status = true;
     } else if (dcc_communication_initiation_disabled()) {
         /* WhoIs will be processed and I-Am initiated as response. */
