@@ -563,7 +563,7 @@ bool MSTP_Master_Node_FSM(
     uint8_t next_poll_station = 0;
     uint8_t next_this_station = 0;
     uint8_t next_next_station = 0;
-    uint16_t my_timeout = 10, ns_timeout = 0;
+    uint16_t my_timeout = 10, ns_timeout = 0, mm_timeout = 0;
     /* transition immediately to the next state */
     bool transition_now = false;
     static MSTP_MASTER_STATE master_state = MSTP_MASTER_STATE_INITIALIZE;
@@ -933,7 +933,10 @@ bool MSTP_Master_Node_FSM(
             } else {
                 ns_timeout =
                     Tno_token + (Tslot * (mstp_port->This_Station + 1));
-                if (mstp_port->SilenceTimer() < ns_timeout) {
+                mm_timeout =
+                    Tno_token + (Tslot * (mstp_port->Nmax_master + 1));
+                if ((mstp_port->SilenceTimer() < ns_timeout) ||
+                    (mstp_port->SilenceTimer() > mm_timeout)) {
                     /* GenerateToken */
                     /* Assume that this node is the lowest numerical address  */
                     /* on the network and is empowered to create a token.  */
@@ -946,10 +949,24 @@ bool MSTP_Master_Node_FSM(
                     mstp_port->Next_Station = mstp_port->This_Station;
                     mstp_port->RetryCount = 0;
                     mstp_port->TokenCount = 0;
-                    /* mstp_port->EventCount = 0; removed Addendum 135-2004d-8 */
-                    /* enter the POLL_FOR_MASTER state to find a new successor to TS. */
+                    /* mstp_port->EventCount = 0;
+                       removed Addendum 135-2004d-8 */
+                    /* enter the POLL_FOR_MASTER state
+                       to find a new successor to TS. */
                     mstp_port->master_state =
                         MSTP_MASTER_STATE_POLL_FOR_MASTER;
+                } else {
+                    /* We missed our time slot!
+                       We should never get here unless
+                       OS timer resolution is poor or we were busy */
+                    if (mstp_port->EventCount > Nmin_octets) {
+                        /* SawFrame */
+                        /* Some other node exists at a lower address.  */
+                        /* Enter the IDLE state to receive and
+                           process the incoming frame. */
+                        mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
+                        transition_now = true;
+                    }
                 }
             }
             break;
