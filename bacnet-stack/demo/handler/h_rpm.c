@@ -135,7 +135,8 @@ static int RPM_Encode_Property(
     len = Device_Read_Property(&rpdata);
     if (len < 0) {
         if ((len == BACNET_STATUS_ABORT) || (len == BACNET_STATUS_REJECT)) {
-            /* pass on aborts and rejects for now */
+            rpmdata->error_code = rpdata.error_code;
+            /* pass along aborts and rejects for now */
             return len; /* Ie, Abort */
         }
         /* error was returned - encode that for the response */
