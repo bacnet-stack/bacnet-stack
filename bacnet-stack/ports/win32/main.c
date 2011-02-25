@@ -215,24 +215,26 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
         handler_cov_subscribe);
 
-// Adding these handlers require the project(s) to change.
-//#if defined(BACFILE)
-//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-//        handler_atomic_write_file);
-//#endif
-//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
-//        handler_read_range);
-//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-//        handler_reinitialize_device);
-//    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-//        handler_timesync_utc);
-//    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-//        handler_timesync);
-//    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-//        handler_ucov_notification);
-//    /* handle communication so we can shutup when asked */
-//    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-//        handler_device_communication_control);
+#if 0
+    /* Adding these handlers require the project(s) to change. */
+#if defined(BACFILE)
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
+        handler_atomic_write_file);
+#endif
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
+        handler_read_range);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+        handler_reinitialize_device);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
+        handler_timesync_utc);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
+        handler_timesync);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
+        handler_ucov_notification);
+    /* handle communication so we can shutup when asked */
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+        handler_device_communication_control);
+#endif
 }
 
 static void print_address(
