@@ -3,3 +3,4 @@
 
 make -f test.mak clean
 make -f test.mak
+cat test.log | grep Failed
