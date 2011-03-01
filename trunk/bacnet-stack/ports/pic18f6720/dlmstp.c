@@ -147,8 +147,11 @@ void dlmstp_task(
     }
     /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
-        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
-        };
+        if (This_Station <= DEFAULT_MAX_MASTER) {
+            while (MSTP_Master_Node_FSM(&MSTP_Port)) {
+                /* do nothing while some states fast transition */
+            };
+        }
     }
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
