@@ -135,8 +135,10 @@ uint16_t dlmstp_receive(
     }
     /* only do master state machine while rx is idle */
     if (MSTP_Port.receive_state == MSTP_RECEIVE_STATE_IDLE) {
-        while (MSTP_Master_Node_FSM(&MSTP_Port)) {
-        };
+        if (This_Station <= DEFAULT_MAX_MASTER) {
+            while (MSTP_Master_Node_FSM(&MSTP_Port)) {
+            };
+        }
     }
     /* see if there is a packet available */
     if (Receive_Buffer.ready) {

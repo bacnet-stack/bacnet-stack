@@ -37,6 +37,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "bacdef.h"
+#include "mstpdef.h"
 #include "dlmstp.h"
 #include "rs485.h"
 #include "crc.h"
@@ -54,52 +55,6 @@
 */
 #include "hardware.h"
 #include "timer.h"
-
-/*  The value 255 is used to denote broadcast when used as a */
-/* destination address but is not allowed as a value for a station. */
-/* Station addresses for master nodes can be 0-127.  */
-/* Station addresses for slave nodes can be 127-254.  */
-#define MSTP_BROADCAST_ADDRESS 255
-
-/* MS/TP Frame Type */
-/* Frame Types 8 through 127 are reserved by ASHRAE. */
-#define FRAME_TYPE_TOKEN 0
-#define FRAME_TYPE_POLL_FOR_MASTER 1
-#define FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER 2
-#define FRAME_TYPE_TEST_REQUEST 3
-#define FRAME_TYPE_TEST_RESPONSE 4
-#define FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY 5
-#define FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY 6
-#define FRAME_TYPE_REPLY_POSTPONED 7
-/* Frame Types 128 through 255: Proprietary Frames */
-/* These frames are available to vendors as proprietary (non-BACnet) frames. */
-/* The first two octets of the Data field shall specify the unique vendor */
-/* identification code, most significant octet first, for the type of */
-/* vendor-proprietary frame to be conveyed. The length of the data portion */
-/* of a Proprietary frame shall be in the range of 2 to 501 octets. */
-#define FRAME_TYPE_PROPRIETARY_MIN 128
-#define FRAME_TYPE_PROPRIETARY_MAX 255
-
-/* receive FSM states */
-typedef enum {
-    MSTP_RECEIVE_STATE_IDLE = 0,
-    MSTP_RECEIVE_STATE_PREAMBLE = 1,
-    MSTP_RECEIVE_STATE_HEADER = 2,
-    MSTP_RECEIVE_STATE_DATA = 3
-} MSTP_RECEIVE_STATE;
-
-/* master node FSM states */
-typedef enum {
-    MSTP_MASTER_STATE_INITIALIZE = 0,
-    MSTP_MASTER_STATE_IDLE = 1,
-    MSTP_MASTER_STATE_USE_TOKEN = 2,
-    MSTP_MASTER_STATE_WAIT_FOR_REPLY = 3,
-    MSTP_MASTER_STATE_DONE_WITH_TOKEN = 4,
-    MSTP_MASTER_STATE_PASS_TOKEN = 5,
-    MSTP_MASTER_STATE_NO_TOKEN = 6,
-    MSTP_MASTER_STATE_POLL_FOR_MASTER = 7,
-    MSTP_MASTER_STATE_ANSWER_DATA_REQUEST = 8
-} MSTP_MASTER_STATE;
 
 /* The state of the Receive State Machine */
 static MSTP_RECEIVE_STATE Receive_State;
@@ -180,10 +135,6 @@ static uint8_t *TransmitPacket;
 static uint16_t TransmitPacketLen;
 static uint8_t TransmitPacketDest;
 
-/* The time without a DataAvailable or ReceiveError event before declaration */
-/* of loss of token: 500 milliseconds. */
-#define Tno_token 500
-
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
@@ -195,13 +146,6 @@ static uint8_t TransmitPacketDest;
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
 #define Tusage_timeout 95
-
-/* The number of tokens received or used before a Poll For Master cycle */
-/* is executed: 50. */
-#define Npoll 50
-
-/* The number of retries on sending Token: 1. */
-#define Nretry_token 1
 
 /* The minimum number of DataAvailable or ReceiveError events that must be */
 /* seen by a receiving node in order to declare the line "active": 4. */
@@ -215,23 +159,10 @@ static uint8_t TransmitPacketDest;
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
 #define Tframe_abort 30
 
-/* The maximum idle time a sending node may allow to elapse between octets */
-/* of a frame the node is transmitting: 20 bit times. */
-#define Tframe_gap 20
-
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
 #define Treply_delay 250
-
-/* The width of the time slot within which a node may generate a token: */
-/* 10 milliseconds. */
-#define Tslot 10
-
-/* The maximum time a node may wait after reception of the token or */
-/* a Poll For Master frame before sending the first octet of a frame: */
-/* 15 milliseconds. */
-#define Tusage_delay 15
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) {if (x < 0xFF) x++;}
@@ -1092,9 +1023,11 @@ uint16_t dlmstp_receive(
     }
     /* only do master state machine while rx is idle */
     if (Receive_State == MSTP_RECEIVE_STATE_IDLE) {
-        while (MSTP_Master_Node_FSM()) {
-            /* do nothing while some states fast transition */
-        };
+        if (This_Station <= DEFAULT_MAX_MASTER) {
+            while (MSTP_Master_Node_FSM()) {
+                /* do nothing while some states fast transition */
+            };
+        }
     }
     /* if there is a packet that needs processed, do it now. */
     if (MSTP_Flag.ReceivePacketPending) {
