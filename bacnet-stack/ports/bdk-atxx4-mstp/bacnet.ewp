@@ -10,7 +10,7 @@
     <debug>1</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>9</archiveVersion>
+      <archiveVersion>10</archiveVersion>
       <data>
         <version>8</version>
         <wantNonLocal>1</wantNonLocal>
@@ -127,8 +127,8 @@
         </option>
         <option>
           <name>New Variant Processor</name>
-          <version>30</version>
-          <state>103</state>
+          <version>33</version>
+          <state>115</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
@@ -248,7 +248,8 @@
         <option>
           <name>CCDefines</name>
           <state>BACDL_MSTP</state>
-          <state>MAX_APDU=128</state>
+          <state>MAX_ANALOG_INPUTS=100</state>
+          <state>MAX_APDU=50</state>
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>BACAPP_BOOLEAN</state>
@@ -1001,7 +1002,7 @@
     <debug>0</debug>
     <settings>
       <name>General</name>
-      <archiveVersion>9</archiveVersion>
+      <archiveVersion>10</archiveVersion>
       <data>
         <version>8</version>
         <wantNonLocal>1</wantNonLocal>
@@ -1118,8 +1119,8 @@
         </option>
         <option>
           <name>New Variant Processor</name>
-          <version>30</version>
-          <state>103</state>
+          <version>33</version>
+          <state>115</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
