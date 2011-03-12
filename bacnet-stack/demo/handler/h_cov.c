@@ -68,7 +68,9 @@ typedef struct BACnet_COV_Subscription {
     bool send_requested;
 } BACNET_COV_SUBSCRIPTION;
 
+#ifndef MAX_COV_SUBCRIPTIONS
 #define MAX_COV_SUBCRIPTIONS 32
+#endif
 static BACNET_COV_SUBSCRIPTION COV_Subscriptions[MAX_COV_SUBCRIPTIONS];
 
 /*
