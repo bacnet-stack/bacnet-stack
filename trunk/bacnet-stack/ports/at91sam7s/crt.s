@@ -37,13 +37,13 @@
 .set  AIC_EOICR, 304					/* End of Interrupt Command Register          */
 
 /* identify all GLOBAL symbols  */
-.global _vec_reset						
-.global _vec_undef						
-.global _vec_swi						
-.global _vec_pabt						
-.global _vec_dabt						
-.global _vec_rsv						
-.global _vec_irq						
+.global _vec_reset
+.global _vec_undef
+.global _vec_swi
+.global _vec_pabt
+.global _vec_dabt
+.global _vec_rsv
+.global _vec_irq
 .global _vec_fiq
 .global AT91F_Irq_Handler
 .global	AT91F_Fiq_Handler
@@ -111,17 +111,6 @@ AT91F_Fiq_Handler:
 /* Read the AIC Fast Interrupt Vector register to clear the interrupt */
 				ldr		r12, =AT91C_AIC_FVR
 				ldr		r11, [r12]
-				
-/* Turn on LED3 (write 0x0008 to PIOA_CODR at 0xFFFFF434) */
-				ldr		r12, =AT91C_PIOA_CODR
-				mov		r11, #0x04
-				str		r11, [r12]
-
-/* Increment the _FiqCount variable */
-				ldr		r12, =FiqCount
-				ldr		r11, [r12]
-				add		r11, r11, #1
-				str		r11, [r12]
 
 /* Return from Fiq interrupt */
 				movs	pc, lr
@@ -132,7 +121,7 @@ AT91F_Fiq_Handler:
 /*																            */
 /*	 RESET vector 0x00000000 branches to here.                              */
 /*	 															            */
-/*	 ARM microprocessor begins execution after RESET at address 0x00000000	*/ 
+/*	 ARM microprocessor begins execution after RESET at address 0x00000000	*/
 /*   in Supervisor mode with interrupts disabled!							*/
 /*	                                                                        */
 /*	 _init_reset handler:  creates a stack for each ARM mode.               */
@@ -147,30 +136,30 @@ AT91F_Fiq_Handler:
 /* ======================================================================== */
 .text			/* all assembler code that follows will go into .text section	 */
 .align			/* align section on 32-bit boundary								 */
-_init_reset: 
+_init_reset:
 				/* Setup a stack for each mode with interrupts initially disabled. */
     			ldr   r0, =_stack_end						/* r0 = top-of-stack  */
-    			
+
     			msr   CPSR_c, #ARM_MODE_UND|I_BIT|F_BIT 	/* switch to Undefined Instruction Mode  */
     			mov   sp, r0								/* set stack pointer for UND mode  */
     			sub   r0, r0, #UND_STACK_SIZE				/* adjust r0 past UND stack  */
-    			
+
     			msr   CPSR_c, #ARM_MODE_ABT|I_BIT|F_BIT 	/* switch to Abort Mode */
     			mov   sp, r0								/* set stack pointer for ABT mode  */
     			sub   r0, r0, #ABT_STACK_SIZE				/* adjust r0 past ABT stack  */
-    			
+
     			msr   CPSR_c, #ARM_MODE_FIQ|I_BIT|F_BIT 	/* switch to FIQ Mode */
-    			mov   sp, r0								/* set stack pointer for FIQ mode  */	
+    			mov   sp, r0								/* set stack pointer for FIQ mode  */
    				sub   r0, r0, #FIQ_STACK_SIZE				/* adjust r0 past FIQ stack  */
-   				
+
     			msr   CPSR_c, #ARM_MODE_IRQ|I_BIT|F_BIT 	/* switch to IRQ Mode */
     			mov   sp, r0								/* set stack pointer for IRQ mode  */
     			sub   r0, r0, #IRQ_STACK_SIZE				/* adjust r0 past IRQ stack  */
-    			
+
     			msr   CPSR_c, #ARM_MODE_SVC|I_BIT|F_BIT 	/* switch to Supervisor Mode */
     			mov   sp, r0								/* set stack pointer for SVC mode  */
     			sub   r0, r0, #SVC_STACK_SIZE				/* adjust r0 past SVC stack  */
-    			
+
     			msr   CPSR_c, #ARM_MODE_SYS|I_BIT|F_BIT 	/* switch to System Mode */
     			mov   sp, r0								/* set stack pointer for SYS mode  */
     														/* we now start execution in SYSTEM mode */
@@ -233,7 +222,7 @@ _init_reset:
 /* File source          : Cstartup.s79                                      */
 /* Object               : Generic CStartup to AT91SAM7S256                  */
 /* 1.0 09/May/06 JPP    : Creation                                          */
-/*                                                                          */ 
+/*                                                                          */
 /*																			*/
 /* Note: taken from Atmel web site (www.at91.com)                           */
 /*		 Keil example project:  AT91SAM7S-Interrupt_SAM7S                   */
@@ -296,8 +285,8 @@ AT91F_Irq_Handler:
 /* ======================================================================== */
 AT91F_Dabt_Handler:			mov     R0, #3
 							b 		blinker
-							
-										
+
+
 /* ======================================================================== */
 /* Function: 			AT91F_Pabt_Handler	       			 				*/
 /*																			*/
@@ -307,9 +296,9 @@ AT91F_Dabt_Handler:			mov     R0, #3
 /*																			*/
 /* ======================================================================== */
 AT91F_Pabt_Handler:			mov     R0, #2
-							b 		blinker			
-							
-										
+							b 		blinker
+
+
 /* ======================================================================== */
 /* Function: 			AT91F_Undef_Handler	       			 				*/
 /*																			*/
@@ -319,7 +308,7 @@ AT91F_Pabt_Handler:			mov     R0, #2
 /*																			*/
 /* ======================================================================== */
 AT91F_Undef_Handler:		mov     R0, #1
-							b 		blinker			
+							b 		blinker
 
 
 AT91F_Default_FIQ_handler:	b	AT91F_Default_FIQ_handler
