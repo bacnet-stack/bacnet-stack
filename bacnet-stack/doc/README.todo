@@ -8,7 +8,7 @@ D. Merge blvc.c network variable storage (ntohl, htonl) to bip.c.
 E. Add HTTP demo like bacnet4linux
 F. Add SubscribeCOVProperty support in server demo.
 G. Add hooks to increment Database_Revision property
-H. -- DONE
+H. Change demo objects and WhoHas to use CharacterString for Object_Name.
 I. Change core encode/decode to pass length for safe handling
 J. Change bip.c to not use extra buffer (shift data)
 K. Add Visual Studio makefiles, projects, or solutions for demos.
