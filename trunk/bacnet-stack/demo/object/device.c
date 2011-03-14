@@ -994,8 +994,8 @@ int Device_Read_Property_Local(
                             object_type, instance);
                         apdu_len += len;
                         /* assume next one is the same size as this one */
-                        /* can we all fit into the APDU? */
-                        if ((apdu_len + len) >= MAX_APDU) {
+                        /* can we all fit into the APDU? Don't check for last entry */
+                        if ((i != count) && (apdu_len + len) >= MAX_APDU) {
                             /* Abort response */
                             rpdata->error_code =
                                 ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
