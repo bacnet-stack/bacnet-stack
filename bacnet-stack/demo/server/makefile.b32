@@ -29,9 +29,13 @@ BACNET_DEMO_DIR = ..\demo\server
 # directories
 BACNET_PORT = ..\..\ports\win32
 BACNET_INCLUDE = ..\..\include
-INCLUDES = \ 
+BACNET_OBJECT = ..\object
+BACNET_HANDLER = ..\handler
+INCLUDES = \
 	-I$(BACNET_INCLUDE) \
 	-I$(BACNET_PORT) \
+	-I$(BACNET_OBJECT) \
+	-I$(BACNET_HANDLER) \
 	-I$(BORLAND_DIR)\include
 
 #
@@ -68,12 +72,12 @@ LIBS = $(BACNET_LIB) \
 #
 # This should be the first one in the makefile
 
-all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE) 
+all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE)
 	del $(BCC_CFG)
 
 install: $(PRODUCT_EXE)
 	copy $(PRODUCT_EXE) ..\..\bin\$(PRODUCT_EXE)
-    
+
 $(BACNET_LIB):
 	cd $(BACNET_LIB_DIR)
 	$(MAKE) -i -f makefile.b32 clean

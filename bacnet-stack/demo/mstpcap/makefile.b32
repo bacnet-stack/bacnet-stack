@@ -27,9 +27,13 @@ BACNET_LIB = $(BACNET_LIB_DIR)\bacnet.lib
 # directories
 BACNET_PORT = ..\..\ports\win32
 BACNET_INCLUDE = ..\..\include
-INCLUDES = \ 
+BACNET_OBJECT = ..\object
+BACNET_HANDLER = ..\handler
+INCLUDES = \
 	-I$(BACNET_INCLUDE) \
 	-I$(BACNET_PORT) \
+	-I$(BACNET_OBJECT) \
+	-I$(BACNET_HANDLER) \
 	-I$(BORLAND_DIR)\include
 
 #
@@ -38,7 +42,7 @@ BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACAPP_ALL
 BACDL_DEFINE=-DBACDL_BIP=1 -DUSE_INADDR=1
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
-SRCS = main.c \ 
+SRCS = main.c \
 
 OBJS = $(SRCS:.c=.obj)
 
@@ -66,7 +70,7 @@ LIBS = $(BACNET_LIB) \
 #
 # This should be the first one in the makefile
 
-all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE) 
+all : $(BACNET_LIB) $(BCC_CFG) $(OBJS) $(PRODUCT_EXE)
 	del $(BCC_CFG)
 
 install: $(PRODUCT_EXE)

@@ -1095,6 +1095,8 @@ static void Load_Control_WriteProperty_Request_Shed_Percent(
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_NO_PRIORITY;
     wp_data.object_property = PROP_REQUESTED_SHED_LEVEL;
+    wp_data.error_class = ERROR_CLASS_PROPERTY;
+    wp_data.error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
     value.context_specific = true;
     value.context_tag = 0;
     value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
