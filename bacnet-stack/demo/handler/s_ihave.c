@@ -57,7 +57,7 @@ void Send_I_Have(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    const char *object_name)
+    BACNET_CHARACTER_STRING *object_name)
 {
     int len = 0;
     int pdu_len = 0;
@@ -84,7 +84,7 @@ void Send_I_Have(
     data.device_id.instance = device_id;
     data.object_id.type = object_type;
     data.object_id.instance = object_instance;
-    characterstring_init_ansi(&data.object_name, object_name);
+    characterstring_copy(&data.object_name, object_name);
     len = ihave_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
     /* send the data */

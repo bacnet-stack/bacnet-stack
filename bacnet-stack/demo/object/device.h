@@ -71,10 +71,11 @@ typedef uint32_t(
  *         is temporary and should be copied upon the return.  It is
  *         allocated by the system and does not need to be freed.
  */
-typedef char *(
+typedef bool(
     *object_name_function)
      (
-    uint32_t object_instance);
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name);
 
 /** Look in the table of objects of this type, and see if this is a valid
  *  instance number.
@@ -179,8 +180,6 @@ extern "C" {
 #endif /* __cplusplus */
 
     void Device_Init(
-        void);
-    void Device_Initialize_Object_Functions(
         object_functions_t * object_table);
 
     bool Device_Reinitialize(
@@ -217,8 +216,17 @@ extern "C" {
         void);
     uint32_t Device_Index_To_Instance(
         unsigned index);
-    char *Device_Name(
-        uint32_t object_instance);
+
+    bool Device_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
+    bool Device_Set_Object_Name(
+        BACNET_CHARACTER_STRING *object_name);
+    /* copy a child object name */
+    bool Device_Object_Name_Copy(
+        int object_type,
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
 
     BACNET_DEVICE_STATUS Device_System_Status(
         void);
@@ -249,12 +257,6 @@ extern "C" {
         const char *name,
         size_t length);
 
-    bool Device_Set_Object_Name(
-        const char *name,
-        size_t length);
-    const char *Device_Object_Name(
-        void);
-
     const char *Device_Description(
         void);
     bool Device_Set_Description(
@@ -283,10 +285,10 @@ extern "C" {
         void);
 
     bool Device_Valid_Object_Name(
-        const char *object_name,
+        BACNET_CHARACTER_STRING *object_name,
         int *object_type,
         uint32_t * object_instance);
-    char *Device_Valid_Object_Id(
+    bool Device_Valid_Object_Id(
         int object_type,
         uint32_t object_instance);
 
@@ -362,7 +364,7 @@ extern "C" {
 #endif /* __cplusplus */
 #define DEVICE_OBJ_FUNCTIONS \
     OBJECT_DEVICE, NULL, Device_Count, Device_Index_To_Instance, \
-    Device_Valid_Object_Instance_Number, Device_Name, \
+    Device_Valid_Object_Instance_Number, Device_Object_Name, \
     Device_Read_Property_Local, Device_Write_Property_Local, \
     Device_Property_Lists, DeviceGetRRInfo, NULL
 /** @defgroup ObjFrmwk Object Framework

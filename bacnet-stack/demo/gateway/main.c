@@ -153,7 +153,7 @@ void Devices_Init(
 static void Init_Service_Handlers(
     uint32_t first_object_instance)
 {
-    Device_Initialize_Object_Functions(&Object_Table[0]);
+    Device_Init(&Object_Table[0]);
     Routing_Device_Init(first_object_instance);
 
     /* we need to handle who-is to support dynamic device binding

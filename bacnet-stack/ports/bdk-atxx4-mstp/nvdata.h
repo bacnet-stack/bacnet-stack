@@ -28,21 +28,8 @@
 #include "seeprom.h"
 #include "eeprom.h"
 
-/* data version - use to check valid version */
-#define SEEPROM_ID 0xBAC0
-#define SEEPROM_VERSION 0x0001
-
-#define SEEPROM_BYTES_MAX (2*1024)
-
-/* list of SEEPROM addresses */
-/* note to developers: define each byte, 
-   even if they are not used explicitly */
-#define NV_SEEPROM_TYPE_0 0
-#define NV_SEEPROM_TYPE_1 1
-#define NV_SEEPROM_VERSION_0 2
-#define NV_SEEPROM_VERSION_1 3
-/* --- */
-/* define the MAC, BAUD, MAX Master, Device Instance internal 
+/*=============== EEPROM ================*/
+/* define the MAC, BAUD, MAX Master, Device Instance internal
    so that bootloader *could* use them. */
 /* note: MAC could come from DIP switch, or be in non-volatile memory */
 #define NV_EEPROM_MAC 0
@@ -54,49 +41,44 @@
 #define NV_EEPROM_DEVICE_1 4
 #define NV_EEPROM_DEVICE_2 5
 #define NV_EEPROM_DEVICE_3 6
-/* Device Name */
-#define NV_EEPROM_DEVICE_NAME_LENGTH 8
-#define NV_EEPROM_DEVICE_NAME_ENCODING 9
-#define NV_EEPROM_DEVICE_NAME_0 10
-#define NV_EEPROM_DEVICE_NAME_1 11
-#define NV_EEPROM_DEVICE_NAME_2 12
-#define NV_EEPROM_DEVICE_NAME_3 13
-#define NV_EEPROM_DEVICE_NAME_4 14
-#define NV_EEPROM_DEVICE_NAME_5 15
-#define NV_EEPROM_DEVICE_NAME_6 16
-#define NV_EEPROM_DEVICE_NAME_7 17
-#define NV_EEPROM_DEVICE_NAME_8 18
-#define NV_EEPROM_DEVICE_NAME_9 19
-#define NV_EEPROM_DEVICE_NAME_10 20
-#define NV_EEPROM_DEVICE_NAME_11 21
-#define NV_EEPROM_DEVICE_NAME_12 22
-#define NV_EEPROM_DEVICE_NAME_13 23
-#define NV_EEPROM_DEVICE_NAME_14 24
-#define NV_EEPROM_DEVICE_NAME_15 25
-#define NV_EEPROM_DEVICE_NAME_16 26
-#define NV_EEPROM_DEVICE_NAME_17 27
-#define NV_EEPROM_DEVICE_NAME_18 28
-#define NV_EEPROM_DEVICE_NAME_19 29
-#define NV_EEPROM_DEVICE_NAME_20 30
-#define NV_EEPROM_DEVICE_NAME_21 31
-#define NV_EEPROM_DEVICE_NAME_22 32
-#define NV_EEPROM_DEVICE_NAME_23 33
-#define NV_EEPROM_DEVICE_NAME_24 34
-#define NV_EEPROM_DEVICE_NAME_25 35
-#define NV_EEPROM_DEVICE_NAME_26 36
-#define NV_EEPROM_DEVICE_NAME_27 37
-#define NV_EEPROM_DEVICE_NAME_28 38
-#define NV_EEPROM_DEVICE_NAME_29 39
-#define NV_EEPROM_DEVICE_NAME_30 40
-#define NV_EEPROM_DEVICE_NAME_31 41
-#define NV_EEPROM_DEVICE_NAME_SIZE 32
+
+/* EEPROM free space - 7..31 */
+
+/* BACnet Names - 32 bytes of data each */
+#define NV_EEPROM_NAME_LENGTH(n) ((n)+0)
+#define NV_EEPROM_NAME_ENCODING(n) ((n)+1)
+#define NV_EEPROM_NAME_STRING(n) ((n)+2)
+#define NV_EEPROM_NAME_SIZE 30
+#define NV_EEPROM_NAME_OFFSET (1+1+NV_EEPROM_NAME_SIZE)
+/* Device Name - starting offset */
+#define NV_EEPROM_DEVICE_NAME 32
+/* Device Description - starting offset  */
+#define NV_EEPROM_DEVICE_DESCRIPTION \
+    (NV_EEPROM_DEVICE_NAME+NV_EEPROM_NAME_OFFSET)
+/* Device Location - starting offset  */
+#define NV_EEPROM_DEVICE_LOCATION \
+    (NV_EEPROM_DEVICE_DESCRIPTION+NV_EEPROM_NAME_OFFSET)
+
+/* EEPROM free space 128..1024 */
 
 /*=============== SEEPROM ================*/
-#define NV_SEEPROM_BINARY_OUTPUT_OFFSET 32
-#define NV_SEEPROM_BINARY_OUTPUT_0 10
-#define NV_SEEPROM_BINARY_OUTPUT(n,p) \
-    (NV_SEEPROM_BINARY_OUTPUT_0 + \
-    (NV_SEEPROM_BINARY_OUTPUT_OFFSET * (n)) + (p))
+/* data version - use to check valid version */
+#define SEEPROM_ID 0xBAC0
+#define SEEPROM_VERSION 0x0001
+
+#define SEEPROM_BYTES_MAX (2*1024)
+
+/* list of SEEPROM addresses */
+/* note to developers: define each byte,
+   even if they are not used explicitly */
+#define NV_SEEPROM_TYPE_0 0
+#define NV_SEEPROM_TYPE_1 1
+#define NV_SEEPROM_VERSION_0 2
+#define NV_SEEPROM_VERSION_1 3
+
+/* SEEPROM free space - 4..31 */
+
+#define NV_SEEPROM_BINARY_OUTPUT_0 32
 /* BO properties */
 #define NV_SEEPROM_BO_POLARITY 0
 #define NV_SEEPROM_BO_OUT_OF_SERVICE 1
@@ -116,8 +98,13 @@
 #define NV_SEEPROM_BO_PRIORITY_ARRAY_14 15
 #define NV_SEEPROM_BO_PRIORITY_ARRAY_15 16
 #define NV_SEEPROM_BO_PRIORITY_ARRAY_16 17
+/* formula for paramters */
+#define NV_SEEPROM_BINARY_OUTPUT_SIZE 18
+#define NV_SEEPROM_BINARY_OUTPUT(n,p) \
+    (NV_SEEPROM_BINARY_OUTPUT_0 + \
+    (NV_SEEPROM_BINARY_OUTPUT_SIZE * (n)) + (p))
 
-
+/* SEEPROM free space - depends on number of BO */
 
 #ifdef __cplusplus
 extern "C" {

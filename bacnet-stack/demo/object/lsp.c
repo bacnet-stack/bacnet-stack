@@ -173,17 +173,19 @@ static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
 }
 
 /* note: the object name must be unique within this device */
-char *Life_Safety_Point_Name(
-    uint32_t object_instance)
+bool Life_Safety_Point_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_LIFE_SAFETY_POINTS) {
         sprintf(text_string, "LS POINT %u", object_instance);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
@@ -216,8 +218,7 @@ int Life_Safety_Point_Read_Property(
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Life_Safety_Point_Name(rpdata->object_instance));
+            Life_Safety_Point_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

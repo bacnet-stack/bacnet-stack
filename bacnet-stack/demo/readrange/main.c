@@ -80,13 +80,11 @@
 #define _stricmp stricmp
 #endif
 
-uint8_t Send_Private_Transfer_Request(
-    uint32_t device_id,
-    uint16_t vendor_id,
-    uint32_t service_number,
-    char block_number,
-    DATABLOCK * block);
-
+/* All included BACnet objects */
+static object_functions_t Object_Table[] = {
+    {DEVICE_OBJ_FUNCTIONS},
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -145,7 +143,7 @@ void MyRejectHandler(
 static void Init_Objects(
     void)
 {
-    Device_Init();
+    Device_Init(&Object_Table[0]);
 }
 
 static void Init_Service_Handlers(

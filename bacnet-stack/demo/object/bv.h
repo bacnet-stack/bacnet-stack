@@ -48,8 +48,10 @@ extern "C" {
         unsigned index);
     unsigned Binary_Value_Instance_To_Index(
         uint32_t object_instance);
-    char *Binary_Value_Name(
-        uint32_t object_instance);
+
+    bool Binary_Value_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
 
     void Binary_Value_Init(
         void);
@@ -72,7 +74,7 @@ extern "C" {
 #define BINARY_VALUE_OBJ_FUNCTIONS \
     OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count, \
     Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance, \
-    Binary_Value_Name, Binary_Value_Read_Property, \
+    Binary_Value_Object_Name, Binary_Value_Read_Property, \
     Binary_Value_Write_Property, Binary_Value_Property_Lists, NULL, \
     NULL
 #endif

@@ -48,8 +48,9 @@ extern "C" {
         unsigned index);
     unsigned Life_Safety_Point_Instance_To_Index(
         uint32_t object_instance);
-    char *Life_Safety_Point_Name(
-        uint32_t object_instance);
+    bool Life_Safety_Point_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
     void Life_Safety_Point_Init(
         void);
 
@@ -71,7 +72,7 @@ extern "C" {
 #define LIFE_SAFETY_POINT_OBJ_FUNCTIONS \
     OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Init, \
     Life_Safety_Point_Count, Life_Safety_Point_Index_To_Instance, \
-    Life_Safety_Point_Valid_Instance, Life_Safety_Point_Name, \
+    Life_Safety_Point_Valid_Instance, Life_Safety_Point_Object_Name, \
     Life_Safety_Point_Read_Property, \
     Life_Safety_Point_Write_Property, \
     Life_Safety_Point_Property_Lists, NULL, NULL

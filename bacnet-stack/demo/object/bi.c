@@ -283,18 +283,20 @@ static void Binary_Input_Out_Of_Service_Set(
     return;
 }
 
-char *Binary_Input_Name(
-    uint32_t object_instance)
+bool Binary_Input_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_BINARY_INPUTS) {
         sprintf(text_string, "BINARY INPUT %lu",
             (unsigned long) object_instance);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 BACNET_POLARITY Binary_Input_Polarity(
@@ -346,8 +348,7 @@ int Binary_Input_Read_Property(
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             /* note: object name must be unique in our device */
-            characterstring_init_ansi(&char_string,
-                Binary_Input_Name(rpdata->object_instance));
+            Binary_Input_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

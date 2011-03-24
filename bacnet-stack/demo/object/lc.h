@@ -51,8 +51,10 @@ extern "C" {
         unsigned index);
     unsigned Load_Control_Instance_To_Index(
         uint32_t object_instance);
-    char *Load_Control_Name(
-        uint32_t object_instance);
+
+    bool Load_Control_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
 
     void Load_Control_Init(
         void);
@@ -77,7 +79,7 @@ extern "C" {
 #define LOAD_CONTROL_OBJ_FUNCTIONS \
     OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count, \
     Load_Control_Index_To_Instance, Load_Control_Valid_Instance, \
-    Load_Control_Name, Load_Control_Read_Property, \
+    Load_Control_Object_Name, Load_Control_Read_Property, \
     Load_Control_Write_Property, Load_Control_Property_Lists, NULL, \
     NULL
 #endif

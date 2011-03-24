@@ -55,8 +55,9 @@ extern "C" {
     bool Binary_Output_Object_Instance_Add(
         uint32_t instance);
 
-    char *Binary_Output_Name(
-        uint32_t object_instance);
+    bool Binary_Output_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
     bool Binary_Output_Name_Set(
         uint32_t object_instance,
         char *new_name);
@@ -111,7 +112,7 @@ extern "C" {
 #define BINARY_OUTPUT_OBJ_FUNCTIONS \
     OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count, \
     Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance, \
-    Binary_Output_Name, Binary_Output_Read_Property, \
+    Binary_Output_Object_Name, Binary_Output_Read_Property, \
     Binary_Output_Write_Property, Binary_Output_Property_Lists, \
     NULL, NULL
 #endif

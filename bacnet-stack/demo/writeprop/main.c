@@ -140,8 +140,7 @@ void MyWritePropertySimpleAckHandler(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Initialize_Object_Functions(&Object_Table[0]);
-    Device_Init();
+    Device_Init(&Object_Table[0]);
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);

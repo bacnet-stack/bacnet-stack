@@ -85,7 +85,7 @@ bool Routed_Device_Write_Property_Local(
 /****************************************************************************
  ************* BACnet Routing Functionality (Optional) **********************
  ****************************************************************************
- * It would be correct to view the routing functionality here as inheriting 
+ * It would be correct to view the routing functionality here as inheriting
  * and extending the regular Device Object functionality.
  ****************************************************************************/
 
@@ -96,8 +96,8 @@ DEVICE_OBJECT_DATA Devices[MAX_NUM_DEVICES];
 /** Keep track of the number of managed devices, including the gateway */
 uint16_t Num_Managed_Devices = 0;
 /** Which Device entry are we currently managing.
- * Since we are not using actual class objects here, the best we can do is 
- * keep this local variable which notes which of the Devices the current 
+ * Since we are not using actual class objects here, the best we can do is
+ * keep this local variable which notes which of the Devices the current
  * request is addressing.  Should default to 0, the main gateway Device.
  */
 uint16_t iCurrent_Device_Idx = 0;
@@ -127,9 +127,15 @@ uint16_t Add_Routed_Device(
         pDev->bacObj.mObject_Type = OBJECT_DEVICE;
         pDev->bacObj.Object_Instance_Number = Object_Instance;
         if (sObject_Name != NULL)
-            Routed_Device_Set_Object_Name(sObject_Name, strlen(sObject_Name));
+            Routed_Device_Set_Object_Name(
+                CHARACTER_UTF8,
+                sObject_Name,
+                strlen(sObject_Name));
         else
-            Routed_Device_Set_Object_Name("No Name", strlen("No Name"));
+            Routed_Device_Set_Object_Name(
+                CHARACTER_UTF8,
+                "No Name",
+                strlen("No Name"));
         if (sDescription != NULL)
             Routed_Device_Set_Description(sDescription, strlen(sDescription));
         else
@@ -147,7 +153,7 @@ uint16_t Add_Routed_Device(
  *                 -1 is a special case meaning "whichever iCurrent_Device_Idx
  *                 is currently set to"
  *                 If valid idx, will set iCurrent_Device_Idx with the idx
- * @return Pointer to the requested Device Object data, or NULL if the idx 
+ * @return Pointer to the requested Device Object data, or NULL if the idx
  *         is for an invalid row entry (eg, after the last good Device).
  */
 DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
@@ -168,7 +174,7 @@ DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
  *                 -1 is a special case meaning "whichever iCurrent_Device_Idx
  *                 is currently set to"
  *                 If valid idx, will set iCurrent_Device_Idx with the idx
- * @return Pointer to the requested Device Object BACnet address, or NULL if the idx 
+ * @return Pointer to the requested Device Object BACnet address, or NULL if the idx
  *         is for an invalid row entry (eg, after the last good Device).
  */
 BACNET_ADDRESS *Get_Routed_Device_Address(
@@ -186,9 +192,9 @@ BACNET_ADDRESS *Get_Routed_Device_Address(
 
 
 /** Get the currently active BACnet address.
- * This is an implementation of the datalink_get_my_address() template for 
+ * This is an implementation of the datalink_get_my_address() template for
  * devices with routing.
- * 
+ *
  * @param my_address [out] Points to the currently active Device Object's
  * 							BACnet address.
  */
@@ -205,18 +211,18 @@ void routed_get_my_address(
 /** See if the Gateway or Routed Device at the given idx matches
  * the given MAC address.
  * Has the desirable side-effect of setting iCurrent_Device_Idx to the
- * given idx if a match is found, for use in the subsequent routing handling 
+ * given idx if a match is found, for use in the subsequent routing handling
  * functions here.
- * 
+ *
  * @param idx [in] Index into Devices[] array being requested.
  *                 0 is for the main, gateway Device entry.
  * @param address_len [in] Length of the mac_adress[] field.
  *         If 0, then this is a MAC broadcast.  Otherwise, size is determined
  *         by the DLL type (eg, 6 for BIP and 2 for MSTP).
  * @param mac_adress [in] The desired MAC address of a Device;
- * 
- * @return True if the MAC addresses match (or the address_len is 0, 
- *         meaning MAC broadcast, so it's an automatic match). 
+ *
+ * @return True if the MAC addresses match (or the address_len is 0,
+ *         meaning MAC broadcast, so it's an automatic match).
  *         Else False if no match or invalid idx is given.
  */
 bool Routed_Device_Address_Lookup(
@@ -248,29 +254,29 @@ bool Routed_Device_Address_Lookup(
 }
 
 
-/** Find the next Gateway or Routed Device at the given MAC address, 
+/** Find the next Gateway or Routed Device at the given MAC address,
  * starting the search at the "cursor".
- * Has the desirable side-effect of setting internal iCurrent_Device_Idx 
- * if a match is found, for use in the subsequent routing handling 
+ * Has the desirable side-effect of setting internal iCurrent_Device_Idx
+ * if a match is found, for use in the subsequent routing handling
  * functions.
- * 
+ *
  * @param dest [in] The BACNET_ADDRESS of the message's destination.
- * 		   If the Length of the mac_adress[] field is 0, then this is a MAC 
+ * 		   If the Length of the mac_adress[] field is 0, then this is a MAC
  * 		   broadcast.  Otherwise, size is determined
  *         by the DLL type (eg, 6 for BIP and 2 for MSTP).
  * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
  * 					 Normally just one valid entry; terminated with a -1 value.
  * @param cursor [in,out] The concept of the cursor is that it is a starting
  * 		   "hint" for the search; on return, it is updated to provide the
- * 		   cursor value to use with a subsequent GetNext call, or it 
+ * 		   cursor value to use with a subsequent GetNext call, or it
  *         equals -1 if there are no further matches.
  *         Set it to 0 on entry to access the main, gateway Device entry, or
  *         to start looping through the routed devices.
- *         Otherwise, its returned value is implementation-dependent and the 
+ *         Otherwise, its returned value is implementation-dependent and the
  *         calling function should not alter or interpret it.
- * 
+ *
  * @return True if the MAC addresses match (or if BACNET_BROADCAST_NETWORK and
- * 		   the dest->len is 0, meaning MAC bcast, so it's an automatic match). 
+ * 		   the dest->len is 0, meaning MAC bcast, so it's an automatic match).
  *         Else False if no match or invalid idx is given; the cursor will
  *         be returned as -1 in these cases.
  */
@@ -289,14 +295,14 @@ bool Routed_Device_GetNext(
     if ((idx < 0) || (idx >= MAX_NUM_DEVICES))
         idx = -1;
 
-    /* Next, see if it's a BACnet broadcast. 
+    /* Next, see if it's a BACnet broadcast.
      * For broadcasts, all Devices get a chance at it.
      */
     else if (dest->net == BACNET_BROADCAST_NETWORK) {
         /* Just take the entry indexed by the cursor */
         bSuccess = Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
     }
-    /* Or see if it's for the main Gateway Device, because 
+    /* Or see if it's for the main Gateway Device, because
      * there's no routing info.
      */
     else if (dest->net == 0) {
@@ -335,15 +341,15 @@ bool Routed_Device_GetNext(
 
 /** Check if the destination network is reachable - is it our virtual network,
  *  or local or else broadcast.
- * 
+ *
  * @param dest_net [in] The BACnet network number of a message's destination.
- * 		   Success if it is our virtual network number, or 0 (local for the 
+ * 		   Success if it is our virtual network number, or 0 (local for the
  * 			gateway, or 0xFFFF for a broadcast network number.
  * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
  * 					 Normally just one valid entry; terminated with a -1 value.
- * @return True if matches our virtual network, or is for the local network 
+ * @return True if matches our virtual network, or is for the local network
  * 			Device (the gateway), or is BACNET_BROADCAST_NETWORK, which is
- * 		    an automatic match. 
+ * 		    an automatic match.
  *         Else False if not a reachable network.
  */
 bool Routed_Device_Is_Valid_Network(
@@ -356,7 +362,7 @@ bool Routed_Device_Is_Valid_Network(
     /* First, see if it's a BACnet broadcast (automatic pass). */
     if (dest_net == BACNET_BROADCAST_NETWORK)
         bSuccess = true;
-    /* Or see if it's for the main Gateway Device, because 
+    /* Or see if it's for the main Gateway Device, because
      * there's no routing info.
      */
     else if (dest_net == 0)
@@ -378,12 +384,12 @@ uint32_t Routed_Device_Index_To_Instance(
     return Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number;
 }
 
-/** See if the requested Object instance matches that for the currently 
- * indexed Device Object. 
- * iCurrent_Device_Idx must have been set to point to this Device Object  
+/** See if the requested Object instance matches that for the currently
+ * indexed Device Object.
+ * iCurrent_Device_Idx must have been set to point to this Device Object
  * before this function is called.
  * @param object_id [in] Object ID of the desired Device object.
- * 			If the wildcard value (BACNET_MAX_INSTANCE), always matches. 
+ * 			If the wildcard value (BACNET_MAX_INSTANCE), always matches.
  * @return True if Object ID matches the present Device, else False.
  */
 bool Routed_Device_Valid_Object_Instance_Number(
@@ -497,8 +503,9 @@ bool Routed_Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Routed_Device_Set_Object_Name(characterstring_value
-                    (&value.type.Character_String),
+                Routed_Device_Set_Object_Name(
+                    characterstring_encoding(&value.type.Character_String),
+                    characterstring_value(&value.type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -512,9 +519,9 @@ bool Routed_Device_Write_Property_Local(
 /* methods to manipulate the data */
 
 /** Return the Object Instance number for the currently active Device Object.
- * This is an overload of the important, widely used 
+ * This is an overload of the important, widely used
  * Device_Object_Instance_Number() function.
- * 
+ *
  * @return The Instance number of the currently active Device.
  */
 uint32_t Routed_Device_Object_Instance_Number(
@@ -538,24 +545,24 @@ bool Routed_Device_Set_Object_Instance_Number(
     return status;
 }
 
-
 /** Sets the Object Name for a routed Device (or the gateway).
  * Uses local variable iCurrent_Device_Idx to know which Device
  * is to be updated.
- * @param name [in] Text for the new Object Name.
- * @param length [in] Length of name[] text.
+ * @param object_name [in] Character String for the new Object Name.
  * @return True if succeed in updating Object Name, else False.
  */
 bool Routed_Device_Set_Object_Name(
-    const char *name,
-    size_t length)
+    uint8_t encoding,
+    const char *value,
+    size_t length);
 {
     bool status = false;        /*return value */
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
-    if (length < MAX_DEV_NAME_LEN) {
+    if ((encoding == CHARACTER_UTF8) &&
+        (length < MAX_DEV_NAME_LEN)) {
         /* Make the change and update the database revision */
-        memmove(pDev->bacObj.Object_Name, name, length);
+        memmove(pDev->bacObj.Object_Name, value, length);
         pDev->bacObj.Object_Name[length] = 0;
         Routed_Device_Inc_Database_Revision();
         status = true;
@@ -581,7 +588,7 @@ bool Routed_Device_Set_Description(
 }
 
 
-/* 
+/*
  * Shortcut for incrementing database revision as this is potentially
  * the most common operation if changing object names and ids is
  * implemented.

@@ -45,6 +45,8 @@ AVRDUDE_PORT = usb
 # Source locations
 BACNET_CORE = ../../src
 BACNET_INCLUDE = ../../include
+BACNET_HANDLER = ../../demo/handler
+BACNET_OBJECT = ../../demo/object
 BACNET_DEMO = ../../demo
 
 # local files for this project
@@ -65,6 +67,7 @@ CSRC = main.c \
 	dlmstp.c \
 	test.c \
 	bacnet.c \
+	bname.c \
 	device.c \
 	ai.c \
 	av.c \
@@ -130,7 +133,7 @@ CORESRC =  \
 #	$(BACNET_CORE)/address.c \
 
 ## Include Directories
-INCLUDES = -I. -I$(BACNET_INCLUDE)
+INCLUDES = -I. -I$(BACNET_INCLUDE) -I$(BACNET_HANDLER) -I$(BACNET_OBJECT)
 
 # Source to Object conversion
 COBJ = $(CSRC:%.c=%.o)

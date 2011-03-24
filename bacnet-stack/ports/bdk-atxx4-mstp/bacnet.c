@@ -85,10 +85,10 @@ void bacnet_init(
     dlmstp_init(NULL);
 
     if (!seeprom_version_test()) {
-        /* invalid version data */
+        /* do something when SEEPROM is invalid - i.e. init to defaults */
     }
     /* initialize objects */
-    Device_Init();
+    Device_Init(NULL);
 
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler

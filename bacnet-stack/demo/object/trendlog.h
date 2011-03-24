@@ -104,7 +104,7 @@ extern "C" {
         time_t tLastDataTime;
     } TL_LOG_INFO;
 
-/* 
+/*
  * Data types associated with a BACnet Log Record. We use these for managing the
  * log buffer but they are also the tag numbers to use when encoding/decoding
  * the log datum field.
@@ -139,8 +139,9 @@ extern "C" {
     bool Trend_Log_Object_Instance_Add(
         uint32_t instance);
 
-    char *Trend_Log_Name(
-        uint32_t object_instance);
+    bool Trend_Log_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
 
     int Trend_Log_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
@@ -199,7 +200,7 @@ extern "C" {
 #define TRENDLOG_OBJ_FUNCTIONS \
     OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count, \
     Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance, \
-    Trend_Log_Name, Trend_Log_Read_Property, \
+    Trend_Log_Object_Name, Trend_Log_Read_Property, \
     Trend_Log_Write_Property, Trend_Log_Property_Lists, \
     TrendLogGetRRInfo, NULL
 #endif

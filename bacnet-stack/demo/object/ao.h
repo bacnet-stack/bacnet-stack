@@ -63,8 +63,9 @@ extern "C" {
         uint32_t object_instance,
         unsigned priority);
 
-    char *Analog_Output_Name(
-        uint32_t object_instance);
+    bool Analog_Output_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
     bool Analog_Output_Name_Set(
         uint32_t object_instance,
         char *new_name);
@@ -102,7 +103,7 @@ extern "C" {
 #define ANALOG_OUTPUT_OBJ_FUNCTIONS \
     OBJECT_ANALOG_OUTPUT, Analog_Output_Init, Analog_Output_Count, \
     Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance, \
-    Analog_Output_Name, Analog_Output_Read_Property, \
+    Analog_Output_Object_Name, Analog_Output_Read_Property, \
     Analog_Output_Write_Property, Analog_Output_Property_Lists, \
     NULL, NULL
 #endif

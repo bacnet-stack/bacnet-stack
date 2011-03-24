@@ -31,6 +31,8 @@ AVRDUDE_PORT = /dev/ttyUSB0
 # Source locations
 BACNET_CORE = ../../src
 BACNET_INCLUDE = ../../include
+BACNET_HANDLER = ../../demo/handler
+BACNET_OBJECT = ../../demo/object
 BACNET_DEMO = ../../demo
 
 # local files for this project
@@ -93,6 +95,8 @@ CORESRC =  \
 
 ## Include Directories
 INCLUDES = -I. -I$(BACNET_INCLUDE)
+INCLUDES += -I$(BACNET_OBJECT)
+INCLUDES += -I$(BACNET_HANDLER)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)

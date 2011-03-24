@@ -107,17 +107,19 @@ uint32_t Analog_Input_Index_To_Instance(
     return index;
 }
 
-char *Analog_Input_Name(
-    uint32_t object_instance)
+bool Analog_Input_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[16] = "AI-0";       /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_ANALOG_INPUTS) {
         text_string[3] = '0' + (uint8_t) object_instance;
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 float Analog_Input_Present_Value(
@@ -165,8 +167,7 @@ int Analog_Input_Read_Property(
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Input_Name(rpdata->object_instance));
+            Analog_Input_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
