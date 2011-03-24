@@ -174,18 +174,20 @@ static BACNET_BINARY_PV Binary_Value_Present_Value(
 }
 
 /* note: the object name must be unique within this device */
-char *Binary_Value_Name(
-    uint32_t object_instance)
+bool Binary_Value_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_BINARY_VALUES) {
         sprintf(text_string, "BINARY VALUE %lu",
             (unsigned long) object_instance);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
@@ -217,8 +219,7 @@ int Binary_Value_Read_Property(
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Binary_Value_Name(rpdata->object_instance));
+            Binary_Value_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

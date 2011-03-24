@@ -83,7 +83,7 @@ void Send_WhoHas_Name(
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
     data.high_limit = high_limit;
-    data.object_name = true;
+    data.is_object_name = true;
     characterstring_init_ansi(&data.object.name, object_name);
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
@@ -138,7 +138,7 @@ void Send_WhoHas_Object(
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
     data.high_limit = high_limit;
-    data.object_name = false;
+    data.is_object_name = false;
     data.object.identifier.type = object_type;
     data.object.identifier.instance = object_instance;
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);

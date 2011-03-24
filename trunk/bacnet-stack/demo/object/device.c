@@ -289,7 +289,7 @@ void Device_Property_Lists(
    into the read-property encoding. */
 
 static uint32_t Object_Instance_Number = 260001;
-static char My_Object_Name[MAX_DEV_NAME_LEN + 1] = "SimpleServer";
+static BACNET_CHARACTER_STRING My_Object_Name;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
@@ -384,37 +384,28 @@ bool Device_Valid_Object_Instance_Number(
         (object_id == BACNET_MAX_INSTANCE));
 }
 
-char *Device_Name(
-    uint32_t object_instance)
+bool Device_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
+    bool status = false;
+
     if (object_instance == Object_Instance_Number) {
-        return My_Object_Name;
+        status = characterstring_copy(object_name, &My_Object_Name);
     }
 
-    return NULL;
-}
-
-const char *Device_Object_Name(
-    void)
-{
-    return My_Object_Name;
+    return status;
 }
 
 bool Device_Set_Object_Name(
-    const char *name,
-    size_t length)
+    BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;        /*return value */
 
-    /* FIXME:  All the object names in a device must be unique.
-       Disallow setting the Device Object Name to any objects in
-       the device. */
-    if (length < sizeof(My_Object_Name)) {
+    if (!characterstring_same(&My_Object_Name, object_name)) {
         /* Make the change and update the database revision */
-        memmove(My_Object_Name, name, length);
-        My_Object_Name[length] = 0;
+        status = characterstring_copy(&My_Object_Name, object_name);
         Device_Inc_Database_Revision();
-        status = true;
     }
 
     return status;
@@ -737,7 +728,7 @@ bool Device_Object_List_Identifier(
  * @return True on success or else False if not found.
  */
 bool Device_Valid_Object_Name(
-    const char *object_name,
+    BACNET_CHARACTER_STRING *object_name1,
     int *object_type,
     uint32_t * object_instance)
 {
@@ -746,14 +737,17 @@ bool Device_Valid_Object_Name(
     uint32_t instance;
     unsigned max_objects = 0, i = 0;
     bool check_id = false;
-    char *name = NULL;
+    BACNET_CHARACTER_STRING object_name2;
+    struct object_functions *pObject = NULL;
 
     max_objects = Device_Object_List_Count();
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            name = Device_Valid_Object_Id(type, instance);
-            if (strcmp(name, object_name) == 0) {
+            pObject = Device_Objects_Find_Functions(type);
+            if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
+                (pObject->Object_Name(instance, &object_name2) &&
+                characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -774,18 +768,52 @@ bool Device_Valid_Object_Name(
  * @param object_instance [in] The object instance number to be looked up.
  * @return The Object Name or else NULL if not found
  */
-char *Device_Valid_Object_Id(
+bool Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
 {
-    char *name = NULL;  /* return value */
+    bool status = false;  /* return value */
     struct object_functions *pObject = NULL;
 
     pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Name != NULL))
-        name = pObject->Object_Name(object_instance);
+    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
+        status = pObject->Object_Valid_Instance(object_instance);
+    }
 
-    return name;
+    return status;
+}
+
+/** copy a child object object_name value.
+ * @param object_type [out] The BACNET_OBJECT_TYPE of the matching Object.
+ * @param object_instance [out] The object instance number of the matching Object.
+ * @param object_name [in] The desired Object Name to look for.
+ * @return True on success or else False if not found.
+ */
+bool Device_Object_Name_Copy(
+    int object_type,
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
+{
+    struct object_functions *pObject = NULL;
+    bool found = false;
+    int type = 0;
+    uint32_t instance;
+    unsigned max_objects = 0, i = 0;
+    bool check_id = false;
+
+    max_objects = Device_Object_List_Count();
+    for (i = 0; i < max_objects; i++) {
+        check_id = Device_Object_List_Identifier(i, &type, &instance);
+        if (check_id) {
+            pObject = Device_Objects_Find_Functions(type);
+            if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
+                found = pObject->Object_Name(instance, object_name);
+                break;
+            }
+        }
+    }
+
+    return found;
 }
 
 static void Update_Current_Time(
@@ -873,9 +901,8 @@ int Device_Read_Property_Local(
                 Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string, My_Object_Name);
             apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+                encode_application_character_string(&apdu[0], &My_Object_Name);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
@@ -1201,12 +1228,22 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             status =
-                WPValidateString(&value, MAX_DEV_NAME_LEN, false,
-                &wp_data->error_class, &wp_data->error_code);
+                WPValidateString(&value,
+                    characterstring_capacity(&My_Object_Name),
+                    false,
+                    &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Object_Name(characterstring_value(&value.type.
-                        Character_String),
-                    characterstring_length(&value.type.Character_String));
+                /* All the object names in a device must be unique.
+                   Disallow setting the Device Object Name to any objects in
+                   the device. */
+                if (Device_Valid_Object_Name(&value.type.Character_String,
+                    NULL, NULL)) {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
+                } else {
+                    Device_Set_Object_Name(&value.type.Character_String);
+                }
             }
             break;
         case PROP_LOCATION:
@@ -1322,26 +1359,22 @@ bool Device_Write_Property(
     return (status);
 }
 
-/** Initialize the group of object helper functions for any supported Object.
+/** Initialize the Device Object.
+ Initialize the group of object helper functions for any supported Object.
+ Initialize each of the Device Object child Object instances.
  * @ingroup ObjIntf
  * @param object_table [in,out] array of structure with object functions.
  *  Each Child Object must provide some implementation of each of these
  *  functions in order to properly support the default handlers.
  */
-void Device_Initialize_Object_Functions(
-    object_functions_t * object_table)
-{
-    Object_Table = object_table;
-}
-
-/** Initialize the Device Object and each of its child Object instances.
- * @ingroup ObjIntf
- */
 void Device_Init(
-    void)
+    object_functions_t * object_table)
 {
     struct object_functions *pObject = NULL;
 
+    characterstring_init_ansi(&My_Object_Name, "SimpleServer");
+    /* call all the child objects initialization functions */
+    Object_Table = object_table;
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -1412,8 +1445,6 @@ void Routing_Device_Init(
 {
     struct object_functions *pDevObject = NULL;
 
-    /* First, do the usual Device_Init() functions: */
-    Device_Init();
     /* Initialize with our preset strings */
     Add_Routed_Device(first_object_instance, My_Object_Name, Description);
 

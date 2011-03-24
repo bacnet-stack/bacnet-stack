@@ -95,8 +95,7 @@ void MyRejectHandler(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Initialize_Object_Functions(&Object_Table[0]);
-    Device_Init();
+    Device_Init(&Object_Table[0]);
     /* Note: this applications doesn't need to handle who-is
        it is confusing for the user! */
     /* set the handler for all the services we don't implement

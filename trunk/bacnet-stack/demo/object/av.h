@@ -47,8 +47,10 @@ extern "C" {
         unsigned index);
     unsigned Analog_Value_Instance_To_Index(
         uint32_t object_instance);
-    char *Analog_Value_Name(
-        uint32_t object_instance);
+
+    bool Analog_Value_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
 
     int Analog_Value_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
@@ -78,7 +80,7 @@ extern "C" {
 #define ANALOG_VALUE_OBJ_FUNCTIONS \
     OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count, \
     Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance, \
-    Analog_Value_Name, Analog_Value_Read_Property, \
+    Analog_Value_Object_Name, Analog_Value_Read_Property, \
     Analog_Value_Write_Property, Analog_Value_Property_Lists, NULL, \
     NULL
 #endif

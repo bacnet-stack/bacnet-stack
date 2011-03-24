@@ -63,7 +63,7 @@ int whohas_encode_apdu(
                 encode_context_unsigned(&apdu[apdu_len], 1, data->high_limit);
             apdu_len += len;
         }
-        if (data->object_name) {
+        if (data->is_object_name) {
             len =
                 encode_context_character_string(&apdu[apdu_len], 3,
                 &data->object.name);
@@ -115,7 +115,7 @@ int whohas_decode_service_request(
         }
         /* object id */
         if (decode_is_context_tag(&apdu[len], 2)) {
-            data->object_name = false;
+            data->is_object_name = false;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -126,7 +126,7 @@ int whohas_decode_service_request(
         }
         /* object name */
         else if (decode_is_context_tag(&apdu[len], 3)) {
-            data->object_name = true;
+            data->is_object_name = true;
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
@@ -186,9 +186,9 @@ void testWhoHasData(
     ct_test(pTest, len != -1);
     ct_test(pTest, test_data.low_limit == data->low_limit);
     ct_test(pTest, test_data.high_limit == data->high_limit);
-    ct_test(pTest, test_data.object_name == data->object_name);
+    ct_test(pTest, test_data.is_object_name == data->is_object_name);
     /* Object ID */
-    if (data->object_name == false) {
+    if (data->is_object_name == false) {
         ct_test(pTest,
             test_data.object.identifier.type == data->object.identifier.type);
         ct_test(pTest,
@@ -209,7 +209,7 @@ void testWhoHas(
 
     data.low_limit = -1;
     data.high_limit = -1;
-    data.object_name = false;
+    data.is_object_name = false;
     data.object.identifier.type = OBJECT_ANALOG_INPUT;
     data.object.identifier.instance = 1;
     testWhoHasData(pTest, &data);
@@ -218,7 +218,7 @@ void testWhoHas(
         data.low_limit += (BACNET_MAX_INSTANCE / 4)) {
         for (data.high_limit = 0; data.high_limit <= BACNET_MAX_INSTANCE;
             data.high_limit += (BACNET_MAX_INSTANCE / 4)) {
-            data.object_name = false;
+            data.is_object_name = false;
             for (data.object.identifier.type = OBJECT_ANALOG_INPUT;
                 data.object.identifier.type < MAX_BACNET_OBJECT_TYPE;
                 data.object.identifier.type++) {
@@ -228,7 +228,7 @@ void testWhoHas(
                     testWhoHasData(pTest, &data);
                 }
             }
-            data.object_name = true;
+            data.is_object_name = true;
             characterstring_init_ansi(&data.object.name, "patricia");
             testWhoHasData(pTest, &data);
         }

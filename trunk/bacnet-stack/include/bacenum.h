@@ -952,7 +952,7 @@ typedef enum {
 } BACNET_VT_CLASS;
 
 typedef enum {
-    CHARACTER_ANSI_X34 = 0,
+    CHARACTER_ANSI_X34 = 0, /* deprecated */
     CHARACTER_UTF8 = 0,
     CHARACTER_MS_DBCS = 1,
     CHARACTER_JISC_6226 = 2,

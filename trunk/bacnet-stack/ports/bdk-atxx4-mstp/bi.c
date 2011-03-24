@@ -157,17 +157,19 @@ bool Binary_Input_Present_Value_Set(
     return false;
 }
 
-char *Binary_Input_Name(
-    uint32_t object_instance)
+bool Binary_Input_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32];        /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_BINARY_INPUTS) {
         sprintf(text_string, "BI-%lu", object_instance);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 /* return apdu length, or -1 on error */

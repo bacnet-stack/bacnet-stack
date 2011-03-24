@@ -61,12 +61,12 @@ static struct my_object_functions {
     {
         OBJECT_DEVICE, NULL,    /* don't init - recursive! */
     Device_Count, Device_Index_To_Instance,
-            Device_Valid_Object_Instance_Number, Device_Name,
+            Device_Valid_Object_Instance_Number, Device_Object_Name,
             Device_Read_Property_Local, Device_Write_Property_Local,
             Device_Property_Lists}, {
     OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
             Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
-            Binary_Output_Name, Binary_Output_Read_Property,
+            Binary_Output_Object_Name, Binary_Output_Read_Property,
             Binary_Output_Write_Property, Binary_Output_Property_Lists}, {
     MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
@@ -162,9 +162,12 @@ static int Read_Property_Common(
             break;
         case PROP_OBJECT_NAME:
             if (pObject->Object_Name) {
-                pString = pObject->Object_Name(rpdata->object_instance);
+                (void)pObject->Object_Name(
+                    rpdata->object_instance,
+                    &char_string);
+            } else {
+                characterstring_init_ansi(&char_string, "");
             }
-            characterstring_init_ansi(&char_string, pString);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -318,10 +321,17 @@ uint32_t Device_Index_To_Instance(
     return Object_Instance_Number;
 }
 
-char *Device_Name(
-    uint32_t object_instance)
+bool Device_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
-    return characterstring_value(&My_Object_Name);
+    bool status = false;
+
+    if (object_instance == Object_Instance_Number) {
+        status = characterstring_copy(object_name, &My_Object_Name);
+    }
+
+    return status;
 }
 
 bool Device_Reinitialize(
@@ -494,7 +504,7 @@ bool Device_Object_List_Identifier(
 }
 
 bool Device_Valid_Object_Name(
-    const char *object_name,
+    BACNET_CHARACTER_STRING *object_name1,
     int *object_type,
     uint32_t * object_instance)
 {
@@ -503,14 +513,17 @@ bool Device_Valid_Object_Name(
     uint32_t instance;
     unsigned max_objects = 0, i = 0;
     bool check_id = false;
-    char *name = NULL;
+    BACNET_CHARACTER_STRING object_name2;
+    struct my_object_functions *pObject = NULL;
 
     max_objects = Device_Object_List_Count();
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            name = Device_Valid_Object_Id(type, instance);
-            if (strcmp(name, object_name) == 0) {
+            pObject = Device_Objects_Find_Functions(type);
+            if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
+                (pObject->Object_Name(instance, &object_name2) &&
+                characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -526,20 +539,46 @@ bool Device_Valid_Object_Name(
     return found;
 }
 
-/* returns the name or NULL if not found */
-char *Device_Valid_Object_Id(
+bool Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
 {
-    char *name = NULL;  /* return value */
+    bool status = false;  /* return value */
     struct my_object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) object_type);
-    if ((pObject) && (pObject->Object_Name)) {
-        name = pObject->Object_Name(object_instance);
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
+        status = pObject->Object_Valid_Instance(object_instance);
     }
 
-    return name;
+    return status;
+}
+
+bool Device_Object_Name_Copy(
+    int object_type,
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
+{
+    struct my_object_functions *pObject = NULL;
+    bool found = false;
+    int type = 0;
+    uint32_t instance;
+    unsigned max_objects = 0, i = 0;
+    bool check_id = false;
+
+    max_objects = Device_Object_List_Count();
+    for (i = 0; i < max_objects; i++) {
+        check_id = Device_Object_List_Identifier(i, &type, &instance);
+        if (check_id) {
+            pObject = Device_Objects_Find_Functions(type);
+            if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
+                found = pObject->Object_Name(instance, object_name);
+                break;
+            }
+        }
+    }
+
+    return found;
 }
 
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error */

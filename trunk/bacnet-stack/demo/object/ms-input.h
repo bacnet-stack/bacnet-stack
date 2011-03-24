@@ -59,11 +59,14 @@ extern "C" {
     /* optional API */
     bool Multistate_Input_Object_Instance_Add(
         uint32_t instance);
-    char *Multistate_Input_Name(
-        uint32_t object_instance);
+
+    bool Multistate_Input_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
     bool Multistate_Input_Name_Set(
         uint32_t object_instance,
         char *new_name);
+
     uint32_t Multistate_Input_Present_Value(
         uint32_t object_instance);
     bool Multistate_Input_Present_Value_Set(
@@ -96,7 +99,7 @@ extern "C" {
 #define MULTI_STATE_INPUT_OBJ_FUNCTIONS \
     OBJECT_MULTI_STATE_INPUT, Multistate_Input_Init, \
     Multistate_Input_Count, Multistate_Input_Index_To_Instance, \
-    Multistate_Input_Valid_Instance, Multistate_Input_Name, \
+    Multistate_Input_Valid_Instance, Multistate_Input_Object_Name, \
     Multistate_Input_Read_Property, \
     Multistate_Input_Write_Property, \
     Multistate_Input_Property_Lists, NULL, NULL

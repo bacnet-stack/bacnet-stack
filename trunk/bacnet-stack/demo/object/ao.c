@@ -253,18 +253,20 @@ bool Analog_Output_Present_Value_Relinquish(
 }
 
 /* note: the object name must be unique within this device */
-char *Analog_Output_Name(
-    uint32_t object_instance)
+bool Analog_Output_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_ANALOG_OUTPUTS) {
         sprintf(text_string, "ANALOG OUTPUT %lu",
             (unsigned long) object_instance);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
@@ -294,8 +296,7 @@ int Analog_Output_Read_Property(
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Output_Name(rpdata->object_instance));
+            Analog_Output_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

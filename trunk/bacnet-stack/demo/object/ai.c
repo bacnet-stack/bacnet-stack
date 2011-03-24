@@ -152,19 +152,21 @@ void Analog_Input_Present_Value_Set(
     }
 }
 
-char *Analog_Input_Name(
-    uint32_t object_instance)
+bool Analog_Input_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     unsigned int index;
+    bool status = false;
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
         sprintf(text_string, "ANALOG INPUT %lu", (unsigned long) index);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 /* return apdu length, or BACNET_STATUS_ERROR on error */
@@ -190,8 +192,7 @@ int Analog_Input_Read_Property(
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Input_Name(rpdata->object_instance));
+            Analog_Input_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

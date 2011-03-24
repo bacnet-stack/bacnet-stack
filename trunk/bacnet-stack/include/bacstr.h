@@ -153,6 +153,8 @@ extern "C" {
         BACNET_CHARACTER_STRING * char_string);
     bool characterstring_printable(
         BACNET_CHARACTER_STRING * char_string);
+    bool characterstring_valid(
+        BACNET_CHARACTER_STRING * char_string);
 
     /* returns false if the string exceeds capacity
        initialize by using length=0 */

@@ -22,60 +22,78 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef MSO_H
-#define MSO_H
+#ifndef AI_H
+#define AI_H
 
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacdef.h"
-#include "bacerror.h"
 #include "rp.h"
 #include "wp.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    void Multistate_Output_Property_Lists(
+    void Analog_Input_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
-    bool Multistate_Output_Valid_Instance(
+
+    bool Analog_Input_Valid_Instance(
         uint32_t object_instance);
-    unsigned Multistate_Output_Count(
+    unsigned Analog_Input_Count(
         void);
-    uint32_t Multistate_Output_Index_To_Instance(
+    uint32_t Analog_Input_Index_To_Instance(
         unsigned index);
-    unsigned Multistate_Output_Instance_To_Index(
+    unsigned Analog_Input_Instance_To_Index(
+        uint32_t instance);
+    bool Analog_Input_Object_Instance_Add(
+        uint32_t instance);
+
+    char *Analog_Input_Name(
         uint32_t object_instance);
-
-    bool Multistate_Output_Object_Name(
+    bool Analog_Input_Name_Set(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        char *new_name);
 
-    void Multistate_Output_Init(
-        void);
+    char *Analog_Input_Description(
+        uint32_t instance);
+    bool Analog_Input_Description_Set(
+        uint32_t instance,
+        char *new_name);
 
-    int Multistate_Output_Read_Property(
+    bool Analog_Input_Units_Set(
+        uint32_t instance,
+        uint16_t units);
+    uint16_t Analog_Input_Units(
+        uint32_t instance);
+
+    int Analog_Input_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
-
-    bool Multistate_Output_Write_Property(
+    bool Analog_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    float Analog_Input_Present_Value(
+        uint32_t object_instance);
+    void Analog_Input_Present_Value_Set(
+        uint32_t object_instance,
+        float value);
+
+    void Analog_Input_Init(
+        void);
 
 #ifdef TEST
 #include "ctest.h"
-    void testMultistateOutput(
+    void testAnalogInput(
         Test * pTest);
 #endif
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define MULTI_STATE_OUTPUT_OBJ_FUNCTIONS \
-    OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init, \
-    Multistate_Output_Count, Multistate_Output_Index_To_Instance, \
-    Multistate_Output_Valid_Instance, Multistate_Output_Object_Name, \
-    Multistate_Output_Read_Property, \
-    Multistate_Output_Write_Property, \
-    Multistate_Output_Property_Lists, NULL, NULL
+#define ANALOG_INPUT_OBJ_FUNCTIONS \
+    OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count, \
+    Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance, \
+    Analog_Input_Name, Analog_Input_Read_Property, NULL, \
+    Analog_Input_Property_Lists, NULL, NULL
 #endif

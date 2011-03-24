@@ -225,18 +225,19 @@ bool Multistate_Input_Description_Set(
     return status;
 }
 
-char *Multistate_Input_Name(
-    uint32_t object_instance)
+bool Multistate_Input_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     unsigned index = 0; /* offset from instance lookup */
-    char *pName = NULL; /* return value */
+    bool status = false;
 
     index = Multistate_Input_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_INPUTS) {
-        pName = Object_Name[index];
+        status = characterstring_init_ansi(object_name, Object_Name[index]);
     }
 
-    return pName;
+    return status;
 }
 
 /* note: the object name must be unique within this device */
@@ -347,8 +348,7 @@ int Multistate_Input_Read_Property(
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string,
-                Multistate_Input_Name(rpdata->object_instance));
+            Multistate_Input_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

@@ -276,8 +276,7 @@ void MyReadPropertyMultipleAckHandler(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Initialize_Object_Functions(&Object_Table[0]);
-    Device_Init();
+    Device_Init(&Object_Table[0]);
 
 #if BAC_ROUTING
     uint32_t Object_Instance;

@@ -80,7 +80,7 @@ static const int Trend_Log_Properties_Optional[] = {
     PROP_COV_RESUBSCRIPTION_INTERVAL,
     PROP_CLIENT_COV_INCREMENT, */
 
-/* Required if intrinsic reporting supported    
+/* Required if intrinsic reporting supported
     PROP_NOTIFICATION_THRESHOLD,
     PROP_RECORDS_SINCE_NOTIFICATION,
     PROP_LAST_NOTIFY_RECORD,
@@ -179,7 +179,7 @@ void Trend_Log_Init(
         /* initialize all the values */
 
         for (iLog = 0; iLog < MAX_TREND_LOGS; iLog++) {
-            /* 
+            /*
              * Do we need to do anything here?
              * Trend logs are usually assumed to survive over resets
              * and are frequently implemented using Battery Backed RAM
@@ -257,17 +257,19 @@ void Trend_Log_Init(
  * on the assumption that there is a 1 to 1 correspondance. If there
  * is not we need to convert to index before proceeding.
  */
-char *Trend_Log_Name(
-    uint32_t object_instance)
+bool Trend_Log_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_TREND_LOGS) {
         sprintf(text_string, "Trend Log %u", object_instance);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 
@@ -298,8 +300,7 @@ int Trend_Log_Read_Property(
 
         case PROP_DESCRIPTION:
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string,
-                Trend_Log_Name(rpdata->object_instance));
+            Trend_Log_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -496,14 +497,14 @@ bool Trend_Log_Write_Property(
                     /* To do: what actions do we need to take on writing ? */
                     if (value.type.Boolean == false) {
                         if (bEffectiveEnable == true) {
-                            /* Only insert record if we really were 
+                            /* Only insert record if we really were
                                enabled i.e. times and enable flags */
                             TL_Insert_Status_Rec(log_index,
                                 LOG_STATUS_LOG_DISABLED, true);
                         }
                     } else {
                         if (TL_Is_Enabled(log_index)) {
-                            /* Have really gone from disabled to enabled as 
+                            /* Have really gone from disabled to enabled as
                              * enable flag and times were correct
                              */
                             TL_Insert_Status_Rec(log_index,
@@ -563,7 +564,7 @@ bool Trend_Log_Write_Property(
             break;
 
         case PROP_LOGGING_TYPE:
-            /* logic 
+            /* logic
              * triggered and polled options.
              */
             status =
@@ -1016,7 +1017,7 @@ time_t TL_BAC_Time_To_Local(
 
     LocalTime.tm_year = SourceTime->date.year - 1900;   /* We store BACnet year in full format */
     /* Some clients send a date of all 0s to indicate start of epoch
-     * even though this is not a valid date. Pick this up here and 
+     * even though this is not a valid date. Pick this up here and
      * correct the day and month for the local time functions.
      */
     iTemp =
@@ -1151,7 +1152,7 @@ int TL_encode_by_position(
          * start index/positive count and then process as
          * normal. This assumes that the order to return items
          * is always first to last, if this is not true we will
-         * have to handle this differently. 
+         * have to handle this differently.
          *
          * Note: We need to be careful about how we convert these
          * values due to the mix of signed and unsigned types - don't
@@ -1184,7 +1185,7 @@ int TL_encode_by_position(
     while (uiIndex <= uiTarget) {
         if (uiRemaining < TL_MAX_ENC) {
             /*
-             * Can't fit any more in! We just set the result flag to say there 
+             * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
              */
             bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS,
@@ -1318,7 +1319,7 @@ int TL_encode_by_sequence(
     while (uiSequence != uiEnd + 1) {
         if (uiRemaining < TL_MAX_ENC) {
             /*
-             * Can't fit any more in! We just set the result flag to say there 
+             * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
              */
             bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS,
@@ -1410,7 +1411,7 @@ int TL_encode_by_time(
         pRequest->Count = -pRequest->Count;     /* Conveert to +ve count */
         /* If count would bring us back beyond the limits
          * Of the buffer then pin it to the start of the buffer
-         * otherwise adjust starting point and sequence number 
+         * otherwise adjust starting point and sequence number
          * appropriately.
          */
         iTemp = pRequest->Count - 1;
@@ -1450,7 +1451,7 @@ int TL_encode_by_time(
     while (iCount != 0) {
         if (uiRemaining < TL_MAX_ENC) {
             /*
-             * Can't fit any more in! We just set the result flag to say there 
+             * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
              */
             bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS,
@@ -1819,7 +1820,7 @@ void trend_log_timer(
                         /* Also record value if we have waited more than a period
                          * since the last reading. This ensures we take a reading as
                          * soon as possible after a power down if we have been off for
-                         * more than a single period. 
+                         * more than a single period.
                          */
                         TL_fetch_property(iCount);
                     }

@@ -40,36 +40,39 @@
 
 /** Local function which responds with either the requested object name
  *  or object ID, if the Device has a match.
- *  @param data [in] The decoded who-has payload from the request. 
+ *  @param data [in] The decoded who-has payload from the request.
  */
 static void match_name_or_object(
     BACNET_WHO_HAS_DATA * data)
 {
-    char *object_name = NULL;
     int object_type = 0;
     uint32_t object_instance = 0;
     bool found = false;
+    BACNET_CHARACTER_STRING object_name;
+
     /* do we have such an object?  If so, send an I-Have.
        note: we should have only 1 of such an object */
-    if (data->object_name) {
+    if (data->is_object_name) {
         /* valid name in my device? */
-        object_name = characterstring_value(&data->object.name);
         found =
-            Device_Valid_Object_Name(object_name, &object_type,
+            Device_Valid_Object_Name(&data->object.name, &object_type,
             &object_instance);
-        if (found)
+        if (found) {
             Send_I_Have(Device_Object_Instance_Number(),
                 (BACNET_OBJECT_TYPE) object_type, object_instance,
-                object_name);
+                &data->object.name);
+        }
     } else {
-        /* valid object in my device? */
-        object_name =
-            Device_Valid_Object_Id(data->object.identifier.type,
-            data->object.identifier.instance);
-        if (object_name)
+        /* valid object_name copy in my device? */
+        found = Device_Object_Name_Copy(
+            data->object.identifier.type,
+            data->object.identifier.instance,
+            &object_name);
+        if (found) {
             Send_I_Have(Device_Object_Instance_Number(),
                 (BACNET_OBJECT_TYPE) data->object.identifier.type,
-                data->object.identifier.instance, object_name);
+                data->object.identifier.instance, &object_name);
+        }
     }
 }
 
@@ -108,7 +111,7 @@ void handler_who_has(
 
 
 #ifdef BAC_ROUTING
-/** Handler for Who-Has requests in the virtual routing setup, 
+/** Handler for Who-Has requests in the virtual routing setup,
  * with broadcast I-Have response.
  * Will respond if the device Object ID matches, and we have
  * the Object or Object Name requested.

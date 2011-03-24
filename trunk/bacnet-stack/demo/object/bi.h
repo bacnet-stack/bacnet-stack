@@ -52,8 +52,9 @@ extern "C" {
     bool Binary_Input_Object_Instance_Add(
         uint32_t instance);
 
-    char *Binary_Input_Name(
-        uint32_t object_instance);
+    bool Binary_Input_Object_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *object_name);
     bool Binary_Input_Name_Set(
         uint32_t object_instance,
         char *new_name);
@@ -116,6 +117,6 @@ extern "C" {
 #define BINARY_INPUT_OBJ_FUNCTIONS \
     OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count, \
     Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance, \
-    Binary_Input_Name, Binary_Input_Read_Property, NULL, \
+    Binary_Input_Object_Name, Binary_Input_Read_Property, NULL, \
     Binary_Input_Property_Lists, NULL, NULL
 #endif

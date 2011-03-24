@@ -39,6 +39,7 @@
 #include "nvdata.h"
 #include "stack.h"
 #include "handlers.h"
+#include "bname.h"
 /* objects */
 #include "device.h"
 #include "ai.h"
@@ -66,24 +67,24 @@ static struct my_object_functions {
     {
         OBJECT_DEVICE, NULL,    /* don't init - recursive! */
     Device_Count, Device_Index_To_Instance,
-            Device_Valid_Object_Instance_Number, Device_Name,
+            Device_Valid_Object_Instance_Number, Device_Object_Name,
             Device_Read_Property_Local, Device_Write_Property_Local,
             Device_Property_Lists}, {
     OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
             Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
-            Analog_Input_Name, Analog_Input_Read_Property, NULL,
+            Analog_Input_Object_Name, Analog_Input_Read_Property, NULL,
             Analog_Input_Property_Lists}, {
     OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
             Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
-            Analog_Value_Name, Analog_Value_Read_Property,
+            Analog_Value_Object_Name, Analog_Value_Read_Property,
             Analog_Value_Write_Property, Analog_Value_Property_Lists}, {
     OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
             Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
-            Binary_Input_Name, Binary_Input_Read_Property, NULL,
+            Binary_Input_Object_Name, Binary_Input_Read_Property, NULL,
             Binary_Input_Property_Lists}, {
     OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
             Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
-            Binary_Output_Name, Binary_Output_Read_Property,
+            Binary_Output_Object_Name, Binary_Output_Read_Property,
             Binary_Output_Write_Property, Binary_Output_Property_Lists}, {
     MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
@@ -94,7 +95,7 @@ static struct my_object_functions {
    into the read-property encoding. */
 static uint32_t Object_Instance_Number;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-
+static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -130,6 +131,9 @@ static const int Device_Properties_Optional[] = {
 };
 
 static const int Device_Properties_Proprietary[] = {
+    512,
+    513,
+    9600,
     -1
 };
 
@@ -157,7 +161,6 @@ static int Read_Property_Common(
 {
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
-    char *pString = "";
     uint8_t *apdu = NULL;
 
     if ((rpdata->application_data == NULL) ||
@@ -178,9 +181,12 @@ static int Read_Property_Common(
             break;
         case PROP_OBJECT_NAME:
             if (pObject->Object_Name) {
-                pString = pObject->Object_Name(rpdata->object_instance);
+                (void)pObject->Object_Name(
+                    rpdata->object_instance,
+                    &char_string);
+            } else {
+                characterstring_init_ansi(&char_string, "");
             }
-            characterstring_init_ansi(&char_string, pString);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -334,38 +340,30 @@ uint32_t Device_Index_To_Instance(
     return Object_Instance_Number;
 }
 
-char *Device_Name(
-    uint32_t object_instance)
+static char *Device_Name_Default(void)
 {
-    uint8_t encoding = 0;
-    uint8_t length = 0;
-    static char name[NV_EEPROM_DEVICE_NAME_SIZE + 1] = "";
-    char *pName = NULL;
+    static char text_string[32];        /* okay for single thread */
+
+    sprintf(text_string, "DEVICE-%lu", Object_Instance_Number);
+
+    return text_string;
+}
+
+bool Device_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
+{
+    bool status = false;
 
     if (object_instance == Object_Instance_Number) {
-        eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_ENCODING, &encoding, 1);
-        eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_LENGTH, &length, 1);
-        eeprom_bytes_read(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & name,
-            NV_EEPROM_DEVICE_NAME_SIZE);
-        if ((encoding >= MAX_CHARACTER_STRING_ENCODING) ||
-            (length > NV_EEPROM_DEVICE_NAME_SIZE) || (length < 1)) {
-            encoding = CHARACTER_ANSI_X34;
-            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING, &encoding, 1);
-            sprintf(name, "DEVICE-%lu", Object_Instance_Number);
-            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0, (uint8_t *) & name[0],
-                NV_EEPROM_DEVICE_NAME_SIZE);
-            length = strlen(name);
-            eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH, &length, 1);
-        }
-        if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
-            name[length] = 0;
-        } else {
-            name[NV_EEPROM_DEVICE_NAME_SIZE] = 0;
-        }
-        pName = &name[0];
+        bacnet_name(
+            NV_EEPROM_DEVICE_NAME,
+            object_name,
+            Device_Name_Default());
+        status = true;
     }
 
-    return pName;
+    return status;
 }
 
 bool Device_Reinitialize(
@@ -397,10 +395,14 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
 }
 
 void Device_Init(
-    void)
+        object_functions_t * object_table)
 {
     struct my_object_functions *pObject = NULL;
 
+    /* we don't use the object table passed in
+       since there is extra stuff we don't need in there. */
+    (void)object_table;
+    /* our local object table */
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -418,7 +420,6 @@ void Device_Init(
             (uint8_t *) & Object_Instance_Number,
             sizeof(Object_Instance_Number));
     }
-    (void) Device_Name(Object_Instance_Number);
 }
 
 /* methods to manipulate the data */
@@ -488,7 +489,13 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(
 uint32_t Device_Database_Revision(
     void)
 {
-    return 0;
+    return Database_Revision;
+}
+
+void Device_Inc_Database_Revision(
+    void)
+{
+    Database_Revision++;
 }
 
 /* Since many network clients depend on the object list */
@@ -546,7 +553,7 @@ bool Device_Object_List_Identifier(
 }
 
 bool Device_Valid_Object_Name(
-    const char *object_name,
+    BACNET_CHARACTER_STRING *object_name1,
     int *object_type,
     uint32_t * object_instance)
 {
@@ -555,14 +562,17 @@ bool Device_Valid_Object_Name(
     uint32_t instance;
     unsigned max_objects = 0, i = 0;
     bool check_id = false;
-    char *name = NULL;
+    BACNET_CHARACTER_STRING object_name2;
+    struct my_object_functions *pObject = NULL;
 
     max_objects = Device_Object_List_Count();
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            name = Device_Valid_Object_Id(type, instance);
-            if (strcmp(name, object_name) == 0) {
+            pObject = Device_Objects_Find_Functions(type);
+            if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
+                (pObject->Object_Name(instance, &object_name2) &&
+                characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -578,20 +588,46 @@ bool Device_Valid_Object_Name(
     return found;
 }
 
-/* returns the name or NULL if not found */
-char *Device_Valid_Object_Id(
+bool Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
 {
-    char *name = NULL;  /* return value */
+    bool status = false;  /* return value */
     struct my_object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) object_type);
-    if ((pObject) && (pObject->Object_Name)) {
-        name = pObject->Object_Name(object_instance);
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
+        status = pObject->Object_Valid_Instance(object_instance);
     }
 
-    return name;
+    return status;
+}
+
+bool Device_Object_Name_Copy(
+    int object_type,
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
+{
+    struct my_object_functions *pObject = NULL;
+    bool found = false;
+    int type = 0;
+    uint32_t instance;
+    unsigned max_objects = 0, i = 0;
+    bool check_id = false;
+
+    max_objects = Device_Object_List_Count();
+    for (i = 0; i < max_objects; i++) {
+        check_id = Device_Object_List_Identifier(i, &type, &instance);
+        if (check_id) {
+            pObject = Device_Objects_Find_Functions(type);
+            if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
+                found = pObject->Object_Name(instance, object_name);
+                break;
+            }
+        }
+    }
+
+    return found;
 }
 
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error */
@@ -616,7 +652,18 @@ int Device_Read_Property_Local(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string, "BACnet Development Kit");
+            bacnet_name(
+                NV_EEPROM_DEVICE_DESCRIPTION,
+                &char_string,
+                "BACnet Development Kit");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_LOCATION:
+            bacnet_name(
+                NV_EEPROM_DEVICE_LOCATION,
+                &char_string,
+                "default location");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -672,7 +719,6 @@ int Device_Read_Property_Local(
                not a list of objects that this device can access */
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
-                /* FIXME: if ReadProperty used an array of Functions... */
                 /* initialize all the object types to not-supported */
                 bitstring_set_bit(&bit_string, (uint8_t) i, false);
             }
@@ -858,38 +904,35 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                size_t length =
-                    characterstring_length(&value.type.Character_String);
-                if (length < 1) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                } else if (length < NV_EEPROM_DEVICE_NAME_SIZE) {
-                    uint8_t encoding =
-                        characterstring_encoding(&value.type.Character_String);
-                    if (encoding < MAX_CHARACTER_STRING_ENCODING) {
-                        char *pCharString;
-                        uint8_t small_length;
-                        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_ENCODING,
-                            &encoding, 1);
-                        small_length = length;
-                        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_LENGTH,
-                            &small_length, 1);
-                        pCharString =
-                            characterstring_value(&value.type.
-                            Character_String);
-                        eeprom_bytes_write(NV_EEPROM_DEVICE_NAME_0,
-                            (uint8_t *) pCharString, length);
-                        status = true;
-                    } else {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code =
-                            ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
-                    }
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code =
-                        ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                }
+                status = bacnet_name_write(
+                    NV_EEPROM_DEVICE_NAME,
+                    &value.type.Character_String,
+                    &wp_data->error_class,
+                    &wp_data->error_code);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_DESCRIPTION:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                status = bacnet_name_write_other(
+                    NV_EEPROM_DEVICE_DESCRIPTION,
+                    &value.type.Character_String,
+                    &wp_data->error_class,
+                    &wp_data->error_code);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_LOCATION:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                status = bacnet_name_write_other(
+                    NV_EEPROM_DEVICE_LOCATION,
+                    &value.type.Character_String,
+                    &wp_data->error_class,
+                    &wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;

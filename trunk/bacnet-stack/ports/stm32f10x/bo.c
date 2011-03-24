@@ -220,17 +220,19 @@ bool Binary_Output_Out_Of_Service(
 }
 
 /* note: the object name must be unique within this device */
-char *Binary_Output_Name(
-    uint32_t object_instance)
+bool Binary_Output_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32];        /* okay for single thread */
+    static char text_string[16] = "BO-0";       /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_BINARY_OUTPUTS) {
-        sprintf(text_string, "BO-%lu", object_instance);
-        return text_string;
+        text_string[3] = '0' + (uint8_t) object_instance;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 /* return apdu len, or -1 on error */

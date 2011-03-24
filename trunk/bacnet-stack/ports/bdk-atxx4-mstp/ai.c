@@ -109,17 +109,19 @@ uint32_t Analog_Input_Index_To_Instance(
     return index;
 }
 
-char *Analog_Input_Name(
-    uint32_t object_instance)
+bool Analog_Input_Object_Name(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32];        /* okay for single thread */
+    bool status = false;
 
     if (object_instance < MAX_ANALOG_INPUTS) {
         sprintf(text_string, "AI-%lu", object_instance);
-        return text_string;
+        status = characterstring_init_ansi(object_name, text_string);
     }
 
-    return NULL;
+    return status;
 }
 
 float Analog_Input_Present_Value(
