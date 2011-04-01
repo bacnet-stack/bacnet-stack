@@ -94,8 +94,7 @@ void BACfile_Property_Lists(
     return;
 }
 
-
-char *bacfile_name(
+static char * bacfile_name(
     uint32_t instance)
 {
     uint32_t index = 0;
@@ -111,6 +110,21 @@ char *bacfile_name(
     }
 
     return filename;
+}
+
+bool bacfile_object_name(
+    uint32_t instance,
+    BACNET_CHARACTER_STRING *object_name)
+{
+    bool status = false;
+    char *filename = NULL;
+
+    filename = bacfile_name(instance);
+    if (filename) {
+        status = characterstring_init_ansi(object_name, filename);
+    }
+
+    return status;
 }
 
 bool bacfile_valid_instance(
