@@ -347,9 +347,9 @@ extern "C" {
         void);
     bool Routed_Device_Set_Object_Instance_Number(
         uint32_t object_id);
-
     bool Routed_Device_Set_Object_Name(
-        const char *name,
+        uint8_t encoding,
+        const char *value,
         size_t length);
     bool Routed_Device_Set_Description(
         const char *name,
