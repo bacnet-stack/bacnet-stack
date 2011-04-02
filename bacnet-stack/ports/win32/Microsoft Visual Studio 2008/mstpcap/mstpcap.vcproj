@@ -2,10 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="gateway"
-	ProjectGUID="{2386A9AF-7EE8-4226-B7D4-1EB54FFA27F0}"
-	RootNamespace="gateway"
-	Keyword="Win32Proj"
+	Name="mstpcap"
+	ProjectGUID="{3C334401-9F69-4770-8A08-EB0DE5F6470F}"
+	RootNamespace="mstpcap"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -21,7 +20,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,11 +41,9 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\demo\object;..\..;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -61,10 +58,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib iphlpapi.lib"
-				LinkIncremental="2"
+				AdditionalDependencies="winmm.lib ws2_32.lib iphlpapi.lib"
 				GenerateDebugInformation="true"
-				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -94,7 +89,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -117,10 +112,8 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\..\..\..\demo\object;..\..;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -135,10 +128,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib iphlpapi.lib"
-				LinkIncremental="1"
+				AdditionalDependencies="mmlib.lib"
 				GenerateDebugInformation="true"
-				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -175,19 +166,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\bip-init.c"
+				RelativePath="..\..\..\..\demo\mstpcap\main.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\demo\object\gw_device.c"
+				RelativePath="..\..\rs485.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\demo\handler\h_whohas.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\..\demo\gateway\main.c"
+				RelativePath="..\..\timer.c"
 				>
 			</File>
 		</Filter>
@@ -197,7 +184,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\..\..\demo\gateway\gateway.h"
+				RelativePath="..\..\timer.h"
 				>
 			</File>
 		</Filter>

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="gateway"
-	ProjectGUID="{2386A9AF-7EE8-4226-B7D4-1EB54FFA27F0}"
-	RootNamespace="gateway"
+	Name="epics"
+	ProjectGUID="{0C3841EA-9078-416D-B649-3156512E87E1}"
+	RootNamespace="epics"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\demo\object;..\..;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\demo\object;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\..\demo\object;..\..;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\demo\object;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -179,15 +179,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\demo\object\gw_device.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\..\demo\handler\h_whohas.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\..\demo\gateway\main.c"
+				RelativePath="..\..\..\..\demo\epics\main.c"
 				>
 			</File>
 		</Filter>
@@ -197,7 +189,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\..\..\demo\gateway\gateway.h"
+				RelativePath="..\..\..\..\demo\epics\bacepics.h"
 				>
 			</File>
 		</Filter>
