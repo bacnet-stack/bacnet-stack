@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
+				AdditionalIncludeDirectories="..\..\..\..\demo\object;..\..;..\..\..\..\include;&quot;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
