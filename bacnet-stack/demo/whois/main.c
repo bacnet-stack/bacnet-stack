@@ -39,6 +39,7 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
+#include "bactext.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
