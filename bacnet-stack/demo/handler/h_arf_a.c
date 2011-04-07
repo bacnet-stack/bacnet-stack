@@ -56,8 +56,6 @@ void handler_atomic_read_file_ack(
 {
     int len = 0;
     BACNET_ATOMIC_READ_FILE_DATA data;
-    FILE *pFile = NULL;
-    char *pFilename = NULL;
     uint32_t instance = 0;
 
     (void) src;
@@ -70,23 +68,7 @@ void handler_atomic_read_file_ack(
     if ((len > 0) && (instance <= BACNET_MAX_INSTANCE)) {
         /* write the data received to the file specified */
         if (data.access == FILE_STREAM_ACCESS) {
-            pFilename = bacfile_name(instance);
-            if (pFilename) {
-                pFile = fopen(pFilename, "rb");
-                if (pFile) {
-                    (void) fseek(pFile, data.type.stream.fileStartPosition,
-                        SEEK_SET);
-                    if (fwrite(octetstring_value(&data.fileData),
-                            octetstring_length(&data.fileData), 1,
-                            pFile) != 1) {
-#if PRINT_ENABLED
-                        fprintf(stderr, "Failed to write to %s (%lu)!\n",
-                            pFilename, (unsigned long) instance);
-#endif
-                    }
-                    fclose(pFile);
-                }
-            }
+            bacfile_read_ack_stream_data(instance, &data);
         } else if (data.access == FILE_RECORD_ACCESS) {
             /* FIXME: add handling for Record Access */
         }
