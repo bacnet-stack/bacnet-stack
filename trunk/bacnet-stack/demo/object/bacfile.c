@@ -478,6 +478,36 @@ bool bacfile_write_stream_data(
     return found;
 }
 
+bool bacfile_read_ack_stream_data(
+    uint32_t instance,
+    BACNET_ATOMIC_READ_FILE_DATA * data)
+{
+    bool found = false;
+    FILE *pFile = NULL;
+    char *pFilename = NULL;
+
+    pFilename = bacfile_name(instance);
+    if (pFilename) {
+        found = true;
+        pFile = fopen(pFilename, "rb");
+        if (pFile) {
+            (void) fseek(pFile, data->type.stream.fileStartPosition,
+                SEEK_SET);
+            if (fwrite(octetstring_value(&data->fileData),
+                    octetstring_length(&data->fileData), 1,
+                    pFile) != 1) {
+    #if PRINT_ENABLED
+                fprintf(stderr, "Failed to write to %s (%lu)!\n",
+                    pFilename, (unsigned long) instance);
+    #endif
+            }
+            fclose(pFile);
+        }
+    }
+
+    return found;
+}
+
 void bacfile_init(
     void)
 {
