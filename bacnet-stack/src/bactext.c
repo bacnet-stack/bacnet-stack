@@ -1903,11 +1903,11 @@ INDTEXT_DATA bacnet_reliability_names[] = {
     ,
     {RELIABILITY_CONFIGURATION_ERROR, "configuration-error"}
     ,
-    {RELIABILITY_CONFIGURATION_ERROR, "member-fault"}
+    {RELIABILITY_MEMBER_FAULT, "member-fault"}
     ,
-    {RELIABILITY_CONFIGURATION_ERROR, "communication-failure"}
+    {RELIABILITY_COMMUNICATION_FAILURE, "communication-failure"}
     ,
-    {RELIABILITY_CONFIGURATION_ERROR, "tripped"}
+    {RELIABILITY_TRIPPED, "tripped"}
     ,
     {0, NULL}
 };
