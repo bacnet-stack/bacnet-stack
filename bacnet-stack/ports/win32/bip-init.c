@@ -220,8 +220,10 @@ static char *winsock_error_code_text(
         case WSAEWOULDBLOCK:
             return "Operation would block.";
         case WSAEINPROGRESS:
-            return
-                "Operation now in progress. This error is returned if any Windows Sockets API function is called while a blocking function is in progress.";
+            return "Operation now in progress. "
+                "This error is returned if any Windows Sockets API "
+                "function is called while a blocking function "
+                "is in progress.";
         case WSAENOTSOCK:
             return "Socket operation on nonsocket.";
         case WSAEDESTADDRREQ:
@@ -247,8 +249,10 @@ static char *winsock_error_code_text(
         case WSAEADDRNOTAVAIL:
             return "Cannot assign requested address.";
         case WSAENETDOWN:
-            return
-                "Network is down. This error may be reported at any time if the Windows Sockets implementation detects an underlying failure.";
+            return "Network is down. "
+                "This error may be reported at any time "
+                "if the Windows Sockets implementation "
+                "detects an underlying failure.";
         case WSAENETUNREACH:
             return "Network is unreachable.";
         case WSAENETRESET:
@@ -288,7 +292,8 @@ static char *winsock_error_code_text(
                 "this application.";
         case WSANOTINITIALISED:
             return "Winsock not initialized. "
-                "This message is returned by any function except WSAStartup(), "
+                "This message is returned by any function "
+                "except WSAStartup(), "
                 "indicating that a successful WSAStartup() has not yet "
                 "been performed.";
         case WSAEDISCON:
