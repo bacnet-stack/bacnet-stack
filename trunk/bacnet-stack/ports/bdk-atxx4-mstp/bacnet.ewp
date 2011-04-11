@@ -1416,6 +1416,7 @@
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\demo\object</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -2114,6 +2115,9 @@
   </file>
   <file>
     <name>$PROJ_DIR$\bi.c</name>
+  </file>
+  <file>
+    <name>$PROJ_DIR$\bname.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\bo.c</name>
