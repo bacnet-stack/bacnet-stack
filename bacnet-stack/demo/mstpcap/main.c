@@ -47,6 +47,7 @@
 #include "rs485.h"
 #include "crc.h"
 #include "mstptext.h"
+#include "version.h"
 #include "dlmstp.h"
 
 #ifndef max
@@ -64,7 +65,7 @@ static uint8_t TxBuffer[MAX_MPDU];
 struct mstp_statistics {
     /* counts how many times the node passes the token */
     uint32_t token_count;
-    /* counts how many times the node passes the token */
+    /* counts how many times the node polls for another master */
     uint32_t pfm_count;
     /* counts how many times the node gets a second token */
     uint32_t token_retries;
@@ -208,8 +209,8 @@ static void packet_statistics_save(
     fprintf(stdout, "\r\n");
     /* separate with tabs (8) keep words under 8 characters */
     fprintf(stdout,
-        "MAC\tMaxMstr\tTokens\tRetries\tTreply"
-        "\tTusage\tTrpfm\tTder\tTpostpd");
+        "MAC\tMaxMstr\tTokens\tRetries\tPFM"
+        "\tTreply\tTusage\tTrpfm\tTder\tTpostpd");
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         /* check for masters or slaves */
@@ -222,8 +223,9 @@ static void packet_statistics_save(
                 (long unsigned int) MSTP_Statistics[i].token_count,
                 (long unsigned int) MSTP_Statistics[i].token_retries,
                 (long unsigned int) MSTP_Statistics[i].token_reply,
-                (long unsigned int) MSTP_Statistics[i].tusage_timeout);
-            fprintf(stdout, "\t%lu\t%lu\t%lu",
+                (long unsigned int) MSTP_Statistics[i].pfm_count);
+            fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
+                (long unsigned int) MSTP_Statistics[i].tusage_timeout,
                 (long unsigned int) MSTP_Statistics[i].pfm_reply,
                 (long unsigned int) MSTP_Statistics[i].der_reply,
                 (long unsigned int) MSTP_Statistics[i].reply_postponed);
@@ -502,6 +504,161 @@ static void write_received_packet(
     }
 }
 
+/* write packet to file in libpcap format */
+static bool test_global_header(
+    const char *filename)
+{
+    uint32_t magic_number = 0; /* magic number */
+    uint16_t version_major = 0; /* major version number */
+    uint16_t version_minor = 0; /* minor version number */
+    int32_t thiszone = 0;       /* GMT to local correction */
+    uint32_t sigfigs = 0;       /* accuracy of timestamps */
+    uint32_t snaplen = 0;   /* max length of captured packets, in octets */
+    uint32_t network = 0;     /* data link type - BACNET_MS_TP */
+    size_t count = 0;
+
+    /* create a new file. */
+    pFile = fopen(filename, "rb");
+    if (pFile) {
+        count = fread(&magic_number,  sizeof(magic_number), 1, pFile);
+        if ((count != 1) || (magic_number != 0xa1b2c3d4)) {
+            fprintf(stderr, "mstpcap: invalid magic number\n");
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&version_major,  sizeof(version_major), 1, pFile);
+        if ((count != 1) || (version_major != 2)) {
+            fprintf(stderr, "mstpcap: invalid major version\n");
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&version_minor,  sizeof(version_minor), 1, pFile);
+        if ((count != 1) || (version_minor != 4)) {
+            fprintf(stderr, "mstpcap: invalid minor version\n");
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&thiszone,  sizeof(thiszone), 1, pFile);
+        if ((count != 1) || (thiszone != 0)) {
+            fprintf(stderr, "mstpcap: invalid time zone\n");
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&sigfigs,  sizeof(sigfigs), 1, pFile);
+        if ((count != 1) || (sigfigs != 0)) {
+            fprintf(stderr, "mstpcap: invalid time stamp accuracy\n");
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&snaplen,  sizeof(snaplen), 1, pFile);
+        if ((count != 1) || (snaplen != 65535)) {
+            fprintf(stderr, "mstpcap: invalid length of captured packets\n");
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&network,  sizeof(network), 1, pFile);
+        if ((count != 1) || (network != 165)) {
+            fprintf(stderr, "mstpcap: invalid data link type (DLT)\n");
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+    } else {
+        fprintf(stderr, "mstpcap: failed to open %s: %s\n", filename,
+            strerror(errno));
+        return false;
+    }
+
+    return true;
+}
+
+static bool read_received_packet(
+    volatile struct mstp_port_struct_t *mstp_port)
+{
+    uint32_t ts_sec = 0;    /* timestamp seconds */
+    uint32_t ts_usec = 0;   /* timestamp microseconds */
+    uint32_t incl_len = 0;  /* number of octets of packet saved in file */
+    uint32_t orig_len = 0;  /* actual length of packet */
+    uint8_t header[8] = {0};  /* MS/TP header */
+    struct timeval tv;
+    size_t count = 0;
+
+    if (pFile) {
+        count = fread(&ts_sec, sizeof(ts_sec), 1, pFile);
+        if (count != 1) {
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&ts_usec, sizeof(ts_usec), 1, pFile);
+        if (count != 1) {
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        tv.tv_sec = ts_sec;
+        tv.tv_usec = ts_usec;
+        count = fread(&incl_len, sizeof(incl_len), 1, pFile);
+        if (count != 1) {
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&orig_len, sizeof(orig_len), 1, pFile);
+        if (count != 1) {
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        count = fread(&header, sizeof(header), 1, pFile);
+        if (count != 1) {
+            fclose(pFile);
+            pFile = NULL;
+            return false;
+        }
+        mstp_port->FrameType = header[2];
+        mstp_port->DestinationAddress = header[3];
+        mstp_port->SourceAddress = header[4];
+        mstp_port->DataLength = MAKE_WORD(header[6],header[5]);
+        mstp_port->HeaderCRCActual = header[7];
+        if (orig_len > 8) {
+            mstp_port->DataLength = orig_len - 8 - 2;
+            count = fread(mstp_port->InputBuffer,
+                mstp_port->DataLength, 1, pFile);
+            if (count != 1) {
+                fclose(pFile);
+                pFile = NULL;
+                return false;
+            }
+            count = fread((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
+            if (count != 1) {
+                fclose(pFile);
+                pFile = NULL;
+                return false;
+            }
+            count = fread((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
+            if (count != 1) {
+                fclose(pFile);
+                pFile = NULL;
+                return false;
+            }
+        } else {
+            mstp_port->DataLength = 0;
+        }
+        packet_statistics(&tv, mstp_port);
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
 static void cleanup(
     void)
 {
@@ -567,10 +724,23 @@ int main(
     long my_baud = 38400;
     uint32_t packet_count = 0;
 
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+    MSTP_Port.This_Station = 127;
+    MSTP_Port.Nmax_info_frames = 1;
+    MSTP_Port.Nmax_master = 127;
+    MSTP_Port.SilenceTimer = Timer_Silence;
+    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
+    MSTP_Init(mstp_port);
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+        printf("mstpcap --scan <filename>\r\n"
+            "perform statistic analysis on MS/TP capture file.\r\n");
+        printf("\r\n");
         printf("mstpcap [interface] [baud] [named pipe]\r\n"
             "Captures MS/TP packets from a serial interface\r\n"
             "and save them to a file. Saves packets in a\r\n"
@@ -584,6 +754,32 @@ int main(
             "    and set that name as the interface name in Wireshark\r\n");
         return 0;
     }
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("mstpcap %s\r\n", BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2011 by Steve Karg\r\n"
+        "This is free software; see the source for copying conditions.\r\n"
+        "There is NO warranty; not even for MERCHANTABILITY or\r\n"
+        "FITNESS FOR A PARTICULAR PURPOSE.\r\n");
+        return 0;
+    }
+    if ((argc > 1) && (strcmp(argv[1], "--scan") == 0)) {
+        if (argc > 2) {
+            printf("Scanning %s\r\n", argv[2]);
+            /* perform statistics on the file */
+            if (test_global_header(argv[2])) {
+                while (read_received_packet(mstp_port)) {
+                    packet_count++;
+                    fprintf(stdout, "\r%hu packets", packet_count);
+                }
+                if (packet_count) {
+                    packet_statistics_save();
+                }
+            } else {
+                fprintf(stderr, "File header does not match.\n");
+            }
+            return 1;
+        }
+    }
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);
     }
@@ -592,16 +788,6 @@ int main(
     }
     RS485_Set_Baud_Rate(my_baud);
     RS485_Initialize();
-    MSTP_Port.InputBuffer = &RxBuffer[0];
-    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
-    MSTP_Port.OutputBuffer = &TxBuffer[0];
-    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = 127;
-    MSTP_Port.Nmax_info_frames = 1;
-    MSTP_Port.Nmax_master = 127;
-    MSTP_Port.SilenceTimer = Timer_Silence;
-    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
-    MSTP_Init(mstp_port);
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
     atexit(cleanup);
