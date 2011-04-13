@@ -7,15 +7,33 @@ code in it, and will contain up to 65535 packets.  A new file
 will be created at each 65535 packet interval.  The tool can
 be stopped by using Control-C.
 
-Here is a sample of the tool running (use CTRL-C to quit).
-D:\code\bacnet-stack\bin>mstpcap COM3 38400
-Adjusted interface name to \\.\COM3
-mstpcap: Using \\.\COM3 for capture at 38400 bps.
-mstpcap: saving capture to mstp_20090729123548.cap
-1400 packets
-MAC     MaxMstr Tokens  Retries Treply  Tusage  Trpfm   Tder    Tpostpd
-0       0       525     0       32      0       0       0       0
-1       127     525     0       16      79      0       0       0
+Here is a sample of the tool running (use CTRL-C to quit):
+D:\code\bacnet-stack>bin\mstpcap.exe com54 38400
+Adjusted interface name to \\.\COM54
+mstpcap: Using \\.\COM54 for capture at 38400 bps.
+mstpcap: saving capture to mstp_20110413134119.cap
+3200 packets, 0 invalid frames
+MAC     MaxMstr Tokens  Retries PFM     Treply  Tusage  Trpfm   Tder    Tpostpd
+0       1       557     0       32      11      47      0       0       0
+2       0       557     0       47      0       0       0       0       0
+3       4       557     0       32      11      110     0       0       0
+5       6       558     0       31      11      78      0       0       0
+7       127     557     1       31      404     63      0       0       0
+Node Count: 5
+Invalid Frame Count: 0
+
+The files that are captured can also be scanned to give some statistics:
+D:\code\bacnet-stack>bin\mstpcap.exe --scan mstp_20110413134119.cap
+Scanning mstp_20110413134119.cap
+3223 packets
+MAC     MaxMstr Tokens  Retries PFM     Treply  Tusage  Trpfm   Tder    Tpostpd
+0       1       557     0       32      11      47      0       0       0
+2       0       557     0       47      0       0       0       0       0
+3       4       557     0       32      11      110     0       0       0
+5       6       558     0       31      11      78      0       0       0
+7       127     557     1       31      404     63      0       0       0
+Node Count: 5
+Invalid Frame Count: 0
 
 The BACnet MS/TP capture tool also includes statistics which are
 listed for any MAC addresses found passing a token,
@@ -23,12 +41,15 @@ or any MAC address replying to a DER message.
 The statistics are emitted when Control-C is pressed, or when
 65535 packets are captured and the new file is created.
 The statistics are cleared when the new file is created.
+The statistics can be emitted from a file using the "--scan" option.
 
 MaxMstr = highest destination MAC address during PFM
 
-Tokens = number of tokens transmitted by this MAC address.
+Tokens = number of Token frames sent from this MAC address.
 
 Retries = number of second tokens sent to this MAC address.
+
+PFM = number of Poll-For-Master frames sent from this MAC address.
 
 Treply = maximum number of milliseconds it took to reply with
 a token after receiving a token. Treply is required to be less
@@ -53,7 +74,7 @@ required to be less than 250ms.
 Note that the mstpcap tool may not have that good of
 resolution on Windows, so timing under 50ms may not be accurate.
 
-Note:  If you are using FTDI chip in your RS485 converter, you can 
+Note:  If you are using FTDI chip in your RS485 converter, you can
 alias an existing baud rate on Windows in the FTDIPORT.INF file
 in order to acheive non-standard 76800 bps:
 HKR,,"ConfigData",1,11,00,3F,3F,27,C0,00,00,27,00,00,00,C4,09,00,00,E2,04,00,00,71,02,00,00,38,41,00,00,9C,80,00,00,4E,C0,00,00,34,00,00,00,1A,00,00,00,0D,00,00,00,06,40,00,00,03,80,00,00,00,00,00,00,D0,80,00,00
