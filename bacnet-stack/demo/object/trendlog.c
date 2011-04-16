@@ -226,7 +226,7 @@ void Trend_Log_Init(
             LogInfo[iLog].ulIntervalOffset = 0;
             LogInfo[iLog].iIndex = 0;
             LogInfo[iLog].ulLogInterval = 900;
-            LogInfo[iLog].ulRecordCount = 1000;
+            LogInfo[iLog].ulRecordCount = TL_MAX_ENTRIES;
             LogInfo[iLog].ulTotalRecordCount = 10000;
 
             LogInfo[iLog].Source.deviceIndentifier.instance =
