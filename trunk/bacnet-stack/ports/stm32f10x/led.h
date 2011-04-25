@@ -31,6 +31,17 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    void led_ld3_on(
+        void);
+    void led_ld4_on(
+        void);
+    void led_ld3_off(
+        void);
+    void led_ld4_off(
+        void);
+    bool led_ld3_state(void);
+    void led_ld3_toggle(void);
+
     void led_tx_on(void);
     void led_rx_on(void);
 

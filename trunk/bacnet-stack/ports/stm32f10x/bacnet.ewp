@@ -12,7 +12,7 @@
       <name>General</name>
       <archiveVersion>3</archiveVersion>
       <data>
-        <version>20</version>
+        <version>21</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -87,7 +87,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>6.10.3.52260</state>
+          <state>6.10.5.52324</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -145,13 +145,21 @@
           <version>18</version>
           <state>37</state>
         </option>
+        <option>
+          <name>OGUseCmsis</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>OGUseCmsisDspLib</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>26</version>
+        <version>27</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -299,6 +307,7 @@
           <name>CCIncludePath2</name>
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\demo\object</state>
           <state>$PROJ_DIR$\CMSIS\CM3\CoreSupport</state>
           <state>$PROJ_DIR$\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
           <state>$PROJ_DIR$\drivers\inc</state>
@@ -389,6 +398,10 @@
         <option>
           <name>IccCppInlineSemantics</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>IccCmsis</name>
+          <state>1</state>
         </option>
       </data>
     </settings>
@@ -609,7 +622,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>11</version>
+        <version>12</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -855,6 +868,10 @@
           <name>IlinkOptExceptionsForce</name>
           <state>0</state>
         </option>
+        <option>
+          <name>IlinkCmsis</name>
+          <state>1</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -894,7 +911,7 @@
       <name>General</name>
       <archiveVersion>3</archiveVersion>
       <data>
-        <version>20</version>
+        <version>21</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -969,7 +986,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>6.10.3.52260</state>
+          <state>6.10.5.52324</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -1027,13 +1044,21 @@
           <version>18</version>
           <state>37</state>
         </option>
+        <option>
+          <name>OGUseCmsis</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>OGUseCmsisDspLib</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>26</version>
+        <version>27</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1182,6 +1207,7 @@
           <name>CCIncludePath2</name>
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\demo\object</state>
           <state>$PROJ_DIR$\CMSIS\CM3\CoreSupport</state>
           <state>$PROJ_DIR$\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
           <state>$PROJ_DIR$\drivers\inc</state>
@@ -1272,6 +1298,10 @@
         <option>
           <name>IccCppInlineSemantics</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>IccCmsis</name>
+          <state>1</state>
         </option>
       </data>
     </settings>
@@ -1492,12 +1522,12 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>11</version>
+        <version>12</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
           <name>IlinkOutputFile</name>
-          <state>c.out</state>
+          <state>bacnet.out</state>
         </option>
         <option>
           <name>IlinkLibIOConfig</name>
@@ -1737,6 +1767,10 @@
         <option>
           <name>IlinkOptExceptionsForce</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>IlinkCmsis</name>
+          <state>1</state>
         </option>
       </data>
     </settings>

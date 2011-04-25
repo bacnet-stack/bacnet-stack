@@ -49,12 +49,12 @@ static struct itimer DCC_Timer;
 void bacnet_init(
     void)
 {
-    dlmstp_set_mac_address(103);
+    dlmstp_set_mac_address(255);
     dlmstp_set_max_master(127);
     /* initialize datalink layer */
     dlmstp_init(NULL);
     /* initialize objects */
-    Device_Init();
+    Device_Init(NULL);
 
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler
