@@ -33,7 +33,7 @@ void init(
     MCUSR = 0;
     /* Initialize the Clock Prescaler */
     /* The default CLKPSx bits are factory set to 0011 */
-    /* Enbable the Clock Prescaler */
+    /* Enable the Clock Prescaler */
     CLKPR = _BV(CLKPCE);
     /* CLKPS3 CLKPS2 CLKPS1 CLKPS0 Clock Division Factor
        ------ ------ ------ ------ ---------------------
