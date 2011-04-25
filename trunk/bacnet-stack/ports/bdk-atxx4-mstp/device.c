@@ -170,29 +170,50 @@ static int Read_Property_Common(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            /* Device Object exception: requested instance
-               may not match our instance if a wildcard */
-            if (rpdata->object_type == OBJECT_DEVICE) {
-                rpdata->object_instance = Object_Instance_Number;
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                /* Device Object exception: requested instance
+                   may not match our instance if a wildcard */
+                if (rpdata->object_type == OBJECT_DEVICE) {
+                    rpdata->object_instance = Object_Instance_Number;
+                }
+                apdu_len =
+                    encode_application_object_id(&apdu[0], rpdata->object_type,
+                    rpdata->object_instance);
             }
-            apdu_len =
-                encode_application_object_id(&apdu[0], rpdata->object_type,
-                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            if (pObject->Object_Name) {
-                (void)pObject->Object_Name(
-                    rpdata->object_instance,
-                    &char_string);
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
             } else {
                 characterstring_init_ansi(&char_string, "");
+                if (pObject->Object_Name) {
+                    (void)pObject->Object_Name(
+                        rpdata->object_instance,
+                        &char_string);
+                }
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
             }
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], rpdata->object_type);
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                apdu_len =
+                    encode_application_enumerated(&apdu[0],
+                    rpdata->object_type);
+            }
             break;
         default:
             if (pObject->Object_Read_Property) {
