@@ -141,7 +141,6 @@ static int Read_Property_Common(
 {
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
-    char *pString = "";
     uint8_t *apdu = NULL;
 
     if ((rpdata->application_data == NULL) ||
@@ -151,29 +150,50 @@ static int Read_Property_Common(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            /* Device Object exception: requested instance
-               may not match our instance if a wildcard */
-            if (rpdata->object_type == OBJECT_DEVICE) {
-                rpdata->object_instance = Object_Instance_Number;
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                /* Device Object exception: requested instance
+                   may not match our instance if a wildcard */
+                if (rpdata->object_type == OBJECT_DEVICE) {
+                    rpdata->object_instance = Object_Instance_Number;
+                }
+                apdu_len =
+                    encode_application_object_id(&apdu[0], rpdata->object_type,
+                    rpdata->object_instance);
             }
-            apdu_len =
-                encode_application_object_id(&apdu[0], rpdata->object_type,
-                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            if (pObject->Object_Name) {
-                (void)pObject->Object_Name(
-                    rpdata->object_instance,
-                    &char_string);
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
             } else {
                 characterstring_init_ansi(&char_string, "");
+                if (pObject->Object_Name) {
+                    (void)pObject->Object_Name(
+                        rpdata->object_instance,
+                        &char_string);
+                }
             }
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], rpdata->object_type);
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                apdu_len =
+                    encode_application_enumerated(&apdu[0],
+                    rpdata->object_type);
+            }
             break;
         default:
             if (pObject->Object_Read_Property) {
@@ -363,10 +383,11 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
 }
 
 void Device_Init(
-    void)
+    object_functions_t * object_table)
 {
     struct my_object_functions *pObject = NULL;
 
+    (void)object_table;
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -520,7 +541,7 @@ bool Device_Valid_Object_Name(
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions(type);
+            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                 characterstring_same(object_name1, &object_name2))) {
@@ -546,7 +567,7 @@ bool Device_Valid_Object_Id(
     bool status = false;  /* return value */
     struct my_object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -570,7 +591,7 @@ bool Device_Object_Name_Copy(
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions(type);
+            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
                 found = pObject->Object_Name(instance, object_name);
                 break;
