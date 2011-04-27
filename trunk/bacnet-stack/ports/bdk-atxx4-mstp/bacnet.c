@@ -143,6 +143,8 @@ void bacnet_task(
         button_value = input_button_value(i);
         if (button_value) {
             binary_value = BINARY_ACTIVE;
+        } else {
+            binary_value = BINARY_INACTIVE;
         }
         Binary_Input_Present_Value_Set(i, binary_value);
     }
