@@ -300,11 +300,11 @@ static bool cov_list_subscribe(
         if (first_invalid_index < 0) {
             /* Out of resources */
             *error_class = ERROR_CLASS_RESOURCES;
-            *error_code = ERROR_CODE_OTHER;
+            *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
         } else {
             /* Unable to cancel request - valid object not subscribed */
-            *error_class = ERROR_CLASS_OBJECT;
-            *error_code = ERROR_CODE_OTHER;
+            *error_class = ERROR_CLASS_SERVICES;
+            *error_code = ERROR_CODE_UNKNOWN_SUBSCRIPTION;
         }
         found = false;
     }
@@ -472,7 +472,7 @@ static bool cov_subscribe(
                     cov_list_subscribe(src, cov_data, error_class, error_code);
             } else {
                 *error_class = ERROR_CLASS_OBJECT;
-                *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
             }
             break;
         default:
