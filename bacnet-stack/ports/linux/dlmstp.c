@@ -217,6 +217,9 @@ static void *dlmstp_master_fsm_task(void *pArg)
         if (MSTP_Port.ReceivedValidFrame == false &&
             MSTP_Port.ReceivedInvalidFrame == false) {
             RS485_Check_UART_Data(&MSTP_Port);
+            if (MSTP_Port.DataAvailable == false) {
+                sched_yield();
+            }
             MSTP_Receive_Frame_FSM(&MSTP_Port);
         }
         if (MSTP_Port.ReceivedValidFrame || MSTP_Port.ReceivedInvalidFrame) {
@@ -241,9 +244,9 @@ static void *dlmstp_master_fsm_task(void *pArg)
                     break;
             }
         }
-        if (run_master)
+        if (run_master) {
             MSTP_Master_Node_FSM(&MSTP_Port);
-
+        }
     }
 
     return NULL;
