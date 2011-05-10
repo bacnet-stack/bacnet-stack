@@ -79,6 +79,10 @@ static unsigned int RS485_Baud = B38400;
 /* serial port name, /dev/ttyS0,
   /dev/ttyUSB0 for USB->RS485 from B&B Electronics USOPTL4 */
 static char *RS485_Port_Name = "/dev/ttyUSB0";
+/* some terminal I/O have RS-485 specific functionality */
+#ifndef RS485MOD
+#define RS485MOD 0
+#endif
 /* serial I/O settings */
 static struct termios RS485_oldtio;
 
