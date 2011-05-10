@@ -58,7 +58,7 @@
 /* Local includes */
 #include "mstp.h"
 #include "rs485.h"
-#include "ringbuf.h"
+#include "fifo.h"
 
 #include <pthread.h>
 #include <sys/select.h>
@@ -87,9 +87,9 @@ static char *RS485_Port_Name = "/dev/ttyUSB0";
 static struct termios RS485_oldtio;
 
 /* Ring buffer for incoming bytes, in order to speed up the receiving. */
-static RING_BUFFER rbuf;
-
-static uint8_t rs485_data[1 << 12];
+static FIFO_BUFFER Rx_FIFO;
+/* buffer size needs to be a power of 2 */
+static uint8_t Rx_Buffer[1 << 12];
 
 static pthread_mutex_t Reader_Mutex, IOMutex;
 
@@ -98,7 +98,7 @@ static pthread_mutex_t Reader_Mutex, IOMutex;
 static void *rs485_read_task(void *arg)
 {
     uint8_t buf[1 << 11];
-    int count, i, n;
+    int count, n;
     fd_set input;
     struct timeval cekalica;
     FD_ZERO(&input);
@@ -116,9 +116,7 @@ static void *rs485_read_task(void *arg)
             pthread_mutex_unlock(&IOMutex);
             if (count > 0) {
                 pthread_mutex_lock(&Reader_Mutex);
-                for (i = 0; i < count; i++) {
-                    Ringbuf_Put(&rbuf, &buf[i]);
-                }
+                FIFO_Add(&Rx_FIFO, &buf[0], count);
                 pthread_mutex_unlock(&Reader_Mutex);
             }
             usleep(5000);
@@ -250,8 +248,6 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
 /* called by timer, interrupt(?) or other thread */
 void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
 {
-    uint8_t *new_data;
-
     if (mstp_port->ReceiveError == true) {
         /* wait for state machine to clear this */
         /*mstp_port->ReceiveError=false; */
@@ -262,13 +258,11 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
     if (mstp_port->DataAvailable == false) {
         /* check for data */
         pthread_mutex_lock(&Reader_Mutex);
-        new_data = Ringbuf_Pop_Front(&rbuf);
-        pthread_mutex_unlock(&Reader_Mutex);
-        if (new_data != NULL) {
-            mstp_port->DataRegister = *new_data;
+	if (FIFO_Count(&Rx_FIFO) > 0) {
+            mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
             mstp_port->DataAvailable = true;
-            return;
         }
+        pthread_mutex_unlock(&Reader_Mutex);
     }
 }
 
@@ -330,7 +324,7 @@ void RS485_Initialize(void)
     usleep(200000);
     tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
-    Ringbuf_Init(&rbuf, rs485_data, 1 << 12);
+    FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
     pthread_mutex_init(&Reader_Mutex, NULL);
     pthread_mutex_init(&IOMutex, NULL);
     pthread_create(&hThread, NULL, rs485_read_task, NULL);
