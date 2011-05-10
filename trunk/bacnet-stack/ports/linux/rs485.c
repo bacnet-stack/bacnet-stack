@@ -258,7 +258,7 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
     if (mstp_port->DataAvailable == false) {
         /* check for data */
         pthread_mutex_lock(&Reader_Mutex);
-	if (FIFO_Count(&Rx_FIFO) > 0) {
+        if (FIFO_Count(&Rx_FIFO) > 0) {
             mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
             mstp_port->DataAvailable = true;
         }
