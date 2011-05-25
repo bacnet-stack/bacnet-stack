@@ -222,8 +222,8 @@ static void packet_statistics_save(
             fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
                 (long unsigned int) MSTP_Statistics[i].token_count,
                 (long unsigned int) MSTP_Statistics[i].token_retries,
-                (long unsigned int) MSTP_Statistics[i].token_reply,
-                (long unsigned int) MSTP_Statistics[i].pfm_count);
+                (long unsigned int) MSTP_Statistics[i].pfm_count,
+                (long unsigned int) MSTP_Statistics[i].token_reply);
             fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
                 (long unsigned int) MSTP_Statistics[i].tusage_timeout,
                 (long unsigned int) MSTP_Statistics[i].pfm_reply,
