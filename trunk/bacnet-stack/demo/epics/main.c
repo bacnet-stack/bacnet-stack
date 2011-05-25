@@ -65,7 +65,8 @@
 /* All included BACnet objects */
 static object_functions_t Object_Table[] = {
     {DEVICE_OBJ_FUNCTIONS},
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL,
+     NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 /* buffer used for receive */
