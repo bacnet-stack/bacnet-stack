@@ -96,5 +96,5 @@ extern "C" {
     OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count, \
     Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance, \
     Analog_Input_Object_Name, Analog_Input_Read_Property, NULL, \
-    Analog_Input_Property_Lists, NULL, NULL
+    Analog_Input_Property_Lists, NULL, NULL, NULL
 #endif

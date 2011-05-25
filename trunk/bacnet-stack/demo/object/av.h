@@ -82,5 +82,5 @@ extern "C" {
     Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance, \
     Analog_Value_Object_Name, Analog_Value_Read_Property, \
     Analog_Value_Write_Property, Analog_Value_Property_Lists, NULL, \
-    NULL
+    NULL, NULL
 #endif

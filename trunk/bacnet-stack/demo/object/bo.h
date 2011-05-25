@@ -114,5 +114,5 @@ extern "C" {
     Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance, \
     Binary_Output_Object_Name, Binary_Output_Read_Property, \
     Binary_Output_Write_Property, Binary_Output_Property_Lists, \
-    NULL, NULL
+    NULL, NULL, NULL
 #endif

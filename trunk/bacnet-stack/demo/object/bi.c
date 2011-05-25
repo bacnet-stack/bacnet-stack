@@ -183,7 +183,7 @@ bool Binary_Input_Out_Of_Service(
     return value;
 }
 
-bool Binary_Input_Change_Of_Value(
+static bool Binary_Input_Change_Of_Value(
     uint32_t object_instance)
 {
     bool status = false;
@@ -197,7 +197,7 @@ bool Binary_Input_Change_Of_Value(
     return status;
 }
 
-void Binary_Input_Change_Of_Value_Clear(
+static void Binary_Input_Change_Of_Value_Clear(
     uint32_t object_instance)
 {
     unsigned index;
@@ -210,41 +210,48 @@ void Binary_Input_Change_Of_Value_Clear(
     return;
 }
 
+/* returns true if value has changed */
 bool Binary_Input_Encode_Value_List(
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE * value_list)
 {
-    value_list->propertyIdentifier = PROP_PRESENT_VALUE;
-    value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
-    value_list->value.context_specific = false;
-    value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
-    value_list->value.type.Enumerated =
-        Binary_Input_Present_Value(object_instance);
-    value_list->priority = BACNET_NO_PRIORITY;
+    bool status = false;
 
-    value_list = value_list->next;
-
-    value_list->propertyIdentifier = PROP_STATUS_FLAGS;
-    value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
-    value_list->value.context_specific = false;
-    value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
-    bitstring_init(&value_list->value.type.Bit_String);
-    bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM,
-        false);
-    bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_FAULT,
-        false);
-    bitstring_set_bit(&value_list->value.type.Bit_String,
-        STATUS_FLAG_OVERRIDDEN, false);
-    if (Binary_Input_Out_Of_Service(object_instance)) {
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE, true);
-    } else {
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE, false);
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+        value_list->value.type.Enumerated =
+            Binary_Input_Present_Value(object_instance);
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
     }
-    value_list->priority = BACNET_NO_PRIORITY;
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM,
+            false);
+        bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_FAULT,
+            false);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OVERRIDDEN, false);
+        if (Binary_Input_Out_Of_Service(object_instance)) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, true);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, false);
+        }
+        value_list->priority = BACNET_NO_PRIORITY;
+    }
+    status = Binary_Input_Change_Of_Value(object_instance);
+    Binary_Input_Change_Of_Value_Clear(object_instance);
 
-    return true;
+    return status;
 }
 
 bool Binary_Input_Present_Value_Set(

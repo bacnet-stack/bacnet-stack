@@ -101,6 +101,17 @@ typedef unsigned (
     *object_iterate_function) (
     unsigned current_index);
 
+/** Look in the table of objects of this type, and get the COV Value List.
+ * @ingroup ObjHelpers
+ * @param [in] The object instance number to be looked up.
+ * @param [out] The value list
+ * @return True if the object instance supports this feature, and has changed.
+ */
+typedef bool(
+    *object_value_list_function) (
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE * value_list);
+
 /** Defines the group of object helper functions for any supported Object.
  * @ingroup ObjHelpers
  * Each Object must provide some implementation of each of these helpers
@@ -122,6 +133,7 @@ typedef struct object_functions {
     rpm_property_lists_function Object_RPM_List;
     rr_info_function Object_RR_Info;
     object_iterate_function Object_Iterator;
+    object_value_list_function Object_Value_List;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -198,6 +210,13 @@ extern "C" {
     void Device_Objects_Property_List(
         BACNET_OBJECT_TYPE object_type,
         struct special_property_list_t *pPropertyList);
+
+    bool Device_Encode_Value_List(
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+    bool Device_Value_List_Supported(
+        BACNET_OBJECT_TYPE object_type);
 
     uint32_t Device_Object_Instance_Number(
         void);
@@ -366,7 +385,7 @@ extern "C" {
     OBJECT_DEVICE, NULL, Device_Count, Device_Index_To_Instance, \
     Device_Valid_Object_Instance_Number, Device_Object_Name, \
     Device_Read_Property_Local, Device_Write_Property_Local, \
-    Device_Property_Lists, DeviceGetRRInfo, NULL
+    Device_Property_Lists, DeviceGetRRInfo, NULL, NULL
 /** @defgroup ObjFrmwk Object Framework
  * The modules in this section describe the BACnet-stack's framework for
  * BACnet-defined Objects (Device, Analog Input, etc). There are two submodules

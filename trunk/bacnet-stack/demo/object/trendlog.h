@@ -202,5 +202,5 @@ extern "C" {
     Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance, \
     Trend_Log_Object_Name, Trend_Log_Read_Property, \
     Trend_Log_Write_Property, Trend_Log_Property_Lists, \
-    TrendLogGetRRInfo, NULL
+    TrendLogGetRRInfo, NULL, NULL
 #endif

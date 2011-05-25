@@ -83,10 +83,6 @@ extern "C" {
     bool Binary_Input_Out_Of_Service(
         uint32_t object_instance);
 
-    bool Binary_Input_Change_Of_Value(
-        uint32_t object_instance);
-    void Binary_Input_Change_Of_Value_Clear(
-        uint32_t object_instance);
     bool Binary_Input_Encode_Value_List(
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
@@ -118,5 +114,5 @@ extern "C" {
     OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count, \
     Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance, \
     Binary_Input_Object_Name, Binary_Input_Read_Property, NULL, \
-    Binary_Input_Property_Lists, NULL, NULL
+    Binary_Input_Property_Lists, NULL, NULL, Binary_Input_Encode_Value_List
 #endif

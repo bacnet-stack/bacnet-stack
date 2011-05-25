@@ -76,5 +76,5 @@ extern "C" {
     Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance, \
     Binary_Value_Object_Name, Binary_Value_Read_Property, \
     Binary_Value_Write_Property, Binary_Value_Property_Lists, NULL, \
-    NULL
+    NULL, NULL
 #endif
