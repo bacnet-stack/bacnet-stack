@@ -36,9 +36,6 @@
 #include "abort.h"
 /*#include "arf.h" */
 /* demo objects */
-#include "device.h"
-#include "ai.h"
-#include "ao.h"
 #include "ptransfer.h"
 #include "mydata.h"
 #if defined(BACFILE)

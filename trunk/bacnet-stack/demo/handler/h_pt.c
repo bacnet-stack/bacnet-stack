@@ -36,9 +36,6 @@
 #include "abort.h"
 /*#include "arf.h" */
 /* demo objects */
-#include "device.h"
-#include "ai.h"
-#include "ao.h"
 #if defined(BACFILE)
 #include "bacfile.h"
 #endif
