@@ -35,7 +35,9 @@
 #include "device.h"
 #include "datalink.h"
 #include "arf.h"
+#if defined(BACFILE)
 #include "bacfile.h"
+#endif
 /* some demo stuff needed */
 #include "handlers.h"
 #include "txbuf.h"
