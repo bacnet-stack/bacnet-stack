@@ -102,5 +102,5 @@ extern "C" {
     Multistate_Input_Valid_Instance, Multistate_Input_Object_Name, \
     Multistate_Input_Read_Property, \
     Multistate_Input_Write_Property, \
-    Multistate_Input_Property_Lists, NULL, NULL
+    Multistate_Input_Property_Lists, NULL, NULL, NULL
 #endif

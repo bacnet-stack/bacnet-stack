@@ -1359,6 +1359,58 @@ bool Device_Write_Property(
     return (status);
 }
 
+/** Looks up the requested Object, and fills the Property Value list.
+ * If the Object or Property can't be found, returns false.
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @param [in] The object instance number to be looked up.
+ * @param [out] The value list
+ * @return True if the object instance supports this feature and value changed.
+ */
+bool Device_Encode_Value_List(
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list)
+{
+    bool status = false;        /* Ever the pessamist! */
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Value_List) {
+                status = pObject->Object_Value_List(
+                    object_instance,
+                    value_list);
+            }
+        }
+    }
+
+    return (status);
+}
+
+/** Looks up the requested Object to see if the functionality is supported.
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @return True if the object instance supports this feature.
+ */
+bool Device_Value_List_Supported(
+    BACNET_OBJECT_TYPE object_type)
+{
+    bool status = false;        /* Ever the pessamist! */
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Value_List) {
+            status = true;
+        }
+    }
+
+    return (status);
+}
+
 /** Initialize the Device Object.
  Initialize the group of object helper functions for any supported Object.
  Initialize each of the Device Object child Object instances.

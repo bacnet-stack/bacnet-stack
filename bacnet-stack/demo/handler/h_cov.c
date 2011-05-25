@@ -30,6 +30,7 @@
 #include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
+#include "bacerror.h"
 #include "bacdcode.h"
 #include "bacaddr.h"
 #include "apdu.h"
@@ -40,18 +41,6 @@
 #include "tsm.h"
 /* demo objects */
 #include "device.h"
-#include "ai.h"
-#include "ao.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
-#include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#if defined(BACFILE)
-#include "bacfile.h"
-#endif
 #include "handlers.h"
 
 /** @file h_cov.c  Handles Change of Value (COV) services. */
@@ -313,7 +302,8 @@ static bool cov_list_subscribe(
 }
 
 static bool cov_send_request(
-    BACNET_COV_SUBSCRIPTION * cov_subscription)
+    BACNET_COV_SUBSCRIPTION * cov_subscription,
+    BACNET_PROPERTY_VALUE * value_list)
 {
     int len = 0;
     int pdu_len = 0;
@@ -323,7 +313,6 @@ static bool cov_send_request(
     uint8_t invoke_id = 0;
     bool status = false;        /* return value */
     BACNET_COV_DATA cov_data;
-    BACNET_PROPERTY_VALUE value_list[2];
 
 #if PRINT_ENABLED
     fprintf(stderr, "COVnotification: requested\n");
@@ -342,18 +331,7 @@ static bool cov_send_request(
     cov_data.monitoredObjectIdentifier.instance =
         cov_subscription->monitoredObjectIdentifier.instance;
     cov_data.timeRemaining = cov_subscription->lifetime;
-    /* encode the value list */
-    cov_data.listOfValues = &value_list[0];
-    value_list[0].next = &value_list[1];
-    value_list[1].next = NULL;
-    switch (cov_subscription->monitoredObjectIdentifier.type) {
-        case OBJECT_BINARY_INPUT:
-            Binary_Input_Encode_Value_List(cov_subscription->
-                monitoredObjectIdentifier.instance, &value_list[0]);
-            break;
-        default:
-            goto COV_FAILED;
-    }
+    cov_data.listOfValues = value_list;
     if (cov_subscription->issueConfirmedNotifications) {
         invoke_id = tsm_next_free_invokeID();
         if (invoke_id) {
@@ -410,12 +388,15 @@ static bool cov_send_request(
 void handler_cov_task(
     uint32_t elapsed_seconds)
 {
-    int index;
-    uint32_t lifetime_seconds;
-    BACNET_OBJECT_ID object_id;
+    int index = 0, index2 = 0;
+    uint32_t lifetime_seconds = 0;
+    uint16_t object_type = 0, object_type2 = 0;
+    uint32_t object_instance = 0, object_instance2 = 0;
     bool status = false;
+    BACNET_PROPERTY_VALUE value_list[2];
 
-
+    value_list[0].next = &value_list[1];
+    value_list[1].next = NULL;
     /* existing? - match Object ID and Process ID */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].valid) {
@@ -434,23 +415,40 @@ void handler_cov_task(
                 COV_Subscriptions[index].valid = false;
             }
             /* handle COV notifications */
-            object_id.type =
+            object_type =
                 COV_Subscriptions[index].monitoredObjectIdentifier.type;
-            object_id.instance =
+            object_instance =
                 COV_Subscriptions[index].monitoredObjectIdentifier.instance;
-            switch (object_id.type) {
-                case OBJECT_BINARY_INPUT:
-                    if (Binary_Input_Change_Of_Value(object_id.instance)) {
-                        COV_Subscriptions[index].send_requested = true;
-                        Binary_Input_Change_Of_Value_Clear(object_id.instance);
-                    }
-                    break;
-                default:
-                    break;
+            status = Device_Encode_Value_List(
+                object_type,
+                object_instance,
+                &value_list[0]);
+            if (status) {
+                COV_Subscriptions[index].send_requested = true;
             }
             if (COV_Subscriptions[index].send_requested) {
-                status = cov_send_request(&COV_Subscriptions[index]);
+                cov_send_request(
+                    &COV_Subscriptions[index],
+                    &value_list[0]);
                 COV_Subscriptions[index].send_requested = false;
+            }
+            if (status && ((index+1) < MAX_COV_SUBCRIPTIONS)) {
+                /* if more than one subscription for this object instance */
+                for (index2 = index+1; index2 < MAX_COV_SUBCRIPTIONS; index2++) {
+                    object_type2 =
+                    COV_Subscriptions[index2].monitoredObjectIdentifier.type;
+                    object_instance2 =
+                    COV_Subscriptions[index2].monitoredObjectIdentifier.instance;
+                    if ((COV_Subscriptions[index].lifetime) &&
+                        (COV_Subscriptions[index].valid) &&
+                        (object_type == object_type2) &&
+                        (object_instance == object_instance2)) {
+                        cov_send_request(
+                            &COV_Subscriptions[index2],
+                            &value_list[0]);
+                        COV_Subscriptions[index2].send_requested = false;
+                    }
+                }
             }
         }
     }
@@ -463,22 +461,27 @@ static bool cov_subscribe(
     BACNET_ERROR_CODE * error_code)
 {
     bool status = false;        /* return value */
+    uint16_t object_type = 0;
+    uint32_t object_instance = 0;
 
-    switch (cov_data->monitoredObjectIdentifier.type) {
-        case OBJECT_BINARY_INPUT:
-            if (Binary_Input_Valid_Instance(cov_data->
-                    monitoredObjectIdentifier.instance)) {
-                status =
-                    cov_list_subscribe(src, cov_data, error_class, error_code);
-            } else {
-                *error_class = ERROR_CLASS_OBJECT;
-                *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
-            }
-            break;
-        default:
+    object_type = cov_data->monitoredObjectIdentifier.type;
+    object_instance = cov_data->monitoredObjectIdentifier.instance;
+    status = Device_Valid_Object_Id(object_type, object_instance);
+    if (status) {
+        status = Device_Value_List_Supported(object_type);
+        if (status) {
+            status = cov_list_subscribe(
+                src,
+                cov_data,
+                error_class,
+                error_code);
+        } else {
             *error_class = ERROR_CLASS_OBJECT;
-            *error_code = ERROR_CODE_UNKNOWN_OBJECT;
-            break;
+            *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;

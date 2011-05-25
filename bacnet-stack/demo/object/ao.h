@@ -105,5 +105,5 @@ extern "C" {
     Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance, \
     Analog_Output_Object_Name, Analog_Output_Read_Property, \
     Analog_Output_Write_Property, Analog_Output_Property_Lists, \
-    NULL, NULL
+    NULL, NULL, NULL
 #endif

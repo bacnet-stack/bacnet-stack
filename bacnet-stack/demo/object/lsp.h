@@ -75,5 +75,5 @@ extern "C" {
     Life_Safety_Point_Valid_Instance, Life_Safety_Point_Object_Name, \
     Life_Safety_Point_Read_Property, \
     Life_Safety_Point_Write_Property, \
-    Life_Safety_Point_Property_Lists, NULL, NULL
+    Life_Safety_Point_Property_Lists, NULL, NULL, NULL
 #endif

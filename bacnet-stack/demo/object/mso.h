@@ -77,5 +77,5 @@ extern "C" {
     Multistate_Output_Valid_Instance, Multistate_Output_Object_Name, \
     Multistate_Output_Read_Property, \
     Multistate_Output_Write_Property, \
-    Multistate_Output_Property_Lists, NULL, NULL
+    Multistate_Output_Property_Lists, NULL, NULL, NULL
 #endif
