@@ -109,7 +109,7 @@ struct mstp_port_struct_t {
     /* denote intervals between N-1 and N */
     /* Note: done here as functions - put into timer task or ISR
        so that you can be atomic on 8 bit microcontrollers */
-             uint16_t(
+             uint32_t(
         *SilenceTimer) (
         void);
     void (
