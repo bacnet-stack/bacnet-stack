@@ -30,6 +30,7 @@
 #include "config.h"
 #include "txbuf.h"
 #include "bacdef.h"
+#include "bacerror.h"
 #include "bacdcode.h"
 #include "apdu.h"
 #include "npdu.h"
