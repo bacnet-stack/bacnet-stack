@@ -313,9 +313,6 @@ extern "C" {
     int encode_bacnet_enumerated(
         uint8_t * apdu,
         uint32_t value);
-    int encode_tagged_enumerated(
-       uint8_t * apdu,
-       int value);
     int encode_application_enumerated(
         uint8_t * apdu,
         uint32_t value);

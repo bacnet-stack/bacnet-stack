@@ -1263,23 +1263,6 @@ int encode_bacnet_enumerated(
 /* from clause 20.2.11 Encoding of an Enumerated Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_tagged_enumerated(
-    uint8_t * apdu, 
-    int value)
-{
-    int len = 0;                /* return value */
-
-    /* assumes that the tag only consumes 1 octet */
-    len = encode_bacnet_enumerated(&apdu[1], value);
-    len += encode_tag(&apdu[0], BACNET_APPLICATION_TAG_ENUMERATED,
-        false, len);
-
-    return len;
-}
-
-/* from clause 20.2.11 Encoding of an Enumerated Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
 int encode_application_enumerated(
     uint8_t * apdu,
     uint32_t value)

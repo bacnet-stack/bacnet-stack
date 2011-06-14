@@ -161,8 +161,8 @@ int wpm_error_ack_encode_apdu(uint8_t * apdu, uint8_t invoke_id,
         apdu[len++] = SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE;
 
         len += encode_opening_tag(&apdu[len], 0);
-        len += encode_tagged_enumerated(&apdu[len], wp_data->error_class);
-        len += encode_tagged_enumerated(&apdu[len], wp_data->error_code);
+        len += encode_application_enumerated(&apdu[len], wp_data->error_class);
+        len += encode_application_enumerated(&apdu[len], wp_data->error_code);
         len += encode_closing_tag(&apdu[len],  0);
 
         len += encode_opening_tag(&apdu[len], 1);
