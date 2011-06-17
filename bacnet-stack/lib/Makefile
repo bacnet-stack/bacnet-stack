@@ -118,6 +118,7 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/lsp.c \
 	$(BACNET_OBJECT)/ms-input.c \
 	$(BACNET_OBJECT)/mso.c \
+	$(BACNET_OBJECT)/nc.c  \
 	$(BACNET_OBJECT)/trendlog.c \
 	$(BACNET_OBJECT)/bacfile.c
 

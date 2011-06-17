@@ -637,6 +637,17 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             }
             break;
 
+        case PROP_RECIPIENT_LIST:
+            /* List of BACnetDestination */
+            switch (tag_number) {
+                case 0:        /* Device Object ID */
+                    tag = BACNET_APPLICATION_TAG_OBJECT_ID;
+                    break;
+                default:
+                    break;
+            }
+            break;
+
         default:
             break;
     }

@@ -1464,6 +1464,13 @@ typedef enum BACnetEventTransitionBits {
     MAX_BACNET_EVENT_TRANSITION = 3
 } BACNET_EVENT_TRANSITION_BITS;
 
+/* Not in standard, but useful for store Ack_Required */
+typedef enum BACnetEventTransitionMask {
+    TRANSITION_TO_OFFNORMAL_MASKED = 1,
+    TRANSITION_TO_FAULT_MASKED = 2,
+    TRANSITION_TO_NORMAL_MASKED = 4
+} BACNET_EVENT_TRANSITION_MASK;
+
 /* The Network Reject Reasons  for NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK */
 typedef enum {
     NETWORK_REJECT_UNKNOWN_ERROR = 0,
