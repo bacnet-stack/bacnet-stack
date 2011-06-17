@@ -60,6 +60,7 @@
 #include "lsp.h"
 #include "mso.h"
 #include "ms-input.h"
+#include "nc.h"
 #include "trendlog.h"
 #if defined(BACFILE)
 #include "bacfile.h"
@@ -74,6 +75,9 @@ static object_functions_t Object_Table[] = {
     {BINARY_INPUT_OBJ_FUNCTIONS},
     {BINARY_OUTPUT_OBJ_FUNCTIONS},
     {BINARY_VALUE_OBJ_FUNCTIONS},
+#if defined(INTRINSIC_REPORTING)
+    {NOTIFICATION_CLASS_OBJ_FUNCTIONS},
+#endif
     {LIFE_SAFETY_POINT_OBJ_FUNCTIONS},
     {LOAD_CONTROL_OBJ_FUNCTIONS},
     {MULTI_STATE_OUTPUT_OBJ_FUNCTIONS},
