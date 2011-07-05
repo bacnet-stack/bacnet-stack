@@ -11,7 +11,12 @@
 
 # configuration
 # If BACNET_DEFINES has not already been set, configure to your needs here
-BACNET_DEFINES ?= -DPRINT_ENABLED=1 -DBACAPP_ALL -DBACFILE
+MY_BACNET_DEFINES = -DPRINT_ENABLED=1
+MY_BACNET_DEFINES += -DBACAPP_ALL
+MY_BACNET_DEFINES += -DBACFILE
+MY_BACNET_DEFINES += -DINTRINSIC_REPORTING
+BACNET_DEFINES ?= $(MY_BACNET_DEFINES)
+
 # un-comment the next line to build the routing demo application
 #BACNET_DEFINES += -DBAC_ROUTING
 
