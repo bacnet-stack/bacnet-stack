@@ -74,7 +74,9 @@ required to be less than 250ms.
 Note that the mstpcap tool may not have that good of
 resolution on Windows, so timing under 50ms may not be accurate.
 
-Note:  If you are using FTDI chip in your RS485 converter, you can
+==== FTDI chip RS-485 converter 76800 baud tricks ==== 
+
+If you are using FTDI chip in your RS485 converter, you can
 alias an existing baud rate on Windows in the FTDIPORT.INF file
 in order to acheive non-standard 76800 bps:
 HKR,,"ConfigData",1,11,00,3F,3F,27,C0,00,00,27,00,00,00,C4,09,00,00,E2,04,00,00,71,02,00,00,38,41,00,00,9C,80,00,00,4E,C0,00,00,34,00,00,00,1A,00,00,00,0D,00,00,00,06,40,00,00,03,80,00,00,00,00,00,00,D0,80,00,00
@@ -85,3 +87,50 @@ hex values    actual
 -----------   ---------
 27,C0,00,00 - 76923 bps => divisor=39.125
 27,00,00,00 - 76677 bps => divisor=39.000
+
+Windows XP (from koby3101)
+1) Plug in and locate your USB/RSS85 in Device Manager under ports. Right click
+on it and select Properties. Click Details tab and from the drop down select
+Device Instance Id.
+
+2) Click Start, Run and then type regedit.
+Follow this path in the registry
+HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\FTDIBUS
+
+Locate the folder that has the same name as what you found earlier Device Instance
+Id in step 1. Click on 0000 folder and then Device Parameters. On the right
+side you will see ConfigData. Right click and select Modify Binary Data.
+Locate the 10 27 which in my case were in 5th and 6th position and replace with
+27 C0.
+
+This will make the RS485 go to 76800 baud (76923 baud) baud when you ask it
+to be 300 baud.
+
+So to capture at 76800 baud type: mstpcap.exe COM2 300
+
+
+Linux (used with Debian Lenny and Fedora 15)
+http://www.connecttech.com/KnowledgeDatabase/kdb309.htm
+As root:
+chmod 777 /dev/ttyUSB0  - so I can use it later as normal user
+setserial /dev/ttyUSB0 –a       - this prints current info about the device
+/dev/ttyUSB0, Line 0, UART: unknown, Port: 0x0000, IRQ: 0
+       Baud_base: 24000000, close_delay: 0, divisor: 0
+       closing_wait: infinte
+       Flags: spd_normal low_latency
+
+setserial /dev/ttyUSB0 spd_cust - to make custom speed
+setserial /dev/ttyUSB0 divisor 312      - 24000000/312 gives 76923 baudrate
+setserial /dev/ttyUSB0 –a               - just to make sure changes got applied
+/dev/ttyUSB0, Line 0, UART: unknown, Port: 0x0000, IRQ: 0
+       Baud_base: 24000000, close_delay: 0, divisor: 312
+       closing_wait: infinte
+       Flags: spd_cust low_latency
+
+Now as normal user running the mstpcap which uses the default 38400 baud it
+will actually capture at 76800 baud. (76923)
+
+Just navigate to bin folder in the project and type:
+
+./mstpcap
+
