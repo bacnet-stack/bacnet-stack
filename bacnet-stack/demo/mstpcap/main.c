@@ -256,17 +256,10 @@ static void packet_statistics_clear(
     Invalid_Frame_Count = 0;
 }
 
-static uint16_t Timer_Silence(
+static uint32_t Timer_Silence(
     void)
 {
-    uint32_t delta_time = 0;
-
-    delta_time = timer_milliseconds(TIMER_SILENCE);
-    if (delta_time > 0xFFFF) {
-        delta_time = 0xFFFF;
-    }
-
-    return (uint16_t) delta_time;
+    return timer_milliseconds(TIMER_SILENCE);
 }
 
 static void Timer_Silence_Reset(
