@@ -112,6 +112,15 @@ typedef bool(
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE * value_list);
 
+/** Intrinsic Reporting funcionality.
+ * @ingroup ObjHelpers
+ * @param [in] Object instance.
+ */
+typedef void(
+    *object_intrinsic_reporting_function) (
+            uint32_t object_instance);
+
+
 /** Defines the group of object helper functions for any supported Object.
  * @ingroup ObjHelpers
  * Each Object must provide some implementation of each of these helpers
@@ -134,6 +143,7 @@ typedef struct object_functions {
     rr_info_function Object_RR_Info;
     object_iterate_function Object_Iterator;
     object_value_list_function Object_Value_List;
+    object_intrinsic_reporting_function Object_Intrinsic_Reporting;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -202,6 +212,8 @@ extern "C" {
 
     rr_info_function Device_Objects_RR_Info(
         BACNET_OBJECT_TYPE object_type);
+
+    void Device_getCurrentDateTime(BACNET_DATE_TIME * DateTime);
 
     void Device_Property_Lists(
         const int **pRequired,
@@ -324,6 +336,8 @@ extern "C" {
         BACNET_READ_PROPERTY_DATA * rpdata);
     bool Device_Write_Property_Local(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    void Device_local_reporting(uint32_t milliseconds);
 
 /* Prototypes for Routing functionality in the Device Object.
  * Enable by defining BAC_ROUTING in config.h and including gw_device.c

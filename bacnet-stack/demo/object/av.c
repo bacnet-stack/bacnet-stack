@@ -1,6 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -28,13 +29,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
+#include "rp.h"
+#include "nc.h"
 #include "av.h"
+#include "device.h"
 #include "handlers.h"
 
 #ifndef MAX_ANALOG_VALUES
@@ -45,16 +50,10 @@
 /* a particular value.  When the priorities are not in use, they */
 /* will be relinquished (i.e. set to the NULL level). */
 #define ANALOG_LEVEL_NULL 255
-/* When all the priorities are level null, the present value returns */
-/* the Relinquish Default value */
-#define ANALOG_RELINQUISH_DEFAULT 0
-/* Here is our Priority Array.  They are supposed to be Real, but */
-/* we don't have that kind of memory, so we will use a single byte */
-/* and load a Real for returning the value when asked. */
-static uint8_t Analog_Value_Level[MAX_ANALOG_VALUES][BACNET_MAX_PRIORITY];
-/* Writable out-of-service allows others to play with our Present Value */
-/* without changing the physical output */
-static bool Analog_Value_Out_Of_Service[MAX_ANALOG_VALUES];
+
+
+
+ANALOG_VALUE_DESCR AV_Descr[MAX_ANALOG_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Analog_Value_Properties_Required[] = {
@@ -73,6 +72,18 @@ static const int Analog_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
+#if defined(INTRINSIC_REPORTING)
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_HIGH_LIMIT,
+    PROP_LOW_LIMIT,
+    PROP_DEADBAND,
+    PROP_LIMIT_ENABLE,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+#endif
     -1
 };
 
@@ -100,11 +111,16 @@ void Analog_Value_Init(
 {
     unsigned i, j;
 
-    /* initialize all the analog output priority arrays to NULL */
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
+        memset(&AV_Descr[i], 0x00, sizeof(ANALOG_VALUE_DESCR));
+        /* initialize all the analog output priority arrays to NULL */
         for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
-            Analog_Value_Level[i][j] = ANALOG_LEVEL_NULL;
+            AV_Descr[i].Priority_Array[j] = ANALOG_LEVEL_NULL;
         }
+        AV_Descr[i].Units = UNITS_PERCENT;
+        AV_Descr[i].Event_State = EVENT_STATE_NORMAL;
+        /* notification class not connected */
+        AV_Descr[i].Notification_Class = BACNET_MAX_INSTANCE;
     }
 
     return;
@@ -158,15 +174,18 @@ bool Analog_Value_Present_Value_Set(
     float value,
     uint8_t priority)
 {
+    ANALOG_VALUE_DESCR *CurrentAV;
     unsigned index = 0;
     bool status = false;
 
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
+        CurrentAV = &AV_Descr[index];
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
             (priority != 6 /* reserved */ ) &&
-            (value >= 0.0) && (value <= 100.0)) {
-            Analog_Value_Level[index][priority - 1] = (uint8_t) value;
+            (value >= 0.0) && (value <= 100.0))
+        {
+            CurrentAV->Priority_Array[priority - 1] = (uint8_t) value;
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
                priorities are set.
@@ -183,15 +202,20 @@ bool Analog_Value_Present_Value_Set(
 float Analog_Value_Present_Value(
     uint32_t object_instance)
 {
-    float value = ANALOG_RELINQUISH_DEFAULT;
+    ANALOG_VALUE_DESCR *CurrentAV;
+    float value = 0;
     unsigned index = 0;
     unsigned i = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
+        CurrentAV = &AV_Descr[index];
+        /* When all the priorities are level null, the present value returns */
+        /* the Relinquish Default value */
+        value = CurrentAV->Relinquish_Default;
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            if (Analog_Value_Level[index][i] != ANALOG_LEVEL_NULL) {
-                value = Analog_Value_Level[index][i];
+            if (CurrentAV->Priority_Array[i] != ANALOG_LEVEL_NULL) {
+                value = CurrentAV->Priority_Array[i];
                 break;
             }
         }
@@ -230,32 +254,45 @@ int Analog_Value_Read_Property(
     unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
+    ANALOG_VALUE_DESCR *CurrentAV;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+
     apdu = rpdata->application_data;
+
+    object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
+    if (object_index < MAX_ANALOG_VALUES)
+        CurrentAV = &AV_Descr[object_index];
+    else
+        return BACNET_STATUS_ERROR;
+
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_ANALOG_VALUE,
                 rpdata->object_instance);
             break;
+
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             Analog_Value_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+
         case PROP_OBJECT_TYPE:
             apdu_len =
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
             break;
+
         case PROP_PRESENT_VALUE:
             real_value = Analog_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
+
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
@@ -264,19 +301,26 @@ int Analog_Value_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
+
         case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+#if defined(INTRINSIC_REPORTING)
+            apdu_len = encode_application_enumerated(&apdu[0],
+                                CurrentAV->Event_State);
+#else
+            apdu_len = encode_application_enumerated(&apdu[0],
+                                EVENT_STATE_NORMAL);
+#endif
             break;
+
         case PROP_OUT_OF_SERVICE:
-            object_index =
-                Analog_Value_Instance_To_Index(rpdata->object_instance);
-            state = Analog_Value_Out_Of_Service[object_index];
+            state = CurrentAV->Out_Of_Service;
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
+
         case PROP_UNITS:
-            apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
+            apdu_len = encode_application_enumerated(&apdu[0], CurrentAV->Units);
             break;
+
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
             if (rpdata->array_index == 0)
@@ -285,15 +329,12 @@ int Analog_Value_Read_Property(
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                object_index =
-                    Analog_Value_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
-                    if (Analog_Value_Level[object_index][i] ==
-                        ANALOG_LEVEL_NULL)
+                    if (CurrentAV->Priority_Array[i] == ANALOG_LEVEL_NULL)
                         len = encode_application_null(&apdu[apdu_len]);
                     else {
-                        real_value = Analog_Value_Level[object_index][i];
+                        real_value = CurrentAV->Priority_Array[i];
                         len =
                             encode_application_real(&apdu[apdu_len],
                             real_value);
@@ -309,14 +350,12 @@ int Analog_Value_Read_Property(
                     }
                 }
             } else {
-                object_index =
-                    Analog_Value_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Analog_Value_Level[object_index][rpdata->array_index -
-                            1] == ANALOG_LEVEL_NULL)
+                    if (CurrentAV->Priority_Array[rpdata->array_index - 1]
+                            == ANALOG_LEVEL_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
-                        real_value = Analog_Value_Level[object_index]
+                        real_value = CurrentAV->Priority_Array
                             [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);
@@ -328,10 +367,91 @@ int Analog_Value_Read_Property(
                 }
             }
             break;
+
         case PROP_RELINQUISH_DEFAULT:
-            real_value = ANALOG_RELINQUISH_DEFAULT;
+            real_value = CurrentAV->Relinquish_Default;
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
+
+#if defined(INTRINSIC_REPORTING)
+        case PROP_TIME_DELAY:
+            apdu_len = encode_application_unsigned(&apdu[0], CurrentAV->Time_Delay);
+            break;
+
+        case PROP_NOTIFICATION_CLASS:
+            apdu_len = encode_application_unsigned(&apdu[0], CurrentAV->Notification_Class);
+            break;
+
+        case PROP_HIGH_LIMIT:
+            apdu_len = encode_application_real(&apdu[0], CurrentAV->High_Limit);
+            break;
+
+        case PROP_LOW_LIMIT:
+            apdu_len = encode_application_real(&apdu[0], CurrentAV->Low_Limit);
+            break;
+
+        case PROP_DEADBAND:
+            apdu_len = encode_application_real(&apdu[0], CurrentAV->Deadband);
+            break;
+
+        case PROP_LIMIT_ENABLE:
+            bitstring_init(&bit_string);
+            bitstring_set_bit(&bit_string, 0,
+                    (CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE ) ? true : false );
+            bitstring_set_bit(&bit_string, 1,
+                    (CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ? true : false );
+
+            apdu_len = encode_application_bitstring(&apdu[0],&bit_string);
+            break;
+
+        case PROP_EVENT_ENABLE:
+            bitstring_init(&bit_string);
+            bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL,
+                    (CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ? true : false );
+            bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,
+                    (CurrentAV->Event_Enable & EVENT_ENABLE_TO_FAULT    ) ? true : false );
+            bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,
+                    (CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL   ) ? true : false );
+
+            apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
+            break;
+
+        case PROP_ACKED_TRANSITIONS:
+            bitstring_init(&bit_string);
+            bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL, true);
+            bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,     true);
+            bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,    true);
+
+            /// Fixme: finish it
+
+            apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
+            break;
+
+        case PROP_NOTIFY_TYPE:
+            apdu_len = encode_application_enumerated(&apdu[0],
+                    CurrentAV->Notify_Type ? NOTIFY_EVENT : NOTIFY_ALARM);
+            break;
+
+        case PROP_EVENT_TIME_STAMPS:
+            /* Array element zero is the number of elements in the array */
+            if (rpdata->array_index == 0)
+                apdu_len = encode_application_unsigned(&apdu[0], 3);
+            /* if no index was specified, then try to encode the entire list */
+            /* into one packet. */
+            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /// Fixme:
+            }
+            else if (rpdata->array_index <= 3) {
+                /// Fixme:
+            }
+            else {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code  = ERROR_CODE_INVALID_ARRAY_INDEX;
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+            break;
+#endif
+
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -359,6 +479,7 @@ bool Analog_Value_Write_Property(
     uint8_t level = ANALOG_LEVEL_NULL;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    ANALOG_VALUE_DESCR *CurrentAV;
 
     /* decode the some of the request */
     len =
@@ -371,6 +492,13 @@ bool Analog_Value_Write_Property(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+
+    object_index = Analog_Value_Instance_To_Index(wp_data->object_instance);
+    if (object_index < MAX_ANALOG_VALUES)
+        CurrentAV = &AV_Descr[object_index];
+    else
+        return false;
+
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_REAL) {
@@ -396,13 +524,10 @@ bool Analog_Value_Write_Property(
                     &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     level = ANALOG_LEVEL_NULL;
-                    object_index =
-                        Analog_Value_Instance_To_Index(wp_data->
-                        object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Analog_Value_Level[object_index][priority] = level;
+                        CurrentAV->Priority_Array[priority] = level;
                         /* Note: you could set the physical output here to the next
                            highest priority, or to the relinquish default if no
                            priorities are set.
@@ -417,24 +542,330 @@ bool Analog_Value_Write_Property(
                 }
             }
             break;
+
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                object_index =
-                    Analog_Value_Instance_To_Index(wp_data->object_instance);
-                Analog_Value_Out_Of_Service[object_index] = value.type.Boolean;
+                CurrentAV->Out_Of_Service = value.type.Boolean;
             }
             break;
+
+        case PROP_UNITS:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class, &wp_data->error_code);
+            if (status) {
+                CurrentAV->Units = value.type.Enumerated;
+            }
+            break;
+
+        case PROP_RELINQUISH_DEFAULT:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
+                &wp_data->error_class, &wp_data->error_code);
+            if (status) {
+                CurrentAV->Relinquish_Default = value.type.Real;
+            }
+            break;
+
+#if defined(INTRINSIC_REPORTING)
+        case PROP_TIME_DELAY:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                CurrentAV->Time_Delay = value.type.Unsigned_Int;
+            }
+            break;
+
+        case PROP_NOTIFICATION_CLASS:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                CurrentAV->Notification_Class = value.type.Unsigned_Int;
+            }
+            break;
+
+        case PROP_HIGH_LIMIT:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                CurrentAV->High_Limit = value.type.Real;
+            }
+            break;
+
+        case PROP_LOW_LIMIT:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                CurrentAV->Low_Limit = value.type.Real;
+            }
+            break;
+
+        case PROP_DEADBAND:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                CurrentAV->Deadband = value.type.Real;
+            }
+            break;
+
+        case PROP_LIMIT_ENABLE:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                if(value.type.Bit_String.bits_used == 2) {
+                    CurrentAV->Limit_Enable = value.type.Bit_String.value[0];
+                }
+                else {
+                   wp_data->error_class = ERROR_CLASS_PROPERTY;
+                   wp_data->error_code  = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                   status = false;
+                }
+            }
+            break;
+
+        case PROP_EVENT_ENABLE:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                if(value.type.Bit_String.bits_used == 3) {
+                    CurrentAV->Event_Enable = value.type.Bit_String.value[0];
+                }
+                else {
+                   wp_data->error_class = ERROR_CLASS_PROPERTY;
+                   wp_data->error_code  = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                   status = false;
+                }
+            }
+            break;
+
+        case PROP_NOTIFY_TYPE:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+                &wp_data->error_class, &wp_data->error_code);
+
+            if (status) {
+                if(value.type.Bit_String.bits_used > NOTIFY_EVENT) {
+                    CurrentAV->Event_Enable = value.type.Enumerated;
+                }
+                else {
+                   wp_data->error_class = ERROR_CLASS_PROPERTY;
+                   wp_data->error_code  = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                   status = false;
+                }
+            }
+            break;
+#endif
+
         default:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_code  = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
     return status;
 }
+
+
+void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
+{
+    BACNET_EVENT_NOTIFICATION_DATA event_data;
+    BACNET_CHARACTER_STRING msgText;
+    ANALOG_VALUE_DESCR *CurrentAV;
+    unsigned int object_index;
+    uint8_t FromState;
+    uint8_t ToState;
+    float ExceededLimit;
+    float PresentVal;
+
+
+    object_index = Analog_Value_Instance_To_Index(object_instance);
+    if (object_index < MAX_ANALOG_VALUES)
+        CurrentAV = &AV_Descr[object_index];
+    else
+        return;
+
+    /* check limits */
+    if (!CurrentAV->Limit_Enable)
+        return;  /* limits are not configured */
+
+    /* actual Present_Value */
+    PresentVal = Analog_Value_Present_Value(object_instance);
+    FromState  = CurrentAV->Event_State;
+    switch (CurrentAV->Event_State)
+    {
+        case EVENT_STATE_NORMAL:
+            /* A TO-OFFNORMAL event is generated under these conditions:
+                (a) the Present_Value must exceed the High_Limit for a minimum
+                    period of time, specified in the Time_Delay property, and
+                (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
+                (c) the TO-OFFNORMAL flag must be set in the Event_Enable property. */
+            if ((PresentVal > CurrentAV->High_Limit) &&
+                /// (Deadband >= CurrentAV->Time_Delay) &&
+                ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
+                ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
+            {
+                CurrentAV->Event_State = EVENT_STATE_HIGH_LIMIT;
+                break;
+            }
+
+            /* A TO-OFFNORMAL event is generated under these conditions:
+                (a) the Present_Value must exceed the Low_Limit plus the Deadband
+                    for a minimum period of time, specified in the Time_Delay property, and
+                (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
+                (c) the TO-NORMAL flag must be set in the Event_Enable property. */
+            if ((PresentVal < CurrentAV->Low_Limit) &&
+                /// (Deadband >= CurrentAV->Time_Delay) &&
+                ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
+                ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
+            {
+                CurrentAV->Event_State = EVENT_STATE_LOW_LIMIT;
+                break;
+            }
+            break;
+
+        case EVENT_STATE_HIGH_LIMIT:
+            /* Once exceeded, the Present_Value must fall below the High_Limit minus
+               the Deadband before a TO-NORMAL event is generated under these conditions:
+                (a) the Present_Value must fall below the High_Limit minus the Deadband
+                    for a minimum period of time, specified in the Time_Delay property, and
+                (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
+                (c) the TO-NORMAL flag must be set in the Event_Enable property. */
+            if ((PresentVal < CurrentAV->High_Limit - CurrentAV->Deadband) &&
+                /// (Deadband >= CurrentAV->Time_Delay) &&
+                ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
+                ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
+            {
+                CurrentAV->Event_State = EVENT_STATE_NORMAL;
+            }
+            break;
+
+        case EVENT_STATE_LOW_LIMIT:
+            /* Once the Present_Value has fallen below the Low_Limit,
+               the Present_Value must exceed the Low_Limit plus the Deadband
+               before a TO-NORMAL event is generated under these conditions:
+                (a) the Present_Value must exceed the Low_Limit plus the Deadband
+                    for a minimum period of time, specified in the Time_Delay property, and
+                (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
+                (c) the TO-NORMAL flag must be set in the Event_Enable property. */
+            if ((PresentVal > CurrentAV->Low_Limit + CurrentAV->Deadband) &&
+                /// (Deadband >= CurrentAV->Time_Delay) &&
+                ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
+                ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
+            {
+                CurrentAV->Event_State = EVENT_STATE_NORMAL;
+            }
+            break;
+
+        default:
+            return;  /* shouldn't happen */
+    }  /* switch (FromState) */
+
+    ToState = CurrentAV->Event_State;
+
+    if (FromState != ToState)
+    {
+        /* Event_State has changed.
+           Need to fill only the basic parameters of this type of event.
+           Other parameters will be filled in common function. */
+
+        switch (ToState)
+        {
+            case EVENT_STATE_HIGH_LIMIT:
+                ExceededLimit = CurrentAV->High_Limit;
+                characterstring_init_ansi(&msgText,
+                                "Goes to high limit");
+                break;
+
+            case EVENT_STATE_LOW_LIMIT:
+                ExceededLimit = CurrentAV->Low_Limit;
+                characterstring_init_ansi(&msgText,
+                                "Goes to low limit");
+                break;
+
+            case EVENT_STATE_NORMAL:
+                if(FromState == EVENT_STATE_HIGH_LIMIT) {
+                    ExceededLimit = CurrentAV->High_Limit;
+                    characterstring_init_ansi(&msgText,
+                                "Back to normal state from high limit");
+                }
+                else {
+                    ExceededLimit = CurrentAV->Low_Limit;
+                    characterstring_init_ansi(&msgText,
+                                "Back to normal state from low limit");
+                }
+                break;
+
+            default:
+                ExceededLimit = 0;
+                break;
+        }   /* switch (ToState) */
+
+
+        /* Event Object Identifier */
+        event_data.eventObjectIdentifier.type = OBJECT_ANALOG_VALUE;
+        event_data.eventObjectIdentifier.instance = object_instance;
+
+        /* Time Stamp*/
+        event_data.timeStamp.tag = TIME_STAMP_DATETIME;
+        Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
+
+        /* Notification Class */
+        event_data.notificationClass = CurrentAV->Notification_Class;
+
+        /* Event Type */
+        event_data.eventType = EVENT_OUT_OF_RANGE;
+
+        /* Message Text */
+        event_data.messageText = &msgText;
+
+        /* Notify Type */
+        event_data.notifyType = CurrentAV->Notify_Type;
+
+        /* From State */
+        event_data.fromState = FromState;
+
+        /* To State */
+        event_data.toState   = CurrentAV->Event_State;
+
+        /* Event Values */
+        event_data.notificationParams.outOfRange.exceedingValue = PresentVal;
+
+        bitstring_init(&event_data.notificationParams.outOfRange.statusFlags);
+        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                    STATUS_FLAG_IN_ALARM, CurrentAV->Event_State ? true : false);
+        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                    STATUS_FLAG_FAULT, false);
+        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                    STATUS_FLAG_OVERRIDDEN, false);
+        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                    STATUS_FLAG_OUT_OF_SERVICE, CurrentAV->Out_Of_Service);
+
+        event_data.notificationParams.outOfRange.deadband = CurrentAV->Deadband;
+
+        event_data.notificationParams.outOfRange.exceededLimit = ExceededLimit;
+
+        /* add data from notification class */
+        Notification_Class_common_reporting_function(&event_data);
+    }
+}
+
 
 
 #ifdef TEST

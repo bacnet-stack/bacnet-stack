@@ -393,6 +393,12 @@ typedef enum {
 /* do the MAX as define rather than enumeration for devices
    and compilers that want to use smaller datatype for enum */
 #define MAX_BACNET_PROPERTY_ID 4194303
+
+typedef enum {
+    EVENT_LOW_LIMIT_ENABLE = 1,
+    EVENT_HIGH_LIMIT_ENABLE = 2
+} BACNET_LIMIT_ENABLE;
+
 typedef enum {
     ACTION_DIRECT = 0,
     ACTION_REVERSE = 1
@@ -419,6 +425,12 @@ typedef enum {
     EVENT_STATE_HIGH_LIMIT = 3,
     EVENT_STATE_LOW_LIMIT = 4
 } BACNET_EVENT_STATE;
+
+typedef enum {
+    EVENT_ENABLE_TO_OFFNORMAL = 1,
+    EVENT_ENABLE_TO_FAULT = 2,
+    EVENT_ENABLE_TO_NORMAL = 4
+} BACNET_EVENT_ENABLE;
 
 typedef enum {
     STATUS_OPERATIONAL = 0,
