@@ -66,29 +66,6 @@
 #include "bacfile.h"
 #endif
 
-/* All included BACnet objects */
-static object_functions_t Object_Table[] = {
-    {DEVICE_OBJ_FUNCTIONS},
-    {ANALOG_INPUT_OBJ_FUNCTIONS},
-    {ANALOG_OUTPUT_OBJ_FUNCTIONS},
-    {ANALOG_VALUE_OBJ_FUNCTIONS},
-    {BINARY_INPUT_OBJ_FUNCTIONS},
-    {BINARY_OUTPUT_OBJ_FUNCTIONS},
-    {BINARY_VALUE_OBJ_FUNCTIONS},
-#if defined(INTRINSIC_REPORTING)
-    {NOTIFICATION_CLASS_OBJ_FUNCTIONS},
-#endif
-    {LIFE_SAFETY_POINT_OBJ_FUNCTIONS},
-    {LOAD_CONTROL_OBJ_FUNCTIONS},
-    {MULTI_STATE_OUTPUT_OBJ_FUNCTIONS},
-    {MULTI_STATE_INPUT_OBJ_FUNCTIONS},
-    {TRENDLOG_OBJ_FUNCTIONS},
-#if defined(BACFILE)
-    {FILE_OBJ_FUNCTIONS},
-#endif
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL}
-};
 
 /** @file server/main.c  Example server application using the BACnet Stack. */
 
@@ -106,10 +83,12 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static void Init_Service_Handlers(
     void)
 {
-    Device_Init(&Object_Table[0]);
+    Device_Init(NULL);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
+    /* handle i-am to support binding to other devices */
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -182,6 +161,8 @@ int main(
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
+    uint32_t address_binding_tmr = 0;
+    uint32_t recipient_scan_tmr = 0;
 
     /* allow the device ID to be set */
     if (argc > 1)
@@ -224,7 +205,21 @@ int main(
             }
             tsm_timer_milliseconds(elapsed_milliseconds);
             trend_log_timer(elapsed_seconds);
+            Device_local_reporting(elapsed_seconds * 1000);
         }
+        /* scan cache address */
+        address_binding_tmr += elapsed_seconds;
+        if (address_binding_tmr >= 60) {
+            address_cache_timer(address_binding_tmr);
+            address_binding_tmr = 0;
+        }
+        /* try to find addresses of recipients */
+        recipient_scan_tmr += elapsed_seconds;
+        if (recipient_scan_tmr >= NC_RESCAN_RECIPIENTS_SECS) {
+            Notification_Class_find_recipient();
+            recipient_scan_tmr = 0;
+        }
+
         /* output */
 
         /* blink LEDs, Turn on or off outputs, etc */

@@ -46,6 +46,24 @@
 #include "address.h"
 /* os specfic includes */
 #include "timer.h"
+/* include the device object */
+#include "device.h"
+#include "ai.h"
+#include "ao.h"
+#include "av.h"
+#include "bi.h"
+#include "bo.h"
+#include "bv.h"
+#include "lc.h"
+#include "lsp.h"
+#include "mso.h"
+#include "ms-input.h"
+#include "nc.h"
+#include "trendlog.h"
+#if defined(BACFILE)
+#include "bacfile.h"
+#endif
+
 
 #if defined(__BORLANDC__)
 /* seems to not be defined in time.h as specified by The Open Group */
@@ -63,9 +81,77 @@ extern int Routed_Device_Read_Property_Local(
 extern bool Routed_Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-/* Defined in user application;
-   object functions for all included BACnet objects */
-static object_functions_t *Object_Table;
+
+static object_functions_t Object_Table[] = {
+    {
+    OBJECT_DEVICE, NULL, Device_Count,    /* don't init - recursive! */
+            Device_Index_To_Instance, Device_Valid_Object_Instance_Number,
+            Device_Object_Name, Device_Read_Property_Local,
+            Device_Write_Property_Local, Device_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+    OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
+            Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
+            Analog_Input_Object_Name, Analog_Input_Read_Property,
+            NULL, Analog_Input_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+    OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
+            Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
+            Analog_Value_Object_Name, Analog_Value_Read_Property,
+            Analog_Value_Write_Property, Analog_Value_Property_Lists,
+            NULL, NULL, NULL, Analog_Value_Intrinsic_Reporting}, {
+    OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
+            Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
+            Binary_Input_Object_Name, Binary_Input_Read_Property,
+            NULL, Binary_Input_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+    OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count,
+            Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance,
+            Binary_Value_Object_Name, Binary_Value_Read_Property,
+            Binary_Value_Write_Property, Binary_Value_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+#if defined(INTRINSIC_REPORTING)
+    OBJECT_NOTIFICATION_CLASS, Notification_Class_Init, Notification_Class_Count,
+            Notification_Class_Index_To_Instance, Notification_Class_Valid_Instance,
+            Notification_Class_Object_Name, Notification_Class_Read_Property,
+            Notification_Class_Write_Property, Notification_Class_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+#endif
+    OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Init, Life_Safety_Point_Count,
+            Life_Safety_Point_Index_To_Instance, Life_Safety_Point_Valid_Instance,
+            Life_Safety_Point_Object_Name, Life_Safety_Point_Read_Property,
+            Life_Safety_Point_Write_Property, Life_Safety_Point_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+    OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
+            Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
+            Load_Control_Object_Name, Load_Control_Read_Property,
+            Load_Control_Write_Property, Load_Control_Property_Lists,
+            NULL, NULL, NULL}, {
+    OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init, Multistate_Output_Count,
+            Multistate_Output_Index_To_Instance, Multistate_Output_Valid_Instance,
+            Multistate_Output_Object_Name, Multistate_Output_Read_Property,
+            Multistate_Output_Write_Property, Multistate_Output_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+    OBJECT_MULTI_STATE_INPUT, Multistate_Input_Init, Multistate_Input_Count,
+            Multistate_Input_Index_To_Instance, Multistate_Input_Valid_Instance,
+            Multistate_Input_Object_Name, Multistate_Input_Read_Property,
+            Multistate_Input_Write_Property, Multistate_Input_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+    OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count,
+            Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance,
+            Trend_Log_Object_Name, Trend_Log_Read_Property,
+            Trend_Log_Write_Property, Trend_Log_Property_Lists,
+            TrendLogGetRRInfo, NULL, NULL, NULL}, {
+#if defined(BACFILE)
+    OBJECT_FILE, bacfile_init, bacfile_count,
+            bacfile_index_to_instance, bacfile_valid_instance,
+            bacfile_object_name, bacfile_read_property,
+            bacfile_write_property, BACfile_Property_Lists,
+            NULL, NULL, NULL, NULL}, {
+#endif
+    MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL}
+};
+
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
@@ -872,6 +958,14 @@ int    tm_isdst Daylight Savings flag.
     }
 }
 
+void Device_getCurrentDateTime(BACNET_DATE_TIME * DateTime)
+{
+    Update_Current_Time();
+
+    DateTime->date = Local_Date;
+    DateTime->time = Local_Time;
+}
+
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
    BACNET_STATUS_ABORT for abort message */
 int Device_Read_Property_Local(
@@ -1390,6 +1484,36 @@ bool Device_Encode_Value_List(
     return (status);
 }
 
+
+void Device_local_reporting(uint32_t milliseconds)
+{
+    struct   object_functions *pObject;
+    uint32_t objects_count;
+    uint32_t object_instance;
+    int      object_type;
+    uint32_t idx;
+
+    objects_count = Device_Object_List_Count();
+
+    /* loop for all objects */
+    for (idx = 0; idx < objects_count; idx++)
+    {
+        Device_Object_List_Identifier(idx, &object_type,
+                                      &object_instance);
+
+        pObject = Device_Objects_Find_Functions(object_type);
+        if (pObject != NULL) {
+            if (pObject->Object_Valid_Instance &&
+                pObject->Object_Valid_Instance(object_instance)) {
+                if (pObject->Object_Intrinsic_Reporting) {
+                    pObject->Object_Intrinsic_Reporting(
+                        object_instance);
+                }
+            }
+        }
+    }
+}
+
 /** Looks up the requested Object to see if the functionality is supported.
  * @ingroup ObjHelpers
  * @param [in] The object type to be looked up.
@@ -1425,8 +1549,9 @@ void Device_Init(
     struct object_functions *pObject = NULL;
 
     characterstring_init_ansi(&My_Object_Name, "SimpleServer");
-    /* call all the child objects initialization functions */
-    Object_Table = object_table;
+    /* we don't use the object table passed in
+       since there is extra stuff we don't need in there. */
+    (void)object_table;
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {

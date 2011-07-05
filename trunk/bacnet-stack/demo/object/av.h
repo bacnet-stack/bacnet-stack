@@ -1,6 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -35,6 +36,30 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    typedef struct analog_value_descr {
+        uint8_t  Event_State  : 3;
+        bool     Out_Of_Service;
+        uint8_t  Units;
+        /* Here is our Priority Array.  They are supposed to be Real, but */
+        /* we don't have that kind of memory, so we will use a single byte */
+        /* and load a Real for returning the value when asked. */
+        uint8_t  Priority_Array[BACNET_MAX_PRIORITY];
+        float    Relinquish_Default;
+#if defined(INTRINSIC_REPORTING)
+        uint32_t Time_Delay;
+        uint32_t Notification_Class;
+        float    High_Limit;
+        float    Low_Limit;
+        float    Deadband;
+        uint8_t  Limit_Enable : 2;
+        uint8_t  Event_Enable : 3;
+        uint8_t  Acked_Transitions : 3;
+        uint8_t  Notify_Type  : 1;
+#endif
+    } ANALOG_VALUE_DESCR;
+
+
     void Analog_Value_Property_Lists(
         const int **pRequired,
         const int **pOptional,
@@ -63,6 +88,9 @@ extern "C" {
         float value,
         uint8_t priority);
     float Analog_Value_Present_Value(
+        uint32_t object_instance);
+
+    void Analog_Value_Intrinsic_Reporting(
         uint32_t object_instance);
 
     void Analog_Value_Init(

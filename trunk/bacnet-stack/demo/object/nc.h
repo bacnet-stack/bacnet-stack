@@ -25,17 +25,24 @@
 #ifndef NC_H
 #define NC_H
 
+#include "event.h"
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 
-#define NC_MAX_RECIPIENTS 10
+#define NC_RESCAN_RECIPIENTS_SECS   60
 
-#define RECIPIENT_TYPE_NOTINITIALIZED   0
-#define RECIPIENT_TYPE_DEVICE           1
-#define RECIPIENT_TYPE_ADDRESS          2
+/* max "length" of recipient_list */
+#define NC_MAX_RECIPIENTS 10
+/* Recipient types */
+typedef enum {
+    RECIPIENT_TYPE_NOTINITIALIZED = 0,
+    RECIPIENT_TYPE_DEVICE  = 1,
+    RECIPIENT_TYPE_ADDRESS = 2
+} NC_RECIPIENT_TYPE;
 
 
 /* BACnetRecipient sructuer*/
@@ -96,6 +103,11 @@ typedef struct Notification_Class_info {
 
     bool Notification_Class_Write_Property(
             BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    void Notification_Class_common_reporting_function(
+            BACNET_EVENT_NOTIFICATION_DATA * event_data);
+
+    void Notification_Class_find_recipient(void);
 
 
 #ifdef __cplusplus

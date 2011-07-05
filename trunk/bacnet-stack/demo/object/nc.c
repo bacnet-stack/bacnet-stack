@@ -25,19 +25,21 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
+#include "address.h"
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
+#include "client.h"
 #include "config.h"
 #include "device.h"
+#include "event.h"
 #include "handlers.h"
+#include "txbuf.h"
 #include "wp.h"
 #include "nc.h"
-
-#include "datalink.h"       //for send who is
-#include "whois.h"
 
 
 #ifndef MAX_NOTIFICATION_CLASSES
@@ -89,15 +91,15 @@ void Notification_Class_Init(void)
 {
     uint8_t NotifyIdx = 0;
 
-    for(NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++)
+    for (NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++)
     {
         /* init with zeros */
         memset(&NC_Info[NotifyIdx], 0x00, sizeof(NOTIFICATION_CLASS_INFO));
-        /* set the basic parameters*/
+        /* set the basic parameters */
         NC_Info[NotifyIdx].Ack_Required = 0;
-        NC_Info[NotifyIdx].Priority[0] = 255;   // The lowest priority for Normal message.
-        NC_Info[NotifyIdx].Priority[1] = 255;   // The lowest priority for Normal message.
-        NC_Info[NotifyIdx].Priority[2] = 255;   // The lowest priority for Normal message.
+        NC_Info[NotifyIdx].Priority[0] = 255;   /* The lowest priority for Normal message. */
+        NC_Info[NotifyIdx].Priority[1] = 255;   /* The lowest priority for Normal message. */
+        NC_Info[NotifyIdx].Priority[2] = 255;   /* The lowest priority for Normal message. */
     }
 
     /* init with special values for tests */
@@ -111,7 +113,7 @@ void Notification_Class_Init(void)
 //    NC_Info[0].Recipient_List[0].FromTime.sec  = 10;
 //    NC_Info[0].Recipient_List[0].FromTime.hundredths = 0;
 //    NC_Info[0].Recipient_List[0].ToTime.hour = 23;
-//    NC_Info[0].Recipient_List[0].ToTime.min  = 0;
+//    NC_Info[0].Recipient_List[0].ToTime.min  = 48;
 //    NC_Info[0].Recipient_List[0].ToTime.sec  = 59;
 //    NC_Info[0].Recipient_List[0].ToTime.hundredths = 0;
 //    NC_Info[0].Recipient_List[0].Recipient.RecipientType = RECIPIENT_TYPE_ADDRESS;
@@ -122,6 +124,7 @@ void Notification_Class_Init(void)
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[4] = 0xBA;
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[5] = 0xC0;
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac_len = 6;
+//    NC_Info[0].Recipient_List[0].ProcessIdentifier = 112233;
 //    NC_Info[0].Recipient_List[0].ConfirmedNotify = true;
 //    NC_Info[0].Recipient_List[0].Transitions =
 //            TRANSITION_TO_OFFNORMAL_MASKED | TRANSITION_TO_NORMAL_MASKED;
@@ -244,7 +247,7 @@ int Notification_Class_Read_Property(
                 apdu_len += encode_application_unsigned(&apdu[0], 3);
             else
             {
-                if(rpdata->array_index == BACNET_ARRAY_ALL)
+                if (rpdata->array_index == BACNET_ARRAY_ALL)
                 {
                     /* TO-OFFNORMAL */
                     apdu_len += encode_application_unsigned(&apdu[apdu_len],
@@ -256,7 +259,7 @@ int Notification_Class_Read_Property(
                     apdu_len += encode_application_unsigned(&apdu[apdu_len],
                                     CurrentNotify->Priority[2]);
                 }
-                else if(rpdata->array_index <= 3)
+                else if (rpdata->array_index <= 3)
                 {
                     apdu_len += encode_application_unsigned(&apdu[apdu_len],
                                     CurrentNotify->Priority[rpdata->array_index - 1]);
@@ -286,22 +289,22 @@ int Notification_Class_Read_Property(
 
         case PROP_RECIPIENT_LIST:
             /* encode all entry of Recipient_List */
-            for(idx = 0; idx < NC_MAX_RECIPIENTS; idx++)
+            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++)
             {
                 BACNET_DESTINATION *RecipientEntry;
                 int i = 0;
 
                 /* get pointer of current element for Recipient_List  - easier for use */
                 RecipientEntry = &CurrentNotify->Recipient_List[idx];
-                if(RecipientEntry->Recipient.RecipientType != RECIPIENT_TYPE_NOTINITIALIZED)
+                if (RecipientEntry->Recipient.RecipientType != RECIPIENT_TYPE_NOTINITIALIZED)
                 {
                     /* Valid Days - BACnetDaysOfWeek - [bitstring] monday-sunday */
                     u8Val = 0x01;
                     bitstring_init(&bit_string);
 
-                    for(i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++)
+                    for (i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++)
                     {
-                        if(RecipientEntry->ValidDays & u8Val)
+                        if (RecipientEntry->ValidDays & u8Val)
                             bitstring_set_bit(&bit_string, i, true);
                         else
                             bitstring_set_bit(&bit_string, i, false);
@@ -330,7 +333,7 @@ int Notification_Class_Read_Property(
                                         RecipientEntry->Recipient._.DeviceIdentifier);
                     }
                     /* CHOICE - address [1] BACnetAddress */
-                    else if(RecipientEntry->Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS)
+                    else if (RecipientEntry->Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS)
                     {
                         /* opening tag 1 */
                         apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
@@ -403,7 +406,6 @@ int Notification_Class_Read_Property(
 }
 
 
-
 bool Notification_Class_Write_Property(
             BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
@@ -430,15 +432,15 @@ bool Notification_Class_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                 &wp_data->error_class, &wp_data->error_code);
 
-            if(status) {
+            if (status) {
                 if (wp_data->array_index == 0) {
                    wp_data->error_class = ERROR_CLASS_PROPERTY;
                    wp_data->error_code  = ERROR_CODE_INVALID_ARRAY_INDEX;
                 }
-                else if(wp_data->array_index == BACNET_ARRAY_ALL) {
+                else if (wp_data->array_index == BACNET_ARRAY_ALL) {
                     /// FIXME: wite all array
                 }
-                else if(wp_data->array_index <= 3) {
+                else if (wp_data->array_index <= 3) {
                     CurrentNotify->Priority[wp_data->array_index - 1] =
                             value.type.Unsigned_Int;
                 }
@@ -526,7 +528,7 @@ bool Notification_Class_Write_Property(
 
                 iOffset += len;
                 /* context tag [0] - Device */
-                if(decode_is_context_tag(&wp_data->application_data[iOffset], 0))
+                if (decode_is_context_tag(&wp_data->application_data[iOffset], 0))
                 {
                     TmpNotify.Recipient_List[idx].Recipient.RecipientType = RECIPIENT_TYPE_DEVICE;
                     /* Decode Network Number */
@@ -548,7 +550,7 @@ bool Notification_Class_Write_Property(
                     iOffset += len;
                 }
                 /* opening tag [1] - Recipient */
-                else if(decode_is_opening_tag_number(&wp_data->application_data[iOffset], 1))
+                else if (decode_is_opening_tag_number(&wp_data->application_data[iOffset], 1))
                 {
                     iOffset++;
                     TmpNotify.Recipient_List[idx].Recipient.RecipientType = RECIPIENT_TYPE_ADDRESS;
@@ -596,7 +598,7 @@ bool Notification_Class_Write_Property(
 
                     iOffset += len;
                     /* closing tag [1] - Recipient */
-                    if(decode_is_closing_tag_number(&wp_data->application_data[iOffset], 1))
+                    if (decode_is_closing_tag_number(&wp_data->application_data[iOffset], 1))
                         iOffset++;
                     else {
                         /* Bad decode, wrong tag or following required parameter missing */
@@ -665,7 +667,7 @@ bool Notification_Class_Write_Property(
                 iOffset += len;
 
                 /* Increasing element of list */
-                if(++idx >= NC_MAX_RECIPIENTS) {
+                if (++idx >= NC_MAX_RECIPIENTS) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code  = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     return false;
@@ -674,8 +676,26 @@ bool Notification_Class_Write_Property(
 
             /* Decoded all recipient list */
             /* copy elements from temporary object */
-            for(idx = 0; idx < NC_MAX_RECIPIENTS; idx++)
+            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++)
+            {
+                BACNET_ADDRESS src = {0};
+                unsigned max_apdu  = 0;
+                int32_t  DeviceID;
+
                 CurrentNotify->Recipient_List[idx] = TmpNotify.Recipient_List[idx];
+
+                if (CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_DEVICE) {
+                    /* copy Device_ID */
+                    DeviceID = CurrentNotify->Recipient_List[idx].Recipient._.DeviceIdentifier;
+                    address_bind_request(DeviceID, &max_apdu, &src);
+
+                }
+                else if (CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
+                    /* copy Address */
+                    ///src = CurrentNotify->Recipient_List[idx].Recipient._.Address;
+                    ///address_bind_request(BACNET_MAX_INSTANCE, &max_apdu, &src);
+                }
+            }
 
             status = true;
 
@@ -683,9 +703,190 @@ bool Notification_Class_Write_Property(
 
         default:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            wp_data->error_code  = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 
     return status;
+}
+
+
+static bool IsRecipientActive(BACNET_DESTINATION * pBacDest, uint8_t EventToState)
+{
+    BACNET_DATE_TIME DateTime;
+
+    /* valid Transitions */
+    switch (EventToState)
+    {
+        case EVENT_STATE_OFFNORMAL:
+        case EVENT_STATE_HIGH_LIMIT:
+        case EVENT_STATE_LOW_LIMIT:
+            if (!(pBacDest->Transitions & TRANSITION_TO_OFFNORMAL_MASKED))
+                return false;
+            break;
+
+        case EVENT_STATE_FAULT:
+            if (!(pBacDest->Transitions & TRANSITION_TO_FAULT_MASKED))
+                return false;
+            break;
+
+        case EVENT_STATE_NORMAL:
+            if (!(pBacDest->Transitions & TRANSITION_TO_NORMAL_MASKED))
+                return false;
+            break;
+
+        default:
+            return false;   /* shouldn't happen */
+    }
+
+    /* get actual date and time */
+    Device_getCurrentDateTime(&DateTime);
+
+    /* valid Days */
+    if (!((0x01 << (DateTime.date.wday - 1)) & pBacDest->ValidDays))
+        return false;
+
+    /* valid FromTime */
+    if (datetime_compare_time(&DateTime.time, &pBacDest->FromTime) < 0)
+        return false;
+
+    /* valid ToTime */
+    if (datetime_compare_time(&pBacDest->ToTime, &DateTime.time) < 0)
+        return false;
+
+    return true;
+}
+
+
+void Notification_Class_common_reporting_function(
+        BACNET_EVENT_NOTIFICATION_DATA * event_data)
+{
+    /* Fill the parameters common for all types of events. */
+
+    NOTIFICATION_CLASS_INFO *CurrentNotify;
+    BACNET_DESTINATION *pBacDest;
+    uint32_t notify_index;
+    uint8_t index;
+
+
+    notify_index = Notification_Class_Instance_To_Index(
+                        event_data->notificationClass);
+
+    if (notify_index < MAX_NOTIFICATION_CLASSES)
+        CurrentNotify = &NC_Info[notify_index];
+    else
+        return;
+
+
+    /* Initiating Device Identifier */
+    event_data->initiatingObjectIdentifier.type = OBJECT_DEVICE;
+    event_data->initiatingObjectIdentifier.instance =
+                        Device_Object_Instance_Number();
+
+    /* Priority and AckRequired*/
+    switch (event_data->toState)
+    {
+        case EVENT_STATE_OFFNORMAL:
+            event_data->priority =
+                        CurrentNotify->Priority[EVENT_STATE_OFFNORMAL];
+            event_data->ackRequired = (CurrentNotify->Ack_Required &
+                        TRANSITION_TO_OFFNORMAL_MASKED) ? true : false;
+            break;
+
+        case EVENT_STATE_FAULT:
+            event_data->priority =
+                        CurrentNotify->Priority[EVENT_STATE_FAULT];
+            event_data->ackRequired = (CurrentNotify->Ack_Required &
+                        TRANSITION_TO_FAULT_MASKED) ? true : false;
+            break;
+
+        case EVENT_STATE_NORMAL:
+        case EVENT_STATE_HIGH_LIMIT:
+        case EVENT_STATE_LOW_LIMIT:
+            event_data->priority =
+                        CurrentNotify->Priority[EVENT_STATE_NORMAL];
+            event_data->ackRequired = (CurrentNotify->Ack_Required &
+                        TRANSITION_TO_NORMAL) ? true : false;
+            break;
+
+        default:    // shouldn't happen
+            break;
+    }
+
+    /* send notifications for active recipients */
+    /* pointer to first recipient */
+    pBacDest = &CurrentNotify->Recipient_List[0];
+    for (index = 0; index < NC_MAX_RECIPIENTS; index++, pBacDest++)
+    {
+        /* check if recipient is defined */
+        if (pBacDest->Recipient.RecipientType == RECIPIENT_TYPE_NOTINITIALIZED)
+            break;  /* recipient doesn't defined - end of list */
+
+        if (IsRecipientActive(pBacDest, event_data->toState) == true)
+        {
+            BACNET_ADDRESS dest;
+            uint32_t device_id;
+            unsigned max_apdu;
+
+            /* Process Identifier */
+            event_data->processIdentifier = pBacDest->ProcessIdentifier;
+
+            /* send notification */
+            if (pBacDest->Recipient.RecipientType == RECIPIENT_TYPE_DEVICE) {
+                /* send notification to the specified device */
+                device_id = pBacDest->Recipient._.DeviceIdentifier;
+
+                if (pBacDest->ConfirmedNotify == true)
+                    Send_CEvent_Notify(device_id, event_data);
+                else if (address_get_by_device(device_id, &max_apdu, &dest))
+                    Send_UEvent_Notify(Handler_Transmit_Buffer, event_data, &dest);
+            }
+            else if (pBacDest->Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
+                /* send notification to the address indicated */
+                if (pBacDest->ConfirmedNotify == true) {
+                    if (address_get_device_id(&dest, &device_id))
+                        Send_CEvent_Notify(device_id, event_data);
+                }
+                else {
+                    dest = pBacDest->Recipient._.Address;
+                    Send_UEvent_Notify(Handler_Transmit_Buffer, event_data, &dest);
+                }
+            }
+        }
+    }
+}
+
+/* This function tries to find the addresses of the defined devices. */
+/* It should be called periodically (example once per minute). */
+void Notification_Class_find_recipient(void)
+{
+    NOTIFICATION_CLASS_INFO *CurrentNotify;
+    BACNET_DESTINATION *pBacDest;
+    BACNET_ADDRESS src = {0};
+    unsigned max_apdu = 0;
+    uint32_t notify_index;
+    uint32_t DeviceID;
+    uint8_t  idx;
+
+
+    for (notify_index = 0; notify_index < MAX_NOTIFICATION_CLASSES; notify_index++)
+    {
+        /* pointer to current notification */
+        CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(notify_index)];
+        /* pointer to first recipient */
+        pBacDest = &CurrentNotify->Recipient_List[0];
+        for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++, pBacDest++)
+        {
+            if (CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_DEVICE) {
+                /* Device ID */
+                DeviceID = CurrentNotify->Recipient_List[idx].Recipient._.DeviceIdentifier;
+                /* Send who_ is request only when address of device is unknown. */
+                if(!address_bind_request(DeviceID, &max_apdu, &src))
+                    Send_WhoIs(DeviceID, DeviceID);
+            }
+            else if(CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
+
+            }
+        }
+    }
 }
