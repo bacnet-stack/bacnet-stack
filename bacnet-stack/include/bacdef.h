@@ -49,9 +49,6 @@
 #define BACNET_PROTOCOL_VERSION 1
 #define BACNET_PROTOCOL_REVISION 10
 
-/* Intrinsic reporting funcionality */
-#define INTRINSIC_REPORTING
-
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
 #define BACNET_MAX_INSTANCE (0x3FFFFF)
