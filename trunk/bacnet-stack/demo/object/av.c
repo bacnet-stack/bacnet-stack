@@ -121,6 +121,10 @@ void Analog_Value_Init(
         AV_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
         AV_Descr[i].Notification_Class = BACNET_MAX_INSTANCE;
+        /* initialize Event time stamps using wildcards */
+        for (j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
+            datetime_wildcard_set(&AV_Descr[i].Event_Time_Stamps[j]);
+        }
     }
 
     return;
@@ -344,7 +348,7 @@ int Analog_Value_Read_Property(
                         apdu_len += len;
                     else {
                         rpdata->error_class = ERROR_CLASS_SERVICES;
-                        rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                        rpdata->error_code  = ERROR_CODE_NO_SPACE_FOR_OBJECT;
                         apdu_len = BACNET_STATUS_ERROR;
                         break;
                     }
@@ -435,14 +439,41 @@ int Analog_Value_Read_Property(
         case PROP_EVENT_TIME_STAMPS:
             /* Array element zero is the number of elements in the array */
             if (rpdata->array_index == 0)
-                apdu_len = encode_application_unsigned(&apdu[0], 3);
+                apdu_len = encode_application_unsigned(&apdu[0],
+                                MAX_BACNET_EVENT_TRANSITION);
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /// Fixme:
+                for (i = 0; i < MAX_BACNET_EVENT_TRANSITION; i++) {;
+                    len  = encode_opening_tag(&apdu[apdu_len],
+                                TIME_STAMP_DATETIME);
+                    len += encode_application_date(&apdu[apdu_len + len],
+                                &CurrentAV->Event_Time_Stamps[i].date);
+                    len += encode_application_time(&apdu[apdu_len + len],
+                                &CurrentAV->Event_Time_Stamps[i].time);
+                    len += encode_closing_tag(&apdu[apdu_len + len],
+                                TIME_STAMP_DATETIME);
+
+                    /* add it if we have room */
+                    if ((apdu_len + len) < MAX_APDU)
+                        apdu_len += len;
+                    else {
+                        rpdata->error_class = ERROR_CLASS_SERVICES;
+                        rpdata->error_code  = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                        apdu_len = BACNET_STATUS_ERROR;
+                        break;
+                    }
+                }
             }
-            else if (rpdata->array_index <= 3) {
-                /// Fixme:
+            else if (rpdata->array_index <= MAX_BACNET_EVENT_TRANSITION) {
+                apdu_len  = encode_opening_tag(&apdu[apdu_len],
+                                TIME_STAMP_DATETIME);
+                apdu_len += encode_application_date(&apdu[apdu_len],
+                                &CurrentAV->Event_Time_Stamps[rpdata->array_index].date);
+                apdu_len += encode_application_time(&apdu[apdu_len],
+                                &CurrentAV->Event_Time_Stamps[rpdata->array_index].time);
+                apdu_len += encode_closing_tag(&apdu[apdu_len],
+                                TIME_STAMP_DATETIME);
             }
             else {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -459,7 +490,9 @@ int Analog_Value_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+    if ((apdu_len >= 0) &&
+        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -578,6 +611,7 @@ bool Analog_Value_Write_Property(
 
             if (status) {
                 CurrentAV->Time_Delay = value.type.Unsigned_Int;
+                CurrentAV->Remaining_Time_Delay = CurrentAV->Time_Delay;
             }
             break;
 
@@ -717,11 +751,13 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
                 (c) the TO-OFFNORMAL flag must be set in the Event_Enable property. */
             if ((PresentVal > CurrentAV->High_Limit) &&
-                /// (Deadband >= CurrentAV->Time_Delay) &&
                 ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
                 ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
             {
-                CurrentAV->Event_State = EVENT_STATE_HIGH_LIMIT;
+                if(!CurrentAV->Remaining_Time_Delay)
+                    CurrentAV->Event_State = EVENT_STATE_HIGH_LIMIT;
+                else
+                    CurrentAV->Remaining_Time_Delay--;
                 break;
             }
 
@@ -731,13 +767,17 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
                 (c) the TO-NORMAL flag must be set in the Event_Enable property. */
             if ((PresentVal < CurrentAV->Low_Limit) &&
-                /// (Deadband >= CurrentAV->Time_Delay) &&
                 ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
                 ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
             {
-                CurrentAV->Event_State = EVENT_STATE_LOW_LIMIT;
+                if(!CurrentAV->Remaining_Time_Delay)
+                    CurrentAV->Event_State = EVENT_STATE_LOW_LIMIT;
+                else
+                    CurrentAV->Remaining_Time_Delay--;
                 break;
             }
+            /* value of the object is still in the same event state */
+            CurrentAV->Remaining_Time_Delay = CurrentAV->Time_Delay;
             break;
 
         case EVENT_STATE_HIGH_LIMIT:
@@ -748,12 +788,17 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
                 (c) the TO-NORMAL flag must be set in the Event_Enable property. */
             if ((PresentVal < CurrentAV->High_Limit - CurrentAV->Deadband) &&
-                /// (Deadband >= CurrentAV->Time_Delay) &&
                 ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
                 ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
             {
-                CurrentAV->Event_State = EVENT_STATE_NORMAL;
+                if(!CurrentAV->Remaining_Time_Delay)
+                    CurrentAV->Event_State = EVENT_STATE_NORMAL;
+                else
+                    CurrentAV->Remaining_Time_Delay--;
+                break;
             }
+            /* value of the object is still in the same event state */
+            CurrentAV->Remaining_Time_Delay = CurrentAV->Time_Delay;
             break;
 
         case EVENT_STATE_LOW_LIMIT:
@@ -765,12 +810,17 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
                 (c) the TO-NORMAL flag must be set in the Event_Enable property. */
             if ((PresentVal > CurrentAV->Low_Limit + CurrentAV->Deadband) &&
-                /// (Deadband >= CurrentAV->Time_Delay) &&
                 ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
                 ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
             {
-                CurrentAV->Event_State = EVENT_STATE_NORMAL;
+                if(!CurrentAV->Remaining_Time_Delay)
+                    CurrentAV->Event_State = EVENT_STATE_NORMAL;
+                else
+                    CurrentAV->Remaining_Time_Delay--;
+                break;
             }
+            /* value of the object is still in the same event state */
+            CurrentAV->Remaining_Time_Delay = CurrentAV->Time_Delay;
             break;
 
         default:
@@ -822,9 +872,28 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         event_data.eventObjectIdentifier.type = OBJECT_ANALOG_VALUE;
         event_data.eventObjectIdentifier.instance = object_instance;
 
-        /* Time Stamp*/
+        /* Time Stamp */
         event_data.timeStamp.tag = TIME_STAMP_DATETIME;
         Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
+        /* fill Event_Time_Stamps */
+        switch (ToState)
+        {
+            case EVENT_STATE_HIGH_LIMIT:
+            case EVENT_STATE_LOW_LIMIT:
+                CurrentAV->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL] =
+                                event_data.timeStamp.value.dateTime;
+                break;
+
+            case EVENT_STATE_FAULT:
+                CurrentAV->Event_Time_Stamps[TRANSITION_TO_FAULT] =
+                                event_data.timeStamp.value.dateTime;
+                break;
+
+            case EVENT_STATE_NORMAL:
+                CurrentAV->Event_Time_Stamps[TRANSITION_TO_NORMAL] =
+                                event_data.timeStamp.value.dateTime;
+                break;
+        }
 
         /* Notification Class */
         event_data.notificationClass = CurrentAV->Notification_Class;

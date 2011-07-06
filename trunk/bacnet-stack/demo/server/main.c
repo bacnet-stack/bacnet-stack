@@ -205,7 +205,9 @@ int main(
             }
             tsm_timer_milliseconds(elapsed_milliseconds);
             trend_log_timer(elapsed_seconds);
+#if defined(INTRINSIC_REPORTING)
             Device_local_reporting(elapsed_seconds * 1000);
+#endif
         }
         /* scan cache address */
         address_binding_tmr += elapsed_seconds;
@@ -213,13 +215,14 @@ int main(
             address_cache_timer(address_binding_tmr);
             address_binding_tmr = 0;
         }
+#if defined(INTRINSIC_REPORTING)
         /* try to find addresses of recipients */
         recipient_scan_tmr += elapsed_seconds;
         if (recipient_scan_tmr >= NC_RESCAN_RECIPIENTS_SECS) {
             Notification_Class_find_recipient();
             recipient_scan_tmr = 0;
         }
-
+#endif
         /* output */
 
         /* blink LEDs, Turn on or off outputs, etc */

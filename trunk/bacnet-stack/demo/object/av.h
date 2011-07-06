@@ -56,6 +56,9 @@ extern "C" {
         uint8_t  Event_Enable : 3;
         uint8_t  Acked_Transitions : 3;
         uint8_t  Notify_Type  : 1;
+        BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+        /* time to generate event notification */
+        uint32_t Remaining_Time_Delay;
 #endif
     } ANALOG_VALUE_DESCR;
 
