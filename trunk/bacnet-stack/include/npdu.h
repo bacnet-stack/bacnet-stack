@@ -39,8 +39,10 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
-/** Use a hop count default that is generous but reasonable. */
-#define DFLT_HOP_COUNT 15
+/** Hop count default is required by BTL to be maximum */
+#ifndef HOP_COUNT_DEFAULT
+#define HOP_COUNT_DEFAULT 255
+#endif
 
 /* an NPDU structure keeps the parameter stack to a minimum */
 typedef struct bacnet_npdu_data_t {
@@ -56,7 +58,7 @@ typedef struct bacnet_npdu_data_t {
 } BACNET_NPDU_DATA;
 
 struct router_port_t;
-/** The info[] string has no agreed-upon purpose, hence it is useless. 
+/** The info[] string has no agreed-upon purpose, hence it is useless.
  * Keeping it short here. This size could be 0-255. */
 #define ROUTER_PORT_INFO_LEN 2
 /** Port Info structure used by Routers for their routing table. */
