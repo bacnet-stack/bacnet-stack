@@ -118,6 +118,7 @@ void Analog_Value_Init(
             AV_Descr[i].Priority_Array[j] = ANALOG_LEVEL_NULL;
         }
         AV_Descr[i].Units = UNITS_PERCENT;
+#if defined(INTRINSIC_REPORTING)
         AV_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
         AV_Descr[i].Notification_Class = BACNET_MAX_INSTANCE;
@@ -125,6 +126,7 @@ void Analog_Value_Init(
         for (j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
             datetime_wildcard_set(&AV_Descr[i].Event_Time_Stamps[j]);
         }
+#endif
     }
 
     return;
@@ -719,6 +721,7 @@ bool Analog_Value_Write_Property(
 
 void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
+#if defined(INTRINSIC_REPORTING)
     BACNET_EVENT_NOTIFICATION_DATA event_data;
     BACNET_CHARACTER_STRING msgText;
     ANALOG_VALUE_DESCR *CurrentAV;
@@ -933,6 +936,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* add data from notification class */
         Notification_Class_common_reporting_function(&event_data);
     }
+#endif /* defined(INTRINSIC_REPORTING) */
 }
 
 
