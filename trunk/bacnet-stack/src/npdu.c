@@ -209,7 +209,7 @@ int npdu_encode_pdu(
         /* destined for a remote network, i.e., if DNET is present. */
         /* This is a one-octet field that is initialized to a value of 0xff. */
         if (dest && dest->net) {
-            npdu[len] = npdu_data->hop_count - 1;
+            npdu[len] = npdu_data->hop_count;
             len++;
         }
         if (npdu_data->network_layer_message) {
