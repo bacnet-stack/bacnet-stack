@@ -50,7 +50,7 @@
  * The name is a misnomer, as it doesn't do any actual encoding here.
  * @see npdu_encode_npdu_data for a simpler version to use when sending an
  *           APDU instead of a Network Layer Message.
- * 
+ *
  * @param npdu_data [out] Returns a filled-out structure with information
  * 					 provided by the other arguments and good defaults.
  * @param network_message_type [in] The type of Network Layer Message.
@@ -71,7 +71,7 @@ static void npdu_encode_npdu_network(
         npdu_data->network_message_type = network_message_type; /* optional */
         npdu_data->vendor_id = 0;       /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
-        npdu_data->hop_count = DFLT_HOP_COUNT;
+        npdu_data->hop_count = HOP_COUNT_DEFAULT;
     }
 }
 
@@ -87,13 +87,13 @@ static void npdu_encode_npdu_network(
  * - NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK: same as I-Am-Router msg
  * - NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK: same as I-Am-Router msg
  * - NETWORK_MESSAGE_INIT_RT_TABLE and NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
- *      Array of DNET(s) to process as "Ports", terminated with -1.  Each DNET 
+ *      Array of DNET(s) to process as "Ports", terminated with -1.  Each DNET
  *      will be expanded to a BACNET_ROUTER_PORT (with simple defaults for
- *      most fields) and encoded.   
- * 
+ *      most fields) and encoded.
+ *
  * @param network_message_type [in] The type of message to be sent.
  * @param dst [in/out] If not NULL, contains the destination for the message.
- * @param iArgs [in] An optional array of values whose meaning depends on 
+ * @param iArgs [in] An optional array of values whose meaning depends on
  *                   the type of message.
  * @return Number of bytes sent, or <=0 if no message was sent.
  */
@@ -179,7 +179,7 @@ int Send_Network_Layer_Message(
                 pVal = iArgs;   /* Reset to beginning */
                 /* Now encode each (virtual) BACNET_ROUTER_PORT.
                  * We will simply use a positive index for PortID,
-                 * and have no PortInfo. 
+                 * and have no PortInfo.
                  */
                 while (*pVal >= 0) {
                     len =
@@ -228,7 +228,7 @@ int Send_Network_Layer_Message(
 /** Finds a specific router, or all reachable BACnet networks.
  * The response(s) will come in I-am-router-to-network message(s).
  * @ingroup NMRC
- * 
+ *
  * @param dst [in] If NULL, request will be broadcast to the local BACnet
  *                 network.  Optionally may designate a particular router
  *                 destination to respond.
@@ -244,13 +244,13 @@ void Send_Who_Is_Router_To_Network(
         &dnet);
 }
 
-/** Broadcast an I-am-router-to-network message, giving the list of networks 
+/** Broadcast an I-am-router-to-network message, giving the list of networks
  * we can reach.
- * The message will be sent to our normal DataLink Layer interface, 
+ * The message will be sent to our normal DataLink Layer interface,
  * not the routed backend.
  * @ingroup NMRC
- * 
- * @param DNET_list [in] List of BACnet network numbers for which I am a router, 
+ *
+ * @param DNET_list [in] List of BACnet network numbers for which I am a router,
  *                       terminated with -1
  */
 void Send_I_Am_Router_To_Network(
@@ -264,7 +264,7 @@ void Send_I_Am_Router_To_Network(
 /** Finds a specific router, or all reachable BACnet networks.
  * The response(s) will come in I-am-router-to-network message(s).
  * @ingroup NMRC
- * 
+ *
  * @param dst [in] If NULL, request will be broadcast to the local BACnet
  *                 network.  Otherwise, designates a particular router
  *                 destination.
@@ -285,20 +285,20 @@ void Send_Reject_Message_To_Network(
 }
 
 
-/** Send an Initialize Routing Table message, built from an optional DNET[] 
+/** Send an Initialize Routing Table message, built from an optional DNET[]
  * array.
  * There are two cases here:
  * 1) We are requesting a destination router's Routing Table.
- *    In that case, DNET[] should just have one entry of -1 (no routing table 
+ *    In that case, DNET[] should just have one entry of -1 (no routing table
  *    is sent).
  * 2) We are sending out our Routing Table for some reason (normally bcast it).
  * @ingroup NMRC
- *    
+ *
  * @param dst [in] If NULL, msg will be broadcast to the local BACnet network.
- *                 Optionally may designate a particular router destination, 
+ *                 Optionally may designate a particular router destination,
  *                 especially when requesting a Routing Table.
- * @param DNET_list [in] List of BACnet network numbers for which I am a router, 
- *                       terminated with -1.  Will be just -1 when we are 
+ * @param DNET_list [in] List of BACnet network numbers for which I am a router,
+ *                       terminated with -1.  Will be just -1 when we are
  *                       requesting a routing table.
  */
 void Send_Initialize_Routing_Table(
@@ -316,16 +316,16 @@ void Send_Initialize_Routing_Table(
  * 1) We are responding to a NETWORK_MESSAGE_INIT_RT_TABLE requesting our table.
  *    We will normally broadcast that response.
  * 2) We are ACKing the receipt of a NETWORK_MESSAGE_INIT_RT_TABLE containing a
- *    routing table, and then we will want to respond to that dst router.  
- *    In that case, DNET[] should just have one entry of -1 (no routing table 
+ *    routing table, and then we will want to respond to that dst router.
+ *    In that case, DNET[] should just have one entry of -1 (no routing table
  *    is sent).
  * @ingroup NMRC
- *    
+ *
  * @param dst [in] If NULL, Ack will be broadcast to the local BACnet network.
- *                 Optionally may designate a particular router destination, 
+ *                 Optionally may designate a particular router destination,
  *                 especially when ACKing receipt of this message type.
- * @param DNET_list [in] List of BACnet network numbers for which I am a router, 
- *                       terminated with -1.  May be just -1 when no table 
+ * @param DNET_list [in] List of BACnet network numbers for which I am a router,
+ *                       terminated with -1.  May be just -1 when no table
  *                       should be sent.
  */
 void Send_Initialize_Routing_Table_Ack(
