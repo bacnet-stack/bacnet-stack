@@ -47,6 +47,7 @@
 #endif
 
 
+#if defined(INTRINSIC_REPORTING)
 static NOTIFICATION_CLASS_INFO NC_Info[MAX_NOTIFICATION_CLASSES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -120,7 +121,7 @@ void Notification_Class_Init(void)
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[0] = 0xC0;
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[1] = 0xA8;
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[2] = 0x01;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[3] = 0x65;
+//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[3] = 0xFF;
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[4] = 0xBA;
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[5] = 0xC0;
 //    NC_Info[0].Recipient_List[0].Recipient._.Address.mac_len = 6;
@@ -890,3 +891,4 @@ void Notification_Class_find_recipient(void)
         }
     }
 }
+#endif /* defined(INTRINSIC_REPORTING) */

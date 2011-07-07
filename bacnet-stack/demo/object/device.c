@@ -1487,6 +1487,7 @@ bool Device_Encode_Value_List(
 
 void Device_local_reporting(uint32_t milliseconds)
 {
+#if defined(INTRINSIC_REPORTING)
     struct   object_functions *pObject;
     uint32_t objects_count;
     uint32_t object_instance;
@@ -1512,6 +1513,7 @@ void Device_local_reporting(uint32_t milliseconds)
             }
         }
     }
+#endif
 }
 
 /** Looks up the requested Object to see if the functionality is supported.
