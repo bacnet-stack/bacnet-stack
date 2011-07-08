@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -301,10 +302,16 @@ int Analog_Value_Read_Property(
 
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
+#if defined(INTRINSIC_REPORTING)
+            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
+                                CurrentAV->Event_State ? true : false);
+#else
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
+#endif
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, CurrentAV->Out_Of_Service);
+
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
 
@@ -497,7 +504,7 @@ int Analog_Value_Read_Property(
         (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        rpdata->error_code  = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
     }
 
