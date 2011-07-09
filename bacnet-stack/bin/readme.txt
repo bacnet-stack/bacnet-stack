@@ -20,7 +20,7 @@ bacwi -1 > address_cache
 Client Tools
 ------------
 bacrp - BACnet ReadProperty service
-bacwp - BACnet ReadProperty service
+bacwp - BACnet WriteProperty service
 bacarf - BACnet AtomicReadFile service
 bacawf - BACnet AtomicWriteFile service
 bacdcc - BACnet DeviceCommunicationControl service
@@ -74,7 +74,90 @@ BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device
 BACNET_BBMD_ADDRESS - dotted IPv4 address of the BBMD or Foreign Device
     Registrar.
 
+Example Usage
+-------------
+You can communicate with the virtual BACnet Device by using the other BACnet
+command line tools.  If you are using the same PC, you can use BBMD/FD
+(Foreign Device registration) to do this - use the bvlc script.  You can
+monitor the interaction and bytes on the wire using Wireshark.  Here is 
+an example usage for Window and for Linux.
+
+Windows
+-------
+The BACnet tools are used from the Command Prompt, or CMD.EXE.  
+From the command prompt window, start the simulated BACnet device:
+c:\> bacserv 1234
+
+From another command prompt window, use ipconfig to determine the 
+network interface IP address that bacserv is using: 
+c:\> ipconfig
+
+Use the default IP address to configure the BBMD and Foreign Device
+environment variables:
+c:\> bvlc.bat 192.168.0.42
+
+bvlc.bat batch file configures environment variables to use BACnet/IP 
+port 47809 for any subsequent BACnet tools run from that command prompt window, 
+and enables the BBMD Foreign Device Registration.
+
+Perform a device discovery:
+c:\> bacwi -1
+
+Read all the required properties from the Device 1234 and display their values:
+c:\> bacepics -v 1234
+
+Read the Object_Identifier property from the Device 1234:
+c:\> bacrp 1234 8 1234 75
+
+Write 100.0 (REAL=4 datatype) to Device 1234 Analog Output (1) One (1) 
+at priority 16 with no index (-1).
+c:\> bacwp 1234 1 1 85 16 -1 4 100.0
+
+Each tool has help:
+c:\> bacrp --help
+
+Linux
+-----
+To use the tools from the command line, you need to use the path to the command,
+or include the path in your PATH environment variable.  The dot "." means current
+directory.  The "/" is used to separate directories. "./" means the path starts
+from the current directory.
+
+When the tools are built from the Makefile, they are copied to the bin/ directory.
+So from the root of the project you could run the tools like this using a terminal
+window:
+$ make clean all
+$ ./bin/bacserv 1234
+
+In another terminal window use ifconfig to determine the network interface IP 
+address that bacserv is using: 
+$ ifconfig
+
+Use that address (likely from eth0) to configure the BBMD and Foreign Device
+environment variables:
+$./bin/bvlc.sh 192.168.0.42
+bvlc.sh script configures environment variables to use BACnet/IP 
+port 47809 for any subsequent BACnet tools run from that shell, 
+and enables the BBMD Foreign Device Registration.
+
+Perform a device discovery:
+$ ./bin/bacwi -1
+
+Read all the required properties from the Device 1234 and display their values:
+$ ./bin/bacepics -v 1234
+
+Read the Object_Identifier property from the Device 1234:
+$ ./bin/bacrp 1234 8 1234 75
+
+Write 100.0 (REAL=4 datatype) to Device 1234 Analog Output (1) One (1) 
+at priority 16 with no index (-1).
+$ ./bin/bacwp 1234 1 1 85 16 -1 4 100.0
+
+Each tool has help:
+$ ./bin/bacrp --help
+
 Source Code
 -----------
 The source code for the BACnet-Tools can be found at:
 http://bacnet.sourceforge.net/
+
