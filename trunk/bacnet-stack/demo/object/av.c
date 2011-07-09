@@ -435,7 +435,7 @@ int Analog_Value_Read_Property(
             bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,     true);
             bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,    true);
 
-            /// Fixme: finish it
+            /*/ Fixme: finish it */
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
