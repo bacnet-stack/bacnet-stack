@@ -121,4 +121,4 @@ typedef struct Notification_Class_info {
     Notification_Class_Write_Property, Notification_Class_Property_Lists, \
     NULL, NULL, NULL
 
-#endif // NC_H
+#endif /* NC_H */

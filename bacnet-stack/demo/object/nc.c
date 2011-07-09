@@ -104,31 +104,31 @@ void Notification_Class_Init(void)
     }
 
     /* init with special values for tests */
-//    NC_Info[0].Ack_Required = TRANSITION_TO_NORMAL_MASKED;
-//    NC_Info[0].Priority[0] = 248;
-//    NC_Info[0].Priority[1] = 192;
-//    NC_Info[0].Priority[2] = 200;
-//    NC_Info[0].Recipient_List[0].ValidDays = 0x1F;  /* from monday to friday */
-//    NC_Info[0].Recipient_List[0].FromTime.hour = 6;
-//    NC_Info[0].Recipient_List[0].FromTime.min  = 15;
-//    NC_Info[0].Recipient_List[0].FromTime.sec  = 10;
-//    NC_Info[0].Recipient_List[0].FromTime.hundredths = 0;
-//    NC_Info[0].Recipient_List[0].ToTime.hour = 23;
-//    NC_Info[0].Recipient_List[0].ToTime.min  = 48;
-//    NC_Info[0].Recipient_List[0].ToTime.sec  = 59;
-//    NC_Info[0].Recipient_List[0].ToTime.hundredths = 0;
-//    NC_Info[0].Recipient_List[0].Recipient.RecipientType = RECIPIENT_TYPE_ADDRESS;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[0] = 0xC0;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[1] = 0xA8;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[2] = 0x01;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[3] = 0xFF;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[4] = 0xBA;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[5] = 0xC0;
-//    NC_Info[0].Recipient_List[0].Recipient._.Address.mac_len = 6;
-//    NC_Info[0].Recipient_List[0].ProcessIdentifier = 112233;
-//    NC_Info[0].Recipient_List[0].ConfirmedNotify = true;
-//    NC_Info[0].Recipient_List[0].Transitions =
-//            TRANSITION_TO_OFFNORMAL_MASKED | TRANSITION_TO_NORMAL_MASKED;
+/*    NC_Info[0].Ack_Required = TRANSITION_TO_NORMAL_MASKED; */
+/*    NC_Info[0].Priority[0] = 248; */
+/*    NC_Info[0].Priority[1] = 192; */
+/*    NC_Info[0].Priority[2] = 200; */
+/*    NC_Info[0].Recipient_List[0].ValidDays = 0x1F;  /* from monday to friday */ */
+/*    NC_Info[0].Recipient_List[0].FromTime.hour = 6; */
+/*    NC_Info[0].Recipient_List[0].FromTime.min  = 15; */
+/*    NC_Info[0].Recipient_List[0].FromTime.sec  = 10; */
+/*    NC_Info[0].Recipient_List[0].FromTime.hundredths = 0; */
+/*    NC_Info[0].Recipient_List[0].ToTime.hour = 23; */
+/*    NC_Info[0].Recipient_List[0].ToTime.min  = 48; */
+/*    NC_Info[0].Recipient_List[0].ToTime.sec  = 59; */
+/*    NC_Info[0].Recipient_List[0].ToTime.hundredths = 0; */
+/*    NC_Info[0].Recipient_List[0].Recipient.RecipientType = RECIPIENT_TYPE_ADDRESS; */
+/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[0] = 0xC0; */
+/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[1] = 0xA8; */
+/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[2] = 0x01; */
+/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[3] = 0xFF; */
+/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[4] = 0xBA; */
+/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[5] = 0xC0; */
+/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac_len = 6; */
+/*    NC_Info[0].Recipient_List[0].ProcessIdentifier = 112233; */
+/*    NC_Info[0].Recipient_List[0].ConfirmedNotify = true; */
+/*    NC_Info[0].Recipient_List[0].Transitions = */
+/*            TRANSITION_TO_OFFNORMAL_MASKED | TRANSITION_TO_NORMAL_MASKED; */
 
 
     return;
@@ -422,7 +422,7 @@ bool Notification_Class_Write_Property(
 
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(wp_data->object_instance)];
 
-    // decode the some of the request
+    /* decode the some of the request */
     len = bacapp_decode_application_data(wp_data->application_data,
                                          wp_data->application_data_len, &value);
 
@@ -439,7 +439,7 @@ bool Notification_Class_Write_Property(
                    wp_data->error_code  = ERROR_CODE_INVALID_ARRAY_INDEX;
                 }
                 else if (wp_data->array_index == BACNET_ARRAY_ALL) {
-                    /// FIXME: wite all array
+                    /*/ FIXME: wite all array */
                 }
                 else if (wp_data->array_index <= 3) {
                     CurrentNotify->Priority[wp_data->array_index - 1] =
@@ -693,8 +693,8 @@ bool Notification_Class_Write_Property(
                 }
                 else if (CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
                     /* copy Address */
-                    ///src = CurrentNotify->Recipient_List[idx].Recipient._.Address;
-                    ///address_bind_request(BACNET_MAX_INSTANCE, &max_apdu, &src);
+                    /*/src = CurrentNotify->Recipient_List[idx].Recipient._.Address; */
+                    /*/address_bind_request(BACNET_MAX_INSTANCE, &max_apdu, &src); */
                 }
             }
 
@@ -810,7 +810,7 @@ void Notification_Class_common_reporting_function(
                         TRANSITION_TO_NORMAL) ? true : false;
             break;
 
-        default:    // shouldn't happen
+        default:    /* shouldn't happen */
             break;
     }
 
