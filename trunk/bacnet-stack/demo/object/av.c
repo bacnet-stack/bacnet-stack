@@ -878,12 +878,12 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 break;
         }   /* switch (ToState) */
 
-#if defined(PRINT_ENABLED)
+#if PRINT_ENABLED
         fprintf(stderr, "Event_State for (Analog-Value,%d) goes from %s to %s.\n",
                     object_instance, bactext_event_state_name(FromState),
                     bactext_event_state_name(ToState));
 
-#endif /* defined(PRINT_ENABLED) */
+#endif /* PRINT_ENABLED */
 
         /* Event Object Identifier */
         event_data.eventObjectIdentifier.type = OBJECT_ANALOG_VALUE;

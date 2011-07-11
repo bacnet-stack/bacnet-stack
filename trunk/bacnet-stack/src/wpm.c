@@ -44,7 +44,7 @@ int wpm_decode_object_id(uint8_t * apdu, uint16_t apdu_len,
 
     if((apdu )&& (apdu_len))
     {
-        /* Context tag 0 - Object ID */
+        /* Context tag 0 - Object ID */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if(tag_number == 0)
         {
@@ -78,7 +78,7 @@ int wpm_decode_object_property(uint8_t * apdu,
         wp_data->priority    = BACNET_NO_PRIORITY;
         wp_data->application_data_len = 0;
 
-        /* tag 0 - Property Identifier */
+        /* tag 0 - Property Identifier */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if(tag_number == 0)
         {
@@ -88,7 +88,7 @@ int wpm_decode_object_property(uint8_t * apdu,
         else
             return -1;
 
-        /* tag 1 - Property Array Index - optional */
+        /* tag 1 - Property Array Index - optional */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if(tag_number ==1)
         {
@@ -97,7 +97,7 @@ int wpm_decode_object_property(uint8_t * apdu,
 
             len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         }
-        /* tag 2 - Property Value */
+        /* tag 2 - Property Value */
         if((tag_number == 2) && (decode_is_opening_tag(&apdu[len-1])))
         {
             len--;
@@ -105,20 +105,20 @@ int wpm_decode_object_property(uint8_t * apdu,
                             apdu_len - len, wp_data->object_property);
             len++;
 
-            /* copy application data */
+            /* copy application data */
             for(i = 0; i < wp_data->application_data_len; i++)
                 wp_data->application_data[i] = apdu[len+i];
             len += wp_data->application_data_len;
 
             len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-            /* closing tag 2 */
+            /* closing tag 2 */
             if((tag_number != 2) &&(decode_is_closing_tag(&apdu[len-1])))
                 return -1;
         }
         else
             return -1;
 
-        /* tag 3 - Priority - optional */
+        /* tag 3 - Priority - optional */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if(tag_number == 3)
         {

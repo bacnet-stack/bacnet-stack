@@ -93,7 +93,7 @@ static object_functions_t Object_Table[] = {
             Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
             Analog_Input_Object_Name, Analog_Input_Read_Property,
             Analog_Input_Write_Property, Analog_Input_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
+            NULL, NULL, NULL, Analog_Input_Intrinsic_Reporting}, {
     OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
             Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
             Analog_Value_Object_Name, Analog_Value_Read_Property,
@@ -1497,7 +1497,7 @@ void Device_local_reporting(void)
     objects_count = Device_Object_List_Count();
 
     /* loop for all objects */
-    for (idx = 0; idx < objects_count; idx++)
+    for (idx = 1; idx < objects_count; idx++)
     {
         Device_Object_List_Identifier(idx, &object_type,
                                       &object_instance);
