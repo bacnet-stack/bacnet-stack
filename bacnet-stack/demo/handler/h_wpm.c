@@ -117,6 +117,14 @@ void handler_write_property_multiple(
                     if (len > 0)
                     {
                         decode_len += len;
+#if PRINT_ENABLED
+                        fprintf(stderr,
+                            "WPM: type=%lu instance=%lu property=%lu priority=%lu index=%ld\n",
+                            (unsigned long) wp_data.object_type,
+                            (unsigned long) wp_data.object_instance,
+                            (unsigned long) wp_data.object_property,
+                            (unsigned long) wp_data.priority, (long) wp_data.array_index);
+#endif
                         if (Device_Write_Property(&wp_data) == false)
                         {
                             error = true;
@@ -126,7 +134,7 @@ void handler_write_property_multiple(
                     else
                     {
 #if PRINT_ENABLED
-                        fprintf(stderr, "Bad Encoding!\n");
+                        fprintf(stderr, "WPM: Bad Encoding!\n");
 #endif
                         wp_data.error_class = ERROR_CLASS_PROPERTY;
                         wp_data.error_code  = ERROR_CODE_OTHER;
@@ -153,7 +161,7 @@ void handler_write_property_multiple(
         else
         {
 #if PRINT_ENABLED
-            fprintf(stderr, "Bad Encoding!\n");
+            fprintf(stderr, "WPM: Bad Encoding!\n");
 #endif
             wp_data.error_class = ERROR_CLASS_OBJECT;
             wp_data.error_code  = ERROR_CODE_OTHER;
@@ -172,12 +180,20 @@ void handler_write_property_multiple(
 
     apdu_len = 0;
 
-    if (error == false)
+    if (error == false) {
         apdu_len = wpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
                                 service_data->invoke_id);
-    else
+#if PRINT_ENABLED
+        fprintf(stderr, "WPM: Sending Simple Ack!\n");
+#endif
+    }
+    else {
         apdu_len = wpm_error_ack_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                                 service_data->invoke_id, &wp_data);
+#if PRINT_ENABLED
+        fprintf(stderr, "WPM: Sending Error!\n");
+#endif
+    }
 
 WPM_ABORT:
 

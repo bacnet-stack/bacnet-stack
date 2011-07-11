@@ -107,6 +107,8 @@ extern "C" {
         uint32_t object_instance,
         float value);
 
+    void Analog_Input_Intrinsic_Reporting(uint32_t object_instance);
+
     void Analog_Input_Init(
         void);
 
