@@ -103,34 +103,6 @@ void Notification_Class_Init(void)
         NC_Info[NotifyIdx].Priority[2] = 255;   /* The lowest priority for Normal message. */
     }
 
-    /* init with special values for tests */
-/*    NC_Info[0].Ack_Required = TRANSITION_TO_NORMAL_MASKED; */
-/*    NC_Info[0].Priority[0] = 248; */
-/*    NC_Info[0].Priority[1] = 192; */
-/*    NC_Info[0].Priority[2] = 200; */
-/*    NC_Info[0].Recipient_List[0].ValidDays = 0x1F;  /* from monday to friday */ */
-/*    NC_Info[0].Recipient_List[0].FromTime.hour = 6; */
-/*    NC_Info[0].Recipient_List[0].FromTime.min  = 15; */
-/*    NC_Info[0].Recipient_List[0].FromTime.sec  = 10; */
-/*    NC_Info[0].Recipient_List[0].FromTime.hundredths = 0; */
-/*    NC_Info[0].Recipient_List[0].ToTime.hour = 23; */
-/*    NC_Info[0].Recipient_List[0].ToTime.min  = 48; */
-/*    NC_Info[0].Recipient_List[0].ToTime.sec  = 59; */
-/*    NC_Info[0].Recipient_List[0].ToTime.hundredths = 0; */
-/*    NC_Info[0].Recipient_List[0].Recipient.RecipientType = RECIPIENT_TYPE_ADDRESS; */
-/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[0] = 0xC0; */
-/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[1] = 0xA8; */
-/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[2] = 0x01; */
-/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[3] = 0xFF; */
-/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[4] = 0xBA; */
-/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac[5] = 0xC0; */
-/*    NC_Info[0].Recipient_List[0].Recipient._.Address.mac_len = 6; */
-/*    NC_Info[0].Recipient_List[0].ProcessIdentifier = 112233; */
-/*    NC_Info[0].Recipient_List[0].ConfirmedNotify = true; */
-/*    NC_Info[0].Recipient_List[0].Transitions = */
-/*            TRANSITION_TO_OFFNORMAL_MASKED | TRANSITION_TO_NORMAL_MASKED; */
-
-
     return;
 }
 

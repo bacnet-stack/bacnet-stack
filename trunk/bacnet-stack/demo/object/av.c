@@ -35,6 +35,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
+#include "bactext.h"
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
 #include "rp.h"
@@ -435,7 +436,7 @@ int Analog_Value_Read_Property(
             bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,     true);
             bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,    true);
 
-            /*/ Fixme: finish it */
+            /* Fixme: finish it */
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -877,6 +878,12 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 break;
         }   /* switch (ToState) */
 
+#if defined(PRINT_ENABLED)
+        fprintf(stderr, "Event_State for (Analog-Value,%d) goes from %s to %s.\n",
+                    object_instance, bactext_event_state_name(FromState),
+                    bactext_event_state_name(ToState));
+
+#endif /* defined(PRINT_ENABLED) */
 
         /* Event Object Identifier */
         event_data.eventObjectIdentifier.type = OBJECT_ANALOG_VALUE;

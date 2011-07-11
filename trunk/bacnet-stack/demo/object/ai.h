@@ -1,6 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -34,6 +35,32 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    typedef struct analog_input_descr {
+        uint8_t  Event_State  : 3;
+        float    Present_Value;
+        BACNET_RELIABILITY Reliability;
+        bool     Out_Of_Service;
+        uint8_t  Units;
+#if defined(INTRINSIC_REPORTING)
+        uint32_t Time_Delay;
+        uint32_t Notification_Class;
+        float    High_Limit;
+        float    Low_Limit;
+        float    Deadband;
+        uint8_t  Limit_Enable : 2;
+        uint8_t  Event_Enable : 3;
+        uint8_t  Acked_Transitions : 3;
+        uint8_t  Notify_Type  : 1;
+        BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+        /* time to generate event notification */
+        uint32_t Remaining_Time_Delay;
+#endif
+    } ANALOG_INPUT_DESCR;
+
+
+
+
     void Analog_Input_Property_Lists(
         const int **pRequired,
         const int **pOptional,

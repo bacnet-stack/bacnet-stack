@@ -97,7 +97,7 @@ void handler_write_property_multiple(
     decode_len = 0;
     do
     {
-        /* decode Object Identifier */
+        /* decode Object Identifier */
         len = wpm_decode_object_id(&service_request[decode_len],
                                    service_len - decode_len, &wp_data);
         if (len > 0)
@@ -105,13 +105,13 @@ void handler_write_property_multiple(
             uint8_t tag_number = 0;
 
             decode_len += len;
-            /* Opening tag 1 - List of Properties */
+            /* Opening tag 1 - List of Properties */
             if (decode_is_opening_tag_number(&service_request[decode_len++], 1))
             {
                 do
                 {
-                    /* decode a 'Property Identifier'; (3) an optional 'Property Array Index'; */
-                    /* (4) a 'Property Value'; and (5) an optional 'Priority'. */
+                    /* decode a 'Property Identifier'; (3) an optional 'Property Array Index' */
+                    /* (4) a 'Property Value'; and (5) an optional 'Priority'. */
                     len = wpm_decode_object_property(&service_request[decode_len],
                                     service_len - decode_len, &wp_data);
                     if (len > 0)
@@ -120,7 +120,7 @@ void handler_write_property_multiple(
                         if (Device_Write_Property(&wp_data) == false)
                         {
                             error = true;
-                            break;  /* do while (decoding List of Properties) */
+                            break;  /* do while (decoding List of Properties) */
                         }
                     }
                     else
@@ -131,23 +131,23 @@ void handler_write_property_multiple(
                         wp_data.error_class = ERROR_CLASS_PROPERTY;
                         wp_data.error_code  = ERROR_CODE_OTHER;
                         error = true;
-                        break;  /* do while (decoding List of Properties) */
+                        break;  /* do while (decoding List of Properties) */
                     }
 
-                    /* Closing tag 1 - List of Properties */
+                    /* Closing tag 1 - List of Properties */
                     if (decode_is_closing_tag_number(&service_request[decode_len], 1))
                     {
                         tag_number = 1;
                         decode_len++;
                     }
                     else
-                        tag_number = 0; /* it was not tag 1, decode next Property Identifier ... */
+                        tag_number = 0; /* it was not tag 1, decode next Property Identifier ... */
 
                 }
-                while(tag_number != 1); /* end decoding List of Properties for "that" object */
+                while(tag_number != 1); /* end decoding List of Properties for "that" object */
 
                 if (error)
-                    break;  /*do while (decode service request) */
+                    break;  /*do while (decode service request) */
             }
         }
         else
@@ -158,7 +158,7 @@ void handler_write_property_multiple(
             wp_data.error_class = ERROR_CLASS_OBJECT;
             wp_data.error_code  = ERROR_CODE_OTHER;
             error = true;
-            break;  /*do while (decode service request) */
+            break;  /*do while (decode service request) */
         }
     }
     while(decode_len < service_len);

@@ -337,7 +337,7 @@ extern "C" {
     bool Device_Write_Property_Local(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-    void Device_local_reporting(uint32_t milliseconds);
+    void Device_local_reporting(void);
 
 /* Prototypes for Routing functionality in the Device Object.
  * Enable by defining BAC_ROUTING in config.h and including gw_device.c
