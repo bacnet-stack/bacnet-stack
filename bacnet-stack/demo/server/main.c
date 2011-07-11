@@ -206,7 +206,7 @@ int main(
             tsm_timer_milliseconds(elapsed_milliseconds);
             trend_log_timer(elapsed_seconds);
 #if defined(INTRINSIC_REPORTING)
-            Device_local_reporting(elapsed_seconds * 1000);
+            Device_local_reporting();
 #endif
         }
         /* scan cache address */

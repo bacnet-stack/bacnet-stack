@@ -92,7 +92,7 @@ static object_functions_t Object_Table[] = {
     OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
             Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
             Analog_Input_Object_Name, Analog_Input_Read_Property,
-            NULL, Analog_Input_Property_Lists,
+            Analog_Input_Write_Property, Analog_Input_Property_Lists,
             NULL, NULL, NULL, NULL}, {
     OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
             Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
@@ -1485,7 +1485,7 @@ bool Device_Encode_Value_List(
 }
 
 
-void Device_local_reporting(uint32_t milliseconds)
+void Device_local_reporting(void)
 {
 #if defined(INTRINSIC_REPORTING)
     struct   object_functions *pObject;
