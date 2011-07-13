@@ -109,6 +109,9 @@ extern "C" {
 
     void Analog_Input_Intrinsic_Reporting(uint32_t object_instance);
 
+    int Analog_Input_Event_Information(unsigned index,
+        BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
+
     void Analog_Input_Init(
         void);
 
