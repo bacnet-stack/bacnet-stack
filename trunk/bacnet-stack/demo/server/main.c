@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
+
 #include "config.h"
 #include "server.h"
 #include "address.h"
@@ -44,6 +45,7 @@
 #include "bacfile.h"
 #include "datalink.h"
 #include "dcc.h"
+#include "getevent.h"
 #include "net.h"
 #include "txbuf.h"
 #include "lc.h"
@@ -124,6 +126,17 @@ static void Init_Service_Handlers(
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
+#if defined(INTRINSIC_REPORTING)
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_GET_EVENT_INFORMATION,
+        handler_get_event_information);
+    /* Set handlers for GetEventInformation
+       for all objects that support intrinsic reporting. */
+    handler_get_event_information_set(OBJECT_ANALOG_INPUT,
+        Analog_Input_Event_Information);
+    handler_get_event_information_set(OBJECT_ANALOG_VALUE,
+        Analog_Value_Event_Information);
+
+#endif  /* defined(INTRINSIC_REPORTING) */
 }
 
 /** Handler registered with atexit() inside main function to, well, cleanup.

@@ -37,6 +37,7 @@
 #include "bacapp.h"
 #include "bactext.h"
 #include "config.h"     /* the custom stuff */
+#include "getevent.h"
 #include "wp.h"
 #include "rp.h"
 #include "nc.h"
@@ -495,7 +496,7 @@ int Analog_Value_Read_Property(
 
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
-            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_code  = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
@@ -950,6 +951,70 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* add data from notification class */
         Notification_Class_common_reporting_function(&event_data);
     }
+#endif /* defined(INTRINSIC_REPORTING) */
+}
+
+int Analog_Value_Event_Information(unsigned index,
+        BACNET_GET_EVENT_INFORMATION_DATA * getevent_data)
+{
+#if defined(INTRINSIC_REPORTING)
+    bool isNotAckedTransitions;
+    bool IsActiveEvent;
+    int  i;
+
+
+    /* check index */
+    if (index < MAX_ANALOG_VALUES) {
+        /* Event_State not equal to NORMAL */
+        IsActiveEvent = (AV_Descr[index].Event_State != EVENT_STATE_NORMAL);
+
+        /* Acked_Transitions property, which has at least one of the bits
+           (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
+
+        /* FIXME: finish it */
+        isNotAckedTransitions = false;
+    }
+    else
+        return -1;  /* end of list  */
+
+    if ((IsActiveEvent) || (isNotAckedTransitions)) {
+        /* Object Identifier */
+        getevent_data->objectIdentifier.type = OBJECT_ANALOG_VALUE;
+        getevent_data->objectIdentifier.instance = Analog_Value_Index_To_Instance(index);
+        /* Event State */
+        getevent_data->eventState = AV_Descr[index].Event_State;
+        /* Acknowledged Transitions */
+        /* FIXME: finish it */
+        bitstring_init(&getevent_data->acknowledgedTransitions);
+        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_OFFNORMAL, true);
+        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_FAULT,     true);
+        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_NORMAL,    true);
+        /* Event Time Stamps */
+        for (i = 0; i < 3; i++) {
+            getevent_data->eventTimeStamps[i].tag = TIME_STAMP_DATETIME;
+            getevent_data->eventTimeStamps[i].value.dateTime =
+                                    AV_Descr[index].Event_Time_Stamps[i];
+        }
+        /* Notify Type */
+        getevent_data->notifyType = AV_Descr[index].Notify_Type;
+        /* Event Enable */
+        bitstring_init(&getevent_data->eventEnable);
+        bitstring_set_bit(&getevent_data->eventEnable, TRANSITION_TO_OFFNORMAL,
+                (AV_Descr[index].Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ? true : false );
+        bitstring_set_bit(&getevent_data->eventEnable, TRANSITION_TO_FAULT,
+                (AV_Descr[index].Event_Enable & EVENT_ENABLE_TO_FAULT    ) ? true : false );
+        bitstring_set_bit(&getevent_data->eventEnable, TRANSITION_TO_NORMAL,
+                (AV_Descr[index].Event_Enable & EVENT_ENABLE_TO_NORMAL   ) ? true : false );
+        /* Event Priorities */
+        /* FIXME: finish it */
+        getevent_data->eventPriorities[0] = 255;
+        getevent_data->eventPriorities[1] = 255;
+        getevent_data->eventPriorities[2] = 255;
+
+        return 1;   /* active event */
+    }
+    else
+        return 0;   /* no active event at this index */
 #endif /* defined(INTRINSIC_REPORTING) */
 }
 

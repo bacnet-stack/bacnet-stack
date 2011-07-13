@@ -96,6 +96,9 @@ extern "C" {
     void Analog_Value_Intrinsic_Reporting(
         uint32_t object_instance);
 
+    int Analog_Value_Event_Information(unsigned index,
+        BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
+
     void Analog_Value_Init(
         void);
 
