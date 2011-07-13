@@ -684,6 +684,28 @@ bool Notification_Class_Write_Property(
 }
 
 
+void Notification_Class_Get_Priorities(
+        uint32_t Object_Instance, uint32_t *pPriorityArray)
+{
+    NOTIFICATION_CLASS_INFO *CurrentNotify;
+    uint32_t object_index;
+    int i;
+
+    object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+    if (object_index < MAX_NOTIFICATION_CLASSES)
+        CurrentNotify = &NC_Info[object_index];
+    else {
+        for(i = 0; i < 3; i++)
+            pPriorityArray[i] = 255;
+        return; /* unknown object */
+    }
+
+    for(i = 0; i < 3; i++)
+        pPriorityArray[i] = CurrentNotify->Priority[i];
+}
+
+
 static bool IsRecipientActive(BACNET_DESTINATION * pBacDest, uint8_t EventToState)
 {
     BACNET_DATE_TIME DateTime;

@@ -104,6 +104,9 @@ typedef struct Notification_Class_info {
     bool Notification_Class_Write_Property(
             BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    void Notification_Class_Get_Priorities(
+            uint32_t Object_Instance, uint32_t *pPriorityArray);
+
     void Notification_Class_common_reporting_function(
             BACNET_EVENT_NOTIFICATION_DATA * event_data);
 
