@@ -1006,10 +1006,8 @@ int Analog_Value_Event_Information(unsigned index,
         bitstring_set_bit(&getevent_data->eventEnable, TRANSITION_TO_NORMAL,
                 (AV_Descr[index].Event_Enable & EVENT_ENABLE_TO_NORMAL   ) ? true : false );
         /* Event Priorities */
-        /* FIXME: finish it */
-        getevent_data->eventPriorities[0] = 255;
-        getevent_data->eventPriorities[1] = 255;
-        getevent_data->eventPriorities[2] = 255;
+        Notification_Class_Get_Priorities(AV_Descr[index].Notification_Class,
+                getevent_data->eventPriorities);
 
         return 1;   /* active event */
     }
