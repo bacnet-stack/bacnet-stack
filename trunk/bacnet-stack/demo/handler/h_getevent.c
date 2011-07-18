@@ -59,9 +59,11 @@ void handler_get_event_information(
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     int len = 0;
-    int pdu_len = 0;
+    int pdu_len  = 0;
+    int apdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
+    bool more_events = false;
     int bytes_sent = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -111,7 +113,8 @@ void handler_get_event_information(
         error = true;
         goto GET_EVENT_ERROR;
     }
-    pdu_len += len;
+    pdu_len  += len;
+    apdu_len  = len;
     for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
         if (Get_Event_Info[i]) {
             for (j = 0; j < 0xffff; j++) {
@@ -126,7 +129,21 @@ void handler_get_event_information(
                         error = true;
                         goto GET_EVENT_ERROR;
                     }
-                    pdu_len += len;
+                    apdu_len += len;
+                    if (apdu_len >= service_data->max_resp - 2) {
+                        /* Device must be able to fit minimum one event information.
+                           Length of one event informations needs more than 50 octets. */
+                        if (service_data->max_resp < 128){
+                            len = BACNET_STATUS_ABORT;
+                            error = true;
+                            goto GET_EVENT_ERROR;
+                        }
+                        else
+                            more_events = true;
+                        break;
+                    }
+                    else
+                        pdu_len += len;
                 } else if (valid_event < 0) {
                     break;
                 }
@@ -135,7 +152,7 @@ void handler_get_event_information(
     }
     len =
         getevent_ack_encode_apdu_end(&Handler_Transmit_Buffer[pdu_len],
-        sizeof(Handler_Transmit_Buffer) - pdu_len, false);
+        sizeof(Handler_Transmit_Buffer) - pdu_len, more_events);
     if (len <= 0) {
         error = true;
         goto GET_EVENT_ERROR;
@@ -145,6 +162,10 @@ void handler_get_event_information(
 #endif
   GET_EVENT_ERROR:
     if (error) {
+        pdu_len =
+            npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+            &npdu_data);
+
         if (len == -2) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
             len =
