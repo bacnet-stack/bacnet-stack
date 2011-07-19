@@ -81,6 +81,14 @@ typedef struct Notification_Class_info {
 } NOTIFICATION_CLASS_INFO;
 
 
+/* Indicates whether the transaction has been confirmed */
+typedef struct Acked_info {
+    bool        bIsAcked;       /* true when transitions is acked */
+    BACNET_DATE_TIME Time_Stamp;/* time stamp of when a alarm was generated */
+} ACKED_INFO;
+
+
+
     void Notification_Class_Property_Lists(
         const int **pRequired,
         const int **pOptional,

@@ -31,6 +31,7 @@
 #include "bacdef.h"
 #include "rp.h"
 #include "wp.h"
+#include "nc.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,8 +51,8 @@ extern "C" {
         float    Deadband;
         uint8_t  Limit_Enable : 2;
         uint8_t  Event_Enable : 3;
-        uint8_t  Acked_Transitions : 3;
         uint8_t  Notify_Type  : 1;
+        ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
         BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
         /* time to generate event notification */
         uint32_t Remaining_Time_Delay;
