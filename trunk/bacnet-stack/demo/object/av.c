@@ -125,14 +125,14 @@ void Analog_Value_Init(
         AV_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
         AV_Descr[i].Notification_Class = BACNET_MAX_INSTANCE;
-        /* initialize Event time stamps using wildcards */
+        /* initialize Event time stamps using wildcards
+           and set Acked_transitions */
         for (j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
             datetime_wildcard_set(&AV_Descr[i].Event_Time_Stamps[j]);
+            AV_Descr[i].Acked_Transitions[j].bIsAcked = true;
         }
 #endif
     }
-
-    return;
 }
 
 /* we simply have 0-n object instances.  Yours might be */
@@ -433,11 +433,12 @@ int Analog_Value_Read_Property(
 
         case PROP_ACKED_TRANSITIONS:
             bitstring_init(&bit_string);
-            bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL, true);
-            bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,     true);
-            bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,    true);
-
-            /* Fixme: finish it */
+            bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL,
+                              CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked);
+            bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,
+                              CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked);
+            bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,
+                              CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked);
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -950,15 +951,43 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 
         /* add data from notification class */
         Notification_Class_common_reporting_function(&event_data);
+
+        /* Ack required */
+        if (event_data.ackRequired == true)
+        {
+            switch (event_data.toState)
+            {
+                case EVENT_STATE_OFFNORMAL:
+                case EVENT_STATE_HIGH_LIMIT:
+                case EVENT_STATE_LOW_LIMIT:
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked = false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].Time_Stamp =
+                                        event_data.timeStamp.value.dateTime;
+                    break;
+
+                case EVENT_STATE_FAULT:
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked = false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].Time_Stamp =
+                                        event_data.timeStamp.value.dateTime;
+                    break;
+
+                case EVENT_STATE_NORMAL:
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked = false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].Time_Stamp =
+                                        event_data.timeStamp.value.dateTime;
+                    break;
+            }
+        }
     }
 #endif /* defined(INTRINSIC_REPORTING) */
 }
+
 
 int Analog_Value_Event_Information(unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data)
 {
 #if defined(INTRINSIC_REPORTING)
-    bool isNotAckedTransitions;
+    bool IsNotAckedTransitions;
     bool IsActiveEvent;
     int  i;
 
@@ -970,25 +999,27 @@ int Analog_Value_Event_Information(unsigned index,
 
         /* Acked_Transitions property, which has at least one of the bits
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
-
-        /* FIXME: finish it */
-        isNotAckedTransitions = false;
+        IsNotAckedTransitions = (AV_Descr[index].Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked == false) |
+                                (AV_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked  == false) |
+                                (AV_Descr[index].Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked == false);
     }
     else
         return -1;  /* end of list  */
 
-    if ((IsActiveEvent) || (isNotAckedTransitions)) {
+    if ((IsActiveEvent) || (IsNotAckedTransitions)) {
         /* Object Identifier */
         getevent_data->objectIdentifier.type = OBJECT_ANALOG_VALUE;
         getevent_data->objectIdentifier.instance = Analog_Value_Index_To_Instance(index);
         /* Event State */
         getevent_data->eventState = AV_Descr[index].Event_State;
         /* Acknowledged Transitions */
-        /* FIXME: finish it */
         bitstring_init(&getevent_data->acknowledgedTransitions);
-        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_OFFNORMAL, true);
-        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_FAULT,     true);
-        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_NORMAL,    true);
+        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_OFFNORMAL,
+                            AV_Descr[index].Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked);
+        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_FAULT,
+                            AV_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked);
+        bitstring_set_bit(&getevent_data->acknowledgedTransitions, TRANSITION_TO_NORMAL,
+                            AV_Descr[index].Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked);
         /* Event Time Stamps */
         for (i = 0; i < 3; i++) {
             getevent_data->eventTimeStamps[i].tag = TIME_STAMP_DATETIME;

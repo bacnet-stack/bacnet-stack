@@ -781,11 +781,11 @@ void Notification_Class_common_reporting_function(
     /* Priority and AckRequired*/
     switch (event_data->toState)
     {
-        case EVENT_STATE_OFFNORMAL:
+        case EVENT_STATE_NORMAL:
             event_data->priority =
-                        CurrentNotify->Priority[EVENT_STATE_OFFNORMAL];
+                        CurrentNotify->Priority[EVENT_STATE_NORMAL];
             event_data->ackRequired = (CurrentNotify->Ack_Required &
-                        TRANSITION_TO_OFFNORMAL_MASKED) ? true : false;
+                        TRANSITION_TO_NORMAL_MASKED) ? true : false;
             break;
 
         case EVENT_STATE_FAULT:
@@ -795,16 +795,16 @@ void Notification_Class_common_reporting_function(
                         TRANSITION_TO_FAULT_MASKED) ? true : false;
             break;
 
-        case EVENT_STATE_NORMAL:
+        case EVENT_STATE_OFFNORMAL:
         case EVENT_STATE_HIGH_LIMIT:
         case EVENT_STATE_LOW_LIMIT:
             event_data->priority =
-                        CurrentNotify->Priority[EVENT_STATE_NORMAL];
+                        CurrentNotify->Priority[EVENT_STATE_OFFNORMAL];
             event_data->ackRequired = (CurrentNotify->Ack_Required &
-                        TRANSITION_TO_NORMAL) ? true : false;
+                        TRANSITION_TO_OFFNORMAL_MASKED) ? true : false;
             break;
 
-        default:    /* shouldn't happen */
+        default:    /* shouldn't happen */
             break;
     }
 
