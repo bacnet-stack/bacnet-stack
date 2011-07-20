@@ -229,11 +229,8 @@ int main(
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
-        if (End_Of_File_Detected || Error_Detected) {
-            printf("\r\n");
-            break;
         }
         /* wait until the device is bound, or timeout and quit */
         found =
@@ -247,25 +244,32 @@ int main(
                    and remove the overhead of the APDU (varies depending on size).
                    note: we could fail if there is a bottle neck (router)
                    and smaller MPDU in betweeen. */
-                if (max_apdu < MAX_APDU)
+                if (max_apdu < MAX_APDU) {
                     my_max_apdu = max_apdu;
-                else
+                } else {
                     my_max_apdu = MAX_APDU;
+                }
                 /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
-                if (my_max_apdu <= 50)
+                if (my_max_apdu <= 50) {
                     requestedOctetCount = my_max_apdu - 19;
-                else if (my_max_apdu <= 480)
+                } else if (my_max_apdu <= 480) {
                     requestedOctetCount = my_max_apdu - 32;
-                else if (my_max_apdu <= 1476)
+                } else if (my_max_apdu <= 1476) {
                     requestedOctetCount = my_max_apdu - 64;
-                else
+                } else {
                     requestedOctetCount = my_max_apdu / 2;
+                }
             }
             /* has the previous invoke id expired or returned?
                note: invoke ID = 0 is invalid, so it will be idle */
             if ((invoke_id == 0) || tsm_invoke_id_free(invoke_id)) {
-                if (invoke_id != 0)
+                if (End_Of_File_Detected || Error_Detected) {
+                    printf("\r\n");
+                    break;
+                }
+                if (invoke_id != 0) {
                     fileStartPosition += requestedOctetCount;
+                }
                 /* we'll read the file in chunks
                    less than max_apdu to keep unsegmented */
                 pFile = fopen(Local_File_Name, "rb");
@@ -274,12 +278,14 @@ int main(
                     len =
                         fread(octetstring_value(&fileData), 1,
                         requestedOctetCount, pFile);
-                    if (len < requestedOctetCount)
+                    if (len < requestedOctetCount) {
                         End_Of_File_Detected = true;
+                    }
                     octetstring_truncate(&fileData, len);
                     fclose(pFile);
-                } else
+                } else {
                     End_Of_File_Detected = true;
+                }
                 printf("\rSending %d bytes", (fileStartPosition + len));
                 invoke_id =
                     Send_Atomic_Write_File_Stream
@@ -306,7 +312,8 @@ int main(
         last_seconds = current_seconds;
     }
 
-    if (Error_Detected)
+    if (Error_Detected) {
         return 1;
+    }
     return 0;
 }
