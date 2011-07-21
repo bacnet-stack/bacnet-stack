@@ -37,6 +37,7 @@
 #include "wp.h"
 #include "readrange.h"
 #include "getevent.h"
+#include "alarm_ack.h"
 
 
 #ifdef __cplusplus
@@ -249,6 +250,10 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+
+    void handler_alarm_ack_set(
+        BACNET_OBJECT_TYPE object_type,
+        alarm_ack_function pFunction);
 
     void handler_conf_private_trans(
         uint8_t * service_request,

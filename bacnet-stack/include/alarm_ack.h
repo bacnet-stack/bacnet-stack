@@ -50,6 +50,14 @@ typedef struct {
     BACNET_TIMESTAMP ackTimeStamp;
 } BACNET_ALARM_ACK_DATA;
 
+/* return +1 if alarm was acknowledged
+   return -1 if any error occurred
+   return -2 abort */
+typedef int (
+    *alarm_ack_function) (
+    BACNET_ALARM_ACK_DATA * alarmack_data,
+    BACNET_ERROR_CODE * error_code);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

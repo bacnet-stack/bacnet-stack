@@ -127,15 +127,10 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 #if defined(INTRINSIC_REPORTING)
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
+        handler_alarm_ack);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_GET_EVENT_INFORMATION,
         handler_get_event_information);
-    /* Set handlers for GetEventInformation
-       for all objects that support intrinsic reporting. */
-    handler_get_event_information_set(OBJECT_ANALOG_INPUT,
-        Analog_Input_Event_Information);
-    handler_get_event_information_set(OBJECT_ANALOG_VALUE,
-        Analog_Value_Event_Information);
-
 #endif  /* defined(INTRINSIC_REPORTING) */
 }
 
@@ -169,7 +164,7 @@ int main(
         0
     };  /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 1000;    /* milliseconds */
+    unsigned timeout = 100;    /* milliseconds */
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;

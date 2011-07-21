@@ -75,6 +75,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_rr.c \
 	$(BACNET_HANDLER)/h_wp.c  \
 	$(BACNET_HANDLER)/h_wpm.c \
+	$(BACNET_HANDLER)/h_alarm_ack.c  \
 	$(BACNET_HANDLER)/h_arf.c  \
 	$(BACNET_HANDLER)/h_arf_a.c  \
 	$(BACNET_HANDLER)/h_awf.c  \

@@ -100,6 +100,9 @@ extern "C" {
     int Analog_Value_Event_Information(unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
 
+    int Analog_Value_Alarm_Ack(BACNET_ALARM_ACK_DATA * alarmack_data,
+        BACNET_ERROR_CODE * error_code);
+
     void Analog_Value_Init(
         void);
 
