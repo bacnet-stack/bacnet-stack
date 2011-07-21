@@ -113,6 +113,9 @@ extern "C" {
     int Analog_Input_Event_Information(unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
 
+    int Analog_Input_Alarm_Ack(BACNET_ALARM_ACK_DATA * alarmack_data,
+        BACNET_ERROR_CODE * error_code);
+
     void Analog_Input_Init(
         void);
 

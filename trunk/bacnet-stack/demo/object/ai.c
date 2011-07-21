@@ -122,6 +122,13 @@ void Analog_Input_Init(
             datetime_wildcard_set(&AI_Descr[i].Event_Time_Stamps[j]);
             AI_Descr[i].Acked_Transitions[j].bIsAcked = true;
         }
+
+        /* Set handler for GetEventInformation function */
+        handler_get_event_information_set(OBJECT_ANALOG_INPUT,
+            Analog_Input_Event_Information);
+        /* Set handler for AcknowledgeAlarm function */
+        handler_alarm_ack_set(OBJECT_ANALOG_INPUT,
+            Analog_Input_Alarm_Ack);
 #endif
     }
 }
@@ -873,10 +880,10 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
 }
 
 
+#if defined(INTRINSIC_REPORTING)
 int Analog_Input_Event_Information(unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data)
 {
-#if defined(INTRINSIC_REPORTING)
     bool IsNotAckedTransitions;
     bool IsActiveEvent;
     int  i;
@@ -934,9 +941,103 @@ int Analog_Input_Event_Information(unsigned index,
     }
     else
         return 0;   /* no active event at this index */
-#endif /* defined(INTRINSIC_REPORTING) */
 }
 
+
+int Analog_Input_Alarm_Ack(BACNET_ALARM_ACK_DATA * alarmack_data,
+        BACNET_ERROR_CODE * error_code)
+{
+    ANALOG_INPUT_DESCR *CurrentAI;
+    unsigned int object_index;
+
+
+    object_index = Analog_Input_Instance_To_Index(
+                        alarmack_data->eventObjectIdentifier.instance);
+
+    if (object_index < MAX_ANALOG_INPUTS)
+        CurrentAI = &AI_Descr[object_index];
+    else {
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return -1;
+    }
+
+    switch (alarmack_data->eventStateAcked)
+    {
+        case EVENT_STATE_OFFNORMAL:
+        case EVENT_STATE_HIGH_LIMIT:
+        case EVENT_STATE_LOW_LIMIT:
+            if(CurrentAI->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked == false) {
+                if(alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME){
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if(datetime_compare(&CurrentAI->Acked_Transitions[TRANSITION_TO_OFFNORMAL].Time_Stamp,
+                                    &alarmack_data->eventTimeStamp.value.dateTime) > 0)
+                {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+
+                /* FIXME: Send ack notification */
+                CurrentAI->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked = true;
+            }
+            else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
+
+        case EVENT_STATE_FAULT:
+            if(CurrentAI->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked == false) {
+                if(alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME){
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if(datetime_compare(&CurrentAI->Acked_Transitions[TRANSITION_TO_NORMAL].Time_Stamp,
+                                    &alarmack_data->eventTimeStamp.value.dateTime) > 0)
+                {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+
+                /* FIXME: Send ack notification */
+                CurrentAI->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked = true;
+            }
+            else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
+
+        case EVENT_STATE_NORMAL:
+            if(CurrentAI->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked == false) {
+                if(alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME){
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if(datetime_compare(&CurrentAI->Acked_Transitions[TRANSITION_TO_FAULT].Time_Stamp,
+                                    &alarmack_data->eventTimeStamp.value.dateTime) > 0)
+                {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+
+                /* FIXME: Send ack notification */
+                CurrentAI->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked = true;
+            }
+            else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
+
+        default:
+            return -2;
+    }
+
+    return 1;
+}
+#endif /* defined(INTRINSIC_REPORTING) */
 
 
 #ifdef TEST
