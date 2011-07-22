@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <time.h>
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
@@ -33,14 +35,57 @@
 #include <MMSystem.h>
 #include "timer.h"
 
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
+
 /* counter for the various timers */
 static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 
+/* Windows timer period */
+static uint32_t Timer_Period = 1;
+
 /*************************************************************************
 * Description: simulate the gettimeofday Linux function
-* Returns: none
-* Notes: none
+* Returns: zero
+* Note: The resolution of GetSystemTimeAsFileTime() is 15625 microseconds
 *************************************************************************/
+#if 1
+int gettimeofday(
+    struct timeval *tp,
+    void *tzp)
+{
+    FILETIME ft;
+    unsigned __int64 tmpres = 0;
+    static int tzflag = 0;
+    struct timezone *tz;
+
+    if (tp) {
+        GetSystemTimeAsFileTime(&ft);
+        tmpres |= ft.dwHighDateTime;
+        tmpres <<= 32;
+        tmpres |= ft.dwLowDateTime;
+        /*converting file time to unix epoch*/
+        tmpres /= 10;  /*convert into microseconds*/
+        tmpres -= DELTA_EPOCH_IN_MICROSECS;
+        tp->tv_sec = (long)(tmpres / 1000000UL);
+        tp->tv_usec = (long)(tmpres % 1000000UL);
+    }
+    if (tzp) {
+        if (!tzflag) {
+            _tzset();
+            tzflag++;
+        }
+        tz = tzp;
+        tz->tz_minuteswest = _timezone / 60;
+        tz->tz_dsttime = _daylight;
+    }
+
+    return 0;
+}
+#else
 int gettimeofday(
     struct timeval *tp,
     void *tzp)
@@ -54,6 +99,7 @@ int gettimeofday(
 
     return 0;
 }
+#endif
 
 /*************************************************************************
 * Description: returns the current millisecond count
@@ -130,6 +176,17 @@ uint32_t timer_reset(
 }
 
 /*************************************************************************
+* Description: Shut down for timer
+* Returns: none
+* Notes: none
+*************************************************************************/
+static void timer_cleanup(
+    void)
+{
+    timeEndPeriod(Timer_Period);
+}
+
+/*************************************************************************
 * Description: Initialization for timer
 * Returns: none
 * Notes: none
@@ -138,13 +195,74 @@ void timer_init(
     void)
 {
     TIMECAPS tc;
-    uint32_t period;
 
     /* set timer resolution */
     if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
         fprintf(stderr, "Failed to get timer resolution parameters\n");
     }
     /* configure for 1ms resolution - if possible */
-    period = min(max(tc.wPeriodMin, 1), tc.wPeriodMax);
-    timeBeginPeriod(period);
+    Timer_Period = min(max(tc.wPeriodMin, 1L), tc.wPeriodMax);
+    if (Timer_Period != 1L) {
+        fprintf(stderr, "Failed to set timer to 1ms.  "
+          "Time period set to %ums\n", (unsigned)Timer_Period);
+    }
+    timeBeginPeriod(Timer_Period);
+    atexit(timer_cleanup);
 }
+
+#ifdef TEST_TIMER_WIN
+static uint32_t timeval_diff_ms(
+    struct timeval *old,
+    struct timeval *now)
+{
+    uint32_t ms = 0;
+
+    /* convert to milliseconds */
+    ms = (now->tv_sec - old->tv_sec) * 1000 + (now->tv_usec -
+        old->tv_usec) / 1000;
+
+    return ms;
+}
+
+int main(
+    int argc,
+    char *argv[])
+{
+    long now = 0, last = 0, delta = 0;
+    struct timeval tv;
+    struct timeval old_tv = {0};
+
+    timer_init();
+    printf("Testing granularity of timeGetTime()...\n");
+    timer_reset(0);
+    for (;;) {
+        now = timeGetTime();
+        delta = now - last;
+        if (delta) {
+            if (delta > 1) {
+                printf("Delta is %ld.\n", delta);
+            }
+            last = now;
+        }
+        if (timer_elapsed_milliseconds(0, 5000)) {
+            break;
+        }
+    }
+    printf("Testing granularity of gettimeofday()...\n");
+    for (;;) {
+        gettimeofday(&tv, NULL);
+        delta = timeval_diff_ms(&old_tv, &tv);
+        if (delta) {
+            if (delta > 1) {
+                printf("Delta is %ld.\n", delta);
+            }
+            old_tv.tv_sec = tv.tv_sec;
+            old_tv.tv_usec = tv.tv_usec;
+        }
+        if (timer_elapsed_milliseconds(0, 10000)) {
+            break;
+        }
+    }
+
+}
+#endif
