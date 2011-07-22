@@ -65,14 +65,31 @@ static uint8_t TxBuffer[MAX_MPDU];
 struct mstp_statistics {
     /* counts how many times the node passes the token */
     uint32_t token_count;
+    /* counts how many times the node receives the token */
+    uint32_t token_received_count;
     /* counts how many times the node polls for another master */
     uint32_t pfm_count;
+    /* counts how many times the node replies to polls from another master */
+    uint32_t rpfm_count;
+    /* counts how many times the node sends reply postponed */
+    uint32_t reply_postponed_count;
+    /* counts how many times the node sends a test request */
+    uint32_t test_request_count;
+    /* counts how many times the node sends a test response */
+    uint32_t test_response_count;
+    /* counts how many times the node sends a DER frame */
+    uint32_t der_count;
+    /* counts how many times the node sends a DNER frame */
+    uint32_t dner_count;
+    /* -- inferred data -- */
     /* counts how many times the node gets a second token */
     uint32_t token_retries;
     /* delay after poll for master */
     uint32_t tusage_timeout;
     /* highest number MAC during poll for master */
     uint8_t max_master;
+    /* highest number of frames sent during a token */
+    uint8_t max_info_frames;
     /* how long it takes a node to pass the token */
     uint32_t token_reply;
     /* how long it takes a node to reply to PFM */
@@ -81,6 +98,13 @@ struct mstp_statistics {
     uint32_t der_reply;
     /* how long it takes a node to send a reply post poned */
     uint32_t reply_postponed;
+    /* number of tokens received before a Poll For Master cycle is executed */
+    uint32_t npoll;
+    /* number of total tokens at the last PFM */
+    uint32_t last_pfm_tokens;
+    /* Addendum 2008v - sending tokens to myself */
+    /* counts how many times the node passes the token */
+    uint32_t self_token_count;
 };
 
 static struct mstp_statistics MSTP_Statistics[256];
@@ -109,6 +133,7 @@ static void packet_statistics(
     static uint8_t old_dst = 255;
     uint8_t frame, src, dst;
     uint32_t delta;
+    uint32_t npoll;
 
     dst = mstp_port->DestinationAddress;
     src = mstp_port->SourceAddress;
@@ -116,6 +141,10 @@ static void packet_statistics(
     switch (frame) {
         case FRAME_TYPE_TOKEN:
             MSTP_Statistics[src].token_count++;
+            MSTP_Statistics[dst].token_received_count++;
+            if (src == dst) {
+                MSTP_Statistics[src].self_token_count++;
+            }
             if (old_frame == FRAME_TYPE_TOKEN) {
                 if ((old_dst == dst) && (old_src == src)) {
                     /* repeated token */
@@ -142,12 +171,21 @@ static void packet_statistics(
             }
             break;
         case FRAME_TYPE_POLL_FOR_MASTER:
+            if (MSTP_Statistics[src].last_pfm_tokens) {
+                npoll = MSTP_Statistics[src].token_received_count -
+                    MSTP_Statistics[src].last_pfm_tokens;
+                if (npoll > MSTP_Statistics[src].npoll) {
+                    MSTP_Statistics[src].npoll = npoll;
+                }
+            }
+            MSTP_Statistics[src].last_pfm_tokens =
+                MSTP_Statistics[src].token_received_count;
             MSTP_Statistics[src].pfm_count++;
             if (dst > MSTP_Statistics[src].max_master) {
                 MSTP_Statistics[src].max_master = dst;
             }
             if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER) && (old_src == src)) {
-                /* Tusage_timeout */
+                /* Tusage_timeout - sole master */
                 delta = timeval_diff_ms(&old_tv, tv);
                 if (delta > MSTP_Statistics[src].tusage_timeout) {
                     MSTP_Statistics[src].tusage_timeout = delta;
@@ -155,6 +193,7 @@ static void packet_statistics(
             }
             break;
         case FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER:
+            MSTP_Statistics[src].rpfm_count++;
             if (old_frame == FRAME_TYPE_POLL_FOR_MASTER) {
                 delta = timeval_diff_ms(&old_tv, tv);
                 if (delta > MSTP_Statistics[src].pfm_reply) {
@@ -163,12 +202,16 @@ static void packet_statistics(
             }
             break;
         case FRAME_TYPE_TEST_REQUEST:
+            MSTP_Statistics[src].test_request_count++;
             break;
         case FRAME_TYPE_TEST_RESPONSE:
+            MSTP_Statistics[src].test_response_count++;
             break;
         case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+            MSTP_Statistics[src].der_count++;
             break;
         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+            MSTP_Statistics[src].dner_count++;
             if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) &&
                 (old_dst == src)) {
                 /* DER response time */
@@ -179,6 +222,7 @@ static void packet_statistics(
             }
             break;
         case FRAME_TYPE_REPLY_POSTPONED:
+            MSTP_Statistics[src].reply_postponed_count++;
             if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) &&
                 (old_dst == src)) {
                 /* Postponed response time */
@@ -207,24 +251,52 @@ static void packet_statistics_save(
     unsigned node_count = 0;
 
     fprintf(stdout, "\r\n");
-    /* separate with tabs (8) keep words under 8 characters */
-    fprintf(stdout,
-        "MAC\tMaxMstr\tTokens\tRetries\tPFM"
-        "\tTreply\tTusage\tTrpfm\tTder\tTpostpd");
+    fprintf(stdout, "==== MS/TP Frame Counts ====\r\n");
+    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s",
+        "MAC",
+        "Tokens","PFM","RPFM","DER",
+        "Postpd","DNER","TestReq","TestRsp");
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         /* check for masters or slaves */
         if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
             || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
-            fprintf(stdout, "%u\t%u", i,
-                (unsigned) MSTP_Statistics[i].max_master);
-            fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
+            fprintf(stdout, "%-8u", i);
+            fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu",
                 (long unsigned int) MSTP_Statistics[i].token_count,
-                (long unsigned int) MSTP_Statistics[i].token_retries,
                 (long unsigned int) MSTP_Statistics[i].pfm_count,
+                (long unsigned int) MSTP_Statistics[i].rpfm_count,
+                (long unsigned int) MSTP_Statistics[i].der_count);
+            fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu",
+                (long unsigned int) MSTP_Statistics[i].reply_postponed_count,
+                (long unsigned int) MSTP_Statistics[i].dner_count,
+                (long unsigned int) MSTP_Statistics[i].test_request_count,
+                (long unsigned int) MSTP_Statistics[i].test_response_count);
+            fprintf(stdout, "\r\n");
+        }
+    }
+    fprintf(stdout, "Node Count: %u\r\n", node_count);
+    node_count = 0;
+    fprintf(stdout, "\r\n");
+    fprintf(stdout, "==== MS/TP Usage and Timing Maximums ====\r\n");
+    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s",
+        "MAC","MaxMstr","Retries","Npoll","Self",
+        "Treply","Tusage","Trpfm","Tder","Tpostpd");
+    fprintf(stdout, "\r\n");
+    for (i = 0; i < 256; i++) {
+        /* check for masters or slaves */
+        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
+            || (MSTP_Statistics[i].pfm_count)) {
+            node_count++;
+            fprintf(stdout, "%-8u", i);
+            fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu%-8lu",
+                (long unsigned int) MSTP_Statistics[i].max_master,
+                (long unsigned int) MSTP_Statistics[i].token_retries,
+                (long unsigned int) MSTP_Statistics[i].npoll,
+                (long unsigned int) MSTP_Statistics[i].self_token_count,
                 (long unsigned int) MSTP_Statistics[i].token_reply);
-            fprintf(stdout, "\t%lu\t%lu\t%lu\t%lu",
+            fprintf(stdout, "%-8lu%-8lu%-8lu%-7lu",
                 (long unsigned int) MSTP_Statistics[i].tusage_timeout,
                 (long unsigned int) MSTP_Statistics[i].pfm_reply,
                 (long unsigned int) MSTP_Statistics[i].der_reply,
@@ -240,19 +312,7 @@ static void packet_statistics_save(
 static void packet_statistics_clear(
     void)
 {
-    unsigned i; /* loop counter */
-
-    for (i = 0; i < 256; i++) {
-        MSTP_Statistics[i].token_count = 0;
-        MSTP_Statistics[i].pfm_count = 0;
-        MSTP_Statistics[i].token_retries = 0;
-        MSTP_Statistics[i].tusage_timeout = 0;
-        MSTP_Statistics[i].max_master = 0;
-        MSTP_Statistics[i].token_reply = 0;
-        MSTP_Statistics[i].pfm_reply = 0;
-        MSTP_Statistics[i].der_reply = 0;
-        MSTP_Statistics[i].reply_postponed = 0;
-    }
+    memset(&MSTP_Statistics[0], 0, sizeof(MSTP_Statistics));
     Invalid_Frame_Count = 0;
 }
 
@@ -781,6 +841,7 @@ int main(
     }
     RS485_Set_Baud_Rate(my_baud);
     RS485_Initialize();
+    timer_init();
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
     atexit(cleanup);
