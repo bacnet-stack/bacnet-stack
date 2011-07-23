@@ -61,7 +61,6 @@ typedef struct BACnet_Recipient {
 } BACNET_RECIPIENT;
 
 
-
 /* BACnetDestination structure */
 typedef struct BACnet_Destination {
     uint8_t           ValidDays;
@@ -72,6 +71,7 @@ typedef struct BACnet_Destination {
     uint8_t           Transitions;
     bool              ConfirmedNotify;
 } BACNET_DESTINATION;
+
 
 /* Structure containing configuration for a Notification Class */
 typedef struct Notification_Class_info {
@@ -86,6 +86,13 @@ typedef struct Acked_info {
     bool        bIsAcked;       /* true when transitions is acked */
     BACNET_DATE_TIME Time_Stamp;/* time stamp of when a alarm was generated */
 } ACKED_INFO;
+
+
+/* Information needed to send AckNotification */
+typedef struct Ack_Notification {
+    bool        bSendAckNotify; /* true if need to send AckNotification */
+    uint8_t     EventState;
+} ACK_NOTIFICATION;
 
 
 

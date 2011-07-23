@@ -633,10 +633,11 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     BACNET_CHARACTER_STRING msgText;
     ANALOG_INPUT_DESCR *CurrentAI;
     unsigned int object_index;
-    uint8_t FromState;
+    uint8_t FromState = 0;
     uint8_t ToState;
-    float ExceededLimit;
-    float PresentVal;
+    float ExceededLimit = 0.0f;
+    float PresentVal = 0.0f;
+    bool  SendNotify = false;
 
 
     object_index = Analog_Input_Instance_To_Index(object_instance);
@@ -649,141 +650,175 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     if (!CurrentAI->Limit_Enable)
         return;  /* limits are not configured */
 
-    /* actual Present_Value */
-    PresentVal = Analog_Input_Present_Value(object_instance);
-    FromState  = CurrentAI->Event_State;
-    switch (CurrentAI->Event_State)
+
+    if (CurrentAI->Ack_notify_data.bSendAckNotify) {
+        /* clean bSendAckNotify flag */
+        CurrentAI->Ack_notify_data.bSendAckNotify = false;
+        /* copy toState */
+        ToState = CurrentAI->Ack_notify_data.EventState;
+
+#if PRINT_ENABLED
+        fprintf(stderr, "Send Acknotification for (%s,%d).\n",
+                    bactext_object_type_name(OBJECT_ANALOG_INPUT),
+                    object_instance);
+#endif /* PRINT_ENABLED */
+
+        characterstring_init_ansi(&msgText, "AckNotification");
+
+        /* Notify Type */
+        event_data.notifyType = NOTIFY_ACK_NOTIFICATION;
+
+        /* Send EventNotification. */
+        SendNotify = true;
+    }
+    else
     {
-        case EVENT_STATE_NORMAL:
-            /* A TO-OFFNORMAL event is generated under these conditions:
-                (a) the Present_Value must exceed the High_Limit for a minimum
-                    period of time, specified in the Time_Delay property, and
-                (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
-                (c) the TO-OFFNORMAL flag must be set in the Event_Enable property. */
-            if ((PresentVal > CurrentAI->High_Limit) &&
-                ((CurrentAI->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
-                ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
-            {
-                if(!CurrentAI->Remaining_Time_Delay)
-                    CurrentAI->Event_State = EVENT_STATE_HIGH_LIMIT;
-                else
-                    CurrentAI->Remaining_Time_Delay--;
-                break;
-            }
-
-            /* A TO-OFFNORMAL event is generated under these conditions:
-                (a) the Present_Value must exceed the Low_Limit plus the Deadband
-                    for a minimum period of time, specified in the Time_Delay property, and
-                (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
-                (c) the TO-NORMAL flag must be set in the Event_Enable property. */
-            if ((PresentVal < CurrentAI->Low_Limit) &&
-                ((CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
-                ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
-            {
-                if(!CurrentAI->Remaining_Time_Delay)
-                    CurrentAI->Event_State = EVENT_STATE_LOW_LIMIT;
-                else
-                    CurrentAI->Remaining_Time_Delay--;
-                break;
-            }
-            /* value of the object is still in the same event state */
-            CurrentAI->Remaining_Time_Delay = CurrentAI->Time_Delay;
-            break;
-
-        case EVENT_STATE_HIGH_LIMIT:
-            /* Once exceeded, the Present_Value must fall below the High_Limit minus
-               the Deadband before a TO-NORMAL event is generated under these conditions:
-                (a) the Present_Value must fall below the High_Limit minus the Deadband
-                    for a minimum period of time, specified in the Time_Delay property, and
-                (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
-                (c) the TO-NORMAL flag must be set in the Event_Enable property. */
-            if ((PresentVal < CurrentAI->High_Limit - CurrentAI->Deadband) &&
-                ((CurrentAI->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
-                ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
-            {
-                if(!CurrentAI->Remaining_Time_Delay)
-                    CurrentAI->Event_State = EVENT_STATE_NORMAL;
-                else
-                    CurrentAI->Remaining_Time_Delay--;
-                break;
-            }
-            /* value of the object is still in the same event state */
-            CurrentAI->Remaining_Time_Delay = CurrentAI->Time_Delay;
-            break;
-
-        case EVENT_STATE_LOW_LIMIT:
-            /* Once the Present_Value has fallen below the Low_Limit,
-               the Present_Value must exceed the Low_Limit plus the Deadband
-               before a TO-NORMAL event is generated under these conditions:
-                (a) the Present_Value must exceed the Low_Limit plus the Deadband
-                    for a minimum period of time, specified in the Time_Delay property, and
-                (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
-                (c) the TO-NORMAL flag must be set in the Event_Enable property. */
-            if ((PresentVal > CurrentAI->Low_Limit + CurrentAI->Deadband) &&
-                ((CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
-                ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
-            {
-                if(!CurrentAI->Remaining_Time_Delay)
-                    CurrentAI->Event_State = EVENT_STATE_NORMAL;
-                else
-                    CurrentAI->Remaining_Time_Delay--;
-                break;
-            }
-            /* value of the object is still in the same event state */
-            CurrentAI->Remaining_Time_Delay = CurrentAI->Time_Delay;
-            break;
-
-        default:
-            return;  /* shouldn't happen */
-    }  /* switch (FromState) */
-
-    ToState = CurrentAI->Event_State;
-
-    if (FromState != ToState)
-    {
-        /* Event_State has changed.
-           Need to fill only the basic parameters of this type of event.
-           Other parameters will be filled in common function. */
-
-        switch (ToState)
+        /* actual Present_Value */
+        PresentVal = Analog_Input_Present_Value(object_instance);
+        FromState  = CurrentAI->Event_State;
+        switch (CurrentAI->Event_State)
         {
+            case EVENT_STATE_NORMAL:
+                /* A TO-OFFNORMAL event is generated under these conditions:
+                    (a) the Present_Value must exceed the High_Limit for a minimum
+                        period of time, specified in the Time_Delay property, and
+                    (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
+                    (c) the TO-OFFNORMAL flag must be set in the Event_Enable property. */
+                if ((PresentVal > CurrentAI->High_Limit) &&
+                    ((CurrentAI->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
+                    ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
+                {
+                    if(!CurrentAI->Remaining_Time_Delay)
+                        CurrentAI->Event_State = EVENT_STATE_HIGH_LIMIT;
+                    else
+                        CurrentAI->Remaining_Time_Delay--;
+                    break;
+                }
+
+                /* A TO-OFFNORMAL event is generated under these conditions:
+                    (a) the Present_Value must exceed the Low_Limit plus the Deadband
+                        for a minimum period of time, specified in the Time_Delay property, and
+                    (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
+                    (c) the TO-NORMAL flag must be set in the Event_Enable property. */
+                if ((PresentVal < CurrentAI->Low_Limit) &&
+                    ((CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
+                    ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) == EVENT_ENABLE_TO_OFFNORMAL))
+                {
+                    if(!CurrentAI->Remaining_Time_Delay)
+                        CurrentAI->Event_State = EVENT_STATE_LOW_LIMIT;
+                    else
+                        CurrentAI->Remaining_Time_Delay--;
+                    break;
+                }
+                /* value of the object is still in the same event state */
+                CurrentAI->Remaining_Time_Delay = CurrentAI->Time_Delay;
+                break;
+
             case EVENT_STATE_HIGH_LIMIT:
-                ExceededLimit = CurrentAI->High_Limit;
-                characterstring_init_ansi(&msgText,
-                                "Goes to high limit");
+                /* Once exceeded, the Present_Value must fall below the High_Limit minus
+                   the Deadband before a TO-NORMAL event is generated under these conditions:
+                    (a) the Present_Value must fall below the High_Limit minus the Deadband
+                        for a minimum period of time, specified in the Time_Delay property, and
+                    (b) the HighLimitEnable flag must be set in the Limit_Enable property, and
+                    (c) the TO-NORMAL flag must be set in the Event_Enable property. */
+                if ((PresentVal < CurrentAI->High_Limit - CurrentAI->Deadband) &&
+                    ((CurrentAI->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) == EVENT_HIGH_LIMIT_ENABLE) &&
+                    ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
+                {
+                    if(!CurrentAI->Remaining_Time_Delay)
+                        CurrentAI->Event_State = EVENT_STATE_NORMAL;
+                    else
+                        CurrentAI->Remaining_Time_Delay--;
+                    break;
+                }
+                /* value of the object is still in the same event state */
+                CurrentAI->Remaining_Time_Delay = CurrentAI->Time_Delay;
                 break;
 
             case EVENT_STATE_LOW_LIMIT:
-                ExceededLimit = CurrentAI->Low_Limit;
-                characterstring_init_ansi(&msgText,
-                                "Goes to low limit");
-                break;
-
-            case EVENT_STATE_NORMAL:
-                if(FromState == EVENT_STATE_HIGH_LIMIT) {
-                    ExceededLimit = CurrentAI->High_Limit;
-                    characterstring_init_ansi(&msgText,
-                                "Back to normal state from high limit");
+                /* Once the Present_Value has fallen below the Low_Limit,
+                   the Present_Value must exceed the Low_Limit plus the Deadband
+                   before a TO-NORMAL event is generated under these conditions:
+                    (a) the Present_Value must exceed the Low_Limit plus the Deadband
+                        for a minimum period of time, specified in the Time_Delay property, and
+                    (b) the LowLimitEnable flag must be set in the Limit_Enable property, and
+                    (c) the TO-NORMAL flag must be set in the Event_Enable property. */
+                if ((PresentVal > CurrentAI->Low_Limit + CurrentAI->Deadband) &&
+                    ((CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) == EVENT_LOW_LIMIT_ENABLE) &&
+                    ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) == EVENT_ENABLE_TO_NORMAL))
+                {
+                    if(!CurrentAI->Remaining_Time_Delay)
+                        CurrentAI->Event_State = EVENT_STATE_NORMAL;
+                    else
+                        CurrentAI->Remaining_Time_Delay--;
+                    break;
                 }
-                else {
-                    ExceededLimit = CurrentAI->Low_Limit;
-                    characterstring_init_ansi(&msgText,
-                                "Back to normal state from low limit");
-                }
+                /* value of the object is still in the same event state */
+                CurrentAI->Remaining_Time_Delay = CurrentAI->Time_Delay;
                 break;
 
             default:
-                ExceededLimit = 0;
-                break;
-        }   /* switch (ToState) */
+                return;  /* shouldn't happen */
+        }  /* switch (FromState) */
+
+        ToState = CurrentAI->Event_State;
+
+        if (FromState != ToState)
+        {
+            /* Event_State has changed.
+               Need to fill only the basic parameters of this type of event.
+               Other parameters will be filled in common function. */
+
+            switch (ToState)
+            {
+                case EVENT_STATE_HIGH_LIMIT:
+                    ExceededLimit = CurrentAI->High_Limit;
+                    characterstring_init_ansi(&msgText,
+                                    "Goes to high limit");
+                    break;
+
+                case EVENT_STATE_LOW_LIMIT:
+                    ExceededLimit = CurrentAI->Low_Limit;
+                    characterstring_init_ansi(&msgText,
+                                    "Goes to low limit");
+                    break;
+
+                case EVENT_STATE_NORMAL:
+                    if(FromState == EVENT_STATE_HIGH_LIMIT) {
+                        ExceededLimit = CurrentAI->High_Limit;
+                        characterstring_init_ansi(&msgText,
+                                    "Back to normal state from high limit");
+                    }
+                    else {
+                        ExceededLimit = CurrentAI->Low_Limit;
+                        characterstring_init_ansi(&msgText,
+                                    "Back to normal state from low limit");
+                    }
+                    break;
+
+                default:
+                    ExceededLimit = 0;
+                    break;
+            }   /* switch (ToState) */
 
 #if PRINT_ENABLED
-        fprintf(stderr, "Event_State for (Analog-Input,%d) goes from %s to %s.\n",
-                    object_instance, bactext_event_state_name(FromState),
-                    bactext_event_state_name(ToState));
+            fprintf(stderr, "Event_State for (%s,%d) goes from %s to %s.\n",
+                        bactext_object_type_name(OBJECT_ANALOG_INPUT),
+                        object_instance, bactext_event_state_name(FromState),
+                        bactext_event_state_name(ToState));
+#endif /* PRINT_ENABLED */
 
-#endif /* PRINT_ENABLED) */
+            /* Notify Type */
+            event_data.notifyType = CurrentAI->Notify_Type;
 
+            /* Send EventNotification. */
+            SendNotify = true;
+        }
+    }
+
+
+    if (SendNotify)
+    {
         /* Event Object Identifier */
         event_data.eventObjectIdentifier.type = OBJECT_ANALOG_INPUT;
         event_data.eventObjectIdentifier.instance = object_instance;
@@ -791,24 +826,27 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         /* Time Stamp */
         event_data.timeStamp.tag = TIME_STAMP_DATETIME;
         Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
-        /* fill Event_Time_Stamps */
-        switch (ToState)
-        {
-            case EVENT_STATE_HIGH_LIMIT:
-            case EVENT_STATE_LOW_LIMIT:
-                CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL] =
-                                event_data.timeStamp.value.dateTime;
-                break;
 
-            case EVENT_STATE_FAULT:
-                CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT] =
-                                event_data.timeStamp.value.dateTime;
-                break;
+        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
+            /* fill Event_Time_Stamps */
+            switch (ToState)
+            {
+                case EVENT_STATE_HIGH_LIMIT:
+                case EVENT_STATE_LOW_LIMIT:
+                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL] =
+                                    event_data.timeStamp.value.dateTime;
+                    break;
 
-            case EVENT_STATE_NORMAL:
-                CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL] =
-                                event_data.timeStamp.value.dateTime;
-                break;
+                case EVENT_STATE_FAULT:
+                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT] =
+                                    event_data.timeStamp.value.dateTime;
+                    break;
+
+                case EVENT_STATE_NORMAL:
+                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL] =
+                                    event_data.timeStamp.value.dateTime;
+                    break;
+            }
         }
 
         /* Notification Class */
@@ -821,36 +859,41 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         event_data.messageText = &msgText;
 
         /* Notify Type */
-        event_data.notifyType = CurrentAI->Notify_Type;
+        /* filled before */
 
         /* From State */
-        event_data.fromState = FromState;
+        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION)
+            event_data.fromState = FromState;
 
         /* To State */
-        event_data.toState   = CurrentAI->Event_State;
+        event_data.toState = CurrentAI->Event_State;
 
         /* Event Values */
-        event_data.notificationParams.outOfRange.exceedingValue = PresentVal;
-
-        bitstring_init(&event_data.notificationParams.outOfRange.statusFlags);
-        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
-                    STATUS_FLAG_IN_ALARM, CurrentAI->Event_State ? true : false);
-        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
-                    STATUS_FLAG_FAULT, false);
-        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
-                    STATUS_FLAG_OVERRIDDEN, false);
-        bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
-                    STATUS_FLAG_OUT_OF_SERVICE, CurrentAI->Out_Of_Service);
-
-        event_data.notificationParams.outOfRange.deadband = CurrentAI->Deadband;
-
-        event_data.notificationParams.outOfRange.exceededLimit = ExceededLimit;
+        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
+            /* Value that exceeded a limit. */
+            event_data.notificationParams.outOfRange.exceedingValue = PresentVal;
+            /* Status_Flags of the referenced object. */
+            bitstring_init(&event_data.notificationParams.outOfRange.statusFlags);
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                        STATUS_FLAG_IN_ALARM, CurrentAI->Event_State ? true : false);
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                        STATUS_FLAG_FAULT, false);
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                        STATUS_FLAG_OVERRIDDEN, false);
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.statusFlags,
+                        STATUS_FLAG_OUT_OF_SERVICE, CurrentAI->Out_Of_Service);
+            /* Deadband used for limit checking. */
+            event_data.notificationParams.outOfRange.deadband = CurrentAI->Deadband;
+            /* Limit that was exceeded. */
+            event_data.notificationParams.outOfRange.exceededLimit = ExceededLimit;
+        }
 
         /* add data from notification class */
         Notification_Class_common_reporting_function(&event_data);
 
         /* Ack required */
-        if (event_data.ackRequired == true)
+        if ((event_data.notifyType  != NOTIFY_ACK_NOTIFICATION) &&
+            (event_data.ackRequired == true))
         {
             switch (event_data.toState)
             {
