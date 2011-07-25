@@ -35,6 +35,8 @@
 #include <MMSystem.h>
 #include "timer.h"
 
+/* Offset between Windows epoch 1/1/1601 and
+   Unix epoch 1/1/1970 in 100 nanosec units */
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
   #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
@@ -44,55 +46,51 @@
 /* counter for the various timers */
 static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 
-/* Windows timer period */
+/* Windows timer period - in milliseconds */
 static uint32_t Timer_Period = 1;
 
 /*************************************************************************
 * Description: simulate the gettimeofday Linux function
 * Returns: zero
-* Note: The resolution of GetSystemTimeAsFileTime() is 15625 microseconds
-* The resolution of _ftime() is 16 milliseconds
-* The only way to get microseconds accuracy is to use QueryPerformanceCounter
+* Note: The resolution of GetSystemTimeAsFileTime() is 15625 microseconds.
+* The resolution of _ftime() is about 16 milliseconds.
+* To get microseconds accuracy we need to use QueryPerformanceCounter or
+* timeGetTime for the elapsed time.
 *************************************************************************/
-#if 0
 int gettimeofday(
     struct timeval *tp,
     void *tzp)
 {
-    /* QPC uses frequency and ticks */
-    LARGE_INTEGER tickPerSecond;
-    LARGE_INTEGER tick;
-    struct _timeb timebuffer;
-
-    tzp = tzp;
-    _ftime(&timebuffer);
-    QueryPerformanceFrequency(&tickPerSecond);
-    QueryPerformanceCounter(&tick);
-    tp->tv_usec = (tick.QuadPart % tickPerSecond.QuadPart);
-    tp->tv_sec = timebuffer.time;
-
-    return 0;
-}
-#elif 1
-int gettimeofday(
-    struct timeval *tp,
-    void *tzp)
-{
-    FILETIME ft;
-    unsigned __int64 tmpres = 0;
     static int tzflag = 0;
     struct timezone *tz;
+    /* start calendar time in microseconds */
+    static LONGLONG usec_timer = 0;
+    LONGLONG usec_elapsed = 0;
+    /* elapsed time in milliseconds */
+    static uint32_t time_start = 0;
+    /* semi-accurate time from File Timer */
+    FILETIME ft;
+    uint32_t elapsed_milliseconds = 0;
 
-    if (tp) {
+    tzp = tzp;
+    if (usec_timer == 0) {
+        /* a 64-bit value representing the number of
+           100-nanosecond intervals since January 1, 1601 (UTC). */
         GetSystemTimeAsFileTime(&ft);
-        tmpres |= ft.dwHighDateTime;
-        tmpres <<= 32;
-        tmpres |= ft.dwLowDateTime;
-        /*converting file time to unix epoch*/
-        tmpres /= 10;  /*convert into microseconds*/
-        tmpres -= DELTA_EPOCH_IN_MICROSECS;
-        tp->tv_sec = (long)(tmpres / 1000000UL);
-        tp->tv_usec = (long)(tmpres % 1000000UL);
+        usec_timer |= ft.dwHighDateTime;
+        usec_timer <<= 32;
+        usec_timer |= ft.dwLowDateTime;
+        /*converting file time to unix epoch 1970 */
+        usec_timer /= 10;  /*convert into microseconds*/
+        usec_timer -= DELTA_EPOCH_IN_MICROSECS;
+        tp->tv_sec = (long)(usec_timer / 1000000UL);
+        tp->tv_usec = (long)(usec_timer % 1000000UL);
+        time_start = timeGetTime();
+    } else {
+        elapsed_milliseconds = timeGetTime() - time_start;
+        usec_elapsed = usec_timer + (elapsed_milliseconds * 1000UL);
+        tp->tv_sec = (long)(usec_elapsed / 1000000UL);
+        tp->tv_usec = (long)(usec_elapsed % 1000000UL);
     }
     if (tzp) {
         if (!tzflag) {
@@ -106,21 +104,6 @@ int gettimeofday(
 
     return 0;
 }
-#else
-int gettimeofday(
-    struct timeval *tp,
-    void *tzp)
-{
-    struct _timeb timebuffer;
-
-    tzp = tzp;
-    _ftime(&timebuffer);
-    tp->tv_sec = timebuffer.time;
-    tp->tv_usec = timebuffer.millitm * 1000;
-
-    return 0;
-}
-#endif
 
 /*************************************************************************
 * Description: returns the current millisecond count
