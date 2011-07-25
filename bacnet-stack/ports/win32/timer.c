@@ -54,7 +54,7 @@ static uint32_t Timer_Period = 1;
 * The resolution of _ftime() is 16 milliseconds
 * The only way to get microseconds accuracy is to use QueryPerformanceCounter
 *************************************************************************/
-#if 1
+#if 0
 int gettimeofday(
     struct timeval *tp,
     void *tzp)
@@ -62,17 +62,18 @@ int gettimeofday(
     /* QPC uses frequency and ticks */
     LARGE_INTEGER tickPerSecond;
     LARGE_INTEGER tick;
-    time_t rawtime;
+    struct _timeb timebuffer;
 
-    time(&rawtime);
+    tzp = tzp;
+    _ftime(&timebuffer);
     QueryPerformanceFrequency(&tickPerSecond);
     QueryPerformanceCounter(&tick);
-    tv->tv_usec = (tick.QuadPart % tickPerSecond.QuadPart);
-    tp->tv_sec = (long)rawtime;
+    tp->tv_usec = (tick.QuadPart % tickPerSecond.QuadPart);
+    tp->tv_sec = timebuffer.time;
 
     return 0;
 }
-#elif 0
+#elif 1
 int gettimeofday(
     struct timeval *tp,
     void *tzp)
