@@ -51,8 +51,28 @@ static uint32_t Timer_Period = 1;
 * Description: simulate the gettimeofday Linux function
 * Returns: zero
 * Note: The resolution of GetSystemTimeAsFileTime() is 15625 microseconds
+* The resolution of _ftime() is 16 milliseconds
+* The only way to get microseconds accuracy is to use QueryPerformanceCounter
 *************************************************************************/
 #if 1
+int gettimeofday(
+    struct timeval *tp,
+    void *tzp)
+{
+    /* QPC uses frequency and ticks */
+    LARGE_INTEGER tickPerSecond;
+    LARGE_INTEGER tick;
+    time_t rawtime;
+
+    time(&rawtime);
+    QueryPerformanceFrequency(&tickPerSecond);
+    QueryPerformanceCounter(&tick);
+    tv->tv_usec = (tick.QuadPart % tickPerSecond.QuadPart);
+    tp->tv_sec = (long)rawtime;
+
+    return 0;
+}
+#elif 0
 int gettimeofday(
     struct timeval *tp,
     void *tzp)
