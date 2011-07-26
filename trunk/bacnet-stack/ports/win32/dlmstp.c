@@ -22,6 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -39,6 +40,7 @@
 #include "npdu.h"
 #include "bits.h"
 #include "ringbuf.h"
+#include "timer.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
@@ -70,33 +72,16 @@ static uint16_t Treply_timeout = 260;
 static uint8_t Tusage_timeout = 50;
 
 /* Timer that indicates line silence - and functions */
-static uint16_t SilenceTime;
-#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-static uint16_t Timer_Silence(
+static uint32_t Timer_Silence(
     void)
 {
-    return SilenceTime;
+    return timer_milliseconds(TIMER_SILENCE);
 }
 
 static void Timer_Silence_Reset(
     void)
 {
-    SilenceTime = 0;
-}
-
-static void dlmstp_millisecond_timer(
-    void)
-{
-    INCREMENT_AND_LIMIT_UINT16(SilenceTime);
-}
-
-static void dlmstp_reinit(
-    void)
-{
-    /*RS485_Reinit(); */
-    dlmstp_set_mac_address(DEFAULT_MAC_ADDRESS);
-    dlmstp_set_max_info_frames(DEFAULT_MAX_INFO_FRAMES);
-    dlmstp_set_max_master(DEFAULT_MAX_MASTER);
+    timer_reset(TIMER_SILENCE);
 }
 
 void dlmstp_cleanup(
@@ -227,18 +212,6 @@ static void dlmstp_master_fsm_task(
         if (dwMilliseconds)
             WaitForSingleObject(Received_Frame_Flag, dwMilliseconds);
         MSTP_Master_Node_FSM(&MSTP_Port);
-    }
-}
-
-static void dlmstp_millisecond_task(
-    void *pArg)
-{
-    (void) pArg;
-    (void) SetThreadPriority(GetCurrentThread(),
-        THREAD_PRIORITY_TIME_CRITICAL);
-    for (;;) {
-        dlmstp_millisecond_timer();
-        Sleep(1);
     }
 }
 
@@ -622,7 +595,7 @@ bool dlmstp_init(
         exit(1);
     }
     /* initialize hardware */
-    /* initialize hardware */
+    timer_init();
     if (ifname) {
         RS485_Set_Interface(ifname);
 #if PRINT_ENABLED
@@ -672,11 +645,6 @@ bool dlmstp_init(
     fprintf(stderr, "MS/TP Max_Info_Frames: %u\n",
         (unsigned) MSTP_Port.Nmax_info_frames);
 #endif
-    /* start the threads */
-    hThread = _beginthread(dlmstp_millisecond_task, 4096, &arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start timer task\n");
-    }
     hThread = _beginthread(dlmstp_receive_fsm_task, 4096, &arg_value);
     if (hThread == 0) {
         fprintf(stderr, "Failed to start recive FSM task\n");

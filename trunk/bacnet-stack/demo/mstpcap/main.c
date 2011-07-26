@@ -244,7 +244,7 @@ static void packet_statistics(
     old_tv.tv_usec = tv->tv_usec;
 }
 
-static void packet_statistics_save(
+static void packet_statistics_print(
     void)
 {
     unsigned i; /* loop counter */
@@ -500,7 +500,7 @@ static void write_global_header(
         fflush(pFile);
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
-        fprintf(stderr, "mstpcap: failed to open %s: %s\n", filename,
+        fprintf(stderr, "mstpcap[header]: failed to open %s: %s\n", filename,
             strerror(errno));
     }
     if (pipe_enable) {
@@ -552,7 +552,7 @@ static void write_received_packet(
             (void) data_write((char *) &mstp_port->DataCRCActualLSB, 1, 1);
         }
     } else {
-        fprintf(stderr, "mstpcap: failed to open %s: %s\n", Capture_Filename,
+        fprintf(stderr, "mstpcap[packet]: failed to open %s: %s\n", Capture_Filename,
             strerror(errno));
     }
 }
@@ -623,7 +623,7 @@ static bool test_global_header(
             return false;
         }
     } else {
-        fprintf(stderr, "mstpcap: failed to open %s: %s\n", filename,
+        fprintf(stderr, "mstpcap[scan]: failed to open %s: %s\n", filename,
             strerror(errno));
         return false;
     }
@@ -715,7 +715,7 @@ static bool read_received_packet(
 static void cleanup(
     void)
 {
-    packet_statistics_save();
+    packet_statistics_print();
     if (pFile) {
         fflush(pFile);  /* stream pointer */
         fclose(pFile);  /* stream pointer */
@@ -764,6 +764,7 @@ void filename_create_new(
     if (pFile) {
         fclose(pFile);
     }
+    pFile = NULL;
     filename_create(&Capture_Filename[0]);
     write_global_header(&Capture_Filename[0]);
 }
@@ -825,7 +826,7 @@ int main(
                     fprintf(stdout, "\r%hu packets", packet_count);
                 }
                 if (packet_count) {
-                    packet_statistics_save();
+                    packet_statistics_print();
                 }
             } else {
                 fprintf(stderr, "File header does not match.\n");
@@ -839,12 +840,12 @@ int main(
     if (argc > 2) {
         my_baud = strtol(argv[2], NULL, 0);
     }
-    RS485_Set_Baud_Rate(my_baud);
+    atexit(cleanup);
     RS485_Initialize();
     timer_init();
+    RS485_Set_Baud_Rate(my_baud);
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
-    atexit(cleanup);
 #if defined(_WIN32)
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
@@ -879,7 +880,7 @@ int main(
                 Invalid_Frame_Count);
         }
         if (packet_count >= 65535) {
-            packet_statistics_save();
+            packet_statistics_print();
             packet_statistics_clear();
             filename_create_new();
             packet_count = 0;

@@ -130,6 +130,7 @@ PORT_ARCNET_SRC = \
 PORT_MSTP_SRC = \
 	$(BACNET_PORT_DIR)/rs485.c \
 	$(BACNET_PORT_DIR)/dlmstp.c \
+	$(BACNET_PORT_DIR)/timer.c \
 	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/fifo.c \
 	$(BACNET_CORE)/mstp.c \
@@ -148,6 +149,7 @@ PORT_ALL_SRC = \
 	$(BACNET_PORT_DIR)/arcnet.c \
 	$(BACNET_PORT_DIR)/dlmstp.c \
 	$(BACNET_PORT_DIR)/rs485.c \
+	$(BACNET_PORT_DIR)/timer.c \
 	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/fifo.c \
 	$(BACNET_CORE)/mstp.c \
