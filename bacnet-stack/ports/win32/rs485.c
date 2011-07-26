@@ -33,12 +33,12 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-/* The module handles sending data out the RS-485 port */
-/* and handles receiving data from the RS-485 port. */
-/* Customize this file for your specific hardware */
+/** @file win32/rs485.c  Provides Windows-specific functions for RS-485 */
+
 /* Suggested USB to RS485 devices:
    B&B Electronics USOPTL4
    SerialGear USB-COMi-SI-M
+   USB-RS485-WE-1800-BT
 */
 
 #include <stddef.h>
@@ -54,6 +54,7 @@
 #define STRICT 1
 #include <windows.h>
 #include "rs485.h"
+#include "fifo.h"
 
 /* details from Serial Communications in Win32 at MSDN */
 
@@ -83,6 +84,11 @@ static DWORD RS485_DTRControl = DTR_CONTROL_DISABLE;
     RTS_CONTROL_ENABLE, RTS_CONTROL_DISABLE,
     RTS_CONTROL_HANDSHAKE, RTS_CONTROL_TOGGLE */
 static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
+/* Ring buffer for incoming bytes, in order to speed up the receiving. */
+static FIFO_BUFFER Rx_FIFO;
+/* buffer size needs to be a power of 2 */
+static uint8_t Rx_Buffer[1 << 12];
+
 
 /****************************************************************************
 * DESCRIPTION: Change the characters in a string to uppercase
@@ -98,8 +104,6 @@ static void strupper(
         *p = (char) toupper(*p);
     }
 }
-
-#pragma
 
 /****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
@@ -212,6 +216,26 @@ static void RS485_Configure_Status(
 }
 
 /****************************************************************************
+* DESCRIPTION: Cleans up any handles that were created at startup.
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+static void RS485_Cleanup(
+    void)
+{
+    if (!EscapeCommFunction(RS485_Handle, CLRDTR)) {
+        RS485_Print_Error();
+    }
+
+    if (!SetCommTimeouts(RS485_Handle, &RS485_Timeouts)) {
+        RS485_Print_Error();
+    }
+
+    CloseHandle(RS485_Handle);
+}
+
+/****************************************************************************
 * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
 *              receive mode.
 * RETURN:      none
@@ -236,21 +260,9 @@ void RS485_Initialize(
     }
     RS485_Configure_Status();
 
+    atexit(RS485_Cleanup);
+
     return;
-}
-
-void RS485_Cleanup(
-    void)
-{
-    if (!EscapeCommFunction(RS485_Handle, CLRDTR)) {
-        RS485_Print_Error();
-    }
-
-    if (!SetCommTimeouts(RS485_Handle, &RS485_Timeouts)) {
-        RS485_Print_Error();
-    }
-
-    CloseHandle(RS485_Handle);
 }
 
 /****************************************************************************
