@@ -64,6 +64,7 @@ static const int Properties_Required[] = {
 
 static const int Properties_Optional[] = {
     PROP_DESCRIPTION,
+    PROP_RELIABILITY,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
