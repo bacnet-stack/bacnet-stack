@@ -31,7 +31,11 @@
 #include "bacdef.h"
 #include "rp.h"
 #include "wp.h"
+#if defined(INTRINSIC_REPORTING)
 #include "nc.h"
+#include "getevent.h"
+#include "alarm_ack.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,9 +64,6 @@ extern "C" {
         ACK_NOTIFICATION Ack_notify_data;
 #endif
     } ANALOG_INPUT_DESCR;
-
-
-
 
     void Analog_Input_Property_Lists(
         const int **pRequired,
@@ -110,6 +111,7 @@ extern "C" {
         uint32_t object_instance,
         float value);
 
+#if defined(INTRINSIC_REPORTING)
     void Analog_Input_Intrinsic_Reporting(uint32_t object_instance);
 
     int Analog_Input_Event_Information(unsigned index,
@@ -117,6 +119,7 @@ extern "C" {
 
     int Analog_Input_Alarm_Ack(BACNET_ALARM_ACK_DATA * alarmack_data,
         BACNET_ERROR_CODE * error_code);
+#endif
 
     void Analog_Input_Init(
         void);
