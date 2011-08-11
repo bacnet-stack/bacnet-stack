@@ -111,9 +111,11 @@ extern "C" {
         uint32_t object_instance,
         float value);
 
-#if defined(INTRINSIC_REPORTING)
+    /* note: header of Intrinsic_Reporting function is required
+             even when INTRINSIC_REPORTING is not defined */
     void Analog_Input_Intrinsic_Reporting(uint32_t object_instance);
 
+#if defined(INTRINSIC_REPORTING)
     int Analog_Input_Event_Information(unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
 

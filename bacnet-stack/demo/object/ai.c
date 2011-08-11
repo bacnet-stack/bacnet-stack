@@ -38,7 +38,6 @@
 #include "device.h"
 #include "handlers.h"
 #include "timestamp.h"
-#include "nc.h"
 #include "ai.h"
 
 
