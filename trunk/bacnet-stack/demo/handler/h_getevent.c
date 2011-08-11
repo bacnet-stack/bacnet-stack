@@ -73,6 +73,9 @@ void handler_get_event_information(
     BACNET_GET_EVENT_INFORMATION_DATA getevent_data;
     int valid_event = 0;
 
+    /* initialize type of 'Last Received Object Identifier' using max value */
+    object_id.type = MAX_BACNET_OBJECT_TYPE;
+
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
@@ -120,6 +123,17 @@ void handler_get_event_information(
             for (j = 0; j < 0xffff; j++) {
                 valid_event = Get_Event_Info[i] (j, &getevent_data);
                 if (valid_event > 0) {
+                    /* encode GetEvent_data only when type of object_id has max value */
+                    if (object_id.type != MAX_BACNET_OBJECT_TYPE) {
+                        if ((object_id.type == getevent_data.objectIdentifier.type) &&
+                            (object_id.instance == getevent_data.objectIdentifier.instance)) {
+                            /* found 'Last Received Object Identifier'
+                               so should set type of object_id to max value */
+                            object_id.type = MAX_BACNET_OBJECT_TYPE;
+                        }
+                        continue;
+                    }
+
                     getevent_data.next = NULL;
                     len =
                         getevent_ack_encode_apdu_data(&Handler_Transmit_Buffer
