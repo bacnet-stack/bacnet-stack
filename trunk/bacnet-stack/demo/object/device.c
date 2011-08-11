@@ -58,11 +58,13 @@
 #include "lsp.h"
 #include "mso.h"
 #include "ms-input.h"
-#include "nc.h"
 #include "trendlog.h"
+#if defined(INTRINSIC_REPORTING)
+#include "nc.h"
+#endif /* defined(INTRINSIC_REPORTING) */
 #if defined(BACFILE)
 #include "bacfile.h"
-#endif
+#endif /* defined(BACFILE) */
 
 
 #if defined(__BORLANDC__)

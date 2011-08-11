@@ -32,7 +32,11 @@
 #include "bacerror.h"
 #include "wp.h"
 #include "rp.h"
+#if defined(INTRINSIC_REPORTING)
 #include "nc.h"
+#include "alarm_ack.h"
+#include "getevent.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,14 +100,18 @@ extern "C" {
     float Analog_Value_Present_Value(
         uint32_t object_instance);
 
+    /* note: header of Intrinsic_Reporting function is required
+             even when INTRINSIC_REPORTING is not defined */
     void Analog_Value_Intrinsic_Reporting(
         uint32_t object_instance);
 
+#if defined(INTRINSIC_REPORTING)
     int Analog_Value_Event_Information(unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
 
     int Analog_Value_Alarm_Ack(BACNET_ALARM_ACK_DATA * alarmack_data,
         BACNET_ERROR_CODE * error_code);
+#endif
 
     void Analog_Value_Init(
         void);

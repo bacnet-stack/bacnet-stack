@@ -45,7 +45,8 @@ typedef enum {
 } NC_RECIPIENT_TYPE;
 
 
-/* BACnetRecipient sructuer*/
+#if defined(INTRINSIC_REPORTING)
+/* BACnetRecipient structure */
 /*
 BACnetRecipient ::= CHOICE {
     device [0] BACnetObjectIdentifier,
@@ -126,6 +127,7 @@ typedef struct Ack_Notification {
             BACNET_EVENT_NOTIFICATION_DATA * event_data);
 
     void Notification_Class_find_recipient(void);
+#endif /* defined(INTRINSIC_REPORTING) */
 
 
 #ifdef __cplusplus

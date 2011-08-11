@@ -37,14 +37,10 @@
 #include "bacapp.h"
 #include "bactext.h"
 #include "config.h"     /* the custom stuff */
-#include "alarm_ack.h"
-#include "getevent.h"
-#include "wp.h"
-#include "rp.h"
-#include "nc.h"
-#include "av.h"
 #include "device.h"
 #include "handlers.h"
+#include "av.h"
+
 
 #ifndef MAX_ANALOG_VALUES
 #define MAX_ANALOG_VALUES 4
