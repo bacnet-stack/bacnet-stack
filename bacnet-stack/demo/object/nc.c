@@ -300,7 +300,7 @@ int Notification_Class_Read_Property(
                     } */
 
                     /* CHOICE - device [0] BACnetObjectIdentifier */
-                    if(RecipientEntry->Recipient.RecipientType == RECIPIENT_TYPE_DEVICE)
+                    if (RecipientEntry->Recipient.RecipientType == RECIPIENT_TYPE_DEVICE)
                     {
                         apdu_len += encode_context_object_id(&apdu[apdu_len], 0, OBJECT_DEVICE,
                                         RecipientEntry->Recipient._.DeviceIdentifier);
@@ -394,7 +394,8 @@ bool Notification_Class_Write_Property(
 
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(wp_data->object_instance)];
 
-    /* decode the some of the request */
+    /* decode the some of the request
+ */
     len = bacapp_decode_application_data(wp_data->application_data,
                                          wp_data->application_data_len, &value);
 
@@ -411,7 +412,7 @@ bool Notification_Class_Write_Property(
                    wp_data->error_code  = ERROR_CODE_INVALID_ARRAY_INDEX;
                 }
                 else if (wp_data->array_index == BACNET_ARRAY_ALL) {
-                    /*/ FIXME: wite all array */
+                    /* FIXME: wite all array */
                 }
                 else if (wp_data->array_index <= 3) {
                     CurrentNotify->Priority[wp_data->array_index - 1] =
@@ -430,7 +431,7 @@ bool Notification_Class_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
-                if(value.type.Bit_String.bits_used == 3) {
+                if (value.type.Bit_String.bits_used == 3) {
                    CurrentNotify->Ack_Required =
                             value.type.Bit_String.value[0];
                 }
@@ -665,8 +666,8 @@ bool Notification_Class_Write_Property(
                 }
                 else if (CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
                     /* copy Address */
-                    /*/src = CurrentNotify->Recipient_List[idx].Recipient._.Address; */
-                    /*/address_bind_request(BACNET_MAX_INSTANCE, &max_apdu, &src); */
+                    /* src = CurrentNotify->Recipient_List[idx].Recipient._.Address; */
+                    /* address_bind_request(BACNET_MAX_INSTANCE, &max_apdu, &src); */
                 }
             }
 
@@ -696,12 +697,12 @@ void Notification_Class_Get_Priorities(
     if (object_index < MAX_NOTIFICATION_CLASSES)
         CurrentNotify = &NC_Info[object_index];
     else {
-        for(i = 0; i < 3; i++)
+        for (i = 0; i < 3; i++)
             pPriorityArray[i] = 255;
         return; /* unknown object */
     }
 
-    for(i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++)
         pPriorityArray[i] = CurrentNotify->Priority[i];
 }
 
@@ -876,10 +877,10 @@ void Notification_Class_find_recipient(void)
                 /* Device ID */
                 DeviceID = CurrentNotify->Recipient_List[idx].Recipient._.DeviceIdentifier;
                 /* Send who_ is request only when address of device is unknown. */
-                if(!address_bind_request(DeviceID, &max_apdu, &src))
+                if (!address_bind_request(DeviceID, &max_apdu, &src))
                     Send_WhoIs(DeviceID, DeviceID);
             }
-            else if(CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
+            else if (CurrentNotify->Recipient_List[idx].Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
 
             }
         }
