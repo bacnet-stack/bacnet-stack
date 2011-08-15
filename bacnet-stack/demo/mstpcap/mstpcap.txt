@@ -12,26 +12,46 @@ D:\code\bacnet-stack>bin\mstpcap.exe com54 38400
 Adjusted interface name to \\.\COM54
 mstpcap: Using \\.\COM54 for capture at 38400 bps.
 mstpcap: saving capture to mstp_20110413134119.cap
-3200 packets, 0 invalid frames
-MAC     MaxMstr Tokens  Retries PFM     Treply  Tusage  Trpfm   Tder    Tpostpd
-0       1       557     0       32      11      47      0       0       0
-2       0       557     0       47      0       0       0       0       0
-3       4       557     0       32      11      110     0       0       0
-5       6       558     0       31      11      78      0       0       0
-7       127     557     1       31      404     63      0       0       0
+1156 packets
+==== MS/TP Frame Counts ====
+MAC     Tokens  PFM     RPFM    DER     Postpd  DNER    TestReq TestRsp
+0       188     4       0       0       0       0       0       0
+2       189     0       0       0       0       0       0       0
+3       189     9       0       0       0       0       0       0
+7       189     60      0       0       0       0       0       0
+35      188     140     0       0       0       0       0       0
+Node Count: 5
+
+==== MS/TP Usage and Timing Maximums ====
+MAC     MaxMstr Retries Npoll   Self    Treply  Tusage  Trpfm   Tder    Tpostpd
+0       1       0       52      0       11      24      0       0       0
+2       0       0       0       0       23      0       0       0       0
+3       6       0       50      0       5       100     0       0       0
+7       34      0       52      0       5       34      0       0       0
+35      127     0       50      0       6       63      0       0       0
 Node Count: 5
 Invalid Frame Count: 0
 
 The files that are captured can also be scanned to give some statistics:
 D:\code\bacnet-stack>bin\mstpcap.exe --scan mstp_20110413134119.cap
 Scanning mstp_20110413134119.cap
-3223 packets
-MAC     MaxMstr Tokens  Retries PFM     Treply  Tusage  Trpfm   Tder    Tpostpd
-0       1       557     0       32      11      47      0       0       0
-2       0       557     0       47      0       0       0       0       0
-3       4       557     0       32      11      110     0       0       0
-5       6       558     0       31      11      78      0       0       0
-7       127     557     1       31      404     63      0       0       0
+1156 packets
+==== MS/TP Frame Counts ====
+MAC     Tokens  PFM     RPFM    DER     Postpd  DNER    TestReq TestRsp
+0       188     4       0       0       0       0       0       0
+2       189     0       0       0       0       0       0       0
+3       189     9       0       0       0       0       0       0
+7       189     60      0       0       0       0       0       0
+35      188     140     0       0       0       0       0       0
+Node Count: 5
+
+==== MS/TP Usage and Timing Maximums ====
+MAC     MaxMstr Retries Npoll   Self    Treply  Tusage  Trpfm   Tder    Tpostpd
+0       1       0       52      0       11      24      0       0       0
+2       0       0       0       0       23      0       0       0       0
+3       6       0       50      0       5       100     0       0       0
+7       34      0       52      0       5       34      0       0       0
+35      127     0       50      0       6       63      0       0       0
 Node Count: 5
 Invalid Frame Count: 0
 
@@ -43,13 +63,33 @@ The statistics are emitted when Control-C is pressed, or when
 The statistics are cleared when the new file is created.
 The statistics can be emitted from a file using the "--scan" option.
 
-MaxMstr = highest destination MAC address during PFM
+The MS/TP Frame counts use the following abbreviations:
 
 Tokens = number of Token frames sent from this MAC address.
 
+PFM = number of Poll-For-Master frames sent from this MAC address.
+
+RPFM = number of Reply-To-Poll-For-Master frames sent from this MAC address.
+
+DER = number of Data-Expecting-Reply frames sent from this MAC address.
+
+Postpd = number of Reply-Postponed frames sent from this MAC address.
+
+DNER = number of Data-Not-Expecting-Reply frames sent from this MAC address.
+
+TestReq = number of Test-Request frames sent from this MAC address.
+
+TestRsp = number of Test-Response frames sent from this MAC address.
+
+The MS/TP Usage and Timing Maximums use the following abbreviations:
+
+MaxMstr = highest destination MAC address during PFM
+
 Retries = number of second tokens sent to this MAC address.
 
-PFM = number of Poll-For-Master frames sent from this MAC address.
+Npoll = number of Tokens between Poll-For-Master
+
+Self = number of Tokens sent to self (Addendum 135-2008v)
 
 Treply = maximum number of milliseconds it took to reply with
 a token after receiving a token. Treply is required to be less
@@ -70,9 +110,6 @@ than 250ms.
 Tpostpd = maximum number of milliseconds to respond to
 DataExpectingReply request with ReplyPostponed.  Tpostpd is
 required to be less than 250ms.
-
-Note that the mstpcap tool may not have that good of
-resolution on Windows, so timing under 50ms may not be accurate.
 
 ==== FTDI chip RS-485 converter 76800 baud tricks ==== 
 
@@ -112,16 +149,21 @@ So to capture at 76800 baud type: mstpcap.exe COM2 300
 Linux (used with Debian Lenny and Fedora 15)
 http://www.connecttech.com/KnowledgeDatabase/kdb309.htm
 As root:
-chmod 777 /dev/ttyUSB0  - so I can use it later as normal user
-setserial /dev/ttyUSB0 –a       - this prints current info about the device
+Change USB so I can use it later as normal user:
+# chmod 777 /dev/ttyUSB0  -
+Print current info about the device:
+# setserial /dev/ttyUSB0 –a
 /dev/ttyUSB0, Line 0, UART: unknown, Port: 0x0000, IRQ: 0
        Baud_base: 24000000, close_delay: 0, divisor: 0
        closing_wait: infinte
        Flags: spd_normal low_latency
 
-setserial /dev/ttyUSB0 spd_cust - to make custom speed
-setserial /dev/ttyUSB0 divisor 312      - 24000000/312 gives 76923 baudrate
-setserial /dev/ttyUSB0 –a               - just to make sure changes got applied
+Make custom speed:
+# setserial /dev/ttyUSB0 spd_cust
+24000000/312 gives 76923 baudrate:
+# setserial /dev/ttyUSB0 divisor 312
+Print to make sure changes got applied:
+# setserial /dev/ttyUSB0 –a
 /dev/ttyUSB0, Line 0, UART: unknown, Port: 0x0000, IRQ: 0
        Baud_base: 24000000, close_delay: 0, divisor: 312
        closing_wait: infinte
@@ -130,7 +172,6 @@ setserial /dev/ttyUSB0 –a               - just to make sure changes got applied
 Now as normal user running the mstpcap which uses the default 38400 baud it
 will actually capture at 76800 baud. (76923)
 
-Just navigate to bin folder in the project and type:
+Just navigate (cd bin) to bin folder in the project and type:
 
-./mstpcap
-
+$ ./mstpcap
