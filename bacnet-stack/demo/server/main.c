@@ -52,16 +52,6 @@
 #include "version.h"
 /* include the device object */
 #include "device.h"
-#include "ai.h"
-#include "ao.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
-#include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#include "ms-input.h"
 #include "trendlog.h"
 #if defined(INTRINSIC_REPORTING)
 #include "nc.h"
