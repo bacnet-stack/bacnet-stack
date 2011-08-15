@@ -1487,9 +1487,9 @@ bool Device_Encode_Value_List(
 }
 
 
+#if defined(INTRINSIC_REPORTING)
 void Device_local_reporting(void)
 {
-#if defined(INTRINSIC_REPORTING)
     struct   object_functions *pObject;
     uint32_t objects_count;
     uint32_t object_instance;
@@ -1515,8 +1515,8 @@ void Device_local_reporting(void)
             }
         }
     }
-#endif
 }
+#endif
 
 /** Looks up the requested Object to see if the functionality is supported.
  * @ingroup ObjHelpers
