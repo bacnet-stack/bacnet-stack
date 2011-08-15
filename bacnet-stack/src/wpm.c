@@ -75,7 +75,7 @@ int wpm_decode_object_property(uint8_t * apdu,
     if((apdu) && (apdu_len) && (wp_data))
     {
         wp_data->array_index = BACNET_ARRAY_ALL;
-        wp_data->priority    = BACNET_NO_PRIORITY;
+        wp_data->priority    = BACNET_MAX_PRIORITY;
         wp_data->application_data_len = 0;
 
         /* tag 0 - Property Identifier */
@@ -90,7 +90,7 @@ int wpm_decode_object_property(uint8_t * apdu,
 
         /* tag 1 - Property Array Index - optional */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if(tag_number ==1)
+        if(tag_number == 1)
         {
             len += decode_unsigned(&apdu[len],len_value, &ulVal);
             wp_data->array_index = ulVal;
@@ -120,12 +120,9 @@ int wpm_decode_object_property(uint8_t * apdu,
 
         /* tag 3 - Priority - optional */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if(tag_number == 3)
-        {
-            uint32_t priority = BACNET_NO_PRIORITY;
-
-            len += decode_unsigned(&apdu[len], len_value, &priority);
-            wp_data->priority = priority;
+        if(tag_number == 3) {
+            len += decode_unsigned(&apdu[len], len_value, &ulVal);
+            wp_data->priority = ulVal;
         }
         else
             len--;
