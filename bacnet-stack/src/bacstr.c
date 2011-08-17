@@ -519,11 +519,11 @@ static const char trailingBytesForUTF8[256] = {
    it's hard to know how many characters there are! */
 static int utf8_isvalid(
     const char *str,
-    int length)
+    size_t length)
 {
     const unsigned char *p, *pend = (unsigned char *) str + length;
     unsigned char c;
-    int ab;
+    size_t ab;
 
     for (p = (unsigned char *) str; p < pend; p++) {
         c = *p;
@@ -538,7 +538,7 @@ static int utf8_isvalid(
         if ((c & 0xc0) != 0xc0) {
             return 0;
         }
-        ab = trailingBytesForUTF8[c];
+        ab = (size_t)trailingBytesForUTF8[c];
         if (length < ab) {
             return 0;
         }

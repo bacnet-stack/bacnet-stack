@@ -5,7 +5,7 @@ SPLINT=/usr/bin/splint
 
 [ -x ${SPLINT} ] || exit 0
 
-INCLUDES="-Iinclude -Iports/linux"
+INCLUDES="-Iinclude -Idemo/object -Iports/linux"
 SETTINGS="-castfcnptr -fullinitblock -initallelements -weak +posixlib"
 
 if [ ! -x .splintrc ]

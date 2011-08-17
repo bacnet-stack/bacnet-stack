@@ -1,1 +1,1 @@
--Iinclude -Iports/linux -castfcnptr -fullinitblock -initallelements -weak +posixlib
+-Iinclude -Idemo/object -Iports/linux -castfcnptr -fullinitblock -initallelements -weak +posixlib
