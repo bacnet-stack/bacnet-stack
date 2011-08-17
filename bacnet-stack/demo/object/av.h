@@ -43,23 +43,23 @@ extern "C" {
 #endif /* __cplusplus */
 
     typedef struct analog_value_descr {
-        uint8_t  Event_State  : 3;
-        bool     Out_Of_Service;
-        uint8_t  Units;
+        uint8_t Event_State:3;
+        bool Out_Of_Service;
+        uint8_t Units;
         /* Here is our Priority Array.  They are supposed to be Real, but */
         /* we don't have that kind of memory, so we will use a single byte */
         /* and load a Real for returning the value when asked. */
-        uint8_t  Priority_Array[BACNET_MAX_PRIORITY];
-        float    Relinquish_Default;
+        uint8_t Priority_Array[BACNET_MAX_PRIORITY];
+        float Relinquish_Default;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;
-        float    High_Limit;
-        float    Low_Limit;
-        float    Deadband;
-        uint8_t  Limit_Enable : 2;
-        uint8_t  Event_Enable : 3;
-        uint8_t  Notify_Type  : 1;
+        float High_Limit;
+        float Low_Limit;
+        float Deadband;
+        uint8_t Limit_Enable:2;
+        uint8_t Event_Enable:3;
+        uint8_t Notify_Type:1;
         ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
         BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
         /* time to generate event notification */
@@ -85,7 +85,7 @@ extern "C" {
 
     bool Analog_Value_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
 
     int Analog_Value_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
@@ -101,15 +101,17 @@ extern "C" {
         uint32_t object_instance);
 
     /* note: header of Intrinsic_Reporting function is required
-             even when INTRINSIC_REPORTING is not defined */
+       even when INTRINSIC_REPORTING is not defined */
     void Analog_Value_Intrinsic_Reporting(
         uint32_t object_instance);
 
 #if defined(INTRINSIC_REPORTING)
-    int Analog_Value_Event_Information(unsigned index,
+    int Analog_Value_Event_Information(
+        unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
 
-    int Analog_Value_Alarm_Ack(BACNET_ALARM_ACK_DATA * alarmack_data,
+    int Analog_Value_Alarm_Ack(
+        BACNET_ALARM_ACK_DATA * alarmack_data,
         BACNET_ERROR_CODE * error_code);
 #endif
 

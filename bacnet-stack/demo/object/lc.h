@@ -54,7 +54,7 @@ extern "C" {
 
     bool Load_Control_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
 
     void Load_Control_Init(
         void);

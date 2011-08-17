@@ -70,7 +70,7 @@ uint8_t Send_Private_Transfer_Request(
 static object_functions_t Object_Table[] = {
     {DEVICE_OBJ_FUNCTIONS},
     {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL}
+        NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 /* buffer used for receive */

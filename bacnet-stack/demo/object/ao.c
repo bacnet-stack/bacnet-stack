@@ -255,7 +255,7 @@ bool Analog_Output_Present_Value_Relinquish(
 /* note: the object name must be unique within this device */
 bool Analog_Output_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     bool status = false;
@@ -447,11 +447,11 @@ bool Analog_Output_Write_Property(
                 if (status) {
                     level = AO_LEVEL_NULL;
                     object_index =
-                        Analog_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Analog_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     status =
-                        Analog_Output_Present_Value_Relinquish(wp_data->
-                        object_instance, wp_data->priority);
+                        Analog_Output_Present_Value_Relinquish
+                        (wp_data->object_instance, wp_data->priority);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -491,10 +491,10 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    ucExpectedTag=ucExpectedTag;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    ucExpectedTag = ucExpectedTag;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }

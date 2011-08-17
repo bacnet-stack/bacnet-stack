@@ -141,7 +141,7 @@ extern "C" {
 
     bool Trend_Log_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
 
     int Trend_Log_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);

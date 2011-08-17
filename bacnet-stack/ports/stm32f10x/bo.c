@@ -222,7 +222,7 @@ bool Binary_Output_Out_Of_Service(
 /* note: the object name must be unique within this device */
 bool Binary_Output_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[16] = "BO-0";       /* okay for single thread */
     bool status = false;
@@ -430,8 +430,8 @@ bool Binary_Output_Write_Property(
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Binary_Output_Present_Value_Set(wp_data->
-                            object_instance, level, priority);
+                        Binary_Output_Present_Value_Set
+                            (wp_data->object_instance, level, priority);
                     } else if (priority == 6) {
                         status = false;
                         /* Command priority 6 is reserved for use by Minimum On/Off

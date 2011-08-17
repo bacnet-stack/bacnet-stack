@@ -42,40 +42,40 @@ void led_on(
 {
     switch (index) {
         case 4:
-            R_IO_PORT_Write( LED4, LED_ON );
+            R_IO_PORT_Write(LED4, LED_ON);
             break;
         case 5:
-            R_IO_PORT_Write( LED5, LED_ON );
+            R_IO_PORT_Write(LED5, LED_ON);
             break;
         case 6:
-            R_IO_PORT_Write( LED6, LED_ON );
+            R_IO_PORT_Write(LED6, LED_ON);
             break;
         case 7:
-            R_IO_PORT_Write( LED7, LED_ON );
+            R_IO_PORT_Write(LED7, LED_ON);
             break;
         case 8:
-            R_IO_PORT_Write( LED8, LED_ON );
+            R_IO_PORT_Write(LED8, LED_ON);
             break;
         case 9:
-            R_IO_PORT_Write( LED9, LED_ON );
+            R_IO_PORT_Write(LED9, LED_ON);
             break;
         case 10:
-            R_IO_PORT_Write( LED10, LED_ON );
+            R_IO_PORT_Write(LED10, LED_ON);
             break;
         case 11:
-            R_IO_PORT_Write( LED11, LED_ON );
+            R_IO_PORT_Write(LED11, LED_ON);
             break;
         case 12:
-            R_IO_PORT_Write( LED12, LED_ON );
+            R_IO_PORT_Write(LED12, LED_ON);
             break;
         case 13:
-            R_IO_PORT_Write( LED13, LED_ON );
+            R_IO_PORT_Write(LED13, LED_ON);
             break;
         case 14:
-            R_IO_PORT_Write( LED14, LED_ON );
+            R_IO_PORT_Write(LED14, LED_ON);
             break;
         case 15:
-            R_IO_PORT_Write( LED15, LED_ON );
+            R_IO_PORT_Write(LED15, LED_ON);
             break;
         default:
             break;
@@ -96,40 +96,40 @@ void led_off(
 {
     switch (index) {
         case 4:
-            R_IO_PORT_Write( LED4, LED_OFF );
+            R_IO_PORT_Write(LED4, LED_OFF);
             break;
         case 5:
-            R_IO_PORT_Write( LED5, LED_OFF );
+            R_IO_PORT_Write(LED5, LED_OFF);
             break;
         case 6:
-            R_IO_PORT_Write( LED6, LED_OFF );
+            R_IO_PORT_Write(LED6, LED_OFF);
             break;
         case 7:
-            R_IO_PORT_Write( LED7, LED_OFF );
+            R_IO_PORT_Write(LED7, LED_OFF);
             break;
         case 8:
-            R_IO_PORT_Write( LED8, LED_OFF );
+            R_IO_PORT_Write(LED8, LED_OFF);
             break;
         case 9:
-            R_IO_PORT_Write( LED9, LED_OFF );
+            R_IO_PORT_Write(LED9, LED_OFF);
             break;
         case 10:
-            R_IO_PORT_Write( LED10, LED_OFF );
+            R_IO_PORT_Write(LED10, LED_OFF);
             break;
         case 11:
-            R_IO_PORT_Write( LED11, LED_OFF );
+            R_IO_PORT_Write(LED11, LED_OFF);
             break;
         case 12:
-            R_IO_PORT_Write( LED12, LED_OFF );
+            R_IO_PORT_Write(LED12, LED_OFF);
             break;
         case 13:
-            R_IO_PORT_Write( LED13, LED_OFF );
+            R_IO_PORT_Write(LED13, LED_OFF);
             break;
         case 14:
-            R_IO_PORT_Write( LED14, LED_OFF );
+            R_IO_PORT_Write(LED14, LED_OFF);
             break;
         case 15:
-            R_IO_PORT_Write( LED15, LED_OFF );
+            R_IO_PORT_Write(LED15, LED_OFF);
             break;
         default:
             break;
@@ -228,7 +228,7 @@ void led_init(
     void)
 {
     unsigned i = 0;
-    
+
     for (i = 0; i < MAX_LEDS; i++) {
         led_on_interval(i, 500);
     }

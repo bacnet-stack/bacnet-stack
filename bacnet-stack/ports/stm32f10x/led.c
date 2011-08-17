@@ -89,7 +89,8 @@ void led_rx_off(
 * Returns: true if on, false if off.
 * Notes: none
 *************************************************************************/
-bool led_rx_state(void)
+bool led_rx_state(
+    void)
 {
     return Rx_State;
 }
@@ -99,7 +100,8 @@ bool led_rx_state(void)
 * Returns: true if on, false if off.
 * Notes: none
 *************************************************************************/
-bool led_tx_state(void)
+bool led_tx_state(
+    void)
 {
     return Tx_State;
 }
@@ -109,7 +111,8 @@ bool led_tx_state(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_tx_toggle(void)
+void led_tx_toggle(
+    void)
 {
     if (led_tx_state()) {
         led_tx_off();
@@ -123,7 +126,8 @@ void led_tx_toggle(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_rx_toggle(void)
+void led_rx_toggle(
+    void)
 {
     if (led_rx_state()) {
         led_rx_off();
@@ -247,7 +251,8 @@ void led_ld3_off(
 * Returns: true if on, false if off.
 * Notes: none
 *************************************************************************/
-bool led_ld3_state(void)
+bool led_ld3_state(
+    void)
 {
     return LD3_State;
 }
@@ -257,7 +262,8 @@ bool led_ld3_state(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-void led_ld3_toggle(void)
+void led_ld3_toggle(
+    void)
 {
     if (led_ld3_state()) {
         led_ld3_off();

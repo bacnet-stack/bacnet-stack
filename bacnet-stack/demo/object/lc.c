@@ -274,7 +274,7 @@ static BACNET_SHED_STATE Load_Control_Present_Value(
 /* note: the object name must be unique within this device */
 bool Load_Control_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     bool status = false;

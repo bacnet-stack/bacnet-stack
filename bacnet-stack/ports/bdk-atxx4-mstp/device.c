@@ -195,12 +195,12 @@ static int Read_Property_Common(
             } else {
                 characterstring_init_ansi(&char_string, "");
                 if (pObject->Object_Name) {
-                    (void)pObject->Object_Name(
-                        rpdata->object_instance,
+                    (void) pObject->Object_Name(rpdata->object_instance,
                         &char_string);
                 }
                 apdu_len =
-                    encode_application_character_string(&apdu[0], &char_string);
+                    encode_application_character_string(&apdu[0],
+                    &char_string);
             }
             break;
         case PROP_OBJECT_TYPE:
@@ -361,7 +361,8 @@ uint32_t Device_Index_To_Instance(
     return Object_Instance_Number;
 }
 
-static char *Device_Name_Default(void)
+static char *Device_Name_Default(
+    void)
 {
     static char text_string[32];        /* okay for single thread */
 
@@ -372,15 +373,12 @@ static char *Device_Name_Default(void)
 
 bool Device_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     bool status = false;
 
     if (object_instance == Object_Instance_Number) {
-        bacnet_name(
-            NV_EEPROM_DEVICE_NAME,
-            object_name,
-            Device_Name_Default());
+        bacnet_name(NV_EEPROM_DEVICE_NAME, object_name, Device_Name_Default());
         status = true;
     }
 
@@ -416,13 +414,13 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
 }
 
 void Device_Init(
-        object_functions_t * object_table)
+    object_functions_t * object_table)
 {
     struct my_object_functions *pObject = NULL;
 
     /* we don't use the object table passed in
        since there is extra stuff we don't need in there. */
-    (void)object_table;
+    (void) object_table;
     /* our local object table */
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
@@ -574,7 +572,7 @@ bool Device_Object_List_Identifier(
 }
 
 bool Device_Valid_Object_Name(
-    BACNET_CHARACTER_STRING *object_name1,
+    BACNET_CHARACTER_STRING * object_name1,
     int *object_type,
     uint32_t * object_instance)
 {
@@ -593,7 +591,7 @@ bool Device_Valid_Object_Name(
             pObject = Device_Objects_Find_Functions(type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
-                characterstring_same(object_name1, &object_name2))) {
+                    characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -613,7 +611,7 @@ bool Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
 {
-    bool status = false;  /* return value */
+    bool status = false;        /* return value */
     struct my_object_functions *pObject = NULL;
 
     pObject = Device_Objects_Find_Functions(object_type);
@@ -627,7 +625,7 @@ bool Device_Valid_Object_Id(
 bool Device_Object_Name_Copy(
     int object_type,
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     struct my_object_functions *pObject = NULL;
     bool found = false;
@@ -673,17 +671,13 @@ int Device_Read_Property_Local(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_DESCRIPTION:
-            bacnet_name(
-                NV_EEPROM_DEVICE_DESCRIPTION,
-                &char_string,
+            bacnet_name(NV_EEPROM_DEVICE_DESCRIPTION, &char_string,
                 "BACnet Development Kit");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_LOCATION:
-            bacnet_name(
-                NV_EEPROM_DEVICE_LOCATION,
-                &char_string,
+            bacnet_name(NV_EEPROM_DEVICE_LOCATION, &char_string,
                 "default location");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -881,8 +875,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -925,10 +919,9 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                status = bacnet_name_write(
-                    NV_EEPROM_DEVICE_NAME,
-                    &value.type.Character_String,
-                    &wp_data->error_class,
+                status =
+                    bacnet_name_write(NV_EEPROM_DEVICE_NAME,
+                    &value.type.Character_String, &wp_data->error_class,
                     &wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -937,10 +930,9 @@ bool Device_Write_Property_Local(
             break;
         case PROP_DESCRIPTION:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                status = bacnet_name_write_other(
-                    NV_EEPROM_DEVICE_DESCRIPTION,
-                    &value.type.Character_String,
-                    &wp_data->error_class,
+                status =
+                    bacnet_name_write_other(NV_EEPROM_DEVICE_DESCRIPTION,
+                    &value.type.Character_String, &wp_data->error_class,
                     &wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -949,10 +941,9 @@ bool Device_Write_Property_Local(
             break;
         case PROP_LOCATION:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                status = bacnet_name_write_other(
-                    NV_EEPROM_DEVICE_LOCATION,
-                    &value.type.Character_String,
-                    &wp_data->error_class,
+                status =
+                    bacnet_name_write_other(NV_EEPROM_DEVICE_LOCATION,
+                    &value.type.Character_String, &wp_data->error_class,
                     &wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;

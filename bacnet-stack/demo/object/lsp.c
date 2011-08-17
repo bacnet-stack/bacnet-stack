@@ -175,7 +175,7 @@ static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
 /* note: the object name must be unique within this device */
 bool Life_Safety_Point_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     bool status = false;
@@ -218,7 +218,8 @@ int Life_Safety_Point_Read_Property(
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            Life_Safety_Point_Object_Name(rpdata->object_instance, &char_string);
+            Life_Safety_Point_Object_Name(rpdata->object_instance,
+                &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -324,8 +325,8 @@ bool Life_Safety_Point_Write_Property(
             if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
                     object_index =
-                        Life_Safety_Point_Instance_To_Index(wp_data->
-                        object_instance);
+                        Life_Safety_Point_Instance_To_Index
+                        (wp_data->object_instance);
                     Life_Safety_Point_Mode[object_index] =
                         value.type.Enumerated;
                 } else {
@@ -341,8 +342,8 @@ bool Life_Safety_Point_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Life_Safety_Point_Instance_To_Index(wp_data->
-                    object_instance);
+                    Life_Safety_Point_Instance_To_Index
+                    (wp_data->object_instance);
                 Life_Safety_Point_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }
@@ -368,10 +369,10 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    ucExpectedTag=ucExpectedTag;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    ucExpectedTag = ucExpectedTag;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }

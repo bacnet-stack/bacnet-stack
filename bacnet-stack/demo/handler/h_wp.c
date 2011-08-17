@@ -181,8 +181,8 @@ bool WPValidateString(
                 (!characterstring_printable(&pValue->type.Character_String))) {
                 /* assumption: non-empty also means must be "printable" */
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            } else if (characterstring_length(&pValue->type.
-                    Character_String) >= iMaxLen) {
+            } else if (characterstring_length(&pValue->
+                    type.Character_String) >= iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             } else

@@ -91,7 +91,8 @@ static uint8_t Tusage_timeout = 60;
 
 static struct timeval start;
 
-static uint32_t Timer_Silence(void)
+static uint32_t Timer_Silence(
+    void)
 {
     struct timeval now, tmp_diff;
     int32_t res;
@@ -105,14 +106,16 @@ static uint32_t Timer_Silence(void)
     return (res >= 0 ? res : -res);
 }
 
-static void Timer_Silence_Reset(void)
+static void Timer_Silence_Reset(
+    void)
 {
     pthread_mutex_lock(&Timer_Mutex);
     gettimeofday(&start, NULL);
     pthread_mutex_unlock(&Timer_Mutex);
 }
 
-static void get_abstime(struct timespec *abstime,
+static void get_abstime(
+    struct timespec *abstime,
     unsigned long milliseconds)
 {
     struct timeval now, offset, result;
@@ -125,7 +128,8 @@ static void get_abstime(struct timespec *abstime,
     abstime->tv_nsec = result.tv_usec * 1000;
 }
 
-void dlmstp_cleanup(void)
+void dlmstp_cleanup(
+    void)
 {
     pthread_cond_destroy(&Received_Frame_Flag);
     pthread_cond_destroy(&Receive_Packet_Flag);
@@ -137,12 +141,10 @@ void dlmstp_cleanup(void)
 }
 
 /* returns number of bytes sent on success, zero on failure */
-int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
-
+int dlmstp_send_pdu(
+    BACNET_ADDRESS * dest,      /* destination address */
     BACNET_NPDU_DATA * npdu_data,       /* network information */
-
     uint8_t * pdu,      /* any data to be sent - may be null */
-
     unsigned pdu_len)
 {       /* number of bytes of data */
     int bytes_sent = 0;
@@ -168,12 +170,10 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     return bytes_sent;
 }
 
-uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
-
+uint16_t dlmstp_receive(
+    BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,      /* PDU data */
-
     uint16_t max_pdu,   /* amount of space available in the PDU  */
-
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
@@ -207,7 +207,8 @@ uint16_t dlmstp_receive(BACNET_ADDRESS * src,   /* source address */
     return pdu_len;
 }
 
-static void *dlmstp_master_fsm_task(void *pArg)
+static void *dlmstp_master_fsm_task(
+    void *pArg)
 {
     uint32_t silence = 0;
     bool run_master = false;
@@ -252,7 +253,8 @@ static void *dlmstp_master_fsm_task(void *pArg)
     return NULL;
 }
 
-void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src,
+void dlmstp_fill_bacnet_address(
+    BACNET_ADDRESS * src,
     uint8_t mstp_address)
 {
     int i = 0;
@@ -277,7 +279,8 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS * src,
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(
+    volatile struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
 
@@ -300,7 +303,8 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(volatile struct mstp_port_struct_t * mstp_port,
+uint16_t MSTP_Get_Send(
+    volatile struct mstp_port_struct_t * mstp_port,
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
@@ -329,7 +333,8 @@ uint16_t MSTP_Get_Send(volatile struct mstp_port_struct_t * mstp_port,
     return pdu_len;
 }
 
-static bool dlmstp_compare_data_expecting_reply(uint8_t * request_pdu,
+static bool dlmstp_compare_data_expecting_reply(
+    uint8_t * request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
     uint8_t * reply_pdu,
@@ -445,7 +450,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t * request_pdu,
 }
 
 /* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
-uint16_t MSTP_Get_Reply(volatile struct mstp_port_struct_t * mstp_port,
+uint16_t MSTP_Get_Reply(
+    volatile struct mstp_port_struct_t * mstp_port,
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;       /* return value */
@@ -484,7 +490,8 @@ uint16_t MSTP_Get_Reply(volatile struct mstp_port_struct_t * mstp_port,
     return pdu_len;
 }
 
-void dlmstp_set_mac_address(uint8_t mac_address)
+void dlmstp_set_mac_address(
+    uint8_t mac_address)
 {
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
@@ -501,7 +508,8 @@ void dlmstp_set_mac_address(uint8_t mac_address)
     return;
 }
 
-uint8_t dlmstp_mac_address(void)
+uint8_t dlmstp_mac_address(
+    void)
 {
     return MSTP_Port.This_Station;
 }
@@ -513,7 +521,8 @@ uint8_t dlmstp_mac_address(void)
 /* nodes. This may be used to allocate more or less of the available link */
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
-void dlmstp_set_max_info_frames(uint8_t max_info_frames)
+void dlmstp_set_max_info_frames(
+    uint8_t max_info_frames)
 {
     if (max_info_frames >= 1) {
         MSTP_Port.Nmax_info_frames = max_info_frames;
@@ -527,7 +536,8 @@ void dlmstp_set_max_info_frames(uint8_t max_info_frames)
     return;
 }
 
-uint8_t dlmstp_max_info_frames(void)
+uint8_t dlmstp_max_info_frames(
+    void)
 {
     return MSTP_Port.Nmax_info_frames;
 }
@@ -537,7 +547,8 @@ uint8_t dlmstp_max_info_frames(void)
 /* allowable address for master nodes. The value of Max_Master shall be */
 /* less than or equal to 127. If Max_Master is not writable in a node, */
 /* its value shall be 127. */
-void dlmstp_set_max_master(uint8_t max_master)
+void dlmstp_set_max_master(
+    uint8_t max_master)
 {
     if (max_master <= 127) {
         if (MSTP_Port.This_Station <= max_master) {
@@ -553,23 +564,27 @@ void dlmstp_set_max_master(uint8_t max_master)
     return;
 }
 
-uint8_t dlmstp_max_master(void)
+uint8_t dlmstp_max_master(
+    void)
 {
     return MSTP_Port.Nmax_master;
 }
 
 /* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
-void dlmstp_set_baud_rate(uint32_t baud)
+void dlmstp_set_baud_rate(
+    uint32_t baud)
 {
     RS485_Set_Baud_Rate(baud);
 }
 
-uint32_t dlmstp_baud_rate(void)
+uint32_t dlmstp_baud_rate(
+    void)
 {
     return RS485_Get_Baud_Rate();
 }
 
-void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
+void dlmstp_get_my_address(
+    BACNET_ADDRESS * my_address)
 {
     int i = 0;  /* counter */
 
@@ -584,7 +599,8 @@ void dlmstp_get_my_address(BACNET_ADDRESS * my_address)
     return;
 }
 
-void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
+void dlmstp_get_broadcast_address(
+    BACNET_ADDRESS * dest)
 {       /* destination address */
     int i = 0;  /* counter */
 
@@ -601,7 +617,8 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS * dest)
     return;
 }
 
-bool dlmstp_init(char *ifname)
+bool dlmstp_init(
+    char *ifname)
 {
     unsigned long hThread = 0;
     int rv = 0;
@@ -665,10 +682,9 @@ bool dlmstp_init(char *ifname)
 #ifdef TEST_DLMSTP
 #include <stdio.h>
 
-void apdu_handler(BACNET_ADDRESS * src, /* source address */
-
+void apdu_handler(
+    BACNET_ADDRESS * src,       /* source address */
     uint8_t * apdu,     /* APDU data */
-
     uint16_t pdu_len)
 {       /* for confirmed messages */
     (void) src;
@@ -678,7 +694,8 @@ void apdu_handler(BACNET_ADDRESS * src, /* source address */
 
 static char *Network_Interface = NULL;
 
-int main(int argc,
+int main(
+    int argc,
     char *argv[])
 {
     uint16_t pdu_len = 0;

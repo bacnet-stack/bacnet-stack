@@ -39,26 +39,36 @@
   by Jeff Bezanson
   placed in the public domain Fall 2005 */
 static const char trailingBytesForUTF8[256] = {
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4,
+        4, 4, 4, 5, 5, 5, 5
 };
 
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
    length is in bytes, since without knowing whether the string is valid
    it's hard to know how many characters there are! */
-static int utf8_isvalid(const char *str, int length)
+static int utf8_isvalid(
+    const char *str,
+    int length)
 {
-    const unsigned char *p, *pend = (unsigned char*)str + length;
+    const unsigned char *p, *pend = (unsigned char *) str + length;
     unsigned char c;
     int ab;
 
-    for (p = (unsigned char*)str; p < pend; p++) {
+    for (p = (unsigned char *) str; p < pend; p++) {
         c = *p;
         /* null in middle of string */
         if (c == 0) {
@@ -84,37 +94,42 @@ static int utf8_isvalid(const char *str, int length)
         }
         /* Check for overlong sequences for each different length */
         switch (ab) {
-            /* Check for xx00 000x */
-        case 1:
-            if ((c & 0x3e) == 0) return 0;
-            continue;   /* We know there aren't any more bytes to check */
+                /* Check for xx00 000x */
+            case 1:
+                if ((c & 0x3e) == 0)
+                    return 0;
+                continue;       /* We know there aren't any more bytes to check */
 
-            /* Check for 1110 0000, xx0x xxxx */
-        case 2:
-            if (c == 0xe0 && (*p & 0x20) == 0) return 0;
-            break;
+                /* Check for 1110 0000, xx0x xxxx */
+            case 2:
+                if (c == 0xe0 && (*p & 0x20) == 0)
+                    return 0;
+                break;
 
-            /* Check for 1111 0000, xx00 xxxx */
-        case 3:
-            if (c == 0xf0 && (*p & 0x30) == 0) return 0;
-            break;
+                /* Check for 1111 0000, xx00 xxxx */
+            case 3:
+                if (c == 0xf0 && (*p & 0x30) == 0)
+                    return 0;
+                break;
 
-            /* Check for 1111 1000, xx00 0xxx */
-        case 4:
-            if (c == 0xf8 && (*p & 0x38) == 0) return 0;
-            break;
+                /* Check for 1111 1000, xx00 0xxx */
+            case 4:
+                if (c == 0xf8 && (*p & 0x38) == 0)
+                    return 0;
+                break;
 
-            /* Check for leading 0xfe or 0xff,
-               and then for 1111 1100, xx00 00xx */
-        case 5:
-            if (c == 0xfe || c == 0xff ||
-                (c == 0xfc && (*p & 0x3c) == 0)) return 0;
-            break;
+                /* Check for leading 0xfe or 0xff,
+                   and then for 1111 1100, xx00 00xx */
+            case 5:
+                if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0))
+                    return 0;
+                break;
         }
 
         /* Check for valid bytes after the 2nd, if any; all must start 10 */
         while (--ab > 0) {
-            if ((*(++p) & 0xc0) != 0x80) return 0;
+            if ((*(++p) & 0xc0) != 0x80)
+                return 0;
         }
     }
 
@@ -144,7 +159,7 @@ static bool bacnet_name_isvalid(
 
 bool bacnet_name_set(
     uint16_t offset,
-    BACNET_CHARACTER_STRING *char_string)
+    BACNET_CHARACTER_STRING * char_string)
 {
     uint8_t encoding = 0;
     uint8_t length = 0;
@@ -154,15 +169,9 @@ bool bacnet_name_set(
     encoding = characterstring_encoding(char_string);
     str = characterstring_value(char_string);
     if (bacnet_name_isvalid(encoding, length, str)) {
-        seeprom_bytes_write(
-            NV_EEPROM_NAME_LENGTH(offset),
-            &length, 1);
-        seeprom_bytes_write(
-            NV_EEPROM_NAME_ENCODING(offset),
-            &encoding, 1);
-        seeprom_bytes_write(
-            NV_EEPROM_NAME_STRING(offset),
-            (uint8_t *)str,
+        seeprom_bytes_write(NV_EEPROM_NAME_LENGTH(offset), &length, 1);
+        seeprom_bytes_write(NV_EEPROM_NAME_ENCODING(offset), &encoding, 1);
+        seeprom_bytes_write(NV_EEPROM_NAME_STRING(offset), (uint8_t *) str,
             length);
         return true;
     }
@@ -172,9 +181,9 @@ bool bacnet_name_set(
 
 bool bacnet_name_write(
     uint16_t offset,
-    BACNET_CHARACTER_STRING *char_string,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE *error_code)
+    BACNET_CHARACTER_STRING * char_string,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     bool status = false;
     size_t length = 0;
@@ -215,9 +224,9 @@ bool bacnet_name_write(
 /* no required minumum length or duplicate checking */
 bool bacnet_name_write_other(
     uint16_t offset,
-    BACNET_CHARACTER_STRING *char_string,
-    BACNET_ERROR_CLASS *error_class,
-    BACNET_ERROR_CODE *error_code)
+    BACNET_CHARACTER_STRING * char_string,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code)
 {
     bool status = false;
     size_t length = 0;
@@ -247,16 +256,16 @@ bool bacnet_name_write_other(
 
 void bacnet_name_init(
     uint16_t offset,
-    BACNET_CHARACTER_STRING *char_string,
+    BACNET_CHARACTER_STRING * char_string,
     char *default_string)
 {
     characterstring_init_ansi(char_string, default_string);
-    (void)bacnet_name_set(offset, char_string);
+    (void) bacnet_name_set(offset, char_string);
 }
 
 void bacnet_name(
     uint16_t offset,
-    BACNET_CHARACTER_STRING *char_string,
+    BACNET_CHARACTER_STRING * char_string,
     char *default_string)
 {
     uint8_t encoding = 0;

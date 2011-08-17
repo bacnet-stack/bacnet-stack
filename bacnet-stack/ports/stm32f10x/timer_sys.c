@@ -61,7 +61,8 @@ static void timer_debug_off(
 * Returns: none
 * Notes: none
 *************************************************************************/
-void timer_debug_toggle(void)
+void timer_debug_toggle(
+    void)
 {
     static bool state = false;
 
@@ -79,7 +80,8 @@ void timer_debug_toggle(void)
 * Returns: nothing
 * Notes: reserved name for ISR handlers
 *************************************************************************/
-void SysTick_Handler(void)
+void SysTick_Handler(
+    void)
 {
     /* increment the tick count */
     Millisecond_Counter++;
@@ -91,7 +93,8 @@ void SysTick_Handler(void)
 * Returns: none
 * Notes: none
 *************************************************************************/
-uint32_t timer_milliseconds(void)
+uint32_t timer_milliseconds(
+    void)
 {
     return Millisecond_Counter;
 }
@@ -101,7 +104,8 @@ uint32_t timer_milliseconds(void)
 * Returns: none
 * Notes: peripheral frequency defined in hardware.h
 *************************************************************************/
-void timer_init(void)
+void timer_init(
+    void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 

@@ -52,13 +52,17 @@ extern "C" {
     /* a granular approach */
     void rs485_byte_send(
         uint8_t data_register);
-    bool rs485_byte_sent(void);
-    bool rs485_frame_sent(void);
+    bool rs485_byte_sent(
+        void);
+    bool rs485_frame_sent(
+        void);
     bool rs485_turnaround_elapsed(
         void);
 
-    void rs485_silence_reset(void);
-    bool rs485_silence_elapsed(uint32_t interval);
+    void rs485_silence_reset(
+        void);
+    bool rs485_silence_elapsed(
+        uint32_t interval);
 
 #ifdef __cplusplus
 }

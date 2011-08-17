@@ -30,7 +30,8 @@
 #include "led.h"
 
 /** Main function of BACnet demo for RX62N evaluation board */
-int main(void)
+int main(
+    void)
 {
     InitialiseLCD();
     ClearLCD();

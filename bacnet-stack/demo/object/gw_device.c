@@ -127,14 +127,10 @@ uint16_t Add_Routed_Device(
         pDev->bacObj.mObject_Type = OBJECT_DEVICE;
         pDev->bacObj.Object_Instance_Number = Object_Instance;
         if (sObject_Name != NULL)
-            Routed_Device_Set_Object_Name(
-                CHARACTER_UTF8,
-                sObject_Name,
+            Routed_Device_Set_Object_Name(CHARACTER_UTF8, sObject_Name,
                 strlen(sObject_Name));
         else
-            Routed_Device_Set_Object_Name(
-                CHARACTER_UTF8,
-                "No Name",
+            Routed_Device_Set_Object_Name(CHARACTER_UTF8, "No Name",
                 strlen("No Name"));
         if (sDescription != NULL)
             Routed_Device_Set_Description(sDescription, strlen(sDescription));
@@ -488,8 +484,8 @@ bool Routed_Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Routed_Device_Set_Object_Instance_Number(value.
-                            type.Object_Id.instance))) {
+                    (Routed_Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -503,8 +499,8 @@ bool Routed_Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Routed_Device_Set_Object_Name(
-                    characterstring_encoding(&value.type.Character_String),
+                Routed_Device_Set_Object_Name(characterstring_encoding(&value.
+                        type.Character_String),
                     characterstring_value(&value.type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
@@ -559,8 +555,7 @@ bool Routed_Device_Set_Object_Name(
     bool status = false;        /*return value */
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
-    if ((encoding == CHARACTER_UTF8) &&
-        (length < MAX_DEV_NAME_LEN)) {
+    if ((encoding == CHARACTER_UTF8) && (length < MAX_DEV_NAME_LEN)) {
         /* Make the change and update the database revision */
         memmove(pDev->bacObj.Object_Name, value, length);
         pDev->bacObj.Object_Name[length] = 0;

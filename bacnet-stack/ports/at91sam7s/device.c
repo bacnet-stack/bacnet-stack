@@ -179,8 +179,7 @@ static int Read_Property_Common(
             break;
         case PROP_OBJECT_NAME:
             if (pObject->Object_Name) {
-                (void)pObject->Object_Name(
-                    rpdata->object_instance,
+                (void) pObject->Object_Name(rpdata->object_instance,
                     &char_string);
             } else {
                 characterstring_init_ansi(&char_string, "");
@@ -213,13 +212,13 @@ int Device_Read_Property(
     /* initialize the default return values */
     pObject = Device_Objects_Find_Functions(rpdata->object_type);
     if (pObject) {
-            if (pObject->Object_Valid_Instance &&
-                pObject->Object_Valid_Instance(rpdata->object_instance)) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(rpdata->object_instance)) {
             apdu_len = Read_Property_Common(pObject, rpdata);
-            } else {
-                rpdata->error_class = ERROR_CLASS_OBJECT;
-                rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-            }
+        } else {
+            rpdata->error_class = ERROR_CLASS_OBJECT;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
     } else {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
@@ -237,18 +236,18 @@ bool Device_Write_Property(
     /* initialize the default return values */
     pObject = Device_Objects_Find_Functions(wp_data->object_type);
     if (pObject) {
-            if (pObject->Object_Valid_Instance &&
-                pObject->Object_Valid_Instance(wp_data->object_instance)) {
-                if (pObject->Object_Write_Property) {
-                    status = pObject->Object_Write_Property(wp_data);
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                }
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(wp_data->object_instance)) {
+            if (pObject->Object_Write_Property) {
+                status = pObject->Object_Write_Property(wp_data);
             } else {
-                wp_data->error_class = ERROR_CLASS_OBJECT;
-                wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
+        } else {
+            wp_data->error_class = ERROR_CLASS_OBJECT;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
     } else {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
@@ -340,7 +339,7 @@ uint32_t Device_Index_To_Instance(
 
 bool Device_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     bool status = false;
 
@@ -352,7 +351,7 @@ bool Device_Object_Name(
 }
 
 bool Device_Set_Object_Name(
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     bool status = false;        /*return value */
 
@@ -394,13 +393,13 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
 }
 
 void Device_Init(
-        object_functions_t * object_table)
+    object_functions_t * object_table)
 {
     struct my_object_functions *pObject = NULL;
 
     /* we don't use the object table passed in
        since there is extra stuff we don't need in there. */
-    (void)object_table;
+    (void) object_table;
     /* our local object table */
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
@@ -440,7 +439,7 @@ bool Device_Valid_Object_Instance_Number(
     /* BACnet allows for a wildcard instance number */
     return ((Object_Instance_Number == object_id) ||
         (object_id == BACNET_MAX_INSTANCE));
-        }
+}
 
 BACNET_DEVICE_STATUS Device_System_Status(
     void)
@@ -461,25 +460,25 @@ int Device_Set_System_Status(
     }
 
     return result;
-    }
+}
 
 uint16_t Device_Vendor_Identifier(
     void)
 {
     return BACNET_VENDOR_ID;
-    }
+}
 
 BACNET_SEGMENTATION Device_Segmentation_Supported(
     void)
 {
     return SEGMENTATION_NONE;
-    }
+}
 
 uint32_t Device_Database_Revision(
     void)
 {
     return Database_Revision;
-    }
+}
 
 void Device_Inc_Database_Revision(
     void)
@@ -542,7 +541,7 @@ bool Device_Object_List_Identifier(
 }
 
 bool Device_Valid_Object_Name(
-    BACNET_CHARACTER_STRING *object_name1,
+    BACNET_CHARACTER_STRING * object_name1,
     int *object_type,
     uint32_t * object_instance)
 {
@@ -561,7 +560,7 @@ bool Device_Valid_Object_Name(
             pObject = Device_Objects_Find_Functions(type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
-                characterstring_same(object_name1, &object_name2))) {
+                    characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -581,7 +580,7 @@ bool Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
 {
-    bool status = false;  /* return value */
+    bool status = false;        /* return value */
     struct my_object_functions *pObject = NULL;
 
     pObject = Device_Objects_Find_Functions(object_type);
@@ -595,7 +594,7 @@ bool Device_Valid_Object_Id(
 bool Device_Object_Name_Copy(
     int object_type,
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     struct my_object_functions *pObject = NULL;
     bool found = false;
@@ -851,8 +850,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -895,22 +894,20 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                length = characterstring_length(
-                    &value.type.Character_String);
+                length = characterstring_length(&value.type.Character_String);
                 if (length < characterstring_capacity(&My_Object_Name)) {
-                    encoding = characterstring_encoding(
-                        &value.type.Character_String);
+                    encoding =
+                        characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
                         /* All the object names in a device must be unique. */
-                        if (Device_Valid_Object_Name(
-                            &value.type.Character_String,
-                            NULL, NULL)) {
+                        if (Device_Valid_Object_Name(&value.type.
+                                Character_String, NULL, NULL)) {
                             status = false;
                             wp_data->error_class = ERROR_CLASS_PROPERTY;
                             wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                         } else {
-                            Device_Set_Object_Name(
-                                &value.type.Character_String);
+                            Device_Set_Object_Name(&value.type.
+                                Character_String);
                         }
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;

@@ -179,7 +179,7 @@ BACNET_BINARY_PV Binary_Output_Present_Value(
 /* note: the object name must be unique within this device */
 bool Binary_Output_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     bool status = false;
@@ -376,8 +376,8 @@ bool Binary_Output_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV) value.type.Enumerated;
                     object_index =
-                        Binary_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Binary_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     Binary_Output_Level[object_index][priority] = level;
                     /* Note: you could set the physical output here if we
@@ -403,8 +403,8 @@ bool Binary_Output_Write_Property(
                 if (status) {
                     level = BINARY_NULL;
                     object_index =
-                        Binary_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Binary_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
@@ -455,10 +455,10 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    ucExpectedTag=ucExpectedTag;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    ucExpectedTag = ucExpectedTag;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }

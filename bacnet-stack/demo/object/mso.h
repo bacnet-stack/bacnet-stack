@@ -51,7 +51,7 @@ extern "C" {
 
     bool Multistate_Output_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
 
     void Multistate_Output_Init(
         void);

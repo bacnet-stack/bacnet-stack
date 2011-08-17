@@ -76,7 +76,7 @@ static object_functions_t Object_Table[] = {
 #if defined(BACFILE)
     {FILE_OBJ_FUNCTIONS},
 #endif
-	{MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 /* buffer used for receive */
@@ -189,7 +189,7 @@ static void LocalIAmHandler(
 static void Init_Service_Handlers(
     void)
 {
-	Device_Initialize_Object_Functions(&Object_Table[0]);
+    Device_Initialize_Object_Functions(&Object_Table[0]);
     Device_Init();
 
     /* we need to handle who-is to support dynamic device binding */

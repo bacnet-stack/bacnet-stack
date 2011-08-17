@@ -73,9 +73,9 @@ typedef uint32_t(
  */
 typedef bool(
     *object_name_function)
-     (
+        (
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name);
+    BACNET_CHARACTER_STRING * object_name);
 
 /** Look in the table of objects of this type, and see if this is a valid
  *  instance number.
@@ -116,9 +116,9 @@ typedef bool(
  * @ingroup ObjHelpers
  * @param [in] Object instance.
  */
-typedef void(
+typedef void (
     *object_intrinsic_reporting_function) (
-            uint32_t object_instance);
+    uint32_t object_instance);
 
 
 /** Defines the group of object helper functions for any supported Object.
@@ -213,7 +213,8 @@ extern "C" {
     rr_info_function Device_Objects_RR_Info(
         BACNET_OBJECT_TYPE object_type);
 
-    void Device_getCurrentDateTime(BACNET_DATE_TIME * DateTime);
+    void Device_getCurrentDateTime(
+        BACNET_DATE_TIME * DateTime);
 
     void Device_Property_Lists(
         const int **pRequired,
@@ -250,14 +251,14 @@ extern "C" {
 
     bool Device_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
     bool Device_Set_Object_Name(
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
     /* copy a child object name */
     bool Device_Object_Name_Copy(
         int object_type,
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
 
     BACNET_DEVICE_STATUS Device_System_Status(
         void);
@@ -316,7 +317,7 @@ extern "C" {
         void);
 
     bool Device_Valid_Object_Name(
-        BACNET_CHARACTER_STRING *object_name,
+        BACNET_CHARACTER_STRING * object_name,
         int *object_type,
         uint32_t * object_instance);
     bool Device_Valid_Object_Id(
@@ -338,7 +339,8 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #if defined(INTRINSIC_REPORTING)
-    void Device_local_reporting(void);
+    void Device_local_reporting(
+        void);
 #endif
 
 /* Prototypes for Routing functionality in the Device Object.
@@ -411,11 +413,11 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
-    *//** @defgroup ObjHelpers Object Helper Functions
+          *//** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk
  * This section describes the function templates for the helper functions that
  * provide common object support.
-    *//** @defgroup ObjIntf Handler-to-Object Interface Functions
+          *//** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk
  * This section describes the fairly limited set of functions that link the
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are

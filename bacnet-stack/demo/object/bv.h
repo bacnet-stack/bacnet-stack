@@ -51,7 +51,7 @@ extern "C" {
 
     bool Binary_Value_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
 
     void Binary_Value_Init(
         void);

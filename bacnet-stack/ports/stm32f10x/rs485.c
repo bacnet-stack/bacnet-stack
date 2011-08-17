@@ -58,7 +58,8 @@ static uint32_t Baud_Rate = 38400;
 * Returns: nothing
 * Notes: none
 **************************************************************************/
-void rs485_silence_reset(void)
+void rs485_silence_reset(
+    void)
 {
     timer_elapsed_start(&Silence_Timer);
 }
@@ -68,7 +69,8 @@ void rs485_silence_reset(void)
 * Returns: true if the amount of time has elapsed
 * Notes: none
 **************************************************************************/
-bool rs485_silence_elapsed(uint32_t interval)
+bool rs485_silence_elapsed(
+    uint32_t interval)
 {
     return timer_elapsed_milliseconds(&Silence_Timer, interval);
 }
@@ -95,9 +97,7 @@ static uint16_t rs485_turnaround_time(
 bool rs485_turnaround_elapsed(
     void)
 {
-    return timer_elapsed_milliseconds(
-        &Silence_Timer,
-        rs485_turnaround_time());
+    return timer_elapsed_milliseconds(&Silence_Timer, rs485_turnaround_time());
 }
 
 
@@ -112,20 +112,21 @@ bool rs485_receive_error(
     return false;
 }
 
-/*********************************************************************//**
+                                                                       /*********************************************************************//**
  * @brief        USARTx interrupt handler sub-routine
  * @param[in]    None
  * @return         None
  **********************************************************************/
-void USART2_IRQHandler(void)
+void USART2_IRQHandler(
+    void)
 {
     uint8_t data_byte;
 
 
-    if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) {
+    if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) {
         /* Read one byte from the receive data register */
         data_byte = USART_ReceiveData(USART2);
-        (void)FIFO_Put(&Receive_Buffer, data_byte);
+        (void) FIFO_Put(&Receive_Buffer, data_byte);
     }
 }
 
@@ -137,7 +138,7 @@ void USART2_IRQHandler(void)
 bool rs485_byte_available(
     uint8_t * data_register)
 {
-    bool data_available = false; /* return value */
+    bool data_available = false;        /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         *data_register = FIFO_Get(&Receive_Buffer);
@@ -154,7 +155,8 @@ bool rs485_byte_available(
 * RETURN:      nothing
 * NOTES:       none
 **************************************************************************/
-void rs485_byte_send(uint8_t tx_byte)
+void rs485_byte_send(
+    uint8_t tx_byte)
 {
     led_tx_on_interval(10);
     USART_SendData(USART2, tx_byte);
@@ -167,7 +169,8 @@ void rs485_byte_send(uint8_t tx_byte)
 * Returns: true if the USART register is empty
 * Notes: none
 **************************************************************************/
-bool rs485_byte_sent(void)
+bool rs485_byte_sent(
+    void)
 {
     return USART_GetFlagStatus(USART2, USART_FLAG_TXE);
 }
@@ -177,7 +180,8 @@ bool rs485_byte_sent(void)
 * Returns: true if the USART FIFO is empty
 * Notes: none
 **************************************************************************/
-bool rs485_frame_sent(void)
+bool rs485_frame_sent(
+    void)
 {
     return USART_GetFlagStatus(USART2, USART_FLAG_TC);
 }
@@ -188,9 +192,9 @@ bool rs485_frame_sent(void)
 * NOTES:       none
 **************************************************************************/
 void rs485_bytes_send(
-    uint8_t * buffer, /* data to send */
-    uint16_t nbytes) /* number of bytes of data */
-{
+    uint8_t * buffer,   /* data to send */
+    uint16_t nbytes)
+{       /* number of bytes of data */
     uint8_t tx_byte;
 
     while (nbytes) {
@@ -295,7 +299,8 @@ void rs485_rts_enable(
 * Returns: nothing
 * Notes: none
 **************************************************************************/
-void rs485_init(void)
+void rs485_init(
+    void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
@@ -335,6 +340,6 @@ void rs485_init(void)
     USART_Cmd(USART2, ENABLE);
 
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
-        (unsigned)sizeof(Receive_Buffer_Data));
+        (unsigned) sizeof(Receive_Buffer_Data));
     timer_elapsed_start(&Silence_Timer);
 }

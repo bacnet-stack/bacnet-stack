@@ -227,7 +227,7 @@ bool Multistate_Input_Description_Set(
 
 bool Multistate_Input_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -348,7 +348,8 @@ int Multistate_Input_Read_Property(
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            Multistate_Input_Object_Name(rpdata->object_instance, &char_string);
+            Multistate_Input_Object_Name(rpdata->object_instance,
+                &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -403,8 +404,8 @@ int Multistate_Input_Read_Property(
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
                 object_index =
-                    Multistate_Input_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Input_Instance_To_Index
+                    (rpdata->object_instance);
                 for (i = 1; i <= MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
@@ -425,8 +426,8 @@ int Multistate_Input_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Input_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Input_Instance_To_Index
+                    (rpdata->object_instance);
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
@@ -486,8 +487,8 @@ bool Multistate_Input_Write_Property(
             if (status) {
                 if (Out_Of_Service[object_index]) {
                     status =
-                        Multistate_Input_Present_Value_Set(wp_data->
-                        object_instance, value.type.Unsigned_Int);
+                        Multistate_Input_Present_Value_Set
+                        (wp_data->object_instance, value.type.Unsigned_Int);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -505,8 +506,8 @@ bool Multistate_Input_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Multistate_Input_Instance_To_Index(wp_data->
-                    object_instance);
+                    Multistate_Input_Instance_To_Index
+                    (wp_data->object_instance);
                 Out_Of_Service[object_index] = value.type.Boolean;
             }
             break;
@@ -531,10 +532,10 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    ucExpectedTag=ucExpectedTag;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    ucExpectedTag = ucExpectedTag;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }

@@ -57,7 +57,7 @@ void Send_I_Have(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     int len = 0;
     int pdu_len = 0;

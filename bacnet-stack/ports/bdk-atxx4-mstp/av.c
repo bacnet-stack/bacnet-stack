@@ -177,7 +177,7 @@ bool Analog_Value_Present_Value_Set(
 /* note: the object name must be unique within this device */
 bool Analog_Value_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     unsigned index = 0;

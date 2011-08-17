@@ -59,7 +59,7 @@ void handler_get_event_information(
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     int len = 0;
-    int pdu_len  = 0;
+    int pdu_len = 0;
     int apdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
@@ -116,8 +116,8 @@ void handler_get_event_information(
         error = true;
         goto GET_EVENT_ERROR;
     }
-    pdu_len  += len;
-    apdu_len  = len;
+    pdu_len += len;
+    apdu_len = len;
     for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
         if (Get_Event_Info[i]) {
             for (j = 0; j < 0xffff; j++) {
@@ -125,8 +125,10 @@ void handler_get_event_information(
                 if (valid_event > 0) {
                     /* encode GetEvent_data only when type of object_id has max value */
                     if (object_id.type != MAX_BACNET_OBJECT_TYPE) {
-                        if ((object_id.type == getevent_data.objectIdentifier.type) &&
-                            (object_id.instance == getevent_data.objectIdentifier.instance)) {
+                        if ((object_id.type ==
+                                getevent_data.objectIdentifier.type) &&
+                            (object_id.instance ==
+                                getevent_data.objectIdentifier.instance)) {
                             /* found 'Last Received Object Identifier'
                                so should set type of object_id to max value */
                             object_id.type = MAX_BACNET_OBJECT_TYPE;
@@ -147,16 +149,14 @@ void handler_get_event_information(
                     if (apdu_len >= service_data->max_resp - 2) {
                         /* Device must be able to fit minimum one event information.
                            Length of one event informations needs more than 50 octets. */
-                        if (service_data->max_resp < 128){
+                        if (service_data->max_resp < 128) {
                             len = BACNET_STATUS_ABORT;
                             error = true;
                             goto GET_EVENT_ERROR;
-                        }
-                        else
+                        } else
                             more_events = true;
                         break;
-                    }
-                    else
+                    } else
                         pdu_len += len;
                 } else if (valid_event < 0) {
                     break;

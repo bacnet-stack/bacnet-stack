@@ -172,7 +172,8 @@ static void packet_statistics(
             break;
         case FRAME_TYPE_POLL_FOR_MASTER:
             if (MSTP_Statistics[src].last_pfm_tokens) {
-                npoll = MSTP_Statistics[src].token_received_count -
+                npoll =
+                    MSTP_Statistics[src].token_received_count -
                     MSTP_Statistics[src].last_pfm_tokens;
                 if (npoll > MSTP_Statistics[src].npoll) {
                     MSTP_Statistics[src].npoll = npoll;
@@ -252,10 +253,8 @@ static void packet_statistics_print(
 
     fprintf(stdout, "\r\n");
     fprintf(stdout, "==== MS/TP Frame Counts ====\r\n");
-    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s",
-        "MAC",
-        "Tokens","PFM","RPFM","DER",
-        "Postpd","DNER","TestReq","TestRsp");
+    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s", "MAC", "Tokens",
+        "PFM", "RPFM", "DER", "Postpd", "DNER", "TestReq", "TestRsp");
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         /* check for masters or slaves */
@@ -280,9 +279,9 @@ static void packet_statistics_print(
     node_count = 0;
     fprintf(stdout, "\r\n");
     fprintf(stdout, "==== MS/TP Usage and Timing Maximums ====\r\n");
-    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s",
-        "MAC","MaxMstr","Retries","Npoll","Self",
-        "Treply","Tusage","Trpfm","Tder","Tpostpd");
+    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC",
+        "MaxMstr", "Retries", "Npoll", "Self", "Treply", "Tusage", "Trpfm",
+        "Tder", "Tpostpd");
     fprintf(stdout, "\r\n");
     for (i = 0; i < 256; i++) {
         /* check for masters or slaves */
@@ -552,8 +551,8 @@ static void write_received_packet(
             (void) data_write((char *) &mstp_port->DataCRCActualLSB, 1, 1);
         }
     } else {
-        fprintf(stderr, "mstpcap[packet]: failed to open %s: %s\n", Capture_Filename,
-            strerror(errno));
+        fprintf(stderr, "mstpcap[packet]: failed to open %s: %s\n",
+            Capture_Filename, strerror(errno));
     }
 }
 
@@ -561,61 +560,61 @@ static void write_received_packet(
 static bool test_global_header(
     const char *filename)
 {
-    uint32_t magic_number = 0; /* magic number */
+    uint32_t magic_number = 0;  /* magic number */
     uint16_t version_major = 0; /* major version number */
     uint16_t version_minor = 0; /* minor version number */
     int32_t thiszone = 0;       /* GMT to local correction */
     uint32_t sigfigs = 0;       /* accuracy of timestamps */
-    uint32_t snaplen = 0;   /* max length of captured packets, in octets */
-    uint32_t network = 0;     /* data link type - BACNET_MS_TP */
+    uint32_t snaplen = 0;       /* max length of captured packets, in octets */
+    uint32_t network = 0;       /* data link type - BACNET_MS_TP */
     size_t count = 0;
 
     /* create a new file. */
     pFile = fopen(filename, "rb");
     if (pFile) {
-        count = fread(&magic_number,  sizeof(magic_number), 1, pFile);
+        count = fread(&magic_number, sizeof(magic_number), 1, pFile);
         if ((count != 1) || (magic_number != 0xa1b2c3d4)) {
             fprintf(stderr, "mstpcap: invalid magic number\n");
             fclose(pFile);
             pFile = NULL;
             return false;
         }
-        count = fread(&version_major,  sizeof(version_major), 1, pFile);
+        count = fread(&version_major, sizeof(version_major), 1, pFile);
         if ((count != 1) || (version_major != 2)) {
             fprintf(stderr, "mstpcap: invalid major version\n");
             fclose(pFile);
             pFile = NULL;
             return false;
         }
-        count = fread(&version_minor,  sizeof(version_minor), 1, pFile);
+        count = fread(&version_minor, sizeof(version_minor), 1, pFile);
         if ((count != 1) || (version_minor != 4)) {
             fprintf(stderr, "mstpcap: invalid minor version\n");
             fclose(pFile);
             pFile = NULL;
             return false;
         }
-        count = fread(&thiszone,  sizeof(thiszone), 1, pFile);
+        count = fread(&thiszone, sizeof(thiszone), 1, pFile);
         if ((count != 1) || (thiszone != 0)) {
             fprintf(stderr, "mstpcap: invalid time zone\n");
             fclose(pFile);
             pFile = NULL;
             return false;
         }
-        count = fread(&sigfigs,  sizeof(sigfigs), 1, pFile);
+        count = fread(&sigfigs, sizeof(sigfigs), 1, pFile);
         if ((count != 1) || (sigfigs != 0)) {
             fprintf(stderr, "mstpcap: invalid time stamp accuracy\n");
             fclose(pFile);
             pFile = NULL;
             return false;
         }
-        count = fread(&snaplen,  sizeof(snaplen), 1, pFile);
+        count = fread(&snaplen, sizeof(snaplen), 1, pFile);
         if ((count != 1) || (snaplen != 65535)) {
             fprintf(stderr, "mstpcap: invalid length of captured packets\n");
             fclose(pFile);
             pFile = NULL;
             return false;
         }
-        count = fread(&network,  sizeof(network), 1, pFile);
+        count = fread(&network, sizeof(network), 1, pFile);
         if ((count != 1) || (network != 165)) {
             fprintf(stderr, "mstpcap: invalid data link type (DLT)\n");
             fclose(pFile);
@@ -634,11 +633,11 @@ static bool test_global_header(
 static bool read_received_packet(
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    uint32_t ts_sec = 0;    /* timestamp seconds */
-    uint32_t ts_usec = 0;   /* timestamp microseconds */
-    uint32_t incl_len = 0;  /* number of octets of packet saved in file */
-    uint32_t orig_len = 0;  /* actual length of packet */
-    uint8_t header[8] = {0};  /* MS/TP header */
+    uint32_t ts_sec = 0;        /* timestamp seconds */
+    uint32_t ts_usec = 0;       /* timestamp microseconds */
+    uint32_t incl_len = 0;      /* number of octets of packet saved in file */
+    uint32_t orig_len = 0;      /* actual length of packet */
+    uint8_t header[8] = { 0 };  /* MS/TP header */
     struct timeval tv;
     size_t count = 0;
 
@@ -678,12 +677,12 @@ static bool read_received_packet(
         mstp_port->FrameType = header[2];
         mstp_port->DestinationAddress = header[3];
         mstp_port->SourceAddress = header[4];
-        mstp_port->DataLength = MAKE_WORD(header[6],header[5]);
+        mstp_port->DataLength = MAKE_WORD(header[6], header[5]);
         mstp_port->HeaderCRCActual = header[7];
         if (orig_len > 8) {
             mstp_port->DataLength = orig_len - 8 - 2;
-            count = fread(mstp_port->InputBuffer,
-                mstp_port->DataLength, 1, pFile);
+            count =
+                fread(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
             if (count != 1) {
                 fclose(pFile);
                 pFile = NULL;
@@ -811,9 +810,9 @@ int main(
     if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
         printf("mstpcap %s\r\n", BACNET_VERSION_TEXT);
         printf("Copyright (C) 2011 by Steve Karg\r\n"
-        "This is free software; see the source for copying conditions.\r\n"
-        "There is NO warranty; not even for MERCHANTABILITY or\r\n"
-        "FITNESS FOR A PARTICULAR PURPOSE.\r\n");
+            "This is free software; see the source for copying conditions.\r\n"
+            "There is NO warranty; not even for MERCHANTABILITY or\r\n"
+            "FITNESS FOR A PARTICULAR PURPOSE.\r\n");
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--scan") == 0)) {

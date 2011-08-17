@@ -44,7 +44,7 @@ static uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
 /* The OUI 00-00-5E has been allocated to IANA. */
 /* my local device data - MAC address */
 static uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] =
-    {0x00, 0x00, 0x5E, 0x00, 0x00, 0x01};
+    { 0x00, 0x00, 0x5E, 0x00, 0x00, 0x01 };
 
 /* status of the link */
 static int32_t Ethernet_Status = R_ETHER_ERROR;
@@ -167,7 +167,7 @@ uint16_t ethernet_receive(
     if (!ethernet_valid())
         return 0;
 
-    received_bytes = R_Ether_Read(0, (void *)buf);
+    received_bytes = R_Ether_Read(0, (void *) buf);
 
     if (received_bytes == 0)
         return 0;

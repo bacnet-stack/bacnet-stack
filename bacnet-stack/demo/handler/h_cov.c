@@ -419,32 +419,31 @@ void handler_cov_task(
                 COV_Subscriptions[index].monitoredObjectIdentifier.type;
             object_instance =
                 COV_Subscriptions[index].monitoredObjectIdentifier.instance;
-            status = Device_Encode_Value_List(
-                object_type,
-                object_instance,
+            status =
+                Device_Encode_Value_List(object_type, object_instance,
                 &value_list[0]);
             if (status) {
                 COV_Subscriptions[index].send_requested = true;
             }
             if (COV_Subscriptions[index].send_requested) {
-                cov_send_request(
-                    &COV_Subscriptions[index],
-                    &value_list[0]);
+                cov_send_request(&COV_Subscriptions[index], &value_list[0]);
                 COV_Subscriptions[index].send_requested = false;
             }
-            if (status && ((index+1) < MAX_COV_SUBCRIPTIONS)) {
+            if (status && ((index + 1) < MAX_COV_SUBCRIPTIONS)) {
                 /* if more than one subscription for this object instance */
-                for (index2 = index+1; index2 < MAX_COV_SUBCRIPTIONS; index2++) {
+                for (index2 = index + 1; index2 < MAX_COV_SUBCRIPTIONS;
+                    index2++) {
                     object_type2 =
-                    COV_Subscriptions[index2].monitoredObjectIdentifier.type;
+                        COV_Subscriptions[index2].monitoredObjectIdentifier.
+                        type;
                     object_instance2 =
-                    COV_Subscriptions[index2].monitoredObjectIdentifier.instance;
+                        COV_Subscriptions[index2].monitoredObjectIdentifier.
+                        instance;
                     if ((COV_Subscriptions[index].lifetime) &&
                         (COV_Subscriptions[index].valid) &&
                         (object_type == object_type2) &&
                         (object_instance == object_instance2)) {
-                        cov_send_request(
-                            &COV_Subscriptions[index2],
+                        cov_send_request(&COV_Subscriptions[index2],
                             &value_list[0]);
                         COV_Subscriptions[index2].send_requested = false;
                     }
@@ -470,11 +469,8 @@ static bool cov_subscribe(
     if (status) {
         status = Device_Value_List_Supported(object_type);
         if (status) {
-            status = cov_list_subscribe(
-                src,
-                cov_data,
-                error_class,
-                error_code);
+            status =
+                cov_list_subscribe(src, cov_data, error_class, error_code);
         } else {
             *error_class = ERROR_CLASS_OBJECT;
             *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;

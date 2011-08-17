@@ -167,7 +167,7 @@ float Analog_Value_Present_Value(
 
 bool Analog_Value_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[16] = "AV-0";       /* okay for single thread */
     bool status = false;
@@ -360,8 +360,8 @@ bool Analog_Value_Write_Property(
                     (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
                     level = (uint8_t) value.type.Real;
                     object_index =
-                        Analog_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Analog_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     Present_Value[object_index] = level;
                     /* Note: you could set the physical output here if we

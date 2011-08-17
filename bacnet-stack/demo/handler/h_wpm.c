@@ -70,10 +70,10 @@ void handler_write_property_multiple(
     BACNET_ADDRESS * src,
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
-    int len        = 0;
-    int apdu_len   = 0;
-    int npdu_len   = 0;
-    int pdu_len    = 0;
+    int len = 0;
+    int apdu_len = 0;
+    int npdu_len = 0;
+    int pdu_len = 0;
     int decode_len = 0;
     bool error = false;
     BACNET_WRITE_PROPERTY_DATA wp_data;
@@ -84,9 +84,10 @@ void handler_write_property_multiple(
 
 
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                                service_data->invoke_id,
-                                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+        len =
+            abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         fprintf(stderr, "WPM: Segmented message.  Sending Abort!\n");
 #endif
@@ -95,27 +96,25 @@ void handler_write_property_multiple(
 
     /* decode service request */
     decode_len = 0;
-    do
-    {
+    do {
         /* decode Object Identifier */
-        len = wpm_decode_object_id(&service_request[decode_len],
-                                   service_len - decode_len, &wp_data);
-        if (len > 0)
-        {
+        len =
+            wpm_decode_object_id(&service_request[decode_len],
+            service_len - decode_len, &wp_data);
+        if (len > 0) {
             uint8_t tag_number = 0;
 
             decode_len += len;
             /* Opening tag 1 - List of Properties */
-            if (decode_is_opening_tag_number(&service_request[decode_len++], 1))
-            {
-                do
-                {
+            if (decode_is_opening_tag_number(&service_request[decode_len++],
+                    1)) {
+                do {
                     /* decode a 'Property Identifier'; (3) an optional 'Property Array Index' */
                     /* (4) a 'Property Value'; and (5) an optional 'Priority'. */
-                    len = wpm_decode_object_property(&service_request[decode_len],
-                                    service_len - decode_len, &wp_data);
-                    if (len > 0)
-                    {
+                    len =
+                        wpm_decode_object_property(&service_request
+                        [decode_len], service_len - decode_len, &wp_data);
+                    if (len > 0) {
                         decode_len += len;
 #if PRINT_ENABLED
                         fprintf(stderr,
@@ -123,81 +122,79 @@ void handler_write_property_multiple(
                             (unsigned long) wp_data.object_type,
                             (unsigned long) wp_data.object_instance,
                             (unsigned long) wp_data.object_property,
-                            (unsigned long) wp_data.priority, (long) wp_data.array_index);
+                            (unsigned long) wp_data.priority,
+                            (long) wp_data.array_index);
 #endif
-                        if (Device_Write_Property(&wp_data) == false)
-                        {
+                        if (Device_Write_Property(&wp_data) == false) {
                             error = true;
-                            break;  /* do while (decoding List of Properties) */
+                            break;      /* do while (decoding List of Properties) */
                         }
-                    }
-                    else
-                    {
+                    } else {
 #if PRINT_ENABLED
                         fprintf(stderr, "WPM: Bad Encoding!\n");
 #endif
                         wp_data.error_class = ERROR_CLASS_PROPERTY;
-                        wp_data.error_code  = ERROR_CODE_OTHER;
+                        wp_data.error_code = ERROR_CODE_OTHER;
                         error = true;
                         break;  /* do while (decoding List of Properties) */
                     }
 
                     /* Closing tag 1 - List of Properties */
-                    if (decode_is_closing_tag_number(&service_request[decode_len], 1))
-                    {
+                    if (decode_is_closing_tag_number(&service_request
+                            [decode_len], 1)) {
                         tag_number = 1;
                         decode_len++;
-                    }
-                    else
+                    } else
                         tag_number = 0; /* it was not tag 1, decode next Property Identifier ... */
 
                 }
-                while(tag_number != 1); /* end decoding List of Properties for "that" object */
+                while (tag_number != 1);        /* end decoding List of Properties for "that" object */
 
                 if (error)
-                    break;  /*do while (decode service request) */
+                    break;      /*do while (decode service request) */
             }
-        }
-        else
-        {
+        } else {
 #if PRINT_ENABLED
             fprintf(stderr, "WPM: Bad Encoding!\n");
 #endif
             wp_data.error_class = ERROR_CLASS_OBJECT;
-            wp_data.error_code  = ERROR_CODE_OTHER;
+            wp_data.error_code = ERROR_CODE_OTHER;
             error = true;
-            break;  /*do while (decode service request) */
+            break;      /*do while (decode service request) */
         }
     }
-    while(decode_len < service_len);
+    while (decode_len < service_len);
 
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    npdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-                               &npdu_data);
+    npdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+        &npdu_data);
 
     apdu_len = 0;
 
     if (error == false) {
-        apdu_len = wpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
-                                service_data->invoke_id);
+        apdu_len =
+            wpm_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id);
 #if PRINT_ENABLED
         fprintf(stderr, "WPM: Sending Simple Ack!\n");
 #endif
-    }
-    else {
-        apdu_len = wpm_error_ack_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                                service_data->invoke_id, &wp_data);
+    } else {
+        apdu_len =
+            wpm_error_ack_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+            service_data->invoke_id, &wp_data);
 #if PRINT_ENABLED
         fprintf(stderr, "WPM: Sending Error!\n");
 #endif
     }
 
-WPM_ABORT:
+  WPM_ABORT:
 
     pdu_len = npdu_len + apdu_len;
-    bytes_sent =  datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-                                pdu_len);
+    bytes_sent =
+        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+        pdu_len);
 }

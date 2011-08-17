@@ -119,7 +119,6 @@ void handler_alarm_ack(
 #endif
         goto AA_ABORT;
     }
-
 #if PRINT_ENABLED
     fprintf(stderr,
         "Alarm Ack Operation: Received acknowledge for object id (%d, %lu) from %s for process id %lu \n",
@@ -131,49 +130,54 @@ void handler_alarm_ack(
 
     if (Alarm_Ack[data.eventObjectIdentifier.type]) {
 
-        ack_result = Alarm_Ack[data.eventObjectIdentifier.type](&data, &error_code);
+        ack_result =
+            Alarm_Ack[data.eventObjectIdentifier.type] (&data, &error_code);
 
-        switch (ack_result)
-        {
+        switch (ack_result) {
             case 1:
-                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM);
+                len =
+                    encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM);
 #if PRINT_ENABLED
                 fprintf(stderr, "Alarm Acknowledge: " "Sending Simple Ack!\n");
 #endif
                 break;
 
             case -1:
-                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
-                    ERROR_CLASS_OBJECT, error_code);
+                len =
+                    bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
+                    SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT,
+                    error_code);
 #if PRINT_ENABLED
                 fprintf(stderr, "Alarm Acknowledge: error %s!\n",
-                        bactext_error_code_name(error_code));
+                    bactext_error_code_name(error_code));
 #endif
                 break;
 
             default:
-                len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                len =
+                    abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
                 fprintf(stderr, "Alarm Acknowledge: abort other!\n");
 #endif
                 break;
         }
-    }
-    else {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+    } else {
+        len =
+            bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
             ERROR_CLASS_OBJECT, ERROR_CODE_NO_ALARM_CONFIGURED);
 #if PRINT_ENABLED
         fprintf(stderr, "Alarm Acknowledge: error %s!\n",
-                bactext_error_code_name(ERROR_CODE_NO_ALARM_CONFIGURED));
+            bactext_error_code_name(ERROR_CODE_NO_ALARM_CONFIGURED));
 #endif
     }
 
 
-AA_ABORT:
+  AA_ABORT:
     pdu_len += len;
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],

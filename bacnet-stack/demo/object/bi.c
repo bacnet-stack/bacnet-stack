@@ -233,10 +233,10 @@ bool Binary_Input_Encode_Value_List(
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
         bitstring_init(&value_list->value.type.Bit_String);
-        bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM,
-            false);
-        bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_FAULT,
-            false);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_IN_ALARM, false);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_FAULT, false);
         bitstring_set_bit(&value_list->value.type.Bit_String,
             STATUS_FLAG_OVERRIDDEN, false);
         if (Binary_Input_Out_Of_Service(object_instance)) {
@@ -292,7 +292,7 @@ static void Binary_Input_Out_Of_Service_Set(
 
 bool Binary_Input_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     bool status = false;
@@ -494,10 +494,10 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    ucExpectedTag=ucExpectedTag;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    ucExpectedTag = ucExpectedTag;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }

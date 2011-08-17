@@ -65,7 +65,7 @@ extern "C" {
 
     bool Analog_Output_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
     bool Analog_Output_Name_Set(
         uint32_t object_instance,
         char *new_name);

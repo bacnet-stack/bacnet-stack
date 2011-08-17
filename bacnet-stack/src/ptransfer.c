@@ -642,8 +642,7 @@ void test_Unconfirmed_Private_Transfer_Request(
     len = uptransfer_encode_apdu(&apdu[0], &private_data);
     ct_test(pTest, len != 0);
     apdu_len = len;
-    len =
-        uptransfer_decode_apdu(&apdu[0], apdu_len, &test_data);
+    len = uptransfer_decode_apdu(&apdu[0], apdu_len, &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_data.vendorID == private_data.vendorID);
     ct_test(pTest, test_data.serviceNumber == private_data.serviceNumber);

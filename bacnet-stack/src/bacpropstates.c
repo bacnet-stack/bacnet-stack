@@ -51,8 +51,7 @@ int bacapp_decode_property_state(
     uint8_t tagnum;
 
     section_length =
-        decode_tag_number_and_value(&apdu[len], &tagnum,
-        &len_value_type);
+        decode_tag_number_and_value(&apdu[len], &tagnum, &len_value_type);
 
     if (-1 == section_length) {
         return -1;
