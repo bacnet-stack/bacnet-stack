@@ -187,7 +187,7 @@ wp: logfile test/wp.mak
 	( ./test/wp >> ${LOGFILE} )
 	make -C test -f wp.mak clean
 
-objects: ai ao av bi bo bv device lc lo lso lsp mso
+objects: ai ao av bi bo bv lc lo lso lsp mso
 
 ai: logfile demo/object/ai.mak
 	make -C demo/object -f ai.mak clean all

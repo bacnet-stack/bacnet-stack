@@ -105,7 +105,10 @@ void Analog_Input_Property_Lists(
 void Analog_Input_Init(
     void)
 {
-    unsigned i, j;
+    unsigned i;
+#if defined(INTRINSIC_REPORTING)
+    unsigned j;
+#endif
 
     for (i = 0; i < MAX_ANALOG_INPUTS; i++) {
         AI_Descr[i].Present_Value = 0.0f;
@@ -226,13 +229,15 @@ bool Analog_Input_Object_Name(
 int Analog_Input_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
-    int len = 0;
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     ANALOG_INPUT_DESCR *CurrentAI;
     unsigned object_index = 0;
+#if defined(INTRINSIC_REPORTING)
     unsigned i = 0;
+    int len = 0;
+#endif
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -1120,6 +1125,28 @@ int Analog_Input_Alarm_Ack(
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
+
+bool WPValidateArgType(
+    BACNET_APPLICATION_DATA_VALUE * pValue,
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+    bool bResult;
+
+    /*
+     * start out assuming success and only set up error
+     * response if validation fails.
+     */
+    bResult = true;
+    if (pValue->tag != ucExpectedTag) {
+        bResult = false;
+        *pErrorClass = ERROR_CLASS_PROPERTY;
+        *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
+    }
+
+    return (bResult);
+}
 
 void testAnalogInput(
     Test * pTest)

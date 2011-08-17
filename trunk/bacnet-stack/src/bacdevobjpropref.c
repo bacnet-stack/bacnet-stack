@@ -329,15 +329,11 @@ void testDevIdPropRef(
 void testDevIdRef(
     Test * pTest)
 {
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE inData;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE outData;
+    BACNET_DEVICE_OBJECT_REFERENCE inData;
+    BACNET_DEVICE_OBJECT_REFERENCE outData;
     uint8_t buffer[MAX_APDU];
     int inLen;
     int outLen;
-
-
-    inData.objectIdentifier.instance = 0x1234;
-    inData.objectIdentifier.type = 15;
 
     inData.deviceIndentifier.instance = 0x4343;
     inData.deviceIndentifier.type = 28;
@@ -346,11 +342,6 @@ void testDevIdRef(
     outLen = bacapp_decode_device_obj_ref(buffer, &outData);
 
     ct_test(pTest, outLen == inLen);
-
-    ct_test(pTest,
-        inData.objectIdentifier.instance == outData.objectIdentifier.instance);
-    ct_test(pTest,
-        inData.objectIdentifier.type == outData.objectIdentifier.type);
 
     ct_test(pTest,
         inData.deviceIndentifier.instance ==
