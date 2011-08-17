@@ -58,7 +58,7 @@ int wpm_decode_object_id(
     } else
         return -1;
 
-    return len;
+    return (int)len;
 }
 
 
@@ -102,7 +102,7 @@ int wpm_decode_object_property(
         if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
             len--;
             wp_data->application_data_len =
-                bacapp_data_len(&apdu[len], apdu_len - len,
+                bacapp_data_len(&apdu[len], (unsigned)(apdu_len - len),
                 wp_data->object_property);
             len++;
 
