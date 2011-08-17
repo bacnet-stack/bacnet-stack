@@ -54,7 +54,7 @@ extern "C" {
         const int **pProprietary);
     bool bacfile_object_name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
     bool bacfile_valid_instance(
         uint32_t object_instance);
     uint32_t bacfile_count(

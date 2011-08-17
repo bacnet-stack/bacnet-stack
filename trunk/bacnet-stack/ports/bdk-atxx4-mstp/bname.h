@@ -33,26 +33,26 @@ extern "C" {
 
     bool bacnet_name_set(
         uint16_t eeprom_offset,
-        BACNET_CHARACTER_STRING *char_string);
+        BACNET_CHARACTER_STRING * char_string);
     void bacnet_name_init(
         uint16_t eeprom_offset,
-        BACNET_CHARACTER_STRING *char_string,
+        BACNET_CHARACTER_STRING * char_string,
         char *default_string);
     void bacnet_name(
         uint16_t eeprom_offset,
-        BACNET_CHARACTER_STRING *char_string,
+        BACNET_CHARACTER_STRING * char_string,
         char *default_string);
     bool bacnet_name_write(
         uint16_t offset,
-        BACNET_CHARACTER_STRING *char_string,
-        BACNET_ERROR_CLASS *error_class,
-        BACNET_ERROR_CODE *error_code);
+        BACNET_CHARACTER_STRING * char_string,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
     /* no required minumum length or duplicate checking */
     bool bacnet_name_write_other(
         uint16_t offset,
-        BACNET_CHARACTER_STRING *char_string,
-        BACNET_ERROR_CLASS *error_class,
-        BACNET_ERROR_CODE *error_code);
+        BACNET_CHARACTER_STRING * char_string,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
 
 #ifdef __cplusplus
 }

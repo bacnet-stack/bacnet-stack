@@ -54,7 +54,7 @@ extern "C" {
 
     bool Binary_Input_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
     bool Binary_Input_Name_Set(
         uint32_t object_instance,
         char *new_name);

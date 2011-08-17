@@ -95,7 +95,8 @@ static pthread_mutex_t Reader_Mutex, IOMutex;
 
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 
-static void *rs485_read_task(void *arg)
+static void *rs485_read_task(
+    void *arg)
 {
     uint8_t buf[1 << 11];
     int count, n;
@@ -134,7 +135,8 @@ static void *rs485_read_task(void *arg)
 * ALGORITHM:   none
 * NOTES:       none
 *********************************************************************/
-void RS485_Set_Interface(char *ifname)
+void RS485_Set_Interface(
+    char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
     if (ifname) {
@@ -148,7 +150,8 @@ void RS485_Set_Interface(char *ifname)
 * ALGORITHM:   none
 * NOTES:       none
 *********************************************************************/
-const char *RS485_Interface(void)
+const char *RS485_Interface(
+    void)
 {
     return RS485_Port_Name;
 }
@@ -159,7 +162,8 @@ const char *RS485_Interface(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(void)
+uint32_t RS485_Get_Baud_Rate(
+    void)
 {
     switch (RS485_Baud) {
         case B19200:
@@ -182,7 +186,8 @@ uint32_t RS485_Get_Baud_Rate(void)
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Set_Baud_Rate(uint32_t baud)
+bool RS485_Set_Baud_Rate(
+    uint32_t baud)
 {
     bool valid = true;
 
@@ -215,10 +220,9 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 }
 
 /* Transmits a Frame on the wire */
-void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port specific data */
-
+void RS485_Send_Frame(
+    volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
     uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
-
     uint16_t nbytes)
 {       /* number of bytes of data (up to 501) */
     ssize_t written = 0;
@@ -246,7 +250,8 @@ void RS485_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,    /* port 
 }
 
 /* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(
+    volatile struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port->ReceiveError == true) {
         /* wait for state machine to clear this */
@@ -266,7 +271,8 @@ void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
     }
 }
 
-void RS485_Cleanup(void)
+void RS485_Cleanup(
+    void)
 {
     /* restore the old port settings */
     tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
@@ -276,7 +282,8 @@ void RS485_Cleanup(void)
 }
 
 
-void RS485_Initialize(void)
+void RS485_Initialize(
+    void)
 {
     struct termios newtio;
     unsigned long hThread = 0;
@@ -333,7 +340,8 @@ void RS485_Initialize(void)
 
 #ifdef TEST_RS485
 #include <string.h>
-int main(int argc,
+int main(
+    int argc,
     char *argv[])
 {
     uint8_t buf[8];

@@ -175,8 +175,7 @@ static int Read_Property_Common(
             } else {
                 characterstring_init_ansi(&char_string, "");
                 if (pObject->Object_Name) {
-                    (void)pObject->Object_Name(
-                        rpdata->object_instance,
+                    (void) pObject->Object_Name(rpdata->object_instance,
                         &char_string);
                 }
             }
@@ -343,7 +342,7 @@ uint32_t Device_Index_To_Instance(
 
 bool Device_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     bool status = false;
 
@@ -387,7 +386,7 @@ void Device_Init(
 {
     struct my_object_functions *pObject = NULL;
 
-    (void)object_table;
+    (void) object_table;
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -525,7 +524,7 @@ bool Device_Object_List_Identifier(
 }
 
 bool Device_Valid_Object_Name(
-    BACNET_CHARACTER_STRING *object_name1,
+    BACNET_CHARACTER_STRING * object_name1,
     int *object_type,
     uint32_t * object_instance)
 {
@@ -541,10 +540,10 @@ bool Device_Valid_Object_Name(
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
+            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
-                characterstring_same(object_name1, &object_name2))) {
+                    characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -564,10 +563,10 @@ bool Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
 {
-    bool status = false;  /* return value */
+    bool status = false;        /* return value */
     struct my_object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
+    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -578,7 +577,7 @@ bool Device_Valid_Object_Id(
 bool Device_Object_Name_Copy(
     int object_type,
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     struct my_object_functions *pObject = NULL;
     bool found = false;
@@ -591,7 +590,7 @@ bool Device_Object_Name_Copy(
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
+            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
                 found = pObject->Object_Name(instance, object_name);
                 break;
@@ -816,8 +815,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -869,8 +868,8 @@ bool Device_Write_Property_Local(
                     uint8_t encoding =
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
-                        characterstring_copy(&My_Object_Name, &value.type.
-                            Character_String);
+                        characterstring_copy(&My_Object_Name,
+                            &value.type.Character_String);
                         status = true;
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;

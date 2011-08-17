@@ -39,30 +39,40 @@ extern "C" {
         void);
     void led_ld4_off(
         void);
-    bool led_ld3_state(void);
-    void led_ld3_toggle(void);
+    bool led_ld3_state(
+        void);
+    void led_ld3_toggle(
+        void);
 
-    void led_tx_on(void);
-    void led_rx_on(void);
+    void led_tx_on(
+        void);
+    void led_rx_on(
+        void);
 
     void led_tx_on_interval(
         uint16_t interval_ms);
     void led_rx_on_interval(
         uint16_t interval_ms);
 
-    void led_tx_off(void);
-    void led_rx_off(void);
+    void led_tx_off(
+        void);
+    void led_rx_off(
+        void);
 
     void led_tx_off_delay(
         uint32_t delay_ms);
     void led_rx_off_delay(
         uint32_t delay_ms);
 
-    void led_tx_toggle(void);
-    void led_rx_toggle(void);
+    void led_tx_toggle(
+        void);
+    void led_rx_toggle(
+        void);
 
-    bool led_tx_state(void);
-    bool led_rx_state(void);
+    bool led_tx_state(
+        void);
+    bool led_rx_state(
+        void);
 
     void led_task(
         void);

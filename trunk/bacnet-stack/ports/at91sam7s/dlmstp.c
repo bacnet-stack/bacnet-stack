@@ -1177,9 +1177,9 @@ static void MSTP_Slave_Node_FSM(
     } else if (MSTP_Flag.ReceivePacketPending) {
         if (Ringbuf_Empty(&PDU_Queue)) {
             /* If no reply will be available from the higher layers
-            within Treply_delay after the reception of the final octet
-            of the requesting frame (the mechanism used to determine
-            this is a local matter), then no reply is possible. */
+               within Treply_delay after the reception of the final octet
+               of the requesting frame (the mechanism used to determine
+               this is a local matter), then no reply is possible. */
             MSTP_Flag.ReceivePacketPending = false;
         } else {
             pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);

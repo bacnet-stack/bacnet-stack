@@ -38,7 +38,7 @@
 #include "apdu.h"
 #include "wp.h" /* WriteProperty handling */
 #include "rp.h" /* ReadProperty handling */
-#include "dcc.h" /* DeviceCommunicationControl handling */
+#include "dcc.h"        /* DeviceCommunicationControl handling */
 #include "version.h"
 #include "device.h"     /* me */
 #include "handlers.h"
@@ -86,72 +86,81 @@ extern bool Routed_Device_Write_Property_Local(
 
 static object_functions_t Object_Table[] = {
     {
-    OBJECT_DEVICE, NULL, Device_Count,    /* don't init - recursive! */
+            OBJECT_DEVICE, NULL, Device_Count,  /* don't init - recursive! */
             Device_Index_To_Instance, Device_Valid_Object_Instance_Number,
             Device_Object_Name, Device_Read_Property_Local,
             Device_Write_Property_Local, Device_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
-    OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
+        NULL, NULL, NULL, NULL}, {
+            OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
             Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
             Analog_Input_Object_Name, Analog_Input_Read_Property,
             Analog_Input_Write_Property, Analog_Input_Property_Lists,
-            NULL, NULL, NULL, Analog_Input_Intrinsic_Reporting}, {
-    OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
+        NULL, NULL, NULL, Analog_Input_Intrinsic_Reporting}, {
+            OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
             Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
             Analog_Value_Object_Name, Analog_Value_Read_Property,
             Analog_Value_Write_Property, Analog_Value_Property_Lists,
-            NULL, NULL, NULL, Analog_Value_Intrinsic_Reporting}, {
-    OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
+        NULL, NULL, NULL, Analog_Value_Intrinsic_Reporting}, {
+            OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
             Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
             Binary_Input_Object_Name, Binary_Input_Read_Property,
             NULL, Binary_Input_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
-    OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count,
+        NULL, NULL, NULL, NULL}, {
+            OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count,
             Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance,
             Binary_Value_Object_Name, Binary_Value_Read_Property,
             Binary_Value_Write_Property, Binary_Value_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
+        NULL, NULL, NULL, NULL}, {
 #if defined(INTRINSIC_REPORTING)
-    OBJECT_NOTIFICATION_CLASS, Notification_Class_Init, Notification_Class_Count,
-            Notification_Class_Index_To_Instance, Notification_Class_Valid_Instance,
+            OBJECT_NOTIFICATION_CLASS, Notification_Class_Init,
+            Notification_Class_Count,
+            Notification_Class_Index_To_Instance,
+            Notification_Class_Valid_Instance,
             Notification_Class_Object_Name, Notification_Class_Read_Property,
-            Notification_Class_Write_Property, Notification_Class_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
+            Notification_Class_Write_Property,
+            Notification_Class_Property_Lists,
+        NULL, NULL, NULL, NULL}, {
 #endif
-    OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Init, Life_Safety_Point_Count,
-            Life_Safety_Point_Index_To_Instance, Life_Safety_Point_Valid_Instance,
+            OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Init,
+            Life_Safety_Point_Count,
+            Life_Safety_Point_Index_To_Instance,
+            Life_Safety_Point_Valid_Instance,
             Life_Safety_Point_Object_Name, Life_Safety_Point_Read_Property,
             Life_Safety_Point_Write_Property, Life_Safety_Point_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
-    OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
+        NULL, NULL, NULL, NULL}, {
+            OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
             Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
             Load_Control_Object_Name, Load_Control_Read_Property,
             Load_Control_Write_Property, Load_Control_Property_Lists,
-            NULL, NULL, NULL}, {
-    OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init, Multistate_Output_Count,
-            Multistate_Output_Index_To_Instance, Multistate_Output_Valid_Instance,
+        NULL, NULL, NULL}, {
+            OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init,
+            Multistate_Output_Count,
+            Multistate_Output_Index_To_Instance,
+            Multistate_Output_Valid_Instance,
             Multistate_Output_Object_Name, Multistate_Output_Read_Property,
             Multistate_Output_Write_Property, Multistate_Output_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
-    OBJECT_MULTI_STATE_INPUT, Multistate_Input_Init, Multistate_Input_Count,
-            Multistate_Input_Index_To_Instance, Multistate_Input_Valid_Instance,
+        NULL, NULL, NULL, NULL}, {
+            OBJECT_MULTI_STATE_INPUT, Multistate_Input_Init,
+            Multistate_Input_Count,
+            Multistate_Input_Index_To_Instance,
+            Multistate_Input_Valid_Instance,
             Multistate_Input_Object_Name, Multistate_Input_Read_Property,
             Multistate_Input_Write_Property, Multistate_Input_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
-    OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count,
+        NULL, NULL, NULL, NULL}, {
+            OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count,
             Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance,
             Trend_Log_Object_Name, Trend_Log_Read_Property,
             Trend_Log_Write_Property, Trend_Log_Property_Lists,
-            TrendLogGetRRInfo, NULL, NULL, NULL}, {
+        TrendLogGetRRInfo, NULL, NULL, NULL}, {
 #if defined(BACFILE)
-    OBJECT_FILE, bacfile_init, bacfile_count,
+            OBJECT_FILE, bacfile_init, bacfile_count,
             bacfile_index_to_instance, bacfile_valid_instance,
             bacfile_object_name, bacfile_read_property,
             bacfile_write_property, BACfile_Property_Lists,
-            NULL, NULL, NULL, NULL}, {
+        NULL, NULL, NULL, NULL}, {
 #endif
-    MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-            NULL, NULL, NULL, NULL}
+            MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL}
 };
 
 
@@ -474,7 +483,7 @@ bool Device_Valid_Object_Instance_Number(
 
 bool Device_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     bool status = false;
 
@@ -486,7 +495,7 @@ bool Device_Object_Name(
 }
 
 bool Device_Set_Object_Name(
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     bool status = false;        /*return value */
 
@@ -816,7 +825,7 @@ bool Device_Object_List_Identifier(
  * @return True on success or else False if not found.
  */
 bool Device_Valid_Object_Name(
-    BACNET_CHARACTER_STRING *object_name1,
+    BACNET_CHARACTER_STRING * object_name1,
     int *object_type,
     uint32_t * object_instance)
 {
@@ -835,7 +844,7 @@ bool Device_Valid_Object_Name(
             pObject = Device_Objects_Find_Functions(type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
-                characterstring_same(object_name1, &object_name2))) {
+                    characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -860,7 +869,7 @@ bool Device_Valid_Object_Id(
     int object_type,
     uint32_t object_instance)
 {
-    bool status = false;  /* return value */
+    bool status = false;        /* return value */
     struct object_functions *pObject = NULL;
 
     pObject = Device_Objects_Find_Functions(object_type);
@@ -880,7 +889,7 @@ bool Device_Valid_Object_Id(
 bool Device_Object_Name_Copy(
     int object_type,
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     struct object_functions *pObject = NULL;
     bool found = false;
@@ -960,7 +969,8 @@ int    tm_isdst Daylight Savings flag.
     }
 }
 
-void Device_getCurrentDateTime(BACNET_DATE_TIME * DateTime)
+void Device_getCurrentDateTime(
+    BACNET_DATE_TIME * DateTime)
 {
     Update_Current_Time();
 
@@ -1265,8 +1275,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -1299,8 +1309,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t) value.type.
-                    Unsigned_Int);
+                Device_Set_Vendor_Identifier((uint16_t) value.
+                    type.Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
@@ -1325,15 +1335,14 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_NAME:
             status =
                 WPValidateString(&value,
-                    characterstring_capacity(&My_Object_Name),
-                    false,
-                    &wp_data->error_class, &wp_data->error_code);
+                characterstring_capacity(&My_Object_Name), false,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* All the object names in a device must be unique.
                    Disallow setting the Device Object Name to any objects in
                    the device. */
                 if (Device_Valid_Object_Name(&value.type.Character_String,
-                    NULL, NULL)) {
+                        NULL, NULL)) {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
@@ -1347,8 +1356,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_LOC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Location(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Location(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1358,8 +1367,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_DESC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Description(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Description(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1368,8 +1377,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_MOD_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Model_Name(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Model_Name(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1381,8 +1390,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames((uint8_t) value.type.
-                        Unsigned_Int);
+                    dlmstp_set_max_info_frames((uint8_t) value.
+                        type.Unsigned_Int);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1464,9 +1473,9 @@ bool Device_Write_Property(
  * @return True if the object instance supports this feature and value changed.
  */
 bool Device_Encode_Value_List(
-        BACNET_OBJECT_TYPE object_type,
-        uint32_t object_instance,
-        BACNET_PROPERTY_VALUE * value_list)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE * value_list)
 {
     bool status = false;        /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
@@ -1476,9 +1485,8 @@ bool Device_Encode_Value_List(
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
             if (pObject->Object_Value_List) {
-                status = pObject->Object_Value_List(
-                    object_instance,
-                    value_list);
+                status =
+                    pObject->Object_Value_List(object_instance, value_list);
             }
         }
     }
@@ -1488,29 +1496,27 @@ bool Device_Encode_Value_List(
 
 
 #if defined(INTRINSIC_REPORTING)
-void Device_local_reporting(void)
+void Device_local_reporting(
+    void)
 {
-    struct   object_functions *pObject;
+    struct object_functions *pObject;
     uint32_t objects_count;
     uint32_t object_instance;
-    int      object_type;
+    int object_type;
     uint32_t idx;
 
     objects_count = Device_Object_List_Count();
 
     /* loop for all objects */
-    for (idx = 1; idx < objects_count; idx++)
-    {
-        Device_Object_List_Identifier(idx, &object_type,
-                                      &object_instance);
+    for (idx = 1; idx < objects_count; idx++) {
+        Device_Object_List_Identifier(idx, &object_type, &object_instance);
 
         pObject = Device_Objects_Find_Functions(object_type);
         if (pObject != NULL) {
             if (pObject->Object_Valid_Instance &&
                 pObject->Object_Valid_Instance(object_instance)) {
                 if (pObject->Object_Intrinsic_Reporting) {
-                    pObject->Object_Intrinsic_Reporting(
-                        object_instance);
+                    pObject->Object_Intrinsic_Reporting(object_instance);
                 }
             }
         }
@@ -1555,7 +1561,7 @@ void Device_Init(
     characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     /* we don't use the object table passed in
        since there is extra stuff we don't need in there. */
-    (void)object_table;
+    (void) object_table;
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -1653,10 +1659,10 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    ucExpectedTag=ucExpectedTag;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    ucExpectedTag = ucExpectedTag;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }
@@ -1668,11 +1674,11 @@ bool WPValidateString(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    iMaxLen=iMaxLen;
-    bEmptyAllowed=bEmptyAllowed;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    iMaxLen = iMaxLen;
+    bEmptyAllowed = bEmptyAllowed;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }
@@ -1681,8 +1687,8 @@ int handler_cov_encode_subscriptions(
     uint8_t * apdu,
     int max_apdu)
 {
-    apdu=apdu;
-    max_apdu=max_apdu;
+    apdu = apdu;
+    max_apdu = max_apdu;
 
     return 0;
 }

@@ -496,26 +496,36 @@ bool characterstring_printable(
   by Jeff Bezanson
   placed in the public domain Fall 2005 */
 static const char trailingBytesForUTF8[256] = {
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4,
+        4, 4, 4, 5, 5, 5, 5
 };
 
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
    length is in bytes, since without knowing whether the string is valid
    it's hard to know how many characters there are! */
-static int utf8_isvalid(const char *str, int length)
+static int utf8_isvalid(
+    const char *str,
+    int length)
 {
-    const unsigned char *p, *pend = (unsigned char*)str + length;
+    const unsigned char *p, *pend = (unsigned char *) str + length;
     unsigned char c;
     int ab;
 
-    for (p = (unsigned char*)str; p < pend; p++) {
+    for (p = (unsigned char *) str; p < pend; p++) {
         c = *p;
         /* null in middle of string */
         if (c == 0) {
@@ -541,37 +551,42 @@ static int utf8_isvalid(const char *str, int length)
         }
         /* Check for overlong sequences for each different length */
         switch (ab) {
-            /* Check for xx00 000x */
-        case 1:
-            if ((c & 0x3e) == 0) return 0;
-            continue;   /* We know there aren't any more bytes to check */
+                /* Check for xx00 000x */
+            case 1:
+                if ((c & 0x3e) == 0)
+                    return 0;
+                continue;       /* We know there aren't any more bytes to check */
 
-            /* Check for 1110 0000, xx0x xxxx */
-        case 2:
-            if (c == 0xe0 && (*p & 0x20) == 0) return 0;
-            break;
+                /* Check for 1110 0000, xx0x xxxx */
+            case 2:
+                if (c == 0xe0 && (*p & 0x20) == 0)
+                    return 0;
+                break;
 
-            /* Check for 1111 0000, xx00 xxxx */
-        case 3:
-            if (c == 0xf0 && (*p & 0x30) == 0) return 0;
-            break;
+                /* Check for 1111 0000, xx00 xxxx */
+            case 3:
+                if (c == 0xf0 && (*p & 0x30) == 0)
+                    return 0;
+                break;
 
-            /* Check for 1111 1000, xx00 0xxx */
-        case 4:
-            if (c == 0xf8 && (*p & 0x38) == 0) return 0;
-            break;
+                /* Check for 1111 1000, xx00 0xxx */
+            case 4:
+                if (c == 0xf8 && (*p & 0x38) == 0)
+                    return 0;
+                break;
 
-            /* Check for leading 0xfe or 0xff,
-               and then for 1111 1100, xx00 00xx */
-        case 5:
-            if (c == 0xfe || c == 0xff ||
-                (c == 0xfc && (*p & 0x3c) == 0)) return 0;
-            break;
+                /* Check for leading 0xfe or 0xff,
+                   and then for 1111 1100, xx00 00xx */
+            case 5:
+                if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0))
+                    return 0;
+                break;
         }
 
         /* Check for valid bytes after the 2nd, if any; all must start 10 */
         while (--ab > 0) {
-            if ((*(++p) & 0xc0) != 0x80) return 0;
+            if ((*(++p) & 0xc0) != 0x80)
+                return 0;
         }
     }
 

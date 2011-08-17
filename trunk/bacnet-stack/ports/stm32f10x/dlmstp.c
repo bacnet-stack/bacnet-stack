@@ -206,22 +206,17 @@ static RING_BUFFER PDU_Queue;
 /* node, its value shall be 1. */
 static uint8_t Nmax_info_frames = MSTP_PDU_PACKET_COUNT;
 
-void dlmstp_automac_hander(void);
+void dlmstp_automac_hander(
+    void);
 
 bool dlmstp_init(
     char *ifname)
 {
     ifname = ifname;
-    Ringbuf_Init(
-        &Transmit_Queue,
-        (uint8_t *)&Transmit_Buffer,
-        sizeof(struct mstp_tx_packet),
-        MSTP_TRANSMIT_PACKET_COUNT);
-    Ringbuf_Init(
-        &PDU_Queue,
-        (uint8_t *)&PDU_Buffer,
-        sizeof(struct mstp_pdu_packet),
-        MSTP_PDU_PACKET_COUNT);
+    Ringbuf_Init(&Transmit_Queue, (uint8_t *) & Transmit_Buffer,
+        sizeof(struct mstp_tx_packet), MSTP_TRANSMIT_PACKET_COUNT);
+    Ringbuf_Init(&PDU_Queue, (uint8_t *) & PDU_Buffer,
+        sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
     rs485_init();
     automac_init();
 
@@ -366,25 +361,26 @@ static bool dlmstp_compare_data_expecting_reply(
     return true;
 }
 
-typedef enum
-{
+typedef enum {
     MSTP_TX_STATE_IDLE,
     MSTP_TX_STATE_SILENCE_WAIT,
     MSTP_TX_STATE_SEND_WAIT,
     MSTP_TX_STATE_STOP
 } MSTP_TX_STATE;
-static bool MSTP_Transmit_FSM(void)
+static bool MSTP_Transmit_FSM(
+    void)
 {
     static MSTP_TX_STATE state = MSTP_TX_STATE_IDLE;
     static struct mstp_tx_packet *pkt;
 
-    MSTP_TX_START:
+  MSTP_TX_START:
     switch (state) {
         case MSTP_TX_STATE_IDLE:
             if (!Ringbuf_Empty(&Transmit_Queue)) {
                 /* get the packet - but don't remove it from queue */
-                pkt = (struct mstp_tx_packet *)Ringbuf_Get_Front(
-                    &Transmit_Queue);
+                pkt =
+                    (struct mstp_tx_packet *)
+                    Ringbuf_Get_Front(&Transmit_Queue);
                 state = MSTP_TX_STATE_SILENCE_WAIT;
             }
             break;
@@ -415,7 +411,7 @@ static bool MSTP_Transmit_FSM(void)
             if (rs485_byte_sent() && rs485_frame_sent()) {
                 rs485_rts_enable(false);
                 /* remove the packet from the queue */
-                (void)Ringbuf_Pop_Front(&Transmit_Queue);
+                (void) Ringbuf_Pop_Front(&Transmit_Queue);
                 state = MSTP_TX_STATE_IDLE;
             }
             break;
@@ -452,8 +448,7 @@ static void MSTP_Send_Frame(
     static struct mstp_tx_packet *pkt;
     uint16_t i = 0;     /* used to calculate CRC for data */
 
-    pkt = (struct mstp_tx_packet *)Ringbuf_Alloc(
-        &Transmit_Queue);
+    pkt = (struct mstp_tx_packet *) Ringbuf_Alloc(&Transmit_Queue);
     if (pkt) {
         /* create the MS/TP header */
         pkt->buffer[0] = 0x55;
@@ -474,11 +469,11 @@ static void MSTP_Send_Frame(
             /* calculate CRC for any data */
             for (i = 0; i < data_len; i++) {
                 crc16 = CRC_Calc_Data(data[i], crc16);
-                pkt->buffer[8+i] = data[i];
+                pkt->buffer[8 + i] = data[i];
             }
             crc16 = ~crc16;
-            pkt->buffer[8+data_len] = (crc16 & 0x00FF);
-            pkt->buffer[8+data_len+1] = ((crc16 & 0xFF00) >> 8);
+            pkt->buffer[8 + data_len] = (crc16 & 0x00FF);
+            pkt->buffer[8 + data_len + 1] = ((crc16 & 0xFF00) >> 8);
             pkt->length += data_len;
             pkt->length += 2;
         }
@@ -630,13 +625,15 @@ static void MSTP_Receive_Frame_FSM(
                         } else {
                             /* receive the data portion of the frame. */
                             if ((DestinationAddress == This_Station) ||
-                                (DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
+                                (DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS)) {
                                 if (DataLength <= InputBufferSize) {
                                     /* Data */
                                     Receive_State = MSTP_RECEIVE_STATE_DATA;
                                 } else {
                                     /* FrameTooLong */
-                                    Receive_State = MSTP_RECEIVE_STATE_SKIP_DATA;
+                                    Receive_State =
+                                        MSTP_RECEIVE_STATE_SKIP_DATA;
                                 }
                             } else {
                                 /* NotForUs */
@@ -877,8 +874,7 @@ static bool MSTP_Master_Node_FSM(
                 transition_now = true;
             } else {
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *)Ringbuf_Pop_Front(
-                    &PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -985,10 +981,9 @@ static bool MSTP_Master_Node_FSM(
                 (Next_Station == This_Station)) {
                 /* NextStationUnknown - added in Addendum 135-2008v-1 */
                 /*  then the next station to which the token
-                    should be sent is unknown - so PollForMaster */
+                   should be sent is unknown - so PollForMaster */
                 Poll_Station = next_this_station;
-                MSTP_Send_Frame(
-                    FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
+                MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
                     This_Station, NULL, 0);
                 RetryCount = 0;
                 Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
@@ -1214,12 +1209,11 @@ static bool MSTP_Master_Node_FSM(
             /* Note: we could wait for up to Treply_delay */
             matched = false;
             if (!Ringbuf_Empty(&PDU_Queue)) {
-                pkt = (struct mstp_pdu_packet *)Ringbuf_Get_Front(
-                    &PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],
-                    DataLength, SourceAddress, &pkt->buffer[0],
-                    pkt->length, pkt->destination_mac);
+                    DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
+                    pkt->destination_mac);
             }
             if (matched) {
                 /* Reply */
@@ -1230,8 +1224,7 @@ static bool MSTP_Master_Node_FSM(
                 /* then call MSTP_Send_Frame to transmit the reply frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *)Ringbuf_Pop_Front(
-                    &PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -1276,7 +1269,7 @@ int dlmstp_send_pdu(
     struct mstp_pdu_packet *pkt;
     uint16_t i = 0;
 
-    pkt = (struct mstp_pdu_packet *)Ringbuf_Alloc(&PDU_Queue);
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
         for (i = 0; i < pdu_len; i++) {
@@ -1300,7 +1293,8 @@ typedef enum {
 } AUTOMAC_STATE;
 /* buffer used to send and validate a response - size is min APDU size */
 static uint8_t AutoMAC_Test_Buffer[50];
-void dlmstp_automac_hander(void)
+void dlmstp_automac_hander(
+    void)
 {
     static AUTOMAC_STATE state = AUTOMAC_STATE_IDLE;
     uint8_t mac = 0;
@@ -1341,7 +1335,7 @@ void dlmstp_automac_hander(void)
                 }
             } else if (rs485_silence_elapsed(automac_time_slot())) {
                 /*  long silence indicates we are alone or
-                    with other silent devices */
+                   with other silent devices */
                 SourceAddress = automac_address();
                 state = AUTOMAC_STATE_TESTING;
             }
@@ -1360,7 +1354,8 @@ void dlmstp_automac_hander(void)
                             automac_init();
                             state = AUTOMAC_STATE_IDLE;
                         } else if (mac == DestinationAddress) {
-                            MSTP_Send_Frame(FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
+                            MSTP_Send_Frame
+                                (FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
                                 SourceAddress, mac, NULL, 0);
                             state = AUTOMAC_STATE_TOKEN;
                         }
@@ -1433,9 +1428,8 @@ void dlmstp_automac_hander(void)
             encode_unsigned16(&AutoMAC_Test_Buffer[0], vendor_id);
             serial_number = Device_Object_Instance_Number();
             encode_unsigned32(&AutoMAC_Test_Buffer[2], serial_number);
-            MSTP_Send_Frame(FRAME_TYPE_TEST_REQUEST,
-                SourceAddress, mac, &AutoMAC_Test_Buffer[0],
-                6);
+            MSTP_Send_Frame(FRAME_TYPE_TEST_REQUEST, SourceAddress, mac,
+                &AutoMAC_Test_Buffer[0], 6);
             state = AUTOMAC_STATE_CONFIRM;
             break;
         case AUTOMAC_STATE_CONFIRM:
@@ -1448,8 +1442,7 @@ void dlmstp_automac_hander(void)
                 MSTP_Flag.ReceivedValidFrame = false;
                 MSTP_Flag.ReceivedValidFrameNotForUs = false;
                 mac = automac_address();
-                if ((mac == DestinationAddress) &&
-                    (DataLength >= 6)) {
+                if ((mac == DestinationAddress) && (DataLength >= 6)) {
                     decode_unsigned16(&InputBuffer[0], &vendor_id);
                     decode_unsigned32(&InputBuffer[2], &serial_number);
                     if ((vendor_id == Device_Vendor_Identifier()) &&
@@ -1511,18 +1504,14 @@ uint16_t dlmstp_receive(
     /* only do receive state machine while we don't have a frame */
     if ((MSTP_Flag.ReceivedValidFrame == false) &&
         (MSTP_Flag.ReceivedValidFrameNotForUs == false) &&
-        (MSTP_Flag.ReceivedInvalidFrame == false) &&
-        (transmitting == false)) {
+        (MSTP_Flag.ReceivedInvalidFrame == false) && (transmitting == false)) {
         MSTP_Receive_Frame_FSM();
     }
     /* only do master state machine while rx is idle */
-    if ((Receive_State == MSTP_RECEIVE_STATE_IDLE) &&
-       (transmitting == false)) {
-        if ((This_Station != 255) &&
-            (MSTP_Flag.ReceivedValidFrameNotForUs)) {
+    if ((Receive_State == MSTP_RECEIVE_STATE_IDLE) && (transmitting == false)) {
+        if ((This_Station != 255) && (MSTP_Flag.ReceivedValidFrameNotForUs)) {
             MSTP_Flag.ReceivedValidFrameNotForUs = false;
-            if ((SourceAddress == This_Station) &&
-                automac_enabled()) {
+            if ((SourceAddress == This_Station) && automac_enabled()) {
                 /* duplicate MAC on the wire */
                 automac_init();
                 This_Station = 255;
@@ -1602,8 +1591,7 @@ void dlmstp_set_max_master(
     uint8_t max_master)
 {
     if (max_master <= 127) {
-        if ((This_Station == 255) ||
-            (This_Station <= max_master)) {
+        if ((This_Station == 255) || (This_Station <= max_master)) {
             Nmax_master = max_master;
         }
     }
@@ -1651,7 +1639,8 @@ void dlmstp_get_broadcast_address(
     return;
 }
 
-bool dlmstp_sole_master(void)
+bool dlmstp_sole_master(
+    void)
 {
     if (MSTP_Flag.SoleMaster) {
         return true;
@@ -1659,4 +1648,3 @@ bool dlmstp_sole_master(void)
 
     return false;
 }
-

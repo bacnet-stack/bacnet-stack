@@ -41,7 +41,7 @@
 typedef struct BACnet_Who_Has_Data {
     int32_t low_limit;  /* deviceInstanceRange */
     int32_t high_limit;
-    bool is_object_name;   /* true if a string */
+    bool is_object_name;        /* true if a string */
     union {
         BACNET_OBJECT_ID identifier;
         BACNET_CHARACTER_STRING name;

@@ -42,20 +42,20 @@ extern "C" {
 #endif /* __cplusplus */
 
     typedef struct analog_input_descr {
-        uint8_t  Event_State  : 3;
-        float    Present_Value;
+        uint8_t Event_State:3;
+        float Present_Value;
         BACNET_RELIABILITY Reliability;
-        bool     Out_Of_Service;
-        uint8_t  Units;
+        bool Out_Of_Service;
+        uint8_t Units;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;
-        float    High_Limit;
-        float    Low_Limit;
-        float    Deadband;
-        uint8_t  Limit_Enable : 2;
-        uint8_t  Event_Enable : 3;
-        uint8_t  Notify_Type  : 1;
+        float High_Limit;
+        float Low_Limit;
+        float Deadband;
+        uint8_t Limit_Enable:2;
+        uint8_t Event_Enable:3;
+        uint8_t Notify_Type:1;
         ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
         BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
         /* time to generate event notification */
@@ -83,7 +83,7 @@ extern "C" {
 
     bool Analog_Input_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
     bool Analog_Input_Name_Set(
         uint32_t object_instance,
         char *new_name);
@@ -112,14 +112,17 @@ extern "C" {
         float value);
 
     /* note: header of Intrinsic_Reporting function is required
-             even when INTRINSIC_REPORTING is not defined */
-    void Analog_Input_Intrinsic_Reporting(uint32_t object_instance);
+       even when INTRINSIC_REPORTING is not defined */
+    void Analog_Input_Intrinsic_Reporting(
+        uint32_t object_instance);
 
 #if defined(INTRINSIC_REPORTING)
-    int Analog_Input_Event_Information(unsigned index,
+    int Analog_Input_Event_Information(
+        unsigned index,
         BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
 
-    int Analog_Input_Alarm_Ack(BACNET_ALARM_ACK_DATA * alarmack_data,
+    int Analog_Input_Alarm_Ack(
+        BACNET_ALARM_ACK_DATA * alarmack_data,
         BACNET_ERROR_CODE * error_code);
 #endif
 

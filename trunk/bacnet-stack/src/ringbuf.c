@@ -198,7 +198,7 @@ void Ringbuf_Init(
 /* test the ring buffer */
 void testRingAroundBuffer(
     Test * pTest,
-    RING_BUFFER *test_buffer,
+    RING_BUFFER * test_buffer,
     uint8_t * data_element,
     unsigned element_size,
     unsigned element_count)
@@ -319,22 +319,14 @@ void testRingBuf(
     }
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
-    testRingAroundBuffer(
-        pTest,
-        &test_buffer,
-        data_element,
-        element_size,
+    testRingAroundBuffer(pTest, &test_buffer, data_element, element_size,
         element_count);
 
     /* adjust the internal index of Ringbuf to test unsigned wrapping */
-    test_buffer.head = UINT_MAX-1;
-    test_buffer.tail = UINT_MAX-1;
+    test_buffer.head = UINT_MAX - 1;
+    test_buffer.tail = UINT_MAX - 1;
 
-    testRingAroundBuffer(
-        pTest,
-        &test_buffer,
-        data_element,
-        element_size,
+    testRingAroundBuffer(pTest, &test_buffer, data_element, element_size,
         element_count);
 
     return;

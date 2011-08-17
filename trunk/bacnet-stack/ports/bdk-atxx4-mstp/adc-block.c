@@ -72,18 +72,18 @@ void adc_enable(
 * Notes: none
 **************************************************/
 uint8_t adc_result_8bit(
-    uint8_t channel) /* 0..7 = ADC0..ADC7, respectively */
-{
-    uint8_t value = 0; /* return value */
+    uint8_t channel)
+{       /* 0..7 = ADC0..ADC7, respectively */
+    uint8_t value = 0;  /* return value */
 
-    while ( ADCSRA & (1 << ADSC) ) ;
+    while (ADCSRA & (1 << ADSC));
     ADMUX = channel | (1 << ADLAR) | (0 << REFS1) | (1 << REFS0);
     /* Delay needed for the stabilization of the ADC input voltage */
     _delay_us(10);
     /* Start the analog to digital conversion */
     ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADIF) | ADPS_8BIT;
     /* Wait for the analog to digital conversion to complete */
-    while ( (ADCSRA & (1 << ADIF)) == 0 ) ;
+    while ((ADCSRA & (1 << ADIF)) == 0);
     value = ADCH;
 
     return value;
@@ -95,18 +95,18 @@ uint8_t adc_result_8bit(
 * Notes: none
 **************************************************/
 uint16_t adc_result_10bit(
-    uint8_t channel) /* 0..7 = ADC0..ADC7, respectively */
-{
+    uint8_t channel)
+{       /* 0..7 = ADC0..ADC7, respectively */
     uint16_t value = 0; /* return value */
 
-    while ( ADCSRA & (1 << ADSC) ) ;
+    while (ADCSRA & (1 << ADSC));
     ADMUX = channel | (0 << ADLAR) | (0 << REFS1) | (1 << REFS0);
     /* Delay needed for the stabilization of the ADC input voltage */
     _delay_us(10);
     /* Start the analog to digital conversion */
     ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADIF) | ADPS_10BIT;
     /* Wait for the analog to digital conversion to complete */
-    while ( (ADCSRA & (1 << ADIF)) == 0 ) ;
+    while ((ADCSRA & (1 << ADIF)) == 0);
     value = ADCL;
     value |= (ADCH << 8);
 
@@ -118,11 +118,12 @@ uint16_t adc_result_10bit(
 * Returns: none
 * Notes: none
 **************************************************/
-void adc_init(void)
+void adc_init(
+    void)
 {
     /* configure ADC for Free Running Mode - ADTS = 000 */
     /* AIN1 is applied to the negative input of the Analog Comparator - ACME */
-    BITMASK_CLEAR(ADCSRB, _BV(ACME)|_BV(ADTS2)|_BV(ADTS1)|_BV(ADTS0));
+    BITMASK_CLEAR(ADCSRB, _BV(ACME) | _BV(ADTS2) | _BV(ADTS1) | _BV(ADTS0));
     /* Digital input not needed on ADC0, so disable it to save power */
     BIT_SET(DIDR0, ADC0D);
     /* Clear the Power Reduction bit to enable ADC */

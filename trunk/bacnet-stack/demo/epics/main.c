@@ -66,7 +66,7 @@
 static object_functions_t Object_Table[] = {
     {DEVICE_OBJ_FUNCTIONS},
     {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL}
+        NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 /* buffer used for receive */
@@ -840,7 +840,7 @@ int CheckCommandLineArgs(
                     if (++i < argc) {
 #if defined(BACDL_BIP)
                         My_BIP_Port = (uint16_t) strtol(argv[i], NULL, 0);
-                    /* Used strtol so sport can be either 0xBAC0 or 47808 */
+                        /* Used strtol so sport can be either 0xBAC0 or 47808 */
 #endif
                     }
                     break;
@@ -1172,11 +1172,11 @@ int main(
                     (invoke_id ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData
-                        (Read_Property_Multiple_Data.rpm_data->object_type,
+                    PrintReadPropertyData(Read_Property_Multiple_Data.
+                        rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.
-                        rpm_data->listOfProperties);
+                        Read_Property_Multiple_Data.rpm_data->
+                        listOfProperties);
                     if (tsm_invoke_id_free(invoke_id)) {
                         invoke_id = 0;
                     } else {

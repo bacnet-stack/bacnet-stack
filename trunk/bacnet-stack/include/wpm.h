@@ -38,19 +38,26 @@ extern "C" {
 
 
     /* decode the service request only */
-   int wpm_decode_object_id(uint8_t * apdu, uint16_t apdu_len, 
-                BACNET_WRITE_PROPERTY_DATA * data); 
-   
-   int wpm_decode_object_property(uint8_t * apdu,
-                uint16_t apdu_len,
-                BACNET_WRITE_PROPERTY_DATA * wpm_data);
+    int wpm_decode_object_id(
+        uint8_t * apdu,
+        uint16_t apdu_len,
+        BACNET_WRITE_PROPERTY_DATA * data);
+
+    int wpm_decode_object_property(
+        uint8_t * apdu,
+        uint16_t apdu_len,
+        BACNET_WRITE_PROPERTY_DATA * wpm_data);
 
 
     /* encode service */
-    int wpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id);
+    int wpm_ack_encode_apdu_init(
+        uint8_t * apdu,
+        uint8_t invoke_id);
 
-    int wpm_error_ack_encode_apdu(uint8_t * apdu, uint8_t invoke_id,
-               BACNET_WRITE_PROPERTY_DATA * wp_data);
+    int wpm_error_ack_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id,
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 
 #ifdef __cplusplus

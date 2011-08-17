@@ -94,7 +94,7 @@ void BACfile_Property_Lists(
     return;
 }
 
-static char * bacfile_name(
+static char *bacfile_name(
     uint32_t instance)
 {
     uint32_t index = 0;
@@ -114,7 +114,7 @@ static char * bacfile_name(
 
 bool bacfile_object_name(
     uint32_t instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     bool status = false;
     char *filename = NULL;
@@ -491,15 +491,13 @@ bool bacfile_read_ack_stream_data(
         found = true;
         pFile = fopen(pFilename, "rb");
         if (pFile) {
-            (void) fseek(pFile, data->type.stream.fileStartPosition,
-                SEEK_SET);
+            (void) fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
             if (fwrite(octetstring_value(&data->fileData),
-                    octetstring_length(&data->fileData), 1,
-                    pFile) != 1) {
-    #if PRINT_ENABLED
-                fprintf(stderr, "Failed to write to %s (%lu)!\n",
-                    pFilename, (unsigned long) instance);
-    #endif
+                    octetstring_length(&data->fileData), 1, pFile) != 1) {
+#if PRINT_ENABLED
+                fprintf(stderr, "Failed to write to %s (%lu)!\n", pFilename,
+                    (unsigned long) instance);
+#endif
             }
             fclose(pFile);
         }

@@ -30,7 +30,8 @@
 static volatile uint32_t Millisecond_Counter;
 static volatile uint8_t Millisecond_Counter_Byte;
 /* forward prototype for interrupt service routine */
-void int_cmt0_isr(void);
+void int_cmt0_isr(
+    void);
 
 /*************************************************************************
 * Description: Timer Interrupt Handler
@@ -49,7 +50,8 @@ static void timer_interrupt_handler(
 * Returns: nothing
 * Notes: none
 *************************************************************************/
-void int_cmt0_isr(void)
+void int_cmt0_isr(
+    void)
 {
     timer_interrupt_handler();
 }
@@ -92,15 +94,9 @@ void timer_init(
     bool err = true;
 
     /* CMT is configured for a 1ms interval, and executes the callback
-     function CB_CompareMatch on every compare match */
-    err &= R_CMT_Create(
-        3,
-        PDL_CMT_PERIOD,
-        1E-3,
-        int_cmt0_isr,
-        3
-      );
+       function CB_CompareMatch on every compare match */
+    err &= R_CMT_Create(3, PDL_CMT_PERIOD, 1E-3, int_cmt0_isr, 3);
 
     /* Halt in while loop when RPDL errors detected */
-    while(!err);
+    while (!err);
 }

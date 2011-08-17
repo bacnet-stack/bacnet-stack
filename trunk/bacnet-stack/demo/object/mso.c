@@ -182,7 +182,7 @@ static uint32_t Multistate_Output_Present_Value(
 /* note: the object name must be unique within this device */
 bool Multistate_Output_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
     bool status = false;
@@ -224,7 +224,8 @@ int Multistate_Output_Read_Property(
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            Multistate_Output_Object_Name(rpdata->object_instance, &char_string);
+            Multistate_Output_Object_Name(rpdata->object_instance,
+                &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -267,8 +268,8 @@ int Multistate_Output_Read_Property(
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
-                    Multistate_Output_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Multistate_Output_Level[object_index][i] ==
@@ -293,8 +294,8 @@ int Multistate_Output_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Output_Instance_To_Index(rpdata->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Multistate_Output_Level[object_index]
                         [rpdata->array_index - 1] == MULTISTATE_NULL)
@@ -376,8 +377,8 @@ bool Multistate_Output_Write_Property(
                     (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                     level = value.type.Unsigned_Int;
                     object_index =
-                        Multistate_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Multistate_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     Multistate_Output_Level[object_index][priority] =
                         (uint8_t) level;
@@ -404,8 +405,8 @@ bool Multistate_Output_Write_Property(
                 if (status) {
                     level = MULTISTATE_NULL;
                     object_index =
-                        Multistate_Output_Instance_To_Index(wp_data->
-                        object_instance);
+                        Multistate_Output_Instance_To_Index
+                        (wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
@@ -431,8 +432,8 @@ bool Multistate_Output_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 object_index =
-                    Multistate_Output_Instance_To_Index(wp_data->
-                    object_instance);
+                    Multistate_Output_Instance_To_Index
+                    (wp_data->object_instance);
                 Multistate_Output_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }
@@ -458,10 +459,10 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue=pValue;
-    ucExpectedTag=ucExpectedTag;
-    pErrorClass=pErrorClass;
-    pErrorCode=pErrorCode;
+    pValue = pValue;
+    ucExpectedTag = ucExpectedTag;
+    pErrorClass = pErrorClass;
+    pErrorCode = pErrorCode;
 
     return false;
 }

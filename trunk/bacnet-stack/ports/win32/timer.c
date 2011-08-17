@@ -38,9 +38,9 @@
 /* Offset between Windows epoch 1/1/1601 and
    Unix epoch 1/1/1970 in 100 nanosec units */
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
 
 /* counter for the various timers */
@@ -81,16 +81,16 @@ int gettimeofday(
         usec_timer <<= 32;
         usec_timer |= ft.dwLowDateTime;
         /*converting file time to unix epoch 1970 */
-        usec_timer /= 10;  /*convert into microseconds*/
+        usec_timer /= 10;       /*convert into microseconds */
         usec_timer -= DELTA_EPOCH_IN_MICROSECS;
-        tp->tv_sec = (long)(usec_timer / 1000000UL);
-        tp->tv_usec = (long)(usec_timer % 1000000UL);
+        tp->tv_sec = (long) (usec_timer / 1000000UL);
+        tp->tv_usec = (long) (usec_timer % 1000000UL);
         time_start = timeGetTime();
     } else {
         elapsed_milliseconds = timeGetTime() - time_start;
         usec_elapsed = usec_timer + (elapsed_milliseconds * 1000UL);
-        tp->tv_sec = (long)(usec_elapsed / 1000000UL);
-        tp->tv_usec = (long)(usec_elapsed % 1000000UL);
+        tp->tv_sec = (long) (usec_elapsed / 1000000UL);
+        tp->tv_usec = (long) (usec_elapsed % 1000000UL);
     }
     if (tzp) {
         if (!tzflag) {
@@ -207,8 +207,9 @@ void timer_init(
     /* configure for 1ms resolution - if possible */
     Timer_Period = min(max(tc.wPeriodMin, 1L), tc.wPeriodMax);
     if (Timer_Period != 1L) {
-        fprintf(stderr, "Failed to set timer to 1ms.  "
-          "Time period set to %ums\n", (unsigned)Timer_Period);
+        fprintf(stderr,
+            "Failed to set timer to 1ms.  " "Time period set to %ums\n",
+            (unsigned) Timer_Period);
     }
     timeBeginPeriod(Timer_Period);
     atexit(timer_cleanup);
@@ -234,7 +235,7 @@ int main(
 {
     long now = 0, last = 0, delta = 0;
     struct timeval tv;
-    struct timeval old_tv = {0};
+    struct timeval old_tv = { 0 };
 
     timer_init();
     printf("Testing granularity of timeGetTime()...\n");

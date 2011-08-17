@@ -111,7 +111,7 @@ uint32_t Analog_Input_Index_To_Instance(
 
 bool Analog_Input_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32];        /* okay for single thread */
     bool status = false;

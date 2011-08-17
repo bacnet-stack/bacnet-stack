@@ -141,7 +141,7 @@ static BACNET_BINARY_PV Binary_Value_Present_Value(
 /* note: the object name must be unique within this device */
 bool Binary_Value_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[16] = "BV-0";       /* okay for single thread */
     bool status = false;
@@ -271,8 +271,8 @@ bool Binary_Value_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = value.type.Enumerated;
                     object_index =
-                        Binary_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Binary_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] = level;

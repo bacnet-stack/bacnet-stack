@@ -50,7 +50,7 @@ extern "C" {
         uint32_t object_instance);
     bool Life_Safety_Point_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING *object_name);
+        BACNET_CHARACTER_STRING * object_name);
     void Life_Safety_Point_Init(
         void);
 

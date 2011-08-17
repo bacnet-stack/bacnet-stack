@@ -319,9 +319,8 @@ void handler_read_property_multiple(
                     if (property_count == 0) {
                         /* handle the error code - but use the special property */
                         len =
-                            RPM_Encode_Property(
-                            &Handler_Transmit_Buffer[npdu_len],
-                            (uint16_t) apdu_len, MAX_APDU,
+                            RPM_Encode_Property(&Handler_Transmit_Buffer
+                            [npdu_len], (uint16_t) apdu_len, MAX_APDU,
                             &rpmdata);
                         if (len > 0) {
                             apdu_len += len;
@@ -335,10 +334,9 @@ void handler_read_property_multiple(
                                 RPM_Object_Property(&property_list,
                                 special_object_property, index);
                             len =
-                                RPM_Encode_Property(
-                                &Handler_Transmit_Buffer[npdu_len],
-                                (uint16_t) apdu_len,
-                                MAX_APDU, &rpmdata);
+                                RPM_Encode_Property(&Handler_Transmit_Buffer
+                                [npdu_len], (uint16_t) apdu_len, MAX_APDU,
+                                &rpmdata);
                             if (len > 0) {
                                 apdu_len += len;
                             } else {
@@ -352,8 +350,7 @@ void handler_read_property_multiple(
                 /* handle an individual property */
                 len =
                     RPM_Encode_Property(&Handler_Transmit_Buffer[npdu_len],
-                    (uint16_t) apdu_len,
-                    MAX_APDU, &rpmdata);
+                    (uint16_t) apdu_len, MAX_APDU, &rpmdata);
                 if (len > 0) {
                     apdu_len += len;
                 } else {

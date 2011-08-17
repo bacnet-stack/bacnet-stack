@@ -159,7 +159,7 @@ bool Binary_Input_Present_Value_Set(
 
 bool Binary_Input_Object_Name(
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *object_name)
+    BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32];        /* okay for single thread */
     bool status = false;

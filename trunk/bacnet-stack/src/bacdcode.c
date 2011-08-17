@@ -2277,8 +2277,7 @@ void testBACDCodeObject(
     uint32_t decoded_instance = 0;
 
     encode_bacnet_object_id(&encoded_array[0], type, instance);
-    decode_object_id(&encoded_array[0], &decoded_type,
-        &decoded_instance);
+    decode_object_id(&encoded_array[0], &decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == type);
     ct_test(pTest, decoded_instance == instance);
     encode_bacnet_object_id(&object_array[0], type, instance);
