@@ -1,7 +1,7 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I../include -I. -I../demo/object
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_EVENT
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
