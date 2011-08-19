@@ -63,11 +63,6 @@ static RT_MUTEX Received_Frame_Mutex;
 
 static pthread_cond_t Received_Frame_Flag;
 static pthread_mutex_t Received_Frame_Mutex;
-/*
-static RT_MUTEX Timer_Mutex;
-*/
-static pthread_mutex_t Timer_Mutex;
-
 static pthread_cond_t Master_Done_Flag;
 static pthread_mutex_t Master_Done_Mutex;
 
@@ -98,9 +93,7 @@ static uint32_t Timer_Silence(
     int32_t res;
 
     gettimeofday(&now, NULL);
-    pthread_mutex_lock(&Timer_Mutex);
     timersub(&start, &now, &tmp_diff);
-    pthread_mutex_unlock(&Timer_Mutex);
     res = ((tmp_diff.tv_sec) * 1000 + (tmp_diff.tv_usec) / 1000);
 
     return (res >= 0 ? res : -res);
@@ -109,9 +102,7 @@ static uint32_t Timer_Silence(
 static void Timer_Silence_Reset(
     void)
 {
-    pthread_mutex_lock(&Timer_Mutex);
     gettimeofday(&start, NULL);
-    pthread_mutex_unlock(&Timer_Mutex);
 }
 
 static void get_abstime(
@@ -137,7 +128,6 @@ void dlmstp_cleanup(
     pthread_mutex_destroy(&Received_Frame_Mutex);
     pthread_mutex_destroy(&Receive_Packet_Mutex);
     pthread_mutex_destroy(&Master_Done_Mutex);
-    pthread_mutex_destroy(&Timer_Mutex);
 }
 
 /* returns number of bytes sent on success, zero on failure */
@@ -218,9 +208,6 @@ static void *dlmstp_master_fsm_task(
         if (MSTP_Port.ReceivedValidFrame == false &&
             MSTP_Port.ReceivedInvalidFrame == false) {
             RS485_Check_UART_Data(&MSTP_Port);
-            if (MSTP_Port.DataAvailable == false) {
-                sched_yield();
-            }
             MSTP_Receive_Frame_FSM(&MSTP_Port);
         }
         if (MSTP_Port.ReceivedValidFrame || MSTP_Port.ReceivedInvalidFrame) {
@@ -634,12 +621,6 @@ bool dlmstp_init(
         exit(1);
     }
     rv = pthread_mutex_init(&Receive_Packet_Mutex, NULL);
-    if (rv != 0) {
-        fprintf(stderr,
-            "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n", ifname);
-        exit(1);
-    }
-    rv = pthread_mutex_init(&Timer_Mutex, NULL);
     if (rv != 0) {
         fprintf(stderr,
             "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n", ifname);
