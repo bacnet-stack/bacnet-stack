@@ -182,7 +182,12 @@ bool RS485_Set_Baud_Rate(
     return valid;
 }
 
-/* Transmits a Frame on the wire */
+/****************************************************************************
+* DESCRIPTION: Transmit a frame on the wire
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
 void RS485_Send_Frame(
     volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
     uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
@@ -211,7 +216,12 @@ void RS485_Send_Frame(
     return;
 }
 
-/* called by timer, interrupt(?) or other thread */
+/****************************************************************************
+* DESCRIPTION: Get a byte of receive data
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
 void RS485_Check_UART_Data(
     volatile struct mstp_port_struct_t *mstp_port)
 {
@@ -241,9 +251,10 @@ void RS485_Check_UART_Data(
                 return;
             }
             if (FD_ISSET(RS485_Handle, &input)) {
-                count = read(RS485_Handle, buf, sizeof(buf));
-                FIFO_Add(&Rx_FIFO, &buf[0], count);
+                n = read(RS485_Handle, buf, sizeof(buf));
+                FIFO_Add(&Rx_FIFO, &buf[0], n);
             }
+        }
     }
 }
 
