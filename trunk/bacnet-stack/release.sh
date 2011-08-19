@@ -75,12 +75,14 @@ fi
 
 rm -rf ${ARCHIVE_NAME}
 
-echo "Sending to SourceForge..."
-
+echo "Creating ${ARCHIVE_NAME}"
 mkdir ${ARCHIVE_NAME}
 mv ${ZIP_FILENAME} ${ARCHIVE_NAME}
 mv ${GZIP_FILENAME} ${ARCHIVE_NAME}
 mv ${CHANGELOG} ${ARCHIVE_NAME}
+cp readme.txt ${ARCHIVE_NAME}
+
+echo "Sending ${ARCHIVE_NAME} to SourceForge using scp..."
 scp -r ${ARCHIVE_NAME} ${FRS_URL}
 
 echo "Complete!"
