@@ -60,7 +60,6 @@
 #include "rs485.h"
 #include "fifo.h"
 
-#include <pthread.h>
 #include <sys/select.h>
 #include <sys/time.h>
 
@@ -89,45 +88,9 @@ static struct termios RS485_oldtio;
 /* Ring buffer for incoming bytes, in order to speed up the receiving. */
 static FIFO_BUFFER Rx_FIFO;
 /* buffer size needs to be a power of 2 */
-static uint8_t Rx_Buffer[1 << 12];
-
-static pthread_mutex_t Reader_Mutex, IOMutex;
+static uint8_t Rx_Buffer[4096];
 
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
-
-static void *rs485_read_task(
-    void *arg)
-{
-    uint8_t buf[1 << 11];
-    int count, n;
-    fd_set input;
-    struct timeval cekalica;
-    FD_ZERO(&input);
-    FD_SET(RS485_Handle, &input);
-    cekalica.tv_sec = 1;
-    cekalica.tv_usec = 0;
-    for (;;) {
-        n = select(RS485_Handle + 1, &input, NULL, NULL, &cekalica);
-        if (n < 0) {
-            continue;
-        }
-        if (FD_ISSET(RS485_Handle, &input)) {
-            pthread_mutex_lock(&IOMutex);
-            count = read(RS485_Handle, buf, sizeof(buf));
-            pthread_mutex_unlock(&IOMutex);
-            if (count > 0) {
-                pthread_mutex_lock(&Reader_Mutex);
-                FIFO_Add(&Rx_FIFO, &buf[0], count);
-                pthread_mutex_unlock(&Reader_Mutex);
-            }
-            usleep(5000);
-        }
-        FD_SET(RS485_Handle, &input);
-        cekalica.tv_sec = 1;
-        cekalica.tv_usec = 0;
-    }
-    return NULL;
-}
 
 /*********************************************************************
 * DESCRIPTION: Configures the interface name
@@ -234,12 +197,11 @@ void RS485_Send_Frame(
        regular file, 0 will be returned without causing any other effect.  For
        a special file, the results are not portable.
      */
-    pthread_mutex_lock(&IOMutex);
     written = write(RS485_Handle, buffer, nbytes);
-    pthread_mutex_unlock(&IOMutex);
     greska = errno;
-    if (written <= 0)
+    if (written <= 0) {
         printf("write error: %s\n", strerror(greska));
+    }
     /*  tcdrain(RS485_Handle); */
     /* per MSTP spec, sort of */
     if (mstp_port) {
@@ -253,21 +215,35 @@ void RS485_Send_Frame(
 void RS485_Check_UART_Data(
     volatile struct mstp_port_struct_t *mstp_port)
 {
+    fd_set input;
+    struct timeval waiter;
+    uint8_t buf[2048];
+    int n;
+
     if (mstp_port->ReceiveError == true) {
         /* wait for state machine to clear this */
         /*mstp_port->ReceiveError=false; */
         return;
     }
     /* wait for state machine to read from the DataRegister */
-    /*else */
     if (mstp_port->DataAvailable == false) {
         /* check for data */
-        pthread_mutex_lock(&Reader_Mutex);
         if (FIFO_Count(&Rx_FIFO) > 0) {
             mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
             mstp_port->DataAvailable = true;
-        }
-        pthread_mutex_unlock(&Reader_Mutex);
+        } else {
+            FD_ZERO (&input);
+            FD_SET (RS485_Handle, &input);
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 5000;
+            n = select (RS485_Handle + 1, &input, NULL, NULL, &waiter);
+            if (n < 0) {
+                return;
+            }
+            if (FD_ISSET(RS485_Handle, &input)) {
+                count = read(RS485_Handle, buf, sizeof(buf));
+                FIFO_Add(&Rx_FIFO, &buf[0], count);
+            }
     }
 }
 
@@ -277,8 +253,6 @@ void RS485_Cleanup(
     /* restore the old port settings */
     tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
     close(RS485_Handle);
-    pthread_mutex_destroy(&Reader_Mutex);
-    pthread_mutex_destroy(&IOMutex);
 }
 
 
@@ -286,7 +260,6 @@ void RS485_Initialize(
     void)
 {
     struct termios newtio;
-    unsigned long hThread = 0;
     printf("RS485: Initializing %s", RS485_Port_Name);
     /*
        Open device for reading and writing.
@@ -332,9 +305,6 @@ void RS485_Initialize(
     tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
-    pthread_mutex_init(&Reader_Mutex, NULL);
-    pthread_mutex_init(&IOMutex, NULL);
-    pthread_create(&hThread, NULL, rs485_read_task, NULL);
     printf("=success!\n");
 }
 
