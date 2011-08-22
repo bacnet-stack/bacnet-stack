@@ -694,11 +694,14 @@ int bacapp_decode_context_data(
     max_apdu_len = max_apdu_len;
     if (apdu && value && IS_CONTEXT_SPECIFIC(*apdu)) {
         value->context_specific = true;
+        value->next = NULL;
         tag_len =
             decode_tag_number_and_value(&apdu[0], &tag_number,
             &len_value_type);
-        if (tag_len) {
-            apdu_len = tag_len;
+        apdu_len = tag_len;
+        /* Empty construct : (closing tag) => returns NULL value */
+        if (tag_len && tag_len <= max_apdu_len &&
+            !decode_is_closing_tag_number(&apdu[0], tag_number)) {
             value->context_tag = tag_number;
             value->tag = bacapp_context_tag_type(property, tag_number);
             if (value->tag < MAX_BACNET_APPLICATION_TAG) {
@@ -706,11 +709,16 @@ int bacapp_decode_context_data(
                     bacapp_decode_data(&apdu[apdu_len], value->tag,
                     len_value_type, value);
                 apdu_len += len;
+            } else if (len_value_type) {
+                /* Unknown value : non null size (elementary type) */
+                apdu_len += len_value_type;
+                /* SHOULD NOT HAPPEN, EXCEPTED WHEN READING UNKNOWN CONTEXTUAL PROPERTY */
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
             }
         }
-        value->next = NULL;
+        else if ( tag_len == 1 )	/* and is a Closing tag */
+        	apdu_len = 0;			/* Don't advance over that closing tag. */
     }
 
     return apdu_len;
