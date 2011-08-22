@@ -31,11 +31,17 @@ extern "C" {
 
     void dlenv_init(
         void);
-    void dlenv_register_as_foreign_device(
+    int dlenv_register_as_foreign_device(
         void);
     void dlenv_maintenance_timer(
         uint16_t elapsed_seconds);
-
+    
+    /* Simple setters and getter. */
+    void set_bbmd_address( long address );
+    void set_bbmd_port( int port );
+    void set_bbmd_ttl( int ttl_secs );
+    int  get_bbmd_result( void );
+    
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
