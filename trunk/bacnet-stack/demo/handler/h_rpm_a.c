@@ -125,7 +125,8 @@ int rpm_ack_decode_service_request(
                             bacapp_decode_application_data(apdu, apdu_len,
                             value);
                     }
-                    if (len <= 0) {
+                    /* If len == 0 then it's an empty structure, which is OK. */
+                    if (len < 0) {
                         /* problem decoding */
                         /* calling function will free the memory */
                         return BACNET_STATUS_ERROR;
@@ -227,7 +228,7 @@ void rpm_ack_print_data(
                     (unsigned) listOfProperties->propertyIdentifier);
             }
 #endif
-            if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
+            if (listOfProperties->propertyArrayIndex != (int32_t) BACNET_ARRAY_ALL) {
 #if PRINT_ENABLED
                 fprintf(stdout, "[%d]", listOfProperties->propertyArrayIndex);
 #endif

@@ -41,21 +41,74 @@
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
 
-/** Register as a Foreign Device
+#if defined(BACDL_BIP) && BBMD_ENABLED
+static long bbmd_timetolive_seconds = 60000;
+static long bbmd_port = 0xBAC0;
+static long bbmd_address = 0;
+static int  bbmd_result = 0;
+
+/* Simple setters for BBMD registration variables. */
+
+/** Sets the IPv4 address for BBMD registration.
+ * If not set here or provided by Environment variables, 
+ * no BBMD registration will occur. 
+ * @param address - IPv4 address (long) of BBMD to register with,
+ *                       in network byte order.
+ */
+void set_bbmd_address( long address )
+{
+    bbmd_address = address;
+}
+
+/** Set the port for BBMD registration. 
+ * Default if not set is 0xBAC0.
+ * @param port - The port number (provided in network byte order).
+ */
+void set_bbmd_port( int port )
+{
+    bbmd_port = port;
+}
+
+/** Set the Lease Time (Time-to-Live) for BBMD registration.
+ * Default if not set is 60000 (1000 minutes).
+ * @param ttl_secs - The Lease Time, in seconds.
+ */
+void set_bbmd_ttl( int ttl_secs )
+{
+    bbmd_timetolive_seconds = ttl_secs;
+}
+#endif
+
+/** Get the result of the last attempt to register with the indicated BBMD.
+ * @return Positive number (of bytes sent) if registration was successful, 
+ *         0 if no registration request was made, or
+ *         -1 if registration attempt failed.
+ */
+int get_bbmd_result( void )
+{
+    return bbmd_result;
+}
+
+/** Register as a Foreign Device with the designated BBMD.
  * @ingroup DataLink
+ * The BBMD's address, port, and lease time must be provided by
+ * internal variables or Environment variables.
+ * If no address for the BBMD is provided, no BBMD registration will occur. 
+ *
  * The Environment Variables depend on defines BACDL_BIP and BBMD_ENABLED:
  *     - BACNET_BBMD_PORT - 0..65534, defaults to 47808
  *     - BACNET_BBMD_TIMETOLIVE - 0..65535 seconds, defaults to 60000
  *     - BACNET_BBMD_ADDRESS - dotted IPv4 address
+ * @return Positive number (of bytes sent) on success, 
+ *         0 if no registration request is sent, or
+ *         -1 if registration fails.
  */
-void dlenv_register_as_foreign_device(
+int dlenv_register_as_foreign_device(
     void)
 {
+  int retval = 0;
 #if defined(BACDL_BIP) && BBMD_ENABLED
     char *pEnv = NULL;
-    long bbmd_timetolive_seconds = 60000;
-    long bbmd_port = 0xBAC0;
-    long bbmd_address = 0;
 
     pEnv = getenv("BACNET_BBMD_PORT");
     if (pEnv) {
@@ -74,19 +127,27 @@ void dlenv_register_as_foreign_device(
     pEnv = getenv("BACNET_BBMD_ADDRESS");
     if (pEnv) {
         bbmd_address = bip_getaddrbyname(pEnv);
-        if (bbmd_address) {
-            struct in_addr addr;
-            addr.s_addr = bbmd_address;
-            fprintf(stderr,
-                "Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-            bvlc_register_with_bbmd(bbmd_address, htons((uint16_t) bbmd_port),
-                (uint16_t) bbmd_timetolive_seconds);
-            BBMD_Timer_Seconds = bbmd_timetolive_seconds;
-        }
     }
+    if (bbmd_address) {
+        struct in_addr addr;
+        addr.s_addr = bbmd_address;
+        fprintf(stderr,
+            "Registering with BBMD at %s:%ld for %ld seconds\n",
+            inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+        retval = bvlc_register_with_bbmd(bbmd_address, 
+                          htons((uint16_t) bbmd_port),
+                          (uint16_t) bbmd_timetolive_seconds);
+        if ( retval < 0 )
+            fprintf(stderr,
+                "FAILED to Register with BBMD at %s \n", inet_ntoa(addr) );
+        BBMD_Timer_Seconds = bbmd_timetolive_seconds;
+    }
+
+    bbmd_result = retval;
 #endif
+    return retval;
 }
+
 
 /** Datalink maintenance timer
  * @ingroup DataLink
@@ -102,9 +163,16 @@ void dlenv_maintenance_timer(
         } else {
             BBMD_Timer_Seconds -= elapsed_seconds;
         }
+#if defined(BACDL_BIP) && BBMD_ENABLED
         if (BBMD_Timer_Seconds == 0) {
-            dlenv_register_as_foreign_device();
+            int retval;
+            retval = dlenv_register_as_foreign_device();
+            /* If that failed, maybe just a network issue.
+             * Retry again later. */
+            if ( retval < 0 )
+                BBMD_Timer_Seconds = bbmd_timetolive_seconds;
         }
+#endif            
     }
 }
 
