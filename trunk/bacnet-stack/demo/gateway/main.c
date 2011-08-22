@@ -126,6 +126,7 @@ void Devices_Init(
     int i;
     char nameText[MAX_DEV_NAME_LEN];
     char descText[MAX_DEV_DESC_LEN];
+    BACNET_CHARACTER_STRING name_string;
 
     /* Gateway Device has already been initialized.
      * But give it a better Description. */
@@ -141,8 +142,9 @@ void Devices_Init(
         snprintf(nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, i + 1);
         snprintf(descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, i);
 #endif
+        characterstring_init_ansi(&name_string, nameText);
 
-        Add_Routed_Device((first_object_instance + i), nameText, descText);
+        Add_Routed_Device((first_object_instance + i), &name_string, descText);
     }
 
 }
@@ -365,6 +367,8 @@ int main(
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
+    // Dummy return
+    return 0;
 }
 
 /* @} */
