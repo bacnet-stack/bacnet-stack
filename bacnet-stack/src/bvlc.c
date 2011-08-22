@@ -45,12 +45,12 @@
 #endif
 #include "debug.h"
 
-/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC) */
+/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC), 
+ * which includes: BACnet Broadcast Management Device,
+ * Broadcast Distribution Table, and
+ * Foreign Device Registration. 
+ */
 
-/* Handle the BACnet Virtual Link Control (BVLC), which includes:
-   BACnet Broadcast Management Device,
-   Broadcast Distribution Table, and
-   Foreign Device Registration */
 typedef struct {
     /* true if valid entry - false if not */
     bool valid;
@@ -733,13 +733,24 @@ static void bvlc_fdt_forward_npdu(
     return;
 }
 
-void bvlc_register_with_bbmd(
-    uint32_t bbmd_address,      /* in network byte order */
-    uint16_t bbmd_port, /* in network byte order */
+
+/** Register as a foreign device with the indicated BBMD. 
+ * @param bbmd_address - IPv4 address (long) of BBMD to register with,
+ *                       in network byte order.
+ * @param bbmd_port - Network port of BBMD, in network byte order
+ * @param time_to_live_seconds - Lease time to use when registering.
+ * @return Positive number (of bytes sent) on success, 
+ *         0 if no registration request is sent, or
+ *         -1 if registration fails.
+ */
+int bvlc_register_with_bbmd(
+    uint32_t bbmd_address,
+    uint16_t bbmd_port,
     uint16_t time_to_live_seconds)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
+    int retval = 0;
 
     /* Store the BBMD address and port so that we
        won't broadcast locally. */
@@ -752,7 +763,8 @@ void bvlc_register_with_bbmd(
     mtu_len =
         (uint16_t) bvlc_encode_register_foreign_device(&mtu[0],
         time_to_live_seconds);
-    bvlc_send_mpdu(&Remote_BBMD, &mtu[0], mtu_len);
+    retval = bvlc_send_mpdu(&Remote_BBMD, &mtu[0], mtu_len);
+    return retval;
 }
 
 static void bvlc_send_result(
