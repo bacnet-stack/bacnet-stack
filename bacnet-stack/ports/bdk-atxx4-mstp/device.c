@@ -623,27 +623,15 @@ bool Device_Valid_Object_Id(
 }
 
 bool Device_Object_Name_Copy(
-    int object_type,
+	BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_CHARACTER_STRING * object_name)
 {
     struct my_object_functions *pObject = NULL;
     bool found = false;
-    int type = 0;
-    uint32_t instance;
-    unsigned max_objects = 0, i = 0;
-    bool check_id = false;
-
-    max_objects = Device_Object_List_Count();
-    for (i = 0; i < max_objects; i++) {
-        check_id = Device_Object_List_Identifier(i, &type, &instance);
-        if (check_id) {
-            pObject = Device_Objects_Find_Functions(type);
-            if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-                found = pObject->Object_Name(instance, object_name);
-                break;
-            }
-        }
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
+        found = pObject->Object_Name(object_instance, object_name);
     }
 
     return found;
