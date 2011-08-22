@@ -66,10 +66,11 @@ typedef uint32_t(
 
 /** Provides the BACnet Object_Name for a given object instance of this type.
  * @ingroup ObjHelpers
- * @param [in] The object instance number to be looked up.
- * @return Pointer to a string containing the unique Object_Name.  This string
- *         is temporary and should be copied upon the return.  It is
- *         allocated by the system and does not need to be freed.
+ * @param object_instance [in] The object instance number to be looked up.
+ * @param object_name [in,out] Pointer to a character_string structure that
+ *         will hold a copy of the object name if this is a valid object_instance.
+ * @return True if the object_instance is valid and object_name has been
+ *         filled with a copy of the Object's name.        
  */
 typedef bool(
     *object_name_function)
@@ -254,9 +255,9 @@ extern "C" {
         BACNET_CHARACTER_STRING * object_name);
     bool Device_Set_Object_Name(
         BACNET_CHARACTER_STRING * object_name);
-    /* copy a child object name */
+    /* Copy a child object name, given its ID. */
     bool Device_Object_Name_Copy(
-        int object_type,
+    	BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
 
@@ -352,7 +353,7 @@ extern "C" {
 
     uint16_t Add_Routed_Device(
         uint32_t Object_Instance,
-        const char *Object_Name,
+        BACNET_CHARACTER_STRING *Object_Name,
         const char *Description);
     DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
         int idx);
@@ -378,8 +379,9 @@ extern "C" {
         unsigned index);
     bool Routed_Device_Valid_Object_Instance_Number(
         uint32_t object_id);
-    char *Routed_Device_Name(
-        uint32_t object_instance);
+    bool Routed_Device_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING * object_name);
     uint32_t Routed_Device_Object_Instance_Number(
         void);
     bool Routed_Device_Set_Object_Instance_Number(

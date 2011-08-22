@@ -132,7 +132,7 @@ static object_functions_t Object_Table[] = {
             Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
             Load_Control_Object_Name, Load_Control_Read_Property,
             Load_Control_Write_Property, Load_Control_Property_Lists,
-        NULL, NULL, NULL}, {
+        NULL, NULL, NULL, NULL}, {
             OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init,
             Multistate_Output_Count,
             Multistate_Output_Index_To_Instance,
@@ -160,7 +160,7 @@ static object_functions_t Object_Table[] = {
         NULL, NULL, NULL, NULL}, {
 #endif
             MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL}
+        NULL, NULL, NULL, NULL, NULL}
 };
 
 
@@ -863,7 +863,7 @@ bool Device_Valid_Object_Name(
 /** Determine if we have an object of this type and instance number.
  * @param object_type [in] The desired BACNET_OBJECT_TYPE
  * @param object_instance [in] The object instance number to be looked up.
- * @return The Object Name or else NULL if not found
+ * @return True if found, else False if no such Object in this device.
  */
 bool Device_Valid_Object_Id(
     int object_type,
@@ -880,34 +880,23 @@ bool Device_Valid_Object_Id(
     return status;
 }
 
-/** copy a child object object_name value.
- * @param object_type [out] The BACNET_OBJECT_TYPE of the matching Object.
- * @param object_instance [out] The object instance number of the matching Object.
- * @param object_name [in] The desired Object Name to look for.
+/** Copy a child object's object_name value, given its ID.
+ * @param object_type [in] The BACNET_OBJECT_TYPE of the child Object.
+ * @param object_instance [in] The object instance number of the child Object.
+ * @param object_name [out] The Object Name found for this child Object.
  * @return True on success or else False if not found.
  */
 bool Device_Object_Name_Copy(
-    int object_type,
+	BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_CHARACTER_STRING * object_name)
 {
     struct object_functions *pObject = NULL;
     bool found = false;
-    int type = 0;
-    uint32_t instance;
-    unsigned max_objects = 0, i = 0;
-    bool check_id = false;
 
-    max_objects = Device_Object_List_Count();
-    for (i = 0; i < max_objects; i++) {
-        check_id = Device_Object_List_Identifier(i, &type, &instance);
-        if (check_id) {
-            pObject = Device_Objects_Find_Functions(type);
-            if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
-                found = pObject->Object_Name(instance, object_name);
-                break;
-            }
-        }
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
+        found = pObject->Object_Name(object_instance, object_name);
     }
 
     return found;
@@ -1633,7 +1622,7 @@ void Routing_Device_Init(
     struct object_functions *pDevObject = NULL;
 
     /* Initialize with our preset strings */
-    Add_Routed_Device(first_object_instance, My_Object_Name, Description);
+    Add_Routed_Device(first_object_instance, &My_Object_Name, Description);
 
     /* Now substitute our routed versions of the main object functions. */
     pDevObject = &Object_Table[0];
