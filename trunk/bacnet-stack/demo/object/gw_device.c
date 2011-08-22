@@ -116,7 +116,7 @@ uint16_t iCurrent_Device_Idx = 0;
  */
 uint16_t Add_Routed_Device(
     uint32_t Object_Instance,
-    const char *sObject_Name,
+    BACNET_CHARACTER_STRING *sObject_Name,
     const char *sDescription)
 {
     int i = Num_Managed_Devices;
@@ -127,8 +127,8 @@ uint16_t Add_Routed_Device(
         pDev->bacObj.mObject_Type = OBJECT_DEVICE;
         pDev->bacObj.Object_Instance_Number = Object_Instance;
         if (sObject_Name != NULL)
-            Routed_Device_Set_Object_Name(CHARACTER_UTF8, sObject_Name,
-                strlen(sObject_Name));
+            Routed_Device_Set_Object_Name(sObject_Name->encoding, 
+            	sObject_Name->value, sObject_Name->length);
         else
             Routed_Device_Set_Object_Name(CHARACTER_UTF8, "No Name",
                 strlen("No Name"));
@@ -401,12 +401,13 @@ bool Routed_Device_Valid_Object_Instance_Number(
     return bResult;
 }
 
-char *Routed_Device_Name(
-    uint32_t object_instance)
+bool Routed_Device_Name(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING * object_name)
 {
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
     if (object_instance == pDev->bacObj.Object_Instance_Number) {
-        return pDev->bacObj.Object_Name;
+        return characterstring_init_ansi(object_name, pDev->bacObj.Object_Name);
     }
 
     return NULL;
@@ -550,7 +551,7 @@ bool Routed_Device_Set_Object_Instance_Number(
 bool Routed_Device_Set_Object_Name(
     uint8_t encoding,
     const char *value,
-    size_t length);
+    size_t length)
 {
     bool status = false;        /*return value */
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
