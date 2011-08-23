@@ -74,7 +74,8 @@ CORE3_SRC = $(BACNET_CORE)\arf.c \
 	$(BACNET_CORE)\timesync.c \
 	$(BACNET_CORE)\whohas.c \
 	$(BACNET_CORE)\whois.c \
-	$(BACNET_CORE)\wp.c
+	$(BACNET_CORE)\wp.c \
+	$(BACNET_CORE)\wpm.c
 
 CORE4_SRC = $(BACNET_CORE)\bacdevobjpropref.c \
 	$(BACNET_CORE)\bacpropstates.c \
@@ -96,6 +97,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)\h_rpm.c \
 	$(BACNET_HANDLER)\h_rpm_a.c \
 	$(BACNET_HANDLER)\h_wp.c  \
+	$(BACNET_HANDLER)\h_wpm.c  \
 	$(BACNET_HANDLER)\h_arf.c  \
 	$(BACNET_HANDLER)\h_arf_a.c  \
 	$(BACNET_HANDLER)\h_awf.c  \
