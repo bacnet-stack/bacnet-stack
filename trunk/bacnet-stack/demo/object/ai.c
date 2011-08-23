@@ -131,6 +131,9 @@ void Analog_Input_Init(
             Analog_Input_Event_Information);
         /* Set handler for AcknowledgeAlarm function */
         handler_alarm_ack_set(OBJECT_ANALOG_INPUT, Analog_Input_Alarm_Ack);
+        /* Set handler for GetAlarmSummary Service */
+        handler_get_alarm_summary_set(OBJECT_ANALOG_INPUT,
+            Analog_Input_Alarm_Summary);
 #endif
     }
 }
@@ -1117,6 +1120,44 @@ int Analog_Input_Alarm_Ack(
     }
 
     return 1;
+}
+
+int Analog_Input_Alarm_Summary(
+    unsigned index,
+    BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data)
+{
+
+    /* check index */
+    if (index < MAX_ANALOG_INPUTS) {
+        /* Event_State is not equal to NORMAL  and
+           Notify_Type property value is ALARM */
+        if((AI_Descr[index].Event_State != EVENT_STATE_NORMAL) &&
+           (AI_Descr[index].Notify_Type == NOTIFY_ALARM)){
+            /* Object Identifier */
+            getalarm_data->objectIdentifier.type = OBJECT_ANALOG_INPUT;
+            getalarm_data->objectIdentifier.instance =
+                        Analog_Input_Index_To_Instance(index);
+            /* Alarm State */
+            getalarm_data->alarmState = AI_Descr[index].Event_State;
+            /* Acknowledged Transitions */
+            bitstring_init(&getalarm_data->acknowledgedTransitions);
+            bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
+                TRANSITION_TO_OFFNORMAL,
+                AI_Descr[index].Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+                bIsAcked);
+            bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
+                TRANSITION_TO_FAULT,
+                AI_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked);
+            bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
+                TRANSITION_TO_NORMAL,
+                AI_Descr[index].Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked);
+
+            return 1;       /* active alarm */
+        }
+        else
+            return 0;       /* no active alarm at this index */
+    } else
+        return -1;      /* end of list  */
 }
 #endif /* defined(INTRINSIC_REPORTING) */
 

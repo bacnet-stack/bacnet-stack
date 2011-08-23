@@ -37,6 +37,7 @@
 #include "wp.h"
 #include "readrange.h"
 #include "getevent.h"
+#include "get_alarm_sum.h"
 #include "alarm_ack.h"
 
 
@@ -277,6 +278,16 @@ extern "C" {
         get_event_info_function pFunction);
 
     void handler_get_event_information(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+
+    void handler_get_alarm_summary_set(
+        BACNET_OBJECT_TYPE object_type,
+        get_alarm_summary_function pFunction);
+
+    void handler_get_alarm_summary(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,

@@ -36,6 +36,7 @@
 #include "nc.h"
 #include "alarm_ack.h"
 #include "getevent.h"
+#include "get_alarm_sum.h"
 #endif
 
 #ifdef __cplusplus
@@ -113,6 +114,10 @@ extern "C" {
     int Analog_Value_Alarm_Ack(
         BACNET_ALARM_ACK_DATA * alarmack_data,
         BACNET_ERROR_CODE * error_code);
+
+    int Analog_Value_Alarm_Summary(
+    unsigned index,
+    BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
 #endif
 
     void Analog_Value_Init(
