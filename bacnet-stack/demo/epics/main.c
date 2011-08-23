@@ -667,7 +667,7 @@ static uint8_t Read_Properties(
 
     if ((pPropList != NULL) && (pPropList[Property_List_Index] != -1)) {
         int prop = pPropList[Property_List_Index];
-        int32_t array_index;
+        uint32_t array_index;
         IsLongArray = false;
         if (Using_Walked_List) {
             if (Walked_List_Length == 0) {

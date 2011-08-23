@@ -41,7 +41,7 @@
 #include "bacapp.h"
 
 /*
- * Bundle together commonly used data items for convenience when calling 
+ * Bundle together commonly used data items for convenience when calling
  * rpm helper functions.
  */
 
@@ -49,7 +49,7 @@ typedef struct BACnet_RPM_Data {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
-    int32_t array_index;
+    uint32_t array_index;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
 } BACNET_RPM_DATA;
@@ -66,7 +66,7 @@ typedef struct BACnet_Read_Access_Data {
 /** Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for this
  *  object type, grouped by Required, Optional, and Proprietary.
  * A function template; @see device.c for assignment to object types.
- * @ingroup ObjHelpers 
+ * @ingroup ObjHelpers
  *
  * @param pRequired [out] Pointer reference for the list of Required properties.
  * @param pOptional [out] Pointer reference for the list of Optional properties.
@@ -118,7 +118,7 @@ extern "C" {
     int rpm_encode_apdu_object_property(
         uint8_t * apdu,
         BACNET_PROPERTY_ID object_property,
-        int32_t array_index);
+        uint32_t array_index);
 
     int rpm_encode_apdu_object_end(
         uint8_t * apdu);
@@ -158,7 +158,7 @@ extern "C" {
     int rpm_ack_encode_apdu_object_property(
         uint8_t * apdu,
         BACNET_PROPERTY_ID object_property,
-        int32_t array_index);
+        uint32_t array_index);
 
     int rpm_ack_encode_apdu_object_property_value(
         uint8_t * apdu,
@@ -186,7 +186,7 @@ extern "C" {
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
-        int32_t * array_index);
+        uint32_t * array_index);
 #ifdef TEST
 #include "ctest.h"
     int rpm_decode_apdu(
@@ -215,13 +215,13 @@ extern "C" {
 /** @defgroup DSRPM Data Sharing -Read Property Multiple Service (DS-RPM)
  * @ingroup DataShare
  * 15.7 ReadPropertyMultiple Service <br>
- * The ReadPropertyMultiple service is used by a client BACnet-user to request 
- * the values of one or more specified properties of one or more BACnet Objects. 
- * This service allows read access to any property of any object, whether a 
- * BACnet-defined object or not. The user may read a single property of a single 
- * object, a list of properties of a single object, or any number of properties 
- * of any number of objects. 
- * A 'Read Access Specification' with the property identifier ALL can be used to 
+ * The ReadPropertyMultiple service is used by a client BACnet-user to request
+ * the values of one or more specified properties of one or more BACnet Objects.
+ * This service allows read access to any property of any object, whether a
+ * BACnet-defined object or not. The user may read a single property of a single
+ * object, a list of properties of a single object, or any number of properties
+ * of any number of objects.
+ * A 'Read Access Specification' with the property identifier ALL can be used to
  * learn the implemented properties of an object along with their values.
  */
 #endif

@@ -54,7 +54,7 @@ uint8_t Send_Write_Property_Request_Data(
     uint8_t * application_data,
     int application_data_len,
     uint8_t priority,
-    int32_t array_index)
+    uint32_t array_index)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -136,7 +136,9 @@ uint8_t Send_Write_Property_Request_Data(
  * @param object_value [in] The value to be written to the property.
  * @param priority [in] Write priority of 1 (highest) to 16 (lowest)
  * @param array_index [in] Optional: if the Property is an array,
- *        the index from 1 to n for the individual array member to be written.
+ *   - 0 for the array size
+ *   - 1 to n for individual array members
+ *   - BACNET_ARRAY_ALL (~0) for the array value to be ignored (not sent)
  * @return invoke id of outgoing message, or 0 on failure.
  */
 uint8_t Send_Write_Property_Request(
@@ -146,7 +148,7 @@ uint8_t Send_Write_Property_Request(
     BACNET_PROPERTY_ID object_property,
     BACNET_APPLICATION_DATA_VALUE * object_value,
     uint8_t priority,
-    int32_t array_index)
+    uint32_t array_index)
 {
     uint8_t application_data[MAX_APDU] = { 0 };
     int apdu_len = 0, len = 0;

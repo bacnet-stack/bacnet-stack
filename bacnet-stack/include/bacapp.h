@@ -98,7 +98,7 @@ typedef struct BACnet_Access_Error {
 struct BACnet_Property_Reference;
 typedef struct BACnet_Property_Reference {
     BACNET_PROPERTY_ID propertyIdentifier;
-    int32_t propertyArrayIndex; /* optional */
+    uint32_t propertyArrayIndex; /* optional */
     /* either value or error, but not both.
        Use NULL value to indicate error */
     BACNET_APPLICATION_DATA_VALUE *value;
@@ -110,7 +110,7 @@ typedef struct BACnet_Property_Reference {
 struct BACnet_Property_Value;
 typedef struct BACnet_Property_Value {
     BACNET_PROPERTY_ID propertyIdentifier;
-    int32_t propertyArrayIndex;
+    uint32_t propertyArrayIndex;
     BACNET_APPLICATION_DATA_VALUE value;
     uint8_t priority;
     /* simple linked list */
@@ -123,7 +123,7 @@ typedef struct BACnet_Object_Property_Value {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
-    int32_t array_index;
+    uint32_t array_index;
     BACNET_APPLICATION_DATA_VALUE *value;
 } BACNET_OBJECT_PROPERTY_VALUE;
 

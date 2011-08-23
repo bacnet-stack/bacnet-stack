@@ -228,7 +228,7 @@ void rpm_ack_print_data(
                     (unsigned) listOfProperties->propertyIdentifier);
             }
 #endif
-            if (listOfProperties->propertyArrayIndex != (int32_t) BACNET_ARRAY_ALL) {
+            if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
 #if PRINT_ENABLED
                 fprintf(stdout, "[%d]", listOfProperties->propertyArrayIndex);
 #endif

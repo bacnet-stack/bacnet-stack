@@ -81,7 +81,7 @@ int rpm_encode_apdu_object_begin(
 int rpm_encode_apdu_object_property(
     uint8_t * apdu,
     BACNET_PROPERTY_ID object_property,
-    int32_t array_index)
+    uint32_t array_index)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
 
@@ -344,7 +344,7 @@ int rpm_ack_encode_apdu_object_begin(
 int rpm_ack_encode_apdu_object_property(
     uint8_t * apdu,
     BACNET_PROPERTY_ID object_property,
-    int32_t array_index)
+    uint32_t array_index)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
 
@@ -457,7 +457,7 @@ int rpm_ack_decode_object_property(
     uint8_t * apdu,
     unsigned apdu_len,
     BACNET_PROPERTY_ID * object_property,
-    int32_t * array_index)
+    uint32_t * array_index)
 {
     unsigned len = 0;
     unsigned tag_len = 0;
@@ -702,7 +702,7 @@ void testReadPropertyMultipleAck(
     BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
     uint32_t object_instance = 0;
     BACNET_PROPERTY_ID object_property = PROP_OBJECT_IDENTIFIER;
-    int32_t array_index = 0;
+    uint32_t array_index = 0;
     BACNET_APPLICATION_DATA_VALUE application_data[4] = { {0} };
     BACNET_APPLICATION_DATA_VALUE test_application_data = { 0 };
     uint8_t application_data_buffer[MAX_APDU] = { 0 };
@@ -721,7 +721,6 @@ void testReadPropertyMultipleAck(
        Also check case of storing a backoff point
        (i.e. save enough room for object_end) */
     apdu_len = rpm_ack_encode_apdu_init(&apdu[0], invoke_id);
-
     /* object beginning */
     rpmdata.object_type = OBJECT_DEVICE;
     rpmdata.object_instance = 123;
