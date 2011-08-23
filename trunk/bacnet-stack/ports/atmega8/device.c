@@ -172,7 +172,7 @@ int Device_Encode_Property_APDU(
     uint8_t * apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
-    int32_t array_index,
+    uint32_t array_index,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code)
 {

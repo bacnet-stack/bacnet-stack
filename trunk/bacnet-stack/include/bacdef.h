@@ -56,7 +56,7 @@
 /* large BACnet Object Type */
 #define BACNET_MAX_OBJECT (0x3FF)
 /* Array index 0=size of array, n=array element n,  MAX=all array elements */
-#define BACNET_ARRAY_ALL (~(unsigned int)0)
+#define BACNET_ARRAY_ALL (~0UL)
 /* Priority Array for commandable objects */
 #define BACNET_NO_PRIORITY 0
 #define BACNET_MIN_PRIORITY 1
