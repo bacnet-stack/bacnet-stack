@@ -57,6 +57,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/alarm_ack.c \
 	$(BACNET_CORE)/event.c \
 	$(BACNET_CORE)/getevent.c \
+	$(BACNET_CORE)/get_alarm_sum.c \
 	$(BACNET_CORE)/readrange.c \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/version.c
@@ -87,6 +88,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_cov.c  \
 	$(BACNET_HANDLER)/h_ucov.c  \
 	$(BACNET_HANDLER)/h_getevent.c  \
+	$(BACNET_HANDLER)/h_get_alarm_sum.c  \
 	$(BACNET_HANDLER)/h_pt.c  \
 	$(BACNET_HANDLER)/h_pt_a.c  \
 	$(BACNET_HANDLER)/h_upt.c  \
