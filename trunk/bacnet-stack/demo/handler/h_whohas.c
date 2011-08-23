@@ -65,7 +65,8 @@ static void match_name_or_object(
     } else {
         /* valid object_name copy in my device? */
         found =
-            Device_Object_Name_Copy(data->object.identifier.type,
+            Device_Object_Name_Copy(
+            (BACNET_OBJECT_TYPE)data->object.identifier.type,
             data->object.identifier.instance, &object_name);
         if (found) {
             Send_I_Have(Device_Object_Instance_Number(),

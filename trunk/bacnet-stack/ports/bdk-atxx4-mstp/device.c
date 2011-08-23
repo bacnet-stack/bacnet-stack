@@ -588,7 +588,7 @@ bool Device_Valid_Object_Name(
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions(type);
+            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                     characterstring_same(object_name1, &object_name2))) {
@@ -614,7 +614,7 @@ bool Device_Valid_Object_Id(
     bool status = false;        /* return value */
     struct my_object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions(object_type);
+    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
