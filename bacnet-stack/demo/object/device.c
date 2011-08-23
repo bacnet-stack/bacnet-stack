@@ -895,7 +895,7 @@ bool Device_Object_Name_Copy(
     bool found = false;
 
     pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
+    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
         found = pObject->Object_Name(object_instance, object_name);
     }
 
