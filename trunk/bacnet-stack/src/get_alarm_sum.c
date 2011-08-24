@@ -58,7 +58,7 @@ int get_alarm_sumary_ack_encode_apdu_data(
     else if(max_apdu >= 10) {
         /* tag 0 - Object Identifier */
         apdu_len += encode_application_object_id(&apdu[apdu_len],
-                        get_alarm_data->objectIdentifier.type,
+                        (int)get_alarm_data->objectIdentifier.type,
                         get_alarm_data->objectIdentifier.instance);
         /* tag 1 - Alarm State */
         apdu_len += encode_application_enumerated(&apdu[apdu_len],

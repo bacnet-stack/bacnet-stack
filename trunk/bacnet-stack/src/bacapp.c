@@ -690,8 +690,6 @@ int bacapp_decode_context_data(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
 
-    /* FIXME: use max_apdu_len! */
-    max_apdu_len = max_apdu_len;
     if (apdu && value && IS_CONTEXT_SPECIFIC(*apdu)) {
         value->context_specific = true;
         value->next = NULL;
@@ -700,7 +698,7 @@ int bacapp_decode_context_data(
             &len_value_type);
         apdu_len = tag_len;
         /* Empty construct : (closing tag) => returns NULL value */
-        if (tag_len && tag_len <= max_apdu_len &&
+        if (tag_len && ((unsigned)tag_len <= max_apdu_len) &&
             !decode_is_closing_tag_number(&apdu[0], tag_number)) {
             value->context_tag = tag_number;
             value->tag = bacapp_context_tag_type(property, tag_number);
