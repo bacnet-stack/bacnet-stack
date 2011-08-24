@@ -1206,7 +1206,6 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            /* Note: we could wait for up to Treply_delay */
             matched = false;
             if (!Ringbuf_Empty(&PDU_Queue)) {
                 pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
@@ -1233,7 +1232,9 @@ static bool MSTP_Master_Node_FSM(
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
                     (uint8_t *) & pkt->buffer[0], pkt->length);
                 Master_State = MSTP_MASTER_STATE_IDLE;
-            } else {
+                /* clear our flag we were holding for comparison */
+                MSTP_Flag.ReceivedValidFrame = false;
+            } else if (rs485_silence_time_elapsed(Treply_delay)) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
                 /* within Treply_delay after the reception of the */
@@ -1246,9 +1247,9 @@ static bool MSTP_Master_Node_FSM(
                 MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED, SourceAddress,
                     This_Station, NULL, 0);
                 Master_State = MSTP_MASTER_STATE_IDLE;
+                /* clear our flag we were holding for comparison */
+                MSTP_Flag.ReceivedValidFrame = false;
             }
-            /* clear our flag we were holding for comparison */
-            MSTP_Flag.ReceivedValidFrame = false;
             break;
         default:
             Master_State = MSTP_MASTER_STATE_IDLE;
