@@ -1051,6 +1051,9 @@ bool MSTP_Master_Node_FSM(
             /* The ANSWER_DATA_REQUEST state is entered when a  */
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
+            /* FIXME: MSTP_Get_Reply waits for a matching reply, but
+               if the next queued message doesn't match, then we
+               sit here for Treply_delay doing nothing */
             length = (unsigned) MSTP_Get_Reply(mstp_port, 0);
             if (length > 0) {
                 /* Reply */
