@@ -289,6 +289,9 @@ void handler_read_property_multiple(
                         memcopy(&Handler_Transmit_Buffer[npdu_len],
                         &Temp_Buf[0], apdu_len, len, MAX_APDU);
                     if (copy_len == 0) {
+#if PRINT_ENABLED
+                        fprintf(stderr, "RPM: Too full to encode property!\r\n");
+#endif
                         rpmdata.error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         error = BACNET_STATUS_ABORT;
@@ -303,6 +306,9 @@ void handler_read_property_multiple(
                         memcopy(&Handler_Transmit_Buffer[npdu_len],
                         &Temp_Buf[0], apdu_len, len, MAX_APDU);
                     if (copy_len == 0) {
+#if PRINT_ENABLED
+                        fprintf(stderr, "RPM: Too full to encode error!\r\n");
+#endif
                         rpmdata.error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         error = BACNET_STATUS_ABORT;
@@ -325,6 +331,10 @@ void handler_read_property_multiple(
                         if (len > 0) {
                             apdu_len += len;
                         } else {
+#if PRINT_ENABLED
+                            fprintf(stderr,
+                                "RPM: Too full for special property!\r\n");
+#endif
                             error = len;
                             goto RPM_FAILURE;
                         }
@@ -340,6 +350,10 @@ void handler_read_property_multiple(
                             if (len > 0) {
                                 apdu_len += len;
                             } else {
+#if PRINT_ENABLED
+                                fprintf(stderr,
+                                    "RPM: Too full for property!\r\n");
+#endif
                                 error = len;
                                 goto RPM_FAILURE;
                             }
@@ -354,6 +368,10 @@ void handler_read_property_multiple(
                 if (len > 0) {
                     apdu_len += len;
                 } else {
+#if PRINT_ENABLED
+                    fprintf(stderr,
+                        "RPM: Too full for individual property!\r\n");
+#endif
                     error = len;
                     goto RPM_FAILURE;
                 }
@@ -366,6 +384,9 @@ void handler_read_property_multiple(
                     memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
                     apdu_len, len, MAX_APDU);
                 if (copy_len == 0) {
+#if PRINT_ENABLED
+                    fprintf(stderr, "RPM: Too full to encode object end!\r\n");
+#endif
                     rpmdata.error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     error = BACNET_STATUS_ABORT;
@@ -400,7 +421,7 @@ void handler_read_property_multiple(
                 service_data->invoke_id,
                 abort_convert_error_code(rpmdata.error_code), true);
 #if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Abort!\n");
+            fprintf(stderr, "RPM: Sending Abort!\n");
 #endif
         } else if (error == BACNET_STATUS_ERROR) {
             apdu_len =
@@ -408,7 +429,7 @@ void handler_read_property_multiple(
                 service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
                 rpmdata.error_class, rpmdata.error_code);
 #if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Error!\n");
+            fprintf(stderr, "RPM: Sending Error!\n");
 #endif
         } else if (error == BACNET_STATUS_REJECT) {
             apdu_len =
@@ -416,7 +437,7 @@ void handler_read_property_multiple(
                 service_data->invoke_id,
                 reject_convert_error_code(rpmdata.error_code));
 #if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Reject!\n");
+            fprintf(stderr, "RPM: Sending Reject!\n");
 #endif
         }
     }
