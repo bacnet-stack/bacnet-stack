@@ -231,30 +231,35 @@ void RS485_Check_UART_Data(
     int n;
 
     if (mstp_port->ReceiveError == true) {
-        /* wait for state machine to clear this */
-        /*mstp_port->ReceiveError=false; */
-        return;
-    }
-    /* wait for state machine to read from the DataRegister */
-    if (mstp_port->DataAvailable == false) {
-        /* check for data */
+        /* do nothing but wait for state machine to clear the error */
+        /* burning time, so wait a longer time */
+        waiter.tv_sec = 0;
+        waiter.tv_usec = 5000;
+    } else if (mstp_port->DataAvailable == false) {
+        /* wait for state machine to read from the DataRegister */
         if (FIFO_Count(&Rx_FIFO) > 0) {
+            /* data is available */
             mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
             mstp_port->DataAvailable = true;
+            /* FIFO is giving data - don't wait very long */
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 10;
         } else {
-            FD_ZERO (&input);
-            FD_SET (RS485_Handle, &input);
+            /* FIFO is empty - wait a longer time */
             waiter.tv_sec = 0;
             waiter.tv_usec = 5000;
-            n = select (RS485_Handle + 1, &input, NULL, NULL, &waiter);
-            if (n < 0) {
-                return;
-            }
-            if (FD_ISSET(RS485_Handle, &input)) {
-                n = read(RS485_Handle, buf, sizeof(buf));
-                FIFO_Add(&Rx_FIFO, &buf[0], n);
-            }
         }
+    }
+    /* grab bytes and stuff them into the FIFO every time */
+    FD_ZERO (&input);
+    FD_SET (RS485_Handle, &input);
+    n = select (RS485_Handle + 1, &input, NULL, NULL, &waiter);
+    if (n < 0) {
+        return;
+    }
+    if (FD_ISSET(RS485_Handle, &input)) {
+        n = read(RS485_Handle, buf, sizeof(buf));
+        FIFO_Add(&Rx_FIFO, &buf[0], n);
     }
 }
 
