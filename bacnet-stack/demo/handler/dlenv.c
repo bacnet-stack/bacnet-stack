@@ -55,7 +55,7 @@ static int  bbmd_result = 0;
  * @param address - IPv4 address (long) of BBMD to register with,
  *                       in network byte order.
  */
-void set_bbmd_address( long address )
+void dlenv_bbmd_address_set( long address )
 {
     bbmd_address = address;
 }
@@ -64,7 +64,7 @@ void set_bbmd_address( long address )
  * Default if not set is 0xBAC0.
  * @param port - The port number (provided in network byte order).
  */
-void set_bbmd_port( int port )
+void dlenv_bbmd_port_set( int port )
 {
     bbmd_port = port;
 }
@@ -73,7 +73,7 @@ void set_bbmd_port( int port )
  * Default if not set is 60000 (1000 minutes).
  * @param ttl_secs - The Lease Time, in seconds.
  */
-void set_bbmd_ttl( int ttl_secs )
+void dlenv_bbmd_ttl_set( int ttl_secs )
 {
     bbmd_timetolive_seconds = ttl_secs;
 }
@@ -83,7 +83,7 @@ void set_bbmd_ttl( int ttl_secs )
  *         0 if no registration request was made, or
  *         -1 if registration attempt failed.
  */
-int get_bbmd_result( void )
+int dlenv_bbmd_result( void )
 {
     return bbmd_result;
 }
