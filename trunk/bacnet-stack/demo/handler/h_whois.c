@@ -95,6 +95,7 @@ void handler_who_is_unicast(
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
+    /* If no limits, then always respond */
     if (len == 0)
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     else if (len != -1) {
@@ -112,7 +113,7 @@ void handler_who_is_unicast(
 }
 
 
-#ifdef BAC_ROUTING
+#ifdef DEPRECATED  /* was for BAC_ROUTING - delete in 2/2012 if still unused */
 /** Local function to check Who-Is requests against our Device IDs.
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.

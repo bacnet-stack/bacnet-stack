@@ -37,10 +37,10 @@ extern "C" {
         uint16_t elapsed_seconds);
     
     /* Simple setters and getter. */
-    void set_bbmd_address( long address );
-    void set_bbmd_port( int port );
-    void set_bbmd_ttl( int ttl_secs );
-    int  get_bbmd_result( void );
+    void dlenv_bbmd_address_set( long address );
+    void dlenv_bbmd_port_set( int port );
+    void dlenv_bbmd_ttl_set( int ttl_secs );
+    int  dlenv_bbmd_result( void );
     
 #ifdef __cplusplus
 }
