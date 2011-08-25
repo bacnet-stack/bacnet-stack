@@ -110,7 +110,7 @@ void handler_who_has(
 }
 
 
-#ifdef BAC_ROUTING
+#ifdef DEPRECATED  /* was for BAC_ROUTING - delete in 2/2012 if still unused */
 /** Handler for Who-Has requests in the virtual routing setup,
  * with broadcast I-Have response.
  * Will respond if the device Object ID matches, and we have
