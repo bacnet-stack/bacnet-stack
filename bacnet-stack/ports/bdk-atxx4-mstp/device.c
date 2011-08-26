@@ -430,15 +430,6 @@ void Device_Init(
         pObject++;
     }
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-    /* Get the data from the eeprom */
-    eeprom_bytes_read(NV_EEPROM_DEVICE_0, (uint8_t *) & Object_Instance_Number,
-        sizeof(Object_Instance_Number));
-    if (Object_Instance_Number >= BACNET_MAX_INSTANCE) {
-        Object_Instance_Number = 0;
-        eeprom_bytes_write(NV_EEPROM_DEVICE_0,
-            (uint8_t *) & Object_Instance_Number,
-            sizeof(Object_Instance_Number));
-    }
 }
 
 /* methods to manipulate the data */
@@ -455,9 +446,6 @@ bool Device_Set_Object_Instance_Number(
 
     if (object_id <= BACNET_MAX_INSTANCE) {
         Object_Instance_Number = object_id;
-        eeprom_bytes_write(NV_EEPROM_DEVICE_0,
-            (uint8_t *) & Object_Instance_Number,
-            sizeof(Object_Instance_Number));
     } else
         status = false;
 
@@ -865,6 +853,8 @@ bool Device_Write_Property_Local(
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(value.type.
                             Object_Id.instance))) {
+                    eeprom_bytes_write(NV_EEPROM_DEVICE_0,
+                        (uint8_t *) & value.type.Object_Id.instance, 4);
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
