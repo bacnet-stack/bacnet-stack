@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include "bacdcode.h"
 #include "bacapp.h"
-
+#include "wp.h"
 
 
 #ifdef __cplusplus
@@ -49,6 +49,17 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wpm_data);
 
 
+    /* encode objects */
+    int wpm_encode_apdu_init (uint8_t * apdu, uint8_t invoke_id);
+    int wpm_encode_apdu_object_begin (
+        uint8_t * apdu,
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance);
+    int wpm_encode_apdu_object_end (uint8_t * apdu);
+    int wpm_encode_apdu_object_property (
+        uint8_t * apdu,
+        BACNET_WRITE_PROPERTY_DATA * wpdata);
+
     /* encode service */
     int wpm_ack_encode_apdu_init(
         uint8_t * apdu,
@@ -66,20 +77,20 @@ extern "C" {
 /** @defgroup DSWP Data Sharing - Write Property Multiple Service (DS-WPM)
  * @ingroup DataShare
  * 15.10 WriteProperty Multiple Service <br>
- * The WritePropertyMultiple service is used by a client BACnet-user 
- * to modify the value of one or more specified properties of a BACnet object. 
- * This service potentially allows write access to any property of any object, 
+ * The WritePropertyMultiple service is used by a client BACnet-user
+ * to modify the value of one or more specified properties of a BACnet object.
+ * This service potentially allows write access to any property of any object,
  * whether a BACnet-defined object or not.
- * Properties shall be modified by the WritePropertyMultiple service 
- * in the order specified in the 'List of Write Access Specifications' parameter, 
- * and execution of the service shall continue until all of the specified 
- * properties have been written to or a property is encountered that 
+ * Properties shall be modified by the WritePropertyMultiple service
+ * in the order specified in the 'List of Write Access Specifications' parameter,
+ * and execution of the service shall continue until all of the specified
+ * properties have been written to or a property is encountered that
  * for some reason cannot be modified as requested.
- * Some implementors may wish to restrict write access to certain properties 
- * of certain objects. In such cases, an attempt to modify a restricted property 
+ * Some implementors may wish to restrict write access to certain properties
+ * of certain objects. In such cases, an attempt to modify a restricted property
  * shall result in the return of an error of 'Error Class' PROPERTY and 'Error Code'
- * WRITE_ACCESS_DENIED. Note that these restricted properties may be accessible 
- * through the use of Virtual Terminal services or other means at the discretion 
+ * WRITE_ACCESS_DENIED. Note that these restricted properties may be accessible
+ * through the use of Virtual Terminal services or other means at the discretion
  * of the implementor.
 */
 #endif
