@@ -400,7 +400,7 @@ void handler_read_property_multiple(
                 service_data->invoke_id,
                 abort_convert_error_code(rpmdata.error_code), true);
 #if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Abort!\n");
+            fprintf(stderr, "RPM: Sending Abort!\n");
 #endif
         } else if (error == BACNET_STATUS_ERROR) {
             apdu_len =
@@ -408,7 +408,7 @@ void handler_read_property_multiple(
                 service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
                 rpmdata.error_class, rpmdata.error_code);
 #if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Error!\n");
+            fprintf(stderr, "RPM: Sending Error!\n");
 #endif
         } else if (error == BACNET_STATUS_REJECT) {
             apdu_len =
@@ -416,7 +416,7 @@ void handler_read_property_multiple(
                 service_data->invoke_id,
                 reject_convert_error_code(rpmdata.error_code));
 #if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Reject!\n");
+            fprintf(stderr, "RPM: Sending Reject!\n");
 #endif
         }
     }
