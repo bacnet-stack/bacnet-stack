@@ -58,7 +58,7 @@ typedef struct BACnet_Write_Property_Data {
 /** Attempts to write a new value to one property for this object type
  *  of a given instance.
  * A function template; @see device.c for assignment to object types.
- * @ingroup ObjHelpers 
+ * @ingroup ObjHelpers
  *
  * @param wp_data [in] Pointer to the BACnet_Write_Property_Data structure,
  *                     which is packed with the information from the WP request.
@@ -105,12 +105,12 @@ extern "C" {
 /** @defgroup DSWP Data Sharing - Write Property Service (DS-WP)
  * @ingroup DataShare
  * 15.9 WriteProperty Service <br>
- * The WriteProperty service is used by a client BACnet-user to modify the 
- * value of a single specified property of a BACnet object. This service 
- * potentially allows write access to any property of any object, whether a 
- * BACnet-defined object or not. Some implementors may wish to restrict write 
- * access to certain properties of certain objects. In such cases, an attempt 
- * to modify a restricted property shall result in the return of an error of 
- * 'Error Class' PROPERTY and 'Error Code' WRITE_ACCESS_DENIED. 
+ * The WriteProperty service is used by a client BACnet-user to modify the
+ * value of a single specified property of a BACnet object. This service
+ * potentially allows write access to any property of any object, whether a
+ * BACnet-defined object or not. Some implementors may wish to restrict write
+ * access to certain properties of certain objects. In such cases, an attempt
+ * to modify a restricted property shall result in the return of an error of
+ * 'Error Class' PROPERTY and 'Error Code' WRITE_ACCESS_DENIED.
  */
 #endif
