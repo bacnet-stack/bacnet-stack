@@ -55,7 +55,7 @@
  * @param array_index [in] Optional: if the Property is an array,
  *   - 0 for the array size
  *   - 1 to n for individual array members
- *   - -1 for the full array to be read.
+ *   - BACNET_ARRAY_ALL (~0) for the full array to be read.
  * @return invoke id of outgoing message, or 0 if device is not bound or no tsm available
  */
 uint8_t Send_Read_Property_Request(
