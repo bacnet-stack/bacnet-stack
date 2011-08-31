@@ -209,18 +209,6 @@ extern "C" {
     void rpm_ack_print_data(
         BACNET_READ_ACCESS_DATA * rpm_data);
 
-    /* Encodes the property APDU and returns the length,
-       or sets the error, and returns -1 */
-    /* resides in h_rp.c */
-    int Encode_Property_APDU(
-        uint8_t * apdu,
-        BACNET_OBJECT_TYPE object_type,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        int32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
-
     void handler_cov_subscribe(
         uint8_t * service_request,
         uint16_t service_len,
