@@ -83,27 +83,6 @@
 /** @addtogroup GatewayDemo */
 /*@{*/
 
-/* All included BACnet objects */
-static object_functions_t Object_Table[] = {
-    {DEVICE_OBJ_FUNCTIONS},
-    {ANALOG_INPUT_OBJ_FUNCTIONS},
-    {ANALOG_OUTPUT_OBJ_FUNCTIONS},
-    {ANALOG_VALUE_OBJ_FUNCTIONS},
-    {BINARY_INPUT_OBJ_FUNCTIONS},
-    {BINARY_OUTPUT_OBJ_FUNCTIONS},
-    {BINARY_VALUE_OBJ_FUNCTIONS},
-    {LIFE_SAFETY_POINT_OBJ_FUNCTIONS},
-    {LOAD_CONTROL_OBJ_FUNCTIONS},
-    {MULTI_STATE_OUTPUT_OBJ_FUNCTIONS},
-    {MULTI_STATE_INPUT_OBJ_FUNCTIONS},
-    {TRENDLOG_OBJ_FUNCTIONS},
-#if defined(BACFILE)
-    {FILE_OBJ_FUNCTIONS},
-#endif
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL, NULL, NULL}
-};
-
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
@@ -126,6 +105,7 @@ void Devices_Init(
     int i;
     char nameText[MAX_DEV_NAME_LEN];
     char descText[MAX_DEV_DESC_LEN];
+    BACNET_CHARACTER_STRING name_string;
 
     /* Gateway Device has already been initialized.
      * But give it a better Description. */
@@ -141,8 +121,9 @@ void Devices_Init(
         snprintf(nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, i + 1);
         snprintf(descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, i);
 #endif
+        characterstring_init_ansi(&name_string, nameText);
 
-        Add_Routed_Device((first_object_instance + i), nameText, descText);
+        Add_Routed_Device((first_object_instance + i), &name_string, descText);
     }
 
 }
@@ -154,16 +135,19 @@ void Devices_Init(
 static void Init_Service_Handlers(
     uint32_t first_object_instance)
 {
-    Device_Init(&Object_Table[0]);
+    Device_Init(NULL);
     Routing_Device_Init(first_object_instance);
 
     /* we need to handle who-is to support dynamic device binding
-     * For the gateway, we want the routing handlers, and we will use the
-     * unicast variety so we can get back through switches to different subnets */
+     * For the gateway, we will use the unicast variety so we can 
+     * get back through switches to different subnets. 
+     * Don't need the routed versions, since the npdu handler calls
+     * each device in turn. 
+     */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is_unicast_for_routing);
+            handler_who_is_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS,
-        handler_who_has_for_routing);
+        handler_who_has);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -365,6 +349,8 @@ int main(
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
+    // Dummy return
+    return 0;
 }
 
 /* @} */

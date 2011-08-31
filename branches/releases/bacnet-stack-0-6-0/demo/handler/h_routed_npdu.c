@@ -198,9 +198,20 @@ static void routed_apdu_handler(
     bool bGotOne = false;
 
     if (!Routed_Device_Is_Valid_Network(dest->net, DNET_list)) {
-        /* We don't know how to reach this one */
-        Send_Reject_Message_To_Network(src, NETWORK_REJECT_NO_ROUTE,
-            dest->net);
+        /* We don't know how to reach this one.
+         * The protocol doesn't specifically state this, but if this message
+         * was broadcast to us, we should assume "someone else" is handling
+         * it and not get involved (ie, send a Reject-Message). 
+         * Since we can't reach other routers that src couldn't already reach, 
+         * we don't try the standard path of asking Who-Is-Router-to-Network. 
+         * Upper level handlers knew that this was sent as a bcast,
+         * but our only way to guess at that here is if the dest->adr
+         * is absent, then we know this is some sort of bcast.
+         */
+        if ( dest->len > 0 ) {
+            Send_Reject_Message_To_Network(src, NETWORK_REJECT_NO_ROUTE,
+                    dest->net);
+        }       /* else, silently drop it */
         return;
     }
 

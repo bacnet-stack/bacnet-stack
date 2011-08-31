@@ -281,9 +281,11 @@ static void Init_Service_Handlers(
 
 #if BAC_ROUTING
     uint32_t Object_Instance;
+    BACNET_CHARACTER_STRING name_string;
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
-    Add_Routed_Device(Object_Instance, Device_Object_Name(),
+    Device_Object_Name(Object_Instance, &name_string);
+    Add_Routed_Device(Object_Instance, &name_string,
         Device_Description());
 #endif
 
