@@ -126,7 +126,7 @@ void handler_read_property(
         apdu_len += len;
         if (apdu_len > service_data->max_resp) {
             /* too big for the sender - send an abort
-             * Setting of error code needed here as read property processing may 
+             * Setting of error code needed here as read property processing may
              * have overriden the default set at start */
             rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             len = BACNET_STATUS_ABORT;
@@ -139,6 +139,19 @@ void handler_read_property(
 #endif
             error = false;
         }
+    } else {
+#if PRINT_ENABLED
+        fprintf(stderr, "RP: Device_Read_Property: ");
+        if (len == BACNET_STATUS_ABORT) {
+            fprintf(stderr, "Abort!\n");
+        } else if (len == BACNET_STATUS_ERROR) {
+            fprintf(stderr, "Error!\n");
+        } else if (len == BACNET_STATUS_REJECT) {
+            fprintf(stderr, "Reject!\n");
+        } else {
+            fprintf(stderr, "Unknown Len=%d\n", len);
+        }
+#endif
     }
 
   RP_FAILURE:

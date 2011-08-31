@@ -95,6 +95,7 @@ void handler_who_is_unicast(
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
+    /* If no limits, then always respond */
     if (len == 0)
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     else if (len != -1) {

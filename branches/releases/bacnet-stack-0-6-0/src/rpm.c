@@ -721,7 +721,6 @@ void testReadPropertyMultipleAck(
        Also check case of storing a backoff point
        (i.e. save enough room for object_end) */
     apdu_len = rpm_ack_encode_apdu_init(&apdu[0], invoke_id);
-
     /* object beginning */
     rpmdata.object_type = OBJECT_DEVICE;
     rpmdata.object_instance = 123;

@@ -55,7 +55,7 @@ struct BACnet_Read_Access_Data;
 
 /** Reads one property for this object type of a given instance.
  * A function template; @see device.c for assignment to object types.
- * @ingroup ObjHelpers 
+ * @ingroup ObjHelpers
  *
  * @param rp_data [in] Pointer to the BACnet_Read_Property_Data structure,
  *                     which is packed with the information from the RP request.
@@ -132,14 +132,14 @@ extern "C" {
 }
 #endif /* __cplusplus */
 /** @defgroup DataShare Data Sharing BIBBs
- * These BIBBs prescribe the BACnet capabilities required to interoperably 
- * perform the data sharing functions enumerated in 22.2.1.1 for the BACnet 
+ * These BIBBs prescribe the BACnet capabilities required to interoperably
+ * perform the data sharing functions enumerated in 22.2.1.1 for the BACnet
  * devices defined therein.
           *//** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
  * @ingroup DataShare
  * 15.5 ReadProperty Service <br>
- * The ReadProperty service is used by a client BACnet-user to request the 
- * value of one property of one BACnet Object. This service allows read access 
+ * The ReadProperty service is used by a client BACnet-user to request the
+ * value of one property of one BACnet Object. This service allows read access
  * to any property of any object, whether a BACnet-defined object or not.
  */
 #endif
