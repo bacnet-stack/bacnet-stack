@@ -1118,7 +1118,7 @@ static bool MSTP_Master_Node_FSM(
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
-            } else if (rs485_silence_time_elapsed(Treply_delay) ||
+            } else if ((Timer_Silence() > Treply_delay) ||
                 (pkt != NULL)) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
@@ -1204,7 +1204,7 @@ static void MSTP_Slave_Node_FSM(
             }
             /* clear our flag we were holding for comparison */
             MSTP_Flag.ReceivePacketPending = false;
-        } else if (rs485_silence_time_elapsed(Treply_delay)) {
+        } else if ((Timer_Silence() > Treply_delay)) {
             /* If no reply will be available from the higher layers
                within Treply_delay after the reception of the final octet
                of the requesting frame (the mechanism used to determine
