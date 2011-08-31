@@ -114,7 +114,7 @@ const unsigned Tpostdrive = 15;
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
-const uint16_t Treply_delay = 10;
+const uint16_t Treply_delay = 250;
 
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */

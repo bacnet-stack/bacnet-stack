@@ -1090,7 +1090,6 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            /* Note: we could wait for up to Treply_delay */
             matched = false;
             if (!Ringbuf_Empty(&PDU_Queue)) {
                 pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
@@ -1117,7 +1116,10 @@ static bool MSTP_Master_Node_FSM(
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
                     (uint8_t *) & pkt->buffer[0], pkt->length);
                 Master_State = MSTP_MASTER_STATE_IDLE;
-            } else {
+                /* clear our flag we were holding for comparison */
+                MSTP_Flag.ReceivedValidFrame = false;
+            } else if ((Timer_Silence() > Treply_delay) ||
+                (pkt != NULL)) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
                 /* within Treply_delay after the reception of the */
@@ -1130,9 +1132,9 @@ static bool MSTP_Master_Node_FSM(
                 MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED, SourceAddress,
                     This_Station, NULL, 0);
                 Master_State = MSTP_MASTER_STATE_IDLE;
+                /* clear our flag we were holding for comparison */
+                MSTP_Flag.ReceivedValidFrame = false;
             }
-            /* clear our flag we were holding for comparison */
-            MSTP_Flag.ReceivedValidFrame = false;
             break;
         default:
             Master_State = MSTP_MASTER_STATE_IDLE;
@@ -1150,6 +1152,7 @@ static void MSTP_Slave_Node_FSM(
     /* did the frame in the queue match the last request? */
     bool matched = false;
 
+    Master_State = MSTP_MASTER_STATE_IDLE;
     if (MSTP_Flag.ReceivedInvalidFrame == true) {
         /* ReceivedInvalidFrame */
         /* invalid frame was received */
@@ -1175,13 +1178,7 @@ static void MSTP_Slave_Node_FSM(
                 break;
         }
     } else if (MSTP_Flag.ReceivePacketPending) {
-        if (Ringbuf_Empty(&PDU_Queue)) {
-            /* If no reply will be available from the higher layers
-               within Treply_delay after the reception of the final octet
-               of the requesting frame (the mechanism used to determine
-               this is a local matter), then no reply is possible. */
-            MSTP_Flag.ReceivePacketPending = false;
-        } else {
+        if (!Ringbuf_Empty(&PDU_Queue)) {
             pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
             matched =
                 dlmstp_compare_data_expecting_reply(&InputBuffer[0],
@@ -1204,8 +1201,14 @@ static void MSTP_Slave_Node_FSM(
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
                     (uint8_t *) & pkt->buffer[0], pkt->length);
-                Master_State = MSTP_MASTER_STATE_IDLE;
             }
+            /* clear our flag we were holding for comparison */
+            MSTP_Flag.ReceivePacketPending = false;
+        } else if ((Timer_Silence() > Treply_delay)) {
+            /* If no reply will be available from the higher layers
+               within Treply_delay after the reception of the final octet
+               of the requesting frame (the mechanism used to determine
+               this is a local matter), then no reply is possible. */
             /* clear our flag we were holding for comparison */
             MSTP_Flag.ReceivePacketPending = false;
         }

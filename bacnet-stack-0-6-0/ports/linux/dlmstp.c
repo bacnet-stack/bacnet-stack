@@ -246,7 +246,11 @@ static void *dlmstp_master_fsm_task(
             }
         }
         if (run_master) {
-            MSTP_Master_Node_FSM(&MSTP_Port);
+            if (MSTP_Port.This_Station <= DEFAULT_MAX_MASTER) {
+                MSTP_Master_Node_FSM(&MSTP_Port);
+            } else if (MSTP_Port.This_Station < 255) {
+                MSTP_Slave_Node_FSM(&MSTP_Port);
+            }
         }
     }
 
