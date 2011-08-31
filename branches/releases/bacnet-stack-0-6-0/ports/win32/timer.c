@@ -37,7 +37,7 @@
 
 /* Offset between Windows epoch 1/1/1601 and
    Unix epoch 1/1/1970 in 100 nanosec units */
-#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS) || defined(__BORLANDC__)
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
@@ -48,6 +48,13 @@ static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 
 /* Windows timer period - in milliseconds */
 static uint32_t Timer_Period = 1;
+
+#if defined(__BORLANDC__)
+struct timezone {
+    int tz_minuteswest; /* minutes W of Greenwich */
+    int tz_dsttime;     /* type of dst correction */
+};
+#endif
 
 /*************************************************************************
 * Description: simulate the gettimeofday Linux function
