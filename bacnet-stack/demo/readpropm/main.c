@@ -261,12 +261,17 @@ int main(
     };
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
-
+    char *property_token = NULL;
+    unsigned property_id = 0;
+    unsigned property_array_index = 0;
+    int scan_count = 0;
+    char *filename = NULL;
 
     if (argc < 5) {
+        filename = filename_remove_path(argv[0]);
         printf("Usage: %s device-instance object-type object-instance "
-            "property index [object-type ...]\r\n",
-            filename_remove_path(argv[0]));
+            "property[index][,property[index]] [object-type ...]\r\n",
+            filename);
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf("device-instance:\r\n"
                 "BACnet Device Object Instance number that you are\r\n"
@@ -288,21 +293,30 @@ int main(
                 "BACNET_PROPERTY_ID in bacenum.h.  It is the property\r\n"
                 "you are reading.  For example, if you were reading the\r\n"
                 "Present Value property, use 85 as the property.\r\n"
-                "\r\nindex:\r\n"
-                "This integer parameter is the index number of an array.\r\n"
-                "If the property is an array, individual elements can\r\n"
+                "\r\n[index]:\r\n"
+                "This optional integer parameter is the index number of \r\n"
+                "an array property.  Individual elements of an array can\r\n"
                 "be read.  If this parameter is missing and the property\r\n"
                 "is an array, the entire array will be read.\r\n"
-                "\r\nExample:\r\n" "If you want read the ALL property in\r\n"
+                "\r\nExample:\r\n"
+                "If you want read the PRESENT_VALUE property and various\r\n"
+                "array elements of the PRIORITY_ARRAY in Device 123\r\n"
+                "Analog Output object 99, use the following command:\r\n"
+                "%s 123 1 99 85,87[0],87\r\n"
+                "If you want read the PRESENT_VALUE property in objects\r\n"
+                "Analog Input 77 and Analog Input 78 in Device 123\r\n"
+                "use the following command:\r\n"
+                "%s 123 0 77 85 0 78 85\r\n"
+                "If you want read the ALL property in\r\n"
                 "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 8 -1\r\n"
+                "%s 123 8 123 8\r\n"
                 "If you want read the OPTIONAL property in\r\n"
                 "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 80 -1\r\n"
+                "%s 123 8 123 80\r\n"
                 "If you want read the REQUIRED property in\r\n"
                 "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 105 -1\r\n", filename_remove_path(argv[0]),
-                filename_remove_path(argv[0]), filename_remove_path(argv[0]));
+                "%s 123 8 123 105\r\n",
+                filename, filename, filename, filename, filename);
         }
         return 0;
     }
@@ -319,12 +333,12 @@ int main(
     args_remaining = (argc - 2);
     arg_sets = 0;
     while (rpm_object) {
-        tag_value_arg = 2 + (arg_sets * 4);
+        tag_value_arg = 2 + (arg_sets * 3);
         rpm_object->object_type = strtol(argv[tag_value_arg], NULL, 0);
         tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough object property quads.\r\n");
+            fprintf(stderr, "Error: not enough object property triples.\r\n");
             return 1;
         }
         if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
@@ -336,7 +350,7 @@ int main(
         tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough object property quads.\r\n");
+            fprintf(stderr, "Error: not enough object property triples.\r\n");
             return 1;
         }
         if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
@@ -346,31 +360,40 @@ int main(
         }
         rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
         rpm_object->listOfProperties = rpm_property;
-        if (rpm_property) {
-            rpm_property->propertyIdentifier =
-                strtol(argv[tag_value_arg], NULL, 0);
-            /* used up another arg */
-            tag_value_arg++;
-            args_remaining--;
-            if (args_remaining <= 0) {
-                fprintf(stderr,
-                    "Error: not enough object property quads.\r\n");
-                return 1;
+        property_token = strtok(argv[tag_value_arg], ",");
+        /* add all the properties and optional index to our list */
+        while (rpm_property) {
+            scan_count = sscanf(property_token, "%u[%u]",
+                &property_id,
+                &property_array_index);
+            if (scan_count > 0) {
+                rpm_property->propertyIdentifier = property_id;
+                if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
+                    fprintf(stderr, "property=%u - it must be less than %u\r\n",
+                        rpm_property->propertyIdentifier,
+                        MAX_BACNET_PROPERTY_ID + 1);
+                    return 1;
+                }
             }
-            if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-                fprintf(stderr, "property=%u - it must be less than %u\r\n",
-                    rpm_property->propertyIdentifier,
-                    MAX_BACNET_PROPERTY_ID + 1);
-                return 1;
+            if (scan_count > 1) {
+                rpm_property->propertyArrayIndex = property_array_index;
+            } else {
+                rpm_property->propertyArrayIndex = BACNET_ARRAY_ALL;
             }
-            rpm_property->propertyArrayIndex =
-                strtol(argv[tag_value_arg], NULL, 0);
-            /* note: we are only loading one property for now */
-            rpm_property->next = NULL;
-            /* used up another arg */
-            tag_value_arg++;
-            args_remaining--;
+            /* is there another property? */
+            property_token = strtok(NULL, ",");
+            if (property_token) {
+                rpm_property->next =
+                    calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+                rpm_property = rpm_property->next;
+            } else {
+                rpm_property->next = NULL;
+                break;
+            }
         }
+        /* used up another arg */
+        tag_value_arg++;
+        args_remaining--;
         if (args_remaining) {
             arg_sets++;
             rpm_object->next = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
