@@ -110,6 +110,7 @@ static const int Device_Properties_Required[] = {
 
 static const int Device_Properties_Optional[] = {
     PROP_DESCRIPTION,
+    PROP_LOCATION,
     -1
 };
 
@@ -355,6 +356,20 @@ bool Device_Object_Name(
     return status;
 }
 
+bool Device_Set_Object_Name(
+    BACNET_CHARACTER_STRING * object_name)
+{
+    bool status = false;        /*return value */
+
+    if (!characterstring_same(&My_Object_Name, object_name)) {
+        /* Make the change and update the database revision */
+        status = characterstring_copy(&My_Object_Name, object_name);
+        Device_Inc_Database_Revision();
+    }
+
+    return status;
+}
+
 bool Device_Reinitialize(
     BACNET_REINITIALIZE_DEVICE_DATA * rd_data)
 {
@@ -592,6 +607,7 @@ bool Device_Object_Name_Copy(
 {
     struct my_object_functions *pObject = NULL;
     bool found = false;
+
     pObject = Device_Objects_Find_Functions(object_type);
     if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
         found = pObject->Object_Name(object_instance, object_name);
@@ -623,6 +639,11 @@ int Device_Read_Property_Local(
     switch (rpdata->object_property) {
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, "BACnet Development Kit");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_LOCATION:
+            characterstring_init_ansi(&char_string, "USA");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -796,6 +817,8 @@ bool Device_Write_Property_Local(
 {
     bool status = false;        /* return value - false=error */
     int len = 0;
+    uint8_t encoding = 0;
+    size_t length = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
@@ -857,18 +880,24 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                size_t length =
-                    characterstring_length(&value.type.Character_String);
+                length = characterstring_length(&value.type.Character_String);
                 if (length < 1) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                } else if (length < MAX_CHARACTER_STRING_BYTES) {
-                    uint8_t encoding =
+                } else if (length < characterstring_capacity(&My_Object_Name)) {
+                    encoding =
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
-                        characterstring_copy(&My_Object_Name,
-                            &value.type.Character_String);
-                        status = true;
+                        /* All the object names in a device must be unique. */
+                        if (Device_Valid_Object_Name(&value.type.
+                                Character_String, NULL, NULL)) {
+                            wp_data->error_class = ERROR_CLASS_PROPERTY;
+                            wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
+                        } else {
+                            Device_Set_Object_Name(&value.type.
+                                Character_String);
+                            status = true;
+                        }
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code =
