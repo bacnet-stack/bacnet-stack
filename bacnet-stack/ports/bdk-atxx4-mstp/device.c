@@ -126,8 +126,8 @@ static const int Device_Properties_Required[] = {
 };
 
 static const int Device_Properties_Optional[] = {
-    PROP_LOCATION,
     PROP_DESCRIPTION,
+    PROP_LOCATION,
     -1
 };
 
@@ -618,6 +618,7 @@ bool Device_Object_Name_Copy(
 {
     struct my_object_functions *pObject = NULL;
     bool found = false;
+
     pObject = Device_Objects_Find_Functions(object_type);
     if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
         found = pObject->Object_Name(object_instance, object_name);
