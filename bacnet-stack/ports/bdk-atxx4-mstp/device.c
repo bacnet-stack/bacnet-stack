@@ -126,6 +126,7 @@ static const int Device_Properties_Required[] = {
 };
 
 static const int Device_Properties_Optional[] = {
+    PROP_LOCATION,
     PROP_DESCRIPTION,
     -1
 };

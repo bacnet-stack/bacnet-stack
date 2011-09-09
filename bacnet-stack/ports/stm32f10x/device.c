@@ -78,7 +78,7 @@ static struct my_object_functions {
 static uint32_t Object_Instance_Number = 103;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_CHARACTER_STRING My_Object_Name;
-
+static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -114,6 +114,7 @@ static const int Device_Properties_Optional[] = {
 };
 
 static const int Device_Properties_Proprietary[] = {
+    9600,
     -1
 };
 
@@ -178,9 +179,10 @@ static int Read_Property_Common(
                     (void) pObject->Object_Name(rpdata->object_instance,
                         &char_string);
                 }
+                apdu_len =
+                    encode_application_character_string(&apdu[0],
+                    &char_string);
             }
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             /*  only array properties can have array options */
@@ -386,7 +388,10 @@ void Device_Init(
 {
     struct my_object_functions *pObject = NULL;
 
+    /* we don't use the object table passed in
+       since there is extra stuff we don't need in there. */
     (void) object_table;
+    /* our local object table */
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -466,7 +471,13 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(
 uint32_t Device_Database_Revision(
     void)
 {
-    return 0;
+    return Database_Revision;
+}
+
+void Device_Inc_Database_Revision(
+    void)
+{
+    Database_Revision++;
 }
 
 /* Since many network clients depend on the object list */
@@ -667,7 +678,6 @@ int Device_Read_Property_Local(
                not a list of objects that this device can access */
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
-                /* FIXME: if ReadProperty used an array of Functions... */
                 /* initialize all the object types to not-supported */
                 bitstring_set_bit(&bit_string, (uint8_t) i, false);
             }
