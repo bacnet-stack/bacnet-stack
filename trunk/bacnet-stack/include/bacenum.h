@@ -1275,10 +1275,10 @@ typedef enum {
     ERROR_CLASS_SECURITY = 4,
     ERROR_CLASS_SERVICES = 5,
     ERROR_CLASS_VT = 6,
+    ERROR_CLASS_COMMUNICATION = 7,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    ERROR_CLASS_COMMUNICATION = 7,
     MAX_BACNET_ERROR_CLASS = 8,
     FIRST_PROPRIETARY_ERROR_CLASS = 64,
     LAST_PROPRIETARY_ERROR_CLASS = 65535
