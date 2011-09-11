@@ -46,7 +46,8 @@ LFLAGS = -Wl,$(LIBRARIES)
 .EXPORT_ALL_VARIABLES:
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
-	whohas whois ucov timesync epics readpropm mstpcap \
+	whohas whois ucov timesync epics readpropm \
+	mstpcap ptransfer uptransfer \
 	whoisrouter iamrouter initrouter
 
 ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
