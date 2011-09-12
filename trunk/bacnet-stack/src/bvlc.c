@@ -55,6 +55,9 @@
    remote BBMD address/port here in network byte order */
 static struct sockaddr_in Remote_BBMD;
 
+/* result from a client request */
+BACNET_BVLC_RESULT BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
+
 
 /* Define BBMD_ENABLED to get the functions that a
  * BBMD needs to handle its services.
@@ -104,9 +107,6 @@ typedef struct {
 #define MAX_FD_ENTRIES 128
 #endif
 static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
-
-/* result from a client request */
-BACNET_BVLC_RESULT BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
 
 
 void bvlc_maintenance_timer(
@@ -203,6 +203,8 @@ static int bvlc_encode_address_entry(
 
     return len;
 }
+#endif
+
 
 static int bvlc_encode_bvlc_result(
     uint8_t * pdu,
@@ -220,7 +222,6 @@ static int bvlc_encode_bvlc_result(
 
     return 6;
 }
-#endif
 
 #if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
 int bvlc_encode_write_bdt_init(
@@ -738,7 +739,7 @@ static void bvlc_fdt_forward_npdu(
 
     return;
 }
-
+#endif
 
 
 static void bvlc_send_result(
@@ -754,6 +755,7 @@ static void bvlc_send_result(
     return;
 }
 
+#if defined(BBMD_ENABLED) && BBMD_ENABLED
 static int bvlc_send_bdt(
     struct sockaddr_in *dest)
 {
@@ -1230,6 +1232,59 @@ int bvlc_register_with_bbmd(
 }
 
 
+/** Note any BVLC_RESULT code, or NAK the BVLL message in the unsupported cases.
+ * Use this handler when you are not a BBMD.
+ * @param sout  [in] Socket address to send any NAK back to.
+ * @param npdu  [in] The received buffer.
+ * @param received_bytes [in] How many bytes in npdu[].
+ */ 
+void bvlc_for_non_bbmd(     
+        struct sockaddr_in * sout,      
+        uint8_t * npdu,     
+        uint16_t received_bytes)
+{
+    uint16_t result_code = 0; /* aka, BVLC_RESULT_SUCCESSFUL_COMPLETION */
+    uint8_t function_type = npdu[1];    /* The BVLC function */
+    switch (function_type) {
+        case BVLC_RESULT:
+            if ( received_bytes >= 6) {
+                /* This is the result of our foreign device registration */
+                (void) decode_unsigned16(&npdu[4], &result_code);
+                BVLC_Result_Code = (BACNET_BVLC_RESULT) result_code;
+                debug_printf("BVLC: Result Code=%d\n", BVLC_Result_Code);
+                /* But don't send any response */
+                result_code = 0;
+            }
+            break;
+        case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
+            result_code = BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
+            break;
+        case BVLC_READ_BROADCAST_DIST_TABLE:
+            result_code = BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK;
+            break;
+        /* case BVLC_READ_BROADCAST_DIST_TABLE_ACK: */
+        case BVLC_REGISTER_FOREIGN_DEVICE:
+            result_code = BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK;
+            break;
+        case BVLC_READ_FOREIGN_DEVICE_TABLE:
+            result_code = BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK;
+            break;
+        /* case BVLC_READ_FOREIGN_DEVICE_TABLE_ACK: */
+        case BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY:
+            result_code = BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK;
+            break;
+        case BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:
+            break;
+        /* case BVLC_ORIGINAL_UNICAST_NPDU: */
+        /* case BVLC_ORIGINAL_BROADCAST_NPDU: */
+        default:
+            break;
+    }
+    if (result_code > 0) {
+        bvlc_send_result(sout, result_code);
+        debug_printf("BVLC: NAK code=%d\n", result_code);
+    }
+}
 
 #ifdef TEST
 #include <assert.h>

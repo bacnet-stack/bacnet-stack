@@ -37,6 +37,7 @@
 #include "bacdcode.h"
 #include "bacint.h"
 #include "bip.h"
+#include "bvlc.h"
 #include "net.h"        /* custom per port */
 #if PRINT_ENABLED
 #include <stdio.h>      /* for standard integer types uint8_t etc. */
@@ -337,9 +338,12 @@ uint16_t bip_receive(
             }
         }
     } else {
+        /* Handle, usually with a NACK. */
+        bvlc_for_non_bbmd(&sin, pdu, received_bytes);
 #if PRINT_ENABLED
         fprintf(stderr, "BIP: BVLC discarded!\n");
 #endif
+        pdu_len = 0;
     }
 
     return pdu_len;

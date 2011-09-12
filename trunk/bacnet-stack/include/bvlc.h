@@ -52,11 +52,6 @@ extern "C" {
 #else
 #define bvlc_maintenance_timer(x)
 #endif
-    /* registers with a bbmd as a foreign device */
-    int bvlc_register_with_bbmd(
-        uint32_t bbmd_address,  /* in network byte order */
-        uint16_t bbmd_port,     /* in network byte order */
-        uint16_t time_to_live_seconds);
 
     uint16_t bvlc_receive(
         BACNET_ADDRESS * src,   /* returns the source address */
@@ -91,6 +86,20 @@ extern "C" {
         uint8_t * npdu,
         unsigned npdu_length);
 #endif
+
+    /* registers with a bbmd as a foreign device */
+    int bvlc_register_with_bbmd(
+        uint32_t bbmd_address,  /* in network byte order */
+        uint16_t bbmd_port,     /* in network byte order */
+        uint16_t time_to_live_seconds);
+
+struct sockaddr_in;     /* Defined elsewhere, needed here. */
+
+    /* Note any BVLC_RESULT code, or NAK the BVLL message in the unsupported cases. */
+    void bvlc_for_non_bbmd(     
+            struct sockaddr_in * sout,      
+            uint8_t * npdu,     
+            uint16_t received_bytes);
 
 #ifdef __cplusplus
 }
