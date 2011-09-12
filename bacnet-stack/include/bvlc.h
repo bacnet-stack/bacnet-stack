@@ -101,6 +101,11 @@ struct sockaddr_in;     /* Defined elsewhere, needed here. */
             uint8_t * npdu,     
             uint16_t received_bytes);
 
+    /** Returns the last BVLL Result we received, either as the result of a BBMD
+     * request we sent, or (if not a BBMD or Client), from trying to register 
+     * as a foreign device. */
+    BACNET_BVLC_RESULT bvlc_get_last_result();
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

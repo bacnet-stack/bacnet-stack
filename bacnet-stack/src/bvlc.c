@@ -883,7 +883,7 @@ uint16_t bvlc_receive(
                Foreign-Device message. At the expiration of the timer, the
                foreign device shall re-register with the BBMD by sending a BVLL
                Register-Foreign-Device message */
-            /* FIXME: clients may need this result */
+            /* Clients can now get this result */
             (void) decode_unsigned16(&npdu[4], &result_code);
             BVLC_Result_Code = (BACNET_BVLC_RESULT) result_code;
             debug_printf("BVLC: Result Code=%d\n", BVLC_Result_Code);
@@ -1284,6 +1284,19 @@ void bvlc_for_non_bbmd(
         bvlc_send_result(sout, result_code);
         debug_printf("BVLC: NAK code=%d\n", result_code);
     }
+}
+
+/** Returns the last BVLL Result we received, either as the result of a BBMD
+ * request we sent, or (if not a BBMD or Client), from trying to register 
+ * as a foreign device.
+ * 
+ * @return BVLC_RESULT_SUCCESSFUL_COMPLETION on success,
+ * BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK if registration failed,
+ * or one of the other codes (if we are a BBMD).
+ */
+BACNET_BVLC_RESULT bvlc_get_last_result()
+{
+    return BVLC_Result_Code;
 }
 
 #ifdef TEST
