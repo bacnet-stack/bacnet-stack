@@ -229,6 +229,7 @@ int main(
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
+    return 0;
 }
 
 /* @} */
