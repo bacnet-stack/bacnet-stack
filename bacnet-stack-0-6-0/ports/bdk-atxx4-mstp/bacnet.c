@@ -80,16 +80,26 @@ static bool seeprom_version_test(
 void bacnet_init(
     void)
 {
+    uint32_t device_id = 0;
+
     MSTP_MAC_Address = input_address();
     dlmstp_set_mac_address(MSTP_MAC_Address);
     dlmstp_init(NULL);
-
+    /* test for valid data structure in SEEPROM */
     if (!seeprom_version_test()) {
         /* do something when SEEPROM is invalid - i.e. init to defaults */
     }
     /* initialize objects */
     Device_Init(NULL);
-
+    /* Get the device ID from the eeprom */
+    eeprom_bytes_read(NV_EEPROM_DEVICE_0, (uint8_t *) & device_id,
+        sizeof(device_id));
+    if (device_id < BACNET_MAX_INSTANCE) {
+        Device_Set_Object_Instance_Number(device_id);
+    } else {
+        /* use the DIP switch address as the Device ID if unconfigured */
+        Device_Set_Object_Instance_Number(MSTP_MAC_Address);
+    }
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
