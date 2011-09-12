@@ -93,8 +93,8 @@ static struct my_object_functions {
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number;
-static BACNET_CHARACTER_STRING My_Object_Name;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
+static BACNET_CHARACTER_STRING My_Object_Name;
 static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 
@@ -127,6 +127,7 @@ static const int Device_Properties_Required[] = {
 
 static const int Device_Properties_Optional[] = {
     PROP_DESCRIPTION,
+    PROP_LOCATION,
     -1
 };
 
@@ -168,28 +169,50 @@ static int Read_Property_Common(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            /* Device Object exception: requested instance
-               may not match our instance if a wildcard */
-            if (rpdata->object_type == OBJECT_DEVICE) {
-                rpdata->object_instance = Object_Instance_Number;
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                /* Device Object exception: requested instance
+                   may not match our instance if a wildcard */
+                if (rpdata->object_type == OBJECT_DEVICE) {
+                    rpdata->object_instance = Object_Instance_Number;
+                }
+                apdu_len =
+                    encode_application_object_id(&apdu[0], rpdata->object_type,
+                    rpdata->object_instance);
             }
-            apdu_len =
-                encode_application_object_id(&apdu[0], rpdata->object_type,
-                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                characterstring_init_ansi(&char_string, "");
             if (pObject->Object_Name) {
                 (void) pObject->Object_Name(rpdata->object_instance,
                     &char_string);
-            } else {
-                characterstring_init_ansi(&char_string, "");
             }
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+                apdu_len =
+                    encode_application_character_string(&apdu[0],
+                    &char_string);
+            }
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], rpdata->object_type);
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                apdu_len =
+                    encode_application_enumerated(&apdu[0],
+                    rpdata->object_type);
+            }
             break;
         default:
             if (pObject->Object_Read_Property) {
@@ -628,18 +651,6 @@ int Device_Read_Property_Local(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_DEVICE,
-                rpdata->object_instance);
-            break;
-        case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
-            break;
-        case PROP_OBJECT_NAME:
-            apdu_len =
-                encode_application_character_string(&apdu[0], &My_Object_Name);
-            break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, "BACnet Demo");
             apdu_len =
@@ -884,19 +895,22 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
                 length = characterstring_length(&value.type.Character_String);
-                if (length < characterstring_capacity(&My_Object_Name)) {
+                if (length < 1) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else if (length < characterstring_capacity(&My_Object_Name)) {
                     encoding =
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
                         /* All the object names in a device must be unique. */
                         if (Device_Valid_Object_Name(&value.type.
                                 Character_String, NULL, NULL)) {
-                            status = false;
                             wp_data->error_class = ERROR_CLASS_PROPERTY;
                             wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                         } else {
                             Device_Set_Object_Name(&value.type.
                                 Character_String);
+                            status = true;
                         }
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -915,7 +929,7 @@ bool Device_Write_Property_Local(
             break;
         case 9600:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                if (value.type.Unsigned_Int > 115200) {
+                if (value.type.Unsigned_Int <= 115200) {
                     RS485_Set_Baud_Rate(value.type.Unsigned_Int);
                     status = true;
                 } else {
@@ -932,6 +946,8 @@ bool Device_Write_Property_Local(
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
+    /* not using len at this time */
+    len = len;
 
     return status;
 }
