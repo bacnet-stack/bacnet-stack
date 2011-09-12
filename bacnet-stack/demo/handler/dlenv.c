@@ -38,7 +38,7 @@
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) 
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
 /* BBMD variables */
@@ -95,7 +95,7 @@ int dlenv_bbmd_result( void )
  * internal variables or Environment variables.
  * If no address for the BBMD is provided, no BBMD registration will occur.
  *
- * The Environment Variables depend on defines BACDL_BIP and BBMD_ENABLED:
+ * The Environment Variables depend on define of BACDL_BIP:
  *     - BACNET_BBMD_PORT - 0..65534, defaults to 47808
  *     - BACNET_BBMD_TIMETOLIVE - 0..65535 seconds, defaults to 60000
  *     - BACNET_BBMD_ADDRESS - dotted IPv4 address
@@ -107,7 +107,7 @@ int dlenv_register_as_foreign_device(
     void)
 {
   int retval = 0;
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) 
     char *pEnv = NULL;
 
     pEnv = getenv("BACNET_BBMD_PORT");
@@ -152,12 +152,13 @@ int dlenv_register_as_foreign_device(
 /** Datalink maintenance timer
  * @ingroup DataLink
  *
- * Call this function to renew Foreign Device Registration
+ * Call this function to renew our Foreign Device Registration
+ * @param elapsed_seconds Number of seconds that have elapsed since last called.
  */
 void dlenv_maintenance_timer(
     uint16_t elapsed_seconds)
 {
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) 
     if (BBMD_Timer_Seconds) {
         if (BBMD_Timer_Seconds <= elapsed_seconds) {
             BBMD_Timer_Seconds = 0;
@@ -167,10 +168,10 @@ void dlenv_maintenance_timer(
         if (BBMD_Timer_Seconds == 0) {
             int retval;
             retval = dlenv_register_as_foreign_device();
-            /* If that failed, maybe just a network issue.
-             * Retry again later. */
-            if ( retval < 0 )
-                BBMD_Timer_Seconds = bbmd_timetolive_seconds;
+            /* If that failed (negative), maybe just a network issue.
+             * If nothing happened (0), may be un/misconfigured.
+             * Set up to try again later in all cases. */
+            BBMD_Timer_Seconds = bbmd_timetolive_seconds;
         }
     }
 #endif
@@ -203,12 +204,11 @@ void dlenv_maintenance_timer(
  * - BACDL_BIP: (BACnet/IP)
  *   - BACNET_IP_PORT - UDP/IP port number (0..65534) used for BACnet/IP
  *     communications.  Default is 47808 (0xBAC0).
- *   - with BBMD_ENABLED also:
- *     - BACNET_BBMD_PORT - UDP/IP port number (0..65534) used for Foreign
+ *   - BACNET_BBMD_PORT - UDP/IP port number (0..65534) used for Foreign
  *       Device Registration.  Defaults to 47808 (0xBAC0).
- *     - BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device
+ *   - BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device
  *       Registration (0..65535). Defaults to 60000 seconds.
- *     - BACNET_BBMD_ADDRESS - dotted IPv4 address of the BBMD or Foreign
+ *   - BACNET_BBMD_ADDRESS - dotted IPv4 address of the BBMD or Foreign
  *       Device Registrar.
  * - BACDL_MSTP: (BACnet MS/TP)
  *   - BACNET_MAX_INFO_FRAMES
