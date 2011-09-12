@@ -47,8 +47,11 @@ LFLAGS = -Wl,$(LIBRARIES)
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov timesync epics readpropm \
-	mstpcap ptransfer uptransfer \
+	mstpcap  uptransfer \
 	whoisrouter iamrouter initrouter
+ifeq (${BACNET_PORT},win32)
+SUBDIRS += ptransfer
+endif
 
 ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
 	SUBDIRS += gateway
