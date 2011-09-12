@@ -24,7 +24,7 @@
 *************************************************************************/
 #include "hardware.h"
 
-#if defined(__GNUC__) && (__GNUC__ > 4)
+#if defined(__GNUC__) && (__GNUC__ >= 4)
 /* AVR fuse settings for ATmega644P */
 FUSES = {
     /* == LOW FUSE or LFUSE settings == */
@@ -73,7 +73,7 @@ FUSES = {
            or are BOOTSZ bits that are zero. */
         .high = (FUSE_BOOTSZ1 & FUSE_EESAVE & FUSE_SPIEN & FUSE_JTAGEN),
         /* == EXTENDED FUSE or EFUSE settings == */
-        /* BODLEVEL configuration 
+        /* BODLEVEL configuration
            BODLEVEL2 BODLEVEL1 BODLEVEL0 Voltage
            --------- --------- --------- --------
            1         1         1     disabled
