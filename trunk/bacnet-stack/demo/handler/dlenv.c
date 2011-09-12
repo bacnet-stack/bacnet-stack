@@ -79,12 +79,19 @@ void dlenv_bbmd_ttl_set( int ttl_secs )
 }
 
 /** Get the result of the last attempt to register with the indicated BBMD.
+ * If we sent a foreign registration request, then see if we've received 
+ * a NAK in our BVLC handler.
+ * 
  * @return Positive number (of bytes sent) if registration was successful,
  *         0 if no registration request was made, or
  *         -1 if registration attempt failed.
  */
 int dlenv_bbmd_result( void )
 {
+    if ( (bbmd_result > 0) && 
+         (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK) ) 
+        return -1;
+    /* Else, show our send: */
     return bbmd_result;
 }
 #endif
