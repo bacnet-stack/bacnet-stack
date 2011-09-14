@@ -46,7 +46,7 @@ LFLAGS = -Wl,$(LIBRARIES)
 .EXPORT_ALL_VARIABLES:
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
-	whohas whois ucov timesync epics readpropm \
+	whohas whois ucov scov timesync epics readpropm \
 	mstpcap  uptransfer \
 	whoisrouter iamrouter initrouter
 ifeq (${BACNET_PORT},win32)
