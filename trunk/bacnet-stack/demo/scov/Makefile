@@ -10,7 +10,7 @@
 # Assumes rm and cp are available
 
 # Executable file name
-TARGET = bacupt
+TARGET = bacscov
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
