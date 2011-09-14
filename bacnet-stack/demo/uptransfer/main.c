@@ -66,8 +66,14 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* converted command line arguments */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
-/* Process identifier for matching replies */
-static uint32_t Target_Device_Process_Identifier = 0;
+static uint16_t Target_Vendor_Identifier = 260;
+static uint32_t Target_Service_Number = 0;
+/* property value encodings */
+#ifndef MAX_PROPERTY_VALUES
+#define MAX_PROPERTY_VALUES 64
+#endif
+static BACNET_APPLICATION_DATA_VALUE
+    Target_Object_Property_Value[MAX_PROPERTY_VALUES];
 /* buffer for service parameters */
 static uint8_t Service_Parameters[MAX_APDU];
 /* the invoke id is needed to filter incoming messages */
@@ -118,6 +124,70 @@ void MyRejectHandler(
     }
 }
 
+void MyUnconfirmedPrivateTransferHandler(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
+{
+    BACNET_PRIVATE_TRANSFER_DATA private_data;
+    BACNET_OBJECT_PROPERTY_VALUE object_value;  /* for bacapp printing */
+    BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
+    int len = 0;
+    uint8_t *application_data;
+    int application_data_len;
+    bool first_value = true;
+    bool print_brace = false;
+
+    len = ptransfer_decode_service_request(
+        service_request, service_len, &private_data);
+    if (len >= 0) {
+        printf("PrivateTransfer:vendorID=%u\r\n",
+            (unsigned)private_data.vendorID);
+        printf("PrivateTransfer:serviceNumber=%lu\r\n",
+            (unsigned long)private_data.serviceNumber);
+        application_data = private_data.serviceParameters;
+        application_data_len = private_data.serviceParametersLen;
+        for (;;) {
+            len =
+                bacapp_decode_application_data(application_data,
+                (uint8_t) application_data_len, &value);
+            if (first_value && (len < application_data_len)) {
+                first_value = false;
+#if PRINT_ENABLED
+                fprintf(stdout, "{");
+#endif
+                print_brace = true;
+            }
+            /* private transfer doesn't provide any clues */
+            object_value.object_type = MAX_BACNET_OBJECT_TYPE;
+            object_value.object_instance = BACNET_MAX_INSTANCE;
+            object_value.object_property = MAX_BACNET_PROPERTY_ID;
+            object_value.array_index = BACNET_ARRAY_ALL;
+            object_value.value = &value;
+            bacapp_print_value(stdout, &object_value);
+            if (len > 0) {
+                if (len < application_data_len) {
+                    application_data += len;
+                    application_data_len -= len;
+                    /* there's more! */
+#if PRINT_ENABLED
+                    fprintf(stdout, ",");
+#endif
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+#if PRINT_ENABLED
+        if (print_brace)
+            fprintf(stdout, "}");
+        fprintf(stdout, "\r\n");
+#endif
+    }
+}
+
 static void Init_Service_Handlers(
     void)
 {
@@ -134,11 +204,9 @@ static void Init_Service_Handlers(
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    /* handle the data coming back from COV subscriptions */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_COV_NOTIFICATION,
-        handler_ccov_notification);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-        handler_ucov_notification);
+    /* handle the data coming back from confirmed requests */
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
+        MyUnconfirmedPrivateTransferHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -162,97 +230,117 @@ int main(
     time_t delta_seconds = 0;
     bool found = false;
     char *filename = NULL;
-    BACNET_SUBSCRIBE_COV_DATA cov_data = {0};
-    bool print_usage_terse = false;
-    bool print_usage_verbose = false;
+    char *value_string = NULL;
+    bool status = false;
+    int args_remaining = 0, tag_value_arg = 0, i = 0;
+    BACNET_APPLICATION_TAG property_tag;
+    uint8_t context_tag = 0;
+    BACNET_PRIVATE_TRANSFER_DATA private_data = {0};
+    int len = 0;
+    bool sent_message = false;
 
-    if (argc < 5) {
-        print_usage_terse = true;
-    }
-    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        print_usage_terse = true;
-        print_usage_verbose = true;
-    }
-    if (print_usage_terse) {
+    if (argc < 6) {
         filename = filename_remove_path(argv[0]);
-        /* note: priority 16 and 0 should produce the same end results... */
-        printf("Usage: %s device-id object-type object-instance "
-            "process-id lifetime [issueConfirmedNotifications]\r\n",
-            filename);
-        if (!print_usage_verbose) {
-            return 0;
+        printf("Usage: %s device-instance vendor-id service-number "
+            "tag value [tag value...]\r\n", filename);
+        if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+            printf("device-instance:\r\n"
+                "BACnet Device Object Instance number that you are\r\n"
+                "trying to communicate to.  This number will be used\r\n"
+                "to try and bind with the device using Who-Is and\r\n"
+                "I-Am services.  For example, if you were transferring to\r\n"
+                "Device Object 123, the device-instance would be 123.\r\n"
+                "\r\n"
+                "vendor_id:\r\n"
+                "the unique vendor identification code for the type of\r\n"
+                "vendor proprietary service to be performed.\r\n"
+                "\r\n"
+                "service-number (Unsigned32):\r\n"
+                "the desired proprietary service to be performed.\r\n"
+                "\r\n"
+                "tag:\r\n"
+                "Tag is the integer value of the enumeration \r\n"
+                "BACNET_APPLICATION_TAG in bacenum.h.\r\n"
+                "It is the data type of the value that you are sending.\r\n"
+                "For example, if you were transfering a REAL value, you would \r\n"
+                "use a tag of 4.\r\n"
+                "Context tags are created using two tags in a row.\r\n"
+                "The context tag is preceded by a C.  Ctag tag.\r\n"
+                "C2 4 creates a context 2 tagged REAL.\r\n"
+                "\r\n"
+                "value:\r\n"
+                "The value is an ASCII representation of some type of data\r\n"
+                "that you are transfering.\r\n"
+                "It is encoded using the tag information provided.\r\n"
+                "For example, if you were transferring a REAL value of 100.0,\r\n"
+                "you would use 100.0 as the value.\r\n"
+                "If you were transferring an object identifier for Device 123,\r\n"
+                "you would use 8:123 as the value.\r\n"
+                "\r\n"
+                "Example:\r\n"
+                "If you want to transfer a REAL value of 1.1 to service 23 of \r\n"
+                "vendor 260 in Device 99, you could send the following command:\r\n"
+                "%s 99 260 23 4 1.1\r\n", filename);
         }
-    }
-    if (print_usage_verbose) {
-        printf("\r\n"
-            "device-id:\r\n"
-            "The subscriber BACnet Device Object Instance number.\r\n"
-            "\r\n"
-            "object-type:\r\n"
-            "The monitored object type is the integer value of the\r\n"
-            "enumeration BACNET_OBJECT_TYPE in bacenum.h.  For example,\r\n"
-            "if you were monitoring Analog Output 2, the object-type\r\n"
-            "would be 1.\r\n"
-            "\r\n"
-            "object-instance:\r\n"
-            "The monitored object instance number.\r\n"
-            "\r\n"
-            "process-id:\r\n"
-            "Process Identifier for this COV subscription.\r\n"
-            "\r\n"
-            "lifetime:\r\n"
-            "Optional subscription lifetime is conveyed in seconds.\r\n"
-            "\r\n"
-            "issueConfirmedNotifications:\r\n"
-            "Optional flag to subscribe using Confirmed notifications.\r\n"
-            "Use the word \'confirmed\'.\r\n"
-            "\r\n"
-            "If both the \'issueConfirmedNotifications\' and\r\n"
-            "\'lifetime\' parameters are absent, then this shall\r\n"
-            "indicate a cancellation request.\r\n"
-            "\r\n"
-            "Example:\r\n"
-            "If you want subscribe to Device 123 Analog Input 9 object\r\n"
-            "using confirmed COV notifications for 5 minutes,\r\n"
-            "you could send the following command:\r\n"
-            "%s 123 0 9 1 600 confirmed\r\n"
-            "To send the same COV subscription request for unconfirmed\r\n"
-            "notifications, you could send the following command:\r\n"
-            "%s 123 0 9 1 600\r\n",
-            filename, filename);
         return 0;
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    cov_data.monitoredObjectIdentifier.type = strtol(argv[2], NULL, 0);
-    cov_data.monitoredObjectIdentifier.instance = strtol(argv[3], NULL, 0);
-    cov_data.subscriberProcessIdentifier =
-    Target_Device_Process_Identifier = strtol(argv[4], NULL, 0);
-    if (argc > 5) {
-        cov_data.lifetime = strtol(argv[5], NULL, 0);
-        cov_data.issueConfirmedNotifications = false;
-    } else {
-        cov_data.cancellationRequest = true;
-    }
-    if (argc > 6) {
-        if (strcmp(argv[6],"confirmed") == 0) {
-            cov_data.issueConfirmedNotifications = true;
-        }
-    }
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
+    Target_Vendor_Identifier = strtol(argv[2], NULL, 0);
+    Target_Service_Number = strtol(argv[3], NULL, 0);
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (cov_data.monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            cov_data.monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
-        return 1;
+    args_remaining = (argc - (6-2));
+    for (i = 0; i < MAX_PROPERTY_VALUES; i++) {
+        tag_value_arg = (6-2) + (i * 2);
+        /* special case for context tagged values */
+        if (toupper(argv[tag_value_arg][0]) == 'C') {
+            context_tag = strtol(&argv[tag_value_arg][1], NULL, 0);
+            tag_value_arg++;
+            args_remaining--;
+            Target_Object_Property_Value[i].context_tag = context_tag;
+            Target_Object_Property_Value[i].context_specific = true;
+        } else {
+            Target_Object_Property_Value[i].context_specific = false;
+        }
+        property_tag = strtol(argv[tag_value_arg], NULL, 0);
+        args_remaining--;
+        if (args_remaining <= 0) {
+            fprintf(stderr, "Error: not enough tag-value pairs\r\n");
+            return 1;
+        }
+        value_string = argv[tag_value_arg + 1];
+        args_remaining--;
+        /* printf("tag[%d]=%u value[%d]=%s\r\n",
+           i, property_tag, i, value_string); */
+        if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
+            fprintf(stderr, "Error: tag=%u - it must be less than %u\r\n",
+                property_tag, MAX_BACNET_APPLICATION_TAG);
+            return 1;
+        }
+        status =
+            bacapp_parse_application_data(property_tag, value_string,
+            &Target_Object_Property_Value[i]);
+        if (!status) {
+            /* FIXME: show the expected entry format for the tag */
+            fprintf(stderr, "Error: unable to parse the tag value\r\n");
+            return 1;
+        }
+        Target_Object_Property_Value[i].next = NULL;
+        if (i > 0) {
+            Target_Object_Property_Value[i - 1].next =
+                &Target_Object_Property_Value[i];
+        }
+        if (args_remaining <= 0) {
+            break;
+        }
     }
-    if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-            cov_data.monitoredObjectIdentifier.instance,
-            BACNET_MAX_INSTANCE + 1);
+    if (args_remaining > 0) {
+        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n",
+            MAX_PROPERTY_VALUES);
         return 1;
     }
     /* setup my info */
@@ -263,9 +351,6 @@ int main(
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
-    if (timeout_seconds < cov_data.lifetime) {
-        timeout_seconds = cov_data.lifetime;
-    }
     /* try to bind with the device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,
@@ -283,9 +368,7 @@ int main(
             /* increment timer - exit if timed out */
             delta_seconds = current_seconds - last_seconds;
             elapsed_seconds += delta_seconds;
-            tsm_timer_milliseconds((delta_seconds * 1000));
-            /* keep track of time for next check */
-            last_seconds = current_seconds;
+            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         }
         if (Error_Detected)
             break;
@@ -295,28 +378,26 @@ int main(
                 address_bind_request(Target_Device_Object_Instance, &max_apdu,
                 &Target_Address);
         }
-        if (found) {
-            if (Request_Invoke_ID == 0) {
-                Request_Invoke_ID = Send_COV_Subscribe(
-                    Target_Device_Object_Instance,
-                    &cov_data);
-                printf("Sent SubscribeCOV request.  Waiting %u seconds.\r\n",
+        if (!sent_message) {
+            if (found) {
+                len = bacapp_encode_data(&Service_Parameters[0],
+                    &Target_Object_Property_Value[0]);
+                private_data.serviceParameters = &Service_Parameters[0];
+                private_data.serviceParametersLen = len;
+                private_data.vendorID = Target_Vendor_Identifier;
+                private_data.serviceNumber = Target_Service_Number;
+                Send_UnconfirmedPrivateTransfer(
+                    &Target_Address,
+                    &private_data);
+                printf("Sent PrivateTransfer.  Waiting %u seconds.\r\n",
                     (unsigned)(timeout_seconds - elapsed_seconds));
-            } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
-                /* do nothing - wait for lifetime value to expire */
-            } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                tsm_free_invoke_id(Request_Invoke_ID);
-                Error_Detected = true;
-                /* try again or abort? */
-                break;
-            }
-        } else {
-            /* exit if timed out */
-            if (elapsed_seconds > timeout_seconds) {
-                Error_Detected = true;
-                printf("\rError: APDU Timeout!\r\n");
-                break;
+                sent_message = true;
+            } else {
+                if (elapsed_seconds > timeout_seconds) {
+                    printf("\rError: APDU Timeout!\r\n");
+                    Error_Detected = true;
+                    break;
+                }
             }
         }
         /* returns 0 bytes on timeout */
@@ -328,11 +409,14 @@ int main(
         if (Error_Detected) {
             break;
         }
-        /* COV - so just wait until lifetime value expires */
+        /* unconfirmed - so just wait until our timeout value */
         if (elapsed_seconds > timeout_seconds) {
             break;
         }
+        /* keep track of time for next check */
+        last_seconds = current_seconds;
     }
+
     if (Error_Detected)
         return 1;
     return 0;
