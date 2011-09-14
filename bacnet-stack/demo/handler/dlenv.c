@@ -38,7 +38,7 @@
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 
-#if defined(BACDL_BIP) 
+#if defined(BACDL_BIP)
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
 /* BBMD variables */
@@ -79,17 +79,17 @@ void dlenv_bbmd_ttl_set( int ttl_secs )
 }
 
 /** Get the result of the last attempt to register with the indicated BBMD.
- * If we sent a foreign registration request, then see if we've received 
+ * If we sent a foreign registration request, then see if we've received
  * a NAK in our BVLC handler.
- * 
+ *
  * @return Positive number (of bytes sent) if registration was successful,
  *         0 if no registration request was made, or
  *         -1 if registration attempt failed.
  */
 int dlenv_bbmd_result( void )
 {
-    if ( (bbmd_result > 0) && 
-         (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK) ) 
+    if ( (bbmd_result > 0) &&
+         (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK) )
         return -1;
     /* Else, show our send: */
     return bbmd_result;
@@ -114,7 +114,7 @@ int dlenv_register_as_foreign_device(
     void)
 {
   int retval = 0;
-#if defined(BACDL_BIP) 
+#if defined(BACDL_BIP)
     char *pEnv = NULL;
 
     pEnv = getenv("BACNET_BBMD_PORT");
@@ -165,7 +165,7 @@ int dlenv_register_as_foreign_device(
 void dlenv_maintenance_timer(
     uint16_t elapsed_seconds)
 {
-#if defined(BACDL_BIP) 
+#if defined(BACDL_BIP)
     if (BBMD_Timer_Seconds) {
         if (BBMD_Timer_Seconds <= elapsed_seconds) {
             BBMD_Timer_Seconds = 0;
@@ -231,7 +231,7 @@ void dlenv_init(
 #if defined(BACDL_ALL)
     pEnv = getenv("BACNET_DATALINK");
     if (pEnv) {
-        datalink_set(pEnv));
+        datalink_set(pEnv);
     } else {
         datalink_set(NULL);
     }
