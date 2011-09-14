@@ -156,7 +156,7 @@ void dlenv_init(
 #if defined(BACDL_ALL)
     pEnv = getenv("BACNET_DATALINK");
     if (pEnv) {
-        datalink_set(pEnv));
+        datalink_set(pEnv);
     } else {
         datalink_set(NULL);
     }
