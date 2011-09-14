@@ -86,6 +86,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_whohas.c  \
 	$(BACNET_HANDLER)/h_ihave.c  \
 	$(BACNET_HANDLER)/h_cov.c  \
+	$(BACNET_HANDLER)/h_ccov.c  \
 	$(BACNET_HANDLER)/h_ucov.c  \
 	$(BACNET_HANDLER)/h_getevent.c  \
 	$(BACNET_HANDLER)/h_get_alarm_sum.c  \
