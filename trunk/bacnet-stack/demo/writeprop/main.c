@@ -274,7 +274,7 @@ int main(
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+        fprintf(stderr, "property=%u - it must be less than %u\r\n",
             Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
