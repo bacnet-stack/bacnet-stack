@@ -162,7 +162,14 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string,
         uint8_t * value,
         size_t length);
-    bool octetstring_copy(
+#ifdef PRINT_ENABLED
+    /* converts an null terminated ASCII Hex string to an octet string.
+       returns true if successfully converted and fits; false if too long */
+    bool octetstring_init_ascii_hex(
+        BACNET_OCTET_STRING * octet_string,
+        const char * ascii_hex);
+#endif
+bool octetstring_copy(
         BACNET_OCTET_STRING * dest,
         BACNET_OCTET_STRING * src);
 /* returns false if the string exceeds capacity */
