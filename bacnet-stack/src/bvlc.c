@@ -1274,6 +1274,7 @@ void bvlc_for_non_bbmd(
             result_code = BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK;
             break;
         case BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:
+        	result_code = BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
             break;
         /* case BVLC_ORIGINAL_UNICAST_NPDU: */
         /* case BVLC_ORIGINAL_BROADCAST_NPDU: */
