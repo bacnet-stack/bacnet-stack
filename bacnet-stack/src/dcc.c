@@ -177,7 +177,9 @@ int dcc_decode_service_request(
 
     /* check for value pointers */
     if (apdu_len) {
-        /* Tag 0: timeDuration --optional-- */
+        /* Tag 0: timeDuration, in minutes --optional--
+         * But if not included, take it as indefinite,
+         * which we return as "very large" */
         if (decode_is_context_tag(&apdu[len], 0)) {
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
@@ -186,7 +188,7 @@ int dcc_decode_service_request(
             if (timeDuration)
                 *timeDuration = (uint16_t) value32;
         } else if (timeDuration)
-            *timeDuration = 0;
+            *timeDuration = 0xFFFF;		/* As big as we can make it: 2.99 years */
         /* Tag 1: enable_disable */
         if (!decode_is_context_tag(&apdu[len], 1))
             return -1;
