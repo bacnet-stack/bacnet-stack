@@ -409,7 +409,12 @@ int npdu_decode(
                 }
             }
         } else if (src) {
-            src->net = 0;
+        	/* Clear the net number, with one exception: if the receive() 
+        	 * function set it to BACNET_BROADCAST_NETWORK, (eg, for 
+        	 * BVLC_ORIGINAL_BROADCAST_NPDU) then don't stomp on that.
+        	 */
+        	if ( src->net != BACNET_BROADCAST_NETWORK )
+        		src->net = 0;
             src->len = 0;
             for (i = 0; i < MAX_MAC_LEN; i++) {
                 src->adr[i] = 0;
