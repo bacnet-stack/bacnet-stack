@@ -64,6 +64,7 @@ struct timezone {
 * To get microseconds accuracy we need to use QueryPerformanceCounter or
 * timeGetTime for the elapsed time.
 *************************************************************************/
+#if !defined(_MSC_VER)
 int gettimeofday(
     struct timeval *tp,
     void *tzp)
@@ -111,6 +112,7 @@ int gettimeofday(
 
     return 0;
 }
+#endif
 
 /*************************************************************************
 * Description: returns the current millisecond count
