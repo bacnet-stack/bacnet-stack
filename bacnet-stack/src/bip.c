@@ -234,6 +234,7 @@ uint16_t bip_receive(
     struct sockaddr_in sin = { 0 };
     socklen_t sin_len = sizeof(sin);
     uint16_t i = 0;
+    int function = 0;
 
     /* Make sure the socket is open */
     if (BIP_Socket < 0)
@@ -273,8 +274,19 @@ uint16_t bip_receive(
     /* the signature of a BACnet/IP packet */
     if (pdu[0] != BVLL_TYPE_BACNET_IP)
         return 0;
-    if ((pdu[1] == BVLC_ORIGINAL_UNICAST_NPDU) ||
-        (pdu[1] == BVLC_ORIGINAL_BROADCAST_NPDU)) {
+    
+    if ( bvlc_for_non_bbmd(&sin, pdu, received_bytes) > 0 )
+    {
+        /* Handled, usually with a NACK. */
+#if PRINT_ENABLED
+        fprintf(stderr, "BIP: BVLC discarded!\n");
+#endif
+        return 0;
+    }
+    
+    function = bvlc_get_function_code();        /* aka, pdu[1] */
+    if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
+        (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
         if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
             (sin.sin_port == BIP_Port)) {
@@ -327,7 +339,7 @@ uint16_t bip_receive(
 #endif
             }
         }
-    } else if (pdu[1] == BVLC_FORWARDED_NPDU) {
+    } else if (function == BVLC_FORWARDED_NPDU) {
         memcpy(&sin.sin_addr.s_addr, &pdu[4], 4);
         memcpy(&sin.sin_port, &pdu[8], 2);
         if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
@@ -356,14 +368,7 @@ uint16_t bip_receive(
                 pdu_len = 0;
             }
         }
-    } else {
-        /* Handle, usually with a NACK. */
-        bvlc_for_non_bbmd(&sin, pdu, received_bytes);
-#if PRINT_ENABLED
-        fprintf(stderr, "BIP: BVLC discarded!\n");
-#endif
-        pdu_len = 0;
-    }
+    } 
 
     return pdu_len;
 }
