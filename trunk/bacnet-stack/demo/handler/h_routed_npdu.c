@@ -203,9 +203,15 @@ static void routed_apdu_handler(
          * was broadcast to us, we should assume "someone else" is handling
          * it and not get involved (ie, send a Reject-Message). 
          * Since we can't reach other routers that src couldn't already reach, 
-         * we don't try the standard path of asking Who-Is-Router-to-Network. 
-         * Upper level handlers knew that this was sent as a bcast,
-         * but our only way to guess at that here is if the dest->adr
+         * we don't try the standard path of asking Who-Is-Router-to-Network. */
+#if defined(BACDL_BIP)
+        /* If wasn't unicast to us, must have been one of the bcast types.
+         * Drop it. */ 
+        if ( bvlc_get_function_code() != BVLC_ORIGINAL_UNICAST_NPDU )
+            return;
+#endif
+         /* Upper level handlers knew that this was sent as a bcast,
+         * but our only other way to guess at that here is if the dest->adr
          * is absent, then we know this is some sort of bcast.
          */
         if ( dest->len > 0 ) {
