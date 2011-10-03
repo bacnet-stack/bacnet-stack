@@ -51,12 +51,6 @@
 #endif
 #include "dlenv.h"
 
-/* All included BACnet objects */
-static object_functions_t Object_Table[] = {
-    {DEVICE_OBJ_FUNCTIONS},
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
-};
-
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
@@ -175,7 +169,7 @@ void My_NPDU_Handler(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Init(&Object_Table[0]);
+    Device_Init(NULL);
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);

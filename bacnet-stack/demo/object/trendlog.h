@@ -197,10 +197,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define TRENDLOG_OBJ_FUNCTIONS \
-    OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count, \
-    Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance, \
-    Trend_Log_Object_Name, Trend_Log_Read_Property, \
-    Trend_Log_Write_Property, Trend_Log_Property_Lists, \
-    TrendLogGetRRInfo, NULL, NULL
+
 #endif

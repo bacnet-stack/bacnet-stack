@@ -45,7 +45,8 @@ BUILD_DEFINE = -DMAX_PROPERTY_VALUES=64
 
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE) $(BUILD_DEFINE)
 
-SRCS = main.c
+SRCS = main.c \
+	$(BACNET_OBJECT)\device-client.c
 
 OBJS = $(SRCS:.c=.obj)
 

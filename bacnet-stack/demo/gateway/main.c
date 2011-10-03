@@ -59,20 +59,6 @@
 #ifdef BACNET_TEST_VMAC
 #include "vmac.h"
 #endif
-#include "ai.h"
-#include "ao.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
-#include "bv.h"
-#include "lc.h"
-#include "lsp.h"
-#include "mso.h"
-#include "ms-input.h"
-#include "trendlog.h"
-#if defined(BACFILE)
-#include "bacfile.h"
-#endif
 
 /** @file gateway/main.c  Example virtual gateway application using the BACnet Stack. */
 
@@ -139,10 +125,10 @@ static void Init_Service_Handlers(
     Routing_Device_Init(first_object_instance);
 
     /* we need to handle who-is to support dynamic device binding
-     * For the gateway, we will use the unicast variety so we can 
-     * get back through switches to different subnets. 
+     * For the gateway, we will use the unicast variety so we can
+     * get back through switches to different subnets.
      * Don't need the routed versions, since the npdu handler calls
-     * each device in turn. 
+     * each device in turn.
      */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
             handler_who_is_unicast);

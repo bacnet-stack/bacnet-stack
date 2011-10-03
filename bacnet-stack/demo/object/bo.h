@@ -109,10 +109,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define BINARY_OUTPUT_OBJ_FUNCTIONS \
-    OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count, \
-    Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance, \
-    Binary_Output_Object_Name, Binary_Output_Read_Property, \
-    Binary_Output_Write_Property, Binary_Output_Property_Lists, \
-    NULL, NULL, NULL
+
 #endif

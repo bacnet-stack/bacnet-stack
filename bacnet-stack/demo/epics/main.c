@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-/** @file epics/bacepics.c  Command line tool to build a full VTS3 EPICS file, 
+/** @file epics/bacepics.c  Command line tool to build a full VTS3 EPICS file,
  *                          including the heading information. */
 
 #include <stddef.h>
@@ -68,13 +68,6 @@
  * 2) Determines some basic device properties for the header.
  * 3) Postpends the tail information to complete the EPICS file.
  */
-
-/* All included BACnet objects */
-static object_functions_t Object_Table[] = {
-    {DEVICE_OBJ_FUNCTIONS},
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL, NULL, NULL}
-};
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -299,7 +292,7 @@ void MyReadPropertyMultipleAckHandler(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Init(&Object_Table[0]);
+    Device_Init(NULL);
 
 #if BAC_ROUTING
     uint32_t Object_Instance;
@@ -335,12 +328,12 @@ static void Init_Service_Handlers(
 }
 
 
-/** Determine if this is a writable property, and, if so, 
+/** Determine if this is a writable property, and, if so,
  * note that in the EPICS output.
- * This function may need a lot of customization for different implementations; 
+ * This function may need a lot of customization for different implementations;
  * but as a starting point, take the Device object-instance and -name as writable.
- * For the EPICS output to VTS3, printing 'w' after the property is sufficient, 
- * but to aid readability for human eyes, printing as "Writable". 
+ * For the EPICS output to VTS3, printing 'w' after the property is sufficient,
+ * but to aid readability for human eyes, printing as "Writable".
  *
  * @param object_type [in] The BACnet Object type of this object.
  * @note  object_instance [in] The ID number for this object.
@@ -348,7 +341,7 @@ static void Init_Service_Handlers(
  *                          Value, and Error information.
  */
 void CheckIsWritableProperty(
-    BACNET_OBJECT_TYPE object_type, 
+    BACNET_OBJECT_TYPE object_type,
     /* uint32_t object_instance, */
     BACNET_PROPERTY_REFERENCE * rpm_property)
 {
@@ -639,11 +632,11 @@ void PrintReadPropertyData(
                 break;
 
             default:
-                /* First, if this is a date type, it needs a different format 
+                /* First, if this is a date type, it needs a different format
                  * for VTS, so pretty print it. */
                 if (ShowValues && (object_value.value->tag == BACNET_APPLICATION_TAG_DATE))
                 {
-                    /* This would be PROP_LOCAL_DATE, or OBJECT_DATETIME_VALUE, 
+                    /* This would be PROP_LOCAL_DATE, or OBJECT_DATETIME_VALUE,
                      * or OBJECT_DATE_VALUE                     */
                     PrettyPrintPropertyValue(stdout, &object_value);
                 } else {
@@ -684,7 +677,7 @@ void PrintReadPropertyData(
                         /* Closing brace for this multi-valued array */
                         fprintf(stdout, " }");
                     }
-                    CheckIsWritableProperty(object_type, /* object_instance, */ 
+                    CheckIsWritableProperty(object_type, /* object_instance, */
                                             rpm_property);
                     fprintf(stdout, "\r\n");
                 }
@@ -714,7 +707,7 @@ void Print_Property_Identifier(
 
 /** Build a list of properties to request with RPM.
  * @param rpm_object [out] The structure holding our linked list of properties to request.
- * @param propList [in] Simple list of properties (ptr to array), terminated with -1 
+ * @param propList [in] Simple list of properties (ptr to array), terminated with -1
  */
 void BuildPropRequest( BACNET_READ_ACCESS_DATA *rpm_object, int32_t *propList )
 {
@@ -870,8 +863,8 @@ EPICS_STATES ProcessRPMData(
                     free(old_value);
                 }
             } else if ( myState == GET_HEADING_RESPONSE ) {
-            	InitIdValues[i++] = rpm_property->value;	
-            	/* copy this pointer. 
+            	InitIdValues[i++] = rpm_property->value;
+            	/* copy this pointer.
             	 * On error, the pointer will be null
             	 * We won't free these values*/
             } else {
@@ -892,7 +885,7 @@ EPICS_STATES ProcessRPMData(
 
     /* Now determine the next state */
     if ( myState == GET_HEADING_RESPONSE )
-    	nextState = PRINT_HEADING;		
+    	nextState = PRINT_HEADING;
         /* press ahead with or without the data */
     else if (bSuccess && (myState == GET_ALL_RESPONSE))
         nextState = NEXT_OBJECT;
@@ -1038,7 +1031,7 @@ void PrintHeading( )
 	char *relation = "for";		/* Text for Gateways */
 	if ( Target_Address.net != 0 )
 		relation = "provided by";	/* Text for child routed devices */
-	
+
 	printf("PICS 0\r\n");
 	printf("BACnet Protocol Implementation Conformance Statement\r\n\r\n");
 
@@ -1046,14 +1039,14 @@ void PrintHeading( )
 	printf("-- BACnet/IP Interface for BACnet-stack Devices\r\n");
 	printf("-- http://sourceforge.net/projects/bacnet/ \r\n");
 	printf("-- \r\n-- \r\n\r\n");
-/*	InitIdValues  , , , */ 
-	
+/*	InitIdValues  , , , */
+
 	value = InitIdValues[INIT_VENDOR_NAME];
 	if ( value != NULL )
 		printf("Vendor Name: \"%s\"\r\n", characterstring_value( &value->type.Character_String) );
 	else
 		printf("Vendor Name: \"bacnet-stack\"\r\n");
-		
+
 	value = InitIdValues[INIT_MODEL_NAME];
 	/* Best we can do with Product Name and Model Number is use the same text */
 	if ( value != NULL ) {
@@ -1079,11 +1072,11 @@ void PrintHeading( )
 	printf(" DM-DOB-B\r\n");
 	printf(" DM-DCC-B\r\n");
 	printf(" DM-RD-B\r\n");
-#ifdef BAC_ROUTING 
+#ifdef BAC_ROUTING
 	/* Next line only for the gateway (ie, if not addressing a subNet) */
 	if ( Target_Address.net == 0 )
 		printf(" NM-RC-B\r\n");
-#endif	
+#endif
 	printf("}\r\n\r\n");
 	/* You might add some of:
 	 *	-- DS-COV-A DS-COV-B
@@ -1104,7 +1097,7 @@ void PrintHeading( )
 	printf(" Who-Is                         Initiate Execute\r\n");
 	printf(" I-Am                           Initiate\r\n");
 	printf(" ReinitializeDevice             Execute\r\n");
-#ifdef BAC_ROUTING	
+#ifdef BAC_ROUTING
 	if ( Target_Address.net == 0 )
 	{
 		printf(" -- Note: The following Routing Services are Supported:\r\n");
@@ -1113,7 +1106,7 @@ void PrintHeading( )
 		printf(" -- Initialize-Routing-Table    Execute\r\n");
 		printf(" -- Initialize-Routing-Table-Ack Initiate\r\n");
 	}
-#endif	
+#endif
 	printf("}\r\n\r\n");
 	/* You might want to add some of:
 	 *	-- AcknowledgeAlarm               Initiate Execute
@@ -1132,10 +1125,10 @@ void PrintHeading( )
 	printf("Standard Object-Types Supported:\r\n");
 	printf("{\r\n");
 	value = InitIdValues[INIT_OBJ_TYPES];
-	/* We have to process this bit string and determine which Object Types we have, 
+	/* We have to process this bit string and determine which Object Types we have,
 	 * and show them
 	 */
-	if ( ( value != NULL ) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) ) 
+	if ( ( value != NULL ) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) )
 	{
 		int i, len = bitstring_bits_used(&value->type.Bit_String);
         for ( i = 0; i < len; i++) {
@@ -1148,8 +1141,8 @@ void PrintHeading( )
 		printf(" Binary Input\r\n");
 		printf(" Binary Value\r\n");
 		printf(" Device\r\n");
-		printf(" Multi-state Input\r\n");              
-		printf(" Multi-state Value\r\n");      
+		printf(" Multi-state Input\r\n");
+		printf(" Multi-state Value\r\n");
 		printf(" Structured View\r\n");
 		printf(" Characterstring Value\r\n");
 		printf(" Datetime Value\r\n");
@@ -1163,7 +1156,7 @@ void PrintHeading( )
 	 *	-- Multi-state Output
 	 *	-- Trend Log                      Createable Deleteable
 	 *	-- Load Control
-	 *	-- Bitstring Value				
+	 *	-- Bitstring Value
 	 *	-- Date Pattern Value
 	 *	-- Date Value
 	 *	-- Datetime Pattern Value
@@ -1172,7 +1165,7 @@ void PrintHeading( )
 	 *	-- Time Pattern Value
 	 *	-- Time Value
      */
-	
+
 	printf("Data Link Layer Option:\r\n");
 	printf("{\r\n");
 	printf(" BACnet/IP, 'DIX' Ethernet\r\n");
@@ -1187,8 +1180,8 @@ void PrintHeading( )
 	printf("{\r\n");
 	printf(" Maximum APDU size in octets: 1476\r\n");
 	printf("}\r\n\r\n");
-	
-	printf("List of Objects in Test Device:\r\n"); 
+
+	printf("List of Objects in Test Device:\r\n");
 	/* Print Opening brace, then kick off the Device Object */
 	printf("{\r\n");
 	printf("  {\r\n"); /* And opening brace for the first object */
@@ -1342,7 +1335,7 @@ int main(
                     myState = GET_HEADING_INFO;
                 }
                 break;
-                
+
             case GET_HEADING_INFO:
                 last_seconds = current_seconds;
                 StartNextObject(rpm_object, &myObject);
@@ -1414,7 +1407,7 @@ int main(
                     elapsed_seconds = 0;
                     invoke_id = 0;
                     if ( myState == GET_HEADING_RESPONSE )
-                    	myState = PRINT_HEADING;		
+                    	myState = PRINT_HEADING;
                         /* just press ahead without the data */
                     else if (Error_Detected) {
                         /* The normal case for Device Object */
@@ -1442,7 +1435,7 @@ int main(
                     invoke_id = 0;
                     elapsed_seconds = 0;
                     if ( myState == GET_HEADING_RESPONSE )
-                    	myState = PRINT_HEADING;		
+                    	myState = PRINT_HEADING;
                         /* just press ahead without the data */
                     else
                         myState = GET_ALL_REQUEST;  /* Let's try again */
@@ -1451,7 +1444,7 @@ int main(
                     elapsed_seconds = 0;
                     invoke_id = 0;
                     if ( myState == GET_HEADING_RESPONSE )
-                    	myState = PRINT_HEADING;		
+                    	myState = PRINT_HEADING;
                         /* just press ahead without the data */
                     else
                     myState = NEXT_OBJECT;      /* Give up and move on to the next. */

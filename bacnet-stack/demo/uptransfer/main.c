@@ -54,13 +54,6 @@
 #include "txbuf.h"
 #include "dlenv.h"
 
-/* All included BACnet objects */
-static object_functions_t Object_Table[] = {
-    {DEVICE_OBJ_FUNCTIONS},
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL,
-        NULL, NULL, NULL, NULL, NULL, NULL}
-};
-
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
@@ -124,74 +117,10 @@ void MyRejectHandler(
     }
 }
 
-void MyUnconfirmedPrivateTransferHandler(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src)
-{
-    BACNET_PRIVATE_TRANSFER_DATA private_data;
-    BACNET_OBJECT_PROPERTY_VALUE object_value;  /* for bacapp printing */
-    BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
-    int len = 0;
-    uint8_t *application_data;
-    int application_data_len;
-    bool first_value = true;
-    bool print_brace = false;
-
-    len = ptransfer_decode_service_request(
-        service_request, service_len, &private_data);
-    if (len >= 0) {
-        printf("PrivateTransfer:vendorID=%u\r\n",
-            (unsigned)private_data.vendorID);
-        printf("PrivateTransfer:serviceNumber=%lu\r\n",
-            (unsigned long)private_data.serviceNumber);
-        application_data = private_data.serviceParameters;
-        application_data_len = private_data.serviceParametersLen;
-        for (;;) {
-            len =
-                bacapp_decode_application_data(application_data,
-                (uint8_t) application_data_len, &value);
-            if (first_value && (len < application_data_len)) {
-                first_value = false;
-#if PRINT_ENABLED
-                fprintf(stdout, "{");
-#endif
-                print_brace = true;
-            }
-            /* private transfer doesn't provide any clues */
-            object_value.object_type = MAX_BACNET_OBJECT_TYPE;
-            object_value.object_instance = BACNET_MAX_INSTANCE;
-            object_value.object_property = MAX_BACNET_PROPERTY_ID;
-            object_value.array_index = BACNET_ARRAY_ALL;
-            object_value.value = &value;
-            bacapp_print_value(stdout, &object_value);
-            if (len > 0) {
-                if (len < application_data_len) {
-                    application_data += len;
-                    application_data_len -= len;
-                    /* there's more! */
-#if PRINT_ENABLED
-                    fprintf(stdout, ",");
-#endif
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-#if PRINT_ENABLED
-        if (print_brace)
-            fprintf(stdout, "}");
-        fprintf(stdout, "\r\n");
-#endif
-    }
-}
-
 static void Init_Service_Handlers(
     void)
 {
-    Device_Init(&Object_Table[0]);
+    Device_Init(NULL);
     /* we need to handle who-is
        to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
@@ -204,9 +133,9 @@ static void Init_Service_Handlers(
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
-    /* handle the data coming back from confirmed requests */
+    /* handle the data coming back from requests */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-        MyUnconfirmedPrivateTransferHandler);
+        handler_unconfirmed_private_transfer);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);

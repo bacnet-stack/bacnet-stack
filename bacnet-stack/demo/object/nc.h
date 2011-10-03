@@ -138,10 +138,5 @@ BACnetRecipient ::= CHOICE {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define NOTIFICATION_CLASS_OBJ_FUNCTIONS \
-    OBJECT_NOTIFICATION_CLASS, Notification_Class_Init, Notification_Class_Count, \
-    Notification_Class_Index_To_Instance, Notification_Class_Valid_Instance, \
-    Notification_Class_Object_Name, Notification_Class_Read_Property, \
-    Notification_Class_Write_Property, Notification_Class_Property_Lists, \
-    NULL, NULL, NULL
+
 #endif /* NC_H */
