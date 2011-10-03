@@ -147,23 +147,18 @@ int rp_ack_encode_apdu_init(
 {
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
-    uint32_t obj_instance = rpdata->object_instance;
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id;    /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
         apdu_len = 3;
-        
-        /* Test for case of indefinite Device object instance */
-        if ( (rpdata->object_type == OBJECT_DEVICE) && 
-        	 (obj_instance == BACNET_MAX_INSTANCE) )
-        	obj_instance = Device_Object_Instance_Number();
-        
+
         /* service ack follows */
         len =
-            encode_context_object_id(&apdu[apdu_len], 0, rpdata->object_type,
-            		obj_instance);
+            encode_context_object_id(&apdu[apdu_len], 0,
+            rpdata->object_type,
+            rpdata->object_instance);
         apdu_len += len;
         len =
             encode_context_enumerated(&apdu[apdu_len], 1,
@@ -205,7 +200,7 @@ int rp_ack_encode_apdu(
     int apdu_len = 0;   /* total length of the apdu, return value */
 
     if (apdu) {
-    	/* Do the initial encoding */
+        /* Do the initial encoding */
         apdu_len = rp_ack_encode_apdu_init(apdu, invoke_id, rpdata);
         /* propertyValue */
         for (len = 0; len < rpdata->application_data_len; len++) {

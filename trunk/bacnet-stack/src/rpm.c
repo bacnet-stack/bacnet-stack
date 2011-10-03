@@ -109,7 +109,7 @@ int rpm_encode_apdu_object_end(
 }
 
 /** Encode an RPM request, to be sent.
- * 
+ *
  * @param apdu [in,out] Buffer to hold encoded bytes.
  * @param max_apdu [in] Length of apdu buffer.
  * @param invoke_id [in] The Invoke ID to use for this message.
@@ -336,18 +336,12 @@ int rpm_ack_encode_apdu_object_begin(
     BACNET_RPM_DATA * rpmdata)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
-    uint32_t obj_instance = rpmdata->object_instance;
 
     if (apdu) {
-        /* Test for case of indefinite Device object instance */
-        if ( (rpmdata->object_type == OBJECT_DEVICE) && 
-        	 (obj_instance == BACNET_MAX_INSTANCE) )
-        	obj_instance = Device_Object_Instance_Number();
-
         /* Tag 0: objectIdentifier */
         apdu_len =
             encode_context_object_id(&apdu[0], 0, rpmdata->object_type,
-            		obj_instance);
+            rpmdata->object_instance);
         /* Tag 1: listOfResults */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
     }
