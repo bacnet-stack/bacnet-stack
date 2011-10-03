@@ -45,10 +45,10 @@
 #endif
 #include "debug.h"
 
-/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC), 
+/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC),
  * which includes: BACnet Broadcast Management Device,
  * Broadcast Distribution Table, and
- * Foreign Device Registration. 
+ * Foreign Device Registration.
  */
 
 /** if we are a foreign device, store the
@@ -105,7 +105,7 @@ typedef struct {
     time_t seconds_remaining;   /* includes 30 second grace period */
 } FD_TABLE_ENTRY;
 
-#ifndef MAX_FD_ENTRIES 
+#ifndef MAX_FD_ENTRIES
 #define MAX_FD_ENTRIES 128
 #endif
 static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
@@ -1174,7 +1174,7 @@ int bvlc_send_pdu(
 #endif
 
 
-/*********************************************** 
+/***********************************************
  * Functions to register us as a foreign device.
  ********************************************* */
 
@@ -1199,12 +1199,12 @@ static int bvlc_encode_register_foreign_device(
 }
 
 
-/** Register as a foreign device with the indicated BBMD. 
+/** Register as a foreign device with the indicated BBMD.
  * @param bbmd_address - IPv4 address (long) of BBMD to register with,
  *                       in network byte order.
  * @param bbmd_port - Network port of BBMD, in network byte order
  * @param time_to_live_seconds - Lease time to use when registering.
- * @return Positive number (of bytes sent) on success, 
+ * @return Positive number (of bytes sent) on success,
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
@@ -1236,19 +1236,20 @@ int bvlc_register_with_bbmd(
 /** Note any BVLC_RESULT code, or NAK the BVLL message in the unsupported cases.
  * Use this handler when you are not a BBMD.
  * Sets the BVLC_Function_Code in case it is needed later.
- * 
+ *
  * @param sout  [in] Socket address to send any NAK back to.
  * @param npdu  [in] The received buffer.
  * @param received_bytes [in] How many bytes in npdu[].
  * @return Non-zero BVLC_RESULT_ code if we sent a response (NAK) to this
  *      BVLC message.  If zero, may need further processing.
- */ 
-int bvlc_for_non_bbmd(     
-        struct sockaddr_in * sout,      
-        uint8_t * npdu,     
+ */
+int bvlc_for_non_bbmd(
+        struct sockaddr_in * sout,
+        uint8_t * npdu,
         uint16_t received_bytes)
 {
     uint16_t result_code = 0; /* aka, BVLC_RESULT_SUCCESSFUL_COMPLETION */
+
     BVLC_Function_Code = npdu[1];    /* The BVLC function */
     switch (BVLC_Function_Code) {
         case BVLC_RESULT:
@@ -1291,17 +1292,19 @@ int bvlc_for_non_bbmd(
         bvlc_send_result(sout, result_code);
         debug_printf("BVLC: NAK code=%d\n", result_code);
     }
+
+    return result_code;
 }
 
 /** Returns the last BVLL Result we received, either as the result of a BBMD
- * request we sent, or (if not a BBMD or Client), from trying to register 
+ * request we sent, or (if not a BBMD or Client), from trying to register
  * as a foreign device.
- * 
+ *
  * @return BVLC_RESULT_SUCCESSFUL_COMPLETION on success,
  * BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK if registration failed,
  * or one of the other codes (if we are a BBMD).
  */
-BACNET_BVLC_RESULT bvlc_get_last_result()
+BACNET_BVLC_RESULT bvlc_get_last_result(void)
 {
     return BVLC_Result_Code;
 }
@@ -1310,16 +1313,13 @@ BACNET_BVLC_RESULT bvlc_get_last_result()
  * We have to store this higher layer code for when the lower layers
  * need to know what it is, especially to differentiate between
  * BVLC_ORIGINAL_UNICAST_NPDU and BVLC_ORIGINAL_BROADCAST_NPDU.
- * 
+ *
  * @return A BVLC_ code, such as BVLC_ORIGINAL_UNICAST_NPDU.
  */
-BACNET_BVLC_FUNCTION bvlc_get_function_code()
+BACNET_BVLC_FUNCTION bvlc_get_function_code(void)
 {
     return BVLC_Function_Code;
 }
-
-
-
 
 #ifdef TEST
 #include <assert.h>
