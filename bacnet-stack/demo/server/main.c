@@ -212,9 +212,7 @@ int main(
             Device_local_reporting();
 #endif
         }
-        if (dcc_communication_enabled()) {
-            handler_cov_task();
-        }
+        handler_cov_task();
         /* scan cache address */
         address_binding_tmr += elapsed_seconds;
         if (address_binding_tmr >= 60) {

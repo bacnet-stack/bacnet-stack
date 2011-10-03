@@ -39,6 +39,7 @@
 #include "reject.h"
 #include "cov.h"
 #include "tsm.h"
+#include "dcc.h"
 /* demo objects */
 #include "device.h"
 #include "handlers.h"
@@ -321,6 +322,9 @@ static bool cov_send_request(
     bool status = false;        /* return value */
     BACNET_COV_DATA cov_data;
 
+    if (!dcc_communication_enabled()) {
+        return status;
+    }
 #if PRINT_ENABLED
     fprintf(stderr, "COVnotification: requested\n");
 #endif
