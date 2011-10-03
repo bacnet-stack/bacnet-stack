@@ -126,6 +126,11 @@ static int RPM_Encode_Property(
     len = 0;
     rpdata.error_class = ERROR_CLASS_OBJECT;
     rpdata.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    /* Test for case of indefinite Device object instance */
+    if ((rpmdata->object_type == OBJECT_DEVICE) &&
+        (rpmdata->object_instance == BACNET_MAX_INSTANCE)) {
+        rpmdata->object_instance = Device_Object_Instance_Number();
+    }
     rpdata.object_type = rpmdata->object_type;
     rpdata.object_instance = rpmdata->object_instance;
     rpdata.object_property = rpmdata->object_property;

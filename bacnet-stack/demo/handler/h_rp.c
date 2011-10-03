@@ -117,6 +117,11 @@ void handler_read_property(
     rpdata.application_data = &Handler_Transmit_Buffer[npdu_len + apdu_len];
     rpdata.application_data_len =
         sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
+    /* Test for case of indefinite Device object instance */
+    if ((rpdata.object_type == OBJECT_DEVICE) &&
+        (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
+        rpdata.object_instance = Device_Object_Instance_Number();
+    }
     len = Device_Read_Property(&rpdata);
     if (len >= 0) {
         apdu_len += len;
