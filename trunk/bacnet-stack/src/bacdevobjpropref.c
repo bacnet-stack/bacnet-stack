@@ -1,4 +1,4 @@
-index/*####COPYRIGHTBEGIN####
+/*####COPYRIGHTBEGIN####
  -------------------------------------------
  Copyright (C) 2008 John Minack
 
@@ -31,7 +31,8 @@ index/*####COPYRIGHTBEGIN####
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-
+#include <stdint.h>
+#include <stdbool.h>
 #include "bacdcode.h"
 #include "npdu.h"
 #include "device.h"
