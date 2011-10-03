@@ -98,8 +98,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define FILE_OBJ_FUNCTIONS \
-    OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance, \
-    bacfile_valid_instance, bacfile_object_name, bacfile_read_property, \
-    bacfile_write_property, BACfile_Property_Lists, NULL, NULL
+
 #endif

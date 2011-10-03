@@ -71,11 +71,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define MULTI_STATE_OUTPUT_OBJ_FUNCTIONS \
-    OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init, \
-    Multistate_Output_Count, Multistate_Output_Index_To_Instance, \
-    Multistate_Output_Valid_Instance, Multistate_Output_Object_Name, \
-    Multistate_Output_Read_Property, \
-    Multistate_Output_Write_Property, \
-    Multistate_Output_Property_Lists, NULL, NULL, NULL
+
 #endif

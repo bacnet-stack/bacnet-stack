@@ -70,7 +70,7 @@ typedef uint32_t(
  * @param object_name [in,out] Pointer to a character_string structure that
  *         will hold a copy of the object name if this is a valid object_instance.
  * @return True if the object_instance is valid and object_name has been
- *         filled with a copy of the Object's name.        
+ *         filled with a copy of the Object's name.
  */
 typedef bool(
     *object_name_function)
@@ -113,6 +113,23 @@ typedef bool(
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE * value_list);
 
+/** Look in the table of objects for this instance to see if value changed.
+ * @ingroup ObjHelpers
+ * @param [in] The object instance number to be looked up.
+ * @return True if the object instance has changed.
+ */
+typedef bool(
+    *object_cov_function) (
+    uint32_t object_instance);
+
+/** Look in the table of objects for this instance to clear the changed flag.
+ * @ingroup ObjHelpers
+ * @param [in] The object instance number to be looked up.
+ */
+typedef void(
+    *object_cov_clear_function) (
+    uint32_t object_instance);
+
 /** Intrinsic Reporting funcionality.
  * @ingroup ObjHelpers
  * @param [in] Object instance.
@@ -127,7 +144,7 @@ typedef void (
  * Each Object must provide some implementation of each of these helpers
  * in order to properly support the handlers.  Eg, the ReadProperty handler
  * handler_read_property() relies on the instance of Object_Read_Property
- * for each Object type.
+ * for each Object type, or configure the function as NULL.
  * In both appearance and operation, this group of functions acts like
  * they are member functions of a C++ Object base class.
  */
@@ -144,6 +161,8 @@ typedef struct object_functions {
     rr_info_function Object_RR_Info;
     object_iterate_function Object_Iterator;
     object_value_list_function Object_Value_List;
+    object_cov_function Object_COV;
+    object_cov_clear_function Object_COV_Clear;
     object_intrinsic_reporting_function Object_Intrinsic_Reporting;
 } object_functions_t;
 
@@ -224,13 +243,19 @@ extern "C" {
     void Device_Objects_Property_List(
         BACNET_OBJECT_TYPE object_type,
         struct special_property_list_t *pPropertyList);
-
+    /* functions to support COV */
     bool Device_Encode_Value_List(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
     bool Device_Value_List_Supported(
         BACNET_OBJECT_TYPE object_type);
+    bool Device_COV(
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance);
+    void Device_COV_Clear(
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance);
 
     uint32_t Device_Object_Instance_Number(
         void);
@@ -401,11 +426,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define DEVICE_OBJ_FUNCTIONS \
-    OBJECT_DEVICE, NULL, Device_Count, Device_Index_To_Instance, \
-    Device_Valid_Object_Instance_Number, Device_Object_Name, \
-    Device_Read_Property_Local, Device_Write_Property_Local, \
-    Device_Property_Lists, DeviceGetRRInfo, NULL, NULL
+
 /** @defgroup ObjFrmwk Object Framework
  * The modules in this section describe the BACnet-stack's framework for
  * BACnet-defined Objects (Device, Analog Input, etc). There are two submodules
@@ -415,11 +436,15 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
-          *//** @defgroup ObjHelpers Object Helper Functions
+ */
+
+/** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk
  * This section describes the function templates for the helper functions that
  * provide common object support.
-          *//** @defgroup ObjIntf Handler-to-Object Interface Functions
+ */
+
+/** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk
  * This section describes the fairly limited set of functions that link the
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are

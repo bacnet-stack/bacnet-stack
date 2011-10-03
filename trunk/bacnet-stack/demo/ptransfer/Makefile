@@ -1,14 +1,21 @@
-#Makefile to build BACnet Application for the Linux Port
+#Makefile to build BACnet Application using GCC compiler
 
 # tools - only if you need them.
 # Most platforms have this already defined
 # CC = gcc
+# AR = ar
+# MAKE = make
+# SIZE = size
+#
+# Assumes rm and cp are available
 
+# Executable file name
 TARGET = ptransfer
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-SRCS = main.c
+SRCS = main.c \
+	../object/device-client.c
 
 OBJS = ${SRCS:.c=.o}
 
@@ -32,6 +39,6 @@ depend:
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
 clean:
-	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET} $(TARGET).map
+	rm -rf core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET}
 
 include: .depend

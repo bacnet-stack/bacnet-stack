@@ -71,10 +71,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define BINARY_VALUE_OBJ_FUNCTIONS \
-    OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count, \
-    Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance, \
-    Binary_Value_Object_Name, Binary_Value_Read_Property, \
-    Binary_Value_Write_Property, Binary_Value_Property_Lists, NULL, \
-    NULL, NULL
+
 #endif

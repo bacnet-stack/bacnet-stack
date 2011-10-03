@@ -76,10 +76,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#define LOAD_CONTROL_OBJ_FUNCTIONS \
-    OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count, \
-    Load_Control_Index_To_Instance, Load_Control_Valid_Instance, \
-    Load_Control_Object_Name, Load_Control_Read_Property, \
-    Load_Control_Write_Property, Load_Control_Property_Lists, NULL, \
-    NULL, NULL
+
 #endif

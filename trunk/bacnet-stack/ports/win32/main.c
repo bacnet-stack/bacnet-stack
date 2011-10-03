@@ -59,26 +59,6 @@
 #include "bacfile.h"
 #endif
 
-/* All included BACnet objects */
-static object_functions_t Object_Table[] = {
-    {DEVICE_OBJ_FUNCTIONS},
-    {ANALOG_INPUT_OBJ_FUNCTIONS},
-    {ANALOG_OUTPUT_OBJ_FUNCTIONS},
-    {ANALOG_VALUE_OBJ_FUNCTIONS},
-    {BINARY_INPUT_OBJ_FUNCTIONS},
-    {BINARY_OUTPUT_OBJ_FUNCTIONS},
-    {BINARY_VALUE_OBJ_FUNCTIONS},
-    {LIFE_SAFETY_POINT_OBJ_FUNCTIONS},
-    {LOAD_CONTROL_OBJ_FUNCTIONS},
-    {MULTI_STATE_OUTPUT_OBJ_FUNCTIONS},
-    {MULTI_STATE_INPUT_OBJ_FUNCTIONS},
-    {TRENDLOG_OBJ_FUNCTIONS},
-#if defined(BACFILE)
-    {FILE_OBJ_FUNCTIONS},
-#endif
-    {MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
-};
-
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
@@ -189,8 +169,7 @@ static void LocalIAmHandler(
 static void Init_Service_Handlers(
     void)
 {
-    Device_Initialize_Object_Functions(&Object_Table[0]);
-    Device_Init();
+    Device_Init(NULL);
 
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);

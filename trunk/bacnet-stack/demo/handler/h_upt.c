@@ -45,20 +45,66 @@ void handler_unconfirmed_private_transfer(
     BACNET_ADDRESS * src)
 {
     BACNET_PRIVATE_TRANSFER_DATA private_data;
+    BACNET_OBJECT_PROPERTY_VALUE object_value;  /* for bacapp printing */
+    BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
     int len = 0;
+    uint8_t *application_data;
+    int application_data_len;
+    bool first_value = true;
+    bool print_brace = false;
 
 #if PRINT_ENABLED
     fprintf(stderr, "Received Unconfirmed Private Transfer Request!\n");
 #endif
-    (void) src;
-    len =
-        ptransfer_decode_service_request(service_request, service_len,
-        &private_data);
+    len = ptransfer_decode_service_request(
+        service_request, service_len, &private_data);
     if (len >= 0) {
 #if PRINT_ENABLED
-        fprintf(stderr,
-            "UnconfirmedPrivateTransfer: " "vendorID=%u serviceNumber=%u\n",
-            private_data.vendorID, private_data.serviceNumber);
+        printf("PrivateTransfer:vendorID=%u\r\n",
+            (unsigned)private_data.vendorID);
+        printf("PrivateTransfer:serviceNumber=%lu\r\n",
+            (unsigned long)private_data.serviceNumber);
+#endif
+        application_data = private_data.serviceParameters;
+        application_data_len = private_data.serviceParametersLen;
+        for (;;) {
+            len =
+                bacapp_decode_application_data(application_data,
+                (uint8_t) application_data_len, &value);
+            if (first_value && (len < application_data_len)) {
+                first_value = false;
+#if PRINT_ENABLED
+                fprintf(stdout, "{");
+#endif
+                print_brace = true;
+            }
+            /* private transfer doesn't provide any clues */
+            object_value.object_type = MAX_BACNET_OBJECT_TYPE;
+            object_value.object_instance = BACNET_MAX_INSTANCE;
+            object_value.object_property = MAX_BACNET_PROPERTY_ID;
+            object_value.array_index = BACNET_ARRAY_ALL;
+            object_value.value = &value;
+            bacapp_print_value(stdout, &object_value);
+            if (len > 0) {
+                if (len < application_data_len) {
+                    application_data += len;
+                    application_data_len -= len;
+                    /* there's more! */
+#if PRINT_ENABLED
+                    fprintf(stdout, ",");
+#endif
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+#if PRINT_ENABLED
+        if (print_brace)
+            fprintf(stdout, "}");
+        fprintf(stdout, "\r\n");
 #endif
     }
 }
+

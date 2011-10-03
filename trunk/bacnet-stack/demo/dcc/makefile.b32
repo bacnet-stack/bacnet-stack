@@ -12,7 +12,7 @@ BORLAND_DIR_Not_Defined:
 !endif
 
 # target
-PRODUCT = bacdcc
+PRODUCT = bacdcc ..\handler\device-client.c
 PRODUCT_EXE = $(PRODUCT).exe
 
 # tools
@@ -42,7 +42,8 @@ BACNET_DEFINES = -DPRINT_ENABLED=1 -DBACAPP_ALL
 BACDL_DEFINE=-DBACDL_BIP=1 -DUSE_INADDR=1
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE)
 
-SRCS = main.c
+SRCS = main.c \
+	$(BACNET_OBJECT)\device-client.c
 
 OBJS = $(SRCS:.c=.obj)
 
