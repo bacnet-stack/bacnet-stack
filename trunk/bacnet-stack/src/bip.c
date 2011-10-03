@@ -54,7 +54,7 @@ static struct in_addr BIP_Address;
 static struct in_addr BIP_Broadcast_Address;
 
 /** Setter for the BACnet/IP socket handle.
- * 
+ *
  * @param sock_fd [in] Handle for the BACnet/IP socket.
  */
 void bip_set_socket(
@@ -64,7 +64,7 @@ void bip_set_socket(
 }
 
 /** Getter for the BACnet/IP socket handle.
- * 
+ *
  * @return The handle to the BACnet/IP socket.
  */
 int bip_socket(
@@ -209,10 +209,10 @@ int bip_send_pdu(
     return bytes_sent;
 }
 
-/** Implementation of the receive() function for BACnet/IP; receives one 
- * packet, verifies its BVLC header, and removes the BVLC header from 
+/** Implementation of the receive() function for BACnet/IP; receives one
+ * packet, verifies its BVLC header, and removes the BVLC header from
  * the PDU data before returning.
- * 
+ *
  * @param src [out] Source of the packet - who should receive any response.
  * @param pdu [out] A buffer to hold the PDU portion of the received packet,
  * 					after the BVLC portion has been stripped off.
@@ -225,7 +225,7 @@ uint16_t bip_receive(
     uint8_t * pdu,      /* PDU data */
     uint16_t max_pdu,   /* amount of space available in the PDU  */
     unsigned timeout)
-{       
+{
     int received_bytes = 0;
     uint16_t pdu_len = 0;       /* return value */
     fd_set read_fds;
@@ -274,7 +274,7 @@ uint16_t bip_receive(
     /* the signature of a BACnet/IP packet */
     if (pdu[0] != BVLL_TYPE_BACNET_IP)
         return 0;
-    
+
     if ( bvlc_for_non_bbmd(&sin, pdu, received_bytes) > 0 )
     {
         /* Handled, usually with a NACK. */
@@ -283,7 +283,7 @@ uint16_t bip_receive(
 #endif
         return 0;
     }
-    
+
     function = bvlc_get_function_code();        /* aka, pdu[1] */
     if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
         (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
@@ -295,20 +295,10 @@ uint16_t bip_receive(
             fprintf(stderr, "BIP: src is me. Discarded!\n");
 #endif
         } else {
-            /* If this was an Original_Broadcast, ensure that
-             * the response gets bcast back by this:
-             */
-            if (pdu[1] == BVLC_ORIGINAL_BROADCAST_NPDU) {
-            	src->net = BACNET_BROADCAST_NETWORK;
-                src->mac_len = 0;
-            } else {
-           		src->net = 0;
-                /* data in src->mac[] is in network format */
-                src->mac_len = 6;
-                memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
-                memcpy(&src->mac[4], &sin.sin_port, 2);
-            }
-            
+            /* data in src->mac[] is in network format */
+            src->mac_len = 6;
+            memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
+            memcpy(&src->mac[4], &sin.sin_port, 2);
             /* FIXME: check destination address */
             /* see if it is broadcast or for us */
             /* decode the length of the PDU - length is inclusive of BVLC */
@@ -368,7 +358,7 @@ uint16_t bip_receive(
                 pdu_len = 0;
             }
         }
-    } 
+    }
 
     return pdu_len;
 }
