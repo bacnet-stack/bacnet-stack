@@ -35,13 +35,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for strlen */
-#ifdef PRINT_ENABLED
-#include <stdlib.h>     /* for strtol */
-#include <ctype.h>      /* for isalnum */
-#endif
 #include "config.h"
 #include "bacstr.h"
 #include "bits.h"
+#if PRINT_ENABLED
+#include <stdlib.h>     /* for strtol */
+#include <ctype.h>      /* for isalnum */
+#endif
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
 
@@ -645,7 +645,7 @@ bool octetstring_init(
     return status;
 }
 
-#ifdef PRINT_ENABLED
+#if PRINT_ENABLED
 /* converts an null terminated ASCII Hex string to an octet string.
    returns true if successfully converted and fits; false if too long */
 bool octetstring_init_ascii_hex(
