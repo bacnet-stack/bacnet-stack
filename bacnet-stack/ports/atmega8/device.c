@@ -47,8 +47,9 @@ static char *Object_Name = "My Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
 void Device_Init(
-    void)
+    object_functions_t * object_table)
 {
+    (void)object_table;
     /* Reinitialize_State = BACNET_REINIT_IDLE; */
     /* dcc_set_status_duration(COMMUNICATION_ENABLE, 0); */
     /* FIXME: Get the data from the eeprom */
