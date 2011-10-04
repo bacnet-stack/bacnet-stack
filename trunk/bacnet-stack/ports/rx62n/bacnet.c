@@ -49,7 +49,7 @@ void bacnet_init(
     void)
 {
     /* initialize objects */
-    Device_Init();
+    Device_Init(NULL);
 
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler

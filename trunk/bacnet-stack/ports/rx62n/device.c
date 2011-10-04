@@ -948,11 +948,13 @@ bool Device_Write_Property(
 /** Initialize the Device Object and each of its child Object instances.
  * @ingroup ObjIntf
  */
-void Device_Init(
-    void)
+    void Device_Init(
+        object_functions_t * object_table)
 {
     struct my_object_functions *pObject = NULL;
 
+    /* not using the standard table - using our own */
+    (void)object_table;
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
