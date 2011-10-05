@@ -291,7 +291,7 @@ uint16_t bip_receive(
         if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
             (sin.sin_port == BIP_Port)) {
             pdu_len = 0;
-#if PRINT_ENABLED
+#if 0
             fprintf(stderr, "BIP: src is me. Discarded!\n");
 #endif
         } else {
