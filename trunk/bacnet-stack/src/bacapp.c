@@ -1045,6 +1045,7 @@ bool bacapp_print_value(
                                 type.Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
+                    case PROP_RELINQUISH_DEFAULT:
                         if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
                             fprintf(stream, "%s",
                                 bactext_binary_present_value_name(value->type.
