@@ -45,6 +45,7 @@
 #include "bacapp.h"
 #include "bactext.h"
 #include "datetime.h"
+#include "bacstr.h"
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
@@ -1044,6 +1045,7 @@ bool bacapp_print_value(
                                 type.Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
+                    case PROP_RELINQUISH_DEFAULT:
                         if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
                             fprintf(stream, "%s",
                                 bactext_binary_present_value_name(value->type.
@@ -1188,8 +1190,8 @@ bool bacapp_parse_application_data(
 #endif
             case BACNET_APPLICATION_TAG_OCTET_STRING:
                 status =
-                    octetstring_init(&value->type.Octet_String,
-                    (uint8_t *) argv, strlen(argv));
+                    octetstring_init_ascii_hex(&value->type.Octet_String,
+                    argv);
                 break;
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
                 status =
