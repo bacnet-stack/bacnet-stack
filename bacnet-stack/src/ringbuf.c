@@ -50,7 +50,15 @@
 unsigned Ringbuf_Count(
     RING_BUFFER const *b)
 {
-    return (b ? (b->head - b->tail) : 0);
+    unsigned head, tail; /* used to avoid volatile decision */
+
+    if (b) {
+        head = b->head;
+        tail = b->tail;
+        return head-tail;
+    }
+
+    return 0;
 }
 
 /****************************************************************************
@@ -86,11 +94,14 @@ bool Ringbuf_Empty(
 uint8_t *Ringbuf_Get_Front(
     RING_BUFFER const *b)
 {
-    if (b) {
-        return (!Ringbuf_Empty(b) ? &(b->data[(b->tail % b->element_count) *
-                    b->element_size]) : NULL);
+    uint8_t *data_element = NULL;  /* return value */
+
+    if (!Ringbuf_Empty(b)) {
+        data_element = b->buffer;
+        data_element += ((b->tail % b->element_count) * b->element_size);
     }
-    return NULL;
+
+    return data_element;
 }
 
 /****************************************************************************
@@ -102,14 +113,15 @@ uint8_t *Ringbuf_Get_Front(
 uint8_t *Ringbuf_Pop_Front(
     RING_BUFFER * b)
 {
-    uint8_t *data = NULL;       /* return value */
+    uint8_t *data_element = NULL;
 
     if (!Ringbuf_Empty(b)) {
-        data = &(b->data[(b->tail % b->element_count) * b->element_size]);
+        data_element = b->buffer;
+        data_element += ((b->tail % b->element_count) * b->element_size);
         b->tail++;
     }
 
-    return data;
+    return data_element;
 }
 
 /****************************************************************************
@@ -120,17 +132,17 @@ uint8_t *Ringbuf_Pop_Front(
 *****************************************************************************/
 bool Ringbuf_Put(
     RING_BUFFER * b,    /* ring buffer structure */
-    uint8_t * data_element)
+    uint8_t *data_element)
 {       /* one element to add to the ring */
     bool status = false;        /* return value */
-    uint8_t *ring_data = NULL;  /* used to help point ring data */
+    uint8_t *ring_data = NULL;     /* used to help point ring data */
     unsigned i; /* loop counter */
 
     if (b && data_element) {
         /* limit the amount of elements that we accept */
         if (!Ringbuf_Full(b)) {
-            ring_data =
-                b->data + ((b->head % b->element_count) * b->element_size);
+            ring_data = b->buffer;
+            ring_data += ((b->head % b->element_count) * b->element_size);
             for (i = 0; i < b->element_size; i++) {
                 ring_data[i] = data_element[i];
             }
@@ -156,8 +168,8 @@ uint8_t *Ringbuf_Alloc(
     if (b) {
         /* limit the amount of elements that we accept */
         if (!Ringbuf_Full(b)) {
-            ring_data =
-                b->data + ((b->head % b->element_count) * b->element_size);
+            ring_data = b->buffer;
+            ring_data += ((b->head % b->element_count) * b->element_size);
             b->head++;
         }
     }
@@ -174,14 +186,14 @@ uint8_t *Ringbuf_Alloc(
 *****************************************************************************/
 void Ringbuf_Init(
     RING_BUFFER * b,    /* ring buffer structure */
-    uint8_t * data,     /* data block or array of data */
+    uint8_t * volatile buffer, /* data block or array of data */
     unsigned element_size,      /* size of one element in the data block */
     unsigned element_count)
 {       /* number of elements in the data block */
     if (b) {
         b->head = 0;
         b->tail = 0;
-        b->data = data;
+        b->buffer = buffer;
         b->element_size = element_size;
         b->element_count = element_count;
     }
