@@ -78,7 +78,7 @@ static struct my_object_functions {
 static uint32_t Object_Instance_Number = 103;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_CHARACTER_STRING My_Object_Name;
-
+static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -101,8 +101,6 @@ static const int Device_Properties_Required[] = {
     PROP_SEGMENTATION_SUPPORTED,
     PROP_APDU_TIMEOUT,
     PROP_NUMBER_OF_APDU_RETRIES,
-    PROP_MAX_MASTER,
-    PROP_MAX_INFO_FRAMES,
     PROP_DEVICE_ADDRESS_BINDING,
     PROP_DATABASE_REVISION,
     -1
@@ -110,10 +108,14 @@ static const int Device_Properties_Required[] = {
 
 static const int Device_Properties_Optional[] = {
     PROP_DESCRIPTION,
+    PROP_LOCATION,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
     -1
 };
 
 static const int Device_Properties_Proprietary[] = {
+    9600,
     -1
 };
 
@@ -178,9 +180,10 @@ static int Read_Property_Common(
                     (void) pObject->Object_Name(rpdata->object_instance,
                         &char_string);
                 }
+                apdu_len =
+                    encode_application_character_string(&apdu[0],
+                    &char_string);
             }
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             /*  only array properties can have array options */
@@ -353,6 +356,20 @@ bool Device_Object_Name(
     return status;
 }
 
+bool Device_Set_Object_Name(
+    BACNET_CHARACTER_STRING * object_name)
+{
+    bool status = false;        /*return value */
+
+    if (!characterstring_same(&My_Object_Name, object_name)) {
+        /* Make the change and update the database revision */
+        status = characterstring_copy(&My_Object_Name, object_name);
+        Device_Inc_Database_Revision();
+    }
+
+    return status;
+}
+
 bool Device_Reinitialize(
     BACNET_REINITIALIZE_DEVICE_DATA * rd_data)
 {
@@ -386,7 +403,10 @@ void Device_Init(
 {
     struct my_object_functions *pObject = NULL;
 
+    /* we don't use the object table passed in
+       since there is extra stuff we don't need in there. */
     (void) object_table;
+    /* our local object table */
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
@@ -466,7 +486,13 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(
 uint32_t Device_Database_Revision(
     void)
 {
-    return 0;
+    return Database_Revision;
+}
+
+void Device_Inc_Database_Revision(
+    void)
+{
+    Database_Revision++;
 }
 
 /* Since many network clients depend on the object list */
@@ -615,6 +641,11 @@ int Device_Read_Property_Local(
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+        case PROP_LOCATION:
+            characterstring_init_ansi(&char_string, "USA");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
         case PROP_SYSTEM_STATUS:
             apdu_len =
                 encode_application_enumerated(&apdu[0],
@@ -667,7 +698,6 @@ int Device_Read_Property_Local(
                not a list of objects that this device can access */
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
-                /* FIXME: if ReadProperty used an array of Functions... */
                 /* initialize all the object types to not-supported */
                 bitstring_set_bit(&bit_string, (uint8_t) i, false);
             }
@@ -786,6 +816,8 @@ bool Device_Write_Property_Local(
 {
     bool status = false;        /* return value - false=error */
     int len = 0;
+    uint8_t encoding = 0;
+    size_t length = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
@@ -847,18 +879,24 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                size_t length =
-                    characterstring_length(&value.type.Character_String);
+                length = characterstring_length(&value.type.Character_String);
                 if (length < 1) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                } else if (length < MAX_CHARACTER_STRING_BYTES) {
-                    uint8_t encoding =
+                } else if (length < characterstring_capacity(&My_Object_Name)) {
+                    encoding =
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
-                        characterstring_copy(&My_Object_Name,
-                            &value.type.Character_String);
+                        /* All the object names in a device must be unique. */
+                        if (Device_Valid_Object_Name(&value.type.
+                                Character_String, NULL, NULL)) {
+                            wp_data->error_class = ERROR_CLASS_PROPERTY;
+                            wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
+                        } else {
+                            Device_Set_Object_Name(&value.type.
+                                Character_String);
                         status = true;
+                        }
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code =
