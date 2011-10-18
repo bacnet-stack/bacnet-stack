@@ -214,7 +214,8 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    void handler_cov_task(
+    void handler_cov_task(void);
+    void handler_cov_timer_seconds(
         uint32_t elapsed_seconds);
     void handler_cov_init(
         void);
@@ -226,6 +227,11 @@ extern "C" {
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
+    void handler_ccov_notification(
+        uint8_t * service_request,
+        uint16_t service_len,
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_lso(
         uint8_t * service_request,
