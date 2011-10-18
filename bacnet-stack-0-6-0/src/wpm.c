@@ -33,11 +33,25 @@
 
 /** @file wpm.c  Encode/Decode BACnet Write Property Multiple APDUs  */
 
-/* decode service */
+/** Decoding for WritePropertyMultiple service, object ID.
+ * @ingroup DSWPM
+ * This handler will be invoked by write_property_multiple handler
+ * if it has been enabled by a call to apdu_set_confirmed_handler().
+ * This function decodes only the first tagged entity, which is
+ * an object identifier.  This function will return an error if:
+ *   - the tag is not the right value
+ *   - the number of bytes is not enough to decode for this entity
+ *   - the subsequent tag number is incorrect
+ *
+ * @param apdu [in] The contents of the APDU buffer.
+ * @param apdu_len [in] The length of the APDU buffer.
+ * @param data [out] The BACNET_WRITE_PROPERTY_DATA structure
+ *    which will contain the reponse values or error.
+ */
 int wpm_decode_object_id(
     uint8_t * apdu,
     uint16_t apdu_len,
-    BACNET_WRITE_PROPERTY_DATA * data)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -45,19 +59,36 @@ int wpm_decode_object_id(
     uint16_t object_type = 0;
     uint16_t len = 0;
 
-    if ((apdu) && (apdu_len)) {
+    if (apdu && (apdu_len > 5) && wp_data) {
         /* Context tag 0 - Object ID */
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if (tag_number == 0) {
+        if ((tag_number == 0) && (apdu_len > len)) {
+            apdu_len -= len;
+            if (apdu_len >= 4) {
             len +=
                 decode_object_id(&apdu[len], &object_type, &object_instance);
-            data->object_type = object_type;
-            data->object_instance = object_instance;
-        } else
-            return -1;
-    } else
-        return -1;
+                wp_data->object_type = object_type;
+                wp_data->object_instance = object_instance;
+                apdu_len -= len;
+            } else {
+                wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+                return BACNET_STATUS_REJECT;
+            }
+        } else {
+            wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
+        /* just test for the next tag - no need to decode it here */
+        /* Context tag 1: sequence of BACnetPropertyValue */
+        if (apdu_len && !decode_is_opening_tag_number(&apdu[len], 1)) {
+            wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
+    } else {
+        wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        return BACNET_STATUS_REJECT;
+    }
 
     return (int)len;
 }
@@ -85,8 +116,10 @@ int wpm_decode_object_property(
         if (tag_number == 0) {
             len += decode_enumerated(&apdu[len], len_value, &ulVal);
             wp_data->object_property = ulVal;
-        } else
-            return -1;
+        } else {
+            wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
 
         /* tag 1 - Property Array Index - optional */
         len +=
@@ -108,18 +141,23 @@ int wpm_decode_object_property(
             len++;
 
             /* copy application data */
-            for (i = 0; i < wp_data->application_data_len; i++)
+            for (i = 0; i < wp_data->application_data_len; i++) {
                 wp_data->application_data[i] = apdu[len + i];
+            }
             len += wp_data->application_data_len;
 
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value);
             /* closing tag 2 */
-            if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1])))
-                return -1;
-        } else
-            return -1;
+            if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1]))) {
+                wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+                return BACNET_STATUS_REJECT;
+            }
+        } else {
+            wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            return BACNET_STATUS_REJECT;
+        }
 
         /* tag 3 - Priority - optional */
         len +=
@@ -129,8 +167,10 @@ int wpm_decode_object_property(
             wp_data->priority = ulVal;
         } else
             len--;
-    } else
-        return -1;
+    } else {
+        wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        return BACNET_STATUS_REJECT;
+    }
 
     return len;
 }
