@@ -219,7 +219,12 @@ bool RS485_Set_Baud_Rate(
     return valid;
 }
 
-/* Transmits a Frame on the wire */
+/****************************************************************************
+* DESCRIPTION: Transmit a frame on the wire
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
 void RS485_Send_Frame(
     volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
     uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
@@ -249,7 +254,12 @@ void RS485_Send_Frame(
     return;
 }
 
-/* called by timer, interrupt(?) or other thread */
+/****************************************************************************
+* DESCRIPTION: Get a byte of receive data
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
 void RS485_Check_UART_Data(
     volatile struct mstp_port_struct_t *mstp_port)
 {
