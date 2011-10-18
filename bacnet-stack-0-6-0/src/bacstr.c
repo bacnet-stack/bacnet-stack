@@ -38,6 +38,10 @@
 #include "config.h"
 #include "bacstr.h"
 #include "bits.h"
+#if PRINT_ENABLED
+#include <stdlib.h>     /* for strtol */
+#include <ctype.h>      /* for isalnum */
+#endif
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
 
@@ -640,6 +644,49 @@ bool octetstring_init(
 
     return status;
 }
+
+#if PRINT_ENABLED
+/* converts an null terminated ASCII Hex string to an octet string.
+   returns true if successfully converted and fits; false if too long */
+bool octetstring_init_ascii_hex(
+    BACNET_OCTET_STRING * octet_string,
+    const char * ascii_hex)
+{
+    bool status = false;        /* return value */
+    unsigned index = 0; /* offset into buffer */
+    uint8_t value = 0;
+    char hex_pair_string[3] = "";
+
+    if (octet_string) {
+        octet_string->length = 0;
+        while (ascii_hex[index] != 0) {
+            if (!isalnum(ascii_hex[index])) {
+                /* skip non-numeric or alpha */
+                index++;
+                continue;
+            }
+            if (ascii_hex[index+1] == 0) {
+                break;
+            }
+            hex_pair_string[0] = ascii_hex[index];
+            hex_pair_string[1] = ascii_hex[index+1];
+            value = (uint8_t)strtol(hex_pair_string, NULL, 16);
+            if (octet_string->length <= MAX_OCTET_STRING_BYTES) {
+                octet_string->value[octet_string->length] = value;
+                octet_string->length++;
+                status = true;
+            } else {
+                break;
+                status = false;
+            }
+            /* set up for next pair */
+            index += 2;
+        }
+    }
+
+    return status;
+}
+#endif
 
 bool octetstring_copy(
     BACNET_OCTET_STRING * dest,
