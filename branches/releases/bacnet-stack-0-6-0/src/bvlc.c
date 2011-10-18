@@ -86,7 +86,9 @@ typedef struct {
     time_t seconds_remaining;   /* includes 30 second grace period */
 } FD_TABLE_ENTRY;
 
+#ifndef MAX_FD_ENTRIES
 #define MAX_FD_ENTRIES 128
+#endif
 static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 
 /* result from a client request */
