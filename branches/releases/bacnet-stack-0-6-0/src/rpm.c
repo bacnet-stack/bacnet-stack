@@ -108,6 +108,14 @@ int rpm_encode_apdu_object_end(
     return apdu_len;
 }
 
+/** Encode an RPM request, to be sent.
+ *
+ * @param apdu [in,out] Buffer to hold encoded bytes.
+ * @param max_apdu [in] Length of apdu buffer.
+ * @param invoke_id [in] The Invoke ID to use for this message.
+ * @param read_access_data [in] The RPM data to be requested.
+ * @return Length of encoded bytes, or 0 on failure.
+ */
 int rpm_encode_apdu(
     uint8_t * apdu,
     size_t max_apdu,
