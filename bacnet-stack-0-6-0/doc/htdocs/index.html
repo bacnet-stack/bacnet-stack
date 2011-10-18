@@ -53,7 +53,12 @@
     <li><a href="http://bacpypes.sourceforge.net/">BACpypes</a> - a
     BACnet stack written in Python.</li>
     <li><a href="http://bacsharp.sourceforge.net/">BACsharp</a> - a
-    BACnet stack written in C#.</li>
+    BACnet/IP stack written in C#.</li>
+    <li><a href="http://bacnet4j.sourceforge.net/">BACnet4J</a> - a
+    BACnet/IP stack written in Java that serves as the BACnet layer for
+    <a href="http://mango.serotoninsoftware.com/">Mango</a>.
+    Mango is open source Machine-to-Machine software
+    (aka Industrial Control, SCADA, HMI, or domotics).</li>
   </ul>
 
   <p>There are also commercial BACnet protocol source code libraries for BACnet
@@ -71,6 +76,9 @@
     The entire source code is available for custom applications and has been
     written in ANSI C which has been succesfully ported to Unix,
     VxWorks etc. </li>
+    <li><a href="http://bacnetstack.com/">BACnet Stack</a> - Chipkin
+    automation systems BACnet stack is an application layer BACnet
+    library for an embedded system and application development.</li>
   </ul>
 
   <h2>Licensing</h2>
@@ -106,9 +114,9 @@
   unit tests (PC based unit tests) and example application code.
   Since the code is designed to be
   portable, it compiles with GCC as well as other compilers,
-  such as Borland C++, Visual C++, MinGW, Code Warrior, or MicroChip C18.
-  The source code is also designed to be readable, understandable,
-  and most importantly, easy to use.</p>
+  such as Borland C++, Visual C++, MinGW, Code Warrior, IAR, or MicroChip C18.
+  The source code is also designed to be high quality, readable,
+  understandable, and easy to use.</p>
 
   <p>The BACnet protocol is an ASHRAE/ANSI/ISO standard, so this library
   adheres to that standard.  BACnet has no royalties or licensing restrictions,
@@ -128,7 +136,8 @@
   <p>The BACnet stack was functionally tested
   using <a href="http://vts.sourceforge.net/">VTS (Visual Test Shell)</a>,
   another project hosted on SourceForge, as well as various BACnet controllers,
-  BACnet workstations, and through BACnet routers.<p>
+  BACnet workstations, and through BACnet routers.  Some versions of the
+  BACnet stack were BTL tested.<p>
 
 <h2>Demo BACnet Applications</h2>
   <p>Using a master Makefile in the project root directory, a dozen
@@ -161,7 +170,7 @@
   to enable the compile.</p>
   <code>
   $ build.bat<br>
-  <code>
+  </code>
 
   <p>To build all the demo applications under Windows with the
   BACnet/IP datalink layer and utilizing the
@@ -169,7 +178,7 @@
   <code>borland.bat</code> file provided in the root directory.</p>
   <code>
   $ borland.bat<br>
-  <code>
+  </code>
 
   <p>To build all the demo applications under Windows using the
   BACnet/IP datalink layer utilizing the
@@ -248,8 +257,12 @@
   I have also used <a href="http://codeblocks.org/">Code::Blocks</a> with
   the Borland C++ compiler and it successfully compiles and runs the code.</p>
 
+  <p><a href="https://sourceforge.net/projects/bacnet/files/bacnet-tools/">BACnet-Tools</a> -
+  the example applications are compiled for Windows and can be downloaded from
+  SourceForge.</p>
+
   <p>To build the demo applications under Linux, such as
-  <a href=http://ubuntu.com/>Ubuntu</a>, you may need to install
+  <a href="http://ubuntu.com/">Ubuntu</a>, you may need to install
   some build tools.</p>
   <code>
   $ sudo apt-get install build-essential subversion-tools
@@ -279,7 +292,8 @@
   <a href="http://www.codesourcery.com/gnu_toolchains/arm">GNU Toolchain for ARM</a>,
   <a href="http://www.gnuarm.com/">GNU ARM</a>,
   <a href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/">WinARM</a>,
-  and <a href="http://www.yagarto.de/">YAGARTO</a> toolchains on the Windows platform.
+  <a href="http://www.yagarto.de/">YAGARTO</a>,
+  or <a href="http://www.rowley.co.uk/arm/index.htm">Rowley Crossworks for ARM</a> toolchains on the Windows platform.
   The datalink layer uses BACnet MS/TP
   and the example uses several different objects and services.</p>
 
@@ -289,10 +303,23 @@
   server application that can be built using
   <a href="http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/AVR_GCC_Tool_Collection">GCC-AVR</a> or
   <a href="http://winavr.sourceforge.net/">WinAVR</a> for Atmel AVR series of microcontrollers.
-  There is also a project in the 
+  There is also a project in the
   <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/bdk-atxx4-mstp">ports/bdk-atxx4-mstp</a>
   directory which works on the <a href="http://bacnetdevelopmentkit.com/">ATmega644 based BACnet Development Kit</a>.
-  Both ports use the BACnet MS/TP datalink layer 
+  Both ports use the BACnet MS/TP datalink layer
+  and the example uses several different objects and services.</p>
+
+  <p>There is a project in the
+  <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/stm32f10x">ports/stm32f10x</a>
+  directory, and a sample server application that can be built using
+  <a href="http://www.iar.com/">IAR Embedded Workbench for ARM</a>.
+  It was written for the 2011
+  <a href="http://www.stm32challenge.com/">STM32 Design Challenge,</a>
+  and was one of the finalists.
+  The Target is an ARM Cortex-M3 microcontroller, and the design utilizes
+  the <a href="http://www.arm.com/products/processors/cortex-m/cortex-microcontroller-software-interface-standard.php">CMSIS</a> and
+  STM32 Peripheral Driver Library.
+  The port uses the BACnet MS/TP datalink layer
   and the example uses several different objects and services.</p>
 
   <TABLE border="1" width="100%" cellpadding="1" cellspacing="0"
@@ -397,12 +424,12 @@
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Read Range</td>
     <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
-    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
   </TR>
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Write Property Multiple</td>
     <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
-    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
   </TR>
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Get Alarm Summary</td>
@@ -467,12 +494,12 @@
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Unconfirmed Private Transfer</td>
     <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
-    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
   </TR>
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Confirmed Private Transfer</td>
     <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
-    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
   </TR>
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">VT Open</td>
@@ -495,8 +522,8 @@
   <h2>BACnet Objects</h2>
 
   <p>The BACnet stack currently implements an example Device Object, and
-  handles all of the ReadProperty inquiries for the required
-  Device Object properties. The stack handles Who-Is inquiries
+  handles all of the ReadProperty and ReadPropertyMultiple inquiries for
+  the required Device Object properties. The stack handles Who-Is inquiries
   with an I-Am, WhoHas with I-Have, and handles reject messages for
   services not currently supported.  There is built-in handling for
   DeviceCommunicationControl.</p>
@@ -504,12 +531,11 @@
   <p>The example handlers interact with example objects, including
   Analog Input, Analog Output, Analog Value, Binary Input,
   Binary Output, Binary Value, Load Control, Life Safety Point,
-  and Multi-state Output objects.
-  The objects can be accessed using WriteProperty,
-  ReadProperty, or Who-Has services.  Adding other BACnet objects
-  is only a matter of setting up ReadProperty, WriteProperty, or
-  I-Have handling for the required properties and any other
-  properties that you want to support.</p>
+  Multi-state Input, and Multi-state Output objects.
+  The objects are accessed using through the Device object.
+  Adding other BACnet objects is only a matter of setting up
+  the various object API for the properties you need to support
+  in the Device object.</p>
 
   <p>File Objects are conditionally included in the demonstation
   applications. The files can be access using WriteProperty,
@@ -541,13 +567,19 @@ the project with more useful information.</p>
   should be using this branch. The stable releases are
   at: <a href="https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/">https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/</a>.  This
   matches the released version downloadable through SourceForge. Anyone doing project development using
-  the BACnet protocol stack should be using the tags branch and an appropriate tag.</p>
+  the BACnet protocol stack should be using the tags branch and an appropriate version tag.
+  The custom and vendor branches are
+  at: <a href="https://bacnet.svn.sourceforge.net/svnroot/bacnet/branches/">https://bacnet.svn.sourceforge.net/svnroot/bacnet/branches/</a>.
+  The <a href="https://bacnet.svn.sourceforge.net/svnroot/bacnet/branches/jbennet/">JBennet branch</a> includes a
+  derivative project that is designed for a BACnet Client.</p>
 
   <p>To check out the trunk, use "svn co", e.g.</p>
     <blockquote>
     <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/</code><br />
     or for the stable releases:<br />
-    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-5-0/</code>
+    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-5-0/</code><br />
+    or for the JBennet branch:<br />
+    <code>svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/branches/jbennet/</code>
     </blockquote>
 
 <h2>BACnet Developer Resources</h2>
@@ -583,18 +615,31 @@ There are a number of resources that can help you develop a BACnet product or pr
   as well as the free turbo debugger.</li>
 </ul>
 
-<p><a href="http://www.bacnet.org/Developer/index.html">BACnet Developer Help</a></p>
+<p><a href="http://www.bacnet.org/Developer/index.html">BACnet
+Developer Help</a></p>
 
-<p><a href="http://www.bacnetassociation.org/DevRes.htm">BACnet International Developer Resources</a></p>
+<p><a href="http://www.bacnetinternational.org/associations/8066/btl/?page=47">BACnet
+International Developer Resources</a></p>
 
 <h2>Products and Projects that use this BACnet Stack</h2>
 
 <p>Did you develop a product using this BACnet stack?  <a href="http://kargs.net/contacts.html">Let us know</a>, and you
 can get a little recognition for your hard work!</p>
 
-<p><a href="http://bacnetdevelopmentkit.com/">BACnet Development Kit</a> - An 
-Atmel ATmega644 based development kit designed to kickstart BACnet MS/TP 
+<p><a href="http://bacnetdevelopmentkit.com/">BACnet Development Kit</a> - An
+Atmel ATmega644 based development kit designed to kickstart BACnet MS/TP
 development.</p>
+
+<p><a href="http://wattstopper.com/DLM/">Digital Lighting Management</a> -
+offers connectivity without complexity for remote system management and
+control of lights and plug loads. Just one device in each room network has to
+be connected to a BACnet MS/TP segment for centralized control.</p>
+
+<p><a href="http://www.controlsystemworks.com/">CSWorks</a> - a development
+ framework for building web-based HMI (Human Machine Interface),
+ SCADA (Supervisory Control And Data Acquisition),
+ EMI (Enterprise Manufacturing Intelligence) and
+ M2M (Machine to Machine) software applications.</p>
 
 <p><a href="http://sensors.scinterface.com/">SCInterface&trade; = Sensor Control Interface</a> - middleware
  platform for managing legacy and modern-day sensors through a centralized
@@ -604,6 +649,11 @@ development.</p>
 portable implementation of the BACnet data communication protocol.
 BACnetSim is meant for embedded devices and use MS/TP as the media
 access layer. BACnetSim is a fork of bacnet-stack-0.0.1</p>
+
+<p><a href="http://simulationresearch.lbl.gov/bcvtb">Building Controls Virtual Test Bed</a> - a
+software environment that allows coupling different simulation programs
+including Dymola, EnergyPlus, MATLAB/Simulink and Radiance for co-simulation,
+and to couple these programs to control systems.</p>
 
 <hr>
 
@@ -615,6 +665,6 @@ access layer. BACnetSim is a fork of bacnet-stack-0.0.1</p>
     <b>BACnet<sup>&reg;</sup></b> are registered trademarks of the American
     Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.,
     1791 Tullie Circle NE, Atlanta, GA 30329.</font> </p>
-  <p>Website updated 28-December-2009 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
+  <p>Website updated 6-July-2011 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
 </BODY>
 </HTML>
