@@ -86,6 +86,10 @@ extern "C" {
     bool Binary_Input_Encode_Value_List(
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
+    bool Binary_Input_Change_Of_Value(
+        uint32_t instance);
+    void Binary_Input_Change_Of_Value_Clear(
+        uint32_t instance);
 
     int Binary_Input_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
