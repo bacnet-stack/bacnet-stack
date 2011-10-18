@@ -118,6 +118,9 @@ static void Init_Service_Handlers(
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
+    /* handle the data coming back from private requests */
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
+        handler_unconfirmed_private_transfer);
 #if defined(INTRINSIC_REPORTING)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
         handler_alarm_ack);
@@ -200,15 +203,14 @@ int main(
             dlenv_maintenance_timer(elapsed_seconds);
             Load_Control_State_Machine_Handler();
             elapsed_milliseconds = elapsed_seconds * 1000;
-            if (dcc_communication_enabled()) {
-                handler_cov_task(elapsed_seconds);
-            }
+            handler_cov_timer_seconds(elapsed_seconds);
             tsm_timer_milliseconds(elapsed_milliseconds);
             trend_log_timer(elapsed_seconds);
 #if defined(INTRINSIC_REPORTING)
             Device_local_reporting();
 #endif
         }
+        handler_cov_task();
         /* scan cache address */
         address_binding_tmr += elapsed_seconds;
         if (address_binding_tmr >= 60) {
@@ -227,6 +229,7 @@ int main(
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
+    return 0;
 }
 
 /* @} */

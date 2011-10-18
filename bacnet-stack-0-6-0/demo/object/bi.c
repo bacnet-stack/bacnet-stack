@@ -183,7 +183,7 @@ bool Binary_Input_Out_Of_Service(
     return value;
 }
 
-static bool Binary_Input_Change_Of_Value(
+bool Binary_Input_Change_Of_Value(
     uint32_t object_instance)
 {
     bool status = false;
@@ -197,7 +197,7 @@ static bool Binary_Input_Change_Of_Value(
     return status;
 }
 
-static void Binary_Input_Change_Of_Value_Clear(
+void Binary_Input_Change_Of_Value_Clear(
     uint32_t object_instance)
 {
     unsigned index;
@@ -249,7 +249,6 @@ bool Binary_Input_Encode_Value_List(
         value_list->priority = BACNET_NO_PRIORITY;
     }
     status = Binary_Input_Change_Of_Value(object_instance);
-    Binary_Input_Change_Of_Value_Clear(object_instance);
 
     return status;
 }
