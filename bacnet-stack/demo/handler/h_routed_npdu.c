@@ -43,6 +43,10 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
+#if defined(BACDL_BIP)
+#include "bvlc.h"
+#endif
+
 
 /** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet stack, 
  * including routing and network control messages. */
