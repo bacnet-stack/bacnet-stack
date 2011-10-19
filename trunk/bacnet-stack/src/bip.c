@@ -170,6 +170,7 @@ int bip_send_pdu(
     /* addr and port in host format */
     struct in_addr address;
     uint16_t port = 0;
+    BACNET_BVLC_FUNCTION function;
 
 
     (void) npdu_data;
@@ -179,7 +180,10 @@ int bip_send_pdu(
 
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
-    if (dest->net == BACNET_BROADCAST_NETWORK) {
+    function = bvlc_get_function_code();    /* What type of BVLC was it? */
+    if ( (dest->net == BACNET_BROADCAST_NETWORK) || 
+         (function == BVLC_FORWARDED_NPDU) || 
+         (function == BVLC_ORIGINAL_BROADCAST_NPDU) ) {
         /* broadcast */
         address.s_addr = BIP_Broadcast_Address.s_addr;
         port = BIP_Port;
