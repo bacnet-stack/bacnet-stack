@@ -1189,9 +1189,11 @@ bool bacapp_parse_application_data(
                 break;
 #endif
             case BACNET_APPLICATION_TAG_OCTET_STRING:
+#if PRINT_ENABLED    /* Apparently ain't necessarily so. */            
                 status =
                     octetstring_init_ascii_hex(&value->type.Octet_String,
                     argv);
+#endif
                 break;
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
                 status =
