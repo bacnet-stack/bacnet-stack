@@ -96,6 +96,10 @@ static uint32_t Database_Revision = 0;
 /* local forward (semi-private) and external prototypes */
 int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA * rpdata);
+extern int Routed_Device_Read_Property_Local(
+    BACNET_READ_PROPERTY_DATA * rpdata);
+extern bool Routed_Device_Write_Property_Local(
+    BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 /* All included BACnet objects */
 static object_functions_t Object_Table[] = {
@@ -882,6 +886,37 @@ int Device_Read_Property(
     return apdu_len;
 }
 
+/** The device-client version of this function just returns an error,
+ * since we don't need to allow writing to our objects.
+ *
+ * Note: it was necessary to include this trivial implementation of this function 
+ * to avoid pulling in the device.c module from libbacnet.a for the 
+ * handler_write_property() support, which resulted in hard-to-trace 
+ * duplicate function errors.
+ * 
+ * @param wp_data [in,out] Structure with the desired Object and Property info
+ *              and new Value on entry, and APDU message on return.
+ * @return Always False because it is an error.
+ */
+bool Device_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
+{
+    bool status = false;        
+    wp_data->error_class = ERROR_CLASS_PROPERTY;
+    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    return (status);
+}
+/* Ditto for the local version; always returns false */
+bool Device_Write_Property_Local(
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
+{
+    bool status = false;        
+    wp_data->error_class = ERROR_CLASS_PROPERTY;
+    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    return (status);
+}
+
+
 /** Initialize the Device Object.
  Initialize the group of object helper functions for any supported Object.
  Initialize each of the Device Object child Object instances.
@@ -906,3 +941,5 @@ void Device_Init(
         pObject++;
     }
 }
+
+
