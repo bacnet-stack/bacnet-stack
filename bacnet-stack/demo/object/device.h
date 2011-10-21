@@ -420,6 +420,11 @@ extern "C" {
         size_t length);
     void Routed_Device_Inc_Database_Revision(
         void);
+    int Routed_Device_Service_Approval(
+            BACNET_CONFIRMED_SERVICE service,
+            int service_argument,
+            uint8_t *apdu_buff,
+            uint8_t invoke_id );
 
 
 

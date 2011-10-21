@@ -98,7 +98,6 @@ void handler_device_communication_control(
     BACNET_CHARACTER_STRING password;
     int len = 0;
     int pdu_len = 0;
-    int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
@@ -156,6 +155,15 @@ void handler_device_communication_control(
             "Sending Reject - undefined enumeration\n");
 #endif
     } else {
+#if BAC_ROUTING
+        /* Check to see if the current Device supports this service. */
+        len = Routed_Device_Service_Approval(
+                SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL, (int) state,
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id );
+        if ( len > 0 )
+            goto DCC_ABORT;
+#endif
+        
         if (characterstring_ansi_same(&password, My_Password)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
@@ -181,17 +189,15 @@ void handler_device_communication_control(
     }
   DCC_ABORT:
     pdu_len += len;
-    bytes_sent =
+    len =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0) {
+    if (len <= 0) {
         fprintf(stderr,
             "DeviceCommunicationControl: " "Failed to send PDU (%s)!\n",
             strerror(errno));
     }
-#else
-    bytes_sent = bytes_sent;
 #endif
 
     return;

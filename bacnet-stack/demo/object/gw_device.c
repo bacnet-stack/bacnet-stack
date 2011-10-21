@@ -42,8 +42,8 @@
 #include "handlers.h"
 #include "datalink.h"
 #include "address.h"
+#include "reject.h"
 /* include the objects */
-#include "device.h"
 #include "ai.h"
 #include "ao.h"
 #include "av.h"
@@ -594,4 +594,44 @@ void Routed_Device_Inc_Database_Revision(
 {
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
     pDev->Database_Revision++;
+}
+
+
+/** Check to see if the current Device supports this service.
+ * Presently checks for RD and DCC and only allows them if the current
+ * device is the gateway device.
+ * 
+ * @param service [in] The service being requested.
+ * @param service_argument [in] An optional argument (eg, service type).
+ * @param apdu_buff [in,out] The buffer where we will encode a Reject message.
+ * @param invoke_id [in] The invoke_id of the service request.
+ * @return Length of bytes encoded in apdu_buff[] for a Reject message,
+ *          else 0 if service is approved for the current device.
+ */
+int Routed_Device_Service_Approval(
+        BACNET_CONFIRMED_SERVICE service,
+        int service_argument,
+        uint8_t *apdu_buff,
+        uint8_t invoke_id )
+{
+    int len = 0;
+    switch(service)
+    {
+        case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+            /* If not the gateway device, we don't support RD */
+            if ( iCurrent_Device_Idx > 0 )
+                len = reject_encode_apdu(apdu_buff,
+                        invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+            break;
+        case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+            /* If not the gateway device, we don't support DCC */
+            if ( iCurrent_Device_Idx > 0 )
+                len = reject_encode_apdu(apdu_buff,
+                        invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+            break;
+        default:
+            /* Everything else is a pass, at this time. */
+            break;
+    }
+    return len;
 }
