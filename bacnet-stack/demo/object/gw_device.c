@@ -604,8 +604,10 @@ void Routed_Device_Inc_Database_Revision(
  * @param service [in] The service being requested.
  * @param service_argument [in] An optional argument (eg, service type).
  * @param apdu_buff [in,out] The buffer where we will encode a Reject message.
+ *                              May be NULL if don't want an encoded response.
  * @param invoke_id [in] The invoke_id of the service request.
  * @return Length of bytes encoded in apdu_buff[] for a Reject message,
+ *          just 1 if no apdu_buff was supplied and service is not supported,
  *          else 0 if service is approved for the current device.
  */
 int Routed_Device_Service_Approval(
@@ -619,15 +621,23 @@ int Routed_Device_Service_Approval(
     {
         case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
             /* If not the gateway device, we don't support RD */
-            if ( iCurrent_Device_Idx > 0 )
-                len = reject_encode_apdu(apdu_buff,
-                        invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+            if ( iCurrent_Device_Idx > 0 ) {
+                if (apdu_buff != NULL)
+                    len = reject_encode_apdu(apdu_buff,
+                            invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+                else
+                    len = 1;        /* Non-zero return */
+            }
             break;
         case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
             /* If not the gateway device, we don't support DCC */
-            if ( iCurrent_Device_Idx > 0 )
-                len = reject_encode_apdu(apdu_buff,
-                        invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+            if ( iCurrent_Device_Idx > 0 ) {
+                if (apdu_buff != NULL)
+                    len = reject_encode_apdu(apdu_buff,
+                            invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+                else
+                    len = 1;        /* Non-zero return */
+            }
             break;
         default:
             /* Everything else is a pass, at this time. */
