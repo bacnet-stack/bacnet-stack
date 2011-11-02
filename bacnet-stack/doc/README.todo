@@ -23,7 +23,7 @@ O. Convert object methods to use an array of object methods
 P. Convert datalink methods to use function pointers that can be
    overridden in main.c.
 Q. Create BACnet router code that uses more than one datalink.
-R. splint the code.  Make intelligent fixes.
+R. splint more of the code.  Make intelligent fixes.
 S. Fix src/mstp.c so that indent can parse it correctly.
 T. Add "inline" to static functions that are only used once.
 U. Modify code to compile with MISRA C rules.
@@ -33,3 +33,4 @@ X. Change WhoIs demo to list all I-Am's received such that duplicate
    IDs with different MAC addresses can be detected.
 Y. Add tsm_alloc to allocate memory and invoke ID for sending.
 Z. Make alternate TSM that handles segmentation.
+AA. Create debug.c module for PC ports which replace printf and fix line end.
