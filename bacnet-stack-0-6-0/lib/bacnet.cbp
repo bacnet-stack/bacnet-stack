@@ -229,6 +229,9 @@
 		<Unit filename="..\demo\object\mso.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\object\ms-input.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\object\trendlog.c">
 			<Option compilerVar="CC" />
 		</Unit>
