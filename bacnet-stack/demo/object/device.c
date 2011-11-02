@@ -96,7 +96,7 @@ static object_functions_t My_Object_Table[] = {
         Device_Read_Property_Local,
         Device_Write_Property_Local,
         Device_Property_Lists,
-        NULL /* ReadRangeInfo */,
+        DeviceGetRRInfo,
         NULL /* Iterator */,
         NULL /* Value_Lists */,
         NULL /* COV */,
