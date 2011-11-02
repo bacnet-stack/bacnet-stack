@@ -169,7 +169,7 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string,
         const char * ascii_hex);
 #endif
-bool octetstring_copy(
+    bool octetstring_copy(
         BACNET_OCTET_STRING * dest,
         BACNET_OCTET_STRING * src);
 /* returns false if the string exceeds capacity */
