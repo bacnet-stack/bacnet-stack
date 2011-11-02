@@ -8,7 +8,7 @@
 # Assumes rm and cp are available
 
 # Directories
-BACNET_PORT = linux
+BACNET_PORT ?= linux
 BACNET_PORT_DIR = ../../ports/${BACNET_PORT}
 BACNET_INCLUDE = ../../include
 BACNET_OBJECT = ../../demo/object
