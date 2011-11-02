@@ -101,8 +101,6 @@ static const int Device_Properties_Required[] = {
     PROP_SEGMENTATION_SUPPORTED,
     PROP_APDU_TIMEOUT,
     PROP_NUMBER_OF_APDU_RETRIES,
-    PROP_MAX_MASTER,
-    PROP_MAX_INFO_FRAMES,
     PROP_DEVICE_ADDRESS_BINDING,
     PROP_DATABASE_REVISION,
     -1
@@ -111,6 +109,8 @@ static const int Device_Properties_Required[] = {
 static const int Device_Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_LOCATION,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
     -1
 };
 
