@@ -40,6 +40,7 @@
 #include <errno.h>
 /* OS specific include*/
 #include "net.h"
+#include "timer.h"
 /* local includes */
 #include "bytes.h"
 #include "rs485.h"
@@ -61,40 +62,23 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
-static uint16_t SilenceTime;
-#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 static uint16_t Timer_Silence(
     void)
 {
-    return SilenceTime;
+    uint32_t delta_time = 0;
+
+    delta_time = timer_milliseconds(TIMER_SILENCE);
+    if (delta_time > 0xFFFF) {
+        delta_time = 0xFFFF;
+    }
+
+    return (uint16_t) delta_time;
 }
 
 static void Timer_Silence_Reset(
     void)
 {
-    SilenceTime = 0;
-}
-
-static void dlmstp_millisecond_timer(
-    void)
-{
-    INCREMENT_AND_LIMIT_UINT16(SilenceTime);
-}
-
-void *milliseconds_task(
-    void *pArg)
-{
-    struct timespec timeOut, remains;
-
-    timeOut.tv_sec = 0;
-    timeOut.tv_nsec = 10000000; /* 1 milliseconds */
-
-    for (;;) {
-        nanosleep(&timeOut, &remains);
-        dlmstp_millisecond_timer();
-    }
-
-    return NULL;
+    timer_reset(TIMER_SILENCE);
 }
 
 /* functions used by the MS/TP state machine to put or get data */
@@ -219,7 +203,7 @@ static void snap_received_packet(
     }
     /* Ethernet length is data only - not address or length bytes */
     encode_unsigned16(&mtu[12], mtu_len - 14);
-    write(sockfd, &mtu[0], mtu_len);
+    (void)write(sockfd, &mtu[0], mtu_len);
 }
 
 
@@ -255,13 +239,6 @@ int main(
     volatile struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
-#if defined(_WIN32)
-    unsigned long hThread = 0;
-    uint32_t arg_value = 0;
-#else
-    int rc = 0;
-    pthread_t hThread;
-#endif
     int sockfd = -1;
     char *my_interface = "eth0";
 
@@ -305,22 +282,15 @@ int main(
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
-    mstp_port->Lurking = true;
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
+    atexit(cleanup);
 #if defined(_WIN32)
-    hThread = _beginthread(milliseconds_task, 4096, &arg_value);
-    if (hThread == 0) {
-        fprintf(stderr, "Failed to start timer task\n");
-    }
-    (void) SetThreadPriority(GetCurrentThread(),
-        THREAD_PRIORITY_TIME_CRITICAL);
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
 #else
-    /* start our MilliSec task */
-    rc = pthread_create(&hThread, NULL, milliseconds_task, NULL);
     signal_init();
 #endif
-    atexit(cleanup);
     /* run forever */
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
