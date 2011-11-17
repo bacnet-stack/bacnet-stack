@@ -35,6 +35,7 @@ LFLAGS = -Wl,-Map=$(TARGET).map,$(LIBRARIES),--gc-sections
 
 SRCS = mstpsnap.c \
 	${BACNET_PORT_DIR}/rs485.c \
+	${BACNET_PORT_DIR}/timer.c \
 	${BACNET_SOURCE_DIR}/bacint.c \
 	${BACNET_SOURCE_DIR}/mstp.c \
 	${BACNET_SOURCE_DIR}/mstptext.c \
