@@ -168,9 +168,8 @@ int main(
     }
     if (print_usage_terse) {
         filename = filename_remove_path(argv[0]);
-        /* note: priority 16 and 0 should produce the same end results... */
         printf("Usage: %s device-id object-type object-instance "
-            "process-id lifetime [issueConfirmedNotifications]\r\n",
+            "process-id <confirmed lifetime|cancel>\r\n",
             filename);
         if (!print_usage_verbose) {
             return 0;
@@ -193,26 +192,29 @@ int main(
             "process-id:\r\n"
             "Process Identifier for this COV subscription.\r\n"
             "\r\n"
+            "confirmed:\r\n"
+            "Optional flag to subscribe using Confirmed notifications.\r\n"
+            "Use the word \'confirmed\' or \'unconfirmed\'.\r\n"
+            "\r\n"
             "lifetime:\r\n"
             "Optional subscription lifetime is conveyed in seconds.\r\n"
             "\r\n"
-            "issueConfirmedNotifications:\r\n"
-            "Optional flag to subscribe using Confirmed notifications.\r\n"
-            "Use the word \'confirmed\'.\r\n"
-            "\r\n"
-            "If both the \'issueConfirmedNotifications\' and\r\n"
-            "\'lifetime\' parameters are absent, then this shall\r\n"
-            "indicate a cancellation request.\r\n"
+            "cancel:\r\n"
+            "Use the word \'cancel\' instead of confirm and lifetime.\r\n"
+            "This shall indicate a cancellation request.\r\n"
             "\r\n"
             "Example:\r\n"
             "If you want subscribe to Device 123 Analog Input 9 object\r\n"
             "using confirmed COV notifications for 5 minutes,\r\n"
             "you could send the following command:\r\n"
-            "%s 123 0 9 1 600 confirmed\r\n"
+            "%s 123 0 9 1 confirmed 600\r\n"
             "To send the same COV subscription request for unconfirmed\r\n"
-            "notifications, you could send the following command:\r\n"
-            "%s 123 0 9 1 600\r\n",
-            filename, filename);
+            "notifications, send the following command:\r\n"
+            "%s 123 0 9 1 unconfirmed 600\r\n"
+            "To cancel the same COV subscription request,\r\n"
+            "send the following command:\r\n"
+            "%s 123 0 9 1 cancel\r\n",
+            filename, filename, filename);
         return 0;
     }
     /* decode the command line parameters */
@@ -221,16 +223,20 @@ int main(
     cov_data.monitoredObjectIdentifier.instance = strtol(argv[3], NULL, 0);
     cov_data.subscriberProcessIdentifier =
     Target_Device_Process_Identifier = strtol(argv[4], NULL, 0);
-    if (argc > 5) {
-        cov_data.lifetime = strtol(argv[5], NULL, 0);
-        cov_data.issueConfirmedNotifications = false;
-    } else {
+    if (strcmp(argv[5],"cancel") == 0) {
         cov_data.cancellationRequest = true;
-    }
-    if (argc > 6) {
-        if (strcmp(argv[6],"confirmed") == 0) {
+    } else {
+        cov_data.cancellationRequest = false;
+        if (strcmp(argv[5],"confirmed") == 0) {
             cov_data.issueConfirmedNotifications = true;
+        } else if (strcmp(argv[5],"unconfirmed") == 0) {
+            cov_data.issueConfirmedNotifications = false;
+        } else {
+            fprintf(stderr, "unknown option: %s\r\n",
+                argv[5]);
+            return 1;
         }
+        cov_data.lifetime = strtol(argv[6], NULL, 0);
     }
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
@@ -256,7 +262,8 @@ int main(
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
-    if (timeout_seconds < cov_data.lifetime) {
+    if (!cov_data.cancellationRequest &&
+        (timeout_seconds < cov_data.lifetime)) {
         timeout_seconds = cov_data.lifetime;
     }
     /* try to bind with the device */
