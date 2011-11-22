@@ -65,8 +65,12 @@ static uint32_t Target_Device_Process_Identifier = 0;
 static uint8_t Service_Parameters[MAX_APDU];
 /* the invoke id is needed to filter incoming messages */
 static uint8_t Request_Invoke_ID = 0;
+/* MAC and SNET address of target */
 static BACNET_ADDRESS Target_Address;
+/* indication of error, reject, or abort */
 static bool Error_Detected = false;
+/* data used in COV subscription request */
+BACNET_SUBSCRIBE_COV_DATA *COV_Subscribe_Data = NULL;
 
 static void MyErrorHandler(
     BACNET_ADDRESS * src,
@@ -138,6 +142,20 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+void cleanup(
+    void)
+{
+    BACNET_SUBSCRIBE_COV_DATA *cov_data = NULL;
+    BACNET_SUBSCRIBE_COV_DATA *cov_data_old = NULL;
+
+    cov_data = COV_Subscribe_Data;
+    while (cov_data) {
+        cov_data_old = cov_data;
+        cov_data = cov_data->next;
+        free(cov_data_old);
+    }
+}
+
 int main(
     int argc,
     char *argv[])
@@ -155,11 +173,13 @@ int main(
     time_t delta_seconds = 0;
     bool found = false;
     char *filename = NULL;
-    BACNET_SUBSCRIBE_COV_DATA cov_data = {0};
     bool print_usage_terse = false;
     bool print_usage_verbose = false;
+    BACNET_SUBSCRIBE_COV_DATA *cov_data = NULL;
+    int argi = 0;
+    int arg_remaining = 0;
 
-    if (argc < 5) {
+    if (argc < 6) {
         print_usage_terse = true;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
@@ -219,40 +239,61 @@ int main(
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    cov_data.monitoredObjectIdentifier.type = strtol(argv[2], NULL, 0);
-    cov_data.monitoredObjectIdentifier.instance = strtol(argv[3], NULL, 0);
-    cov_data.subscriberProcessIdentifier =
-    Target_Device_Process_Identifier = strtol(argv[4], NULL, 0);
-    if (strcmp(argv[5],"cancel") == 0) {
-        cov_data.cancellationRequest = true;
-    } else {
-        cov_data.cancellationRequest = false;
-        if (strcmp(argv[5],"confirmed") == 0) {
-            cov_data.issueConfirmedNotifications = true;
-        } else if (strcmp(argv[5],"unconfirmed") == 0) {
-            cov_data.issueConfirmedNotifications = false;
-        } else {
-            fprintf(stderr, "unknown option: %s\r\n",
-                argv[5]);
-            return 1;
-        }
-        cov_data.lifetime = strtol(argv[6], NULL, 0);
-    }
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (cov_data.monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            cov_data.monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
-        return 1;
-    }
-    if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-            cov_data.monitoredObjectIdentifier.instance,
-            BACNET_MAX_INSTANCE + 1);
-        return 1;
+    atexit(cleanup);
+    COV_Subscribe_Data = calloc(1, sizeof(BACNET_SUBSCRIBE_COV_DATA));
+    cov_data = COV_Subscribe_Data;
+    argi = 2;
+    while (cov_data) {
+        cov_data->monitoredObjectIdentifier.type =
+            strtol(argv[argi], NULL, 0);
+        if (cov_data->monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
+            fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+                cov_data->monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
+            return 1;
+        }
+        argi++;
+        cov_data->monitoredObjectIdentifier.instance =
+            strtol(argv[argi], NULL, 0);
+        if (cov_data->monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
+            fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
+                cov_data->monitoredObjectIdentifier.instance,
+                BACNET_MAX_INSTANCE + 1);
+            return 1;
+        }
+        argi++;
+        cov_data->subscriberProcessIdentifier =
+            strtol(argv[argi], NULL, 0);
+        argi++;
+        if (strcmp(argv[argi],"cancel") == 0) {
+            cov_data->cancellationRequest = true;
+            argi++;
+        } else {
+            cov_data->cancellationRequest = false;
+            if (strcmp(argv[argi],"confirmed") == 0) {
+                cov_data->issueConfirmedNotifications = true;
+            } else if (strcmp(argv[argi],"unconfirmed") == 0) {
+                cov_data->issueConfirmedNotifications = false;
+            } else {
+                fprintf(stderr, "unknown option: %s\r\n",
+                    argv[argi]);
+                return 1;
+            }
+            argi++;
+            cov_data->lifetime = strtol(argv[argi], NULL, 0);
+            argi++;
+        }
+        arg_remaining = argc - argi;
+        if (arg_remaining < 5) {
+            break;
+        } else {
+            cov_data->next = calloc(1, sizeof(BACNET_SUBSCRIBE_COV_DATA));
+            cov_data = cov_data->next;
+        }
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
@@ -262,9 +303,10 @@ int main(
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
-    if (!cov_data.cancellationRequest &&
-        (timeout_seconds < cov_data.lifetime)) {
-        timeout_seconds = cov_data.lifetime;
+    if (!COV_Subscribe_Data->cancellationRequest &&
+        (timeout_seconds < COV_Subscribe_Data->lifetime)) {
+        /* only use the first subscribe value */
+        timeout_seconds = COV_Subscribe_Data->lifetime;
     }
     /* try to bind with the device */
     found =
@@ -274,6 +316,8 @@ int main(
         Send_WhoIs(Target_Device_Object_Instance,
             Target_Device_Object_Instance);
     }
+    /* start at the beginning of the subscribe list */
+    cov_data = COV_Subscribe_Data;
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
@@ -297,13 +341,20 @@ int main(
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
+                Target_Device_Process_Identifier =
+                    cov_data->subscriberProcessIdentifier;
                 Request_Invoke_ID = Send_COV_Subscribe(
                     Target_Device_Object_Instance,
-                    &cov_data);
+                    cov_data);
                 printf("Sent SubscribeCOV request.  Waiting %u seconds.\r\n",
                     (unsigned)(timeout_seconds - elapsed_seconds));
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
-                /* do nothing - wait for lifetime value to expire */
+                if (cov_data->next) {
+                    cov_data = cov_data->next;
+                    Request_Invoke_ID = 0;
+                } else {
+                    /* do nothing - wait for lifetime value to expire */
+                }
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
