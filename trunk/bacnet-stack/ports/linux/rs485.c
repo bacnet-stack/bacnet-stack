@@ -128,19 +128,71 @@ const char *RS485_Interface(
 uint32_t RS485_Get_Baud_Rate(
     void)
 {
+    uint32_t baud = 0;
+
     switch (RS485_Baud) {
-        case B19200:
-            return 19200;
-        case B38400:
-            return 38400;
-        case B57600:
-            return 57600;
-        case B115200:
-            return 115200;
-        default:
+        case B0:
+            baud = 0;
+            break;
+        case B50:
+            baud = 50;
+            break;
+        case B75:
+            baud = 75;
+            break;
+        case B110:
+            baud = 110;
+            break;
+        case B134:
+            baud = 134;
+            break;
+        case B150:
+            baud = 150;
+            break;
+        case B200:
+            baud = 200;
+            break;
+        case B300:
+            baud =300;
+            break;
+        case B600:
+            baud = 600;
+            break;
+        case B1200:
+            baud = 1200;
+            break;
+        case B1800:
+            baud = 1800;
+            break;
+        case B2400:
+            baud = 2400;
+            break;
+        case B4800:
+            baud = 4800;
+            break;
         case B9600:
-            return 9600;
+            baud = 9600;
+            break;
+        case B19200:
+            baud = 19200;
+            break;
+        case B38400:
+            baud = 38400;
+            break;
+        case B57600:
+            baud = 57600;
+            break;
+        case B115200:
+            baud = 115200;
+            break;
+        case B230400:
+            baud = 230400;
+            break;
+        default:
+            baud = 9600;
     }
+
+    return baud;
 }
 
 /****************************************************************************
@@ -155,6 +207,45 @@ bool RS485_Set_Baud_Rate(
     bool valid = true;
 
     switch (baud) {
+        case 0:
+            RS485_Baud = B0;
+            break;
+        case 50:
+            RS485_Baud = B50;
+            break;
+        case 75:
+            RS485_Baud = B75;
+            break;
+        case 110:
+            RS485_Baud = B110;
+            break;
+        case 134:
+            RS485_Baud = B134;
+            break;
+        case 150:
+            RS485_Baud = B150;
+            break;
+        case 200:
+            RS485_Baud = B200;
+            break;
+        case 300:
+            RS485_Baud = B300;
+            break;
+        case 600:
+            RS485_Baud = B600;
+            break;
+        case 1200:
+            RS485_Baud = B1200;
+            break;
+        case 1800:
+            RS485_Baud = B1800;
+            break;
+        case 2400:
+            RS485_Baud = B2400;
+            break;
+        case 4800:
+            RS485_Baud = B4800;
+            break;
         case 9600:
             RS485_Baud = B9600;
             break;
@@ -169,6 +260,9 @@ bool RS485_Set_Baud_Rate(
             break;
         case 115200:
             RS485_Baud = B115200;
+            break;
+        case 230400:
+            RS485_Baud = B230400;
             break;
         default:
             valid = false;

@@ -838,11 +838,11 @@ int main(
     }
     if (argc > 2) {
         my_baud = strtol(argv[2], NULL, 0);
+        RS485_Set_Baud_Rate(my_baud);
     }
     atexit(cleanup);
     RS485_Initialize();
     timer_init();
-    RS485_Set_Baud_Rate(my_baud);
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long) RS485_Get_Baud_Rate());
 #if defined(_WIN32)
