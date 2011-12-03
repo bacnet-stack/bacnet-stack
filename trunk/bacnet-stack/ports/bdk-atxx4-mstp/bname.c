@@ -276,7 +276,7 @@ void bacnet_name(
     seeprom_bytes_read(NV_EEPROM_NAME_LENGTH(offset), &length, 1);
     seeprom_bytes_read(NV_EEPROM_NAME_STRING(offset), (uint8_t *) & name,
         NV_EEPROM_NAME_SIZE);
-    if (bacnet_name_isvalid(length, encoding, name)) {
+    if (bacnet_name_isvalid(encoding, length, name)) {
         characterstring_init(char_string, encoding, &name[0], length);
     } else if (default_string) {
         bacnet_name_init(offset, char_string, default_string);
