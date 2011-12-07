@@ -36,7 +36,6 @@ extern "C" {
         BACNET_CHARACTER_STRING * char_string);
     void bacnet_name_init(
         uint16_t eeprom_offset,
-        BACNET_CHARACTER_STRING * char_string,
         char *default_string);
     void bacnet_name(
         uint16_t eeprom_offset,
