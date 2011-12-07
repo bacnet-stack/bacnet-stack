@@ -936,19 +936,9 @@ int bacapp_data_len(
     return total_len;
 }
 
-/* Extract the value into a string
- *  Inputs:  out_string - ptr to address of the buffer to append the extracted
- *                        value. If NULL, don't store anything, but still 
- *                        return the size of the intended output.
- *           out_string_end - the address of the end of the buffer plus one
- *           object_value - ptr to BACnet object property value to process
- *  Outputs: str_len - ptr to the size of the extracted string
- *  Return:  True if extract was successful, false otherwise.
- */
-bool bacapp_extract_value(
-    char **out_string,
-    char *out_string_end,
-    size_t *str_len,
+#ifdef BACAPP_PRINT_ENABLED
+bool bacapp_print_value(
+    FILE * stream,
     BACNET_OBJECT_PROPERTY_VALUE * object_value)
 {
     bool status = true; /*return value */
@@ -958,9 +948,6 @@ bool bacapp_extract_value(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
-    char *extracted_value;          /* to be allocated here temporarily */
-    char *p_extracted_value = NULL; /* pointer to the beginning of allocated block */
-    *str_len = 0;                   /* how large is the extracted string */
 
     if (object_value && object_value->value) {
         value = object_value->value;
@@ -968,474 +955,186 @@ bool bacapp_extract_value(
         object_type = object_value->object_type;
         switch (value->tag) {
             case BACNET_APPLICATION_TAG_NULL:
-                /* We can only have "Null" here */
-                extracted_value = (char *)calloc(1, sizeof("Null"));
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                    sprintf(extracted_value, "Null");
-                else
-                    status = false;
+                fprintf(stream, "Null");
                 break;
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                /* We can only have "FALSE" or "TRUE" here. Assume worst case */
-                extracted_value = (char *)calloc(1, sizeof("FALSE"));
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    sprintf(extracted_value, "FALSE");
-                    if (value->type.Boolean)
-                        sprintf(extracted_value, "TRUE");
-                }
-                else
-                    status = false;
+                fprintf(stream, "%s", value->type.Boolean ? "TRUE" : "FALSE");
                 break;
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                /* %lu format should never exceed 32 characters */
-                extracted_value = (char *)calloc(1, 32);
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    sprintf(extracted_value, "%lu",
-                        (unsigned long) value->type.Unsigned_Int);
-                }
-                else
-                    status = false;
+                fprintf(stream, "%lu",
+                    (unsigned long) value->type.Unsigned_Int);
                 break;
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                /* %ld format should never exceed 32 characters */
-                extracted_value = (char *)calloc(1, 32);
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    sprintf(extracted_value, "%ld", (long) value->type.Signed_Int);
-                }
-                else
-                    status = false;
+                fprintf(stream, "%ld", (long) value->type.Signed_Int);
                 break;
             case BACNET_APPLICATION_TAG_REAL:
-                /* %f format should never exceed 32 characters */
-                extracted_value = (char *)calloc(1, 32);
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    sprintf(extracted_value, "%f", (double) value->type.Real);
-                }
-                else
-                    status = false;
+                fprintf(stream, "%f", (double) value->type.Real);
                 break;
 #if defined (BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                /* %f format should never exceed 32 characters */
-                extracted_value = (char *)calloc(1, 32);
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    sprintf(extracted_value, "%f", value->type.Double);
-                }
-                else
-                    status = false;
+                fprintf(stream, "%f", value->type.Double);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_OCTET_STRING:
                 len = octetstring_length(&value->type.Octet_String);
-
-                extracted_value = (char *)calloc(
-                        2,     /* 2 nibbles in a byte */ 
-                        len +  /* this many bytes of data*/
-                        1);    /* space for NULL terminator*/
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    octet_str = octetstring_value(&value->type.Octet_String);
-                    for (i = 0; i < len; i++) {
-                        sprintf(extracted_value, "%02X", *octet_str);
-                        octet_str++;
-                        extracted_value += 2;
-                    }
-                    *extracted_value = '\0';
-                } else
-                    status = false;
+                octet_str = octetstring_value(&value->type.Octet_String);
+                for (i = 0; i < len; i++) {
+                    fprintf(stream, "%02X", *octet_str);
+                    octet_str++;
+                }
                 break;
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
                 len = characterstring_length(&value->type.Character_String);
-
-                extracted_value = (char *)calloc(
-                        1,    /* 1 char per byte of data */
-                        len + /* this many bytes of data */
-                        3);   /* quotes around the string, plus NULL term */
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    char_str = characterstring_value(&value->type.Character_String);
-                    *extracted_value = '"';
-                    extracted_value++;
-                    for (i = 0; i < len; i++) {
-                        if (isprint(*((unsigned char *) char_str))) {
-                            *extracted_value = *char_str;
-                        } else {
-                            *extracted_value = '.';
-                        }
-                        char_str++;
-                        extracted_value++;
+                char_str =
+                    characterstring_value(&value->type.Character_String);
+                fprintf(stream, "\"");
+                for (i = 0; i < len; i++) {
+                    if (isprint(*((unsigned char *) char_str))) {
+                        fprintf(stream, "%c", *char_str);
+                    } else {
+                        fprintf(stream, ".");
                     }
-                    *extracted_value = '"';
-                    extracted_value++;
-                    *extracted_value = '\0';
-                } else {
-                    status = false;
+                    char_str++;
                 }
+                fprintf(stream, "\"");
                 break;
             case BACNET_APPLICATION_TAG_BIT_STRING:
                 len = bitstring_bits_used(&value->type.Bit_String);
-
-                /* For each bit, extract as 'true' or 'false'. Separate each bit
-                 * value with comma. Put curly braces around the bit string.
-                 * Ensure to have space for NULL string terminator.
-                 */
-                extracted_value = (char *)calloc(1,
-                        len*(sizeof("false")-1) + // assume every bit will be false
-                        (len-1)*(sizeof(",")-1) + // separate every bit by comma
-                        3);                       // open/close brace and NULL term
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    *extracted_value = '{';
-                    extracted_value++;
-                    for (i = 0; i < len; i++) {
-                        sprintf(extracted_value, "%s",
-                            bitstring_bit(&value->type.Bit_String,
-                                (uint8_t) i) ? "true" : "false");
-                        extracted_value += bitstring_bit(&value->type.Bit_String,
-                                (uint8_t) i) ? sizeof("true")-1 : sizeof("false")-1;
-                        if (i < len - 1)
-                        {
-                            *extracted_value = ',';
-                            extracted_value++;
-                        }
-                    }
-                    *extracted_value = '}';
-                    extracted_value++;
-                    *extracted_value = '\0';
-                } else {
-                    status = false;
+                fprintf(stream, "{");
+                for (i = 0; i < len; i++) {
+                    fprintf(stream, "%s",
+                        bitstring_bit(&value->type.Bit_String,
+                            (uint8_t) i) ? "true" : "false");
+                    if (i < len - 1)
+                        fprintf(stream, ",");
                 }
+                fprintf(stream, "}");
                 break;
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 switch (property) {
                     case PROP_OBJECT_TYPE:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_object_type_names
-                        extracted_value = (char *)calloc(1, 64);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
-                                sprintf(extracted_value, "%s",
-                                    bactext_object_type_name(value->type.
-                                        Enumerated));
-                            } else if (value->type.Enumerated < 128) {
-                                sprintf(extracted_value, "reserved %lu",
-                                    (unsigned long) value->type.Enumerated);
-                            } else {
-                                sprintf(extracted_value, "proprietary %lu",
-                                    (unsigned long) value->type.Enumerated);
-                            }
+                        if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
+                            fprintf(stream, "%s",
+                                bactext_object_type_name(value->type.
+                                    Enumerated));
+                        } else if (value->type.Enumerated < 128) {
+                            fprintf(stream, "reserved %lu",
+                                (unsigned long) value->type.Enumerated);
+                        } else {
+                            fprintf(stream, "proprietary %lu",
+                                (unsigned long) value->type.Enumerated);
                         }
-                        else
-                            status = false;
                         break;
                     case PROP_EVENT_STATE:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_event_state_names
-                        extracted_value = (char *)calloc(1, 16);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            sprintf(extracted_value, "%s",
-                                bactext_event_state_name(value->type.Enumerated));
-                        }
-                        else
-                            status = false;
+                        fprintf(stream, "%s",
+                            bactext_event_state_name(value->type.Enumerated));
                         break;
                     case PROP_UNITS:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_engineering_unit_names
-                        extracted_value = (char *)calloc(1, 64);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            if (value->type.Enumerated < 256) {
-                                sprintf(extracted_value, "%s",
-                                    bactext_engineering_unit_name(value->
-                                        type.Enumerated));
-                            } else {
-                                sprintf(extracted_value, "proprietary %lu",
-                                    (unsigned long) value->type.Enumerated);
-                            }
+                        if (value->type.Enumerated < 256) {
+                            fprintf(stream, "%s",
+                                bactext_engineering_unit_name(value->
+                                    type.Enumerated));
+                        } else {
+                            fprintf(stream, "proprietary %lu",
+                                (unsigned long) value->type.Enumerated);
                         }
-                        else
-                            status = false;
                         break;
                     case PROP_POLARITY:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_binary_polarity_names
-                        extracted_value = (char *)calloc(1, 8);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            sprintf(extracted_value, "%s",
-                                bactext_binary_polarity_name(value->
-                                    type.Enumerated));
-                        }
-                        else
-                            status = false;
+                        fprintf(stream, "%s",
+                            bactext_binary_polarity_name(value->
+                                type.Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
                     case PROP_RELINQUISH_DEFAULT:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_binary_present_value_names
-                        extracted_value = (char *)calloc(1, 16);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
-                                sprintf(extracted_value, "%s",
-                                    bactext_binary_present_value_name(value->type.
-                                        Enumerated));
-                            } else {
-                                sprintf(extracted_value, "%lu",
-                                    (unsigned long) value->type.Enumerated);
-                            }
-                        }
-                        else
-                            status = false;
-                        break;
-                    case PROP_RELIABILITY:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_reliability_names
-                        extracted_value = (char *)calloc(1, 32);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            sprintf(extracted_value, "%s",
-                                bactext_reliability_name(value->type.Enumerated));
-                        }
-                        else
-                            status = false;
-                        break;
-                    case PROP_SYSTEM_STATUS:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_device_status_names
-                        extracted_value = (char *)calloc(1, 32);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            sprintf(extracted_value, "%s",
-                                bactext_device_status_name(value->
-                                    type.Enumerated));
-                        }
-                        else
-                            status = false;
-                        break;
-                    case PROP_SEGMENTATION_SUPPORTED:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_segmentation_names
-                        extracted_value = (char *)calloc(1, 32);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            sprintf(extracted_value, "%s",
-                                bactext_segmentation_name(value->type.Enumerated));
-                        }
-                        else
-                            status = false;
-                        break;
-                    case PROP_NODE_TYPE:
-                        // FIXME: this should really be a dynamic number based
-                        // on the longest string in bacnet_node_type_names
-                        extracted_value = (char *)calloc(1, 16);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            sprintf(extracted_value, "%s",
-                                bactext_node_type_name(value->type.Enumerated));
-                        }
-                        else
-                            status = false;
-                        break;
-                    default:
-                        /* %lu format should never exceed 32 characters */
-                        extracted_value = (char *)calloc(1, 32);
-                        p_extracted_value = extracted_value;
-                        if (extracted_value)
-                        {
-                            sprintf(extracted_value, "%lu",
+                        if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
+                            fprintf(stream, "%s",
+                                bactext_binary_present_value_name(value->type.
+                                    Enumerated));
+                        } else {
+                            fprintf(stream, "%lu",
                                 (unsigned long) value->type.Enumerated);
                         }
-                        else
-                            status = false;
+                        break;
+                    case PROP_RELIABILITY:
+                        fprintf(stream, "%s",
+                            bactext_reliability_name(value->type.Enumerated));
+                        break;
+                    case PROP_SYSTEM_STATUS:
+                        fprintf(stream, "%s",
+                            bactext_device_status_name(value->
+                                type.Enumerated));
+                        break;
+                    case PROP_SEGMENTATION_SUPPORTED:
+                        fprintf(stream, "%s",
+                            bactext_segmentation_name(value->type.Enumerated));
+                        break;
+                    case PROP_NODE_TYPE:
+                        fprintf(stream, "%s",
+                            bactext_node_type_name(value->type.Enumerated));
+                        break;
+                    default:
+                        fprintf(stream, "%lu",
+                            (unsigned long) value->type.Enumerated);
                         break;
                 }
                 break;
             case BACNET_APPLICATION_TAG_DATE:
-                // FIXME: this should really be a dynamic number based
-                // on the longest string in bacnet_day_of_week_names and
-                // bacnet_month_names
-                extracted_value = (char *)calloc(1, 64);
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    sprintf(extracted_value, "%s, %s ",
-                        bactext_day_of_week_name(value->type.Date.wday),
-                        bactext_month_name(value->type.Date.month));
-                    extracted_value += strlen(extracted_value);
-                    if (value->type.Date.day == 255) {
-                        sprintf(extracted_value, "(unspecified), ");
-                    } else {
-                        sprintf(extracted_value, "%u, ", (unsigned) value->type.Date.day);
-                    }
-                    extracted_value += strlen(extracted_value);
-                    if (value->type.Date.year == 2155) {
-                        sprintf(extracted_value, "(unspecified), ");
-                    } else {
-                        sprintf(extracted_value, "%u", (unsigned) value->type.Date.year);
-                    }
+                fprintf(stream, "%s, %s ",
+                    bactext_day_of_week_name(value->type.Date.wday),
+                    bactext_month_name(value->type.Date.month));
+                if (value->type.Date.day == 255) {
+                    fprintf(stream, "(unspecified), ");
+                } else {
+                    fprintf(stream, "%u, ", (unsigned) value->type.Date.day);
                 }
-                else
-                    status = false;
+                if (value->type.Date.year == 2155) {
+                    fprintf(stream, "(unspecified), ");
+                } else {
+                    fprintf(stream, "%u", (unsigned) value->type.Date.year);
+                }
                 break;
             case BACNET_APPLICATION_TAG_TIME:
-                /* We can only have Time in HH:MM:SS.ss format here */
-                extracted_value = (char *)calloc(1, sizeof("HH:MM:SS.ss"));
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    if (value->type.Time.hour == 255) {
-                        sprintf(extracted_value, "**:");
-                    } else {
-                        sprintf(extracted_value, "%02u:", (unsigned) value->type.Time.hour);
-                    }
-                    extracted_value += 3;
-                    if (value->type.Time.min == 255) {
-                        sprintf(extracted_value, "**:");
-                    } else {
-                        sprintf(extracted_value, "%02u:", (unsigned) value->type.Time.min);
-                    }
-                    extracted_value += 3;
-                    if (value->type.Time.sec == 255) {
-                        sprintf(extracted_value, "**.");
-                    } else {
-                        sprintf(extracted_value, "%02u.", (unsigned) value->type.Time.sec);
-                    }
-                    extracted_value += 3;
-                    if (value->type.Time.hundredths == 255) {
-                        sprintf(extracted_value, "**");
-                    } else {
-                        sprintf(extracted_value, "%02u",
-                            (unsigned) value->type.Time.hundredths);
-                    }
+                if (value->type.Time.hour == 255) {
+                    fprintf(stream, "**:");
+                } else {
+                    fprintf(stream, "%02u:", (unsigned) value->type.Time.hour);
                 }
-                else
-                    status = false;
+                if (value->type.Time.min == 255) {
+                    fprintf(stream, "**:");
+                } else {
+                    fprintf(stream, "%02u:", (unsigned) value->type.Time.min);
+                }
+                if (value->type.Time.sec == 255) {
+                    fprintf(stream, "**.");
+                } else {
+                    fprintf(stream, "%02u.", (unsigned) value->type.Time.sec);
+                }
+                if (value->type.Time.hundredths == 255) {
+                    fprintf(stream, "**");
+                } else {
+                    fprintf(stream, "%02u",
+                        (unsigned) value->type.Time.hundredths);
+                }
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                // FIXME: this should really be a dynamic number based
-                // on the longest string in bacnet_object_type_names
-                extracted_value = (char *)calloc(1, 64);
-                p_extracted_value = extracted_value;
-                if (extracted_value)
-                {
-                    if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
-                        sprintf(extracted_value, "(%s, %lu)",
-                            bactext_object_type_name(value->type.Object_Id.type),
-                            (unsigned long) value->type.Object_Id.instance);
-                    } else if (value->type.Object_Id.type < 128) {
-                        sprintf(extracted_value, "(reserved %u, %lu)",
-                            (unsigned) value->type.Object_Id.type,
-                            (unsigned long) value->type.Object_Id.instance);
-                    } else {
-                        sprintf(extracted_value, "(proprietary %u, %lu)",
-                            (unsigned) value->type.Object_Id.type,
-                            (unsigned long) value->type.Object_Id.instance);
-                    }               
+                if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
+                    fprintf(stream, "(%s, %lu)",
+                        bactext_object_type_name(value->type.Object_Id.type),
+                        (unsigned long) value->type.Object_Id.instance);
+                } else if (value->type.Object_Id.type < 128) {
+                    fprintf(stream, "(reserved %u, %lu)",
+                        (unsigned) value->type.Object_Id.type,
+                        (unsigned long) value->type.Object_Id.instance);
+                } else {
+                    fprintf(stream, "(proprietary %u, %lu)",
+                        (unsigned) value->type.Object_Id.type,
+                        (unsigned long) value->type.Object_Id.instance);
                 }
-                else
-                    status = false;
                 break;
             default:
                 status = false;
                 break;
         }
-    }
-
-    if (status && p_extracted_value)
-    {
-        /* Update the size of the extracted strinig */
-        *str_len = strlen(p_extracted_value);
-
-        /* if there is space for the new chunk, append it to passed in string */
-        if (
-              out_string         /* we were asked to store to output */
-              &&                 /* and */
-              ( 
-                 *out_string +   /* start of output string */
-                 *str_len        /* plus how much to output */
-              ) <=               /* does not put us past */
-              out_string_end     /* the end of the string */
-           )
-        {
-            sprintf(*out_string, "%s", p_extracted_value);
-            *out_string += *str_len;
-        }
-
-        /* make sure to clean up after ourselves */
-        free(p_extracted_value);
-    }
-
-    return status;
-}
-
-#ifdef BACAPP_PRINT_ENABLED
-/* Print the extracted value from the requested BACnet object property to the
- * specified stream. If stream is NULL, do not print anything. If extraction
- * failed, do not print anything. Return the status of the extraction.
- */
-bool bacapp_print_value(
-    FILE * stream,
-    BACNET_OBJECT_PROPERTY_VALUE * object_value)
-{
-    /* first, try to find out how large of a response there is */
-    size_t len;
-    bool status = bacapp_extract_value(
-                    NULL,
-                    NULL,
-                    &len,
-                    object_value);
-
-    if (status && len)
-    {
-        /* allocate the space needed to extract the response */
-        char *msg = (char *)calloc(1, len+1);
-        char *p_msg = msg;
-
-        if (msg)
-        {
-            status = bacapp_extract_value(
-                    &msg, 
-                    msg+len,
-                    &len,
-                    object_value);
-
-            /* print to stream, if requested */
-            if (stream)
-            {
-                fprintf(stream, p_msg);
-            }
-
-            /* clean up */
-            free(p_msg);
-        } else
-            status = false;
     }
 
     return status;
