@@ -157,6 +157,30 @@ static bool bacnet_name_isvalid(
     return valid;
 }
 
+static bool bacnet_name_save(
+    uint16_t offset,
+    uint8_t encoding,
+    char *str,
+    uint8_t length)
+{
+
+    if (bacnet_name_isvalid(encoding, length, str)) {
+        eeprom_bytes_write(
+            NV_EEPROM_NAME_LENGTH(offset),
+            &length, 1);
+        eeprom_bytes_write(
+            NV_EEPROM_NAME_ENCODING(offset),
+            (uint8_t *)&encoding, 1);
+        eeprom_bytes_write(
+            NV_EEPROM_NAME_STRING(offset),
+            (uint8_t *)str,
+            length);
+        return true;
+    }
+
+    return false;
+}
+
 bool bacnet_name_set(
     uint16_t offset,
     BACNET_CHARACTER_STRING * char_string)
@@ -168,15 +192,7 @@ bool bacnet_name_set(
     length = characterstring_length(char_string);
     encoding = characterstring_encoding(char_string);
     str = characterstring_value(char_string);
-    if (bacnet_name_isvalid(encoding, length, str)) {
-        seeprom_bytes_write(NV_EEPROM_NAME_LENGTH(offset), &length, 1);
-        seeprom_bytes_write(NV_EEPROM_NAME_ENCODING(offset), &encoding, 1);
-        seeprom_bytes_write(NV_EEPROM_NAME_STRING(offset), (uint8_t *) str,
-            length);
-        return true;
-    }
-
-    return false;
+    return bacnet_name_save(offset, encoding, str, length);
 }
 
 bool bacnet_name_write(
@@ -233,7 +249,6 @@ bool bacnet_name_write_other(
     uint8_t encoding = 0;
 
     length = characterstring_length(char_string);
-
     if (length <= NV_EEPROM_NAME_SIZE) {
         encoding = characterstring_encoding(char_string);
         if (encoding < MAX_CHARACTER_STRING_ENCODING) {
@@ -256,11 +271,10 @@ bool bacnet_name_write_other(
 
 void bacnet_name_init(
     uint16_t offset,
-    BACNET_CHARACTER_STRING * char_string,
     char *default_string)
 {
-    characterstring_init_ansi(char_string, default_string);
-    (void) bacnet_name_set(offset, char_string);
+    (void)bacnet_name_save(offset, CHARACTER_UTF8,
+            default_string, strlen(default_string));    
 }
 
 void bacnet_name(
@@ -272,13 +286,14 @@ void bacnet_name(
     uint8_t length = 0;
     char name[NV_EEPROM_NAME_SIZE + 1] = "";
 
-    seeprom_bytes_read(NV_EEPROM_NAME_ENCODING(offset), &encoding, 1);
-    seeprom_bytes_read(NV_EEPROM_NAME_LENGTH(offset), &length, 1);
-    seeprom_bytes_read(NV_EEPROM_NAME_STRING(offset), (uint8_t *) & name,
+    eeprom_bytes_read(NV_EEPROM_NAME_ENCODING(offset), &encoding, 1);
+    eeprom_bytes_read(NV_EEPROM_NAME_LENGTH(offset), &length, 1);
+    eeprom_bytes_read(NV_EEPROM_NAME_STRING(offset), (uint8_t *) & name,
         NV_EEPROM_NAME_SIZE);
     if (bacnet_name_isvalid(encoding, length, name)) {
         characterstring_init(char_string, encoding, &name[0], length);
     } else if (default_string) {
-        bacnet_name_init(offset, char_string, default_string);
+        bacnet_name_init(offset, default_string);
+        characterstring_init_ansi(char_string, default_string);
     }
 }
