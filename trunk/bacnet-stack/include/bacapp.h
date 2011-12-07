@@ -203,12 +203,6 @@ extern "C" {
 #endif
 #endif
 
-bool bacapp_extract_value(
-    char **out_string,
-    char *out_string_end,
-    size_t *str_len,
-    BACNET_OBJECT_PROPERTY_VALUE * object_value);
-
 #ifdef BACAPP_PRINT_ENABLED
     bool bacapp_parse_application_data(
         BACNET_APPLICATION_TAG tag_number,
