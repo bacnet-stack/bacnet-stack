@@ -200,7 +200,15 @@ extern "C" {
 #ifndef BACAPP_PRINT_ENABLED
 #if PRINT_ENABLED || defined TEST
 #define BACAPP_PRINT_ENABLED
+#define BACAPP_SNPRINTF_ENABLED
 #endif
+#endif
+
+#ifdef BACAPP_SNPRINTF_ENABLED
+int bacapp_snprintf_value(
+    char *str,
+    size_t str_len,
+    BACNET_OBJECT_PROPERTY_VALUE * object_value);
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
