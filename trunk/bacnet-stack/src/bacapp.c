@@ -936,18 +936,52 @@ int bacapp_data_len(
     return total_len;
 }
 
-#ifdef BACAPP_PRINT_ENABLED
-bool bacapp_print_value(
-    FILE * stream,
+#ifdef BACAPP_SNPRINTF_ENABLED
+static bool append_str(char **str, size_t *rem_str_len, const char *add_str)
+{
+    bool retval;
+    int bytes_written = snprintf(*str, *rem_str_len, add_str);
+
+    if ( (bytes_written < 0) || (bytes_written >= *rem_str_len) )
+    {
+        /* If there was an error or output was truncated, return error */
+        retval = false;
+    }
+    else
+    {
+        /* Successfully wrote the contents to the string. Let's advance the
+         * string pointer to the end, and account for the used space */
+        *str += bytes_written;
+        *rem_str_len -= bytes_written;
+        retval = true;
+    }
+
+    return retval;
+}
+
+/* Extract the value into a string
+ *  Inputs:  str - the buffer to store the extracted value.
+ *           str_len - the size of the buffer
+ *           object_value - ptr to BACnet object value from which to extract str
+ *  Return:  number of bytes (excluding terminating NULL byte) that were stored
+ *           to the output string. If output was truncated due to string size,
+ *           then the returned value is greater than str_len (a la snprintf() ).
+ */
+int bacapp_snprintf_value(
+    char *str,
+    size_t str_len,
     BACNET_OBJECT_PROPERTY_VALUE * object_value)
 {
-    bool status = true; /*return value */
     size_t len = 0, i = 0;
     char *char_str;
     uint8_t *octet_str;
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
+    int ret_val = -1;
+    char *p_str = str;
+    size_t rem_str_len = str_len;
+    char temp_str[32]; 
 
     if (object_value && object_value->value) {
         value = object_value->value;
@@ -955,189 +989,319 @@ bool bacapp_print_value(
         object_type = object_value->object_type;
         switch (value->tag) {
             case BACNET_APPLICATION_TAG_NULL:
-                fprintf(stream, "Null");
+                ret_val = snprintf(str, str_len, "Null");
                 break;
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                fprintf(stream, "%s", value->type.Boolean ? "TRUE" : "FALSE");
+                ret_val = (value->type.Boolean) ? 
+                    snprintf(str, str_len, "TRUE") : 
+                    snprintf(str, str_len, "FALSE");
                 break;
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                fprintf(stream, "%lu",
+                ret_val = snprintf(str, str_len, "%lu",
                     (unsigned long) value->type.Unsigned_Int);
                 break;
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                fprintf(stream, "%ld", (long) value->type.Signed_Int);
+                ret_val = snprintf(str, str_len, "%ld", 
+                    (long) value->type.Signed_Int);
                 break;
             case BACNET_APPLICATION_TAG_REAL:
-                fprintf(stream, "%f", (double) value->type.Real);
+                ret_val = snprintf(str, str_len, "%f", 
+                    (double) value->type.Real);
                 break;
 #if defined (BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                fprintf(stream, "%f", value->type.Double);
+                ret_val = snprintf(str, str_len, "%f", 
+                    value->type.Double);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_OCTET_STRING:
                 len = octetstring_length(&value->type.Octet_String);
                 octet_str = octetstring_value(&value->type.Octet_String);
                 for (i = 0; i < len; i++) {
-                    fprintf(stream, "%02X", *octet_str);
+                    snprintf(temp_str, sizeof(temp_str), "%02X", *octet_str);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                     octet_str++;
+                }
+                if (i == len)
+                {
+                    // Everything went fine
+                    ret_val = str_len - rem_str_len;
                 }
                 break;
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
                 len = characterstring_length(&value->type.Character_String);
-                char_str =
-                    characterstring_value(&value->type.Character_String);
-                fprintf(stream, "\"");
+                char_str = characterstring_value(&value->type.Character_String);
+                if (!append_str(&p_str, &rem_str_len, "\""))
+                    break;
                 for (i = 0; i < len; i++) {
                     if (isprint(*((unsigned char *) char_str))) {
-                        fprintf(stream, "%c", *char_str);
+                        snprintf(temp_str, sizeof(temp_str), "%c", *char_str);
                     } else {
-                        fprintf(stream, ".");
+                        snprintf(temp_str, sizeof(temp_str), "%c", '.');
                     }
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                     char_str++;
                 }
-                fprintf(stream, "\"");
+                if ( (i == len) &&
+                     append_str(&p_str, &rem_str_len, "\"")
+                   )
+                {
+                    // Everything is fine. Indicate how many bytes were
+                    // written
+                    ret_val = str_len - rem_str_len;
+                }
                 break;
             case BACNET_APPLICATION_TAG_BIT_STRING:
                 len = bitstring_bits_used(&value->type.Bit_String);
-                fprintf(stream, "{");
+                if (!append_str(&p_str, &rem_str_len, "{"))
+                    break;
                 for (i = 0; i < len; i++) {
-                    fprintf(stream, "%s",
+                    snprintf(temp_str, sizeof(temp_str), "%s",
                         bitstring_bit(&value->type.Bit_String,
                             (uint8_t) i) ? "true" : "false");
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                     if (i < len - 1)
-                        fprintf(stream, ",");
+                    {
+                        if (!append_str(&p_str, &rem_str_len, ","))
+                            break;
+                    }
                 }
-                fprintf(stream, "}");
+                if ( (i == len) &&
+                      append_str(&p_str, &rem_str_len, "}")
+                   )
+                {
+                    // Everything is fine. Indicate how many bytes were
+                    // written
+                    ret_val = str_len - rem_str_len;
+                }
                 break;
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 switch (property) {
                     case PROP_OBJECT_TYPE:
                         if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
-                            fprintf(stream, "%s",
+                            ret_val = snprintf(str, str_len, "%s",
                                 bactext_object_type_name(value->type.
                                     Enumerated));
                         } else if (value->type.Enumerated < 128) {
-                            fprintf(stream, "reserved %lu",
+                            ret_val = snprintf(str, str_len, "reserved %lu",
                                 (unsigned long) value->type.Enumerated);
                         } else {
-                            fprintf(stream, "proprietary %lu",
+                            ret_val = snprintf(str, str_len, "proprietary %lu",
                                 (unsigned long) value->type.Enumerated);
                         }
                         break;
                     case PROP_EVENT_STATE:
-                        fprintf(stream, "%s",
+                        ret_val = snprintf(str, str_len, "%s",
                             bactext_event_state_name(value->type.Enumerated));
                         break;
                     case PROP_UNITS:
                         if (value->type.Enumerated < 256) {
-                            fprintf(stream, "%s",
+                            ret_val = snprintf(str, str_len, "%s",
                                 bactext_engineering_unit_name(value->
                                     type.Enumerated));
                         } else {
-                            fprintf(stream, "proprietary %lu",
+                            ret_val = snprintf(str, str_len, "proprietary %lu",
                                 (unsigned long) value->type.Enumerated);
                         }
                         break;
                     case PROP_POLARITY:
-                        fprintf(stream, "%s",
+                        ret_val = snprintf(str, str_len, "%s",
                             bactext_binary_polarity_name(value->
                                 type.Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
                     case PROP_RELINQUISH_DEFAULT:
                         if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
-                            fprintf(stream, "%s",
+                            ret_val = snprintf(str, str_len, "%s",
                                 bactext_binary_present_value_name(value->type.
                                     Enumerated));
                         } else {
-                            fprintf(stream, "%lu",
+                            ret_val = snprintf(str, str_len, "%lu",
                                 (unsigned long) value->type.Enumerated);
                         }
                         break;
                     case PROP_RELIABILITY:
-                        fprintf(stream, "%s",
+                        ret_val = snprintf(str, str_len, "%s",
                             bactext_reliability_name(value->type.Enumerated));
                         break;
                     case PROP_SYSTEM_STATUS:
-                        fprintf(stream, "%s",
+                        ret_val = snprintf(str, str_len, "%s",
                             bactext_device_status_name(value->
                                 type.Enumerated));
                         break;
                     case PROP_SEGMENTATION_SUPPORTED:
-                        fprintf(stream, "%s",
+                        ret_val = snprintf(str, str_len, "%s",
                             bactext_segmentation_name(value->type.Enumerated));
                         break;
                     case PROP_NODE_TYPE:
-                        fprintf(stream, "%s",
+                        ret_val = snprintf(str, str_len, "%s",
                             bactext_node_type_name(value->type.Enumerated));
                         break;
                     default:
-                        fprintf(stream, "%lu",
+                        ret_val = snprintf(str, str_len, "%lu",
                             (unsigned long) value->type.Enumerated);
                         break;
                 }
                 break;
             case BACNET_APPLICATION_TAG_DATE:
-                fprintf(stream, "%s, %s ",
-                    bactext_day_of_week_name(value->type.Date.wday),
-                    bactext_month_name(value->type.Date.month));
+                if (!append_str(&p_str, &rem_str_len, 
+                                bactext_day_of_week_name(value->type.Date.wday)
+                               )
+                   )
+                    break;
+                if (!append_str(&p_str, &rem_str_len, ", "))
+                    break;
+
+                if (!append_str(&p_str, &rem_str_len, 
+                                bactext_month_name(value->type.Date.month)
+                               )
+                   )
+                    break;
                 if (value->type.Date.day == 255) {
-                    fprintf(stream, "(unspecified), ");
+                    if (!append_str(&p_str, &rem_str_len, " (unspecified), "))
+                        break;
                 } else {
-                    fprintf(stream, "%u, ", (unsigned) value->type.Date.day);
+                    snprintf(temp_str, sizeof(temp_str), " %u, ", (unsigned) value->type.Date.day);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 }
                 if (value->type.Date.year == 2155) {
-                    fprintf(stream, "(unspecified), ");
+                    if (!append_str(&p_str, &rem_str_len, "(unspecified)"))
+                        break;
                 } else {
-                    fprintf(stream, "%u", (unsigned) value->type.Date.year);
+                    snprintf(temp_str, "%u", sizeof(temp_str), (unsigned) value->type.Date.year);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 }
+                // If we get here, then everything is OK. Indicate how many
+                // bytes were written.
+                ret_val = str_len - rem_str_len;
                 break;
             case BACNET_APPLICATION_TAG_TIME:
                 if (value->type.Time.hour == 255) {
-                    fprintf(stream, "**:");
+                    if (!append_str(&p_str, &rem_str_len, "**:"))
+                        break;
                 } else {
-                    fprintf(stream, "%02u:", (unsigned) value->type.Time.hour);
+                    snprintf(temp_str, sizeof(temp_str), "%02u:", (unsigned) value->type.Time.hour);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 }
                 if (value->type.Time.min == 255) {
-                    fprintf(stream, "**:");
+                    if (!append_str(&p_str, &rem_str_len, "**:"))
+                        break;
                 } else {
-                    fprintf(stream, "%02u:", (unsigned) value->type.Time.min);
+                    snprintf(temp_str, sizeof(temp_str), "%02u:", (unsigned) value->type.Time.min);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 }
                 if (value->type.Time.sec == 255) {
-                    fprintf(stream, "**.");
+                    if (!append_str(&p_str, &rem_str_len, "**."))
+                        break;
                 } else {
-                    fprintf(stream, "%02u.", (unsigned) value->type.Time.sec);
+                    snprintf(temp_str, sizeof(temp_str), "%02u.", (unsigned) value->type.Time.sec);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 }
                 if (value->type.Time.hundredths == 255) {
-                    fprintf(stream, "**");
+                    if (!append_str(&p_str, &rem_str_len, "**"))
+                        break;
                 } else {
-                    fprintf(stream, "%02u",
-                        (unsigned) value->type.Time.hundredths);
+                    snprintf(temp_str, sizeof(temp_str), "%02u", (unsigned) value->type.Time.hundredths);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 }
+                // If we get here, then everything is OK. Indicate how many
+                // bytes were written.
+                ret_val = str_len - rem_str_len;
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_ID:
+                if (!append_str(&p_str, &rem_str_len, "("))
+                    break;
                 if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
-                    fprintf(stream, "(%s, %lu)",
-                        bactext_object_type_name(value->type.Object_Id.type),
-                        (unsigned long) value->type.Object_Id.instance);
+                    if (!append_str(&p_str, &rem_str_len, 
+                                    bactext_object_type_name(value->type.Object_Id.type)
+                                   )
+                       )
+                        break;
+                    snprintf(temp_str, sizeof(temp_str), ", %lu", (unsigned long) value->type.Object_Id.instance);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 } else if (value->type.Object_Id.type < 128) {
-                    fprintf(stream, "(reserved %u, %lu)",
-                        (unsigned) value->type.Object_Id.type,
-                        (unsigned long) value->type.Object_Id.instance);
+                    if (!append_str(&p_str, &rem_str_len, "reserved "))
+                        break;
+                    snprintf(temp_str, sizeof(temp_str), "%u, ", (unsigned) value->type.Object_Id.type);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
+                    snprintf(temp_str, sizeof(temp_str), "%lu", (unsigned long) value->type.Object_Id.instance);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 } else {
-                    fprintf(stream, "(proprietary %u, %lu)",
-                        (unsigned) value->type.Object_Id.type,
-                        (unsigned long) value->type.Object_Id.instance);
+                    if (!append_str(&p_str, &rem_str_len, "proprietary "))
+                        break;
+                    snprintf(temp_str, sizeof(temp_str), "%u, ", (unsigned) value->type.Object_Id.type);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
+                    snprintf(temp_str, sizeof(temp_str), "%lu", (unsigned long) value->type.Object_Id.instance);
+                    if (!append_str(&p_str, &rem_str_len, temp_str))
+                        break;
                 }
+                if (!append_str(&p_str, &rem_str_len, ")"))
+                    break;
+                // If we get here, then everything is OK. Indicate how many
+                // bytes were written.
+                ret_val = str_len - rem_str_len;
                 break;
             default:
-                status = false;
                 break;
         }
     }
 
-    return status;
+    return ret_val;
+}
+#endif // BACAPP_SNPRINTF_ENABLED
+
+#ifdef BACAPP_PRINT_ENABLED
+/* Print the extracted value from the requested BACnet object property to the
+ * specified stream. If stream is NULL, do not print anything. If extraction
+ * failed, do not print anything. Return the status of the extraction.
+ */
+bool bacapp_print_value(
+    FILE * stream,
+    BACNET_OBJECT_PROPERTY_VALUE * object_value)
+{
+    char *str;
+    bool retval = false;
+    size_t str_len = 32;
+    int status;
+
+    while (true)
+    {
+        // Try to allocate memory for the output string. Give up if unable.
+        str = (char *)calloc(sizeof(char), str_len);
+        if (!str)
+            break;
+
+        // Try to extract the value into allocated memory. If unable, try again
+        // another time with a string that is twice as large.
+        status = bacapp_snprintf_value(str, str_len, object_value);
+        if ( (status < 0 ) || (status > str_len) )
+        {
+            free(str);
+            str_len *= 2;
+        }
+        else
+        {
+            if (stream)
+                fprintf(stream, "%s", str);
+            free(str);
+            retval = true;
+            break;
+        }
+    }
+    return retval;
 }
 #endif
 
