@@ -1287,7 +1287,7 @@ bool bacapp_print_value(
         // Try to extract the value into allocated memory. If unable, try again
         // another time with a string that is twice as large.
         status = bacapp_snprintf_value(str, str_len, object_value);
-        if ( (status < 0 ) || (status > str_len) )
+        if ( (status < 0 ) || (status >= str_len) )
         {
             free(str);
             str_len *= 2;
