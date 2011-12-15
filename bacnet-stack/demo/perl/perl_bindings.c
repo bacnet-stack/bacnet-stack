@@ -52,133 +52,6 @@ static void __LogAnswer(const char *msg, unsigned append)
     LEAVE;
 }
 
-/****************************************/
-// TODO: This should really be fixed in the library
-
-/* used to load the app data struct with the proper data
-   converted from a command line argument */
-bool my_bacapp_parse_application_data(
-    BACNET_APPLICATION_TAG tag_number,
-    const char *argv,
-    BACNET_APPLICATION_DATA_VALUE * value)
-{
-    int hour, min, sec, hundredths;
-    int year, month, day, wday;
-    int object_type = 0;
-    uint32_t instance = 0;
-    bool status = false;
-    long long_value = 0;
-    unsigned long unsigned_long_value = 0;
-    double double_value = 0.0;
-    int count = 0;
-
-    if (value && (tag_number < MAX_BACNET_APPLICATION_TAG)) {
-        status = true;
-        value->tag = tag_number;
-        switch (tag_number) {
-            case BACNET_APPLICATION_TAG_BOOLEAN:
-                long_value = strtol(argv, NULL, 0);
-                if (long_value)
-                    value->type.Boolean = true;
-                else
-                    value->type.Boolean = false;
-                break;
-            case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                unsigned_long_value = strtoul(argv, NULL, 0);
-                value->type.Unsigned_Int = unsigned_long_value;
-                break;
-            case BACNET_APPLICATION_TAG_SIGNED_INT:
-                long_value = strtol(argv, NULL, 0);
-                value->type.Signed_Int = long_value;
-                break;
-            case BACNET_APPLICATION_TAG_REAL:
-                double_value = strtod(argv, NULL);
-                value->type.Real = (float) double_value;
-                break;
-#if defined (BACAPP_DOUBLE)
-            case BACNET_APPLICATION_TAG_DOUBLE:
-                double_value = strtod(argv, NULL);
-                value->type.Double = double_value;
-                break;
-#endif
-            case BACNET_APPLICATION_TAG_OCTET_STRING:
-                status =
-                    octetstring_init(&value->type.Octet_String,
-                    (uint8_t *) argv, strlen(argv));
-                break;
-            case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                status =
-                    characterstring_init_ansi(&value->type.Character_String,
-                    (char *) argv);
-                break;
-            case BACNET_APPLICATION_TAG_BIT_STRING:
-                /* FIXME: how to parse a bit string? */
-                status = false;
-                bitstring_init(&value->type.Bit_String);
-                break;
-            case BACNET_APPLICATION_TAG_ENUMERATED:
-                unsigned_long_value = strtoul(argv, NULL, 0);
-                value->type.Enumerated = unsigned_long_value;
-                break;
-            case BACNET_APPLICATION_TAG_DATE:
-                count =
-                    sscanf(argv, "%d/%d/%d:%d", &year, &month, &day, &wday);
-                if (count == 3) {
-                    datetime_set_date(&value->type.Date, (uint16_t) year,
-                        (uint8_t) month, (uint8_t) day);
-                } else if (count == 4) {
-                    value->type.Date.year = (uint16_t) year;
-                    value->type.Date.month = (uint8_t) month;
-                    value->type.Date.day = (uint8_t) day;
-                    value->type.Date.wday = (uint8_t) wday;
-                } else {
-                    status = false;
-                }
-                break;
-            case BACNET_APPLICATION_TAG_TIME:
-                count =
-                    sscanf(argv, "%d:%d:%d.%d", &hour, &min, &sec,
-                    &hundredths);
-                if (count == 4) {
-                    value->type.Time.hour = (uint8_t) hour;
-                    value->type.Time.min = (uint8_t) min;
-                    value->type.Time.sec = (uint8_t) sec;
-                    value->type.Time.hundredths = (uint8_t) hundredths;
-                } else if (count == 3) {
-                    value->type.Time.hour = (uint8_t) hour;
-                    value->type.Time.min = (uint8_t) min;
-                    value->type.Time.sec = (uint8_t) sec;
-                    value->type.Time.hundredths = 0;
-                } else if (count == 2) {
-                    value->type.Time.hour = (uint8_t) hour;
-                    value->type.Time.min = (uint8_t) min;
-                    value->type.Time.sec = 0;
-                    value->type.Time.hundredths = 0;
-                } else {
-                    status = false;
-                }
-                break;
-            case BACNET_APPLICATION_TAG_OBJECT_ID:
-                count = sscanf(argv, "%d:%d", &object_type, &instance);
-                if (count == 2) {
-                    value->type.Object_Id.type = (uint16_t) object_type;
-                    value->type.Object_Id.instance = instance;
-                } else {
-                    status = false;
-                }
-                break;
-            default:
-                break;
-        }
-        value->next = NULL;
-    }
-
-    return status;
-}
-
-// end of TODO
-/****************************************/
-
 /**************************************/
 // error handlers
 /*************************************/
@@ -246,7 +119,6 @@ void rp_ack_extract_data(BACNET_READ_PROPERTY_DATA * data)
     int application_data_len;
     bool first_value = true;
     bool print_brace = false;
-    size_t str_len;
 
     if (data) 
     {
@@ -270,7 +142,7 @@ void rp_ack_extract_data(BACNET_READ_PROPERTY_DATA * data)
             object_value.object_property = data->object_property;
             object_value.array_index = data->array_index;
             object_value.value = &value;
-            bacapp_extract_value(&pAckString, ackString+MAX_ACK_STRING, &str_len, &object_value);
+            bacapp_snprintf_value(pAckString, MAX_ACK_STRING - (pAckString - ackString), &object_value);
             if (len > 0) {
                 if (len < application_data_len) {
                     application_data += len;
@@ -307,7 +179,6 @@ void rpm_ack_extract_data(BACNET_READ_ACCESS_DATA * rpm_data)
     bool array_value = false;
     char ackString[MAX_ACK_STRING] = "";
     char *pAckString = &ackString[0];
-    size_t str_len;
 
     if (rpm_data) {
         listOfProperties = rpm_data->listOfProperties;
@@ -327,7 +198,7 @@ void rpm_ack_extract_data(BACNET_READ_ACCESS_DATA * rpm_data)
                     object_value.object_property = listOfProperties->propertyIdentifier;
                     object_value.array_index = listOfProperties->propertyArrayIndex;
                     object_value.value = value;
-                    bacapp_extract_value(&pAckString, ackString+MAX_ACK_STRING, &str_len, &object_value);
+                    bacapp_snprintf_value(pAckString, MAX_ACK_STRING - (pAckString - ackString), &object_value);
                     if (value->next) {
                         strncat(pAckString, ",", 1);
                         pAckString++;
@@ -903,7 +774,7 @@ int BacnetWriteProperty(int deviceInstanceNumber,
             LogError(msg);
             break;
         }
-        if (!my_bacapp_parse_application_data(property_tag, value, &propertyValue))
+        if (!bacapp_parse_application_data(property_tag, value, &propertyValue))
         {
             sprintf(msg, "Error: unable to parse the tag value");
             LogError(msg);
