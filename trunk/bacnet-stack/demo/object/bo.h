@@ -99,6 +99,13 @@ extern "C" {
     bool Binary_Output_Out_Of_Service(
         uint32_t instance);
 
+    bool Binary_Output_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+    bool Binary_Output_Change_Of_Value(
+        uint32_t instance);
+    void Binary_Output_Change_Of_Value_Clear(
+        uint32_t instance);
 
 #ifdef TEST
 #include "ctest.h"
