@@ -85,7 +85,7 @@ static bool FIFO_Available(
     FIFO_BUFFER const *b,
     unsigned count)
 {
-    return (b ? (count < (b->buffer_len - FIFO_Count(b))) : false);
+    return (b ? (count <= (b->buffer_len - FIFO_Count(b))) : false);
 }
 
 /****************************************************************************
@@ -245,11 +245,15 @@ void testFIFOBuffer(
 
     /* load the buffer */
     for (test_data = 0; test_data < FIFO_BUFFER_SIZE; test_data++) {
+        ct_test(pTest, !FIFO_Full(&test_buffer));
+        ct_test(pTest, FIFO_Available(&test_buffer, 1));
         status = FIFO_Put(&test_buffer, test_data);
         ct_test(pTest, status == true);
         ct_test(pTest, !FIFO_Empty(&test_buffer));
     }
     /* not able to put any more */
+    ct_test(pTest, FIFO_Full(&test_buffer));
+    ct_test(pTest, !FIFO_Available(&test_buffer, 1));
     status = FIFO_Put(&test_buffer, 42);
     ct_test(pTest, status == false);
     /* unload the buffer */
@@ -259,6 +263,8 @@ void testFIFOBuffer(
         ct_test(pTest, test_data == index);
         test_data = FIFO_Get(&test_buffer);
         ct_test(pTest, test_data == index);
+        ct_test(pTest, FIFO_Available(&test_buffer, 1));
+        ct_test(pTest, !FIFO_Full(&test_buffer));
     }
     ct_test(pTest, FIFO_Empty(&test_buffer));
     test_data = FIFO_Get(&test_buffer);
@@ -269,6 +275,7 @@ void testFIFOBuffer(
     /* test the ring around the buffer */
     for (index = 0; index < FIFO_BUFFER_SIZE; index++) {
         ct_test(pTest, FIFO_Empty(&test_buffer));
+        ct_test(pTest, FIFO_Available(&test_buffer, 4));
         for (count = 1; count < 4; count++) {
             test_data = count;
             status = FIFO_Put(&test_buffer, test_data);
@@ -285,6 +292,7 @@ void testFIFOBuffer(
     }
     ct_test(pTest, FIFO_Empty(&test_buffer));
     /* test Add */
+    ct_test(pTest, FIFO_Available(&test_buffer, sizeof(test_add_data)));
     status = FIFO_Add(&test_buffer, test_add_data, sizeof(test_add_data));
     ct_test(pTest, status == true);
     ct_test(pTest, !FIFO_Empty(&test_buffer));
