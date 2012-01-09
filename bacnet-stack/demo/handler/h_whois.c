@@ -76,13 +76,12 @@ void handler_who_is(
     return;
 }
 
-/** Handler for Who-Is requests, with Unicast I-Am response (per Addendum 135-2004q),
- *  unless the Who-Is was an Original-Broadcast or Forwarded-NPDU.
+/** Handler for Who-Is requests, with Unicast I-Am response (per Addendum 135-2004q).
  * @ingroup DMDDB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
- * @param src [in] The BACNET_ADDRESS of the message's source, that the
- *                 response will be sent back to if unicast.
+ * @param src [in] The BACNET_ADDRESS of the message's source that the
+ *                 response will be sent back to.
  */
 void handler_who_is_unicast(
     uint8_t * service_request,
@@ -92,14 +91,13 @@ void handler_who_is_unicast(
     int len = 0;
     int32_t low_limit = 0;
     int32_t high_limit = 0;
-    bool bOkToSend = false;
 
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
     /* If no limits, then always respond */
     if (len == 0)
-        bOkToSend = true;
+        Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     else if (len != -1) {
         /* is my device id within the limits? */
         if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
@@ -107,16 +105,10 @@ void handler_who_is_unicast(
             ||
             /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-             (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
-                    bOkToSend = true;
-    }
-    
-    if ( bOkToSend ) {
-        if ( bvlc_get_function_code() == BVLC_ORIGINAL_UNICAST_NPDU )
+                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
             Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
-        else
-            Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
+
     return;
 }
 
