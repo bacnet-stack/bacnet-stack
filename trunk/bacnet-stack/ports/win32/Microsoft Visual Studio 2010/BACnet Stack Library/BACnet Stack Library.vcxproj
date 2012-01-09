@@ -41,6 +41,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Documents and Settings\skordi1a\My Documents\_Wattstopper\bacnet-stack\include;C:\Documents and Settings\skordi1a\My Documents\_Wattstopper\bacnet-stack\demo\object;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -71,6 +72,9 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\demo\handler\h_rr.c" />
+    <ClCompile Include="..\..\..\..\demo\handler\h_upt.c" />
+    <ClCompile Include="..\..\..\..\demo\handler\h_wpm.c" />
     <ClCompile Include="..\..\..\..\src\abort.c" />
     <ClCompile Include="..\..\..\..\src\address.c" />
     <ClCompile Include="..\..\..\..\src\apdu.c" />
@@ -133,6 +137,7 @@
     <ClCompile Include="..\..\..\..\demo\handler\objects.c" />
     <ClCompile Include="..\..\..\..\src\ptransfer.c" />
     <ClCompile Include="..\..\..\..\src\rd.c" />
+    <ClCompile Include="..\..\..\..\src\readrange.c" />
     <ClCompile Include="..\..\..\..\src\reject.c" />
     <ClCompile Include="..\..\..\..\src\ringbuf.c" />
     <ClCompile Include="..\..\..\..\src\rp.c" />
@@ -161,6 +166,7 @@
     <ClCompile Include="..\..\..\..\src\whohas.c" />
     <ClCompile Include="..\..\..\..\src\whois.c" />
     <ClCompile Include="..\..\..\..\src\wp.c" />
+    <ClCompile Include="..\..\..\..\src\wpm.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\net.h" />
