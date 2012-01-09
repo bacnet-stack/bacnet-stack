@@ -194,8 +194,11 @@ bool FIFO_Add(
 void FIFO_Flush(
     FIFO_BUFFER * b)
 {
+    unsigned head;        /* used to avoid volatile decision */
+
     if (b) {
-        b->tail = b->head;
+        head = b->head;
+        b->tail = head;
     }
 }
 
