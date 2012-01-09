@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C++ Express 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BACnet Stack Library", "BACnet Stack Library\BACnet Stack Library.vcxproj", "{E9A65567-B028-4278-881D-674604B2E126}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BACnet Object Definitions", "BACnet Object Definitions\BACnet Object Definitions.vcxproj", "{6A8668E1-F08E-496B-B624-D6C05001806D}"
