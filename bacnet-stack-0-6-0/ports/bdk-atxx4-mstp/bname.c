@@ -163,6 +163,8 @@ static bool bacnet_name_save(
     char *str,
     uint8_t length)
 {
+    uint8_t buffer[NV_EEPROM_NAME_SIZE] = {0};
+    uint8_t i = 0;
 
     if (bacnet_name_isvalid(encoding, length, str)) {
         eeprom_bytes_write(
@@ -171,10 +173,13 @@ static bool bacnet_name_save(
         eeprom_bytes_write(
             NV_EEPROM_NAME_ENCODING(offset),
             (uint8_t *)&encoding, 1);
+        for (i = 0; i < length; i++) {
+            buffer[i] = str[i];
+        }
         eeprom_bytes_write(
             NV_EEPROM_NAME_STRING(offset),
-            (uint8_t *)str,
-            length);
+            &buffer[0],
+            NV_EEPROM_NAME_SIZE);
         return true;
     }
 
