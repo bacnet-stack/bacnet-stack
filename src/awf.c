@@ -63,7 +63,7 @@ int awf_encode_apdu(
                     encode_application_signed(&apdu[apdu_len],
                     data->type.stream.fileStartPosition);
                 apdu_len +=
-                    encode_application_octet_string(&apdu[apdu_len],
+                    encode_application_octet_string(&apdu[apdu_len], MAX_APDU,	/*FIXME: use get max apdu function*/
                     &data->fileData);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
                 break;
@@ -76,7 +76,7 @@ int awf_encode_apdu(
                     encode_application_unsigned(&apdu[apdu_len],
                     data->type.record.returnedRecordCount);
                 apdu_len +=
-                    encode_application_octet_string(&apdu[apdu_len],
+                    encode_application_octet_string(&apdu[apdu_len], MAX_APDU,	/*FIXME: use get max apdu function*/
                     &data->fileData);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
                 break;

@@ -34,6 +34,8 @@
 #ifndef BACAPP_H
 #define BACAPP_H
 
+#define BACAPP_PRINT_ENABLED 1
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -98,7 +100,7 @@ typedef struct BACnet_Access_Error {
 struct BACnet_Property_Reference;
 typedef struct BACnet_Property_Reference {
     BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t propertyArrayIndex; /* optional */
+    int32_t propertyArrayIndex; /* optional */
     /* either value or error, but not both.
        Use NULL value to indicate error */
     BACNET_APPLICATION_DATA_VALUE *value;
@@ -110,7 +112,7 @@ typedef struct BACnet_Property_Reference {
 struct BACnet_Property_Value;
 typedef struct BACnet_Property_Value {
     BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t propertyArrayIndex;
+    int32_t propertyArrayIndex;
     BACNET_APPLICATION_DATA_VALUE value;
     uint8_t priority;
     /* simple linked list */
@@ -123,15 +125,25 @@ typedef struct BACnet_Object_Property_Value {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
-    uint32_t array_index;
+    int32_t array_index;
     BACNET_APPLICATION_DATA_VALUE *value;
 } BACNET_OBJECT_PROPERTY_VALUE;
+
+
+
+
+
+
+
+/**/
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
     int bacapp_encode_data(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
     int bacapp_decode_data(
         uint8_t * apdu,
@@ -151,6 +163,7 @@ extern "C" {
 
     int bacapp_encode_application_data(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     int bacapp_decode_context_data(
@@ -161,11 +174,13 @@ extern "C" {
 
     int bacapp_encode_context_data(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
     int bacapp_encode_context_data_value(
         uint8_t * apdu,
+		size_t max_apdu,
         uint8_t context_tag_number,
         BACNET_APPLICATION_DATA_VALUE * value);
 
@@ -197,18 +212,16 @@ extern "C" {
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
 
+	bool value_free(
+		BACNET_APPLICATION_DATA_VALUE * value);
+
+	void Free_BADV_List(
+		BACNET_APPLICATION_DATA_VALUE *Head);
+
 #ifndef BACAPP_PRINT_ENABLED
 #if PRINT_ENABLED || defined TEST
 #define BACAPP_PRINT_ENABLED
-#define BACAPP_SNPRINTF_ENABLED
 #endif
-#endif
-
-#ifdef BACAPP_SNPRINTF_ENABLED
-int bacapp_snprintf_value(
-    char *str,
-    size_t str_len,
-    BACNET_OBJECT_PROPERTY_VALUE * object_value);
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED

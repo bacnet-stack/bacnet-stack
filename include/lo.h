@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -22,19 +22,52 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef DLENV_H
-#define DLENV_H
+#ifndef LO_H
+#define LO_H
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "bacdef.h"
+#include "bacerror.h"
+#include "rp.h"
+#include "wp.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    void dlenv_init(
+    bool Analog_Output_Valid_Instance(
+        uint32_t object_instance);
+    unsigned Lighting_Output_Count(
         void);
-    void dlenv_register_as_foreign_device(
-        void);
-    void dlenv_maintenance_timer(
-        uint16_t elapsed_seconds);
+    uint32_t Lighting_Output_Index_To_Instance(
+        unsigned index);
+    char *Lighting_Output_Name(
+        uint32_t object_instance);
+    float Lighting_Output_Present_Value(
+        uint32_t object_instance);
+    unsigned Lighting_Output_Present_Value_Priority(
+        uint32_t object_instance);
+    bool Lighting_Output_Present_Value_Set(
+        uint32_t object_instance,
+        float value,
+        unsigned priority);
+    bool Lighting_Output_Present_Value_Relinquish(
+        uint32_t object_instance,
+        int priority);
+
+    /* ReadProperty service support */
+    int Lighting_Output_Read_Property(
+        BACNET_READ_PROPERTY_DATA * rpdata);
+    /* WriteProperty service support */
+    bool Lighting_Output_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+#ifdef TEST
+#include "ctest.h"
+    void testLightingOutput(
+        Test * pTest);
+#endif
 
 #ifdef __cplusplus
 }

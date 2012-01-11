@@ -1,5 +1,4 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
+/*####COPYRIGHTBEGIN#### -------------------------------------------
  Copyright (C) 2004 Steve Karg
 
  This program is free software; you can redistribute it and/or
@@ -41,6 +40,10 @@
 #include "bacstr.h"
 #include "bacint.h"
 #include "bacreal.h"
+
+#if PRINT_ENABLED
+#include <stdio.h>
+#endif
 
 /** @file bacdcode.c  Functions to encode/decode BACnet data types */
 
@@ -119,7 +122,7 @@ uint8_t encode_max_segs_max_apdu(
         octet = 0x70;
 
     /* max_apdu must be 50 octets minimum */
-    if (max_apdu <= 50)
+    if (max_apdu <= MIN_APDU_LENGTH)
         octet |= 0x00;
     else if (max_apdu <= 128)
         octet |= 0x01;
@@ -134,7 +137,9 @@ uint8_t encode_max_segs_max_apdu(
     /* fits in an ISO 8802-3 frame */
     else if (max_apdu <= 1476)
         octet |= 0x05;
-
+#if PRINT_ENABLED
+	printf("MAX_APDU=%u\n",max_apdu);
+#endif
     return octet;
 }
 
@@ -894,6 +899,7 @@ int encode_octet_string(
 /* returns the number of apdu bytes consumed */
 int encode_application_octet_string(
     uint8_t * apdu,
+	size_t max_apdu,
     BACNET_OCTET_STRING * octet_string)
 {
     int apdu_len = 0;
@@ -904,7 +910,7 @@ int encode_application_octet_string(
             octetstring_length(octet_string));
         /* FIXME: probably need to pass in the length of the APDU
            to bounds check since it might not be the only data chunk */
-        if ((apdu_len + octetstring_length(octet_string)) < MAX_APDU) {
+        if ((apdu_len + octetstring_length(octet_string)) < max_apdu) {
             apdu_len += encode_octet_string(&apdu[apdu_len], octet_string);
         } else {
             apdu_len = 0;
@@ -919,6 +925,7 @@ int encode_application_octet_string(
 /* returns the number of apdu bytes consumed */
 int encode_context_octet_string(
     uint8_t * apdu,
+	size_t max_apdu,
     uint8_t tag_number,
     BACNET_OCTET_STRING * octet_string)
 {
@@ -928,7 +935,7 @@ int encode_context_octet_string(
         apdu_len =
             encode_tag(&apdu[0], tag_number, true,
             octetstring_length(octet_string));
-        if ((apdu_len + octetstring_length(octet_string)) < MAX_APDU) {
+        if ((apdu_len + octetstring_length(octet_string)) < max_apdu) {
             apdu_len += encode_octet_string(&apdu[apdu_len], octet_string);
         } else {
             apdu_len = 0;
@@ -986,6 +993,7 @@ int decode_context_octet_string(
 /* returns the number of apdu bytes consumed */
 int encode_bacnet_character_string(
     uint8_t * apdu,
+	size_t max_apdu,
     BACNET_CHARACTER_STRING * char_string)
 {
     int len, i;
@@ -1006,18 +1014,19 @@ int encode_bacnet_character_string(
 /* returns the number of apdu bytes consumed */
 int encode_application_character_string(
     uint8_t * apdu,
+	size_t max_apdu,
     BACNET_CHARACTER_STRING * char_string)
 {
-    int len = 0;
-    int string_len = 0;
+    size_t len = 0;
+    size_t string_len = 0;
 
     string_len =
         (int) characterstring_length(char_string) + 1 /* for encoding */ ;
     len =
         encode_tag(&apdu[0], BACNET_APPLICATION_TAG_CHARACTER_STRING, false,
         (uint32_t) string_len);
-    if ((len + string_len) < MAX_APDU) {
-        len += encode_bacnet_character_string(&apdu[len], char_string);
+    if ((len + string_len) < max_apdu) {
+        len += encode_bacnet_character_string(&apdu[len], max_apdu-len, char_string);
     } else {
         len = 0;
     }
@@ -1027,6 +1036,7 @@ int encode_application_character_string(
 
 int encode_context_character_string(
     uint8_t * apdu,
+	size_t max_apdu,
     uint8_t tag_number,
     BACNET_CHARACTER_STRING * char_string)
 {
@@ -1036,8 +1046,8 @@ int encode_context_character_string(
     string_len =
         (int) characterstring_length(char_string) + 1 /* for encoding */ ;
     len += encode_tag(&apdu[0], tag_number, true, (uint32_t) string_len);
-    if ((len + string_len) < MAX_APDU) {
-        len += encode_bacnet_character_string(&apdu[len], char_string);
+    if ((len + string_len) < (int)max_apdu) {
+        len += encode_bacnet_character_string(&apdu[len], max_apdu-len, char_string);
     } else {
         len = 0;
     }
@@ -2152,8 +2162,8 @@ void testBACDCodeOctetString(
 {
     uint8_t array[MAX_APDU] = { 0 };
     uint8_t encoded_array[MAX_APDU] = { 0 };
-    BACNET_OCTET_STRING octet_string;
-    BACNET_OCTET_STRING test_octet_string;
+	BACNET_OCTET_STRING octet_string = { 0, NULL};
+    BACNET_OCTET_STRING test_octet_string = { 0, NULL};
     uint8_t test_value[MAX_APDU] = { "" };
     int i;      /* for loop counter */
     int apdu_len;
@@ -2165,7 +2175,7 @@ void testBACDCodeOctetString(
 
     status = octetstring_init(&octet_string, NULL, 0);
     ct_test(pTest, status == true);
-    apdu_len = encode_application_octet_string(&array[0], &octet_string);
+    apdu_len = encode_application_octet_string(&array[0], MAX_APDU, &octet_string);
     len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OCTET_STRING);
     len += decode_octet_string(&array[len], len_value, &test_octet_string);
@@ -2180,7 +2190,7 @@ void testBACDCodeOctetString(
         status = octetstring_init(&octet_string, test_value, i);
         ct_test(pTest, status == true);
         apdu_len =
-            encode_application_octet_string(&encoded_array[0], &octet_string);
+            encode_application_octet_string(&encoded_array[0], MAX_APDU, &octet_string);
         len =
             decode_tag_number_and_value(&encoded_array[0], &tag_number,
             &len_value);
@@ -2200,7 +2210,8 @@ void testBACDCodeOctetString(
         }
         ct_test(pTest, diff == 0);
     }
-
+	free(octet_string.value);
+	free(test_octet_string.value);
     return;
 }
 
@@ -2209,8 +2220,8 @@ void testBACDCodeCharacterString(
 {
     uint8_t array[MAX_APDU] = { 0 };
     uint8_t encoded_array[MAX_APDU] = { 0 };
-    BACNET_CHARACTER_STRING char_string;
-    BACNET_CHARACTER_STRING test_char_string;
+	BACNET_CHARACTER_STRING char_string = { 0, 0, NULL};
+    BACNET_CHARACTER_STRING test_char_string = { 0, 0, NULL};
     char test_value[MAX_APDU] = { "" };
     int i;      /* for loop counter */
     int apdu_len;
@@ -2222,7 +2233,7 @@ void testBACDCodeCharacterString(
 
     status = characterstring_init(&char_string, CHARACTER_ANSI_X34, NULL, 0);
     ct_test(pTest, status == true);
-    apdu_len = encode_application_character_string(&array[0], &char_string);
+    apdu_len = encode_application_character_string(&array[0], MAX_APDU, &char_string);
     len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING);
     len += decode_character_string(&array[len], len_value, &test_char_string);
@@ -2237,7 +2248,7 @@ void testBACDCodeCharacterString(
         status = characterstring_init_ansi(&char_string, test_value);
         ct_test(pTest, status == true);
         apdu_len =
-            encode_application_character_string(&encoded_array[0],
+            encode_application_character_string(&encoded_array[0], MAX_APDU,
             &char_string);
         len =
             decode_tag_number_and_value(&encoded_array[0], &tag_number,
@@ -2258,7 +2269,8 @@ void testBACDCodeCharacterString(
         }
         ct_test(pTest, diff == 0);
     }
-
+	free(char_string.value);
+	free(test_char_string.value);
     return;
 }
 
@@ -2798,12 +2810,12 @@ void testCharacterStringContextDecodes(
     uint8_t large_context_tag = 0xfe;
 
 
-    BACNET_CHARACTER_STRING in;
-    BACNET_CHARACTER_STRING out;
+    BACNET_CHARACTER_STRING in = { 0, 0, NULL};
+    BACNET_CHARACTER_STRING out = { 0, 0, NULL};
 
     characterstring_init_ansi(&in, "This is a test");
 
-    inLen = encode_context_character_string(apdu, 10, &in);
+    inLen = encode_context_character_string(apdu, MAX_APDU, 10, &in);
     outLen = decode_context_character_string(apdu, 10, &out);
     outLen2 = decode_context_character_string(apdu, 9, &out);
 
@@ -2813,7 +2825,7 @@ void testCharacterStringContextDecodes(
     ct_test(pTest, in.encoding == out.encoding);
     ct_test(pTest, strcmp(in.value, out.value) == 0);
 
-    inLen = encode_context_character_string(apdu, large_context_tag, &in);
+    inLen = encode_context_character_string(apdu, MAX_APDU, large_context_tag, &in);
     outLen = decode_context_character_string(apdu, large_context_tag, &out);
     outLen2 =
         decode_context_character_string(apdu, large_context_tag - 1, &out);
@@ -2823,6 +2835,8 @@ void testCharacterStringContextDecodes(
     ct_test(pTest, in.length == out.length);
     ct_test(pTest, in.encoding == out.encoding);
     ct_test(pTest, strcmp(in.value, out.value) == 0);
+	free(in.value);
+	free(out.value);
 }
 
 void testBitStringContextDecodes(
@@ -2874,14 +2888,14 @@ void testOctetStringContextDecodes(
     uint8_t large_context_tag = 0xfe;
 
 
-    BACNET_OCTET_STRING in;
-    BACNET_OCTET_STRING out;
+	BACNET_OCTET_STRING in = { 0, NULL};
+    BACNET_OCTET_STRING out = { 0, NULL};
 
     uint8_t initData[] = { 0xde, 0xad, 0xbe, 0xef };
 
     octetstring_init(&in, initData, sizeof(initData));
 
-    inLen = encode_context_octet_string(apdu, 10, &in);
+    inLen = encode_context_octet_string(apdu, MAX_APDU, 10, &in);
     outLen = decode_context_octet_string(apdu, 10, &out);
     outLen2 = decode_context_octet_string(apdu, 9, &out);
 
@@ -2890,7 +2904,7 @@ void testOctetStringContextDecodes(
     ct_test(pTest, in.length == out.length);
     ct_test(pTest, octetstring_value_same(&in, &out));
 
-    inLen = encode_context_octet_string(apdu, large_context_tag, &in);
+    inLen = encode_context_octet_string(apdu, MAX_APDU, large_context_tag, &in);
     outLen = decode_context_octet_string(apdu, large_context_tag, &out);
     outLen2 = decode_context_octet_string(apdu, large_context_tag - 1, &out);
 
@@ -2899,6 +2913,8 @@ void testOctetStringContextDecodes(
     ct_test(pTest, in.length == out.length);
     ct_test(pTest, octetstring_value_same(&in, &out));
 
+	free(in.value);
+	free(out.value);
 }
 
 void testTimeContextDecodes(
@@ -2984,6 +3000,7 @@ void testDateContextDecodes(
     ct_test(pTest, in.year == out.year);
 }
 
+#include <dmalloc.h>
 
 #ifdef TEST_DECODE
 int main(
@@ -2991,6 +3008,8 @@ int main(
 {
     Test *pTest;
     bool rc;
+
+    dmalloc_debug_setup("debug=0xFFFFFFFF,log=write_prop.memorylog");
 
     pTest = ct_create("BACDCode", NULL);
     /* individual tests */

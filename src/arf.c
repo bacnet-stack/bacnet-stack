@@ -42,6 +42,7 @@
 /* encode service */
 int arf_encode_apdu(
     uint8_t * apdu,
+	size_t max_apdu,
     uint8_t invoke_id,
     BACNET_ATOMIC_READ_FILE_DATA * data)
 {
@@ -49,7 +50,7 @@ int arf_encode_apdu(
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_ATOMIC_READ_FILE;   /* service choice */
         apdu_len = 4;
@@ -200,6 +201,7 @@ int arf_decode_apdu(
 /* encode service */
 int arf_ack_encode_apdu(
     uint8_t * apdu,
+	size_t max_apdu,
     uint8_t invoke_id,
     BACNET_ATOMIC_READ_FILE_DATA * data)
 {
@@ -220,7 +222,7 @@ int arf_ack_encode_apdu(
                     encode_application_signed(&apdu[apdu_len],
                     data->type.stream.fileStartPosition);
                 apdu_len +=
-                    encode_application_octet_string(&apdu[apdu_len],
+                    encode_application_octet_string(&apdu[apdu_len], max_apdu-apdu_len,
                     &data->fileData);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
                 break;
@@ -233,7 +235,7 @@ int arf_ack_encode_apdu(
                     encode_application_unsigned(&apdu[apdu_len],
                     data->type.record.RecordCount);
                 apdu_len +=
-                    encode_application_octet_string(&apdu[apdu_len],
+                    encode_application_octet_string(&apdu[apdu_len], max_apdu-apdu_len,
                     &data->fileData);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
                 break;

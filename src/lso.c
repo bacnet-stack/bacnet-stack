@@ -56,7 +56,7 @@ int lso_encode_adpu(
         apdu_len += len;
         /* tag 1 - requestingSource */
         len =
-            encode_context_character_string(&apdu[apdu_len], 1,
+            encode_context_character_string(&apdu[apdu_len], 1, MAX_APDU, /*FIXME: use get max apdu function*/
             &data->requestingSrc);
         apdu_len += len;
         /*

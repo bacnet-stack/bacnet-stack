@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -22,21 +22,57 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#ifndef DLENV_H
-#define DLENV_H
+#ifndef BV_H
+#define BV_H
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "bacdef.h"
+#include "bacerror.h"
+#include "rp.h"
+#include "wp.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    void dlenv_init(
+    void Binary_Value_Property_Lists(
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
+    bool Binary_Value_Valid_Instance(
+        uint32_t object_instance);
+    unsigned Binary_Value_Count(
         void);
-    void dlenv_register_as_foreign_device(
+    uint32_t Binary_Value_Index_To_Instance(
+        unsigned index);
+    unsigned Binary_Value_Instance_To_Index(
+        uint32_t object_instance);
+    char *Binary_Value_Name(
+        uint32_t object_instance);
+
+    void Binary_Value_Init(
         void);
-    void dlenv_maintenance_timer(
-        uint16_t elapsed_seconds);
+
+    int Binary_Value_Read_Property(
+        BACNET_READ_PROPERTY_DATA * rpdata);
+
+    bool Binary_Value_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+#ifdef TEST
+#include "ctest.h"
+    void testBinary_Value(
+        Test * pTest);
+#endif
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+#define BINARY_VALUE_OBJ_FUNCTIONS \
+    OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count, \
+    Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance, \
+    Binary_Value_Name, Binary_Value_Read_Property, \
+    Binary_Value_Write_Property, Binary_Value_Property_Lists, NULL, \
+    NULL
 #endif

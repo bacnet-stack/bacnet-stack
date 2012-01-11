@@ -37,8 +37,6 @@
 #include "wp.h"
 #include "readrange.h"
 #include "getevent.h"
-#include "get_alarm_sum.h"
-#include "alarm_ack.h"
 
 
 #ifdef __cplusplus
@@ -115,12 +113,6 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
     void handler_write_property(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
-
-    void handler_write_property_multiple(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
@@ -210,13 +202,24 @@ extern "C" {
     void rpm_ack_print_data(
         BACNET_READ_ACCESS_DATA * rpm_data);
 
+    /* Encodes the property APDU and returns the length,
+       or sets the error, and returns -1 */
+    /* resides in h_rp.c */
+    int Encode_Property_APDU(
+        uint8_t * apdu,
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID property,
+        int32_t array_index,
+        BACNET_ERROR_CLASS * error_class,
+        BACNET_ERROR_CODE * error_code);
+
     void handler_cov_subscribe(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    void handler_cov_task(void);
-    void handler_cov_timer_seconds(
+    void handler_cov_task(
         uint32_t elapsed_seconds);
     void handler_cov_init(
         void);
@@ -228,11 +231,6 @@ extern "C" {
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
-    void handler_ccov_notification(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void handler_lso(
         uint8_t * service_request,
@@ -245,10 +243,6 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
-
-    void handler_alarm_ack_set(
-        BACNET_OBJECT_TYPE object_type,
-        alarm_ack_function pFunction);
 
     void handler_conf_private_trans(
         uint8_t * service_request,
@@ -284,16 +278,6 @@ extern "C" {
         get_event_info_function pFunction);
 
     void handler_get_event_information(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
-
-    void handler_get_alarm_summary_set(
-        BACNET_OBJECT_TYPE object_type,
-        get_alarm_summary_function pFunction);
-
-    void handler_get_alarm_summary(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,

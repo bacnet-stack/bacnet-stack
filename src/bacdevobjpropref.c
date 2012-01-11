@@ -31,8 +31,7 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#include <stdint.h>
-#include <stdbool.h>
+
 #include "bacdcode.h"
 #include "npdu.h"
 #include "device.h"
@@ -79,7 +78,7 @@ int bacapp_encode_device_obj_property_ref(
     apdu_len += len;
 
     /* Array index is optional so check if needed before inserting */
-    if (value->arrayIndex != BACNET_ARRAY_ALL) {
+    if (value->arrayIndex > 0) {
         len = encode_context_unsigned(&apdu[apdu_len], 2, value->arrayIndex);
         apdu_len += len;
     }
@@ -336,6 +335,10 @@ void testDevIdRef(
     int inLen;
     int outLen;
 
+
+    inData.objectIdentifier.instance = 0x1234;
+    inData.objectIdentifier.type = 15;
+
     inData.deviceIndentifier.instance = 0x4343;
     inData.deviceIndentifier.type = 28;
 
@@ -343,6 +346,11 @@ void testDevIdRef(
     outLen = bacapp_decode_device_obj_ref(buffer, &outData);
 
     ct_test(pTest, outLen == inLen);
+
+    ct_test(pTest,
+        inData.objectIdentifier.instance == outData.objectIdentifier.instance);
+    ct_test(pTest,
+        inData.objectIdentifier.type == outData.objectIdentifier.type);
 
     ct_test(pTest,
         inData.deviceIndentifier.instance ==

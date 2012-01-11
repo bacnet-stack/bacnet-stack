@@ -135,14 +135,14 @@ static inline void printf_master(
 /* not to exceed 100 milliseconds.) */
 /* At 9600 baud, 60 bit times would be about 6.25 milliseconds */
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
-#ifndef Tframe_abort
-#define Tframe_abort 95
-#endif
+#define Tframe_abort 50
 
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
-#define Treply_delay 250
+/* note: we always send a reply postponed since a message other than
+   the reply may be in the transmit queue */
+#define Treply_delay 10
 
 /* Repeater turnoff delay. The duration of a continuous logical one state */
 /* at the active input port of an MS/TP repeater after which the repeater */
@@ -153,17 +153,13 @@ static inline void printf_master(
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
-#ifndef Treply_timeout
-#define Treply_timeout 295
-#endif
+#define Treply_timeout 300
 
 /* The minimum time without a DataAvailable or ReceiveError event that a */
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
-#ifndef Tusage_timeout
-#define Tusage_timeout 95
-#endif
+#define Tusage_timeout 40
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) {if (x < 0xFF) x++;}
@@ -272,6 +268,7 @@ void MSTP_Receive_Frame_FSM(
                 if (mstp_port->DataRegister == 0x55) {
                     /* receive the remainder of the frame. */
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_PREAMBLE;
+/*                    mstp_port->StartTs = ((sysTimestampLong()/1000)*121)/1000;*/
                 }
                 /* EatAnOctet */
                 else {
@@ -410,10 +407,12 @@ void MSTP_Receive_Frame_FSM(
                             if ((mstp_port->DestinationAddress ==
                                     mstp_port->This_Station)
                                 || (mstp_port->DestinationAddress ==
-                                    MSTP_BROADCAST_ADDRESS)) {
+                                    MSTP_BROADCAST_ADDRESS))
+                            {
                                 /* ForUs */
                                 /* indicate that a frame with no data has been received */
                                 mstp_port->ReceivedValidFrame = true;
+/*                                mstp_port->FinishTs = ((sysTimestampLong()/1000)*121)/1000;*/
                             } else {
                                 /* NotForUs */
                                 mstp_port->ReceivedValidFrameNotForUs = true;
@@ -563,7 +562,7 @@ bool MSTP_Master_Node_FSM(
     uint8_t next_poll_station = 0;
     uint8_t next_this_station = 0;
     uint8_t next_next_station = 0;
-    uint16_t my_timeout = 10, ns_timeout = 0, mm_timeout = 0;
+    uint16_t my_timeout = 10, ns_timeout = 0;
     /* transition immediately to the next state */
     bool transition_now = false;
     static MSTP_MASTER_STATE master_state = MSTP_MASTER_STATE_INITIALIZE;
@@ -643,10 +642,12 @@ bool MSTP_Master_Node_FSM(
                             break;
                         case FRAME_TYPE_POLL_FOR_MASTER:
                             /* ReceivedPFM */
+                        	/*printf("b4 send RPFM %lu\n", ((sysTimestampLong()/1000)*121)/1000);*/
                             MSTP_Create_And_Send_Frame(mstp_port,
                                 FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
                                 mstp_port->SourceAddress,
                                 mstp_port->This_Station, NULL, 0);
+                            /*printf("sent RPFM %lu\n", ((sysTimestampLong()/1000)*121)/1000);*/
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                             /* indicate successful reception to the higher layers */
@@ -933,10 +934,7 @@ bool MSTP_Master_Node_FSM(
             } else {
                 ns_timeout =
                     Tno_token + (Tslot * (mstp_port->This_Station + 1));
-                mm_timeout =
-                    Tno_token + (Tslot * (mstp_port->Nmax_master + 1));
-                if ((mstp_port->SilenceTimer() < ns_timeout) ||
-                    (mstp_port->SilenceTimer() > mm_timeout)) {
+                if (mstp_port->SilenceTimer() < ns_timeout) {
                     /* GenerateToken */
                     /* Assume that this node is the lowest numerical address  */
                     /* on the network and is empowered to create a token.  */
@@ -949,24 +947,10 @@ bool MSTP_Master_Node_FSM(
                     mstp_port->Next_Station = mstp_port->This_Station;
                     mstp_port->RetryCount = 0;
                     mstp_port->TokenCount = 0;
-                    /* mstp_port->EventCount = 0;
-                       removed Addendum 135-2004d-8 */
-                    /* enter the POLL_FOR_MASTER state
-                       to find a new successor to TS. */
+                    /* mstp_port->EventCount = 0; removed Addendum 135-2004d-8 */
+                    /* enter the POLL_FOR_MASTER state to find a new successor to TS. */
                     mstp_port->master_state =
                         MSTP_MASTER_STATE_POLL_FOR_MASTER;
-                } else {
-                    /* We missed our time slot!
-                       We should never get here unless
-                       OS timer resolution is poor or we were busy */
-                    if (mstp_port->EventCount > Nmin_octets) {
-                        /* SawFrame */
-                        /* Some other node exists at a lower address.  */
-                        /* Enter the IDLE state to receive and
-                           process the incoming frame. */
-                        mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-                        transition_now = true;
-                    }
                 }
             }
             break;
@@ -1051,9 +1035,7 @@ bool MSTP_Master_Node_FSM(
             /* The ANSWER_DATA_REQUEST state is entered when a  */
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
-            /* FIXME: MSTP_Get_Reply waits for a matching reply, but
-               if the next queued message doesn't match, then we
-               sit here for Treply_delay doing nothing */
+            /* FIXME: we could wait for up to Treply_delay */
             length = (unsigned) MSTP_Get_Reply(mstp_port, 0);
             if (length > 0) {
                 /* Reply */
@@ -1067,9 +1049,7 @@ bool MSTP_Master_Node_FSM(
                     (uint8_t *) & mstp_port->OutputBuffer[0],
                     (uint16_t) length);
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-                /* clear our flag we were holding for comparison */
-                mstp_port->ReceivedValidFrame = false;
-            } else if (mstp_port->SilenceTimer() > Treply_delay) {
+            } else {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
                 /* within Treply_delay after the reception of the */
@@ -1083,9 +1063,9 @@ bool MSTP_Master_Node_FSM(
                     FRAME_TYPE_REPLY_POSTPONED, mstp_port->SourceAddress,
                     mstp_port->This_Station, NULL, 0);
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-                /* clear our flag we were holding for comparison */
-                mstp_port->ReceivedValidFrame = false;
             }
+            /* clear our flag we were holding for comparison */
+            mstp_port->ReceivedValidFrame = false;
             break;
         default:
             mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
@@ -1093,70 +1073,6 @@ bool MSTP_Master_Node_FSM(
     }
 
     return transition_now;
-}
-
-void MSTP_Slave_Node_FSM(
-    volatile struct mstp_port_struct_t * mstp_port)
-{
-    unsigned length = 0;
-
-    mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
-    if (mstp_port->ReceivedInvalidFrame == true) {
-        /* ReceivedInvalidFrame */
-        /* invalid frame was received */
-        mstp_port->ReceivedInvalidFrame = false;
-    } else if (mstp_port->ReceivedValidFrame) {
-        switch (mstp_port->FrameType) {
-            case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                if (mstp_port->DestinationAddress != MSTP_BROADCAST_ADDRESS) {
-                    /* The ANSWER_DATA_REQUEST state is entered when a  */
-                    /* BACnet Data Expecting Reply, a Test_Request, or  */
-                    /* a proprietary frame that expects a reply is received. */
-                    length = (unsigned) MSTP_Get_Reply(mstp_port, 0);
-                    if (length > 0) {
-                        /* Reply */
-                        /* If a reply is available from the higher layers  */
-                        /* within Treply_delay after the reception of the  */
-                        /* final octet of the requesting frame  */
-                        /* (the mechanism used to determine this is a local matter), */
-                        /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
-                        /* and enter the IDLE state to wait for the next frame. */
-                        RS485_Send_Frame(mstp_port,
-                            (uint8_t *) & mstp_port->OutputBuffer[0],
-                            (uint16_t) length);
-                        /* clear our flag we were holding for comparison */
-                        mstp_port->ReceivedValidFrame = false;
-                    } else if (mstp_port->SilenceTimer() > Treply_delay) {
-                        /* If no reply will be available from the higher layers
-                           within Treply_delay after the reception of the final octet
-                           of the requesting frame (the mechanism used to determine
-                           this is a local matter), then no reply is possible. */
-                        /* clear our flag we were holding for comparison */
-                        mstp_port->ReceivedValidFrame = false;
-                    }
-                } else {
-                    mstp_port->ReceivedValidFrame = false;
-                }
-                break;
-            case FRAME_TYPE_TEST_REQUEST:
-                mstp_port->ReceivedValidFrame = false;
-                MSTP_Create_And_Send_Frame(
-                    mstp_port,
-                    FRAME_TYPE_TEST_RESPONSE,
-                    mstp_port->SourceAddress,
-                    mstp_port->This_Station,
-                    &mstp_port->InputBuffer[0],
-                    mstp_port->DataLength);
-                break;
-            case FRAME_TYPE_TOKEN:
-            case FRAME_TYPE_POLL_FOR_MASTER:
-            case FRAME_TYPE_TEST_RESPONSE:
-            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
-            default:
-                mstp_port->ReceivedValidFrame = false;
-                break;
-        }
-    }
 }
 
 /* note: This_Station assumed to be set with the MAC address */

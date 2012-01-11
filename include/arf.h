@@ -66,6 +66,7 @@ extern "C" {
 /* encode service */
     int arf_encode_apdu(
         uint8_t * apdu,
+		size_t max_apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_READ_FILE_DATA * data);
 
@@ -86,6 +87,7 @@ extern "C" {
 /* encode service */
     int arf_ack_encode_apdu(
         uint8_t * apdu,
+		size_t max_apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_READ_FILE_DATA * data);
 

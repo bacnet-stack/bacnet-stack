@@ -96,6 +96,7 @@ extern "C" {
 
     int rr_address_list_encode(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_READ_RANGE_DATA * pRequest);
 
     void address_set_device_TTL(
