@@ -109,7 +109,7 @@ struct mstp_port_struct_t {
     /* denote intervals between N-1 and N */
     /* Note: done here as functions - put into timer task or ISR
        so that you can be atomic on 8 bit microcontrollers */
-             uint32_t(
+             uint16_t(
         *SilenceTimer) (
         void);
     void (
@@ -163,6 +163,8 @@ struct mstp_port_struct_t {
        hold contiguous memory. */
     uint8_t *OutputBuffer;
     uint16_t OutputBufferSize;
+/*    uint32_t StartTs;
+    uint32_t FinishTs;*/
 };
 
 #ifdef __cplusplus
@@ -177,8 +179,6 @@ extern "C" {
     bool MSTP_Master_Node_FSM(
         volatile struct mstp_port_struct_t
         *mstp_port);
-    void MSTP_Slave_Node_FSM(
-        volatile struct mstp_port_struct_t * mstp_port);
 
     /* returns true if line is active */
     bool MSTP_Line_Active(

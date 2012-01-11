@@ -45,29 +45,12 @@
 #endif
 #include "debug.h"
 
-/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC),
- * which includes: BACnet Broadcast Management Device,
- * Broadcast Distribution Table, and
- * Foreign Device Registration.
- */
+/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC) */
 
-/** if we are a foreign device, store the
-   remote BBMD address/port here in network byte order */
-static struct sockaddr_in Remote_BBMD;
-
-/** result from a client request */
-BACNET_BVLC_RESULT BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
-
-/** The current BVLC Function Code being handled. */
-BACNET_BVLC_FUNCTION BVLC_Function_Code = BVLC_RESULT;    /* A safe default */
-
-/* Define BBMD_ENABLED to get the functions that a
- * BBMD needs to handle its services.
- * Separately, define BBMD_CLIENT_ENABLED to get the
- * functions that allow a client to manage a BBMD.
- */
-#if defined(BBMD_ENABLED) && BBMD_ENABLED
-
+/* Handle the BACnet Virtual Link Control (BVLC), which includes:
+   BACnet Broadcast Management Device,
+   Broadcast Distribution Table, and
+   Foreign Device Registration */
 typedef struct {
     /* true if valid entry - false if not */
     bool valid;
@@ -79,9 +62,7 @@ typedef struct {
     struct in_addr broadcast_mask;      /* in tework format */
 } BBMD_TABLE_ENTRY;
 
-#ifndef MAX_BBMD_ENTRIES
 #define MAX_BBMD_ENTRIES 128
-#endif
 static BBMD_TABLE_ENTRY BBMD_Table[MAX_BBMD_ENTRIES];
 
 /*Each device that registers as a foreign device shall be placed
@@ -105,12 +86,17 @@ typedef struct {
     time_t seconds_remaining;   /* includes 30 second grace period */
 } FD_TABLE_ENTRY;
 
-#ifndef MAX_FD_ENTRIES
 #define MAX_FD_ENTRIES 128
-#endif
 static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 
+/* result from a client request */
+BACNET_BVLC_RESULT BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
 
+/* if we are a foreign device, store the
+   remote BBMD address/port here in network byte order */
+static struct sockaddr_in Remote_BBMD;
+
+#if defined(BBMD_ENABLED) && BBMD_ENABLED
 void bvlc_maintenance_timer(
     time_t seconds)
 {
@@ -131,6 +117,7 @@ void bvlc_maintenance_timer(
         }
     }
 }
+#endif
 
 /* copy the source internet address to the BACnet address */
 /* FIXME: IPv6? */
@@ -205,8 +192,6 @@ static int bvlc_encode_address_entry(
 
     return len;
 }
-#endif
-
 
 static int bvlc_encode_bvlc_result(
     uint8_t * pdu,
@@ -268,8 +253,6 @@ int bvlc_encode_read_bdt(
 }
 #endif
 
-
-#if defined(BBMD_ENABLED) && BBMD_ENABLED
 static int bvlc_encode_read_bdt_ack_init(
     uint8_t * pdu,
     unsigned entries)
@@ -353,7 +336,26 @@ static int bvlc_encode_forwarded_npdu(
 
     return len;
 }
-#endif
+
+static int bvlc_encode_register_foreign_device(
+    uint8_t * pdu,
+    uint16_t time_to_live_seconds)
+{
+    int len = 0;
+
+    if (pdu) {
+        pdu[0] = BVLL_TYPE_BACNET_IP;
+        pdu[1] = BVLC_REGISTER_FOREIGN_DEVICE;
+        /* The 2-octet BVLC Length field is the length, in octets,
+           of the entire BVLL message, including the two octets of the
+           length field itself, most significant octet first. */
+        encode_unsigned16(&pdu[2], 6);
+        encode_unsigned16(&pdu[4], time_to_live_seconds);
+        len = 6;
+    }
+
+    return len;
+}
 
 #if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
 int bvlc_encode_read_fdt(
@@ -375,8 +377,6 @@ int bvlc_encode_read_fdt(
 }
 #endif
 
-
-#if defined(BBMD_ENABLED) && BBMD_ENABLED
 static int bvlc_encode_read_fdt_ack_init(
     uint8_t * pdu,
     unsigned entries)
@@ -436,8 +436,6 @@ static int bvlc_encode_read_fdt_ack(
 
     return pdu_len;
 }
-#endif
-
 
 #if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
 int bvlc_encode_delete_fdt_entry(
@@ -520,8 +518,6 @@ int bvlc_encode_original_broadcast_npdu(
 }
 #endif
 
-
-#if defined(BBMD_ENABLED) && BBMD_ENABLED
 static bool bvlc_create_bdt(
     uint8_t * npdu,
     uint16_t npdu_length)
@@ -555,7 +551,6 @@ static bool bvlc_create_bdt(
     return status;
 }
 
-/** Handle a foreign device registration. */
 static bool bvlc_register_foreign_device(
     struct sockaddr_in *sin,    /* source address in network order */
     uint16_t time_to_live)
@@ -619,9 +614,7 @@ static bool bvlc_delete_foreign_device(
     }
     return status;
 }
-#endif
 
-/** The common send function for bvlc functions, using b/ip. */
 static int bvlc_send_mpdu(
     struct sockaddr_in *dest,   /* the destination address */
     uint8_t * mtu,      /* the data */
@@ -643,8 +636,6 @@ static int bvlc_send_mpdu(
         (struct sockaddr *) &bvlc_dest, sizeof(struct sockaddr));
 }
 
-
-#if defined(BBMD_ENABLED) && BBMD_ENABLED
 static void bvlc_bdt_forward_npdu(
     struct sockaddr_in *sin,    /* source address in network order */
     uint8_t * npdu,     /* the NPDU */
@@ -665,8 +656,8 @@ static void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
             bip_dest.sin_addr.s_addr =
-                ((~BBMD_Table[i].broadcast_mask.
-                    s_addr) | BBMD_Table[i].dest_address.s_addr);
+                ((~BBMD_Table[i].broadcast_mask.s_addr) | BBMD_Table[i].
+                dest_address.s_addr);
             bip_dest.sin_port = BBMD_Table[i].dest_port;
             /* don't send to my broadcast address and same port */
             if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr())
@@ -741,8 +732,28 @@ static void bvlc_fdt_forward_npdu(
 
     return;
 }
-#endif
 
+void bvlc_register_with_bbmd(
+    uint32_t bbmd_address,      /* in network byte order */
+    uint16_t bbmd_port, /* in network byte order */
+    uint16_t time_to_live_seconds)
+{
+    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint16_t mtu_len = 0;
+
+    /* Store the BBMD address and port so that we
+       won't broadcast locally. */
+    Remote_BBMD.sin_addr.s_addr = bbmd_address;
+    Remote_BBMD.sin_port = bbmd_port;
+    /* In order for their broadcasts to get here,
+       we need to register our address with the remote BBMD using
+       Write Broadcast Distribution Table, or
+       register with the BBMD as a Foreign Device */
+    mtu_len =
+        (uint16_t) bvlc_encode_register_foreign_device(&mtu[0],
+        time_to_live_seconds);
+    bvlc_send_mpdu(&Remote_BBMD, &mtu[0], mtu_len);
+}
 
 static void bvlc_send_result(
     struct sockaddr_in *dest,   /* the destination address */
@@ -757,7 +768,6 @@ static void bvlc_send_result(
     return;
 }
 
-#if defined(BBMD_ENABLED) && BBMD_ENABLED
 static int bvlc_send_bdt(
     struct sockaddr_in *dest)
 {
@@ -825,6 +835,7 @@ uint16_t bvlc_receive(
     struct sockaddr_in original_sin = { 0 };
     struct sockaddr_in dest = { 0 };
     socklen_t sin_len = sizeof(sin);
+    int function_type = 0;
     int received_bytes = 0;
     uint16_t result_code = 0;
     uint16_t i = 0;
@@ -870,12 +881,12 @@ uint16_t bvlc_receive(
     if (npdu[0] != BVLL_TYPE_BACNET_IP) {
         return 0;
     }
-    BVLC_Function_Code = npdu[1];
+    function_type = npdu[1];
     /* decode the length of the PDU - length is inclusive of BVLC */
     (void) decode_unsigned16(&npdu[2], &npdu_len);
     /* subtract off the BVLC header */
     npdu_len -= 4;
-    switch (BVLC_Function_Code) {
+    switch (function_type) {
         case BVLC_RESULT:
             /* Upon receipt of a BVLC-Result message containing a result code
                of X'0000' indicating the successful completion of the
@@ -884,7 +895,7 @@ uint16_t bvlc_receive(
                Foreign-Device message. At the expiration of the timer, the
                foreign device shall re-register with the BBMD by sending a BVLL
                Register-Foreign-Device message */
-            /* Clients can now get this result */
+            /* FIXME: clients may need this result */
             (void) decode_unsigned16(&npdu[4], &result_code);
             BVLC_Result_Code = (BACNET_BVLC_RESULT) result_code;
             debug_printf("BVLC: Result Code=%d\n", BVLC_Result_Code);
@@ -1170,155 +1181,6 @@ int bvlc_send_pdu(
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += (uint16_t) pdu_len;
     return bvlc_send_mpdu(&bvlc_dest, mtu, mtu_len);
-}
-#endif
-
-
-/***********************************************
- * Functions to register us as a foreign device.
- ********************************************* */
-
-static int bvlc_encode_register_foreign_device(
-    uint8_t * pdu,
-    uint16_t time_to_live_seconds)
-{
-    int len = 0;
-
-    if (pdu) {
-        pdu[0] = BVLL_TYPE_BACNET_IP;
-        pdu[1] = BVLC_REGISTER_FOREIGN_DEVICE;
-        /* The 2-octet BVLC Length field is the length, in octets,
-           of the entire BVLL message, including the two octets of the
-           length field itself, most significant octet first. */
-        encode_unsigned16(&pdu[2], 6);
-        encode_unsigned16(&pdu[4], time_to_live_seconds);
-        len = 6;
-    }
-
-    return len;
-}
-
-
-/** Register as a foreign device with the indicated BBMD.
- * @param bbmd_address - IPv4 address (long) of BBMD to register with,
- *                       in network byte order.
- * @param bbmd_port - Network port of BBMD, in network byte order
- * @param time_to_live_seconds - Lease time to use when registering.
- * @return Positive number (of bytes sent) on success,
- *         0 if no registration request is sent, or
- *         -1 if registration fails.
- */
-int bvlc_register_with_bbmd(
-    uint32_t bbmd_address,
-    uint16_t bbmd_port,
-    uint16_t time_to_live_seconds)
-{
-    uint8_t mtu[MAX_MPDU] = { 0 };
-    uint16_t mtu_len = 0;
-    int retval = 0;
-
-    /* Store the BBMD address and port so that we
-       won't broadcast locally. */
-    Remote_BBMD.sin_addr.s_addr = bbmd_address;
-    Remote_BBMD.sin_port = bbmd_port;
-    /* In order for their broadcasts to get here,
-       we need to register our address with the remote BBMD using
-       Write Broadcast Distribution Table, or
-       register with the BBMD as a Foreign Device */
-    mtu_len =
-        (uint16_t) bvlc_encode_register_foreign_device(&mtu[0],
-        time_to_live_seconds);
-    retval = bvlc_send_mpdu(&Remote_BBMD, &mtu[0], mtu_len);
-    return retval;
-}
-
-
-/** Note any BVLC_RESULT code, or NAK the BVLL message in the unsupported cases.
- * Use this handler when you are not a BBMD.
- * Sets the BVLC_Function_Code in case it is needed later.
- *
- * @param sout  [in] Socket address to send any NAK back to.
- * @param npdu  [in] The received buffer.
- * @param received_bytes [in] How many bytes in npdu[].
- * @return Non-zero BVLC_RESULT_ code if we sent a response (NAK) to this
- *      BVLC message.  If zero, may need further processing.
- */
-int bvlc_for_non_bbmd(
-        struct sockaddr_in * sout,
-        uint8_t * npdu,
-        uint16_t received_bytes)
-{
-    uint16_t result_code = 0; /* aka, BVLC_RESULT_SUCCESSFUL_COMPLETION */
-
-    BVLC_Function_Code = npdu[1];    /* The BVLC function */
-    switch (BVLC_Function_Code) {
-        case BVLC_RESULT:
-            if ( received_bytes >= 6) {
-                /* This is the result of our foreign device registration */
-                (void) decode_unsigned16(&npdu[4], &result_code);
-                BVLC_Result_Code = (BACNET_BVLC_RESULT) result_code;
-                debug_printf("BVLC: Result Code=%d\n", BVLC_Result_Code);
-                /* But don't send any response */
-                result_code = 0;
-            }
-            break;
-        case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
-            result_code = BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
-            break;
-        case BVLC_READ_BROADCAST_DIST_TABLE:
-            result_code = BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK;
-            break;
-        /* case BVLC_READ_BROADCAST_DIST_TABLE_ACK: */
-        case BVLC_REGISTER_FOREIGN_DEVICE:
-            result_code = BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK;
-            break;
-        case BVLC_READ_FOREIGN_DEVICE_TABLE:
-            result_code = BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK;
-            break;
-        /* case BVLC_READ_FOREIGN_DEVICE_TABLE_ACK: */
-        case BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY:
-            result_code = BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK;
-            break;
-        case BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:
-        	result_code = BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
-            break;
-        /* case BVLC_FORWARDED_NPDU: */
-        /* case BVLC_ORIGINAL_UNICAST_NPDU: */
-        /* case BVLC_ORIGINAL_BROADCAST_NPDU: */
-        default:
-            break;
-    }
-    if (result_code > 0) {
-        bvlc_send_result(sout, result_code);
-        debug_printf("BVLC: NAK code=%d\n", result_code);
-    }
-
-    return result_code;
-}
-
-/** Returns the last BVLL Result we received, either as the result of a BBMD
- * request we sent, or (if not a BBMD or Client), from trying to register
- * as a foreign device.
- *
- * @return BVLC_RESULT_SUCCESSFUL_COMPLETION on success,
- * BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK if registration failed,
- * or one of the other codes (if we are a BBMD).
- */
-BACNET_BVLC_RESULT bvlc_get_last_result(void)
-{
-    return BVLC_Result_Code;
-}
-
-/** Returns the current BVLL Function Code we are processing.
- * We have to store this higher layer code for when the lower layers
- * need to know what it is, especially to differentiate between
- * BVLC_ORIGINAL_UNICAST_NPDU and BVLC_ORIGINAL_BROADCAST_NPDU.
- *
- * @return A BVLC_ code, such as BVLC_ORIGINAL_UNICAST_NPDU.
- */
-BACNET_BVLC_FUNCTION bvlc_get_function_code(void)
-{
-    return BVLC_Function_Code;
 }
 
 #ifdef TEST

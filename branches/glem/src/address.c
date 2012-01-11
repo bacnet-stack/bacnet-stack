@@ -601,7 +601,7 @@ int address_list_encode(
 {
     int iLen = 0;
     struct Address_Cache_Entry *pMatch;
-    BACNET_OCTET_STRING MAC_Address;
+	BACNET_OCTET_STRING MAC_Address = { 0, NULL };
 
     /* FIXME: I really shouild check the length remaining here but it is
        fairly pointless until we have the true length remaining in
@@ -624,17 +624,17 @@ int address_list_encode(
                 octetstring_init(&MAC_Address, pMatch->address.adr,
                     pMatch->address.len);
                 iLen +=
-                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                    encode_application_octet_string(&apdu[iLen], apdu_len-iLen, &MAC_Address);
             } else {
                 octetstring_init(&MAC_Address, pMatch->address.mac,
                     pMatch->address.mac_len);
                 iLen +=
-                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                    encode_application_octet_string(&apdu[iLen], apdu_len-iLen, &MAC_Address);
             }
         }
         pMatch++;
     }
-
+		free(MAC_Address.value);
     return (iLen);
 }
 
@@ -665,12 +665,13 @@ int address_list_encode(
 
 int rr_address_list_encode(
     uint8_t * apdu,
+	size_t max_apdu,
     BACNET_READ_RANGE_DATA * pRequest)
 {
     int iLen = 0;
     int32_t iTemp = 0;
     struct Address_Cache_Entry *pMatch = NULL;
-    BACNET_OCTET_STRING MAC_Address;
+	BACNET_OCTET_STRING MAC_Address = { 0, NULL };
     uint32_t uiTotal = 0;       /* Number of bound entries in the cache */
     uint32_t uiIndex = 0;       /* Current entry number */
     uint32_t uiFirst = 0;       /* Entry number we started encoding from */
@@ -684,7 +685,7 @@ int rr_address_list_encode(
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, false);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
     /* See how much space we have */
-    uiRemaining = (uint32_t) (MAX_APDU - pRequest->Overhead);
+    uiRemaining = (uint32_t) (max_apdu - pRequest->Overhead);
 
     pRequest->ItemCount = 0;    /* Start out with nothing */
     uiTotal = address_count();  /* What do we have to work with here ? */
@@ -774,13 +775,13 @@ int rr_address_list_encode(
             octetstring_init(&MAC_Address, pMatch->address.adr,
                 pMatch->address.len);
             iTemp +=
-                encode_application_octet_string(&apdu[iLen + iTemp],
+                encode_application_octet_string(&apdu[iLen + iTemp], max_apdu-(iLen + iTemp),
                 &MAC_Address);
         } else {
             octetstring_init(&MAC_Address, pMatch->address.mac,
                 pMatch->address.mac_len);
             iTemp +=
-                encode_application_octet_string(&apdu[iLen + iTemp],
+                encode_application_octet_string(&apdu[iLen + iTemp], max_apdu-(iLen + iTemp),
                 &MAC_Address);
         }
 
@@ -804,6 +805,7 @@ int rr_address_list_encode(
     if (uiLast == uiTotal)
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
 
+	free(MAC_Address.value);
     return (iLen);
 }
 

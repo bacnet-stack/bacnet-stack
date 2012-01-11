@@ -55,7 +55,7 @@ typedef enum {
     UNITS,
     UNSIGNED_VALUE,
     LIFE_SAFETY_MODE,
-    LIFE_SAFETY_STATE
+    LIFE_SAFETY_STATE,
 } BACNET_PROPERTY_STATE_TYPE;
 
 typedef struct {

@@ -100,7 +100,7 @@ static int notify_encode_adpu(
             len = encode_opening_tag(&apdu[apdu_len], 2);
             apdu_len += len;
             len =
-                bacapp_encode_application_data(&apdu[apdu_len], &value->value);
+                bacapp_encode_application_data(&apdu[apdu_len], MAX_APDU, &value->value);/*FIXME: use get max apdu function*/
             apdu_len += len;
             len = encode_closing_tag(&apdu[apdu_len], 2);
             apdu_len += len;

@@ -61,7 +61,7 @@ int rd_encode_apdu(
         if (password) {
             /* FIXME: must be at least 1 character, limited to 20 characters */
             len =
-                encode_context_character_string(&apdu[apdu_len], 1, password);
+                encode_context_character_string(&apdu[apdu_len], MAX_APDU, 1, password);/*FIXME: use get max apdu function*/
             apdu_len += len;
         }
     }

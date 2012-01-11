@@ -393,12 +393,6 @@ typedef enum {
 /* do the MAX as define rather than enumeration for devices
    and compilers that want to use smaller datatype for enum */
 #define MAX_BACNET_PROPERTY_ID 4194303
-
-typedef enum {
-    EVENT_LOW_LIMIT_ENABLE = 1,
-    EVENT_HIGH_LIMIT_ENABLE = 2
-} BACNET_LIMIT_ENABLE;
-
 typedef enum {
     ACTION_DIRECT = 0,
     ACTION_REVERSE = 1
@@ -425,12 +419,6 @@ typedef enum {
     EVENT_STATE_HIGH_LIMIT = 3,
     EVENT_STATE_LOW_LIMIT = 4
 } BACNET_EVENT_STATE;
-
-typedef enum {
-    EVENT_ENABLE_TO_OFFNORMAL = 1,
-    EVENT_ENABLE_TO_FAULT = 2,
-    EVENT_ENABLE_TO_NORMAL = 4
-} BACNET_EVENT_ENABLE;
 
 typedef enum {
     STATUS_OPERATIONAL = 0,
@@ -1275,10 +1263,10 @@ typedef enum {
     ERROR_CLASS_SECURITY = 4,
     ERROR_CLASS_SERVICES = 5,
     ERROR_CLASS_VT = 6,
-    ERROR_CLASS_COMMUNICATION = 7,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
+    ERROR_CLASS_COMMUNICATION = 7,
     MAX_BACNET_ERROR_CLASS = 8,
     FIRST_PROPRIETARY_ERROR_CLASS = 64,
     LAST_PROPRIETARY_ERROR_CLASS = 65535
@@ -1475,13 +1463,6 @@ typedef enum BACnetEventTransitionBits {
     TRANSITION_TO_NORMAL = 2,
     MAX_BACNET_EVENT_TRANSITION = 3
 } BACNET_EVENT_TRANSITION_BITS;
-
-/* Not in standard, but useful for store Ack_Required */
-typedef enum BACnetEventTransitionMask {
-    TRANSITION_TO_OFFNORMAL_MASKED = 1,
-    TRANSITION_TO_FAULT_MASKED = 2,
-    TRANSITION_TO_NORMAL_MASKED = 4
-} BACNET_EVENT_TRANSITION_MASK;
 
 /* The Network Reject Reasons  for NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK */
 typedef enum {

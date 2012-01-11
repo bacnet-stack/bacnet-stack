@@ -69,6 +69,7 @@ extern "C" {
 ****************************************************/
     int alarm_ack_encode_apdu(
         uint8_t * apdu,
+		size_t max_apdu,
         uint8_t invoke_id,
         BACNET_ALARM_ACK_DATA * data);
 
@@ -79,6 +80,7 @@ extern "C" {
 ****************************************************/
     int alarm_ack_encode_service_request(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_ALARM_ACK_DATA * data);
 
 /***************************************************

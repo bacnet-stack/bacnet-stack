@@ -38,10 +38,7 @@
 #include "config.h"
 #include "bacstr.h"
 #include "bits.h"
-#if PRINT_ENABLED
-#include <stdlib.h>     /* for strtol */
-#include <ctype.h>      /* for isalnum */
-#endif
+#include <stdlib.h>
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
 
@@ -243,26 +240,26 @@ bool characterstring_init(
     size_t i;   /* counter */
 
     if (char_string) {
-        char_string->length = 0;
-        char_string->encoding = encoding;
         /* save a byte at the end for NULL -
            note: assumes printable characters */
         if (length <= CHARACTER_STRING_CAPACITY) {
-            if (value) {
-                for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
-                    if (i < length) {
-                        char_string->value[char_string->length] = value[i];
-                        char_string->length++;
-                    } else {
-                        char_string->value[i] = 0;
-                    }
-                }
-            } else {
-                for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
-                    char_string->value[i] = 0;
-                }
-            }
-            status = true;
+			char_string->length = length;
+			char_string->encoding = encoding;
+			if (char_string->value){
+				free(char_string->value);
+				char_string->value=NULL;
+			}
+			char_string->value = (char *) calloc(length+1, sizeof(char));
+			if (char_string->value)
+			{
+				if (value) {
+					for (i = 0; i < length; i++) {
+						char_string->value[i] = value[i];
+					}
+				}
+				status = true;
+
+			}
         }
     }
 
@@ -372,15 +369,31 @@ bool characterstring_append(
     size_t length)
 {
     size_t i;   /* counter */
+	char *tmp = NULL;
     bool status = false;        /* return value */
 
-    if (char_string) {
+    if (char_string&&value) {
+
         if ((length + char_string->length) <= CHARACTER_STRING_CAPACITY) {
-            for (i = 0; i < length; i++) {
-                char_string->value[char_string->length] = value[i];
-                char_string->length++;
-            }
-            status = true;
+			
+			tmp=(char*)malloc(length + char_string->length + 1);
+			if(!tmp)
+			{
+				for (i = 0; i < char_string->length; i++)
+					tmp[i]=char_string->value[i];
+
+				for (i = char_string->length; i <= length + char_string->length; i++) 
+					tmp[i] = value[i-char_string->length];            
+
+				status = true;
+
+				char_string->length+=length;
+
+				free(char_string->value);
+
+				char_string->value = tmp;
+			}
+
         }
     }
 
@@ -394,15 +407,41 @@ bool characterstring_truncate(
     BACNET_CHARACTER_STRING * char_string,
     size_t length)
 {
+	char *tmp = NULL;
+	size_t i;   /* counter */
     bool status = false;        /* return value */
-
     if (char_string) {
-        if (length <= CHARACTER_STRING_CAPACITY) {
-            char_string->length = length;
-            status = true;
-        }
-    }
+		if (length < char_string->length)
+		{
+			tmp = (char*)malloc(length+1);
+			if (tmp) 
+			{
+				for(i = 0; i < length; i++)
+					tmp[i] = char_string->value[i];
+				tmp[i] = 0;
+				status = true;
+			}
 
+		}else
+			if ( (length <= MAX_OCTET_STRING_BYTES) && (length > char_string->length) )
+			{
+				tmp = (char*) malloc(length+1);
+				if (tmp)
+				{
+				for(i = 0; i < char_string->length; i++)
+					tmp[i] = char_string->value[i];
+				while (i < length)
+					tmp[i] = 0;
+				status = true;
+				}
+			}
+		if (status)
+		{
+			char_string->length = length;
+			free(char_string->value);
+			char_string->value = tmp;
+		}	
+	}
     return status;
 }
 
@@ -518,18 +557,18 @@ static const char trailingBytesForUTF8[256] = {
         4, 4, 4, 5, 5, 5, 5
 };
 
+
+
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
    length is in bytes, since without knowing whether the string is valid
    it's hard to know how many characters there are! */
-static int utf8_isvalid(
-    const char *str,
-    size_t length)
+static int utf8_isvalid(const char *str, int length)
 {
-    const unsigned char *p, *pend = (unsigned char *) str + length;
+    const unsigned char *p, *pend = (unsigned char*)str + length;
     unsigned char c;
-    size_t ab;
+    int ab;
 
-    for (p = (unsigned char *) str; p < pend; p++) {
+    for (p = (unsigned char*)str; p < pend; p++) {
         c = *p;
         /* null in middle of string */
         if (c == 0) {
@@ -542,7 +581,7 @@ static int utf8_isvalid(
         if ((c & 0xc0) != 0xc0) {
             return 0;
         }
-        ab = (size_t)trailingBytesForUTF8[c];
+        ab = trailingBytesForUTF8[c];
         if (length < ab) {
             return 0;
         }
@@ -555,42 +594,37 @@ static int utf8_isvalid(
         }
         /* Check for overlong sequences for each different length */
         switch (ab) {
-                /* Check for xx00 000x */
-            case 1:
-                if ((c & 0x3e) == 0)
-                    return 0;
-                continue;       /* We know there aren't any more bytes to check */
+            /* Check for xx00 000x */
+        case 1:
+            if ((c & 0x3e) == 0) return 0;
+            continue;   /* We know there aren't any more bytes to check */
 
-                /* Check for 1110 0000, xx0x xxxx */
-            case 2:
-                if (c == 0xe0 && (*p & 0x20) == 0)
-                    return 0;
-                break;
+            /* Check for 1110 0000, xx0x xxxx */
+        case 2:
+            if (c == 0xe0 && (*p & 0x20) == 0) return 0;
+            break;
 
-                /* Check for 1111 0000, xx00 xxxx */
-            case 3:
-                if (c == 0xf0 && (*p & 0x30) == 0)
-                    return 0;
-                break;
+            /* Check for 1111 0000, xx00 xxxx */
+        case 3:
+            if (c == 0xf0 && (*p & 0x30) == 0) return 0;
+            break;
 
-                /* Check for 1111 1000, xx00 0xxx */
-            case 4:
-                if (c == 0xf8 && (*p & 0x38) == 0)
-                    return 0;
-                break;
+            /* Check for 1111 1000, xx00 0xxx */
+        case 4:
+            if (c == 0xf8 && (*p & 0x38) == 0) return 0;
+            break;
 
-                /* Check for leading 0xfe or 0xff,
-                   and then for 1111 1100, xx00 00xx */
-            case 5:
-                if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0))
-                    return 0;
-                break;
+            /* Check for leading 0xfe or 0xff,
+               and then for 1111 1100, xx00 00xx */
+        case 5:
+            if (c == 0xfe || c == 0xff ||
+                (c == 0xfc && (*p & 0x3c) == 0)) return 0;
+            break;
         }
 
         /* Check for valid bytes after the 2nd, if any; all must start 10 */
         while (--ab > 0) {
-            if ((*(++p) & 0xc0) != 0x80)
-                return 0;
+            if ((*(++p) & 0xc0) != 0x80) return 0;
         }
     }
 
@@ -626,16 +660,17 @@ bool octetstring_init(
     size_t i;   /* counter */
 
     if (octet_string) {
-        octet_string->length = 0;
+
+
         if (length <= MAX_OCTET_STRING_BYTES) {
+			octet_string->length = length;
+			if(octet_string->value)free(octet_string->value);
+			octet_string->value = (uint8_t *) calloc(length, sizeof(char));
+			if (!octet_string->value)
+				return status;
             if (value) {
                 for (i = 0; i < length; i++) {
-                    octet_string->value[octet_string->length] = value[i];
-                    octet_string->length++;
-                }
-            } else {
-                for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
-                    octet_string->value[i] = 0;
+                    octet_string->value[i] = value[i];
                 }
             }
             status = true;
@@ -644,49 +679,6 @@ bool octetstring_init(
 
     return status;
 }
-
-#if PRINT_ENABLED
-/* converts an null terminated ASCII Hex string to an octet string.
-   returns true if successfully converted and fits; false if too long */
-bool octetstring_init_ascii_hex(
-    BACNET_OCTET_STRING * octet_string,
-    const char * ascii_hex)
-{
-    bool status = false;        /* return value */
-    unsigned index = 0; /* offset into buffer */
-    uint8_t value = 0;
-    char hex_pair_string[3] = "";
-
-    if (octet_string) {
-        octet_string->length = 0;
-        while (ascii_hex[index] != 0) {
-            if (!isalnum(ascii_hex[index])) {
-                /* skip non-numeric or alpha */
-                index++;
-                continue;
-            }
-            if (ascii_hex[index+1] == 0) {
-                break;
-            }
-            hex_pair_string[0] = ascii_hex[index];
-            hex_pair_string[1] = ascii_hex[index+1];
-            value = (uint8_t)strtol(hex_pair_string, NULL, 16);
-            if (octet_string->length <= MAX_OCTET_STRING_BYTES) {
-                octet_string->value[octet_string->length] = value;
-                octet_string->length++;
-                status = true;
-            } else {
-                break;
-                status = false;
-            }
-            /* set up for next pair */
-            index += 2;
-        }
-    }
-
-    return status;
-}
-#endif
 
 bool octetstring_copy(
     BACNET_OCTET_STRING * dest,
@@ -702,20 +694,27 @@ bool octetstring_append(
     uint8_t * value,
     size_t length)
 {
+	uint8_t *tmp;
     size_t i;   /* counter */
     bool status = false;        /* return value */
 
-    if (octet_string) {
+    if (octet_string&&value) {
         if ((length + octet_string->length) <= MAX_OCTET_STRING_BYTES) {
-            for (i = 0; i < length; i++) {
-                octet_string->value[octet_string->length] = value[i];
-                octet_string->length++;
+			tmp=(uint8_t*)malloc(length + octet_string->length);
+			for (i = 0; i < octet_string->length; i++)
+				tmp[i]=octet_string->value[i];
+            for (i = octet_string->length; i < length + octet_string->length; i++) {
+                tmp[i] = value[i-octet_string->length];
             }
             status = true;
+			octet_string->length=length + octet_string->length;
+			free(octet_string->value);
+			octet_string->value=tmp;
         }
     }
 
     return status;
+
 }
 
 /* This function sets a new length without changing the value.
@@ -725,13 +724,35 @@ bool octetstring_truncate(
     BACNET_OCTET_STRING * octet_string,
     size_t length)
 {
+	uint8_t *tmp = NULL;
+	size_t i=0;   /* counter */
     bool status = false;        /* return value */
 
     if (octet_string) {
-        if (length <= MAX_OCTET_STRING_BYTES) {
-            octet_string->length = length;
-            status = true;
-        }
+		if (length < octet_string->length){
+		tmp = (uint8_t*) malloc(length);
+		for (i = 0; i < length; i++)
+			tmp[i] = octet_string->value[i];
+		}else
+        if ( (length <= MAX_OCTET_STRING_BYTES) && (length > octet_string->length) )
+		{
+			tmp = (uint8_t*) malloc(length);
+			if (tmp)
+			{
+				for(i = 0; i < octet_string->length; i++)
+					tmp[i]=octet_string->value[i];
+				while (i<length)
+					tmp[i++]=0;
+				status = true;
+			}
+
+		}
+		if (status)
+		{
+			octet_string->length = length;
+			free(octet_string->value);
+			octet_string->value=tmp;
+		}
     }
 
     return status;
@@ -799,6 +820,8 @@ bool octetstring_value_same(
 
     return false;
 }
+
+
 
 #ifdef TEST
 #include <assert.h>
@@ -872,7 +895,7 @@ void testBitString(
 void testCharacterString(
     Test * pTest)
 {
-    BACNET_CHARACTER_STRING bacnet_string;
+    BACNET_CHARACTER_STRING bacnet_string={0};
     char *value = "Joshua,Mary,Anna,Christopher";
     char test_value[MAX_APDU] = "Patricia";
     char test_append_value[MAX_APDU] = " and the Kids";

@@ -1903,12 +1903,6 @@ INDTEXT_DATA bacnet_reliability_names[] = {
     ,
     {RELIABILITY_CONFIGURATION_ERROR, "configuration-error"}
     ,
-    {RELIABILITY_MEMBER_FAULT, "member-fault"}
-    ,
-    {RELIABILITY_COMMUNICATION_FAILURE, "communication-failure"}
-    ,
-    {RELIABILITY_TRIPPED, "tripped"}
-    ,
     {0, NULL}
 };
 
@@ -2002,7 +1996,7 @@ INDTEXT_DATA network_layer_msg_names[] = {
     {NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, "I-Am-Router-To-Network"}
     ,
     {NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK,
-        "I-Could-Be-Router-To-Network"}
+            "I-Could-Be-Router-To-Network"}
     ,
     {NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, "Reject-Message-to-Network"}
     ,

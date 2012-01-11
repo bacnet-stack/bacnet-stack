@@ -43,6 +43,7 @@
 ****************************************************/
 int alarm_ack_encode_apdu(
     uint8_t * apdu,
+	unsigned max_apdu,
     uint8_t invoke_id,
     BACNET_ALARM_ACK_DATA * data)
 {
@@ -51,12 +52,12 @@ int alarm_ack_encode_apdu(
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM;  /* service choice */
         apdu_len = 4;
 
-        len = alarm_ack_encode_service_request(&apdu[apdu_len], data);
+        len = alarm_ack_encode_service_request(&apdu[apdu_len], max_apdu, data);
         apdu_len += len;
     }
 
@@ -71,6 +72,7 @@ int alarm_ack_encode_apdu(
 ****************************************************/
 int alarm_ack_encode_service_request(
     uint8_t * apdu,
+	size_t max_apdu,
     BACNET_ALARM_ACK_DATA * data)
 {
     int len = 0;        /* length of each encoding */
@@ -99,7 +101,7 @@ int alarm_ack_encode_service_request(
         apdu_len += len;
 
         len =
-            encode_context_character_string(&apdu[apdu_len], 4,
+            encode_context_character_string(&apdu[apdu_len], max_apdu, 4,
             &data->ackSource);
         apdu_len += len;
 
@@ -186,8 +188,8 @@ int alarm_ack_decode_service_request(
 void testAlarmAck(
     Test * pTest)
 {
-    BACNET_ALARM_ACK_DATA testAlarmAckIn;
-    BACNET_ALARM_ACK_DATA testAlarmAckOut;
+    BACNET_ALARM_ACK_DATA testAlarmAckIn={0};
+    BACNET_ALARM_ACK_DATA testAlarmAckOut={0};
 
     uint8_t buffer[MAX_APDU];
     int inLen;

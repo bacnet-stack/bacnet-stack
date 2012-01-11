@@ -42,6 +42,7 @@
 /* encode service */
 int wp_encode_apdu(
     uint8_t * apdu,
+	size_t max_apdu,
     uint8_t invoke_id,
     BACNET_WRITE_PROPERTY_DATA * wpdata)
 {
@@ -50,7 +51,7 @@ int wp_encode_apdu(
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
-        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[1] = encode_max_segs_max_apdu(0, max_apdu);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_WRITE_PROPERTY;     /* service choice */
         apdu_len = 4;

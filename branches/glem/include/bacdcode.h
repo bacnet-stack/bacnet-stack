@@ -43,10 +43,13 @@
 #include "bacint.h"
 #include "bacreal.h"
 #include "bits.h"
+#include "bacapp.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+#define MIN_APDU_LENGTH 50
 
 /* from clause 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -216,9 +219,11 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string);
     int encode_application_octet_string(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_OCTET_STRING * octet_string);
     int encode_context_octet_string(
         uint8_t * apdu,
+		size_t max_apdu,
         uint8_t tag_number,
         BACNET_OCTET_STRING * octet_string);
     int decode_octet_string(
@@ -236,12 +241,15 @@ extern "C" {
 /* returns the number of apdu bytes consumed */
     int encode_bacnet_character_string(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_CHARACTER_STRING * char_string);
     int encode_application_character_string(
         uint8_t * apdu,
+		size_t max_apdu,
         BACNET_CHARACTER_STRING * char_string);
     int encode_context_character_string(
         uint8_t * apdu,
+		size_t max_apdu,
         uint8_t tag_number,
         BACNET_CHARACTER_STRING * char_string);
     int decode_character_string(
@@ -384,6 +392,13 @@ extern "C" {
         uint8_t tag_number,
         BACNET_DATE * bdate);
 
+#ifdef BACAPP_CONTEXT_SPECIFIC
+int encode_context_data(
+    uint8_t * apdu,
+    size_t max_apdu,
+    BACNET_APPLICATION_DATA_VALUE *badv);
+#endif
+
 /* from clause 20.1.2.4 max-segments-accepted */
 /* and clause 20.1.2.5 max-APDU-length-accepted */
 /* returns the encoded octet */
@@ -400,6 +415,8 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id,
         uint8_t service_choice);
+
+
 
 /* from clause 20.2.1.2 Tag Number */
 /* true if extended tag numbering is used */

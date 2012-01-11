@@ -62,7 +62,7 @@ int ihave_encode_apdu(
         apdu_len += len;
         /* objectName */
         len =
-            encode_application_character_string(&apdu[apdu_len],
+            encode_application_character_string(&apdu[apdu_len], MAX_APDU, /*FIXME: use get max apdu function*/
             &data->object_name);
         apdu_len += len;
     }

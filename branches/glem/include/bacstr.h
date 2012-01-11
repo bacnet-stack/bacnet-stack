@@ -51,7 +51,7 @@ typedef struct BACnet_Character_String {
     size_t length;
     uint8_t encoding;
     /* limit - 6 octets is the most our tag and type could be */
-    char value[MAX_CHARACTER_STRING_BYTES];
+    char *value;
 } BACNET_CHARACTER_STRING;
 
 /* FIXME: convert the bacdcode library to use BACNET_OCTET_STRING
@@ -59,7 +59,7 @@ typedef struct BACnet_Character_String {
 typedef struct BACnet_Octet_String {
     size_t length;
     /* limit - 6 octets is the most our tag and type could be */
-    uint8_t value[MAX_OCTET_STRING_BYTES];
+    uint8_t *value;
 } BACNET_OCTET_STRING;
 
 #ifdef __cplusplus
@@ -162,13 +162,6 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string,
         uint8_t * value,
         size_t length);
-#ifdef PRINT_ENABLED
-    /* converts an null terminated ASCII Hex string to an octet string.
-       returns true if successfully converted and fits; false if too long */
-    bool octetstring_init_ascii_hex(
-        BACNET_OCTET_STRING * octet_string,
-        const char * ascii_hex);
-#endif
     bool octetstring_copy(
         BACNET_OCTET_STRING * dest,
         BACNET_OCTET_STRING * src);
@@ -195,7 +188,6 @@ extern "C" {
     bool octetstring_value_same(
         BACNET_OCTET_STRING * octet_string1,
         BACNET_OCTET_STRING * octet_string2);
-
 
 #ifdef __cplusplus
 }
