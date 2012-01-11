@@ -363,14 +363,14 @@ static bool dlmstp_compare_data_expecting_reply(
 /* (pad): (optional) at most one octet of padding: X'FF' */
 static void MSTP_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
-    uint8_t destination,        /* destination address */
+    uint8_t destination,        /* destination MAC address */
     uint8_t source,     /* source address */
     uint8_t * data,     /* any data to be sent - may be null */
     uint16_t data_len)
-{       /* number of bytes of data (up to 501) */
+{       /* number of bytes of data */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
-    uint8_t buffer[8];  /* stores the header and data crc */
+    uint8_t buffer[8];  /* stores the preamble, header and crc8 */
     uint16_t i = 0;     /* used to calculate CRC for data */
 
     /* create the MS/TP header */
