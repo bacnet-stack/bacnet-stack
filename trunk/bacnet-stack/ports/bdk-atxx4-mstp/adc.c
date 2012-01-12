@@ -52,12 +52,11 @@
 static volatile uint16_t Sample_Result[ADC_CHANNELS_MAX];
 static volatile uint8_t Enabled_Channels;
 
-/* forward prototype */
-ISR(ADC_vect);
-
 ISR(ADC_vect)
 {
     uint8_t index;
+    uint8_t mask;
+    uint8_t channels;
     uint16_t value = 0;
 
     /* determine which conversion finished */
@@ -66,13 +65,18 @@ ISR(ADC_vect)
     value = ADCL;
     value |= (ADCH << 8);
     Sample_Result[index] = value;
+    channels = Enabled_Channels;
     __enable_interrupt();
     /* clear the mux */
     BITMASK_CLEAR(ADMUX, ((1 << MUX2) | (1 << MUX1) | (1 << MUX0)));
-    /* find the next channel */
-    while (Enabled_Channels) {
-        index = (index + 1) % ADC_CHANNELS_MAX;
-        if (BIT_CHECK(Enabled_Channels, index)) {
+    /* find the next enabled channel */
+    while (channels) {
+        index++;
+        if (index >= ADC_CHANNELS_MAX) {
+            index = 0;
+        }
+        mask = 1 << index;
+        if (channels & mask) {
             break;
         }
     }

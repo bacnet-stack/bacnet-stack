@@ -39,9 +39,10 @@
 #include "bacnet.h"
 #include "test.h"
 #include "watchdog.h"
+#include "version.h"
 
-/* local version override */
-char *BACnet_Version = "1.0";
+/* global - currently the version of the stack */
+char *BACnet_Version = BACNET_VERSION_TEXT;
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/

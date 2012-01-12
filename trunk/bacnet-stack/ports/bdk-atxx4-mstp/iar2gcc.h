@@ -34,13 +34,21 @@
 #ifndef IAR2GCC_H
 #define IAR2GCC_H
 
+/* common embedded extensions for different compilers */
+
 #if !defined(F_CPU)
 #error You must define F_CPU - clock frequency!
+#endif
+
+#if defined (__CROSSWORKS_AVR)
+#include <inavr.h>
+#include <stdint.h>
 #endif
 
 /* IAR */
 #if defined(__ICCAVR__)
 #include <inavr.h>
+#include <intrinsics.h>
 #include <stdint.h>
 
 /* inline function */
@@ -55,6 +63,52 @@ static inline void _delay_us(
 
 #if defined(__GNUC__)
 #include <util/delay.h>
+#endif
+
+/* adjust some definitions to common versions */
+#if defined (__CROSSWORKS_AVR)
+#if (__TARGET_PROCESSOR == ATmega644P)
+#define PRR PRR0
+#define UBRR0 UBRR0W
+#define UBRR1 UBRR1W
+
+#define PA0 PORTA0
+#define PA1 PORTA1
+#define PA2 PORTA2
+#define PA3 PORTA3
+#define PA4 PORTA4
+#define PA5 PORTA5
+#define PA6 PORTA6
+#define PA7 PORTA7
+
+#define PB0 PORTB0
+#define PB1 PORTB1
+#define PB2 PORTB2
+#define PB3 PORTB3
+#define PB4 PORTB4
+#define PB5 PORTB5
+#define PB6 PORTB6
+#define PB7 PORTB7
+
+#define PC0 PORTC0
+#define PC1 PORTC1
+#define PC2 PORTC2
+#define PC3 PORTC3
+#define PC4 PORTC4
+#define PC5 PORTC5
+#define PC6 PORTC6
+#define PC7 PORTC7
+
+#define PD0 PORTD0
+#define PD1 PORTD1
+#define PD2 PORTD2
+#define PD3 PORTD3
+#define PD4 PORTD4
+#define PD5 PORTD5
+#define PD6 PORTD6
+#define PD7 PORTD7
+
+#endif
 #endif
 
 /* Input/Output Registers */
@@ -195,24 +249,27 @@ typedef struct {
 #if defined(__ICCAVR__)
 #define PRAGMA(x) _Pragma( #x )
 #define ISR(vec) PRAGMA( vector=vec ) __interrupt void handler_##vec(void)
-#endif
-#if defined(__GNUC__)
+#elif defined(__GNUC__)
 #include <avr/interrupt.h>
+#elif defined (__CROSSWORKS_AVR)
+#define ISR(vec) void handler_##vec(void) __interrupt[vec]
+#else
+#error ISR() not defined!
 #endif
 
 /* Flash */
 #if defined(__ICCAVR__)
 #define FLASH_DECLARE(x) __flash x
-#endif
-#if defined(__GNUC__)
+#elif defined(__GNUC__)
 #define FLASH_DECLARE(x) x __attribute__((__progmem__))
+#elif defined (__CROSSWORKS_AVR)
+#define FLASH_DECLARE (x) const __code x
 #endif
 
 /* EEPROM */
 #if defined(__ICCAVR__)
 #define EEPROM_DECLARE(x) __eeprom x
-#endif
-#if defined(__GNUC__)
+#elif defined(__GNUC__)
 #include <avr/eeprom.h>
 #define EEPROM_DECLARE(x) x __attribute__((section (".eeprom")))
 #if ((__GNUC__ < 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ < 3)) || \
@@ -221,6 +278,14 @@ typedef struct {
 #define __EEPUT _EEPUT
 #define __EEGET _EEGET
 #endif
+#elif defined (__CROSSWORKS_AVR)
+/* use functions defined in crt0.s to mimic IAR macros */
+void __uint8_eeprom_store(unsigned char byte, unsigned addr); 
+unsigned char __uint8_eeprom_load(unsigned addr); 
+#define __EEPUT(addr, var) \
+    __uint8_eeprom_store((unsigned char)(var), (unsigned)(addr))
+#define __EEGET(var, addr) \
+   (var) = __uint8_eeprom_load((unsigned)(addr))
 #endif
 
 /* IAR intrinsic routines */
@@ -231,9 +296,8 @@ typedef struct {
 #define __root
 #endif
 
-
-/* watchdog */
-#if defined(__ICCAVR__)
+/* watchdog defines in GCC */
+#if defined(__ICCAVR__) || defined(__CROSSWORKS_AVR)
 #define WDTO_15MS   0
 #define WDTO_30MS   1
 #define WDTO_60MS   2
@@ -242,6 +306,10 @@ typedef struct {
 #define WDTO_500MS  5
 #define WDTO_1S     6
 #define WDTO_2S     7
+#endif
+
+#if defined(__CROSSWORKS_AVR)
+#define inline
 #endif
 
 #endif

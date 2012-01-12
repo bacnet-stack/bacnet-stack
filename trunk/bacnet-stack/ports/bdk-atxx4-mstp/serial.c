@@ -30,8 +30,6 @@
 
 /* baud rate */
 static uint32_t Baud_Rate = 9600;
-/* forward prototype */
-ISR(USART1_RX_vect);
 
 /* buffer for storing received bytes - size must be power of two */
 static uint8_t Receive_Buffer_Data[128];
