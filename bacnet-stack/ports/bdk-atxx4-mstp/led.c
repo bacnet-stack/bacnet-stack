@@ -96,13 +96,13 @@ bool led_state(
 {
     switch (index) {
         case 0:
-            return (BIT_CHECK(PIND, PD7));
+            return (BIT_CHECK(PIND, PIND7));
         case 1:
-            return (BIT_CHECK(PIND, PD6));
+            return (BIT_CHECK(PIND, PIND6));
         case 2:
-            return (BIT_CHECK(PINC, PC7));
+            return (BIT_CHECK(PINC, PINC7));
         case 3:
-            return (BIT_CHECK(PINC, PC6));
+            return (BIT_CHECK(PINC, PINC6));
         default:
             break;
     }

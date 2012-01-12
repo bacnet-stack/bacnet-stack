@@ -32,8 +32,6 @@
 /* me */
 #include "rs485.h"
 
-/* forward prototype */
-ISR(USART0_RX_vect);
 /* baud rate */
 static uint32_t Baud_Rate = 9600;
 

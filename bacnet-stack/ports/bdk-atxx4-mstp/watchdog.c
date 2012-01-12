@@ -24,8 +24,7 @@
 #include "hardware.h"
 #include "watchdog.h"
 
-#if defined(__ICCAVR__)
-#include <intrinsics.h>
+#if !defined(__GNUC__)
 static inline void wdt_enable(
     int value)
 {

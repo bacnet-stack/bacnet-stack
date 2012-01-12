@@ -30,16 +30,25 @@
 #define F_CPU 18432000UL
 #endif
 
+/* IAR compiler specific configuration */
 #if defined(__ICCAVR__)
 #include <iom644p.h>
 #endif
 
+/* AVR-GCC compiler specific configuration */
 #if defined(__GNUC__)
+#include <avr/io.h>
+#include <avr/wdt.h>
 #if !defined(__AVR_ATmega644P__)
 #error Firmware is configured for ATmega644P only (-mmcu=atmega644p)
 #endif
-    /* GCC specific configuration */
-#include <avr/wdt.h>
+#endif
+
+#if defined (__CROSSWORKS_AVR)
+#include <avr.h>
+#if (__TARGET_PROCESSOR != ATmega644P)
+#error Firmware is configured for ATmega644P only
+#endif
 #endif
 
 #include "iar2gcc.h"

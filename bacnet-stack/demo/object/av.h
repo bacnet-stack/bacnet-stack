@@ -44,7 +44,7 @@ extern "C" {
 #endif /* __cplusplus */
 
     typedef struct analog_value_descr {
-        uint8_t Event_State:3;
+        unsigned Event_State:3;
         bool Out_Of_Service;
         uint8_t Units;
         /* Here is our Priority Array.  They are supposed to be Real, but */
@@ -58,9 +58,9 @@ extern "C" {
         float High_Limit;
         float Low_Limit;
         float Deadband;
-        uint8_t Limit_Enable:2;
-        uint8_t Event_Enable:3;
-        uint8_t Notify_Type:1;
+        unsigned Limit_Enable:2;
+        unsigned Event_Enable:3;
+        unsigned Notify_Type:1;
         ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
         BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
         /* time to generate event notification */

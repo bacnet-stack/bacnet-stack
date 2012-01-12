@@ -1243,10 +1243,10 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_ABORT_REASON = 5,
-    FIRST_PROPRIETARY_ABORT_REASON = 64,
-    LAST_PROPRIETARY_ABORT_REASON = 65535
+    MAX_BACNET_ABORT_REASON = 5
 } BACNET_ABORT_REASON;
+#define FIRST_PROPRIETARY_ABORT_REASON 64
+#define LAST_PROPRIETARY_ABORT_REASON 65535
 
 typedef enum {
     REJECT_REASON_OTHER = 0,
@@ -1262,10 +1262,10 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_REJECT_REASON = 10,
-    FIRST_PROPRIETARY_REJECT_REASON = 64,
-    LAST_PROPRIETARY_REJECT_REASON = 65535
+    MAX_BACNET_REJECT_REASON = 10
 } BACNET_REJECT_REASON;
+#define FIRST_PROPRIETARY_REJECT_REASON 64
+#define LAST_PROPRIETARY_REJECT_REASON 65535
 
 typedef enum {
     ERROR_CLASS_DEVICE = 0,
@@ -1279,10 +1279,10 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_ERROR_CLASS = 8,
-    FIRST_PROPRIETARY_ERROR_CLASS = 64,
-    LAST_PROPRIETARY_ERROR_CLASS = 65535
+    MAX_BACNET_ERROR_CLASS = 8
 } BACNET_ERROR_CLASS;
+#define FIRST_PROPRIETARY_ERROR_CLASS 64
+#define LAST_PROPRIETARY_ERROR_CLASS 65535
 
 /* These are sorted in the order given in
    Clause 18. ERROR, REJECT AND ABORT CODES
@@ -1395,14 +1395,14 @@ typedef enum {
     ERROR_CODE_UNKNOWN_FILE_SIZE = 81,
     ERROR_CODE_BUSY = 82,
     ERROR_CODE_COMMUNICATION_DISABLED = 83,
-    MAX_BACNET_ERROR_CODE = 84,
+    MAX_BACNET_ERROR_CODE = 84
     /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
     /* Enumerated values 256-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     /* The last enumeration used in this version is 50. */
-    FIRST_PROPRIETARY_ERROR_CODE = 256,
-    LAST_PROPRIETARY_ERROR_CODE = 65535
 } BACNET_ERROR_CODE;
+#define FIRST_PROPRIETARY_ERROR_CODE 256
+#define LAST_PROPRIETARY_ERROR_CODE 65535
 
 typedef enum {
     BACNET_REINIT_COLDSTART = 0,
