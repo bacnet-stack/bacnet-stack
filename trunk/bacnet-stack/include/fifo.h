@@ -76,6 +76,11 @@ extern "C" {
     uint8_t FIFO_Get(
         FIFO_BUFFER * b);
 
+    unsigned FIFO_Pull(
+        FIFO_BUFFER * b,
+        uint8_t * data_bytes,
+        unsigned length);
+
     bool FIFO_Put(
         FIFO_BUFFER * b,
         uint8_t data_byte);

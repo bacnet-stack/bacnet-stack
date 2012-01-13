@@ -135,6 +135,41 @@ uint8_t FIFO_Get(
 }
 
 /****************************************************************************
+* DESCRIPTION: Pulls the data from the front of the list, and removes it
+* RETURN:      the data (in parameter) and the number of bytes pulled
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+unsigned FIFO_Pull(
+    FIFO_BUFFER * b,
+    uint8_t * data_bytes,
+    unsigned length)
+{
+    unsigned count;
+    uint8_t data_byte;
+
+
+    count = FIFO_Count(b);
+    if (count > length) {
+        /* adjust to limit the number of bytes pulled */
+        count = length;
+    }
+    if (length > count) {
+        /* adjust the return value */
+        length = count;
+    }
+    while (count) {
+        data_byte = b->buffer[b->tail % b->buffer_len];
+        b->tail++;
+        *data_bytes = data_byte;
+        data_bytes++;
+        count--;
+    }
+
+    return length;
+}
+
+/****************************************************************************
 * DESCRIPTION: Adds an element of data to the FIFO
 * RETURN:      true on successful add, false if not added
 * ALGORITHM:   none
@@ -226,6 +261,7 @@ void FIFO_Init(
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "ctest.h"
 
@@ -235,88 +271,111 @@ void FIFO_Init(
 void testFIFOBuffer(
     Test * pTest)
 {
-    FIFO_BUFFER test_buffer;
-    volatile uint8_t data_store[FIFO_BUFFER_SIZE];
-    uint8_t test_add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
-    uint8_t test_data;
-    uint8_t index;
-    uint8_t count;
-    bool status;
-    uint8_t cycles;
+    FIFO_BUFFER test_buffer = {0};
+    volatile uint8_t data_store[FIFO_BUFFER_SIZE] = {0};
+    uint8_t add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
+    uint8_t test_add_data[40] = {0};
+    uint8_t test_data = 0;
+    unsigned index = 0;
+    unsigned count = 0;
+    bool status = 0;
 
     FIFO_Init(&test_buffer, data_store, sizeof(data_store));
     ct_test(pTest, FIFO_Empty(&test_buffer));
 
-    for (cycles = 0; cycles < 32; cycles++) {
-        /* load the buffer */
-        for (test_data = 0; test_data < FIFO_BUFFER_SIZE; test_data++) {
-            ct_test(pTest, !FIFO_Full(&test_buffer));
-            ct_test(pTest, FIFO_Available(&test_buffer, 1));
+    /* load the buffer */
+    for (test_data = 0; test_data < FIFO_BUFFER_SIZE; test_data++) {
+        ct_test(pTest, !FIFO_Full(&test_buffer));
+        ct_test(pTest, FIFO_Available(&test_buffer, 1));
+        status = FIFO_Put(&test_buffer, test_data);
+        ct_test(pTest, status == true);
+        ct_test(pTest, !FIFO_Empty(&test_buffer));
+    }
+    /* not able to put any more */
+    ct_test(pTest, FIFO_Full(&test_buffer));
+    ct_test(pTest, !FIFO_Available(&test_buffer, 1));
+    status = FIFO_Put(&test_buffer, 42);
+    ct_test(pTest, status == false);
+    /* unload the buffer */
+    for (index = 0; index < FIFO_BUFFER_SIZE; index++) {
+        ct_test(pTest, !FIFO_Empty(&test_buffer));
+        test_data = FIFO_Peek(&test_buffer);
+        ct_test(pTest, test_data == index);
+        test_data = FIFO_Get(&test_buffer);
+        ct_test(pTest, test_data == index);
+        ct_test(pTest, FIFO_Available(&test_buffer, 1));
+        ct_test(pTest, !FIFO_Full(&test_buffer));
+    }
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    test_data = FIFO_Get(&test_buffer);
+    ct_test(pTest, test_data == 0);
+    test_data = FIFO_Peek(&test_buffer);
+    ct_test(pTest, test_data == 0);
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    /* test the ring around the buffer */
+    for (index = 0; index < FIFO_BUFFER_SIZE; index++) {
+        ct_test(pTest, FIFO_Empty(&test_buffer));
+        ct_test(pTest, FIFO_Available(&test_buffer, 4));
+        for (count = 1; count < 4; count++) {
+            test_data = count;
             status = FIFO_Put(&test_buffer, test_data);
             ct_test(pTest, status == true);
             ct_test(pTest, !FIFO_Empty(&test_buffer));
         }
-        /* not able to put any more */
-        ct_test(pTest, FIFO_Full(&test_buffer));
-        ct_test(pTest, !FIFO_Available(&test_buffer, 1));
-        status = FIFO_Put(&test_buffer, 42);
-        ct_test(pTest, status == false);
-        /* unload the buffer */
-        for (index = 0; index < FIFO_BUFFER_SIZE; index++) {
+        for (count = 1; count < 4; count++) {
             ct_test(pTest, !FIFO_Empty(&test_buffer));
             test_data = FIFO_Peek(&test_buffer);
-            ct_test(pTest, test_data == index);
+            ct_test(pTest, test_data == count);
             test_data = FIFO_Get(&test_buffer);
-            ct_test(pTest, test_data == index);
-            ct_test(pTest, FIFO_Available(&test_buffer, 1));
-            ct_test(pTest, !FIFO_Full(&test_buffer));
+            ct_test(pTest, test_data == count);
         }
-        ct_test(pTest, FIFO_Empty(&test_buffer));
-        test_data = FIFO_Get(&test_buffer);
-        ct_test(pTest, test_data == 0);
-        test_data = FIFO_Peek(&test_buffer);
-        ct_test(pTest, test_data == 0);
-        ct_test(pTest, FIFO_Empty(&test_buffer));
-        /* test the ring around the buffer */
-        for (index = 0; index < FIFO_BUFFER_SIZE; index++) {
-            ct_test(pTest, FIFO_Empty(&test_buffer));
-            ct_test(pTest, FIFO_Available(&test_buffer, 4));
-            for (count = 1; count < 4; count++) {
-                test_data = count;
-                status = FIFO_Put(&test_buffer, test_data);
-                ct_test(pTest, status == true);
-                ct_test(pTest, !FIFO_Empty(&test_buffer));
-            }
-            for (count = 1; count < 4; count++) {
-                ct_test(pTest, !FIFO_Empty(&test_buffer));
-                test_data = FIFO_Peek(&test_buffer);
-                ct_test(pTest, test_data == count);
-                test_data = FIFO_Get(&test_buffer);
-                ct_test(pTest, test_data == count);
-            }
-        }
-        ct_test(pTest, FIFO_Empty(&test_buffer));
-        /* test Add */
-        ct_test(pTest, FIFO_Available(&test_buffer, sizeof(test_add_data)));
-        status = FIFO_Add(&test_buffer, test_add_data, sizeof(test_add_data));
-        ct_test(pTest, status == true);
-        ct_test(pTest, !FIFO_Empty(&test_buffer));
-        for (index = 0; index < sizeof(test_add_data); index++) {
-            /* unload the buffer */
-            ct_test(pTest, !FIFO_Empty(&test_buffer));
-            test_data = FIFO_Peek(&test_buffer);
-            ct_test(pTest, test_data == test_add_data[index]);
-            test_data = FIFO_Get(&test_buffer);
-            ct_test(pTest, test_data == test_add_data[index]);
-        }
-        ct_test(pTest, FIFO_Empty(&test_buffer));
-        /* test flush */
-        status = FIFO_Add(&test_buffer, test_add_data, sizeof(test_add_data));
-        ct_test(pTest, status == true);
-        ct_test(pTest, !FIFO_Empty(&test_buffer));
-        FIFO_Flush(&test_buffer);
-        ct_test(pTest, FIFO_Empty(&test_buffer));
     }
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    /* test Add */
+    ct_test(pTest, FIFO_Available(&test_buffer, sizeof(add_data)));
+    status = FIFO_Add(&test_buffer, add_data, sizeof(add_data));
+    ct_test(pTest, status == true);
+    count = FIFO_Count(&test_buffer);
+    ct_test(pTest, count == sizeof(add_data));
+    ct_test(pTest, !FIFO_Empty(&test_buffer));
+    for (index = 0; index < sizeof(add_data); index++) {
+        /* unload the buffer */
+        ct_test(pTest, !FIFO_Empty(&test_buffer));
+        test_data = FIFO_Peek(&test_buffer);
+        ct_test(pTest, test_data == add_data[index]);
+        test_data = FIFO_Get(&test_buffer);
+        ct_test(pTest, test_data == add_data[index]);
+    }
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    /* test Pull */
+    ct_test(pTest, FIFO_Available(&test_buffer, sizeof(add_data)));
+    status = FIFO_Add(&test_buffer, add_data, sizeof(add_data));
+    ct_test(pTest, status == true);
+    count = FIFO_Count(&test_buffer);
+    ct_test(pTest, count == sizeof(add_data));
+    ct_test(pTest, !FIFO_Empty(&test_buffer));
+    count = FIFO_Pull(&test_buffer, &test_add_data[0], sizeof(test_add_data));
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    ct_test(pTest, count == sizeof(test_add_data));
+    for (index = 0; index < sizeof(add_data); index++) {
+        ct_test(pTest, test_add_data[index] == add_data[index]);
+    }
+    ct_test(pTest, FIFO_Available(&test_buffer, sizeof(add_data)));
+    status = FIFO_Add(&test_buffer, test_add_data, sizeof(add_data));
+    ct_test(pTest, status == true);
+    ct_test(pTest, !FIFO_Empty(&test_buffer));
+    for (index = 0; index < sizeof(add_data); index++) {
+        count = FIFO_Pull(&test_buffer, &test_add_data[0], 1);
+        ct_test(pTest, count == 1);
+        ct_test(pTest, test_add_data[0] == add_data[index]);
+    }
+    ct_test(pTest, FIFO_Empty(&test_buffer));
+    /* test flush */
+    status = FIFO_Add(&test_buffer, test_add_data, sizeof(test_add_data));
+    ct_test(pTest, status == true);
+    ct_test(pTest, !FIFO_Empty(&test_buffer));
+    FIFO_Flush(&test_buffer);
+    ct_test(pTest, FIFO_Empty(&test_buffer));
 
     return;
 }
