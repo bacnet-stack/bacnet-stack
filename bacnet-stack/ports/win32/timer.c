@@ -49,12 +49,11 @@ static volatile uint32_t Millisecond_Counter[MAX_MILLISECOND_TIMERS];
 /* Windows timer period - in milliseconds */
 static uint32_t Timer_Period = 1;
 
-#if defined(__BORLANDC__)
+#if defined(_MSC_VER) || defined(__BORLANDC__)
 struct timezone {
     int tz_minuteswest; /* minutes W of Greenwich */
     int tz_dsttime;     /* type of dst correction */
 };
-#endif
 
 /*************************************************************************
 * Description: simulate the gettimeofday Linux function
@@ -64,7 +63,7 @@ struct timezone {
 * To get microseconds accuracy we need to use QueryPerformanceCounter or
 * timeGetTime for the elapsed time.
 *************************************************************************/
-#if !defined(_MSC_VER)
+
 int gettimeofday(
     struct timeval *tp,
     void *tzp)
