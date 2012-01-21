@@ -287,8 +287,14 @@ void RS485_Send_Frame(
     uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 {       /* number of bytes of data (up to 501) */
+    uint32_t turnaround_time = Tturnaround * 1000;
+    uint32_t baud = RS485_Get_Baud_Rate ();
     ssize_t written = 0;
     int greska;
+
+    /* sleeping for turnaround time is necessary to give other devices 
+       time to change from sending to receiving state. */
+    usleep(turnaround_time/baud);
     /*
        On  success,  the  number of bytes written are returned (zero indicates
        nothing was written).  On error, -1  is  returned,  and  errno  is  set
@@ -300,6 +306,9 @@ void RS485_Send_Frame(
     greska = errno;
     if (written <= 0) {
         printf("write error: %s\n", strerror(greska));
+    } else {
+        /* wait until all output has been transmitted. */
+        tcdrain(RS485_Handle);
     }
     /*  tcdrain(RS485_Handle); */
     /* per MSTP spec, sort of */
