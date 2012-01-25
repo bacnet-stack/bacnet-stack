@@ -186,7 +186,7 @@ uint8_t *Ringbuf_Alloc(
 *****************************************************************************/
 void Ringbuf_Init(
     RING_BUFFER * b,    /* ring buffer structure */
-    uint8_t * volatile buffer, /* data block or array of data */
+    volatile uint8_t * buffer, /* data block or array of data */
     unsigned element_size,      /* size of one element in the data block */
     unsigned element_count)
 {       /* number of elements in the data block */
