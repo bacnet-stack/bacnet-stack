@@ -109,12 +109,10 @@ struct mstp_port_struct_t {
     /* denote intervals between N-1 and N */
     /* Note: done here as functions - put into timer task or ISR
        so that you can be atomic on 8 bit microcontrollers */
-             uint16_t(
-        *SilenceTimer) (
-        void);
-    void (
-        *SilenceTimerReset) (
-        void);
+    void * UserData1;
+    
+    uint16_t(*SilenceTimer) ( void *);
+    void (*SilenceTimerReset) ( void *);
 
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */
@@ -163,8 +161,7 @@ struct mstp_port_struct_t {
        hold contiguous memory. */
     uint8_t *OutputBuffer;
     uint16_t OutputBufferSize;
-/*    uint32_t StartTs;
-    uint32_t FinishTs;*/
+
 };
 
 #ifdef __cplusplus
