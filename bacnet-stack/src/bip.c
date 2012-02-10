@@ -79,19 +79,6 @@ bool bip_valid(
     return (BIP_Socket != -1);
 }
 
-/** Cleanup and close out the BACnet/IP services by closing the socket.
- * @ingroup DLBIP
-  */
-void bip_cleanup(
-    void)
-{
-    if (bip_valid())
-        close(BIP_Socket);
-    BIP_Socket = -1;
-
-    return;
-}
-
 void bip_set_addr(
     uint32_t net_address)
 {       /* in network byte order */
@@ -181,8 +168,8 @@ int bip_send_pdu(
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
     function = bvlc_get_function_code();    /* What type of BVLC was it? */
-    if ( (dest->net == BACNET_BROADCAST_NETWORK) || 
-         (function == BVLC_FORWARDED_NPDU) || 
+    if ( (dest->net == BACNET_BROADCAST_NETWORK) ||
+         (function == BVLC_FORWARDED_NPDU) ||
          (function == BVLC_ORIGINAL_BROADCAST_NPDU) ) {
         /* broadcast */
         address.s_addr = BIP_Broadcast_Address.s_addr;

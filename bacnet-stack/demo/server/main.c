@@ -131,16 +131,6 @@ static void Init_Service_Handlers(
 #endif  /* defined(INTRINSIC_REPORTING) */
 }
 
-/** Handler registered with atexit() inside main function to, well, cleanup.
- * Especially if we don't end normally.
- * @see datalink_cleanup
- */
-static void cleanup(
-    void)
-{
-    datalink_cleanup();
-}
-
 /** Main function of server demo.
  *
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
@@ -177,7 +167,7 @@ int main(
         Device_Object_Instance_Number(), MAX_APDU);
     Init_Service_Handlers();
     dlenv_init();
-    atexit(cleanup);
+    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     /* broadcast an I-Am on startup */
@@ -231,6 +221,7 @@ int main(
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
+
     return 0;
 }
 

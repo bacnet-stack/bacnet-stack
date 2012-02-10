@@ -1254,6 +1254,7 @@ int main(
     address_init();
     Init_Service_Handlers();
     dlenv_init();
+    atexit(datalink_cleanup);
 
     /* configure the timeout values */
     current_seconds = time(NULL);
@@ -1619,6 +1620,7 @@ int main(
         printf("End of BACnet Protocol Implementation Conformance Statement\r\n");
         printf("\r\n");
     }
+
     return 0;
 }
 

@@ -146,6 +146,7 @@ int main(
     Init_Service_Handlers();
     address_init();
     dlenv_init();
+    atexit(datalink_cleanup);
     /* send the request */
     Send_I_Am_Router_To_Network(Target_Router_Networks);
 
