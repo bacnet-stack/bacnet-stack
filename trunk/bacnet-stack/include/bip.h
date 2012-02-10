@@ -58,10 +58,10 @@ extern "C" {
        on Windows, ifname is the dotted ip address of the interface */
     bool bip_init(
         char *ifname);
-
-    /* normal functions... */
     void bip_cleanup(
         void);
+
+    /* common BACnet/IP functions */
     void bip_set_socket(
         int sock_fd);
     int bip_socket(
@@ -122,12 +122,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-/** @defgroup DLBIP BACnet/IP DataLink Network Layer 
+/** @defgroup DLBIP BACnet/IP DataLink Network Layer
  * @ingroup DataLink
  * Implementation of the Network Layer using BACnet/IP as the transport, as
  * described in Annex J.
  * The functions described here fulfill the roles defined generically at the
  * DataLink level by serving as the implementation of the function templates.
- * 
+ *
  */
 #endif

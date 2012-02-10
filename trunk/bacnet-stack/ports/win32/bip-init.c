@@ -173,13 +173,6 @@ static void set_broadcast_address(
 #endif
 }
 
-static void cleanup(
-    void)
-{
-    WSACleanup();
-}
-
-
 /* on Windows, ifname is the dotted ip address of the interface */
 void bip_set_interface(
     char *ifname)
@@ -318,6 +311,23 @@ static char *winsock_error_code_text(
     }
 }
 
+/** Initialize the BACnet/IP services at the given interface.
+ * @ingroup DLBIP
+ * -# Gets the local IP address and local broadcast address from the system,
+ *  and saves it into the BACnet/IP data structures.
+ * -# Opens a UDP socket
+ * -# Configures the socket for sending and receiving
+ * -# Configures the socket so it can send broadcasts
+ * -# Binds the socket to the local IP address at the specified port for
+ *    BACnet/IP (by default, 0xBAC0 = 47808).
+ *
+ * @note For Windows, ifname is the dotted ip address of the interface.
+ *
+ * @param ifname [in] The named interface to use for the network layer.
+ *        If NULL, the "eth0" interface is assigned.
+ * @return True if the socket is successfully opened for BACnet/IP,
+ *         else False if the socket functions fail.
+ */
 bool bip_init(
     char *ifname)
 {
@@ -339,7 +349,7 @@ bool bip_init(
             Code, winsock_error_code_text(Code));
         exit(1);
     }
-    atexit(cleanup);
+    atexit(bip_cleanup);
 
     if (ifname)
         bip_set_interface(ifname);
@@ -442,4 +452,22 @@ bool bip_init(
     }
 
     return true;
+}
+
+/** Cleanup and close out the BACnet/IP services by closing the socket.
+ * @ingroup DLBIP
+  */
+void bip_cleanup(
+    void)
+{
+    int sock_fd = 0;
+
+    if (bip_valid()) {
+        sock_fd = bip_socket();
+        close(sock_fd);
+    }
+    bip_set_socket(-1);
+    WSACleanup();
+
+    return;
 }
