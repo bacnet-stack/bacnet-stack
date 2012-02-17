@@ -30,8 +30,12 @@ BBMD_DEFINE ?=-DBBMD_ENABLED=0
 #BBMD_DEFINE ?= -DBBMD_ENABLED=1
 #BBMD_DEFINE ?= -DBBMD_CLIENT_ENABLED
 
+# Passing parameters via command line
+MAKE_DEFINE ?=
+
 # Define WEAK_FUNC for [...somebody help here; I can't find any uses of it]
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE) $(BBMD_DEFINE) -DWEAK_FUNC=
+DEFINES += $(MAKE_DEFINE)
 
 # directories
 BACNET_PORT ?= linux
