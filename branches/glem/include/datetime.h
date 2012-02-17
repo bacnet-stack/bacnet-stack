@@ -112,6 +112,11 @@ extern "C" {
         BACNET_DATE_TIME * datetime1,
         BACNET_DATE_TIME * datetime2);
 
+    uint8_t day_of_week(
+        uint16_t year,
+        uint8_t month,
+        uint8_t day);
+
     /* utility copy functions */
     void datetime_copy_date(
         BACNET_DATE * date1,
@@ -157,6 +162,15 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_DATE_TIME * value);
+   
+    uint8_t month_days(
+        uint16_t year,
+        uint8_t month);
+   
+    uint8_t day_of_week(
+        uint16_t year,
+        uint8_t month,
+        uint8_t day);
 
 #ifdef __cplusplus
 }

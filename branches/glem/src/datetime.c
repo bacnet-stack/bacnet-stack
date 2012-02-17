@@ -65,7 +65,7 @@ static bool is_leap_year(
         return (false);
 }
 
-static uint8_t month_days(
+uint8_t month_days(
     uint16_t year,
     uint8_t month)
 {
@@ -147,7 +147,7 @@ static void days_since_epoch_into_ymd(
 
 /* Jan 1, 1900 is a Monday */
 /* wday 1=Monday...7=Sunday */
-static uint8_t day_of_week(
+uint8_t day_of_week(
     uint16_t year,
     uint8_t month,
     uint8_t day)
