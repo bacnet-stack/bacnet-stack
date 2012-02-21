@@ -460,16 +460,25 @@ bool bacfile_write_stream_data(
     pFilename = bacfile_name(data->object_instance);
     if (pFilename) {
         found = true;
-        /* open the file as a clean slate when starting at 0 */
-        if (data->type.stream.fileStartPosition == 0)
+        if (data->type.stream.fileStartPosition == 0) {
+            /* open the file as a clean slate when starting at 0 */
             pFile = fopen(pFilename, "wb");
-        else
+        } else if (data->type.stream.fileStartPosition == -1) {
+            /* If 'File Start Position' parameter has the special
+               value -1, then the write operation shall be treated
+               as an append to the current end of file. */
+            pFile = fopen(pFilename, "ab+");
+        } else {
+            /* open for update */
             pFile = fopen(pFilename, "rb+");
+        }
         if (pFile) {
-            (void) fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
+            if (data->type.stream.fileStartPosition != -1) {
+                (void) fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
+            }
             if (fwrite(octetstring_value(&data->fileData),
                     octetstring_length(&data->fileData), 1, pFile) != 1) {
-
+                /* do something if it fails? */
             }
             fclose(pFile);
         }
