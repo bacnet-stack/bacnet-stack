@@ -157,20 +157,16 @@ int bip_send_pdu(
     /* addr and port in host format */
     struct in_addr address;
     uint16_t port = 0;
-    BACNET_BVLC_FUNCTION function;
-
 
     (void) npdu_data;
     /* assumes that the driver has already been initialized */
-    if (BIP_Socket < 0)
+    if (BIP_Socket < 0) {
         return BIP_Socket;
+    }
 
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
-    function = bvlc_get_function_code();    /* What type of BVLC was it? */
-    if ( (dest->net == BACNET_BROADCAST_NETWORK) ||
-         (function == BVLC_FORWARDED_NPDU) ||
-         (function == BVLC_ORIGINAL_BROADCAST_NPDU) ) {
+    if (dest->net == BACNET_BROADCAST_NETWORK) {
         /* broadcast */
         address.s_addr = BIP_Broadcast_Address.s_addr;
         port = BIP_Port;
