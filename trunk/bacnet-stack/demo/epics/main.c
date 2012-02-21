@@ -23,7 +23,7 @@
 *
 *********************************************************************/
 
-/** @file epics/bacepics.c  Command line tool to build a full VTS3 EPICS file,
+/** @file epics/main.c  Command line tool to build a full VTS3 EPICS file,
  *                          including the heading information. */
 
 #include <stddef.h>
