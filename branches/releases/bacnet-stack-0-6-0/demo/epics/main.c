@@ -75,6 +75,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* target information converted from command line */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
+/* the invoke id is needed to filter incoming messages */
+static uint8_t Request_Invoke_ID = 0;
 /* loopback address to talk to myself */
 /* = { 6, { 127, 0, 0, 1, 0xBA, 0xC0, 0 }, 0 }; */
 #if defined(BACDL_BIP)
@@ -156,18 +158,19 @@ static void MyErrorHandler(
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
-    if (ShowValues)
-        fprintf(stderr, "-- BACnet Error: %s: %s\r\n",
-            bactext_error_class_name(error_class),
-            bactext_error_code_name(error_code));
+        if (ShowValues) {
+            fprintf(stderr, "-- BACnet Error: %s: %s\r\n",
+                bactext_error_class_name(error_class),
+                bactext_error_code_name(error_code));
+        }
 #endif
-    Error_Detected = true;
-    Last_Error_Class = error_class;
-    Last_Error_Code = error_code;
+        Error_Detected = true;
+        Last_Error_Class = error_class;
+        Last_Error_Code = error_code;
+    }
 }
 
 void MyAbortHandler(
@@ -176,23 +179,24 @@ void MyAbortHandler(
     uint8_t abort_reason,
     bool server)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
     (void) server;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
     /* It is normal for this to fail, so don't print. */
-    if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues)
-        fprintf(stderr, "-- BACnet Abort: %s \r\n",
-            bactext_abort_reason_name(abort_reason));
+        if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues) {
+            fprintf(stderr, "-- BACnet Abort: %s \r\n",
+                bactext_abort_reason_name(abort_reason));
+        }
 #endif
-    Error_Detected = true;
-    Last_Error_Class = ERROR_CLASS_SERVICES;
-    if (abort_reason < MAX_BACNET_ABORT_REASON)
-        Last_Error_Code =
-            (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
-    else
-        Last_Error_Code = ERROR_CODE_ABORT_OTHER;
+        Error_Detected = true;
+        Last_Error_Class = ERROR_CLASS_SERVICES;
+        if (abort_reason < MAX_BACNET_ABORT_REASON)
+            Last_Error_Code =
+                (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
+        else
+            Last_Error_Code = ERROR_CODE_ABORT_OTHER;
+    }
 }
 
 void MyRejectHandler(
@@ -200,21 +204,22 @@ void MyRejectHandler(
     uint8_t invoke_id,
     uint8_t reject_reason)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
-    if (ShowValues)
-        fprintf(stderr, "BACnet Reject: %s\r\n",
-            bactext_reject_reason_name(reject_reason));
+        if (ShowValues) {
+            fprintf(stderr, "BACnet Reject: %s\r\n",
+                bactext_reject_reason_name(reject_reason));
+        }
 #endif
-    Error_Detected = true;
-    Last_Error_Class = ERROR_CLASS_SERVICES;
-    if (reject_reason < MAX_BACNET_REJECT_REASON)
-        Last_Error_Code =
-            (ERROR_CODE_REJECT_BUFFER_OVERFLOW - 1) + reject_reason;
-    else
-        Last_Error_Code = ERROR_CODE_REJECT_OTHER;
+        Error_Detected = true;
+        Last_Error_Class = ERROR_CLASS_SERVICES;
+        if (reject_reason < MAX_BACNET_REJECT_REASON)
+            Last_Error_Code =
+                (ERROR_CODE_REJECT_BUFFER_OVERFLOW - 1) + reject_reason;
+        else
+            Last_Error_Code = ERROR_CODE_REJECT_OTHER;
+    }
 }
 
 void MyReadPropertyAckHandler(
@@ -226,22 +231,24 @@ void MyReadPropertyAckHandler(
     int len = 0;
     BACNET_READ_ACCESS_DATA *rp_data;
 
-    (void) src;
-    rp_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
-    if (rp_data) {
-        len =
-            rp_ack_fully_decode_service_request(service_request, service_len,
-            rp_data);
-    }
-    if (len > 0) {
-        memmove(&Read_Property_Multiple_Data.service_data, service_data,
-            sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
-        Read_Property_Multiple_Data.rpm_data = rp_data;
-        Read_Property_Multiple_Data.new_data = true;
-    } else {
-        if (len < 0)    /* Eg, failed due to no segmentation */
-            Error_Detected = true;
-        free(rp_data);
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        rp_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
+        if (rp_data) {
+            len =
+                rp_ack_fully_decode_service_request(service_request, service_len,
+                rp_data);
+        }
+        if (len > 0) {
+            memmove(&Read_Property_Multiple_Data.service_data, service_data,
+                sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
+            Read_Property_Multiple_Data.rpm_data = rp_data;
+            Read_Property_Multiple_Data.new_data = true;
+        } else {
+            if (len < 0)    /* Eg, failed due to no segmentation */
+                Error_Detected = true;
+            free(rp_data);
+        }
     }
 }
 
@@ -254,23 +261,25 @@ void MyReadPropertyMultipleAckHandler(
     int len = 0;
     BACNET_READ_ACCESS_DATA *rpm_data;
 
-    (void) src;
-    rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
-    if (rpm_data) {
-        len =
-            rpm_ack_decode_service_request(service_request, service_len,
-            rpm_data);
-    }
-    if (len > 0) {
-        memmove(&Read_Property_Multiple_Data.service_data, service_data,
-            sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
-        Read_Property_Multiple_Data.rpm_data = rpm_data;
-        Read_Property_Multiple_Data.new_data = true;
-        /* Will process and free the RPM data later */
-    } else {
-        if (len < 0)    /* Eg, failed due to no segmentation */
-            Error_Detected = true;
-        free(rpm_data);
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
+        if (rpm_data) {
+            len =
+                rpm_ack_decode_service_request(service_request, service_len,
+                rpm_data);
+        }
+        if (len > 0) {
+            memmove(&Read_Property_Multiple_Data.service_data, service_data,
+                sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
+            Read_Property_Multiple_Data.rpm_data = rpm_data;
+            Read_Property_Multiple_Data.new_data = true;
+            /* Will process and free the RPM data later */
+        } else {
+            if (len < 0)    /* Eg, failed due to no segmentation */
+                Error_Detected = true;
+            free(rpm_data);
+        }
     }
 }
 
@@ -446,6 +455,8 @@ void PrintReadPropertyData(
                         PROP_PROTOCOL_CONFORMANCE_CLASS;
                     break;
                 }
+                if (object_type == OBJECT_DATETIME_VALUE)
+                    break;  /* A special case - no braces for this pair */
                 /* Else, fall through to normal processing. */
             default:
                 /* Normal array: open brace */
@@ -489,6 +500,13 @@ void PrintReadPropertyData(
                         Object_List_Length = ++Object_List_Index;
                 }
                 if (Walked_List_Index == 1) {
+                    /* If the array is empty (nothing for this first entry),
+                     * Make it VTS3-friendly and don't show "Null" as a value. */
+                    if (value->tag == BACNET_APPLICATION_TAG_NULL) {
+                        fprintf(stdout, "?\r\n        ");
+                        break;
+                    }
+
                     /* Open this Array of Objects for the first entry (unless
                      * opening brace has already printed, since this is an array
                      * of values[] ) */
@@ -949,7 +967,6 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
-    uint8_t invoke_id = 0;
     bool found = false;
     BACNET_OBJECT_ID myObject;
     uint8_t buffer[MAX_PDU] = { 0 };
@@ -1069,10 +1086,10 @@ int main(
                 last_seconds = current_seconds;
                 StartNextObject(rpm_object, &myObject);
 
-                invoke_id =
+                Request_Invoke_ID =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
                     Target_Device_Object_Instance, rpm_object);
-                if (invoke_id > 0) {
+                if (Request_Invoke_ID > 0) {
                     elapsed_seconds = 0;
                     if (myState == GET_LIST_OF_ALL_REQUEST)
                         myState = GET_LIST_OF_ALL_RESPONSE;
@@ -1093,22 +1110,22 @@ int main(
                 }
 
                 if ((Read_Property_Multiple_Data.new_data) &&
-                    (invoke_id ==
+                    (Request_Invoke_ID ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
                     myState =
                         ProcessRPMData(Read_Property_Multiple_Data.rpm_data,
                         myState);
-                    if (tsm_invoke_id_free(invoke_id)) {
-                        invoke_id = 0;
+                    if (tsm_invoke_id_free(Request_Invoke_ID)) {
+                        Request_Invoke_ID = 0;
                     } else {
                         assert(false);  /* How can this be? */
-                        invoke_id = 0;
+                        Request_Invoke_ID = 0;
                     }
                     elapsed_seconds = 0;
-                } else if (tsm_invoke_id_free(invoke_id)) {
+                } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                     elapsed_seconds = 0;
-                    invoke_id = 0;
+                    Request_Invoke_ID = 0;
                     if (Error_Detected) {
                         /* The normal case for Device Object */
                         /* Was it because the Device can't do RPM? */
@@ -1129,16 +1146,16 @@ int main(
                         myState = GET_ALL_REQUEST;      /* Let's try again */
                     else
                         myState = GET_PROPERTY_REQUEST;
-                } else if (tsm_invoke_id_failed(invoke_id)) {
+                } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                    tsm_free_invoke_id(invoke_id);
-                    invoke_id = 0;
+                    tsm_free_invoke_id(Request_Invoke_ID);
+                    Request_Invoke_ID = 0;
                     elapsed_seconds = 0;
                     myState = GET_ALL_REQUEST;  /* Let's try again */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     elapsed_seconds = 0;
-                    invoke_id = 0;
+                    Request_Invoke_ID = 0;
                     myState = NEXT_OBJECT;      /* Give up and move on to the next. */
                     Error_Count++;
                 }
@@ -1151,9 +1168,9 @@ int main(
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
                 elapsed_seconds = 0;
-                invoke_id =
+                Request_Invoke_ID =
                     Read_Properties(Target_Device_Object_Instance, &myObject);
-                if (invoke_id == 0) {
+                if (Request_Invoke_ID == 0) {
                     /* Reached the end of the list. */
                     myState = NEXT_OBJECT;      /* Move on to the next. */
                 } else
@@ -1171,7 +1188,7 @@ int main(
                 }
 
                 if ((Read_Property_Multiple_Data.new_data) &&
-                    (invoke_id ==
+                    (Request_Invoke_ID ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
                     PrintReadPropertyData(Read_Property_Multiple_Data.
@@ -1179,11 +1196,11 @@ int main(
                         Read_Property_Multiple_Data.rpm_data->object_instance,
                         Read_Property_Multiple_Data.rpm_data->
                         listOfProperties);
-                    if (tsm_invoke_id_free(invoke_id)) {
-                        invoke_id = 0;
+                    if (tsm_invoke_id_free(Request_Invoke_ID)) {
+                        Request_Invoke_ID = 0;
                     } else {
                         assert(false);  /* How can this be? */
-                        invoke_id = 0;
+                        Request_Invoke_ID = 0;
                     }
                     elapsed_seconds = 0;
                     /* Advance the property (or Array List) index */
@@ -1207,8 +1224,8 @@ int main(
 /*                    } */
 /*                } */
                     myState = GET_PROPERTY_REQUEST;     /* Go fetch next Property */
-                } else if (tsm_invoke_id_free(invoke_id)) {
-                    invoke_id = 0;
+                } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
+                    Request_Invoke_ID = 0;
                     elapsed_seconds = 0;
                     myState = GET_PROPERTY_REQUEST;
                     if (Error_Detected) {
@@ -1227,16 +1244,16 @@ int main(
                                 myState = NEXT_OBJECT;  /* Give up and move on to the next. */
                         }
                     }
-                } else if (tsm_invoke_id_failed(invoke_id)) {
+                } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                    tsm_free_invoke_id(invoke_id);
+                    tsm_free_invoke_id(Request_Invoke_ID);
                     elapsed_seconds = 0;
-                    invoke_id = 0;
+                    Request_Invoke_ID = 0;
                     myState = GET_PROPERTY_REQUEST;     /* Let's try again, same Property */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     elapsed_seconds = 0;
-                    invoke_id = 0;
+                    Request_Invoke_ID = 0;
                     myState = NEXT_OBJECT;      /* Give up and move on to the next. */
                     Error_Count++;
                 }
@@ -1289,7 +1306,7 @@ int main(
         }
 
         /* Check for timeouts */
-        if (!found || (invoke_id > 0)) {
+        if (!found || (Request_Invoke_ID > 0)) {
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
