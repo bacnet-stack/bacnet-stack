@@ -81,7 +81,7 @@ bool FIFO_Full(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-static bool FIFO_Available(
+bool FIFO_Available(
     FIFO_BUFFER const *b,
     unsigned count)
 {
