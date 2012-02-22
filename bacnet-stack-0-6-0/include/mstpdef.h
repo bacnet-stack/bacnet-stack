@@ -48,7 +48,7 @@
 #define MSTP_BROADCAST_ADDRESS 255
 
 /* MS/TP Frame Type */
-/* Frame Types 8 through 127 are reserved by ASHRAE. */
+/* Frame Types 11 through 127 are reserved by ASHRAE. */
 #define FRAME_TYPE_TOKEN 0
 #define FRAME_TYPE_POLL_FOR_MASTER 1
 #define FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER 2
@@ -57,6 +57,10 @@
 #define FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY 5
 #define FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY 6
 #define FRAME_TYPE_REPLY_POSTPONED 7
+#define FRAME_TYPE_BACNET_EXT_DATA_EXPECTING_REPLY 8
+#define FRAME_TYPE_BACNET_EXT_DATA_NOT_EXPECTING_REPLY 9
+#define FRAME_TYPE_IPV6_ENCAPSULATION 10
+#define FRAME_TYPE_ASSIGNED_MAX 10
 /* Frame Types 128 through 255: Proprietary Frames */
 /* These frames are available to vendors as proprietary (non-BACnet) frames. */
 /* The first two octets of the Data field shall specify the unique vendor */
@@ -65,8 +69,21 @@
 /* of a Proprietary frame shall be in the range of 2 to 501 octets. */
 #define FRAME_TYPE_PROPRIETARY_MIN 128
 #define FRAME_TYPE_PROPRIETARY_MAX 255
+
+/* The initial CRC8 checksum value */
+#define CRC8_INITIAL_VALUE (0xFF)
+#define CRC8_RESIDUE (0x55)
+
 /* The initial CRC16 checksum value */
 #define CRC16_INITIAL_VALUE (0xFFFF)
+#define CRC16_RESIDUE (0xF0B8)
+
+/* See 135-2010 Addendum an, section G.3.2 */
+#define CRC32K_INITIAL_VALUE (0xFFFFFFFF)
+#define CRC32K_RESIDUE (0x0843323B)
+
+/* Specify the byte to be removed from the MSDU (via COBS encoding) */
+#define MSTP_REMOVE_BYTE 0x55
 
 /* receive FSM states */
 typedef enum {
@@ -74,7 +91,8 @@ typedef enum {
     MSTP_RECEIVE_STATE_PREAMBLE = 1,
     MSTP_RECEIVE_STATE_HEADER = 2,
     MSTP_RECEIVE_STATE_DATA = 3,
-    MSTP_RECEIVE_STATE_SKIP_DATA = 4
+    MSTP_RECEIVE_STATE_SKIP_DATA = 4,
+    MSTP_RECEIVE_STATE_EXT_DATA = 5
 } MSTP_RECEIVE_STATE;
 
 /* master node FSM states */
