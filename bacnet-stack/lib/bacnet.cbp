@@ -127,6 +127,9 @@
 		<Unit filename="..\demo\handler\h_wp.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\demo\handler\h_wpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\demo\handler\noserv.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -194,42 +197,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\demo\handler\txbuf.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\ai.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\ao.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\av.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\bacfile.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\bi.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\bo.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\bv.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\device.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\lc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\lsp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\mso.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\demo\object\trendlog.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\include\abort.h" />
@@ -304,9 +271,6 @@
 		<Unit filename="..\ports\win32\bip-init.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\ports\win32\dlmstp.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\ports\win32\net.h" />
 		<Unit filename="..\ports\win32\rs485.h" />
 		<Unit filename="..\ports\win32\stdbool.h" />
@@ -372,9 +336,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\cov.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\src\crc.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\datetime.c">
@@ -468,6 +429,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\wp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\wpm.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>

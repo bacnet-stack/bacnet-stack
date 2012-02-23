@@ -43,6 +43,9 @@
 			<Add library="ws2_32" />
 			<Add library="iphlpapi" />
 		</Linker>
+		<Unit filename="..\object\device-client.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
