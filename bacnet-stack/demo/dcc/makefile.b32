@@ -12,7 +12,7 @@ BORLAND_DIR_Not_Defined:
 !endif
 
 # target
-PRODUCT = bacdcc ..\handler\device-client.c
+PRODUCT = bacdcc
 PRODUCT_EXE = $(PRODUCT).exe
 
 # tools
