@@ -1127,7 +1127,7 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
     ,
     {UNITS_MINUTES, "minutes"}
     ,
-    {UNITS_SECONDS, "secondS"}
+    {UNITS_SECONDS, "seconds"}
     ,
     {UNITS_METERS_PER_SECOND, "meters-per-second"}
     ,
