@@ -19,18 +19,20 @@ bacwi -1 > address_cache
 
 Client Tools
 ------------
-bacrp - BACnet ReadProperty service
-bacwp - BACnet WriteProperty service
 bacarf - BACnet AtomicReadFile service
 bacawf - BACnet AtomicWriteFile service
 bacdcc - BACnet DeviceCommunicationControl service
-bacrd - BACnet ReinitializeDevice service
-bacwh - BACnet WhoHas service
-bacwi - BACnet WhoIs service
 bacepics - BACnet EPICS for Device object.
+bacrd - BACnet ReinitializeDevice service
+bacrp - BACnet ReadProperty service
+bacrpm - BACnet ReadPropertyMultiple service
+bacscov - BACnet SubscribeCOV service
 bacts - BACnet TimeSynchronization service
 bacucov - BACnet UnconfirmedChangeOfValue service
-bacrpm - BACnet ReadPropertyMultiple service
+bacupt - BACnet UnconfirmedPrivateTransfer service
+bacwh - BACnet WhoHas service
+bacwi - BACnet WhoIs service
+bacwp - BACnet WriteProperty service
 
 Server Tools
 ------------
