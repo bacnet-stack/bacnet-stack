@@ -61,8 +61,6 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 /* Process identifier for matching replies */
 static uint32_t Target_Device_Process_Identifier = 0;
-/* buffer for service parameters */
-static uint8_t Service_Parameters[MAX_APDU];
 /* the invoke id is needed to filter incoming messages */
 static uint8_t Request_Invoke_ID = 0;
 /* MAC and SNET address of target */
