@@ -7,7 +7,7 @@ dir_src=
 dir_bin=
 dir_tmp=
 dir_sin=
-dir_inc=C:\code\bacnet-stack\include;C:\code\bacnet-stack\ports\pic18f6720
+dir_inc=C:\code\bacnet-stack\ports\pic18f6720;C:\code\bacnet-stack\include;C:\code\bacnet-stack\demo\object;C:\code\bacnet-stack\demo\handler
 dir_lib=C:\mcc18\lib
 dir_lkr=
 [CAT_FILTERS]
@@ -255,7 +255,7 @@ file_042=mstp.h
 file_043=C:\mcc18\h\p18f6720.h
 file_044=C:\code\bacnet-stack\include\bits.h
 file_045=C:\code\bacnet-stack\include\abort.h
-file_046=C:\code\bacnet-stack\include\ai.h
+file_045=no
 file_047=C:\code\bacnet-stack\include\apdu.h
 file_048=C:\code\bacnet-stack\include\bacaddr.h
 file_049=C:\code\bacnet-stack\include\bacapp.h
