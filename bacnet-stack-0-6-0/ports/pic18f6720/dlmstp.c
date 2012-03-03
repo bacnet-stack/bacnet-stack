@@ -95,7 +95,6 @@ int dlmstp_send_pdu(
     int bytes_sent = 0;
     unsigned npdu_len = 0;
     uint8_t frame_type = 0;
-    uint8_t destination = 0;    /* destination address */
     BACNET_ADDRESS src;
     unsigned i = 0;     /* loop counter */
 
@@ -107,7 +106,7 @@ int dlmstp_send_pdu(
 
         /* load destination MAC address */
         if (dest && dest->mac_len == 1) {
-            destination = dest->mac[0];
+            MSTP_Port.TxDestination = dest->mac[0];
         } else {
             return -2;
         }
@@ -116,9 +115,13 @@ int dlmstp_send_pdu(
             return -4;
         }
         bytes_sent =
-            MSTP_Create_Frame((uint8_t *) & MSTP_Port.TxBuffer[0],
-            sizeof(MSTP_Port.TxBuffer), MSTP_Port.TxFrameType, destination,
-            MSTP_Port.This_Station, pdu, pdu_len);
+            MSTP_Create_Frame(
+            (uint8_t *) & MSTP_Port.TxBuffer[0],
+            sizeof(MSTP_Port.TxBuffer),
+            MSTP_Port.TxFrameType,
+            MSTP_Port.TxDestination,
+            MSTP_Port.This_Station,
+            pdu, pdu_len);
         MSTP_Port.TxLength = bytes_sent;
         MSTP_Port.TxReady = true;
         MSTP_Packets++;
