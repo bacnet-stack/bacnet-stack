@@ -95,9 +95,9 @@ void Notification_Class_Init(
         memset(&NC_Info[NotifyIdx], 0x00, sizeof(NOTIFICATION_CLASS_INFO));
         /* set the basic parameters */
         NC_Info[NotifyIdx].Ack_Required = 0;
-        NC_Info[NotifyIdx].Priority[0] = 255;   /* The lowest priority for Normal message. */
-        NC_Info[NotifyIdx].Priority[1] = 255;   /* The lowest priority for Normal message. */
-        NC_Info[NotifyIdx].Priority[2] = 255;   /* The lowest priority for Normal message. */
+        NC_Info[NotifyIdx].Priority[TRANSITION_TO_OFFNORMAL] = 255;   /* The lowest priority for Normal message. */
+        NC_Info[NotifyIdx].Priority[TRANSITION_TO_FAULT] = 255;   /* The lowest priority for Normal message. */
+        NC_Info[NotifyIdx].Priority[TRANSITION_TO_NORMAL] = 255;   /* The lowest priority for Normal message. */
     }
 
     return;
@@ -223,19 +223,16 @@ int Notification_Class_Read_Property(
                 apdu_len += encode_application_unsigned(&apdu[0], 3);
             else {
                 if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                    /* TO-OFFNORMAL */
                     apdu_len +=
                         encode_application_unsigned(&apdu[apdu_len],
-                        CurrentNotify->Priority[0]);
-                    /* TO-FAULT */
+                        CurrentNotify->Priority[TRANSITION_TO_OFFNORMAL]);
                     apdu_len +=
                         encode_application_unsigned(&apdu[apdu_len],
-                        CurrentNotify->Priority[1]);
-                    /* TO-NORMAL */
+                        CurrentNotify->Priority[TRANSITION_TO_FAULT]);
                     apdu_len +=
                         encode_application_unsigned(&apdu[apdu_len],
-                        CurrentNotify->Priority[2]);
-                } else if (rpdata->array_index <= 3) {
+                        CurrentNotify->Priority[TRANSITION_TO_NORMAL]);
+                } else if (rpdata->array_index <= MAX_BACNET_EVENT_TRANSITION) {
                     apdu_len +=
                         encode_application_unsigned(&apdu[apdu_len],
                         CurrentNotify->Priority[rpdata->array_index - 1]);
@@ -819,14 +816,14 @@ void Notification_Class_common_reporting_function(
     /* Priority and AckRequired */
     switch (event_data->toState) {
         case EVENT_STATE_NORMAL:
-            event_data->priority = CurrentNotify->Priority[EVENT_STATE_NORMAL];
+            event_data->priority = CurrentNotify->Priority[TRANSITION_TO_NORMAL];
             event_data->ackRequired =
                 (CurrentNotify->
                 Ack_Required & TRANSITION_TO_NORMAL_MASKED) ? true : false;
             break;
 
         case EVENT_STATE_FAULT:
-            event_data->priority = CurrentNotify->Priority[EVENT_STATE_FAULT];
+            event_data->priority = CurrentNotify->Priority[TRANSITION_TO_FAULT];
             event_data->ackRequired =
                 (CurrentNotify->
                 Ack_Required & TRANSITION_TO_FAULT_MASKED) ? true : false;
@@ -836,7 +833,7 @@ void Notification_Class_common_reporting_function(
         case EVENT_STATE_HIGH_LIMIT:
         case EVENT_STATE_LOW_LIMIT:
             event_data->priority =
-                CurrentNotify->Priority[EVENT_STATE_OFFNORMAL];
+                CurrentNotify->Priority[TRANSITION_TO_OFFNORMAL];
             event_data->ackRequired =
                 (CurrentNotify->
                 Ack_Required & TRANSITION_TO_OFFNORMAL_MASKED) ? true : false;
