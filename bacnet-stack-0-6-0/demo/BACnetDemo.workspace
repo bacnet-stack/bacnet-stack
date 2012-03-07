@@ -5,7 +5,6 @@
 		<Project filename="server\bacserv.cbp" />
 		<Project filename="epics\bacepics.cbp" />
 		<Project filename="readprop\bacrp.cbp" />
-		<Project filename="whois\bacwi.cbp" />
 		<Project filename="..\ports\win32\bacnet.cbp" />
 		<Project filename="..\ports\win32\rs485.cbp" active="1" />
 	</Workspace>
