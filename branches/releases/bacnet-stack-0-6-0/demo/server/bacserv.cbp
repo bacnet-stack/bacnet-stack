@@ -57,6 +57,48 @@
 			<Add library="ws2_32" />
 			<Add library="iphlpapi" />
 		</Linker>
+		<Unit filename="..\object\ai.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\ao.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\av.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\bacfile.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\bi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\bo.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\bv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\device.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\lc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\lsp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\ms-input.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\mso.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\nc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\trendlog.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
