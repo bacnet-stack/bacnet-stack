@@ -21,14 +21,17 @@ echo "Creating the release files for version ${DOTTED_VERSION}"
 
 CHANGELOG=ChangeLog-${DOTTED_VERSION}
 echo "Creating the ${PROJECT} change log ${CHANGELOG}"
+if [ -e "${CHANGELOG}" ]
+then
 rm ${CHANGELOG}
+fi
 svn update
 svn log --xml --verbose | xsltproc svn2cl.xsl - > ${CHANGELOG}
-if [ -z "${CHANGELOG}" ]
+if [ -e "${CHANGELOG}" ]
 then
-echo "Failed to create ${CHANGELOG}"
-else
 echo "${CHANGELOG} created."
+else
+echo "Failed to create ${CHANGELOG}"
 fi
 
 ARCHIVE_NAME=${SVN_MODULE}-${DOTTED_VERSION}
@@ -38,42 +41,55 @@ SVN_BASE_URL=https://${PROJECT}.svn.sourceforge.net/svnroot/${PROJECT}
 SVN_TRUNK_NAME=${SVN_BASE_URL}/trunk/${SVN_MODULE}
 SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${TAGGED_NAME}
 echo "Setting a tag on the ${SVN_MODULE} module called ${TAGGED_NAME}"
-svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m "Created version ${ARCHIVE_NAME}"
+SVN_MESSAGE="Created version ${ARCHIVE_NAME}"
+svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m ${SVN_MESSAGE} > /dev/null
 echo "done."
 
+if [ -e "${ARCHIVE_NAME}" ]
+then
+rm -rf ${ARCHIVE_NAME}
+fi
 echo "Getting a clean version out of subversion for Linux gzip"
-svn export ${SVN_TAGGED_NAME} ${ARCHIVE_NAME}
+svn export ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
 echo "done."
 
 GZIP_FILENAME=${ARCHIVE_NAME}.tgz
 echo "tar and gzip the clean directory"
-tar -cvvzf ${GZIP_FILENAME} ${ARCHIVE_NAME}/
-echo "done."
-
-if [ -z "${GZIP_FILENAME}" ]
+if [ -e "${GZIP_FILENAME}" ]
 then
-echo "Failed to create ${GZIP_FILENAME}"
-else
+rm ${GZIP_FILENAME}
+fi
+tar -cvvzf ${GZIP_FILENAME} ${ARCHIVE_NAME}/ > /dev/null
+echo "done."
+if [ -e "${GZIP_FILENAME}" ]
+then
 echo "${GZIP_FILENAME} created."
+else
+echo "Failed to create ${GZIP_FILENAME}"
 fi
 
+if [ -e "${ARCHIVE_NAME}" ]
+then
 rm -rf ${ARCHIVE_NAME}
-
+fi
 echo "Getting another clean version out of subversion for Windows zip"
-svn export --native-eol CRLF ${SVN_TAGGED_NAME} ${ARCHIVE_NAME}
+svn export --native-eol CRLF ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
 ZIP_FILENAME=${ARCHIVE_NAME}.zip
 echo "done."
 echo "Zipping the directory exported for Windows."
-zip -r ${ZIP_FILENAME} ${ARCHIVE_NAME}
-
-if [ -z "${ZIP_FILENAME}" ]
+zip -r ${ZIP_FILENAME} ${ARCHIVE_NAME} > /dev/null
+if [ -e "${ZIP_FILENAME}" ]
 then
-echo "Failed to create ${ZIP_FILENAME}"
-else
 echo "${ZIP_FILENAME} created."
+else
+echo "Failed to create ${ZIP_FILENAME}"
 fi
 
+# remove SVN files
+if [ -e "${ARCHIVE_NAME}" ]
+then
 rm -rf ${ARCHIVE_NAME}
+fi
 
 echo "Creating ${ARCHIVE_NAME}"
 mkdir ${ARCHIVE_NAME}

@@ -7,7 +7,7 @@ CC=gcc
 AR=ar
 MAKE=make
 export CC AR MAKE
-make BACNET_PORT=win32 BUILD=release clean all
+make BACNET_PORT=win32 BUILD=release clean all > /dev/null
 
 # Build for MinGW debug
 # make BACNET_PORT=win32 BUILD=debug clean all
