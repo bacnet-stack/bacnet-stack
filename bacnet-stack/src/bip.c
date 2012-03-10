@@ -40,7 +40,7 @@
 #include "bvlc.h"
 #include "net.h"        /* custom per port */
 #if PRINT_ENABLED
-#include <stdio.h>      /* for standard integer types uint8_t etc. */
+#include <stdio.h>      /* for standard i/o, like printing */
 #endif
 
 /** @file bip.c  Configuration and Operations for BACnet/IP */
