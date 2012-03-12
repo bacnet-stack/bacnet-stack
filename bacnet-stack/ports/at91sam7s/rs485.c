@@ -255,7 +255,9 @@ bool RS485_DataAvailable(
 
     if (RS485_Interface->US_CSR & AT91C_US_RXRDY) {
         /* data is available */
-        *DataRegister = RS485_Interface->US_RHR;
+        if (DataRegister) {
+            *DataRegister = RS485_Interface->US_RHR;
+        }
         DataAvailable = true;
         /* LED ON */
         pPIO->PIO_CODR = LED2;

@@ -1255,11 +1255,15 @@ uint16_t dlmstp_receive(
         InputBuffer = pdu;
         InputBufferSize = max_pdu;
     }
-    /* only do receive state machine while we don't have a frame */
-    if ((MSTP_Flag.ReceivedValidFrame == false) &&
+    while ((MSTP_Flag.ReceivedValidFrame == false) &&
         (MSTP_Flag.ReceivedValidFrameNotForUs == false) &&
         (MSTP_Flag.ReceivedInvalidFrame == false)) {
+        /* only do receive state machine while we don't have a frame */
         MSTP_Receive_Frame_FSM();
+        /* process another byte, if available */
+        if (!RS485_DataAvailable(NULL)) {
+            break;
+        }
     }
     if (MSTP_Flag.ReceivedValidFrameNotForUs) {
         MSTP_Flag.ReceivedValidFrameNotForUs = false;
