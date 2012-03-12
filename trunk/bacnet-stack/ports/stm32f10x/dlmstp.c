@@ -1504,11 +1504,17 @@ uint16_t dlmstp_receive(
     if (Receive_State == MSTP_RECEIVE_STATE_IDLE) {
         transmitting = MSTP_Transmit_FSM();
     }
-    /* only do receive state machine while we don't have a frame */
-    if ((MSTP_Flag.ReceivedValidFrame == false) &&
-        (MSTP_Flag.ReceivedValidFrameNotForUs == false) &&
-        (MSTP_Flag.ReceivedInvalidFrame == false) && (transmitting == false)) {
-        MSTP_Receive_Frame_FSM();
+    if (transmitting == false) {
+        while ((MSTP_Flag.ReceivedValidFrame == false) &&
+            (MSTP_Flag.ReceivedValidFrameNotForUs == false) &&
+            (MSTP_Flag.ReceivedInvalidFrame == false)) {
+            /* only do receive state machine while we don't have a frame */
+            MSTP_Receive_Frame_FSM();
+            /* process another byte, if available */
+            if (!rs485_byte_available(NULL)) {
+                break;
+            }
+        }
     }
     /* only do master state machine while rx is idle */
     if ((Receive_State == MSTP_RECEIVE_STATE_IDLE) && (transmitting == false)) {
