@@ -380,6 +380,35 @@ static bool cov_send_request(
     return status;
 }
 
+static void cov_lifetime_expiration_handler(
+    unsigned index,
+    uint32_t elapsed_seconds,
+    uint32_t lifetime_seconds)
+{
+    if (index < MAX_COV_SUBCRIPTIONS) {
+        /* handle lifetime expiration */
+        if (lifetime_seconds >= elapsed_seconds) {
+            COV_Subscriptions[index].lifetime -= elapsed_seconds;
+#if 0
+            fprintf(stderr, "COVtask: subscription[%d].lifetime=%lu\n",
+                index, (unsigned long) COV_Subscriptions[index].lifetime);
+#endif
+        } else {
+            COV_Subscriptions[index].lifetime = 0;
+        }
+        if (COV_Subscriptions[index].lifetime == 0) {
+            /* expire the subscription */
+            COV_Subscriptions[index].flag.valid = false;
+            if (COV_Subscriptions[index].flag.issueConfirmedNotifications) {
+                if (COV_Subscriptions[index].invokeID) {
+                    tsm_free_invoke_id(COV_Subscriptions[index].invokeID);
+                    COV_Subscriptions[index].invokeID = 0;
+                }
+            }
+        }
+    }
+}
+
 /** Handler to check the list of subscribed objects for any that have changed
  *  and so need to have notifications sent.
  * @ingroup DSCOV
@@ -404,30 +433,19 @@ static bool cov_send_request(
 void handler_cov_timer_seconds(
     uint32_t elapsed_seconds)
 {
-    int index = 0;
+    unsigned index = 0;
     uint32_t lifetime_seconds = 0;
 
-    /* handle the subscription timeouts */
-    for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
-        if (COV_Subscriptions[index].flag.valid) {
-            /* handle timeouts */
-            lifetime_seconds = COV_Subscriptions[index].lifetime;
-            if (lifetime_seconds >= elapsed_seconds) {
-                COV_Subscriptions[index].lifetime -= elapsed_seconds;
-#if 0
-                fprintf(stderr, "COVtask: subscription[%d].lifetime=%lu\n",
-                    index, (unsigned long) COV_Subscriptions[index].lifetime);
-#endif
-            } else {
-                COV_Subscriptions[index].lifetime = 0;
-            }
-            if (COV_Subscriptions[index].lifetime == 0) {
-                COV_Subscriptions[index].flag.valid = false;
-                if (COV_Subscriptions[index].flag.issueConfirmedNotifications) {
-                    if (COV_Subscriptions[index].invokeID) {
-                        tsm_free_invoke_id(COV_Subscriptions[index].invokeID);
-                        COV_Subscriptions[index].invokeID = 0;
-                    }
+    if (elapsed_seconds) {
+        /* handle the subscription timeouts */
+        for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+            if (COV_Subscriptions[index].flag.valid) {
+                lifetime_seconds = COV_Subscriptions[index].lifetime;
+                if (lifetime_seconds) {
+                    /* only expire COV with definite lifetimes */
+                    cov_lifetime_expiration_handler(index,
+                        elapsed_seconds,
+                        lifetime_seconds);
                 }
             }
         }
