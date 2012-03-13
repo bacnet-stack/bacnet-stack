@@ -307,11 +307,6 @@ int main(
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
-    if (!COV_Subscribe_Data->cancellationRequest &&
-        (timeout_seconds < COV_Subscribe_Data->lifetime)) {
-        /* only use the first subscribe value */
-        timeout_seconds = COV_Subscribe_Data->lifetime;
-    }
     /* try to bind with the device */
     found =
         address_bind_request(Target_Device_Object_Instance, &max_apdu,
@@ -350,6 +345,11 @@ int main(
                 Request_Invoke_ID = Send_COV_Subscribe(
                     Target_Device_Object_Instance,
                     cov_data);
+                if (!cov_data->cancellationRequest &&
+                    (timeout_seconds < cov_data->lifetime)) {
+                    /* increase the timeout to the longest lifetime */
+                    timeout_seconds = cov_data->lifetime;
+                }
                 printf("Sent SubscribeCOV request.  Waiting %u seconds.\r\n",
                     (unsigned)(timeout_seconds - elapsed_seconds));
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
