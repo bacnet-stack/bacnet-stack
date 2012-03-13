@@ -282,8 +282,13 @@ int main(
                 return 1;
             }
             argi++;
-            cov_data->lifetime = strtol(argv[argi], NULL, 0);
-            argi++;
+            arg_remaining = argc - argi;
+            if (arg_remaining > 0) {
+                cov_data->lifetime = strtol(argv[argi], NULL, 0);
+                argi++;
+            } else {
+                cov_data->lifetime = 0;
+            }
         }
         arg_remaining = argc - argi;
         if (arg_remaining < 5) {
