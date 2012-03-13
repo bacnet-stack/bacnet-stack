@@ -363,14 +363,15 @@ static bool dlmstp_compare_data_expecting_reply(
 /* (pad): (optional) at most one octet of padding: X'FF' */
 static void MSTP_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
-    uint8_t destination,        /* destination MAC address */
+    uint8_t destination,        /* destination address */
     uint8_t source,     /* source address */
     uint8_t * data,     /* any data to be sent - may be null */
     uint16_t data_len)
-{       /* number of bytes of data */
+{       /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
-    uint8_t buffer[8];  /* stores the preamble, header and crc8 */
+    uint8_t buffer[8];  /* stores the header and header crc */
+    uint8_t buffer_crc[2];  /* stores the data crc */
     uint16_t i = 0;     /* used to calculate CRC for data */
 
     /* create the MS/TP header */
@@ -387,20 +388,24 @@ static void MSTP_Send_Frame(
     buffer[6] = LO_BYTE(data_len);
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
-    rs485_turnaround_delay();
-    rs485_rts_enable(true);
-    rs485_bytes_send(buffer, 8);
-    /* send any data */
     if (data_len) {
         /* calculate CRC for any data */
         for (i = 0; i < data_len; i++) {
             crc16 = CRC_Calc_Data(data[i], crc16);
         }
         crc16 = ~crc16;
-        buffer[0] = (crc16 & 0x00FF);
-        buffer[1] = ((crc16 & 0xFF00) >> 8);
+        buffer_crc[0] = (crc16 & 0x00FF);
+        buffer_crc[1] = ((crc16 & 0xFF00) >> 8);
+    }
+    /* on a slower processor, we don't want to calculate
+       the CRC after we send the header because there
+       will be a gap */
+    rs485_turnaround_delay();
+    rs485_rts_enable(true);
+    rs485_bytes_send(buffer, 8);
+    if (data_len) {
         rs485_bytes_send(data, data_len);
-        rs485_bytes_send(buffer, 2);
+        rs485_bytes_send(buffer_crc, 2);
     }
     rs485_rts_enable(false);
 }
@@ -1117,13 +1122,14 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            matched = false;
-            if (!Ringbuf_Empty(&PDU_Queue)) {
                 pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
+            if (pkt != NULL) {
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],
                     DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
                     pkt->destination_mac);
+            } else {
+                matched = false;
             }
             if (matched) {
                 /* Reply */
@@ -1210,11 +1216,15 @@ uint16_t dlmstp_receive(
         InputBuffer = pdu;
         InputBufferSize = max_pdu;
     }
-    /* only do receive state machine while we don't have a frame */
-    if ((MSTP_Flag.ReceivedValidFrame == false) &&
+    while ((MSTP_Flag.ReceivedValidFrame == false) &&
         (MSTP_Flag.ReceivedValidFrameNotForUs == false) &&
         (MSTP_Flag.ReceivedInvalidFrame == false)) {
+        /* only do receive state machine while we don't have a frame */
         MSTP_Receive_Frame_FSM();
+        /* process another byte, if available */
+        if (!rs485_byte_available(NULL)) {
+            break;
+        }
     }
     if (MSTP_Flag.ReceivedValidFrameNotForUs) {
         MSTP_Flag.ReceivedValidFrameNotForUs = false;
@@ -1245,11 +1255,6 @@ void dlmstp_set_mac_address(
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
         This_Station = mac_address;
-        /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS,
-           mac_address,
-           EEPROM_MSTP_MAC_ADDR); */
         if (mac_address > Nmax_master)
             dlmstp_set_max_master(127);
     }

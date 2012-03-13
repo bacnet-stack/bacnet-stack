@@ -55,18 +55,33 @@ static FIFO_BUFFER Receive_Buffer;
 
 static struct etimer Silence_Timer;
 
+/****************************************************************************
+* DESCRIPTION: Determines the amount of silence time elapsed
+* RETURN:      true if the amount of silence time has elapsed
+* NOTES:       none
+*****************************************************************************/
 bool rs485_silence_time_elapsed(
     uint16_t milliseconds)
 {
     return timer_elapsed_milliseconds_short(&Silence_Timer, milliseconds);
 }
 
+/****************************************************************************
+* DESCRIPTION: Resets the silence timer
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 void rs485_silence_time_reset(
     void)
 {
     timer_elapsed_start(&Silence_Timer);
 }
 
+/****************************************************************************
+* DESCRIPTION: Configures the RTS output
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 static void rs485_rts_init(
     void)
 {
@@ -74,7 +89,11 @@ static void rs485_rts_init(
     BIT_SET(DDRD, DDD4);
 }
 
-/* enable the transmit-enable line on the RS-485 transceiver */
+/****************************************************************************
+* DESCRIPTION: enable the transmit-enable line on the RS-485 transceiver
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 void rs485_rts_enable(
     bool enable)
 {
@@ -85,12 +104,22 @@ void rs485_rts_enable(
     }
 }
 
+/****************************************************************************
+* DESCRIPTION: enable the UART receiver and interrupt
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 static void rs485_receiver_enable(
     void)
 {
     UCSR0B = _BV(TXEN0) | _BV(RXEN0) | _BV(RXCIE0);
 }
 
+/****************************************************************************
+* DESCRIPTION: delay for 40 bit times
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 void rs485_turnaround_delay(
     void)
 {
@@ -116,6 +145,11 @@ void rs485_turnaround_delay(
     BIT_SET(UCSR0A, TXC0);
 }
 
+/****************************************************************************
+* DESCRIPTION: Interrupt service routine for UART Receiver
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 ISR(USART0_RX_vect)
 {
     uint8_t data_byte;
@@ -130,6 +164,11 @@ ISR(USART0_RX_vect)
     }
 }
 
+/****************************************************************************
+* DESCRIPTION: Checks for data on the receive UART, and handles errors
+* RETURN:      none
+* NOTES:       none
+*****************************************************************************/
 bool rs485_byte_available(
     uint8_t * data_register)
 {
@@ -137,19 +176,31 @@ bool rs485_byte_available(
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         led_on_interval(LED_4, 1);
-        *data_register = FIFO_Get(&Receive_Buffer);
+        if (data_register) {
+            *data_register = FIFO_Get(&Receive_Buffer);
+        }
         data_available = true;
     }
 
     return data_available;
 }
 
+/****************************************************************************
+* DESCRIPTION: returns an error indication if errors are enabled
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 bool rs485_receive_error(
     void)
 {
     return false;
 }
 
+/****************************************************************************
+* DESCRIPTION: Transmits a frame using the UART
+* RETURN:      none
+* NOTES:       none
+*****************************************************************************/
 void rs485_bytes_send(
     uint8_t * buffer,   /* data to send */
     uint16_t nbytes)
@@ -183,12 +234,22 @@ void rs485_bytes_send(
     return;
 }
 
+/****************************************************************************
+* DESCRIPTION: Returns the baud rate that we are currently running at
+* RETURN:      baud rate in bps
+* NOTES:       none
+*****************************************************************************/
 uint32_t rs485_baud_rate(
     void)
 {
     return Baud_Rate;
 }
 
+/****************************************************************************
+* DESCRIPTION: configure the UART baud rate
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 static void rs485_baud_rate_configure(
     void)
 {
@@ -198,6 +259,11 @@ static void rs485_baud_rate_configure(
     UBRR0 = (F_CPU / (8UL * Baud_Rate)) - 1;
 }
 
+/****************************************************************************
+* DESCRIPTION: set the UART baud rate to a standard value
+* RETURN:      true if the baud rate is valid
+* NOTES:       none
+*****************************************************************************/
 bool rs485_baud_rate_set(
     uint32_t baud)
 {
@@ -225,6 +291,11 @@ bool rs485_baud_rate_set(
     return valid;
 }
 
+/****************************************************************************
+* DESCRIPTION: initialize the hardware UART
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 static void rs485_usart_init(
     void)
 {
@@ -245,6 +316,11 @@ static void rs485_usart_init(
     BIT_CLEAR(PRR, PRUSART0);
 }
 
+/****************************************************************************
+* DESCRIPTION: read any non-volatile data
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 static void rs485_init_nvdata(
     void)
 {
@@ -280,6 +356,11 @@ static void rs485_init_nvdata(
     rs485_baud_rate_configure();
 }
 
+/****************************************************************************
+* DESCRIPTION: initialize the module
+* RETURN:      nothing
+* NOTES:       none
+*****************************************************************************/
 void rs485_init(
     void)
 {

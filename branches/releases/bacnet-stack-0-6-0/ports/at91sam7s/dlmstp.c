@@ -1090,13 +1090,14 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            matched = false;
-            if (!Ringbuf_Empty(&PDU_Queue)) {
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
+            pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
+            if (pkt != NULL) {
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],
                     DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
                     pkt->destination_mac);
+            } else {
+                matched = false;
             }
             if (matched) {
                 /* Reply */
@@ -1254,11 +1255,15 @@ uint16_t dlmstp_receive(
         InputBuffer = pdu;
         InputBufferSize = max_pdu;
     }
-    /* only do receive state machine while we don't have a frame */
-    if ((MSTP_Flag.ReceivedValidFrame == false) &&
+    while ((MSTP_Flag.ReceivedValidFrame == false) &&
         (MSTP_Flag.ReceivedValidFrameNotForUs == false) &&
         (MSTP_Flag.ReceivedInvalidFrame == false)) {
+        /* only do receive state machine while we don't have a frame */
         MSTP_Receive_Frame_FSM();
+        /* process another byte, if available */
+        if (!RS485_DataAvailable(NULL)) {
+            break;
+        }
     }
     if (MSTP_Flag.ReceivedValidFrameNotForUs) {
         MSTP_Flag.ReceivedValidFrameNotForUs = false;
