@@ -1354,7 +1354,7 @@ int Device_Read_Property(
         }
     } else {
         rpdata->error_class = ERROR_CLASS_OBJECT;
-        rpdata->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return apdu_len;
@@ -1570,7 +1570,7 @@ bool Device_Write_Property(
         }
     } else {
         wp_data->error_class = ERROR_CLASS_OBJECT;
-        wp_data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return (status);

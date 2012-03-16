@@ -87,7 +87,7 @@ int Encode_Property_APDU(
 #endif
         default:
             *error_class = ERROR_CLASS_OBJECT;
-            *error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+            *error_code = ERROR_CODE_UNKNOWN_OBJECT;
             break;
     }
 
