@@ -880,7 +880,7 @@ int Device_Read_Property(
         }
     } else {
         rpdata->error_class = ERROR_CLASS_OBJECT;
-        rpdata->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return apdu_len;
@@ -889,11 +889,11 @@ int Device_Read_Property(
 /** The device-client version of this function just returns an error,
  * since we don't need to allow writing to our objects.
  *
- * Note: it was necessary to include this trivial implementation of this function 
- * to avoid pulling in the device.c module from libbacnet.a for the 
- * handler_write_property() support, which resulted in hard-to-trace 
+ * Note: it was necessary to include this trivial implementation of this function
+ * to avoid pulling in the device.c module from libbacnet.a for the
+ * handler_write_property() support, which resulted in hard-to-trace
  * duplicate function errors.
- * 
+ *
  * @param wp_data [in,out] Structure with the desired Object and Property info
  *              and new Value on entry, and APDU message on return.
  * @return Always False because it is an error.
@@ -901,7 +901,7 @@ int Device_Read_Property(
 bool Device_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
-    bool status = false;        
+    bool status = false;
     wp_data->error_class = ERROR_CLASS_PROPERTY;
     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
     return (status);
@@ -910,7 +910,7 @@ bool Device_Write_Property(
 bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
-    bool status = false;        
+    bool status = false;
     wp_data->error_class = ERROR_CLASS_PROPERTY;
     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
     return (status);
