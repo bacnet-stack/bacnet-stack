@@ -156,6 +156,8 @@ static object_functions_t My_Object_Table[] = {
         Binary_Value_Read_Property,
         Binary_Value_Write_Property,
         Binary_Value_Property_Lists,
+        NULL /* ReadRangeInfo */,
+        NULL /* Iterator */,
         NULL /* Value_Lists */,
         NULL /* COV */,
         NULL /* COV Clear */,
