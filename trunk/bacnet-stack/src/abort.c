@@ -63,7 +63,8 @@ BACNET_ABORT_REASON abort_convert_error_code(
             abort_code = ABORT_REASON_SEGMENTATION_NOT_SUPPORTED;
             break;
         case ERROR_CODE_ABORT_PROPRIETARY:
-            abort_code = FIRST_PROPRIETARY_ABORT_REASON;
+            abort_code =
+                (BACNET_ABORT_REASON)FIRST_PROPRIETARY_ABORT_REASON;
             break;
         case ERROR_CODE_ABORT_OTHER:
         default:

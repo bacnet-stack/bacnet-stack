@@ -80,7 +80,8 @@ BACNET_REJECT_REASON reject_convert_error_code(
             reject_code = REJECT_REASON_UNRECOGNIZED_SERVICE;
             break;
         case ERROR_CODE_REJECT_PROPRIETARY:
-            reject_code = FIRST_PROPRIETARY_REJECT_REASON;
+            reject_code =
+                (BACNET_REJECT_REASON)FIRST_PROPRIETARY_REJECT_REASON;
             break;
         case ERROR_CODE_REJECT_OTHER:
         default:
