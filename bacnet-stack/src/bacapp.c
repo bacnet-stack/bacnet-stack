@@ -648,7 +648,25 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
             }
             break;
-
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            /* BACnetCOVSubscription */
+            switch (tag_number) {
+                case 0:  /* BACnetRecipientProcess */
+                case 1: /* BACnetObjectPropertyReference */
+                    break;
+                case 2: /* issueConfirmedNotifications */
+                    tag = BACNET_APPLICATION_TAG_BOOLEAN;
+                    break;
+                case 3:  /* timeRemaining */
+                    tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    break;
+                case 4:  /* covIncrement */
+                    tag = BACNET_APPLICATION_TAG_REAL;
+                    break;
+                default:
+                    break;
+            }
+            break;
         default:
             break;
     }
@@ -717,7 +735,7 @@ int bacapp_decode_context_data(
             }
         }
         else if ( tag_len == 1 )	/* and is a Closing tag */
-        	apdu_len = 0;			/* Don't advance over that closing tag. */
+            apdu_len = 0;			/* Don't advance over that closing tag. */
     }
 
     return apdu_len;

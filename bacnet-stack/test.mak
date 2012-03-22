@@ -187,7 +187,7 @@ wp: logfile test/wp.mak
 	( ./test/wp >> ${LOGFILE} )
 	make -C test -f wp.mak clean
 
-objects: ai ao av bi bo bv lc lo lso lsp mso
+objects: ai ao av bi bo bv csv lc lo lso lsp mso msv ms-input
 
 ai: logfile demo/object/ai.mak
 	make -C demo/object -f ai.mak clean all
@@ -218,6 +218,11 @@ bv: logfile demo/object/bv.mak
 	( ./demo/object/binary_value >> ${LOGFILE} )
 	make -C demo/object -f bv.mak clean
 
+csv: logfile demo/object/csv.mak
+	make -C demo/object -f csv.mak clean all
+	( ./demo/object/characterstring_value >> ${LOGFILE} )
+	make -C demo/object -f csv.mak clean
+
 device: logfile demo/object/device.mak
 	make -C demo/object -f device.mak clean all
 	( ./demo/object/device >> ${LOGFILE} )
@@ -243,7 +248,17 @@ lsp: logfile demo/object/lsp.mak
 	( ./demo/object/life_safety_point >> ${LOGFILE} )
 	make -C demo/object -f lsp.mak clean
 
+ms-input: logfile demo/object/ms-input.mak
+	make -C demo/object -f ms-input.mak clean all
+	( ./demo/object/multistate_input >> ${LOGFILE} )
+	make -C demo/object -f ms-input.mak clean
+
 mso: logfile demo/object/mso.mak
 	make -C demo/object -f mso.mak clean all
 	( ./demo/object/multistate_output >> ${LOGFILE} )
 	make -C demo/object -f mso.mak clean
+
+msv: logfile demo/object/msv.mak
+	make -C demo/object -f msv.mak clean all
+	( ./demo/object/multistate_value >> ${LOGFILE} )
+	make -C demo/object -f msv.mak clean

@@ -72,6 +72,13 @@ extern "C" {
     bool Multistate_Input_Present_Value_Set(
         uint32_t object_instance,
         uint32_t value);
+
+    bool Multistate_Input_Out_Of_Service(
+        uint32_t object_instance);
+    void Multistate_Input_Out_Of_Service_Set(
+        uint32_t object_instance,
+        bool value);
+
     bool Multistate_Input_Description_Set(
         uint32_t object_instance,
         char *text_string);
@@ -89,7 +96,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
-    void testMultistateOutput(
+    void testMultistateInput(
         Test * pTest);
 #endif
 
