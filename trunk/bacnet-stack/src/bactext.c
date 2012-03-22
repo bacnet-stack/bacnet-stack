@@ -187,9 +187,9 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_LOOP, "Loop"}
     ,
-    {OBJECT_MULTI_STATE_INPUT, "Multi-State Input"}
+    {OBJECT_MULTI_STATE_INPUT, "Multi-state Input"}
     ,
-    {OBJECT_MULTI_STATE_OUTPUT, "Multi-State Output"}
+    {OBJECT_MULTI_STATE_OUTPUT, "Multi-state Output"}
     ,
     {OBJECT_NOTIFICATION_CLASS, "Notification Class"}
     ,
@@ -199,9 +199,9 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_AVERAGING, "Averaging"}
     ,
-    {OBJECT_MULTI_STATE_VALUE, "Multi-State Value"}
+    {OBJECT_MULTI_STATE_VALUE, "Multi-state Value"}
     ,
-    {OBJECT_TRENDLOG, "Trendlog"}
+    {OBJECT_TRENDLOG, "TrendLog"}
     ,
     {OBJECT_LIFE_SAFETY_POINT, "Life Safety Point"}
     ,
@@ -239,23 +239,23 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_NETWORK_SECURITY, "Network Security"}
     ,
-    {OBJECT_BITSTRING_VALUE, "Bitstring Value"}
+    {OBJECT_BITSTRING_VALUE, "BitString Value"}
     ,
-    {OBJECT_CHARACTERSTRING_VALUE, "Characterstring Value"}
+    {OBJECT_CHARACTERSTRING_VALUE, "CharacterString Value"}
     ,
     {OBJECT_DATE_PATTERN_VALUE, "Date Pattern Value"}
     ,
     {OBJECT_DATE_VALUE, "Date Value"}
     ,
-    {OBJECT_DATETIME_PATTERN_VALUE, "Datetime Pattern Value"}
+    {OBJECT_DATETIME_PATTERN_VALUE, "DateTime Pattern Value"}
     ,
-    {OBJECT_DATETIME_VALUE, "Datetime Value"}
+    {OBJECT_DATETIME_VALUE, "DateTime Value"}
     ,
     {OBJECT_INTEGER_VALUE, "Integer Value"}
     ,
     {OBJECT_LARGE_ANALOG_VALUE, "Large Analog Value"}
     ,
-    {OBJECT_OCTETSTRING_VALUE, "Octetstring Value"}
+    {OBJECT_OCTETSTRING_VALUE, "OctetString Value"}
     ,
     {OBJECT_POSITIVE_INTEGER_VALUE, "Positive Integer Value"}
     ,

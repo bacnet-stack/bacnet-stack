@@ -504,7 +504,7 @@ bool Analog_Input_Write_Property(
     else
         return false;
 
-    switch (wp_data->object_property) {
+    switch ((int)wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
@@ -640,10 +640,26 @@ bool Analog_Input_Write_Property(
             }
             break;
 #endif
-
-        default:
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_OBJECT_TYPE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_DESCRIPTION:
+        case PROP_RELIABILITY:
+#if defined(INTRINSIC_REPORTING)
+        case PROP_ACKED_TRANSITIONS:
+        case PROP_EVENT_TIME_STAMPS:
+#endif
+        case 9997:
+        case 9998:
+        case 9999:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 

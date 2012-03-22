@@ -54,10 +54,12 @@
 #include "bi.h"
 #include "bo.h"
 #include "bv.h"
+#include "csv.h"
 #include "lc.h"
 #include "lsp.h"
-#include "mso.h"
 #include "ms-input.h"
+#include "mso.h"
+#include "msv.h"
 #include "trendlog.h"
 #if defined(INTRINSIC_REPORTING)
 #include "nc.h"
@@ -162,6 +164,21 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */,
         NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */},
+    {OBJECT_CHARACTERSTRING_VALUE,
+        CharacterString_Value_Init,
+        CharacterString_Value_Count,
+        CharacterString_Value_Index_To_Instance,
+        CharacterString_Value_Valid_Instance,
+        CharacterString_Value_Object_Name,
+        CharacterString_Value_Read_Property,
+        CharacterString_Value_Write_Property,
+        CharacterString_Value_Property_Lists,
+        NULL /* ReadRangeInfo */,
+        NULL /* Iterator */,
+        NULL /* Value_Lists */,
+        NULL /* COV */,
+        NULL /* COV Clear */,
+        NULL /* Intrinsic Reporting */},
 #if defined(INTRINSIC_REPORTING)
     {OBJECT_NOTIFICATION_CLASS,
         Notification_Class_Init,
@@ -209,6 +226,21 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */,
         NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */},
+    {OBJECT_MULTI_STATE_INPUT,
+        Multistate_Input_Init,
+        Multistate_Input_Count,
+        Multistate_Input_Index_To_Instance,
+        Multistate_Input_Valid_Instance,
+        Multistate_Input_Object_Name,
+        Multistate_Input_Read_Property,
+        Multistate_Input_Write_Property,
+        Multistate_Input_Property_Lists,
+        NULL /* ReadRangeInfo */,
+        NULL /* Iterator */,
+        NULL /* Value_Lists */,
+        NULL /* COV */,
+        NULL /* COV Clear */,
+        NULL /* Intrinsic Reporting */},
     {OBJECT_MULTI_STATE_OUTPUT,
         Multistate_Output_Init,
         Multistate_Output_Count,
@@ -224,15 +256,15 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */,
         NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */},
-    {OBJECT_MULTI_STATE_INPUT,
-        Multistate_Input_Init,
-        Multistate_Input_Count,
-        Multistate_Input_Index_To_Instance,
-        Multistate_Input_Valid_Instance,
-        Multistate_Input_Object_Name,
-        Multistate_Input_Read_Property,
-        Multistate_Input_Write_Property,
-        Multistate_Input_Property_Lists,
+    {OBJECT_MULTI_STATE_VALUE,
+        Multistate_Value_Init,
+        Multistate_Value_Count,
+        Multistate_Value_Index_To_Instance,
+        Multistate_Value_Valid_Instance,
+        Multistate_Value_Object_Name,
+        Multistate_Value_Read_Property,
+        Multistate_Value_Write_Property,
+        Multistate_Value_Property_Lists,
         NULL /* ReadRangeInfo */,
         NULL /* Iterator */,
         NULL /* Value_Lists */,

@@ -93,10 +93,11 @@ extern "C" {
         uint8_t * invoke_id,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-    void test_ReadProperty(
+    void testWriteProperty(
         Test * pTest);
-    void test_ReadPropertyAck(
-        Test * pTest);
+    void testWritePropertyTag(
+        Test * pTest,
+        BACNET_APPLICATION_DATA_VALUE * value);
 #endif
 
 #ifdef __cplusplus

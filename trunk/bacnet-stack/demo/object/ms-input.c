@@ -183,6 +183,34 @@ bool Multistate_Input_Present_Value_Set(
     return status;
 }
 
+bool Multistate_Input_Out_Of_Service(
+    uint32_t object_instance)
+{
+    bool value = false;
+    unsigned index = 0;
+
+    index = Multistate_Input_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_INPUTS) {
+        value = Out_Of_Service[index];
+    }
+
+    return value;
+}
+
+void Multistate_Input_Out_Of_Service_Set(
+    uint32_t object_instance,
+    bool value)
+{
+    unsigned index = 0;
+
+    index = Multistate_Input_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_INPUTS) {
+        Out_Of_Service[index] = value;
+    }
+
+    return;
+}
+
 static char *Multistate_Input_Description(
     uint32_t object_instance)
 {
@@ -329,8 +357,8 @@ int Multistate_Input_Read_Property(
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t present_value = 0;
-    unsigned object_index = 0;
     unsigned i = 0;
+    unsigned int object_index = 0;
     bool state = false;
     uint8_t *apdu = NULL;
 
@@ -375,7 +403,13 @@ int Multistate_Input_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+            if (Multistate_Input_Out_Of_Service(rpdata->object_instance)) {
+                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+                    true);
+            } else {
+                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+                    false);
+            }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -384,9 +418,7 @@ int Multistate_Input_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index =
-                Multistate_Input_Instance_To_Index(rpdata->object_instance);
-            state = Out_Of_Service[object_index];
+            state = Multistate_Input_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_NUMBER_OF_STATES:
@@ -485,18 +517,12 @@ bool Multistate_Input_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                if (Out_Of_Service[object_index]) {
-                    status =
-                        Multistate_Input_Present_Value_Set
-                        (wp_data->object_instance, value.type.Unsigned_Int);
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                } else {
-                    status = false;
+                status =
+                    Multistate_Input_Present_Value_Set
+                    (wp_data->object_instance, value.type.Unsigned_Int);
+                if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             }
             break;
@@ -505,15 +531,24 @@ bool Multistate_Input_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                object_index =
-                    Multistate_Input_Instance_To_Index
-                    (wp_data->object_instance);
-                Out_Of_Service[object_index] = value.type.Boolean;
+                Multistate_Input_Out_Of_Service_Set(wp_data->object_instance,
+                    value.type.Boolean);
             }
+            break;
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_OBJECT_TYPE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_NUMBER_OF_STATES:
+        case PROP_DESCRIPTION:
+        case PROP_STATE_TEXT:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 
