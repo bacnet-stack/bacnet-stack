@@ -112,6 +112,12 @@ extern "C" {
         uint32_t object_instance,
         float value);
 
+    bool Analog_Input_Out_Of_Service(
+        uint32_t object_instance);
+    void Analog_Input_Out_Of_Service_Set(
+        uint32_t object_instance,
+        bool oos_flag);
+
     /* note: header of Intrinsic_Reporting function is required
        even when INTRINSIC_REPORTING is not defined */
     void Analog_Input_Intrinsic_Reporting(
