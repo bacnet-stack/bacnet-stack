@@ -9,9 +9,17 @@ TARGET = bacgateway
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-SRCS = main.c
+SRCS = main.c \
+	$(BACNET_OBJECT)/gw_device.c \
+	${CORE_SRC} \
+	${PORT_SRC} \
+	${HANDLER_SRC} \
+	${OBJECT_SRC} \
+	${ROUTING_SRC}
 
 OBJS = ${SRCS:.c=.o}
+
+DEFINES += -DBAC_ROUTING
 
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
