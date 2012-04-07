@@ -1284,6 +1284,7 @@ int bacapp_snprintf_value(
                 ret_val = str_len - rem_str_len;
                 break;
             default:
+                ret_val = 0;
                 break;
         }
     }
@@ -1321,8 +1322,10 @@ bool bacapp_print_value(
             free(str);
             str_len *= 2;
         }
-        else
-        {
+        else if (status == 0) {
+            free(str);
+            break;
+        } else {
             if (stream)
                 fprintf(stream, "%s", str);
             free(str);
