@@ -10,7 +10,7 @@ TARGET = mstpcrc
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 # This demo seems to be a little unique
-BACNET_INCLUDE_DIR = ../../include
+DEFINES = $(BACNET_DEFINES)
 BACNET_SOURCE_DIR = ../../src
 
 #libraries used
@@ -27,14 +27,8 @@ endif
 # search order for included libraries 
 INCLUDES = -I$(BACNET_INCLUDE_DIR)
 
-# any special defines
-DEFINES = 
-
-# put all the flags together
-CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
-LFLAGS = -Wl,$(LIBRARIES)
-
 SRCS = main.c \
+	${BACNET_PORT_DIR}/timer.c \
 	${BACNET_SOURCE_DIR}/crc.c
 
 OBJS = ${SRCS:.c=.o}
