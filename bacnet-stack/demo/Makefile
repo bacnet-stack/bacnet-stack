@@ -47,7 +47,7 @@ LFLAGS = -Wl,$(LIBRARIES)
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov scov timesync epics readpropm \
-	mstpcap  uptransfer \
+	mstpcap mstpcrc uptransfer \
 	whoisrouter iamrouter initrouter
 ifeq (${BACNET_PORT},win32)
 SUBDIRS += ptransfer
