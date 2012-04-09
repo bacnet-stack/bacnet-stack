@@ -76,6 +76,8 @@ extern "C" {
     bool CharacterString_Value_Description_Set(
         uint32_t object_instance,
         char *text_string);
+    bool CharacterString_Value_Out_Of_Service(
+        uint32_t object_instance);
 
     void CharacterString_Value_Init(
         void);
