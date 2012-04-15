@@ -655,7 +655,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_LIMIT_MONITORING_INTERVAL, "limit-monitoring-interval"}
     ,
-    {PROP_LOGGING_DEVICE, "logging-device"}
+    {PROP_LOGGING_OBJECT, "logging-object"}
     ,
     {PROP_LOGGING_RECORD, "logging-record"}
     ,
@@ -677,21 +677,11 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_ALIGN_INTERVALS, "align-intervals"}
     ,
-    {PROP_GROUP_MEMBER_NAMES, "group-member-names"}
-    ,
     {PROP_INTERVAL_OFFSET, "interval-offset"}
     ,
     {PROP_LAST_RESTART_REASON, "last-restart-reason"}
     ,
     {PROP_LOGGING_TYPE, "logging-type"}
-    ,
-    {PROP_MEMBER_STATUS_FLAGS, "member-status-flags"}
-    ,
-    {PROP_NOTIFICATION_PERIOD, "notification-period"}
-    ,
-    {PROP_REQUESTED_UPDATE_INTERVAL, "requested-update-interval"}
-    ,
-    {PROP_RESTART_NOTIFICATION_RECIPIENTS, "restart-notification-recipients"}
     ,
     {PROP_TIME_OF_DEVICE_RESTART, "time-of-device-restart"}
     ,
@@ -719,10 +709,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_EXPECTED_SHED_LEVEL, "expected-shed-level"}
     ,
     {PROP_FULL_DUTY_BASELINE, "full-duty-baseline"}
-    ,
-    {PROP_BLINK_PRIORITY_THRESHOLD, "blink-priority-threshold"}
-    ,
-    {PROP_BLINK_TIME, "blink-time"}
     ,
     {PROP_REQUESTED_SHED_LEVEL, "requested-shed-level"}
     ,
@@ -776,7 +762,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_SYSTEM_FAILURE_VALUE, "system-failure-value"}
     ,
-    /* enumerations 244-311 are used in Addendum j to ANSI/ASHRAE 135-2004 */
     {PROP_ABSENTEE_LIMIT, "absentee-limit"}
     ,
     {PROP_ACCESS_ALARM_EVENTS, "access-alarm-events"}
@@ -916,17 +901,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_USER_INFORMATION_REFERENCE, "user-information-reference"}
     ,
-    /* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
-    {PROP_CHARACTER_SET, "character-set"}
-    ,
-    {PROP_STRICT_CHARACTER_MODE, "strict-character-mode"}
-    ,
-    {PROP_BACKUP_AND_RESTORE_STATE, "backup-and-restore-state"}
-    ,
-    {PROP_BACKUP_PREPARATION_TIME, "backup-preparation-time"}
-    ,
-    {PROP_RESTORE_PREPARATION_TIME, "restore-preparation-time"}
-    ,
     {PROP_USER_INFORMATION_REFERENCE, "user-information-reference"}
     ,
     {PROP_USER_NAME, "user-name"}
@@ -943,8 +917,37 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_BINARY_INACTIVE_VALUE, "binary-inactive-value"}
     ,
-    /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
     {PROP_VERIFICATION_TIME, "verification-time"}
+    ,
+    {PROP_BASE_DEVICE_SECURITY_POLICY, "base-device-security-policy"}
+    ,
+    {PROP_DISTRIBUTION_KEY_REVISION, "distribution-key-revision"}
+    ,
+    {PROP_DO_NOT_HIDE, "do-not-hide"}
+    ,
+    {PROP_KEY_SETS, "key-sets"}
+    ,
+    {PROP_LAST_KEY_SERVER, "last-key-server"}
+    ,
+    {PROP_NETWORK_ACCESS_SECURITY_ALGORITHMS, "network-access-security-algorithms"}
+    ,
+    {PROP_PACKET_REORDER_TIME, "packet-reorder-time"}
+    ,
+    {PROP_SECURITY_PDU_TIMEOUT, "security-pdu-timeout"}
+    ,
+    {PROP_SECURITY_TIME_WINDOW, "security-time-window"}
+    ,
+    {PROP_SUPPORTED_SECURITY_ALGORITHM, "supported-security-algorithm"}
+    ,
+    {PROP_UPDATE_KEY_SET_TIMEOUT, "update-key-set-timeout"}
+    ,
+    {PROP_BACKUP_AND_RESTORE_STATE, "backup-and-restore-state"}
+    ,
+    {PROP_BACKUP_PREPARATION_TIME, "backup-preparation-time"}
+    ,
+    {PROP_RESTORE_COMPLETION_TIME, "restore-completion-time"}
+    ,
+    {PROP_RESTORE_PREPARATION_TIME, "restore-preparation-time"}
     ,
     {PROP_BIT_MASK, "bit-mask"}
     ,
@@ -952,7 +955,20 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_IS_UTC, "is-utc"}
     ,
-
+    {PROP_GROUP_MEMBERS, "group-members"}
+    ,
+    {PROP_GROUP_MEMBER_NAMES, "group-member-names"}
+    ,
+    {PROP_MEMBER_STATUS_FLAGS, "member-status-flags"}
+    ,
+    {PROP_REQUESTED_UPDATE_INTERVAL, "requested-update-interval"}
+    ,
+    {PROP_COVU_PERIOD, "covu-period"}
+    ,
+    {PROP_COVU_RECIPIENTS, "covu-recipients"}
+    ,
+    {PROP_EVENT_MESSAGE_TEXTS, "event-message-texts"}
+    ,
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the

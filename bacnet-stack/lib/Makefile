@@ -27,6 +27,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/key.c \
 	$(BACNET_CORE)/keylist.c \
+	$(BACNET_CORE)/proplist.c \
 	$(BACNET_CORE)/debug.c \
 	$(BACNET_CORE)/bigend.c \
 	$(BACNET_CORE)/arf.c \

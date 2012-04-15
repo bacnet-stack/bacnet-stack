@@ -220,7 +220,7 @@ typedef enum {
     PROP_COV_PERIOD = 180,
     PROP_INPUT_REFERENCE = 181,
     PROP_LIMIT_MONITORING_INTERVAL = 182,
-    PROP_LOGGING_DEVICE = 183,
+    PROP_LOGGING_OBJECT = 183,
     PROP_LOGGING_RECORD = 184,
     PROP_PRESCALE = 185,
     PROP_PULSE_RATE = 186,
@@ -232,14 +232,11 @@ typedef enum {
     PROP_VALUE_CHANGE_TIME = 192,
     /* enumerations 193-206 are new */
     PROP_ALIGN_INTERVALS = 193,
-    PROP_GROUP_MEMBER_NAMES = 194,
+    /* enumeration 194 is unassigned */
     PROP_INTERVAL_OFFSET = 195,
     PROP_LAST_RESTART_REASON = 196,
     PROP_LOGGING_TYPE = 197,
-    PROP_MEMBER_STATUS_FLAGS = 198,
-    PROP_NOTIFICATION_PERIOD = 199,
-    PROP_PREVIOUS_NOTIFY_RECORD = 200,
-    PROP_REQUESTED_UPDATE_INTERVAL = 201,
+    /* enumeration 198-201 is unassigned */
     PROP_RESTART_NOTIFICATION_RECIPIENTS = 202,
     PROP_TIME_OF_DEVICE_RESTART = 203,
     PROP_TIME_SYNCHRONIZATION_INTERVAL = 204,
@@ -256,9 +253,7 @@ typedef enum {
     PROP_DUTY_WINDOW = 213,
     PROP_EXPECTED_SHED_LEVEL = 214,
     PROP_FULL_DUTY_BASELINE = 215,
-    /* enumerations 216-217 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-    PROP_BLINK_PRIORITY_THRESHOLD = 216,
-    PROP_BLINK_TIME = 217,
+    /* enumerations 216-217 are unassigned */
     /* enumerations 212-225 are used in Addendum e to ANSI/ASHRAE 135-2004 */
     PROP_REQUESTED_SHED_LEVEL = 218,
     PROP_SHED_DURATION = 219,
@@ -358,14 +353,7 @@ typedef enum {
     PROP_TRANSACTION_NOTIFICATION_CLASS = 309,
     PROP_USER_EXTERNAL_IDENTIFIER = 310,
     PROP_USER_INFORMATION_REFERENCE = 311,
-    /* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
-    PROP_CHARACTER_SET = 312,
-    PROP_STRICT_CHARACTER_MODE = 313,
-    /* enumerations 314-316 are used in Addendum ? */
-    PROP_BACKUP_AND_RESTORE_STATE = 314,
-    PROP_BACKUP_PREPARATION_TIME = 315,
-    PROP_RESTORE_PREPARATION_TIME = 316,
-    /* enumerations 317-323 are used in Addendum j to ANSI/ASHRAE 135-2004 */
+    /* enumerations 312-316 are unassigned */
     PROP_USER_NAME = 317,
     PROP_USER_TYPE = 318,
     PROP_USES_REMAINING = 319,
@@ -373,21 +361,45 @@ typedef enum {
     PROP_ZONE_TO = 321,
     PROP_ACCESS_EVENT_TAG = 322,
     PROP_GLOBAL_IDENTIFIER = 323,
-    /* enumerations 324-325 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-    PROP_BINARY_ACTIVE_VALUE = 324,
-    PROP_BINARY_INACTIVE_VALUE = 325,
-    /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
+    /* enumerations 324-325 are unassigned */
     PROP_VERIFICATION_TIME = 326,
+    PROP_BASE_DEVICE_SECURITY_POLICY = 327,
+    PROP_DISTRIBUTION_KEY_REVISION = 328,
+    PROP_DO_NOT_HIDE = 329,
+    PROP_KEY_SETS = 330,
+    PROP_LAST_KEY_SERVER = 331,
+    PROP_NETWORK_ACCESS_SECURITY_ALGORITHMS = 332,
+    PROP_PACKET_REORDER_TIME = 333,
+    PROP_SECURITY_PDU_TIMEOUT = 334,
+    PROP_SECURITY_TIME_WINDOW = 335,
+    PROP_SUPPORTED_SECURITY_ALGORITHM = 336,
+    PROP_UPDATE_KEY_SET_TIMEOUT = 337,
+    PROP_BACKUP_AND_RESTORE_STATE = 338,
+    PROP_BACKUP_PREPARATION_TIME = 339,
+    PROP_RESTORE_COMPLETION_TIME = 340,
+    PROP_RESTORE_PREPARATION_TIME = 341,
     /* enumerations 342-344 are defined in Addendum 2008-w */
     PROP_BIT_MASK = 342,
     PROP_BIT_TEXT = 343,
-    PROP_IS_UTC = 344
+    PROP_IS_UTC = 344,
+    PROP_GROUP_MEMBERS = 345,
+    PROP_GROUP_MEMBER_NAMES = 346,
+    PROP_MEMBER_STATUS_FLAGS = 347,
+    PROP_REQUESTED_UPDATE_INTERVAL = 348,
+    PROP_COVU_PERIOD = 349,
+    PROP_COVU_RECIPIENTS = 350,
+    PROP_EVENT_MESSAGE_TEXTS = 351,
         /* The special property identifiers all, optional, and required  */
         /* are reserved for use in the ReadPropertyConditional and */
         /* ReadPropertyMultiple services or services not defined in this standard. */
         /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
         /* Enumerated values 512-4194303 may be used by others subject to the  */
         /* procedures and constraints described in Clause 23.  */
+    /* enumerations used to test Addendum i to ANSI/ASHRAE 135-2008 - private */
+    PROP_BLINK_PRIORITY_THRESHOLD = 4201,
+    PROP_BLINK_TIME = 4202,
+    PROP_BINARY_ACTIVE_VALUE = 4203,
+    PROP_BINARY_INACTIVE_VALUE = 4204
 } BACNET_PROPERTY_ID;
 
 /* do the MAX as define rather than enumeration for devices

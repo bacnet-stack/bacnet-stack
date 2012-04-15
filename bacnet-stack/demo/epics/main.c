@@ -47,6 +47,7 @@
 #include "datalink.h"
 #include "whois.h"
 #include "rp.h"
+#include "proplist.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -765,7 +766,7 @@ static uint8_t Read_Properties(
          * In practice, this should only happen for simple devices that don't
          * implement RPM or have really limited MAX_APDU size.
          */
-        Device_Objects_Property_List(pMyObject->type, &PropertyListStruct);
+        Property_List_Special(pMyObject->type, &PropertyListStruct);
         pPropList = PropertyListStruct.Required.pList;
         if (pPropList != NULL) {
             Property_List_Length = PropertyListStruct.Required.count;
