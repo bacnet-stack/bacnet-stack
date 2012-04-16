@@ -206,10 +206,10 @@ static void address_file_init(
     long device_id = 0;
     int snet = 0;
     unsigned max_apdu = 0;
-    unsigned mac[6];
+    unsigned mac[6] = {0};
     int count = 0;
-    char mac_string[80], sadr_string[80];
-    BACNET_ADDRESS src;
+    char mac_string[80] = {""}, sadr_string[80] = {""};
+    BACNET_ADDRESS src = {0};
     int index = 0;
 
     pFile = fopen(pFilename, "r");
@@ -217,10 +217,11 @@ static void address_file_init(
         while (fgets(line, (int) sizeof(line), pFile) != NULL) {
             /* ignore comments */
             if (line[0] != ';') {
-                if (sscanf(line, "%ld %s %d %s %u", &device_id, &mac_string[0],
-                        &snet, &sadr_string[0], &max_apdu) == 5) {
+                if (sscanf(line, "%7ld %79s %5d %79s %4u", &device_id,
+                        &mac_string[0], &snet, &sadr_string[0],
+                        &max_apdu) == 5) {
                     count =
-                        sscanf(mac_string, "%x:%x:%x:%x:%x:%x", &mac[0],
+                        sscanf(mac_string, "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
                         &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                     src.mac_len = (uint8_t) count;
                     for (index = 0; index < MAX_MAC_LEN; index++) {
@@ -229,7 +230,7 @@ static void address_file_init(
                     src.net = (uint16_t) snet;
                     if (snet) {
                         count =
-                            sscanf(sadr_string, "%x:%x:%x:%x:%x:%x", &mac[0],
+                            sscanf(sadr_string, "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
                             &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                         src.len = (uint8_t) count;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
