@@ -60,6 +60,7 @@ static const int Life_Safety_Point_Properties_Required[] = {
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,
     PROP_STATUS_FLAGS,
     PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,
@@ -229,6 +230,12 @@ int Life_Safety_Point_Read_Property(
                 OBJECT_LIFE_SAFETY_POINT);
             break;
         case PROP_PRESENT_VALUE:
+            present_value =
+                Life_Safety_Point_Present_Value(rpdata->object_instance);
+            apdu_len = encode_application_enumerated(&apdu[0], present_value);
+            break;
+        case PROP_TRACKING_VALUE:
+            /* FIXME: tracking value is a local matter how it is derived */
             present_value =
                 Life_Safety_Point_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
