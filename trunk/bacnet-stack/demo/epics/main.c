@@ -766,7 +766,7 @@ static uint8_t Read_Properties(
          * In practice, this should only happen for simple devices that don't
          * implement RPM or have really limited MAX_APDU size.
          */
-        Property_List_Special(pMyObject->type, &PropertyListStruct);
+        property_list_special(pMyObject->type, &PropertyListStruct);
         pPropList = PropertyListStruct.Required.pList;
         if (pPropList != NULL) {
             Property_List_Length = PropertyListStruct.Required.count;

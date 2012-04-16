@@ -426,6 +426,35 @@ static const int Command_Properties_Optional[] = {
     -1
 };
 
+static const int CharacterString_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    -1
+};
+
+static const int CharacterString_Value_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_EVENT_STATE,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_ALARM_VALUES,
+    PROP_FAULT_VALUES,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_PROFILE_NAME,
+    -1
+};
+
 static const int Load_Control_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
@@ -447,13 +476,211 @@ static const int Load_Control_Properties_Required[] = {
 
 static const int Load_Control_Properties_Optional[] = {
     PROP_DESCRIPTION,
+    PROP_STATE_DESCRIPTION,
+    PROP_RELIABILITY,
     PROP_FULL_DUTY_BASELINE,
+    PROP_NOTIFICATION_CLASS,
+    PROP_TIME_DELAY,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_PROFILE_NAME,
+    -1
+};
+
+static const int Life_Safety_Point_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_RELIABILITY,
+    PROP_MODE,
+    PROP_ACCEPTED_MODES,
+    PROP_SILENCED,
+    PROP_OPERATION_EXPECTED,
+    -1
+};
+
+static const int Life_Safety_Point_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_DEVICE_TYPE,
+    PROP_NOTIFICATION_CLASS,
+    PROP_LIFE_SAFETY_ALARM_VALUES,
+    PROP_ALARM_VALUES,
+    PROP_FAULT_VALUES,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_MAINTENANCE_REQUIRED,
+    PROP_SETTING,
+    PROP_DIRECT_READING,
+    PROP_UNITS,
+    PROP_MEMBER_OF,
+    PROP_PROFILE_NAME,
+    -1
+};
+
+static const int Multistate_Input_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_NUMBER_OF_STATES,
+    -1
+};
+
+static const int Multistate_Input_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_DEVICE_TYPE,
+    PROP_RELIABILITY,
+    PROP_STATE_TEXT,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_ALARM_VALUES,
+    PROP_FAULT_VALUES,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_PROFILE_NAME,
+    -1
+};
+
+static const int Multistate_Output_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_NUMBER_OF_STATES,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    -1
+};
+
+static const int Multistate_Output_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_DEVICE_TYPE,
+    PROP_RELIABILITY,
+    PROP_STATE_TEXT,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_FEEDBACK_VALUE,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_PROFILE_NAME,
+    -1
+};
+
+static const int Multistate_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_NUMBER_OF_STATES,
+    -1
+};
+
+static const int Multistate_Value_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_RELIABILITY,
+    PROP_STATE_TEXT,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_ALARM_VALUES,
+    PROP_FAULT_VALUES,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_PROFILE_NAME,
+    -1
+};
+
+static const int Notification_Class_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_NOTIFICATION_CLASS,
+    PROP_PRIORITY,
+    PROP_ACK_REQUIRED,
+    PROP_RECIPIENT_LIST,
+    -1
+};
+
+static const int Notification_Class_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_PROFILE_NAME,
+    -1
+};
+
+static const int Trend_Log_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_ENABLE,
+    PROP_STOP_WHEN_FULL,
+    PROP_BUFFER_SIZE,
+    PROP_LOG_BUFFER,
+    PROP_RECORD_COUNT,
+    PROP_TOTAL_RECORD_COUNT,
+    PROP_EVENT_STATE,
+    PROP_LOGGING_TYPE,
+    PROP_STATUS_FLAGS,
+    -1
+};
+
+static const int Trend_Log_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_START_TIME,
+    PROP_STOP_TIME,
+    PROP_LOG_DEVICE_OBJECT_PROPERTY,
+    PROP_LOG_INTERVAL,
+    PROP_COV_RESUBSCRIPTION_INTERVAL,
+    PROP_CLIENT_COV_INCREMENT,
+    PROP_NOTIFICATION_THRESHOLD,
+    PROP_RECORDS_SINCE_NOTIFICATION,
+    PROP_LAST_NOTIFY_RECORD,
+    PROP_NOTIFICATION_CLASS,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_PROFILE_NAME,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+    PROP_TRIGGER,
+    PROP_RELIABILITY,
     -1
 };
 
 /* Function that returns the number of properties in a list
  */
-static unsigned property_list_count(
+unsigned property_list_count(
     const int *pList)
 {
     unsigned property_count = 0;
@@ -471,7 +698,7 @@ static unsigned property_list_count(
 /* Function that returns the list of Required or Optional properties
  * of known standard objects.
  */
-void Property_List_Special(
+void property_list_special(
     BACNET_OBJECT_TYPE object_type,
     struct special_property_list_t *pPropertyList)
 {
@@ -481,68 +708,131 @@ void Property_List_Special(
     pPropertyList->Proprietary.pList = NULL;
     switch (object_type) {
         case OBJECT_DEVICE:
-            pPropertyList->Required.pList = Device_Properties_Required;
-            pPropertyList->Optional.pList = Device_Properties_Optional;
+            pPropertyList->Required.pList =
+                Device_Properties_Required;
+            pPropertyList->Optional.pList =
+                Device_Properties_Optional;
             break;
             break;
         case OBJECT_ACCUMULATOR:
-            pPropertyList->Required.pList = Accumulator_Properties_Required;
-            pPropertyList->Optional.pList = Accumulator_Properties_Optional;
+            pPropertyList->Required.pList =
+                Accumulator_Properties_Required;
+            pPropertyList->Optional.pList =
+                Accumulator_Properties_Optional;
             break;
         case OBJECT_ANALOG_INPUT:
-            pPropertyList->Required.pList = Analog_Input_Properties_Required;
-            pPropertyList->Optional.pList = Analog_Input_Properties_Optional;
+            pPropertyList->Required.pList =
+                Analog_Input_Properties_Required;
+            pPropertyList->Optional.pList =
+                Analog_Input_Properties_Optional;
             break;
         case OBJECT_ANALOG_OUTPUT:
-            pPropertyList->Required.pList = Analog_Output_Properties_Required;
-            pPropertyList->Optional.pList = Analog_Output_Properties_Optional;
+            pPropertyList->Required.pList =
+                Analog_Output_Properties_Required;
+            pPropertyList->Optional.pList =
+                Analog_Output_Properties_Optional;
             break;
         case OBJECT_ANALOG_VALUE:
-            pPropertyList->Required.pList = Analog_Value_Properties_Required;
-            pPropertyList->Optional.pList = Analog_Value_Properties_Optional;
+            pPropertyList->Required.pList =
+                Analog_Value_Properties_Required;
+            pPropertyList->Optional.pList =
+                Analog_Value_Properties_Optional;
             break;
         case OBJECT_AVERAGING:
-            pPropertyList->Required.pList = Averaging_Properties_Required;
-            pPropertyList->Optional.pList = Averaging_Properties_Optional;
+            pPropertyList->Required.pList =
+                Averaging_Properties_Required;
+            pPropertyList->Optional.pList =
+                Averaging_Properties_Optional;
             break;
         case OBJECT_BINARY_INPUT:
-            pPropertyList->Required.pList = Binary_Input_Properties_Required;
-            pPropertyList->Optional.pList = Binary_Input_Properties_Optional;
+            pPropertyList->Required.pList =
+                Binary_Input_Properties_Required;
+            pPropertyList->Optional.pList =
+                Binary_Input_Properties_Optional;
             break;
         case OBJECT_BINARY_OUTPUT:
-            pPropertyList->Required.pList = Binary_Output_Properties_Required;
-            pPropertyList->Optional.pList = Binary_Output_Properties_Optional;
+            pPropertyList->Required.pList =
+                Binary_Output_Properties_Required;
+            pPropertyList->Optional.pList =
+                Binary_Output_Properties_Optional;
             break;
         case OBJECT_BINARY_VALUE:
-            pPropertyList->Required.pList = Binary_Value_Properties_Required;
-            pPropertyList->Optional.pList = Binary_Value_Properties_Optional;
+            pPropertyList->Required.pList =
+                Binary_Value_Properties_Required;
+            pPropertyList->Optional.pList =
+                Binary_Value_Properties_Optional;
             break;
         case OBJECT_CALENDAR:
-            pPropertyList->Required.pList = Calendar_Properties_Required;
-            pPropertyList->Optional.pList = Calendar_Properties_Optional;
+            pPropertyList->Required.pList =
+                Calendar_Properties_Required;
+            pPropertyList->Optional.pList =
+                Calendar_Properties_Optional;
             break;
         case OBJECT_COMMAND:
-            pPropertyList->Required.pList = Command_Properties_Required;
-            pPropertyList->Optional.pList = Command_Properties_Optional;
+            pPropertyList->Required.pList =
+                Command_Properties_Required;
+            pPropertyList->Optional.pList =
+                Command_Properties_Optional;
+            break;
+        case OBJECT_CHARACTERSTRING_VALUE:
+            pPropertyList->Required.pList =
+                CharacterString_Value_Properties_Required;
+            pPropertyList->Optional.pList =
+                CharacterString_Value_Properties_Optional;
+            break;
+        case OBJECT_LOAD_CONTROL:
+            pPropertyList->Required.pList =
+                Load_Control_Properties_Required;
+            pPropertyList->Optional.pList =
+                Load_Control_Properties_Optional;
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+            pPropertyList->Required.pList =
+                Life_Safety_Point_Properties_Required;
+            pPropertyList->Optional.pList =
+                Life_Safety_Point_Properties_Optional;
+            break;
+        case OBJECT_MULTI_STATE_INPUT:
+            pPropertyList->Required.pList =
+                Multistate_Input_Properties_Required;
+            pPropertyList->Optional.pList =
+                Multistate_Input_Properties_Optional;
+            break;
+        case OBJECT_MULTI_STATE_OUTPUT:
+            pPropertyList->Required.pList =
+                Multistate_Output_Properties_Required;
+            pPropertyList->Optional.pList =
+                Multistate_Output_Properties_Optional;
+            break;
+        case OBJECT_MULTI_STATE_VALUE:
+            pPropertyList->Required.pList =
+                Multistate_Value_Properties_Required;
+            pPropertyList->Optional.pList =
+                Multistate_Value_Properties_Optional;
+            break;
+        case OBJECT_NOTIFICATION_CLASS:
+            pPropertyList->Required.pList =
+                Notification_Class_Properties_Required;
+            pPropertyList->Optional.pList =
+                Notification_Class_Properties_Optional;
+            break;
+        case OBJECT_TRENDLOG:
+            pPropertyList->Required.pList =
+                Trend_Log_Properties_Required;
+            pPropertyList->Optional.pList =
+                Trend_Log_Properties_Optional;
             break;
         case OBJECT_EVENT_ENROLLMENT:
         case OBJECT_FILE:
         case OBJECT_GROUP:
         case OBJECT_LOOP:
-        case OBJECT_MULTI_STATE_INPUT:
-        case OBJECT_MULTI_STATE_OUTPUT:
-        case OBJECT_NOTIFICATION_CLASS:
         case OBJECT_PROGRAM:
         case OBJECT_SCHEDULE:
-        case OBJECT_MULTI_STATE_VALUE:
-        case OBJECT_TRENDLOG:
-        case OBJECT_LIFE_SAFETY_POINT:
         case OBJECT_LIFE_SAFETY_ZONE:
         case OBJECT_PULSE_CONVERTER:
         case OBJECT_EVENT_LOG:
         case OBJECT_GLOBAL_GROUP:
         case OBJECT_TREND_LOG_MULTIPLE:
-        case OBJECT_LOAD_CONTROL:
         case OBJECT_STRUCTURED_VIEW:
         case OBJECT_ACCESS_DOOR:
         case OBJECT_LIGHTING_OUTPUT:
@@ -554,7 +844,6 @@ void Property_List_Special(
         case OBJECT_CREDENTIAL_DATA_INPUT:
         case OBJECT_NETWORK_SECURITY:
         case OBJECT_BITSTRING_VALUE:
-        case OBJECT_CHARACTERSTRING_VALUE:
         case OBJECT_DATE_PATTERN_VALUE:
         case OBJECT_DATE_VALUE:
         case OBJECT_DATETIME_PATTERN_VALUE:
@@ -570,6 +859,7 @@ void Property_List_Special(
             pPropertyList->Proprietary.pList = NULL;
             break;
         default:
+            /* proprietary objects */
             pPropertyList->Required.pList = Default_Properties_Required;
             pPropertyList->Optional.pList = NULL;
             pPropertyList->Proprietary.pList = NULL;
