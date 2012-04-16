@@ -45,66 +45,12 @@
 			<Add library="ws2_32" />
 			<Add library="iphlpapi" />
 		</Linker>
+		<Unit filename="..\object\device-client.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\object\ai.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\ai.h" />
-		<Unit filename="..\object\ao.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\ao.h" />
-		<Unit filename="..\object\av.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\av.h" />
-		<Unit filename="..\object\bacfile.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\bacfile.h" />
-		<Unit filename="..\object\bi.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\bi.h" />
-		<Unit filename="..\object\bo.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\bo.h" />
-		<Unit filename="..\object\bv.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\bv.h" />
-		<Unit filename="..\object\device.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\device.h" />
-		<Unit filename="..\object\lc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\lc.h" />
-		<Unit filename="..\object\lo.h" />
-		<Unit filename="..\object\lsp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\lsp.h" />
-		<Unit filename="..\object\ms-input.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\ms-input.h" />
-		<Unit filename="..\object\mso.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\mso.h" />
-		<Unit filename="..\object\nc.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\nc.h" />
-		<Unit filename="..\object\trendlog.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\object\trendlog.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

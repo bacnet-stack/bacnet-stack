@@ -85,6 +85,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\object\bv.h" />
+		<Unit filename="..\object\csv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\csv.h" />
 		<Unit filename="..\object\device.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -106,6 +110,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\object\mso.h" />
+		<Unit filename="..\object\msv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\object\msv.h" />
 		<Unit filename="..\object\nc.c">
 			<Option compilerVar="CC" />
 		</Unit>
