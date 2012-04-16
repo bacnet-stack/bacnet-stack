@@ -187,7 +187,7 @@ int main(
     if (print_usage_terse) {
         filename = filename_remove_path(argv[0]);
         printf("Usage: %s device-id object-type object-instance "
-            "process-id <confirmed lifetime|cancel>\r\n",
+            "process-id <[un]confirmed lifetime|cancel>\r\n",
             filename);
         if (!print_usage_verbose) {
             return 0;
