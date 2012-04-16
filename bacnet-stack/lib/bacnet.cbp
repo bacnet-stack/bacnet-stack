@@ -201,12 +201,9 @@
 		</Unit>
 		<Unit filename="..\include\abort.h" />
 		<Unit filename="..\include\address.h" />
-		<Unit filename="..\include\ai.h" />
-		<Unit filename="..\include\ao.h" />
 		<Unit filename="..\include\apdu.h" />
 		<Unit filename="..\include\arcnet.h" />
 		<Unit filename="..\include\arf.h" />
-		<Unit filename="..\include\av.h" />
 		<Unit filename="..\include\awf.h" />
 		<Unit filename="..\include\bacaddr.h" />
 		<Unit filename="..\include\bacapp.h" />
@@ -221,12 +218,9 @@
 		<Unit filename="..\include\bacreal.h" />
 		<Unit filename="..\include\bacstr.h" />
 		<Unit filename="..\include\bactext.h" />
-		<Unit filename="..\include\bi.h" />
 		<Unit filename="..\include\bigend.h" />
 		<Unit filename="..\include\bip.h" />
 		<Unit filename="..\include\bits.h" />
-		<Unit filename="..\include\bo.h" />
-		<Unit filename="..\include\bv.h" />
 		<Unit filename="..\include\bvlc.h" />
 		<Unit filename="..\include\bytes.h" />
 		<Unit filename="..\include\client.h" />
@@ -236,7 +230,6 @@
 		<Unit filename="..\include\datalink.h" />
 		<Unit filename="..\include\datetime.h" />
 		<Unit filename="..\include\dcc.h" />
-		<Unit filename="..\include\device.h" />
 		<Unit filename="..\include\dlmstp.h" />
 		<Unit filename="..\include\ethernet.h" />
 		<Unit filename="..\include\filename.h" />
@@ -246,11 +239,8 @@
 		<Unit filename="..\include\indtext.h" />
 		<Unit filename="..\include\key.h" />
 		<Unit filename="..\include\keylist.h" />
-		<Unit filename="..\include\lc.h" />
-		<Unit filename="..\include\lo.h" />
-		<Unit filename="..\include\lsp.h" />
+		<Unit filename="..\include\proplist.h" />
 		<Unit filename="..\include\memcopy.h" />
-		<Unit filename="..\include\mso.h" />
 		<Unit filename="..\include\mstp.h" />
 		<Unit filename="..\include\mstptext.h" />
 		<Unit filename="..\include\npdu.h" />
@@ -372,6 +362,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\keylist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\proplist.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\src\lso.c">
