@@ -150,6 +150,7 @@ struct mstp_port_struct_t {
     /* This array is only used for APDU messages */
     uint8_t TxBuffer[MAX_MPDU];
     unsigned TxLength;
+    uint8_t TxDestination;
     bool TxReady;       /* true if ready to be sent or received */
     uint8_t TxFrameType;        /* type of message - needed by MS/TP */
 };
