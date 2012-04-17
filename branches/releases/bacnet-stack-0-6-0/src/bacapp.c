@@ -1189,9 +1189,11 @@ bool bacapp_parse_application_data(
                 break;
 #endif
             case BACNET_APPLICATION_TAG_OCTET_STRING:
+#if PRINT_ENABLED
                 status =
                     octetstring_init_ascii_hex(&value->type.Octet_String,
                     argv);
+#endif
                 break;
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
                 status =
@@ -1209,7 +1211,7 @@ bool bacapp_parse_application_data(
                 break;
             case BACNET_APPLICATION_TAG_DATE:
                 count =
-                    sscanf(argv, "%d/%d/%d:%d", &year, &month, &day, &wday);
+                    sscanf(argv, "%4d/%2d/%2d:%2d", &year, &month, &day, &wday);
                 if (count == 3) {
                     datetime_set_date(&value->type.Date, (uint16_t) year,
                         (uint8_t) month, (uint8_t) day);
@@ -1224,7 +1226,7 @@ bool bacapp_parse_application_data(
                 break;
             case BACNET_APPLICATION_TAG_TIME:
                 count =
-                    sscanf(argv, "%d:%d:%d.%d", &hour, &min, &sec,
+                    sscanf(argv, "%2d:%2d:%2d.%2d", &hour, &min, &sec,
                     &hundredths);
                 if (count == 4) {
                     value->type.Time.hour = (uint8_t) hour;
@@ -1246,7 +1248,7 @@ bool bacapp_parse_application_data(
                 }
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_ID:
-                count = sscanf(argv, "%d:%d", &object_type, &instance);
+                count = sscanf(argv, "%4d:%7d", &object_type, &instance);
                 if (count == 2) {
                     value->type.Object_Id.type = (uint16_t) object_type;
                     value->type.Object_Id.instance = instance;

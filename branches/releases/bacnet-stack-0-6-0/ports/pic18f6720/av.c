@@ -331,8 +331,8 @@ bool Analog_Value_Write_Property(
                     Present_Value[object_index] = level;
                     /* Note: you could set the physical output here if we
                        are the highest priority.
-                       However, if Out of Service is TRUE, then don't set the 
-                       physical output.  This comment may apply to the 
+                       However, if Out of Service is TRUE, then don't set the
+                       physical output.  This comment may apply to the
                        main loop (i.e. check out of service before changing output) */
                     status = true;
                 } else if (priority == 6) {
@@ -357,8 +357,8 @@ bool Analog_Value_Write_Property(
                     /* Note: you could set the physical output here to the next
                        highest priority, or to the relinquish default if no
                        priorities are set.
-                       However, if Out of Service is TRUE, then don't set the 
-                       physical output.  This comment may apply to the 
+                       However, if Out of Service is TRUE, then don't set the
+                       physical output.  This comment may apply to the
                        main loop (i.e. check out of service before changing output) */
                     status = true;
                 } else {

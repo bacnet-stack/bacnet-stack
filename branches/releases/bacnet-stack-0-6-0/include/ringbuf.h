@@ -43,11 +43,11 @@
 #include <stdbool.h>
 
 struct ring_buffer_t {
-    uint8_t * volatile buffer; /* block of memory or array of data */
+    volatile uint8_t * buffer; /* block of memory or array of data */
     unsigned element_size;      /* how many bytes for each chunk */
     unsigned element_count;     /* number of chunks of data */
-    volatile unsigned head;      /* where the writes go */
-    volatile unsigned tail;      /* where the reads come from */
+    volatile unsigned head; /* where the writes go */
+    volatile unsigned tail; /* where the reads come from */
 };
 typedef struct ring_buffer_t RING_BUFFER;
 
@@ -55,25 +55,25 @@ typedef struct ring_buffer_t RING_BUFFER;
 extern "C" {
 #endif /* __cplusplus */
 
-    unsigned Ringbuf_Count(
+    unsigned Ringbuf_Count (
         RING_BUFFER const *b);
-    bool Ringbuf_Full(
+    bool Ringbuf_Full (
         RING_BUFFER const *b);
     bool Ringbuf_Empty(
         RING_BUFFER const *b);
-    uint8_t *Ringbuf_Get_Front(
+    volatile uint8_t *Ringbuf_Get_Front(
         RING_BUFFER const *b);
-    uint8_t *Ringbuf_Pop_Front(
+    volatile uint8_t *Ringbuf_Pop_Front(
         RING_BUFFER * b);
     bool Ringbuf_Put(
         RING_BUFFER * b,        /* ring buffer structure */
-        uint8_t * data_element);        /* one element to add to the ring */
-    uint8_t *Ringbuf_Alloc(
-        RING_BUFFER * b);
+        volatile uint8_t *data_element);    /* one element to add to the ring */
+    volatile uint8_t *Ringbuf_Alloc(
+        RING_BUFFER *b);
     /* Note: element_count must be a power of two */
     void Ringbuf_Init(
         RING_BUFFER * b,        /* ring buffer structure */
-        uint8_t * volatile buffer,     /* data block or array of data */
+        volatile uint8_t * buffer,     /* data block or array of data */
         unsigned element_size,  /* size of one element in the data block */
         unsigned element_count);        /* number of elements in the data block */
 

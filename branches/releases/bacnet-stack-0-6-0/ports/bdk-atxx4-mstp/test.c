@@ -32,6 +32,8 @@
 #include "bo.h"
 #include "rs485.h"
 #include "dlmstp.h"
+#include "seeprom.h"
+#include "nvdata.h"
 /* me */
 #include "test.h"
 
@@ -117,6 +119,7 @@ void test_task(
     void)
 {
     uint8_t data_register = 0;
+    uint16_t id = 0;
 
     if (timer_interval_expired(&Test_Timer)) {
         timer_interval_reset(&Test_Timer);
@@ -159,13 +162,20 @@ void test_task(
             case '9':
                 rs485_baud_rate_set(9600);
                 break;
+            case 'e':
+                seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *) &id, 2);
+                sprintf(Send_Buffer, "\r\n%04X", id);
+                serial_bytes_send((uint8_t *) Send_Buffer, strlen(Send_Buffer));
+                break;
             case 'b':
                 sprintf(Send_Buffer, "\r\n%lubps",
                     (unsigned long) rs485_baud_rate());
+                serial_bytes_send((uint8_t *) Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'm':
                 sprintf(Send_Buffer, "\r\nMax:%u",
                     (unsigned) dlmstp_max_master());
+                serial_bytes_send((uint8_t *) Send_Buffer, strlen(Send_Buffer));
                 break;
             default:
                 break;

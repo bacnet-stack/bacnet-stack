@@ -68,7 +68,7 @@ void handler_unconfirmed_private_transfer(
         application_data = private_data.serviceParameters;
         application_data_len = private_data.serviceParametersLen;
         for (;;) {
-    len =
+            len =
                 bacapp_decode_application_data(application_data,
                 (uint8_t) application_data_len, &value);
             if (first_value && (len < application_data_len)) {

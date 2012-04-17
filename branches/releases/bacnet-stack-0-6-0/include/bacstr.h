@@ -162,7 +162,7 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string,
         uint8_t * value,
         size_t length);
-#if PRINT_ENABLED
+#ifdef PRINT_ENABLED
     /* converts an null terminated ASCII Hex string to an octet string.
        returns true if successfully converted and fits; false if too long */
     bool octetstring_init_ascii_hex(

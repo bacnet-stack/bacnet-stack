@@ -149,7 +149,7 @@ void handler_write_property_multiple(
 
                 if (error) {
                     goto WPM_ABORT;
-            }
+                }
             }
         } else {
 #if PRINT_ENABLED
@@ -180,7 +180,7 @@ WPM_ABORT:
             fprintf(stderr, "WPM: Sending Abort!\n");
 #endif
         } else if (len == BACNET_STATUS_ERROR) {
-        apdu_len =
+            apdu_len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
                 wp_data.error_class, wp_data.error_code);

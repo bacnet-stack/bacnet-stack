@@ -199,6 +199,7 @@ int main(
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
+    atexit(datalink_cleanup);
     Send_UCOV_Notify(&Handler_Transmit_Buffer[0], &cov_data);
 
     return 0;

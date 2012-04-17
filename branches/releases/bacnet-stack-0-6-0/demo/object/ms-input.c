@@ -511,9 +511,20 @@ bool Multistate_Input_Write_Property(
                 Out_Of_Service[object_index] = value.type.Boolean;
             }
             break;
-        default:
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_OBJECT_TYPE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_NUMBER_OF_STATES:
+        case PROP_DESCRIPTION:
+        case PROP_STATE_TEXT:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 

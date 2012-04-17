@@ -9,28 +9,67 @@ A BACnet device is supposed to support, at a minimum, ReadProperty service
 PC that is used for reading other BACnet devices.
 
 There are a number of core files that you will need. Services such as
-ReadProperty, I-Am, and Reject are consided core files. The following BACnet
-services (messages) are provided by this BACnet stack files:
+ReadProperty, I-Am, and Reject are consided core files. After determinging
+which services you want in your device, add files to your project or makefile
+from the following BACnet services (messages) provided by this BACnet stack:
 
     * abort.c - BACnet Abort service encode/decode
     * bacerror.c - BACnet Error service encode/decode
     * reject.c - BACnet Reject service encode/decode
-    * rp.c - BACnet ReadProperty service encode/decode
     * arf.c - AtomicReadFile service encode/decode
     * awf.c - AtomicWriteFile service encode/decode
+    * rp.c - BACnet ReadProperty service encode/decode
     * rpm.c - ReadPropertyMultiple service encode/decode
     * iam.c - I-Am service encode/decode
     * whois.c - WhoIs service encode/decode
     * wp.c - WriteProperty service encode/decode
+    * wpm.c - WritePropertyMultiple service encode/decode
     * dcc.c - DeviceCommunicationControl service encode/decode
     * ihave.c - I-Have service encode/decode
     * rd.c - ReinitializedDevice service encode/decode
     * timesync.c - TimeSynchronization service encode/decode
     * whohas.c - WhoHas service encode/decode
+    * event.c - EventNotification service encode/decode
+    * getevent.c - GetEventInformation service encode/decode
+    * lso.c - LifeSafetyOperation service encode/decode
+    * ptransfer.c - PrivateTransfer service encode/deco
+    * readrange.c - ReadRange service encode/decode
 
 Adding additional services is a matter of adding the encoding and decoding for
 the service into/from meaningful data, and I like to add unit testing, a demo
 handler and send function, as well as a demo command line example.
+
+For each service that you add to your project or makefile, you will need to 
+add a handler and possibly a sending function.  There are example handlers 
+and send functions for all the services that the stack supports:
+
+    * demo/handler/h_alarm_ack.c - Alarm ACK service handler example
+    * demo/handler/h_arf.c - AtomicReadFile service handler example
+    * demo/handler/h_arf_a.c - AtomicReadFile ACK service handler example
+    * demo/handler/h_awf.c - AtomicWriteFile service handler example
+    * demo/handler/h_ccov.c - ConfirmedCOVNotification service handler example
+    * demo/handler/h_cov.c - SubscribeCOV service handler example
+    * demo/handler/h_dcc.c - DeviceCommuncationControl service handler example
+    * demo/handler/h_get_event.c - GetEventInformation service handler example
+    * demo/handler/h_iam.c - I-Am service handler example
+    * demo/handler/h_ihave.c - I-Have service handler example
+    * demo/handler/h_lso.c - LifeSafetyOperation service handler example
+    * demo/handler/h_pt.c - PrivateTransfer service handler example
+    * demo/handler/h_pt_a.c - PrivateTransfer ACK service handler example
+    * demo/handler/h_rp.c - ReadProperty service handler example
+    * demo/handler/h_rp_a.c - ReadProperty ACK service handler example
+    * demo/handler/h_rpm.c - ReadPropertyMultiple service handler example
+    * demo/handler/h_rpm_a.c - ReadPropertyMultiple ACK service handler example
+    * demo/handler/h_rr.c - ReadRange service handler example
+    * demo/handler/h_rr_a.c - ReadRange ACK service handler example
+    * demo/handler/h_ts.c - TimeSynchronization service handler example
+    * demo/handler/h_ucov.c - UnconfirmedCOV service handler example
+    * demo/handler/h_upt.c - UnconfirmedPrivateTransfer service handler example
+    * demo/handler/h_whohas.c - WhoHas service handler example
+    * demo/handler/h_whois.c - Who-Is service handler example
+    * demo/handler/h_wp.c - WriteProperty ACK service handler example
+    * demo/handler/h_wpm.c - WritePropertyMultiple service handler example
+    * demo/handler/h_noserv.c - unrecognized service handler example
 
 The BACnet stack also includes files for handling client functionality, which
 requires Confirmed messages, and utilizes something called binding. Binding is a
@@ -88,9 +127,10 @@ packets that come in from the datalink layer. The core files include:
     * bacint.c - primitive BACnet integer datatype encoding and decoding
     * bacreal.c - primitive BACnet REAL datatype encoding and decoding
     * bacstr.c - primative BACnet string datatype encoding and decoding
-    * npdu.c - handles dispatching of the network message to the apdu 
-            dispatcher. It would be where routing is handled if the 
-            stack supported more than one physical layer.
+    * bacapp.c - application data encoding and decoding
+    * npdu.c - encoding and decoding of the NPDU layer data
+    * demo/handler/h_npdu.c - handles dispatching of the network message
+            to the apdu dispatcher.
 
 The DataLink Layer controls orderly access to the physical medium. 
 The stack currently supports one datalink layer at a time, and uses a 

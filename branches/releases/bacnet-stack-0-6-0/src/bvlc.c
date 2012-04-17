@@ -45,10 +45,10 @@
 #endif
 #include "debug.h"
 
-/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC), 
+/** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC),
  * which includes: BACnet Broadcast Management Device,
  * Broadcast Distribution Table, and
- * Foreign Device Registration. 
+ * Foreign Device Registration.
  */
 
 typedef struct {
@@ -62,7 +62,9 @@ typedef struct {
     struct in_addr broadcast_mask;      /* in tework format */
 } BBMD_TABLE_ENTRY;
 
+#ifndef MAX_BBMD_ENTRIES
 #define MAX_BBMD_ENTRIES 128
+#endif
 static BBMD_TABLE_ENTRY BBMD_Table[MAX_BBMD_ENTRIES];
 
 /*Each device that registers as a foreign device shall be placed

@@ -118,14 +118,14 @@ static const int Device_Properties_Required[] = {
     PROP_SEGMENTATION_SUPPORTED,
     PROP_APDU_TIMEOUT,
     PROP_NUMBER_OF_APDU_RETRIES,
-    PROP_MAX_MASTER,
-    PROP_MAX_INFO_FRAMES,
     PROP_DEVICE_ADDRESS_BINDING,
     PROP_DATABASE_REVISION,
     -1
 };
 
 static const int Device_Properties_Optional[] = {
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
     PROP_DESCRIPTION,
     PROP_LOCATION,
     -1
@@ -161,7 +161,7 @@ static int Read_Property_Common(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    BACNET_CHARACTER_STRING char_string;
+    BACNET_CHARACTER_STRING char_string = {0};
     uint8_t *apdu = NULL;
 
     if ((rpdata->application_data == NULL) ||
@@ -446,7 +446,10 @@ bool Device_Set_Object_Instance_Number(
     bool status = true; /* return value */
 
     if (object_id <= BACNET_MAX_INSTANCE) {
-        Object_Instance_Number = object_id;
+        if (object_id != Object_Instance_Number) {
+            Device_Inc_Database_Revision();
+            Object_Instance_Number = object_id;
+        }
     } else
         status = false;
 
@@ -647,6 +650,7 @@ int Device_Read_Property_Local(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
+        /* object name, object id, object type are handled in Device object */
         case PROP_DESCRIPTION:
             bacnet_name(NV_EEPROM_DEVICE_DESCRIPTION, &char_string,
                 "BACnet Development Kit");
@@ -948,8 +952,6 @@ bool Device_Write_Property_Local(
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
-    /* not using len at this time */
-    len = len;
 
     return status;
 }

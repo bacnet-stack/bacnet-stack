@@ -70,7 +70,7 @@ typedef uint32_t(
  * @param object_name [in,out] Pointer to a character_string structure that
  *         will hold a copy of the object name if this is a valid object_instance.
  * @return True if the object_instance is valid and object_name has been
- *         filled with a copy of the Object's name.        
+ *         filled with a copy of the Object's name.
  */
 typedef bool(
     *object_name_function)

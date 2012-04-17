@@ -55,6 +55,10 @@
     Only one MS/TP datalink layer
 */
 
+/* count must be a power of 2 for ringbuf library */
+#ifndef MSTP_PDU_PACKET_COUNT
+#error MSTP_PDU_PACKET_COUNT must be defined!
+#endif
 /* The state of the Receive State Machine */
 static MSTP_RECEIVE_STATE Receive_State;
 /* When a master node is powered up or reset, */
@@ -112,7 +116,7 @@ static uint8_t This_Station;
 /* nodes. This may be used to allocate more or less of the available link */
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
-static uint8_t Nmax_info_frames = 1;
+static uint8_t Nmax_info_frames = MSTP_PDU_PACKET_COUNT;
 /* This parameter represents the value of the Max_Master property of the */
 /* node's Device object. The value of Max_Master specifies the highest */
 /* allowable address for master nodes. The value of Max_Master shall be */
@@ -188,10 +192,6 @@ struct mstp_pdu_packet {
     uint16_t length;
     uint8_t buffer[MAX_MPDU];
 };
-/* count must be a power of 2 for ringbuf library */
-#ifndef MSTP_PDU_PACKET_COUNT
-#define MSTP_PDU_PACKET_COUNT 2
-#endif
 static struct mstp_pdu_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];
 static RING_BUFFER PDU_Queue;
 
@@ -1122,7 +1122,7 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
+            pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
             if (pkt != NULL) {
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],

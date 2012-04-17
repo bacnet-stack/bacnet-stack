@@ -895,7 +895,7 @@ bool Device_Write_Property_Local(
                         } else {
                             Device_Set_Object_Name(&value.type.
                                 Character_String);
-                        status = true;
+                            status = true;
                         }
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;

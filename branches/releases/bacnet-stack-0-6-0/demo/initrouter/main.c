@@ -328,6 +328,7 @@ int main(
     Init_Service_Handlers();
     address_init();
     dlenv_init();
+    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;

@@ -60,7 +60,6 @@
 #include "rs485.h"
 #include "fifo.h"
 
-#include <pthread.h>
 #include <sys/select.h>
 #include <sys/time.h>
 
@@ -89,45 +88,9 @@ static struct termios RS485_oldtio;
 /* Ring buffer for incoming bytes, in order to speed up the receiving. */
 static FIFO_BUFFER Rx_FIFO;
 /* buffer size needs to be a power of 2 */
-static uint8_t Rx_Buffer[1 << 12];
-
-static pthread_mutex_t Reader_Mutex, IOMutex;
+static uint8_t Rx_Buffer[4096];
 
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
-
-static void *rs485_read_task(
-    void *arg)
-{
-    uint8_t buf[1 << 11];
-    int count, n;
-    fd_set input;
-    struct timeval cekalica;
-    FD_ZERO(&input);
-    FD_SET(RS485_Handle, &input);
-    cekalica.tv_sec = 1;
-    cekalica.tv_usec = 0;
-    for (;;) {
-        n = select(RS485_Handle + 1, &input, NULL, NULL, &cekalica);
-        if (n < 0) {
-            continue;
-        }
-        if (FD_ISSET(RS485_Handle, &input)) {
-            pthread_mutex_lock(&IOMutex);
-            count = read(RS485_Handle, buf, sizeof(buf));
-            pthread_mutex_unlock(&IOMutex);
-            if (count > 0) {
-                pthread_mutex_lock(&Reader_Mutex);
-                FIFO_Add(&Rx_FIFO, &buf[0], count);
-                pthread_mutex_unlock(&Reader_Mutex);
-            }
-            usleep(5000);
-        }
-        FD_SET(RS485_Handle, &input);
-        cekalica.tv_sec = 1;
-        cekalica.tv_usec = 0;
-    }
-    return NULL;
-}
 
 /*********************************************************************
 * DESCRIPTION: Configures the interface name
@@ -165,19 +128,71 @@ const char *RS485_Interface(
 uint32_t RS485_Get_Baud_Rate(
     void)
 {
+    uint32_t baud = 0;
+
     switch (RS485_Baud) {
-        case B19200:
-            return 19200;
-        case B38400:
-            return 38400;
-        case B57600:
-            return 57600;
-        case B115200:
-            return 115200;
-        default:
+        case B0:
+            baud = 0;
+            break;
+        case B50:
+            baud = 50;
+            break;
+        case B75:
+            baud = 75;
+            break;
+        case B110:
+            baud = 110;
+            break;
+        case B134:
+            baud = 134;
+            break;
+        case B150:
+            baud = 150;
+            break;
+        case B200:
+            baud = 200;
+            break;
+        case B300:
+            baud =300;
+            break;
+        case B600:
+            baud = 600;
+            break;
+        case B1200:
+            baud = 1200;
+            break;
+        case B1800:
+            baud = 1800;
+            break;
+        case B2400:
+            baud = 2400;
+            break;
+        case B4800:
+            baud = 4800;
+            break;
         case B9600:
-            return 9600;
+            baud = 9600;
+            break;
+        case B19200:
+            baud = 19200;
+            break;
+        case B38400:
+            baud = 38400;
+            break;
+        case B57600:
+            baud = 57600;
+            break;
+        case B115200:
+            baud = 115200;
+            break;
+        case B230400:
+            baud = 230400;
+            break;
+        default:
+            baud = 9600;
     }
+
+    return baud;
 }
 
 /****************************************************************************
@@ -192,6 +207,45 @@ bool RS485_Set_Baud_Rate(
     bool valid = true;
 
     switch (baud) {
+        case 0:
+            RS485_Baud = B0;
+            break;
+        case 50:
+            RS485_Baud = B50;
+            break;
+        case 75:
+            RS485_Baud = B75;
+            break;
+        case 110:
+            RS485_Baud = B110;
+            break;
+        case 134:
+            RS485_Baud = B134;
+            break;
+        case 150:
+            RS485_Baud = B150;
+            break;
+        case 200:
+            RS485_Baud = B200;
+            break;
+        case 300:
+            RS485_Baud = B300;
+            break;
+        case 600:
+            RS485_Baud = B600;
+            break;
+        case 1200:
+            RS485_Baud = B1200;
+            break;
+        case 1800:
+            RS485_Baud = B1800;
+            break;
+        case 2400:
+            RS485_Baud = B2400;
+            break;
+        case 4800:
+            RS485_Baud = B4800;
+            break;
         case 9600:
             RS485_Baud = B9600;
             break;
@@ -206,6 +260,9 @@ bool RS485_Set_Baud_Rate(
             break;
         case 115200:
             RS485_Baud = B115200;
+            break;
+        case 230400:
+            RS485_Baud = B230400;
             break;
         default:
             valid = false;
@@ -230,8 +287,14 @@ void RS485_Send_Frame(
     uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 {       /* number of bytes of data (up to 501) */
+    uint32_t turnaround_time = Tturnaround * 1000;
+    uint32_t baud = RS485_Get_Baud_Rate ();
     ssize_t written = 0;
     int greska;
+
+    /* sleeping for turnaround time is necessary to give other devices 
+       time to change from sending to receiving state. */
+    usleep(turnaround_time/baud);
     /*
        On  success,  the  number of bytes written are returned (zero indicates
        nothing was written).  On error, -1  is  returned,  and  errno  is  set
@@ -239,12 +302,14 @@ void RS485_Send_Frame(
        regular file, 0 will be returned without causing any other effect.  For
        a special file, the results are not portable.
      */
-    pthread_mutex_lock(&IOMutex);
     written = write(RS485_Handle, buffer, nbytes);
-    pthread_mutex_unlock(&IOMutex);
     greska = errno;
-    if (written <= 0)
+    if (written <= 0) {
         printf("write error: %s\n", strerror(greska));
+    } else {
+        /* wait until all output has been transmitted. */
+        tcdrain(RS485_Handle);
+    }
     /*  tcdrain(RS485_Handle); */
     /* per MSTP spec, sort of */
     if (mstp_port) {
@@ -263,21 +328,41 @@ void RS485_Send_Frame(
 void RS485_Check_UART_Data(
     volatile struct mstp_port_struct_t *mstp_port)
 {
+    fd_set input;
+    struct timeval waiter;
+    uint8_t buf[2048];
+    int n;
+
     if (mstp_port->ReceiveError == true) {
-        /* wait for state machine to clear this */
-        /*mstp_port->ReceiveError=false; */
-        return;
-    }
-    /* wait for state machine to read from the DataRegister */
-    /*else */
-    if (mstp_port->DataAvailable == false) {
-        /* check for data */
-        pthread_mutex_lock(&Reader_Mutex);
+        /* do nothing but wait for state machine to clear the error */
+        /* burning time, so wait a longer time */
+        waiter.tv_sec = 0;
+        waiter.tv_usec = 5000;
+    } else if (mstp_port->DataAvailable == false) {
+        /* wait for state machine to read from the DataRegister */
         if (FIFO_Count(&Rx_FIFO) > 0) {
+            /* data is available */
             mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
             mstp_port->DataAvailable = true;
+            /* FIFO is giving data - don't wait very long */
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 10;
+        } else {
+            /* FIFO is empty - wait a longer time */
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 5000;
         }
-        pthread_mutex_unlock(&Reader_Mutex);
+    }
+    /* grab bytes and stuff them into the FIFO every time */
+    FD_ZERO (&input);
+    FD_SET (RS485_Handle, &input);
+    n = select (RS485_Handle + 1, &input, NULL, NULL, &waiter);
+    if (n < 0) {
+        return;
+    }
+    if (FD_ISSET(RS485_Handle, &input)) {
+        n = read(RS485_Handle, buf, sizeof(buf));
+        FIFO_Add(&Rx_FIFO, &buf[0], n);
     }
 }
 
@@ -287,8 +372,6 @@ void RS485_Cleanup(
     /* restore the old port settings */
     tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
     close(RS485_Handle);
-    pthread_mutex_destroy(&Reader_Mutex);
-    pthread_mutex_destroy(&IOMutex);
 }
 
 
@@ -296,7 +379,6 @@ void RS485_Initialize(
     void)
 {
     struct termios newtio;
-    unsigned long hThread = 0;
     printf("RS485: Initializing %s", RS485_Port_Name);
     /*
        Open device for reading and writing.
@@ -342,9 +424,6 @@ void RS485_Initialize(
     tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
-    pthread_mutex_init(&Reader_Mutex, NULL);
-    pthread_mutex_init(&IOMutex, NULL);
-    pthread_create(&hThread, NULL, rs485_read_task, NULL);
     printf("=success!\n");
 }
 
