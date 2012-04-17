@@ -42,8 +42,8 @@
 #include "handlers.h"
 #include "datalink.h"
 #include "address.h"
+#include "reject.h"
 /* include the objects */
-#include "device.h"
 #include "ai.h"
 #include "ao.h"
 #include "av.h"

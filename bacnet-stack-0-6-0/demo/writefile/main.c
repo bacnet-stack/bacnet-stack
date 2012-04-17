@@ -70,19 +70,19 @@ static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
 static uint8_t Current_Invoke_ID = 0;
 
-static void Atomic_Read_File_Error_Handler(
+static void Atomic_Write_File_Error_Handler(
     BACNET_ADDRESS * src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("\r\nBACnet Error!\r\n");
-    printf("Error Class: %s\r\n", bactext_error_class_name(error_class));
-    printf("Error Code: %s\r\n", bactext_error_code_name(error_code));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Current_Invoke_ID)) {
+        printf("\r\nBACnet Error!\r\n");
+        printf("Error Class: %s\r\n", bactext_error_class_name(error_class));
+        printf("Error Code: %s\r\n", bactext_error_code_name(error_code));
+        Error_Detected = true;
+    }
 }
 
 void MyAbortHandler(
@@ -91,13 +91,13 @@ void MyAbortHandler(
     uint8_t abort_reason,
     bool server)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
     (void) server;
-    printf("\r\nBACnet Abort!\r\n");
-    printf("Abort Reason: %s\r\n", bactext_abort_reason_name(abort_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Current_Invoke_ID)) {
+        printf("BACnet Abort: %s\r\n",
+            bactext_abort_reason_name((int) abort_reason));
+        Error_Detected = true;
+    }
 }
 
 void MyRejectHandler(
@@ -105,12 +105,12 @@ void MyRejectHandler(
     uint8_t invoke_id,
     uint8_t reject_reason)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("\r\nBACnet Reject!\r\n");
-    printf("Reject Reason: %s\r\n", bactext_reject_reason_name(reject_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Current_Invoke_ID)) {
+        printf("BACnet Reject: %s\r\n",
+            bactext_reject_reason_name((int) reject_reason));
+        Error_Detected = true;
+    }
 }
 
 static void LocalIAmHandler(
@@ -154,8 +154,8 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
         handler_read_property);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-        Atomic_Read_File_Error_Handler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
+        Atomic_Write_File_Error_Handler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -211,6 +211,7 @@ int main(
     address_init();
     Init_Service_Handlers();
     dlenv_init();
+    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();

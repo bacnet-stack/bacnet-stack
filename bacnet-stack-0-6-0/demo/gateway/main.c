@@ -244,17 +244,6 @@ void Initialize_Device_Addresses(
     }
 }
 
-
-/** Handler registered with atexit() inside main function to, well, cleanup.
- * Especially if we don't end normally.
- * @see datalink_cleanup
- */
-static void cleanup(
-    void)
-{
-    datalink_cleanup();
-}
-
 /** Main function of server demo.
  *
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
@@ -303,9 +292,9 @@ int main(
         first_object_instance, MAX_APDU);
     Init_Service_Handlers(first_object_instance);
     dlenv_init();
+    atexit(datalink_cleanup);
     Devices_Init(first_object_instance);
     Initialize_Device_Addresses();
-    atexit(cleanup);
 
 #ifdef BACNET_TEST_VMAC
     /* initialize vmac table and router device */

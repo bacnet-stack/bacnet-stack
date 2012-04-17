@@ -30,9 +30,11 @@
 #error "F_CPU must be defined for Timer configuration."
 #endif
 /* Timer2 Prescaling: 1, 8, 32, 64, 128, 256, or 1024 */
-#define TIMER_MICROSECONDS 1000
-#define TIMER_TICKS(p) ((((F_CPU)/(p)/1000)*(TIMER_MICROSECONDS))/1000)
-#define TIMER_TICKS_MAX 0xff
+#define TIMER_MICROSECONDS 1000UL
+#define TIMER_TICKS(p) \
+  (((((F_CPU)/(p))/1000UL) \
+  *(TIMER_MICROSECONDS))/1000UL)
+#define TIMER_TICKS_MAX 255UL
 /* adjust the prescaler for the processor clock */
 #if (TIMER_TICKS(1) <= TIMER_TICKS_MAX)
 #define TIMER2_PRESCALER 1
@@ -58,8 +60,6 @@
 /* counter for the the timer which wraps every 49.7 days */
 static volatile uint32_t Millisecond_Counter;
 static volatile uint8_t Millisecond_Counter_Byte;
-/* forward prototype */
-ISR(TIMER2_OVF_vect);
 
 /*************************************************************************
 * Description: Timer Interrupt Handler

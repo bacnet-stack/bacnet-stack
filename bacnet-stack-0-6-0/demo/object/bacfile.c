@@ -461,7 +461,7 @@ bool bacfile_write_stream_data(
     if (pFilename) {
         found = true;
         if (data->type.stream.fileStartPosition == 0) {
-        /* open the file as a clean slate when starting at 0 */
+            /* open the file as a clean slate when starting at 0 */
             pFile = fopen(pFilename, "wb");
         } else if (data->type.stream.fileStartPosition == -1) {
             /* If 'File Start Position' parameter has the special
@@ -474,7 +474,7 @@ bool bacfile_write_stream_data(
         }
         if (pFile) {
             if (data->type.stream.fileStartPosition != -1) {
-            (void) fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
+                (void) fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
             }
             if (fwrite(octetstring_value(&data->fileData),
                     octetstring_length(&data->fileData), 1, pFile) != 1) {

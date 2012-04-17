@@ -89,7 +89,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
-    void testMultistateOutput(
+    void testMultistateInput(
         Test * pTest);
 #endif
 

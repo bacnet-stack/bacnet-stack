@@ -274,7 +274,7 @@ int main(
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+        fprintf(stderr, "property=%u - it must be less than %u\r\n",
             Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
@@ -333,6 +333,7 @@ int main(
     address_init();
     Init_Service_Handlers();
     dlenv_init();
+    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();

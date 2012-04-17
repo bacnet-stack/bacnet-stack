@@ -98,7 +98,6 @@ void handler_device_communication_control(
     BACNET_CHARACTER_STRING password;
     int len = 0;
     int pdu_len = 0;
-    int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
@@ -181,17 +180,15 @@ void handler_device_communication_control(
     }
   DCC_ABORT:
     pdu_len += len;
-    bytes_sent =
+    len =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0) {
+    if (len <= 0) {
         fprintf(stderr,
             "DeviceCommunicationControl: " "Failed to send PDU (%s)!\n",
             strerror(errno));
     }
-#else
-    bytes_sent = bytes_sent;
 #endif
 
     return;

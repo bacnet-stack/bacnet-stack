@@ -39,7 +39,7 @@
 #include "bip.h"
 #include "net.h"        /* custom per port */
 #if PRINT_ENABLED
-#include <stdio.h>      /* for standard integer types uint8_t etc. */
+#include <stdio.h>      /* for standard i/o, like printing */
 #endif
 
 /** @file bip.c  Configuration and Operations for BACnet/IP */
@@ -53,7 +53,7 @@ static struct in_addr BIP_Address;
 static struct in_addr BIP_Broadcast_Address;
 
 /** Setter for the BACnet/IP socket handle.
- * 
+ *
  * @param sock_fd [in] Handle for the BACnet/IP socket.
  */
 void bip_set_socket(
@@ -63,7 +63,7 @@ void bip_set_socket(
 }
 
 /** Getter for the BACnet/IP socket handle.
- * 
+ *
  * @return The handle to the BACnet/IP socket.
  */
 int bip_socket(
@@ -76,19 +76,6 @@ bool bip_valid(
     void)
 {
     return (BIP_Socket != -1);
-}
-
-/** Cleanup and close out the BACnet/IP services by closing the socket.
- * @ingroup DLBIP
-  */
-void bip_cleanup(
-    void)
-{
-    if (bip_valid())
-        close(BIP_Socket);
-    BIP_Socket = -1;
-
-    return;
 }
 
 void bip_set_addr(
@@ -173,8 +160,9 @@ int bip_send_pdu(
 
     (void) npdu_data;
     /* assumes that the driver has already been initialized */
-    if (BIP_Socket < 0)
+    if (BIP_Socket < 0) {
         return BIP_Socket;
+    }
 
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
@@ -208,14 +196,23 @@ int bip_send_pdu(
     return bytes_sent;
 }
 
-/* receives a BACnet/IP packet */
-/* returns the number of octets in the PDU, or zero on failure */
+/** Implementation of the receive() function for BACnet/IP; receives one
+ * packet, verifies its BVLC header, and removes the BVLC header from
+ * the PDU data before returning.
+ *
+ * @param src [out] Source of the packet - who should receive any response.
+ * @param pdu [out] A buffer to hold the PDU portion of the received packet,
+ * 					after the BVLC portion has been stripped off.
+ * @param max_pdu [in] Size of the pdu[] buffer.
+ * @param timeout [in] The number of milliseconds to wait for a packet.
+ * @return The number of octets (remaining) in the PDU, or zero on failure.
+ */
 uint16_t bip_receive(
     BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,      /* PDU data */
     uint16_t max_pdu,   /* amount of space available in the PDU  */
     unsigned timeout)
-{       /* number of milliseconds to wait for a packet */
+{
     int received_bytes = 0;
     uint16_t pdu_len = 0;       /* return value */
     fd_set read_fds;

@@ -47,7 +47,7 @@
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-unsigned Ringbuf_Count(
+unsigned Ringbuf_Count (
     RING_BUFFER const *b)
 {
     unsigned head, tail; /* used to avoid volatile decision */
@@ -67,7 +67,7 @@ unsigned Ringbuf_Count(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool Ringbuf_Full(
+bool Ringbuf_Full (
     RING_BUFFER const *b)
 {
     return (b ? (Ringbuf_Count(b) == b->element_count) : true);
@@ -91,10 +91,10 @@ bool Ringbuf_Empty(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t *Ringbuf_Get_Front(
+volatile uint8_t *Ringbuf_Get_Front(
     RING_BUFFER const *b)
 {
-    uint8_t *data_element = NULL;  /* return value */
+    volatile uint8_t *data_element = NULL;  /* return value */
 
     if (!Ringbuf_Empty(b)) {
         data_element = b->buffer;
@@ -110,10 +110,10 @@ uint8_t *Ringbuf_Get_Front(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t *Ringbuf_Pop_Front(
+volatile uint8_t *Ringbuf_Pop_Front(
     RING_BUFFER * b)
 {
-    uint8_t *data_element = NULL;
+    volatile uint8_t *data_element = NULL;
 
     if (!Ringbuf_Empty(b)) {
         data_element = b->buffer;
@@ -132,10 +132,10 @@ uint8_t *Ringbuf_Pop_Front(
 *****************************************************************************/
 bool Ringbuf_Put(
     RING_BUFFER * b,    /* ring buffer structure */
-    uint8_t *data_element)
+    volatile uint8_t *data_element)
 {       /* one element to add to the ring */
     bool status = false;        /* return value */
-    uint8_t *ring_data = NULL;  /* used to help point ring data */
+    volatile uint8_t *ring_data = NULL;     /* used to help point ring data */
     unsigned i; /* loop counter */
 
     if (b && data_element) {
@@ -160,10 +160,10 @@ bool Ringbuf_Put(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-uint8_t *Ringbuf_Alloc(
-    RING_BUFFER * b)
+volatile uint8_t *Ringbuf_Alloc(
+    RING_BUFFER *b)
 {
-    uint8_t *ring_data = NULL;  /* used to help point ring data */
+    volatile uint8_t *ring_data = NULL;     /* used to help point ring data */
 
     if (b) {
         /* limit the amount of elements that we accept */
@@ -186,7 +186,7 @@ uint8_t *Ringbuf_Alloc(
 *****************************************************************************/
 void Ringbuf_Init(
     RING_BUFFER * b,    /* ring buffer structure */
-    uint8_t * volatile buffer, /* data block or array of data */
+    volatile uint8_t * buffer, /* data block or array of data */
     unsigned element_size,      /* size of one element in the data block */
     unsigned element_count)
 {       /* number of elements in the data block */

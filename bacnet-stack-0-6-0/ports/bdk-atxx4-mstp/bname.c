@@ -279,7 +279,7 @@ void bacnet_name_init(
     char *default_string)
 {
     (void)bacnet_name_save(offset, CHARACTER_UTF8,
-            default_string, strlen(default_string));    
+            default_string, strlen(default_string));
 }
 
 void bacnet_name(

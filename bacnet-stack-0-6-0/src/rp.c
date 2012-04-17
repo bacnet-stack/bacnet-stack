@@ -153,9 +153,11 @@ int rp_ack_encode_apdu_init(
         apdu[1] = invoke_id;    /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
         apdu_len = 3;
+
         /* service ack follows */
         len =
-            encode_context_object_id(&apdu[apdu_len], 0, rpdata->object_type,
+            encode_context_object_id(&apdu[apdu_len], 0,
+            rpdata->object_type,
             rpdata->object_instance);
         apdu_len += len;
         len =

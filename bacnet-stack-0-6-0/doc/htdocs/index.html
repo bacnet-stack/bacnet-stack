@@ -13,8 +13,8 @@
   <P><a href="http://sourceforge.net/projects/bacnet/">This BACnet protocol stack library</a>
   provides a BACnet application layer, network layer and media access (MAC)
   layer communications services.  It is an open source, royalty-free library
-  for an embedded system, Windows, Linux, or other operating system.  Example
-  BACnet client and server applications are included.</p>
+  for an embedded system, Windows, Linux, or other operating system.  <a href="https://sourceforge.net/projects/bacnet/files/bacnet-tools/">Example
+  BACnet client and server applications</a> are included.</p>
 
   <P>BACnet - A Data Communication Protocol for Building
   Automation and Control Networks - see <a
@@ -293,7 +293,7 @@
   <a href="http://www.gnuarm.com/">GNU ARM</a>,
   <a href="http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects/">WinARM</a>,
   <a href="http://www.yagarto.de/">YAGARTO</a>,
-  or <a href="http://www.rowley.co.uk/arm/index.htm">Rowley Crossworks for ARM</a> toolchains on the Windows platform.
+  or <a href="http://www.rowley.co.uk/arm/">Rowley Crossworks for ARM</a> toolchains on the Windows platform.
   The datalink layer uses BACnet MS/TP
   and the example uses several different objects and services.</p>
 
@@ -305,9 +305,18 @@
   <a href="http://winavr.sourceforge.net/">WinAVR</a> for Atmel AVR series of microcontrollers.
   There is also a project in the
   <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/bdk-atxx4-mstp">ports/bdk-atxx4-mstp</a>
-  directory which works on the <a href="http://bacnetdevelopmentkit.com/">ATmega644 based BACnet Development Kit</a>.
-  Both ports use the BACnet MS/TP datalink layer
-  and the example uses several different objects and services.</p>
+  directory which works on the <a href="http://bacnetdevelopmentkit.com/">ATmega644 based BACnet Development Kit</a>.</p>
+
+  <p>Both projects use the BACnet MS/TP datalink layer
+  and the example uses several different objects and services.
+  In additional to the free tools listed above, the AVR projects
+  can be developed using the commercial
+  <a href="http://www.rowley.co.uk/avr/">Rowley Crossworks for AVR</a>
+  on the Windows, MAC OS X, Linux, or Solaris platform. CrossWorks is a complete
+  development environment.
+  The AVR projects can also be developed using the commercial
+  <a href="http://www.iar.com/en/Products/IAR-Embedded-Workbench/AVR/">IAR Embedded Workbench for Atmel AVR</a>
+  environment on Windows.</p>
 
   <p>There is a project in the
   <a href="http://bacnet.svn.sourceforge.net/viewvc/bacnet/trunk/bacnet-stack/ports/stm32f10x">ports/stm32f10x</a>
@@ -398,7 +407,7 @@
   </TR>
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Subscribe COV</td>
-    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
     <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
   </TR>
   <TR>
@@ -493,7 +502,7 @@
   </TR>
   <TR>
     <TD bgcolor="#FFFFDD" width="50%" valign="top">Unconfirmed Private Transfer</td>
-    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
     <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
   </TR>
   <TR>
@@ -519,27 +528,230 @@
   </TBODY>
   </TABLE>
 
-  <h2>BACnet Objects</h2>
-
+  <TABLE border="1" width="100%" cellpadding="1" cellspacing="0"
+    summary="BACnet Objects">
+  <TBODY>
+  <TR><H2>BACnet Objects</H2>
   <p>The BACnet stack currently implements an example Device Object, and
   handles all of the ReadProperty and ReadPropertyMultiple inquiries for
   the required Device Object properties. The stack handles Who-Is inquiries
   with an I-Am, WhoHas with I-Have, and handles reject messages for
-  services not currently supported.  There is built-in handling for
-  DeviceCommunicationControl.</p>
+  services not currently supported or implemented by your device.
+  There is built-in handling for DeviceCommunicationControl.</p>
 
-  <p>The example handlers interact with example objects, including
-  Analog Input, Analog Output, Analog Value, Binary Input,
-  Binary Output, Binary Value, Load Control, Life Safety Point,
-  Multi-state Input, and Multi-state Output objects.
-  The objects are accessed using through the Device object.
-  Adding other BACnet objects is only a matter of setting up
-  the various object API for the properties you need to support
-  in the Device object.</p>
+  <p>The example handlers interact with example objects by way of the Device
+  object.  There are example objects for the developer to use as a template
+  when customizing the objects for their device.</p>
 
   <p>File Objects are conditionally included in the demonstation
-  applications. The files can be access using WriteProperty,
-  ReadProperty, Who-Has, AtomicWriteFile, or AtomicReadFile services.</p>
+  applications. The files can be accessed using WriteProperty,
+  ReadProperty, Who-Has, AtomicWriteFile, or AtomicReadFile services.</p></TR>
+  <TR>
+    <TD bgcolor="#CCF6F6" width="75%" valign="top"><b>BACnet Object</b></td>
+    <TD bgcolor="#CCF6F6" width="25%" align="center" valign="top"><b>Code Example</b></td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Accumulator</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Analog Input</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Analog Output</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Analog Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Averaging</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Binary Input</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Binary Output</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Binary Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Calendar</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Command</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Device</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Event Enrollment</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">File</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Group</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Life Safety Point</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Life Safety Zone</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Loop</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Multi-state Input</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Multi-state Output</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Multi-state Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Notification Class</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Program</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Pulse Converter</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Schedule</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Trend Log</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Access Door</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Event Log</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Load Control</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">Yes</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Structured View</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Trend Log Multiple</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Access Point</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Access Zone</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Access User</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Access Rights</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Access Credential</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Credential Data Input</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">CharacterString Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">DateTime Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Large Analog Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">BitString Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">OctetString Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Time Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Integer Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Positive Integer Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Date Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">DateTime Pattern Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Time Pattern Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Date Pattern Value</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Network Security</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  <TR>
+    <TD bgcolor="#FFFFDD" width="75%" valign="top">Global Group</td>
+    <TD bgcolor="#FFFFDD" width="25%" align="center" valign="top">-</td>
+  </TR>
+  </TBODY>
+  </TABLE>
 
   <h2>Getting Involved</h2>
 
@@ -655,6 +867,8 @@ software environment that allows coupling different simulation programs
 including Dymola, EnergyPlus, MATLAB/Simulink and Radiance for co-simulation,
 and to couple these programs to control systems.</p>
 
+<p><a href="http://linde.caltech.edu/articles/the-prodigal-sun-returns-the-coelostat-in-the-linde-robinson-laboratory">The coelostat in the Linde + Robinson Laboratory</a> at Caltech.</p>
+
 <hr>
 
   <A href="http://sourceforge.net"> <IMG
@@ -665,6 +879,6 @@ and to couple these programs to control systems.</p>
     <b>BACnet<sup>&reg;</sup></b> are registered trademarks of the American
     Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.,
     1791 Tullie Circle NE, Atlanta, GA 30329.</font> </p>
-  <p>Website updated 6-July-2011 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
+  <p>Website updated 19-December-2011 by <a href="http://steve.kargs.net/">Steve Karg</a>.</p>
 </BODY>
 </HTML>

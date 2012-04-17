@@ -98,7 +98,7 @@ static int get_local_address_ioctl(
 
 /** Gets the local IP address and local broadcast address from the system,
  *  and saves it into the BACnet/IP data structures.
- * 
+ *
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
@@ -140,12 +140,11 @@ static void bip_set_interface(
  * -# Opens a UDP socket
  * -# Configures the socket for sending and receiving
  * -# Configures the socket so it can send broadcasts
- * -# Binds the socket to the local IP address at the specified port for 
+ * -# Binds the socket to the local IP address at the specified port for
  *    BACnet/IP (by default, 0xBAC0 = 47808).
- * 
+ *
  * @note For Linux, ifname is eth0, ath0, arc0, and others.
-         For Windows, ifname is the dotted ip address of the interface.
-         
+ *
  * @param ifname [in] The named interface to use for the network layer.
  *        If NULL, the "eth0" interface is assigned.
  * @return True if the socket is successfully opened for BACnet/IP,
@@ -202,6 +201,23 @@ bool bip_init(
     }
 
     return true;
+}
+
+/** Cleanup and close out the BACnet/IP services by closing the socket.
+ * @ingroup DLBIP
+  */
+void bip_cleanup(
+    void)
+{
+    int sock_fd = 0;
+
+    if (bip_valid()) {
+        sock_fd = bip_socket();
+        close(sock_fd);
+    }
+    bip_set_socket(-1);
+
+    return;
 }
 
 /** Get the netmask of the BACnet/IP's interface via an ioctl() call.

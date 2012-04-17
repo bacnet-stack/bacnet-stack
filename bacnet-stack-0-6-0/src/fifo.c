@@ -136,7 +136,7 @@ uint8_t FIFO_Get(
 
 /****************************************************************************
 * DESCRIPTION: Adds an element of data to the FIFO
-* RETURN:      true on succesful add, false if not added
+* RETURN:      true on successful add, false if not added
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
@@ -194,8 +194,11 @@ bool FIFO_Add(
 void FIFO_Flush(
     FIFO_BUFFER * b)
 {
+    unsigned head;        /* used to avoid volatile decision */
+
     if (b) {
-        b->tail = b->head;
+        head = b->head;
+        b->tail = head;
     }
 }
 
@@ -223,6 +226,7 @@ void FIFO_Init(
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "ctest.h"
 
@@ -232,13 +236,14 @@ void FIFO_Init(
 void testFIFOBuffer(
     Test * pTest)
 {
-    FIFO_BUFFER test_buffer;
-    volatile uint8_t data_store[FIFO_BUFFER_SIZE];
-    uint8_t test_add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
-    uint8_t test_data;
-    uint8_t index;
-    uint8_t count;
-    bool status;
+    FIFO_BUFFER test_buffer = {0};
+    volatile uint8_t data_store[FIFO_BUFFER_SIZE] = {0};
+    uint8_t add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
+    uint8_t test_add_data[40] = {0};
+    uint8_t test_data = 0;
+    unsigned index = 0;
+    unsigned count = 0;
+    bool status = 0;
 
     FIFO_Init(&test_buffer, data_store, sizeof(data_store));
     ct_test(pTest, FIFO_Empty(&test_buffer));
@@ -292,17 +297,19 @@ void testFIFOBuffer(
     }
     ct_test(pTest, FIFO_Empty(&test_buffer));
     /* test Add */
-    ct_test(pTest, FIFO_Available(&test_buffer, sizeof(test_add_data)));
-    status = FIFO_Add(&test_buffer, test_add_data, sizeof(test_add_data));
+    ct_test(pTest, FIFO_Available(&test_buffer, sizeof(add_data)));
+    status = FIFO_Add(&test_buffer, add_data, sizeof(add_data));
     ct_test(pTest, status == true);
+    count = FIFO_Count(&test_buffer);
+    ct_test(pTest, count == sizeof(add_data));
     ct_test(pTest, !FIFO_Empty(&test_buffer));
-    for (index = 0; index < sizeof(test_add_data); index++) {
+    for (index = 0; index < sizeof(add_data); index++) {
         /* unload the buffer */
         ct_test(pTest, !FIFO_Empty(&test_buffer));
         test_data = FIFO_Peek(&test_buffer);
-        ct_test(pTest, test_data == test_add_data[index]);
+        ct_test(pTest, test_data == add_data[index]);
         test_data = FIFO_Get(&test_buffer);
-        ct_test(pTest, test_data == test_add_data[index]);
+        ct_test(pTest, test_data == add_data[index]);
     }
     ct_test(pTest, FIFO_Empty(&test_buffer));
     /* test flush */

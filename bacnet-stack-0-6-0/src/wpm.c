@@ -66,8 +66,8 @@ int wpm_decode_object_id(
         if ((tag_number == 0) && (apdu_len > len)) {
             apdu_len -= len;
             if (apdu_len >= 4) {
-            len +=
-                decode_object_id(&apdu[len], &object_type, &object_instance);
+                len +=
+                    decode_object_id(&apdu[len], &object_type, &object_instance);
                 wp_data->object_type = object_type;
                 wp_data->object_instance = object_instance;
                 apdu_len -= len;

@@ -160,6 +160,7 @@ int main(
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
+    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;

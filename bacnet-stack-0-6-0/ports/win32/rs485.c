@@ -303,6 +303,14 @@ uint32_t RS485_Get_Baud_Rate(
             return 128000;
         case CBR_256000:
             return 256000;
+        case 76800:
+            /* See comments in RS485_Set_Baud_Rate() below
+             * also look at definition of CBR_xx in winbase.h
+             * some serial drivers will only support the defined
+             * baud rates but others will try and configure the
+             * requested baud rate (or as close as they can get)
+             */
+            return 76800;
         case CBR_9600:
         default:
             return 9600;
@@ -365,6 +373,21 @@ bool RS485_Set_Baud_Rate(
             break;
         case 256000:
             RS485_Baud = CBR_256000;
+            break;
+        case 76800:
+            /* I'm using the B&B Electronics USOPTL4 USB RS485 adapter
+             * on Win 7 and building with VS2008 Express Edition and it
+             * seems to work for the most part if I use the following.
+             * I get the occasional data errors especially if the devices
+             * are transmitting with 1 stop bit (some devices receive with
+             * 1 stop bit but effectivly end up transmitting with 2 stop
+             * bits, usually because of synchroisation issues in some UARTs
+             * which mean that if you wait until the serialiser has finished 
+             * with the current character and then load the TX buffer it has
+             * to wait until the next bit boundary to start transmitting.
+             * PMcS
+             */
+            RS485_Baud = 76800;
             break;
         default:
             valid = false;

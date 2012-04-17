@@ -29,7 +29,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>       /* for time */
+#if defined(WIN32) || defined(__BORLANDC__)
 #include <conio.h>
+#endif
 #define PRINT_ENABLED 1
 
 #include "bacdef.h"
@@ -227,6 +229,7 @@ int main(
     address_init();
     Init_Service_Handlers();
     dlenv_init();
+    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
