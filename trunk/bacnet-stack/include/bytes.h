@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -20,13 +20,11 @@
 * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
 *********************************************************************/
-/* Defines the bit/byte/word/long conversions that are used in code */
-
-
 #ifndef BYTES_H
 #define BYTES_H
+
+/* Defines the bit/byte/word/long conversions that are used in code */
 
 #include <stdint.h>
 

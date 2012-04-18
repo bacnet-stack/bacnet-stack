@@ -1,36 +1,26 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+*
+* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to deal in the Software without restriction, including
+* without limitation the rights to use, copy, modify, merge, publish,
+* distribute, sublicense, and/or sell copies of the Software, and to
+* permit persons to whom the Software is furnished to do so, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*********************************************************************/
 #ifndef DATALINK_H
 #define DATALINK_H
 
@@ -126,22 +116,22 @@ extern "C" {
 #endif
 /** @defgroup DataLink The BACnet Network (DataLink) Layer
  * <b>6 THE NETWORK LAYER </b><br>
- * The purpose of the BACnet network layer is to provide the means by which 
- * messages can be relayed from one BACnet network to another, regardless of 
- * the BACnet data link technology in use on that network. Whereas the data 
- * link layer provides the capability to address messages to a single device 
- * or broadcast them to all devices on the local network, the network layer 
- * allows messages to be directed to a single remote device, broadcast on a 
- * remote network, or broadcast globally to all devices on all networks. 
+ * The purpose of the BACnet network layer is to provide the means by which
+ * messages can be relayed from one BACnet network to another, regardless of
+ * the BACnet data link technology in use on that network. Whereas the data
+ * link layer provides the capability to address messages to a single device
+ * or broadcast them to all devices on the local network, the network layer
+ * allows messages to be directed to a single remote device, broadcast on a
+ * remote network, or broadcast globally to all devices on all networks.
  * A BACnet Device is uniquely located by a network number and a MAC address.
- * 
+ *
  * Each client or server application must define exactly one of these
  * DataLink settings, which will control which parts of the code will be built:
  * - BACDL_ETHERNET -- for Clause 7 ISO 8802-3 ("Ethernet") LAN
  * - BACDL_ARCNET   -- for Clause 8 ARCNET LAN
  * - BACDL_MSTP     -- for Clause 9 MASTER-SLAVE/TOKEN PASSING (MS/TP) LAN
- * - BACDL_BIP      -- for ANNEX J - BACnet/IP 
- * - BACDL_ALL      -- Unspecified for the build, so the transport can be 
+ * - BACDL_BIP      -- for ANNEX J - BACnet/IP
+ * - BACDL_ALL      -- Unspecified for the build, so the transport can be
  *                     chosen at runtime from among these choices.
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
  *   are not currently supported by this project.
