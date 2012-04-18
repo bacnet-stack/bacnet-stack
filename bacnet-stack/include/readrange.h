@@ -1,36 +1,26 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2009 Peter Mc Shane
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+*
+* Copyright (C) 2009 Peter Mc Shane
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to deal in the Software without restriction, including
+* without limitation the rights to use, copy, modify, merge, publish,
+* distribute, sublicense, and/or sell copies of the Software, and to
+* permit persons to whom the Software is furnished to do so, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*********************************************************************/
 #ifndef READRANGE_H
 #define READRANGE_H
 
@@ -84,12 +74,12 @@ extern "C" {
 /** Defines for ReadRange packet overheads to allow us to determine how
  * much space is left for actual payload:
  *
- * Overhead is comprised of: 
+ * Overhead is comprised of:
  * - 1. PDU Type + invoke ID + service type = 3 bytes
  * - 2. Object ID = 5 bytes
  * - 3. Object Property = 2 bytes if property is 0-255, 3 if property is
  *    256-65535 � theoretical max of 5 bytes but how likely is that?
- * - 4. Optional array index = 2 bytes if index is 0-255, 3 if index is 
+ * - 4. Optional array index = 2 bytes if index is 0-255, 3 if index is
  *    256-65535 � theoretical max of 5 bytes but how likely is that?
  * - 5. Flags = 3 bytes
  * - 6. Opening and closing tag for data = 2 bytes
@@ -131,7 +121,7 @@ extern "C" {
 
 /** Function template for ReadRange information retrieval function.
  * A function template; @see device.c for assignment to object types.
- * @ingroup ObjHelpers 
+ * @ingroup ObjHelpers
  * @param pRequest [in]	Info on the request.
  * @param pInfo [out]   Where to write the response to.
  * @return True on success, False on error or failure.
@@ -169,15 +159,15 @@ extern "C" {
 }
 #endif /* __cplusplus */
 /** @defgroup Trend Trending BIBBs
- * These BIBBs prescribe the BACnet capabilities required to interoperably 
- * perform the trending functions enumerated in clause 22.2.1.4 for the 
+ * These BIBBs prescribe the BACnet capabilities required to interoperably
+ * perform the trending functions enumerated in clause 22.2.1.4 for the
  * BACnet devices defined therein.
     *//** @defgroup TrendReadRange Trending -Read Range Service (eg, in T-VMT)
  * @ingroup Trend
  * 15.8 ReadRange Service <br>
- * The ReadRange service is used by a client BACnet-user to read a specific 
- * range of data items representing a subset of data available within a 
- * specified object property. 
+ * The ReadRange service is used by a client BACnet-user to read a specific
+ * range of data items representing a subset of data available within a
+ * specified object property.
  * The service may be used with any list or array of lists property.
  */
 #endif
