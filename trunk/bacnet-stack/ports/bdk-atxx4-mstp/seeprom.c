@@ -2,6 +2,7 @@
 *
 * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
 * Used algorithm and code from Joerg Wunsch and Ruwan Jayanetti.
+* http://www.nongnu.org/avr-libc/user-manual/group__twi__demo.html
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -50,6 +51,11 @@
 #define SEEPROM_WORD_ADDRESS_16BIT 1
 #endif
 
+/* maximum write cycle time in milliseconds - see datasheet */
+#ifndef EEPROM_WRITE_CYCLE
+#define EEPROM_WRITE_CYCLE 5
+#endif
+
 /* The lower 3 bits of TWSR are reserved on the ATmega163 */
 #define TW_STATUS_MASK (_BV(TWS7)|_BV(TWS6)|_BV(TWS5)|_BV(TWS4)|_BV(TWS3))
 /* start condition transmitted */
@@ -84,17 +90,10 @@
 /* SLA+W address */
 #define TW_WRITE 0
 
-/*
- * Maximal number of iterations to wait for a device to respond for a
- * selection.  Should be large enough to allow for a pending write to
- * complete, but low enough to properly abort an infinite loop in case
- * a slave is broken or not present at all.  With 100 kHz TWI clock,
- * transfering the start condition and SLA+R/W packet takes about 10
- * s.  The longest write period is supposed to not exceed ~ 10 ms.
- * Thus, normal operation should not require more than 100 iterations
- * to get the device to respond to a selection.
- */
-#define MAX_ITER        200
+/* Number of iterations is the max amount to wait for write cycle
+   to complete a full page write */
+/* .005s/.000025=200 */
+#define MAX_ITER (((SEEPROM_I2C_CLOCK/1000)/10)*SEEPROM_WRITE_CYCLE)
 
 /*************************************************************************
 * DESCRIPTION: Return bytes from SEEPROM memory at address
@@ -117,7 +116,7 @@ int seeprom_bytes_read(
     /* patch high bits of EEPROM address into SLA */
     sla = SEEPROM_I2C_ADDRESS | (((eeaddr >> 8) & 0x07) << 1);
 #endif
-    /* Note [8] First cycle: master transmitter mode */
+    /* First cycle: master transmitter mode */
   restart:
     if (n++ >= MAX_ITER) {
         return -1;
@@ -134,15 +133,21 @@ int seeprom_bytes_read(
         case TW_START:
             break;
         case TW_MT_ARB_LOST:
-            /* Note [9] */
+            /* Since the TWI bus is multi-master capable,
+               there is potential for a bus contention when
+               one master starts to access the bus. */
             goto begin;
         default:
             /* error: not in start condition */
             /* NB: do /not/ send stop condition */
             return -1;
     }
-
-    /* Note [10] */
+    /* Next, the device slave is going to be reselected using a repeated
+       start condition which is meant to guarantee that the bus arbitration
+       will remain at the current master.  This uses the same slave address
+       (SLA), but this time with read intent (R/~W bit set to 1) in order
+       to request the device slave to start transfering data from the slave
+       to the master in the next packet. */
     /* send SLA+W */
     TWDR = sla | TW_WRITE;
     /* clear interrupt to start transmission */
@@ -155,7 +160,10 @@ int seeprom_bytes_read(
             break;
         case TW_MT_SLA_NACK:
             /* nack during select: device busy writing */
-            /* Note [11] */
+            /* If the EEPROM device is still busy writing one or more cells
+               after a previous write request, it will simply leave its bus
+               interface drivers at high impedance, and does not respond to
+               a selection in any way at all. */
             goto restart;
         case TW_MT_ARB_LOST:
             /* re-arbitrate */
@@ -203,7 +211,15 @@ int seeprom_bytes_read(
             goto error;
     }
 
-    /* Note [12] Next cycle(s): master receiver mode */
+    /* This is called master receiver mode: the bus master still supplies
+       the SCL clock, but the device slave drives the SDA line with the
+       appropriate data. After 8 data bits, the master responds with an ACK
+       bit (SDA driven low) in order to request another data transfer from
+       the slave, or it can leave the SDA line high (NACK), indicating to
+       the slave that it is going to stop the transfer now.
+       Assertion of ACK is handled by setting the TWEA bit in TWCR when
+       starting the current transfer.*/
+    /* Next cycle(s): master receiver mode */
     /* send repeated start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
     /* wait for transmission */
@@ -237,7 +253,10 @@ int seeprom_bytes_read(
         default:
             goto error;
     }
-    /* Note [13] */
+    /* The control word sent out in order to initiate the transfer of the
+       next data packet is initially set up to assert the TWEA bit.
+       During the last loop iteration, TWEA is de-asserted so the client
+       will get informed that no further transfer is desired. */
     twcr = _BV(TWINT) | _BV(TWEN) | _BV(TWEA);
     for (; len > 0; len--) {
         if (len == 1) {
@@ -264,7 +283,9 @@ int seeprom_bytes_read(
         }
     }
   quit:
-    /* Note [14] */
+    /* Except in the case of lost arbitration, all bus transactions
+       must properly be terminated by the master initiating a
+       stop condition. */
     /* send stop condition */
     TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
     return rv;
@@ -307,9 +328,21 @@ static int seeprom_bytes_write_page(
         return -1;
     }
   begin:
-    /* Note [15] */
-    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN); /* send start condition */
-    while ((TWCR & _BV(TWINT)) == 0);   /* wait for transmission */
+    /* Writing to the EEPROM device is simpler than reading,
+       since only a master transmitter mode transfer is needed.
+       Note that the first packet after the SLA+W selection is
+       always considered to be the EEPROM address for the next operation.
+       This packet is exactly the same as the one above sent before
+       starting to read the device.
+       In case a master transmitter mode transfer is going to send
+       more than one data packet, all following packets will be considered
+       data bytes to write at the indicated address.
+       The internal address pointer will be incremented after each
+       write operation. */
+    /* send start condition */
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
+    /* wait for transmission */
+    while ((TWCR & _BV(TWINT)) == 0);
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
