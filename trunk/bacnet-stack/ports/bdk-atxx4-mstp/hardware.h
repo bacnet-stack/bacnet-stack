@@ -65,8 +65,12 @@
 #define SEEPROM_WORD_ADDRESS_16BIT 0
 #endif
 
+/* Serial EEPROM address */
 #define SEEPROM_I2C_ADDRESS 0xA0
+/* Serial EEPROM clocking speed - usually 100000 or 400000 */
 #define SEEPROM_I2C_CLOCK 400000L
+/* Serial EEPROM max write cycle in milliseconds as defined by datasheet */
+#define SEEPROM_WRITE_CYCLE 5
 
 #define LED_2 2
 #define LED_3 3
