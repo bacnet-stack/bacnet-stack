@@ -39,7 +39,7 @@
 /* From the WhoIs hander - performed by the DLMSTP module */
 extern bool Send_I_Am_Flag;
 /* local version override */
-const char *BACnet_Version = "1.0";
+char *BACnet_Version = "1.0";
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
