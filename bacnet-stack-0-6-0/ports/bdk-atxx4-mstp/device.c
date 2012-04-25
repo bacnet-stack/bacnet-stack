@@ -139,14 +139,14 @@ static const int Device_Properties_Proprietary[] = {
 };
 
 static struct my_object_functions *Device_Objects_Find_Functions(
-    BACNET_OBJECT_TYPE Object_Type)
+    int object_type)
 {
     struct my_object_functions *pObject = NULL;
 
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
-        if (pObject->Object_Type == Object_Type) {
+        if (pObject->Object_Type == object_type) {
             return (pObject);
         }
 
