@@ -252,6 +252,7 @@
           <state>MAX_APDU=50</state>
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
+          <state>MSTP_PDU_PACKET_COUNT=2</state>
           <state>BACAPP_BOOLEAN</state>
           <state>BACAPP_REAL</state>
           <state>BACAPP_OBJECT_ID</state>
@@ -424,6 +425,7 @@
           <name>newCCIncludePaths</name>
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
+          <state>$PROJ_DIR$\..\..\demo\object</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1244,6 +1246,7 @@
           <state>MAX_APDU=128</state>
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
+          <state>MSTP_PDU_PACKET_COUNT=2</state>
           <state>BACAPP_BOOLEAN</state>
           <state>BACAPP_REAL</state>
           <state>BACAPP_OBJECT_ID</state>

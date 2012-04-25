@@ -238,7 +238,10 @@ typedef struct {
 /* Interrupts */
 #if defined(__ICCAVR__)
 #define PRAGMA(x) _Pragma( #x )
-#define ISR(vec) PRAGMA( vector=vec ) __interrupt void handler_##vec(void)
+#define ISR(vec) \
+    /* function prototype for use with "require protoptypes" option.  */ \
+    PRAGMA( vector=vec ) __interrupt void handler_##vec(void); \
+    PRAGMA( vector=vec ) __interrupt void handler_##vec(void)
 #elif defined(__GNUC__)
 #include <avr/interrupt.h>
 #elif defined (__CROSSWORKS_AVR)
