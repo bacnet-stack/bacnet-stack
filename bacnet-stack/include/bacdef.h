@@ -90,6 +90,7 @@ typedef struct BACnet_Object_Id {
 #define BACNET_INSTANCE(bacnet_object_id_num) ((bacnet_object_id_num)&BACNET_MAX_INSTANCE)
 #define BACNET_TYPE(bacnet_object_id_num) (((bacnet_object_id_num) >> BACNET_INSTANCE_BITS ) & BACNET_MAX_OBJECT)
 
+#define BACNET_STATUS_OK (0)
 #define BACNET_STATUS_ERROR (-1)
 #define BACNET_STATUS_ABORT (-2)
 #define BACNET_STATUS_REJECT (-3)
