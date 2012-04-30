@@ -97,6 +97,7 @@ int abort_encode_apdu(
     return apdu_len;
 }
 
+#if !BACNET_SVC_SERVER
 /* decode the service request only */
 int abort_decode_service_request(
     uint8_t * apdu,
@@ -115,6 +116,7 @@ int abort_decode_service_request(
 
     return len;
 }
+#endif
 
 #ifdef TEST
 #include <assert.h>

@@ -39,6 +39,7 @@
 
 /** @file rp.c  Encode/Decode Read Property and RP ACKs */
 
+#if BACNET_SVC_RP_A
 /* encode service */
 int rp_encode_apdu(
     uint8_t * apdu,
@@ -73,6 +74,7 @@ int rp_encode_apdu(
 
     return apdu_len;
 }
+#endif
 
 /* decode the service request only */
 int rp_decode_service_request(
@@ -213,6 +215,7 @@ int rp_ack_encode_apdu(
 }
 
 
+#if BACNET_SVC_RP_A
 /** Decode the ReadProperty reply and store the result for one Property in a
  *  BACNET_READ_PROPERTY_DATA structure.
  *  This leaves the value(s) in the application_data buffer to be decoded later;
@@ -275,6 +278,7 @@ int rp_ack_decode_service_request(
 
     return len;
 }
+#endif
 
 #ifdef TEST
 #include <assert.h>

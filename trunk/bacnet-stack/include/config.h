@@ -160,4 +160,87 @@
 #define MAX_OCTET_STRING_BYTES (MAX_APDU-6)
 #endif
 
+/*
+** Control the selection of services etc to enable code size reduction for those
+** compiler suites which do not handle removing of unused functions in modules
+** so well.
+**
+** We will start with the A type services code first as these are least likely
+** to be required in embedded systems using the stack.
+*/
+
+/*
+** First we see if this is a test build and enable all the services as they
+** may be required.
+** 
+** Note: I've left everything enabled here in the main config.h. You would
+** use a local copy of config.h with settings configured for your needs to 
+** make use of the code space reductions.
+**/
+
+#ifdef TEST
+ #define BACNET_SVC_I_HAVE_A    1
+ #define BACNET_SVC_WP_A        1
+ #define BACNET_SVC_RP_A        1
+ #define BACNET_SVC_RPM_A       1
+ #define BACNET_SVC_DCC_A       1
+ #define BACNET_SVC_RD_A        1
+ #define BACNET_SVC_SERVER      0
+ #define BACNET_USE_OCTETSTRING 1
+ #define BACNET_USE_DOUBLE      1
+ #define BACNET_USE_SIGNED      1
+#else  /* Otherwise define our working set - all enabled here to avoid breaking things */
+ #define BACNET_SVC_I_HAVE_A    1
+ #define BACNET_SVC_WP_A        1
+ #define BACNET_SVC_RP_A        1
+ #define BACNET_SVC_RPM_A       1
+ #define BACNET_SVC_DCC_A       1
+ #define BACNET_SVC_RD_A        1
+ #define BACNET_SVC_SERVER      0
+ #define BACNET_USE_OCTETSTRING 1
+ #define BACNET_USE_DOUBLE      1
+ #define BACNET_USE_SIGNED      1
+#endif
+
+/* Do them one by one */
+ #ifndef BACNET_SVC_I_HAVE_A    /* Do we send I_Have requests? */
+  #define BACNET_SVC_I_HAVE_A 0
+ #endif
+
+ #ifndef BACNET_SVC_WP_A        /* Do we send WriteProperty requests? */
+  #define BACNET_SVC_WP_A 0
+ #endif
+
+ #ifndef BACNET_SVC_RP_A        /* Do we send ReadProperty requests? */
+  #define BACNET_SVC_RP_A 0
+ #endif
+
+ #ifndef BACNET_SVC_RPM_A      /* Do we send ReadPropertyMultiple requests? */
+  #define BACNET_SVC_RPM_A 0
+ #endif
+
+ #ifndef BACNET_SVC_DCC_A      /* Do we send DeviceCommunicationControl requests? */
+  #define BACNET_SVC_DCC_A 0
+ #endif
+
+ #ifndef BACNET_SVC_RD_A       /* Do we send ReinitialiseDevice requests? */
+  #define BACNET_SVC_RD_A 0
+ #endif
+
+ #ifndef BACNET_SVC_SERVER     /* Are we a pure server type device? */
+  #define BACNET_SVC_SERVER 1
+ #endif
+
+ #ifndef BACNET_USE_OCTETSTRING    /* Do we need any octet strings? */
+  #define BACNET_USE_OCTETSTRING 0
+ #endif
+
+ #ifndef BACNET_USE_DOUBLE    /* Do we need any doubles? */
+  #define BACNET_USE_DOUBLE 0
+ #endif
+
+ #ifndef BACNET_USE_SIGNED    /* Do we need any signed integers */
+  #define BACNET_USE_SIGNED 0
+ #endif
+
 #endif

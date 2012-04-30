@@ -63,6 +63,7 @@ int bacerror_encode_apdu(
     return apdu_len;
 }
 
+#if !BACNET_SVC_SERVER
 /* decode the application class and code */
 int bacerror_decode_error_class_and_code(
     uint8_t * apdu,
@@ -123,6 +124,7 @@ int bacerror_decode_service_request(
 
     return len;
 }
+#endif
 
 #ifdef TEST
 #include <assert.h>

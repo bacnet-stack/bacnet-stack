@@ -39,7 +39,7 @@
 #include "timesync.h"
 
 /** @file timesync.c  Encode/Decode TimeSync APDUs  */
-
+#if BACNET_SVC_TS_A
 /* encode service */
 int timesync_encode_apdu_service(
     uint8_t * apdu,
@@ -80,6 +80,7 @@ int timesync_encode_apdu(
     return timesync_encode_apdu_service(apdu,
         SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, my_date, my_time);
 }
+#endif
 
 /* decode the service request only */
 int timesync_decode_service_request(

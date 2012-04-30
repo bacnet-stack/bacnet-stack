@@ -42,6 +42,7 @@
 
 /** @file rpm.c  Encode/Decode Read Property Multiple and RPM ACKs  */
 
+#if BACNET_SVC_RPM_A
 /* encode the initial portion of the service */
 int rpm_encode_apdu_init(
     uint8_t * apdu,
@@ -198,6 +199,8 @@ int rpm_encode_apdu(
 
     return apdu_len;
 }
+
+#endif
 
 /* decode the object portion of the service request only. Bails out if
  * tags are wrong or missing/incomplete
@@ -379,8 +382,12 @@ int rpm_ack_encode_apdu_object_property_value(
     if (apdu) {
         /* Tag 4: propertyValue */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 4);
-        for (len = 0; len < application_data_len; len++) {
-            apdu[apdu_len++] = application_data[len];
+        if (application_data == &apdu[apdu_len]) { /* Is Data already in place? */
+            apdu_len += application_data_len; /* Yes, step over data */
+        } else { /* No, copy data in */
+            for (len = 0; len < application_data_len; len++) {
+                apdu[apdu_len++] = application_data[len];
+            }
         }
         apdu_len += encode_closing_tag(&apdu[apdu_len], 4);
     }
@@ -418,6 +425,8 @@ int rpm_ack_encode_apdu_object_end(
 
     return apdu_len;
 }
+
+#if BACNET_SVC_RPM_A
 
 /* decode the object portion of the service request only */
 int rpm_ack_decode_object_id(
@@ -508,6 +517,8 @@ int rpm_ack_decode_object_property(
 
     return (int) len;
 }
+
+#endif
 
 #ifdef TEST
 #include <assert.h>
