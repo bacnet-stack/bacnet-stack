@@ -173,7 +173,7 @@
 ** First we see if this is a test build and enable all the services as they
 ** may be required.
 ** 
-** Note: I've left everything enabled here in the main config.h. You would
+** Note: I've left everything enabled here in the main config.h. You should
 ** use a local copy of config.h with settings configured for your needs to 
 ** make use of the code space reductions.
 **/
