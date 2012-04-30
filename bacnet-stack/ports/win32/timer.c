@@ -84,7 +84,7 @@ int gettimeofday(
         /* a 64-bit value representing the number of
            100-nanosecond intervals since January 1, 1601 (UTC). */
         GetSystemTimeAsFileTime(&ft);
-        usec_timer |= ft.dwHighDateTime;
+        usec_timer = ft.dwHighDateTime;
         usec_timer <<= 32;
         usec_timer |= ft.dwLowDateTime;
         /*converting file time to unix epoch 1970 */
@@ -95,7 +95,7 @@ int gettimeofday(
         time_start = timeGetTime();
     } else {
         elapsed_milliseconds = timeGetTime() - time_start;
-        usec_elapsed = usec_timer + (elapsed_milliseconds * 1000UL);
+        usec_elapsed = usec_timer + ((LONGLONG)elapsed_milliseconds * 1000UL);
         tp->tv_sec = (long) (usec_elapsed / 1000000UL);
         tp->tv_usec = (long) (usec_elapsed % 1000000UL);
     }
