@@ -33,8 +33,6 @@
 #endif
 #endif
 
-#ifdef BACTEXT_PRINT_ENABLED
-
 #include <stdbool.h>
 #include <stdint.h>
 #include "indtext.h"
@@ -116,5 +114,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* BACTEXT_PRINT_ENABLED */
 #endif
