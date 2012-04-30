@@ -866,6 +866,8 @@ int encode_application_object_id(
     return len;
 }
 
+#if BACNET_USE_OCTETSTRING
+
 /* from clause 20.2.8 Encoding of an Octet String Value */
 /* returns the number of apdu bytes consumed */
 int encode_octet_string(
@@ -981,6 +983,7 @@ int decode_context_octet_string(
 
     return len;
 }
+#endif
 
 /* from clause 20.2.9 Encoding of a Character String Value */
 /* returns the number of apdu bytes consumed */
@@ -1305,6 +1308,7 @@ int encode_context_enumerated(
     return len;
 }
 
+#if BACNET_USE_SIGNED
 /* from clause 20.2.5 Encoding of a Signed Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -1425,6 +1429,7 @@ int encode_context_signed(
 
     return len;
 }
+#endif
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -1457,6 +1462,7 @@ int encode_context_real(
     return len;
 }
 
+#if BACNET_USE_DOUBLE
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -1489,6 +1495,7 @@ int encode_context_double(
 
     return len;
 }
+#endif
 
 /* from clause 20.2.13 Encoding of a Time Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */

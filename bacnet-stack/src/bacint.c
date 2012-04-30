@@ -113,6 +113,7 @@ int decode_unsigned32(
     return 4;
 }
 
+#if BACNET_USE_SIGNED
 int encode_signed8(
     uint8_t * apdu,
     int8_t value)
@@ -219,7 +220,7 @@ int decode_signed32(
 
     return 4;
 }
-
+#endif
 /* end of decoding_encoding.c */
 #ifdef TEST
 #include <assert.h>

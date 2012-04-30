@@ -615,6 +615,7 @@ bool characterstring_valid(
     return valid;
 }
 
+#if BACNET_USE_OCTETSTRING
 /* returns false if the string exceeds capacity
    initialize by using value=NULL */
 bool octetstring_init(
@@ -799,6 +800,7 @@ bool octetstring_value_same(
 
     return false;
 }
+#endif
 
 #ifdef TEST
 #include <assert.h>

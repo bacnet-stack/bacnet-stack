@@ -138,6 +138,8 @@ int encode_bacnet_real(
     return 4;
 }
 
+#if BACNET_USE_DOUBLE
+
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* returns the number of apdu bytes consumed */
 int decode_double(
@@ -241,6 +243,7 @@ int decode_context_double(
     }
     return len;
 }
+#endif
 
 /* end of decoding_encoding.c */
 #ifdef TEST

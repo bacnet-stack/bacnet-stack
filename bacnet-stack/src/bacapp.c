@@ -49,6 +49,10 @@
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
+#if defined(_MSC_VER)
+#define snprintf _snprintf
+#endif
+
 int bacapp_encode_application_data(
     uint8_t * apdu,
     BACNET_APPLICATION_DATA_VALUE * value)

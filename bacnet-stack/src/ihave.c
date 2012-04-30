@@ -70,6 +70,8 @@ int ihave_encode_apdu(
     return apdu_len;
 }
 
+#if BACNET_SVC_I_HAVE_A
+
 /* decode the service request only */
 int ihave_decode_service_request(
     uint8_t * apdu,
@@ -135,6 +137,7 @@ int ihave_decode_apdu(
 
     return len;
 }
+#endif
 
 #ifdef TEST
 #include <assert.h>

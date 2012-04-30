@@ -38,7 +38,7 @@
 #include "rd.h"
 
 /** @file rd.c  Encode/Decode Reinitialize Device APDUs */
-
+#if BACNET_SVC_RD_A
 /* encode service */
 int rd_encode_apdu(
     uint8_t * apdu,
@@ -68,6 +68,7 @@ int rd_encode_apdu(
 
     return apdu_len;
 }
+#endif
 
 /* decode the service request only */
 int rd_decode_service_request(

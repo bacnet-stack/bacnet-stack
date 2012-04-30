@@ -38,7 +38,7 @@
 #include "wp.h"
 
 /** @file wp.c  Encode/Decode BACnet Write Property APDUs  */
-
+#if BACNET_SVC_WP_A
 /* encode service */
 int wp_encode_apdu(
     uint8_t * apdu,
@@ -88,6 +88,7 @@ int wp_encode_apdu(
 
     return apdu_len;
 }
+#endif
 
 /* decode the service request only */
 /* FIXME: there could be various error messages returned
