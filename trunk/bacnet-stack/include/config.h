@@ -25,7 +25,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-/* Note: these defines can be defined in your makefile or project 
+/* Note: these defines can be defined in your makefile or project
    or here or not defined and defaults will be used */
 
 /* declare a single physical layer using your compiler define.
@@ -36,8 +36,8 @@
 
 /* optional configuration for BACnet/IP datalink layers */
 #if (defined(BACDL_BIP) || defined(BACDL_ALL))
-/* other BIP defines (define as 1 to enable): 
-    USE_INADDR - uses INADDR_BROADCAST for broadcast and binds using INADDR_ANY 
+/* other BIP defines (define as 1 to enable):
+    USE_INADDR - uses INADDR_BROADCAST for broadcast and binds using INADDR_ANY
     USE_CLASSADDR = uses IN_CLASSx_HOST where x=A,B,C or D for broadcast
 */
 #if !defined(BBMD_ENABLED)
@@ -55,7 +55,7 @@
 #endif
 
 
-/* Define your processor architecture as 
+/* Define your processor architecture as
    Big Endian (PowerPC,68K,Sparc) or Little Endian (Intel,AVR)
    ARM and MIPS can be either - what is your setup? */
 #if !defined(BIG_ENDIAN)
@@ -172,9 +172,9 @@
 /*
 ** First we see if this is a test build and enable all the services as they
 ** may be required.
-** 
+**
 ** Note: I've left everything enabled here in the main config.h. You should
-** use a local copy of config.h with settings configured for your needs to 
+** use a local copy of config.h with settings configured for your needs to
 ** make use of the code space reductions.
 **/
 
@@ -185,6 +185,7 @@
  #define BACNET_SVC_RPM_A       1
  #define BACNET_SVC_DCC_A       1
  #define BACNET_SVC_RD_A        1
+ #define BACNET_SVC_TS_A        1
  #define BACNET_SVC_SERVER      0
  #define BACNET_USE_OCTETSTRING 1
  #define BACNET_USE_DOUBLE      1
@@ -196,6 +197,7 @@
  #define BACNET_SVC_RPM_A       1
  #define BACNET_SVC_DCC_A       1
  #define BACNET_SVC_RD_A        1
+ #define BACNET_SVC_TS_A        1
  #define BACNET_SVC_SERVER      0
  #define BACNET_USE_OCTETSTRING 1
  #define BACNET_USE_DOUBLE      1
