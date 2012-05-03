@@ -122,19 +122,10 @@ static OS_Keylist Object_List;
 
 /* When we need to process an Object's properties one at a time,
  * then we build and use this list */
-#define MAX_PROPS 100   /* Supersized so it always is big enough. */
+#define MAX_PROPS 128   /* Supersized so it always is big enough. */
 static uint32_t Property_List_Length = 0;
 static uint32_t Property_List_Index = 0;
 static int32_t Property_List[MAX_PROPS + 2];
-/* This normally points to Property_List. */
-static const int *pPropList = NULL;
-#define MINIMAL_PROPLIST_SIZE 4
-static int32_t MinimalPropList[MINIMAL_PROPLIST_SIZE] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    -1
-};
 
 #define INIT_ID_PROPLIST_SIZE 5
 /* Define Enums to match the property and value arrays below */
@@ -161,8 +152,10 @@ static bool Using_Walked_List = false;
 /* When requesting RP for BACNET_ARRAY_ALL of what we know can be a long
  * array, then set this true in case it aborts and we need Using_Walked_List */
 static bool IsLongArray = false;
-
-static bool ShowValues = false; /* Show value instead of '?' */
+/* Show value instead of '?' */
+static bool ShowValues = false;
+/* read required and optional properties when RPM ALL does not work */
+static bool Optional_Properties = false;
 
 #if !defined(PRINT_ERRORS)
 #define PRINT_ERRORS 1
@@ -757,33 +750,39 @@ static uint8_t Read_Properties(
 {
     uint8_t invoke_id = 0;
     struct special_property_list_t PropertyListStruct;
-    unsigned int i;
+    unsigned int i = 0,j = 0;
 
     if ((!Has_RPM && (Property_List_Index == 0)) ||
         (Property_List_Length == 0)) {
         /* If we failed to get the Properties with RPM, just settle for what we
-         * know is the fixed list of Required (only) properties.
+         * know is the fixed list of Required and Optional properties.
          * In practice, this should only happen for simple devices that don't
          * implement RPM or have really limited MAX_APDU size.
          */
         property_list_special(pMyObject->type, &PropertyListStruct);
-        pPropList = PropertyListStruct.Required.pList;
-        if (pPropList != NULL) {
-            Property_List_Length = PropertyListStruct.Required.count;
+        if (Optional_Properties) {
+            Property_List_Length = PropertyListStruct.Required.count +
+                PropertyListStruct.Optional.count;
         } else {
-            fprintf(stdout, "    -- Just Minimal Properties: \r\n");
-            pPropList = MinimalPropList;
-            Property_List_Length = MINIMAL_PROPLIST_SIZE - 1;
+            Property_List_Length = PropertyListStruct.Required.count;
+        }
+        if (Property_List_Length > MAX_PROPS) {
+            Property_List_Length = MAX_PROPS;
         }
         /* Copy this list for later one-by-one processing */
-        for (i = 0; i < Property_List_Length; i++)
-            Property_List[i] = pPropList[i];
-        Property_List[i] = -1;  /* Just to be sure we terminate */
-    } else
-        pPropList = Property_List;
-
-    if ((pPropList != NULL) && (pPropList[Property_List_Index] != -1)) {
-        int prop = pPropList[Property_List_Index];
+        for (i = 0; i < Property_List_Length; i++) {
+            if (i < PropertyListStruct.Required.count) {
+                Property_List[i] = PropertyListStruct.Required.pList[i];
+            } else if (Optional_Properties) {
+                Property_List[i] = PropertyListStruct.Optional.pList[j];
+                j++;
+            }
+        }
+        /* Just to be sure we terminate */
+        Property_List[i] = -1;
+    }
+    if (Property_List[Property_List_Index] != -1) {
+        int prop = Property_List[Property_List_Index];
         uint32_t array_index;
         IsLongArray = false;
         if (Using_Walked_List) {
@@ -860,8 +859,9 @@ EPICS_STATES ProcessRPMData(
                         bHasStructuredViewList = true;
                         break;
                     default:
-                        Property_List[Property_List_Index++] =
+                        Property_List[Property_List_Index] =
                             rpm_property->propertyIdentifier;
+                        Property_List_Index++;
                         Property_List_Length++;
                         break;
                 }
@@ -902,11 +902,13 @@ EPICS_STATES ProcessRPMData(
     else if (bSuccess) {        /* and GET_LIST_OF_ALL_RESPONSE */
         /* Now append the properties we waited on. */
         if (bHasStructuredViewList) {
-            Property_List[Property_List_Index++] = PROP_STRUCTURED_OBJECT_LIST;
+            Property_List[Property_List_Index] = PROP_STRUCTURED_OBJECT_LIST;
+            Property_List_Index++;
             Property_List_Length++;
         }
         if (bHasObjectList) {
-            Property_List[Property_List_Index++] = PROP_OBJECT_LIST;
+            Property_List[Property_List_Index] = PROP_OBJECT_LIST;
+            Property_List_Index++;
             Property_List_Length++;
         }
         /* Now insert the -1 list terminator, but don't count it. */
@@ -962,6 +964,9 @@ int CheckCommandLineArgs(
         char *anArg = argv[i];
         if (anArg[0] == '-') {
             switch (anArg[1]) {
+                case 'o':
+                    Optional_Properties = true;
+                    break;
                 case 'v':
                     ShowValues = true;
                     break;
@@ -1518,34 +1523,39 @@ int main(
                     } else {
                         Property_List_Index++;
                     }
-/*                if ( pPropList[Property_List_Index] == PROP_OBJECT_LIST ) */
-/*                { */
-/*                    if ( !Using_Walked_List ) */
-/*                    { */
-                    /* Just switched */
-/*                        Using_Walked_List = true; */
-/*                        Walked_List_Index = Walked_List_Length = 0; */
-/*                    } */
-/*                } */
                     myState = GET_PROPERTY_REQUEST;     /* Go fetch next Property */
                 } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                     Request_Invoke_ID = 0;
                     elapsed_seconds = 0;
                     myState = GET_PROPERTY_REQUEST;
                     if (Error_Detected) {
-                        if (IsLongArray) {
-                            /* Change to using a Walked List and retry this property */
-                            Using_Walked_List = true;
-                            Walked_List_Index = Walked_List_Length = 0;
+                        if ((Last_Error_Class != ERROR_CLASS_PROPERTY) &&
+                            (Last_Error_Code != ERROR_CODE_UNKNOWN_PROPERTY)) {
+                            if (IsLongArray) {
+                                /* Change to using a Walked List and retry this property */
+                                Using_Walked_List = true;
+                                Walked_List_Index = Walked_List_Length = 0;
+                            } else {
+                                /* OK, skip this one and try the next property. */
+                                fprintf(stdout, "    -- Failed to get ");
+                                Print_Property_Identifier(
+                                    Property_List[Property_List_Index]);
+                                fprintf(stdout, " \r\n");
+                                Error_Count++;
+                                Property_List_Index++;
+                                if (Property_List_Index >= Property_List_Length) {
+                                    /* Give up and move on to the next. */
+                                    myState = NEXT_OBJECT;
+                                }
+                            }
                         } else {
-                            /* OK, skip this one and try the next property. */
-                            fprintf(stdout, "    -- Failed to get ");
-                            Print_Property_Identifier(pPropList
-                                [Property_List_Index]);
-                            fprintf(stdout, " \r\n");
+                            fprintf(stdout, "    -- unknown property\r\n");
                             Error_Count++;
-                            if (++Property_List_Index >= Property_List_Length)
-                                myState = NEXT_OBJECT;  /* Give up and move on to the next. */
+                            Property_List_Index++;
+                            if (Property_List_Index >= Property_List_Length) {
+                                /* Give up and move on to the next. */
+                                myState = NEXT_OBJECT;
+                            }
                         }
                     }
                 } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
@@ -1553,7 +1563,7 @@ int main(
                     tsm_free_invoke_id(Request_Invoke_ID);
                     elapsed_seconds = 0;
                     Request_Invoke_ID = 0;
-                    myState = GET_PROPERTY_REQUEST;     /* Let's try again, same Property */
+                    myState = 3;     /* Let's try again, same Property */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     elapsed_seconds = 0;
