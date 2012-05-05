@@ -902,9 +902,12 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                status =
-                    bacnet_name_write(NV_EEPROM_DEVICE_NAME,
-                    &value.type.Character_String, &wp_data->error_class,
+                status = bacnet_name_write_unique(
+                    NV_EEPROM_DEVICE_NAME,
+                    value.type.Object_Id.type,
+                    value.type.Object_Id.instance,
+                    &value.type.Character_String,
+                    &wp_data->error_class,
                     &wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -914,7 +917,7 @@ bool Device_Write_Property_Local(
         case PROP_DESCRIPTION:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
                 status =
-                    bacnet_name_write_other(NV_EEPROM_DEVICE_DESCRIPTION,
+                    bacnet_name_write(NV_EEPROM_DEVICE_DESCRIPTION,
                     &value.type.Character_String, &wp_data->error_class,
                     &wp_data->error_code);
             } else {
@@ -925,7 +928,7 @@ bool Device_Write_Property_Local(
         case PROP_LOCATION:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
                 status =
-                    bacnet_name_write_other(NV_EEPROM_DEVICE_LOCATION,
+                    bacnet_name_write(NV_EEPROM_DEVICE_LOCATION,
                     &value.type.Character_String, &wp_data->error_class,
                     &wp_data->error_code);
             } else {

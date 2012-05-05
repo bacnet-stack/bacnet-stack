@@ -157,7 +157,7 @@ static bool bacnet_name_isvalid(
     return valid;
 }
 
-static bool bacnet_name_save(
+bool bacnet_name_save(
     uint16_t offset,
     uint8_t encoding,
     char *str,
@@ -200,8 +200,10 @@ bool bacnet_name_set(
     return bacnet_name_save(offset, encoding, str, length);
 }
 
-bool bacnet_name_write(
+bool bacnet_name_write_unique(
     uint16_t offset,
+    int object_type,
+    uint32_t object_instance,
     BACNET_CHARACTER_STRING * char_string,
     BACNET_ERROR_CLASS * error_class,
     BACNET_ERROR_CODE * error_code)
@@ -209,18 +211,26 @@ bool bacnet_name_write(
     bool status = false;
     size_t length = 0;
     uint8_t encoding = 0;
+    int duplicate_type = 0;
+    uint32_t duplicate_instance = 0;
 
     length = characterstring_length(char_string);
-
     if (length < 1) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
     } else if (length <= NV_EEPROM_NAME_SIZE) {
         encoding = characterstring_encoding(char_string);
         if (encoding < MAX_CHARACTER_STRING_ENCODING) {
-            if (Device_Valid_Object_Name(char_string, NULL, NULL)) {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_DUPLICATE_NAME;
+            if (Device_Valid_Object_Name(char_string,
+                &duplicate_type, &duplicate_instance)) {
+                if ((duplicate_type == object_type) &&
+                    (duplicate_instance == object_instance)) {
+                    /* writing same name to same object */
+                    status = true;
+                } else {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_DUPLICATE_NAME;
+                }
             } else {
                 status = bacnet_name_set(offset, char_string);
                 if (status) {
@@ -243,7 +253,7 @@ bool bacnet_name_write(
 }
 
 /* no required minumum length or duplicate checking */
-bool bacnet_name_write_other(
+bool bacnet_name_write(
     uint16_t offset,
     BACNET_CHARACTER_STRING * char_string,
     BACNET_ERROR_CLASS * error_class,
