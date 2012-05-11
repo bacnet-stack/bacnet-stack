@@ -49,13 +49,35 @@
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 12345;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-
+static uint8_t Database_Revision;
 BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 
-void Device_Reinit(
+bool Device_Reinitialize(
+    BACNET_REINITIALIZE_DEVICE_DATA * rd_data)
+{
+    bool status = false;
+
+    if (characterstring_ansi_same(&rd_data->password, "filister")) {
+        Reinitialize_State = rd_data->state;
+        dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+        /* Note: you could use a mix of state
+           and password to multiple things */
+        /* note: you probably want to restart *after* the
+           simple ack has been sent from the return handler
+           so just set a flag from here */
+        status = true;
+    } else {
+        rd_data->error_class = ERROR_CLASS_SECURITY;
+        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+    }
+
+    return status;
+}
+
+BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
     void)
 {
-    dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+    return Reinitialize_State;
 }
 
 void Device_Init(
@@ -84,6 +106,7 @@ bool Device_Set_Object_Instance_Number(
 
     if (object_id <= BACNET_MAX_INSTANCE) {
         Object_Instance_Number = object_id;
+        Database_Revision++;
         /* FIXME: Write the data to the eeprom */
         /* I2C_Write_Block(
            EEPROM_DEVICE_ADDRESS,
@@ -126,13 +149,13 @@ uint16_t Device_Vendor_Identifier(
 uint8_t Device_Protocol_Version(
     void)
 {
-    return 1;
+    return BACNET_PROTOCOL_VERSION;
 }
 
 uint8_t Device_Protocol_Revision(
     void)
 {
-    return 5;
+    return BACNET_PROTOCOL_REVISION;
 }
 
 BACNET_SEGMENTATION Device_Segmentation_Supported(
@@ -144,7 +167,7 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(
 uint8_t Device_Database_Revision(
     void)
 {
-    return 0;
+    return Database_Revision;
 }
 
 /* Since many network clients depend on the object list */
