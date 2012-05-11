@@ -145,6 +145,9 @@ extern "C" {
         BACNET_CHARACTER_STRING * char_string);
     bool characterstring_valid(
         BACNET_CHARACTER_STRING * char_string);
+    bool utf8_isvalid(
+        const char *str,
+        size_t length);
 
     /* returns false if the string exceeds capacity
        initialize by using length=0 */

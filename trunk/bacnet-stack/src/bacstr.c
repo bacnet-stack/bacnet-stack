@@ -521,7 +521,7 @@ static const char trailingBytesForUTF8[256] = {
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
    length is in bytes, since without knowing whether the string is valid
    it's hard to know how many characters there are! */
-static int utf8_isvalid(
+bool utf8_isvalid(
     const char *str,
     size_t length)
 {
@@ -529,72 +529,76 @@ static int utf8_isvalid(
     unsigned char c;
     size_t ab;
 
+    /* empty string is valid */
+    if (length == 0) {
+        return true;
+    }
     for (p = (unsigned char *) str; p < pend; p++) {
         c = *p;
         /* null in middle of string */
         if (c == 0) {
-            return 0;
+            return false;
         }
         /* ASCII character */
         if (c < 128) {
             continue;
         }
         if ((c & 0xc0) != 0xc0) {
-            return 0;
+            return false;
         }
         ab = (size_t)trailingBytesForUTF8[c];
         if (length < ab) {
-            return 0;
+            return false;
         }
         length -= ab;
 
         p++;
         /* Check top bits in the second byte */
         if ((*p & 0xc0) != 0x80) {
-            return 0;
+            return false;
         }
         /* Check for overlong sequences for each different length */
         switch (ab) {
                 /* Check for xx00 000x */
             case 1:
                 if ((c & 0x3e) == 0)
-                    return 0;
+                    return false;
                 continue;       /* We know there aren't any more bytes to check */
 
                 /* Check for 1110 0000, xx0x xxxx */
             case 2:
                 if (c == 0xe0 && (*p & 0x20) == 0)
-                    return 0;
+                    return false;
                 break;
 
                 /* Check for 1111 0000, xx00 xxxx */
             case 3:
                 if (c == 0xf0 && (*p & 0x30) == 0)
-                    return 0;
+                    return false;
                 break;
 
                 /* Check for 1111 1000, xx00 0xxx */
             case 4:
                 if (c == 0xf8 && (*p & 0x38) == 0)
-                    return 0;
+                    return false;
                 break;
 
                 /* Check for leading 0xfe or 0xff,
                    and then for 1111 1100, xx00 00xx */
             case 5:
                 if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0))
-                    return 0;
+                    return false;
                 break;
         }
 
         /* Check for valid bytes after the 2nd, if any; all must start 10 */
         while (--ab > 0) {
             if ((*(++p) & 0xc0) != 0x80)
-                return 0;
+                return false;
         }
     }
 
-    return 1;
+    return true;
 }
 
 bool characterstring_valid(
