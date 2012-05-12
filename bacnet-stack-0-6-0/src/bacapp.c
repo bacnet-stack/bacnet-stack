@@ -1211,7 +1211,7 @@ bool bacapp_parse_application_data(
                 break;
             case BACNET_APPLICATION_TAG_DATE:
                 count =
-                    sscanf(argv, "%4d/%2d/%2d:%2d", &year, &month, &day, &wday);
+                    sscanf(argv, "%4d/%3d/%3d:%3d", &year, &month, &day, &wday);
                 if (count == 3) {
                     datetime_set_date(&value->type.Date, (uint16_t) year,
                         (uint8_t) month, (uint8_t) day);
@@ -1226,7 +1226,7 @@ bool bacapp_parse_application_data(
                 break;
             case BACNET_APPLICATION_TAG_TIME:
                 count =
-                    sscanf(argv, "%2d:%2d:%2d.%2d", &hour, &min, &sec,
+                    sscanf(argv, "%3d:%3d:%3d.%3d", &hour, &min, &sec,
                     &hundredths);
                 if (count == 4) {
                     value->type.Time.hour = (uint8_t) hour;
@@ -1861,6 +1861,17 @@ void testBACnetApplicationData(
     ct_test(pTest, value.type.Time.min == 59);
     ct_test(pTest, value.type.Time.sec == 0);
     ct_test(pTest, value.type.Time.hundredths == 0);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+
+    /* Wildcard Values */
+    status =
+        bacapp_parse_application_data(BACNET_APPLICATION_TAG_TIME,
+        "255:255:255.255", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, value.type.Time.hour == 255);
+    ct_test(pTest, value.type.Time.min == 255);
+    ct_test(pTest, value.type.Time.sec == 255);
+    ct_test(pTest, value.type.Time.hundredths == 255);
     ct_test(pTest, testBACnetApplicationDataValue(&value));
 
     status =
