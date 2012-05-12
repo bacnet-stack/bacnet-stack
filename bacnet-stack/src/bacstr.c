@@ -635,8 +635,12 @@ bool octetstring_init(
         if (length <= MAX_OCTET_STRING_BYTES) {
             if (value) {
                 for (i = 0; i < length; i++) {
-                    octet_string->value[octet_string->length] = value[i];
-                    octet_string->length++;
+                    if (i < length) {
+                        octet_string->value[octet_string->length] = value[i];
+                        octet_string->length++;
+                    } else {
+                        octet_string->value[i] = 0;
+                    }
                 }
             } else {
                 for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
