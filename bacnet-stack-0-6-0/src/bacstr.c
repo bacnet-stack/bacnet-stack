@@ -667,28 +667,34 @@ bool octetstring_init_ascii_hex(
 
     if (octet_string) {
         octet_string->length = 0;
-        while (ascii_hex[index] != 0) {
-            if (!isalnum(ascii_hex[index])) {
-                /* skip non-numeric or alpha */
-                index++;
-                continue;
+        if (ascii_hex[0] == 0) {
+            /* nothing to decode, so success! */
+            status = true;
+        } else {
+            while (ascii_hex[index] != 0) {
+                if (!isalnum(ascii_hex[index])) {
+                    /* skip non-numeric or alpha */
+                    index++;
+                    continue;
+                }
+                if (ascii_hex[index+1] == 0) {
+                    break;
+                }
+                hex_pair_string[0] = ascii_hex[index];
+                hex_pair_string[1] = ascii_hex[index+1];
+                value = (uint8_t)strtol(hex_pair_string, NULL, 16);
+                if (octet_string->length <= MAX_OCTET_STRING_BYTES) {
+                    octet_string->value[octet_string->length] = value;
+                    octet_string->length++;
+                    /* at least one pair was decoded */
+                    status = true;
+                } else {
+                    break;
+                    status = false;
+                }
+                /* set up for next pair */
+                index += 2;
             }
-            if (ascii_hex[index+1] == 0) {
-                break;
-            }
-            hex_pair_string[0] = ascii_hex[index];
-            hex_pair_string[1] = ascii_hex[index+1];
-            value = (uint8_t)strtol(hex_pair_string, NULL, 16);
-            if (octet_string->length <= MAX_OCTET_STRING_BYTES) {
-                octet_string->value[octet_string->length] = value;
-                octet_string->length++;
-                status = true;
-            } else {
-                break;
-                status = false;
-            }
-            /* set up for next pair */
-            index += 2;
         }
     }
 
