@@ -529,6 +529,10 @@ static int utf8_isvalid(
     unsigned char c;
     size_t ab;
 
+    /* empty string is valid */
+    if (length == 0) {
+        return 1;
+    }
     for (p = (unsigned char *) str; p < pend; p++) {
         c = *p;
         /* null in middle of string */
@@ -630,8 +634,12 @@ bool octetstring_init(
         if (length <= MAX_OCTET_STRING_BYTES) {
             if (value) {
                 for (i = 0; i < length; i++) {
-                    octet_string->value[octet_string->length] = value[i];
-                    octet_string->length++;
+                    if (i < length) {
+                        octet_string->value[octet_string->length] = value[i];
+                        octet_string->length++;
+                    } else {
+                        octet_string->value[i] = 0;
+                    }
                 }
             } else {
                 for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {

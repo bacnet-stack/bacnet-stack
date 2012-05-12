@@ -260,8 +260,10 @@ int bacapp_decode_data(
         }
     }
 
-    if (len == 0 && tag_data_type != BACNET_APPLICATION_TAG_NULL &&
-        tag_data_type != BACNET_APPLICATION_TAG_BOOLEAN) {
+    if ((len == 0) &&
+        (tag_data_type != BACNET_APPLICATION_TAG_NULL) &&
+        (tag_data_type != BACNET_APPLICATION_TAG_BOOLEAN) &&
+        (tag_data_type != BACNET_APPLICATION_TAG_OCTET_STRING)) {
         /* indicate that we were not able to decode the value */
         value->tag = MAX_BACNET_APPLICATION_TAG;
     }
