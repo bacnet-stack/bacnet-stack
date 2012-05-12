@@ -482,7 +482,7 @@ void test_Private_Transfer_Ack(
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
-    char private_data_chunk[32] = { "I Love You, Patricia!" };
+    char private_data_chunk[33] = { "00112233445566778899AABBCCDDEEFF" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
     bool status = false;
@@ -535,7 +535,7 @@ void test_Private_Transfer_Error(
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
-    char private_data_chunk[32] = { "I Love You, Patricia!" };
+    char private_data_chunk[33] = { "00112233445566778899AABBCCDDEEFF" };
     BACNET_APPLICATION_DATA_VALUE data_value;
     BACNET_APPLICATION_DATA_VALUE test_data_value;
     bool status = false;
@@ -584,7 +584,7 @@ void test_Private_Transfer_Request(
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
     int private_data_len = 0;
-    char private_data_chunk[32] = { "I Love You, Patricia!" };
+    char private_data_chunk[33] = { "00112233445566778899AABBCCDDEEFF" };
     BACNET_APPLICATION_DATA_VALUE data_value = {0};
     BACNET_APPLICATION_DATA_VALUE test_data_value = {0};
     BACNET_PRIVATE_TRANSFER_DATA private_data = {0};
@@ -638,7 +638,8 @@ void test_Unconfirmed_Private_Transfer_Request(
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_CHARACTER_STRING,
         &private_data_chunk[0], &data_value);
     ct_test(pTest, status == true);
     private_data_len =
