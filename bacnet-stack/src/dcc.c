@@ -43,6 +43,7 @@
    over a power cycle or reinitialization. */
 /* note: time duration is given in Minutes, but in order to be accurate,
    we need to count down in seconds. */
+/* infinite time duration is defined as 0 */
 static uint32_t DCC_Time_Duration_Seconds = 0;
 static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable =
     COMMUNICATION_ENABLE;
@@ -84,6 +85,7 @@ bool dcc_communication_initiation_disabled(
     return (DCC_Enable_Disable == COMMUNICATION_DISABLE_INITIATION);
 }
 
+/* note: 0 indicates either expired, or infinite duration */
 uint32_t dcc_duration_seconds(
     void)
 {
@@ -115,10 +117,11 @@ bool dcc_set_status_duration(
     /* valid? */
     if (status < MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
         DCC_Enable_Disable = status;
-        if (status == COMMUNICATION_ENABLE)
+        if (status == COMMUNICATION_ENABLE) {
             DCC_Time_Duration_Seconds = 0;
-        else
+        } else {
             DCC_Time_Duration_Seconds = minutes * 60;
+        }
         valid = true;
     }
 
@@ -186,30 +189,38 @@ int dcc_decode_service_request(
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             len += decode_unsigned(&apdu[len], len_value_type, &value32);
-            if (timeDuration)
+            if (timeDuration) {
                 *timeDuration = (uint16_t) value32;
-        } else if (timeDuration)
-            *timeDuration = 0xFFFF;		/* As big as we can make it: 2.99 years */
+            }
+        } else if (timeDuration) {
+            /* zero indicates infinite duration and
+               results in no timeout */
+            *timeDuration = 0;
+        }
         /* Tag 1: enable_disable */
-        if (!decode_is_context_tag(&apdu[len], 1))
+        if (!decode_is_context_tag(&apdu[len], 1)) {
             return -1;
+        }
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number,
             &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value32);
-        if (enable_disable)
+        if (enable_disable) {
             *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE) value32;
+        }
         /* Tag 2: password --optional-- */
         if (len < apdu_len) {
-            if (!decode_is_context_tag(&apdu[len], 2))
+            if (!decode_is_context_tag(&apdu[len], 2)) {
                 return -1;
+            }
             len +=
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             len +=
                 decode_character_string(&apdu[len], len_value_type, password);
-        } else if (password)
+        } else if (password) {
             characterstring_init_ansi(password, NULL);
+        }
     }
 
     return (int) len;
