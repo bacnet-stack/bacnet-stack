@@ -379,12 +379,12 @@ typedef enum {
     PROP_COVU_PERIOD = 349,
     PROP_COVU_RECIPIENTS = 350,
     PROP_EVENT_MESSAGE_TEXTS = 351,
-        /* The special property identifiers all, optional, and required  */
-        /* are reserved for use in the ReadPropertyConditional and */
-        /* ReadPropertyMultiple services or services not defined in this standard. */
-        /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
-        /* Enumerated values 512-4194303 may be used by others subject to the  */
-        /* procedures and constraints described in Clause 23.  */
+    /* The special property identifiers all, optional, and required  */
+    /* are reserved for use in the ReadPropertyConditional and */
+    /* ReadPropertyMultiple services or services not defined in this standard. */
+    /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
+    /* Enumerated values 512-4194303 may be used by others subject to the  */
+    /* procedures and constraints described in Clause 23.  */
     /* enumerations used to test Addendum i to ANSI/ASHRAE 135-2008 - private */
     PROP_BLINK_PRIORITY_THRESHOLD = 4201,
     PROP_BLINK_TIME = 4202,
@@ -1398,10 +1398,10 @@ typedef enum {
     ERROR_CODE_BUSY = 82,
     ERROR_CODE_COMMUNICATION_DISABLED = 83,
     MAX_BACNET_ERROR_CODE = 84
-    /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
-    /* Enumerated values 256-65535 may be used by others subject to */
-    /* the procedures and constraints described in Clause 23. */
-    /* The last enumeration used in this version is 50. */
+        /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
+        /* Enumerated values 256-65535 may be used by others subject to */
+        /* the procedures and constraints described in Clause 23. */
+        /* The last enumeration used in this version is 50. */
 } BACNET_ERROR_CODE;
 #define FIRST_PROPRIETARY_ERROR_CODE 256
 #define LAST_PROPRIETARY_ERROR_CODE 65535

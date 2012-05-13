@@ -46,10 +46,10 @@
 /** @file apdu.c  Handles APDU services */
 
 extern int Routed_Device_Service_Approval(
-            BACNET_CONFIRMED_SERVICE service,
-            int service_argument,
-            uint8_t *apdu_buff,
-            uint8_t invoke_id );
+    BACNET_CONFIRMED_SERVICE service,
+    int service_argument,
+    uint8_t * apdu_buff,
+    uint8_t invoke_id);
 
 
 /* APDU Timeout in Milliseconds */
@@ -155,11 +155,12 @@ bool apdu_service_supported(
                 found = true;
                 if (Confirmed_Function[i] != NULL) {
 #if BAC_ROUTING
-                /* Check to see if the current Device supports this service. */
-                    int len = Routed_Device_Service_Approval(
-                                    service_supported, 0, NULL, 0);
-                    if ( len > 0 )  
-                        break;      /* Not supported - return false */
+                    /* Check to see if the current Device supports this service. */
+                    int len =
+                        Routed_Device_Service_Approval(service_supported, 0,
+                        NULL, 0);
+                    if (len > 0)
+                        break;  /* Not supported - return false */
 #endif
 
                     status = true;

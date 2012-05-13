@@ -104,35 +104,35 @@ extern bool Routed_Device_Write_Property_Local(
 /* All included BACnet objects */
 static object_functions_t Object_Table[] = {
     {OBJECT_DEVICE,
-        NULL /* Init - don't init Device or it will recourse! */,
-        Device_Count,
-        Device_Index_To_Instance,
-        Device_Valid_Object_Instance_Number,
-        Device_Object_Name,
-        Device_Read_Property_Local,
-        NULL /* Write_Property */,
-        NULL /* Property_Lists */,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            NULL /* Init - don't init Device or it will recourse! */ ,
+            Device_Count,
+            Device_Index_To_Instance,
+            Device_Valid_Object_Instance_Number,
+            Device_Object_Name,
+            Device_Read_Property_Local,
+            NULL /* Write_Property */ ,
+            NULL /* Property_Lists */ ,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
     {MAX_BACNET_OBJECT_TYPE,
-        NULL /* Init */,
-        NULL /* Count */,
-        NULL /* Index_To_Instance */,
-        NULL /* Valid_Instance */,
-        NULL /* Object_Name */,
-        NULL /* Read_Property */,
-        NULL /* Write_Property */,
-        NULL /* Property_Lists */,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */}
+            NULL /* Init */ ,
+            NULL /* Count */ ,
+            NULL /* Index_To_Instance */ ,
+            NULL /* Valid_Instance */ ,
+            NULL /* Object_Name */ ,
+            NULL /* Read_Property */ ,
+            NULL /* Write_Property */ ,
+            NULL /* Property_Lists */ ,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ }
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -906,6 +906,7 @@ bool Device_Write_Property(
     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
     return (status);
 }
+
 /* Ditto for the local version; always returns false */
 bool Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
@@ -941,5 +942,3 @@ void Device_Init(
         pObject++;
     }
 }
-
-

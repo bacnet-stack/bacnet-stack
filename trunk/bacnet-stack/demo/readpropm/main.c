@@ -298,8 +298,7 @@ int main(
                 "%s 123 1 99 85,87[0],87\r\n"
                 "If you want read the PRESENT_VALUE property in objects\r\n"
                 "Analog Input 77 and Analog Input 78 in Device 123\r\n"
-                "use the following command:\r\n"
-                "%s 123 0 77 85 0 78 85\r\n"
+                "use the following command:\r\n" "%s 123 0 77 85 0 78 85\r\n"
                 "If you want read the ALL property in\r\n"
                 "Device object 123, you would use the following command:\r\n"
                 "%s 123 8 123 8\r\n"
@@ -308,8 +307,8 @@ int main(
                 "%s 123 8 123 80\r\n"
                 "If you want read the REQUIRED property in\r\n"
                 "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 105\r\n",
-                filename, filename, filename, filename, filename);
+                "%s 123 8 123 105\r\n", filename, filename, filename, filename,
+                filename);
         }
         return 0;
     }
@@ -356,13 +355,14 @@ int main(
         property_token = strtok(argv[tag_value_arg], ",");
         /* add all the properties and optional index to our list */
         while (rpm_property) {
-            scan_count = sscanf(property_token, "%u[%u]",
-                &property_id,
+            scan_count =
+                sscanf(property_token, "%u[%u]", &property_id,
                 &property_array_index);
             if (scan_count > 0) {
                 rpm_property->propertyIdentifier = property_id;
                 if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-                    fprintf(stderr, "property=%u - it must be less than %u\r\n",
+                    fprintf(stderr,
+                        "property=%u - it must be less than %u\r\n",
                         rpm_property->propertyIdentifier,
                         MAX_BACNET_PROPERTY_ID + 1);
                     return 1;

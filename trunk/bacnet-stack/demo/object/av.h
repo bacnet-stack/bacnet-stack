@@ -116,8 +116,8 @@ extern "C" {
         BACNET_ERROR_CODE * error_code);
 
     int Analog_Value_Alarm_Summary(
-    unsigned index,
-    BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
+        unsigned index,
+        BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
 #endif
 
     void Analog_Value_Init(
@@ -132,5 +132,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 #endif

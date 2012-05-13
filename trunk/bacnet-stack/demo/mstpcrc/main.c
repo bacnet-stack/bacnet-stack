@@ -73,18 +73,20 @@ static FILE *pFile = NULL;      /* stream pointer */
 * RETURN:       number of arguments parsed
 * NOTES:        none
 ******************************************************************/
-static void Parse_Arguments(int argc, char *argv[])
+static void Parse_Arguments(
+    int argc,
+    char *argv[])
 {
     int i = 0;
     long long_value = 0;
 
-    for (i=1;i<argc;i++) {
+    for (i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
             /* numeric arguments */
             if (isdigit(argv[i][1])) {
                 long_value = strtol(&argv[i][1], NULL, 10);
                 /* dash arguments */
-                switch(long_value) {
+                switch (long_value) {
                     case 8:
                         CRC_Size = 8;
                         break;
@@ -99,7 +101,7 @@ static void Parse_Arguments(int argc, char *argv[])
                 }
             }
             /* dash arguments */
-            switch(argv[i][1]) {
+            switch (argv[i][1]) {
                 case 'h':
                 case 'H':
                     ASCII_Decimal = false;
@@ -122,7 +124,7 @@ static void Parse_Arguments(int argc, char *argv[])
             } else {
                 long_value = strtol(argv[i], NULL, 16);
             }
-            CRC_Buffer[CRC_Buffer_Len] = (uint8_t)long_value;
+            CRC_Buffer[CRC_Buffer_Len] = (uint8_t) long_value;
             CRC_Buffer_Len++;
         }
     }
@@ -158,13 +160,13 @@ static void write_global_header(
     /* create a new file. */
     pFile = fopen(filename, "wb");
     if (pFile) {
-        (void)  fwrite(&magic_number, sizeof(magic_number), 1, pFile);
-        (void)  fwrite(&version_major, sizeof(version_major), 1, pFile);
-        (void)  fwrite(&version_minor, sizeof(version_minor), 1, pFile);
-        (void)  fwrite(&thiszone, sizeof(thiszone), 1,  pFile);
-        (void)  fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
-        (void)  fwrite(&snaplen, sizeof(snaplen), 1, pFile);
-        (void)  fwrite(&network, sizeof(network), 1, pFile);
+        (void) fwrite(&magic_number, sizeof(magic_number), 1, pFile);
+        (void) fwrite(&version_major, sizeof(version_major), 1, pFile);
+        (void) fwrite(&version_minor, sizeof(version_minor), 1, pFile);
+        (void) fwrite(&thiszone, sizeof(thiszone), 1, pFile);
+        (void) fwrite(&sigfigs, sizeof(sigfigs), 1, pFile);
+        (void) fwrite(&snaplen, sizeof(snaplen), 1, pFile);
+        (void) fwrite(&network, sizeof(network), 1, pFile);
         fflush(pFile);
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
@@ -173,7 +175,9 @@ static void write_global_header(
     }
 }
 
-static void write_received_packet(uint8_t *buffer, unsigned length)
+static void write_received_packet(
+    uint8_t * buffer,
+    unsigned length)
 {
     uint32_t ts_sec;    /* timestamp seconds */
     uint32_t ts_usec;   /* timestamp microseconds */
@@ -197,7 +201,9 @@ static void write_received_packet(uint8_t *buffer, unsigned length)
     }
 }
 
-static void Write_Pcap(uint8_t *buffer, unsigned length)
+static void Write_Pcap(
+    uint8_t * buffer,
+    unsigned length)
 {
     filename_create(&Capture_Filename[0]);
     write_global_header(&Capture_Filename[0]);
@@ -220,8 +226,7 @@ int main(
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("mstpcrc [options] <00 00 00 00...>\r\n"
-            "perform MS/TP CRC on data bytes.\r\n"
-            "options:\r\n"
+            "perform MS/TP CRC on data bytes.\r\n" "options:\r\n"
             "[-x] interprete the arguments as ascii hex (default)\r\n"
             "[-d] interprete the argument as ascii decimal\r\n"
             "[-m] Write the bytes to Wireshark capture file\r\n"
@@ -243,35 +248,35 @@ int main(
         if (MSTP_Cap) {
             Write_Pcap(CRC_Buffer, CRC_Buffer_Len);
         } else {
-        for (i = 0; i < CRC_Buffer_Len; i++) {
+            for (i = 0; i < CRC_Buffer_Len; i++) {
+                if (CRC_Size == 8) {
+                    crc8 = CRC_Calc_Header(CRC_Buffer[i], crc8);
+                } else if (CRC_Size == 16) {
+                    crc16 = CRC_Calc_Data(CRC_Buffer[i], crc16);
+                }
+                if (ASCII_Decimal) {
+                    printf("%u\r\n", (unsigned) CRC_Buffer[i]);
+                } else {
+                    printf("0x%02X\r\n", CRC_Buffer[i]);
+                }
+            }
             if (CRC_Size == 8) {
-                crc8 = CRC_Calc_Header(CRC_Buffer[i], crc8);
+                crc8 = ~crc8;
+                if (ASCII_Decimal) {
+                    printf("%u Header CRC\r\n", (unsigned) crc8);
+                } else {
+                    printf("0x%02X Header CRC\r\n", crc8);
+                }
             } else if (CRC_Size == 16) {
-                crc16 = CRC_Calc_Data(CRC_Buffer[i], crc16);
+                crc16 = ~crc16;
+                if (ASCII_Decimal) {
+                    printf("%u Data CRC\r\n", (unsigned) (crc16 & 0xFF));
+                    printf("%u Data CRC\r\n", (unsigned) (crc16 >> 8));
+                } else {
+                    printf("0x%02X Data CRC\r\n", (crc16 & 0xFF));
+                    printf("0x%02X Data CRC\r\n", (crc16 >> 8));
+                }
             }
-            if (ASCII_Decimal) {
-                printf("%u\r\n", (unsigned)CRC_Buffer[i]);
-            } else {
-                printf("0x%02X\r\n", CRC_Buffer[i]);
-            }
-        }
-        if (CRC_Size == 8) {
-            crc8 = ~crc8;
-            if (ASCII_Decimal) {
-                printf("%u Header CRC\r\n", (unsigned)crc8);
-            } else {
-                printf("0x%02X Header CRC\r\n", crc8);
-            }
-        } else if (CRC_Size == 16) {
-            crc16 = ~crc16;
-            if (ASCII_Decimal) {
-                printf("%u Data CRC\r\n", (unsigned)(crc16 & 0xFF));
-                printf("%u Data CRC\r\n", (unsigned)(crc16 >> 8));
-            } else {
-                printf("0x%02X Data CRC\r\n", (crc16 & 0xFF));
-                printf("0x%02X Data CRC\r\n", (crc16 >> 8));
-            }
-        }
         }
     }
 

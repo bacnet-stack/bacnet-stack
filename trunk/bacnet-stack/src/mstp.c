@@ -1096,7 +1096,7 @@ bool MSTP_Master_Node_FSM(
 }
 
 void MSTP_Slave_Node_FSM(
-    volatile struct mstp_port_struct_t * mstp_port)
+    volatile struct mstp_port_struct_t *mstp_port)
 {
     unsigned length = 0;
 
@@ -1140,13 +1140,9 @@ void MSTP_Slave_Node_FSM(
                 break;
             case FRAME_TYPE_TEST_REQUEST:
                 mstp_port->ReceivedValidFrame = false;
-                MSTP_Create_And_Send_Frame(
-                    mstp_port,
-                    FRAME_TYPE_TEST_RESPONSE,
-                    mstp_port->SourceAddress,
-                    mstp_port->This_Station,
-                    &mstp_port->InputBuffer[0],
-                    mstp_port->DataLength);
+                MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TEST_RESPONSE,
+                    mstp_port->SourceAddress, mstp_port->This_Station,
+                    &mstp_port->InputBuffer[0], mstp_port->DataLength);
                 break;
             case FRAME_TYPE_TOKEN:
             case FRAME_TYPE_POLL_FOR_MASTER:

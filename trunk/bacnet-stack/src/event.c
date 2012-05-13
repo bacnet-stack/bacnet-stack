@@ -192,14 +192,14 @@ int event_notify_encode_service_request(
 
                         len =
                             encode_context_bitstring(&apdu[apdu_len], 0,
-                            &data->notificationParams.
-                            changeOfBitstring.referencedBitString);
+                            &data->notificationParams.changeOfBitstring.
+                            referencedBitString);
                         apdu_len += len;
 
                         len =
                             encode_context_bitstring(&apdu[apdu_len], 1,
-                            &data->notificationParams.
-                            changeOfBitstring.statusFlags);
+                            &data->notificationParams.changeOfBitstring.
+                            statusFlags);
                         apdu_len += len;
 
                         len = encode_closing_tag(&apdu[apdu_len], 0);
@@ -223,8 +223,8 @@ int event_notify_encode_service_request(
 
                         len =
                             encode_context_bitstring(&apdu[apdu_len], 1,
-                            &data->notificationParams.
-                            changeOfState.statusFlags);
+                            &data->notificationParams.changeOfState.
+                            statusFlags);
                         apdu_len += len;
 
                         len = encode_closing_tag(&apdu[apdu_len], 1);
@@ -242,8 +242,8 @@ int event_notify_encode_service_request(
                             case CHANGE_OF_VALUE_REAL:
                                 len =
                                     encode_context_real(&apdu[apdu_len], 1,
-                                    data->notificationParams.
-                                    changeOfValue.newValue.changeValue);
+                                    data->notificationParams.changeOfValue.
+                                    newValue.changeValue);
                                 apdu_len += len;
                                 break;
 
@@ -251,8 +251,8 @@ int event_notify_encode_service_request(
                                 len =
                                     encode_context_bitstring(&apdu[apdu_len],
                                     0,
-                                    &data->notificationParams.
-                                    changeOfValue.newValue.changedBits);
+                                    &data->notificationParams.changeOfValue.
+                                    newValue.changedBits);
                                 apdu_len += len;
                                 break;
 
@@ -265,8 +265,8 @@ int event_notify_encode_service_request(
 
                         len =
                             encode_context_bitstring(&apdu[apdu_len], 1,
-                            &data->notificationParams.
-                            changeOfValue.statusFlags);
+                            &data->notificationParams.changeOfValue.
+                            statusFlags);
                         apdu_len += len;
 
                         len = encode_closing_tag(&apdu[apdu_len], 2);
@@ -280,20 +280,20 @@ int event_notify_encode_service_request(
 
                         len =
                             encode_context_real(&apdu[apdu_len], 0,
-                            data->notificationParams.
-                            floatingLimit.referenceValue);
+                            data->notificationParams.floatingLimit.
+                            referenceValue);
                         apdu_len += len;
 
                         len =
                             encode_context_bitstring(&apdu[apdu_len], 1,
-                            &data->notificationParams.
-                            floatingLimit.statusFlags);
+                            &data->notificationParams.floatingLimit.
+                            statusFlags);
                         apdu_len += len;
 
                         len =
                             encode_context_real(&apdu[apdu_len], 2,
-                            data->notificationParams.
-                            floatingLimit.setPointValue);
+                            data->notificationParams.floatingLimit.
+                            setPointValue);
                         apdu_len += len;
 
                         len =
@@ -312,8 +312,8 @@ int event_notify_encode_service_request(
 
                         len =
                             encode_context_real(&apdu[apdu_len], 0,
-                            data->notificationParams.
-                            outOfRange.exceedingValue);
+                            data->notificationParams.outOfRange.
+                            exceedingValue);
                         apdu_len += len;
 
                         len =
@@ -341,26 +341,26 @@ int event_notify_encode_service_request(
 
                         len =
                             encode_context_enumerated(&apdu[apdu_len], 0,
-                            data->notificationParams.
-                            changeOfLifeSafety.newState);
+                            data->notificationParams.changeOfLifeSafety.
+                            newState);
                         apdu_len += len;
 
                         len =
                             encode_context_enumerated(&apdu[apdu_len], 1,
-                            data->notificationParams.
-                            changeOfLifeSafety.newMode);
+                            data->notificationParams.changeOfLifeSafety.
+                            newMode);
                         apdu_len += len;
 
                         len =
                             encode_context_bitstring(&apdu[apdu_len], 2,
-                            &data->notificationParams.
-                            changeOfLifeSafety.statusFlags);
+                            &data->notificationParams.changeOfLifeSafety.
+                            statusFlags);
                         apdu_len += len;
 
                         len =
                             encode_context_enumerated(&apdu[apdu_len], 3,
-                            data->notificationParams.
-                            changeOfLifeSafety.operationExpected);
+                            data->notificationParams.changeOfLifeSafety.
+                            operationExpected);
                         apdu_len += len;
 
                         len = encode_closing_tag(&apdu[apdu_len], 8);
@@ -374,20 +374,20 @@ int event_notify_encode_service_request(
                         len =
                             bacapp_encode_context_device_obj_property_ref(&apdu
                             [apdu_len], 0,
-                            &data->notificationParams.
-                            bufferReady.bufferProperty);
+                            &data->notificationParams.bufferReady.
+                            bufferProperty);
                         apdu_len += len;
 
                         len =
                             encode_context_unsigned(&apdu[apdu_len], 1,
-                            data->notificationParams.
-                            bufferReady.previousNotification);
+                            data->notificationParams.bufferReady.
+                            previousNotification);
                         apdu_len += len;
 
                         len =
                             encode_context_unsigned(&apdu[apdu_len], 2,
-                            data->notificationParams.
-                            bufferReady.currentNotification);
+                            data->notificationParams.bufferReady.
+                            currentNotification);
                         apdu_len += len;
 
                         len = encode_closing_tag(&apdu[apdu_len], 10);
@@ -399,20 +399,20 @@ int event_notify_encode_service_request(
 
                         len =
                             encode_context_unsigned(&apdu[apdu_len], 0,
-                            data->notificationParams.
-                            unsignedRange.exceedingValue);
+                            data->notificationParams.unsignedRange.
+                            exceedingValue);
                         apdu_len += len;
 
                         len =
                             encode_context_bitstring(&apdu[apdu_len], 1,
-                            &data->notificationParams.
-                            unsignedRange.statusFlags);
+                            &data->notificationParams.unsignedRange.
+                            statusFlags);
                         apdu_len += len;
 
                         len =
                             encode_context_unsigned(&apdu[apdu_len], 2,
-                            data->notificationParams.
-                            unsignedRange.exceededLimit);
+                            data->notificationParams.unsignedRange.
+                            exceededLimit);
                         apdu_len += len;
 
                         len = encode_closing_tag(&apdu[apdu_len], 11);
@@ -595,18 +595,16 @@ int event_notify_decode_service_request(
                     case EVENT_CHANGE_OF_BITSTRING:
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 0,
-                                    &data->
-                                    notificationParams.changeOfBitstring.
-                                    referencedBitString))) {
+                                    &data->notificationParams.
+                                    changeOfBitstring.referencedBitString))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 1,
-                                    &data->
-                                    notificationParams.changeOfBitstring.
-                                    statusFlags))) {
+                                    &data->notificationParams.
+                                    changeOfBitstring.statusFlags))) {
                             return -1;
                         }
                         len += section_length;
@@ -617,16 +615,16 @@ int event_notify_decode_service_request(
                         if (-1 == (section_length =
                                 bacapp_decode_context_property_state(&apdu
                                     [len], 0,
-                                    &data->notificationParams.
-                                    changeOfState.newState))) {
+                                    &data->notificationParams.changeOfState.
+                                    newState))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 1,
-                                    &data->notificationParams.
-                                    changeOfState.statusFlags))) {
+                                    &data->notificationParams.changeOfState.
+                                    statusFlags))) {
                             return -1;
                         }
                         len += section_length;
@@ -644,9 +642,8 @@ int event_notify_decode_service_request(
 
                             if (-1 == (section_length =
                                     decode_context_bitstring(&apdu[len], 0,
-                                        &data->
-                                        notificationParams.changeOfValue.
-                                        newValue.changedBits))) {
+                                        &data->notificationParams.
+                                        changeOfValue.newValue.changedBits))) {
                                 return -1;
                             }
 
@@ -657,9 +654,8 @@ int event_notify_decode_service_request(
                                 CHANGE_OF_VALUE_REAL)) {
                             if (-1 == (section_length =
                                     decode_context_real(&apdu[len], 1,
-                                        &data->
-                                        notificationParams.changeOfValue.
-                                        newValue.changeValue))) {
+                                        &data->notificationParams.
+                                        changeOfValue.newValue.changeValue))) {
                                 return -1;
                             }
 
@@ -677,8 +673,8 @@ int event_notify_decode_service_request(
 
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 1,
-                                    &data->notificationParams.
-                                    changeOfValue.statusFlags))) {
+                                    &data->notificationParams.changeOfValue.
+                                    statusFlags))) {
                             return -1;
                         }
                         len += section_length;
@@ -687,31 +683,31 @@ int event_notify_decode_service_request(
                     case EVENT_FLOATING_LIMIT:
                         if (-1 == (section_length =
                                 decode_context_real(&apdu[len], 0,
-                                    &data->notificationParams.
-                                    floatingLimit.referenceValue))) {
+                                    &data->notificationParams.floatingLimit.
+                                    referenceValue))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 1,
-                                    &data->notificationParams.
-                                    floatingLimit.statusFlags))) {
+                                    &data->notificationParams.floatingLimit.
+                                    statusFlags))) {
                             return -1;
                         }
                         len += section_length;
                         if (-1 == (section_length =
                                 decode_context_real(&apdu[len], 2,
-                                    &data->notificationParams.
-                                    floatingLimit.setPointValue))) {
+                                    &data->notificationParams.floatingLimit.
+                                    setPointValue))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_real(&apdu[len], 3,
-                                    &data->notificationParams.
-                                    floatingLimit.errorLimit))) {
+                                    &data->notificationParams.floatingLimit.
+                                    errorLimit))) {
                             return -1;
                         }
                         len += section_length;
@@ -720,31 +716,31 @@ int event_notify_decode_service_request(
                     case EVENT_OUT_OF_RANGE:
                         if (-1 == (section_length =
                                 decode_context_real(&apdu[len], 0,
-                                    &data->notificationParams.
-                                    outOfRange.exceedingValue))) {
+                                    &data->notificationParams.outOfRange.
+                                    exceedingValue))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 1,
-                                    &data->notificationParams.
-                                    outOfRange.statusFlags))) {
+                                    &data->notificationParams.outOfRange.
+                                    statusFlags))) {
                             return -1;
                         }
                         len += section_length;
                         if (-1 == (section_length =
                                 decode_context_real(&apdu[len], 2,
-                                    &data->notificationParams.
-                                    outOfRange.deadband))) {
+                                    &data->notificationParams.outOfRange.
+                                    deadband))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_real(&apdu[len], 3,
-                                    &data->notificationParams.
-                                    outOfRange.exceededLimit))) {
+                                    &data->notificationParams.outOfRange.
+                                    exceededLimit))) {
                             return -1;
                         }
                         len += section_length;
@@ -772,9 +768,8 @@ int event_notify_decode_service_request(
 
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 2,
-                                    &data->
-                                    notificationParams.changeOfLifeSafety.
-                                    statusFlags))) {
+                                    &data->notificationParams.
+                                    changeOfLifeSafety.statusFlags))) {
                             return -1;
                         }
                         len += section_length;
@@ -784,8 +779,8 @@ int event_notify_decode_service_request(
                                     &value))) {
                             return -1;
                         }
-                        data->notificationParams.
-                            changeOfLifeSafety.operationExpected =
+                        data->notificationParams.changeOfLifeSafety.
+                            operationExpected =
                             (BACNET_LIFE_SAFETY_OPERATION) value;
                         len += section_length;
                         break;
@@ -794,24 +789,24 @@ int event_notify_decode_service_request(
                         if (-1 == (section_length =
                                 bacapp_decode_context_device_obj_property_ref
                                 (&apdu[len], 0,
-                                    &data->notificationParams.
-                                    bufferReady.bufferProperty))) {
+                                    &data->notificationParams.bufferReady.
+                                    bufferProperty))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_unsigned(&apdu[len], 1,
-                                    &data->notificationParams.
-                                    bufferReady.previousNotification))) {
+                                    &data->notificationParams.bufferReady.
+                                    previousNotification))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_unsigned(&apdu[len], 2,
-                                    &data->notificationParams.
-                                    bufferReady.currentNotification))) {
+                                    &data->notificationParams.bufferReady.
+                                    currentNotification))) {
                             return -1;
                         }
                         len += section_length;
@@ -820,24 +815,24 @@ int event_notify_decode_service_request(
                     case EVENT_UNSIGNED_RANGE:
                         if (-1 == (section_length =
                                 decode_context_unsigned(&apdu[len], 0,
-                                    &data->notificationParams.
-                                    unsignedRange.exceedingValue))) {
+                                    &data->notificationParams.unsignedRange.
+                                    exceedingValue))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 1,
-                                    &data->notificationParams.
-                                    unsignedRange.statusFlags))) {
+                                    &data->notificationParams.unsignedRange.
+                                    statusFlags))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (-1 == (section_length =
                                 decode_context_unsigned(&apdu[len], 2,
-                                    &data->notificationParams.
-                                    unsignedRange.exceededLimit))) {
+                                    &data->notificationParams.unsignedRange.
+                                    exceededLimit))) {
                             return -1;
                         }
                         len += section_length;
@@ -1083,16 +1078,16 @@ void testEventEventState(
 
     data.eventType = EVENT_CHANGE_OF_BITSTRING;
 
-    bitstring_init(&data.notificationParams.
-        changeOfBitstring.referencedBitString);
-    bitstring_set_bit(&data.notificationParams.
-        changeOfBitstring.referencedBitString, 0, true);
-    bitstring_set_bit(&data.notificationParams.
-        changeOfBitstring.referencedBitString, 1, false);
-    bitstring_set_bit(&data.notificationParams.
-        changeOfBitstring.referencedBitString, 2, true);
-    bitstring_set_bit(&data.notificationParams.
-        changeOfBitstring.referencedBitString, 2, false);
+    bitstring_init(&data.notificationParams.changeOfBitstring.
+        referencedBitString);
+    bitstring_set_bit(&data.notificationParams.changeOfBitstring.
+        referencedBitString, 0, true);
+    bitstring_set_bit(&data.notificationParams.changeOfBitstring.
+        referencedBitString, 1, false);
+    bitstring_set_bit(&data.notificationParams.changeOfBitstring.
+        referencedBitString, 2, true);
+    bitstring_set_bit(&data.notificationParams.changeOfBitstring.
+        referencedBitString, 2, false);
 
     bitstring_init(&data.notificationParams.changeOfBitstring.statusFlags);
 
@@ -1116,8 +1111,8 @@ void testEventEventState(
     testBaseEventState(pTest);
 
     ct_test(pTest,
-        bitstring_same(&data.notificationParams.changeOfBitstring.
-            referencedBitString,
+        bitstring_same(&data.notificationParams.
+            changeOfBitstring.referencedBitString,
             &data2.notificationParams.changeOfBitstring.referencedBitString));
 
     ct_test(pTest,
@@ -1180,16 +1175,16 @@ void testEventEventState(
 
     data.notificationParams.changeOfValue.tag = CHANGE_OF_VALUE_BITS;
 
-    bitstring_init(&data.notificationParams.changeOfValue.
-        newValue.changedBits);
-    bitstring_set_bit(&data.notificationParams.changeOfValue.
-        newValue.changedBits, 0, true);
-    bitstring_set_bit(&data.notificationParams.changeOfValue.
-        newValue.changedBits, 1, false);
-    bitstring_set_bit(&data.notificationParams.changeOfValue.
-        newValue.changedBits, 2, false);
-    bitstring_set_bit(&data.notificationParams.changeOfValue.
-        newValue.changedBits, 3, false);
+    bitstring_init(&data.notificationParams.changeOfValue.newValue.
+        changedBits);
+    bitstring_set_bit(&data.notificationParams.changeOfValue.newValue.
+        changedBits, 0, true);
+    bitstring_set_bit(&data.notificationParams.changeOfValue.newValue.
+        changedBits, 1, false);
+    bitstring_set_bit(&data.notificationParams.changeOfValue.newValue.
+        changedBits, 2, false);
+    bitstring_set_bit(&data.notificationParams.changeOfValue.newValue.
+        changedBits, 3, false);
 
     memset(buffer, 0, MAX_APDU);
     inLen = event_notify_encode_service_request(&buffer[0], &data);
@@ -1210,8 +1205,8 @@ void testEventEventState(
         data2.notificationParams.changeOfValue.tag);
 
     ct_test(pTest,
-        bitstring_same(&data.notificationParams.changeOfValue.newValue.
-            changedBits,
+        bitstring_same(&data.notificationParams.changeOfValue.
+            newValue.changedBits,
             &data2.notificationParams.changeOfValue.newValue.changedBits));
 
         /**********************************************************************************/
@@ -1434,12 +1429,12 @@ void testEventEventState(
     data.notificationParams.bufferReady.currentNotification = 2345;
     data.notificationParams.bufferReady.bufferProperty.deviceIndentifier.type =
         OBJECT_DEVICE;
-    data.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.instance = 500;
+    data.notificationParams.bufferReady.bufferProperty.deviceIndentifier.
+        instance = 500;
     data.notificationParams.bufferReady.bufferProperty.objectIdentifier.type =
         OBJECT_ANALOG_INPUT;
-    data.notificationParams.bufferReady.bufferProperty.
-        objectIdentifier.instance = 100;
+    data.notificationParams.bufferReady.bufferProperty.objectIdentifier.
+        instance = 100;
     data.notificationParams.bufferReady.bufferProperty.propertyIdentifier =
         PROP_PRESENT_VALUE;
     data.notificationParams.bufferReady.bufferProperty.arrayIndex = 0;
@@ -1464,34 +1459,34 @@ void testEventEventState(
 
 
     ct_test(pTest,
-        data.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.type ==
-        data2.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.type);
+        data.notificationParams.bufferReady.bufferProperty.deviceIndentifier.
+        type ==
+        data2.notificationParams.bufferReady.bufferProperty.deviceIndentifier.
+        type);
+
+    ct_test(pTest,
+        data.notificationParams.bufferReady.bufferProperty.deviceIndentifier.
+        instance ==
+        data2.notificationParams.bufferReady.bufferProperty.deviceIndentifier.
+        instance);
+
+    ct_test(pTest,
+        data.notificationParams.bufferReady.bufferProperty.objectIdentifier.
+        instance ==
+        data2.notificationParams.bufferReady.bufferProperty.objectIdentifier.
+        instance);
+
+    ct_test(pTest,
+        data.notificationParams.bufferReady.bufferProperty.objectIdentifier.
+        type ==
+        data2.notificationParams.bufferReady.bufferProperty.objectIdentifier.
+        type);
 
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.instance ==
+        propertyIdentifier ==
         data2.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.instance);
-
-    ct_test(pTest,
-        data.notificationParams.bufferReady.bufferProperty.
-        objectIdentifier.instance ==
-        data2.notificationParams.bufferReady.bufferProperty.
-        objectIdentifier.instance);
-
-    ct_test(pTest,
-        data.notificationParams.bufferReady.bufferProperty.
-        objectIdentifier.type ==
-        data2.notificationParams.bufferReady.bufferProperty.
-        objectIdentifier.type);
-
-    ct_test(pTest,
-        data.notificationParams.bufferReady.
-        bufferProperty.propertyIdentifier ==
-        data2.notificationParams.bufferReady.
-        bufferProperty.propertyIdentifier);
+        propertyIdentifier);
 
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.arrayIndex ==

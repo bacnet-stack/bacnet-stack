@@ -178,7 +178,7 @@ extern "C" {
         volatile struct mstp_port_struct_t
         *mstp_port);
     void MSTP_Slave_Node_FSM(
-        volatile struct mstp_port_struct_t * mstp_port);
+        volatile struct mstp_port_struct_t *mstp_port);
 
     /* returns true if line is active */
     bool MSTP_Line_Active(

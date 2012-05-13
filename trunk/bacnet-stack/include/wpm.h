@@ -49,13 +49,16 @@ extern "C" {
 
 
     /* encode objects */
-    int wpm_encode_apdu_init (uint8_t * apdu, uint8_t invoke_id);
-    int wpm_encode_apdu_object_begin (
+    int wpm_encode_apdu_init(
+        uint8_t * apdu,
+        uint8_t invoke_id);
+    int wpm_encode_apdu_object_begin(
         uint8_t * apdu,
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
-    int wpm_encode_apdu_object_end (uint8_t * apdu);
-    int wpm_encode_apdu_object_property (
+    int wpm_encode_apdu_object_end(
+        uint8_t * apdu);
+    int wpm_encode_apdu_object_property(
         uint8_t * apdu,
         BACNET_WRITE_PROPERTY_DATA * wpdata);
 

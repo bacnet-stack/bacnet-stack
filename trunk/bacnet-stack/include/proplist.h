@@ -37,11 +37,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
-unsigned property_list_count(
-    const int *pList);
-void property_list_special(
-    BACNET_OBJECT_TYPE object_type,
-    struct special_property_list_t *pPropertyList);
+    unsigned property_list_count(
+        const int *pList);
+    void property_list_special(
+        BACNET_OBJECT_TYPE object_type,
+        struct special_property_list_t *pPropertyList);
 
 #ifdef __cplusplus
 }

@@ -378,8 +378,7 @@ static bool MSTP_Transmit_FSM(
         case MSTP_TX_STATE_IDLE:
             if (!Ringbuf_Empty(&Transmit_Queue)) {
                 /* get the packet - but don't remove it from queue */
-                pkt =
-                    (struct mstp_tx_packet *)
+                pkt = (struct mstp_tx_packet *)
                     Ringbuf_Get_Front(&Transmit_Queue);
                 state = MSTP_TX_STATE_SILENCE_WAIT;
             }
@@ -1235,8 +1234,7 @@ static bool MSTP_Master_Node_FSM(
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
-            } else if (rs485_silence_elapsed(Treply_delay) ||
-                (pkt != NULL)) {
+            } else if (rs485_silence_elapsed(Treply_delay) || (pkt != NULL)) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
                 /* within Treply_delay after the reception of the */

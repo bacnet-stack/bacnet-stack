@@ -1145,13 +1145,10 @@ bool MSTP_Master_Node_FSM(
                    see if the message is that same APDU type
                    along with the matching src/dest and invoke ID */
                 matched =
-                    mstp_compare_data_expecting_reply(
-                        &mstp_port->InputBuffer[0],
-                        mstp_port->DataLength,
-                        mstp_port->SourceAddress,
-                        &mstp_port->TxBuffer[0],
-                        mstp_port->TxLength,
-                        mstp_port->TxDestination);
+                    mstp_compare_data_expecting_reply(&mstp_port->
+                    InputBuffer[0], mstp_port->DataLength,
+                    mstp_port->SourceAddress, &mstp_port->TxBuffer[0],
+                    mstp_port->TxLength, mstp_port->TxDestination);
             }
             if (matched && mstp_port->TxReady) {
                 /* Reply */
@@ -1162,8 +1159,7 @@ bool MSTP_Master_Node_FSM(
                 /* then call MSTP_Create_And_Send_Frame to transmit the reply frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 RS485_Send_Frame(mstp_port,
-                    (uint8_t *) & mstp_port->TxBuffer[0],
-                    mstp_port->TxLength);
+                    (uint8_t *) & mstp_port->TxBuffer[0], mstp_port->TxLength);
                 mstp_port->TxReady = false;
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
             } else {

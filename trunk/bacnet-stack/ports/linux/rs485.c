@@ -153,7 +153,7 @@ uint32_t RS485_Get_Baud_Rate(
             baud = 200;
             break;
         case B300:
-            baud =300;
+            baud = 300;
             break;
         case B600:
             baud = 600;
@@ -288,13 +288,13 @@ void RS485_Send_Frame(
     uint16_t nbytes)
 {       /* number of bytes of data (up to 501) */
     uint32_t turnaround_time = Tturnaround * 1000;
-    uint32_t baud = RS485_Get_Baud_Rate ();
+    uint32_t baud = RS485_Get_Baud_Rate();
     ssize_t written = 0;
     int greska;
 
     /* sleeping for turnaround time is necessary to give other devices 
        time to change from sending to receiving state. */
-    usleep(turnaround_time/baud);
+    usleep(turnaround_time / baud);
     /*
        On  success,  the  number of bytes written are returned (zero indicates
        nothing was written).  On error, -1  is  returned,  and  errno  is  set
@@ -354,9 +354,9 @@ void RS485_Check_UART_Data(
         }
     }
     /* grab bytes and stuff them into the FIFO every time */
-    FD_ZERO (&input);
-    FD_SET (RS485_Handle, &input);
-    n = select (RS485_Handle + 1, &input, NULL, NULL, &waiter);
+    FD_ZERO(&input);
+    FD_SET(RS485_Handle, &input);
+    n = select(RS485_Handle + 1, &input, NULL, NULL, &waiter);
     if (n < 0) {
         return;
     }

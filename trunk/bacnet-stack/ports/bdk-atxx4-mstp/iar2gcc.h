@@ -273,8 +273,11 @@ typedef struct {
 #endif
 #elif defined (__CROSSWORKS_AVR)
 /* use functions defined in crt0.s to mimic IAR macros */
-void __uint8_eeprom_store(unsigned char byte, unsigned addr);
-unsigned char __uint8_eeprom_load(unsigned addr);
+void __uint8_eeprom_store(
+    unsigned char byte,
+    unsigned addr);
+unsigned char __uint8_eeprom_load(
+    unsigned addr);
 #define __EEPUT(addr, var) \
     __uint8_eeprom_store((unsigned char)(var), (unsigned)(addr))
 #define __EEGET(var, addr) \

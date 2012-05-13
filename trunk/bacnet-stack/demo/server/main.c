@@ -128,7 +128,7 @@ static void Init_Service_Handlers(
         handler_get_event_information);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
         handler_get_alarm_summary);
-#endif  /* defined(INTRINSIC_REPORTING) */
+#endif /* defined(INTRINSIC_REPORTING) */
 }
 
 /** Main function of server demo.

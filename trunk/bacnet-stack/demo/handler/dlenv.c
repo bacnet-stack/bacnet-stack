@@ -45,7 +45,7 @@ static uint16_t BBMD_Timer_Seconds;
 static long bbmd_timetolive_seconds = 60000;
 static long bbmd_port = 0xBAC0;
 static long bbmd_address = 0;
-static int  bbmd_result = 0;
+static int bbmd_result = 0;
 
 /* Simple setters for BBMD registration variables. */
 
@@ -55,7 +55,8 @@ static int  bbmd_result = 0;
  * @param address - IPv4 address (long) of BBMD to register with,
  *                       in network byte order.
  */
-void dlenv_bbmd_address_set( long address )
+void dlenv_bbmd_address_set(
+    long address)
 {
     bbmd_address = address;
 }
@@ -64,7 +65,8 @@ void dlenv_bbmd_address_set( long address )
  * Default if not set is 0xBAC0.
  * @param port - The port number (provided in network byte order).
  */
-void dlenv_bbmd_port_set( int port )
+void dlenv_bbmd_port_set(
+    int port)
 {
     bbmd_port = port;
 }
@@ -73,7 +75,8 @@ void dlenv_bbmd_port_set( int port )
  * Default if not set is 60000 (1000 minutes).
  * @param ttl_secs - The Lease Time, in seconds.
  */
-void dlenv_bbmd_ttl_set( int ttl_secs )
+void dlenv_bbmd_ttl_set(
+    int ttl_secs)
 {
     bbmd_timetolive_seconds = ttl_secs;
 }
@@ -86,10 +89,11 @@ void dlenv_bbmd_ttl_set( int ttl_secs )
  *         0 if no registration request was made, or
  *         -1 if registration attempt failed.
  */
-int dlenv_bbmd_result( void )
+int dlenv_bbmd_result(
+    void)
 {
-    if ( (bbmd_result > 0) &&
-         (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK) )
+    if ((bbmd_result > 0) &&
+        (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK))
         return -1;
     /* Else, show our send: */
     return bbmd_result;
@@ -113,7 +117,7 @@ int dlenv_bbmd_result( void )
 int dlenv_register_as_foreign_device(
     void)
 {
-  int retval = 0;
+    int retval = 0;
 #if defined(BACDL_BIP)
     char *pEnv = NULL;
 
@@ -138,15 +142,14 @@ int dlenv_register_as_foreign_device(
     if (bbmd_address) {
         struct in_addr addr;
         addr.s_addr = bbmd_address;
-        fprintf(stderr,
-            "Registering with BBMD at %s:%ld for %ld seconds\n",
+        fprintf(stderr, "Registering with BBMD at %s:%ld for %ld seconds\n",
             inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-        retval = bvlc_register_with_bbmd(bbmd_address,
-                          htons((uint16_t) bbmd_port),
-                          (uint16_t) bbmd_timetolive_seconds);
-        if ( retval < 0 )
-            fprintf(stderr,
-                "FAILED to Register with BBMD at %s \n", inet_ntoa(addr) );
+        retval =
+            bvlc_register_with_bbmd(bbmd_address, htons((uint16_t) bbmd_port),
+            (uint16_t) bbmd_timetolive_seconds);
+        if (retval < 0)
+            fprintf(stderr, "FAILED to Register with BBMD at %s \n",
+                inet_ntoa(addr));
         BBMD_Timer_Seconds = bbmd_timetolive_seconds;
     }
 

@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>       /* for time */
-#include <ctype.h> /* for toupper */
+#include <ctype.h>      /* for toupper */
 
 #define PRINT_ENABLED 1
 
@@ -187,40 +187,30 @@ int main(
     if (print_usage_terse) {
         filename = filename_remove_path(argv[0]);
         printf("Usage: %s device-id object-type object-instance "
-            "process-id <[un]confirmed lifetime|cancel>\r\n",
-            filename);
+            "process-id <[un]confirmed lifetime|cancel>\r\n", filename);
         if (!print_usage_verbose) {
             return 0;
         }
     }
     if (print_usage_verbose) {
-        printf("\r\n"
-            "device-id:\r\n"
-            "The subscriber BACnet Device Object Instance number.\r\n"
-            "\r\n"
+        printf("\r\n" "device-id:\r\n"
+            "The subscriber BACnet Device Object Instance number.\r\n" "\r\n"
             "object-type:\r\n"
             "The monitored object type is the integer value of the\r\n"
             "enumeration BACNET_OBJECT_TYPE in bacenum.h.  For example,\r\n"
             "if you were monitoring Analog Output 2, the object-type\r\n"
-            "would be 1.\r\n"
-            "\r\n"
-            "object-instance:\r\n"
-            "The monitored object instance number.\r\n"
-            "\r\n"
+            "would be 1.\r\n" "\r\n" "object-instance:\r\n"
+            "The monitored object instance number.\r\n" "\r\n"
             "process-id:\r\n"
-            "Process Identifier for this COV subscription.\r\n"
-            "\r\n"
+            "Process Identifier for this COV subscription.\r\n" "\r\n"
             "confirmed:\r\n"
             "Optional flag to subscribe using Confirmed notifications.\r\n"
-            "Use the word \'confirmed\' or \'unconfirmed\'.\r\n"
-            "\r\n"
+            "Use the word \'confirmed\' or \'unconfirmed\'.\r\n" "\r\n"
             "lifetime:\r\n"
-            "Optional subscription lifetime is conveyed in seconds.\r\n"
-            "\r\n"
+            "Optional subscription lifetime is conveyed in seconds.\r\n" "\r\n"
             "cancel:\r\n"
             "Use the word \'cancel\' instead of confirm and lifetime.\r\n"
-            "This shall indicate a cancellation request.\r\n"
-            "\r\n"
+            "This shall indicate a cancellation request.\r\n" "\r\n"
             "Example:\r\n"
             "If you want subscribe to Device 123 Analog Input 9 object\r\n"
             "using confirmed COV notifications for 5 minutes,\r\n"
@@ -230,8 +220,7 @@ int main(
             "notifications, send the following command:\r\n"
             "%s 123 0 9 1 unconfirmed 600\r\n"
             "To cancel the same COV subscription request,\r\n"
-            "send the following command:\r\n"
-            "%s 123 0 9 1 cancel\r\n",
+            "send the following command:\r\n" "%s 123 0 9 1 cancel\r\n",
             filename, filename, filename);
         return 0;
     }
@@ -247,11 +236,11 @@ int main(
     cov_data = COV_Subscribe_Data;
     argi = 2;
     while (cov_data) {
-        cov_data->monitoredObjectIdentifier.type =
-            strtol(argv[argi], NULL, 0);
+        cov_data->monitoredObjectIdentifier.type = strtol(argv[argi], NULL, 0);
         if (cov_data->monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
             fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-                cov_data->monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
+                cov_data->monitoredObjectIdentifier.type,
+                MAX_BACNET_OBJECT_TYPE);
             return 1;
         }
         argi++;
@@ -264,21 +253,19 @@ int main(
             return 1;
         }
         argi++;
-        cov_data->subscriberProcessIdentifier =
-            strtol(argv[argi], NULL, 0);
+        cov_data->subscriberProcessIdentifier = strtol(argv[argi], NULL, 0);
         argi++;
-        if (strcmp(argv[argi],"cancel") == 0) {
+        if (strcmp(argv[argi], "cancel") == 0) {
             cov_data->cancellationRequest = true;
             argi++;
         } else {
             cov_data->cancellationRequest = false;
-            if (strcmp(argv[argi],"confirmed") == 0) {
+            if (strcmp(argv[argi], "confirmed") == 0) {
                 cov_data->issueConfirmedNotifications = true;
-            } else if (strcmp(argv[argi],"unconfirmed") == 0) {
+            } else if (strcmp(argv[argi], "unconfirmed") == 0) {
                 cov_data->issueConfirmedNotifications = false;
             } else {
-                fprintf(stderr, "unknown option: %s\r\n",
-                    argv[argi]);
+                fprintf(stderr, "unknown option: %s\r\n", argv[argi]);
                 return 1;
             }
             argi++;
@@ -342,8 +329,8 @@ int main(
             if (Request_Invoke_ID == 0) {
                 Target_Device_Process_Identifier =
                     cov_data->subscriberProcessIdentifier;
-                Request_Invoke_ID = Send_COV_Subscribe(
-                    Target_Device_Object_Instance,
+                Request_Invoke_ID =
+                    Send_COV_Subscribe(Target_Device_Object_Instance,
                     cov_data);
                 if (!cov_data->cancellationRequest &&
                     (timeout_seconds < cov_data->lifetime)) {
@@ -351,7 +338,7 @@ int main(
                     timeout_seconds = cov_data->lifetime;
                 }
                 printf("Sent SubscribeCOV request.  Waiting %u seconds.\r\n",
-                    (unsigned)(timeout_seconds - elapsed_seconds));
+                    (unsigned) (timeout_seconds - elapsed_seconds));
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 if (cov_data->next) {
                     cov_data = cov_data->next;

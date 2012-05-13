@@ -262,8 +262,7 @@ uint16_t bip_receive(
     if (pdu[0] != BVLL_TYPE_BACNET_IP)
         return 0;
 
-    if ( bvlc_for_non_bbmd(&sin, pdu, received_bytes) > 0 )
-    {
+    if (bvlc_for_non_bbmd(&sin, pdu, received_bytes) > 0) {
         /* Handled, usually with a NACK. */
 #if PRINT_ENABLED
         fprintf(stderr, "BIP: BVLC discarded!\n");

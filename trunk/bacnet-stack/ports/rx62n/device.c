@@ -833,8 +833,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -868,8 +868,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Object_Name(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Object_Name(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -878,8 +878,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_LOC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Location(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Location(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -889,8 +889,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_DESC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Description(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Description(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -948,13 +948,13 @@ bool Device_Write_Property(
 /** Initialize the Device Object and each of its child Object instances.
  * @ingroup ObjIntf
  */
-    void Device_Init(
-        object_functions_t * object_table)
+void Device_Init(
+    object_functions_t * object_table)
 {
     struct my_object_functions *pObject = NULL;
 
     /* not using the standard table - using our own */
-    (void)object_table;
+    (void) object_table;
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {

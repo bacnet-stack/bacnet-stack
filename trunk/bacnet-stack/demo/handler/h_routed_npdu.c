@@ -210,17 +210,17 @@ static void routed_apdu_handler(
          * we don't try the standard path of asking Who-Is-Router-to-Network. */
 #if defined(BACDL_BIP)
         /* If wasn't unicast to us, must have been one of the bcast types.
-         * Drop it. */ 
-        if ( bvlc_get_function_code() != BVLC_ORIGINAL_UNICAST_NPDU )
+         * Drop it. */
+        if (bvlc_get_function_code() != BVLC_ORIGINAL_UNICAST_NPDU)
             return;
 #endif
-         /* Upper level handlers knew that this was sent as a bcast,
+        /* Upper level handlers knew that this was sent as a bcast,
          * but our only other way to guess at that here is if the dest->adr
          * is absent, then we know this is some sort of bcast.
          */
-        if ( dest->len > 0 ) {
+        if (dest->len > 0) {
             Send_Reject_Message_To_Network(src, NETWORK_REJECT_NO_ROUTE,
-                    dest->net);
+                dest->net);
         }       /* else, silently drop it */
         return;
     }

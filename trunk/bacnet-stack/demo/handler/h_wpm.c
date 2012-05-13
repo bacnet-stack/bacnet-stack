@@ -155,7 +155,7 @@ void handler_write_property_multiple(
         }
     } while (decode_len < service_len);
 
-WPM_ABORT:
+  WPM_ABORT:
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);

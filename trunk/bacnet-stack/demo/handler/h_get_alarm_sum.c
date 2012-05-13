@@ -57,9 +57,9 @@ void handler_get_alarm_summary(
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     int len = 0;
-    int pdu_len  = 0;
+    int pdu_len = 0;
     int apdu_len = 0;
-    int bytes_sent  = 0;
+    int bytes_sent = 0;
     int alarm_value = 0;
     unsigned i = 0;
     unsigned j = 0;
@@ -90,9 +90,9 @@ void handler_get_alarm_summary(
     }
 
     /* init header */
-    apdu_len = get_alarm_summary_ack_encode_apdu_init(
-                    &Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id);
+    apdu_len =
+        get_alarm_summary_ack_encode_apdu_init(&Handler_Transmit_Buffer
+        [pdu_len], service_data->invoke_id);
 
 
     for (i = 0; i < MAX_BACNET_OBJECT_TYPE; i++) {
@@ -100,18 +100,16 @@ void handler_get_alarm_summary(
             for (j = 0; j < 0xffff; j++) {
                 alarm_value = Get_Alarm_Summary[i] (j, &getalarm_data);
                 if (alarm_value > 0) {
-                    len = get_alarm_sumary_ack_encode_apdu_data(
-                                &Handler_Transmit_Buffer[pdu_len + apdu_len],
-                                service_data->max_resp - apdu_len,
-                                &getalarm_data);
+                    len =
+                        get_alarm_sumary_ack_encode_apdu_data
+                        (&Handler_Transmit_Buffer[pdu_len + apdu_len],
+                        service_data->max_resp - apdu_len, &getalarm_data);
                     if (len <= 0) {
                         error = true;
                         goto GET_ALARM_SUMMARY_ERROR;
-                    }
-                    else
+                    } else
                         apdu_len += len;
-                }
-                else if (alarm_value < 0) {
+                } else if (alarm_value < 0) {
                     break;
                 }
             }
@@ -123,7 +121,7 @@ void handler_get_alarm_summary(
     fprintf(stderr, "GetAlarmSummary: Sending response!\n");
 #endif
 
-GET_ALARM_SUMMARY_ERROR:
+  GET_ALARM_SUMMARY_ERROR:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
@@ -135,8 +133,7 @@ GET_ALARM_SUMMARY_ERROR:
             fprintf(stderr,
                 "GetAlarmSummary: Reply too big to fit into APDU!\n");
 #endif
-        }
-        else {
+        } else {
             apdu_len =
                 bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
@@ -148,7 +145,7 @@ GET_ALARM_SUMMARY_ERROR:
     }
 
 
- GET_ALARM_SUMMARY_ABORT:
+  GET_ALARM_SUMMARY_ABORT:
     pdu_len += apdu_len;
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],

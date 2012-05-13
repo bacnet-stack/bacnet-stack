@@ -131,13 +131,14 @@ void handler_reinitialize_device(
     } else {
 #if BAC_ROUTING
         /* Check to see if the current Device supports this service. */
-        len = Routed_Device_Service_Approval(
-                SERVICE_CONFIRMED_REINITIALIZE_DEVICE, (int) rd_data.state,
-                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id );
-        if ( len > 0 )
+        len =
+            Routed_Device_Service_Approval
+            (SERVICE_CONFIRMED_REINITIALIZE_DEVICE, (int) rd_data.state,
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
+        if (len > 0)
             goto RD_ABORT;
 #endif
-        
+
         if (Device_Reinitialize(&rd_data)) {
             len =
                 encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
