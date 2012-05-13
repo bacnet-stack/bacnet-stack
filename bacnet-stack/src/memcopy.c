@@ -46,19 +46,19 @@ size_t memcopy(
     size_t len, /* amount of data to copy */
     size_t max)
 {       /* total size of destination */
-//    size_t i;
-//    size_t copy_len = 0;
-//    char *s1, *s2;
+/*    size_t i; */
+/*    size_t copy_len = 0; */
+/*    char *s1, *s2; */
 
-//    s1 = dest;
-//    s2 = src;
+/*    s1 = dest; */
+/*    s2 = src; */
     if (len <= (max - offset)) {
         memcpy(&((char *) dest)[offset], src, len);
         return (len);
-//        for (i = 0; i < len; i++) {
-//            s1[offset + i] = s2[i];
-//            copy_len++;
-//        }
+/*        for (i = 0; i < len; i++) { */
+/*            s1[offset + i] = s2[i]; */
+/*            copy_len++; */
+/*        } */
     }
 
     return 0;

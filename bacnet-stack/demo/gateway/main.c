@@ -323,7 +323,7 @@ int main(
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
-    // Dummy return
+    /* Dummy return */
     return 0;
 }
 
