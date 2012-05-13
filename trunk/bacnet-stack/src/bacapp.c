@@ -2089,10 +2089,32 @@ void testBACnetApplicationData(
         "Karg!", &value);
     ct_test(pTest, status == true);
     ct_test(pTest, testBACnetApplicationDataValue(&value));
+    /* test empty string */
+    status =
+        bacapp_parse_application_data(BACNET_APPLICATION_TAG_CHARACTER_STRING,
+        "", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
 
     status =
         bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
-        "Steve + Patricia", &value);
+        "1234567890ABCDEF", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+    status =
+        bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
+        "12-34-56-78-90-AB-CD-EF", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+    status =
+        bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
+        "12 34 56 78 90 AB CD EF", &value);
+    ct_test(pTest, status == true);
+    ct_test(pTest, testBACnetApplicationDataValue(&value));
+    /* test empty string */
+    status =
+        bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
+        "", &value);
     ct_test(pTest, status == true);
     ct_test(pTest, testBACnetApplicationDataValue(&value));
 
