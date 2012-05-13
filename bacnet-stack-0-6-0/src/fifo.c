@@ -194,7 +194,7 @@ bool FIFO_Add(
 void FIFO_Flush(
     FIFO_BUFFER * b)
 {
-    unsigned head;        /* used to avoid volatile decision */
+    unsigned head;      /* used to avoid volatile decision */
 
     if (b) {
         head = b->head;
@@ -236,10 +236,10 @@ void FIFO_Init(
 void testFIFOBuffer(
     Test * pTest)
 {
-    FIFO_BUFFER test_buffer = {0};
-    volatile uint8_t data_store[FIFO_BUFFER_SIZE] = {0};
+    FIFO_BUFFER test_buffer = { 0 };
+    volatile uint8_t data_store[FIFO_BUFFER_SIZE] = { 0 };
     uint8_t add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
-    uint8_t test_add_data[40] = {0};
+    uint8_t test_add_data[40] = { 0 };
     uint8_t test_data = 0;
     unsigned index = 0;
     unsigned count = 0;

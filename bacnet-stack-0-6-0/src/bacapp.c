@@ -260,8 +260,7 @@ int bacapp_decode_data(
         }
     }
 
-    if ((len == 0) &&
-        (tag_data_type != BACNET_APPLICATION_TAG_NULL) &&
+    if ((len == 0) && (tag_data_type != BACNET_APPLICATION_TAG_NULL) &&
         (tag_data_type != BACNET_APPLICATION_TAG_BOOLEAN) &&
         (tag_data_type != BACNET_APPLICATION_TAG_OCTET_STRING)) {
         /* indicate that we were not able to decode the value */
@@ -701,7 +700,7 @@ int bacapp_decode_context_data(
             &len_value_type);
         apdu_len = tag_len;
         /* Empty construct : (closing tag) => returns NULL value */
-        if (tag_len && ((unsigned)tag_len <= max_apdu_len) &&
+        if (tag_len && ((unsigned) tag_len <= max_apdu_len) &&
             !decode_is_closing_tag_number(&apdu[0], tag_number)) {
             value->context_tag = tag_number;
             value->tag = bacapp_context_tag_type(property, tag_number);
@@ -717,9 +716,8 @@ int bacapp_decode_context_data(
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
             }
-        }
-        else if ( tag_len == 1 )	/* and is a Closing tag */
-        	apdu_len = 0;			/* Don't advance over that closing tag. */
+        } else if (tag_len == 1)        /* and is a Closing tag */
+            apdu_len = 0;       /* Don't advance over that closing tag. */
     }
 
     return apdu_len;
@@ -1017,8 +1015,8 @@ bool bacapp_print_value(
                     case PROP_OBJECT_TYPE:
                         if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
                             fprintf(stream, "%s",
-                                bactext_object_type_name(value->type.
-                                    Enumerated));
+                                bactext_object_type_name(value->
+                                    type.Enumerated));
                         } else if (value->type.Enumerated < 128) {
                             fprintf(stream, "reserved %lu",
                                 (unsigned long) value->type.Enumerated);
@@ -1034,8 +1032,8 @@ bool bacapp_print_value(
                     case PROP_UNITS:
                         if (value->type.Enumerated < 256) {
                             fprintf(stream, "%s",
-                                bactext_engineering_unit_name(value->
-                                    type.Enumerated));
+                                bactext_engineering_unit_name(value->type.
+                                    Enumerated));
                         } else {
                             fprintf(stream, "proprietary %lu",
                                 (unsigned long) value->type.Enumerated);
@@ -1043,15 +1041,15 @@ bool bacapp_print_value(
                         break;
                     case PROP_POLARITY:
                         fprintf(stream, "%s",
-                            bactext_binary_polarity_name(value->
-                                type.Enumerated));
+                            bactext_binary_polarity_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
                     case PROP_RELINQUISH_DEFAULT:
                         if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
                             fprintf(stream, "%s",
-                                bactext_binary_present_value_name(value->type.
-                                    Enumerated));
+                                bactext_binary_present_value_name(value->
+                                    type.Enumerated));
                         } else {
                             fprintf(stream, "%lu",
                                 (unsigned long) value->type.Enumerated);
@@ -1063,8 +1061,8 @@ bool bacapp_print_value(
                         break;
                     case PROP_SYSTEM_STATUS:
                         fprintf(stream, "%s",
-                            bactext_device_status_name(value->
-                                type.Enumerated));
+                            bactext_device_status_name(value->type.
+                                Enumerated));
                         break;
                     case PROP_SEGMENTATION_SUPPORTED:
                         fprintf(stream, "%s",
@@ -1213,7 +1211,8 @@ bool bacapp_parse_application_data(
                 break;
             case BACNET_APPLICATION_TAG_DATE:
                 count =
-                    sscanf(argv, "%4d/%3d/%3d:%3d", &year, &month, &day, &wday);
+                    sscanf(argv, "%4d/%3d/%3d:%3d", &year, &month, &day,
+                    &wday);
                 if (count == 3) {
                     datetime_set_date(&value->type.Date, (uint16_t) year,
                         (uint8_t) month, (uint8_t) day);
@@ -1437,8 +1436,8 @@ void testBACnetApplicationData_Safe(
                 break;
 
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                characterstring_init_ansi(&input_value[i].type.
-                    Character_String, "Hello There!");
+                characterstring_init_ansi(&input_value[i].
+                    type.Character_String, "Hello There!");
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:
@@ -1913,8 +1912,8 @@ void testBACnetApplicationData(
     ct_test(pTest, testBACnetApplicationDataValue(&value));
     /* test empty string */
     status =
-        bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
-        "", &value);
+        bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING, "",
+        &value);
     ct_test(pTest, status == true);
     ct_test(pTest, testBACnetApplicationDataValue(&value));
 

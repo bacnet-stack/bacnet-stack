@@ -126,7 +126,7 @@ typedef bool(
  * @ingroup ObjHelpers
  * @param [in] The object instance number to be looked up.
  */
-typedef void(
+typedef void (
     *object_cov_clear_function) (
     uint32_t object_instance);
 
@@ -378,7 +378,7 @@ extern "C" {
 
     uint16_t Add_Routed_Device(
         uint32_t Object_Instance,
-        BACNET_CHARACTER_STRING *Object_Name,
+        BACNET_CHARACTER_STRING * Object_Name,
         const char *Description);
     DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
         int idx);
@@ -432,7 +432,7 @@ extern "C" {
     Device_Read_Property_Local, Device_Write_Property_Local, \
     Device_Property_Lists, DeviceGetRRInfo, NULL /* Iterator */, \
     NULL /* Value Lists */, NULL /* COV */, NULL /* COV Clear */, \
-    NULL /* Intrinsic Reporting */ 
+    NULL        /* Intrinsic Reporting */
 /** @defgroup ObjFrmwk Object Framework
  * The modules in this section describe the BACnet-stack's framework for
  * BACnet-defined Objects (Device, Analog Input, etc). There are two submodules
@@ -442,11 +442,11 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
-          *//** @defgroup ObjHelpers Object Helper Functions
+                      *//** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk
  * This section describes the function templates for the helper functions that
  * provide common object support.
-          *//** @defgroup ObjIntf Handler-to-Object Interface Functions
+                      *//** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk
  * This section describes the fairly limited set of functions that link the
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are

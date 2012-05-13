@@ -474,7 +474,8 @@ bool bacfile_write_stream_data(
         }
         if (pFile) {
             if (data->type.stream.fileStartPosition != -1) {
-                (void) fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
+                (void) fseek(pFile, data->type.stream.fileStartPosition,
+                    SEEK_SET);
             }
             if (fwrite(octetstring_value(&data->fileData),
                     octetstring_length(&data->fileData), 1, pFile) != 1) {

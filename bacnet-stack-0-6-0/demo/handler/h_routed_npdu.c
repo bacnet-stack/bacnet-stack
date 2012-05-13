@@ -208,9 +208,9 @@ static void routed_apdu_handler(
          * but our only way to guess at that here is if the dest->adr
          * is absent, then we know this is some sort of bcast.
          */
-        if ( dest->len > 0 ) {
+        if (dest->len > 0) {
             Send_Reject_Message_To_Network(src, NETWORK_REJECT_NO_ROUTE,
-                    dest->net);
+                dest->net);
         }       /* else, silently drop it */
         return;
     }

@@ -145,9 +145,8 @@ static void Init_Service_Handlers(
      * each device in turn. 
      */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-            handler_who_is_unicast);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS,
-        handler_who_has);
+        handler_who_is_unicast);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler
@@ -338,7 +337,7 @@ int main(
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
-    // Dummy return
+    /* Dummy return */
     return 0;
 }
 

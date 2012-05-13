@@ -149,8 +149,7 @@ static struct Address_Cache_Entry *address_remove_oldest(
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->
-                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) == BAC_ADDR_IN_USE) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
@@ -169,8 +168,7 @@ static struct Address_Cache_Entry *address_remove_oldest(
     /* Second pass - try in use and un bound as last resort */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->
-                Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
                     BAC_ADDR_STATIC)) ==
             ((uint8_t) (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
@@ -206,10 +204,11 @@ static void address_file_init(
     long device_id = 0;
     int snet = 0;
     unsigned max_apdu = 0;
-    unsigned mac[6] = {0};
+    unsigned mac[6] = { 0 };
     int count = 0;
-    char mac_string[80] = {""}, sadr_string[80] = {""};
-    BACNET_ADDRESS src = {0};
+    char mac_string[80] = { "" }, sadr_string[80] = {
+    ""};
+    BACNET_ADDRESS src = { 0 };
     int index = 0;
 
     pFile = fopen(pFilename, "r");
@@ -230,8 +229,9 @@ static void address_file_init(
                     src.net = (uint16_t) snet;
                     if (snet) {
                         count =
-                            sscanf(sadr_string, "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
-                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+                            sscanf(sadr_string, "%2x:%2x:%2x:%2x:%2x:%2x",
+                            &mac[0], &mac[1], &mac[2], &mac[3], &mac[4],
+                            &mac[5]);
                         src.len = (uint8_t) count;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
                             src.adr[index] = (uint8_t) mac[index];

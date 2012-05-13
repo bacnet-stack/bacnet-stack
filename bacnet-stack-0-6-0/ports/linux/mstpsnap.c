@@ -83,7 +83,7 @@ static void Timer_Silence_Reset(
 
 /* functions used by the MS/TP state machine to put or get data */
 uint16_t MSTP_Put_Receive(
-    volatile struct mstp_port_struct_t * mstp_port)
+    volatile struct mstp_port_struct_t *mstp_port)
 {
     (void) mstp_port;
 
@@ -203,7 +203,7 @@ static void snap_received_packet(
     }
     /* Ethernet length is data only - not address or length bytes */
     encode_unsigned16(&mtu[12], mtu_len - 14);
-    (void)write(sockfd, &mtu[0], mtu_len);
+    (void) write(sockfd, &mtu[0], mtu_len);
 }
 
 

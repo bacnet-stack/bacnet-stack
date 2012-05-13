@@ -242,7 +242,7 @@ static void *dlmstp_master_fsm_task(
         }
         if (run_master) {
             if (MSTP_Port.This_Station <= DEFAULT_MAX_MASTER) {
-                while (MSTP_Master_Node_FSM (&MSTP_Port)) {
+                while (MSTP_Master_Node_FSM(&MSTP_Port)) {
                     /* do nothing while immediate transitioning */
                 }
             } else if (MSTP_Port.This_Station < 255) {
@@ -323,14 +323,9 @@ uint16_t MSTP_Get_Send(
         frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
     }
     /* convert the PDU into the MSTP Frame */
-    pdu_len = MSTP_Create_Frame(
-        &mstp_port->OutputBuffer[0],    /* <-- loading this */
-        mstp_port->OutputBufferSize,
-        frame_type,
-        pkt->destination_mac,
-        mstp_port->This_Station,
-        (uint8_t *) & pkt->buffer[0],
-        pkt->length);
+    pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
+        mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
+        mstp_port->This_Station, (uint8_t *) & pkt->buffer[0], pkt->length);
 
     return pdu_len;
 }
@@ -369,8 +364,7 @@ static bool dlmstp_compare_data_expecting_reply(
     if (request.npdu_data.network_layer_message) {
 #if PRINT_ENABLED
         fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Request is Network message.\n");
+            "DLMSTP: DER Compare failed: " "Request is Network message.\n");
 #endif
         return false;
     }
@@ -378,8 +372,7 @@ static bool dlmstp_compare_data_expecting_reply(
     if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
 #if PRINT_ENABLED
         fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Not Confirmed Request.\n");
+            "DLMSTP: DER Compare failed: " "Not Confirmed Request.\n");
 #endif
         return false;
     }
@@ -398,8 +391,7 @@ static bool dlmstp_compare_data_expecting_reply(
     if (reply.npdu_data.network_layer_message) {
 #if PRINT_ENABLED
         fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Reply is Network message.\n");
+            "DLMSTP: DER Compare failed: " "Reply is Network message.\n");
 #endif
         return false;
     }
@@ -445,26 +437,23 @@ static bool dlmstp_compare_data_expecting_reply(
         (reply.pdu_type == PDU_TYPE_ABORT)) {
         if (request.invoke_id != reply.invoke_id) {
 #if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Invoke ID mismatch.\n");
+            fprintf(stderr,
+                "DLMSTP: DER Compare failed: " "Invoke ID mismatch.\n");
 #endif
             return false;
         }
     } else {
         if (request.invoke_id != reply.invoke_id) {
 #if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Invoke ID mismatch.\n");
+            fprintf(stderr,
+                "DLMSTP: DER Compare failed: " "Invoke ID mismatch.\n");
 #endif
             return false;
         }
         if (request.service_choice != reply.service_choice) {
 #if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Service choice mismatch.\n");
+            fprintf(stderr,
+                "DLMSTP: DER Compare failed: " "Service choice mismatch.\n");
 #endif
             return false;
         }
@@ -480,16 +469,14 @@ static bool dlmstp_compare_data_expecting_reply(
     if (request.npdu_data.priority != reply.npdu_data.priority) {
 #if PRINT_ENABLED
         fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "NPDU Priority mismatch.\n");
+            "DLMSTP: DER Compare failed: " "NPDU Priority mismatch.\n");
 #endif
         return false;
     }
     if (!bacnet_address_same(&request.address, &reply.address)) {
 #if PRINT_ENABLED
         fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "BACnet Address mismatch.\n");
+            "DLMSTP: DER Compare failed: " "BACnet Address mismatch.\n");
 #endif
         return false;
     }
@@ -514,13 +501,9 @@ uint16_t MSTP_Get_Reply(
     pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
     /* is this the reply to the DER? */
     matched =
-        dlmstp_compare_data_expecting_reply(
-        &mstp_port->InputBuffer[0],
-        mstp_port->DataLength,
-        mstp_port->SourceAddress,
-        (uint8_t *) & pkt->buffer[0],
-        pkt->length,
-        pkt->destination_mac);
+        dlmstp_compare_data_expecting_reply(&mstp_port->InputBuffer[0],
+        mstp_port->DataLength, mstp_port->SourceAddress,
+        (uint8_t *) & pkt->buffer[0], pkt->length, pkt->destination_mac);
     if (!matched) {
         return 0;
     }
@@ -531,14 +514,9 @@ uint16_t MSTP_Get_Reply(
         frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
     }
     /* convert the PDU into the MSTP Frame */
-    pdu_len = MSTP_Create_Frame(
-        &mstp_port->OutputBuffer[0],    /* <-- loading this */
-        mstp_port->OutputBufferSize,
-        frame_type,
-        pkt->destination_mac,
-        mstp_port->This_Station,
-        (uint8_t *) & pkt->buffer[0],
-        pkt->length);
+    pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
+        mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
+        mstp_port->This_Station, (uint8_t *) & pkt->buffer[0], pkt->length);
 
     return pdu_len;
 }
@@ -678,8 +656,7 @@ bool dlmstp_init(
 
     /* initialize PDU queue */
     Ringbuf_Init(&PDU_Queue, (uint8_t *) & PDU_Buffer,
-        sizeof(struct mstp_pdu_packet),
-        MSTP_PDU_PACKET_COUNT);
+        sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
     /* initialize packet queue */
     Receive_Packet.ready = false;
     Receive_Packet.pdu_len = 0;
