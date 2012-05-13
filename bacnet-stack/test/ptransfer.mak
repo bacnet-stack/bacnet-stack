@@ -2,7 +2,7 @@
 CC      = gcc
 SRC_DIR = ../src
 INCLUDES = -I../include -I.
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_PRIVATE_TRANSFER
+DEFINES = -DBIG_ENDIAN=0 -PRINT_ENABLE=1 -DTEST -DTEST_PRIVATE_TRANSFER
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
@@ -20,19 +20,19 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 TARGET = ptransfer
 
 all: ${TARGET}
- 
+
 OBJS = ${SRCS:.c=.o}
 
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
 	rm -rf core ${TARGET} $(OBJS) *.bak *.1 *.ini
 
