@@ -6,7 +6,7 @@
 #include <time.h>
 #include "arf.h"
 
-// Free is redefined as a macro, but Perl does not like that.
+/* Free is redefined as a macro, but Perl does not like that. */
 #undef free
 
 /* global variables used in this file */
@@ -22,7 +22,7 @@ static bool isAtomicWriteFileHandlerRegistered = false;
 static bool isAtomicReadFileHandlerRegistered = false;
 
 /****************************************/
-// Logging Support
+/* Logging Support */
 /****************************************/
 #define MAX_ERROR_STRING 128
 #define NO_ERROR "No Error"
@@ -59,7 +59,7 @@ static void __LogAnswer(
 }
 
 /**************************************/
-// error handlers
+/* error handlers */
 /*************************************/
 static void MyAbortHandler(
     BACNET_ADDRESS * src,
@@ -112,7 +112,7 @@ static void My_Error_Handler(
 /**********************************/
 
 /*****************************************/
-// Decode the ReadProperty Ack and pass to perl
+/* Decode the ReadProperty Ack and pass to perl */
 /****************************************/
 #define MAX_ACK_STRING 512
 void rp_ack_extract_data(
@@ -168,13 +168,13 @@ void rp_ack_extract_data(
             strncat(pAckString, "}", 1);
             pAckString += 1;
         }
-        // Now let's call a Perl function to display the data
+        /* Now let's call a Perl function to display the data */
         __LogAnswer(ackString, 0);
     }
 }
 
 /*****************************************/
-// Decode the ReadPropertyMultiple Ack and pass to perl
+/* Decode the ReadPropertyMultiple Ack and pass to perl */
 /****************************************/
 void rpm_ack_extract_data(
     BACNET_READ_ACCESS_DATA * rpm_data)
@@ -231,13 +231,13 @@ void rpm_ack_extract_data(
             }
             listOfProperties = listOfProperties->next;
 
-            // Add a separator between consecutive entries so that Perl can
-            // parse this out
+            /* Add a separator between consecutive entries so that Perl can */
+            /* parse this out */
             strncat(pAckString, "QQQ", 3);
             pAckString += 3;
         }
 
-        // Now let's call a Perl function to display the data
+        /* Now let's call a Perl function to display the data */
         __LogAnswer(ackString, 1);
     }
 }
@@ -432,7 +432,7 @@ static void Wait_For_Answer_Or_Timeout(
     unsigned timeout_ms,
     waitAction action)
 {
-    // Wait for timeout, failure, or success
+    /* Wait for timeout, failure, or success */
     time_t last_seconds = time(NULL);
     time_t timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     time_t elapsed_seconds = 0;
@@ -443,7 +443,7 @@ static void Wait_For_Answer_Or_Timeout(
     while (true) {
         time_t current_seconds = time(NULL);
 
-        // If error was detected then bail out
+        /* If error was detected then bail out */
         if (Error_Detected) {
             LogError("Some other error occurred");
             break;
@@ -466,7 +466,7 @@ static void Wait_For_Answer_Or_Timeout(
         }
 
         if (action == waitAnswer) {
-            // Response was received. Exit.
+            /* Response was received. Exit. */
             if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
@@ -484,7 +484,7 @@ static void Wait_For_Answer_Or_Timeout(
             break;
         }
 
-        // Keep track of time
+        /* Keep track of time */
         elapsed_seconds += (current_seconds - last_seconds);
         last_seconds = current_seconds;
     }
@@ -495,7 +495,7 @@ static void Wait_For_Answer_Or_Timeout(
 /****************************************************/
 
 /****************************************************/
-// This is the most fundamental setup needed to start communication 
+/* This is the most fundamental setup needed to start communication  */
 /****************************************************/
 void BacnetPrepareComm(
     )
@@ -508,16 +508,16 @@ void BacnetPrepareComm(
 }
 
 /****************************************************/
-// Try to bind to a device. If successful, return zero. If failure, return
-// non-zero and log the error details
+/* Try to bind to a device. If successful, return zero. If failure, return */
+/* non-zero and log the error details */
 /****************************************************/
 int BacnetBindToDevice(
     int deviceInstanceNumber)
 {
     int isFailure = 0;
 
-    // Store the requested device instance number in the global variable for
-    // reference in other communication routines
+    /* Store the requested device instance number in the global variable for */
+    /* reference in other communication routines */
     Target_Device_Object_Instance = deviceInstanceNumber;
 
     /* try to bind with the device */
@@ -526,17 +526,17 @@ int BacnetBindToDevice(
         Send_WhoIs(Target_Device_Object_Instance,
             Target_Device_Object_Instance);
 
-        // Wait for timeout, failure, or success
+        /* Wait for timeout, failure, or success */
         Wait_For_Answer_Or_Timeout(100, waitBind);
     }
-    // Clean up after ourselves
+    /* Clean up after ourselves */
     isFailure = Error_Detected;
     Error_Detected = false;
     return isFailure;
 }
 
 /****************************************************/
-// This is the interface to ReadProperty
+/* This is the interface to ReadProperty */
 /****************************************************/
 int BacnetReadProperty(
     int deviceInstanceNumber,
@@ -554,10 +554,10 @@ int BacnetReadProperty(
         apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY,
             My_Error_Handler);
 
-        // indicate that handlers are now registered
+        /* indicate that handlers are now registered */
         isReadPropertyHandlerRegistered = true;
     }
-    // Send the message out
+    /* Send the message out */
     Request_Invoke_ID =
         Send_Read_Property_Request(deviceInstanceNumber, objectType,
         objectInstanceNumber, objectProperty, objectIndex);
@@ -569,13 +569,13 @@ int BacnetReadProperty(
 }
 
 /************************************************/
-// This is the interface to ReadPropertyMultiple
+/* This is the interface to ReadPropertyMultiple */
 /************************************************/
 int BacnetReadPropertyMultiple(
     int deviceInstanceNumber,
     ...)
 {
-    // Get the variable argument list from the stack
+    /* Get the variable argument list from the stack */
     Inline_Stack_Vars;
     int rpmIndex = 1;
     BACNET_READ_ACCESS_DATA *rpm_object =
@@ -587,12 +587,12 @@ int BacnetReadPropertyMultiple(
     while (rpmIndex < Inline_Stack_Items) {
         SV *pSV = Inline_Stack_Item(rpmIndex++);
 
-        // Make sure the argument is an Array Reference
+        /* Make sure the argument is an Array Reference */
         if (SvTYPE(SvRV(pSV)) != SVt_PVAV) {
             LogError("Argument is not an Array reference");
             break;
         }
-        // Make sure we can access the memory
+        /* Make sure we can access the memory */
         if (rpm_object) {
             rpm_object->listOfProperties = NULL;
         } else {
@@ -603,7 +603,7 @@ int BacnetReadPropertyMultiple(
         AV *pAV = (AV *) SvRV(pSV);
         SV **ppSV;
 
-        // The 0th argument is the object type
+        /* The 0th argument is the object type */
         ppSV = av_fetch(pAV, 0, 0);
         if (ppSV) {
             rpm_object->object_type = SvIV(*ppSV);
@@ -612,7 +612,7 @@ int BacnetReadPropertyMultiple(
             break;
         }
 
-        // The 1st argument is the object instance
+        /* The 1st argument is the object instance */
         ppSV = av_fetch(pAV, 1, 0);
         if (ppSV) {
             rpm_object->object_instance = SvIV(*ppSV);
@@ -621,7 +621,7 @@ int BacnetReadPropertyMultiple(
             break;
         }
 
-        // The 2nd argument is the property type
+        /* The 2nd argument is the property type */
         ppSV = av_fetch(pAV, 2, 0);
         if (ppSV) {
             rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
@@ -637,7 +637,7 @@ int BacnetReadPropertyMultiple(
             break;
         }
 
-        // The 3rd argument is the property index
+        /* The 3rd argument is the property index */
         ppSV = av_fetch(pAV, 3, 0);
         if (ppSV) {
             rpm_property->propertyArrayIndex = SvIV(*ppSV);
@@ -646,7 +646,7 @@ int BacnetReadPropertyMultiple(
             break;
         }
 
-        // Advance to the next RPM index
+        /* Advance to the next RPM index */
         if (rpmIndex < Inline_Stack_Items) {
             rpm_object->next = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
             rpm_object = rpm_object->next;
@@ -664,17 +664,17 @@ int BacnetReadPropertyMultiple(
         apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
             My_Error_Handler);
 
-        // indicate that handlers are now registered
+        /* indicate that handlers are now registered */
         isReadPropertyMultipleHandlerRegistered = true;
     }
-    // Send the message out
+    /* Send the message out */
     if (!Error_Detected) {
         Request_Invoke_ID =
             Send_Read_Property_Multiple_Request(&buffer[0], sizeof(buffer),
             deviceInstanceNumber, Read_Access_Data);
         Wait_For_Answer_Or_Timeout(100, waitAnswer);
     }
-    // Clean up allocated memory
+    /* Clean up allocated memory */
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *old_rpm_property;
 
@@ -692,14 +692,14 @@ int BacnetReadPropertyMultiple(
         free(old_rpm_object);
     }
 
-    // Process the return value
+    /* Process the return value */
     int isFailure = Error_Detected;
     Error_Detected = 0;
     return isFailure;
 }
 
 /****************************************************/
-// This is the interface to WriteProperty
+/* This is the interface to WriteProperty */
 /****************************************************/
 int BacnetWriteProperty(
     int deviceInstanceNumber,
@@ -723,16 +723,16 @@ int BacnetWriteProperty(
         apdu_set_error_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
             My_Error_Handler);
 
-        // indicate that handlers are now registered
+        /* indicate that handlers are now registered */
         isWritePropertyHandlerRegistered = true;
     }
 
     if (objectIndex == -1) {
         objectIndex = BACNET_ARRAY_ALL;
     }
-    // Loop for eary exit;
+    /* Loop for eary exit; */
     do {
-        // Handle the tag/value pair
+        /* Handle the tag/value pair */
         uint8_t context_tag = 0;
         BACNET_APPLICATION_TAG property_tag;
         BACNET_APPLICATION_DATA_VALUE propertyValue;
@@ -760,19 +760,19 @@ int BacnetWriteProperty(
         }
         propertyValue.next = NULL;
 
-        // Send out the message
+        /* Send out the message */
         Request_Invoke_ID =
             Send_Write_Property_Request(deviceInstanceNumber, objectType,
             objectInstanceNumber, objectProperty, &propertyValue,
             objectPriority, objectIndex);
         Wait_For_Answer_Or_Timeout(100, waitAnswer);
 
-        // If we get here, then there were no explicit failures. However, there
-        // could have been implicit failures. Let's look at those also.
+        /* If we get here, then there were no explicit failures. However, there */
+        /* could have been implicit failures. Let's look at those also. */
         isFailure = Error_Detected;
     } while (false);
 
-    // Clean up after ourselves.
+    /* Clean up after ourselves. */
     Error_Detected = false;
     return isFailure;
 }
@@ -795,7 +795,7 @@ int BacnetAtomicWriteFile(
         apdu_set_error_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
             My_Error_Handler);
 
-        // indicate that handlers are now registered
+        /* indicate that handlers are now registered */
         isAtomicWriteFileHandlerRegistered = true;
     }
 
@@ -815,7 +815,7 @@ int BacnetAtomicWriteFile(
     }
     octetstring_truncate(&fileData, blockNumBytes);
 
-    // Send out the message and wait for answer
+    /* Send out the message and wait for answer */
     if (!Error_Detected) {
         Request_Invoke_ID =
             Send_Atomic_Write_File_Stream(deviceInstanceNumber,
@@ -880,9 +880,9 @@ int BacnetTimeSync(
     my_time.tm_mday = day;
     my_time.tm_mon = month - 1;
     my_time.tm_year = year - 1900;
-    my_time.tm_wday = 0;        // does not matter
-    my_time.tm_yday = 0;        // does not matter
-    my_time.tm_isdst = 0;       // does not matter
+    my_time.tm_wday = 0;        /* does not matter */
+    my_time.tm_yday = 0;        /* does not matter */
+    my_time.tm_isdst = 0;       /* does not matter */
 
     aTime = mktime(&my_time);
     newTime = localtime(&aTime);
@@ -903,7 +903,7 @@ int BacnetTimeSync(
     BACNET_ADDRESS my_address;
     uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
-    // Loop for eary exit
+    /* Loop for eary exit */
     do {
         if (!dcc_communication_enabled()) {
             LogError("DCC communicaiton is not enabled");
@@ -945,7 +945,7 @@ int BacnetTimeSync(
 }
 
 /****************************************************/
-// This is the interface to AtomicReadFile
+/* This is the interface to AtomicReadFile */
 /****************************************************/
 int BacnetAtomicReadFile(
     int deviceInstanceNumber,
@@ -962,10 +962,10 @@ int BacnetAtomicReadFile(
         apdu_set_error_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
             My_Error_Handler);
 
-        // indicate that handlers are now registered
+        /* indicate that handlers are now registered */
         isAtomicReadFileHandlerRegistered = true;
     }
-    // Send the message out
+    /* Send the message out */
     Request_Invoke_ID =
         Send_Atomic_Read_File_Stream(deviceInstanceNumber, fileInstanceNumber,
         startOffset, numBytes);

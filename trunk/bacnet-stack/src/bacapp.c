@@ -1048,7 +1048,7 @@ int bacapp_snprintf_value(
                     octet_str++;
                 }
                 if (i == len) {
-                    // Everything went fine
+                    /* Everything went fine */
                     ret_val = str_len - rem_str_len;
                 }
                 break;
@@ -1070,8 +1070,8 @@ int bacapp_snprintf_value(
                 }
                 if ((i == len) && append_str(&p_str, &rem_str_len, "\"")
                     ) {
-                    // Everything is fine. Indicate how many bytes were
-                    // written
+                    /* Everything is fine. Indicate how many bytes were */
+                    /* written */
                     ret_val = str_len - rem_str_len;
                 }
                 break;
@@ -1092,8 +1092,8 @@ int bacapp_snprintf_value(
                 }
                 if ((i == len) && append_str(&p_str, &rem_str_len, "}")
                     ) {
-                    // Everything is fine. Indicate how many bytes were
-                    // written
+                    /* Everything is fine. Indicate how many bytes were */
+                    /* written */
                     ret_val = str_len - rem_str_len;
                 }
                 break;
@@ -1211,8 +1211,8 @@ int bacapp_snprintf_value(
                     if (!append_str(&p_str, &rem_str_len, temp_str))
                         break;
                 }
-                // If we get here, then everything is OK. Indicate how many
-                // bytes were written.
+                /* If we get here, then everything is OK. Indicate how many */
+                /* bytes were written. */
                 ret_val = str_len - rem_str_len;
                 break;
             case BACNET_APPLICATION_TAG_TIME:
@@ -1252,8 +1252,8 @@ int bacapp_snprintf_value(
                     if (!append_str(&p_str, &rem_str_len, temp_str))
                         break;
                 }
-                // If we get here, then everything is OK. Indicate how many
-                // bytes were written.
+                /* If we get here, then everything is OK. Indicate how many */
+                /* bytes were written. */
                 ret_val = str_len - rem_str_len;
                 break;
             case BACNET_APPLICATION_TAG_OBJECT_ID:
@@ -1295,8 +1295,8 @@ int bacapp_snprintf_value(
                 }
                 if (!append_str(&p_str, &rem_str_len, ")"))
                     break;
-                // If we get here, then everything is OK. Indicate how many
-                // bytes were written.
+                /* If we get here, then everything is OK. Indicate how many */
+                /* bytes were written. */
                 ret_val = str_len - rem_str_len;
                 break;
             default:
@@ -1307,7 +1307,7 @@ int bacapp_snprintf_value(
 
     return ret_val;
 }
-#endif // BACAPP_SNPRINTF_ENABLED
+#endif /* BACAPP_SNPRINTF_ENABLED */
 
 #ifdef BACAPP_PRINT_ENABLED
 /* Print the extracted value from the requested BACnet object property to the
@@ -1324,13 +1324,13 @@ bool bacapp_print_value(
     int status;
 
     while (true) {
-        // Try to allocate memory for the output string. Give up if unable.
+        /* Try to allocate memory for the output string. Give up if unable. */
         str = (char *) calloc(sizeof(char), str_len);
         if (!str)
             break;
 
-        // Try to extract the value into allocated memory. If unable, try again
-        // another time with a string that is twice as large.
+        /* Try to extract the value into allocated memory. If unable, try again */
+        /* another time with a string that is twice as large. */
         status = bacapp_snprintf_value(str, str_len, object_value);
         if ((status < 0) || (status >= str_len)) {
             free(str);
