@@ -161,7 +161,7 @@ static int Read_Property_Common(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    BACNET_CHARACTER_STRING char_string = {0};
+    BACNET_CHARACTER_STRING char_string = { 0 };
     uint8_t *apdu = NULL;
 
     if ((rpdata->application_data == NULL) ||
@@ -650,7 +650,7 @@ int Device_Read_Property_Local(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        /* object name, object id, object type are handled in Device object */
+            /* object name, object id, object type are handled in Device object */
         case PROP_DESCRIPTION:
             bacnet_name(NV_EEPROM_DEVICE_DESCRIPTION, &char_string,
                 "BACnet Development Kit");
@@ -856,8 +856,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     eeprom_bytes_write(NV_EEPROM_DEVICE_0,
                         (uint8_t *) & value.type.Object_Id.instance, 4);
                     /* we could send an I-Am broadcast to let the world know */

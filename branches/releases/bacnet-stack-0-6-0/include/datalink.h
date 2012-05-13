@@ -83,7 +83,7 @@
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
 extern void routed_get_my_address(
-        BACNET_ADDRESS * my_address);
+    BACNET_ADDRESS * my_address);
 #define datalink_get_my_address routed_get_my_address
 #else
 #define datalink_get_my_address bip_get_my_address
@@ -145,7 +145,7 @@ extern "C" {
  *                     chosen at runtime from among these choices.
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
  *   are not currently supported by this project.
-          *//** @defgroup DLTemplates DataLink Template Functions
+                      *//** @defgroup DLTemplates DataLink Template Functions
  * @ingroup DataLink
  * Most of the functions in this group are function templates which are assigned
  * to a specific DataLink network layer implementation either at compile time or

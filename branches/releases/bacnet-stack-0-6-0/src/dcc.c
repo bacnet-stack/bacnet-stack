@@ -244,7 +244,7 @@ int dcc_decode_apdu(
     if (!apdu) {
         return -1;
     }
-        /* optional checking - most likely was already done prior to this call */
+    /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -1;
     }

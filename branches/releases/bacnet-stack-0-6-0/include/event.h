@@ -213,7 +213,7 @@ extern "C" {
  * These BIBBs prescribe the BACnet capabilities required to interoperably 
  * perform the alarm and event management functions enumerated in 22.2.1.2 
  * for the BACnet devices defined therein.
-          *//** @defgroup EVNOTFCN Alarm and Event-Notification (AE-N)
+                      *//** @defgroup EVNOTFCN Alarm and Event-Notification (AE-N)
  * @ingroup ALMEVNT
  * 13.6 ConfirmedCOVNotification Service <br>
  * The ConfirmedCOVNotification service is used to notify subscribers about 
@@ -230,7 +230,7 @@ extern "C" {
  * For unsubscribed notifications, the algorithm for determining when to issue 
  * this service is a local matter and may be based on a change of value, 
  * periodic updating, or some other criteria.
-          *//** @defgroup ALMACK  Alarm and Event-ACK (AE-ACK)
+                      *//** @defgroup ALMACK  Alarm and Event-ACK (AE-ACK)
  * @ingroup ALMEVNT
  * 13.5 AcknowledgeAlarm Service <br>
  * In some systems a device may need to know that an operator has seen the alarm 

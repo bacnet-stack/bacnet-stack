@@ -40,21 +40,21 @@
   placed in the public domain Fall 2005 */
 static const char trailingBytesForUTF8[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4,
-        4, 4, 4, 5, 5, 5, 5
+    4, 4, 4, 5, 5, 5, 5
 };
 
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
@@ -163,22 +163,17 @@ static bool bacnet_name_save(
     char *str,
     uint8_t length)
 {
-    uint8_t buffer[NV_EEPROM_NAME_SIZE] = {0};
+    uint8_t buffer[NV_EEPROM_NAME_SIZE] = { 0 };
     uint8_t i = 0;
 
     if (bacnet_name_isvalid(encoding, length, str)) {
-        eeprom_bytes_write(
-            NV_EEPROM_NAME_LENGTH(offset),
-            &length, 1);
-        eeprom_bytes_write(
-            NV_EEPROM_NAME_ENCODING(offset),
-            (uint8_t *)&encoding, 1);
+        eeprom_bytes_write(NV_EEPROM_NAME_LENGTH(offset), &length, 1);
+        eeprom_bytes_write(NV_EEPROM_NAME_ENCODING(offset),
+            (uint8_t *) & encoding, 1);
         for (i = 0; i < length; i++) {
             buffer[i] = str[i];
         }
-        eeprom_bytes_write(
-            NV_EEPROM_NAME_STRING(offset),
-            &buffer[0],
+        eeprom_bytes_write(NV_EEPROM_NAME_STRING(offset), &buffer[0],
             NV_EEPROM_NAME_SIZE);
         return true;
     }
@@ -278,8 +273,8 @@ void bacnet_name_init(
     uint16_t offset,
     char *default_string)
 {
-    (void)bacnet_name_save(offset, CHARACTER_UTF8,
-            default_string, strlen(default_string));
+    (void) bacnet_name_save(offset, CHARACTER_UTF8, default_string,
+        strlen(default_string));
 }
 
 void bacnet_name(

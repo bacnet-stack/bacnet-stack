@@ -88,204 +88,204 @@ static object_functions_t *Object_Table;
 
 static object_functions_t My_Object_Table[] = {
     {OBJECT_DEVICE,
-        NULL /* Init - don't init Device or it will recourse! */,
-        Device_Count,
-        Device_Index_To_Instance,
-        Device_Valid_Object_Instance_Number,
-        Device_Object_Name,
-        Device_Read_Property_Local,
-        Device_Write_Property_Local,
-        Device_Property_Lists,
-        DeviceGetRRInfo,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            NULL /* Init - don't init Device or it will recourse! */ ,
+            Device_Count,
+            Device_Index_To_Instance,
+            Device_Valid_Object_Instance_Number,
+            Device_Object_Name,
+            Device_Read_Property_Local,
+            Device_Write_Property_Local,
+            Device_Property_Lists,
+            DeviceGetRRInfo,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
     {OBJECT_ANALOG_INPUT,
-        Analog_Input_Init,
-        Analog_Input_Count,
-        Analog_Input_Index_To_Instance,
-        Analog_Input_Valid_Instance,
-        Analog_Input_Object_Name,
-        Analog_Input_Read_Property,
-        Analog_Input_Write_Property,
-        Analog_Input_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
+            Analog_Input_Init,
+            Analog_Input_Count,
+            Analog_Input_Index_To_Instance,
+            Analog_Input_Valid_Instance,
+            Analog_Input_Object_Name,
+            Analog_Input_Read_Property,
+            Analog_Input_Write_Property,
+            Analog_Input_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
         Analog_Input_Intrinsic_Reporting},
     {OBJECT_ANALOG_VALUE,
-        Analog_Value_Init,
-        Analog_Value_Count,
-        Analog_Value_Index_To_Instance,
-        Analog_Value_Valid_Instance,
-        Analog_Value_Object_Name,
-        Analog_Value_Read_Property,
-        Analog_Value_Write_Property,
-        Analog_Value_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
+            Analog_Value_Init,
+            Analog_Value_Count,
+            Analog_Value_Index_To_Instance,
+            Analog_Value_Valid_Instance,
+            Analog_Value_Object_Name,
+            Analog_Value_Read_Property,
+            Analog_Value_Write_Property,
+            Analog_Value_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
         Analog_Value_Intrinsic_Reporting},
     {OBJECT_BINARY_INPUT,
-        Binary_Input_Init,
-        Binary_Input_Count,
-        Binary_Input_Index_To_Instance,
-        Binary_Input_Valid_Instance,
-        Binary_Input_Object_Name,
-        Binary_Input_Read_Property,
-        NULL /* Write Property */,
-        Binary_Input_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        Binary_Input_Encode_Value_List,
-        Binary_Input_Change_Of_Value,
-        Binary_Input_Change_Of_Value_Clear,
-        NULL /* Intrinsic Reporting */},
+            Binary_Input_Init,
+            Binary_Input_Count,
+            Binary_Input_Index_To_Instance,
+            Binary_Input_Valid_Instance,
+            Binary_Input_Object_Name,
+            Binary_Input_Read_Property,
+            NULL /* Write Property */ ,
+            Binary_Input_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            Binary_Input_Encode_Value_List,
+            Binary_Input_Change_Of_Value,
+            Binary_Input_Change_Of_Value_Clear,
+        NULL /* Intrinsic Reporting */ },
     {OBJECT_BINARY_VALUE,
-        Binary_Value_Init,
-        Binary_Value_Count,
-        Binary_Value_Index_To_Instance,
-        Binary_Value_Valid_Instance,
-        Binary_Value_Object_Name,
-        Binary_Value_Read_Property,
-        Binary_Value_Write_Property,
-        Binary_Value_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            Binary_Value_Init,
+            Binary_Value_Count,
+            Binary_Value_Index_To_Instance,
+            Binary_Value_Valid_Instance,
+            Binary_Value_Object_Name,
+            Binary_Value_Read_Property,
+            Binary_Value_Write_Property,
+            Binary_Value_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
 #if defined(INTRINSIC_REPORTING)
     {OBJECT_NOTIFICATION_CLASS,
-        Notification_Class_Init,
+            Notification_Class_Init,
             Notification_Class_Count,
             Notification_Class_Index_To_Instance,
             Notification_Class_Valid_Instance,
-        Notification_Class_Object_Name,
-        Notification_Class_Read_Property,
+            Notification_Class_Object_Name,
+            Notification_Class_Read_Property,
             Notification_Class_Write_Property,
             Notification_Class_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
 #endif
     {OBJECT_LIFE_SAFETY_POINT,
-        Life_Safety_Point_Init,
+            Life_Safety_Point_Init,
             Life_Safety_Point_Count,
             Life_Safety_Point_Index_To_Instance,
             Life_Safety_Point_Valid_Instance,
-        Life_Safety_Point_Object_Name,
-        Life_Safety_Point_Read_Property,
-        Life_Safety_Point_Write_Property,
-        Life_Safety_Point_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            Life_Safety_Point_Object_Name,
+            Life_Safety_Point_Read_Property,
+            Life_Safety_Point_Write_Property,
+            Life_Safety_Point_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
     {OBJECT_LOAD_CONTROL,
-        Load_Control_Init,
-        Load_Control_Count,
-        Load_Control_Index_To_Instance,
-        Load_Control_Valid_Instance,
-        Load_Control_Object_Name,
-        Load_Control_Read_Property,
-        Load_Control_Write_Property,
-        Load_Control_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            Load_Control_Init,
+            Load_Control_Count,
+            Load_Control_Index_To_Instance,
+            Load_Control_Valid_Instance,
+            Load_Control_Object_Name,
+            Load_Control_Read_Property,
+            Load_Control_Write_Property,
+            Load_Control_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
     {OBJECT_MULTI_STATE_OUTPUT,
-        Multistate_Output_Init,
+            Multistate_Output_Init,
             Multistate_Output_Count,
             Multistate_Output_Index_To_Instance,
             Multistate_Output_Valid_Instance,
-        Multistate_Output_Object_Name,
-        Multistate_Output_Read_Property,
-        Multistate_Output_Write_Property,
-        Multistate_Output_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            Multistate_Output_Object_Name,
+            Multistate_Output_Read_Property,
+            Multistate_Output_Write_Property,
+            Multistate_Output_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
     {OBJECT_MULTI_STATE_INPUT,
-        Multistate_Input_Init,
+            Multistate_Input_Init,
             Multistate_Input_Count,
             Multistate_Input_Index_To_Instance,
             Multistate_Input_Valid_Instance,
-        Multistate_Input_Object_Name,
-        Multistate_Input_Read_Property,
-        Multistate_Input_Write_Property,
-        Multistate_Input_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            Multistate_Input_Object_Name,
+            Multistate_Input_Read_Property,
+            Multistate_Input_Write_Property,
+            Multistate_Input_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
     {OBJECT_TRENDLOG,
-        Trend_Log_Init,
-        Trend_Log_Count,
-        Trend_Log_Index_To_Instance,
-        Trend_Log_Valid_Instance,
-        Trend_Log_Object_Name,
-        Trend_Log_Read_Property,
-        Trend_Log_Write_Property,
-        Trend_Log_Property_Lists,
-        TrendLogGetRRInfo,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            Trend_Log_Init,
+            Trend_Log_Count,
+            Trend_Log_Index_To_Instance,
+            Trend_Log_Valid_Instance,
+            Trend_Log_Object_Name,
+            Trend_Log_Read_Property,
+            Trend_Log_Write_Property,
+            Trend_Log_Property_Lists,
+            TrendLogGetRRInfo,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
 #if defined(BACFILE)
     {OBJECT_FILE,
-        bacfile_init,
-        bacfile_count,
-        bacfile_index_to_instance,
-        bacfile_valid_instance,
-        bacfile_object_name,
-        bacfile_read_property,
-        bacfile_write_property,
-        BACfile_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */},
+            bacfile_init,
+            bacfile_count,
+            bacfile_index_to_instance,
+            bacfile_valid_instance,
+            bacfile_object_name,
+            bacfile_read_property,
+            bacfile_write_property,
+            BACfile_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
 #endif
     {MAX_BACNET_OBJECT_TYPE,
-        NULL /* Init */,
-        NULL /* Count */,
-        NULL /* Index_To_Instance */,
-        NULL /* Valid_Instance */,
-        NULL /* Object_Name */,
-        NULL /* Read_Property */,
-        NULL /* Write_Property */,
-        NULL /* Property_Lists */,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */}
+            NULL /* Init */ ,
+            NULL /* Count */ ,
+            NULL /* Index_To_Instance */ ,
+            NULL /* Valid_Instance */ ,
+            NULL /* Object_Name */ ,
+            NULL /* Read_Property */ ,
+            NULL /* Write_Property */ ,
+            NULL /* Property_Lists */ ,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ }
 };
 
 
@@ -1389,8 +1389,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -1423,8 +1423,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t) value.
-                    type.Unsigned_Int);
+                Device_Set_Vendor_Identifier((uint16_t) value.type.
+                    Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
@@ -1470,8 +1470,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_LOC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Location(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Location(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1481,8 +1481,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_DESC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Description(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Description(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1491,8 +1491,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_MOD_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Model_Name(characterstring_value(&value.
-                        type.Character_String),
+                Device_Set_Model_Name(characterstring_value(&value.type.
+                        Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1504,8 +1504,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames((uint8_t) value.
-                        type.Unsigned_Int);
+                    dlmstp_set_max_info_frames((uint8_t) value.type.
+                        Unsigned_Int);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1609,8 +1609,8 @@ bool Device_Encode_Value_List(
 }
 
 bool Device_COV(
-        BACNET_OBJECT_TYPE object_type,
-        uint32_t object_instance)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
 {
     bool status = false;        /* Ever the pessamist! */
     struct object_functions *pObject = NULL;
@@ -1620,8 +1620,7 @@ bool Device_COV(
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(object_instance)) {
             if (pObject->Object_COV) {
-                status = pObject->Object_COV(
-                    object_instance);
+                status = pObject->Object_COV(object_instance);
             }
         }
     }
@@ -1630,8 +1629,8 @@ bool Device_COV(
 }
 
 void Device_COV_Clear(
-        BACNET_OBJECT_TYPE object_type,
-        uint32_t object_instance)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
 {
     struct object_functions *pObject = NULL;
 

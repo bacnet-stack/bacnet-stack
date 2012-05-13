@@ -501,21 +501,21 @@ bool characterstring_printable(
   placed in the public domain Fall 2005 */
 static const char trailingBytesForUTF8[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4,
-        4, 4, 4, 5, 5, 5, 5
+    4, 4, 4, 5, 5, 5, 5
 };
 
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
@@ -546,7 +546,7 @@ static int utf8_isvalid(
         if ((c & 0xc0) != 0xc0) {
             return 0;
         }
-        ab = (size_t)trailingBytesForUTF8[c];
+        ab = (size_t) trailingBytesForUTF8[c];
         if (length < ab) {
             return 0;
         }
@@ -658,7 +658,7 @@ bool octetstring_init(
    returns true if successfully converted and fits; false if too long */
 bool octetstring_init_ascii_hex(
     BACNET_OCTET_STRING * octet_string,
-    const char * ascii_hex)
+    const char *ascii_hex)
 {
     bool status = false;        /* return value */
     unsigned index = 0; /* offset into buffer */
@@ -677,12 +677,12 @@ bool octetstring_init_ascii_hex(
                     index++;
                     continue;
                 }
-                if (ascii_hex[index+1] == 0) {
+                if (ascii_hex[index + 1] == 0) {
                     break;
                 }
                 hex_pair_string[0] = ascii_hex[index];
-                hex_pair_string[1] = ascii_hex[index+1];
-                value = (uint8_t)strtol(hex_pair_string, NULL, 16);
+                hex_pair_string[1] = ascii_hex[index + 1];
+                value = (uint8_t) strtol(hex_pair_string, NULL, 16);
                 if (octet_string->length <= MAX_OCTET_STRING_BYTES) {
                     octet_string->value[octet_string->length] = value;
                     octet_string->length++;

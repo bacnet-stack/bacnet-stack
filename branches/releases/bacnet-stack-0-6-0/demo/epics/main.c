@@ -183,7 +183,7 @@ void MyAbortHandler(
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
-    /* It is normal for this to fail, so don't print. */
+        /* It is normal for this to fail, so don't print. */
         if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues) {
             fprintf(stderr, "-- BACnet Abort: %s \r\n",
                 bactext_abort_reason_name(abort_reason));
@@ -236,8 +236,8 @@ void MyReadPropertyAckHandler(
         rp_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
         if (rp_data) {
             len =
-                rp_ack_fully_decode_service_request(service_request, service_len,
-                rp_data);
+                rp_ack_fully_decode_service_request(service_request,
+                service_len, rp_data);
         }
         if (len > 0) {
             memmove(&Read_Property_Multiple_Data.service_data, service_data,
@@ -245,7 +245,7 @@ void MyReadPropertyAckHandler(
             Read_Property_Multiple_Data.rpm_data = rp_data;
             Read_Property_Multiple_Data.new_data = true;
         } else {
-            if (len < 0)    /* Eg, failed due to no segmentation */
+            if (len < 0)        /* Eg, failed due to no segmentation */
                 Error_Detected = true;
             free(rp_data);
         }
@@ -276,7 +276,7 @@ void MyReadPropertyMultipleAckHandler(
             Read_Property_Multiple_Data.new_data = true;
             /* Will process and free the RPM data later */
         } else {
-            if (len < 0)    /* Eg, failed due to no segmentation */
+            if (len < 0)        /* Eg, failed due to no segmentation */
                 Error_Detected = true;
             free(rpm_data);
         }
@@ -294,8 +294,7 @@ static void Init_Service_Handlers(
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
     Device_Object_Name(Object_Instance, &name_string);
-    Add_Routed_Device(Object_Instance, &name_string,
-        Device_Description());
+    Add_Routed_Device(Object_Instance, &name_string, Device_Description());
 #endif
 
     /* we need to handle who-is
@@ -456,7 +455,7 @@ void PrintReadPropertyData(
                     break;
                 }
                 if (object_type == OBJECT_DATETIME_VALUE)
-                    break;  /* A special case - no braces for this pair */
+                    break;      /* A special case - no braces for this pair */
                 /* Else, fall through to normal processing. */
             default:
                 /* Normal array: open brace */
@@ -1192,11 +1191,11 @@ int main(
                     (Request_Invoke_ID ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData(Read_Property_Multiple_Data.
-                        rpm_data->object_type,
+                    PrintReadPropertyData
+                        (Read_Property_Multiple_Data.rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.rpm_data->
-                        listOfProperties);
+                        Read_Property_Multiple_Data.
+                        rpm_data->listOfProperties);
                     if (tsm_invoke_id_free(Request_Invoke_ID)) {
                         Request_Invoke_ID = 0;
                     } else {

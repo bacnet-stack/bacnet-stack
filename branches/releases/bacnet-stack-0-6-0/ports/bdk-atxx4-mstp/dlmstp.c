@@ -371,7 +371,7 @@ static void MSTP_Send_Frame(
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
     uint8_t buffer[8];  /* stores the header and header crc */
-    uint8_t buffer_crc[2];  /* stores the data crc */
+    uint8_t buffer_crc[2];      /* stores the data crc */
     uint16_t i = 0;     /* used to calculate CRC for data */
 
     /* create the MS/TP header */
