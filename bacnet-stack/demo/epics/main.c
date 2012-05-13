@@ -129,17 +129,19 @@ static int32_t Property_List[MAX_PROPS + 2];
 
 #define INIT_ID_PROPLIST_SIZE 5
 /* Define Enums to match the property and value arrays below */
-enum init_ids { INIT_VENDOR_NAME, INIT_MODEL_NAME, INIT_DESCRIPTION, INIT_OBJ_TYPES };
+enum init_ids { INIT_VENDOR_NAME, INIT_MODEL_NAME, INIT_DESCRIPTION,
+        INIT_OBJ_TYPES };
 static int32_t InitIdPropList[INIT_ID_PROPLIST_SIZE] = {
-	PROP_VENDOR_NAME,
-    PROP_MODEL_NAME,		/* Have to use this twice, for Model Name and Number */
-    PROP_DESCRIPTION,		/* Optional, but hopefully available */
+    PROP_VENDOR_NAME,
+    PROP_MODEL_NAME,    /* Have to use this twice, for Model Name and Number */
+    PROP_DESCRIPTION,   /* Optional, but hopefully available */
     PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
     -1
 };
+
 /* Will hold GET_HEADING_RESPONSE results here: */
-static BACNET_APPLICATION_DATA_VALUE * InitIdValues[INIT_ID_PROPLIST_SIZE] =
-{		NULL, NULL, NULL, NULL, NULL };
+static BACNET_APPLICATION_DATA_VALUE *InitIdValues[INIT_ID_PROPLIST_SIZE] =
+    { NULL, NULL, NULL, NULL, NULL };
 
 
 /* When we have to walk through an array of things, like ObjectIDs or
@@ -245,8 +247,8 @@ void MyReadPropertyAckHandler(
         rp_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
         if (rp_data) {
             len =
-                rp_ack_fully_decode_service_request(service_request, service_len,
-                rp_data);
+                rp_ack_fully_decode_service_request(service_request,
+                service_len, rp_data);
         }
         if (len > 0) {
             memmove(&Read_Property_Multiple_Data.service_data, service_data,
@@ -254,7 +256,7 @@ void MyReadPropertyAckHandler(
             Read_Property_Multiple_Data.rpm_data = rp_data;
             Read_Property_Multiple_Data.new_data = true;
         } else {
-            if (len < 0)    /* Eg, failed due to no segmentation */
+            if (len < 0)        /* Eg, failed due to no segmentation */
                 Error_Detected = true;
             free(rp_data);
         }
@@ -285,7 +287,7 @@ void MyReadPropertyMultipleAckHandler(
             Read_Property_Multiple_Data.new_data = true;
             /* Will process and free the RPM data later */
         } else {
-            if (len < 0)    /* Eg, failed due to no segmentation */
+            if (len < 0)        /* Eg, failed due to no segmentation */
                 Error_Detected = true;
             free(rpm_data);
         }
@@ -303,8 +305,7 @@ static void Init_Service_Handlers(
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
     Device_Object_Name(Object_Instance, &name_string);
-    Add_Routed_Device(Object_Instance, &name_string,
-        Device_Description());
+    Add_Routed_Device(Object_Instance, &name_string, Device_Description());
 #endif
 
     /* we need to handle who-is
@@ -349,9 +350,9 @@ void CheckIsWritableProperty(
     BACNET_PROPERTY_REFERENCE * rpm_property)
 {
     bool bIsWritable = false;
-    if ( object_type == OBJECT_DEVICE ) {
-        if ( (rpm_property->propertyIdentifier == PROP_OBJECT_IDENTIFIER) ||
-             (rpm_property->propertyIdentifier == PROP_OBJECT_NAME) )
+    if (object_type == OBJECT_DEVICE) {
+        if ((rpm_property->propertyIdentifier == PROP_OBJECT_IDENTIFIER) ||
+            (rpm_property->propertyIdentifier == PROP_OBJECT_NAME))
             bIsWritable = true;
     }
     /* Add more checking here, eg for Time_Synchronization_Recipients,
@@ -440,13 +441,11 @@ bool PrettyPrintPropertyValue(
         /* eg, property == PROP_LOCAL_DATE
          * VTS needs (3-Aug-2011,4) or (8/3/11,4), so we'll use the
          * clearer, international form. */
-        strncpy( short_month, bactext_month_name(value->type.Date.month), 3);
+        strncpy(short_month, bactext_month_name(value->type.Date.month), 3);
         short_month[3] = 0;
-        fprintf(stream, "(%u-%3s-%u, %u)",
-                (unsigned) value->type.Date.day,
-                short_month,
-                (unsigned) value->type.Date.year,
-                (unsigned) value->type.Date.wday);
+        fprintf(stream, "(%u-%3s-%u, %u)", (unsigned) value->type.Date.day,
+            short_month, (unsigned) value->type.Date.year,
+            (unsigned) value->type.Date.wday);
     } else if (value != NULL) {
         assert(false);  /* How did I get here?  Fix your code. */
         /* Meanwhile, a fallback plan */
@@ -511,7 +510,7 @@ void PrintReadPropertyData(
                     break;
                 }
                 if (object_type == OBJECT_DATETIME_VALUE)
-                    break;  /* A special case - no braces for this pair */
+                    break;      /* A special case - no braces for this pair */
                 /* Else, fall through to normal processing. */
             default:
                 /* Normal array: open brace */
@@ -637,40 +636,40 @@ void PrintReadPropertyData(
             default:
                 /* First, if this is a date type, it needs a different format
                  * for VTS, so pretty print it. */
-                if (ShowValues && (object_value.value->tag == BACNET_APPLICATION_TAG_DATE))
-                {
+                if (ShowValues &&
+                    (object_value.value->tag == BACNET_APPLICATION_TAG_DATE)) {
                     /* This would be PROP_LOCAL_DATE, or OBJECT_DATETIME_VALUE,
                      * or OBJECT_DATE_VALUE                     */
                     PrettyPrintPropertyValue(stdout, &object_value);
                 } else {
-                /* Some properties are presented just as '?' in an EPICS;
-                 * screen these out here, unless ShowValues is true.  */
-                switch (rpm_property->propertyIdentifier) {
-                    case PROP_DEVICE_ADDRESS_BINDING:
-                        /* Make it VTS3-friendly and don't show "Null"
-                         * as a value. */
-                        if (value->tag == BACNET_APPLICATION_TAG_NULL) {
-                            fprintf(stdout, "?");
+                    /* Some properties are presented just as '?' in an EPICS;
+                     * screen these out here, unless ShowValues is true.  */
+                    switch (rpm_property->propertyIdentifier) {
+                        case PROP_DEVICE_ADDRESS_BINDING:
+                            /* Make it VTS3-friendly and don't show "Null"
+                             * as a value. */
+                            if (value->tag == BACNET_APPLICATION_TAG_NULL) {
+                                fprintf(stdout, "?");
+                                break;
+                            }
+                            /* Else, fall through for normal processing. */
+                        case PROP_DAYLIGHT_SAVINGS_STATUS:
+                        case PROP_LOCAL_TIME:
+                        case PROP_LOCAL_DATE:  /* Only if !ShowValues */
+                        case PROP_PRESENT_VALUE:
+                        case PROP_PRIORITY_ARRAY:
+                        case PROP_RELIABILITY:
+                        case PROP_UTC_OFFSET:
+                        case PROP_DATABASE_REVISION:
+                            if (!ShowValues) {
+                                fprintf(stdout, "?");
+                                break;
+                            }
+                            /* Else, fall through and print value: */
+                        default:
+                            bacapp_print_value(stdout, &object_value);
                             break;
-                        }
-                        /* Else, fall through for normal processing. */
-                    case PROP_DAYLIGHT_SAVINGS_STATUS:
-                    case PROP_LOCAL_TIME:
-                        case PROP_LOCAL_DATE:       /* Only if !ShowValues */
-                    case PROP_PRESENT_VALUE:
-                    case PROP_PRIORITY_ARRAY:
-                    case PROP_RELIABILITY:
-                    case PROP_UTC_OFFSET:
-                    case PROP_DATABASE_REVISION:
-                        if (!ShowValues) {
-                            fprintf(stdout, "?");
-                            break;
-                        }
-                        /* Else, fall through and print value: */
-                    default:
-                        bacapp_print_value(stdout, &object_value);
-                        break;
-                }
+                    }
                 }
                 if (value->next != NULL) {
                     /* there's more! */
@@ -680,8 +679,8 @@ void PrintReadPropertyData(
                         /* Closing brace for this multi-valued array */
                         fprintf(stdout, " }");
                     }
-                    CheckIsWritableProperty(object_type, /* object_instance, */
-                                            rpm_property);
+                    CheckIsWritableProperty(object_type,        /* object_instance, */
+                        rpm_property);
                     fprintf(stdout, "\r\n");
                 }
                 break;
@@ -712,26 +711,27 @@ void Print_Property_Identifier(
  * @param rpm_object [out] The structure holding our linked list of properties to request.
  * @param propList [in] Simple list of properties (ptr to array), terminated with -1
  */
-void BuildPropRequest( BACNET_READ_ACCESS_DATA *rpm_object, int32_t *propList )
+void BuildPropRequest(
+    BACNET_READ_ACCESS_DATA * rpm_object,
+    int32_t * propList)
 {
-	int i;
-	/* To start with, StartNextObject() has prepopulated one propEntry,
-	 * but we will overwrite it and link more to it
-	 */
-	BACNET_PROPERTY_REFERENCE *propEntry = rpm_object->listOfProperties;
-	BACNET_PROPERTY_REFERENCE *oldEntry = rpm_object->listOfProperties;
-	for( i = 0; propList[i] != -1; i++ )
-	{
-		if ( propEntry == NULL ) {
-			propEntry = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
-			assert(propEntry);
-			oldEntry->next = propEntry;
-		}
-		propEntry->propertyIdentifier = propList[i];
-		propEntry->propertyArrayIndex = BACNET_ARRAY_ALL;
-		oldEntry = propEntry;
-		propEntry = NULL;
-	}
+    int i;
+    /* To start with, StartNextObject() has prepopulated one propEntry,
+     * but we will overwrite it and link more to it
+     */
+    BACNET_PROPERTY_REFERENCE *propEntry = rpm_object->listOfProperties;
+    BACNET_PROPERTY_REFERENCE *oldEntry = rpm_object->listOfProperties;
+    for (i = 0; propList[i] != -1; i++) {
+        if (propEntry == NULL) {
+            propEntry = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+            assert(propEntry);
+            oldEntry->next = propEntry;
+        }
+        propEntry->propertyIdentifier = propList[i];
+        propEntry->propertyArrayIndex = BACNET_ARRAY_ALL;
+        oldEntry = propEntry;
+        propEntry = NULL;
+    }
 }
 
 /** Send an RP request to read one property from the current Object.
@@ -750,7 +750,7 @@ static uint8_t Read_Properties(
 {
     uint8_t invoke_id = 0;
     struct special_property_list_t PropertyListStruct;
-    unsigned int i = 0,j = 0;
+    unsigned int i = 0, j = 0;
 
     if ((!Has_RPM && (Property_List_Index == 0)) ||
         (Property_List_Length == 0)) {
@@ -761,7 +761,8 @@ static uint8_t Read_Properties(
          */
         property_list_special(pMyObject->type, &PropertyListStruct);
         if (Optional_Properties) {
-            Property_List_Length = PropertyListStruct.Required.count +
+            Property_List_Length =
+                PropertyListStruct.Required.count +
                 PropertyListStruct.Optional.count;
         } else {
             Property_List_Length = PropertyListStruct.Required.count;
@@ -872,11 +873,11 @@ EPICS_STATES ProcessRPMData(
                     value = value->next;
                     free(old_value);
                 }
-            } else if ( myState == GET_HEADING_RESPONSE ) {
-            	InitIdValues[i++] = rpm_property->value;
-            	/* copy this pointer.
-            	 * On error, the pointer will be null
-            	 * We won't free these values*/
+            } else if (myState == GET_HEADING_RESPONSE) {
+                InitIdValues[i++] = rpm_property->value;
+                /* copy this pointer.
+                 * On error, the pointer will be null
+                 * We won't free these values*/
             } else {
                 fprintf(stdout, "    ");
                 Print_Property_Identifier(rpm_property->propertyIdentifier);
@@ -894,9 +895,9 @@ EPICS_STATES ProcessRPMData(
     }
 
     /* Now determine the next state */
-    if ( myState == GET_HEADING_RESPONSE )
-    	nextState = PRINT_HEADING;
-        /* press ahead with or without the data */
+    if (myState == GET_HEADING_RESPONSE)
+        nextState = PRINT_HEADING;
+    /* press ahead with or without the data */
     else if (bSuccess && (myState == GET_ALL_RESPONSE))
         nextState = NEXT_OBJECT;
     else if (bSuccess) {        /* and GET_LIST_OF_ALL_RESPONSE */
@@ -923,7 +924,8 @@ EPICS_STATES ProcessRPMData(
 void PrintUsage(
     )
 {
-    printf("bacepics -- Generates Full EPICS file, including Object and Property List \r\n");
+    printf
+        ("bacepics -- Generates Full EPICS file, including Object and Property List \r\n");
     printf("Usage: \r\n");
     printf
         ("  bacepics [-v] [-p sport] [-t target_mac [-n dnet]] device-instance \r\n");
@@ -935,13 +937,12 @@ void PrintUsage(
         ("    -t: declare target's MAC instead of using Who-Is to bind to  \r\n");
     printf
         ("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \r\n");
-    printf
-        ("        Use \"7F:00:00:01:BA:C0\" for loopback testing \r\n");
-    printf
-        ("    -n: specify target's DNET if not local BACnet network  \r\n");
+    printf("        Use \"7F:00:00:01:BA:C0\" for loopback testing \r\n");
+    printf("    -n: specify target's DNET if not local BACnet network  \r\n");
     printf("        or on routed Virtual Network \r\n");
     printf("\r\n");
-    printf("You may want to redirect the output to a .tpi file for VTS use,\r\n");
+    printf
+        ("You may want to redirect the output to a .tpi file for VTS use,\r\n");
     printf("    eg, bacepics -v 2701876 > epics-2701876.tpi \r\n");
     printf("\r\n");
     exit(0);
@@ -1040,166 +1041,169 @@ int CheckCommandLineArgs(
 }
 
 
-void PrintHeading( )
+void PrintHeading(
+    )
 {
-	BACNET_APPLICATION_DATA_VALUE *value;
-	char *relation = "for";		/* Text for Gateways */
-	if ( Target_Address.net != 0 )
-		relation = "provided by";	/* Text for child routed devices */
+    BACNET_APPLICATION_DATA_VALUE *value;
+    char *relation = "for";     /* Text for Gateways */
+    if (Target_Address.net != 0)
+        relation = "provided by";       /* Text for child routed devices */
 
-	printf("PICS 0\r\n");
-	printf("BACnet Protocol Implementation Conformance Statement\r\n\r\n");
+    printf("PICS 0\r\n");
+    printf("BACnet Protocol Implementation Conformance Statement\r\n\r\n");
 
-	printf("--\r\n--\r\n");
-	printf("-- BACnet/IP Interface for BACnet-stack Devices\r\n");
-	printf("-- http://sourceforge.net/projects/bacnet/ \r\n");
-	printf("-- \r\n-- \r\n\r\n");
+    printf("--\r\n--\r\n");
+    printf("-- BACnet/IP Interface for BACnet-stack Devices\r\n");
+    printf("-- http://sourceforge.net/projects/bacnet/ \r\n");
+    printf("-- \r\n-- \r\n\r\n");
 /*	InitIdValues  , , , */
 
-	value = InitIdValues[INIT_VENDOR_NAME];
-	if ( value != NULL )
-		printf("Vendor Name: \"%s\"\r\n", characterstring_value( &value->type.Character_String) );
-	else
-		printf("Vendor Name: \"bacnet-stack\"\r\n");
+    value = InitIdValues[INIT_VENDOR_NAME];
+    if (value != NULL)
+        printf("Vendor Name: \"%s\"\r\n",
+            characterstring_value(&value->type.Character_String));
+    else
+        printf("Vendor Name: \"bacnet-stack\"\r\n");
 
-	value = InitIdValues[INIT_MODEL_NAME];
-	/* Best we can do with Product Name and Model Number is use the same text */
-	if ( value != NULL ) {
-		printf("Product Name: \"%s\"\r\n", characterstring_value( &value->type.Character_String) );
-		printf("Product Model Number: \"%s\"\r\n", characterstring_value( &value->type.Character_String) );
-	} else {
-		printf("Product Name: \"bacnet-stack Device\"\r\n");
-		printf("Product Model Number: \"Model XXX\"\r\n");
-	}
+    value = InitIdValues[INIT_MODEL_NAME];
+    /* Best we can do with Product Name and Model Number is use the same text */
+    if (value != NULL) {
+        printf("Product Name: \"%s\"\r\n",
+            characterstring_value(&value->type.Character_String));
+        printf("Product Model Number: \"%s\"\r\n",
+            characterstring_value(&value->type.Character_String));
+    } else {
+        printf("Product Name: \"bacnet-stack Device\"\r\n");
+        printf("Product Model Number: \"Model XXX\"\r\n");
+    }
 
-	value = InitIdValues[INIT_DESCRIPTION];
-	if ( value != NULL )
-		printf("Product Description: \"%s\"\r\n\r\n", characterstring_value( &value->type.Character_String) );
-	else
-		printf("Product Description: \"bacnet-stack Demo Device\"\r\n\r\n");
+    value = InitIdValues[INIT_DESCRIPTION];
+    if (value != NULL)
+        printf("Product Description: \"%s\"\r\n\r\n",
+            characterstring_value(&value->type.Character_String));
+    else
+        printf("Product Description: \"bacnet-stack Demo Device\"\r\n\r\n");
 
-	printf("BIBBs Supported:\r\n");
-	printf("{\r\n");
-	printf(" DS-RP-B\r\n");
-	printf(" DS-RPM-B\r\n");
-	printf(" DS-WP-B\r\n");
-	printf(" DM-DDB-B\r\n");
-	printf(" DM-DOB-B\r\n");
-	printf(" DM-DCC-B\r\n");
-	printf(" DM-RD-B\r\n");
+    printf("BIBBs Supported:\r\n");
+    printf("{\r\n");
+    printf(" DS-RP-B\r\n");
+    printf(" DS-RPM-B\r\n");
+    printf(" DS-WP-B\r\n");
+    printf(" DM-DDB-B\r\n");
+    printf(" DM-DOB-B\r\n");
+    printf(" DM-DCC-B\r\n");
+    printf(" DM-RD-B\r\n");
 #ifdef BAC_ROUTING
-	/* Next line only for the gateway (ie, if not addressing a subNet) */
-	if ( Target_Address.net == 0 )
-		printf(" NM-RC-B\r\n");
+    /* Next line only for the gateway (ie, if not addressing a subNet) */
+    if (Target_Address.net == 0)
+        printf(" NM-RC-B\r\n");
 #endif
-	printf("}\r\n\r\n");
-	/* You might add some of:
-	 *	-- DS-COV-A DS-COV-B
-	 *	-- AE-N-A AE-N-I-B AE-N-E-B
-	 *	-- AE-ACK-A AE-ACK-B
-	 *	-- DM-UTC-B
-	 */
-
-	printf("BACnet Standard Application Services Supported:\r\n");
-	printf("{\r\n");
-	/* You might change the "Initiate Execute" values, or edit the result. */
-	printf(" ReadProperty                   Initiate Execute\r\n");
-	printf(" ReadPropertyMultiple           Execute\r\n");
-	printf(" WriteProperty                  Execute\r\n");
-	printf(" DeviceCommunicationControl     Execute\r\n");
-	printf(" Who-Has                        Execute\r\n");
-	printf(" I-Have                         Initiate\r\n");
-	printf(" Who-Is                         Initiate Execute\r\n");
-	printf(" I-Am                           Initiate\r\n");
-	printf(" ReinitializeDevice             Execute\r\n");
-#ifdef BAC_ROUTING
-	if ( Target_Address.net == 0 )
-	{
-		printf(" -- Note: The following Routing Services are Supported:\r\n");
-		printf(" -- Who-Is-Router-To-Network    Initiate Execute\r\n");
-		printf(" -- I-Am-Router-To-Network      Initiate Execute\r\n");
-		printf(" -- Initialize-Routing-Table    Execute\r\n");
-		printf(" -- Initialize-Routing-Table-Ack Initiate\r\n");
-	}
-#endif
-	printf("}\r\n\r\n");
-	/* You might want to add some of:
-	 *	-- AcknowledgeAlarm               Initiate Execute
-	 *	-- ConfirmedCOVNotification       Initiate Execute
-	 *	-- UnconfirmedCOVNotification     Initiate
-	 *	-- ConfirmedEventNotification     Initiate Execute
-	 *	-- UnconfirmedEventNotification   Initiate Execute
-	 *	-- GetAlarmSummary                Initiate Execute
-	 *	-- GetEnrollmentSummary           Initiate Execute
-	 *	-- WritePropertyMultiple          Initiate Execute
-	 *	-- ReadRange                      Initiate Execute
-	 *	-- GetEventInformation            Initiate Execute
-	 *	-- SubscribeCOVProperty           Initiate Execute
-	 */
-
-	printf("Standard Object-Types Supported:\r\n");
-	printf("{\r\n");
-	value = InitIdValues[INIT_OBJ_TYPES];
-	/* We have to process this bit string and determine which Object Types we have,
-	 * and show them
-	 */
-	if ( ( value != NULL ) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) )
-	{
-		int i, len = bitstring_bits_used(&value->type.Bit_String);
-        for ( i = 0; i < len; i++) {
-        	if ( bitstring_bit(&value->type.Bit_String, (uint8_t) i) )
-        		printf(" %s\r\n", bactext_object_type_name(i));
-        }
-	} else {		/* Else, just show the usual suspects */
-		printf(" Analog Input\r\n");
-		printf(" Analog Value\r\n");
-		printf(" Binary Input\r\n");
-		printf(" Binary Value\r\n");
-		printf(" Device\r\n");
-		printf(" Multi-state Input\r\n");
-		printf(" Multi-state Value\r\n");
-		printf(" Structured View\r\n");
-		printf(" Characterstring Value\r\n");
-		printf(" Datetime Value\r\n");
-		printf(" Integer Value\r\n");
-		printf(" Positive Integer Value\r\n");
-	}
-	printf("}\r\n\r\n");
-	/* You might add some of:
-	 *	-- Analog Output
-	 *	-- Binary Output
-	 *	-- Multi-state Output
-	 *	-- Trend Log                      Createable Deleteable
-	 *	-- Load Control
-	 *	-- Bitstring Value
-	 *	-- Date Pattern Value
-	 *	-- Date Value
-	 *	-- Datetime Pattern Value
-	 *	-- Large Analog Value
-	 *	-- Octetstring Value
-	 *	-- Time Pattern Value
-	 *	-- Time Value
+    printf("}\r\n\r\n");
+    /* You might add some of:
+     *      -- DS-COV-A DS-COV-B
+     *      -- AE-N-A AE-N-I-B AE-N-E-B
+     *      -- AE-ACK-A AE-ACK-B
+     *      -- DM-UTC-B
      */
 
-	printf("Data Link Layer Option:\r\n");
-	printf("{\r\n");
-	printf(" BACnet/IP, 'DIX' Ethernet\r\n");
-	printf("}\r\n\r\n");
+    printf("BACnet Standard Application Services Supported:\r\n");
+    printf("{\r\n");
+    /* You might change the "Initiate Execute" values, or edit the result. */
+    printf(" ReadProperty                   Initiate Execute\r\n");
+    printf(" ReadPropertyMultiple           Execute\r\n");
+    printf(" WriteProperty                  Execute\r\n");
+    printf(" DeviceCommunicationControl     Execute\r\n");
+    printf(" Who-Has                        Execute\r\n");
+    printf(" I-Have                         Initiate\r\n");
+    printf(" Who-Is                         Initiate Execute\r\n");
+    printf(" I-Am                           Initiate\r\n");
+    printf(" ReinitializeDevice             Execute\r\n");
+#ifdef BAC_ROUTING
+    if (Target_Address.net == 0) {
+        printf(" -- Note: The following Routing Services are Supported:\r\n");
+        printf(" -- Who-Is-Router-To-Network    Initiate Execute\r\n");
+        printf(" -- I-Am-Router-To-Network      Initiate Execute\r\n");
+        printf(" -- Initialize-Routing-Table    Execute\r\n");
+        printf(" -- Initialize-Routing-Table-Ack Initiate\r\n");
+    }
+#endif
+    printf("}\r\n\r\n");
+    /* You might want to add some of:
+     *      -- AcknowledgeAlarm               Initiate Execute
+     *      -- ConfirmedCOVNotification       Initiate Execute
+     *      -- UnconfirmedCOVNotification     Initiate
+     *      -- ConfirmedEventNotification     Initiate Execute
+     *      -- UnconfirmedEventNotification   Initiate Execute
+     *      -- GetAlarmSummary                Initiate Execute
+     *      -- GetEnrollmentSummary           Initiate Execute
+     *      -- WritePropertyMultiple          Initiate Execute
+     *      -- ReadRange                      Initiate Execute
+     *      -- GetEventInformation            Initiate Execute
+     *      -- SubscribeCOVProperty           Initiate Execute
+     */
 
-	printf("Character Sets Supported:\r\n");
-	printf("{\r\n");
-	printf(" ANSI X3.4\r\n");
-	printf("}\r\n\r\n");
+    printf("Standard Object-Types Supported:\r\n");
+    printf("{\r\n");
+    value = InitIdValues[INIT_OBJ_TYPES];
+    /* We have to process this bit string and determine which Object Types we have,
+     * and show them
+     */
+    if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
+        int i, len = bitstring_bits_used(&value->type.Bit_String);
+        for (i = 0; i < len; i++) {
+            if (bitstring_bit(&value->type.Bit_String, (uint8_t) i))
+                printf(" %s\r\n", bactext_object_type_name(i));
+        }
+    } else {    /* Else, just show the usual suspects */
+        printf(" Analog Input\r\n");
+        printf(" Analog Value\r\n");
+        printf(" Binary Input\r\n");
+        printf(" Binary Value\r\n");
+        printf(" Device\r\n");
+        printf(" Multi-state Input\r\n");
+        printf(" Multi-state Value\r\n");
+        printf(" Structured View\r\n");
+        printf(" Characterstring Value\r\n");
+        printf(" Datetime Value\r\n");
+        printf(" Integer Value\r\n");
+        printf(" Positive Integer Value\r\n");
+    }
+    printf("}\r\n\r\n");
+    /* You might add some of:
+     *      -- Analog Output
+     *      -- Binary Output
+     *      -- Multi-state Output
+     *      -- Trend Log                      Createable Deleteable
+     *      -- Load Control
+     *      -- Bitstring Value
+     *      -- Date Pattern Value
+     *      -- Date Value
+     *      -- Datetime Pattern Value
+     *      -- Large Analog Value
+     *      -- Octetstring Value
+     *      -- Time Pattern Value
+     *      -- Time Value
+     */
 
-	printf("Special Functionality:\r\n");
-	printf("{\r\n");
-	printf(" Maximum APDU size in octets: 1476\r\n");
-	printf("}\r\n\r\n");
+    printf("Data Link Layer Option:\r\n");
+    printf("{\r\n");
+    printf(" BACnet/IP, 'DIX' Ethernet\r\n");
+    printf("}\r\n\r\n");
 
-	printf("List of Objects in Test Device:\r\n");
-	/* Print Opening brace, then kick off the Device Object */
-	printf("{\r\n");
-	printf("  {\r\n"); /* And opening brace for the first object */
+    printf("Character Sets Supported:\r\n");
+    printf("{\r\n");
+    printf(" ANSI X3.4\r\n");
+    printf("}\r\n\r\n");
+
+    printf("Special Functionality:\r\n");
+    printf("{\r\n");
+    printf(" Maximum APDU size in octets: 1476\r\n");
+    printf("}\r\n\r\n");
+
+    printf("List of Objects in Test Device:\r\n");
+    /* Print Opening brace, then kick off the Device Object */
+    printf("{\r\n");
+    printf("  {\r\n");  /* And opening brace for the first object */
 }
 
 
@@ -1354,22 +1358,22 @@ int main(
             case GET_HEADING_INFO:
                 last_seconds = current_seconds;
                 StartNextObject(rpm_object, &myObject);
-                BuildPropRequest( rpm_object, &InitIdPropList[0] );
+                BuildPropRequest(rpm_object, &InitIdPropList[0]);
                 Request_Invoke_ID =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
                     Target_Device_Object_Instance, rpm_object);
                 if (Request_Invoke_ID > 0) {
                     elapsed_seconds = 0;
                 } else {
-                     /* We failed.  Will hurt the header info we can show. */
-                     fprintf(stderr, "\r-- Failed to get Heading info \r\n");
+                    /* We failed.  Will hurt the header info we can show. */
+                    fprintf(stderr, "\r-- Failed to get Heading info \r\n");
                 }
                 myState = GET_HEADING_RESPONSE;
                 break;
 
             case PRINT_HEADING:
-            	/* Print out the header information */
-            	PrintHeading( );
+                /* Print out the header information */
+                PrintHeading();
                 myState = GET_ALL_REQUEST;
                 /* Fall through now */
 
@@ -1421,9 +1425,9 @@ int main(
                 } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                     elapsed_seconds = 0;
                     Request_Invoke_ID = 0;
-                    if ( myState == GET_HEADING_RESPONSE )
-                    	myState = PRINT_HEADING;
-                        /* just press ahead without the data */
+                    if (myState == GET_HEADING_RESPONSE)
+                        myState = PRINT_HEADING;
+                    /* just press ahead without the data */
                     else if (Error_Detected) {
                         if (Last_Error_Code ==
                             ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE) {
@@ -1432,7 +1436,7 @@ int main(
                             Has_RPM = false;
                             myState = GET_PROPERTY_REQUEST;
                         } else if (Last_Error_Code ==
-                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) {
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) {
                             myState = GET_PROPERTY_REQUEST;
                             StartNextObject(rpm_object, &myObject);
                         } else if (myState == GET_ALL_RESPONSE)
@@ -1452,20 +1456,20 @@ int main(
                     tsm_free_invoke_id(Request_Invoke_ID);
                     Request_Invoke_ID = 0;
                     elapsed_seconds = 0;
-                    if ( myState == GET_HEADING_RESPONSE )
-                    	myState = PRINT_HEADING;
-                        /* just press ahead without the data */
+                    if (myState == GET_HEADING_RESPONSE)
+                        myState = PRINT_HEADING;
+                    /* just press ahead without the data */
                     else
-                        myState = GET_ALL_REQUEST;  /* Let's try again */
+                        myState = GET_ALL_REQUEST;      /* Let's try again */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     elapsed_seconds = 0;
                     Request_Invoke_ID = 0;
-                    if ( myState == GET_HEADING_RESPONSE )
-                    	myState = PRINT_HEADING;
-                        /* just press ahead without the data */
+                    if (myState == GET_HEADING_RESPONSE)
+                        myState = PRINT_HEADING;
+                    /* just press ahead without the data */
                     else
-                    myState = NEXT_OBJECT;      /* Give up and move on to the next. */
+                        myState = NEXT_OBJECT;  /* Give up and move on to the next. */
                     Error_Count++;
                 }
                 break;
@@ -1500,11 +1504,11 @@ int main(
                     (Request_Invoke_ID ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData(Read_Property_Multiple_Data.
-                        rpm_data->object_type,
+                    PrintReadPropertyData
+                        (Read_Property_Multiple_Data.rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.rpm_data->
-                        listOfProperties);
+                        Read_Property_Multiple_Data.
+                        rpm_data->listOfProperties);
                     if (tsm_invoke_id_free(Request_Invoke_ID)) {
                         Request_Invoke_ID = 0;
                     } else {
@@ -1538,12 +1542,13 @@ int main(
                             } else {
                                 /* OK, skip this one and try the next property. */
                                 fprintf(stdout, "    -- Failed to get ");
-                                Print_Property_Identifier(
-                                    Property_List[Property_List_Index]);
+                                Print_Property_Identifier(Property_List
+                                    [Property_List_Index]);
                                 fprintf(stdout, " \r\n");
                                 Error_Count++;
                                 Property_List_Index++;
-                                if (Property_List_Index >= Property_List_Length) {
+                                if (Property_List_Index >=
+                                    Property_List_Length) {
                                     /* Give up and move on to the next. */
                                     myState = NEXT_OBJECT;
                                 }
@@ -1563,7 +1568,7 @@ int main(
                     tsm_free_invoke_id(Request_Invoke_ID);
                     elapsed_seconds = 0;
                     Request_Invoke_ID = 0;
-                    myState = 3;     /* Let's try again, same Property */
+                    myState = 3;        /* Let's try again, same Property */
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     elapsed_seconds = 0;
@@ -1636,10 +1641,10 @@ int main(
         fprintf(stdout, "\r-- Found %d Errors \r\n", Error_Count);
 
     /* Closing brace for all Objects, if we got any, and closing footer  */
-    if (myState != INITIAL_BINDING)
-    {
+    if (myState != INITIAL_BINDING) {
         printf("} \r\n");
-        printf("End of BACnet Protocol Implementation Conformance Statement\r\n");
+        printf
+            ("End of BACnet Protocol Implementation Conformance Statement\r\n");
         printf("\r\n");
     }
 

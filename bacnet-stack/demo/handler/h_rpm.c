@@ -296,7 +296,8 @@ void handler_read_property_multiple(
                         &Temp_Buf[0], apdu_len, len, MAX_APDU);
                     if (copy_len == 0) {
 #if PRINT_ENABLED
-                        fprintf(stderr, "RPM: Too full to encode property!\r\n");
+                        fprintf(stderr,
+                            "RPM: Too full to encode property!\r\n");
 #endif
                         rpmdata.error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;

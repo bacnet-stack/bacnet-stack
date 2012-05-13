@@ -104,8 +104,8 @@ void handler_ucov_notification(
             fprintf(stderr, "UCOV: ");
             if (pProperty_value->propertyIdentifier < 512) {
                 fprintf(stderr, "%s ",
-                    bactext_property_name
-                    (pProperty_value->propertyIdentifier));
+                    bactext_property_name(pProperty_value->
+                        propertyIdentifier));
             } else {
                 fprintf(stderr, "proprietary %u ",
                     pProperty_value->propertyIdentifier);

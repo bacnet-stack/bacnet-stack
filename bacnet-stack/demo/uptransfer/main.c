@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>       /* for time */
-#include <ctype.h> /* for toupper */
+#include <ctype.h>      /* for toupper */
 
 #define PRINT_ENABLED 1
 
@@ -164,7 +164,7 @@ int main(
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
-    BACNET_PRIVATE_TRANSFER_DATA private_data = {0};
+    BACNET_PRIVATE_TRANSFER_DATA private_data = { 0 };
     int len = 0;
     bool sent_message = false;
 
@@ -179,34 +179,26 @@ int main(
                 "to try and bind with the device using Who-Is and\r\n"
                 "I-Am services.  For example, if you were transferring to\r\n"
                 "Device Object 123, the device-instance would be 123.\r\n"
-                "\r\n"
-                "vendor_id:\r\n"
+                "\r\n" "vendor_id:\r\n"
                 "the unique vendor identification code for the type of\r\n"
-                "vendor proprietary service to be performed.\r\n"
-                "\r\n"
+                "vendor proprietary service to be performed.\r\n" "\r\n"
                 "service-number (Unsigned32):\r\n"
-                "the desired proprietary service to be performed.\r\n"
-                "\r\n"
-                "tag:\r\n"
-                "Tag is the integer value of the enumeration \r\n"
+                "the desired proprietary service to be performed.\r\n" "\r\n"
+                "tag:\r\n" "Tag is the integer value of the enumeration \r\n"
                 "BACNET_APPLICATION_TAG in bacenum.h.\r\n"
                 "It is the data type of the value that you are sending.\r\n"
                 "For example, if you were transfering a REAL value, you would \r\n"
                 "use a tag of 4.\r\n"
                 "Context tags are created using two tags in a row.\r\n"
                 "The context tag is preceded by a C.  Ctag tag.\r\n"
-                "C2 4 creates a context 2 tagged REAL.\r\n"
-                "\r\n"
-                "value:\r\n"
+                "C2 4 creates a context 2 tagged REAL.\r\n" "\r\n" "value:\r\n"
                 "The value is an ASCII representation of some type of data\r\n"
                 "that you are transfering.\r\n"
                 "It is encoded using the tag information provided.\r\n"
                 "For example, if you were transferring a REAL value of 100.0,\r\n"
                 "you would use 100.0 as the value.\r\n"
                 "If you were transferring an object identifier for Device 123,\r\n"
-                "you would use 8:123 as the value.\r\n"
-                "\r\n"
-                "Example:\r\n"
+                "you would use 8:123 as the value.\r\n" "\r\n" "Example:\r\n"
                 "If you want to transfer a REAL value of 1.1 to service 23 of \r\n"
                 "vendor 260 in Device 99, you could send the following command:\r\n"
                 "%s 99 260 23 4 1.1\r\n", filename);
@@ -222,9 +214,9 @@ int main(
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    args_remaining = (argc - (6-2));
+    args_remaining = (argc - (6 - 2));
     for (i = 0; i < MAX_PROPERTY_VALUES; i++) {
-        tag_value_arg = (6-2) + (i * 2);
+        tag_value_arg = (6 - 2) + (i * 2);
         /* special case for context tagged values */
         if (toupper(argv[tag_value_arg][0]) == 'C') {
             context_tag = strtol(&argv[tag_value_arg][1], NULL, 0);
@@ -310,17 +302,17 @@ int main(
         }
         if (!sent_message) {
             if (found) {
-                len = bacapp_encode_data(&Service_Parameters[0],
+                len =
+                    bacapp_encode_data(&Service_Parameters[0],
                     &Target_Object_Property_Value[0]);
                 private_data.serviceParameters = &Service_Parameters[0];
                 private_data.serviceParametersLen = len;
                 private_data.vendorID = Target_Vendor_Identifier;
                 private_data.serviceNumber = Target_Service_Number;
-                Send_UnconfirmedPrivateTransfer(
-                    &Target_Address,
+                Send_UnconfirmedPrivateTransfer(&Target_Address,
                     &private_data);
                 printf("Sent PrivateTransfer.  Waiting %u seconds.\r\n",
-                    (unsigned)(timeout_seconds - elapsed_seconds));
+                    (unsigned) (timeout_seconds - elapsed_seconds));
                 sent_message = true;
             } else {
                 if (elapsed_seconds > timeout_seconds) {

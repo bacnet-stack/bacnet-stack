@@ -438,8 +438,8 @@ int Multistate_Value_Read_Property(
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
                 object_index =
-                    Multistate_Value_Instance_To_Index
-                    (rpdata->object_instance);
+                    Multistate_Value_Instance_To_Index(rpdata->
+                    object_instance);
                 for (i = 1; i <= MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Value_State_Text(rpdata->object_instance,
@@ -460,8 +460,8 @@ int Multistate_Value_Read_Property(
                 }
             } else {
                 object_index =
-                    Multistate_Value_Instance_To_Index
-                    (rpdata->object_instance);
+                    Multistate_Value_Instance_To_Index(rpdata->
+                    object_instance);
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Value_State_Text(rpdata->object_instance,
@@ -519,8 +519,8 @@ bool Multistate_Value_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 status =
-                    Multistate_Value_Present_Value_Set
-                    (wp_data->object_instance, value.type.Unsigned_Int);
+                    Multistate_Value_Present_Value_Set(wp_data->
+                    object_instance, value.type.Unsigned_Int);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

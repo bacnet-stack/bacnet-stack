@@ -88,7 +88,7 @@ typedef struct BACnet_Access_Error {
 struct BACnet_Property_Reference;
 typedef struct BACnet_Property_Reference {
     BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t propertyArrayIndex; /* optional */
+    uint32_t propertyArrayIndex;        /* optional */
     /* either value or error, but not both.
        Use NULL value to indicate error */
     BACNET_APPLICATION_DATA_VALUE *value;
@@ -195,10 +195,10 @@ extern "C" {
 #endif
 
 #ifdef BACAPP_SNPRINTF_ENABLED
-int bacapp_snprintf_value(
-    char *str,
-    size_t str_len,
-    BACNET_OBJECT_PROPERTY_VALUE * object_value);
+    int bacapp_snprintf_value(
+        char *str,
+        size_t str_len,
+        BACNET_OBJECT_PROPERTY_VALUE * object_value);
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED

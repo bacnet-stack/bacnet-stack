@@ -160,7 +160,7 @@ extern "C" {
        returns true if successfully converted and fits; false if too long */
     bool octetstring_init_ascii_hex(
         BACNET_OCTET_STRING * octet_string,
-        const char * ascii_hex);
+        const char *ascii_hex);
 #endif
     bool octetstring_copy(
         BACNET_OCTET_STRING * dest,

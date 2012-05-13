@@ -127,7 +127,8 @@ bool dcc_set_status_duration(
 
     return valid;
 }
-#if BACNET_SVC_DCC_A 
+
+#if BACNET_SVC_DCC_A
 /* encode service */
 int dcc_encode_apdu(
     uint8_t * apdu,

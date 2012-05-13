@@ -708,71 +708,49 @@ void property_list_special(
     pPropertyList->Proprietary.pList = NULL;
     switch (object_type) {
         case OBJECT_DEVICE:
-            pPropertyList->Required.pList =
-                Device_Properties_Required;
-            pPropertyList->Optional.pList =
-                Device_Properties_Optional;
+            pPropertyList->Required.pList = Device_Properties_Required;
+            pPropertyList->Optional.pList = Device_Properties_Optional;
             break;
             break;
         case OBJECT_ACCUMULATOR:
-            pPropertyList->Required.pList =
-                Accumulator_Properties_Required;
-            pPropertyList->Optional.pList =
-                Accumulator_Properties_Optional;
+            pPropertyList->Required.pList = Accumulator_Properties_Required;
+            pPropertyList->Optional.pList = Accumulator_Properties_Optional;
             break;
         case OBJECT_ANALOG_INPUT:
-            pPropertyList->Required.pList =
-                Analog_Input_Properties_Required;
-            pPropertyList->Optional.pList =
-                Analog_Input_Properties_Optional;
+            pPropertyList->Required.pList = Analog_Input_Properties_Required;
+            pPropertyList->Optional.pList = Analog_Input_Properties_Optional;
             break;
         case OBJECT_ANALOG_OUTPUT:
-            pPropertyList->Required.pList =
-                Analog_Output_Properties_Required;
-            pPropertyList->Optional.pList =
-                Analog_Output_Properties_Optional;
+            pPropertyList->Required.pList = Analog_Output_Properties_Required;
+            pPropertyList->Optional.pList = Analog_Output_Properties_Optional;
             break;
         case OBJECT_ANALOG_VALUE:
-            pPropertyList->Required.pList =
-                Analog_Value_Properties_Required;
-            pPropertyList->Optional.pList =
-                Analog_Value_Properties_Optional;
+            pPropertyList->Required.pList = Analog_Value_Properties_Required;
+            pPropertyList->Optional.pList = Analog_Value_Properties_Optional;
             break;
         case OBJECT_AVERAGING:
-            pPropertyList->Required.pList =
-                Averaging_Properties_Required;
-            pPropertyList->Optional.pList =
-                Averaging_Properties_Optional;
+            pPropertyList->Required.pList = Averaging_Properties_Required;
+            pPropertyList->Optional.pList = Averaging_Properties_Optional;
             break;
         case OBJECT_BINARY_INPUT:
-            pPropertyList->Required.pList =
-                Binary_Input_Properties_Required;
-            pPropertyList->Optional.pList =
-                Binary_Input_Properties_Optional;
+            pPropertyList->Required.pList = Binary_Input_Properties_Required;
+            pPropertyList->Optional.pList = Binary_Input_Properties_Optional;
             break;
         case OBJECT_BINARY_OUTPUT:
-            pPropertyList->Required.pList =
-                Binary_Output_Properties_Required;
-            pPropertyList->Optional.pList =
-                Binary_Output_Properties_Optional;
+            pPropertyList->Required.pList = Binary_Output_Properties_Required;
+            pPropertyList->Optional.pList = Binary_Output_Properties_Optional;
             break;
         case OBJECT_BINARY_VALUE:
-            pPropertyList->Required.pList =
-                Binary_Value_Properties_Required;
-            pPropertyList->Optional.pList =
-                Binary_Value_Properties_Optional;
+            pPropertyList->Required.pList = Binary_Value_Properties_Required;
+            pPropertyList->Optional.pList = Binary_Value_Properties_Optional;
             break;
         case OBJECT_CALENDAR:
-            pPropertyList->Required.pList =
-                Calendar_Properties_Required;
-            pPropertyList->Optional.pList =
-                Calendar_Properties_Optional;
+            pPropertyList->Required.pList = Calendar_Properties_Required;
+            pPropertyList->Optional.pList = Calendar_Properties_Optional;
             break;
         case OBJECT_COMMAND:
-            pPropertyList->Required.pList =
-                Command_Properties_Required;
-            pPropertyList->Optional.pList =
-                Command_Properties_Optional;
+            pPropertyList->Required.pList = Command_Properties_Required;
+            pPropertyList->Optional.pList = Command_Properties_Optional;
             break;
         case OBJECT_CHARACTERSTRING_VALUE:
             pPropertyList->Required.pList =
@@ -781,10 +759,8 @@ void property_list_special(
                 CharacterString_Value_Properties_Optional;
             break;
         case OBJECT_LOAD_CONTROL:
-            pPropertyList->Required.pList =
-                Load_Control_Properties_Required;
-            pPropertyList->Optional.pList =
-                Load_Control_Properties_Optional;
+            pPropertyList->Required.pList = Load_Control_Properties_Required;
+            pPropertyList->Optional.pList = Load_Control_Properties_Optional;
             break;
         case OBJECT_LIFE_SAFETY_POINT:
             pPropertyList->Required.pList =
@@ -817,10 +793,8 @@ void property_list_special(
                 Notification_Class_Properties_Optional;
             break;
         case OBJECT_TRENDLOG:
-            pPropertyList->Required.pList =
-                Trend_Log_Properties_Required;
-            pPropertyList->Optional.pList =
-                Trend_Log_Properties_Optional;
+            pPropertyList->Required.pList = Trend_Log_Properties_Required;
+            pPropertyList->Optional.pList = Trend_Log_Properties_Optional;
             break;
         case OBJECT_EVENT_ENROLLMENT:
         case OBJECT_FILE:

@@ -160,7 +160,7 @@ static int Read_Property_Common(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    BACNET_CHARACTER_STRING char_string = {0};
+    BACNET_CHARACTER_STRING char_string = { 0 };
     uint8_t *apdu = NULL;
 
     if ((rpdata->application_data == NULL) ||
@@ -579,7 +579,7 @@ bool Device_Valid_Object_Name(
     for (i = 0; i < max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
-            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
+            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) type);
             if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
                 (pObject->Object_Name(instance, &object_name2) &&
                     characterstring_same(object_name1, &object_name2))) {
@@ -605,7 +605,7 @@ bool Device_Valid_Object_Id(
     bool status = false;        /* return value */
     struct my_object_functions *pObject = NULL;
 
-    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
+    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE) object_type);
     if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
         status = pObject->Object_Valid_Instance(object_instance);
     }
@@ -614,7 +614,7 @@ bool Device_Valid_Object_Id(
 }
 
 bool Device_Object_Name_Copy(
-	BACNET_OBJECT_TYPE object_type,
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_CHARACTER_STRING * object_name)
 {
@@ -650,7 +650,7 @@ int Device_Read_Property_Local(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        /* object name, object id, object type are handled in Device object */
+            /* object name, object id, object type are handled in Device object */
         case PROP_DESCRIPTION:
             bacnet_name(NV_EEPROM_DEVICE_DESCRIPTION, &char_string,
                 "BACnet Development Kit");
@@ -856,8 +856,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
+                            instance))) {
                     eeprom_bytes_write(NV_EEPROM_DEVICE_0,
                         (uint8_t *) & value.type.Object_Id.instance, 4);
                     /* we could send an I-Am broadcast to let the world know */
@@ -902,12 +902,10 @@ bool Device_Write_Property_Local(
             break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                status = bacnet_name_write_unique(
-                    NV_EEPROM_DEVICE_NAME,
-                    value.type.Object_Id.type,
-                    value.type.Object_Id.instance,
-                    &value.type.Character_String,
-                    &wp_data->error_class,
+                status =
+                    bacnet_name_write_unique(NV_EEPROM_DEVICE_NAME,
+                    value.type.Object_Id.type, value.type.Object_Id.instance,
+                    &value.type.Character_String, &wp_data->error_class,
                     &wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;

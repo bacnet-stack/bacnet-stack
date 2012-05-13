@@ -95,7 +95,7 @@ int gettimeofday(
         time_start = timeGetTime();
     } else {
         elapsed_milliseconds = timeGetTime() - time_start;
-        usec_elapsed = usec_timer + ((LONGLONG)elapsed_milliseconds * 1000UL);
+        usec_elapsed = usec_timer + ((LONGLONG) elapsed_milliseconds * 1000UL);
         tp->tv_sec = (long) (usec_elapsed / 1000000UL);
         tp->tv_usec = (long) (usec_elapsed % 1000000UL);
     }

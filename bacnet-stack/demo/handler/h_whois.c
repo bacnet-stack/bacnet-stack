@@ -113,7 +113,7 @@ void handler_who_is_unicast(
 }
 
 
-#ifdef DEPRECATED  /* was for BAC_ROUTING - delete in 2/2012 if still unused */
+#ifdef DEPRECATED       /* was for BAC_ROUTING - delete in 2/2012 if still unused */
 /** Local function to check Who-Is requests against our Device IDs.
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.

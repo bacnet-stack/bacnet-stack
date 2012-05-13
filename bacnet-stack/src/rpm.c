@@ -382,9 +382,9 @@ int rpm_ack_encode_apdu_object_property_value(
     if (apdu) {
         /* Tag 4: propertyValue */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 4);
-        if (application_data == &apdu[apdu_len]) { /* Is Data already in place? */
-            apdu_len += application_data_len; /* Yes, step over data */
-        } else { /* No, copy data in */
+        if (application_data == &apdu[apdu_len]) {      /* Is Data already in place? */
+            apdu_len += application_data_len;   /* Yes, step over data */
+        } else {        /* No, copy data in */
             for (len = 0; len < application_data_len; len++) {
                 apdu[apdu_len++] = application_data[len];
             }

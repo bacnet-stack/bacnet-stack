@@ -83,24 +83,26 @@ extern "C" {
         uint16_t bbmd_port,     /* in network byte order */
         uint16_t time_to_live_seconds);
 
-struct sockaddr_in;     /* Defined elsewhere, needed here. */
+    struct sockaddr_in; /* Defined elsewhere, needed here. */
 
     /* Note any BVLC_RESULT code, or NAK the BVLL message in the unsupported cases. */
     int bvlc_for_non_bbmd(
-            struct sockaddr_in * sout,
-            uint8_t * npdu,
-            uint16_t received_bytes);
+        struct sockaddr_in *sout,
+        uint8_t * npdu,
+        uint16_t received_bytes);
 
     /* Returns the last BVLL Result we received, either as the result of a BBMD
      * request we sent, or (if not a BBMD or Client), from trying to register
      * as a foreign device. */
-    BACNET_BVLC_RESULT bvlc_get_last_result(void);
+    BACNET_BVLC_RESULT bvlc_get_last_result(
+        void);
 
     /* Returns the current BVLL Function Code we are processing.
      * We have to store this higher layer code for when the lower layers
      * need to know what it is, especially to differentiate between
      * BVLC_ORIGINAL_UNICAST_NPDU and BVLC_ORIGINAL_BROADCAST_NPDU.  */
-    BACNET_BVLC_FUNCTION bvlc_get_function_code(void);
+    BACNET_BVLC_FUNCTION bvlc_get_function_code(
+        void);
 
 #ifdef __cplusplus
 }

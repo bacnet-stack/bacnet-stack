@@ -1119,8 +1119,7 @@ static bool MSTP_Master_Node_FSM(
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
-            } else if ((Timer_Silence() > Treply_delay) ||
-                (pkt != NULL)) {
+            } else if ((Timer_Silence() > Treply_delay) || (pkt != NULL)) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
                 /* within Treply_delay after the reception of the */

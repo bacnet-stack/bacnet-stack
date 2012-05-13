@@ -35,13 +35,17 @@ extern "C" {
         void);
     void dlenv_maintenance_timer(
         uint16_t elapsed_seconds);
-    
+
     /* Simple setters and getter. */
-    void dlenv_bbmd_address_set( long address );
-    void dlenv_bbmd_port_set( int port );
-    void dlenv_bbmd_ttl_set( int ttl_secs );
-    int  dlenv_bbmd_result( void );
-    
+    void dlenv_bbmd_address_set(
+        long address);
+    void dlenv_bbmd_port_set(
+        int port);
+    void dlenv_bbmd_ttl_set(
+        int ttl_secs);
+    int dlenv_bbmd_result(
+        void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

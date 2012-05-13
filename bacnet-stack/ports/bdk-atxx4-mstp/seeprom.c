@@ -218,7 +218,7 @@ int seeprom_bytes_read(
        the slave, or it can leave the SDA line high (NACK), indicating to
        the slave that it is going to stop the transfer now.
        Assertion of ACK is handled by setting the TWEA bit in TWCR when
-       starting the current transfer.*/
+       starting the current transfer. */
     /* Next cycle(s): master receiver mode */
     /* send repeated start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);

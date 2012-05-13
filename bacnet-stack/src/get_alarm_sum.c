@@ -37,7 +37,7 @@ int get_alarm_summary_ack_encode_apdu_init(
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
-        apdu[1] = invoke_id;            /* original invoke id from request */
+        apdu[1] = invoke_id;    /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_GET_ALARM_SUMMARY;
         apdu_len = 3;
     }
@@ -54,20 +54,21 @@ int get_alarm_sumary_ack_encode_apdu_data(
 
     if (!apdu) {
         apdu_len = BACNET_STATUS_ERROR;
-    }
-    else if(max_apdu >= 10) {
+    } else if (max_apdu >= 10) {
         /* tag 0 - Object Identifier */
-        apdu_len += encode_application_object_id(&apdu[apdu_len],
-                        (int)get_alarm_data->objectIdentifier.type,
-                        get_alarm_data->objectIdentifier.instance);
+        apdu_len +=
+            encode_application_object_id(&apdu[apdu_len],
+            (int) get_alarm_data->objectIdentifier.type,
+            get_alarm_data->objectIdentifier.instance);
         /* tag 1 - Alarm State */
-        apdu_len += encode_application_enumerated(&apdu[apdu_len],
-                        get_alarm_data->alarmState);
+        apdu_len +=
+            encode_application_enumerated(&apdu[apdu_len],
+            get_alarm_data->alarmState);
         /* tag 2 - Acknowledged Transitions */
-        apdu_len += encode_application_bitstring(&apdu[apdu_len],
-                        &get_alarm_data->acknowledgedTransitions);
-    }
-    else {
+        apdu_len +=
+            encode_application_bitstring(&apdu[apdu_len],
+            &get_alarm_data->acknowledgedTransitions);
+    } else {
         apdu_len = BACNET_STATUS_ABORT;
     }
 

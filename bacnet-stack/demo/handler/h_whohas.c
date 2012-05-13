@@ -65,9 +65,8 @@ static void match_name_or_object(
     } else {
         /* valid object_name copy in my device? */
         found =
-            Device_Object_Name_Copy(
-            (BACNET_OBJECT_TYPE)data->object.identifier.type,
-            data->object.identifier.instance, &object_name);
+            Device_Object_Name_Copy((BACNET_OBJECT_TYPE) data->object.
+            identifier.type, data->object.identifier.instance, &object_name);
         if (found) {
             Send_I_Have(Device_Object_Instance_Number(),
                 (BACNET_OBJECT_TYPE) data->object.identifier.type,
@@ -110,7 +109,7 @@ void handler_who_has(
 }
 
 
-#ifdef DEPRECATED  /* was for BAC_ROUTING - delete in 2/2012 if still unused */
+#ifdef DEPRECATED       /* was for BAC_ROUTING - delete in 2/2012 if still unused */
 /** Handler for Who-Has requests in the virtual routing setup,
  * with broadcast I-Have response.
  * Will respond if the device Object ID matches, and we have

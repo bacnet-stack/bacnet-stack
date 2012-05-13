@@ -116,7 +116,7 @@ uint16_t iCurrent_Device_Idx = 0;
  */
 uint16_t Add_Routed_Device(
     uint32_t Object_Instance,
-    BACNET_CHARACTER_STRING *sObject_Name,
+    BACNET_CHARACTER_STRING * sObject_Name,
     const char *sDescription)
 {
     int i = Num_Managed_Devices;
@@ -127,8 +127,8 @@ uint16_t Add_Routed_Device(
         pDev->bacObj.mObject_Type = OBJECT_DEVICE;
         pDev->bacObj.Object_Instance_Number = Object_Instance;
         if (sObject_Name != NULL)
-            Routed_Device_Set_Object_Name(sObject_Name->encoding, 
-            	sObject_Name->value, sObject_Name->length);
+            Routed_Device_Set_Object_Name(sObject_Name->encoding,
+                sObject_Name->value, sObject_Name->length);
         else
             Routed_Device_Set_Object_Name(CHARACTER_UTF8, "No Name",
                 strlen("No Name"));
@@ -402,12 +402,13 @@ bool Routed_Device_Valid_Object_Instance_Number(
 }
 
 bool Routed_Device_Name(
-        uint32_t object_instance,
-        BACNET_CHARACTER_STRING * object_name)
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING * object_name)
 {
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
     if (object_instance == pDev->bacObj.Object_Instance_Number) {
-        return characterstring_init_ansi(object_name, pDev->bacObj.Object_Name);
+        return characterstring_init_ansi(object_name,
+            pDev->bacObj.Object_Name);
     }
 
     return NULL;
@@ -485,8 +486,8 @@ bool Routed_Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Routed_Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Routed_Device_Set_Object_Instance_Number(value.
+                            type.Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -500,8 +501,8 @@ bool Routed_Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Routed_Device_Set_Object_Name(characterstring_encoding(&value.
-                        type.Character_String),
+                Routed_Device_Set_Object_Name(characterstring_encoding
+                    (&value.type.Character_String),
                     characterstring_value(&value.type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
@@ -611,32 +612,33 @@ void Routed_Device_Inc_Database_Revision(
  *          else 0 if service is approved for the current device.
  */
 int Routed_Device_Service_Approval(
-        BACNET_CONFIRMED_SERVICE service,
-        int service_argument,
-        uint8_t *apdu_buff,
-        uint8_t invoke_id )
+    BACNET_CONFIRMED_SERVICE service,
+    int service_argument,
+    uint8_t * apdu_buff,
+    uint8_t invoke_id)
 {
     int len = 0;
-    switch(service)
-    {
+    switch (service) {
         case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
             /* If not the gateway device, we don't support RD */
-            if ( iCurrent_Device_Idx > 0 ) {
+            if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL)
-                    len = reject_encode_apdu(apdu_buff,
-                            invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+                    len =
+                        reject_encode_apdu(apdu_buff, invoke_id,
+                        REJECT_REASON_UNRECOGNIZED_SERVICE);
                 else
-                    len = 1;        /* Non-zero return */
+                    len = 1;    /* Non-zero return */
             }
             break;
         case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
             /* If not the gateway device, we don't support DCC */
-            if ( iCurrent_Device_Idx > 0 ) {
+            if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL)
-                    len = reject_encode_apdu(apdu_buff,
-                            invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+                    len =
+                        reject_encode_apdu(apdu_buff, invoke_id,
+                        REJECT_REASON_UNRECOGNIZED_SERVICE);
                 else
-                    len = 1;        /* Non-zero return */
+                    len = 1;    /* Non-zero return */
             }
             break;
         default:
