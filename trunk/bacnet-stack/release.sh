@@ -29,9 +29,10 @@ svn update
 svn log --xml --verbose | xsltproc svn2cl.xsl - > ${CHANGELOG}
 if [ -e "${CHANGELOG}" ]
 then
-echo "${CHANGELOG} created."
+  echo "${CHANGELOG} created."
 else
-echo "Failed to create ${CHANGELOG}"
+  echo "Failed to create ${CHANGELOG}"
+  exit 1
 fi
 
 ARCHIVE_NAME=${SVN_MODULE}-${DOTTED_VERSION}
@@ -41,14 +42,16 @@ SVN_BASE_URL=https://${PROJECT}.svn.sourceforge.net/svnroot/${PROJECT}
 SVN_TRUNK_NAME=${SVN_BASE_URL}/trunk/${SVN_MODULE}
 SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${TAGGED_NAME}
 echo "Setting a tag on the ${SVN_MODULE} module called ${TAGGED_NAME}"
-SVN_MESSAGE="Created version ${ARCHIVE_NAME}"
-svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m ${SVN_MESSAGE} > /dev/null
+svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} 1> /dev/null
 echo "done."
 
-if [ -e "${ARCHIVE_NAME}" ]
+if [ -d "${ARCHIVE_NAME}" ]
 then
+  echo "removing old ${ARCHIVE_NAME}..."
 rm -rf ${ARCHIVE_NAME}
+  echo "done."
 fi
+
 echo "Getting a clean version out of subversion for Linux gzip"
 svn export ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
 echo "done."
@@ -57,20 +60,25 @@ GZIP_FILENAME=${ARCHIVE_NAME}.tgz
 echo "tar and gzip the clean directory"
 if [ -e "${GZIP_FILENAME}" ]
 then
-rm ${GZIP_FILENAME}
+  echo "removing old ${GZIP_FILENAME}..."
+  rm ${GZIP_FILENAME}
+  echo "done."
 fi
 tar -cvvzf ${GZIP_FILENAME} ${ARCHIVE_NAME}/ > /dev/null
 echo "done."
 if [ -e "${GZIP_FILENAME}" ]
 then
-echo "${GZIP_FILENAME} created."
+  echo "${GZIP_FILENAME} created."
 else
-echo "Failed to create ${GZIP_FILENAME}"
+  echo "Failed to create ${GZIP_FILENAME}"
+  exit 1
 fi
 
-if [ -e "${ARCHIVE_NAME}" ]
+if [ -d "${ARCHIVE_NAME}" ]
 then
-rm -rf ${ARCHIVE_NAME}
+  echo "removing old ${ARCHIVE_NAME}..."
+  rm -rf ${ARCHIVE_NAME}
+  echo "done."
 fi
 echo "Getting another clean version out of subversion for Windows zip"
 svn export --native-eol CRLF ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
@@ -80,15 +88,18 @@ echo "Zipping the directory exported for Windows."
 zip -r ${ZIP_FILENAME} ${ARCHIVE_NAME} > /dev/null
 if [ -e "${ZIP_FILENAME}" ]
 then
-echo "${ZIP_FILENAME} created."
+  echo "${ZIP_FILENAME} created."
 else
-echo "Failed to create ${ZIP_FILENAME}"
+  echo "Failed to create ${ZIP_FILENAME}"
+  exit 1
 fi
 
 # remove SVN files
-if [ -e "${ARCHIVE_NAME}" ]
+if [ -d "${ARCHIVE_NAME}" ]
 then
-rm -rf ${ARCHIVE_NAME}
+  echo "removing ${ARCHIVE_NAME}..."
+  rm -rf ${ARCHIVE_NAME}
+  echo "done."
 fi
 
 echo "Creating ${ARCHIVE_NAME}"
@@ -102,3 +113,4 @@ echo "Sending ${ARCHIVE_NAME} to SourceForge using scp..."
 scp -r ${ARCHIVE_NAME} ${FRS_URL}
 
 echo "Complete!"
+
