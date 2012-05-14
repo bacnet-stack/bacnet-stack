@@ -48,7 +48,7 @@ echo "done."
 if [ -d "${ARCHIVE_NAME}" ]
 then
   echo "removing old ${ARCHIVE_NAME}..."
-rm -rf ${ARCHIVE_NAME}
+  rm -rf ${ARCHIVE_NAME}
   echo "done."
 fi
 
