@@ -42,7 +42,7 @@ SVN_BASE_URL=https://${PROJECT}.svn.sourceforge.net/svnroot/${PROJECT}
 SVN_TRUNK_NAME=${SVN_BASE_URL}/trunk/${SVN_MODULE}
 SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${TAGGED_NAME}
 echo "Setting a tag on the ${SVN_MODULE} module called ${TAGGED_NAME}"
-svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} 1> /dev/null
+svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m "tagged" > /dev/null
 echo "done."
 
 if [ -d "${ARCHIVE_NAME}" ]
