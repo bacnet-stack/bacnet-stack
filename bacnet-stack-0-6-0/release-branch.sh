@@ -20,7 +20,7 @@ BRANCH_VERSION_DOTTED="$1"
 BRANCH_VERSION_DASHED="$(echo "$1" | sed 's/[\.*]/-/g')"
 TAGGED_VERSION_DOTTED="$2"
 TAGGED_VERSION_DASHED="$(echo "$2" | sed 's/[\.*]/-/g')"
-echo "Creating the ${TAGGED_VERSION_DOTTED} release files for $(BRANCH_VERSION_DOTTED)"
+echo "Creating the ${TAGGED_VERSION_DOTTED} release files for ${BRANCH_VERSION_DOTTED}"
 
 CHANGELOG=ChangeLog-${TAGGED_VERSION_DOTTED}
 echo "Creating the ${PROJECT} change log ${CHANGELOG}"
