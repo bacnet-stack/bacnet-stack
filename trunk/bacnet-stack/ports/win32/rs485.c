@@ -84,11 +84,6 @@ static DWORD RS485_DTRControl = DTR_CONTROL_DISABLE;
     RTS_CONTROL_ENABLE, RTS_CONTROL_DISABLE,
     RTS_CONTROL_HANDSHAKE, RTS_CONTROL_TOGGLE */
 static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
-/* Ring buffer for incoming bytes, in order to speed up the receiving. */
-static FIFO_BUFFER Rx_FIFO;
-/* buffer size needs to be a power of 2 */
-static uint8_t Rx_Buffer[1 << 12];
-
 
 /****************************************************************************
 * DESCRIPTION: Change the characters in a string to uppercase
@@ -382,7 +377,7 @@ bool RS485_Set_Baud_Rate(
              * are transmitting with 1 stop bit (some devices receive with
              * 1 stop bit but effectivly end up transmitting with 2 stop
              * bits, usually because of synchroisation issues in some UARTs
-             * which mean that if you wait until the serialiser has finished 
+             * which mean that if you wait until the serialiser has finished
              * with the current character and then load the TX buffer it has
              * to wait until the next bit boundary to start transmitting.
              * PMcS
