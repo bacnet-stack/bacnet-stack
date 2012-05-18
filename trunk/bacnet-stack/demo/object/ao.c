@@ -75,7 +75,6 @@ static const int Properties_Required[] = {
 };
 
 static const int Properties_Optional[] = {
-    PROP_DESCRIPTION,
     -1
 };
 
