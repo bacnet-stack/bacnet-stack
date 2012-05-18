@@ -43,10 +43,12 @@ extern bool BIP_Debug;
 extern "C" {
 #endif /* __cplusplus */
 
-    /* note: define init and cleanup in your ports section */
+    /* note: define init, set_interface, and cleanup in your port */
     /* on Linux, ifname is eth0, ath0, arc0, and others.
        on Windows, ifname is the dotted ip address of the interface */
     bool bip_init(
+        char *ifname);
+    void bip_set_interface(
         char *ifname);
     void bip_cleanup(
         void);
