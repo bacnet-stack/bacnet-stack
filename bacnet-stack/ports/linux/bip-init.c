@@ -102,7 +102,7 @@ static int get_local_address_ioctl(
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
-static void bip_set_interface(
+void bip_set_interface(
     char *ifname)
 {
     struct in_addr local_address;
