@@ -41,18 +41,19 @@
 
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
-#define BACNET_MAX_INSTANCE (0x3FFFFF)
+#define BACNET_MAX_INSTANCE (0x3FFFFFU)
 #define BACNET_INSTANCE_BITS 22
 /* large BACnet Object Type */
-#define BACNET_MAX_OBJECT (0x3FF)
+#define BACNET_MAX_OBJECT (0x3FFU)
 /* Array index 0=size of array, n=array element n,  MAX=all array elements */
-#define BACNET_ARRAY_ALL 0xFFFFFFFF     /* 32-bit MAX, to use with uint32_t */
+/* 32-bit MAX, to use with uint32_t */
+#define BACNET_ARRAY_ALL (0xFFFFFFFFU)
 /* Priority Array for commandable objects */
 #define BACNET_NO_PRIORITY 0
 #define BACNET_MIN_PRIORITY 1
 #define BACNET_MAX_PRIORITY 16
 
-#define BACNET_BROADCAST_NETWORK 0xFFFF
+#define BACNET_BROADCAST_NETWORK (0xFFFFU)
 /* Any size MAC address should be allowed which is less than or
    equal to 7 bytes.  The IPv6 addresses are planned to be handled
    outside this area. */
