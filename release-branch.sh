@@ -7,7 +7,7 @@ FRS_URL=skarg,bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet/bacnet-st
 
 if [ -z "$1" ] && [ -z "$2" ]
 then
-  echo "Usage: `basename $0` 0.0.0 0.0.1"
+  echo "Usage: `basename $0` 0.7.0 0.7.1"
   echo "Use dotted version as [branch-revision] [tag-revision]."
   echo "Creates the ChangeLog."
   echo "Creates the release files."
