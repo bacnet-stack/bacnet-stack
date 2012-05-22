@@ -5,9 +5,9 @@ PROJECT=bacnet
 SVN_MODULE=bacnet-stack
 FRS_URL=skarg,bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet/bacnet-stack
 
-if [ -z "$1" ]
+if [ -z "$1" ] && [ -z "$2" ]
 then
-  echo "Usage: `basename $0` 0.0.0 0.0.1"
+  echo "Usage: `basename $0` 0.7.0 0.7.1"
   echo "Creates the ChangeLog."
   echo "Creates the release files."
   echo "Tags this branch release in subversion."
