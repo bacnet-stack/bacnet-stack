@@ -40,6 +40,9 @@
 #include "cov.h"
 #include "tsm.h"
 #include "dcc.h"
+#if PRINT_ENABLED
+#include "bactext.h"
+#endif
 /* demo objects */
 #include "device.h"
 #include "handlers.h"
@@ -390,7 +393,7 @@ static void cov_lifetime_expiration_handler(
         if (lifetime_seconds >= elapsed_seconds) {
             COV_Subscriptions[index].lifetime -= elapsed_seconds;
 #if 0
-            fprintf(stderr, "COVtask: subscription[%d].lifetime=%lu\n", index,
+            fprintf(stderr, "COVtimer: subscription[%d].lifetime=%lu\n", index,
                 (unsigned long) COV_Subscriptions[index].lifetime);
 #endif
         } else {
@@ -398,6 +401,17 @@ static void cov_lifetime_expiration_handler(
         }
         if (COV_Subscriptions[index].lifetime == 0) {
             /* expire the subscription */
+#if PRINT_ENABLED
+            fprintf(stderr, "COVtimer: PID=%u ",
+            COV_Subscriptions[index].subscriberProcessIdentifier);
+            fprintf(stderr, "%s %u ",
+                bactext_object_type_name(
+                COV_Subscriptions[index].monitoredObjectIdentifier.type),
+                COV_Subscriptions[index].monitoredObjectIdentifier.instance);
+            fprintf(stderr, "time remaining=%u seconds ",
+                COV_Subscriptions[index].lifetime);
+            fprintf(stderr, "\n");
+#endif
             COV_Subscriptions[index].flag.valid = false;
             if (COV_Subscriptions[index].flag.issueConfirmedNotifications) {
                 if (COV_Subscriptions[index].invokeID) {
@@ -485,6 +499,9 @@ void handler_cov_task(
                 status = Device_COV(object_type, object_instance);
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
+#if PRINT_ENABLED
+                    fprintf(stderr,"COVtask: Marking...\n");
+#endif
                 }
             }
             index++;
@@ -551,6 +568,9 @@ void handler_cov_task(
                     object_instance =
                         COV_Subscriptions[index].monitoredObjectIdentifier.
                         instance;
+#if PRINT_ENABLED
+                    fprintf(stderr,"COVtask: Sending...\n");
+#endif
                     /* configure the linked list for the two properties */
                     value_list[0].next = &value_list[1];
                     value_list[1].next = NULL;
