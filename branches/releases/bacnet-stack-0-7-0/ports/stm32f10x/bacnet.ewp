@@ -170,6 +170,8 @@
           <state>MAX_APDU=480</state>
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
+          <state>MAX_CHARACTER_STRING_BYTES=64</state>
+          <state>MAX_OCTET_STRING_BYTES=64</state>
           <state>BACAPP_BOOLEAN</state>
           <state>BACAPP_REAL</state>
           <state>BACAPP_OBJECT_ID</state>
@@ -1070,6 +1072,8 @@
           <state>MAX_APDU=480</state>
           <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
+          <state>MAX_CHARACTER_STRING_BYTES=64</state>
+          <state>MAX_OCTET_STRING_BYTES=64</state>
           <state>BACAPP_BOOLEAN</state>
           <state>BACAPP_REAL</state>
           <state>BACAPP_OBJECT_ID</state>
