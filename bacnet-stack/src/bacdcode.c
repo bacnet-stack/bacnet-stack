@@ -986,22 +986,40 @@ int decode_context_octet_string(
 #endif
 
 /* from clause 20.2.9 Encoding of a Character String Value */
-/* returns the number of apdu bytes consumed */
+/* returns the number of apdu bytes consumed, or zero if failed */
+uint32_t encode_bacnet_character_string_safe(
+    uint8_t * apdu,
+    uint32_t max_apdu,
+    uint8_t encoding,
+    char *pString,
+    uint32_t length)
+{
+    uint32_t apdu_len = 1 /*encoding*/;
+    int len, i;
+
+    apdu_len += length;
+    if (apdu && (apdu_len <= max_apdu)) {
+        apdu[0] = encoding;
+        for (i = 0; i < length; i++) {
+            apdu[1 + i] = (uint8_t) pString[i];
+        }
+    } else {
+        apdu_len = 0;
+    }
+
+    return apdu_len;
+}
+
 int encode_bacnet_character_string(
     uint8_t * apdu,
     BACNET_CHARACTER_STRING * char_string)
 {
-    int len, i;
-    char *pString;
-
-    len = (int) characterstring_length(char_string);
-    apdu[0] = characterstring_encoding(char_string);
-    pString = characterstring_value(char_string);
-    for (i = 0; i < len; i++) {
-        apdu[1 + i] = (uint8_t) pString[i];
-    }
-
-    return len + 1 /* for encoding */ ;
+    return (int)encode_bacnet_character_string_safe(
+        apdu,
+        MAX_APDU,
+        characterstring_encoding(char_string),
+        characterstring_value(char_string),
+        characterstring_length(char_string));
 }
 
 /* from clause 20.2.9 Encoding of a Character String Value */
