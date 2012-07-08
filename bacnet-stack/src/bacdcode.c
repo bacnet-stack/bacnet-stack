@@ -995,7 +995,7 @@ uint32_t encode_bacnet_character_string_safe(
     uint32_t length)
 {
     uint32_t apdu_len = 1 /*encoding*/;
-    int len, i;
+    int i;
 
     apdu_len += length;
     if (apdu && (apdu_len <= max_apdu)) {

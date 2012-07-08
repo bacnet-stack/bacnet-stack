@@ -224,6 +224,12 @@ extern "C" {
 /* from clause 20.2.9 Encoding of a Character String Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
+    uint32_t encode_bacnet_character_string_safe(
+        uint8_t * apdu,
+        uint32_t max_apdu,
+        uint8_t encoding,
+        char *pString,
+        uint32_t length);
     int encode_bacnet_character_string(
         uint8_t * apdu,
         BACNET_CHARACTER_STRING * char_string);
