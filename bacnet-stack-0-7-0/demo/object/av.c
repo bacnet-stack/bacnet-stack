@@ -728,12 +728,18 @@ bool Analog_Value_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
-                if (value.type.Bit_String.bits_used > NOTIFY_EVENT) {
-                    CurrentAV->Event_Enable = value.type.Enumerated;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    status = false;
+                switch ((BACNET_NOTIFY_TYPE)value.type.Enumerated) {
+                    case NOTIFY_EVENT:
+                        CurrentAV->Notify_Type = 1;
+                        break;
+                    case NOTIFY_ALARM:
+                        CurrentAV->Notify_Type = 0;
+                        break;
+                    default:
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        status = false;
+                        break;
                 }
             }
             break;
