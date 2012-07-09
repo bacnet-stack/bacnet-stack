@@ -278,8 +278,12 @@ typedef struct {
 #if ((__GNUC__ < 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ < 3)) || \
      ((__GNUC__ == 4) && (__GNUC_MINOR__ == 3) && (__GNUC_PATCHLEVEL__ <= 3)))
     /* bug in WinAVR - not quite IAR compatible */
+#ifndef __EEPUT
 #define __EEPUT _EEPUT
+#endif
+#ifndef __EEGET
 #define __EEGET _EEGET
+#endif
 #endif
 #elif defined (__CROSSWORKS_AVR)
 /* use functions defined in crt0.s to mimic IAR macros */
