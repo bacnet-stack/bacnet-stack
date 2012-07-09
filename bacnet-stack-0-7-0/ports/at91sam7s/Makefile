@@ -4,13 +4,16 @@
 TARGET=bacnet
 
 # Tools
-CC=arm-elf-gcc
-OBJCOPY=arm-elf-objcopy
-OBJDUMP=arm-elf-objdump
-AR=arm-elf-ar
-SIZE = arm-elf-size
+#PREFIX=arm-elf-
+PREFIX ?= arm-none-eabi-
+#
+CC = $(PREFIX)gcc
+OBJCOPY = $(PREFIX)objcopy
+OBJDUMP = $(PREFIX)objdump
+AR = $(PREFIX)ar
+SIZE = $(PREFIX)size
 
-LDSCRIPT=at91sam7s256.ld
+LDSCRIPT = at91sam7s256.ld
 
 BACNET_FLAGS = -DBACDL_MSTP
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
