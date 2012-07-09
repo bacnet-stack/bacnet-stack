@@ -340,6 +340,13 @@ bool Analog_Value_Write_Property(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status =
@@ -363,8 +370,8 @@ bool Analog_Value_Write_Property(
                 }
             }
             break;
-#if 0
         case PROP_OUT_OF_SERVICE:
+#if 0
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
@@ -375,9 +382,32 @@ bool Analog_Value_Write_Property(
             }
             break;
 #endif
-        default:
+        case PROP_UNITS:
+#if 0
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                &wp_data->error_class, &wp_data->error_code);
+            if (status) {
+                object_index =
+                    Analog_Value_Instance_To_Index(wp_data->object_instance);
+                Analog_Value_Units[object_index] = value.type.Unsigned_Int;
+            }
+            break;
+#endif
+        case PROP_PRIORITY_ARRAY:
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_OBJECT_TYPE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_DESCRIPTION:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        case PROP_RELINQUISH_DEFAULT:
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
     /* not using len at this time */

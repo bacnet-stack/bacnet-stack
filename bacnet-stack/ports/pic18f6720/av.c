@@ -309,8 +309,15 @@ bool Analog_Value_Write_Property(
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
@@ -384,9 +391,20 @@ bool Analog_Value_Write_Property(
             }
             break;
 #endif
-        default:
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_OBJECT_TYPE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_OUT_OF_SERVICE:
+        case PROP_DESCRIPTION:
+        case PROP_PRIORITY_ARRAY:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 
