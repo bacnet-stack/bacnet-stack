@@ -458,9 +458,7 @@ bool Device_Set_Object_Instance_Number(
 bool Device_Valid_Object_Instance_Number(
     uint32_t object_id)
 {
-    /* BACnet allows for a wildcard instance number */
-    return ((Object_Instance_Number == object_id) ||
-        (object_id == BACNET_MAX_INSTANCE));
+    return (Object_Instance_Number == object_id);
 }
 
 BACNET_DEVICE_STATUS Device_System_Status(
