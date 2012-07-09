@@ -525,8 +525,15 @@ bool Device_Write_Property(
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
+    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
@@ -618,9 +625,36 @@ bool Device_Write_Property(
                 *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
-        default:
+        case PROP_NUMBER_OF_APDU_RETRIES:
+        case PROP_APDU_TIMEOUT:
+        case PROP_VENDOR_IDENTIFIER:
+        case PROP_SYSTEM_STATUS:
+        case PROP_LOCATION:
+        case PROP_DESCRIPTION:
+        case PROP_MODEL_NAME:
+        case PROP_VENDOR_NAME:
+        case PROP_FIRMWARE_REVISION:
+        case PROP_APPLICATION_SOFTWARE_VERSION:
+        case PROP_LOCAL_TIME:
+        case PROP_UTC_OFFSET:
+        case PROP_LOCAL_DATE:
+        case PROP_DAYLIGHT_SAVINGS_STATUS:
+        case PROP_PROTOCOL_VERSION:
+        case PROP_PROTOCOL_REVISION:
+        case PROP_PROTOCOL_SERVICES_SUPPORTED:
+        case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
+        case PROP_OBJECT_LIST:
+        case PROP_MAX_APDU_LENGTH_ACCEPTED:
+        case PROP_SEGMENTATION_SUPPORTED:
+        case PROP_DEVICE_ADDRESS_BINDING:
+        case PROP_DATABASE_REVISION:
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 
