@@ -946,6 +946,13 @@ bool Load_Control_Write_Property(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+    /*  only array properties can have array options */
+    if ((wp_data->object_property != PROP_SHED_LEVELS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     object_index = Load_Control_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_REQUESTED_SHED_LEVEL:

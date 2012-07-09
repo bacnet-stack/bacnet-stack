@@ -826,6 +826,13 @@ bool Device_Write_Property_Local(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             status =
@@ -894,9 +901,28 @@ bool Device_Write_Property_Local(
                     characterstring_length(&value.type.Character_String));
             }
             break;
-        default:
+        case PROP_OBJECT_TYPE:
+        case PROP_VENDOR_NAME:
+        case PROP_VENDOR_IDENTIFIER:
+        case PROP_MODEL_NAME:
+        case PROP_FIRMWARE_REVISION:
+        case PROP_APPLICATION_SOFTWARE_VERSION:
+        case PROP_PROTOCOL_VERSION:
+        case PROP_PROTOCOL_REVISION:
+        case PROP_PROTOCOL_SERVICES_SUPPORTED:
+        case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
+        case PROP_OBJECT_LIST:
+        case PROP_MAX_APDU_LENGTH_ACCEPTED:
+        case PROP_SEGMENTATION_SUPPORTED:
+        case PROP_DEVICE_ADDRESS_BINDING:
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+        case PROP_DATABASE_REVISION:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
     /* not using len at this time */
