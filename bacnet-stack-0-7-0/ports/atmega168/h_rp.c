@@ -54,6 +54,10 @@ int Encode_Property_APDU(
     /* handle each object type */
     switch (rp_data->object_type) {
         case OBJECT_DEVICE:
+            /* Test for case of indefinite Device object instance */
+            if (rp_data->object_instance == BACNET_MAX_INSTANCE) {
+                rp_data->object_instance = Device_Object_Instance_Number();
+            }
             if (Device_Valid_Object_Instance_Number(rp_data->object_instance)) {
                 apdu_len =
                     Device_Encode_Property_APDU(&apdu[0],
