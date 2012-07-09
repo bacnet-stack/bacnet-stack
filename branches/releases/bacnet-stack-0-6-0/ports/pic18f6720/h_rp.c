@@ -89,6 +89,10 @@ void handler_read_property(
     error = true;
     switch (data.object_type) {
         case OBJECT_DEVICE:
+            /* Test for case of indefinite Device object instance */
+            if (data.object_instance == BACNET_MAX_INSTANCE) {
+                data.object_instance = Device_Object_Instance_Number();
+            }
             /* FIXME: probably need a length limitation sent with encode */
             if (Device_Valid_Object_Instance_Number(data.object_instance)) {
                 len =

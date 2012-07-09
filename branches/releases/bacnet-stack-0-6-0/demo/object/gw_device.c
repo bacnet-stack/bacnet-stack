@@ -393,11 +393,10 @@ bool Routed_Device_Valid_Object_Instance_Number(
 {
     bool bResult = false;
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
-    /* BACnet allows for a wildcard instance number */
-    if (object_id == BACNET_MAX_INSTANCE)
-        bResult = true;
+
     if (pDev->bacObj.Object_Instance_Number == object_id)
         bResult = true;
+
     return bResult;
 }
 
