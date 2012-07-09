@@ -302,7 +302,12 @@ bool bacfile_write_property(
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
-
+    /*  only array properties can have array options */
+    if (wp_data->array_index != BACNET_ARRAY_ALL) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     /* decode the some of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
@@ -340,9 +345,20 @@ bool bacfile_write_property(
                    to wp_data->object_instance */
             }
             break;
-        default:
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_OBJECT_TYPE:
+        case PROP_DESCRIPTION:
+        case PROP_FILE_TYPE:
+        case PROP_MODIFICATION_DATE:
+        case PROP_READ_ONLY:
+        case PROP_FILE_ACCESS_METHOD:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 

@@ -479,6 +479,13 @@ bool Multistate_Input_Write_Property(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+    /*  only array properties can have array options */
+    if ((wp_data->object_property != PROP_STATE_TEXT) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status =

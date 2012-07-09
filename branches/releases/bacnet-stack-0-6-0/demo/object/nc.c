@@ -408,7 +408,19 @@ bool Notification_Class_Write_Property(
     len =
         bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
-
+    if (len < 0) {
+        /* error while decoding - a value larger than we can handle */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
+    if ((wp_data->object_property != PROP_PRIORITY) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     switch (wp_data->object_property) {
         case PROP_PRIORITY:
             status =
