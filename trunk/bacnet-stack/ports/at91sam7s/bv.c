@@ -258,6 +258,13 @@ bool Binary_Value_Write_Property(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
@@ -296,8 +303,8 @@ bool Binary_Value_Write_Property(
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
-#if 0
         case PROP_OUT_OF_SERVICE:
+#if 0
             if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                 object_index =
                     Binary_Value_Instance_To_Index(wp_data->object_instance);
@@ -309,9 +316,20 @@ bool Binary_Value_Write_Property(
             }
             break;
 #endif
-        default:
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_DESCRIPTION:
+        case PROP_OBJECT_TYPE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_PRIORITY_ARRAY:
+        case PROP_RELINQUISH_DEFAULT:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 
