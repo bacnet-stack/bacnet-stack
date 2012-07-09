@@ -1441,6 +1441,13 @@ bool Device_Write_Property_Local(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -1557,8 +1564,8 @@ bool Device_Write_Property_Local(
             }
             break;
 
-#if defined(BACDL_MSTP)
         case PROP_MAX_INFO_FRAMES:
+#if defined(BACDL_MSTP)
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                 &wp_data->error_class, &wp_data->error_code);
@@ -1573,7 +1580,9 @@ bool Device_Write_Property_Local(
                 }
             }
             break;
+#endif
         case PROP_MAX_MASTER:
+#if defined(BACDL_MSTP)
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                 &wp_data->error_class, &wp_data->error_code);
@@ -1589,9 +1598,34 @@ bool Device_Write_Property_Local(
             }
             break;
 #endif
-        default:
+        case PROP_OBJECT_TYPE:
+        case PROP_VENDOR_NAME:
+        case PROP_FIRMWARE_REVISION:
+        case PROP_APPLICATION_SOFTWARE_VERSION:
+        case PROP_LOCAL_TIME:
+        case PROP_UTC_OFFSET:
+        case PROP_LOCAL_DATE:
+        case PROP_DAYLIGHT_SAVINGS_STATUS:
+        case PROP_PROTOCOL_VERSION:
+        case PROP_PROTOCOL_REVISION:
+        case PROP_PROTOCOL_SERVICES_SUPPORTED:
+        case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
+        case PROP_OBJECT_LIST:
+        case PROP_MAX_APDU_LENGTH_ACCEPTED:
+        case PROP_SEGMENTATION_SUPPORTED:
+        case PROP_DEVICE_ADDRESS_BINDING:
+        case PROP_DATABASE_REVISION:
+#if defined(BACDL_MSTP)
+        case PROP_MAX_INFO_FRAMES:
+        case PROP_MAX_MASTER:
+#endif
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 

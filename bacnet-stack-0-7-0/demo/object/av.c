@@ -560,7 +560,14 @@ bool Analog_Value_Write_Property(
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     object_index = Analog_Value_Instance_To_Index(wp_data->object_instance);
     if (object_index < MAX_ANALOG_VALUES)
         CurrentAV = &AV_Descr[object_index];

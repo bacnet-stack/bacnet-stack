@@ -238,7 +238,8 @@ int Binary_Value_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+            state = Binary_Value_Out_Of_Service[object_index];
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -302,7 +303,6 @@ int Binary_Value_Read_Property(
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             }
-
             break;
         case PROP_RELINQUISH_DEFAULT:
             present_value = RELINQUISH_DEFAULT;
@@ -345,6 +345,13 @@ bool Binary_Value_Write_Property(
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
+    /*  only array properties can have array options */
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
@@ -416,9 +423,20 @@ bool Binary_Value_Write_Property(
                 Binary_Value_Out_Of_Service[object_index] = value.type.Boolean;
             }
             break;
-        default:
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_DESCRIPTION:
+        case PROP_OBJECT_TYPE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_PRIORITY_ARRAY:
+        case PROP_RELINQUISH_DEFAULT:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 
