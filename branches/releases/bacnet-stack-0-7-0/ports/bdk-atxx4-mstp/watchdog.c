@@ -53,7 +53,7 @@ static inline void wdt_disable(
     __enable_interrupt();
 }
 
-static inline wdt_reset(
+static inline void wdt_reset(
     void)
 {
     __watchdog_reset();
