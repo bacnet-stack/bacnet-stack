@@ -1613,10 +1613,6 @@ bool Device_Write_Property_Local(
         case PROP_SEGMENTATION_SUPPORTED:
         case PROP_DEVICE_ADDRESS_BINDING:
         case PROP_DATABASE_REVISION:
-#if defined(BACDL_MSTP)
-        case PROP_MAX_INFO_FRAMES:
-        case PROP_MAX_MASTER:
-#endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
