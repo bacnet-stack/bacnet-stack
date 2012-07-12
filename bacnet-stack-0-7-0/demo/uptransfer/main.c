@@ -58,6 +58,8 @@
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* converted command line arguments */
+static bool Target_Broadcast;
+static uint16_t Target_DNET;
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static uint16_t Target_Vendor_Identifier = 260;
 static uint32_t Target_Service_Number = 0;
@@ -150,7 +152,7 @@ int main(
         0
     };  /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 10;     /* milliseconds */
     unsigned max_apdu = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -170,8 +172,8 @@ int main(
 
     if (argc < 6) {
         filename = filename_remove_path(argv[0]);
-        printf("Usage: %s device-instance vendor-id service-number "
-            "tag value [tag value...]\r\n", filename);
+        printf("Usage: %s <device-instance|broadcast|dnet=> vendor-id"
+            " service-number tag value [tag value...]\r\n", filename);
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf("device-instance:\r\n"
                 "BACnet Device Object Instance number that you are\r\n"
@@ -179,6 +181,8 @@ int main(
                 "to try and bind with the device using Who-Is and\r\n"
                 "I-Am services.  For example, if you were transferring to\r\n"
                 "Device Object 123, the device-instance would be 123.\r\n"
+                "For Global Broadcast, use the word 'broadcast'.\r\n"
+                "For Local Broadcast to a particular DNET n, use 'dnet=n'.\r\n"
                 "\r\n" "vendor_id:\r\n"
                 "the unique vendor identification code for the type of\r\n"
                 "vendor proprietary service to be performed.\r\n" "\r\n"
@@ -206,10 +210,19 @@ int main(
         return 0;
     }
     /* decode the command line parameters */
-    Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
+    if (strcmp(argv[1], "broadcast") == 0) {
+        Target_Broadcast = true;
+        Target_DNET = BACNET_BROADCAST_NETWORK;
+    } else if (strncmp(argv[1],"dnet=",5) == 0) {
+        Target_Broadcast = true;
+        Target_DNET = strtol(&argv[1][5], NULL, 0);
+    } else {
+        Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
+    }
     Target_Vendor_Identifier = strtol(argv[2], NULL, 0);
     Target_Service_Number = strtol(argv[3], NULL, 0);
-    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+    if ((!Target_Broadcast) &&
+        (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
@@ -272,14 +285,21 @@ int main(
     atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
-    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
-    /* try to bind with the device */
-    found =
-        address_bind_request(Target_Device_Object_Instance, &max_apdu,
-        &Target_Address);
-    if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance,
-            Target_Device_Object_Instance);
+    if (Target_Broadcast) {
+        datalink_get_broadcast_address(&Target_Address);
+        Target_Address.net = Target_DNET;
+        found = true;
+        timeout_seconds = 0;
+    } else {
+        timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+        /* try to bind with the device */
+        found =
+            address_bind_request(Target_Device_Object_Instance, &max_apdu,
+            &Target_Address);
+        if (!found) {
+            Send_WhoIs(Target_Device_Object_Instance,
+                Target_Device_Object_Instance);
+        }
     }
     /* loop forever */
     for (;;) {
@@ -311,8 +331,13 @@ int main(
                 private_data.serviceNumber = Target_Service_Number;
                 Send_UnconfirmedPrivateTransfer(&Target_Address,
                     &private_data);
-                printf("Sent PrivateTransfer.  Waiting %u seconds.\r\n",
-                    (unsigned) (timeout_seconds - elapsed_seconds));
+                printf("Sent PrivateTransfer.");
+                if (timeout_seconds) {
+                    printf(" Waiting %u seconds.\r\n",
+                        (unsigned) (timeout_seconds - elapsed_seconds));
+                } else {
+                    printf("\r\n");
+                }
                 sent_message = true;
             } else {
                 if (elapsed_seconds > timeout_seconds) {
