@@ -139,7 +139,7 @@ static object_functions_t My_Object_Table[] = {
             Binary_Input_Valid_Instance,
             Binary_Input_Object_Name,
             Binary_Input_Read_Property,
-            NULL /* Write Property */ ,
+            Binary_Input_Write_Property,
             Binary_Input_Property_Lists,
             NULL /* ReadRangeInfo */ ,
             NULL /* Iterator */ ,
