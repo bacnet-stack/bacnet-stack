@@ -609,8 +609,8 @@ static bool test_global_header(
             return false;
         }
         count = fread(&snaplen, sizeof(snaplen), 1, pFile);
-        if ((count != 1) || (snaplen != 65535)) {
-            fprintf(stderr, "mstpcap: invalid length of captured packets\n");
+        if (count != 1) {
+            fprintf(stderr, "mstpcap: unable to read SNAP length\n");
             fclose(pFile);
             pFile = NULL;
             return false;
@@ -823,7 +823,7 @@ int main(
             if (test_global_header(argv[2])) {
                 while (read_received_packet(mstp_port)) {
                     packet_count++;
-                    fprintf(stderr, "\r%hu packets", packet_count);
+                    fprintf(stderr, "\r%u packets", (unsigned)packet_count);
                 }
                 if (packet_count) {
                     packet_statistics_print();
