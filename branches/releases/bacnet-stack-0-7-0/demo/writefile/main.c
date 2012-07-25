@@ -57,6 +57,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_File_Object_Instance = 4194303;
 static uint32_t Target_Device_Object_Instance = 4194303;
 static uint32_t Target_File_Requested_Octet_Count;
+static uint8_t Target_File_Requested_Octet_Pad_Byte;
 static BACNET_ADDRESS Target_Address;
 static char *Local_File_Name = NULL;
 static bool End_Of_File_Detected = false;
@@ -175,10 +176,11 @@ int main(
     FILE *pFile = NULL;
     static BACNET_OCTET_STRING fileData;
     size_t len = 0;
+    bool pad_byte = false;
 
     if (argc < 4) {
         /* FIXME: what about access method - record or stream? */
-        printf("%s device-instance file-instance local-name [octet count]\r\n",
+        printf("%s device-instance file-instance local-name [octet count] [pad value]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -198,6 +200,10 @@ int main(
     }
     if (argc > 4) {
         Target_File_Requested_Octet_Count = strtol(argv[4], NULL, 0);
+    }
+    if (argc > 5) {
+        Target_File_Requested_Octet_Pad_Byte = strtol(argv[5], NULL, 0);
+        pad_byte = true;
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
@@ -274,6 +280,12 @@ int main(
                         requestedOctetCount, pFile);
                     if (len < requestedOctetCount) {
                         End_Of_File_Detected = true;
+                        if (pad_byte) {
+                            memset(octetstring_value(&fileData)+len+1,
+                                (int)Target_File_Requested_Octet_Pad_Byte,
+                                requestedOctetCount - len);
+                            len = requestedOctetCount;
+                        }
                     }
                     octetstring_truncate(&fileData, len);
                     fclose(pFile);
