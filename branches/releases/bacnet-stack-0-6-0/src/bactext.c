@@ -970,6 +970,8 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_EVENT_MESSAGE_TEXTS, "event-message-texts"}
     ,
+    {PROP_SERIAL_NUMBER, "serial-number"}
+    ,
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the
