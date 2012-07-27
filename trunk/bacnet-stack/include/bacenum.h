@@ -379,6 +379,8 @@ typedef enum {
     PROP_COVU_PERIOD = 349,
     PROP_COVU_RECIPIENTS = 350,
     PROP_EVENT_MESSAGE_TEXTS = 351,
+    /* enumeration 372 is defined in Addendum 2010-ak */
+    PROP_SERIAL_NUMBER = 372,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
