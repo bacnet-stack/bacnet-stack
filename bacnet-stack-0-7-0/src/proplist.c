@@ -678,6 +678,26 @@ static const int Trend_Log_Properties_Optional[] = {
     -1
 };
 
+static const int File_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_FILE_TYPE,
+    PROP_FILE_SIZE,
+    PROP_MODIFICATION_DATE,
+    PROP_ARCHIVE,
+    PROP_READ_ONLY,
+    PROP_FILE_ACCESS_METHOD,
+    -1
+};
+
+static const int File_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_RECORD_COUNT,
+    PROP_PROFILE_NAME,
+    -1
+};
+
 /* Function that returns the number of properties in a list
  */
 unsigned property_list_count(
@@ -796,8 +816,11 @@ void property_list_special(
             pPropertyList->Required.pList = Trend_Log_Properties_Required;
             pPropertyList->Optional.pList = Trend_Log_Properties_Optional;
             break;
-        case OBJECT_EVENT_ENROLLMENT:
         case OBJECT_FILE:
+            pPropertyList->Required.pList = File_Properties_Required;
+            pPropertyList->Optional.pList = File_Properties_Optional;
+            break;
+        case OBJECT_EVENT_ENROLLMENT:
         case OBJECT_GROUP:
         case OBJECT_LOOP:
         case OBJECT_PROGRAM:
