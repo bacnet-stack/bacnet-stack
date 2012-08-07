@@ -204,7 +204,7 @@ static void address_file_init(
     long device_id = 0;
     int snet = 0;
     unsigned max_apdu = 0;
-    unsigned mac[6] = { 0 };
+    unsigned mac[MAX_MAC_LEN] = { 0 };
     int count = 0;
     char mac_string[80] = { "" }, sadr_string[80] = {
     ""};
