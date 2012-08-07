@@ -247,7 +247,7 @@ int main(
     Target_Object_Type = strtol(argv[2], NULL, 0);
     Target_Object_Instance = strtol(argv[3], NULL, 0);
     Target_Object_Property = strtol(argv[4], NULL, 0);
-    Target_Object_Property_Priority = strtol(argv[5], NULL, 0);
+    Target_Object_Property_Priority = (uint8_t) strtol(argv[5], NULL, 0);
     Target_Object_Property_Index = strtol(argv[6], NULL, 0);
     if (Target_Object_Property_Index == -1)
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
@@ -276,7 +276,7 @@ int main(
         tag_value_arg = 7 + (i * 2);
         /* special case for context tagged values */
         if (toupper(argv[tag_value_arg][0]) == 'C') {
-            context_tag = strtol(&argv[tag_value_arg][1], NULL, 0);
+            context_tag = (uint8_t) strtol(&argv[tag_value_arg][1], NULL, 0);
             tag_value_arg++;
             args_remaining--;
             Target_Object_Property_Value[i].context_tag = context_tag;
@@ -345,7 +345,7 @@ int main(
 
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds((uint16_t)((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */

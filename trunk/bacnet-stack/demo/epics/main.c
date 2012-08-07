@@ -1317,7 +1317,7 @@ int main(
         current_seconds = time(NULL);
         /* Has at least one second passed ? */
         if (current_seconds != last_seconds) {
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds((uint16_t)((current_seconds - last_seconds) * 1000));
         }
 
         /* OK to proceed; see what we are up to now */

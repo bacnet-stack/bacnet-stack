@@ -273,7 +273,7 @@ int main(
 
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds((uint16_t)((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
