@@ -1140,7 +1140,9 @@ int bvlc_send_pdu(
     /* bip datalink doesn't need to know the npdu data */
     (void) npdu_data;
     mtu[0] = BVLL_TYPE_BACNET_IP;
-    if (dest->net == BACNET_BROADCAST_NETWORK) {
+	if ( dest->net == BACNET_BROADCAST_NETWORK 
+		|| dest->len == 0
+		|| dest->mac_len == 0) {
         /* if we are a foreign device */
         if (Remote_BBMD.sin_port) {
             mtu[1] = BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK;
