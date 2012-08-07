@@ -185,7 +185,7 @@ int main(
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        elapsed_seconds = current_seconds - last_seconds;
+        elapsed_seconds = (uint32_t)(current_seconds - last_seconds);
         if (elapsed_seconds) {
             last_seconds = current_seconds;
             dcc_timer_seconds(elapsed_seconds);

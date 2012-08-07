@@ -174,8 +174,8 @@ int main(
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    Communication_State = strtol(argv[2], NULL, 0);
-    Communication_Timeout_Minutes = strtol(argv[3], NULL, 0);
+    Communication_State = (uint16_t) strtol(argv[2], NULL, 0);
+    Communication_Timeout_Minutes = (uint16_t) strtol(argv[3], NULL, 0);
     /* optional password */
     if (argc > 4)
         Communication_Password = argv[4];
@@ -211,7 +211,7 @@ int main(
         }
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds((uint16_t)((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
