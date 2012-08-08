@@ -45,8 +45,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>H:\Program Files\Microsoft SDKs\Windows\v5.0\Include;..\..;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;PRINT_ENABLED=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -60,13 +60,14 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;PRINT_ENABLED=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..\..;..\..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -77,13 +78,34 @@
     <ClCompile Include="..\..\..\..\demo\object\bi.c" />
     <ClCompile Include="..\..\..\..\demo\object\bo.c" />
     <ClCompile Include="..\..\..\..\demo\object\bv.c" />
+    <ClCompile Include="..\..\..\..\demo\object\csv.c" />
     <ClCompile Include="..\..\..\..\demo\object\device.c" />
     <ClCompile Include="..\..\..\..\demo\object\lc.c" />
     <ClCompile Include="..\..\..\..\demo\object\lo.c" />
     <ClCompile Include="..\..\..\..\demo\object\lsp.c" />
     <ClCompile Include="..\..\..\..\demo\object\ms-input.c" />
     <ClCompile Include="..\..\..\..\demo\object\mso.c" />
+    <ClCompile Include="..\..\..\..\demo\object\msv.c" />
     <ClCompile Include="..\..\..\..\demo\object\trendlog.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\demo\object\ai.h" />
+    <ClInclude Include="..\..\..\..\demo\object\ao.h" />
+    <ClInclude Include="..\..\..\..\demo\object\av.h" />
+    <ClInclude Include="..\..\..\..\demo\object\bacfile.h" />
+    <ClInclude Include="..\..\..\..\demo\object\bi.h" />
+    <ClInclude Include="..\..\..\..\demo\object\bo.h" />
+    <ClInclude Include="..\..\..\..\demo\object\bv.h" />
+    <ClInclude Include="..\..\..\..\demo\object\csv.h" />
+    <ClInclude Include="..\..\..\..\demo\object\device.h" />
+    <ClInclude Include="..\..\..\..\demo\object\lc.h" />
+    <ClInclude Include="..\..\..\..\demo\object\lo.h" />
+    <ClInclude Include="..\..\..\..\demo\object\lsp.h" />
+    <ClInclude Include="..\..\..\..\demo\object\ms-input.h" />
+    <ClInclude Include="..\..\..\..\demo\object\mso.h" />
+    <ClInclude Include="..\..\..\..\demo\object\msv.h" />
+    <ClInclude Include="..\..\..\..\demo\object\nc.h" />
+    <ClInclude Include="..\..\..\..\demo\object\trendlog.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
