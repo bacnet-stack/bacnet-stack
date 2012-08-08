@@ -65,28 +65,34 @@ bool bacnet_address_same(
 {
     uint8_t i = 0;      /* loop counter */
     uint8_t max_len = 0;        /* used for dynamic max */
-    bool match = true;  /* return value */
 
-    if (dest->mac_len != src->mac_len)
-        match = false;
-    max_len = dest->mac_len;
-    if (max_len > MAX_MAC_LEN)
-        max_len = MAX_MAC_LEN;
-    for (i = 0; i < max_len; i++) {
-        if (dest->mac[i] != src->mac[i])
-            match = false;
-    }
+    if (dest == src) /* same ? */
+        return true;
+
     if (dest->net != src->net)
-        match = false;
+        return false;
+
     if (dest->len != src->len)
-        match = false;
+        return false;
+
     max_len = dest->len;
     if (max_len > MAX_MAC_LEN)
         max_len = MAX_MAC_LEN;
     for (i = 0; i < max_len; i++) {
         if (dest->adr[i] != src->adr[i])
-            match = false;
+            return false;
     }
-
-    return match;
+    if (dest->net == 0)
+    {
+        if (dest->mac_len != src->mac_len)
+            return false;
+        max_len = dest->mac_len;
+        if (max_len > MAX_MAC_LEN)
+            max_len = MAX_MAC_LEN;
+        for (i = 0; i < max_len; i++) {
+            if (dest->mac[i] != src->mac[i])
+                return false;
+        }
+    }
+    return true;
 }
