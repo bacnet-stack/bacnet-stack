@@ -181,7 +181,7 @@ void dlenv_maintenance_timer(
             /* If that failed (negative), maybe just a network issue.
              * If nothing happened (0), may be un/misconfigured.
              * Set up to try again later in all cases. */
-            BBMD_Timer_Seconds = bbmd_timetolive_seconds;
+            BBMD_Timer_Seconds = (uint16_t) bbmd_timetolive_seconds;
         }
     }
 #endif
