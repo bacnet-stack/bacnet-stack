@@ -965,7 +965,7 @@ static bool append_str(
     const char *add_str)
 {
     bool retval;
-    int bytes_written;
+    uint16_t bytes_written;
 
     bytes_written = snprintf(*str, *rem_str_len, "%s", add_str);
     if ((bytes_written < 0) || (bytes_written >= *rem_str_len)) {
@@ -1321,7 +1321,7 @@ bool bacapp_print_value(
     char *str;
     bool retval = false;
     size_t str_len = 32;
-    int status;
+    uint16_t status;
 
     while (true) {
         /* Try to allocate memory for the output string. Give up if unable. */
