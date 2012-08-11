@@ -94,7 +94,9 @@ extern "C" {
  *
  * The network management BIBBs prescribe the BACnet capabilities required to
  * interoperably perform network management functions.
-          *//** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
+ */
+
+/** @defgroup DMDCC Device Management-Device Communication Control (DM-DCC)
  * @ingroup RDMS
  * 16.1 DeviceCommunicationControl Service <br>
  * The DeviceCommunicationControl service is used by a client BACnet-user to
@@ -107,7 +109,9 @@ extern "C" {
  * "indefinite," meaning communication must be re-enabled by a
  * DeviceCommunicationControl or, if supported, ReinitializeDevice service,
  * not by time.
-          *//** @defgroup NMRC Network Management-Router Configuration (NM-RC)
+ */
+
+/** @defgroup NMRC Network Management-Router Configuration (NM-RC)
  * @ingroup RDMS
  * The A device may query and change the configuration of routers and
  * half-routers.
