@@ -998,7 +998,7 @@ int CheckCommandLineArgs(
                         /* loop counter */
                         unsigned j;
                         count =
-                            sscanf(argv[i], "%x:%x:%x:%x:%x:%x", &mac[0],
+                            sscanf(argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
                             &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                         if (count == 6) {       /* success */
                             Target_Address.mac_len = count;

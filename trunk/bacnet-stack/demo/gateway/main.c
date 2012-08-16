@@ -180,10 +180,10 @@ void Initialize_Device_Addresses(
     )
 {
     int i = 0;  /* First entry is Gateway Device */
-    DEVICE_OBJECT_DATA *pDev;
-    uint16_t myPort;
+    DEVICE_OBJECT_DATA *pDev = NULL;
     /* Setup info for the main gateway device first */
 #if defined(BACDL_BIP)
+    uint16_t myPort;
     struct in_addr *netPtr;     /* Lets us cast to this type */
     uint8_t *gatewayMac = NULL;
     uint32_t myAddr = bip_get_addr();
