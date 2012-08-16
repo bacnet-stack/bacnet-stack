@@ -199,6 +199,7 @@ int Analog_Value_Read_Property(
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     float real_value = 1.414F;
+    BACNET_CHARACTER_STRING char_string = { 0 };
 #if 0
     unsigned object_index = 0;
     unsigned i = 0;
@@ -212,7 +213,22 @@ int Analog_Value_Read_Property(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-            /* object id, object name, object type are handled in Device object */
+        case PROP_OBJECT_IDENTIFIER:
+            apdu_len =
+                encode_application_object_id(&apdu[0], rpdata->object_type,
+                rpdata->object_instance);
+            break;
+        case PROP_OBJECT_NAME:
+            Analog_Value_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0],
+                &char_string);
+            break;
+        case PROP_OBJECT_TYPE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0],
+                rpdata->object_type);
+            break;
         case PROP_PRESENT_VALUE:
             real_value = Analog_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);

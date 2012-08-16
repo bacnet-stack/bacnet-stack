@@ -169,52 +169,6 @@ static int Read_Property_Common(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                /* Device Object exception: requested instance
-                   may not match our instance if a wildcard */
-                if (rpdata->object_type == OBJECT_DEVICE) {
-                    rpdata->object_instance = Object_Instance_Number;
-                }
-                apdu_len =
-                    encode_application_object_id(&apdu[0], rpdata->object_type,
-                    rpdata->object_instance);
-            }
-            break;
-        case PROP_OBJECT_NAME:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                characterstring_init_ansi(&char_string, "");
-                if (pObject->Object_Name) {
-                    (void) pObject->Object_Name(rpdata->object_instance,
-                        &char_string);
-                }
-                apdu_len =
-                    encode_application_character_string(&apdu[0],
-                    &char_string);
-            }
-            break;
-        case PROP_OBJECT_TYPE:
-            /*  only array properties can have array options */
-            if (rpdata->array_index != BACNET_ARRAY_ALL) {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-                apdu_len = BACNET_STATUS_ERROR;
-            } else {
-                apdu_len =
-                    encode_application_enumerated(&apdu[0],
-                    rpdata->object_type);
-            }
-            break;
         default:
             if (pObject->Object_Read_Property) {
                 apdu_len = pObject->Object_Read_Property(rpdata);
@@ -234,18 +188,16 @@ int Device_Read_Property(
     struct my_object_functions *pObject = NULL;
 
     /* initialize the default return values */
+    rpdata->error_class = ERROR_CLASS_OBJECT;
+    rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     pObject = Device_Objects_Find_Functions(rpdata->object_type);
-    if (pObject) {
+    if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
-            apdu_len = Read_Property_Common(pObject, rpdata);
-        } else {
-            rpdata->error_class = ERROR_CLASS_OBJECT;
-            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+            if (pObject->Object_Read_Property) {
+                apdu_len = pObject->Object_Read_Property(rpdata);
+            }
         }
-    } else {
-        rpdata->error_class = ERROR_CLASS_OBJECT;
-        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return apdu_len;
@@ -633,8 +585,8 @@ int Device_Read_Property_Local(
 {
     int apdu_len = 0;   /* return value */
     int len = 0;        /* apdu len intermediate value */
-    BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
+    BACNET_BIT_STRING bit_string = {0};
+    BACNET_CHARACTER_STRING char_string = {0};
     unsigned i = 0;
     int object_type = 0;
     uint32_t instance = 0;
@@ -648,7 +600,22 @@ int Device_Read_Property_Local(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-            /* object name, object id, object type are handled in Device object */
+        case PROP_OBJECT_IDENTIFIER:
+            apdu_len =
+                encode_application_object_id(&apdu[0], rpdata->object_type,
+                rpdata->object_instance);
+            break;
+        case PROP_OBJECT_NAME:
+            Device_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0],
+                &char_string);
+            break;
+        case PROP_OBJECT_TYPE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0],
+                rpdata->object_type);
+            break;
         case PROP_DESCRIPTION:
             bacnet_name(NV_EEPROM_DEVICE_DESCRIPTION, &char_string,
                 "BACnet Development Kit");

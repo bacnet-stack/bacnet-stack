@@ -151,7 +151,8 @@ int Analog_Input_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
-    BACNET_BIT_STRING bit_string;
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_BIT_STRING bit_string = { 0 };
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -160,7 +161,22 @@ int Analog_Input_Read_Property(
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
-            /* object id, object name, object type are handled in Device object */
+        case PROP_OBJECT_IDENTIFIER:
+            apdu_len =
+                encode_application_object_id(&apdu[0], rpdata->object_type,
+                rpdata->object_instance);
+            break;
+        case PROP_OBJECT_NAME:
+            Analog_Input_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0],
+                &char_string);
+            break;
+        case PROP_OBJECT_TYPE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0],
+                rpdata->object_type);
+            break;
         case PROP_PRESENT_VALUE:
             apdu_len =
                 encode_application_real(&apdu[0],
