@@ -1157,8 +1157,8 @@ int Device_Read_Property_Local(
 {
     int apdu_len = 0;   /* return value */
     int len = 0;        /* apdu len intermediate value */
-    BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
+    BACNET_BIT_STRING bit_string = {0};
+    BACNET_CHARACTER_STRING char_string = {0};
     unsigned i = 0;
     int object_type = 0;
     uint32_t instance = 0;
@@ -1408,13 +1408,7 @@ int Device_Read_Property(
             if (pObject->Object_Read_Property) {
                 apdu_len = pObject->Object_Read_Property(rpdata);
             }
-        } else {
-            rpdata->error_class = ERROR_CLASS_OBJECT;
-            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         }
-    } else {
-        rpdata->error_class = ERROR_CLASS_OBJECT;
-        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return apdu_len;
