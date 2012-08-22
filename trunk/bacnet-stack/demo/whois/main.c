@@ -58,10 +58,6 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* global variables used in this file */
 static int32_t Target_Object_Instance_Min = -1;
 static int32_t Target_Object_Instance_Max = -1;
-static int32_t Target_Network = BACNET_BROADCAST_NETWORK;
-static char Target_Mac[7];
-static uint32_t Target_MacLen = 0;
-static bool verbose = true;
 static bool Error_Detected = false;
 
 #define BAC_ADDRESS_MULT 1
@@ -271,7 +267,7 @@ static void print_address_cache(
 		total_addresses++;
 		if(addr->Flags & BAC_ADDRESS_MULT)
 		{
-			dup_addresses++; 
+			dup_addresses++;
 			printf("*");
 		}
 		else
@@ -323,7 +319,7 @@ int print_help(char* exe_name){
 		"  service request. The value should be in  the range of 0 to 4194303. A range\n"
 		"  of values can also be specified by using a minimum value and a maximum value.\n"
 		"\n"
-		"network:\n" 
+		"network:\n"
 		"  BACnet network number for directed requests. Valid range is from 0 to 65535\n"
 		"  where 0 is the local connection and 65535 is network broadcast.\n"
 		"\n"
@@ -331,20 +327,20 @@ int print_help(char* exe_name){
 		"  BACnet mac address number. Valid ranges are from 0 to 255 or a IP connection \n"
 		"  string including port number like 10.1.2.3:47808.\n"
 		"\n"
-		"Examples:\n\n" 
-		"To send a WhoIs request to Network 123:\n" 
+		"Examples:\n\n"
+		"To send a WhoIs request to Network 123:\n"
 		"%s 123:\n\n"
-		"To send a WhoIs request to Network 123 Address 5:\n" 
+		"To send a WhoIs request to Network 123 Address 5:\n"
 		"%s 123:5\n\n"
-		"To send a WhoIs request to Device 123:\n" 
+		"To send a WhoIs request to Device 123:\n"
 		"%s 123\n\n"
 		"To send a WhoIs request to Devices from 1000 to 9000:\n"
-		"%s 1000 9000\n\n" 
+		"%s 1000 9000\n\n"
 		"To send a WhoIs request to Devices from 1000 to 9000 on Network 123:\n"
-		"%s 123: 1000 9000\n\n" 
-		"To send a WhoIs request to all devices:\n" 
+		"%s 123: 1000 9000\n\n"
+		"To send a WhoIs request to all devices:\n"
 		"%s\n\n",
-		exe_name,exe_name,exe_name,exe_name,exe_name,exe_name,exe_name,exe_name);
+		exe_name,exe_name,exe_name,exe_name,exe_name,exe_name,exe_name);
 	return 1;
 }
 
@@ -359,7 +355,6 @@ int parse_bac_address(
 	)
 {
 	int i = 0;
-	int z = 0;
 	uint16_t s;
 	int a[4],p;
 	int c =  sscanf(src,"%u.%u.%u.%u:%u",&a[0],&a[1],&a[2],&a[3],&p);
@@ -369,7 +364,7 @@ int parse_bac_address(
 	if (c==1)
 	{
 		if( a[0] < 256 ) /* mstp */
-		{	
+		{
 			dest->adr[0] = a[0];
 			dest->len = 1;
 		}
@@ -378,7 +373,7 @@ int parse_bac_address(
 			s = htons((uint16_t)a[0]);
 			memcpy(&dest->adr[0], &s, 2);
 			dest->len = 2;
-		} 
+		}
 		else
 			return 0;
 	}
@@ -427,7 +422,7 @@ int main(
 	}
 
 	datalink_get_broadcast_address(&dest);
-    
+
 	/* decode the command line parameters */
 	if (argc >= 2) {
 		char *s;
@@ -444,13 +439,13 @@ int main(
 		{
 			Target_Object_Instance_Min = v;
 		}
-    } 
+    }
 
 	if (argc <= 2){
 		/* empty */
 	} else if (argc == 3){
 		if(Target_Object_Instance_Min == -1)
-			Target_Object_Instance_Min = 
+			Target_Object_Instance_Min =
 			Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
 		else
 			Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
