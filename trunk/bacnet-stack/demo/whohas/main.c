@@ -107,6 +107,13 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+static print_usage(
+    char *file_and_path)
+{
+    printf("Usage: %s <object-type object-instance | object-name>\r\n",
+        filename_remove_path(file_and_path));
+}
+
 int main(
     int argc,
     char *argv[])
@@ -122,13 +129,17 @@ int main(
     time_t timeout_seconds = 0;
 
     if (argc < 2) {
-        /* note: priority 16 and 0 should produce the same end results... */
-        printf("Usage: %s <object-type object-instance | object-name>\r\n"
-            "Send BACnet WhoHas request to devices, and wait for responses.\r\n"
+        print_usage(argv[0]);
+        return 0;
+    }
+    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
+        print_usage(argv[0]);
+        printf("Send BACnet WhoHas request to devices, \r\n"
+            "and wait %u milliseconds (BACNET_APDU_TIMEOUT) for responses.\r\n"
             "\r\n" "Use either:\r\n" "The object-type can be 0 to %d.\r\n"
             "The object-instance can be 0 to %d.\r\n" "or:\r\n"
             "The object-name can be any string of characters.\r\n",
-            filename_remove_path(argv[0]), MAX_BACNET_OBJECT_TYPE - 1,
+            (unsigned)apdu_timeout(), MAX_BACNET_OBJECT_TYPE - 1,
             BACNET_MAX_INSTANCE);
         return 0;
     }
