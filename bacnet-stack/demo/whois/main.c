@@ -437,7 +437,7 @@ int main(
 		}
 		else
 		{
-			Target_Object_Instance_Min = v;
+			Target_Object_Instance_Min = Target_Object_Instance_Max = v;
 		}
     }
 
