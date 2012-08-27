@@ -127,22 +127,35 @@ static uint32_t Property_List_Length = 0;
 static uint32_t Property_List_Index = 0;
 static int32_t Property_List[MAX_PROPS + 2];
 
-#define INIT_ID_PROPLIST_SIZE 5
-/* Define Enums to match the property and value arrays below */
-enum init_ids { INIT_VENDOR_NAME, INIT_MODEL_NAME, INIT_DESCRIPTION,
-        INIT_OBJ_TYPES };
-static int32_t InitIdPropList[INIT_ID_PROPLIST_SIZE] = {
-    PROP_VENDOR_NAME,
-    PROP_MODEL_NAME,    /* Have to use this twice, for Model Name and Number */
-    PROP_DESCRIPTION,   /* Optional, but hopefully available */
-    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
-    -1
+struct property_value_list_t {
+    int32_t property_id;
+    BACNET_APPLICATION_DATA_VALUE *value;
+};
+static struct property_value_list_t Property_Value_List[] = {
+    {PROP_VENDOR_NAME, NULL},
+    {PROP_MODEL_NAME, NULL},
+    {PROP_MAX_APDU_LENGTH_ACCEPTED, NULL},
+    {PROP_PROTOCOL_SERVICES_SUPPORTED, NULL},
+    {PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, NULL},
+    {PROP_DESCRIPTION, NULL},
+    {-1, NULL}
 };
 
-/* Will hold GET_HEADING_RESPONSE results here: */
-static BACNET_APPLICATION_DATA_VALUE *InitIdValues[INIT_ID_PROPLIST_SIZE] =
-    { NULL, NULL, NULL, NULL, NULL };
+static BACNET_APPLICATION_DATA_VALUE *object_property_value(int32_t property_id)
+{
+    BACNET_APPLICATION_DATA_VALUE *value = NULL;
+    int32_t index = 0;
 
+    do {
+        if (Property_Value_List[index].property_id == property_id) {
+            value = Property_Value_List[index].value;
+            break;
+        }
+        index++;
+    } while (Property_Value_List[index].property_id != -1);
+
+    return value;
+}
 
 /* When we have to walk through an array of things, like ObjectIDs or
  * Subordinate_Annotations, one RP call at a time, use these for indexing.
@@ -365,6 +378,26 @@ void CheckIsWritableProperty(
 }
 
 
+static const char *protocol_services_supported_text(size_t bit_index)
+{
+    bool is_confirmed = false;
+    size_t text_index = 0;
+    bool found = false;
+    const char *services_text = "unknown";
+
+    found =
+        apdu_service_supported_to_index(bit_index, &text_index, &is_confirmed);
+    if (found) {
+        if (is_confirmed) {
+            services_text = bactext_confirmed_service_name(text_index);
+        } else {
+            services_text = bactext_unconfirmed_service_name(text_index);
+        }
+    }
+
+    return services_text;
+}
+
 /** Provide a nicer output for Supported Services and Object Types bitfields
  * and Date fields.
  * We have to override the library's normal bitfield print because the
@@ -409,26 +442,13 @@ bool PrettyPrintPropertyValue(
                 /* Now rerun the same 4 bits, but print labels for true ones */
                 for (j = i - (i % 4); j <= i; j++) {
                     if (bitstring_bit(&value->type.Bit_String, (uint8_t) j)) {
-                        if (property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED)
+                        if (property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) {
                             fprintf(stream, " %s,",
                                 bactext_object_type_name(j));
-                        /* PROP_PROTOCOL_SERVICES_SUPPORTED */
-                        else {
-                            bool bIsConfirmed;
-                            size_t newIndex;
-                            if (apdu_service_supported_to_index(j, &newIndex,
-                                    &bIsConfirmed)) {
-                                if (bIsConfirmed)
-                                    fprintf(stream, " %s,",
-                                        bactext_confirmed_service_name
-                                        (newIndex));
-
-                                else
-                                    fprintf(stream, " %s,",
-                                        bactext_unconfirmed_service_name(
-                                            (newIndex)));
-
-                            }
+                        } else {
+                            /* PROP_PROTOCOL_SERVICES_SUPPORTED */
+                            fprintf(stream, " %s,",
+                                protocol_services_supported_text(j));
                         }
                     } else      /* not supported */
                         fprintf(stream, ",");
@@ -697,23 +717,19 @@ void PrintReadPropertyData(
  *  handling the proprietary property numbers.
  * @param propertyIdentifier [in] The property identifier number.
  */
-void Print_Property_Identifier(
+static void Print_Property_Identifier(
     unsigned propertyIdentifier)
 {
     if (propertyIdentifier < 512) {
         fprintf(stdout, "%s", bactext_property_name(propertyIdentifier));
     } else {
-        fprintf(stdout, "proprietary %u", propertyIdentifier);
+        fprintf(stdout, "-- proprietary %u", propertyIdentifier);
     }
 }
 
-/** Build a list of properties to request with RPM.
- * @param rpm_object [out] The structure holding our linked list of properties to request.
- * @param propList [in] Simple list of properties (ptr to array), terminated with -1
- */
-void BuildPropRequest(
-    BACNET_READ_ACCESS_DATA * rpm_object,
-    int32_t * propList)
+/* Build a list of device properties to request with RPM. */
+static void BuildPropRequest(
+    BACNET_READ_ACCESS_DATA * rpm_object)
 {
     int i;
     /* To start with, StartNextObject() has prepopulated one propEntry,
@@ -721,13 +737,13 @@ void BuildPropRequest(
      */
     BACNET_PROPERTY_REFERENCE *propEntry = rpm_object->listOfProperties;
     BACNET_PROPERTY_REFERENCE *oldEntry = rpm_object->listOfProperties;
-    for (i = 0; propList[i] != -1; i++) {
+    for (i = 0; Property_Value_List[i].property_id != -1; i++) {
         if (propEntry == NULL) {
             propEntry = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
             assert(propEntry);
             oldEntry->next = propEntry;
         }
-        propEntry->propertyIdentifier = propList[i];
+        propEntry->propertyIdentifier = Property_Value_List[i].property_id;
         propEntry->propertyArrayIndex = BACNET_ARRAY_ALL;
         oldEntry = propEntry;
         propEntry = NULL;
@@ -874,10 +890,10 @@ EPICS_STATES ProcessRPMData(
                     free(old_value);
                 }
             } else if (myState == GET_HEADING_RESPONSE) {
-                InitIdValues[i++] = rpm_property->value;
+                Property_Value_List[i++].value = rpm_property->value;
                 /* copy this pointer.
                  * On error, the pointer will be null
-                 * We won't free these values*/
+                 * We won't free these values; they will free at exit */
             } else {
                 fprintf(stdout, "    ");
                 Print_Property_Identifier(rpm_property->propertyIdentifier);
@@ -1044,161 +1060,213 @@ int CheckCommandLineArgs(
 void PrintHeading(
     )
 {
-    BACNET_APPLICATION_DATA_VALUE *value;
-    char *relation = "for";     /* Text for Gateways */
-    if (Target_Address.net != 0)
-        relation = "provided by";       /* Text for child routed devices */
+    BACNET_APPLICATION_DATA_VALUE *value = NULL;
+    BACNET_OBJECT_PROPERTY_VALUE property_value;
 
     printf("PICS 0\r\n");
     printf("BACnet Protocol Implementation Conformance Statement\r\n\r\n");
 
     printf("--\r\n--\r\n");
+    printf("-- Generated by BACnet Protocol Stack library EPICS tool\r\n");
     printf("-- BACnet/IP Interface for BACnet-stack Devices\r\n");
     printf("-- http://sourceforge.net/projects/bacnet/ \r\n");
-    printf("-- \r\n-- \r\n\r\n");
-/*	InitIdValues  , , , */
-
-    value = InitIdValues[INIT_VENDOR_NAME];
-    if (value != NULL)
+    printf("-- \r\n--\r\n\r\n");
+    value = object_property_value(PROP_VENDOR_NAME);
+    if ((value != NULL) &&
+        (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         printf("Vendor Name: \"%s\"\r\n",
             characterstring_value(&value->type.Character_String));
-    else
-        printf("Vendor Name: \"bacnet-stack\"\r\n");
+    } else {
+        printf("Vendor Name: \"your vendor name here\"\r\n");
+    }
 
-    value = InitIdValues[INIT_MODEL_NAME];
+    value = object_property_value(PROP_MODEL_NAME);
     /* Best we can do with Product Name and Model Number is use the same text */
-    if (value != NULL) {
+    if ((value != NULL) &&
+        (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         printf("Product Name: \"%s\"\r\n",
             characterstring_value(&value->type.Character_String));
         printf("Product Model Number: \"%s\"\r\n",
             characterstring_value(&value->type.Character_String));
     } else {
-        printf("Product Name: \"bacnet-stack Device\"\r\n");
-        printf("Product Model Number: \"Model XXX\"\r\n");
+        printf("Product Name: \"your product name here\"\r\n");
+        printf("Product Model Number: \"your model number here\"\r\n");
     }
 
-    value = InitIdValues[INIT_DESCRIPTION];
-    if (value != NULL)
+    value = object_property_value(PROP_DESCRIPTION);
+    if ((value != NULL) &&
+        (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         printf("Product Description: \"%s\"\r\n\r\n",
             characterstring_value(&value->type.Character_String));
-    else
-        printf("Product Description: \"bacnet-stack Demo Device\"\r\n\r\n");
-
+    }else {
+        printf(
+            "Product Description: "
+            "\"your product description here\"\r\n\r\n");
+    }
     printf("BIBBs Supported:\r\n");
     printf("{\r\n");
     printf(" DS-RP-B\r\n");
-    printf(" DS-RPM-B\r\n");
-    printf(" DS-WP-B\r\n");
-    printf(" DM-DDB-B\r\n");
-    printf(" DM-DOB-B\r\n");
-    printf(" DM-DCC-B\r\n");
-    printf(" DM-RD-B\r\n");
+    printf("-- possible BIBBs in this device\r\n");
+    printf("-- DS-RPM-B\r\n");
+    printf("-- DS-WP-B\r\n");
+    printf("-- DM-DDB-B\r\n");
+    printf("-- DM-DOB-B\r\n");
+    printf("-- DM-DCC-B\r\n");
+    printf("-- DM-RD-B\r\n");
+    printf("-- DS-COV-A\r\n");
+    printf("-- DS-COV-B\r\n");
+    printf("-- AE-N-A\r\n");
+    printf("-- AE-N-I-B\r\n");
+    printf("-- AE-N-E-B\r\n");
+    printf("-- AE-ACK-B\r\n");
+    printf("-- AE-ACK-A\r\n");
+    printf("-- DM-UTC-B\r\n");
 #ifdef BAC_ROUTING
     /* Next line only for the gateway (ie, if not addressing a subNet) */
     if (Target_Address.net == 0)
-        printf(" NM-RC-B\r\n");
+        printf("-- NM-RC-B\r\n");
 #endif
     printf("}\r\n\r\n");
-    /* You might add some of:
-     *      -- DS-COV-A DS-COV-B
-     *      -- AE-N-A AE-N-I-B AE-N-E-B
-     *      -- AE-ACK-A AE-ACK-B
-     *      -- DM-UTC-B
-     */
-
     printf("BACnet Standard Application Services Supported:\r\n");
     printf("{\r\n");
-    /* You might change the "Initiate Execute" values, or edit the result. */
-    printf(" ReadProperty                   Initiate Execute\r\n");
-    printf(" ReadPropertyMultiple           Execute\r\n");
-    printf(" WriteProperty                  Execute\r\n");
-    printf(" DeviceCommunicationControl     Execute\r\n");
-    printf(" Who-Has                        Execute\r\n");
-    printf(" I-Have                         Initiate\r\n");
-    printf(" Who-Is                         Initiate Execute\r\n");
-    printf(" I-Am                           Initiate\r\n");
-    printf(" ReinitializeDevice             Execute\r\n");
-#ifdef BAC_ROUTING
-    if (Target_Address.net == 0) {
-        printf(" -- Note: The following Routing Services are Supported:\r\n");
-        printf(" -- Who-Is-Router-To-Network    Initiate Execute\r\n");
-        printf(" -- I-Am-Router-To-Network      Initiate Execute\r\n");
-        printf(" -- Initialize-Routing-Table    Execute\r\n");
-        printf(" -- Initialize-Routing-Table-Ack Initiate\r\n");
-    }
-#endif
-    printf("}\r\n\r\n");
-    /* You might want to add some of:
-     *      -- AcknowledgeAlarm               Initiate Execute
-     *      -- ConfirmedCOVNotification       Initiate Execute
-     *      -- UnconfirmedCOVNotification     Initiate
-     *      -- ConfirmedEventNotification     Initiate Execute
-     *      -- UnconfirmedEventNotification   Initiate Execute
-     *      -- GetAlarmSummary                Initiate Execute
-     *      -- GetEnrollmentSummary           Initiate Execute
-     *      -- WritePropertyMultiple          Initiate Execute
-     *      -- ReadRange                      Initiate Execute
-     *      -- GetEventInformation            Initiate Execute
-     *      -- SubscribeCOVProperty           Initiate Execute
-     */
-
-    printf("Standard Object-Types Supported:\r\n");
-    printf("{\r\n");
-    value = InitIdValues[INIT_OBJ_TYPES];
+    value = object_property_value(PROP_PROTOCOL_SERVICES_SUPPORTED);
     /* We have to process this bit string and determine which Object Types we have,
      * and show them
      */
     if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
+        printf("-- services reported by this device\r\n");
+        int i, len = bitstring_bits_used(&value->type.Bit_String);
+        for (i = 0; i < len; i++) {
+            if (bitstring_bit(&value->type.Bit_String, (uint8_t) i))
+                printf(" %s\r\n", protocol_services_supported_text(i));
+        }
+    } else {
+        printf("-- use \'Initiate\' or \'Execute\' or both for services.\r\n");
+        printf(" ReadProperty                   Execute\r\n");
+        printf("-- ReadPropertyMultiple           Initiate Execute\r\n");
+        printf("-- WriteProperty                  Initiate Execute\r\n");
+        printf("-- DeviceCommunicationControl     Initiate Execute\r\n");
+        printf("-- Who-Has                        Initiate Execute\r\n");
+        printf("-- I-Have                         Initiate Execute\r\n");
+        printf("-- Who-Is                         Initiate Execute\r\n");
+        printf("-- I-Am                           Initiate Execute\r\n");
+        printf("-- ReinitializeDevice             Initiate Execute\r\n");
+        printf("-- AcknowledgeAlarm               Initiate Execute\r\n");
+        printf("-- ConfirmedCOVNotification       Initiate Execute\r\n");
+        printf("-- UnconfirmedCOVNotification     Initiate Execute\r\n");
+        printf("-- ConfirmedEventNotification     Initiate Execute\r\n");
+        printf("-- UnconfirmedEventNotification   Initiate Execute\r\n");
+        printf("-- GetAlarmSummary                Initiate Execute\r\n");
+        printf("-- GetEnrollmentSummary           Initiate Execute\r\n");
+        printf("-- WritePropertyMultiple          Initiate Execute\r\n");
+        printf("-- ReadRange                      Initiate Execute\r\n");
+        printf("-- GetEventInformation            Initiate Execute\r\n");
+        printf("-- SubscribeCOVProperty           Initiate Execute\r\n");
+#ifdef BAC_ROUTING
+        if (Target_Address.net == 0) {
+            printf("-- Note: The following Routing Services are Supported:\r\n");
+            printf("-- Who-Is-Router-To-Network    Initiate Execute\r\n");
+            printf("-- I-Am-Router-To-Network      Initiate Execute\r\n");
+            printf("-- Initialize-Routing-Table    Execute\r\n");
+            printf("-- Initialize-Routing-Table-Ack Initiate\r\n");
+        }
+#endif
+    }
+    printf("}\r\n\r\n");
+
+    printf("Standard Object-Types Supported:\r\n");
+    printf("{\r\n");
+    value = object_property_value(PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED);
+    /* We have to process this bit string and determine which Object Types we have,
+     * and show them
+     */
+    if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
+        printf("-- objects reported by this device\r\n");
         int i, len = bitstring_bits_used(&value->type.Bit_String);
         for (i = 0; i < len; i++) {
             if (bitstring_bit(&value->type.Bit_String, (uint8_t) i))
                 printf(" %s\r\n", bactext_object_type_name(i));
         }
-    } else {    /* Else, just show the usual suspects */
-        printf(" Analog Input\r\n");
-        printf(" Analog Value\r\n");
-        printf(" Binary Input\r\n");
-        printf(" Binary Value\r\n");
-        printf(" Device\r\n");
-        printf(" Multi-state Input\r\n");
-        printf(" Multi-state Value\r\n");
-        printf(" Structured View\r\n");
-        printf(" Characterstring Value\r\n");
-        printf(" Datetime Value\r\n");
-        printf(" Integer Value\r\n");
-        printf(" Positive Integer Value\r\n");
+    } else {
+        printf("-- possible objects in this device\r\n");
+        printf("-- use \'Createable\' or \'Deleteable\' or both or none.\r\n");
+        printf("-- Analog Input            Createable Deleteable\r\n");
+        printf("-- Analog Output           Createable Deleteable\r\n");
+        printf("-- Analog Value            Createable Deleteable\r\n");
+        printf("-- Binary Input            Createable Deleteable\r\n");
+        printf("-- Binary Output           Createable Deleteable\r\n");
+        printf("-- Binary Value            Createable Deleteable\r\n");
+        printf("-- Device                  Createable Deleteable\r\n");
+        printf("-- Multi-state Input       Createable Deleteable\r\n");
+        printf("-- Multi-state Output      Createable Deleteable\r\n");
+        printf("-- Multi-state Value       Createable Deleteable\r\n");
+        printf("-- Structured View         Createable Deleteable\r\n");
+        printf("-- Characterstring Value\r\n");
+        printf("-- Datetime Value\r\n");
+        printf("-- Integer Value\r\n");
+        printf("-- Positive Integer Value\r\n");
+        printf("-- Trend Log\r\n");
+        printf("-- Load Control\r\n");
+        printf("-- Bitstring Value\r\n");
+        printf("-- Date Pattern Value\r\n");
+        printf("-- Date Value\r\n");
+        printf("-- Datetime Pattern Value\r\n");
+        printf("-- Large Analog Value\r\n");
+        printf("-- Octetstring Value\r\n");
+        printf("-- Time Pattern Value\r\n");
+        printf("-- Time Value\r\n");
     }
     printf("}\r\n\r\n");
-    /* You might add some of:
-     *      -- Analog Output
-     *      -- Binary Output
-     *      -- Multi-state Output
-     *      -- Trend Log                      Createable Deleteable
-     *      -- Load Control
-     *      -- Bitstring Value
-     *      -- Date Pattern Value
-     *      -- Date Value
-     *      -- Datetime Pattern Value
-     *      -- Large Analog Value
-     *      -- Octetstring Value
-     *      -- Time Pattern Value
-     *      -- Time Value
-     */
 
     printf("Data Link Layer Option:\r\n");
     printf("{\r\n");
-    printf(" BACnet/IP, 'DIX' Ethernet\r\n");
+    printf("-- choose the data link options supported\r\n");
+    printf("-- ISO 8802-3, 10BASE5\r\n");
+    printf("-- ISO 8802-3, 10BASE2\r\n");
+    printf("-- ISO 8802-3, 10BASET\r\n");
+    printf("-- ISO 8802-3, fiber\r\n");
+    printf("-- ARCNET, coax star\r\n");
+    printf("-- ARCNET, coax bus\r\n");
+    printf("-- ARCNET, twisted pair star \r\n");
+    printf("-- ARCNET, twisted pair bus\r\n");
+    printf("-- ARCNET, fiber star\r\n");
+    printf("-- ARCNET, twisted pair, EIA-485, Baud rate(s): 156000\r\n");
+    printf("-- MS/TP master. Baud rate(s): 9600, 38400\r\n");
+    printf("-- MS/TP slave. Baud rate(s): 9600, 38400\r\n");
+    printf("-- Point-To-Point. EIA 232, Baud rate(s): 9600\r\n");
+    printf("-- Point-To-Point. Modem, Baud rate(s): 9600\r\n");
+    printf("-- Point-To-Point. Modem, Baud rate(s): 9600 to 115200\r\n");
+    printf("-- BACnet/IP, 'DIX' Ethernet\r\n");
+    printf("-- BACnet/IP, Other\r\n");
+    printf("-- Other\r\n");
     printf("}\r\n\r\n");
 
     printf("Character Sets Supported:\r\n");
     printf("{\r\n");
-    printf(" ANSI X3.4\r\n");
+    printf("-- choose any character sets supported\r\n");
+    printf("-- ANSI X3.4\r\n");
+    printf("-- IBM/Microsoft DBCS\r\n");
+    printf("-- JIS C 6226\r\n");
+    printf("-- ISO 8859-1\r\n");
+    printf("-- ISO 10646 (UCS-4)\r\n");
+    printf("-- ISO 10646 (UCS2)\r\n");
     printf("}\r\n\r\n");
 
     printf("Special Functionality:\r\n");
     printf("{\r\n");
-    printf(" Maximum APDU size in octets: 1476\r\n");
-    printf("}\r\n\r\n");
+    value = object_property_value(PROP_MAX_APDU_LENGTH_ACCEPTED);
+    printf(" Maximum APDU size in octets: ");
+    if (value != NULL) {
+        property_value.object_type = OBJECT_DEVICE;
+        property_value.object_instance = 0;
+        property_value.object_property = PROP_MAX_APDU_LENGTH_ACCEPTED;
+        property_value.array_index = BACNET_ARRAY_ALL;
+        property_value.value = value;
+        bacapp_print_value(stdout, &property_value);
+    } else {
+        printf(" Maximum APDU size in octets: 1476");
+    }
+    printf("\r\n}\r\n\r\n");
 
     printf("List of Objects in Test Device:\r\n");
     /* Print Opening brace, then kick off the Device Object */
@@ -1356,9 +1424,10 @@ int main(
                 break;
 
             case GET_HEADING_INFO:
+                /* FIXME: get heading properties with ReadProperty */
                 last_seconds = current_seconds;
                 StartNextObject(rpm_object, &myObject);
-                BuildPropRequest(rpm_object, &InitIdPropList[0]);
+                BuildPropRequest(rpm_object);
                 Request_Invoke_ID =
                     Send_Read_Property_Multiple_Request(buffer, MAX_PDU,
                     Target_Device_Object_Instance, rpm_object);
