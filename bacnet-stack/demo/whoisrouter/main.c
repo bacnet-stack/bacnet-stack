@@ -260,7 +260,8 @@ int main(
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("Send BACnet Who-Is-Router-To-Network message to a network.\r\n"
-            "\r\n" "DNET:\r\n" "BACnet destination network number 0-65534\r\n"
+            "\r\n" "DNET:\r\n" "BACnet destination network number 0-65535\r\n"
+            "To omit the BACnet destination network number, use -1.\r\n"
             "MAC:\r\n" "Optional MAC address of router for unicast message\r\n"
             "Format: xx[:xx:xx:xx:xx:xx] [dnet xx[:xx:xx:xx:xx:xx]]\r\n"
             "Use hexidecimal MAC addresses.\r\n" "\r\n"
@@ -274,9 +275,9 @@ int main(
     /* decode the command line parameters */
     if (argc > 1) {
         Target_Router_Network = strtol(argv[1], NULL, 0);
-        if (Target_Router_Network >= 65535) {
-            fprintf(stderr, "DNET=%u - it must be less than %u\r\n",
-                Target_Router_Network, 65535);
+        if (Target_Router_Network > 65535) {
+            fprintf(stderr, "DNET=%u - it must be 0 to 65535\r\n",
+                Target_Router_Network);
             return 1;
         }
     }
