@@ -116,7 +116,7 @@ extern "C" {
     /* utility add function */
     void datetime_add_minutes(
         BACNET_DATE_TIME * bdatetime,
-        uint32_t minutes);
+        int32_t minutes);
 
     /* date and time wildcards */
     bool datetime_wildcard(

@@ -49,7 +49,7 @@
 /* wday 1=Monday...7=Sunday */
 
 /* Wildcards:
-  A value of X'FF' in any of the four octets 
+  A value of X'FF' in any of the four octets
   shall indicate that the value is unspecified.
   If all four octets = X'FF', the corresponding
   time or date may be interpreted as "any" or "don't care"
@@ -349,13 +349,18 @@ static void seconds_since_midnight_into_hms(
         *pSeconds = (uint8_t) seconds;
 }
 
+/** Utility to add or subtract minutes to a BACnet DateTime structure
+ *
+ * @param bdatetime [in] the starting date and time
+ * @param minutes [in] number of minutes to add or subtract from the time
+ */
 void datetime_add_minutes(
     BACNET_DATE_TIME * bdatetime,
-    uint32_t minutes)
+    int32_t minutes)
 {
     uint32_t bdatetime_minutes = 0;
     uint32_t bdatetime_days = 0;
-    uint32_t days = 0;
+    int32_t days = 0;
 
     /* convert bdatetime to seconds and days */
     bdatetime_minutes =
@@ -375,7 +380,7 @@ void datetime_add_minutes(
 
     /* convert bdatetime from seconds and days */
     seconds_since_midnight_into_hms(bdatetime_minutes * 60,
-        &bdatetime->time.hour, &bdatetime->time.min, &bdatetime->time.sec);
+        &bdatetime->time.hour, &bdatetime->time.min, NULL);
     days_since_epoch_into_ymd(bdatetime_days, &bdatetime->date.year,
         &bdatetime->date.month, &bdatetime->date.day);
     bdatetime->date.wday =
@@ -401,8 +406,8 @@ bool datetime_wildcard(
     return wildcard_present;
 }
 
-/* Returns true if any type of wildcard is present except for day of week 
- * on it's own. 
+/* Returns true if any type of wildcard is present except for day of week
+ * on it's own.
  */
 bool datetime_wildcard_present(
     BACNET_DATE_TIME * bdatetime)
