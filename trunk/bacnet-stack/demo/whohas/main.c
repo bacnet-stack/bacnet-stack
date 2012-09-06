@@ -57,6 +57,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static BACNET_OBJECT_TYPE Target_Object_Type = MAX_BACNET_OBJECT_TYPE;
 static uint32_t Target_Object_Instance = BACNET_MAX_INSTANCE;
 static char *Target_Object_Name = NULL;
+static int32_t Target_Object_Instance_Min = -1;
+static int32_t Target_Object_Instance_Max = -1;
 
 static bool Error_Detected = false;
 
@@ -107,11 +109,26 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static print_usage(
-    char *file_and_path)
+static void print_usage(
+    char *filename)
 {
-    printf("Usage: %s <object-type object-instance | object-name>\r\n",
-        filename_remove_path(file_and_path));
+    printf("Usage: %s [device-instance-min device-instance-min] "
+        "<object-type object-instance | object-name> [--help]\r\n",
+        filename);
+}
+
+static void print_help(
+    char *filename)
+{
+    print_usage(filename);
+    printf("Send BACnet WhoHas request to devices, \r\n"
+        "and wait %u milliseconds (BACNET_APDU_TIMEOUT) for responses.\r\n"
+        "The device-instance-min or max can be 0 to %d.\r\n"
+        "\r\n" "Use either:\r\n" "The object-type can be 0 to %d.\r\n"
+        "The object-instance can be 0 to %d.\r\n" "or:\r\n"
+        "The object-name can be any string of characters.\r\n",
+        BACNET_MAX_INSTANCE, (unsigned)apdu_timeout(),
+        BACNET_MAX_OBJECT, BACNET_MAX_INSTANCE);
 }
 
 int main(
@@ -127,38 +144,84 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
+	int argi = 0;
+    bool by_name = false;
 
     if (argc < 2) {
-        print_usage(argv[0]);
+        print_usage(filename_remove_path(argv[0]));
         return 0;
     }
-    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        print_usage(argv[0]);
-        printf("Send BACnet WhoHas request to devices, \r\n"
-            "and wait %u milliseconds (BACNET_APDU_TIMEOUT) for responses.\r\n"
-            "\r\n" "Use either:\r\n" "The object-type can be 0 to %d.\r\n"
-            "The object-instance can be 0 to %d.\r\n" "or:\r\n"
-            "The object-name can be any string of characters.\r\n",
-            (unsigned)apdu_timeout(), MAX_BACNET_OBJECT_TYPE - 1,
-            BACNET_MAX_INSTANCE);
-        return 0;
-    }
+	/* print help if requested */
+	for (argi = 1; argi < argc; argi++)
+	{
+		if (strcmp(argv[argi], "--help") == 0) {
+			print_help(filename_remove_path(argv[0]));
+			return 0;
+		}
+	}
     /* decode the command line parameters */
     if (argc < 3) {
+        /* bacwh "name" */
+        Target_Object_Instance_Min =
+        Target_Object_Instance_Max = -1;
         Target_Object_Name = argv[1];
-    } else {
+        by_name = true;
+    } else if (argc < 4) {
+        /* bacwh 8 1234 */
+        Target_Object_Instance_Min =
+        Target_Object_Instance_Max = -1;
         Target_Object_Type = strtol(argv[1], NULL, 0);
         Target_Object_Instance = strtol(argv[2], NULL, 0);
+    } else if (argc < 5) {
+        /* bacwh 0 4194303 "name" */
+        Target_Object_Instance_Min = strtol(argv[1], NULL, 0);
+        Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
+        Target_Object_Name = argv[3];
+        by_name = true;
+    } else if (argc < 6) {
+        /* bacwh 0 4194303 8 1234 */
+        Target_Object_Instance_Min = strtol(argv[1], NULL, 0);
+        Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
+        Target_Object_Type = strtol(argv[3], NULL, 0);
+        Target_Object_Instance = strtol(argv[4], NULL, 0);
+    } else {
+        print_usage(filename_remove_path(argv[0]));
+        return 1;
+    }
+    if (by_name) {
+        if (Target_Object_Name) {
+            if (Target_Object_Name[0] == 0) {
+                fprintf(stderr,
+                    "object-name must be at least 1 character.\r\n");
+                return 1;
+            }
+        } else {
+            fprintf(stderr, "missing object-name value.\r\n");
+            return 1;
+        }
+    } else {
         if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
             fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
                 Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
             return 1;
         }
-        if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
+        if (Target_Object_Type > BACNET_MAX_OBJECT) {
             fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-                Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
+                Target_Object_Type, BACNET_MAX_OBJECT + 1);
             return 1;
         }
+    }
+    if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
+        fprintf(stderr,
+            "object-instance-min=%u - it must be less than %u\r\n",
+            Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
+        return 1;
+    }
+    if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
+        fprintf(stderr,
+            "object-instance-max=%u - it must be less than %u\r\n",
+            Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
+        return 1;
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
@@ -169,10 +232,18 @@ int main(
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    if (argc < 3)
-        Send_WhoHas_Name(-1, -1, Target_Object_Name);
-    else
-        Send_WhoHas_Object(-1, -1, Target_Object_Type, Target_Object_Instance);
+    if (by_name) {
+        Send_WhoHas_Name(
+            Target_Object_Instance_Min,
+            Target_Object_Instance_Max,
+            Target_Object_Name);
+    } else {
+        Send_WhoHas_Object(
+            Target_Object_Instance_Min,
+            Target_Object_Instance_Max,
+            Target_Object_Type,
+            Target_Object_Instance);
+    }
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */
