@@ -295,24 +295,26 @@ static void print_address_cache(
 		printf("; * Duplicate Devices: %u\n", dup_addresses);
 }
 
-int print_usage(char* exe_name){
+static int print_usage(char* exe_name){
 	printf(
 		"Usage:\n"
 		"\n"
-		"%s [[network]:[address]] [device-instance-min [device-instance-max]] [--help]\n" ,
+		"%s [[network]:[address]] "
+		"[device-instance-min [device-instance-max]] [--help]\n" ,
 		exe_name);
 	return 1;
 }
 
 
-int print_help(char* exe_name){
+static int print_help(char* exe_name){
 	printf(
 		"Usage:\n"
 		"\n"
-		"%s [[network]:[address]] [low_devid [high_devid]] [--help]\n"
+		"%s [[network]:[address]] "
+		"[device-instance-min [device-instance-max]] [--help]\n"
 		"\n"
 		"  Send BACnet WhoIs service request to a device or multiple devices, and wait\n"
-		"  for responses. Displays any devices found an their network information.\n"
+		"  for responses. Displays any devices found and their network information.\n"
 		"\n"
 		"device-instance:\r\n"
 		"  BACnet Device Object Instance number that you are trying to send a Who-Is\n"
@@ -349,7 +351,7 @@ int print_help(char* exe_name){
 **
 ** @return length of address parsed in bytes
 */
-int parse_bac_address(
+static int parse_bac_address(
 	BACNET_ADDRESS *dest, /* [out] BACNET Address*/
 	char *src /* [in] nul terminated string to parse */
 	)
@@ -459,13 +461,13 @@ int main(
 
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
         fprintf(stderr,
-            "object-instance-min=%u - it must be less than %u\r\n",
+            "device-instance-min=%u - it must be less than %u\r\n",
             Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
         fprintf(stderr,
-            "object-instance-max=%u - it must be less than %u\r\n",
+            "device-instance-max=%u - it must be less than %u\r\n",
             Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
