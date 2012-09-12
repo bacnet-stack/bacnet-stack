@@ -1134,8 +1134,8 @@ void PrintHeading(
      * and show them
      */
     if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
-        printf("-- services reported by this device\r\n");
         int i, len = bitstring_bits_used(&value->type.Bit_String);
+        printf("-- services reported by this device\r\n");
         for (i = 0; i < len; i++) {
             if (bitstring_bit(&value->type.Bit_String, (uint8_t) i))
                 printf(" %s\r\n", protocol_services_supported_text(i));
@@ -1181,8 +1181,8 @@ void PrintHeading(
      * and show them
      */
     if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
-        printf("-- objects reported by this device\r\n");
         int i, len = bitstring_bits_used(&value->type.Bit_String);
+        printf("-- objects reported by this device\r\n");
         for (i = 0; i < len; i++) {
             if (bitstring_bit(&value->type.Bit_String, (uint8_t) i))
                 printf(" %s\r\n", bactext_object_type_name(i));
