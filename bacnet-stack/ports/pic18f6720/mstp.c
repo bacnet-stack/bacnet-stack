@@ -51,7 +51,9 @@
 #endif
 #include "mstp.h"
 #include "bytes.h"
+#include "bits.h"
 #include "crc.h"
+#include "bacaddr.h"
 #include "rs485.h"
 #if PRINT_ENABLED
 #include "mstptext.h"
@@ -907,16 +909,18 @@ bool MSTP_Master_Node_FSM(
                 /* before passing the token.  */
                 mstp_port->master_state = MSTP_MASTER_STATE_USE_TOKEN;
                 transition_now = true;
-            } else if ((MSTP_Flag.SoleMaster == false) &&
-                (Next_Station == This_Station)) {
+            } else if ((mstp_port->SoleMaster == false) &&
+                (mstp_port->Next_Station == mstp_port->This_Station)) {
                 /* NextStationUnknown - added in Addendum 135-2008v-1 */
                 /*  then the next station to which the token
                    should be sent is unknown - so PollForMaster */
-                Poll_Station = next_this_station;
-                MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
-                    This_Station, NULL, 0);
-                RetryCount = 0;
-                Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
+                mstp_port->Poll_Station = next_this_station;
+                MSTP_Create_And_Send_Frame(mstp_port,
+                    FRAME_TYPE_POLL_FOR_MASTER, 
+                    mstp_port->Poll_Station,
+                    mstp_port->This_Station, NULL, 0);
+                mstp_port->RetryCount = 0;
+                mstp_port->master_state = MSTP_MASTER_STATE_POLL_FOR_MASTER;
             }
             /* Npoll changed in Errata SSPC-135-2004 */
             else if (mstp_port->TokenCount < (Npoll - 1)) {
