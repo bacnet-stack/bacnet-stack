@@ -26,7 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for memmove */
-#include <p18F6720.h>
+#include <p18f6720.h>
 #include <stdlib.h>
 #include <string.h>
 #include "stdint.h"

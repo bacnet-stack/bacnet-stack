@@ -22,7 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#include <p18F6720.h>
+#include <p18f6720.h>
 #include "stdint.h"
 #include "hardware.h"
 #include "rs485.h"
