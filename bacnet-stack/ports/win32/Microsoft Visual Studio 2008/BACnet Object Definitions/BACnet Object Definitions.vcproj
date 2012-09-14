@@ -235,6 +235,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\..\demo\object\csv.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\demo\object\device.c"
 				>
 				<FileConfiguration
@@ -305,6 +309,10 @@
 						AdditionalIncludeDirectories="..\..\..\include"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\..\demo\object\msv.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\..\demo\object\trendlog.c"

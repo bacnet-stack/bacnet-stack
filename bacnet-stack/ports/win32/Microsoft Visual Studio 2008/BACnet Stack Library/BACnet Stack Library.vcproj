@@ -888,6 +888,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\proplist.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\ptransfer.c"
 				>
 				<FileConfiguration
