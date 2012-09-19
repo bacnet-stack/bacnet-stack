@@ -1140,8 +1140,12 @@ int bvlc_send_pdu(
     /* bip datalink doesn't need to know the npdu data */
     (void) npdu_data;
     mtu[0] = BVLL_TYPE_BACNET_IP;
-	if ( dest->net == BACNET_BROADCAST_NETWORK 
-		|| dest->len == 0
+    /* handle various broadcasts: */
+    /* mac_len = 0 is a broadcast address */
+    /* net = 0 indicates local, net = 65535 indicates global */
+    /* net > 0 and net < 65535 are network specific broadcast if len = 0 */
+	if ( dest->net == BACNET_BROADCAST_NETWORK
+		|| ((dest->net > 0) && (dest->len == 0))
 		|| dest->mac_len == 0) {
         /* if we are a foreign device */
         if (Remote_BBMD.sin_port) {
