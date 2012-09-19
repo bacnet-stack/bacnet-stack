@@ -60,7 +60,7 @@
 /* FIXME: mac[] only needs to be as big as our local datalink MAC */
 #define MAX_MAC_LEN 7
 struct BACnet_Device_Address {
-    /* mac_len = 0 if global address */
+    /* mac_len = 0 is a broadcast address */
     uint8_t mac_len;
     /* note: MAC for IP addresses uses 4 bytes for addr, 2 bytes for port */
     /* use de/encode_unsigned32/16 for re/storing the IP address */
