@@ -157,16 +157,16 @@ int bip_send_pdu(
     struct in_addr address;
     uint16_t port = 0;
 
-
     (void) npdu_data;
     /* assumes that the driver has already been initialized */
     if (BIP_Socket < 0) {
         return BIP_Socket;
     }
-
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
-    if (dest->net == BACNET_BROADCAST_NETWORK) {
+    if ((dest->net == BACNET_BROADCAST_NETWORK) ||
+        ((dest->net > 0) && (dest->len == 0)) ||
+        (dest->mac_len == 0)) {
         /* broadcast */
         address.s_addr = BIP_Broadcast_Address.s_addr;
         port = BIP_Port;

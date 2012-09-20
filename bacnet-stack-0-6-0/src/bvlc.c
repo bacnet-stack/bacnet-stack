@@ -738,7 +738,7 @@ static void bvlc_fdt_forward_npdu(
 }
 
 
-/** Register as a foreign device with the indicated BBMD. 
+/** Register as a foreign device with the indicated BBMD.
  * @param bbmd_address - IPv4 address (long) of BBMD to register with,
  *                       in network byte order.
  * @param bbmd_port - Network port of BBMD, in network byte order
@@ -1162,7 +1162,9 @@ int bvlc_send_pdu(
     /* bip datalink doesn't need to know the npdu data */
     (void) npdu_data;
     mtu[0] = BVLL_TYPE_BACNET_IP;
-    if (dest->net == BACNET_BROADCAST_NETWORK) {
+    if ((dest->net == BACNET_BROADCAST_NETWORK) ||
+        ((dest->net > 0) && (dest->len == 0)) ||
+        (dest->mac_len == 0)) {
         /* if we are a foreign device */
         if (Remote_BBMD.sin_port) {
             mtu[1] = BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK;
