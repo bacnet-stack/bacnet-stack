@@ -182,6 +182,10 @@
 				RelativePath="..\..\..\..\demo\epics\main.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\..\src\proplist.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
