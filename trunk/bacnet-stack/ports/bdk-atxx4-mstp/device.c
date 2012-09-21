@@ -155,30 +155,6 @@ static struct my_object_functions *Device_Objects_Find_Functions(
     return (NULL);
 }
 
-static int Read_Property_Common(
-    struct my_object_functions *pObject,
-    BACNET_READ_PROPERTY_DATA * rpdata)
-{
-    int apdu_len = BACNET_STATUS_ERROR;
-    BACNET_CHARACTER_STRING char_string = { 0 };
-    uint8_t *apdu = NULL;
-
-    if ((rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
-        return 0;
-    }
-    apdu = rpdata->application_data;
-    switch (rpdata->object_property) {
-        default:
-            if (pObject->Object_Read_Property) {
-                apdu_len = pObject->Object_Read_Property(rpdata);
-            }
-            break;
-    }
-
-    return apdu_len;
-}
-
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns BACNET_STATUS_ERROR */
 int Device_Read_Property(
@@ -599,7 +575,7 @@ int Device_Read_Property_Local(
         return 0;
     }
     apdu = rpdata->application_data;
-    switch (rpdata->object_property) {
+    switch ((int)rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], rpdata->object_type,
@@ -824,7 +800,7 @@ bool Device_Write_Property_Local(
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    switch (wp_data->object_property) {
+    switch ((int)wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
