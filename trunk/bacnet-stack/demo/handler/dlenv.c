@@ -150,7 +150,7 @@ int dlenv_register_as_foreign_device(
         if (retval < 0)
             fprintf(stderr, "FAILED to Register with BBMD at %s \n",
                 inet_ntoa(addr));
-        BBMD_Timer_Seconds = bbmd_timetolive_seconds;
+        BBMD_Timer_Seconds = (uint16_t)bbmd_timetolive_seconds;
     }
 
     bbmd_result = retval;
