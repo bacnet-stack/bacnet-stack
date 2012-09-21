@@ -888,10 +888,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\..\src\proplist.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\src\ptransfer.c"
 				>
 				<FileConfiguration
@@ -1262,6 +1258,10 @@
 						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\..\src\wpm.c"
+				>
 			</File>
 		</Filter>
 		<Filter
