@@ -458,6 +458,21 @@ uint8_t characterstring_encoding(
     return encoding;
 }
 
+/* returns the encoding. */
+bool characterstring_set_encoding(
+    BACNET_CHARACTER_STRING * char_string,
+    uint8_t encoding)
+{
+    bool status = false;
+
+    if (char_string) {
+        char_string->encoding = encoding;
+        status = true;
+    }
+
+    return status;
+}
+
 /* returns true if string is printable */
 /* used to assist in the requirement that
    "The set of characters used in the Object_Name shall be
