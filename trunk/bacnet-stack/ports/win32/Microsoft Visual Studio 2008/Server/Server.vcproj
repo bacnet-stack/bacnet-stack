@@ -179,6 +179,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\demo\handler\h_upt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\demo\handler\h_wpm.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\demo\server\main.c"
 				>
 			</File>
