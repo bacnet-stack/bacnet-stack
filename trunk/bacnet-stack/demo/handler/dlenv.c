@@ -176,8 +176,7 @@ void dlenv_maintenance_timer(
             BBMD_Timer_Seconds -= elapsed_seconds;
         }
         if (BBMD_Timer_Seconds == 0) {
-            int retval;
-            retval = dlenv_register_as_foreign_device();
+            (void)dlenv_register_as_foreign_device();
             /* If that failed (negative), maybe just a network issue.
              * If nothing happened (0), may be un/misconfigured.
              * Set up to try again later in all cases. */
