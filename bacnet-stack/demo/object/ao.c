@@ -405,7 +405,6 @@ bool Analog_Output_Write_Property(
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
-    uint8_t level = AO_LEVEL_NULL;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -451,7 +450,6 @@ bool Analog_Output_Write_Property(
                     WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
                     &wp_data->error_class, &wp_data->error_code);
                 if (status) {
-                    level = AO_LEVEL_NULL;
                     object_index =
                         Analog_Output_Instance_To_Index(wp_data->
                         object_instance);

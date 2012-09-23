@@ -66,11 +66,14 @@ void handler_timesync(
     len =
         timesync_decode_service_request(service_request, service_len, &bdate,
         &btime);
+    if (len > 0) {
 #if PRINT_ENABLED
-    fprintf(stderr, "Received TimeSyncronization Request\r\n");
-    show_bacnet_date_time(&bdate, &btime);
+        fprintf(stderr, "Received TimeSyncronization Request\r\n");
+        show_bacnet_date_time(&bdate, &btime);
+#else
+        /* FIXME: set the time? */
 #endif
-    /* FIXME: set the time? */
+    }
 
     return;
 }
@@ -89,11 +92,13 @@ void handler_timesync_utc(
     len =
         timesync_decode_service_request(service_request, service_len, &bdate,
         &btime);
+    if (len > 0) {
 #if PRINT_ENABLED
-    fprintf(stderr, "Received TimeSyncronization Request\r\n");
-    show_bacnet_date_time(&bdate, &btime);
+        fprintf(stderr, "Received TimeSyncronization Request\r\n");
+        show_bacnet_date_time(&bdate, &btime);
 #endif
-    /* FIXME: set the time? */
+        /* FIXME: set the time? */
+    }
 
     return;
 }

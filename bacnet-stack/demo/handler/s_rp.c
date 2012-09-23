@@ -69,7 +69,6 @@ uint8_t Send_Read_Property_Request_Address(
 {
     BACNET_ADDRESS my_address;
     uint8_t invoke_id = 0;
-    bool status = false;
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
