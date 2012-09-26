@@ -1264,7 +1264,7 @@ void PrintHeading(
         property_value.value = value;
         bacapp_print_value(stdout, &property_value);
     } else {
-        printf(" Maximum APDU size in octets: 1476");
+        printf("?");
     }
     printf("\r\n}\r\n\r\n");
 
