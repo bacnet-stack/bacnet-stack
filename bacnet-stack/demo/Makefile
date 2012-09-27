@@ -49,6 +49,10 @@ SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov scov timesync epics readpropm \
 	mstpcap mstpcrc uptransfer \
 	whoisrouter iamrouter initrouter
+ifeq (${BACNET_PORT},linux)
+SUBDIRS += router
+endif
+
 ifeq (${BACNET_PORT},win32)
 SUBDIRS += ptransfer
 endif

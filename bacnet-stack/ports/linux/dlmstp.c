@@ -100,7 +100,7 @@ static uint8_t Tusage_timeout = 60;
 static struct timeval start;
 
 static uint32_t Timer_Silence(
-    void)
+	void * pArg)
 {
     struct timeval now, tmp_diff;
     int32_t res;
@@ -113,7 +113,7 @@ static uint32_t Timer_Silence(
 }
 
 static void Timer_Silence_Reset(
-    void)
+	void * pArg)
 {
     gettimeofday(&start, NULL);
 }
@@ -221,7 +221,7 @@ static void *dlmstp_master_fsm_task(
         if (MSTP_Port.ReceivedValidFrame || MSTP_Port.ReceivedInvalidFrame) {
             run_master = true;
         } else {
-            silence = MSTP_Port.SilenceTimer();
+            silence = MSTP_Port.SilenceTimer(NULL);
             switch (MSTP_Port.master_state) {
                 case MSTP_MASTER_STATE_IDLE:
                     if (silence >= Tno_token)
