@@ -73,21 +73,21 @@ struct address_entry {
 static struct address_table {
 	struct address_entry * first;
 	struct address_entry * last;
-} addr_tbl = {0};
+} Address_Table = {0};
 
 
 struct address_entry * alloc_address_entry(void)
 {
 	struct address_entry * rval;
 	rval = (struct address_entry *)calloc(1, sizeof(struct address_entry));
-	if(addr_tbl.first == 0)
+	if(Address_Table.first == 0)
 	{
-		addr_tbl.first = addr_tbl.last = rval;
+		Address_Table.first = Address_Table.last = rval;
 	}
 	else
 	{
-		addr_tbl.last->next = rval;
-		addr_tbl.last = rval;
+		Address_Table.last->next = rval;
+		Address_Table.last = rval;
 	}
 	return rval;
 }
@@ -113,7 +113,7 @@ void address_table_add(
     struct address_entry *pMatch;
 	uint8_t flags = 0;
 
-	pMatch = addr_tbl.first;
+	pMatch = Address_Table.first;
     while (pMatch) {
         if (pMatch->device_id == device_id)
 		{
@@ -222,53 +222,48 @@ static void init_service_handlers(
 void print_macaddr(uint8_t * addr, int len)
 {
 	int j = 0;
-	if(len == 0)
-	{
-		printf("%20s", "");
-		return;
-	}
-	if(len == 1)
-	{
-		printf("%-6u%14s", addr[0], "");
-		return;
-	}
+
 	while(j < len)
 	{
 		if (j != 0) {
 			printf(":");
 		}
-		printf("%02X", addr[j++]);
+		printf("%02X", addr[j]);
+		j++;
 	}
-	while(j++ < MAX_MAC_LEN)
+	while(j < MAX_MAC_LEN)
 	{
 		printf("   ");
+		j++;
 	}
 }
 
 static void print_address_cache(
 	void)
 {
-	int j;
 	BACNET_ADDRESS address;
 	unsigned total_addresses = 0;
 	unsigned dup_addresses = 0;
 	struct address_entry *addr;
+	uint8_t local_sadr = 0;
 
-	printf(";%-7s  %-20s %-5s %-20s %-4s\n", "Device", "MAC", "SNET", "SADR",
-		"APDU");
+	/*  NOTE: this string format is parsed by src/address.c,
+		so these must be compatible. */
+
+	printf(";%-7s  %-20s %-5s %-20s %-4s\n",
+		"Device", "MAC (hex)", "SNET", "SADR (hex)", "APDU");
 	printf(";-------- -------------------- ----- -------------------- ----\n");
 
 
-	addr = addr_tbl.first;
+	addr = Address_Table.first;
 	while (addr)
 	{
-		address = addr->address;
-
+		bacnet_address_copy(&address, &addr->address);
 		total_addresses++;
 		if(addr->Flags & BAC_ADDRESS_MULT)
 		{
 			dup_addresses++;
-			printf("*");
+			printf(";");
 		}
 		else
 		{
@@ -280,10 +275,7 @@ static void print_address_cache(
 		if (address.net) {
 			print_macaddr(address.adr, address.len);
 		} else {
-			printf("0 ");
-			for (j = 1; j < MAX_MAC_LEN; j++) {
-				printf("   ");
-			}
+			print_macaddr(&local_sadr, 1);
 		}
 		printf(" %-4hu ", addr->max_apdu);
 		printf("\n");
@@ -291,8 +283,9 @@ static void print_address_cache(
 		addr = addr->next;
 	}
 	printf(";\n; Total Devices: %u\n", total_addresses);
-	if (dup_addresses)
+	if (dup_addresses) {
 		printf("; * Duplicate Devices: %u\n", dup_addresses);
+	}
 }
 
 static int print_usage(char* exe_name){
