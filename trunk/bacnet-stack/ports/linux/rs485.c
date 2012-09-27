@@ -607,7 +607,7 @@ void RS485_Initialize(
         if ((newserial.custom_divisor == 0) || (baud_error > 0.02)) {
             /* bad divisor */
             fprintf (stderr, "bad custom divisor %d, base baud %d\n",
-                newserial.custom_divisor, newserial.base_baud);
+                newserial.custom_divisor, newserial.baud_base);
             exit (EXIT_FAILURE);
         }
         /* if all goes well, set new divisor */
