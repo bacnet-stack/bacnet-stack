@@ -415,7 +415,7 @@ void RS485_Send_Frame(
             turnaround_time = 2;
         else
             turnaround_time = 2;
-        while (mstp_port->SilenceTimer() < turnaround_time) {
+        while (mstp_port->SilenceTimer(NULL) < turnaround_time) {
             /* do nothing - wait for timer to increment */
         };
     }
@@ -423,7 +423,7 @@ void RS485_Send_Frame(
 
     /* per MSTP spec, reset SilenceTimer after each byte is sent */
     if (mstp_port) {
-        mstp_port->SilenceTimerReset();
+        mstp_port->SilenceTimerReset(NULL);
     }
 
     return;
