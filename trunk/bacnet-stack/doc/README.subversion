@@ -2,11 +2,13 @@
 To check out the trunk from the subversion repository,
 use "svn co", e.g.
 
-    svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/trunk/bacnet-stack/
+    svn checkout https://svn.code.sf.net/p/bacnet/code/trunk/bacnet-stack/
 
     or for the stable releases:
 
-    svn co https://bacnet.svn.sourceforge.net/svnroot/bacnet/tags/bacnet-stack-0-4-0/
+    svn checkout https://svn.code.sf.net/p/bacnet/code/tags/bacnet-stack-0-7-1/
+
+for Anonymous checkout, use http vs. https.
 
 ========== Configure your Subversion Client for EOL properties ==========
 Committers need to properly configure their svn client so that
@@ -90,7 +92,7 @@ $ svn commit -m "changed eol-style"
 From http://stackoverflow.com/questions/16142/what-do-branch-tag-and-trunk-really-mean
 Paraphrased and copied from gregmac:
 
-We working on what will be 1.0.0 in trunk. Once 1.0.0 is finished,
+We are working on what will be 1.0.0 in trunk. Once 1.0.0 is finished,
 branch trunk into a new "bacnet-stack-1.0.0" branch,
 and create a "1.0.0" tag.  Work on what will eventually be 1.1.0 continues
 in trunk.
