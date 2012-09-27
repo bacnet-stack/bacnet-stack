@@ -1144,9 +1144,9 @@ int bvlc_send_pdu(
     /* mac_len = 0 is a broadcast address */
     /* net = 0 indicates local, net = 65535 indicates global */
     /* net > 0 and net < 65535 are network specific broadcast if len = 0 */
-	if ( dest->net == BACNET_BROADCAST_NETWORK
-		|| ((dest->net > 0) && (dest->len == 0))
-		|| dest->mac_len == 0) {
+    if ((dest->net == BACNET_BROADCAST_NETWORK) ||
+        ((dest->net > 0) && (dest->len == 0)) ||
+        (dest->mac_len == 0)) {
         /* if we are a foreign device */
         if (Remote_BBMD.sin_port) {
             mtu[1] = BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK;

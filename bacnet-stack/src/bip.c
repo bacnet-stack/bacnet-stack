@@ -166,9 +166,9 @@ int bip_send_pdu(
 
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
-    if (dest->net == BACNET_BROADCAST_NETWORK
-		|| ((dest->net > 0) && (dest->len == 0))
-		|| dest->mac_len == 0) {
+    if ((dest->net == BACNET_BROADCAST_NETWORK) ||
+        ((dest->net > 0) && (dest->len == 0)) ||
+        (dest->mac_len == 0)) {
         /* broadcast */
         address.s_addr = BIP_Broadcast_Address.s_addr;
         port = BIP_Port;
