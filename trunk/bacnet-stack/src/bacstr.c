@@ -294,8 +294,12 @@ bool characterstring_ansi_copy(
 
     if (dest && src && (src->encoding == CHARACTER_ANSI_X34) &&
         (src->length < dest_max_len)) {
-        for (i = 0; i < src->length; i++) {
-            dest[i] = src->value[i];
+        for (i = 0; i < dest_max_len; i++) {
+            if (i < src->length) {
+                dest[i] = src->value[i];
+            } else {
+                dest[i] = 0;
+            }
         }
         return true;
     }
@@ -548,7 +552,7 @@ bool utf8_isvalid(
     if (length == 0) {
         return true;
     }
-    for (p = (unsigned char *) str; p < pend; p++) {
+    for (p = (const unsigned char *) str; p < pend; p++) {
         c = *p;
         /* null in middle of string */
         if (c == 0) {
