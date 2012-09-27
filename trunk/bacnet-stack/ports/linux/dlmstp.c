@@ -1,7 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
-* Updated by ?????? ????? 2011 <nikola.jelic@euroicc.com>
+* Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
