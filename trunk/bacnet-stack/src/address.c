@@ -202,7 +202,7 @@ static void address_file_init(
     FILE *pFile = NULL; /* stream pointer */
     char line[256] = { "" };    /* holds line from file */
     long device_id = 0;
-    int snet = 0;
+    unsigned snet = 0;
     unsigned max_apdu = 0;
     unsigned mac[MAX_MAC_LEN] = { 0 };
     int count = 0;
@@ -216,7 +216,7 @@ static void address_file_init(
         while (fgets(line, (int) sizeof(line), pFile) != NULL) {
             /* ignore comments */
             if (line[0] != ';') {
-                if (sscanf(line, "%7ld %79s %5d %79s %4u", &device_id,
+                if (sscanf(line, "%7ld %79s %5u %79s %4u", &device_id,
                         &mac_string[0], &snet, &sadr_string[0],
                         &max_apdu) == 5) {
                     count =
