@@ -54,6 +54,9 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sched.h>
+#include <linux/serial.h> /* for struct serial_struct */
+#include <math.h> /* for calculation of custom divisor */
+#include <sys/ioctl.h>
 
 /* Local includes */
 #include "mstp.h"
@@ -86,6 +89,10 @@ static char *RS485_Port_Name = "/dev/ttyUSB0";
 #endif
 /* serial I/O settings */
 static struct termios RS485_oldtio;
+/* for setting custom divisor */
+static struct serial_struct RS485_oldserial;
+/* indicator of special baud rate */
+static bool RS485_SpecBaud = false;
 
 /* Ring buffer for incoming bytes, in order to speed up the receiving. */
 static FIFO_BUFFER Rx_FIFO;
@@ -179,7 +186,13 @@ uint32_t RS485_Get_Baud_Rate(
             baud = 19200;
             break;
         case B38400:
-            baud = 38400;
+            if (!RS485_SpecBaud) {
+               /* Linux asks for custom divisor
+                only when baud is set on 38400 */
+                baud = 38400;
+            } else {
+                baud = 76800;
+            }
             break;
         case B57600:
             baud = 57600;
@@ -289,6 +302,7 @@ bool RS485_Set_Baud_Rate(
 {
     bool valid = true;
 
+    RS485_SpecBaud = false;
     switch (baud) {
         case 0:
             RS485_Baud = B0;
@@ -340,6 +354,10 @@ bool RS485_Set_Baud_Rate(
             break;
         case 57600:
             RS485_Baud = B57600;
+            break;
+        case 76800:
+            RS485_Baud = 38400;
+            RS485_SpecBaud = true;
             break;
         case 115200:
             RS485_Baud = B115200;
@@ -523,6 +541,7 @@ void RS485_Cleanup(
 {
     /* restore the old port settings */
     tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
+    ioctl (RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
     close(RS485_Handle);
 }
 
@@ -531,6 +550,9 @@ void RS485_Initialize(
     void)
 {
     struct termios newtio;
+    struct serial_struct newserial;
+    float baud_error = 0.0;
+
     printf("RS485: Initializing %s", RS485_Port_Name);
     /*
        Open device for reading and writing.
@@ -550,6 +572,10 @@ void RS485_Initialize(
 #endif
     /* save current serial port settings */
     tcgetattr(RS485_Handle, &RS485_oldtio);
+    /* we read the old serial setup */
+    ioctl (RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
+    /* we need a copy of existing settings */
+    memcpy (&newserial, &RS485_oldserial, sizeof (struct serial_struct));
     /* clear struct for new port settings */
     bzero(&newtio, sizeof(newtio));
     /*
@@ -569,6 +595,25 @@ void RS485_Initialize(
     newtio.c_lflag = 0;
     /* activate the settings for the port after flushing I/O */
     tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
+    if (RS485_SpecBaud) {
+        /* 76800, custom divisor must be set */
+        newserial.flags |= ASYNC_SPD_CUST;
+        newserial.custom_divisor =
+            round (((float)newserial.baud_base)/76800);
+        /* we must check that we calculated some sane value;
+            small baud bases yield bad custom divisor values */
+        baud_error = fabs (1 -((float)newserial.baud_base)/
+            ((float)newserial.custom_divisor)/76800);
+        if ((newserial.custom_divisor == 0) || (baud_error > 0.02)) {
+            /* bad divisor */
+            fprintf (stderr, "bad custom divisor %d, base baud %d\n",
+                newserial.custom_divisor, newserial.base_baud);
+            exit (EXIT_FAILURE);
+        }
+        /* if all goes well, set new divisor */
+        ioctl (RS485_Handle, TIOCSSERIAL, &newserial);
+    }
+
     /* destructor */
     atexit(RS485_Cleanup);
     /* flush any data waiting */
