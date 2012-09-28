@@ -316,13 +316,13 @@ static void packet_statistics_clear(
 }
 
 static uint32_t Timer_Silence(
-    void)
+	void * pArg)
 {
     return timer_milliseconds(TIMER_SILENCE);
 }
 
 static void Timer_Silence_Reset(
-    void)
+	void * pArg)
 {
     timer_reset(TIMER_SILENCE);
 }
