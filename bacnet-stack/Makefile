@@ -75,6 +75,9 @@ library:
 demos:
 	$(MAKE) -C demo all
 
+router:
+	$(MAKE) -C demo router
+
 # Add "ports" to the build, if desired
 ports:	atmega168 bdk-atxx4-mstp at91sam7s
 	@echo "Built the ARM7 and AVR ports"
@@ -91,3 +94,4 @@ bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 clean:
 	$(MAKE) -C lib clean
 	$(MAKE) -C demo clean
+	$(MAKE) -C demo/router clean

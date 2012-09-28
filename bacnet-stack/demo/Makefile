@@ -49,9 +49,9 @@ SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov scov timesync epics readpropm \
 	mstpcap mstpcrc uptransfer \
 	whoisrouter iamrouter initrouter
-ifeq (${BACNET_PORT},linux)
-SUBDIRS += router
-endif
+#ifeq (${BACNET_PORT},linux)
+#SUBDIRS += router
+#endif
 
 ifeq (${BACNET_PORT},win32)
 SUBDIRS += ptransfer
@@ -61,9 +61,14 @@ ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
 	SUBDIRS += gateway
 endif
 
+.PHONY : all router clean
+
 TARGETS = all clean
 
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 	$(MAKE) -b -C $(subst ., , $@)
+
+router:
+	$(MAKE) -b -C router
