@@ -47,8 +47,6 @@
 #include "bacaddr.h"
 #include "ringbuf.h"
 #include "timer.h"
-#include "eeprom.h"
-#include "nvdata.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:
@@ -201,10 +199,6 @@ bool dlmstp_init(
 {
     ifname = ifname;
 
-    eeprom_bytes_read(NV_EEPROM_MAX_MASTER, &Nmax_master, 1);
-    if (Nmax_master > 127) {
-        Nmax_master = 127;
-    }
     Ringbuf_Init(&PDU_Queue, (uint8_t *) & PDU_Buffer,
         sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
 
@@ -1123,51 +1117,56 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
-            if (pkt != NULL) {
-                matched =
-                    dlmstp_compare_data_expecting_reply(&InputBuffer[0],
-                    DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
-                    pkt->destination_mac);
+            if (rs485_silence_time_elapsed(Treply_delay)) {
+                Master_State = MSTP_MASTER_STATE_IDLE;
+                /* clear our flag we were holding for comparison */
+                MSTP_Flag.ReceivedValidFrame = false;
             } else {
-                matched = false;
-            }
-            if (matched) {
-                /* Reply */
-                /* If a reply is available from the higher layers  */
-                /* within Treply_delay after the reception of the  */
-                /* final octet of the requesting frame  */
-                /* (the mechanism used to determine this is a local matter), */
-                /* then call MSTP_Send_Frame to transmit the reply frame  */
-                /* and enter the IDLE state to wait for the next frame. */
-                uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
-                if (pkt->data_expecting_reply) {
-                    frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
+                if (pkt != NULL) {
+                    matched =
+                        dlmstp_compare_data_expecting_reply(&InputBuffer[0],
+                        DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
+                        pkt->destination_mac);
                 } else {
-                    frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+                    matched = false;
                 }
-                MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                    (uint8_t *) & pkt->buffer[0], pkt->length);
-                Master_State = MSTP_MASTER_STATE_IDLE;
-                /* clear our flag we were holding for comparison */
-                MSTP_Flag.ReceivedValidFrame = false;
-            } else if (rs485_silence_time_elapsed(Treply_delay) ||
-                (pkt != NULL)) {
-                /* DeferredReply */
-                /* If no reply will be available from the higher layers */
-                /* within Treply_delay after the reception of the */
-                /* final octet of the requesting frame (the mechanism */
-                /* used to determine this is a local matter), */
-                /* then an immediate reply is not possible. */
-                /* Any reply shall wait until this node receives the token. */
-                /* Call MSTP_Send_Frame to transmit a Reply Postponed frame, */
-                /* and enter the IDLE state. */
-                MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED, SourceAddress,
-                    This_Station, NULL, 0);
-                Master_State = MSTP_MASTER_STATE_IDLE;
-                /* clear our flag we were holding for comparison */
-                MSTP_Flag.ReceivedValidFrame = false;
+                if (matched) {
+                    /* Reply */
+                    /* If a reply is available from the higher layers  */
+                    /* within Treply_delay after the reception of the  */
+                    /* final octet of the requesting frame  */
+                    /* (the mechanism used to determine this is a local matter), */
+                    /* then call MSTP_Send_Frame to transmit the reply frame  */
+                    /* and enter the IDLE state to wait for the next frame. */
+                    uint8_t frame_type;
+                    pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
+                    if (pkt->data_expecting_reply) {
+                        frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+                    } else {
+                        frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+                    }
+                    MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
+                        (uint8_t *) & pkt->buffer[0], pkt->length);
+                    Master_State = MSTP_MASTER_STATE_IDLE;
+                    /* clear our flag we were holding for comparison */
+                    MSTP_Flag.ReceivedValidFrame = false;
+                } else if (pkt != NULL) {
+                    /* DeferredReply */
+                    /* If no reply will be available from the higher layers */
+                    /* within Treply_delay after the reception of the */
+                    /* final octet of the requesting frame (the mechanism */
+                    /* used to determine this is a local matter), */
+                    /* then an immediate reply is not possible. */
+                    /* Any reply shall wait until this node receives the token. */
+                    /* Call MSTP_Send_Frame to transmit a Reply Postponed frame, */
+                    /* and enter the IDLE state. */
+                    MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED, SourceAddress,
+                        This_Station, NULL, 0);
+                    Master_State = MSTP_MASTER_STATE_IDLE;
+                    /* clear our flag we were holding for comparison */
+                    MSTP_Flag.ReceivedValidFrame = false;
+                }
             }
             break;
         default:
@@ -1237,6 +1236,9 @@ uint16_t dlmstp_receive(
                 /* do nothing while some states fast transition */
             };
         }
+#if SLEEP_ENABLED
+        sleep_mode();
+#endif
     }
     /* if there is a packet that needs processed, do it now. */
     if (MSTP_Flag.ReceivePacketPending) {
@@ -1279,7 +1281,7 @@ uint8_t dlmstp_mac_address(
 void dlmstp_set_max_info_frames(
     uint8_t max_info_frames)
 {
-    if (max_info_frames >= 1) {
+    if (max_info_frames >= MSTP_PDU_PACKET_COUNT) {
         Nmax_info_frames = max_info_frames;
     }
 
@@ -1303,7 +1305,6 @@ void dlmstp_set_max_master(
     if (max_master <= 127) {
         if (This_Station <= max_master) {
             Nmax_master = max_master;
-            eeprom_bytes_write(NV_EEPROM_MAX_MASTER, &max_master, 1);
         }
     }
 
@@ -1350,54 +1351,3 @@ void dlmstp_get_broadcast_address(
     return;
 }
 
-#ifdef TEST_MSTP_STATE_TEXT
-char *dlmstp_receive_state_text(
-    void)
-{
-    switch (Receive_State) {
-        case MSTP_RECEIVE_STATE_IDLE:
-            return "idle";
-        case MSTP_RECEIVE_STATE_PREAMBLE:
-            return "preamble";
-        case MSTP_RECEIVE_STATE_HEADER:
-            return "header";
-        case MSTP_RECEIVE_STATE_DATA:
-            return "data";
-        default:
-            break;
-    }
-
-    return "unknown";
-}
-#endif
-
-#ifdef TEST_MSTP_STATE_TEXT
-char *dlmstp_master_state_text(
-    void)
-{
-    switch (Master_State) {
-        case MSTP_MASTER_STATE_INITIALIZE:
-            return "init";
-        case MSTP_MASTER_STATE_IDLE:
-            return "idle";
-        case MSTP_MASTER_STATE_USE_TOKEN:
-            return "use-token";
-        case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-            return "wait-for-reply";
-        case MSTP_MASTER_STATE_DONE_WITH_TOKEN:
-            return "done-with-token";
-        case MSTP_MASTER_STATE_PASS_TOKEN:
-            return "pass-token";
-        case MSTP_MASTER_STATE_NO_TOKEN:
-            return "no-token";
-        case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-            return "poll-for-master";
-        case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            return "answer-data-request";
-        default:
-            break;
-    }
-
-    return "unknown";
-}
-#endif

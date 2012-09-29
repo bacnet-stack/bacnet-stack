@@ -781,6 +781,7 @@ bool Device_Write_Property_Local(
     bool status = false;        /* return value - false=error */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    uint8_t max_master = 0;
 
     /* decode the some of the request */
     len =
@@ -837,7 +838,9 @@ bool Device_Write_Property_Local(
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 if ((value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= 127)) {
-                    dlmstp_set_max_master(value.type.Unsigned_Int);
+                    max_master = value.type.Unsigned_Int;
+                    dlmstp_set_max_master(max_master);
+                    eeprom_bytes_write(NV_EEPROM_MAX_MASTER, &max_master, 1);
                     status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
