@@ -936,8 +936,6 @@ typedef enum {
     OBJECT_POSITIVE_INTEGER_VALUE = 48,
     OBJECT_TIME_PATTERN_VALUE = 49,
     OBJECT_TIME_VALUE = 50,
-
-    MAX_ASHRAE_OBJECT_TYPE = 51,
     /* used for bit string loop */
     PROPRIETARY_BACNET_OBJECT_TYPE = 128,
     MAX_BACNET_OBJECT_TYPE = 1024
@@ -1122,11 +1120,10 @@ typedef enum {
     SERVICE_SUPPORTED_TIME_SYNCHRONIZATION = 32,
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
-    SERVICE_SUPPORTED_WHO_IS = 34,
+    SERVICE_SUPPORTED_WHO_IS = 34
     /* Other services to be added as they are defined. */
     /* All values in this production are reserved */
     /* for definition by ASHRAE. */
-    MAX_BACNET_SERVICES_SUPPORTED = 40
 } BACNET_SERVICES_SUPPORTED;
 
 typedef enum {

@@ -37,7 +37,26 @@
 
 /* This stack implements this version of BACnet */
 #define BACNET_PROTOCOL_VERSION 1
-#define BACNET_PROTOCOL_REVISION 10
+/* Although this stack can implement a later revision,
+ * sometimes another revision is required */
+#ifndef BACNET_PROTOCOL_REVISION
+#define BACNET_PROTOCOL_REVISION 12
+#endif
+
+/* there are a few dependencies on the BACnet Protocol-Revision */
+#if (BACNET_PROTOCOL_REVISION == 9)
+    /* from 135-2008 version of the BACnet Standard */
+    #define MAX_ASHRAE_OBJECT_TYPE 38
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 12)
+    /* from 135-2010 version of the BACnet Standard */
+    #define MAX_ASHRAE_OBJECT_TYPE 51
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#else
+    #define MAX_ASHRAE_OBJECT_TYPE 51
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#endif
+
 
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
