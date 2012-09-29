@@ -81,9 +81,15 @@ void bacnet_init(
     void)
 {
     uint32_t device_id = 0;
+    uint8_t max_master = 0;
 
     MSTP_MAC_Address = input_address();
     dlmstp_set_mac_address(MSTP_MAC_Address);
+    eeprom_bytes_read(NV_EEPROM_MAX_MASTER, &max_master, 1);
+    if (max_master > 127) {
+        max_master = 127;
+    }
+    dlmstp_set_max_master(max_master);
     dlmstp_init(NULL);
     /* test for valid data structure in SEEPROM */
     if (!seeprom_version_test()) {
