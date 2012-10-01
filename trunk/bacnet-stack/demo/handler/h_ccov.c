@@ -108,7 +108,6 @@ void handler_ccov_notification(
         goto CCOV_ABORT;
     }
     /* decode the service request only */
-    /* decode the service request only */
     len =
         cov_notify_decode_service_request(service_request, service_len,
         &cov_data);
