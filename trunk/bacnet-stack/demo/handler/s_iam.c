@@ -132,7 +132,7 @@ int iam_unicast_encode_pdu(
     int pdu_len = 0;
     BACNET_ADDRESS my_address;
     /* The destination will be the same as the src, so copy it over. */
-    memcpy(dest, src, sizeof(BACNET_ADDRESS));
+    bacnet_address_copy(dest, src);
     /* dest->net = 0; - no, must direct back to src->net to meet BTL tests */
 
     datalink_get_my_address(&my_address);
