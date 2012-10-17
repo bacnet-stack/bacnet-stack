@@ -898,7 +898,7 @@ bool MSTP_Master_Node_FSM(
                                 break;
                             case FRAME_TYPE_TEST_RESPONSE:
                                 mstp_port->master_state =
-                                    MSTP_MASTER_STATE_IDLE;
+                                    MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                                 break;
                             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                                 /* ReceivedReply */
