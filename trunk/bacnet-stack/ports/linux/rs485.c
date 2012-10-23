@@ -356,7 +356,7 @@ bool RS485_Set_Baud_Rate(
             RS485_Baud = B57600;
             break;
         case 76800:
-            RS485_Baud = 38400;
+            RS485_Baud = B38400;
             RS485_SpecBaud = true;
             break;
         case 115200:
