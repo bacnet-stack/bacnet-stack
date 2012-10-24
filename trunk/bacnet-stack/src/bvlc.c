@@ -248,7 +248,6 @@ int bvlc_encode_write_bdt_init(
 }
 #endif
 
-#if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
 int bvlc_encode_read_bdt(
     uint8_t * pdu)
 {
@@ -266,8 +265,34 @@ int bvlc_encode_read_bdt(
 
     return len;
 }
-#endif
 
+/**
+ * Read the The Read-Broadcast-Distribution-Table of a BBMD
+ *
+ * @param bbmd_address - IPv4 address (long) of BBMD to read,
+ *  in network byte order.
+ * @param bbmd_port - Network port of BBMD to read, in network byte order
+ * @return Upon successful completion, returns the number of bytes sent.
+ *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ */
+int bvlc_bbmd_read_bdt(
+    uint32_t bbmd_address,
+    uint16_t bbmd_port)
+{
+    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint16_t mtu_len = 0;
+    int rv = 0;
+    struct sockaddr_in bbmd = { 0 };
+
+    mtu_len = bvlc_encode_read_bdt(mtu);
+    if (mtu_len > 0) {
+        bbmd.sin_addr.s_addr = bbmd_address;
+        bbmd.sin_port = bbmd_port;
+        rv = bvlc_send_mpdu(&bbmd, &mtu[0], mtu_len);
+    }
+
+    return rv;
+}
 
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 static int bvlc_encode_read_bdt_ack_init(
@@ -621,12 +646,23 @@ static bool bvlc_delete_foreign_device(
 }
 #endif
 
-/** The common send function for bvlc functions, using b/ip. */
-static int bvlc_send_mpdu(
-    struct sockaddr_in *dest,   /* the destination address */
-    uint8_t * mtu,      /* the data */
+/**
+ * The common send function for bvlc functions, using b/ip.
+ *
+ * @param dest - Points to a sockaddr_in structure containing the
+ *  destination address. The length and format of the address depend
+ *  on the address family of the socket (AF_INET).
+ *  The address is in network byte order.
+ * @param mtu - the bytes of data to send
+ * @param mtu_len - the number of bytes of data to send
+ * @return Upon successful completion, returns the number of bytes sent.
+ *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ */
+int bvlc_send_mpdu(
+    struct sockaddr_in *dest,
+    uint8_t * mtu,
     uint16_t mtu_len)
-{       /* amount of data to send  */
+{
     struct sockaddr_in bvlc_dest = { 0 };
 
     /* assumes that the driver has already been initialized */
@@ -642,7 +678,6 @@ static int bvlc_send_mpdu(
     return sendto(bip_socket(), (char *) mtu, mtu_len, 0,
         (struct sockaddr *) &bvlc_dest, sizeof(struct sockaddr));
 }
-
 
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 static void bvlc_bdt_forward_npdu(
