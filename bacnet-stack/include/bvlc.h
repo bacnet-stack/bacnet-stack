@@ -31,6 +31,8 @@
 #include "bacdef.h"
 #include "npdu.h"
 
+struct sockaddr_in; /* Defined elsewhere, needed here. */
+
 #ifdef __cplusplus
 extern "C" {
 
@@ -55,12 +57,15 @@ extern "C" {
         uint8_t * pdu,  /* any data to be sent - may be null */
         unsigned pdu_len);
 
+    int bvlc_send_mpdu(
+        struct sockaddr_in *dest,
+        uint8_t * mtu,
+        uint16_t mtu_len);
+
 #if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
     int bvlc_encode_write_bdt_init(
         uint8_t * pdu,
         unsigned entries);
-    int bvlc_encode_read_bdt(
-        uint8_t * pdu);
     int bvlc_encode_read_fdt(
         uint8_t * pdu);
     int bvlc_encode_delete_fdt_entry(
@@ -76,14 +81,17 @@ extern "C" {
         uint8_t * npdu,
         unsigned npdu_length);
 #endif
+    int bvlc_encode_read_bdt(
+        uint8_t * pdu);
+    int bvlc_bbmd_read_bdt(
+        uint32_t bbmd_address,
+        uint16_t bbmd_port);
 
     /* registers with a bbmd as a foreign device */
     int bvlc_register_with_bbmd(
         uint32_t bbmd_address,  /* in network byte order */
         uint16_t bbmd_port,     /* in network byte order */
         uint16_t time_to_live_seconds);
-
-    struct sockaddr_in; /* Defined elsewhere, needed here. */
 
     /* Note any BVLC_RESULT code, or NAK the BVLL message in the unsupported cases. */
     int bvlc_for_non_bbmd(
