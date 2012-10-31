@@ -161,6 +161,5 @@ void timer_init(
     TCNT2 = TIMER2_COUNT;
     /* Enable the overflow interrupt */
     BIT_SET(TIMSK2, TOIE2);
-    /* Clear the Power Reduction Timer/Counter0 */
-    BIT_CLEAR(PRR, PRTIM2);
+    power_timer2_enable();
 }

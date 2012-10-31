@@ -51,13 +51,13 @@ static void input_switch_workaround(
     BIT_SET(DDRA, DDA5);
     BIT_SET(DDRA, DDA6);
     /* turn off the outputs */
-    BIT_CLEAR(PORTA, PA0);
-    BIT_CLEAR(PORTA, PA1);
-    BIT_CLEAR(PORTA, PA2);
-    BIT_CLEAR(PORTA, PA3);
-    BIT_CLEAR(PORTA, PA4);
-    BIT_CLEAR(PORTA, PA5);
-    BIT_CLEAR(PORTA, PA6);
+    BIT_CLEAR(PORTA, PORTA0);
+    BIT_CLEAR(PORTA, PORTA1);
+    BIT_CLEAR(PORTA, PORTA2);
+    BIT_CLEAR(PORTA, PORTA3);
+    BIT_CLEAR(PORTA, PORTA4);
+    BIT_CLEAR(PORTA, PORTA5);
+    BIT_CLEAR(PORTA, PORTA6);
     /* configure the port pins for the switch - as inputs */
     BIT_CLEAR(DDRA, DDA0);
     BIT_CLEAR(DDRA, DDA1);
@@ -156,13 +156,13 @@ void input_init(
     BIT_CLEAR(DDRA, DDA5);
     BIT_CLEAR(DDRA, DDA6);
     /* activate the internal pull up resistors */
-    BIT_SET(PORTA, PA0);
-    BIT_SET(PORTA, PA1);
-    BIT_SET(PORTA, PA2);
-    BIT_SET(PORTA, PA3);
-    BIT_SET(PORTA, PA4);
-    BIT_SET(PORTA, PA5);
-    BIT_SET(PORTA, PA6);
+    BIT_SET(PORTA, PORTA0);
+    BIT_SET(PORTA, PORTA1);
+    BIT_SET(PORTA, PORTA2);
+    BIT_SET(PORTA, PORTA3);
+    BIT_SET(PORTA, PORTA4);
+    BIT_SET(PORTA, PORTA5);
+    BIT_SET(PORTA, PORTA6);
     /* configure the port pins for binary inputs */
     BIT_CLEAR(DDRB, DDB1);
     BIT_CLEAR(DDRB, DDB2);

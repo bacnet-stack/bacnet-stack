@@ -167,6 +167,5 @@ void adc_init(
        1 1 1 Timer/Counter1 Capture Event
      */
     ADCSRB = (0 << ADTS2) | (0 << ADTS1) | (0 << ADTS0);
-    /* Clear the Power Reduction bit */
-    BIT_CLEAR(PRR, PRADC);
+    power_adc_enable();
 }

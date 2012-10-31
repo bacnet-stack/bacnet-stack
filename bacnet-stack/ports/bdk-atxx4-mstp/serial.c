@@ -178,8 +178,7 @@ static void serial_usart_init(
     /* Set Character Size: UCSZn2 UCSZn1 UCSZn0 = 011 for 8-bit */
     /* Clock Polarity: UCPOLn = 0 when asynchronous mode is used. */
     UCSR1C = _BV(UCSZ11) | _BV(UCSZ10);
-    /* Clear Power Reduction */
-    BIT_CLEAR(PRR, PRUSART1);
+    power_usart1_enable();
 }
 
 void serial_init(

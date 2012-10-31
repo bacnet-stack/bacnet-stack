@@ -39,8 +39,13 @@
 #if defined(__GNUC__)
 #include <avr/io.h>
 #include <avr/wdt.h>
-#if !defined(__AVR_ATmega644P__)
-#error Firmware is configured for ATmega644P only (-mmcu=atmega644p)
+#include <avr/power.h>
+#if defined(__AVR_ATmega644P__)
+/* defined for ATmega644p */
+#elif defined(__AVR_ATmega1284P__)
+/* defined for ATmega1284p */
+#else
+#error For ATmega644P or ATmega1284p only (-mmcu=atmega644p -mmcu=atmega1284p)
 #endif
 #endif
 

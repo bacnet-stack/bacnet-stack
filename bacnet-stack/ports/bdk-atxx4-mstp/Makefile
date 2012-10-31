@@ -3,11 +3,18 @@
 ###############################################################################
 
 ## General Flags
+ifeq (${MCU},atmega1284p)
+MCU = atmega1284p
+AVRDUDE_MCU = m1284p
+LINT_MCU = __AVR_ATmega1284p__
+else
 MCU = atmega644p
 AVRDUDE_MCU = m644p
 # ATmega644 bootload is at word address 7000h, 7800h, 7C00h, or 7E00h
 # Double that value to get the byte address
 BOOTLOAD = 0xF800
+LINT_MCU = __AVR_ATmega644p__
+endif
 TARGET = bacnet
 ## Tools
 CC = avr-gcc
@@ -17,7 +24,6 @@ OBJDUMP = avr-objdump
 SIZE = avr-size
 AVRDUDE = avrdude
 LINT = splint
-LINT_MCU = __AVR_ATmega644p__
 
 SIZE_OPTIONS = -t
 #SIZE_OPTIONS = -C --mcu=${MCU}
@@ -30,11 +36,24 @@ SIZE_OPTIONS = -t
 # jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
-#AVRDUDE_PROGRAMMERID = avr109
-#AVRDUDE_PROGRAMMERID = jtag2fast
+ifeq (${JTAG},avr109)
+AVRDUDE_PROGRAMMERID = avr109
+endif
+ifeq (${JTAG},avrispmkII)
 #AVRDUDE_PROGRAMMERID = avrispmkII
+endif
+ifeq (${JTAG},dragon_isp)
 #AVRDUDE_PROGRAMMERID = dragon_isp
+endif
+ifeq (${JTAG},dragon_jtag)
 AVRDUDE_PROGRAMMERID = dragon_jtag
+endif
+ifeq (${JTAG},jtag2fast)
+AVRDUDE_PROGRAMMERID = jtag2fast
+endif
+ifndef JTAG
+AVRDUDE_PROGRAMMERID = jtag2fast
+endif
 #
 # port--serial or parallel port to which your
 # hardware programmer is attached
@@ -218,7 +237,9 @@ LDFLAGS = $(COMMON)
 #dead code removal
 #LDFLAGS += -Wl,-nostartfiles,-nostdlib
 LDFLAGS += -Wl,--gc-sections,-static
+ifneq (${MCU},atmega1284p)
 LDFLAGS += -Wl,--section-start=.bootloader=$(BOOTLOAD)
+endif
 LDFLAGS += -Wl,-Map=$(TARGET).map
 LDFLAGS += -Wl,-L.,-l$(TARGET)
 

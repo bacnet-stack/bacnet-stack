@@ -310,8 +310,7 @@ static void rs485_usart_init(
     /* Set Character Size: UCSZn2 UCSZn1 UCSZn0 = 011 for 8-bit */
     /* Clock Polarity: UCPOLn = 0 when asynchronous mode is used. */
     UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
-    /* Clear Power Reduction */
-    BIT_CLEAR(PRR, PRUSART0);
+    power_usart0_enable();
 }
 
 /****************************************************************************
