@@ -308,6 +308,28 @@ unsigned char __uint8_eeprom_load(
 #define WDTO_2S     7
 #endif
 
+/* power macros in GCC-AVR */
+#if (defined(__ICCAVR__) && (defined(__ATmega644P__))) || \
+    (defined(__CROSSWORKS_AVR) && (__TARGET_PROCESSOR == ATmega644P))
+#define power_adc_enable()      (PRR &= (uint8_t)~(1 << PRADC))
+#define power_spi_enable()      (PRR &= (uint8_t)~(1 << PRSPI))
+#define power_usart0_enable()   (PRR &= (uint8_t)~(1 << PRUSART0))
+#define power_usart1_enable()   (PRR &= (uint8_t)~(1 << PRUSART1))
+#define power_timer0_enable()   (PRR &= (uint8_t)~(1 << PRTIM0))
+#define power_timer1_enable()   (PRR &= (uint8_t)~(1 << PRTIM1))
+#define power_timer2_enable()   (PRR &= (uint8_t)~(1 << PRTIM2))
+#endif
+#if (defined(__ICCAVR__) && (defined(__ATmega1284P__))) || \
+    (defined(__CROSSWORKS_AVR) && (__TARGET_PROCESSOR == ATmega1284P))
+#define power_adc_enable()      (PRR0 &= (uint8_t)~(1 << PRADC))
+#define power_spi_enable()      (PRR0 &= (uint8_t)~(1 << PRSPI))
+#define power_usart0_enable()   (PRR0 &= (uint8_t)~(1 << PRUSART0))
+#define power_usart1_enable()   (PRR0 &= (uint8_t)~(1 << PRUSART1))
+#define power_timer0_enable()   (PRR0 &= (uint8_t)~(1 << PRTIM0))
+#define power_timer1_enable()   (PRR0 &= (uint8_t)~(1 << PRTIM1))
+#define power_timer2_enable()   (PRR0 &= (uint8_t)~(1 << PRTIM2))
+#endif
+
 #if defined(__CROSSWORKS_AVR)
 #define inline
 #endif
