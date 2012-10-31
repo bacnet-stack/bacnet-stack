@@ -123,7 +123,7 @@
         </option>
         <option>
           <name>GGEepromUtilSize</name>
-          <state>2048</state>
+          <state>4096</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
@@ -140,11 +140,11 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-n.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.r90</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-n.r90</state>
         </option>
         <option>
           <name>Input variant</name>
@@ -153,7 +153,7 @@
         </option>
         <option>
           <name>Input description</name>
-          <state> No specifier n, no float or long long, no scan set, no assignment suppressing.</state>
+          <state>No specifier n, no float nor long long, no scan set, no assignment suppressing.</state>
         </option>
         <option>
           <name>Output variant</name>
@@ -162,7 +162,7 @@
         </option>
         <option>
           <name>Output description</name>
-          <state> specifier a or A, no specifier n, no float or long long.</state>
+          <state>No specifier a, A, no specifier n, no float nor long long.</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
@@ -217,7 +217,7 @@
         </option>
         <option>
           <name>GenDeviceSelectMenu</name>
-          <state>m644p	ATmega644P</state>
+          <state>m1284p	ATmega1284P</state>
         </option>
       </data>
     </settings>
@@ -802,7 +802,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\src\template\cfgm644p.xcl</state>
+          <state>$TOOLKIT_DIR$\src\template\cfgm1284p.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -1136,7 +1136,7 @@
         </option>
         <option>
           <name>GGEepromUtilSize</name>
-          <state>2048</state>
+          <state>4096</state>
         </option>
         <option>
           <name>GRuntimeLibSelect</name>
@@ -1153,7 +1153,7 @@
         </option>
         <option>
           <name>RTConfigPath</name>
-          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-sf-n.h</state>
+          <state>$TOOLKIT_DIR$\LIB\DLIB\dlAVR-3s-ec_mul-n.h</state>
         </option>
         <option>
           <name>RTLibraryPath</name>
@@ -1166,7 +1166,7 @@
         </option>
         <option>
           <name>Input description</name>
-          <state>Full formatting.</state>
+          <state>Full formatting</state>
         </option>
         <option>
           <name>Output variant</name>
@@ -1175,7 +1175,7 @@
         </option>
         <option>
           <name>Output description</name>
-          <state> specifier a or A, no specifier n, no float or long long.</state>
+          <state>No specifier a, A, no specifier n, no float nor long long.</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
@@ -1230,7 +1230,7 @@
         </option>
         <option>
           <name>GenDeviceSelectMenu</name>
-          <state>m644p	ATmega644P</state>
+          <state>m1284p	ATmega1284P</state>
         </option>
       </data>
     </settings>

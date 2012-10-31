@@ -32,7 +32,12 @@
 
 /* IAR compiler specific configuration */
 #if defined(__ICCAVR__)
+#if defined(__ATmega644P__)
 #include <iom644p.h>
+#endif
+#if defined(__ATmega1284P__)
+#include <iom1284p.h>
+#endif
 #endif
 
 /* AVR-GCC compiler specific configuration */
