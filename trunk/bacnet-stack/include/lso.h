@@ -44,7 +44,7 @@ extern "C" {
     } BACNET_LSO_DATA;
 
 
-    int lso_encode_adpu(
+    int lso_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_LSO_DATA * data);
