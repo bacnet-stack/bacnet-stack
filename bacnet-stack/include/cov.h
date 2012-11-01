@@ -91,7 +91,7 @@ extern "C" {
         unsigned apdu_len,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
-    int cov_subscribe_property_encode_adpu(
+    int cov_subscribe_property_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_SUBSCRIBE_COV_DATA * data);
@@ -101,7 +101,7 @@ extern "C" {
         unsigned apdu_len,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
-    int cov_subscribe_encode_adpu(
+    int cov_subscribe_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_SUBSCRIBE_COV_DATA * data);

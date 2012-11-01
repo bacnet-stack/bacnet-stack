@@ -46,7 +46,7 @@ COV Subscribe Property
 COV Notification
 Unconfirmed COV Notification
 */
-static int notify_encode_adpu(
+static int notify_encode_apdu(
     uint8_t * apdu,
     BACNET_COV_DATA * data)
 {
@@ -136,7 +136,7 @@ int ccov_notify_encode_apdu(
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_COV_NOTIFICATION;
         apdu_len = 4;
-        len = notify_encode_adpu(&apdu[apdu_len], data);
+        len = notify_encode_apdu(&apdu[apdu_len], data);
         apdu_len += len;
     }
 
@@ -154,7 +154,7 @@ int ucov_notify_encode_apdu(
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
         apdu_len = 2;
-        len = notify_encode_adpu(&apdu[apdu_len], data);
+        len = notify_encode_apdu(&apdu[apdu_len], data);
         apdu_len += len;
     }
 
@@ -316,7 +316,7 @@ SubscribeCOV-Request ::= SEQUENCE {
         }
 */
 
-int cov_subscribe_encode_adpu(
+int cov_subscribe_encode_apdu(
     uint8_t * apdu,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA * data)
@@ -450,7 +450,7 @@ BACnetPropertyReference ::= SEQUENCE {
 
 */
 
-int cov_subscribe_property_encode_adpu(
+int cov_subscribe_property_encode_apdu(
     uint8_t * apdu,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA * data)
@@ -895,7 +895,7 @@ void testCOVSubscribeEncoding(
     BACNET_SUBSCRIBE_COV_DATA test_data;
     uint8_t test_invoke_id = 0;
 
-    len = cov_subscribe_encode_adpu(&apdu[0], invoke_id, data);
+    len = cov_subscribe_encode_apdu(&apdu[0], invoke_id, data);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
@@ -918,7 +918,7 @@ void testCOVSubscribePropertyEncoding(
     BACNET_SUBSCRIBE_COV_DATA test_data;
     uint8_t test_invoke_id = 0;
 
-    len = cov_subscribe_property_encode_adpu(&apdu[0], invoke_id, data);
+    len = cov_subscribe_property_encode_apdu(&apdu[0], invoke_id, data);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
