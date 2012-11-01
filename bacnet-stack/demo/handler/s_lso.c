@@ -79,7 +79,7 @@ uint8_t Send_Life_Safety_Operation_Data(
             npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
             &npdu_data);
         len =
-            lso_encode_adpu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
+            lso_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
             data);
         pdu_len += len;
         /* will it fit in the sender?

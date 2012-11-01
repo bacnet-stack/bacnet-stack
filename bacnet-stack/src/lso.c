@@ -37,7 +37,7 @@
 
 /** @file lso.c  BACnet Life Safety Operation encode/decode */
 
-int lso_encode_adpu(
+int lso_encode_apdu(
     uint8_t * apdu,
     uint8_t invoke_id,
     BACNET_LSO_DATA * data)
@@ -60,7 +60,7 @@ int lso_encode_adpu(
             &data->requestingSrc);
         apdu_len += len;
         /*
-           Operation                    
+           Operation
          */
         len = encode_context_enumerated(&apdu[apdu_len], 2, data->operation);
         apdu_len += len;
@@ -158,7 +158,7 @@ void testLSO(
     data.targetObject.instance = 0x1000;
     data.targetObject.type = OBJECT_BINARY_INPUT;
 
-    len = lso_encode_adpu(apdu, 100, &data);
+    len = lso_encode_apdu(apdu, 100, &data);
 
     lso_decode_service_request(&apdu[4], len, &rxdata);
 

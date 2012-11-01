@@ -129,7 +129,7 @@ uint8_t Send_COV_Subscribe(
             &npdu_data);
         /* encode the APDU portion of the packet */
         len =
-            cov_subscribe_encode_adpu(&Handler_Transmit_Buffer[pdu_len],
+            cov_subscribe_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             invoke_id, cov_data);
         pdu_len += len;
         /* will it fit in the sender?
