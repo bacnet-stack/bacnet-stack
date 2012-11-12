@@ -254,6 +254,9 @@ void RS485_Initialize(
         RS485_Print_Error();
     }
     RS485_Configure_Status();
+#if PRINT_ENABLED
+    fprintf(stderr, "RS485 Interface: %s\n", RS485_Port_Name);
+#endif
 
     atexit(RS485_Cleanup);
 
