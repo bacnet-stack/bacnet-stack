@@ -73,13 +73,13 @@ static uint8_t Tusage_timeout = 50;
 
 /* Timer that indicates line silence - and functions */
 static uint32_t Timer_Silence(
-    void)
+    void * pArg)
 {
     return timer_milliseconds(TIMER_SILENCE);
 }
 
 static void Timer_Silence_Reset(
-    void)
+    void * pArg)
 {
     timer_reset(TIMER_SILENCE);
 }
@@ -259,6 +259,7 @@ uint16_t MSTP_Put_Receive(
         Receive_Packet.pdu_len = mstp_port->DataLength;
         Receive_Packet.ready = true;
         rc = ReleaseSemaphore(Receive_Packet_Flag, 1, NULL);
+        (void)rc;
     }
 
     return pdu_len;
@@ -598,9 +599,6 @@ bool dlmstp_init(
     timer_init();
     if (ifname) {
         RS485_Set_Interface(ifname);
-#if PRINT_ENABLED
-        fprintf(stderr, "MS/TP Interface: %s\n", ifname);
-#endif
     }
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
