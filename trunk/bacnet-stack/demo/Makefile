@@ -47,8 +47,11 @@ LFLAGS = -Wl,$(LIBRARIES)
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov scov timesync epics readpropm \
-	mstpcap mstpcrc uptransfer \
-	whoisrouter iamrouter initrouter readbdt
+	mstpcap mstpcrc uptransfer
+
+ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
+	SUBDIRS += whoisrouter iamrouter initrouter readbdt
+endif
 #ifeq (${BACNET_PORT},linux)
 #SUBDIRS += router
 #endif
