@@ -81,25 +81,25 @@ Example Usage
 You can communicate with the virtual BACnet Device by using the other BACnet
 command line tools.  If you are using the same PC, you can use BBMD/FD
 (Foreign Device registration) to do this - use the bvlc script.  You can
-monitor the interaction and bytes on the wire using Wireshark.  Here is 
+monitor the interaction and bytes on the wire using Wireshark.  Here is
 an example usage for Window and for Linux.
 
 Windows
 -------
-The BACnet tools are used from the Command Prompt, or CMD.EXE.  
+The BACnet tools are used from the Command Prompt, or CMD.EXE.
 From the command prompt window, start the simulated BACnet device:
 c:\> bacserv 1234
 
-From another command prompt window, use ipconfig to determine the 
-network interface IP address that bacserv is using: 
+From another command prompt window, use ipconfig to determine the
+network interface IP address that bacserv is using:
 c:\> ipconfig
 
 Use the default IP address to configure the BBMD and Foreign Device
 environment variables:
 c:\> bvlc.bat 192.168.0.42
 
-bvlc.bat batch file configures environment variables to use BACnet/IP 
-port 47809 for any subsequent BACnet tools run from that command prompt window, 
+bvlc.bat batch file configures environment variables to use BACnet/IP
+port 47809 for any subsequent BACnet tools run from that command prompt window,
 and enables the BBMD Foreign Device Registration.
 
 Perform a device discovery:
@@ -111,7 +111,7 @@ c:\> bacepics -v 1234
 Read the Object_Identifier property from the Device 1234:
 c:\> bacrp 1234 8 1234 75
 
-Write 100.0 (REAL=4 datatype) to Device 1234 Analog Output (1) One (1) 
+Write 100.0 (REAL=4 datatype) to Device 1234 Analog Output (1) One (1)
 at priority 16 with no index (-1).
 c:\> bacwp 1234 1 1 85 16 -1 4 100.0
 
@@ -131,15 +131,15 @@ window:
 $ make clean all
 $ ./bin/bacserv 1234
 
-In another terminal window use ifconfig to determine the network interface IP 
-address that bacserv is using: 
+In another terminal window use ifconfig to determine the network interface IP
+address that bacserv is using:
 $ ifconfig
 
 Use that address (likely from eth0) to configure the BBMD and Foreign Device
 environment variables:
 $./bin/bvlc.sh 192.168.0.42
-bvlc.sh script configures environment variables to use BACnet/IP 
-port 47809 for any subsequent BACnet tools run from that shell, 
+bvlc.sh script configures environment variables to use BACnet/IP
+port 47809 for any subsequent BACnet tools run from that shell,
 and enables the BBMD Foreign Device Registration.
 
 Perform a device discovery:
@@ -151,7 +151,7 @@ $ ./bin/bacepics -v 1234
 Read the Object_Identifier property from the Device 1234:
 $ ./bin/bacrp 1234 8 1234 75
 
-Write 100.0 (REAL=4 datatype) to Device 1234 Analog Output (1) One (1) 
+Write 100.0 (REAL=4 datatype) to Device 1234 Analog Output (1) One (1)
 at priority 16 with no index (-1).
 $ ./bin/bacwp 1234 1 1 85 16 -1 4 100.0
 
@@ -160,6 +160,24 @@ $ ./bin/bacrp --help
 
 Source Code
 -----------
-The source code for the BACnet-Tools can be found at:
+The source code and makefiles for the bacnet-tools is included in the
+BACnet Protocol Stack library and can be found at:
 http://bacnet.sourceforge.net/
 
+The bacnet-tools source is located in bacnet-stack/demo/project where:
+bacarf - bacnet-stack/demo/readfile
+bacawf - bacnet-stack/demo/writefile
+bacdcc - bacnet-stack/demo/dcc
+bacepics - bacnet-stack/demo/epics
+bacrd - bacnet-stack/demo/reinit
+bacrp - bacnet-stack/demo/readprop
+bacrpm - bacnet-stack/demo/readpropm
+bacscov - bacnet-stack/demo/scov
+bacts - bacnet-stack/demo/timesync
+bacucov - bacnet-stack/demo/ucov
+bacupt - bacnet-stack/demo/uptransfer
+bacwh - bacnet-stack/demo/whohas
+bacwi - bacnet-stack/demo/whois
+bacwp - bacnet-stack/demo/writeprop
+bacserv - bacnet-stack/demo/server
+etc.
