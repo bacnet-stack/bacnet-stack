@@ -151,6 +151,12 @@ bool Multistate_Input_Valid_Instance(
     return false;
 }
 
+static uint32_t Multistate_Input_Max_States(
+    uint32_t instance)
+{
+    return MULTISTATE_NUMBER_OF_STATES;
+}
+
 uint32_t Multistate_Input_Present_Value(
     uint32_t object_instance)
 {
@@ -253,6 +259,45 @@ bool Multistate_Input_Description_Set(
     return status;
 }
 
+static bool Multistate_Input_Description_Write(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *char_string,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    size_t length = 0;
+    uint8_t encoding = 0;
+    bool status = false;        /* return value */
+
+    index = Multistate_Input_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_INPUTS) {
+        length = characterstring_length(char_string);
+        if (length <= sizeof(Object_Description[index])) {
+            encoding = characterstring_encoding(char_string);
+            if (encoding == CHARACTER_UTF8) {
+                status = characterstring_ansi_copy(
+                    Object_Description[index],
+                    sizeof(Object_Description[index]),
+                    char_string);
+                if (!status) {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+            }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    }
+
+    return status;
+}
+
+
 bool Multistate_Input_Object_Name(
     uint32_t object_instance,
     BACNET_CHARACTER_STRING * object_name)
@@ -292,6 +337,44 @@ bool Multistate_Input_Name_Set(
             for (i = 0; i < sizeof(Object_Name[index]); i++) {
                 Object_Name[index][i] = 0;
             }
+        }
+    }
+
+    return status;
+}
+
+static bool Multistate_Input_Object_Name_Write(
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *char_string,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    size_t length = 0;
+    uint8_t encoding = 0;
+    bool status = false;        /* return value */
+
+    index = Multistate_Input_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_INPUTS) {
+        length = characterstring_length(char_string);
+        if (length <= sizeof(Object_Name[index])) {
+            encoding = characterstring_encoding(char_string);
+            if (encoding == CHARACTER_UTF8) {
+                status = characterstring_ansi_copy(
+                    Object_Name[index],
+                    sizeof(Object_Name[index]),
+                    char_string);
+                if (!status) {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+            }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
     }
 
@@ -347,6 +430,49 @@ bool Multistate_Input_State_Text_Set(
     return status;;
 }
 
+static bool Multistate_Input_State_Text_Write(
+    uint32_t object_instance,
+    uint32_t state_index,
+    BACNET_CHARACTER_STRING *char_string,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    size_t length = 0;
+    uint8_t encoding = 0;
+    bool status = false;        /* return value */
+
+    index = Multistate_Input_Instance_To_Index(object_instance);
+    if ((index < MAX_MULTISTATE_INPUTS) && (state_index > 0) &&
+        (state_index <= Multistate_Input_Max_States(object_instance))) {
+        state_index--;
+        length = characterstring_length(char_string);
+        if (length <= sizeof(State_Text[index][state_index])) {
+            encoding = characterstring_encoding(char_string);
+            if (encoding == CHARACTER_UTF8) {
+                status = characterstring_ansi_copy(
+                    State_Text[index][state_index],
+                    sizeof(State_Text[index][state_index]),
+                    char_string);
+                if (!status) {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+            }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Multistate_Input_Read_Property(
@@ -358,6 +484,7 @@ int Multistate_Input_Read_Property(
     BACNET_CHARACTER_STRING char_string;
     uint32_t present_value = 0;
     unsigned i = 0;
+    uint32_t max_states = 0;
     bool state = false;
     uint8_t *apdu = NULL;
 
@@ -423,18 +550,19 @@ int Multistate_Input_Read_Property(
         case PROP_NUMBER_OF_STATES:
             apdu_len =
                 encode_application_unsigned(&apdu[apdu_len],
-                MULTISTATE_NUMBER_OF_STATES);
+                Multistate_Input_Max_States(rpdata->object_instance));
             break;
         case PROP_STATE_TEXT:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of elements in the array */
                 apdu_len =
                     encode_application_unsigned(&apdu[0],
-                    MULTISTATE_NUMBER_OF_STATES);
+                    Multistate_Input_Max_States(rpdata->object_instance));
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
-                for (i = 1; i <= MULTISTATE_NUMBER_OF_STATES; i++) {
+                max_states = Multistate_Input_Max_States(rpdata->object_instance);
+                for (i = 1; i <= max_states; i++) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
                             i));
@@ -453,7 +581,8 @@ int Multistate_Input_Read_Property(
                     }
                 }
             } else {
-                if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
+                max_states = Multistate_Input_Max_States(rpdata->object_instance);
+                if (rpdata->array_index <= max_states) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
                             rpdata->array_index));
@@ -490,27 +619,54 @@ bool Multistate_Input_Write_Property(
 {
     bool status = false;        /* return value */
     int len = 0;
+    int element_len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    uint32_t max_states = 0;
+    uint32_t array_index = 0;
 
-    /* decode the some of the request */
+    /* decode the first chunk of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
-    /* FIXME: len < application_data_len: more data? */
+    /* len < application_data_len: extra data for arrays only */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    /*  only array properties can have array options */
     if ((wp_data->object_property != PROP_STATE_TEXT) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                status = Multistate_Input_Object_Name_Write(
+                    wp_data->object_instance,
+                    &value.type.Character_String,
+                    &wp_data->error_class,
+                    &wp_data->error_code);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_DESCRIPTION:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                status = Multistate_Input_Description_Write(
+                    wp_data->object_instance,
+                    &value.type.Character_String,
+                    &wp_data->error_class,
+                    &wp_data->error_code);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
         case PROP_PRESENT_VALUE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
@@ -534,14 +690,68 @@ bool Multistate_Input_Write_Property(
                     value.type.Boolean);
             }
             break;
+        case PROP_STATE_TEXT:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                if (wp_data->array_index == 0) {
+                    /* Array element zero is the number of
+                       elements in the array.  We have a fixed
+                       size array, so we are read-only. */
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
+                    max_states = Multistate_Input_Max_States(
+                        wp_data->object_instance);
+                    array_index = 1;
+                    element_len = len;
+                    do {
+                        if (element_len) {
+                            status = Multistate_Input_State_Text_Write(
+                                wp_data->object_instance,
+                                array_index,
+                                &value.type.Character_String,
+                                &wp_data->error_class,
+                                &wp_data->error_code);
+                        }
+                        max_states--;
+                        array_index++;
+                        if (max_states) {
+                            element_len = bacapp_decode_application_data(
+                                &wp_data->application_data[len],
+                                wp_data->application_data_len-len,
+                                &value);
+                            if (element_len < 0) {
+                                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                                break;
+                            }
+                            len += element_len;
+                        }
+                    } while (max_states);
+                } else {
+                    max_states = Multistate_Input_Max_States(
+                        wp_data->object_instance);
+                    if (wp_data->array_index <= max_states) {
+                        status = Multistate_Input_State_Text_Write(
+                            wp_data->object_instance,
+                            wp_data->array_index,
+                            &value.type.Character_String,
+                            &wp_data->error_class,
+                            &wp_data->error_code);
+                    } else {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    }
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
         case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
         case PROP_OBJECT_TYPE:
         case PROP_STATUS_FLAGS:
         case PROP_EVENT_STATE:
         case PROP_NUMBER_OF_STATES:
-        case PROP_DESCRIPTION:
-        case PROP_STATE_TEXT:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
