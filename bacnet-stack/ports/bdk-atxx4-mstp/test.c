@@ -37,6 +37,10 @@
 /* me */
 #include "test.h"
 
+#ifndef BDK_VERSION
+#define BDK_VERSION 4
+#endif
+
 /* timer for test task */
 static struct itimer Test_Timer;
 /* MAC Address of MS/TP */
@@ -52,7 +56,11 @@ void test_init(
 #endif
     timer_interval_start_seconds(&Test_Timer, 1);
     /* configure a port pin as output */
+#if (BDK_VERSION==4)
+    BIT_SET(DDRD, DDB5);
+#else
     BIT_SET(DDRB, DDB0);
+#endif
 }
 
 /*************************************************************************
@@ -63,7 +71,11 @@ void test_init(
 static inline void test_pin_on(
     void)
 {
+#if (BDK_VERSION==4)
+    BIT_SET(PORTD, PD5);
+#else
     BIT_SET(PORTB, PB0);
+#endif
 }
 
 /*************************************************************************
@@ -74,7 +86,11 @@ static inline void test_pin_on(
 static inline void test_pin_off(
     void)
 {
+#if (BDK_VERSION==4)
+    BIT_CLEAR(PORTD, PD5);
+#else
     BIT_CLEAR(PORTB, PB0);
+#endif
 }
 
 /*************************************************************************
@@ -85,7 +101,11 @@ static inline void test_pin_off(
 static inline bool test_pin_state(
     void)
 {
+#if (BDK_VERSION==4)
+    return (BIT_CHECK(PIND, PD5));
+#else
     return (BIT_CHECK(PINB, PB0));
+#endif
 }
 
 /*************************************************************************
