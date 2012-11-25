@@ -26,6 +26,10 @@
 #include "timer.h"
 #include "led.h"
 
+#ifndef BDK_VERSION
+#define BDK_VERSION 4
+#endif
+
 static struct itimer Off_Delay_Timer[MAX_LEDS];
 
 /*************************************************************************
@@ -44,10 +48,18 @@ void led_on(
             BIT_SET(PORTD, PD6);
             break;
         case 2:
+#if (BDK_VERSION==4)
+            BIT_SET(PORTB, PB0);
+#else
             BIT_SET(PORTC, PC7);
+#endif
             break;
         case 3:
+#if (BDK_VERSION==4)
+            BIT_SET(PORTB, PB4);
+#else
             BIT_SET(PORTC, PC6);
+#endif
             break;
         default:
             break;
@@ -73,10 +85,18 @@ void led_off(
             BIT_CLEAR(PORTD, PD6);
             break;
         case 2:
+#if (BDK_VERSION==4)
+            BIT_CLEAR(PORTB, PB0);
+#else
             BIT_CLEAR(PORTC, PC7);
+#endif
             break;
         case 3:
+#if (BDK_VERSION==4)
+            BIT_CLEAR(PORTB, PB4);
+#else
             BIT_CLEAR(PORTC, PC6);
+#endif
             break;
         default:
             break;
@@ -100,9 +120,17 @@ bool led_state(
         case 1:
             return (BIT_CHECK(PIND, PIND6));
         case 2:
+#if (BDK_VERSION==4)
+            return (BIT_CHECK(PINB, PINC0));
+#else
             return (BIT_CHECK(PINC, PINC7));
+#endif
         case 3:
+#if (BDK_VERSION==4)
+            return (BIT_CHECK(PINB, PINC4));
+#else
             return (BIT_CHECK(PINC, PINC6));
+#endif
         default:
             break;
     }
@@ -183,10 +211,15 @@ void led_init(
     uint8_t i;  /* loop counter */
 
     /* configure the port pins as outputs */
-    BIT_SET(DDRC, DDC7);
-    BIT_SET(DDRC, DDC6);
     BIT_SET(DDRD, DDD7);
     BIT_SET(DDRD, DDD6);
+#if (BDK_VERSION==4)
+    BIT_SET(DDRB, DDB0);
+    BIT_SET(DDRB, DDB4);
+#else
+    BIT_SET(DDRC, DDC7);
+    BIT_SET(DDRC, DDC6);
+#endif
     for (i = 0; i < MAX_LEDS; i++) {
         led_on_interval(i, 500);
     }

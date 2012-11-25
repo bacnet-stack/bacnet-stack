@@ -52,7 +52,7 @@ ifeq (${JTAG},jtag2fast)
 AVRDUDE_PROGRAMMERID = jtag2fast
 endif
 ifndef JTAG
-AVRDUDE_PROGRAMMERID = jtag2fast
+AVRDUDE_PROGRAMMERID = dragon_jtag
 endif
 #
 # port--serial or parallel port to which your
@@ -171,6 +171,12 @@ ifeq (${SEEPROM},128)
 DEFINES += -DSEEPROM_PAGE_SIZE=64
 DEFINES += -DSEEPROM_WORD_ADDRESS_16BIT=1
 endif
+ifeq (${BDK_VERSION},3)
+DEFINES += -DBDK_VERSION=3
+endif
+
+#ifdef
+
 
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
