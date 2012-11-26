@@ -29,6 +29,10 @@
 /* me */
 #include "input.h"
 
+#ifndef BDK_VERSION
+#define BDK_VERSION 4
+#endif
+
 static uint8_t Address_Switch;
 static uint8_t Buttons;
 static struct itimer Debounce_Timer;
@@ -96,8 +100,14 @@ void input_task(
             Address_Switch = old_address;
         }
         old_address = value;
+#if (BDK_VERSION==4)
+        /* pins used are PB3, PB2, PB1 */
+        value = BITMASK_CHECK(PINB, 0x0E);
+        value >>= 1;
+#else
         /* pins used are PB4, PB3, PB2, PB1, PB0 */
         value = BITMASK_CHECK(PINB, 0x1F);
+#endif
         if (value == old_buttons) {
             /* stable value */
             Buttons = old_buttons;
@@ -113,6 +123,12 @@ uint8_t input_address(
     void)
 {
     return Address_Switch;
+}
+
+uint8_t input_rotary_value(
+    uint8_t index)
+{
+    return Buttons;
 }
 
 bool input_button_value(
@@ -163,10 +179,16 @@ void input_init(
     BIT_SET(PORTA, PORTA4);
     BIT_SET(PORTA, PORTA5);
     BIT_SET(PORTA, PORTA6);
-    /* configure the port pins for binary inputs */
+    /* configure the port pins for rotary switch inputs */
+#if (BDK_VERSION==4)
+    BIT_CLEAR(DDRB, DDB1);
+    BIT_CLEAR(DDRB, DDB2);
+    BIT_CLEAR(DDRB, DDB3);
+#else
     BIT_CLEAR(DDRB, DDB1);
     BIT_CLEAR(DDRB, DDB2);
     BIT_CLEAR(DDRB, DDB3);
     BIT_CLEAR(DDRB, DDB4);
+#endif
     timer_interval_start(&Debounce_Timer, 30);
 }
