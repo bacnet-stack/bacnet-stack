@@ -38,7 +38,8 @@ extern "C" {
         void);
     bool input_button_value(
         uint8_t index);
-
+    uint8_t input_rotary_value(
+        uint8_t index);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
