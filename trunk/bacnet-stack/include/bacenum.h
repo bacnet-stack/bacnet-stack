@@ -250,10 +250,7 @@ typedef enum {
     PROP_SHED_LEVEL_DESCRIPTIONS = 220,
     PROP_SHED_LEVELS = 221,
     PROP_STATE_DESCRIPTION = 222,
-    /* enumerations 223-225 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-    PROP_FADE_TIME = 223,
-    PROP_LIGHTING_COMMAND = 224,
-    PROP_LIGHTING_COMMAND_PRIORITY = 225,
+    /* enumerations 223-225 are unassigned  */
     /* enumerations 226-235 are used in Addendum f to ANSI/ASHRAE 135-2004 */
     PROP_DOOR_ALARM_STATE = 226,
     PROP_DOOR_EXTENDED_PULSE_TIME = 227,
@@ -265,15 +262,7 @@ typedef enum {
     PROP_LOCK_STATUS = 233,
     PROP_MASKED_ALARM_VALUES = 234,
     PROP_SECURED_STATUS = 235,
-    /* enumerations 236-243 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-    PROP_OFF_DELAY = 236,
-    PROP_ON_DELAY = 237,
-    PROP_POWER = 238,
-    PROP_POWER_ON_VALUE = 239,
-    PROP_PROGRESS_VALUE = 240,
-    PROP_RAMP_RATE = 241,
-    PROP_STEP_INCREMENT = 242,
-    PROP_SYSTEM_FAILURE_VALUE = 243,
+    /* enumerations 236-243 are unassigned  */
     /* enumerations 244-311 are used in Addendum j to ANSI/ASHRAE 135-2004 */
     PROP_ABSENTEE_LIMIT = 244,
     PROP_ACCESS_ALARM_EVENTS = 245,
@@ -379,19 +368,53 @@ typedef enum {
     PROP_COVU_PERIOD = 349,
     PROP_COVU_RECIPIENTS = 350,
     PROP_EVENT_MESSAGE_TEXTS = 351,
+    /* enumerations 352-363 are defined in Addendum 2010-af */
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG = 352,
+    PROP_EVENT_DETECTION_ENABLE = 353,
+    PROP_EVENT_ALGORITHM_INHIBIT = 354,
+    PROP_EVENT_ALGORITHM_INHIBIT_REF = 355,
+    PROP_TIME_DELAY_NORMAL = 356,
+    PROP_RELIABILITY_EVALUATION_INHIBIT = 357,
+    PROP_FAULT_PARAMETERS = 358,
+    PROP_FAULT_TYPE = 359,
+    PROP_LOCAL_FORWARDING_ONLY = 360,
+    PROP_PROCESS_IDENTIFIER_FILTER = 361,
+    PROP_SUBSCRIBED_RECIPIENTS = 362,
+    PROP_PORT_FILTER = 363,
+    /* enumeration 364 is defined in Addendum 2010-ae */
+    PROP_AUTHORIZATION_EXEMPTIONS = 364,
+    /* enumerations 365-370 are defined in Addendum 2010-aa */
+    PROP_ALLOW_GROUP_DELAY_INHIBIT = 365,
+    PROP_CHANNEL_NUMBER = 366,
+    PROP_CONTROL_GROUPS = 367,
+    PROP_EXECUTION_DELAY = 368,
+    PROP_LAST_PRIORITY = 369,
+    PROP_WRITE_STATUS = 370,
+    /* enumeration 371 is defined in Addendum 2010-ao */
+    PROP_PROPERTY_LIST = 371,
     /* enumeration 372 is defined in Addendum 2010-ak */
     PROP_SERIAL_NUMBER = 372,
+    /* enumerations 373-386 are defined in Addendum 2010-i */
+    PROP_BLINK_WARN_ENABLE = 373,
+    PROP_DEFAULT_FADE_TIME = 374,
+    PROP_DEFAULT_RAMP_RATE = 375,
+    PROP_DEFAULT_STEP_INCREMENT = 376,
+    PROP_EGRESS_TIMER = 377,
+    PROP_IN_PROGRESS = 378,
+    PROP_INSTANTANEOUS_POWER = 379,
+    PROP_LIGHTING_COMMAND = 380,
+    PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY = 381,
+    PROP_MAX_ACTUAL_VALUE = 382,
+    PROP_MIN_ACTUAL_VALUE = 383,
+    PROP_POWER = 384,
+    PROP_TRANSITION = 385,
+    PROP_EGRESS_ACTIVE = 386
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
     /* Enumerated values 512-4194303 may be used by others subject to the  */
     /* procedures and constraints described in Clause 23.  */
-    /* enumerations used to test Addendum i to ANSI/ASHRAE 135-2008 - private */
-    PROP_BLINK_PRIORITY_THRESHOLD = 4201,
-    PROP_BLINK_TIME = 4202,
-    PROP_BINARY_ACTIVE_VALUE = 4203,
-    PROP_BINARY_INACTIVE_VALUE = 4204
 } BACNET_PROPERTY_ID;
 
 /* do the MAX as define rather than enumeration for devices
@@ -916,7 +939,7 @@ typedef enum {
     OBJECT_LOAD_CONTROL = 28,
     OBJECT_STRUCTURED_VIEW = 29,
     OBJECT_ACCESS_DOOR = 30,
-    OBJECT_LIGHTING_OUTPUT = 31,
+    /* 31 was lighting output, but BACnet editor changed it... */
     OBJECT_ACCESS_CREDENTIAL = 32,      /* Addendum 2008-j */
     OBJECT_ACCESS_POINT = 33,
     OBJECT_ACCESS_RIGHTS = 34,
@@ -925,17 +948,21 @@ typedef enum {
     OBJECT_CREDENTIAL_DATA_INPUT = 37,  /* authentication-factor-input */
     OBJECT_NETWORK_SECURITY = 38,       /* Addendum 2008-g */
     OBJECT_BITSTRING_VALUE = 39,        /* Addendum 2008-w */
-    OBJECT_CHARACTERSTRING_VALUE = 40,
-    OBJECT_DATE_PATTERN_VALUE = 41,
-    OBJECT_DATE_VALUE = 42,
-    OBJECT_DATETIME_PATTERN_VALUE = 43,
-    OBJECT_DATETIME_VALUE = 44,
-    OBJECT_INTEGER_VALUE = 45,
-    OBJECT_LARGE_ANALOG_VALUE = 46,
-    OBJECT_OCTETSTRING_VALUE = 47,
-    OBJECT_POSITIVE_INTEGER_VALUE = 48,
-    OBJECT_TIME_PATTERN_VALUE = 49,
-    OBJECT_TIME_VALUE = 50,
+    OBJECT_CHARACTERSTRING_VALUE = 40,  /* Addendum 2008-w */
+    OBJECT_DATE_PATTERN_VALUE = 41,     /* Addendum 2008-w */
+    OBJECT_DATE_VALUE = 42,     /* Addendum 2008-w */
+    OBJECT_DATETIME_PATTERN_VALUE = 43, /* Addendum 2008-w */
+    OBJECT_DATETIME_VALUE = 44, /* Addendum 2008-w */
+    OBJECT_INTEGER_VALUE = 45,  /* Addendum 2008-w */
+    OBJECT_LARGE_ANALOG_VALUE = 46,     /* Addendum 2008-w */
+    OBJECT_OCTETSTRING_VALUE = 47,      /* Addendum 2008-w */
+    OBJECT_POSITIVE_INTEGER_VALUE = 48, /* Addendum 2008-w */
+    OBJECT_TIME_PATTERN_VALUE = 49,     /* Addendum 2008-w */
+    OBJECT_TIME_VALUE = 50,     /* Addendum 2008-w */
+    OBJECT_NOTIFICATION_FORWARDER = 51, /* Addendum 2010-af */
+    OBJECT_ALERT_ENROLLMENT = 52,       /* Addendum 2010-af */
+    OBJECT_CHANNEL = 53,        /* Addendum 2010-aa */
+    OBJECT_LIGHTING_OUTPUT = 54,        /* Addendum 2010-i */
     /* used for bit string loop */
     PROPRIETARY_BACNET_OBJECT_TYPE = 128,
     MAX_BACNET_OBJECT_TYPE = 1024
@@ -1065,12 +1092,14 @@ typedef enum {
     SERVICE_UNCONFIRMED_WHO_HAS = 7,
     SERVICE_UNCONFIRMED_WHO_IS = 8,
     SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION = 9,
+    /* addendum 2010-aa */
+    SERVICE_UNCONFIRMED_WRITE_GROUP = 10,
     /* Other services to be added as they are defined. */
     /* All choice values in this production are reserved */
     /* for definition by ASHRAE. */
     /* Proprietary extensions are made by using the */
     /* UnconfirmedPrivateTransfer service. See Clause 23. */
-    MAX_BACNET_UNCONFIRMED_SERVICE = 10
+    MAX_BACNET_UNCONFIRMED_SERVICE = 11
 } BACNET_UNCONFIRMED_SERVICE;
 
 /* Bit String Enumerations */
@@ -1099,6 +1128,7 @@ typedef enum {
     SERVICE_SUPPORTED_READ_RANGE = 35,
     SERVICE_SUPPORTED_WRITE_PROPERTY = 15,
     SERVICE_SUPPORTED_WRITE_PROP_MULTIPLE = 16,
+    SERVICE_SUPPORTED_WRITE_GROUP = 40,
     /* Remote Device Management Services */
     SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL = 17,
     SERVICE_SUPPORTED_PRIVATE_TRANSFER = 18,
@@ -1121,9 +1151,9 @@ typedef enum {
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
     SERVICE_SUPPORTED_WHO_IS = 34
-    /* Other services to be added as they are defined. */
-    /* All values in this production are reserved */
-    /* for definition by ASHRAE. */
+        /* Other services to be added as they are defined. */
+        /* All values in this production are reserved */
+        /* for definition by ASHRAE. */
 } BACNET_SERVICES_SUPPORTED;
 
 typedef enum {

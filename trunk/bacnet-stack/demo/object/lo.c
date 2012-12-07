@@ -25,10 +25,7 @@
 
 /* Lighting Output Objects - customize for your use */
 
-/* WARNING!  This object is still BACnet DRAFT status!
-   If you need to implement in a real product, you will
-   need to modify the new OBJECT type and properties to
-   be in the proprietrary range to be BACnet compliant */
+/* FIXME:  This object was written to the BACnet DRAFT addendum. */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -331,7 +328,7 @@ bool Lighting_Output_Present_Value_Relinquish(
     return status;
 }
 
-float Lighting_Output_Progress_Value(
+float Lighting_Output_Tracking_Value(
     uint32_t object_instance)
 {
     float value = LIGHTING_RELINQUISH_DEFAULT;
@@ -403,9 +400,9 @@ int Lighting_Output_Read_Property(
                 Lighting_Output_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
-        case PROP_PROGRESS_VALUE:
+        case PROP_TRACKING_VALUE:
             real_value =
-                Lighting_Output_Progress_Value(rpdata->object_instance);
+                Lighting_Output_Tracking_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_LIGHTING_COMMAND:
