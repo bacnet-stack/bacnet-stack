@@ -38,25 +38,65 @@
 /* This stack implements this version of BACnet */
 #define BACNET_PROTOCOL_VERSION 1
 /* Although this stack can implement a later revision,
- * sometimes another revision is required */
+ * sometimes another revision is desired */
 #ifndef BACNET_PROTOCOL_REVISION
 #define BACNET_PROTOCOL_REVISION 12
 #endif
 
 /* there are a few dependencies on the BACnet Protocol-Revision */
-#if (BACNET_PROTOCOL_REVISION == 9)
+#if (BACNET_PROTOCOL_REVISION == 0)
+    #define MAX_ASHRAE_OBJECT_TYPE 18
+    #define MAX_BACNET_SERVICES_SUPPORTED 35
+#elif (BACNET_PROTOCOL_REVISION == 1)
+    #define MAX_ASHRAE_OBJECT_TYPE 21
+    #define MAX_BACNET_SERVICES_SUPPORTED 37
+#elif (BACNET_PROTOCOL_REVISION == 2)
+    /* from 135-2001 version of the BACnet Standard */
+    #define MAX_ASHRAE_OBJECT_TYPE 23
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 3)
+    #define MAX_ASHRAE_OBJECT_TYPE 23
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 4)
+    /* from 135-2004 version of the BACnet Standard */
+    #define MAX_ASHRAE_OBJECT_TYPE 25
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 5)
+    #define MAX_ASHRAE_OBJECT_TYPE 30
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 6)
+    #define MAX_ASHRAE_OBJECT_TYPE 31
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 7)
+    #define MAX_ASHRAE_OBJECT_TYPE 31
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 8)
+    #define MAX_ASHRAE_OBJECT_TYPE 31
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 9)
     /* from 135-2008 version of the BACnet Standard */
     #define MAX_ASHRAE_OBJECT_TYPE 38
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 10)
+    #define MAX_ASHRAE_OBJECT_TYPE 51
+    #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 11)
+    #define MAX_ASHRAE_OBJECT_TYPE 51
     #define MAX_BACNET_SERVICES_SUPPORTED 40
 #elif (BACNET_PROTOCOL_REVISION == 12)
     /* from 135-2010 version of the BACnet Standard */
     #define MAX_ASHRAE_OBJECT_TYPE 51
     #define MAX_BACNET_SERVICES_SUPPORTED 40
-#else
-    #define MAX_ASHRAE_OBJECT_TYPE 51
+#elif (BACNET_PROTOCOL_REVISION == 13)
+    #define MAX_ASHRAE_OBJECT_TYPE 53
     #define MAX_BACNET_SERVICES_SUPPORTED 40
+#elif (BACNET_PROTOCOL_REVISION == 14)
+    /* from 135-2012 version of the BACnet Standard */
+    #define MAX_ASHRAE_OBJECT_TYPE 55
+    #define MAX_BACNET_SERVICES_SUPPORTED 41
+#else
+#error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif
-
 
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
