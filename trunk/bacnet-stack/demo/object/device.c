@@ -194,7 +194,7 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
-#if 0        
+#if 0
     {OBJECT_CHARACTERSTRING_VALUE,
             CharacterString_Value_Init,
             CharacterString_Value_Count,
@@ -210,7 +210,7 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
-#endif        
+#endif
 #if defined(INTRINSIC_REPORTING)
     {OBJECT_NOTIFICATION_CLASS,
             Notification_Class_Init,
@@ -304,7 +304,7 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
-#endif        
+#endif
     {OBJECT_TRENDLOG,
             Trend_Log_Init,
             Trend_Log_Count,
@@ -1025,7 +1025,7 @@ bool Device_Valid_Object_Name(
     struct object_functions *pObject = NULL;
 
     max_objects = Device_Object_List_Count();
-    for (i = 0; i < max_objects; i++) {
+    for (i = 1; i <= max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
             pObject = Device_Objects_Find_Functions(type);

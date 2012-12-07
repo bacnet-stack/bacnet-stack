@@ -547,7 +547,7 @@ bool Device_Valid_Object_Name(
     char *name = NULL;
 
     max_objects = Device_Object_List_Count();
-    for (i = 0; i < max_objects; i++) {
+    for (i = 1; i <= max_objects; i++) {
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
             name = Device_Valid_Object_Id(type, instance);
