@@ -107,6 +107,9 @@ INDTEXT_DATA bacnet_unconfirmed_service_names[] = {
     {SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
         "UTC-Time-Synchronization"}
     ,
+    {SERVICE_UNCONFIRMED_WRITE_GROUP,
+        "Write-Group"}
+    ,
     {0, NULL}
 };
 
@@ -263,10 +266,18 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_TIME_VALUE, "Time Value"}
     ,
+    {OBJECT_NOTIFICATION_FORWARDER, "Notification Forwarder"}
+    ,
+    {OBJECT_ALERT_ENROLLMENT, "Alert Enrollment"}
+    ,
+    {OBJECT_CHANNEL, "Channel"}
+    ,
+    {OBJECT_LIGHTING_OUTPUT, "Lighting Output"}
+    ,
     {0, NULL}
-/* Enumerated values 0-127 are reserved for definition by ASHRAE.
-   Enumerated values 128-1023 may be used by others subject to
-   the procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-127 are reserved for definition by ASHRAE.
+       Enumerated values 128-1023 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
 };
 
 const char *bactext_object_type_name(
@@ -720,12 +731,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_STATE_DESCRIPTION, "state-description"}
     ,
-    {PROP_FADE_TIME, "fade-time"}
-    ,
-    {PROP_LIGHTING_COMMAND, "lighting-command"}
-    ,
-    {PROP_LIGHTING_COMMAND_PRIORITY, "lighting-command-priority"}
-    ,
     {PROP_DOOR_ALARM_STATE, "door-alarm-state"}
     ,
     {PROP_DOOR_EXTENDED_PULSE_TIME, "door-extended-pulse-time"}
@@ -745,22 +750,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_MASKED_ALARM_VALUES, "masked-alarm-values"}
     ,
     {PROP_SECURED_STATUS, "secured-status"}
-    ,
-    {PROP_OFF_DELAY, "off-delay"}
-    ,
-    {PROP_ON_DELAY, "on-delay"}
-    ,
-    {PROP_POWER, "power"}
-    ,
-    {PROP_POWER_ON_VALUE, "power-on-value"}
-    ,
-    {PROP_PROGRESS_VALUE, "progress-value"}
-    ,
-    {PROP_RAMP_RATE, "ramp-rate"}
-    ,
-    {PROP_STEP_INCREMENT, "step-increment"}
-    ,
-    {PROP_SYSTEM_FAILURE_VALUE, "system-failure-value"}
     ,
     {PROP_ABSENTEE_LIMIT, "absentee-limit"}
     ,
@@ -913,10 +902,6 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_ZONE_TO, "zone-to"}
     ,
-    {PROP_BINARY_ACTIVE_VALUE, "binary-active-value"}
-    ,
-    {PROP_BINARY_INACTIVE_VALUE, "binary-inactive-value"}
-    ,
     {PROP_VERIFICATION_TIME, "verification-time"}
     ,
     {PROP_BASE_DEVICE_SECURITY_POLICY, "base-device-security-policy"}
@@ -970,7 +955,75 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_EVENT_MESSAGE_TEXTS, "event-message-texts"}
     ,
+    {PROP_EVENT_MESSAGE_TEXTS_CONFIG, "event-message-texts-config"}
+    ,
+    {PROP_EVENT_DETECTION_ENABLE, "event-detection-enable"}
+    ,
+    {PROP_EVENT_ALGORITHM_INHIBIT, "event-algorithm-inhibit"}
+    ,
+    {PROP_EVENT_ALGORITHM_INHIBIT_REF, "event-algorithm-inhibit-ref"}
+    ,
+    {PROP_TIME_DELAY_NORMAL, "time-delay-normal"}
+    ,
+    {PROP_RELIABILITY_EVALUATION_INHIBIT, "reliability-evaluation-inhibit"}
+    ,
+    {PROP_FAULT_PARAMETERS, "fault-parameters"}
+    ,
+    {PROP_FAULT_TYPE, "fault-type"}
+    ,
+    {PROP_LOCAL_FORWARDING_ONLY, "local-forwarding-only"}
+    ,
+    {PROP_PROCESS_IDENTIFIER_FILTER, "process-identifier-filter"}
+    ,
+    {PROP_SUBSCRIBED_RECIPIENTS, "subscribed-recipients"}
+    ,
+    {PROP_PORT_FILTER, "port-filter"}
+    ,
+    {PROP_AUTHORIZATION_EXEMPTIONS, "authorization-exemptions"}
+    ,
+    {PROP_ALLOW_GROUP_DELAY_INHIBIT, "allow-group-delay-inhibit"}
+    ,
+    {PROP_CHANNEL_NUMBER, "channel-number"}
+    ,
+    {PROP_CONTROL_GROUPS, "control-groups"}
+    ,
+    {PROP_EXECUTION_DELAY, "execution-delay"}
+    ,
+    {PROP_LAST_PRIORITY, "last-priority"}
+    ,
+    {PROP_WRITE_STATUS, "write-status"}
+    ,
+    {PROP_PROPERTY_LIST, "property-list"}
+    ,
     {PROP_SERIAL_NUMBER, "serial-number"}
+    ,
+    {PROP_BLINK_WARN_ENABLE, "blink-warn-enable"}
+    ,
+    {PROP_DEFAULT_FADE_TIME, "default-fade-time"}
+    ,
+    {PROP_DEFAULT_RAMP_RATE, "default-ramp-rate"}
+    ,
+    {PROP_DEFAULT_STEP_INCREMENT, "default-step-increment"}
+    ,
+    {PROP_EGRESS_TIMER, "egress-timer"}
+    ,
+    {PROP_IN_PROGRESS, "in-progress"}
+    ,
+    {PROP_INSTANTANEOUS_POWER, "instantaneous-power"}
+    ,
+    {PROP_LIGHTING_COMMAND, "lighting-command"}
+    ,
+    {PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY, "lighting-command-default-priority"}
+    ,
+    {PROP_MAX_ACTUAL_VALUE, "max-actual-value"}
+    ,
+    {PROP_MIN_ACTUAL_VALUE, "min-actual-value"}
+    ,
+    {PROP_POWER, "power"}
+    ,
+    {PROP_TRANSITION, "transition"}
+    ,
+    {PROP_EGRESS_ACTIVE, "egress-active"}
     ,
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
