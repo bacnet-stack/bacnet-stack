@@ -250,7 +250,7 @@ void MSTP_Create_And_Send_Frame(
 void MSTP_Receive_Frame_FSM(
     volatile struct mstp_port_struct_t *mstp_port)
 {
-    static MSTP_RECEIVE_STATE receive_state = MSTP_RECEIVE_STATE_IDLE;
+    MSTP_RECEIVE_STATE receive_state = mstp_port->receive_state;
     printf_receive
         ("MSTP Rx: State=%s Data=%02X hCRC=%02X Index=%u EC=%u DateLen=%u Silence=%u\n",
         mstptext_receive_state(mstp_port->receive_state),
@@ -551,7 +551,6 @@ void MSTP_Receive_Frame_FSM(
         printf_receive_data("\n");
         fflush(stderr);
     }
-    receive_state = mstp_port->receive_state;
     return;
 }
 
@@ -566,7 +565,7 @@ bool MSTP_Master_Node_FSM(
     uint16_t my_timeout = 10, ns_timeout = 0, mm_timeout = 0;
     /* transition immediately to the next state */
     bool transition_now = false;
-    static MSTP_MASTER_STATE master_state = MSTP_MASTER_STATE_INITIALIZE;
+    MSTP_MASTER_STATE master_state = mstp_port->master_state;
 
     /* some calculations that several states need */
     next_poll_station =
@@ -575,16 +574,6 @@ bool MSTP_Master_Node_FSM(
         (mstp_port->This_Station + 1) % (mstp_port->Nmax_master + 1);
     next_next_station =
         (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
-    if (mstp_port->master_state != master_state) {
-        master_state = mstp_port->master_state;
-        printf_master
-            ("MSTP: TS=%02X[%02X] NS=%02X[%02X] PS=%02X[%02X] EC=%u TC=%u ST=%u %s\n",
-            mstp_port->This_Station, next_this_station,
-            mstp_port->Next_Station, next_next_station,
-            mstp_port->Poll_Station, next_poll_station, mstp_port->EventCount,
-            mstp_port->TokenCount, mstp_port->SilenceTimer((void*)mstp_port),
-            mstptext_master_state(mstp_port->master_state));
-    }
     switch (mstp_port->master_state) {
         case MSTP_MASTER_STATE_INITIALIZE:
             /* DoneInitializing */
@@ -1090,6 +1079,16 @@ bool MSTP_Master_Node_FSM(
         default:
             mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
             break;
+    }
+    if (mstp_port->master_state != master_state) {
+        /* change of state detected - so print the details for debugging */
+        printf_master
+            ("MSTP: TS=%02X[%02X] NS=%02X[%02X] PS=%02X[%02X] EC=%u TC=%u ST=%u %s\n",
+            mstp_port->This_Station, next_this_station,
+            mstp_port->Next_Station, next_next_station,
+            mstp_port->Poll_Station, next_poll_station, mstp_port->EventCount,
+            mstp_port->TokenCount, mstp_port->SilenceTimer((void*)mstp_port),
+            mstptext_master_state(mstp_port->master_state));
     }
 
     return transition_now;
