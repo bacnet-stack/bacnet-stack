@@ -24,7 +24,9 @@ INCLUDES = $(INCLUDE1) $(INCLUDE2)
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-LIBRARIES=-lc,-lgcc,-lrt,-lm,-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY2=-lc,-lgcc,-lrt,-lm
+LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe
