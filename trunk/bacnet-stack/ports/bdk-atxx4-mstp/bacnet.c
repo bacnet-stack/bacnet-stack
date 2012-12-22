@@ -61,17 +61,24 @@ static bool seeprom_version_test(
     uint16_t version = 0;
     uint16_t id = 0;
     bool status = false;
+    int rv;
 
-    seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *) & id, 2);
-    seeprom_bytes_read(NV_SEEPROM_VERSION_0, (uint8_t *) & version, 2);
+    rv = seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *) & id, 2);
+    if (rv > 0) {
+        rv = seeprom_bytes_read(NV_SEEPROM_VERSION_0, (uint8_t *) & version, 2);
+    }
 
-    if ((id == SEEPROM_ID) && (version == SEEPROM_VERSION)) {
+    if ((rv > 0) && (id == SEEPROM_ID) && (version == SEEPROM_VERSION)) {
         status = true;
-    } else {
+    } else if (rv > 0) {
         version = SEEPROM_VERSION;
         id = SEEPROM_ID;
         seeprom_bytes_write(NV_SEEPROM_TYPE_0, (uint8_t *) & id, 2);
         seeprom_bytes_write(NV_SEEPROM_VERSION_0, (uint8_t *) & version, 2);
+    } else {
+        while (1) {
+            /* SEEPROM is faulty! */
+        }
     }
 
     return status;
