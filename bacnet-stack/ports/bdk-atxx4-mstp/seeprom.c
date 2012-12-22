@@ -108,6 +108,7 @@ int seeprom_bytes_read(
     uint8_t sla, twcr, n = 0;
     int rv = 0;
     uint8_t twst;       /* status - only valid while TWINT is set. */
+    uint16_t timeout = 0xFFFF;
 
 #if SEEPROM_WORD_ADDRESS_16BIT
     /* 16bit address devices need only TWI Device Address */
@@ -125,7 +126,12 @@ int seeprom_bytes_read(
     /* send start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    while ((TWCR & _BV(TWINT)) == 0) {
+        timeout--;
+        if (timeout == 0) {
+            return -1;
+        }
+    }
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
@@ -309,6 +315,7 @@ static int seeprom_bytes_write_page(
     uint16_t endaddr;
     uint8_t twst;       /* status - only valid while TWINT is set. */
     uint16_t page_end_addr;
+    uint16_t timeout = 0xFFFF;
 
     /* limit the length to end of the EEPROM page */
     page_end_addr = eeaddr | (SEEPROM_PAGE_SIZE - 1);
@@ -342,7 +349,12 @@ static int seeprom_bytes_write_page(
     /* send start condition */
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
     /* wait for transmission */
-    while ((TWCR & _BV(TWINT)) == 0);
+    while ((TWCR & _BV(TWINT)) == 0) {
+        timeout--;
+        if (timeout == 0) {
+            return -1;
+        }
+    }
     twst = TWSR & TW_STATUS_MASK;
     switch (twst) {
         case TW_REP_START:
