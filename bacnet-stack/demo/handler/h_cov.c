@@ -305,12 +305,15 @@ static bool cov_list_subscribe(
             /* Out of resources */
             *error_class = ERROR_CLASS_RESOURCES;
             *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+            found = false;
         } else {
-            /* Unable to cancel request - valid object not subscribed */
-            *error_class = ERROR_CLASS_SERVICES;
-            *error_code = ERROR_CODE_UNKNOWN_SUBSCRIPTION;
+            /* cancellationRequest - valid object not subscribed */
+            /* From BACnet Standard 135-2010-13.14.2
+               ...Cancellations that are issued for which no matching COV
+               context can be found shall succeed as if a context had
+               existed, returning 'Result(+)'.*/
+            found = true;
         }
-        found = false;
     }
 
     return found;
