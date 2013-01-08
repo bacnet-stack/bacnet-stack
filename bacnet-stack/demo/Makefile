@@ -73,7 +73,7 @@ TARGETS = all clean
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
-	$(MAKE) -b -C $(subst ., , $@)
+	$(MAKE) -s -b -C $(subst ., , $@)
 
 router:
-	$(MAKE) -b -C router
+	$(MAKE) -s -b -C router
