@@ -29,7 +29,7 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>18</version>
+          <version>19</version>
           <state>37</state>
         </option>
         <option>
@@ -38,8 +38,8 @@
         </option>
         <option>
           <name>Input variant</name>
-          <version>1</version>
-          <state>0</state>
+          <version>3</version>
+          <state>1</state>
         </option>
         <option>
           <name>Input description</name>
@@ -47,8 +47,8 @@
         </option>
         <option>
           <name>Output variant</name>
-          <version>0</version>
-          <state>0</state>
+          <version>2</version>
+          <state>1</state>
         </option>
         <option>
           <name>Output description</name>
@@ -87,7 +87,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>6.10.5.52324</state>
+          <state>6.30.7.53437</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -99,7 +99,7 @@
         </option>
         <option>
           <name>OGChipSelectEditMenu</name>
-          <state>STM32F10xxG	ST STM32F10xxG</state>
+          <state>STM32F103xG	ST STM32F103xG</state>
         </option>
         <option>
           <name>GenLowLevelInterface</name>
@@ -137,17 +137,17 @@
         </option>
         <option>
           <name>GFPUCoreSlave</name>
-          <version>18</version>
+          <version>19</version>
           <state>37</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
-          <version>18</version>
+          <version>19</version>
           <state>37</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>OGUseCmsisDspLib</name>
@@ -159,7 +159,7 @@
       <name>ICCARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>27</version>
+        <version>28</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -392,16 +392,16 @@
           <state>1</state>
         </option>
         <option>
-          <name>IccRelaxedFpPrecision</name>
-          <state>0</state>
-        </option>
-        <option>
           <name>IccCppInlineSemantics</name>
           <state>0</state>
         </option>
         <option>
           <name>IccCmsis</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IccFloatSemantics</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -622,7 +622,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>12</version>
+        <version>15</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -791,10 +791,6 @@
           <state>1</state>
         </option>
         <option>
-          <name>CrcAlgo</name>
-          <state>1</state>
-        </option>
-        <option>
           <name>CrcPoly</name>
           <state>0x11021</state>
         </option>
@@ -872,6 +868,40 @@
           <name>IlinkCmsis</name>
           <state>1</state>
         </option>
+        <option>
+          <name>IlinkOptMergeDuplSections</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>IlinkOptUseVfe</name>
+          <state>1</state>
+        </option>
+        <option>
+          <name>IlinkOptForceVfe</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>IlinkStackAnalysisEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>IlinkStackControlFile</name>
+          <state></state>
+        </option>
+        <option>
+          <name>IlinkStackCallGraphFile</name>
+          <state></state>
+        </option>
+        <option>
+          <name>CrcAlgorithm</name>
+          <version>0</version>
+          <state>1</state>
+        </option>
+        <option>
+          <name>CrcUnitSize</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -928,7 +958,7 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>18</version>
+          <version>19</version>
           <state>37</state>
         </option>
         <option>
@@ -937,8 +967,8 @@
         </option>
         <option>
           <name>Input variant</name>
-          <version>1</version>
-          <state>0</state>
+          <version>3</version>
+          <state>1</state>
         </option>
         <option>
           <name>Input description</name>
@@ -946,8 +976,8 @@
         </option>
         <option>
           <name>Output variant</name>
-          <version>0</version>
-          <state>0</state>
+          <version>2</version>
+          <state>1</state>
         </option>
         <option>
           <name>Output description</name>
@@ -986,7 +1016,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>6.10.5.52324</state>
+          <state>6.30.7.53437</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -998,7 +1028,7 @@
         </option>
         <option>
           <name>OGChipSelectEditMenu</name>
-          <state>STM32F10xxG	ST STM32F10xxG</state>
+          <state>STM32F103xG	ST STM32F103xG</state>
         </option>
         <option>
           <name>GenLowLevelInterface</name>
@@ -1036,17 +1066,17 @@
         </option>
         <option>
           <name>GFPUCoreSlave</name>
-          <version>18</version>
+          <version>19</version>
           <state>37</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
-          <version>18</version>
+          <version>19</version>
           <state>37</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>OGUseCmsisDspLib</name>
@@ -1058,7 +1088,7 @@
       <name>ICCARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>27</version>
+        <version>28</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1292,16 +1322,16 @@
           <state>1</state>
         </option>
         <option>
-          <name>IccRelaxedFpPrecision</name>
-          <state>0</state>
-        </option>
-        <option>
           <name>IccCppInlineSemantics</name>
           <state>0</state>
         </option>
         <option>
           <name>IccCmsis</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IccFloatSemantics</name>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -1522,7 +1552,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>12</version>
+        <version>15</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1691,10 +1721,6 @@
           <state>1</state>
         </option>
         <option>
-          <name>CrcAlgo</name>
-          <state>1</state>
-        </option>
-        <option>
           <name>CrcPoly</name>
           <state>0x11021</state>
         </option>
@@ -1771,6 +1797,40 @@
         <option>
           <name>IlinkCmsis</name>
           <state>1</state>
+        </option>
+        <option>
+          <name>IlinkOptMergeDuplSections</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>IlinkOptUseVfe</name>
+          <state>1</state>
+        </option>
+        <option>
+          <name>IlinkOptForceVfe</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>IlinkStackAnalysisEnable</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>IlinkStackControlFile</name>
+          <state></state>
+        </option>
+        <option>
+          <name>IlinkStackCallGraphFile</name>
+          <state></state>
+        </option>
+        <option>
+          <name>CrcAlgorithm</name>
+          <version>0</version>
+          <state>1</state>
+        </option>
+        <option>
+          <name>CrcUnitSize</name>
+          <version>0</version>
+          <state>0</state>
         </option>
       </data>
     </settings>
@@ -1913,15 +1973,6 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\demo\handler\txbuf.c</name>
-    </file>
-  </group>
-  <group>
-    <name>Cortex-M3</name>
-    <file>
-      <name>$PROJ_DIR$\CMSIS\CM3\CoreSupport\core_cm3.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\CMSIS\CM3\DeviceSupport\ST\STM32F10x\startup\iar\startup_stm32f10x_xl.s</name>
     </file>
   </group>
   <group>
