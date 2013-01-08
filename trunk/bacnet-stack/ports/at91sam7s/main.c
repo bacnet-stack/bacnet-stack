@@ -185,8 +185,7 @@ int main(
     init();
     bacnet_init();
     /* enable interrupts */
-    enableIRQ();
-    enableFIQ();
+    isr_enable();
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* endless blink loop */
