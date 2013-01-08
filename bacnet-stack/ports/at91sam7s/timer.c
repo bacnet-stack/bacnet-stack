@@ -303,7 +303,7 @@ static void Timer0IrqHandler(
 {
 
     volatile AT91PS_TC pTC = AT91C_BASE_TC0;    /* pointer to timer channel 0 register structure */
-    unsigned int dummy; /* temporary */
+    volatile unsigned int dummy; /* temporary */
 
     /* read TC0 Status Register to clear interrupt */
     dummy = pTC->TC_SR;
