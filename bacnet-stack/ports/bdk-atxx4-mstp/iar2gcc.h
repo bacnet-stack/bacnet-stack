@@ -329,6 +329,14 @@ unsigned char __uint8_eeprom_load(
 #define power_timer1_enable()   (PRR0 &= (uint8_t)~(1 << PRTIM1))
 #define power_timer2_enable()   (PRR0 &= (uint8_t)~(1 << PRTIM2))
 #endif
+#if (defined(__GNUC__) && ((__GNUC__ == 4) && (__GNUC_MINOR__ < 5)))
+    #if defined(__AVR_ATmega644P__)
+    /* bug in WinAVR - fixed in later versions */
+    #define power_usart1_enable()   (PRR &= (uint8_t)~(1 << PRUSART1))
+    #elif defined(__AVR_ATmega1284P__)
+    #define power_usart1_enable()   (PRR0 &= (uint8_t)~(1 << PRUSART1))
+    #endif
+#endif
 
 #if defined(__CROSSWORKS_AVR)
 #define inline
