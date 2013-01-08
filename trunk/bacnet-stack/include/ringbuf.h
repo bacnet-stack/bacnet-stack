@@ -49,13 +49,17 @@ extern "C" {
         RING_BUFFER const *b);
     bool Ringbuf_Empty(
         RING_BUFFER const *b);
-    volatile uint8_t *Ringbuf_Get_Front(
+    volatile uint8_t *Ringbuf_Peek(
         RING_BUFFER const *b);
-    volatile uint8_t *Ringbuf_Pop_Front(
-        RING_BUFFER * b);
+    bool Ringbuf_Pop(
+        RING_BUFFER * b,
+        uint8_t *data_element);
     bool Ringbuf_Put(
         RING_BUFFER * b,        /* ring buffer structure */
-        volatile uint8_t * data_element);       /* one element to add to the ring */
+        uint8_t *data_element);    /* one element to add to the ring */
+    bool Ringbuf_Put_Front(
+        RING_BUFFER * b,    /* ring buffer structure */
+        uint8_t *data_element);
     volatile uint8_t *Ringbuf_Alloc(
         RING_BUFFER * b);
     /* Note: element_count must be a power of two */
@@ -64,6 +68,14 @@ extern "C" {
         volatile uint8_t * buffer,      /* data block or array of data */
         unsigned element_size,  /* size of one element in the data block */
         unsigned element_count);        /* number of elements in the data block */
+
+#ifdef TEST
+#include "ctest.h"
+void testRingBufSize16(
+    Test * pTest);
+void testRingBufSize32(
+    Test * pTest);
+#endif
 
 #ifdef __cplusplus
 }

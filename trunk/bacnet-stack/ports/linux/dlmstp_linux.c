@@ -387,7 +387,7 @@ uint16_t MSTP_Get_Send(
 	if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
 		return 0;
 	}
-	pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&poSharedData->PDU_Queue);
+	pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&poSharedData->PDU_Queue);
 	if (pkt->data_expecting_reply) {
 		frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
 	} else {
@@ -397,6 +397,7 @@ uint16_t MSTP_Get_Send(
 	pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
 		mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
 		mstp_port->This_Station, (uint8_t *) & pkt->buffer[0], pkt->length);
+    (void) Ringbuf_Pop(&poSharedData->PDU_Queue, NULL);
 
 	return pdu_len;
 }
@@ -574,7 +575,7 @@ uint16_t MSTP_Get_Reply(
     if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
         return 0;
     }
-    pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&poSharedData->PDU_Queue);
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&poSharedData->PDU_Queue);
     /* is this the reply to the DER? */
     matched =
         dlmstp_compare_data_expecting_reply(&mstp_port->InputBuffer[0],
@@ -583,7 +584,6 @@ uint16_t MSTP_Get_Reply(
     if (!matched) {
         return 0;
     }
-    pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&poSharedData->PDU_Queue);
     if (pkt->data_expecting_reply) {
         frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
     } else {
@@ -593,6 +593,7 @@ uint16_t MSTP_Get_Reply(
     pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
         mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
         mstp_port->This_Station, (uint8_t *) & pkt->buffer[0], pkt->length);
+    (void) Ringbuf_Pop(&poSharedData->PDU_Queue, NULL);
 
     return pdu_len;
 }
