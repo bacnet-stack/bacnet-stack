@@ -763,7 +763,7 @@ static bool MSTP_Master_Node_FSM(
                 transition_now = true;
             } else {
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -790,6 +790,7 @@ static bool MSTP_Master_Node_FSM(
                         Master_State = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                         break;
                 }
+                (void) Ringbuf_Pop(&PDU_Queue, NULL);
             }
             break;
         case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
@@ -1091,7 +1092,7 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
+            pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&PDU_Queue);
             if (pkt != NULL) {
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],
@@ -1109,7 +1110,6 @@ static bool MSTP_Master_Node_FSM(
                 /* then call MSTP_Send_Frame to transmit the reply frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -1117,6 +1117,7 @@ static bool MSTP_Master_Node_FSM(
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
                     (uint8_t *) & pkt->buffer[0], pkt->length);
+                (void) Ringbuf_Pop(&PDU_Queue, NULL);
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
@@ -1180,7 +1181,7 @@ static void MSTP_Slave_Node_FSM(
         }
     } else if (MSTP_Flag.ReceivePacketPending) {
         if (!Ringbuf_Empty(&PDU_Queue)) {
-            pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
+            pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&PDU_Queue);
             matched =
                 dlmstp_compare_data_expecting_reply(&InputBuffer[0],
                 DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
@@ -1194,7 +1195,6 @@ static void MSTP_Slave_Node_FSM(
                 /* then call MSTP_Send_Frame to transmit the reply frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -1202,6 +1202,7 @@ static void MSTP_Slave_Node_FSM(
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
                     (uint8_t *) & pkt->buffer[0], pkt->length);
+                (void) Ringbuf_Pop(&PDU_Queue, NULL);
             }
             /* clear our flag we were holding for comparison */
             MSTP_Flag.ReceivePacketPending = false;

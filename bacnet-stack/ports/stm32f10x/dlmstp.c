@@ -379,7 +379,7 @@ static bool MSTP_Transmit_FSM(
             if (!Ringbuf_Empty(&Transmit_Queue)) {
                 /* get the packet - but don't remove it from queue */
                 pkt = (struct mstp_tx_packet *)
-                    Ringbuf_Get_Front(&Transmit_Queue);
+                    Ringbuf_Peek(&Transmit_Queue);
                 state = MSTP_TX_STATE_SILENCE_WAIT;
             }
             break;
@@ -410,7 +410,7 @@ static bool MSTP_Transmit_FSM(
             if (rs485_byte_sent() && rs485_frame_sent()) {
                 rs485_rts_enable(false);
                 /* remove the packet from the queue */
-                (void) Ringbuf_Pop_Front(&Transmit_Queue);
+                (void) Ringbuf_Pop(&Transmit_Queue, NULL);
                 state = MSTP_TX_STATE_IDLE;
             }
             break;
@@ -873,7 +873,7 @@ static bool MSTP_Master_Node_FSM(
                 transition_now = true;
             } else {
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
+                pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {
@@ -900,6 +900,7 @@ static bool MSTP_Master_Node_FSM(
                         Master_State = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
                         break;
                 }
+                (void) Ringbuf_Pop(&PDU_Queue, NULL);
             }
             break;
         case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
@@ -1206,7 +1207,7 @@ static bool MSTP_Master_Node_FSM(
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            pkt = (struct mstp_pdu_packet *) Ringbuf_Get_Front(&PDU_Queue);
+            pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&PDU_Queue);
             if (pkt != NULL) {
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],
@@ -1224,7 +1225,6 @@ static bool MSTP_Master_Node_FSM(
                 /* then call MSTP_Send_Frame to transmit the reply frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 uint8_t frame_type;
-                pkt = (struct mstp_pdu_packet *) Ringbuf_Pop_Front(&PDU_Queue);
                 if (pkt->data_expecting_reply) {
                     frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                 } else {

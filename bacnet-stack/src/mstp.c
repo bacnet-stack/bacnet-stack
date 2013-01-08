@@ -1239,7 +1239,7 @@ static void Load_Input_Buffer(
     }
     /* empty any the existing data */
     while (!Ringbuf_Empty(&Test_Buffer)) {
-        (void) Ringbuf_Pop_Front(&Test_Buffer);
+        (void) Ringbuf_Pop(&Test_Buffer, NULL);
     }
 
     if (buffer) {
@@ -1257,11 +1257,12 @@ void RS485_Check_UART_Data(
     char *data;
     if (!Ringbuf_Empty(&Test_Buffer) && mstp_port &&
         (mstp_port->DataAvailable == false)) {
-        data = Ringbuf_Pop_Front(&Test_Buffer);
+        data = Ringbuf_Peek(&Test_Buffer);
         if (data) {
             mstp_port->DataRegister = *data;
             mstp_port->DataAvailable = true;
         }
+        (void)Ringbuf_Pop(&Test_Buffer, NULL);
     }
 }
 
