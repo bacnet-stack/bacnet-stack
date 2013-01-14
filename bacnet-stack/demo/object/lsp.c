@@ -361,9 +361,27 @@ bool Life_Safety_Point_Write_Property(
                     value.type.Boolean;
             }
             break;
-        default:
+
+
+
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_NAME:
+        case PROP_DESCRIPTION:
+        case PROP_OBJECT_TYPE:
+        case PROP_PRESENT_VALUE:
+        case PROP_TRACKING_VALUE:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
+        case PROP_RELIABILITY:
+        case PROP_ACCEPTED_MODES:
+        case PROP_SILENCED:
+        case PROP_OPERATION_EXPECTED:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+        default:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 
