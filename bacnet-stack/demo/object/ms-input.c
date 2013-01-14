@@ -653,6 +653,7 @@ bool Multistate_Input_Write_Property(
                     &object_type, &object_instance)) {
                     if ((object_type == wp_data->object_type) &&
                         (object_instance == wp_data->object_instance)) {
+                        /* writing same name to same object */
                         status = true;
                     } else {
                         status = false;
@@ -660,9 +661,6 @@ bool Multistate_Input_Write_Property(
                         wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                     }
                 } else {
-                    status = true;
-                }
-                if (status) {
                     status = Multistate_Input_Object_Name_Write(
                         wp_data->object_instance,
                         &value.type.Character_String,
