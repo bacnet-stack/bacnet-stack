@@ -35,6 +35,7 @@
 #include "config.h"     /* the custom stuff */
 #include "rp.h"
 #include "wp.h"
+#include "device.h"
 #include "ms-input.h"
 #include "handlers.h"
 
@@ -623,6 +624,8 @@ bool Multistate_Input_Write_Property(
     BACNET_APPLICATION_DATA_VALUE value;
     uint32_t max_states = 0;
     uint32_t array_index = 0;
+    int object_type = 0;
+    uint32_t object_instance = 0;
 
     /* decode the first chunk of the request */
     len =
@@ -645,11 +648,27 @@ bool Multistate_Input_Write_Property(
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                status = Multistate_Input_Object_Name_Write(
-                    wp_data->object_instance,
-                    &value.type.Character_String,
-                    &wp_data->error_class,
-                    &wp_data->error_code);
+                /* All the object names in a device must be unique */
+                if (Device_Valid_Object_Name(&value.type.Character_String,
+                    &object_type, &object_instance)) {
+                    if ((object_type == wp_data->object_type) &&
+                        (object_instance == wp_data->object_instance)) {
+                        status = true;
+                    } else {
+                        status = false;
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
+                    }
+                } else {
+                    status = true;
+                }
+                if (status) {
+                    status = Multistate_Input_Object_Name_Write(
+                        wp_data->object_instance,
+                        &value.type.Character_String,
+                        &wp_data->error_class,
+                        &wp_data->error_code);
+                }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
