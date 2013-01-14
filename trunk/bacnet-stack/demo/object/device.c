@@ -1425,6 +1425,8 @@ bool Device_Write_Property_Local(
     bool status = false;        /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    int object_type = 0;
+    uint32_t object_instance = 0;
     int temp;
 
     /* decode the some of the request */
@@ -1515,15 +1517,20 @@ bool Device_Write_Property_Local(
                 characterstring_capacity(&My_Object_Name), false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                /* All the object names in a device must be unique.
-                   Disallow setting the Device Object Name to any objects in
-                   the device. */
+                /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(&value.type.Character_String,
-                        NULL, NULL)) {
-                    status = false;
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
-                } else {
+                    &object_type, &object_instance)) {
+                    if ((object_type == wp_data->object_type) &&
+                        (object_instance == wp_data->object_instance)) {
+                        /* okay to set my name as the same name */
+                        status = true;
+                    } else {
+                        status = false;
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
+                    }
+                }
+                if (status) {
                     Device_Set_Object_Name(&value.type.Character_String);
                 }
             }
