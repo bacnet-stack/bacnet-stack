@@ -1522,15 +1522,14 @@ bool Device_Write_Property_Local(
                     &object_type, &object_instance)) {
                     if ((object_type == wp_data->object_type) &&
                         (object_instance == wp_data->object_instance)) {
-                        /* okay to set my name as the same name */
+                        /* writing same name to same object */
                         status = true;
                     } else {
                         status = false;
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                     }
-                }
-                if (status) {
+                } else {
                     Device_Set_Object_Name(&value.type.Character_String);
                 }
             }
