@@ -1700,6 +1700,12 @@ bool Device_Encode_Value_List(
     return (status);
 }
 
+/** Checks the COV flag in the requested Object
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @param [in] The object instance to be looked up.
+ * @return True if the COV flag is set
+ */
 bool Device_COV(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
@@ -1720,6 +1726,11 @@ bool Device_COV(
     return (status);
 }
 
+/** Clears the COV flag in the requested Object
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @param [in] The object instance to be looked up.
+ */
 void Device_COV_Clear(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
