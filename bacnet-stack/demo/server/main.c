@@ -165,6 +165,9 @@ int main(
     printf("BACnet Server Demo\n" "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
         Device_Object_Instance_Number(), MAX_APDU);
+    /* load any static address bindings to show up
+       in our device bindings list */
+    address_init();
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);
