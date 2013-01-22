@@ -63,7 +63,12 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id);
 
-    int get_alarm_sumary_ack_encode_apdu_data(
+    int get_alarm_summary_ack_encode_apdu_data(
+        uint8_t * apdu,
+        size_t max_apdu,
+        BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
+
+    int get_alarm_summary_ack_decode_apdu_data(
         uint8_t * apdu,
         size_t max_apdu,
         BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
