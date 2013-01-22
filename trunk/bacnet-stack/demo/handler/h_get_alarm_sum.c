@@ -101,7 +101,7 @@ void handler_get_alarm_summary(
                 alarm_value = Get_Alarm_Summary[i] (j, &getalarm_data);
                 if (alarm_value > 0) {
                     len =
-                        get_alarm_sumary_ack_encode_apdu_data
+                        get_alarm_summary_ack_encode_apdu_data
                         (&Handler_Transmit_Buffer[pdu_len + apdu_len],
                         service_data->max_resp - apdu_len, &getalarm_data);
                     if (len <= 0) {
