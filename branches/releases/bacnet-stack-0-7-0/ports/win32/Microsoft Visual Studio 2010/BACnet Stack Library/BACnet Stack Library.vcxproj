@@ -46,7 +46,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..;..\..\..\..\include;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\demo\object;..\..;..\..\..\..\include;H:\Program Files\Microsoft SDKs\Windows\v5.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -75,6 +75,8 @@
     <ClCompile Include="..\..\..\..\demo\handler\h_rr.c" />
     <ClCompile Include="..\..\..\..\demo\handler\h_upt.c" />
     <ClCompile Include="..\..\..\..\demo\handler\h_wpm.c" />
+    <ClCompile Include="..\..\..\..\demo\object\csv.c" />
+    <ClCompile Include="..\..\..\..\demo\object\msv.c" />
     <ClCompile Include="..\..\..\..\src\abort.c" />
     <ClCompile Include="..\..\..\..\src\address.c" />
     <ClCompile Include="..\..\..\..\src\apdu.c" />
