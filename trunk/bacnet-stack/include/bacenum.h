@@ -726,6 +726,20 @@ typedef enum {
 } BACNET_PROGRAM_ERROR;
 
 typedef enum {
+    RESTART_REASON_UNKNOWN = 0,
+    RESTART_REASON_COLDSTART = 1,
+    RESTART_REASON_WARMSTART = 2,
+    RESTART_REASON_DETECTED_POWER_LOST = 3,
+    RESTART_REASON_DETECTED_POWER_OFF = 4,
+    RESTART_REASON_HARDWARE_WATCHDOG = 5,
+    RESTART_REASON_SOFTWARE_WATCHDOG = 6,
+    RESTART_REASON_SUSPENDED = 7
+/* Enumerated values 0-63 are reserved for definition by ASHRAE.
+   Enumerated values 64-255 may be used by others subject to the
+   procedures and constraints described in Clause 23. */
+} BACNET_RESTART_REASON;
+
+typedef enum {
     PROP_STATE_BOOLEAN_VALUE = 0,
     PROP_STATE_BINARY_VALUE = 1,
     PROP_STATE_EVENT_TYPE = 2,
