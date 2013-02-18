@@ -280,6 +280,7 @@ int cov_notify_decode_service_request(
             }
             /* end of list? */
             if (decode_is_closing_tag_number(&apdu[len], 4)) {
+                value->next = NULL;
                 break;
             }
             /* is there another one to decode? */
